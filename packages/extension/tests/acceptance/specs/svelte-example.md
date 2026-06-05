@@ -9,13 +9,13 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-svelte workspace
 
-Then I can see there are 12 nodes and 1 connection
+Then I can see there are 13 nodes and 1 connection
 
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the Svelte plugin on
 Then I see edges
-And I can see there are 12 nodes and 4 connections
+And I can see there are 13 nodes and 4 connections
 
 And src/main.ts points to src/App.svelte
 And src/App.svelte points to src/loadFeature.ts
@@ -29,11 +29,19 @@ Then I see a list of edge types with toggles
 And I toggle the Type imports edge on
 And I close the Graph Scope
 
-Then I can see there are 12 nodes and 6 connections
+Then I can see there are 13 nodes and 7 connections
 And src/App.svelte points to src/types.ts
 And src/components/UserCard.svelte points to src/types.ts
+And src/types.ts points to src/inheritance.ts
 
 And README.md is an orphan node
 And index.html is an orphan node
 And package.json is an orphan node
 And tsconfig.json is an orphan node
+
+When I show only the File node type
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Inherits edge on
+Then the top right of the graph says "1 connection"
+And src/types.ts points to src/inheritance.ts

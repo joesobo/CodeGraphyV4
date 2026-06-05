@@ -79,10 +79,11 @@ And I show only the File node type
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Type imports edge on
-Then the top right of the graph says "3 connections"
+Then the top right of the graph says "4 connections"
 And src/data/users.ts points to src/types.ts
 And src/components/UserCard.vue points to src/types.ts
 And src/components/CounterPanel.vue points to src/types.ts
+And src/types.ts points to src/inheritance.ts
 
 ## Scenario: Loads edges can be shown by themselves
 

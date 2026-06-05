@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-vue workspace
 
-Then I can see there are 15 nodes and 9 connections
+Then I can see there are 16 nodes and 9 connections
 
 When I click the Graph Scope button
 Then I see to buttons for switching views between node type and edge type toggles
@@ -19,7 +19,7 @@ Then I see a list of edge types with toggles
 And I toggle the Type imports edge on
 And I close the Graph Scope
 
-Then I can see there are 15 nodes and 12 connections
+Then I can see there are 16 nodes and 13 connections
 
 And src/main.ts points to src/App.vue
 And src/App.vue points to src/components/CounterPanel.vue
@@ -33,9 +33,17 @@ And src/components/UserCard.vue points to src/types.ts
 And src/components/CounterPanel.vue points to src/components/StatusBadge.vue
 And src/components/CounterPanel.vue points to src/composables/useCounter.ts
 And src/components/CounterPanel.vue points to src/types.ts
+And src/types.ts points to src/inheritance.ts
 
 And README.md is an orphan node
 And .gitignore is an orphan node
 And package.json is an orphan node
 And tsconfig.json is an orphan node
 And vite.config.ts is an orphan node
+
+When I show only the File node type
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Inherits edge on
+Then the top right of the graph says "1 connection"
+And src/types.ts points to src/inheritance.ts

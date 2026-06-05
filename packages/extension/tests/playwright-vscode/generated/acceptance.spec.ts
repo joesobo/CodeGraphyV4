@@ -1288,10 +1288,10 @@ test.describe('Vue Example', () => {
       });
 
       // tests/acceptance/specs/example-vue.md:12
-      await test.step('Then I can see there are 15 nodes and 9 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 9 connections', {
+      await test.step('Then I can see there are 16 nodes and 9 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 9 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 9 connections',
+          text: 'I can see there are 16 nodes and 9 connections',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 12
         });
@@ -1358,10 +1358,10 @@ test.describe('Vue Example', () => {
       });
 
       // tests/acceptance/specs/example-vue.md:22
-      await test.step('Then I can see there are 15 nodes and 12 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 12 connections', {
+      await test.step('Then I can see there are 16 nodes and 13 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 13 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 12 connections',
+          text: 'I can see there are 16 nodes and 13 connections',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 22
         });
@@ -1487,53 +1487,123 @@ test.describe('Vue Example', () => {
         });
       });
 
-      // tests/acceptance/specs/example-vue.md:37
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/example-vue.md:36
+      await test.step('And src/types.ts points to src/inheritance.ts', async () => {
+        await runAcceptanceStep(context, 'src/types.ts points to src/inheritance.ts', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/types.ts points to src/inheritance.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
-          line: 37
+          line: 36
         });
       });
 
       // tests/acceptance/specs/example-vue.md:38
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 38
         });
       });
 
       // tests/acceptance/specs/example-vue.md:39
-      await test.step('And package.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'package.json is an orphan node', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'package.json is an orphan node',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 39
         });
       });
 
       // tests/acceptance/specs/example-vue.md:40
-      await test.step('And tsconfig.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
           keyword: 'And',
-          text: 'tsconfig.json is an orphan node',
+          text: 'package.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 40
         });
       });
 
       // tests/acceptance/specs/example-vue.md:41
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+          keyword: 'And',
+          text: 'tsconfig.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:42
       await test.step('And vite.config.ts is an orphan node', async () => {
         await runAcceptanceStep(context, 'vite.config.ts is an orphan node', {
           keyword: 'And',
           text: 'vite.config.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
-          line: 41
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:44
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:45
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:46
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:47
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:48
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:49
+      await test.step('And src/types.ts points to src/inheritance.ts', async () => {
+        await runAcceptanceStep(context, 'src/types.ts points to src/inheritance.ts', {
+          keyword: 'And',
+          text: 'src/types.ts points to src/inheritance.ts',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 49
         });
       });
 
@@ -2223,10 +2293,10 @@ test.describe('Folder Context Menu', () => {
       });
 
       // tests/acceptance/specs/folder-context-menu.md:11
-      await test.step('And I can see there are 11 nodes and 6 connections displayed', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections displayed', {
+      await test.step('And I can see there are 14 nodes and 7 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 7 connections displayed', {
           keyword: 'And',
-          text: 'I can see there are 11 nodes and 6 connections displayed',
+          text: 'I can see there are 14 nodes and 7 connections displayed',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 11
         });
@@ -2293,10 +2363,10 @@ test.describe('Folder Context Menu', () => {
       });
 
       // tests/acceptance/specs/folder-context-menu.md:21
-      await test.step('And I can see there are 14 nodes and 6 connections displayed', async () => {
-        await runAcceptanceStep(context, 'I can see there are 14 nodes and 6 connections displayed', {
+      await test.step('And I can see there are 17 nodes and 7 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 7 connections displayed', {
           keyword: 'And',
-          text: 'I can see there are 14 nodes and 6 connections displayed',
+          text: 'I can see there are 17 nodes and 7 connections displayed',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 21
         });
@@ -2393,10 +2463,10 @@ test.describe('Folder Context Menu', () => {
       });
 
       // tests/acceptance/specs/folder-context-menu.md:34
-      await test.step('And I can see there are 14 nodes and 19 connections displayed', async () => {
-        await runAcceptanceStep(context, 'I can see there are 14 nodes and 19 connections displayed', {
+      await test.step('And I can see there are 17 nodes and 23 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 23 connections displayed', {
           keyword: 'And',
-          text: 'I can see there are 14 nodes and 19 connections displayed',
+          text: 'I can see there are 17 nodes and 23 connections displayed',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 34
         });
@@ -2902,6 +2972,66 @@ test.describe('Godot Example', () => {
         });
       });
 
+      // tests/acceptance/specs/godot-example.md:32
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:33
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:34
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:35
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:36
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:37
+      await test.step('And scripts/enemy.gd points to scripts/base/entity.gd', async () => {
+        await runAcceptanceStep(context, 'scripts/enemy.gd points to scripts/base/entity.gd', {
+          keyword: 'And',
+          text: 'scripts/enemy.gd points to scripts/base/entity.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 37
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -2978,10 +3108,10 @@ test.describe('Graph Navigation', () => {
       });
 
       // tests/acceptance/specs/graph-navigation.md:12
-      await test.step('Then all 12 graph nodes are visible in the graph viewport', async () => {
-        await runAcceptanceStep(context, 'all 12 graph nodes are visible in the graph viewport', {
+      await test.step('Then all 15 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 15 graph nodes are visible in the graph viewport', {
           keyword: 'Then',
-          text: 'all 12 graph nodes are visible in the graph viewport',
+          text: 'all 15 graph nodes are visible in the graph viewport',
           sourcePath: 'tests/acceptance/specs/graph-navigation.md',
           line: 12
         });
@@ -3038,10 +3168,10 @@ test.describe('Graph Navigation', () => {
       });
 
       // tests/acceptance/specs/graph-navigation.md:20
-      await test.step('Then all 12 graph nodes are visible in the graph viewport', async () => {
-        await runAcceptanceStep(context, 'all 12 graph nodes are visible in the graph viewport', {
+      await test.step('Then all 15 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 15 graph nodes are visible in the graph viewport', {
           keyword: 'Then',
-          text: 'all 12 graph nodes are visible in the graph viewport',
+          text: 'all 15 graph nodes are visible in the graph viewport',
           sourcePath: 'tests/acceptance/specs/graph-navigation.md',
           line: 20
         });
@@ -3917,10 +4047,10 @@ test.describe('Graph Scope Edge And Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:82
-      await test.step('Then the top right of the graph says "3 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "3 connections"', {
+      await test.step('Then the top right of the graph says "4 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "4 connections"', {
           keyword: 'Then',
-          text: 'the top right of the graph says "3 connections"',
+          text: 'the top right of the graph says "4 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 82
         });
@@ -3956,6 +4086,16 @@ test.describe('Graph Scope Edge And Node Types', () => {
         });
       });
 
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:86
+      await test.step('And src/types.ts points to src/inheritance.ts', async () => {
+        await runAcceptanceStep(context, 'src/types.ts points to src/inheritance.ts', {
+          keyword: 'And',
+          text: 'src/types.ts points to src/inheritance.ts',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 86
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -3969,123 +4109,123 @@ test.describe('Graph Scope Edge And Node Types', () => {
     });
 
     try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:89
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:90
       await test.step('Given I open the examples/example-godot workspace in VS Code', async () => {
         await runAcceptanceStep(context, 'I open the examples/example-godot workspace in VS Code', {
           keyword: 'Given',
           text: 'I open the examples/example-godot workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 89
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:90
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 90
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:91
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 91
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:92
-      await test.step('And I click the plugins button', async () => {
-        await runAcceptanceStep(context, 'I click the plugins button', {
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
           keyword: 'And',
-          text: 'I click the plugins button',
+          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 92
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:93
-      await test.step('And I toggle the GDScript (Godot) plugin on', async () => {
-        await runAcceptanceStep(context, 'I toggle the GDScript (Godot) plugin on', {
+      await test.step('And I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
           keyword: 'And',
-          text: 'I toggle the GDScript (Godot) plugin on',
+          text: 'I click the plugins button',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 93
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:94
-      await test.step('And I show only the File node type', async () => {
-        await runAcceptanceStep(context, 'I show only the File node type', {
+      await test.step('And I toggle the GDScript (Godot) plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the GDScript (Godot) plugin on', {
           keyword: 'And',
-          text: 'I show only the File node type',
+          text: 'I toggle the GDScript (Godot) plugin on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 94
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:95
-      await test.step('And I show no edge types', async () => {
-        await runAcceptanceStep(context, 'I show no edge types', {
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
           keyword: 'And',
-          text: 'I show no edge types',
+          text: 'I show only the File node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 95
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:96
-      await test.step('Then the top right of the graph says "0 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "0 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 96
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:97
-      await test.step('When I toggle the Loads edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Loads edge on', {
-          keyword: 'When',
-          text: 'I toggle the Loads edge on',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 97
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:98
-      await test.step('Then the top right of the graph says "22 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "22 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "22 connections"',
+      await test.step('When I toggle the Loads edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Loads edge on', {
+          keyword: 'When',
+          text: 'I toggle the Loads edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 98
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:99
-      await test.step('And project.godot points to scenes/main.tscn', async () => {
-        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
-          keyword: 'And',
-          text: 'project.godot points to scenes/main.tscn',
+      await test.step('Then the top right of the graph says "22 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "22 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "22 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 99
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:100
+      await test.step('And project.godot points to scenes/main.tscn', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
+          keyword: 'And',
+          text: 'project.godot points to scenes/main.tscn',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 100
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:101
       await test.step('And scripts/player.gd points to resources/player_loadout.tres', async () => {
         await runAcceptanceStep(context, 'scripts/player.gd points to resources/player_loadout.tres', {
           keyword: 'And',
           text: 'scripts/player.gd points to resources/player_loadout.tres',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 100
+          line: 101
         });
       });
 
@@ -4102,363 +4242,363 @@ test.describe('Graph Scope Edge And Node Types', () => {
     });
 
     try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:104
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:105
       await test.step('Given I open the examples/example-pascal workspace in VS Code', async () => {
         await runAcceptanceStep(context, 'I open the examples/example-pascal workspace in VS Code', {
           keyword: 'Given',
           text: 'I open the examples/example-pascal workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 104
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:105
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 105
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:106
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 106
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:107
-      await test.step('And I show only the File node type', async () => {
-        await runAcceptanceStep(context, 'I show only the File node type', {
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
           keyword: 'And',
-          text: 'I show only the File node type',
+          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 107
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:108
-      await test.step('And I show no edge types', async () => {
-        await runAcceptanceStep(context, 'I show no edge types', {
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
           keyword: 'And',
-          text: 'I show no edge types',
+          text: 'I show only the File node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 108
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:109
-      await test.step('Then the top right of the graph says "0 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "0 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 109
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:110
-      await test.step('When I toggle the Imports edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
-          keyword: 'When',
-          text: 'I toggle the Imports edge on',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 110
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:111
-      await test.step('Then the top right of the graph says "9 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "9 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "9 connections"',
+      await test.step('When I toggle the Imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
+          keyword: 'When',
+          text: 'I toggle the Imports edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 111
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:112
-      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+      await test.step('Then the top right of the graph says "9 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "9 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "9 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 112
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:113
-      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
           keyword: 'And',
-          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 113
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:115
-      await test.step('When I show only the File and Class node types', async () => {
-        await runAcceptanceStep(context, 'I show only the File and Class node types', {
-          keyword: 'When',
-          text: 'I show only the File and Class node types',
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:114
+      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 115
+          line: 114
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:116
-      await test.step('And I show no edge types', async () => {
-        await runAcceptanceStep(context, 'I show no edge types', {
-          keyword: 'And',
-          text: 'I show no edge types',
+      await test.step('When I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'When',
+          text: 'I show only the File and Class node types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 116
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:117
-      await test.step('Then the top right of the graph says "0 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "0 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 117
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:118
-      await test.step('When I toggle the Contains edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
-          keyword: 'When',
-          text: 'I toggle the Contains edge on',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 118
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:119
-      await test.step('Then the top right of the graph says "5 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "5 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "5 connections"',
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 119
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:120
-      await test.step('And src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class',
+      await test.step('Then the top right of the graph says "5 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "5 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "5 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 120
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:121
-      await test.step('And src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class', async () => {
-        await runAcceptanceStep(context, 'src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class', {
+      await test.step('And src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class', {
           keyword: 'And',
-          text: 'src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class',
+          text: 'src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 121
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:123
-      await test.step('When I show only the File and Function node types', async () => {
-        await runAcceptanceStep(context, 'I show only the File and Function node types', {
-          keyword: 'When',
-          text: 'I show only the File and Function node types',
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:122
+      await test.step('And src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class', async () => {
+        await runAcceptanceStep(context, 'src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class', {
+          keyword: 'And',
+          text: 'src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 123
+          line: 122
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:124
-      await test.step('And I show no edge types', async () => {
-        await runAcceptanceStep(context, 'I show no edge types', {
-          keyword: 'And',
-          text: 'I show no edge types',
+      await test.step('When I show only the File and Function node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Function node types', {
+          keyword: 'When',
+          text: 'I show only the File and Function node types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 124
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:125
-      await test.step('Then the top right of the graph says "0 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "0 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 125
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:126
-      await test.step('When I toggle the Contains edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
-          keyword: 'When',
-          text: 'I toggle the Contains edge on',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 126
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:127
-      await test.step('Then the top right of the graph says "6 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "6 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "6 connections"',
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 127
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:128
-      await test.step('And src/SampleApp.pas points to src/SampleApp.pas#Run:method', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/SampleApp.pas#Run:method', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/SampleApp.pas#Run:method',
+      await test.step('Then the top right of the graph says "6 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "6 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "6 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 128
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:129
-      await test.step('And src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method', async () => {
-        await runAcceptanceStep(context, 'src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method', {
+      await test.step('And src/SampleApp.pas points to src/SampleApp.pas#Run:method', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/SampleApp.pas#Run:method', {
           keyword: 'And',
-          text: 'src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method',
+          text: 'src/SampleApp.pas points to src/SampleApp.pas#Run:method',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 129
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:131
-      await test.step('When I show only the File and Class node types', async () => {
-        await runAcceptanceStep(context, 'I show only the File and Class node types', {
-          keyword: 'When',
-          text: 'I show only the File and Class node types',
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:130
+      await test.step('And src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method', async () => {
+        await runAcceptanceStep(context, 'src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method', {
+          keyword: 'And',
+          text: 'src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 131
+          line: 130
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:132
-      await test.step('And I show no edge types', async () => {
-        await runAcceptanceStep(context, 'I show no edge types', {
-          keyword: 'And',
-          text: 'I show no edge types',
+      await test.step('When I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'When',
+          text: 'I show only the File and Class node types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 132
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:133
-      await test.step('Then the top right of the graph says "0 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "0 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 133
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:134
-      await test.step('When I toggle the Inherits edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
-          keyword: 'When',
-          text: 'I toggle the Inherits edge on',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 134
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:135
-      await test.step('Then the top right of the graph says "1 connection"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "1 connection"',
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 135
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:136
-      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 136
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:138
-      await test.step('When I show only the Function node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Function node type', {
-          keyword: 'When',
-          text: 'I show only the Function node type',
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:137
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 138
+          line: 137
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:139
-      await test.step('And I show no edge types', async () => {
-        await runAcceptanceStep(context, 'I show no edge types', {
-          keyword: 'And',
-          text: 'I show no edge types',
+      await test.step('When I show only the Function node type', async () => {
+        await runAcceptanceStep(context, 'I show only the Function node type', {
+          keyword: 'When',
+          text: 'I show only the Function node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 139
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:140
-      await test.step('Then the top right of the graph says "0 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "0 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 140
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:141
-      await test.step('When I toggle the Overrides edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Overrides edge on', {
-          keyword: 'When',
-          text: 'I toggle the Overrides edge on',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 141
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:142
-      await test.step('Then the top right of the graph says "1 connection"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "1 connection"',
+      await test.step('When I toggle the Overrides edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Overrides edge on', {
+          keyword: 'When',
+          text: 'I toggle the Overrides edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 142
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:143
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 143
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:144
       await test.step('And src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method', async () => {
         await runAcceptanceStep(context, 'src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method', {
           keyword: 'And',
           text: 'src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 143
+          line: 144
         });
       });
 
@@ -4703,10 +4843,10 @@ test.describe('Graph View', () => {
       });
 
       // tests/acceptance/specs/graph-view.md:16
-      await test.step('And the top right of the graph says "12 nodes" and "5 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "12 nodes" and "5 connections"', {
+      await test.step('And the top right of the graph says "15 nodes" and "6 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "15 nodes" and "6 connections"', {
           keyword: 'And',
-          text: 'the top right of the graph says "12 nodes" and "5 connections"',
+          text: 'the top right of the graph says "15 nodes" and "6 connections"',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 16
         });
@@ -5903,10 +6043,10 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:12
-      await test.step('Then I can see there are 13 nodes and 13 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 13 nodes and 13 connections', {
+      await test.step('Then I can see there are 15 nodes and 15 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 15 connections', {
           keyword: 'Then',
-          text: 'I can see there are 13 nodes and 13 connections',
+          text: 'I can see there are 15 nodes and 15 connections',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 12
         });
@@ -6013,42 +6153,132 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:23
-      await test.step('And Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', {
+      await test.step('And Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h', {
           keyword: 'And',
-          text: 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h',
+          text: 'Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 23
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:24
-      await test.step('And Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', {
+      await test.step('And Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h', {
           keyword: 'And',
-          text: 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h',
+          text: 'Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:25
-      await test.step('And Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', {
+      await test.step('And Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', {
           keyword: 'And',
-          text: 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h',
+          text: 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 25
         });
       });
 
+      // tests/acceptance/specs/objective-c-example.md:26
+      await test.step('And Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 26
+        });
+      });
+
       // tests/acceptance/specs/objective-c-example.md:27
+      await test.step('And Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:29
       await test.step('And README.md is an orphan node', async () => {
         await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
-          line: 27
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:31
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:32
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:33
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:34
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:35
+      await test.step('Then the top right of the graph says "2 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "2 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "2 connections"',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:36
+      await test.step('And Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:37
+      await test.step('And Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 37
         });
       });
 
@@ -6234,6 +6464,66 @@ test.describe('Pascal Example', () => {
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 23
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:25
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:26
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:27
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:28
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:29
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:30
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 30
         });
       });
 
@@ -6528,10 +6818,10 @@ test.describe('Python Example', () => {
       });
 
       // tests/acceptance/specs/python-example.md:12
-      await test.step('Then I can see there are 15 nodes and 11 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 11 connections', {
+      await test.step('Then I can see there are 16 nodes and 12 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 12 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 11 connections',
+          text: 'I can see there are 16 nodes and 12 connections',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 12
         });
@@ -6608,92 +6898,162 @@ test.describe('Python Example', () => {
       });
 
       // tests/acceptance/specs/python-example.md:20
-      await test.step('And src/member_imports.py points to src/services/api.py', async () => {
-        await runAcceptanceStep(context, 'src/member_imports.py points to src/services/api.py', {
+      await test.step('And src/services/api.py points to src/services/base.py', async () => {
+        await runAcceptanceStep(context, 'src/services/api.py points to src/services/base.py', {
           keyword: 'And',
-          text: 'src/member_imports.py points to src/services/api.py',
+          text: 'src/services/api.py points to src/services/base.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/python-example.md:21
-      await test.step('And src/member_imports.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/member_imports.py points to src/utils/helpers.py', {
+      await test.step('And src/member_imports.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/member_imports.py points to src/services/api.py', {
           keyword: 'And',
-          text: 'src/member_imports.py points to src/utils/helpers.py',
+          text: 'src/member_imports.py points to src/services/api.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/python-example.md:22
-      await test.step('And src/services/__init__.py points to src/services/api.py', async () => {
-        await runAcceptanceStep(context, 'src/services/__init__.py points to src/services/api.py', {
+      await test.step('And src/member_imports.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/member_imports.py points to src/utils/helpers.py', {
           keyword: 'And',
-          text: 'src/services/__init__.py points to src/services/api.py',
+          text: 'src/member_imports.py points to src/utils/helpers.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/python-example.md:23
-      await test.step('And src/namespace_consumer.py points to src/ns_pkg/member.py', async () => {
-        await runAcceptanceStep(context, 'src/namespace_consumer.py points to src/ns_pkg/member.py', {
+      await test.step('And src/services/__init__.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/services/__init__.py points to src/services/api.py', {
           keyword: 'And',
-          text: 'src/namespace_consumer.py points to src/ns_pkg/member.py',
+          text: 'src/services/__init__.py points to src/services/api.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 23
         });
       });
 
-      // tests/acceptance/specs/python-example.md:25
-      await test.step('And src/orphan.py is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/orphan.py is an orphan node', {
+      // tests/acceptance/specs/python-example.md:24
+      await test.step('And src/namespace_consumer.py points to src/ns_pkg/member.py', async () => {
+        await runAcceptanceStep(context, 'src/namespace_consumer.py points to src/ns_pkg/member.py', {
           keyword: 'And',
-          text: 'src/orphan.py is an orphan node',
+          text: 'src/namespace_consumer.py points to src/ns_pkg/member.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
-          line: 25
+          line: 24
         });
       });
 
       // tests/acceptance/specs/python-example.md:26
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/orphan.py is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/orphan.py is an orphan node', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/orphan.py is an orphan node',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/python-example.md:27
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/python-example.md:28
-      await test.step('And pyproject.toml is an orphan node', async () => {
-        await runAcceptanceStep(context, 'pyproject.toml is an orphan node', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'pyproject.toml is an orphan node',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/python-example.md:29
+      await test.step('And pyproject.toml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'pyproject.toml is an orphan node', {
+          keyword: 'And',
+          text: 'pyproject.toml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:30
       await test.step('And .vscode/settings.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
           text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/python-example.md',
-          line: 29
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:32
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:33
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:34
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:35
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:36
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:37
+      await test.step('And src/services/api.py points to src/services/base.py', async () => {
+        await runAcceptanceStep(context, 'src/services/api.py points to src/services/base.py', {
+          keyword: 'And',
+          text: 'src/services/api.py points to src/services/base.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 37
         });
       });
 
@@ -7523,10 +7883,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:12
-      await test.step('Then I can see there are 12 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 1 connection', {
+      await test.step('Then I can see there are 13 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I can see there are 12 nodes and 1 connection',
+          text: 'I can see there are 13 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 12
         });
@@ -7573,10 +7933,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:18
-      await test.step('And I can see there are 12 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 4 connections', {
+      await test.step('And I can see there are 13 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 4 connections', {
           keyword: 'And',
-          text: 'I can see there are 12 nodes and 4 connections',
+          text: 'I can see there are 13 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 18
         });
@@ -7683,10 +8043,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:32
-      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
+      await test.step('Then I can see there are 13 nodes and 7 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 7 connections', {
           keyword: 'Then',
-          text: 'I can see there are 12 nodes and 6 connections',
+          text: 'I can see there are 13 nodes and 7 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 32
         });
@@ -7712,43 +8072,113 @@ test.describe('Svelte Example', () => {
         });
       });
 
-      // tests/acceptance/specs/svelte-example.md:36
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/svelte-example.md:35
+      await test.step('And src/types.ts points to src/inheritance.ts', async () => {
+        await runAcceptanceStep(context, 'src/types.ts points to src/inheritance.ts', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/types.ts points to src/inheritance.ts',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
-          line: 36
+          line: 35
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:37
-      await test.step('And index.html is an orphan node', async () => {
-        await runAcceptanceStep(context, 'index.html is an orphan node', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: 'index.html is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 37
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:38
-      await test.step('And package.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'package.json is an orphan node', {
+      await test.step('And index.html is an orphan node', async () => {
+        await runAcceptanceStep(context, 'index.html is an orphan node', {
           keyword: 'And',
-          text: 'package.json is an orphan node',
+          text: 'index.html is an orphan node',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 38
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:39
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
+          keyword: 'And',
+          text: 'package.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:40
       await test.step('And tsconfig.json is an orphan node', async () => {
         await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
           keyword: 'And',
           text: 'tsconfig.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
-          line: 39
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:42
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:43
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 43
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:44
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:45
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:46
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:47
+      await test.step('And src/types.ts points to src/inheritance.ts', async () => {
+        await runAcceptanceStep(context, 'src/types.ts points to src/inheritance.ts', {
+          keyword: 'And',
+          text: 'src/types.ts points to src/inheritance.ts',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 47
         });
       });
 
@@ -8033,10 +8463,10 @@ test.describe('TypeScript Example', () => {
       });
 
       // tests/acceptance/specs/typescript-example.md:12
-      await test.step('Then I can see there are 11 nodes and 5 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 5 connections', {
+      await test.step('Then I can see there are 14 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 6 connections', {
           keyword: 'Then',
-          text: 'I can see there are 11 nodes and 5 connections',
+          text: 'I can see there are 14 nodes and 6 connections',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 12
         });
@@ -8063,142 +8493,232 @@ test.describe('TypeScript Example', () => {
       });
 
       // tests/acceptance/specs/typescript-example.md:15
-      await test.step('And src/utils.ts points to src/depth.ts', async () => {
-        await runAcceptanceStep(context, 'src/utils.ts points to src/depth.ts', {
+      await test.step('And src/runner.ts points to src/baseRunner.ts', async () => {
+        await runAcceptanceStep(context, 'src/runner.ts points to src/baseRunner.ts', {
           keyword: 'And',
-          text: 'src/utils.ts points to src/depth.ts',
+          text: 'src/runner.ts points to src/baseRunner.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:16
-      await test.step('And src/depth.ts points to src/leaf.ts', async () => {
-        await runAcceptanceStep(context, 'src/depth.ts points to src/leaf.ts', {
+      await test.step('And src/utils.ts points to src/depth.ts', async () => {
+        await runAcceptanceStep(context, 'src/utils.ts points to src/depth.ts', {
           keyword: 'And',
-          text: 'src/depth.ts points to src/leaf.ts',
+          text: 'src/utils.ts points to src/depth.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 16
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:18
-      await test.step('And src/orphan.ts is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/orphan.ts is an orphan node', {
+      // tests/acceptance/specs/typescript-example.md:17
+      await test.step('And src/depth.ts points to src/leaf.ts', async () => {
+        await runAcceptanceStep(context, 'src/depth.ts points to src/leaf.ts', {
           keyword: 'And',
-          text: 'src/orphan.ts is an orphan node',
+          text: 'src/depth.ts points to src/leaf.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 18
+          line: 17
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:19
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/orphan.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/orphan.ts is an orphan node', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/orphan.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:20
-      await test.step('And package.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'package.json is an orphan node', {
+      await test.step('And src/runnableThing.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/runnableThing.ts is an orphan node', {
           keyword: 'And',
-          text: 'package.json is an orphan node',
+          text: 'src/runnableThing.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:21
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:22
-      await test.step('And tsconfig.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
           keyword: 'And',
-          text: 'tsconfig.json is an orphan node',
+          text: 'package.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:23
-      await test.step('And src/alias/greeting.ts is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/alias/greeting.ts is an orphan node', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'src/alias/greeting.ts is an orphan node',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 23
         });
       });
 
+      // tests/acceptance/specs/typescript-example.md:24
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+          keyword: 'And',
+          text: 'tsconfig.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 24
+        });
+      });
+
       // tests/acceptance/specs/typescript-example.md:25
-      await test.step('When I click the plugins button', async () => {
-        await runAcceptanceStep(context, 'I click the plugins button', {
-          keyword: 'When',
-          text: 'I click the plugins button',
+      await test.step('And src/alias/greeting.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/alias/greeting.ts is an orphan node', {
+          keyword: 'And',
+          text: 'src/alias/greeting.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 25
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:26
-      await test.step('Then I see a list of plugins with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
-          keyword: 'Then',
-          text: 'I see a list of plugins with toggles',
-          sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 26
-        });
-      });
-
       // tests/acceptance/specs/typescript-example.md:27
-      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
-        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
-          keyword: 'And',
-          text: 'I toggle the TypeScript/JavaScript plugin on',
+      await test.step('When I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
+          keyword: 'When',
+          text: 'I click the plugins button',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:28
-      await test.step('Then I can see there are 11 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections', {
+      await test.step('Then I see a list of plugins with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
           keyword: 'Then',
-          text: 'I can see there are 11 nodes and 6 connections',
+          text: 'I see a list of plugins with toggles',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:29
-      await test.step('And I see src/index.ts points to src/alias/greeting.ts', async () => {
-        await runAcceptanceStep(context, 'I see src/index.ts points to src/alias/greeting.ts', {
+      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
           keyword: 'And',
-          text: 'I see src/index.ts points to src/alias/greeting.ts',
+          text: 'I toggle the TypeScript/JavaScript plugin on',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:30
+      await test.step('Then I can see there are 14 nodes and 7 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 7 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 14 nodes and 7 connections',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:31
+      await test.step('And I see src/index.ts points to src/alias/greeting.ts', async () => {
+        await runAcceptanceStep(context, 'I see src/index.ts points to src/alias/greeting.ts', {
+          keyword: 'And',
+          text: 'I see src/index.ts points to src/alias/greeting.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:32
       await test.step('And src/alias/greeting.ts is no longer an orphan node', async () => {
         await runAcceptanceStep(context, 'src/alias/greeting.ts is no longer an orphan node', {
           keyword: 'And',
           text: 'src/alias/greeting.ts is no longer an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 30
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:34
+      await test.step('When I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'When',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:35
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:36
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:37
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:38
+      await test.step('Then the top right of the graph says "2 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "2 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "2 connections"',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:39
+      await test.step('And src/runner.ts points to src/baseRunner.ts', async () => {
+        await runAcceptanceStep(context, 'src/runner.ts points to src/baseRunner.ts', {
+          keyword: 'And',
+          text: 'src/runner.ts points to src/baseRunner.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:40
+      await test.step('And src/runner.ts points to src/runnableThing.ts', async () => {
+        await runAcceptanceStep(context, 'src/runner.ts points to src/runnableThing.ts', {
+          keyword: 'And',
+          text: 'src/runner.ts points to src/runnableThing.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 40
         });
       });
 

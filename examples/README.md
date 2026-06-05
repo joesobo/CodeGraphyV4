@@ -37,10 +37,10 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 
 | Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
-| `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser` as a Variable node so the file graph becomes a small call/type/value story. |
-| `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, and a lazy async component import. |
-| `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. Godot `class_name` declarations appear under Variable, so toggling Variable hides `Player`, `Enemy`, `PlayerLoadout`, `LoadoutPreview`, and other plugin-owned class-name symbols while preserving their own on/off state. |
-| `example-python` | `main.py` imports config, service, and helper functions; member-import files show how imports and function symbols identify the exact code path. |
+| `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser`; `AppRunner` extends `BaseRunner` and implements `RunnableThing` for TypeScript inheritance coverage. |
+| `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, interface inheritance, and a lazy async component import. |
+| `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. `enemy.gd` extends a file-backed base entity while Godot `class_name` declarations appear under Variable. |
+| `example-python` | `main.py` imports config, service, and helper functions; `ApiUser` inherits from `BaseApiUser`, and member-import files show how imports and function symbols identify the exact code path. |
 | `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`; `ApiService` extends `BaseService` and implements `IRunner` so C# inheritance has file-level targets. |
 | `example-markdown` | Markdown notes link to each other and to code, giving a mixed docs/code graph where symbol search still works on the TypeScript file. |
 | `example-rust` | `main.rs` uses local modules and declares `App`, `Status`, and `Service`, showing module edges plus type/function symbols. |
@@ -48,14 +48,14 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-go` | `main.go` imports `internal/service`; package functions and the `Runner` type show how Go package edges connect to declarations. |
 | `example-c` | `main.c` and `math/add.c` include `add.h`; function and struct symbols make the tiny C dependency chain inspectable. |
 | `example-cpp` | `app.cpp` and `widget.cpp` include `widget.hpp`; `Runner` inherits from `Widget` and overrides `render`, while class, method, and function symbols show both declaration and implementation files. |
-| `example-objective-c` | `main.m` launches an app delegate that wires a dashboard controller, session store, user model, and card view; interface, protocol, implementation, and method symbols make the Cocoa-style chain inspectable. |
+| `example-objective-c` | `main.m` launches an app delegate that wires a dashboard controller, session store, user model, and card view; `UserCardView` inherits from `AppView` and conforms to `ProfileRenderable`. |
 | `example-kotlin` | `AppRunner` imports a model, extends a base class, and implements an interface, giving a compact import/inheritance/symbol demo. |
 | `example-scala` | `AppRunner` composes a `UserService`, repository, model, and dashboard view while extending a base trait; class/object/trait/enum/type/function symbols show the Scala app path. |
 | `example-php` | `Runner` imports a base class, interface, and model, then exposes class/function symbols for namespace-use checks. |
 | `example-ruby` | `example_ruby.rb` requires the runner, and the runner inherits from `BaseRunner`, with module/class/method symbols for navigation. |
-| `example-pascal` | `Main.pas` starts `SampleApp.pas`, which uses runner support, repository, pricing, receipt, and order model units; class, record, function, and procedure symbols show baseline Pascal relationships. |
+| `example-pascal` | `Main.pas` starts `SampleApp.pas`, which uses runner support, repository, pricing, receipt, and order model units; `TAppRunner` inherits from `TBaseRunner`. |
 | `example-haskell` | `Main` imports a feature runner and model module; module/data/function symbols show the Haskell path through the graph. |
 | `example-lua` | `main.lua` requires `app.runner`, which requires `app.model.user`; table/function symbols make the require chain less anonymous. |
 | `example-swift` | A small Swift Package imports `RunnerSupport`; `Runner` inherits from `Worker` and conforms to `Runnable` to demonstrate class/protocol/function symbols. |
 | `example-dart` | `sample_app.dart` imports a runner and profile; `Runner` extends `BaseRunner` with `Runnable`, while `User` and `Profile` keep the model side visible. |
-| `example-svelte` | `App.svelte` uses module and instance scripts, type imports, and a dynamic import to show Svelte plugin edges. |
+| `example-svelte` | `App.svelte` uses module and instance scripts, type imports, interface inheritance, and a dynamic import to show Svelte plugin edges. |
