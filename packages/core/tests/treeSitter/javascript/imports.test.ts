@@ -338,7 +338,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(addTypeImportRelation).not.toHaveBeenCalled();
   });
 
-  it('adds reexport relations only when an export specifier exists', () => {
+  it('adds import relations for export specifiers', () => {
     resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
     getStringSpecifier.mockReturnValueOnce('./lib').mockReturnValueOnce(null);
     const stringNode = { type: 'string' };
@@ -359,8 +359,8 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(getStringSpecifier).toHaveBeenNthCalledWith(2, undefined);
     expect(addRelation).toHaveBeenCalledTimes(1);
     expect(addRelation).toHaveBeenCalledWith(relations, {
-      kind: 'reexport',
-      sourceId: 'codegraphy.treesitter:reexport',
+      kind: 'import',
+      sourceId: 'codegraphy.treesitter:import',
       fromFilePath: '/workspace/src/app.ts',
       specifier: './lib',
       resolvedPath: '/workspace/src/lib.ts',

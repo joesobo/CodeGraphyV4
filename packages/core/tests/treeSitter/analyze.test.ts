@@ -57,7 +57,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
 
 
 
-    it('extracts symbols plus import, reexport, require, dynamic-import, and imported-call relations for TypeScript files', async () => {
+    it('extracts symbols plus import, export-from import, require, dynamic-import, and imported-call relations for TypeScript files', async () => {
       const workspaceRoot = await createWorkspace({
         'src/lib.ts': 'export function boot() { return true; }\n',
         'src/helper.ts': 'export const helper = true;\n',
@@ -124,13 +124,13 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             sourceId: 'codegraphy.treesitter:import',
           }),
           expect.objectContaining({
-            kind: 'reexport',
+            kind: 'import',
             pluginId: 'codegraphy.treesitter',
             specifier: './helper',
             resolvedPath: path.join(workspaceRoot, 'src/helper.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/helper.ts'),
-            sourceId: 'codegraphy.treesitter:reexport',
+            sourceId: 'codegraphy.treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',

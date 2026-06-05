@@ -95,7 +95,7 @@ describe('core/graph/edgeSources', () => {
       kind: 'import',
       pluginId: 'plugin.typescript',
       resolvedPath: null,
-      sourceId: 'reexport',
+      sourceId: 'barrel-export',
       specifier: 'react',
     };
 
@@ -106,7 +106,7 @@ describe('core/graph/edgeSources', () => {
     expect(createEdgeSource({
       ...createPlugin('plugin.typescript'),
       sources: undefined,
-    }, connection)?.label).toBe('reexport');
-    expect(createEdgeSource(createPlugin('plugin.typescript', []), connection)?.label).toBe('reexport');
+    }, connection)?.label).toBe('barrel-export');
+    expect(createEdgeSource(createPlugin('plugin.typescript', []), connection)?.label).toBe('barrel-export');
   });
 });

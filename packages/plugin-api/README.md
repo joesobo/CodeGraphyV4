@@ -48,7 +48,7 @@ Exact merge behavior:
 
 - `nodeTypes`, `edgeTypes`, `nodes`, `symbols`: merge by `id`
 - `relations`: merge by relationship identity
-  - imports/reexports/loads/inherits override by shared source identity
+  - imports/loads/inherits override by shared source identity
   - distinct call/reference targets coexist
 
 Path and source rules:

@@ -2989,11 +2989,11 @@ test.describe('Graph Rendering', () => {
 });
 
 test.describe('Graph Scope Edge And Node Types', () => {
-  test('Imports edges can be shown by themselves', async ({}, testInfo) => {
+  test('C++ graph scope shows each relevant edge type by itself', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Imports edges can be shown by themselves'
+      scenario: 'C++ graph scope shows each relevant edge type by itself'
     });
 
     try {
@@ -3028,42 +3028,332 @@ test.describe('Graph Scope Edge And Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:8
-      await test.step('And I show only the Imports edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Imports edge type', {
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
           keyword: 'And',
-          text: 'I show only the Imports edge type',
+          text: 'I show only the File node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 8
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:9
-      await test.step('Then the top right of the graph says "2 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "2 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "2 connections"',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 9
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:10
-      await test.step('Then src/app.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
           keyword: 'Then',
-          text: 'src/app.cpp points to src/lib/widget.hpp',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 10
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:11
+      await test.step('When I toggle the Imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
+          keyword: 'When',
+          text: 'I toggle the Imports edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 11
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:12
+      await test.step('Then the top right of the graph says "2 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "2 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "2 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:13
+      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/app.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:14
       await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
         await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
           keyword: 'And',
           text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 11
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:16
+      await test.step('When I show only the Folder and File node types', async () => {
+        await runAcceptanceStep(context, 'I show only the Folder and File node types', {
+          keyword: 'When',
+          text: 'I show only the Folder and File node types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:17
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:18
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:19
+      await test.step('When I toggle the Nests edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Nests edge on', {
+          keyword: 'When',
+          text: 'I toggle the Nests edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:20
+      await test.step('Then the top right of the graph says "8 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "8 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "8 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:21
+      await test.step('And src points to src/app.cpp', async () => {
+        await runAcceptanceStep(context, 'src points to src/app.cpp', {
+          keyword: 'And',
+          text: 'src points to src/app.cpp',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:22
+      await test.step('And src/lib points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/lib points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/lib points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:24
+      await test.step('When I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'When',
+          text: 'I show only the File and Class node types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:25
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:26
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:27
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:28
+      await test.step('Then the top right of the graph says "2 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "2 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "2 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:29
+      await test.step('And src/app.cpp points to src/app.cpp#Runner:class', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/app.cpp#Runner:class', {
+          keyword: 'And',
+          text: 'src/app.cpp points to src/app.cpp#Runner:class',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:30
+      await test.step('And src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class', async () => {
+        await runAcceptanceStep(context, 'src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class', {
+          keyword: 'And',
+          text: 'src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:32
+      await test.step('When I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'When',
+          text: 'I show only the File and Class node types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:33
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:34
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:35
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:36
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:37
+      await test.step('And src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class', {
+          keyword: 'And',
+          text: 'src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:39
+      await test.step('When I show only the File and Function node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Function node types', {
+          keyword: 'When',
+          text: 'I show only the File and Function node types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:40
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:41
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:42
+      await test.step('When I toggle the Overrides edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Overrides edge on', {
+          keyword: 'When',
+          text: 'I toggle the Overrides edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:43
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 43
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:44
+      await test.step('And src/app.cpp#render:method points to src/lib/widget.hpp#render:method', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp#render:method points to src/lib/widget.hpp#render:method', {
+          keyword: 'And',
+          text: 'src/app.cpp#render:method points to src/lib/widget.hpp#render:method',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 44
         });
       });
 
@@ -3080,290 +3370,11 @@ test.describe('Graph Scope Edge And Node Types', () => {
     });
 
     try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:15
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:48
       await test.step('Given I open the examples/example-markdown workspace in VS Code', async () => {
         await runAcceptanceStep(context, 'I open the examples/example-markdown workspace in VS Code', {
           keyword: 'Given',
           text: 'I open the examples/example-markdown workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 15
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:16
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 16
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:17
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 17
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:18
-      await test.step('And I show only the References edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the References edge type', {
-          keyword: 'And',
-          text: 'I show only the References edge type',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 18
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:19
-      await test.step('Then the top right of the graph says "4 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "4 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "4 connections"',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 19
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:20
-      await test.step('Then notes/Home.md points to notes/Architecture.md', async () => {
-        await runAcceptanceStep(context, 'notes/Home.md points to notes/Architecture.md', {
-          keyword: 'Then',
-          text: 'notes/Home.md points to notes/Architecture.md',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 20
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:21
-      await test.step('And notes/Home.md points to notes/assets/Diagram.md', async () => {
-        await runAcceptanceStep(context, 'notes/Home.md points to notes/assets/Diagram.md', {
-          keyword: 'And',
-          text: 'notes/Home.md points to notes/assets/Diagram.md',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 21
-        });
-      });
-
-    } finally {
-      await context.cleanup?.();
-    }
-  });
-
-  test('Calls edges can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Calls edges can be shown by themselves'
-    });
-
-    try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:25
-      await test.step('Given I open the examples/example-python workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-python workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-python workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 25
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:26
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 26
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:27
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 27
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:28
-      await test.step('And I show only the Calls edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Calls edge type', {
-          keyword: 'And',
-          text: 'I show only the Calls edge type',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 28
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:29
-      await test.step('Then the top right of the graph says "4 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "4 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "4 connections"',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 29
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:30
-      await test.step('And src/main.py points to src/config.py', async () => {
-        await runAcceptanceStep(context, 'src/main.py points to src/config.py', {
-          keyword: 'And',
-          text: 'src/main.py points to src/config.py',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 30
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:31
-      await test.step('Then src/main.py points to src/services/api.py', async () => {
-        await runAcceptanceStep(context, 'src/main.py points to src/services/api.py', {
-          keyword: 'Then',
-          text: 'src/main.py points to src/services/api.py',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 31
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:32
-      await test.step('And src/main.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/main.py points to src/utils/helpers.py', {
-          keyword: 'And',
-          text: 'src/main.py points to src/utils/helpers.py',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 32
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:33
-      await test.step('And src/services/api.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/services/api.py points to src/utils/helpers.py', {
-          keyword: 'And',
-          text: 'src/services/api.py points to src/utils/helpers.py',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 33
-        });
-      });
-
-    } finally {
-      await context.cleanup?.();
-    }
-  });
-
-  test('Type imports edges can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Type imports edges can be shown by themselves'
-    });
-
-    try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:37
-      await test.step('Given I open the examples/example-vue workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-vue workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-vue workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 37
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:38
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 38
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:39
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 39
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:40
-      await test.step('And I show only the Type imports edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Type imports edge type', {
-          keyword: 'And',
-          text: 'I show only the Type imports edge type',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 40
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:41
-      await test.step('Then the top right of the graph says "3 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "3 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "3 connections"',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 41
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:42
-      await test.step('Then src/data/users.ts points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/data/users.ts points to src/types.ts', {
-          keyword: 'Then',
-          text: 'src/data/users.ts points to src/types.ts',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 42
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:43
-      await test.step('And src/components/UserCard.vue points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/UserCard.vue points to src/types.ts', {
-          keyword: 'And',
-          text: 'src/components/UserCard.vue points to src/types.ts',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 43
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:44
-      await test.step('And src/components/CounterPanel.vue points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/types.ts', {
-          keyword: 'And',
-          text: 'src/components/CounterPanel.vue points to src/types.ts',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 44
-        });
-      });
-
-    } finally {
-      await context.cleanup?.();
-    }
-  });
-
-  test('Inherits edges can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Inherits edges can be shown by themselves'
-    });
-
-    try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:48
-      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-cpp workspace in VS Code',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 48
         });
@@ -3390,42 +3401,72 @@ test.describe('Graph Scope Edge And Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:51
-      await test.step('And I show only the File and Class node types', async () => {
-        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
           keyword: 'And',
-          text: 'I show only the File and Class node types',
+          text: 'I show only the File node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 51
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:52
-      await test.step('And I show only the Inherits edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Inherits edge type', {
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
           keyword: 'And',
-          text: 'I show only the Inherits edge type',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 52
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:53
-      await test.step('Then the top right of the graph says "1 connection"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
           keyword: 'Then',
-          text: 'the top right of the graph says "1 connection"',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 53
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:54
-      await test.step('And src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class', {
-          keyword: 'And',
-          text: 'src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class',
+      await test.step('When I toggle the References edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the References edge on', {
+          keyword: 'When',
+          text: 'I toggle the References edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 54
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:55
+      await test.step('Then the top right of the graph says "4 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "4 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "4 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 55
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:56
+      await test.step('And notes/Home.md points to notes/Architecture.md', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to notes/Architecture.md', {
+          keyword: 'And',
+          text: 'notes/Home.md points to notes/Architecture.md',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 56
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:57
+      await test.step('And notes/Home.md points to notes/assets/Diagram.md', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to notes/assets/Diagram.md', {
+          keyword: 'And',
+          text: 'notes/Home.md points to notes/assets/Diagram.md',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 57
         });
       });
 
@@ -3434,81 +3475,244 @@ test.describe('Graph Scope Edge And Node Types', () => {
     }
   });
 
-  test('C++ overrides edges can be shown by themselves', async ({}, testInfo) => {
+  test('Calls edges can be shown by themselves between symbols', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'C++ overrides edges can be shown by themselves'
+      scenario: 'Calls edges can be shown by themselves between symbols'
     });
 
     try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:58
-      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-cpp workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 58
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:59
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 59
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:60
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 60
-        });
-      });
-
       // tests/acceptance/specs/graph-scope-edge-node-types.md:61
-      await test.step('And I show only the File and Function node types', async () => {
-        await runAcceptanceStep(context, 'I show only the File and Function node types', {
-          keyword: 'And',
-          text: 'I show only the File and Function node types',
+      await test.step('Given I open the examples/example-python workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-python workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-python workspace in VS Code',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 61
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:62
-      await test.step('And I show only the Overrides edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Overrides edge type', {
-          keyword: 'And',
-          text: 'I show only the Overrides edge type',
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 62
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:63
-      await test.step('Then the top right of the graph says "1 connection"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "1 connection"',
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 63
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:64
-      await test.step('And src/app.cpp#render:method points to src/lib/widget.hpp#render:method', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp#render:method points to src/lib/widget.hpp#render:method', {
+      await test.step('And I show only the File and Function node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Function node types', {
           keyword: 'And',
-          text: 'src/app.cpp#render:method points to src/lib/widget.hpp#render:method',
+          text: 'I show only the File and Function node types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 64
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:65
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 65
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:66
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 66
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:67
+      await test.step('When I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'When',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 67
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:68
+      await test.step('Then the top right of the graph says "14 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "14 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "14 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 68
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:69
+      await test.step('And src/main.py#main:function points to src/services/api.py#fetch_user:function', async () => {
+        await runAcceptanceStep(context, 'src/main.py#main:function points to src/services/api.py#fetch_user:function', {
+          keyword: 'And',
+          text: 'src/main.py#main:function points to src/services/api.py#fetch_user:function',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 69
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:70
+      await test.step('And src/main.py#main:function points to src/utils/helpers.py#summarize_user:function', async () => {
+        await runAcceptanceStep(context, 'src/main.py#main:function points to src/utils/helpers.py#summarize_user:function', {
+          keyword: 'And',
+          text: 'src/main.py#main:function points to src/utils/helpers.py#summarize_user:function',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 70
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:71
+      await test.step('And src/services/api.py#fetch_user:function points to src/utils/helpers.py#process_data:function', async () => {
+        await runAcceptanceStep(context, 'src/services/api.py#fetch_user:function points to src/utils/helpers.py#process_data:function', {
+          keyword: 'And',
+          text: 'src/services/api.py#fetch_user:function points to src/utils/helpers.py#process_data:function',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 71
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+
+  test('Type imports edges can be shown by themselves', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+      scenario: 'Type imports edges can be shown by themselves'
+    });
+
+    try {
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:75
+      await test.step('Given I open the examples/example-vue workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-vue workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-vue workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 75
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:76
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 76
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:77
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 77
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:78
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'And',
+          text: 'I show only the File node type',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 78
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:79
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 79
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:80
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 80
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:81
+      await test.step('When I toggle the Type imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
+          keyword: 'When',
+          text: 'I toggle the Type imports edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 81
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:82
+      await test.step('Then the top right of the graph says "3 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "3 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "3 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 82
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:83
+      await test.step('And src/data/users.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/data/users.ts points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/data/users.ts points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 83
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:84
+      await test.step('And src/components/UserCard.vue points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/UserCard.vue points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/components/UserCard.vue points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 84
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:85
+      await test.step('And src/components/CounterPanel.vue points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/components/CounterPanel.vue points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 85
         });
       });
 
@@ -3525,279 +3729,123 @@ test.describe('Graph Scope Edge And Node Types', () => {
     });
 
     try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:68
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:89
       await test.step('Given I open the examples/example-godot workspace in VS Code', async () => {
         await runAcceptanceStep(context, 'I open the examples/example-godot workspace in VS Code', {
           keyword: 'Given',
           text: 'I open the examples/example-godot workspace in VS Code',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 68
+          line: 89
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:69
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:90
       await test.step('When I open the CodeGraphy extension graph view', async () => {
         await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
           keyword: 'When',
           text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 69
+          line: 90
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:70
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 70
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:71
-      await test.step('And I click the plugins button', async () => {
-        await runAcceptanceStep(context, 'I click the plugins button', {
-          keyword: 'And',
-          text: 'I click the plugins button',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 71
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:72
-      await test.step('And I toggle the GDScript (Godot) plugin on', async () => {
-        await runAcceptanceStep(context, 'I toggle the GDScript (Godot) plugin on', {
-          keyword: 'And',
-          text: 'I toggle the GDScript (Godot) plugin on',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 72
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:73
-      await test.step('And I show only the Loads edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Loads edge type', {
-          keyword: 'And',
-          text: 'I show only the Loads edge type',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 73
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:74
-      await test.step('Then the top right of the graph says "28 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "28 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "28 connections"',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 74
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:75
-      await test.step('And project.godot points to scenes/main.tscn', async () => {
-        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
-          keyword: 'And',
-          text: 'project.godot points to scenes/main.tscn',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 75
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:76
-      await test.step('And scripts/player.gd points to resources/player_loadout.tres', async () => {
-        await runAcceptanceStep(context, 'scripts/player.gd points to resources/player_loadout.tres', {
-          keyword: 'And',
-          text: 'scripts/player.gd points to resources/player_loadout.tres',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 76
-        });
-      });
-
-    } finally {
-      await context.cleanup?.();
-    }
-  });
-
-  test('Nests edges can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Nests edges can be shown by themselves'
-    });
-
-    try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:80
-      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-cpp workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 80
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:81
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 81
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:82
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 82
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:83
-      await test.step('And I show only the Folder and File node types', async () => {
-        await runAcceptanceStep(context, 'I show only the Folder and File node types', {
-          keyword: 'And',
-          text: 'I show only the Folder and File node types',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 83
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:84
-      await test.step('And I show only the Nests edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Nests edge type', {
-          keyword: 'And',
-          text: 'I show only the Nests edge type',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 84
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:85
-      await test.step('Then the top right of the graph says "4 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "4 connections"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "4 connections"',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 85
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:86
-      await test.step('And src points to src/app.cpp', async () => {
-        await runAcceptanceStep(context, 'src points to src/app.cpp', {
-          keyword: 'And',
-          text: 'src points to src/app.cpp',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 86
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:87
-      await test.step('And src/lib points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/lib points to src/lib/widget.hpp', {
-          keyword: 'And',
-          text: 'src/lib points to src/lib/widget.hpp',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 87
-        });
-      });
-
-    } finally {
-      await context.cleanup?.();
-    }
-  });
-
-  test('Contains edges can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Contains edges can be shown by themselves'
-    });
-
-    try {
       // tests/acceptance/specs/graph-scope-edge-node-types.md:91
-      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-cpp workspace in VS Code',
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 91
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:92
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
+      await test.step('And I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
+          keyword: 'And',
+          text: 'I click the plugins button',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 92
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:93
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
+      await test.step('And I toggle the GDScript (Godot) plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the GDScript (Godot) plugin on', {
           keyword: 'And',
-          text: 'I have indexed the workspace',
+          text: 'I toggle the GDScript (Godot) plugin on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 93
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:94
-      await test.step('And I show only the File and Class node types', async () => {
-        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
           keyword: 'And',
-          text: 'I show only the File and Class node types',
+          text: 'I show only the File node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 94
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:95
-      await test.step('And I show only the Contains edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Contains edge type', {
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
           keyword: 'And',
-          text: 'I show only the Contains edge type',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 95
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:96
-      await test.step('Then the top right of the graph says "2 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "2 connections"', {
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
           keyword: 'Then',
-          text: 'the top right of the graph says "2 connections"',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 96
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:97
-      await test.step('And src/app.cpp points to src/app.cpp#Runner:class', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/app.cpp#Runner:class', {
-          keyword: 'And',
-          text: 'src/app.cpp points to src/app.cpp#Runner:class',
+      await test.step('When I toggle the Loads edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Loads edge on', {
+          keyword: 'When',
+          text: 'I toggle the Loads edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 97
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:98
-      await test.step('And src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class', async () => {
-        await runAcceptanceStep(context, 'src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class', {
-          keyword: 'And',
-          text: 'src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class',
+      await test.step('Then the top right of the graph says "22 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "22 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "22 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 98
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:99
+      await test.step('And project.godot points to scenes/main.tscn', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
+          keyword: 'And',
+          text: 'project.godot points to scenes/main.tscn',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 99
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:100
+      await test.step('And scripts/player.gd points to resources/player_loadout.tres', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to resources/player_loadout.tres', {
+          keyword: 'And',
+          text: 'scripts/player.gd points to resources/player_loadout.tres',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 100
         });
       });
 
@@ -3806,227 +3854,371 @@ test.describe('Graph Scope Edge And Node Types', () => {
     }
   });
 
-  test('Pascal overrides edges can be shown by themselves', async ({}, testInfo) => {
+  test('Pascal graph scope shows each relevant edge type by itself', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Pascal overrides edges can be shown by themselves'
+      scenario: 'Pascal graph scope shows each relevant edge type by itself'
     });
 
     try {
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:102
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:104
       await test.step('Given I open the examples/example-pascal workspace in VS Code', async () => {
         await runAcceptanceStep(context, 'I open the examples/example-pascal workspace in VS Code', {
           keyword: 'Given',
           text: 'I open the examples/example-pascal workspace in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 102
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:103
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 103
-        });
-      });
-
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:104
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 104
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:105
-      await test.step('And I show only the Function node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Function node type', {
-          keyword: 'And',
-          text: 'I show only the Function node type',
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 105
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:106
-      await test.step('And I show only the Overrides edge type', async () => {
-        await runAcceptanceStep(context, 'I show only the Overrides edge type', {
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
           keyword: 'And',
-          text: 'I show only the Overrides edge type',
+          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 106
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:107
-      await test.step('Then the top right of the graph says "1 connection"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
-          keyword: 'Then',
-          text: 'the top right of the graph says "1 connection"',
+      await test.step('And I show only the File node type', async () => {
+        await runAcceptanceStep(context, 'I show only the File node type', {
+          keyword: 'And',
+          text: 'I show only the File node type',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 107
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:108
-      await test.step('And src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method', {
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
           keyword: 'And',
-          text: 'src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 108
         });
       });
 
-    } finally {
-      await context.cleanup?.();
-    }
-  });
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:109
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 109
+        });
+      });
 
-  test('Class nodes can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Class nodes can be shown by themselves'
-    });
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:110
+      await test.step('When I toggle the Imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
+          keyword: 'When',
+          text: 'I toggle the Imports edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 110
+        });
+      });
 
-    try {
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:111
+      await test.step('Then the top right of the graph says "9 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "9 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "9 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 111
+        });
+      });
+
       // tests/acceptance/specs/graph-scope-edge-node-types.md:112
-      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-cpp workspace in VS Code',
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 112
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:113
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
+      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 113
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:114
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 114
-        });
-      });
-
       // tests/acceptance/specs/graph-scope-edge-node-types.md:115
-      await test.step('And I show only the Class node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Class node type', {
-          keyword: 'And',
-          text: 'I show only the Class node type',
+      await test.step('When I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'When',
+          text: 'I show only the File and Class node types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 115
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:116
-      await test.step('Then I can see a new "src/app.cpp#Runner:class" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "src/app.cpp#Runner:class" node in the graph', {
-          keyword: 'Then',
-          text: 'I can see a new "src/app.cpp#Runner:class" node in the graph',
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 116
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:117
-      await test.step('And I can see a new "src/lib/widget.hpp#Widget:class" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "src/lib/widget.hpp#Widget:class" node in the graph', {
-          keyword: 'And',
-          text: 'I can see a new "src/lib/widget.hpp#Widget:class" node in the graph',
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 117
         });
       });
 
-    } finally {
-      await context.cleanup?.();
-    }
-  });
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:118
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 118
+        });
+      });
 
-  test('Function nodes can be shown by themselves', async ({}, testInfo) => {
-    const context = await createAcceptanceContext({
-      testInfo,
-      sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-      scenario: 'Function nodes can be shown by themselves'
-    });
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:119
+      await test.step('Then the top right of the graph says "5 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "5 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "5 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 119
+        });
+      });
 
-    try {
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:120
+      await test.step('And src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 120
+        });
+      });
+
       // tests/acceptance/specs/graph-scope-edge-node-types.md:121
-      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
-        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
-          keyword: 'Given',
-          text: 'I open the examples/example-cpp workspace in VS Code',
+      await test.step('And src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class', async () => {
+        await runAcceptanceStep(context, 'src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class', {
+          keyword: 'And',
+          text: 'src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 121
         });
       });
 
-      // tests/acceptance/specs/graph-scope-edge-node-types.md:122
-      await test.step('When I open the CodeGraphy extension graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
-          keyword: 'When',
-          text: 'I open the CodeGraphy extension graph view',
-          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
-          line: 122
-        });
-      });
-
       // tests/acceptance/specs/graph-scope-edge-node-types.md:123
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
-          keyword: 'And',
-          text: 'I have indexed the workspace',
+      await test.step('When I show only the File and Function node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Function node types', {
+          keyword: 'When',
+          text: 'I show only the File and Function node types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 123
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:124
-      await test.step('And I show only the Function node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Function node type', {
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
           keyword: 'And',
-          text: 'I show only the Function node type',
+          text: 'I show no edge types',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 124
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:125
-      await test.step('Then I can see a new "src/app.cpp#boot:function" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "src/app.cpp#boot:function" node in the graph', {
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
           keyword: 'Then',
-          text: 'I can see a new "src/app.cpp#boot:function" node in the graph',
+          text: 'the top right of the graph says "0 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 125
         });
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:126
-      await test.step('And I can see a new "src/app.cpp#run:method" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "src/app.cpp#run:method" node in the graph', {
-          keyword: 'And',
-          text: 'I can see a new "src/app.cpp#run:method" node in the graph',
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 126
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:127
+      await test.step('Then the top right of the graph says "6 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "6 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "6 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 127
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:128
+      await test.step('And src/SampleApp.pas points to src/SampleApp.pas#Run:method', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/SampleApp.pas#Run:method', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/SampleApp.pas#Run:method',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 128
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:129
+      await test.step('And src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method', async () => {
+        await runAcceptanceStep(context, 'src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method', {
+          keyword: 'And',
+          text: 'src/RunnerSupport.pas points to src/RunnerSupport.pas#Start:method',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 129
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:131
+      await test.step('When I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'When',
+          text: 'I show only the File and Class node types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 131
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:132
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 132
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:133
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 133
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:134
+      await test.step('When I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'When',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 134
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:135
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 135
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:136
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 136
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:138
+      await test.step('When I show only the Function node type', async () => {
+        await runAcceptanceStep(context, 'I show only the Function node type', {
+          keyword: 'When',
+          text: 'I show only the Function node type',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 138
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:139
+      await test.step('And I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'And',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 139
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:140
+      await test.step('Then the top right of the graph says "0 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "0 connections"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "0 connections"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 140
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:141
+      await test.step('When I toggle the Overrides edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Overrides edge on', {
+          keyword: 'When',
+          text: 'I toggle the Overrides edge on',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 141
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:142
+      await test.step('Then the top right of the graph says "1 connection"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "1 connection"', {
+          keyword: 'Then',
+          text: 'the top right of the graph says "1 connection"',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 142
+        });
+      });
+
+      // tests/acceptance/specs/graph-scope-edge-node-types.md:143
+      await test.step('And src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method',
+          sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
+          line: 143
         });
       });
 
