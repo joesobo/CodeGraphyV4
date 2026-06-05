@@ -7,4 +7,6 @@
 "@codegraphy-dev/plugin-godot": patch
 ---
 
-Show Graph Scope Edge Type controls from indexed workspace capabilities instead of only currently observed edges, and let plugins declare relevant core or plugin-owned Edge Types.
+Graph Scope now shows Edge Type controls from indexed workspace capabilities instead of every theoretical toggle or only currently observed edges. Relevant Edge Types can appear even when the latest graph has zero matching relationships, and Edge Type controls stay visible but disabled until the workspace has a Graph Cache.
+
+Plugins can declare core or plugin-owned Edge Type capabilities with `contributeEdgeTypeCapabilities(context)`. Plugin authors should use `context.filePaths` when a plugin supports multiple languages or file families with different Edge Types, so Graph Scope only shows toggles that are relevant to the indexed workspace.

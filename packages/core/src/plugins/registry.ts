@@ -146,7 +146,7 @@ export class CorePluginRegistry {
     const capabilities = new Set<GraphEdgeKind>();
     for (const pluginId of applicablePluginIds) {
       const plugin = this.plugins.get(pluginId)?.plugin;
-      for (const capability of plugin?.contributeEdgeTypeCapabilities?.() ?? []) {
+      for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
         capabilities.add(capability);
       }
     }

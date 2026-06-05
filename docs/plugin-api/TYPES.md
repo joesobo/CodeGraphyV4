@@ -39,7 +39,7 @@ Key points:
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, and defaults.
-- `contributeEdgeTypeCapabilities()` lets plugins declare core or plugin-owned Edge Types that are relevant when the plugin applies to the indexed workspace, even if the current graph has no matching relationships yet.
+- `contributeEdgeTypeCapabilities(context)` lets plugins declare core or plugin-owned Edge Types that are relevant when the plugin applies to the indexed workspace, even if the current graph has no matching relationships yet. Use `context.filePaths` when one plugin supports several languages or file families with different capabilities.
 - Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IPluginAnalysisContext`

@@ -152,7 +152,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     const capabilities = new Set<GraphEdgeKind>();
     for (const pluginId of applicablePluginIds) {
       const plugin = this._plugins.get(pluginId)?.plugin;
-      for (const capability of plugin?.contributeEdgeTypeCapabilities?.() ?? []) {
+      for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
         capabilities.add(capability);
       }
     }

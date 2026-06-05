@@ -318,6 +318,9 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
+    if (exampleName === 'example-svelte') {
+      writeWorkspaceEdgeVisibility(context.workspacePath, 'type-import', false);
+    }
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
@@ -715,12 +718,33 @@ async function applyExampleScenarioStartingUiState(
       return;
     case 'svelte-example.md':
       await setPluginSwitch(context, 'Svelte', false);
-      await setEdgeTypeSwitch(context, 'Type imports', false);
       return;
     case 'typescript-example.md':
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
   }
+}
+
+function writeWorkspaceEdgeVisibility(
+  workspacePath: string,
+  edgeKind: string,
+  visible: boolean,
+): void {
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+    edgeVisibility?: Record<string, boolean>;
+  };
+
+  fs.writeFileSync(
+    settingsPath,
+    `${JSON.stringify({
+      ...settings,
+      edgeVisibility: {
+        ...settings.edgeVisibility,
+        [edgeKind]: visible,
+      },
+    }, null, 2)}\n`,
+  );
 }
 
 async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
@@ -969,18 +993,6 @@ async function setPluginSwitch(
   await clickToolbarButton(frame, 'Plugins');
   await setPanelSwitch(context, label, enabled);
   await waitForIndexingToFinish(context);
-  await closePanelIfOpen(frame);
-}
-
-async function setEdgeTypeSwitch(
-  context: GraphAcceptanceContext,
-  label: string,
-  enabled: boolean,
-): Promise<void> {
-  const frame = requireGraphFrame(context);
-  await frame.getByRole('button', { name: 'Graph Scope' }).click();
-  await frame.getByRole('button', { name: 'Edge Types' }).click();
-  await setPanelSwitch(context, label, enabled);
   await closePanelIfOpen(frame);
 }
 

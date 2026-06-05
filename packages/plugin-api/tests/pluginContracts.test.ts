@@ -11,6 +11,7 @@ import type {
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
   IPlugin,
+  IPluginEdgeTypeCapabilityContext,
   CodeGraphyWebviewAPI,
   IPluginDataHost,
   IPluginFactory,
@@ -31,7 +32,10 @@ describe('plugin API contracts', () => {
         defaultColor: '#22C55E',
         defaultVisible: true,
       }],
-      contributeEdgeTypeCapabilities: () => ['import', 'acme.routes:route'],
+      contributeEdgeTypeCapabilities: (context?: IPluginEdgeTypeCapabilityContext) => {
+        expectTypeOf(context?.filePaths).toMatchTypeOf<readonly string[] | undefined>();
+        return ['import', 'acme.routes:route'];
+      },
     } satisfies IPlugin;
 
     expectTypeOf(plugin.contributeEdgeTypeCapabilities).toMatchTypeOf<IPlugin['contributeEdgeTypeCapabilities']>();

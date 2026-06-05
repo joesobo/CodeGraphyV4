@@ -142,6 +142,7 @@ export type {
   IPlugin,
   IPluginExportRequest,
   IPluginExporter,
+  IPluginEdgeTypeCapabilityContext,
   IPluginFactory,
   IPluginFactoryOptions,
   IPluginHostApi,
