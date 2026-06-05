@@ -6,6 +6,7 @@ import {
   NodeTypeRows,
   resolveScopeRowClassName,
 } from '../../../src/webview/components/graphScope/rows';
+import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 
 const sentMessages: unknown[] = [];
 
@@ -129,5 +130,63 @@ describe('graph scope rows', () => {
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
     });
+  });
+
+  it('shows example tooltip text for edge rows that define examples', async () => {
+    render(
+      <TooltipProvider delayDuration={0}>
+        <EdgeTypeRows
+          edgeColors={{}}
+          edgeTypes={[
+            {
+              id: 'import',
+              label: 'Imports',
+              defaultColor: '#333333',
+              defaultVisible: true,
+              description: {
+                description: 'Files imported by another file.',
+                examples: [{ label: 'TypeScript', code: 'import { Button } from "./Button";' }],
+              },
+            },
+          ]}
+          edgeVisibility={{}}
+        />
+      </TooltipProvider>,
+    );
+
+    fireEvent.pointerMove(screen.getByText('Imports'), { pointerType: 'mouse' });
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Files imported by another file.');
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Example');
+    expect(screen.getByRole('tooltip')).toHaveTextContent('import { Button } from "./Button";');
+  });
+
+  it('shows description-only tooltip text for node rows without examples', async () => {
+    render(
+      <TooltipProvider delayDuration={0}>
+        <NodeTypeRows
+          nodeColors={{}}
+          nodeTypes={[
+            {
+              id: 'folder',
+              label: 'Folder',
+              defaultColor: '#222222',
+              defaultVisible: false,
+              description: {
+                description: 'Directories that group files and other folders.',
+              },
+            },
+          ]}
+          nodeVisibility={{ folder: false }}
+        />
+      </TooltipProvider>,
+    );
+
+    fireEvent.pointerMove(screen.getByText('Folder'), { pointerType: 'mouse' });
+
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Folder');
+    expect(tooltip).toHaveTextContent('Directories that group files and other folders.');
+    expect(tooltip).not.toHaveTextContent('Example');
   });
 });
