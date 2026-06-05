@@ -1,9 +1,14 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { minimatch } from 'minimatch';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/excludePatterns';
-import { acceptancePluginPackageRelativePathsForExample } from './plugins';
+import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../../../../core/src/discovery/file/defaults';
+import { loadGitignore } from '../../../../core/src/discovery/gitignore';
+import {
+  DEFAULT_EXCLUDE,
+  matchesAnyPattern,
+  normalizeDiscoveryPath,
+  shouldSkipKnownDirectory,
+} from '../../../../core/src/discovery/pathMatching';
 
 const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
   'example-csharp',
@@ -24,6 +29,13 @@ interface AcceptanceFilterSettings {
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
   filterPatterns: string[];
+  include: string[];
+  maxFiles: number;
+  plugins: Array<{
+    disabledFilterPatterns?: string[];
+    package: string;
+  }>;
+  respectGitignore: boolean;
 }
 
 export function createWorkspaceTempRoot(): string {
@@ -69,38 +81,29 @@ export function copyExampleWorkspace(
   return workspacePath;
 }
 
-export async function readExampleWorkspaceFiles(
-  workspacePath: string,
-  exampleName?: string,
-): Promise<string[]> {
+export async function readExampleWorkspaceFiles(workspacePath: string): Promise<string[]> {
   const settings = readAcceptanceFilterSettings(workspacePath);
   const disabledCustomPatterns = new Set(settings.disabledCustomFilterPatterns);
-  const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns);
+  const disabledPluginPatterns = new Set([
+    ...settings.plugins.flatMap(plugin => plugin.disabledFilterPatterns ?? []),
+    ...settings.disabledPluginFilterPatterns,
+  ]);
   const filterPatterns = settings.filterPatterns
     .filter(pattern => !disabledCustomPatterns.has(pattern));
-  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(exampleName)
+  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(settings.plugins.map(plugin => plugin.package))
     .filter(pattern => !disabledPluginPatterns.has(pattern));
-  const excludePatterns = [
-    ...DEFAULT_EXCLUDE_PATTERNS,
-    ...pluginFilterPatterns,
-    ...filterPatterns,
-  ];
 
-  return collectFiles(workspacePath)
-    .filter(filePath => !matchesAcceptancePattern(filePath, excludePatterns))
-    .sort();
-}
-
-function collectFiles(root: string, current = root): string[] {
-  return fs.readdirSync(current, { withFileTypes: true }).flatMap((entry) => {
-    const absolutePath = path.join(current, entry.name);
-    const relativePath = path.relative(root, absolutePath).split(path.sep).join('/');
-
-    if (entry.isDirectory()) {
-      return collectFiles(root, absolutePath);
-    }
-
-    return [relativePath];
+  return discoverAcceptanceWorkspaceFiles(workspacePath, {
+    excludePatterns: [
+      ...new Set([
+        ...DEFAULT_EXCLUDE,
+        ...pluginFilterPatterns,
+        ...filterPatterns,
+      ]),
+    ],
+    includePatterns: settings.include,
+    maxFiles: settings.maxFiles,
+    respectGitignore: settings.respectGitignore,
   });
 }
 
@@ -173,24 +176,44 @@ function readAcceptanceFilterSettings(workspacePath: string): AcceptanceFilterSe
       disabledCustomFilterPatterns?: unknown;
       disabledPluginFilterPatterns?: unknown;
       filterPatterns?: unknown;
+      include?: unknown;
+      maxFiles?: unknown;
+      plugins?: unknown;
+      respectGitignore?: unknown;
     };
+    const include = readStringArray(settings.include);
 
     return {
       disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
       disabledPluginFilterPatterns: readStringArray(settings.disabledPluginFilterPatterns),
       filterPatterns: readStringArray(settings.filterPatterns),
+      include: include.length > 0 ? include : [...DEFAULT_INCLUDE],
+      maxFiles: readMaxFiles(settings.maxFiles),
+      plugins: readAcceptancePluginSettings(settings.plugins),
+      respectGitignore: typeof settings.respectGitignore === 'boolean'
+        ? settings.respectGitignore
+        : true,
     };
   } catch {
     return {
       disabledCustomFilterPatterns: [],
       disabledPluginFilterPatterns: [],
       filterPatterns: [],
+      include: [...DEFAULT_INCLUDE],
+      maxFiles: DEFAULT_MAX_FILES,
+      plugins: [],
+      respectGitignore: true,
     };
   }
 }
 
-function readAcceptancePluginFilterPatterns(exampleName: string | undefined): string[] {
-  return acceptancePluginPackageRelativePathsForExample(exampleName).flatMap((relativePath) => {
+function readAcceptancePluginFilterPatterns(pluginPackages: readonly string[]): string[] {
+  return pluginPackages.flatMap((pluginPackage) => {
+    const relativePath = acceptancePluginPackageRelativePathForPackage(pluginPackage);
+    if (!relativePath) {
+      return [];
+    }
+
     try {
       const manifest = JSON.parse(
         fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
@@ -205,16 +228,153 @@ function readAcceptancePluginFilterPatterns(exampleName: string | undefined): st
   });
 }
 
+function acceptancePluginPackageRelativePathForPackage(pluginPackage: string): string | undefined {
+  const packagesPath = path.join(repoRoot(), 'packages');
+  let entries: fs.Dirent[];
+
+  try {
+    entries = fs.readdirSync(packagesPath, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith('plugin-')) {
+      continue;
+    }
+
+    const relativePath = path.posix.join('packages', entry.name);
+    try {
+      const packageJson = JSON.parse(
+        fs.readFileSync(path.join(repoRoot(), relativePath, 'package.json'), 'utf8'),
+      ) as { name?: unknown };
+      if (packageJson.name === pluginPackage) {
+        return relativePath;
+      }
+    } catch {
+      // Ignore incomplete plugin packages in test fixtures.
+    }
+  }
+
+  return undefined;
+}
+
+function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings['plugins'] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((entry) => {
+      const packageName = typeof entry.package === 'string' ? entry.package.trim() : '';
+      if (packageName.length === 0) {
+        return undefined;
+      }
+
+      const disabledFilterPatterns = readStringArray(entry.disabledFilterPatterns);
+      return {
+        package: packageName,
+        ...(disabledFilterPatterns.length > 0
+          ? { disabledFilterPatterns: [...new Set(disabledFilterPatterns)] }
+          : {}),
+      };
+    })
+    .filter((entry): entry is AcceptanceFilterSettings['plugins'][number] => entry !== undefined);
+}
+
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)
-    ? value.filter((pattern): pattern is string => typeof pattern === 'string')
+    ? [...new Set(value.filter((pattern): pattern is string => typeof pattern === 'string'))]
     : [];
 }
 
-function matchesAcceptancePattern(relativePath: string, patterns: readonly string[]): boolean {
-  return patterns.some(pattern =>
-    minimatch(relativePath, pattern, { dot: true, matchBase: true })
-  );
+function readMaxFiles(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : DEFAULT_MAX_FILES;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+interface AcceptanceDiscoveryOptions {
+  excludePatterns: string[];
+  includePatterns: string[];
+  maxFiles: number;
+  respectGitignore: boolean;
+}
+
+async function discoverAcceptanceWorkspaceFiles(
+  workspacePath: string,
+  options: AcceptanceDiscoveryOptions,
+): Promise<string[]> {
+  const gitignore = options.respectGitignore ? loadGitignore(workspacePath) : null;
+  const files: string[] = [];
+
+  await walkAcceptanceDirectory(workspacePath, workspacePath, (relativePath, absolutePath) => {
+    if (files.length >= options.maxFiles) {
+      return false;
+    }
+
+    const normalizedPath = normalizeDiscoveryPath(relativePath);
+    if (gitignore?.ignores(normalizedPath)) {
+      return true;
+    }
+
+    if (matchesAnyPattern(normalizedPath, options.excludePatterns)) {
+      return true;
+    }
+
+    if (!matchesAnyPattern(normalizedPath, options.includePatterns)) {
+      return true;
+    }
+
+    if (fs.statSync(absolutePath).isFile()) {
+      files.push(normalizedPath);
+    }
+
+    return true;
+  });
+
+  return files.sort();
+}
+
+async function walkAcceptanceDirectory(
+  workspacePath: string,
+  currentPath: string,
+  onFile: (relativePath: string, absolutePath: string) => boolean,
+): Promise<boolean> {
+  let entries: fs.Dirent[];
+
+  try {
+    entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
+  } catch {
+    return true;
+  }
+
+  for (const entry of entries) {
+    const absolutePath = path.join(currentPath, entry.name);
+    const relativePath = path.relative(workspacePath, absolutePath);
+
+    if (entry.isDirectory()) {
+      if (shouldSkipKnownDirectory(relativePath)) {
+        continue;
+      }
+
+      if (!await walkAcceptanceDirectory(workspacePath, absolutePath, onFile)) {
+        return false;
+      }
+      continue;
+    }
+
+    if (entry.isFile() && !onFile(relativePath, absolutePath)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function isAcceptanceGeneratedArtifact(relativePath: string): boolean {

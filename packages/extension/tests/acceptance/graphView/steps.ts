@@ -330,7 +330,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(context.exampleName).toBe(match[1]);
-    const expectedFiles = await readExampleWorkspaceFiles(workspacePath, context.exampleName);
+    const expectedFiles = await readExampleWorkspaceFiles(workspacePath);
     const counts = await getGraphCounts(requireGraphFrame(context));
     expect(counts.nodes).toBe(expectedFiles.length);
   }),
