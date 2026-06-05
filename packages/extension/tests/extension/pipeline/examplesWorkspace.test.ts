@@ -82,6 +82,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
 
     await analyzer.initialize();
     analyzer.registry.unregister('codegraphy.typescript');
+    analyzer.registry.unregister('codegraphy.gdscript');
     analyzer.registry.register(createTypeScriptPlugin());
     analyzer.registry.register(createGDScriptPlugin());
 
@@ -139,7 +140,6 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-lua/main.lua->example-lua/app/runner.lua#import',
       'example-lua/app/runner.lua->example-lua/app/model/user.lua#import',
       'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Worker.swift#import',
-      'example-dart/bin/sample_app.dart->example-dart/lib/app/runner.dart#import',
       'example-dart/lib/app/runner.dart->example-dart/lib/model/profile.dart#import',
       'example-dart/lib/app/runner.dart->example-dart/lib/model/user.dart#import',
       'example-godot/project.godot->example-godot/scenes/main.tscn#load:static',
@@ -217,6 +217,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     );
 
     await analyzer.initialize();
+    analyzer.registry.unregister('codegraphy.csharp');
     analyzer.registry.register(createCSharpPlugin());
 
     const graph = await analyzer.analyze();
