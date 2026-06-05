@@ -39,6 +39,8 @@ export type {
   IAnalysisSymbol,
   IFileAnalysisResult,
   IPluginEdgeType,
+  IPluginGraphTypeDescription,
+  IPluginGraphTypeExample,
   IPluginNodeType,
 } from './analysis';
 

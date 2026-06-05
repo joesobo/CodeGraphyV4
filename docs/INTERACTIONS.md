@@ -94,11 +94,11 @@ Physics and general graph behavior. See [Settings](./SETTINGS.md) for details.
 
 ### Nodes (shape icon)
 
-Choose Graph Scope for Node Types such as files, folders, packages, and plugin-added Node Types. Each row also shows the current color for that Node Type.
+Choose Graph Scope for Node Types such as files, folders, packages, and plugin-added Node Types. Each row shows the current color for that Node Type. Hover a row to see a brief description and, when available, a compact example.
 
 ### Edges (line icon)
 
-Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, and plugin-added Edge Types. Each row also shows the current color for that Edge Type.
+Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, and plugin-added Edge Types. Each row shows the current color for that Edge Type. Hover a row to see what the relationship means and, when available, a source-style example.
 
 ### Legends (paint icon)
 

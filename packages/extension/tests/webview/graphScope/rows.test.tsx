@@ -6,6 +6,7 @@ import {
   NodeTypeRows,
   resolveScopeRowClassName,
 } from '../../../src/webview/components/graphScope/rows';
+import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 
 const sentMessages: unknown[] = [];
 
@@ -130,5 +131,81 @@ describe('graph scope rows', () => {
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
     });
+  });
+
+  it('shows example tooltip text for edge rows that define examples', async () => {
+    const { container } = render(
+      <TooltipProvider delayDuration={0}>
+        <EdgeTypeRows
+          edgeColors={{}}
+          edgeTypes={[
+            {
+              id: 'import',
+              label: 'Imports',
+              defaultColor: '#333333',
+              defaultVisible: true,
+              description: {
+                description: 'Files imported by another file.',
+                examples: [{ code: 'import { thing } from "./module";' }],
+              },
+            },
+          ]}
+          edgeVisibility={{}}
+          nodeVisibility={{ folder: true }}
+        />
+      </TooltipProvider>,
+    );
+
+    const row = scopeRow(container, 'Imports');
+    fireEvent.pointerMove(row, { pointerType: 'mouse' });
+
+    const tooltip = await screen.findByRole('tooltip');
+    const visibleTooltip = document.querySelector('[data-side="left"][data-align="start"]') as HTMLElement;
+    const tooltipBody = tooltip.querySelector('[data-scope-tooltip-body="Imports"]') as HTMLElement;
+    const tooltipSwatch = tooltipBody.querySelector('[data-scope-tooltip-swatch="Imports"]') as HTMLElement;
+
+    expect(tooltip).toHaveTextContent('Files imported by another file.');
+    expect(row).toHaveClass('cursor-pointer');
+    expect(visibleTooltip).toHaveClass('max-w-80');
+    expect(tooltipBody).toHaveClass('max-w-80');
+    expect(tooltipSwatch).toHaveStyle('background-color: #333333');
+    expect(tooltip).not.toHaveTextContent('Example');
+    expect(screen.getByRole('tooltip')).toHaveTextContent('import { thing } from "./module";');
+
+    const example = tooltipBody.querySelector('[data-scope-tooltip-example="Imports"]') as HTMLElement;
+    expect(example).toHaveClass('whitespace-pre');
+    expect(example).toHaveClass('overflow-x-auto');
+  });
+
+  it('shows description-only tooltip text for node rows without examples', async () => {
+    const { container } = render(
+      <TooltipProvider delayDuration={0}>
+        <NodeTypeRows
+          nodeColors={{}}
+          nodeTypes={[
+            {
+              id: 'folder',
+              label: 'Folder',
+              defaultColor: '#222222',
+              defaultVisible: false,
+              description: {
+                description: 'Directories that group files and other folders.',
+              },
+            },
+          ]}
+          nodeVisibility={{ folder: false }}
+        />
+      </TooltipProvider>,
+    );
+
+    const row = scopeRow(container, 'Folder');
+    fireEvent.pointerMove(row, { pointerType: 'mouse' });
+
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(row).toHaveClass('cursor-pointer');
+    expect(tooltip).toHaveTextContent('Folder');
+    expect(tooltip).toHaveTextContent('Directories that group files and other folders.');
+    expect(tooltip).not.toHaveTextContent('Example');
   });
 });
