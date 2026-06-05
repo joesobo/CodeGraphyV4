@@ -309,7 +309,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
 
 
 
-    it('projects visible folder and workspace package structure with core nests edges', () => {
+    it('projects folder nests edges and workspace package nodes without package nests edges', () => {
       const result = deriveVisibleGraph(
         {
           nodes: [
@@ -349,15 +349,9 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
             kind: STRUCTURAL_NESTS_EDGE_KIND,
             sources: [],
           },
-          {
-            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/src/index.ts#nests`,
-            from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
-            to: 'packages/extension/src/index.ts',
-            kind: STRUCTURAL_NESTS_EDGE_KIND,
-            sources: [],
-          },
         ]),
       );
+      expect(result.graphData.edges.some((item) => item.from.startsWith(WORKSPACE_PACKAGE_NODE_ID_PREFIX))).toBe(false);
       expect(result.graphData.edges.every((item) => !item.id.includes('codegraphy:nests'))).toBe(true);
     });
 

@@ -34,7 +34,6 @@ export function applyStructuralProjection(
   const structuralEdges = buildProjectedStructuralEdges(
     options,
     folderProjection.paths,
-    packageProjection.roots,
     visibleFileNodes,
   );
 
