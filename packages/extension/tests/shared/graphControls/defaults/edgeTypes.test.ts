@@ -8,7 +8,9 @@ import {
 describe('shared/graphControls/defaults/edgeTypes', () => {
   it('declares the structural nests edge and the built-in edge defaults', () => {
     expect(STRUCTURAL_NESTS_EDGE_KIND).toBe('nests');
-    expect(createCoreGraphEdgeTypes()).toEqual([
+    const edgeTypes = createCoreGraphEdgeTypes();
+
+    expect(edgeTypes).toMatchObject([
       {
         id: 'import',
         label: 'Imports',
@@ -76,6 +78,11 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultVisible: false,
       },
     ]);
+    expect(edgeTypes.every((edgeType) => edgeType.description?.description)).toBe(true);
+    expect(edgeTypes.find((edgeType) => edgeType.id === 'import')?.description?.examples?.[0]?.code)
+      .toBe('import { thing } from "./module";');
+    expect(edgeTypes.find((edgeType) => edgeType.id === 'inherit')?.description?.examples?.[0]?.code)
+      .toBe('class Child extends Parent {}');
     expect(CORE_GRAPH_EDGE_TYPES).toEqual(createCoreGraphEdgeTypes());
   });
 });

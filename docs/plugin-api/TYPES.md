@@ -38,7 +38,7 @@ Key points:
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
-- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, and defaults.
+- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, defaults, and optional user-facing descriptions for Graph Scope.
 - Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IPluginAnalysisContext`
@@ -60,6 +60,8 @@ Higher-priority plugins only override data when both sides hit the same merge ke
 
 - `nodeTypes`, `edgeTypes`, `nodes`, and `symbols` merge by `id`
 - `relations` merge by relationship identity
+
+Node Type and Edge Type definitions can include an optional `description` object. The description should explain what the type means in product language, not how the analyzer detects it. Use `examples` for compact, real-looking snippets or paths that help users recognize the type in Graph Scope.
 
 Current relationship identity:
 
