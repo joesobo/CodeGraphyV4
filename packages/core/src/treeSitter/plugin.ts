@@ -14,6 +14,14 @@ export function createTreeSitterPlugin(): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: [...TREE_SITTER_SUPPORTED_EXTENSIONS],
+    contributeEdgeTypeCapabilities: () => [
+      'import',
+      'reference',
+      'call',
+      'reexport',
+      'type-import',
+      'inherit',
+    ],
 
     async analyzeFile(
       filePath: string,

@@ -14,7 +14,11 @@ import {
 } from '../../../../../shared/fileColors';
 import { isFileNode } from '../../../../../shared/visibleGraph/model';
 import { prettifyIdentifier } from './identifiers';
-import type { GraphEdgeTypeLike, GraphNodeTypeLike } from './contracts';
+import type {
+  GraphEdgeTypeCapabilityLike,
+  GraphEdgeTypeLike,
+  GraphNodeTypeLike,
+} from './contracts';
 
 export function mergeNodeTypes(
   graphData: IGraphData,
@@ -58,8 +62,9 @@ export function mergeNodeTypes(
 export function mergeEdgeTypes(
   graphData: IGraphData,
   pluginEdgeTypes: GraphEdgeTypeLike[],
+  edgeTypeCapabilities: GraphEdgeTypeCapabilityLike[] = [],
 ): IGraphEdgeTypeDefinition[] {
-  const availableEdgeKinds = collectAvailableEdgeKinds(graphData);
+  const availableEdgeKinds = collectAvailableEdgeKinds(graphData, edgeTypeCapabilities);
   const definitions = new Map<string, IGraphEdgeTypeDefinition>();
 
   for (const definition of CORE_GRAPH_EDGE_TYPES) {
@@ -93,10 +98,18 @@ export function mergeEdgeTypes(
   return Array.from(definitions.values());
 }
 
-function collectAvailableEdgeKinds(graphData: IGraphData): Set<string> {
-  const edgeKinds = new Set<string>(graphData.edges.map((edge) => edge.kind));
+function collectAvailableEdgeKinds(
+  graphData: IGraphData,
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[],
+): Set<string> {
+  const edgeKinds = new Set<string>(edgeTypeCapabilities);
+
+  for (const edge of graphData.edges) {
+    edgeKinds.add(edge.kind);
+  }
 
   if (graphData.nodes.some(isFileNode)) {
+    edgeKinds.add('reference');
     edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
   }
 

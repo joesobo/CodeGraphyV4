@@ -25,6 +25,7 @@ export function createTypeScriptPlugin(): IPlugin {
     defaultFilters: manifest.defaultFilters,
     fileColors: manifest.fileColors,
     contributeEdgeTypes: () => [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE],
+    contributeEdgeTypeCapabilities: () => [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE.id],
     analyzeFile: analyzeTypeScriptAliasImports,
     async onPreAnalyze(files) {
       typeScriptFiles = collectTypeScriptFilePaths(files);

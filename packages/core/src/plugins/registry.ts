@@ -13,6 +13,7 @@ import type {
   IPluginAnalysisContext,
   IPluginEdgeType,
   IPluginNodeType,
+  GraphEdgeKind,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { CORE_PLUGIN_API_VERSION } from './api';
@@ -43,6 +44,7 @@ import {
 import {
   getPluginForFile,
   getPluginsForExtension,
+  getPluginsForFile,
   getSupportedExtensions,
   supportsFile,
 } from './routing/router/lookups';
@@ -130,6 +132,26 @@ export class CorePluginRegistry {
       plugin => plugin.contributeEdgeTypes?.() ?? [],
       definition => definition.id,
     );
+  }
+
+  listEdgeTypeCapabilities(filePaths: readonly string[] = []): GraphEdgeKind[] {
+    const applicablePluginIds = new Set<string>();
+
+    for (const filePath of filePaths) {
+      for (const plugin of getPluginsForFile(filePath, this.plugins, this.extensionMap)) {
+        applicablePluginIds.add(plugin.id);
+      }
+    }
+
+    const capabilities = new Set<GraphEdgeKind>();
+    for (const pluginId of applicablePluginIds) {
+      const plugin = this.plugins.get(pluginId)?.plugin;
+      for (const capability of plugin?.contributeEdgeTypeCapabilities?.() ?? []) {
+        capabilities.add(capability);
+      }
+    }
+
+    return [...capabilities];
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {

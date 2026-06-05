@@ -3,6 +3,48 @@ import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphContr
 import { captureGraphControlsSnapshot } from '../../../../../src/extension/graphView/controls/send';
 
 describe('extension/graphView/controls/snapshot', () => {
+  it('advertises edge capabilities even when the current graph has no matching edges', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'edgeVisibility') {
+            return { import: false, 'plugin:route': false, overrides: true } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [
+        {
+          id: 'plugin:route',
+          label: 'Route Links',
+          defaultColor: '#10B981',
+          defaultVisible: true,
+        },
+      ],
+      ['import', 'plugin:route'],
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'import',
+      'reference',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'plugin:route',
+    ]);
+    expect(snapshot.edgeVisibility).toEqual({
+      import: false,
+      reference: false,
+      [STRUCTURAL_NESTS_EDGE_KIND]: false,
+      'plugin:route': false,
+    });
+  });
+
   it('advertises only edge types available in the current project graph', () => {
     const snapshot = captureGraphControlsSnapshot(
       {
@@ -28,10 +70,12 @@ describe('extension/graphView/controls/snapshot', () => {
 
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
       'import',
+      'reference',
       STRUCTURAL_NESTS_EDGE_KIND,
     ]);
     expect(snapshot.edgeVisibility).toEqual({
       import: false,
+      reference: false,
       [STRUCTURAL_NESTS_EDGE_KIND]: false,
     });
   });

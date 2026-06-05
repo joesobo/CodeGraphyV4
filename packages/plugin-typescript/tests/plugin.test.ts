@@ -32,6 +32,9 @@ describe('createTypeScriptPlugin', () => {
         defaultVisible: true,
       },
     ]);
+    expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([
+      'codegraphy.typescript:alias-import',
+    ]);
   });
 
   it('keeps plugin analysis focused on TypeScript alias imports', () => {

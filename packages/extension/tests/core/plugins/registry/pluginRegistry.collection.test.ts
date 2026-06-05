@@ -196,6 +196,51 @@ describe('PluginRegistry collection', () => {
     ]);
   });
 
+  it('returns edge capabilities from plugins that support workspace files', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeEdgeTypeCapabilities: () => ['import', 'plugin:route'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'python',
+      supportedExtensions: ['.py'],
+      contributeEdgeTypeCapabilities: () => ['reference'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'wildcard',
+      supportedExtensions: ['*'],
+      contributeEdgeTypeCapabilities: () => ['test'],
+    }));
+
+    expect(registry.listEdgeTypeCapabilities(['src/app.ts'])).toEqual([
+      'import',
+      'plugin:route',
+      'test',
+    ]);
+  });
+
+  it('deduplicates edge capabilities when multiple applicable plugins declare the same kind', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      supportedExtensions: ['.ts'],
+      contributeEdgeTypeCapabilities: () => ['import', 'reference'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      supportedExtensions: ['.tsx'],
+      contributeEdgeTypeCapabilities: () => ['import', 'call'],
+    }));
+
+    expect(registry.listEdgeTypeCapabilities(['src/app.ts', 'src/view.tsx'])).toEqual([
+      'import',
+      'reference',
+      'call',
+    ]);
+  });
+
   it('disposes every registered plugin through unregister', () => {
     const registry = createConfiguredRegistry();
     registry.register(createMockPlugin({ id: 'first' }));

@@ -1,8 +1,13 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGraphControlsSnapshot } from '../../../shared/graphControls/contracts';
+import { isFileNode } from '../../../shared/visibleGraph/model';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
-import { readEdgeTypes, readNodeTypes } from './send/definitions/registry';
+import {
+  readEdgeTypeCapabilities,
+  readEdgeTypes,
+  readNodeTypes,
+} from './send/definitions/registry';
 import { captureGraphControlsSnapshot } from './send/definitions/snapshot';
 import type {
   GraphControlsAnalyzerLike,
@@ -26,13 +31,19 @@ export function sendGraphControlsUpdated(
   sendMessage: (message: ExtensionToWebviewMessage) => void,
   config: GraphControlsConfigurationLike = getCodeGraphyConfiguration(),
 ): void {
+  const registry = analyzer?.registry;
+  const filePaths = graphData.nodes
+    .filter(isFileNode)
+    .map((node) => node.id);
+
   sendMessage(
     buildGraphControlsUpdatedMessage(
       captureGraphControlsSnapshot(
         config,
         graphData,
-        readNodeTypes(analyzer?.registry),
-        readEdgeTypes(analyzer?.registry),
+        readNodeTypes(registry),
+        readEdgeTypes(registry),
+        readEdgeTypeCapabilities(registry, filePaths),
       ),
     ),
   );

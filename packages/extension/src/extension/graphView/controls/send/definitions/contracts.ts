@@ -1,3 +1,5 @@
+import type { GraphEdgeKind } from '../../../../../shared/graph/contracts';
+
 export interface GraphNodeTypeLike {
   id: string;
   label: string;
@@ -21,3 +23,5 @@ export interface GraphControlsConfigurationLike {
 }
 
 export type GraphDefinitionReader<TDefinition> = (definition: unknown) => definition is TDefinition;
+
+export type GraphEdgeTypeCapabilityLike = GraphEdgeKind;

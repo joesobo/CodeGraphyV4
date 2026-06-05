@@ -6,6 +6,7 @@ import type {
   IPluginInfo,
   IPluginNodeType,
   IProjectedConnection,
+  GraphEdgeKind,
 } from '../../../types/contracts';
 import {
   resolvePluginAccess,
@@ -19,6 +20,7 @@ import {
 } from '../../../routing/router/analyze';
 import {
   getPluginForFile,
+  getPluginsForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
@@ -136,6 +138,26 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       (plugin) => plugin.contributeEdgeTypes?.() ?? [],
       (definition) => definition.id,
     );
+  }
+
+  listEdgeTypeCapabilities(filePaths: readonly string[] = []): GraphEdgeKind[] {
+    const applicablePluginIds = new Set<string>();
+
+    for (const filePath of filePaths) {
+      for (const plugin of getPluginsForFile(filePath, this._plugins, this._extensionMap)) {
+        applicablePluginIds.add(plugin.id);
+      }
+    }
+
+    const capabilities = new Set<GraphEdgeKind>();
+    for (const pluginId of applicablePluginIds) {
+      const plugin = this._plugins.get(pluginId)?.plugin;
+      for (const capability of plugin?.contributeEdgeTypeCapabilities?.() ?? []) {
+        capabilities.add(capability);
+      }
+    }
+
+    return [...capabilities];
   }
 
   get size(): number {
