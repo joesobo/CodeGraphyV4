@@ -70,6 +70,15 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
     visit?.({ type: 'interface_declaration' }, state, walk);
     visit?.({ type: 'enum_declaration' }, state, walk);
     expect(handleJavaTypeDeclaration).toHaveBeenCalledTimes(3);
+    expect(handleJavaTypeDeclaration).toHaveBeenCalledWith(
+      { type: 'class_declaration' },
+      '/workspace/src/App.java',
+      '/workspace/src',
+      'pkg',
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Map),
+    );
 
     visit?.({ type: 'method_declaration' }, state, walk);
     expect(handleJavaMethodDeclaration).toHaveBeenCalledWith(
