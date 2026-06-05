@@ -109,6 +109,45 @@ describe('Vue SFC analysis', () => {
     }
   });
 
+  it('emits runtime import relationships from lazy component dynamic imports', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const source = [
+        '<script setup lang="ts">',
+        "import { defineAsyncComponent } from 'vue';",
+        "const LazyChart = defineAsyncComponent(() => import('./components/LazyChart.vue'));",
+        "const LazyPanel = () => import('./components/LazyPanel.vue');",
+        '</script>',
+      ].join('\n');
+      const sourcePath = writeWorkspaceFile(workspaceRoot, 'src/App.vue', source);
+      const lazyChartPath = writeWorkspaceFile(workspaceRoot, 'src/components/LazyChart.vue', '<template />\n');
+      const lazyPanelPath = writeWorkspaceFile(workspaceRoot, 'src/components/LazyPanel.vue', '<template />\n');
+
+      const result = await createVuePlugin().analyzeFile?.(sourcePath, source, workspaceRoot);
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'import',
+          sourceId: 'sfc-script-dynamic-import',
+          fromFilePath: sourcePath,
+          toFilePath: lazyChartPath,
+          resolvedPath: lazyChartPath,
+          specifier: './components/LazyChart.vue',
+        },
+        {
+          kind: 'import',
+          sourceId: 'sfc-script-dynamic-import',
+          fromFilePath: sourcePath,
+          toFilePath: lazyPanelPath,
+          resolvedPath: lazyPanelPath,
+          specifier: './components/LazyPanel.vue',
+        },
+      ]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
   it('ignores package imports and malformed SFCs instead of emitting unresolved edges', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {

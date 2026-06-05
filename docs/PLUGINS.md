@@ -13,6 +13,8 @@ The VS Code extension visualizes CodeGraphy data and renders plugin controls, bu
 - [`@codegraphy-dev/plugin-csharp`](https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp)
 - [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
 - [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)
+- [`@codegraphy-dev/plugin-vue`](https://www.npmjs.com/package/@codegraphy-dev/plugin-vue)
+- [`@codegraphy-dev/plugin-svelte`](https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte)
 
 ## Start here
 
@@ -30,7 +32,7 @@ The current plugin API supports more than file analysis:
 
 Plugins should stay headless. They communicate with `@codegraphy-dev/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
 
-Core now owns the default explorer-style file and folder theming through Material Icon Theme. The built-in TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
+Core now owns the default explorer-style file and folder theming through Material Icon Theme. The first-party TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
 
 For timeline compatibility, third-party plugins should avoid reading the live workspace directly during analysis. Use the plugin hook `context` instead so the same plugin can resolve files from either the current workspace or a historical commit snapshot.
 
@@ -217,3 +219,5 @@ Markdown-style wikilink scanning is implemented as a wildcard plugin so it can i
 Plugins can combine core parser results, plugin-owned parsers, and text fallbacks inside one package. They do not need to declare a separate analysis tier.
 
 `@codegraphy-dev/plugin-godot` is the first structured-analysis showcase. It keeps one npm package, but routes GDScript through `@gdquest/lezer-gdscript` and Godot `.tscn` / `.tres` files through `@fernforestgames/godot-resource-parser` before emitting the same relationship and Symbol Node output. The plugin still keeps text-analysis fallbacks for parser gaps and `project.godot` settings, which shows how a plugin can lean on external ecosystem packages without introducing a Godot LSP process or VS Code-specific dependency.
+
+`@codegraphy-dev/plugin-vue` and `@codegraphy-dev/plugin-svelte` follow the same principle for Single-File Components. Vue SFCs are parsed with `@vue/compiler-sfc`, and Svelte components are parsed with `svelte/compiler`, so each plugin can reuse framework-owned block parsing before emitting ordinary CodeGraphy import, type-import, and lazy import relationships.
