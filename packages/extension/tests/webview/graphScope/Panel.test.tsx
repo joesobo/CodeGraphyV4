@@ -23,6 +23,7 @@ function setStoreState() {
       { id: 'import', label: 'Imports', defaultColor: '#333333', defaultVisible: true },
       { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
     ],
+    graphHasIndex: true,
     nodeColors: { file: '#555555' },
     nodeVisibility: { folder: true },
     edgeVisibility: { reference: false },
@@ -108,6 +109,21 @@ describe('GraphScopePanel', () => {
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
     });
+  });
+
+  it('shows Edge Types disabled until the workspace has a Graph Cache', () => {
+    graphStore.setState({ graphHasIndex: false });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeDisabled();
+    expect(edgeTypesButton).toHaveAttribute('title', 'Index workspace to enable Edge Type controls');
+
+    fireEvent.click(edgeTypesButton);
+
+    expect(edgeTypesButton).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText('File')).toBeInTheDocument();
+    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
   });
 
   it('switches back to node types after showing edge types', () => {

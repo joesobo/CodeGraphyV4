@@ -24,6 +24,7 @@ export default function GraphScopePanel({
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
+  const graphHasIndex = useGraphStore((state) => state.graphHasIndex);
   const edgeColors = useMemo(
     () => resolveEdgeTypeColors(edgeTypes, legends),
     [edgeTypes, legends],
@@ -47,7 +48,12 @@ export default function GraphScopePanel({
           <ScopeTabButton active={activeTab === 'nodes'} onClick={() => setActiveTab('nodes')}>
             Node Types
           </ScopeTabButton>
-          <ScopeTabButton active={activeTab === 'edges'} onClick={() => setActiveTab('edges')}>
+          <ScopeTabButton
+            active={activeTab === 'edges'}
+            disabled={!graphHasIndex}
+            onClick={() => setActiveTab('edges')}
+            title={!graphHasIndex ? 'Index workspace to enable Edge Type controls' : undefined}
+          >
             Edge Types
           </ScopeTabButton>
         </div>
