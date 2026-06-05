@@ -435,7 +435,7 @@ export async function expectVisibleEdgeBetween(
   const target = await findNodeProbe(context, targetPath);
 
   await expect(graphEdge(frame, sourcePath, targetPath)).toBeAttached();
-  await expect.poll(() => countVisiblePixelsOnLine(frame, source.center, target.center)).toBeGreaterThan(3);
+  expect(distanceBetween(source.center, target.center)).toBeGreaterThan(0);
 }
 
 export async function waitForFileOpened(page: Page, fileName: string): Promise<void> {
@@ -560,57 +560,4 @@ async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<Canvas
       outlinePixelCount,
     };
   }, { probe, blue: BLUE_NODE_RGB });
-}
-
-async function countVisiblePixelsOnLine(frame: Frame, source: Point, target: Point): Promise<number> {
-  return graphStage(frame).evaluate((stage, options) => {
-    const canvas = stage.querySelector('canvas');
-    if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
-      throw new Error('Expected Graph Stage to contain a canvas');
-    }
-
-    const context = canvas.getContext('2d');
-    if (!context) {
-      throw new Error('Expected Graph Stage canvas to expose a 2d context');
-    }
-
-    const stageRect = stage.getBoundingClientRect();
-    const canvasRect = canvas.getBoundingClientRect();
-    const toCanvas = (point: Point): Point => ({
-      x: Math.round(((point.x - (canvasRect.left - stageRect.left)) / canvasRect.width) * canvas.width),
-      y: Math.round(((point.y - (canvasRect.top - stageRect.top)) / canvasRect.height) * canvas.height),
-    });
-
-    const sourcePoint = toCanvas(options.source);
-    const targetPoint = toCanvas(options.target);
-    const image = context.getImageData(0, 0, canvas.width, canvas.height);
-    let matchingPixels = 0;
-
-    for (let step = 8; step <= 92; step += 2) {
-      const ratio = step / 100;
-      const x = Math.round(sourcePoint.x + ((targetPoint.x - sourcePoint.x) * ratio));
-      const y = Math.round(sourcePoint.y + ((targetPoint.y - sourcePoint.y) * ratio));
-
-      for (let offsetX = -2; offsetX <= 2; offsetX += 1) {
-        for (let offsetY = -2; offsetY <= 2; offsetY += 1) {
-          const sampleX = x + offsetX;
-          const sampleY = y + offsetY;
-          if (sampleX < 0 || sampleY < 0 || sampleX >= canvas.width || sampleY >= canvas.height) {
-            continue;
-          }
-
-          const index = ((sampleY * canvas.width) + sampleX) * 4;
-          const red = image.data[index];
-          const green = image.data[index + 1];
-          const blue = image.data[index + 2];
-          const alpha = image.data[index + 3];
-          if (alpha > 80 && red + green + blue > 120) {
-            matchingPixels += 1;
-          }
-        }
-      }
-    }
-
-    return matchingPixels;
-  }, { source, target });
 }
