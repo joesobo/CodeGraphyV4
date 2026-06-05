@@ -92,6 +92,23 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(settings.edgeVisibility?.['type-import']).toBe(true);
   });
 
+  it('can apply Svelte app declaration filters when reading expected acceptance files', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
+      filterPatterns: ['src/app.d.ts'],
+    });
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      filterPatterns?: string[];
+    };
+    const files = readExampleWorkspaceFiles(workspacePath);
+
+    expect(settings.filterPatterns).toEqual(['src/app.d.ts']);
+    expect(files).not.toContain('src/app.d.ts');
+  });
+
   it('can expose call edges for language scenarios that assert imported-call connections', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
