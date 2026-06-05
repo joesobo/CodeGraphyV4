@@ -175,14 +175,6 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     }
   },
 
-  'I can see there are 14 nodes and 7 connections': async (context) => {
-    await expectGraphCounts(context, 14, 7);
-  },
-
-  'I can see there are 14 nodes and 10 connections': async (context) => {
-    await expectGraphCounts(context, 14, 10);
-  },
-
   'I click the Graph Scope button': async (context) => {
     await requireGraphFrame(context).getByRole('button', { name: 'Graph Scope' }).click();
   },
