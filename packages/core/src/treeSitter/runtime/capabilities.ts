@@ -15,7 +15,7 @@ const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
 
 const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   'c': ['import'],
-  cpp: ['import'],
+  cpp: ['import', 'contains', 'inherit', 'overrides'],
   csharp: ['import', 'reference', 'inherit'],
   dart: ['import', 'inherit'],
   go: ['import', 'call'],

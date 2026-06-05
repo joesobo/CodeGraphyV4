@@ -52,6 +52,9 @@ describe('core tree-sitter built-in plugin', () => {
       'reexport',
       'type-import',
     ]);
+    expect(plugin.contributeEdgeTypeCapabilities?.({
+      filePaths: ['/workspace/src/app.cpp'],
+    })).toEqual(['import', 'contains', 'inherit', 'overrides']);
   });
 
   it('returns analyzed file results when tree-sitter analysis succeeds', async () => {
