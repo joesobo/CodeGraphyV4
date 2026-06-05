@@ -125,6 +125,22 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(settings.edgeVisibility?.call).toBe(true);
   });
 
+  it('can hide inherit edges for examples that assert only import relationships', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-pascal', {
+      includeInheritEdges: false,
+    });
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+    };
+
+    expect(settings.edgeVisibility?.inherit).toBe(false);
+  });
+
   it('rewrites markdown example links for the copied workspace root', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);

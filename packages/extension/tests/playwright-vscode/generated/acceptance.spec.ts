@@ -4193,10 +4193,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:12
-      await test.step('Then I can see there are 9 nodes and 10 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 10 connections', {
+      await test.step('Then I can see there are 9 nodes and 9 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 9 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 10 connections',
+          text: 'I can see there are 9 nodes and 9 connections',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 12
         });
