@@ -425,8 +425,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the (.+) plugin on$/, async (context, _step, match) => {
-    await setPanelSwitch(context, match[1], true);
-    await waitForIndexingToFinish(context);
+    await setPluginSwitch(context, match[1], true);
   }),
 
   step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
@@ -631,11 +630,13 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the Folder node on$/, async (context) => {
+    await openGraphScopeSection(context, 'Node Types');
     await setPanelSwitch(context, 'Folder', true);
+    await closePanelIfOpen(requireGraphFrame(context));
   }),
 
   step(/^I toggle the Nests edge on$/, async (context) => {
-    await setPanelSwitch(context, 'Nests', true);
+    await toggleEdgeTypeOn(context, 'Nests');
   }),
 
   step(/^I close the Graph Scope$/, async (context) => {
@@ -1046,7 +1047,9 @@ async function setPluginSwitch(
   enabled: boolean,
 ): Promise<void> {
   const frame = requireGraphFrame(context);
-  await clickToolbarButton(frame, 'Plugins');
+  if (await findPanelSwitch(frame, normalizePanelLabel(label)).then(switchInRow => switchInRow.count()) === 0) {
+    await clickToolbarButton(frame, 'Plugins');
+  }
   await setPanelSwitch(context, label, enabled);
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
@@ -1208,18 +1211,22 @@ async function setPanelSwitchIfPresent(
 
 async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
   const row = frame.getByText(label, { exact: true }).locator('xpath=ancestor::*[self::label or self::div][1]');
-  const switchInRow = row.getByRole('switch').first();
+  const candidates = [
+    row.getByRole('switch').first(),
+    frame.getByRole('switch', { name: `Toggle ${label}`, exact: true }),
+    frame.getByRole('switch', { name: label, exact: true }),
+  ];
 
-  if (await switchInRow.count()) {
-    return switchInRow;
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    for (const candidate of candidates) {
+      if (await candidate.count()) {
+        return candidate;
+      }
+    }
+    await frame.waitForTimeout(100);
   }
 
-  const toggleLabelSwitch = frame.getByRole('switch', { name: `Toggle ${label}`, exact: true });
-  if (await toggleLabelSwitch.count()) {
-    return toggleLabelSwitch;
-  }
-
-  return frame.getByRole('switch', { name: label, exact: true });
+  return candidates.at(-1) ?? frame.getByRole('switch', { name: label, exact: true });
 }
 
 function parseScopeTypeList(value: string): string[] {
