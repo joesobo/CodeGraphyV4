@@ -120,6 +120,22 @@ describe('GraphScopePanel', () => {
     expect(screen.queryByText('Nests')).not.toBeInTheDocument();
   });
 
+  it('shows the Nests edge toggle with its saved state when folder nodes are enabled', () => {
+    graphStore.setState({
+      nodeVisibility: { folder: true },
+      edgeVisibility: { nests: false },
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
+    fireEvent.click(screen.getByLabelText('Toggle Nests'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_EDGE_VISIBILITY',
+      payload: { edgeKind: 'nests', visible: true },
+    });
+  });
+
   it('switches back to node types after showing edge types', () => {
     render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
