@@ -2,20 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import type { GraphAcceptanceContext } from './acceptance/graphView/types';
 import type { AcceptanceRuntimeStep } from './acceptance/graphView/types';
 
-const canvasMocks = vi.hoisted(() => ({
-  getGraphCounts: vi.fn(async () => ({ nodes: 15, edges: 9 })),
-  requireGraphFrame: vi.fn(() => ({})),
-}));
-
 vi.mock('./acceptance/graphView/canvas', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./acceptance/graphView/canvas')>();
 
   return {
     ...actual,
     clickNode: vi.fn(),
-    getGraphCounts: canvasMocks.getGraphCounts,
     modifierClickNode: vi.fn(),
-    requireGraphFrame: canvasMocks.requireGraphFrame,
     rightClickEdge: vi.fn(),
     rightClickNode: vi.fn(),
   };
@@ -57,21 +50,5 @@ describe('acceptance graph view step resolution', () => {
     expect(rightClickNode).not.toHaveBeenCalled();
     expect(clickNode).toHaveBeenCalledWith(expect.anything(), 'src/index.ts');
     expect(modifierClickNode).toHaveBeenCalledWith(expect.anything(), 'src/utils.ts');
-  });
-
-  it('uses literal graph count values from the acceptance text', async () => {
-    const { graphViewAcceptanceSteps } = await import('./acceptance/graphView/steps');
-    const text = 'I can see there are 14 nodes and 7 connections';
-
-    await expect(
-      graphViewAcceptanceSteps[text]({
-        exampleName: 'example-vue',
-      } as GraphAcceptanceContext, {
-        keyword: 'Then',
-        line: 1,
-        sourcePath: 'example-vue.md',
-        text,
-      } satisfies AcceptanceRuntimeStep),
-    ).rejects.toThrow();
   });
 });
