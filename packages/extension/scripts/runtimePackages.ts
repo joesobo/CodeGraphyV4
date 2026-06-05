@@ -19,10 +19,12 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'tree-sitter-javascript',
   '@tree-sitter-grammars/tree-sitter-kotlin',
   '@tree-sitter-grammars/tree-sitter-lua',
+  'tree-sitter-objc',
   'tree-sitter-php',
   'tree-sitter-python',
   'tree-sitter-ruby',
   'tree-sitter-rust',
+  'tree-sitter-scala',
   'tree-sitter-swift',
   'tree-sitter-typescript',
 ] as const;

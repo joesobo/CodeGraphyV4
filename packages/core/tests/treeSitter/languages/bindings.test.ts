@@ -21,10 +21,12 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.unmock('tree-sitter-javascript');
     vi.unmock('@tree-sitter-grammars/tree-sitter-kotlin');
     vi.unmock('@tree-sitter-grammars/tree-sitter-lua');
+    vi.unmock('tree-sitter-objc');
     vi.unmock('tree-sitter-php');
     vi.unmock('tree-sitter-python');
     vi.unmock('tree-sitter-ruby');
     vi.unmock('tree-sitter-rust');
+    vi.unmock('tree-sitter-scala');
     vi.unmock('tree-sitter-swift');
     vi.unmock('tree-sitter-typescript');
   });
@@ -41,10 +43,12 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     const javaScript = { name: 'javascript' };
     const kotlin = { name: 'kotlin' };
     const lua = { name: 'lua' };
+    const objectiveC = { name: 'objective-c' };
     const php = { name: 'php' };
     const python = { name: 'python' };
     const ruby = { name: 'ruby' };
     const rust = { name: 'rust' };
+    const scala = { name: 'scala' };
     const swift = { name: 'swift' };
     const tsx = { name: 'tsx' };
     const typeScript = { name: 'typescript' };
@@ -60,10 +64,12 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.doMock('tree-sitter-javascript', () => ({ default: javaScript }));
     vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: kotlin }));
     vi.doMock('@tree-sitter-grammars/tree-sitter-lua', () => ({ default: lua }));
+    vi.doMock('tree-sitter-objc', () => ({ default: objectiveC }));
     vi.doMock('tree-sitter-php', () => ({ default: { php } }));
     vi.doMock('tree-sitter-python', () => ({ default: python }));
     vi.doMock('tree-sitter-ruby', () => ({ default: ruby }));
     vi.doMock('tree-sitter-rust', () => ({ default: rust }));
+    vi.doMock('tree-sitter-scala', () => ({ default: scala }));
     vi.doMock('tree-sitter-swift', () => ({ default: swift }));
     vi.doMock('tree-sitter-typescript', () => ({
       default: {
@@ -89,10 +95,12 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
       javaScript,
       kotlin,
       lua,
+      objectiveC,
       php,
       python,
       ruby,
       rust,
+      scala,
       swift,
       tsx,
       typeScript,

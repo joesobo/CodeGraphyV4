@@ -38,6 +38,12 @@ describe('acceptance graph view plugin fixtures', () => {
     ]);
   });
 
+  it('registers the Svelte plugin for the Svelte example', () => {
+    expect(acceptancePluginPackageRelativePathsForExample('example-svelte')).toEqual([
+      'packages/plugin-svelte',
+    ]);
+  });
+
   it('does not register package plugins for core-only examples', () => {
     expect(acceptancePluginPackageRelativePathsForExample('example-python')).toEqual([]);
   });

@@ -1,6 +1,14 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../../../../core/src/discovery/file/defaults';
+import { loadGitignore } from '../../../../core/src/discovery/gitignore';
+import {
+  DEFAULT_EXCLUDE,
+  matchesAnyPattern,
+  normalizeDiscoveryPath,
+  shouldSkipKnownDirectory,
+} from '../../../../core/src/discovery/pathMatching';
 
 const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
   'example-csharp',
@@ -11,26 +19,24 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 interface CopyExampleWorkspaceOptions {
   includeCallEdges?: boolean;
   includeInheritEdges?: boolean;
+  filterPatterns?: string[];
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
+  pluginPackages?: string[];
 }
 
-export const EXPECTED_EXAMPLE_VUE_FILES = [
-  '.gitignore',
-  'README.md',
-  'index.html',
-  'package.json',
-  'src/App.vue',
-  'src/components/CounterPanel.vue',
-  'src/components/StatusBadge.vue',
-  'src/components/UserCard.vue',
-  'src/composables/useCounter.ts',
-  'src/data/users.ts',
-  'src/main.ts',
-  'src/types.ts',
-  'tsconfig.json',
-  'vite.config.ts',
-] as const;
+interface AcceptanceFilterSettings {
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
+  filterPatterns: string[];
+  include: string[];
+  maxFiles: number;
+  plugins: Array<{
+    disabledFilterPatterns?: string[];
+    package: string;
+  }>;
+  respectGitignore: boolean;
+}
 
 export function createWorkspaceTempRoot(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-'));
@@ -61,7 +67,12 @@ export function copyExampleWorkspace(
 
   fs.cpSync(sourcePath, workspacePath, {
     recursive: true,
-    filter: (source) => !source.includes(`${path.sep}.codegraphy${path.sep}`),
+    filter: (source) => {
+      const relativePath = path.relative(sourcePath, source).split(path.sep).join('/');
+      return !isAcceptanceGeneratedArtifact(relativePath)
+        && relativePath !== '.codegraphy/graph.lbug'
+        && relativePath !== '.codegraphy/meta.json';
+    },
   });
   rewriteMarkdownAcceptanceLinks(workspacePath, exampleName);
   writeAcceptanceVSCodeSettings(workspacePath, exampleName, options);
@@ -70,53 +81,29 @@ export function copyExampleWorkspace(
   return workspacePath;
 }
 
-export function copyExampleVueWorkspace(tempRoot: string): string {
-  const sourcePath = path.join(repoRoot(), 'examples/example-vue');
-  const workspacePath = path.join(tempRoot, 'example-vue');
+export async function readExampleWorkspaceFiles(workspacePath: string): Promise<string[]> {
+  const settings = readAcceptanceFilterSettings(workspacePath);
+  const disabledCustomPatterns = new Set(settings.disabledCustomFilterPatterns);
+  const disabledPluginPatterns = new Set([
+    ...settings.plugins.flatMap(plugin => plugin.disabledFilterPatterns ?? []),
+    ...settings.disabledPluginFilterPatterns,
+  ]);
+  const filterPatterns = settings.filterPatterns
+    .filter(pattern => !disabledCustomPatterns.has(pattern));
+  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(settings.plugins.map(plugin => plugin.package))
+    .filter(pattern => !disabledPluginPatterns.has(pattern));
 
-  fs.cpSync(sourcePath, workspacePath, {
-    recursive: true,
-    filter: (source) => {
-      const relativePath = path.relative(sourcePath, source).split(path.sep).join('/');
-      return relativePath !== 'node_modules'
-        && !relativePath.startsWith('node_modules/')
-        && relativePath !== 'dist'
-        && !relativePath.startsWith('dist/')
-        && relativePath !== '.codegraphy/graph.lbug'
-        && relativePath !== '.codegraphy/meta.json';
-    },
-  });
-
-  return workspacePath;
-}
-
-export function readExampleTypescriptFiles(workspacePath: string): string[] {
-  return readExampleWorkspaceFiles(workspacePath);
-}
-
-export function readExampleWorkspaceFiles(workspacePath: string): string[] {
-  return collectFiles(workspacePath)
-    .filter(filePath => !filePath.startsWith('.codegraphy/'))
-    .sort();
-}
-
-export function readExampleVueFiles(workspacePath: string): string[] {
-  return collectFiles(workspacePath)
-    .filter(filePath => !filePath.startsWith('.codegraphy/'))
-    .filter(filePath => filePath !== 'src/vue.d.ts')
-    .sort();
-}
-
-function collectFiles(root: string, current = root): string[] {
-  return fs.readdirSync(current, { withFileTypes: true }).flatMap((entry) => {
-    const absolutePath = path.join(current, entry.name);
-    const relativePath = path.relative(root, absolutePath).split(path.sep).join('/');
-
-    if (entry.isDirectory()) {
-      return collectFiles(root, absolutePath);
-    }
-
-    return [relativePath];
+  return discoverAcceptanceWorkspaceFiles(workspacePath, {
+    excludePatterns: [
+      ...new Set([
+        ...DEFAULT_EXCLUDE,
+        ...pluginFilterPatterns,
+        ...filterPatterns,
+      ]),
+    ],
+    includePatterns: settings.include,
+    maxFiles: settings.maxFiles,
+    respectGitignore: settings.respectGitignore,
   });
 }
 
@@ -159,9 +146,9 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
   const settings = {
     version: 1,
     respectGitignore: false,
-    plugins: [{
-      package: '@codegraphy-dev/plugin-markdown',
-    }],
+    plugins: (options.pluginPackages ?? ['@codegraphy-dev/plugin-markdown'])
+      .map(pluginPackage => ({ package: pluginPackage })),
+    filterPatterns: options.filterPatterns ?? [],
     edgeVisibility: {
       nests: false,
       import: true,
@@ -179,4 +166,222 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
 
   fs.mkdirSync(path.dirname(targetSettingsPath), { recursive: true });
   fs.writeFileSync(targetSettingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
+function readAcceptanceFilterSettings(workspacePath: string): AcceptanceFilterSettings {
+  try {
+    const settings = JSON.parse(
+      fs.readFileSync(path.join(workspacePath, '.codegraphy/settings.json'), 'utf8'),
+    ) as {
+      disabledCustomFilterPatterns?: unknown;
+      disabledPluginFilterPatterns?: unknown;
+      filterPatterns?: unknown;
+      include?: unknown;
+      maxFiles?: unknown;
+      plugins?: unknown;
+      respectGitignore?: unknown;
+    };
+    const include = readStringArray(settings.include);
+
+    return {
+      disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
+      disabledPluginFilterPatterns: readStringArray(settings.disabledPluginFilterPatterns),
+      filterPatterns: readStringArray(settings.filterPatterns),
+      include: include.length > 0 ? include : [...DEFAULT_INCLUDE],
+      maxFiles: readMaxFiles(settings.maxFiles),
+      plugins: readAcceptancePluginSettings(settings.plugins),
+      respectGitignore: typeof settings.respectGitignore === 'boolean'
+        ? settings.respectGitignore
+        : true,
+    };
+  } catch {
+    return {
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
+      filterPatterns: [],
+      include: [...DEFAULT_INCLUDE],
+      maxFiles: DEFAULT_MAX_FILES,
+      plugins: [],
+      respectGitignore: true,
+    };
+  }
+}
+
+function readAcceptancePluginFilterPatterns(pluginPackages: readonly string[]): string[] {
+  return pluginPackages.flatMap((pluginPackage) => {
+    const relativePath = acceptancePluginPackageRelativePathForPackage(pluginPackage);
+    if (!relativePath) {
+      return [];
+    }
+
+    try {
+      const manifest = JSON.parse(
+        fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
+      ) as { defaultFilters?: unknown };
+
+      return Array.isArray(manifest.defaultFilters)
+        ? manifest.defaultFilters.filter((pattern): pattern is string => typeof pattern === 'string')
+        : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+function acceptancePluginPackageRelativePathForPackage(pluginPackage: string): string | undefined {
+  const packagesPath = path.join(repoRoot(), 'packages');
+  let entries: fs.Dirent[];
+
+  try {
+    entries = fs.readdirSync(packagesPath, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith('plugin-')) {
+      continue;
+    }
+
+    const relativePath = path.posix.join('packages', entry.name);
+    try {
+      const packageJson = JSON.parse(
+        fs.readFileSync(path.join(repoRoot(), relativePath, 'package.json'), 'utf8'),
+      ) as { name?: unknown };
+      if (packageJson.name === pluginPackage) {
+        return relativePath;
+      }
+    } catch {
+      // Ignore incomplete plugin packages in test fixtures.
+    }
+  }
+
+  return undefined;
+}
+
+function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings['plugins'] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((entry) => {
+      const packageName = typeof entry.package === 'string' ? entry.package.trim() : '';
+      if (packageName.length === 0) {
+        return undefined;
+      }
+
+      const disabledFilterPatterns = readStringArray(entry.disabledFilterPatterns);
+      return {
+        package: packageName,
+        ...(disabledFilterPatterns.length > 0
+          ? { disabledFilterPatterns: [...new Set(disabledFilterPatterns)] }
+          : {}),
+      };
+    })
+    .filter((entry): entry is AcceptanceFilterSettings['plugins'][number] => entry !== undefined);
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? [...new Set(value.filter((pattern): pattern is string => typeof pattern === 'string'))]
+    : [];
+}
+
+function readMaxFiles(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : DEFAULT_MAX_FILES;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+interface AcceptanceDiscoveryOptions {
+  excludePatterns: string[];
+  includePatterns: string[];
+  maxFiles: number;
+  respectGitignore: boolean;
+}
+
+async function discoverAcceptanceWorkspaceFiles(
+  workspacePath: string,
+  options: AcceptanceDiscoveryOptions,
+): Promise<string[]> {
+  const gitignore = options.respectGitignore ? loadGitignore(workspacePath) : null;
+  const files: string[] = [];
+
+  await walkAcceptanceDirectory(workspacePath, workspacePath, (relativePath, absolutePath) => {
+    if (files.length >= options.maxFiles) {
+      return false;
+    }
+
+    const normalizedPath = normalizeDiscoveryPath(relativePath);
+    if (gitignore?.ignores(normalizedPath)) {
+      return true;
+    }
+
+    if (matchesAnyPattern(normalizedPath, options.excludePatterns)) {
+      return true;
+    }
+
+    if (!matchesAnyPattern(normalizedPath, options.includePatterns)) {
+      return true;
+    }
+
+    if (fs.statSync(absolutePath).isFile()) {
+      files.push(normalizedPath);
+    }
+
+    return true;
+  });
+
+  return files.sort();
+}
+
+async function walkAcceptanceDirectory(
+  workspacePath: string,
+  currentPath: string,
+  onFile: (relativePath: string, absolutePath: string) => boolean,
+): Promise<boolean> {
+  let entries: fs.Dirent[];
+
+  try {
+    entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
+  } catch {
+    return true;
+  }
+
+  for (const entry of entries) {
+    const absolutePath = path.join(currentPath, entry.name);
+    const relativePath = path.relative(workspacePath, absolutePath);
+
+    if (entry.isDirectory()) {
+      if (shouldSkipKnownDirectory(relativePath)) {
+        continue;
+      }
+
+      if (!await walkAcceptanceDirectory(workspacePath, absolutePath, onFile)) {
+        return false;
+      }
+      continue;
+    }
+
+    if (entry.isFile() && !onFile(relativePath, absolutePath)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isAcceptanceGeneratedArtifact(relativePath: string): boolean {
+  return relativePath === 'node_modules'
+    || relativePath.startsWith('node_modules/')
+    || relativePath === 'dist'
+    || relativePath.startsWith('dist/')
+    || relativePath === '.turbo'
+    || relativePath.startsWith('.turbo/');
 }

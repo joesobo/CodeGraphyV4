@@ -39,12 +39,8 @@ import type { AcceptanceRuntimeStep, AcceptanceStepImplementation, GraphAcceptan
 import {
   copyExampleWorkspace,
   copyExampleTypescriptWorkspace,
-  copyExampleVueWorkspace,
   createWorkspaceTempRoot,
-  EXPECTED_EXAMPLE_VUE_FILES,
   readExampleWorkspaceFiles,
-  readExampleTypescriptFiles,
-  readExampleVueFiles,
 } from './workspace';
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from './vscode';
 
@@ -86,14 +82,9 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
       includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
       includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
-        || step.sourcePath.endsWith('/graph-navigation.md'),
+        || step.sourcePath.endsWith('/graph-navigation.md')
+        || step.sourcePath.endsWith('/typescript-example.md'),
     });
-  },
-
-  'I open the examples/example-vue workspace in VS Code': async (context) => {
-    context.workspaceTempRoot = createWorkspaceTempRoot();
-    context.exampleName = 'example-vue';
-    context.workspacePath = copyExampleVueWorkspace(context.workspaceTempRoot);
   },
 
   'I open the CodeGraphy extension graph view': async (context) => {
@@ -118,20 +109,6 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   'I do not see edges': async (context) => {
     await expect.poll(async () => (await getGraphCounts(requireGraphFrame(context))).edges).toBe(0);
     context.beforeIndexStageImage = await graphStage(requireGraphFrame(context)).screenshot();
-  },
-
-  'the graph nodes match the expected files in the examples/example-typescript workspace': async (context) => {
-    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    const expectedFiles = readExampleTypescriptFiles(workspacePath);
-    expect(expectedFiles).toEqual(readExampleWorkspaceFiles(workspacePath));
-    const counts = await getGraphCounts(requireGraphFrame(context));
-    expect(counts.nodes).toBe(expectedFiles.length);
-  },
-
-  'the graph nodes match the expected files in the examples/example-vue workspace': async (context) => {
-    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    expect(readExampleVueFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_VUE_FILES);
-    await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 7);
   },
 
   'I index the workspace': async (context) => {
@@ -172,14 +149,6 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
       const afterImage = await graphStage(frame).screenshot();
       expect(countChangedBytes(context.beforeIndexStageImage, afterImage)).toBeGreaterThan(500);
     }
-  },
-
-  'I can see there are 14 nodes and 7 connections': async (context) => {
-    await expectGraphCounts(context, 14, 7);
-  },
-
-  'I can see there are 14 nodes and 10 connections': async (context) => {
-    await expectGraphCounts(context, 14, 10);
   },
 
   'I click the Graph Scope button': async (context) => {
@@ -346,8 +315,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName, {
-      includeCallEdges: false,
-      includeInheritEdges: exampleName === 'example-godot' ? false : undefined,
+      filterPatterns: acceptanceFilterPatternsForExample(exampleName),
+      includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
+      includeInheritEdges: exampleName === 'example-pascal' ? false : true,
+      pluginPackages: acceptanceWorkspacePluginPackagesForExample(exampleName),
     });
   }),
 
@@ -359,8 +330,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(context.exampleName).toBe(match[1]);
-    const expectedFiles = readExampleWorkspaceFiles(workspacePath);
-    expect(expectedFiles).toEqual(readExampleWorkspaceFiles(workspacePath));
+    const expectedFiles = await readExampleWorkspaceFiles(workspacePath);
     const counts = await getGraphCounts(requireGraphFrame(context));
     expect(counts.nodes).toBe(expectedFiles.length);
   }),
@@ -706,6 +676,29 @@ export const graphViewAcceptanceSteps = createStepRegistry(
 
 function step(pattern: RegExp, run: PatternAcceptanceStep['run']): PatternAcceptanceStep {
   return { pattern, run };
+}
+
+function acceptanceFilterPatternsForExample(exampleName: string): string[] {
+  switch (exampleName) {
+    case 'example-svelte':
+      return ['src/app.d.ts'];
+    case 'example-vue':
+      return ['src/vue.d.ts'];
+    default:
+      return [];
+  }
+}
+
+function acceptanceWorkspacePluginPackagesForExample(exampleName: string): string[] | undefined {
+  switch (exampleName) {
+    case 'example-vue':
+      return [
+        '@codegraphy-dev/plugin-markdown',
+        '@codegraphy-dev/plugin-vue',
+      ];
+    default:
+      return undefined;
+  }
 }
 
 function createStepRegistry(

@@ -8,7 +8,8 @@ should parse:
 - `src/App.vue` uses `<script setup lang="ts">`
 - `src/components/UserCard.vue` uses normal `<script lang="ts">`
 - `src/components/StatusBadge.vue` uses plain `<script setup>`
-- Vue component imports include both explicit `.vue` extensions and extensionless paths
+- Vue component imports use explicit `.vue` extensions
+- `src/App.vue` lazy-loads `LazyProfilePanel.vue` with `defineAsyncComponent`
 - TypeScript imports include composables, constants, and type-only imports
 
 Suggested baseline check before the Vue plugin exists:
@@ -35,6 +36,8 @@ the graph still misses imports inside the `.vue` script blocks.
 ## Files To Inspect
 
 - `src/App.vue` imports `CounterPanel`, `UserCard`, `useCounter`, and `sampleUser`
+- `src/App.vue` lazy-imports `LazyProfilePanel`
 - `src/components/CounterPanel.vue` imports `StatusBadge` and `formatCount`
+- `src/components/LazyProfilePanel.vue` imports `sampleUser`
 - `src/components/UserCard.vue` imports the `UserProfile` type
 - `src/main.ts` imports the root Vue component

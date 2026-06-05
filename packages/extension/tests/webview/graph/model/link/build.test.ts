@@ -37,7 +37,7 @@ describe('graph/model/link/build direct coverage', () => {
     ]);
   });
 
-  it('keeps different edge kinds straight when they share the same nodes', () => {
+  it('curves different edge kinds when they share the same nodes', () => {
     const links = buildGraphLinks(
       [
         { id: 'edge-1', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
@@ -50,8 +50,9 @@ describe('graph/model/link/build direct coverage', () => {
       expect.objectContaining({ id: 'edge-1', bidirectional: false }),
       expect.objectContaining({ id: 'edge-2', bidirectional: false }),
     ]);
-    expect(links[0]).not.toHaveProperty('curvature');
-    expect(links[1]).not.toHaveProperty('curvature');
+    expect(links[0].curvature).toBeDefined();
+    expect(links[1].curvature).toBeDefined();
+    expect(links[0].curvature).not.toBe(links[1].curvature);
   });
 
   it('defaults one-way links to bidirectional false with no base color', () => {

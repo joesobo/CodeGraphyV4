@@ -76,14 +76,17 @@ describe('groupLinksByNodePair', () => {
     expect(links[0].nodePairId).toBe('X_Y');
   });
 
-  it('appends curvature group id when present', () => {
+  it('keeps edge types in the same curvature group when nodes match', () => {
     const links: CurvatureLink[] = [
       { source: 'X', target: 'Y', curvatureGroupId: 'call' },
+      { source: 'X', target: 'Y', curvatureGroupId: 'import' },
     ];
 
-    groupLinksByNodePair(links);
+    const result = groupLinksByNodePair(links);
 
-    expect(links[0].nodePairId).toBe('X_Y_call');
+    expect(links[0].nodePairId).toBe('X_Y');
+    expect(links[1].nodePairId).toBe('X_Y');
+    expect(result.sameNodesLinks['X_Y']).toHaveLength(2);
   });
 
   it('groups multiple self-loops by the same node', () => {
