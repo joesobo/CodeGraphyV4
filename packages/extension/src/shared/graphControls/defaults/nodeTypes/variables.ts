@@ -7,6 +7,10 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       label: 'Variable',
       defaultColor: '#14B8A6',
       defaultVisible: false,
+      description: {
+        description: 'Named values or fields that code can read or write.',
+        examples: [{ code: 'const graphScope = buildScope();' }],
+      },
     },
     {
       id: 'symbol:constant',
@@ -14,6 +18,10 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       defaultColor: '#22C55E',
       defaultVisible: false,
       parentId: 'variable',
+      description: {
+        description: 'Named values intended to stay unchanged.',
+        examples: [{ code: 'const DEFAULT_MAX_FILES = 5000;' }],
+      },
     },
     {
       id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
@@ -27,6 +35,10 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       matchSymbolSource: 'codegraphy.gdscript',
       matchSymbolLanguage: 'gdscript',
       matchSymbolFilePath: '**/*.gd',
+      description: {
+        description: 'Godot script class names registered for use elsewhere in a project.',
+        examples: [{ label: 'GDScript', code: 'class_name PlayerController' }],
+      },
     },
   ];
 }

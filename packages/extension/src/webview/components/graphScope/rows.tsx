@@ -2,9 +2,11 @@ import React from 'react';
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
+  IGraphTypeDescription,
 } from '../../../shared/graphControls/contracts';
 import { postMessage } from '../../vscodeApi';
 import { cn } from '../ui/cn';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
 import { Switch } from '../ui/switch';
 
 interface ScopeRowProps {
@@ -13,6 +15,7 @@ interface ScopeRowProps {
   label: string;
   onCheckedChange: (visible: boolean) => void;
   nested?: boolean;
+  description?: IGraphTypeDescription;
 }
 
 interface NodeTypeRowsProps {
@@ -34,14 +37,44 @@ export function resolveScopeRowClassName(enabled: boolean): string {
   );
 }
 
+function ScopeRowTooltipContent({
+  description,
+  label,
+}: {
+  description: IGraphTypeDescription;
+  label: string;
+}): React.ReactElement {
+  const example = description.examples?.[0];
+
+  return (
+    <div className="max-w-64 space-y-2">
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-popover-foreground">{label}</div>
+        <p className="text-xs leading-snug text-muted-foreground">{description.description}</p>
+      </div>
+      {example ? (
+        <div className="border-t border-border/70 pt-2">
+          <div className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Example
+          </div>
+          <code className="block whitespace-pre-wrap rounded bg-muted px-2 py-1 font-mono text-[11px] leading-snug text-popover-foreground">
+            {example.code}
+          </code>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ScopeRow({
   color,
+  description,
   enabled,
   label,
   nested = false,
   onCheckedChange,
 }: ScopeRowProps): React.ReactElement {
-  return (
+  const row = (
     <div
       className={cn(resolveScopeRowClassName(enabled), nested && 'pl-7')}
       data-scope-row={label}
@@ -62,6 +95,19 @@ function ScopeRow({
       <Switch checked={enabled} onCheckedChange={onCheckedChange} aria-label={`Toggle ${label}`} />
     </div>
   );
+
+  if (!description) {
+    return row;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{row}</TooltipTrigger>
+      <TooltipContent side="left" align="center" className="px-3 py-2">
+        <ScopeRowTooltipContent description={description} label={label} />
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function NodeTypeRows({
@@ -79,6 +125,7 @@ export function NodeTypeRows({
           <ScopeRow
             key={nodeType.id}
             color={color}
+            description={nodeType.description}
             enabled={enabled}
             label={nodeType.label}
             nested={Boolean(nodeType.parentId)}
@@ -110,6 +157,7 @@ export function EdgeTypeRows({
           <ScopeRow
             key={edgeType.id}
             color={color}
+            description={edgeType.description}
             enabled={enabled}
             label={edgeType.label}
             onCheckedChange={(visible) => {
