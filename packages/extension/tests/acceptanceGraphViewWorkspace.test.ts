@@ -111,6 +111,26 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(files).not.toContain('src/app.d.ts');
   });
 
+  it('omits generated package artifacts from expected acceptance files', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = path.join(tempRoot, 'workspace');
+    fs.mkdirSync(path.join(workspacePath, 'node_modules/.bin'), { recursive: true });
+    fs.mkdirSync(path.join(workspacePath, 'dist'), { recursive: true });
+    fs.mkdirSync(path.join(workspacePath, '.svelte-kit'), { recursive: true });
+    fs.mkdirSync(path.join(workspacePath, '.turbo'), { recursive: true });
+    fs.writeFileSync(path.join(workspacePath, 'README.md'), '# Example\n');
+    fs.writeFileSync(path.join(workspacePath, 'node_modules/.bin/vite'), '');
+    fs.writeFileSync(path.join(workspacePath, 'dist/bundle.js'), '');
+    fs.writeFileSync(path.join(workspacePath, '.svelte-kit/generated.d.ts'), '');
+    fs.writeFileSync(path.join(workspacePath, '.turbo/turbo-build.log'), '');
+
+    const files = readExampleWorkspaceFiles(workspacePath);
+
+    expect(files).toEqual(['README.md']);
+  });
+
   it('can expose call edges for language scenarios that assert imported-call connections', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
