@@ -10,6 +10,7 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 
 interface CopyExampleWorkspaceOptions {
   includeCallEdges?: boolean;
+  filterPatterns?: string[];
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
 }
@@ -95,8 +96,11 @@ export function readExampleTypescriptFiles(workspacePath: string): string[] {
 }
 
 export function readExampleWorkspaceFiles(workspacePath: string): string[] {
+  const filterPatterns = readAcceptanceFilterPatterns(workspacePath);
+
   return collectFiles(workspacePath)
     .filter(filePath => !filePath.startsWith('.codegraphy/'))
+    .filter(filePath => !matchesAcceptanceFilterPattern(filePath, filterPatterns))
     .sort();
 }
 
@@ -162,6 +166,7 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
     plugins: [{
       package: '@codegraphy-dev/plugin-markdown',
     }],
+    filterPatterns: options.filterPatterns ?? [],
     edgeVisibility: {
       nests: false,
       import: true,
@@ -179,4 +184,26 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
 
   fs.mkdirSync(path.dirname(targetSettingsPath), { recursive: true });
   fs.writeFileSync(targetSettingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
+function readAcceptanceFilterPatterns(workspacePath: string): string[] {
+  try {
+    const settings = JSON.parse(
+      fs.readFileSync(path.join(workspacePath, '.codegraphy/settings.json'), 'utf8'),
+    ) as { filterPatterns?: unknown };
+
+    return Array.isArray(settings.filterPatterns)
+      ? settings.filterPatterns.filter((pattern): pattern is string => typeof pattern === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function matchesAcceptanceFilterPattern(filePath: string, filterPatterns: readonly string[]): boolean {
+  return filterPatterns.some((pattern) =>
+    pattern === filePath
+    || (pattern.endsWith('/**') && filePath.startsWith(pattern.slice(0, -2)))
+    || (pattern.startsWith('**/') && filePath.endsWith(pattern.slice(3))),
+  );
 }

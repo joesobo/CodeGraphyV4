@@ -5398,10 +5398,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:12
-      await test.step('Then I can see there are 13 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 13 nodes and 1 connection', {
+      await test.step('Then I can see there are 12 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I can see there are 13 nodes and 1 connection',
+          text: 'I can see there are 12 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 12
         });
@@ -5448,10 +5448,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:18
-      await test.step('And I can see there are 13 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 13 nodes and 4 connections', {
+      await test.step('And I can see there are 12 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 4 connections', {
           keyword: 'And',
-          text: 'I can see there are 13 nodes and 4 connections',
+          text: 'I can see there are 12 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 18
         });
@@ -5558,10 +5558,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:32
-      await test.step('Then I can see there are 13 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 13 nodes and 6 connections', {
+      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
           keyword: 'Then',
-          text: 'I can see there are 13 nodes and 6 connections',
+          text: 'I can see there are 12 nodes and 6 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 32
         });
