@@ -111,15 +111,20 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(files).not.toContain('src/app.d.ts');
   });
 
-  it('omits generated package artifacts from expected acceptance files', () => {
+  it('omits default-filtered generated package artifacts from expected acceptance files', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
     const workspacePath = path.join(tempRoot, 'workspace');
+    fs.mkdirSync(path.join(workspacePath, '.codegraphy'), { recursive: true });
     fs.mkdirSync(path.join(workspacePath, 'node_modules/.bin'), { recursive: true });
     fs.mkdirSync(path.join(workspacePath, 'dist'), { recursive: true });
     fs.mkdirSync(path.join(workspacePath, '.svelte-kit'), { recursive: true });
     fs.mkdirSync(path.join(workspacePath, '.turbo'), { recursive: true });
+    fs.writeFileSync(
+      path.join(workspacePath, '.codegraphy/settings.json'),
+      `${JSON.stringify({ filterPatterns: ['**/.svelte-kit/**'] }, null, 2)}\n`,
+    );
     fs.writeFileSync(path.join(workspacePath, 'README.md'), '# Example\n');
     fs.writeFileSync(path.join(workspacePath, 'node_modules/.bin/vite'), '');
     fs.writeFileSync(path.join(workspacePath, 'dist/bundle.js'), '');
