@@ -63,7 +63,12 @@ export function copyExampleWorkspace(
 
   fs.cpSync(sourcePath, workspacePath, {
     recursive: true,
-    filter: (source) => !source.includes(`${path.sep}.codegraphy${path.sep}`),
+    filter: (source) => {
+      const relativePath = path.relative(sourcePath, source).split(path.sep).join('/');
+      return !isAcceptanceGeneratedArtifact(relativePath)
+        && relativePath !== '.codegraphy/graph.lbug'
+        && relativePath !== '.codegraphy/meta.json';
+    },
   });
   rewriteMarkdownAcceptanceLinks(workspacePath, exampleName);
   writeAcceptanceVSCodeSettings(workspacePath, exampleName, options);
@@ -103,6 +108,7 @@ export function readExampleWorkspaceFiles(workspacePath: string): string[] {
 
   return collectFiles(workspacePath)
     .filter(filePath => !filePath.startsWith('.codegraphy/'))
+    .filter(filePath => !isAcceptanceGeneratedArtifact(filePath))
     .filter(filePath => !matchesAcceptanceFilterPattern(filePath, filterPatterns))
     .sort();
 }
@@ -209,4 +215,15 @@ function matchesAcceptanceFilterPattern(filePath: string, filterPatterns: readon
     || (pattern.endsWith('/**') && filePath.startsWith(pattern.slice(0, -2)))
     || (pattern.startsWith('**/') && filePath.endsWith(pattern.slice(3))),
   );
+}
+
+function isAcceptanceGeneratedArtifact(relativePath: string): boolean {
+  return relativePath === 'node_modules'
+    || relativePath.startsWith('node_modules/')
+    || relativePath === 'dist'
+    || relativePath.startsWith('dist/')
+    || relativePath === '.svelte-kit'
+    || relativePath.startsWith('.svelte-kit/')
+    || relativePath === '.turbo'
+    || relativePath.startsWith('.turbo/');
 }
