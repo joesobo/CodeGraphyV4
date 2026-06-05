@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   copyExampleWorkspace,
   copyExampleTypescriptWorkspace,
+  copyExampleVueWorkspace,
   readExampleWorkspaceFiles,
+  readExampleVueFiles,
 } from './acceptance/graphView/workspace';
 
 describe('acceptance graph view workspace fixtures', () => {
@@ -139,6 +141,18 @@ describe('acceptance graph view workspace fixtures', () => {
     };
 
     expect(settings.edgeVisibility?.inherit).toBe(false);
+  });
+
+  it('omits Vue build artifacts from copied acceptance fixtures', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleVueWorkspace(tempRoot);
+    const files = readExampleVueFiles(workspacePath);
+
+    expect(files).not.toContain('.turbo/turbo-build.log');
+    expect(files.some(file => file.startsWith('dist/'))).toBe(false);
+    expect(files.some(file => file.startsWith('node_modules/'))).toBe(false);
   });
 
   it('rewrites markdown example links for the copied workspace root', () => {

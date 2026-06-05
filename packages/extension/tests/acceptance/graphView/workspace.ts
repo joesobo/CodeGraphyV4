@@ -84,6 +84,8 @@ export function copyExampleVueWorkspace(tempRoot: string): string {
         && !relativePath.startsWith('node_modules/')
         && relativePath !== 'dist'
         && !relativePath.startsWith('dist/')
+        && relativePath !== '.turbo'
+        && !relativePath.startsWith('.turbo/')
         && relativePath !== '.codegraphy/graph.lbug'
         && relativePath !== '.codegraphy/meta.json';
     },
