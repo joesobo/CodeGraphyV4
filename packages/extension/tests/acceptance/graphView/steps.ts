@@ -368,6 +368,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
       filterPatterns: exampleName === 'example-svelte' ? ['src/app.d.ts'] : [],
       includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
     });
+    context.expectedWorkspaceFiles = readExampleWorkspaceFiles(context.workspacePath);
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
@@ -378,8 +379,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(context.exampleName).toBe(match[1]);
-    const expectedFiles = readExampleWorkspaceFiles(workspacePath);
-    expect(expectedFiles).toEqual(readExampleWorkspaceFiles(workspacePath));
+    const expectedFiles = context.expectedWorkspaceFiles ?? readExampleWorkspaceFiles(workspacePath);
     const counts = await getGraphCounts(requireGraphFrame(context));
     expect(counts.nodes).toBe(expectedFiles.length);
   }),
