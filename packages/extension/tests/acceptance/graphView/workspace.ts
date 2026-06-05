@@ -10,6 +10,7 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 
 interface CopyExampleWorkspaceOptions {
   includeCallEdges?: boolean;
+  includeInheritEdges?: boolean;
   filterPatterns?: string[];
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
@@ -173,7 +174,7 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
       'type-import': options.includeTypeImportEdges ?? false,
       reexport: false,
       call: options.includeCallEdges ?? false,
-      inherit: true,
+      inherit: options.includeInheritEdges ?? true,
       reference: true,
       test: false,
       load: true,
