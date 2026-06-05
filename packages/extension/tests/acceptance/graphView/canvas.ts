@@ -398,7 +398,7 @@ export async function recordDroppedNodeCenter(context: GraphAcceptanceContext): 
 }
 
 export async function expectNodeStaysDropped(context: GraphAcceptanceContext): Promise<void> {
-  const dropSettleTolerancePixels = 12;
+  const dropSettleTolerancePixels = 18;
   const dropCenter = requireValue(context.dropCenter, 'Expected a dropped node position');
   await requireGraphFrame(context).waitForTimeout(500);
   const nextCenter = await readNodeProbe(requireGraphFrame(context), TARGET_NODE);

@@ -50,7 +50,7 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(fs.readFileSync(copiedSettingsPath, 'utf8')).toBe(fs.readFileSync(sourceSettingsPath, 'utf8'));
   });
 
-  it('can override TypeScript fixture settings for non-example graph scenarios', () => {
+  it('can write a neutral TypeScript fixture baseline for non-example graph scenarios', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
@@ -62,17 +62,23 @@ describe('acceptance graph view workspace fixtures', () => {
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
       edgeVisibility?: Record<string, boolean>;
+      favorites?: string[];
       plugins?: Array<{ package?: string }>;
+      respectGitignore?: boolean;
     };
 
+    expect(settings.favorites).toBeUndefined();
     expect(settings.plugins).toEqual([
       { package: '@codegraphy-dev/plugin-markdown' },
     ]);
+    expect(settings.respectGitignore).toBe(false);
     expect(settings.edgeVisibility).toEqual(expect.objectContaining({
       import: true,
       'type-import': true,
       call: false,
-      inherit: false,
+      inherit: true,
+      reference: true,
+      load: true,
     }));
   });
 
