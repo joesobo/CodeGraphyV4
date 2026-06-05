@@ -27,6 +27,8 @@ function setStoreState() {
     nodeColors: { file: '#555555' },
     nodeVisibility: { folder: true },
     edgeVisibility: { reference: false },
+    graphHasIndex: true,
+    graphIndexFreshness: 'fresh',
     legends: [],
   });
 }
@@ -109,6 +111,22 @@ describe('GraphScopePanel', () => {
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
     });
+  });
+
+  it('keeps edge types unavailable until the graph index is fresh', () => {
+    graphStore.setState({
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeDisabled();
+
+    fireEvent.click(edgeTypesButton);
+
+    expect(screen.getByRole('button', { name: 'Node Types' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
   });
 
   it('hides the Nests edge toggle when folder nodes are disabled', () => {
