@@ -63,22 +63,6 @@ async function expectGraphCounts(
   await expect.poll(async () => getGraphCounts(requireGraphFrame(context))).toEqual({ nodes, edges });
 }
 
-function resolveExpectedGraphCounts(
-  context: Parameters<AcceptanceStepImplementation>[0],
-  nodes: number,
-  edges: number,
-): { nodes: number; edges: number } {
-  if (context.exampleName === 'vue-example' && nodes === 14 && edges === 7) {
-    return { nodes: EXPECTED_EXAMPLE_VUE_FILES.length, edges: 9 };
-  }
-
-  if (context.exampleName === 'vue-example' && nodes === 14 && edges === 10) {
-    return { nodes: EXPECTED_EXAMPLE_VUE_FILES.length, edges: 12 };
-  }
-
-  return { nodes, edges };
-}
-
 async function expectOrphanNode(
   context: Parameters<AcceptanceStepImplementation>[0],
   nodePath: string,
@@ -107,9 +91,9 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     });
   },
 
-  'I open the examples/vue-example workspace in VS Code': async (context) => {
+  'I open the examples/example-vue workspace in VS Code': async (context) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
-    context.exampleName = 'vue-example';
+    context.exampleName = 'example-vue';
     context.workspacePath = copyExampleVueWorkspace(context.workspaceTempRoot);
   },
 
@@ -145,7 +129,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     expect(counts.nodes).toBe(expectedFiles.length);
   },
 
-  'the graph nodes match the expected files in the examples/vue-example workspace': async (context) => {
+  'the graph nodes match the expected files in the examples/example-vue workspace': async (context) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(readExampleVueFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_VUE_FILES);
     await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 9);
@@ -192,13 +176,11 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I can see there are 14 nodes and 7 connections': async (context) => {
-    const expected = resolveExpectedGraphCounts(context, 14, 7);
-    await expectGraphCounts(context, expected.nodes, expected.edges);
+    await expectGraphCounts(context, 14, 7);
   },
 
   'I can see there are 14 nodes and 10 connections': async (context) => {
-    const expected = resolveExpectedGraphCounts(context, 14, 10);
-    await expectGraphCounts(context, expected.nodes, expected.edges);
+    await expectGraphCounts(context, 14, 10);
   },
 
   'I click the Graph Scope button': async (context) => {
@@ -386,13 +368,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I can see there are (\d+) nodes and (\d+) connections(?: displayed)?$/, async (context, _step, match) => {
-    const expected = resolveExpectedGraphCounts(context, Number(match[1]), Number(match[2]));
-    await expectGraphCounts(context, expected.nodes, expected.edges);
+    await expectGraphCounts(context, Number(match[1]), Number(match[2]));
   }),
 
   step(/^I can see there are (\d+) nodes and (\d+) connection$/, async (context, _step, match) => {
-    const expected = resolveExpectedGraphCounts(context, Number(match[1]), Number(match[2]));
-    await expectGraphCounts(context, expected.nodes, expected.edges);
+    await expectGraphCounts(context, Number(match[1]), Number(match[2]));
   }),
 
   step(/^the top right of the graph says "(\d+) nodes" and "(\d+) connections"$/, async (context, _step, match) => {

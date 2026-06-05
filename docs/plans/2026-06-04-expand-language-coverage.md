@@ -14,7 +14,7 @@ Core-vs-plugin boundary.
 - Add a first-party Svelte plugin package, release metadata, and
   `examples/example-svelte`.
 - Expand the Vue plugin with deeper Vue Single File Component behavior and show
-  it in `examples/vue-example`.
+  it in `examples/example-vue`.
 - Skip Liquid, Delphi, Luau, and Nuxt for now.
 
 ## Boundary
