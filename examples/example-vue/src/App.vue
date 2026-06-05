@@ -10,8 +10,8 @@
 import { defineAsyncComponent } from 'vue';
 import CounterPanel from './components/CounterPanel.vue';
 import UserCard from './components/UserCard.vue';
-import { sampleUser } from './data/users.js';
-import { useCounter } from './composables/useCounter.js';
+import { sampleUser } from './data/users';
+import { useCounter } from './composables/useCounter';
 
 const { count, increment } = useCounter(2);
 const LazyProfilePanel = defineAsyncComponent(() => import('./components/LazyProfilePanel.vue'));

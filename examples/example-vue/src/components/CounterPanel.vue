@@ -10,8 +10,8 @@
 
 <script setup lang="ts">
 import StatusBadge from './StatusBadge.vue';
-import { formatCount } from '../composables/useCounter.js';
-import type { CounterPanelProps } from '../types.js';
+import { formatCount } from '../composables/useCounter';
+import type { CounterPanelProps } from '../types';
 
 defineEmits<{
   increment: [];
