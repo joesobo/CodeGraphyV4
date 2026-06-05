@@ -198,10 +198,13 @@ describe('PluginRegistry collection', () => {
 
   it('returns edge capabilities from plugins that support workspace files', () => {
     const registry = createConfiguredRegistry();
+    const readTypeScriptCapabilities = vi.fn(() =>
+      ['import', 'plugin:route'] as Array<'import' | 'plugin:route'>
+    );
     registry.register(createMockPlugin({
       id: 'typescript',
       supportedExtensions: ['.ts'],
-      contributeEdgeTypeCapabilities: () => ['import', 'plugin:route'],
+      contributeEdgeTypeCapabilities: readTypeScriptCapabilities,
     }));
     registry.register(createMockPlugin({
       id: 'python',
@@ -219,6 +222,9 @@ describe('PluginRegistry collection', () => {
       'plugin:route',
       'test',
     ]);
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
+      filePaths: ['src/app.ts'],
+    });
   });
 
   it('deduplicates edge capabilities when multiple applicable plugins declare the same kind', () => {

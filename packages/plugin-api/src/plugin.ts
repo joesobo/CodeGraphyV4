@@ -29,6 +29,13 @@ export interface IPluginWebviewContributions {
   styles?: string[];
 }
 
+export interface IPluginEdgeTypeCapabilityContext {
+  /**
+   * File paths from the indexed workspace graph that made the plugin applicable.
+   */
+  filePaths: readonly string[];
+}
+
 export interface IPluginWebviewMessage {
   type: string;
   data: unknown;
@@ -234,7 +241,7 @@ export interface IPlugin {
    * can show relevant toggles even before the current graph contains matching
    * edges. Plugins may declare core edge kinds and plugin-owned edge kinds.
    */
-  contributeEdgeTypeCapabilities?(): GraphEdgeKind[];
+  contributeEdgeTypeCapabilities?(context?: IPluginEdgeTypeCapabilityContext): GraphEdgeKind[];
 
   // ---------------------------------------------------------------------------
   // Optional analysis hooks

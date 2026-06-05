@@ -41,6 +41,17 @@ describe('core tree-sitter built-in plugin', () => {
       'type-import',
       'inherit',
     ]);
+    expect(plugin.contributeEdgeTypeCapabilities?.({
+      filePaths: ['/workspace/src/app.py'],
+    })).toEqual(['import', 'call']);
+    expect(plugin.contributeEdgeTypeCapabilities?.({
+      filePaths: ['/workspace/src/app.py', '/workspace/src/view.tsx'],
+    })).toEqual([
+      'import',
+      'call',
+      'reexport',
+      'type-import',
+    ]);
   });
 
   it('returns analyzed file results when tree-sitter analysis succeeds', async () => {

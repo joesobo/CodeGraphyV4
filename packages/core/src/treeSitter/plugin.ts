@@ -4,6 +4,7 @@ import type {
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import { analyzeFileWithTreeSitter } from './runtime/analyze';
+import { listTreeSitterEdgeTypeCapabilities } from './runtime/capabilities';
 import { preAnalyzeCSharpTreeSitterFiles } from './runtime/csharpIndex';
 import { TREE_SITTER_SUPPORTED_EXTENSIONS } from './runtime/languages';
 
@@ -14,14 +15,8 @@ export function createTreeSitterPlugin(): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: [...TREE_SITTER_SUPPORTED_EXTENSIONS],
-    contributeEdgeTypeCapabilities: () => [
-      'import',
-      'reference',
-      'call',
-      'reexport',
-      'type-import',
-      'inherit',
-    ],
+    contributeEdgeTypeCapabilities: (context) =>
+      listTreeSitterEdgeTypeCapabilities(context?.filePaths),
 
     async analyzeFile(
       filePath: string,

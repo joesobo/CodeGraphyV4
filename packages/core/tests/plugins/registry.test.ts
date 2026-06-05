@@ -164,11 +164,14 @@ describe('CorePluginRegistry', () => {
 
   it('lists edge capabilities contributed by plugins that support workspace files', () => {
     const registry = new CorePluginRegistry();
+    const readTypeScriptCapabilities = vi.fn(() =>
+      ['import', 'codegraphy.typescript:alias-import'] as Array<'import' | 'codegraphy.typescript:alias-import'>
+    );
 
     registry.register(plugin({
       id: 'typescript',
       supportedExtensions: ['.ts'],
-      contributeEdgeTypeCapabilities: () => ['import', 'codegraphy.typescript:alias-import'],
+      contributeEdgeTypeCapabilities: readTypeScriptCapabilities,
     }));
     registry.register(plugin({
       id: 'godot',
@@ -188,5 +191,8 @@ describe('CorePluginRegistry', () => {
       'load',
       'inherit',
     ]);
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
+      filePaths: ['src/app.ts', 'game/player.gd'],
+    });
   });
 });
