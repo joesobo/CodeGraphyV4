@@ -56,7 +56,7 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       id: STRUCTURAL_NESTS_EDGE_KIND,
       label: 'Nests',
       defaultColor: '#64748B',
-      defaultVisible: false,
+      defaultVisible: true,
     },
     {
       id: 'contains',
