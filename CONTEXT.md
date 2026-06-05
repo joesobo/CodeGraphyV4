@@ -14,6 +14,10 @@ _Avoid_: Dependency graph, repo graph, workspace graph, force graph
 A folder CodeGraphy can analyze, before or after Indexing has produced a Graph Cache. The workspace does not have to be a git repo or repo root.
 _Avoid_: Repo when git behavior is not required, indexed folder
 
+**Detected Language**:
+A programming or markup language inferred from files in a CodeGraphy Workspace. Detected Languages help decide which language-specific graph concepts are relevant to the workspace, but detection alone does not mean every deep project-aware relationship is available.
+_Avoid_: Supported language when only file presence is known
+
 **Node**:
 A graph item representing a file, folder, package, or plugin-defined codebase concept.
 _Avoid_: Vertex, dot, point
@@ -63,6 +67,18 @@ _Avoid_: Line, link, connector
 **Edge Type**:
 The category that describes what kind of relationship an edge represents.
 _Avoid_: Edge kind, relation type, connection type
+
+**Edge Type Capability**:
+An Edge Type that is relevant to a CodeGraphy Workspace because at least one detected language, Core Tree-sitter Language Coverage path, or enabled Plugin can produce that Edge Type for the workspace. Edge Type Capability is about what the workspace can produce, not whether the current Relationship Graph already contains an Edge of that type.
+_Avoid_: Observed edge type, visible edge type, supported edge when meaning current-workspace relevance
+
+**Edge Type Capability Provider**:
+The source that declares an Edge Type Capability for a CodeGraphy Workspace, such as detected core language coverage or an enabled Plugin. A provider can make core Edge Types or plugin-owned Edge Types relevant to the workspace.
+_Avoid_: Edge source when referring to Relationship provenance
+
+**Applicable Edge Type Capability Provider**:
+An enabled Edge Type Capability Provider whose language, file, or project matcher applies to the current CodeGraphy Workspace. Graph Scope should use Applicable providers when deciding which Edge Type Capabilities to show.
+_Avoid_: Installed provider when enablement and workspace applicability have not both been checked
 
 **Edge Direction**:
 The source-to-target orientation of an edge, where the source node initiates the relationship and the target node is the thing being used, referenced, tested, or contained.
@@ -432,6 +448,9 @@ _Avoid_: Graph export
 - Core default **Edge Types** include imports, type imports, re-exports, calls, inherits, references, tests, loads, and nests.
 - Core default **Edge Types** mostly come from Tree-sitter baseline analysis, the **Markdown Plugin**, and structural nesting.
 - Plugins can contribute additional **Edge Types**.
+- **Graph Scope** should show **Edge Type Capabilities** from the union of active **Edge Type Capability Providers** for the CodeGraphy Workspace, not from a hardcoded language list or only from currently observed Edges.
+- **Graph Scope** does not need to explain which providers made an **Edge Type Capability** applicable; user-facing Edge Type help should explain what the Edge Type means.
+- **Graph Scope** should show disabled Edge Type controls while the CodeGraphy Workspace has no Graph Cache because there is no indexed relationship source yet. A stale Graph Cache is enough to enable Edge Type controls while **Graph Cache Sync** catches up. A short tooltip such as "Index workspace to enable Edge Type controls" is enough explanation for the disabled state.
 - A **Nests Relationship** points from the container to the contained node, and a folder node should usually only participate in **Nests Relationships**.
 - **Edge Direction** points from the node initiating the relationship to the node being related to.
 - **Downstream** only describes direction through the graph; it does not describe whether the relationship is a dependency, reference, link, or another edge type.
@@ -614,6 +633,7 @@ _Avoid_: Graph export
 - The **Core Package** and **VS Code Extension** together provide the out-of-box Relationship Graph product and should work for most users without optional plugins.
 - The **Core Package** uses Tree-sitter coverage and the bundled **Markdown Plugin** to provide useful default analysis; the **VS Code Extension** adds visualization and Material icon styling.
 - A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, Symbol Nodes, preset filters, and relationship evidence.
+- A **Plugin** can expand existing core **Edge Type Capabilities** for a workspace, contribute plugin-owned **Edge Types**, or do both.
 - A **Plugin** can analyze files by reading lines, using AST tooling, or any other analysis approach appropriate to its language or framework.
 - A **Plugin Package** is the packaging route for third-party plugins.
 - **Built-in Plugins** in this monorepo are examples and fast-development plugins, not required dependencies unless explicitly installed or bundled by the Core Package.
