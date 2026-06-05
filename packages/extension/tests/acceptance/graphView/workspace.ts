@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { minimatch } from 'minimatch';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/excludePatterns';
 import { acceptancePluginPackageRelativePathsForExample } from './plugins';
 
 const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
