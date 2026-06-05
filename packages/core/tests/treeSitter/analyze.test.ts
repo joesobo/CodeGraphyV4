@@ -217,7 +217,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
       )).toBe(false);
     });
 
-    it('keeps Java file-view relations to imports and calls without superclass file connections', async () => {
+    it('keeps Java file-view relations to imports, calls, and inheritance without symbol endpoints', async () => {
       const workspaceRoot = await createWorkspace({
         'src/com/example/app/BaseService.java': [
           'package com.example.app;',
@@ -261,8 +261,8 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
 
       expect(result).not.toBeNull();
       expect(result?.symbols).toEqual([]);
-      expect(result?.relations).toHaveLength(2);
-      expect(result?.relations).toEqual([
+      expect(result?.relations).toHaveLength(3);
+      expect(result?.relations).toEqual(expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
           specifier: 'com.example.app.Helper',
@@ -275,9 +275,15 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
           resolvedPath: helperPath,
           toFilePath: helperPath,
         }),
-      ]);
+        expect.objectContaining({
+          kind: 'inherit',
+          specifier: 'BaseService',
+          resolvedPath: baseServicePath,
+          toFilePath: baseServicePath,
+        }),
+      ]));
       expect(result?.relations?.some(relation =>
-        relation.kind === 'inherit' || relation.toFilePath === baseServicePath,
+        Boolean(relation.fromSymbolId || relation.toSymbolId),
       )).toBe(false);
     });
 

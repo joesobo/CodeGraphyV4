@@ -9,6 +9,7 @@ import {
   treeSitterPathIsDirectory,
   treeSitterReadDirectory,
 } from '../pathHost';
+import { findNearestProjectRoot } from '../projectRoots/search';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
@@ -47,7 +48,7 @@ function visitSwiftNode(
       relations,
       symbols,
       symbolsEnabled,
-      (typeName) => resolveSwiftInheritedTypePath(workspaceRoot, typeName),
+      (typeName) => resolveSwiftInheritedTypePath(filePath, workspaceRoot, typeName),
     );
     return;
   }
@@ -76,8 +77,9 @@ export function analyzeSwiftFile(
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
-function resolveSwiftInheritedTypePath(workspaceRoot: string, typeName: string): string | null {
-  const sourcesPath = path.join(workspaceRoot, 'Sources');
+function resolveSwiftInheritedTypePath(filePath: string, workspaceRoot: string, typeName: string): string | null {
+  const packageRoot = findNearestProjectRoot(filePath, ['Package.swift'], workspaceRoot) ?? workspaceRoot;
+  const sourcesPath = path.join(packageRoot, 'Sources');
   if (!treeSitterPathIsDirectory(sourcesPath)) {
     return null;
   }

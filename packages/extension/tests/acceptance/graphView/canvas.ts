@@ -205,10 +205,10 @@ async function readDebugNodeProbe(frame: Frame, nodePath: string): Promise<NodeP
 async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
   const stage = graphStage(frame);
   const page = frame.page();
-  await stage.hover({ position: source });
+  await stage.hover({ position: source, timeout: 1_000 });
   await page.mouse.down();
   await frame.waitForTimeout(100);
-  await stage.hover({ position: target });
+  await stage.hover({ position: target, timeout: 1_000 });
   await frame.waitForTimeout(100);
   await page.mouse.up();
 }
@@ -340,10 +340,9 @@ export async function dragNode(context: GraphAcceptanceContext, nodePath: string
   const targets = await chooseInStageDragTargets(frame, probe.center);
   let lastError: unknown;
   for (const target of targets) {
-    await dragMouseBetweenStagePoints(frame, await readNodeProbe(frame, nodePath).then(next => next.center), target);
-
-    context.nodeProbes.delete(nodePath);
     try {
+      await dragMouseBetweenStagePoints(frame, await readNodeProbe(frame, nodePath).then(next => next.center), target);
+      context.nodeProbes.delete(nodePath);
       context.afterDragCenter = await waitForNodeCenterToMove(frame, nodePath, probe.center, 1_500);
       break;
     } catch (error) {
