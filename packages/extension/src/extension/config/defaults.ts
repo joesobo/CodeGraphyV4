@@ -4,25 +4,7 @@
  */
 
 import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
-
-/**
- * Default exclude patterns for file discovery.
- * These patterns are excluded by default to avoid analyzing
- * build artifacts, dependencies, and non-source files.
- */
-export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
-  '**/node_modules/**',
-  '**/dist/**',
-  '**/build/**',
-  '**/out/**',
-  '**/.git/**',
-  '**/.codegraphy/**',
-  '**/.turbo/**',
-  '**/coverage/**',
-  '**/*.min.js',
-  '**/*.bundle.js',
-  '**/*.map',
-];
+export { DEFAULT_EXCLUDE_PATTERNS } from './excludePatterns';
 
 /**
  * Configuration interface matching the settings persisted under `.codegraphy/settings.json`.
