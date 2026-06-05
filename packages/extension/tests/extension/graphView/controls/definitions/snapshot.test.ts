@@ -3,6 +3,39 @@ import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphContr
 import { captureGraphControlsSnapshot } from '../../../../../src/extension/graphView/controls/send';
 
 describe('extension/graphView/controls/snapshot', () => {
+  it('advertises only edge types available in the current project graph', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'edgeVisibility') {
+            return { import: false, inherit: true, overrides: true } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111111', nodeType: 'file' },
+          { id: 'src/model.ts', label: 'Model', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          { id: 'src/App.ts->src/model.ts#import', from: 'src/App.ts', to: 'src/model.ts', kind: 'import', sources: [] },
+        ],
+      },
+      [],
+      [],
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'import',
+      STRUCTURAL_NESTS_EDGE_KIND,
+    ]);
+    expect(snapshot.edgeVisibility).toEqual({
+      import: false,
+      [STRUCTURAL_NESTS_EDGE_KIND]: false,
+    });
+  });
+
   it('merges core and plugin graph control definitions with stored settings overrides', () => {
     const snapshot = captureGraphControlsSnapshot(
       {
@@ -66,6 +99,7 @@ describe('extension/graphView/controls/snapshot', () => {
     ]);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === 'custom:route')).toBe(true);
+    expect(snapshot.edgeTypes.some(edgeType => edgeType.id === 'plugin:route')).toBe(false);
     expect(snapshot.nodeColors).toEqual({
       file: '#ABCDEF',
       folder: '#A1A1AA',
@@ -100,7 +134,6 @@ describe('extension/graphView/controls/snapshot', () => {
     });
     expect(snapshot.edgeVisibility).toEqual(expect.objectContaining({
       import: true,
-      'plugin:route': false,
       [STRUCTURAL_NESTS_EDGE_KIND]: false,
       'custom:route': true,
     }));

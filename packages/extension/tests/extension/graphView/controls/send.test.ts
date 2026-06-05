@@ -15,7 +15,10 @@ describe('extension/graphView/controls/send', () => {
     sendGraphControlsUpdated(
       {
         nodes: [{ id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' }],
-        edges: [{ id: 'src/app.ts->src/lib.ts#import', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import', sources: [] }],
+        edges: [
+          { id: 'src/app.ts->src/lib.ts#import', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import', sources: [] },
+          { id: 'src/app.ts->src/lib.ts#plugin:route', from: 'src/app.ts', to: 'src/lib.ts', kind: 'plugin:route', sources: [] },
+        ],
       },
       {
         registry: {
