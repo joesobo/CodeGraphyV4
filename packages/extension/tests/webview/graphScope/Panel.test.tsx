@@ -22,6 +22,7 @@ function setStoreState() {
     graphEdgeTypes: [
       { id: 'import', label: 'Imports', defaultColor: '#333333', defaultVisible: true },
       { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
+      { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
     ],
     nodeColors: { file: '#555555' },
     nodeVisibility: { folder: true },
@@ -108,6 +109,15 @@ describe('GraphScopePanel', () => {
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
     });
+  });
+
+  it('hides the Nests edge toggle when folder nodes are disabled', () => {
+    graphStore.setState({ nodeVisibility: { folder: false } });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
+
+    expect(screen.queryByText('Nests')).not.toBeInTheDocument();
   });
 
   it('switches back to node types after showing edge types', () => {
