@@ -8,7 +8,7 @@ should parse:
 - `src/App.vue` uses `<script setup lang="ts">`
 - `src/components/UserCard.vue` uses normal `<script lang="ts">`
 - `src/components/StatusBadge.vue` uses plain `<script setup>`
-- Vue component imports include both explicit `.vue` extensions and extensionless paths
+- Vue component imports use explicit `.vue` extensions
 - `src/App.vue` lazy-loads `LazyProfilePanel.vue` with `defineAsyncComponent`
 - TypeScript imports include composables, constants, and type-only imports
 

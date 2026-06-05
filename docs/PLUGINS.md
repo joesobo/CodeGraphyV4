@@ -32,7 +32,7 @@ The current plugin API supports more than file analysis:
 
 Plugins should stay headless. They communicate with `@codegraphy-dev/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
 
-Core now owns the default explorer-style file and folder theming through Material Icon Theme. The built-in TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
+Core now owns the default explorer-style file and folder theming through Material Icon Theme. The first-party TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
 
 For timeline compatibility, third-party plugins should avoid reading the live workspace directly during analysis. Use the plugin hook `context` instead so the same plugin can resolve files from either the current workspace or a historical commit snapshot.
 
