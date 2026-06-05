@@ -23,6 +23,11 @@ describe('createGDScriptPlugin lifecycle', () => {
       expect(plugin.supportedExtensions).toContain('.godot');
       expect(plugin.supportedExtensions).toContain('.tscn');
       expect(plugin.supportedExtensions).toContain('.tres');
+      expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([
+        'load',
+        'inherit',
+        'reference',
+      ]);
     });
 
 

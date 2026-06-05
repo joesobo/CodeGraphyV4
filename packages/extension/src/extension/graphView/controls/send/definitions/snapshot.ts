@@ -7,6 +7,7 @@ import {
 } from './values';
 import type {
   GraphControlsConfigurationLike,
+  GraphEdgeTypeCapabilityLike,
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
 } from './contracts';
@@ -16,12 +17,13 @@ export function captureGraphControlsSnapshot(
   graphData: IGraphData,
   pluginNodeTypes: GraphNodeTypeLike[],
   pluginEdgeTypes: GraphEdgeTypeLike[],
+  edgeTypeCapabilities: GraphEdgeTypeCapabilityLike[] = [],
 ): IGraphControlsSnapshot {
   const configuredNodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
   const configuredNodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
   const configuredEdgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
   const nodeTypes = mergeNodeTypes(graphData, pluginNodeTypes, configuredNodeColors);
-  const edgeTypes = mergeEdgeTypes(graphData, pluginEdgeTypes);
+  const edgeTypes = mergeEdgeTypes(graphData, pluginEdgeTypes, edgeTypeCapabilities);
 
   return {
     nodeTypes,

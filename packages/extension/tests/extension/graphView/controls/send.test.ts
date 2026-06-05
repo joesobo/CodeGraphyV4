@@ -80,6 +80,36 @@ describe('extension/graphView/controls/send', () => {
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
 
+  it('includes capability-declared edge types even before the graph has matching edges', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [{ id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' }],
+        edges: [],
+      },
+      {
+        registry: {
+          listEdgeTypes: () => [
+            { id: 'plugin:route', label: 'Route', defaultColor: '#10B981', defaultVisible: true },
+          ],
+          listEdgeTypeCapabilities: (filePaths: readonly string[]) => {
+            expect(filePaths).toEqual(['src/app.ts']);
+            return ['import', 'plugin:route'];
+          },
+        },
+      },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+    );
+
+    const payload = sendMessage.mock.calls[0][0].payload;
+    expect(payload.edgeTypes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'import' }),
+      expect.objectContaining({ id: 'plugin:route' }),
+    ]));
+  });
+
   it('uses only core definitions when the analyzer is absent', () => {
     const sendMessage = vi.fn();
 

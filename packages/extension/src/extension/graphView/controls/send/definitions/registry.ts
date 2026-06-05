@@ -1,5 +1,6 @@
 import type {
   GraphDefinitionReader,
+  GraphEdgeTypeCapabilityLike,
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
 } from './contracts';
@@ -34,4 +35,27 @@ export function readNodeTypes(registry: unknown): GraphNodeTypeLike[] {
 
 export function readEdgeTypes(registry: unknown): GraphEdgeTypeLike[] {
   return readRegistryDefinitions(registry, 'listEdgeTypes', isGraphEdgeTypeLike);
+}
+
+export function readEdgeTypeCapabilities(
+  registry: unknown,
+  filePaths: readonly string[],
+): GraphEdgeTypeCapabilityLike[] {
+  if (!registry || typeof registry !== 'object') {
+    return [];
+  }
+
+  const candidate = (registry as Record<string, unknown>).listEdgeTypeCapabilities;
+  if (typeof candidate !== 'function') {
+    return [];
+  }
+
+  const capabilities: unknown = Reflect.apply(candidate, registry, [filePaths]);
+  if (!Array.isArray(capabilities)) {
+    return [];
+  }
+
+  return capabilities.filter((capability): capability is GraphEdgeTypeCapabilityLike =>
+    typeof capability === 'string',
+  );
 }

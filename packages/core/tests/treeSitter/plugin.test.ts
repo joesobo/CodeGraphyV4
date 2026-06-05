@@ -33,6 +33,14 @@ describe('core tree-sitter built-in plugin', () => {
     expect(plugin.supportedExtensions).toEqual(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.supportedExtensions).not.toBe(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.fileColors).toBeUndefined();
+    expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([
+      'import',
+      'reference',
+      'call',
+      'reexport',
+      'type-import',
+      'inherit',
+    ]);
   });
 
   it('returns analyzed file results when tree-sitter analysis succeeds', async () => {

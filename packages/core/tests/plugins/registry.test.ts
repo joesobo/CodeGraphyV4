@@ -161,4 +161,32 @@ describe('CorePluginRegistry', () => {
       { id: 'plugin:other-edge', label: 'Other Edge', defaultColor: '#444444', defaultVisible: true },
     ]);
   });
+
+  it('lists edge capabilities contributed by plugins that support workspace files', () => {
+    const registry = new CorePluginRegistry();
+
+    registry.register(plugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeEdgeTypeCapabilities: () => ['import', 'codegraphy.typescript:alias-import'],
+    }));
+    registry.register(plugin({
+      id: 'godot',
+      supportedExtensions: ['.gd'],
+      contributeEdgeTypeCapabilities: () => ['load', 'inherit', 'reference'],
+    }));
+    registry.register(plugin({
+      id: 'wildcard',
+      supportedExtensions: ['*'],
+      contributeEdgeTypeCapabilities: () => ['reference'],
+    }));
+
+    expect(registry.listEdgeTypeCapabilities(['src/app.ts', 'game/player.gd'])).toEqual([
+      'import',
+      'codegraphy.typescript:alias-import',
+      'reference',
+      'load',
+      'inherit',
+    ]);
+  });
 });
