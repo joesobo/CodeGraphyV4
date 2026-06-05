@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { FileDiscovery } from '@codegraphy-dev/core';
+import { minimatch } from 'minimatch';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
 import { acceptancePluginPackageRelativePathsForExample } from './plugins';
 
 const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
@@ -17,6 +18,12 @@ interface CopyExampleWorkspaceOptions {
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
   pluginPackages?: string[];
+}
+
+interface AcceptanceFilterSettings {
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
+  filterPatterns: string[];
 }
 
 export function createWorkspaceTempRoot(): string {
@@ -66,22 +73,35 @@ export async function readExampleWorkspaceFiles(
   workspacePath: string,
   exampleName?: string,
 ): Promise<string[]> {
-  const filterPatterns = readAcceptanceFilterPatterns(workspacePath);
-  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(exampleName);
-  const discovery = new FileDiscovery();
-  const result = await discovery.discover({
-    rootPath: workspacePath,
-    include: ['**/*'],
-    exclude: [
-      ...pluginFilterPatterns,
-      ...filterPatterns,
-    ],
-    respectGitignore: false,
-  });
+  const settings = readAcceptanceFilterSettings(workspacePath);
+  const disabledCustomPatterns = new Set(settings.disabledCustomFilterPatterns);
+  const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns);
+  const filterPatterns = settings.filterPatterns
+    .filter(pattern => !disabledCustomPatterns.has(pattern));
+  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(exampleName)
+    .filter(pattern => !disabledPluginPatterns.has(pattern));
+  const excludePatterns = [
+    ...DEFAULT_EXCLUDE_PATTERNS,
+    ...pluginFilterPatterns,
+    ...filterPatterns,
+  ];
 
-  return result.files
-    .map((file: { relativePath: string }) => file.relativePath)
+  return collectFiles(workspacePath)
+    .filter(filePath => !matchesAcceptancePattern(filePath, excludePatterns))
     .sort();
+}
+
+function collectFiles(root: string, current = root): string[] {
+  return fs.readdirSync(current, { withFileTypes: true }).flatMap((entry) => {
+    const absolutePath = path.join(current, entry.name);
+    const relativePath = path.relative(root, absolutePath).split(path.sep).join('/');
+
+    if (entry.isDirectory()) {
+      return collectFiles(root, absolutePath);
+    }
+
+    return [relativePath];
+  });
 }
 
 function rewriteMarkdownAcceptanceLinks(workspacePath: string, exampleName: string): void {
@@ -145,17 +165,27 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
   fs.writeFileSync(targetSettingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
-function readAcceptanceFilterPatterns(workspacePath: string): string[] {
+function readAcceptanceFilterSettings(workspacePath: string): AcceptanceFilterSettings {
   try {
     const settings = JSON.parse(
       fs.readFileSync(path.join(workspacePath, '.codegraphy/settings.json'), 'utf8'),
-    ) as { filterPatterns?: unknown };
+    ) as {
+      disabledCustomFilterPatterns?: unknown;
+      disabledPluginFilterPatterns?: unknown;
+      filterPatterns?: unknown;
+    };
 
-    return Array.isArray(settings.filterPatterns)
-      ? settings.filterPatterns.filter((pattern): pattern is string => typeof pattern === 'string')
-      : [];
+    return {
+      disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
+      disabledPluginFilterPatterns: readStringArray(settings.disabledPluginFilterPatterns),
+      filterPatterns: readStringArray(settings.filterPatterns),
+    };
   } catch {
-    return [];
+    return {
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
+      filterPatterns: [],
+    };
   }
 }
 
@@ -173,6 +203,18 @@ function readAcceptancePluginFilterPatterns(exampleName: string | undefined): st
       return [];
     }
   });
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((pattern): pattern is string => typeof pattern === 'string')
+    : [];
+}
+
+function matchesAcceptancePattern(relativePath: string, patterns: readonly string[]): boolean {
+  return patterns.some(pattern =>
+    minimatch(relativePath, pattern, { dot: true, matchBase: true })
+  );
 }
 
 function isAcceptanceGeneratedArtifact(relativePath: string): boolean {
