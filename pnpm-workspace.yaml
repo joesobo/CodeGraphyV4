@@ -12,6 +12,8 @@ allowBuilds:
   tree-sitter-go: true
   tree-sitter-java: true
   tree-sitter-javascript: true
+  tree-sitter-objc: true
   tree-sitter-python: true
   tree-sitter-rust: true
+  tree-sitter-scala: true
   tree-sitter-typescript: true

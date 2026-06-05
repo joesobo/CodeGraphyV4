@@ -10,4 +10,6 @@ export const TREE_SITTER_C_FAMILY_BINDINGS = {
   '.hh': { languageKind: 'cpp', language: 'cpp' },
   '.hpp': { languageKind: 'cpp', language: 'cpp' },
   '.hxx': { languageKind: 'cpp', language: 'cpp' },
+  '.m': { languageKind: 'objectiveC', language: 'objectiveC' },
+  '.mm': { languageKind: 'objectiveC', language: 'objectiveC' },
 } satisfies Record<string, TreeSitterRuntimeBinding>;

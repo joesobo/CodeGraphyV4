@@ -13,7 +13,7 @@ All `codegraphy ...` terminal subcommands live in this package. The core CLI doe
 - CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.lbug` for any folder path.
 - Workspace Settings: read, normalize, write, and fingerprint workspace-local settings, including ordered plugin entries.
 - File Discovery: discover analyzable files and directories in any CodeGraphy Workspace without VS Code APIs.
-- Tree-sitter Analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
+- Built-in language analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
 - File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
 - Core Indexing: index an explicit CodeGraphy Workspace path, run headless plugins, build the Relationship Graph, and write the workspace Graph Cache.
 - Workspace Analysis: orchestrate discovery, pre-analysis hooks, file analysis, cache updates, and graph rebuilds through headless dependencies.
@@ -27,6 +27,10 @@ All `codegraphy ...` terminal subcommands live in this package. The core CLI doe
 - Graph Query: run node, edge, relationship, symbol, and path reports over Relationship Graph data plus persisted analysis metadata.
 
 The core package now exposes `indexCodeGraphyWorkspace` for explicit path-based Indexing. VS Code, MCP, and CLI adapters should call this package instead of owning independent indexing behavior.
+
+## Built-In Language Coverage
+
+Core ships baseline analysis for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Most of these languages use native Tree-sitter grammars. Pascal currently uses a core text-baseline analyzer so users still get unit `uses` relationships, inheritance relationships, and useful symbols without depending on a broken native grammar package.
 
 ## Plugin State Model
 

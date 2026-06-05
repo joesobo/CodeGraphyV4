@@ -5,6 +5,7 @@ import { resolveVueScriptImport } from './resolver';
 
 const SCRIPT_IMPORT_SOURCE_ID = 'sfc-script-import';
 const SCRIPT_TYPE_IMPORT_SOURCE_ID = 'sfc-script-type-import';
+const SCRIPT_DYNAMIC_IMPORT_SOURCE_ID = 'sfc-script-dynamic-import';
 
 export function analyzeVueSfc(filePath: string, content: string): IFileAnalysisResult {
   if (!filePath.endsWith('.vue')) {
@@ -35,15 +36,23 @@ export function analyzeVueSfc(filePath: string, content: string): IFileAnalysisR
       } => Boolean(relation.resolvedPath))
       .map(({ scriptImport, resolvedPath }) => ({
         kind: scriptImport.kind,
-        sourceId: scriptImport.kind === 'type-import'
-          ? SCRIPT_TYPE_IMPORT_SOURCE_ID
-          : SCRIPT_IMPORT_SOURCE_ID,
+        sourceId: getVueScriptImportSourceId(scriptImport),
         fromFilePath: filePath,
         toFilePath: resolvedPath,
         resolvedPath,
         specifier: scriptImport.specifier,
       })),
   };
+}
+
+function getVueScriptImportSourceId(scriptImport: ReturnType<typeof extractScriptImports>[number]): string {
+  if (scriptImport.source === 'dynamic') {
+    return SCRIPT_DYNAMIC_IMPORT_SOURCE_ID;
+  }
+
+  return scriptImport.kind === 'type-import'
+    ? SCRIPT_TYPE_IMPORT_SOURCE_ID
+    : SCRIPT_IMPORT_SOURCE_ID;
 }
 
 function parseSfc(content: string): ReturnType<typeof parse>['descriptor'] | null {

@@ -434,7 +434,7 @@ No Legend Entries are configured. Add them in the **Legends** popup or directly 
 3. Lower `maxFiles`
 
 **Missing relationships**
-1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
+1. Make sure the file type is covered by core analysis or an enabled plugin. Core covers JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal; plugins add Markdown, GDScript, Vue, Svelte, and other package-owned relationships.
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded
 4. Check `.codegraphy/settings.json` for an unintended disabled plugin, Node Type, or Edge Type

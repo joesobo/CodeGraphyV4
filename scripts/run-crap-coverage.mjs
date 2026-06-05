@@ -20,6 +20,7 @@ const packages = [
   { name: 'plugin-godot', directory: 'packages/plugin-godot' },
   { name: 'plugin-markdown', directory: 'packages/plugin-markdown' },
   { name: 'plugin-python', directory: 'packages/plugin-python' },
+  { name: 'plugin-svelte', directory: 'packages/plugin-svelte' },
   { name: 'plugin-typescript', directory: 'packages/plugin-typescript' },
 ];
 

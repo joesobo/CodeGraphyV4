@@ -18,6 +18,7 @@ const publicPluginPackageRoots = [
   path.join(repoRoot, 'packages/plugin-csharp'),
   path.join(repoRoot, 'packages/plugin-python'),
   path.join(repoRoot, 'packages/plugin-vue'),
+  path.join(repoRoot, 'packages/plugin-svelte'),
 ];
 
 const buildFilters = [
@@ -27,6 +28,7 @@ const buildFilters = [
   '@codegraphy-dev/plugin-csharp...',
   '@codegraphy-dev/plugin-python...',
   '@codegraphy-dev/plugin-vue...',
+  '@codegraphy-dev/plugin-svelte...',
 ];
 
 function packageJsonPath(packageRoot) {

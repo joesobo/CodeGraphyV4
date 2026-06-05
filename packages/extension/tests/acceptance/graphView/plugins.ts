@@ -36,7 +36,9 @@ export function acceptancePluginPackageRelativePathsForExample(exampleName: stri
       return ['packages/plugin-typescript'];
     case 'example-godot':
       return ['packages/plugin-godot'];
-    case 'vue-example':
+    case 'example-svelte':
+      return ['packages/plugin-svelte'];
+    case 'example-vue':
       return ['packages/plugin-vue'];
     default:
       return [];
