@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-python workspace
 
-Then I can see there are 15 nodes and 11 connections
+Then I can see there are 16 nodes and 12 connections
 And src/main.py points to src/utils/helpers.py
 And src/main.py points to src/config.py
 And src/main.py points to src/services/api.py
@@ -17,6 +17,7 @@ And src/utils/__init__.py points to src/utils/helpers.py
 And src/utils/__init__.py points to src/utils/format.py
 And src/utils/helpers.py points to src/utils/format.py
 And src/services/api.py points to src/utils/helpers.py
+And src/services/api.py points to src/services/base.py
 And src/member_imports.py points to src/services/api.py
 And src/member_imports.py points to src/utils/helpers.py
 And src/services/__init__.py points to src/services/api.py
@@ -27,3 +28,10 @@ And README.md is an orphan node
 And .gitignore is an orphan node
 And pyproject.toml is an orphan node
 And .vscode/settings.json is an orphan node
+
+When I show only the File node type
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Inherits edge on
+Then the top right of the graph says "1 connection"
+And src/services/api.py points to src/services/base.py

@@ -8,7 +8,7 @@ And I have indexed the workspace
 Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
-And I can see there are 11 nodes and 6 connections displayed
+And I can see there are 14 nodes and 7 connections displayed
 
 When I click the Graph Scope button
 And I see to buttons for switching views between node type and edge type toggles
@@ -18,7 +18,7 @@ Then I see a list of node types with toggles
 And I toggle the Folder node on
 And I close the Graph Scope
 
-And I can see there are 14 nodes and 6 connections displayed
+And I can see there are 17 nodes and 7 connections displayed
 And I can see a new "src" node in the graph
 And I can see a new "alias" node in the graph
 And I can see a new "(root)" node in the graph
@@ -31,7 +31,7 @@ Then I see a list of edge types with toggles
 And I toggle the Nests edge on
 And I close the Graph Scope
 
-And I can see there are 14 nodes and 19 connections displayed
+And I can see there are 17 nodes and 23 connections displayed
 
 When I right click one of the folder nodes to open its Graph Context Menu
 And I see the "New File" entry

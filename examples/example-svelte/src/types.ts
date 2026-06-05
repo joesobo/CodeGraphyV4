@@ -1,4 +1,5 @@
-export interface UserProfile {
-  name: string;
+import type { DisplayEntity } from './inheritance';
+
+export interface UserProfile extends DisplayEntity {
   role: string;
 }

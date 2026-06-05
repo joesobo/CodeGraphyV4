@@ -10,7 +10,7 @@ Open `examples/example-pascal` in CodeGraphy and look for:
 - `src/SampleApp.pas -> src/PricingService.pas#import`
 - `src/SampleApp.pas -> src/ReceiptView.pas#import`
 - `src/OrderRepository.pas -> src/OrderModel.pas#import`
-- `SampleApp.pas -> TBaseRunner#inherit`
+- `src/SampleApp.pas -> src/RunnerSupport.pas#inherit`
 
 ## Symbol Node Demo
 
@@ -23,4 +23,5 @@ Suggested symbol check:
 Expected behavior:
 
 - Pascal unit `uses` relationships connect source files.
+- `TAppRunner` inherits from `TBaseRunner`, and the Inherits edge connects `SampleApp.pas` to `RunnerSupport.pas`.
 - Class, record, function, and procedure symbols make the unit graph inspectable.

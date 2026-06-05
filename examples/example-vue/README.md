@@ -41,3 +41,4 @@ the graph still misses imports inside the `.vue` script blocks.
 - `src/components/LazyProfilePanel.vue` imports `sampleUser`
 - `src/components/UserCard.vue` imports the `UserProfile` type
 - `src/main.ts` imports the root Vue component
+- `src/types.ts` extends `DisplayEntity` from `src/inheritance.ts` so the Vue TypeScript layer can demonstrate an inheritance edge

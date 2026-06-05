@@ -9,13 +9,15 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
-Then I can see there are 11 nodes and 5 connections
+Then I can see there are 14 nodes and 6 connections
 And src/index.ts points to src/types.ts
 And src/index.ts points to src/utils.ts
+And src/runner.ts points to src/baseRunner.ts
 And src/utils.ts points to src/depth.ts
 And src/depth.ts points to src/leaf.ts
 
 And src/orphan.ts is an orphan node
+And src/runnableThing.ts is an orphan node
 And README.md is an orphan node
 And package.json is an orphan node
 And .gitignore is an orphan node
@@ -25,6 +27,14 @@ And src/alias/greeting.ts is an orphan node
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the TypeScript/JavaScript plugin on
-Then I can see there are 11 nodes and 6 connections
+Then I can see there are 14 nodes and 7 connections
 And I see src/index.ts points to src/alias/greeting.ts
 And src/alias/greeting.ts is no longer an orphan node
+
+When I show only the File node type
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Inherits edge on
+Then the top right of the graph says "2 connections"
+And src/runner.ts points to src/baseRunner.ts
+And src/runner.ts points to src/runnableThing.ts

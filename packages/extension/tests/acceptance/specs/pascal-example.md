@@ -21,3 +21,10 @@ And src/PricingService.pas points to src/OrderModel.pas
 And src/ReceiptView.pas points to src/OrderModel.pas
 
 And README.md is an orphan node
+
+When I show only the File node type
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Inherits edge on
+Then the top right of the graph says "1 connection"
+And src/SampleApp.pas points to src/RunnerSupport.pas
