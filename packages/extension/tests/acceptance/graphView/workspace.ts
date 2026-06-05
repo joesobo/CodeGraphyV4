@@ -147,37 +147,29 @@ function writeAcceptanceVSCodeSettings(
 
 function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWorkspaceOptions): void {
   const targetSettingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-  const sourceSettings = readSettingsRecord(targetSettingsPath);
-  const sourceEdgeVisibility = isRecord(sourceSettings.edgeVisibility)
-    ? sourceSettings.edgeVisibility
-    : {};
-  const edgeVisibility = {
-    ...sourceEdgeVisibility,
-  };
-
-  if (options.includeTypeImportEdges !== undefined) {
-    edgeVisibility['type-import'] = options.includeTypeImportEdges;
-  }
   const settings = {
-    ...sourceSettings,
-    version: typeof sourceSettings.version === 'number' ? sourceSettings.version : 1,
-    plugins: options.pluginPackages
-      ? options.pluginPackages.map(pluginPackage => ({ package: pluginPackage }))
-      : sourceSettings.plugins ?? [{ package: '@codegraphy-dev/plugin-markdown' }],
-    edgeVisibility,
+    version: 1,
+    respectGitignore: false,
+    plugins: (options.pluginPackages ?? ['@codegraphy-dev/plugin-markdown'])
+      .map(pluginPackage => ({ package: pluginPackage })),
+    filterPatterns: [],
+    edgeVisibility: {
+      nests: false,
+      import: true,
+      'type-import': options.includeTypeImportEdges ?? false,
+      reexport: false,
+      call: false,
+      inherit: true,
+      reference: true,
+      test: false,
+      load: true,
+      contains: false,
+      overrides: false,
+    },
   };
 
   fs.mkdirSync(path.dirname(targetSettingsPath), { recursive: true });
   fs.writeFileSync(targetSettingsPath, `${JSON.stringify(settings, null, 2)}\n`);
-}
-
-function readSettingsRecord(settingsPath: string): Record<string, unknown> {
-  try {
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as unknown;
-    return isRecord(settings) ? settings : {};
-  } catch {
-    return {};
-  }
 }
 
 function readAcceptanceFilterSettings(workspacePath: string): AcceptanceFilterSettings {
