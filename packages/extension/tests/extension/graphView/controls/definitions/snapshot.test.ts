@@ -36,6 +36,10 @@ describe('extension/graphView/controls/snapshot', () => {
           label: 'Routes',
           defaultColor: '#22C55E',
           defaultVisible: true,
+          description: {
+            description: 'Application routes exposed by a framework.',
+            examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+          },
         },
       ],
       [
@@ -44,6 +48,10 @@ describe('extension/graphView/controls/snapshot', () => {
           label: 'Route Links',
           defaultColor: '#10B981',
           defaultVisible: true,
+          description: {
+            description: 'A route points at the file that renders it.',
+            examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+          },
         },
       ],
     );
@@ -66,6 +74,14 @@ describe('extension/graphView/controls/snapshot', () => {
     ]);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === 'custom:route')).toBe(true);
+    expect(snapshot.nodeTypes.find((nodeType) => nodeType.id === 'route')?.description).toEqual({
+      description: 'Application routes exposed by a framework.',
+      examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+    });
+    expect(snapshot.edgeTypes.find((edgeType) => edgeType.id === 'plugin:route')?.description).toEqual({
+      description: 'A route points at the file that renders it.',
+      examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+    });
     expect(snapshot.nodeColors).toEqual({
       file: '#ABCDEF',
       folder: '#A1A1AA',

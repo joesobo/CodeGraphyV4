@@ -8,6 +8,7 @@ export interface IGraphNodeTypeDefinition {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: IGraphTypeDescription;
   parentId?: NodeType;
   pluginName?: string;
   matchSymbolKinds?: string[];
@@ -22,6 +23,17 @@ export interface IGraphEdgeTypeDefinition {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: IGraphTypeDescription;
+}
+
+export interface IGraphTypeExample {
+  label?: string;
+  code: string;
+}
+
+export interface IGraphTypeDescription {
+  description: string;
+  examples?: IGraphTypeExample[];
 }
 
 export interface IGraphControlsSnapshot {

@@ -13,6 +13,21 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
     ).toBe(true);
   });
 
+  it('accepts edge definitions with optional tooltip descriptions and examples', () => {
+    expect(
+      isGraphEdgeTypeLike({
+        id: 'plugin:route',
+        label: 'Route Links',
+        defaultColor: '#10B981',
+        defaultVisible: true,
+        description: {
+          description: 'A route points at the file that renders it.',
+          examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+        },
+      }),
+    ).toBe(true);
+  });
+
   it('rejects nullish and non-object edge definitions', () => {
     expect(isGraphEdgeTypeLike(null)).toBe(false);
     expect(isGraphEdgeTypeLike(undefined)).toBe(false);
@@ -50,6 +65,17 @@ describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
         label: 'Import',
         defaultColor: '#3178C6',
         defaultVisible: 'yes',
+      }),
+    ).toBe(false);
+    expect(
+      isGraphEdgeTypeLike({
+        id: 'plugin:route',
+        label: 'Route Links',
+        defaultColor: '#10B981',
+        defaultVisible: true,
+        description: {
+          examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+        },
       }),
     ).toBe(false);
   });
