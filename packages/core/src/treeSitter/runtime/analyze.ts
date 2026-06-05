@@ -10,10 +10,13 @@ import { analyzeJavaFile } from './analyzeJava/file';
 import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
 import { analyzeKotlinFile } from './analyzeKotlin/file';
 import { analyzeLuaFile } from './analyzeLua/file';
+import { analyzeObjectiveCFile } from './analyzeObjectiveC/file';
+import { analyzePascalTextFile } from './analyzePascal/file';
 import { analyzePhpFile } from './analyzePhp/file';
 import { analyzePythonFile } from './analyzePython/file';
 import { analyzeRubyFile } from './analyzeRuby/file';
 import { analyzeRustFile } from './analyzeRust/file';
+import { analyzeScalaFile } from './analyzeScala/file';
 import { analyzeSwiftFile } from './analyzeSwift/file';
 import {
   createTreeSitterRuntime,
@@ -38,10 +41,12 @@ const TREE_SITTER_FILE_ANALYZERS: Record<string, TreeSitterFileAnalyzer> = {
   javascript: analyzeJavaScriptFamilyFile,
   kotlin: analyzeKotlinFile,
   lua: analyzeLuaFile,
+  objectiveC: analyzeObjectiveCFile,
   php: analyzePhpFile,
   python: analyzePythonFile,
   ruby: analyzeRubyFile,
   rust: analyzeRustFile,
+  scala: analyzeScalaFile,
   swift: analyzeSwiftFile,
   tsx: analyzeJavaScriptFamilyFile,
   typescript: analyzeJavaScriptFamilyFile,
@@ -53,6 +58,10 @@ export async function analyzeFileWithTreeSitter(
   workspaceRoot: string,
   options: TreeSitterAnalysisOptions = {},
 ): Promise<IFileAnalysisResult | null> {
+  if (filePath.toLowerCase().endsWith('.pas')) {
+    return analyzePascalTextFile(filePath, content, workspaceRoot, options);
+  }
+
   const runtime = await createTreeSitterRuntime(filePath);
   if (!runtime) {
     return null;

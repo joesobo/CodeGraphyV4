@@ -27,6 +27,10 @@
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-godot">Godot Plugin</a>
   ·
+  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-vue">Vue Plugin</a>
+  ·
+  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte">Svelte Plugin</a>
+  ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/mcp">MCP</a>
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-api">Plugin API</a>
@@ -102,7 +106,7 @@ The editable Excalidraw source for this diagram lives at [docs/media/readme/code
 4. Open the graph, then run **Index Workspace** when you want semantic relationships beyond discovered files.
 5. When you want terminal or plugin management workflows, install the Core Package globally and then install plugin packages.
 
-The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, which already ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, and C++. It does not install the global terminal `codegraphy` command. Markdown is a real plugin package and is enabled by default for new CodeGraphy Workspaces.
+The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, which already ships built-in coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Objective-C and Scala use native Tree-sitter grammars; Pascal uses a core text-baseline analyzer because the available Tree-sitter package does not ship a usable native binding. It does not install the global terminal `codegraphy` command. Markdown is a real plugin package and is enabled by default for new CodeGraphy Workspaces.
 
 Supported VS Code Marketplace platforms:
 
@@ -182,6 +186,8 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 | `@codegraphy-dev/plugin-csharp` | `packages/plugin-csharp` | `npm install -g @codegraphy-dev/plugin-csharp` | C# ecosystem defaults and enrichment. |
 | `@codegraphy-dev/plugin-godot` | `packages/plugin-godot` | `npm install -g @codegraphy-dev/plugin-godot` | Godot project, scene, resource, and script enrichment. |
 | `@codegraphy-dev/plugin-markdown` | `packages/plugin-markdown` | installed through `@codegraphy-dev/core` | Markdown wikilink and note relationship enrichment enabled by default for new CodeGraphy Workspaces. |
+| `@codegraphy-dev/plugin-vue` | `packages/plugin-vue` | `npm install -g @codegraphy-dev/plugin-vue` | Vue Single-File Component script, type-import, and lazy import enrichment. |
+| `@codegraphy-dev/plugin-svelte` | `packages/plugin-svelte` | `npm install -g @codegraphy-dev/plugin-svelte` | Svelte component script, type-import, and lazy import enrichment. |
 | `@poleski/quality-tools` | external package | local link until publish | Architecture, coverage-risk, mutation, reachability, and test-shape checks used by this repo through root scripts. |
 
 ## Tech Stack
