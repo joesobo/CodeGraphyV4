@@ -209,7 +209,7 @@ For node styling, the host resolves layers in this order:
 In practice, deterministic duplicate handling means:
 
 - `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` override by matching `id`
-- imports/reexports/loads/inherits override when they describe the same source relationship
+- imports/loads/inherits override when they describe the same source relationship
 - distinct call/reference targets stay separate so symbol-aware routing is preserved
 
 Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.

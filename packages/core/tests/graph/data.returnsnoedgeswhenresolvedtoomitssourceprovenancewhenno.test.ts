@@ -16,7 +16,6 @@ function createPlugin(id: string): IPlugin {
     sources: [
       { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
       { id: 'dynamic-import', name: 'Dynamic import', description: 'Dynamic import()' },
-      { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
     ],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;

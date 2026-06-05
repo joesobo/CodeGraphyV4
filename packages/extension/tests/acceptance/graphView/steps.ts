@@ -212,7 +212,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I toggle the Type imports edge on': async (context) => {
-    await setPanelSwitch(context, 'Type imports', true);
+    await toggleEdgeTypeOn(context, 'Type imports');
   },
 
   'I close the Graph Scope': async (context) => {
@@ -594,6 +594,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I show only the (.+) edge type$/, async (context, _step, match) => {
     await showOnlyEdgeType(context, match[1]);
+  }),
+
+  step(/^I show no edge types$/, async (context) => {
+    await showNoEdgeTypes(context);
+  }),
+
+  step(/^I toggle the (.+) edge on$/, async (context, _step, match) => {
+    await toggleEdgeTypeOn(context, match[1]);
   }),
 
   step(/^I show only the (.+) node type$/, async (context, _step, match) => {
@@ -1038,6 +1046,27 @@ async function showOnlyEdgeType(
     await setPanelSwitchIfPresent(context, edgeTypeLabel, edgeTypeLabel === label);
   }
 
+  await setPanelSwitch(context, label, true);
+  await closePanelIfOpen(frame);
+}
+
+async function showNoEdgeTypes(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Edge Types');
+
+  for (const edgeTypeLabel of CORE_EDGE_TYPE_LABELS) {
+    await setPanelSwitchIfPresent(context, edgeTypeLabel, false);
+  }
+
+  await closePanelIfOpen(frame);
+}
+
+async function toggleEdgeTypeOn(
+  context: GraphAcceptanceContext,
+  label: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Edge Types');
   await setPanelSwitch(context, label, true);
   await closePanelIfOpen(frame);
 }

@@ -28,11 +28,9 @@ export type CoreEdgeKind =
   | 'nests'
   | 'import'
   | 'type-import'
-  | 'reexport'
   | 'call'
   | 'inherit'
   | 'reference'
-  | 'test'
   | 'load'
   | 'contains'
   | 'overrides';

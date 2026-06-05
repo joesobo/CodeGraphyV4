@@ -147,8 +147,8 @@ describe('PluginRegistry collection', () => {
           defaultVisible: false,
         },
         {
-          id: 'test',
-          label: 'Tests',
+          id: 'plugin:verify',
+          label: 'Verifies',
           defaultColor: '#00aaff',
           defaultVisible: true,
         },
@@ -163,8 +163,8 @@ describe('PluginRegistry collection', () => {
         defaultVisible: false,
       },
       {
-        id: 'test',
-        label: 'Tests',
+        id: 'plugin:verify',
+        label: 'Verifies',
         defaultColor: '#00aaff',
         defaultVisible: true,
       },
