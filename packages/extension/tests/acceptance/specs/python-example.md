@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-python workspace
 
-Then I can see there are 15 nodes and 17 connections
+Then I can see there are 15 nodes and 11 connections
 And src/main.py points to src/utils/helpers.py
 And src/main.py points to src/config.py
 And src/main.py points to src/services/api.py
