@@ -1,9 +1,14 @@
 import type Parser from 'tree-sitter';
+import * as path from 'node:path';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
+import {
+  treeSitterPathIsDirectory,
+  treeSitterReadDirectory,
+} from '../pathHost';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
@@ -36,10 +41,14 @@ function visitSwiftNode(
   }
 
   if (SWIFT_TYPE_DECLARATION_NODE_TYPES.has(node.type)) {
-    if (!symbolsEnabled) {
-      return;
-    }
-    handleSwiftTypeDeclaration(node, filePath, relations, symbols);
+    handleSwiftTypeDeclaration(
+      node,
+      filePath,
+      relations,
+      symbols,
+      symbolsEnabled,
+      (typeName) => resolveSwiftInheritedTypePath(workspaceRoot, typeName),
+    );
     return;
   }
 
@@ -65,4 +74,20 @@ export function analyzeSwiftFile(
     visitSwiftNode(node, filePath, workspaceRoot, relations, symbols, symbolsEnabled),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);
+}
+
+function resolveSwiftInheritedTypePath(workspaceRoot: string, typeName: string): string | null {
+  const sourcesPath = path.join(workspaceRoot, 'Sources');
+  if (!treeSitterPathIsDirectory(sourcesPath)) {
+    return null;
+  }
+
+  for (const moduleName of [...treeSitterReadDirectory(sourcesPath)].sort()) {
+    const candidate = path.join(sourcesPath, moduleName, `${typeName}.swift`);
+    if (treeSitterPathIsDirectory(path.dirname(candidate)) && treeSitterReadDirectory(path.dirname(candidate)).includes(path.basename(candidate))) {
+      return candidate;
+    }
+  }
+
+  return null;
 }

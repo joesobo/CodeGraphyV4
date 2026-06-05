@@ -42,6 +42,7 @@ export default function App(): React.ReactElement {
     nodeColors,
     nodeVisibility,
     edgeVisibility,
+    graphNodeTypes,
     graphEdgeTypes,
     nodeDecorations,
     edgeDecorations,
@@ -80,6 +81,7 @@ export default function App(): React.ReactElement {
     edgeVisibility,
     graphData,
     graphEdgeTypes,
+    graphNodeTypes,
     nodeVisibility,
     searchOptions,
     showOrphans: effectiveShowOrphans,
@@ -101,6 +103,7 @@ export default function App(): React.ReactElement {
     edgeDecorations,
     activeFilterPatterns,
     effectiveShowOrphans,
+    graphNodeTypes,
   );
 
   const {

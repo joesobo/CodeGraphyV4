@@ -18,9 +18,10 @@ export function handleCSharpTypeDeclaration(
   symbols: IAnalysisSymbol[],
   usingNamespaces: ReadonlySet<string>,
   importTargetsByNamespace: Map<string, Set<string>>,
+  symbolsEnabled: boolean,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
-  if (name) {
+  if (name && symbolsEnabled) {
     symbols.push(createSymbol(filePath, getCSharpTypeDeclarationKind(node), name, node));
   }
 

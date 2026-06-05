@@ -40,10 +40,7 @@ function visitPythonNode(
       return handlePythonImportFromStatement(node, filePath, workspaceRoot, relations, importedBindings);
     }
     case 'class_definition': {
-      if (!symbolsEnabled) {
-        return;
-      }
-      handlePythonClassDefinition(node, filePath, symbols);
+      handlePythonClassDefinition(node, filePath, relations, symbols, importedBindings, symbolsEnabled);
       return;
     }
     case 'function_definition': {

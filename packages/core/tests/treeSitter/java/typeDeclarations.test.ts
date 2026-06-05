@@ -1,22 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { handleJavaTypeDeclaration } from '../../../src/treeSitter/runtime/analyzeJava/typeDeclarations';
 import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
+import { addInheritRelation, createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
 
 vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+  addInheritRelation: vi.fn(),
   createSymbol: vi.fn(),
 }));
 
 function createNode(overrides: Partial<{
   type: string;
+  text: string;
   childForFieldName: (name: string) => unknown;
 }> = {}) {
   return {
     type: 'class_declaration',
+    text: '',
     childForFieldName: () => null,
     ...overrides,
   };
@@ -45,7 +48,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations', () 
         },
       }) as never,
       '/workspace/App.java',
+      null,
+      null,
+      [],
       symbols as never,
+      new Map(),
+      true,
     );
     handleJavaTypeDeclaration(
       createNode({
@@ -56,7 +64,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations', () 
         },
       }) as never,
       '/workspace/App.java',
+      null,
+      null,
+      [],
       symbols as never,
+      new Map(),
+      true,
     );
     handleJavaTypeDeclaration(
       createNode({
@@ -67,7 +80,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations', () 
         },
       }) as never,
       '/workspace/App.java',
+      null,
+      null,
+      [],
       symbols as never,
+      new Map(),
+      true,
     );
     handleJavaTypeDeclaration(
       createNode({
@@ -78,7 +96,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations', () 
         },
       }) as never,
       '/workspace/App.java',
+      null,
+      null,
+      [],
       symbols as never,
+      new Map(),
+      true,
     );
 
     expect(symbols).toEqual([
@@ -86,5 +109,6 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations', () 
       { kind: 'interface', name: 'Runnable' },
       { kind: 'enum', name: 'Status' },
     ]);
+    expect(addInheritRelation).not.toHaveBeenCalled();
   });
 });

@@ -87,6 +87,9 @@ describe('extension/pipeline/treesitter/python', () => {
       { type: 'class_definition' },
       'src/app.py',
       [],
+      [],
+      expect.any(Map),
+      true,
     );
     expect(handlePythonFunctionDefinition).toHaveBeenCalledWith(
       { type: 'function_definition' },

@@ -44,7 +44,7 @@ function handleCSharpTypeNode(
   importTargetsByNamespace: Map<string, Set<string>>,
   symbolsEnabled: boolean,
 ): boolean {
-  if (!symbolsEnabled || !CSHARP_TYPE_DECLARATIONS.has(node.type)) {
+  if (!CSHARP_TYPE_DECLARATIONS.has(node.type)) {
     return false;
   }
 
@@ -57,6 +57,7 @@ function handleCSharpTypeNode(
     symbols,
     usingNamespaces,
     importTargetsByNamespace,
+    symbolsEnabled,
   );
   return true;
 }

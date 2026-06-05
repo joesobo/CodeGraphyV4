@@ -70,6 +70,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
     visit?.({ type: 'interface_declaration' }, state, walk);
     visit?.({ type: 'enum_declaration' }, state, walk);
     expect(handleJavaTypeDeclaration).toHaveBeenCalledTimes(3);
+    expect(handleJavaTypeDeclaration).toHaveBeenCalledWith(
+      { type: 'class_declaration' },
+      '/workspace/src/App.java',
+      '/workspace/src',
+      'pkg',
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Map),
+      true,
+    );
 
     visit?.({ type: 'method_declaration' }, state, walk);
     expect(handleJavaMethodDeclaration).toHaveBeenCalledWith(
@@ -123,7 +133,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
 
     visit?.({ type: 'class_declaration' }, {}, vi.fn());
 
-    expect(handleJavaTypeDeclaration).not.toHaveBeenCalled();
+    expect(handleJavaTypeDeclaration).toHaveBeenCalledWith(
+      { type: 'class_declaration' },
+      '/workspace/src/App.java',
+      '/workspace/src',
+      'pkg',
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Map),
+      false,
+    );
     expect(normalizeAnalysisResult).toHaveBeenLastCalledWith(
       '/workspace/src/App.java',
       [],

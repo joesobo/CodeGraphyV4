@@ -9,6 +9,7 @@ import { findExistingFile } from '../analyze/existingFile';
 import {
   addImportRelation,
   addInheritRelation,
+  addOverrideRelation,
   normalizeAnalysisResult,
 } from '../analyze/results';
 import {
@@ -34,8 +35,26 @@ export function analyzePascalTextFile(
     }
   }
 
+  const basePathByClassName = new Map<string, string | null>();
+
   for (const match of source.matchAll(/\b([A-Za-z_]\w*)\s*=\s*class\s*\(\s*([A-Za-z_]\w*)\s*\)/gi)) {
-    addInheritRelation(relations, filePath, match[2], resolvePascalTypePath(filePath, workspaceRoot, match[2], importedUnits));
+    const resolvedPath = resolvePascalTypePath(filePath, workspaceRoot, match[2], importedUnits);
+    basePathByClassName.set(match[1], resolvedPath);
+    addInheritRelation(relations, filePath, match[2], resolvedPath);
+  }
+
+  for (const match of source.matchAll(/\b([A-Za-z_]\w*)\s*=\s*class\s*\([^)]*\)([\s\S]*?)\bend\s*;/gi)) {
+    const className = match[1];
+    const resolvedPath = basePathByClassName.get(className) ?? null;
+    for (const methodMatch of match[2].matchAll(/\b(?:procedure|function)\s+([A-Za-z_]\w*)\b[^\n]*\boverride\b/gi)) {
+      addOverrideRelation(
+        relations,
+        filePath,
+        methodMatch[1],
+        resolvedPath,
+        `${filePath}:method:${methodMatch[1]}`,
+      );
+    }
   }
 
   if (shouldIncludeTreeSitterSymbols(options)) {

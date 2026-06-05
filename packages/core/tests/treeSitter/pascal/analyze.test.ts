@@ -48,9 +48,13 @@ describe('treeSitter/analyzePascal', () => {
       'type',
       '  TAppRunner = class(TBaseRunner)',
       '  public',
+      '    procedure Start; override;',
       '    procedure Run;',
       '  end;',
       'implementation',
+      'procedure TAppRunner.Start;',
+      'begin',
+      'end;',
       'procedure TAppRunner.Run;',
       'begin',
       'end;',
@@ -73,6 +77,14 @@ describe('treeSitter/analyzePascal', () => {
         sourceId: 'codegraphy.treesitter:inherit',
         specifier: 'TBaseRunner',
         fromFilePath: filePath,
+      }),
+      expect.objectContaining({
+        kind: 'overrides',
+        sourceId: 'codegraphy.treesitter:override',
+        specifier: 'Start',
+        fromFilePath: filePath,
+        fromSymbolId: `${filePath}:method:Start`,
+        resolvedPath: path.join(workspaceRoot, 'src/RunnerSupport.pas'),
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

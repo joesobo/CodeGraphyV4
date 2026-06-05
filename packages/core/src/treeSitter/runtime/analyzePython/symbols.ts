@@ -6,7 +6,7 @@ import type {
 import { getImportedBindingByIdentifier, getImportedBindingByPropertyAccess } from '../analyze/imports';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getIdentifierText } from '../analyze/nodes';
-import { addCallRelation, createSymbol } from '../analyze/results';
+import { addCallRelation, addInheritRelation, createSymbol } from '../analyze/results';
 import { walkSymbolBody } from '../analyze/walk';
 
 function getPythonCallBinding(
@@ -23,12 +23,38 @@ function getPythonCallBinding(
 export function handlePythonClassDefinition(
   node: Parser.SyntaxNode,
   filePath: string,
+  relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
-  if (name) {
-    symbols.push(createSymbol(filePath, 'class', name, node));
+  const symbol = name && symbolsEnabled ? createSymbol(filePath, 'class', name, node) : undefined;
+  if (symbol) {
+    symbols.push(symbol);
   }
+
+  for (const baseName of readPythonBaseClassNames(node.text)) {
+    addInheritRelation(
+      relations,
+      filePath,
+      baseName,
+      importedBindings.get(baseName)?.resolvedPath ?? null,
+      symbol?.id,
+    );
+  }
+}
+
+function readPythonBaseClassNames(source: string): string[] {
+  const clause = source.match(/\bclass\s+[A-Za-z_]\w*\s*\(([^)]*)\)/)?.[1];
+  if (!clause) {
+    return [];
+  }
+
+  return clause
+    .split(',')
+    .map((entry) => entry.trim().match(/^([A-Za-z_]\w*)/)?.[1] ?? null)
+    .filter((name): name is string => Boolean(name));
 }
 
 export function handlePythonFunctionDefinition(
