@@ -16,3 +16,10 @@ And src/lib/widget.cpp points to src/lib/widget.hpp
 And README.md is an orphan node
 And CMakeLists.txt is an orphan node
 And .gitignore is an orphan node
+
+When I show only the File node type
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Inherits edge on
+Then the top right of the graph says "1 connection"
+And src/app.cpp points to src/lib/widget.hpp

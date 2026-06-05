@@ -50,8 +50,6 @@
     "import": true,
     "reference": true,
     "call": false,
-    "test": false,
-    "reexport": false,
     "type-import": false,
     "inherit": false,
     "load": false,
