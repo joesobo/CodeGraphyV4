@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { FileDiscovery } from '@codegraphy-dev/core';
+import { acceptancePluginPackageRelativePathsForExample } from './plugins';
 
 const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
   'example-csharp',
@@ -14,25 +16,8 @@ interface CopyExampleWorkspaceOptions {
   filterPatterns?: string[];
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
+  pluginPackages?: string[];
 }
-
-export const EXPECTED_EXAMPLE_VUE_FILES = [
-  '.gitignore',
-  'README.md',
-  'index.html',
-  'package.json',
-  'src/App.vue',
-  'src/components/CounterPanel.vue',
-  'src/components/LazyProfilePanel.vue',
-  'src/components/StatusBadge.vue',
-  'src/components/UserCard.vue',
-  'src/composables/useCounter.ts',
-  'src/data/users.ts',
-  'src/main.ts',
-  'src/types.ts',
-  'tsconfig.json',
-  'vite.config.ts',
-] as const;
 
 export function createWorkspaceTempRoot(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-'));
@@ -77,60 +62,26 @@ export function copyExampleWorkspace(
   return workspacePath;
 }
 
-export function copyExampleVueWorkspace(tempRoot: string): string {
-  const sourcePath = path.join(repoRoot(), 'examples/example-vue');
-  const workspacePath = path.join(tempRoot, 'example-vue');
-
-  fs.cpSync(sourcePath, workspacePath, {
-    recursive: true,
-    filter: (source) => {
-      const relativePath = path.relative(sourcePath, source).split(path.sep).join('/');
-      return relativePath !== 'node_modules'
-        && !relativePath.startsWith('node_modules/')
-        && relativePath !== 'dist'
-        && !relativePath.startsWith('dist/')
-        && relativePath !== '.turbo'
-        && !relativePath.startsWith('.turbo/')
-        && relativePath !== '.codegraphy/graph.lbug'
-        && relativePath !== '.codegraphy/meta.json';
-    },
-  });
-
-  return workspacePath;
-}
-
-export function readExampleTypescriptFiles(workspacePath: string): string[] {
-  return readExampleWorkspaceFiles(workspacePath);
-}
-
-export function readExampleWorkspaceFiles(workspacePath: string): string[] {
+export async function readExampleWorkspaceFiles(
+  workspacePath: string,
+  exampleName?: string,
+): Promise<string[]> {
   const filterPatterns = readAcceptanceFilterPatterns(workspacePath);
-
-  return collectFiles(workspacePath)
-    .filter(filePath => !filePath.startsWith('.codegraphy/'))
-    .filter(filePath => !isAcceptanceGeneratedArtifact(filePath))
-    .filter(filePath => !matchesAcceptanceFilterPattern(filePath, filterPatterns))
-    .sort();
-}
-
-export function readExampleVueFiles(workspacePath: string): string[] {
-  return collectFiles(workspacePath)
-    .filter(filePath => !filePath.startsWith('.codegraphy/'))
-    .filter(filePath => filePath !== 'src/vue.d.ts')
-    .sort();
-}
-
-function collectFiles(root: string, current = root): string[] {
-  return fs.readdirSync(current, { withFileTypes: true }).flatMap((entry) => {
-    const absolutePath = path.join(current, entry.name);
-    const relativePath = path.relative(root, absolutePath).split(path.sep).join('/');
-
-    if (entry.isDirectory()) {
-      return collectFiles(root, absolutePath);
-    }
-
-    return [relativePath];
+  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(exampleName);
+  const discovery = new FileDiscovery();
+  const result = await discovery.discover({
+    rootPath: workspacePath,
+    include: ['**/*'],
+    exclude: [
+      ...pluginFilterPatterns,
+      ...filterPatterns,
+    ],
+    respectGitignore: false,
   });
+
+  return result.files
+    .map((file: { relativePath: string }) => file.relativePath)
+    .sort();
 }
 
 function rewriteMarkdownAcceptanceLinks(workspacePath: string, exampleName: string): void {
@@ -172,9 +123,8 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
   const settings = {
     version: 1,
     respectGitignore: false,
-    plugins: [{
-      package: '@codegraphy-dev/plugin-markdown',
-    }],
+    plugins: (options.pluginPackages ?? ['@codegraphy-dev/plugin-markdown'])
+      .map(pluginPackage => ({ package: pluginPackage })),
     filterPatterns: options.filterPatterns ?? [],
     edgeVisibility: {
       nests: false,
@@ -209,24 +159,20 @@ function readAcceptanceFilterPatterns(workspacePath: string): string[] {
   }
 }
 
-function matchesAcceptanceFilterPattern(filePath: string, filterPatterns: readonly string[]): boolean {
-  return filterPatterns.some((pattern) =>
-    pattern === filePath
-    || matchesRecursiveDirectoryGlob(filePath, pattern)
-    || (pattern.endsWith('/**') && filePath.startsWith(pattern.slice(0, -2)))
-    || (pattern.startsWith('**/') && filePath.endsWith(pattern.slice(3))),
-  );
-}
+function readAcceptancePluginFilterPatterns(exampleName: string | undefined): string[] {
+  return acceptancePluginPackageRelativePathsForExample(exampleName).flatMap((relativePath) => {
+    try {
+      const manifest = JSON.parse(
+        fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
+      ) as { defaultFilters?: unknown };
 
-function matchesRecursiveDirectoryGlob(filePath: string, pattern: string): boolean {
-  if (!pattern.startsWith('**/') || !pattern.endsWith('/**')) {
-    return false;
-  }
-
-  const directoryName = pattern.slice(3, -3);
-  return filePath === directoryName
-    || filePath.startsWith(`${directoryName}/`)
-    || filePath.includes(`/${directoryName}/`);
+      return Array.isArray(manifest.defaultFilters)
+        ? manifest.defaultFilters.filter((pattern): pattern is string => typeof pattern === 'string')
+        : [];
+    } catch {
+      return [];
+    }
+  });
 }
 
 function isAcceptanceGeneratedArtifact(relativePath: string): boolean {
