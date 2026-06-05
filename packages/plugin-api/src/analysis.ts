@@ -12,6 +12,7 @@ export interface IPluginNodeType {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: IPluginGraphTypeDescription;
 }
 
 export interface IPluginEdgeType {
@@ -19,6 +20,17 @@ export interface IPluginEdgeType {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: IPluginGraphTypeDescription;
+}
+
+export interface IPluginGraphTypeExample {
+  label?: string;
+  code: string;
+}
+
+export interface IPluginGraphTypeDescription {
+  description: string;
+  examples?: IPluginGraphTypeExample[];
 }
 
 export interface IAnalysisNode {

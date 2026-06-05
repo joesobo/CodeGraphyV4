@@ -271,6 +271,8 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
 
+Hover a Graph Scope row to see a short description of what that Node Type or Edge Type means. Rows may include a compact example, such as a file path for File Nodes or a source snippet for an Edge Type. These tooltips explain the meaning of the type only; they do not explain why a contextual toggle is currently visible.
+
 Fresh CodeGraphy Workspaces default built-in Edge Type scope to **Imports** on and all other built-in Edge Types off. Plugin-contributed Edge Types default off unless the plugin explicitly defines a different `defaultVisible` value. Existing values saved in `.codegraphy/settings.json` remain the expected workspace values and are not migrated to new defaults. Users can enable additional Edge Types from Graph Scope without re-indexing when those relationships are already present in the Graph Cache.
 
 Graph Scope lists built-in Edge Types by common usefulness: **Imports**, **References**, **Calls**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
