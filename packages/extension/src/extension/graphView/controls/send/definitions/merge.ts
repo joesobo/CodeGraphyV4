@@ -6,11 +6,13 @@ import type {
 import {
   CORE_GRAPH_EDGE_TYPES,
   CORE_GRAPH_NODE_TYPES,
+  STRUCTURAL_NESTS_EDGE_KIND,
 } from '../../../../../shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   normalizeHexColor,
 } from '../../../../../shared/fileColors';
+import { isFileNode } from '../../../../../shared/visibleGraph/model';
 import { prettifyIdentifier } from './identifiers';
 import type { GraphEdgeTypeLike, GraphNodeTypeLike } from './contracts';
 
@@ -57,17 +59,24 @@ export function mergeEdgeTypes(
   graphData: IGraphData,
   pluginEdgeTypes: GraphEdgeTypeLike[],
 ): IGraphEdgeTypeDefinition[] {
-  const definitions = new Map<string, IGraphEdgeTypeDefinition>(
-    CORE_GRAPH_EDGE_TYPES.map((definition) => [definition.id, definition]),
-  );
+  const availableEdgeKinds = collectAvailableEdgeKinds(graphData);
+  const definitions = new Map<string, IGraphEdgeTypeDefinition>();
+
+  for (const definition of CORE_GRAPH_EDGE_TYPES) {
+    if (availableEdgeKinds.has(definition.id)) {
+      definitions.set(definition.id, definition);
+    }
+  }
 
   for (const definition of pluginEdgeTypes) {
-    definitions.set(definition.id, {
-      id: definition.id as IGraphEdgeTypeDefinition['id'],
-      label: definition.label,
-      defaultColor: definition.defaultColor,
-      defaultVisible: definition.defaultVisible,
-    });
+    if (availableEdgeKinds.has(definition.id)) {
+      definitions.set(definition.id, {
+        id: definition.id as IGraphEdgeTypeDefinition['id'],
+        label: definition.label,
+        defaultColor: definition.defaultColor,
+        defaultVisible: definition.defaultVisible,
+      });
+    }
   }
 
   for (const edge of graphData.edges) {
@@ -82,4 +91,14 @@ export function mergeEdgeTypes(
   }
 
   return Array.from(definitions.values());
+}
+
+function collectAvailableEdgeKinds(graphData: IGraphData): Set<string> {
+  const edgeKinds = new Set<string>(graphData.edges.map((edge) => edge.kind));
+
+  if (graphData.nodes.some(isFileNode)) {
+    edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
+  }
+
+  return edgeKinds;
 }
