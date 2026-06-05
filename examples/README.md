@@ -41,10 +41,10 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. Godot `class_name` declarations appear under Variable, so toggling Variable hides `Player`, `Enemy`, `PlayerLoadout`, `LoadoutPreview`, and other plugin-owned class-name symbols while preserving their own on/off state. |
 | `example-python` | `main.py` imports config, service, and helper functions; member-import files show how imports and function symbols identify the exact code path. |
-| `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`, while classes and methods make the namespace relationships easier to scan. |
+| `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`; `ApiService` extends `BaseService` and implements `IRunner` so C# inheritance has file-level targets. |
 | `example-markdown` | Markdown notes link to each other and to code, giving a mixed docs/code graph where symbol search still works on the TypeScript file. |
 | `example-rust` | `main.rs` uses local modules and declares `App`, `Status`, and `Service`, showing module edges plus type/function symbols. |
-| `example-java` | `App` imports `Helper`, extends `BaseService`, and exposes class/method symbols for import and inheritance checks. |
+| `example-java` | `App` imports `Helper`, extends `BaseService`, implements `RunnableThing`, and exposes class/interface/method symbols for import and inheritance checks. |
 | `example-go` | `main.go` imports `internal/service`; package functions and the `Runner` type show how Go package edges connect to declarations. |
 | `example-c` | `main.c` and `math/add.c` include `add.h`; function and struct symbols make the tiny C dependency chain inspectable. |
 | `example-cpp` | `app.cpp` and `widget.cpp` include `widget.hpp`; `Runner` inherits from `Widget` and overrides `render`, while class, method, and function symbols show both declaration and implementation files. |
@@ -56,6 +56,6 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-pascal` | `Main.pas` starts `SampleApp.pas`, which uses runner support, repository, pricing, receipt, and order model units; class, record, function, and procedure symbols show baseline Pascal relationships. |
 | `example-haskell` | `Main` imports a feature runner and model module; module/data/function symbols show the Haskell path through the graph. |
 | `example-lua` | `main.lua` requires `app.runner`, which requires `app.model.user`; table/function symbols make the require chain less anonymous. |
-| `example-swift` | A small Swift Package imports `RunnerSupport`; `Runner`, `Worker`, and `Runnable` demonstrate class/protocol/function symbols. |
-| `example-dart` | `sample_app.dart` imports a runner and profile; `Runner`, `BaseRunner`, `Runnable`, `User`, and `Profile` demonstrate class/mixin/function symbols. |
+| `example-swift` | A small Swift Package imports `RunnerSupport`; `Runner` inherits from `Worker` and conforms to `Runnable` to demonstrate class/protocol/function symbols. |
+| `example-dart` | `sample_app.dart` imports a runner and profile; `Runner` extends `BaseRunner` with `Runnable`, while `User` and `Profile` keep the model side visible. |
 | `example-svelte` | `App.svelte` uses module and instance scripts, type imports, and a dynamic import to show Svelte plugin edges. |
