@@ -38,7 +38,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
 | `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser` as a Variable node so the file graph becomes a small call/type/value story. |
-| `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` imports, extensionless component imports, composables, type-only imports, and a lazy async component import. |
+| `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. Godot `class_name` declarations appear under Variable, so toggling Variable hides `Player`, `Enemy`, `PlayerLoadout`, `LoadoutPreview`, and other plugin-owned class-name symbols while preserving their own on/off state. |
 | `example-python` | `main.py` imports config, service, and helper functions; member-import files show how imports and function symbols identify the exact code path. |
 | `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`, while classes and methods make the namespace relationships easier to scan. |

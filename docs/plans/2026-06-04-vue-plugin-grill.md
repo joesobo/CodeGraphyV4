@@ -55,7 +55,7 @@ Resolved out of scope for this card. Nuxt conventions are not the same thing as 
 1. Resolved: this is a Vue plugin first. Nuxt-specific structure is out of scope for the first PR.
 2. Resolved: `.vue` files stay File Nodes by default. Vue-specific value comes from SFC parsing and, if needed, styling/icon metadata. Do not create duplicate component Plugin Nodes.
 3. Resolved: baseline `.vue` parsing is the first PR. Skip custom Vue component Edge Types for now.
-4. Resolved: `examples/example-vue` should be a Vue 3 + Vite fixture that demonstrates script setup, normal script, TypeScript, explicit `.vue` imports, extensionless component imports, composables, and type imports.
+4. Resolved: `examples/example-vue` should be a Vue 3 + Vite fixture that demonstrates script setup, normal script, TypeScript, explicit `.vue` imports, composables, and type imports.
 5. Resolved direction: `.vue` script parsing should be owned by the Vue plugin. Shared JS/TS import extraction may be factored locally or shared later, but the SFC block model is Vue-owned.
 
 ## Deferred Questions
@@ -102,7 +102,7 @@ Candidate implementation direction:
 
 - Extract `<script>` and `<script setup>` blocks from `.vue` files.
 - Parse those extracted blocks with TypeScript-compatible import/specifier extraction, using the same relationship semantics as JS/TS where possible.
-- Resolve relative imports from `.vue` files, including explicit child paths such as `./Child.vue` and extensionless child paths such as `./Child`.
+- Resolve relative imports from `.vue` files, including explicit child paths such as `./Child.vue`.
 - Emit plain JS/TS import/type-import relations where appropriate so `.vue` script dependencies show up like normal TypeScript connections.
 - Prefer import/type-import correctness as the baseline. Emit a custom Vue component edge only if the implementation can confidently connect a template tag to an imported component binding.
 - Keep unresolved, library, auto-import, and global component behavior out of the first pass unless the next grill decision pulls one in.
@@ -131,7 +131,7 @@ The fixture should include:
 - `src/App.vue` with `<script setup lang="ts">`
 - a component with normal `<script lang="ts">`
 - explicit `.vue` imports
-- extensionless Vue component imports
+- explicit `.vue` component imports
 - composable and type imports from `.ts` files
 - enough connected `.ts` files to show whether current CodeGraphy indexes only TypeScript files before the Vue plugin exists
 
