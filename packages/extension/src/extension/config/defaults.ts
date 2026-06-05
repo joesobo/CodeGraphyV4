@@ -3,8 +3,17 @@
  * @module extension/config/defaults
  */
 
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
-export { DEFAULT_EXCLUDE_PATTERNS } from './excludePatterns';
+import {
+  DEFAULT_EXCLUDE,
+  type CodeGraphyWorkspacePluginSettings,
+} from '@codegraphy-dev/core';
+
+/**
+ * Default exclude patterns for file discovery.
+ * Aliased from core discovery so extension settings and indexing use the same
+ * build artifact, dependency, and non-source file defaults.
+ */
+export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = DEFAULT_EXCLUDE;
 
 /**
  * Configuration interface matching the settings persisted under `.codegraphy/settings.json`.

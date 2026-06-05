@@ -160,11 +160,16 @@ describe('acceptance graph view workspace fixtures', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte');
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
+      pluginPackages: [
+        '@codegraphy-dev/plugin-markdown',
+        '@codegraphy-dev/plugin-svelte',
+      ],
+    });
     fs.mkdirSync(path.join(workspacePath, '.svelte-kit'), { recursive: true });
     fs.writeFileSync(path.join(workspacePath, '.svelte-kit/generated.d.ts'), '');
 
-    const files = await readExampleWorkspaceFiles(workspacePath, 'example-svelte');
+    const files = await readExampleWorkspaceFiles(workspacePath);
 
     expect(files).not.toContain('.svelte-kit/generated.d.ts');
   });
@@ -185,11 +190,17 @@ describe('acceptance graph view workspace fixtures', () => {
       `${JSON.stringify({
         ...settings,
         disabledCustomFilterPatterns: ['src/app.d.ts'],
-        disabledPluginFilterPatterns: ['**/.svelte-kit/**'],
+        plugins: [
+          { package: '@codegraphy-dev/plugin-markdown' },
+          {
+            package: '@codegraphy-dev/plugin-svelte',
+            disabledFilterPatterns: ['**/.svelte-kit/**'],
+          },
+        ],
       }, null, 2)}\n`,
     );
 
-    const files = await readExampleWorkspaceFiles(workspacePath, 'example-svelte');
+    const files = await readExampleWorkspaceFiles(workspacePath);
 
     expect(files).toContain('src/app.d.ts');
     expect(files).toContain('.svelte-kit/generated.d.ts');
@@ -234,7 +245,7 @@ describe('acceptance graph view workspace fixtures', () => {
     const workspacePath = copyExampleWorkspace(tempRoot, 'example-vue', {
       filterPatterns: ['src/vue.d.ts'],
     });
-    const files = await readExampleWorkspaceFiles(workspacePath, 'example-vue');
+    const files = await readExampleWorkspaceFiles(workspacePath);
 
     expect(files).toContain('src/App.vue');
     expect(files).toContain('src/components/LazyProfilePanel.vue');
