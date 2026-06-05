@@ -73,8 +73,8 @@ export function copyExampleWorkspace(
 }
 
 export function copyExampleVueWorkspace(tempRoot: string): string {
-  const sourcePath = path.join(repoRoot(), 'examples/vue-example');
-  const workspacePath = path.join(tempRoot, 'vue-example');
+  const sourcePath = path.join(repoRoot(), 'examples/example-vue');
+  const workspacePath = path.join(tempRoot, 'example-vue');
 
   fs.cpSync(sourcePath, workspacePath, {
     recursive: true,

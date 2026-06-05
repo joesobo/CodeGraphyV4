@@ -23,7 +23,7 @@ Current repo facts:
 
 ### Option A: Vue Single File Component Basics
 
-Add `packages/plugin-vue`, `examples/vue-example`, `.vue` supported extension metadata, Vue file color/icon defaults if needed, and relationships from Vue files to imports used in `<script>` or `<script setup>`.
+Add `packages/plugin-vue`, `examples/example-vue`, `.vue` supported extension metadata, Vue file color/icon defaults if needed, and relationships from Vue files to imports used in `<script>` or `<script setup>`.
 
 Useful because it gives CodeGraphy honest Vue support quickly. Limited because it treats Vue as an SFC import source and does not capture the component map shown in the Nuxt screenshot.
 
@@ -55,7 +55,7 @@ Resolved out of scope for this card. Nuxt conventions are not the same thing as 
 1. Resolved: this is a Vue plugin first. Nuxt-specific structure is out of scope for the first PR.
 2. Resolved: `.vue` files stay File Nodes by default. Vue-specific value comes from SFC parsing and, if needed, styling/icon metadata. Do not create duplicate component Plugin Nodes.
 3. Resolved: baseline `.vue` parsing is the first PR. Skip custom Vue component Edge Types for now.
-4. Resolved: `examples/vue-example` should be a Vue 3 + Vite fixture that demonstrates script setup, normal script, TypeScript, explicit `.vue` imports, extensionless component imports, composables, and type imports.
+4. Resolved: `examples/example-vue` should be a Vue 3 + Vite fixture that demonstrates script setup, normal script, TypeScript, explicit `.vue` imports, extensionless component imports, composables, and type imports.
 5. Resolved direction: `.vue` script parsing should be owned by the Vue plugin. Shared JS/TS import extraction may be factored locally or shared later, but the SFC block model is Vue-owned.
 
 ## Deferred Questions
@@ -124,7 +124,7 @@ Resolved answer: first PR should guarantee `.vue` script import parsing and skip
 
 ## Visual Inspection Plan
 
-Create a small `examples/vue-example` workspace before implementing the plugin, open it in the current extension, and capture a Graph View screenshot. This answers what CodeGraphy already does for `.vue` file colors/icons through Core Material Theme fallback and what the Vue plugin actually needs to add.
+Create a small `examples/example-vue` workspace before implementing the plugin, open it in the current extension, and capture a Graph View screenshot. This answers what CodeGraphy already does for `.vue` file colors/icons through Core Material Theme fallback and what the Vue plugin actually needs to add.
 
 The fixture should include:
 
@@ -137,7 +137,7 @@ The fixture should include:
 
 ## Visual Inspection Result
 
-Baseline fixture created at `examples/vue-example`.
+Baseline fixture created at `examples/example-vue`.
 
 Current behavior before the Vue plugin:
 
