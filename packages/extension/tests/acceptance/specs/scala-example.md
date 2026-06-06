@@ -9,6 +9,11 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-scala workspace
 
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References, Inherits
+And I close the Graph Scope
+
 Then I can see there are 11 nodes and 10 connections
 And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala
 And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala

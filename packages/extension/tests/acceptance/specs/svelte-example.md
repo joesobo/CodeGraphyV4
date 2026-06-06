@@ -25,7 +25,8 @@ And src/App.svelte points to src/components/LazyPanel.svelte
 When I click the Graph Scope button
 Then I see to buttons for switching views between node type and edge type toggles
 And I select edge types
-Then I see a list of edge types with toggles
+Then the available edge types are Imports, References, Calls, Re-exports, Type imports
+And I see a list of edge types with toggles
 And I toggle the Type imports edge on
 And I close the Graph Scope
 

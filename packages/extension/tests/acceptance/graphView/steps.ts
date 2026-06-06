@@ -577,6 +577,17 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
   }),
 
+  step(/^the available edge types are (.+)$/, async (context, _step, match) => {
+    const expectedEdgeTypes = match[1].split(',').map((label) => label.trim());
+    const frame = requireGraphFrame(context);
+
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label)),
+    )).toEqual(expectedEdgeTypes);
+  }),
+
   step(/^I toggle the Imports edge on$/, async (context) => {
     await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
     await setPanelSwitch(context, 'Imports', true);

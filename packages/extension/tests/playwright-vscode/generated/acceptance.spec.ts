@@ -218,62 +218,102 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:12
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/c-example.md:13
-      await test.step('And src/main.c points to src/math/add.h', async () => {
-        await runAcceptanceStep(context, 'src/main.c points to src/math/add.h', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/main.c points to src/math/add.h',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/c-example.md:14
-      await test.step('And src/math/add.c points to src/math/add.h', async () => {
-        await runAcceptanceStep(context, 'src/math/add.c points to src/math/add.h', {
-          keyword: 'And',
-          text: 'src/math/add.c points to src/math/add.h',
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 14
         });
       });
 
-      // tests/acceptance/specs/c-example.md:16
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/c-example.md:15
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 16
+          line: 15
         });
       });
 
       // tests/acceptance/specs/c-example.md:17
-      await test.step('And Makefile is an orphan node', async () => {
-        await runAcceptanceStep(context, 'Makefile is an orphan node', {
-          keyword: 'And',
-          text: 'Makefile is an orphan node',
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/c-example.md:18
+      await test.step('And src/main.c points to src/math/add.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/math/add.h', {
+          keyword: 'And',
+          text: 'src/main.c points to src/math/add.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:19
+      await test.step('And src/math/add.c points to src/math/add.h', async () => {
+        await runAcceptanceStep(context, 'src/math/add.c points to src/math/add.h', {
+          keyword: 'And',
+          text: 'src/math/add.c points to src/math/add.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:21
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:22
+      await test.step('And Makefile is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Makefile is an orphan node', {
+          keyword: 'And',
+          text: 'Makefile is an orphan node',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:23
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 18
+          line: 23
         });
       });
 
@@ -353,62 +393,102 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:12
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:13
-      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/app.cpp points to src/lib/widget.hpp',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:14
-      await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
-          keyword: 'And',
-          text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
+      await test.step('Then the available edge types are Imports, References, Inherits, Contains, Overrides', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits, Contains, Overrides', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits, Contains, Overrides',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 14
         });
       });
 
-      // tests/acceptance/specs/cpp-example.md:16
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/cpp-example.md:15
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
-          line: 16
+          line: 15
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:17
-      await test.step('And CMakeLists.txt is an orphan node', async () => {
-        await runAcceptanceStep(context, 'CMakeLists.txt is an orphan node', {
-          keyword: 'And',
-          text: 'CMakeLists.txt is an orphan node',
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:18
+      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/app.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:19
+      await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:21
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:22
+      await test.step('And CMakeLists.txt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'CMakeLists.txt is an orphan node', {
+          keyword: 'And',
+          text: 'CMakeLists.txt is an orphan node',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:23
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
-          line: 18
+          line: 23
         });
       });
 
@@ -488,92 +568,132 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:12
-      await test.step('Then I can see there are 9 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 6 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 9 nodes and 6 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:13
-      await test.step('And src/Program.cs points to src/Config.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Config.cs',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:14
-      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Services/ApiService.cs',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:15
-      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Utils/Helpers.cs',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:16
-      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
-        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
-          keyword: 'And',
-          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+      // tests/acceptance/specs/csharp-example.md:17
+      await test.step('Then I can see there are 9 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 6 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 16
+          line: 17
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:18
-      await test.step('And src/Orphan.cs is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/Orphan.cs is an orphan node', {
+      await test.step('And src/Program.cs points to src/Config.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
           keyword: 'And',
-          text: 'src/Orphan.cs is an orphan node',
+          text: 'src/Program.cs points to src/Config.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:19
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/Program.cs points to src/Services/ApiService.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:20
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'src/Program.cs points to src/Utils/Helpers.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:21
+      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
+        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
+          keyword: 'And',
+          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:23
+      await test.step('And src/Orphan.cs is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/Orphan.cs is an orphan node', {
+          keyword: 'And',
+          text: 'src/Orphan.cs is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:24
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:25
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:26
       await test.step('And .vscode/settings.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
           text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 21
+          line: 26
         });
       });
 
@@ -653,82 +773,122 @@ test.describe('Dart Example', () => {
       });
 
       // tests/acceptance/specs/dart-example.md:12
-      await test.step('Then I can see there are 7 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 7 nodes and 4 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 7 nodes and 4 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/dart-example.md:13
-      await test.step('And bin/sample_app.dart points to lib/app/runner.dart', async () => {
-        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/app/runner.dart', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'bin/sample_app.dart points to lib/app/runner.dart',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/dart-example.md:14
-      await test.step('And bin/sample_app.dart points to lib/model/profile.dart', async () => {
-        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/model/profile.dart', {
-          keyword: 'And',
-          text: 'bin/sample_app.dart points to lib/model/profile.dart',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/dart-example.md:15
-      await test.step('And lib/app/runner.dart points to lib/model/user.dart', async () => {
-        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/user.dart', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'lib/app/runner.dart points to lib/model/user.dart',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/dart-example.md:16
-      await test.step('And lib/app/runner.dart points to lib/model/profile.dart', async () => {
-        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/profile.dart', {
-          keyword: 'And',
-          text: 'lib/app/runner.dart points to lib/model/profile.dart',
+      // tests/acceptance/specs/dart-example.md:17
+      await test.step('Then I can see there are 7 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
-          line: 16
+          line: 17
         });
       });
 
       // tests/acceptance/specs/dart-example.md:18
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And bin/sample_app.dart points to lib/app/runner.dart', async () => {
+        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/app/runner.dart', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'bin/sample_app.dart points to lib/app/runner.dart',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/dart-example.md:19
-      await test.step('And pubspec.yaml is an orphan node', async () => {
-        await runAcceptanceStep(context, 'pubspec.yaml is an orphan node', {
+      await test.step('And bin/sample_app.dart points to lib/model/profile.dart', async () => {
+        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/model/profile.dart', {
           keyword: 'And',
-          text: 'pubspec.yaml is an orphan node',
+          text: 'bin/sample_app.dart points to lib/model/profile.dart',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/dart-example.md:20
+      await test.step('And lib/app/runner.dart points to lib/model/user.dart', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/user.dart', {
+          keyword: 'And',
+          text: 'lib/app/runner.dart points to lib/model/user.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:21
+      await test.step('And lib/app/runner.dart points to lib/model/profile.dart', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/profile.dart', {
+          keyword: 'And',
+          text: 'lib/app/runner.dart points to lib/model/profile.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:23
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:24
+      await test.step('And pubspec.yaml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'pubspec.yaml is an orphan node', {
+          keyword: 'And',
+          text: 'pubspec.yaml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:25
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
-          line: 20
+          line: 25
         });
       });
 
@@ -1088,212 +1248,222 @@ test.describe('Vue Example', () => {
       });
 
       // tests/acceptance/specs/example-vue.md:18
-      await test.step('Then I see a list of edge types with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
+      await test.step('Then the available edge types are Imports, References, Calls, Re-exports, Type imports', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Re-exports, Type imports', {
           keyword: 'Then',
-          text: 'I see a list of edge types with toggles',
+          text: 'the available edge types are Imports, References, Calls, Re-exports, Type imports',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/example-vue.md:19
-      await test.step('And I toggle the Type imports edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
-          keyword: 'And',
-          text: 'I toggle the Type imports edge on',
+      await test.step('Then I see a list of edge types with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of edge types with toggles',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/example-vue.md:20
-      await test.step('And I close the Graph Scope', async () => {
-        await runAcceptanceStep(context, 'I close the Graph Scope', {
+      await test.step('And I toggle the Type imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
           keyword: 'And',
-          text: 'I close the Graph Scope',
+          text: 'I toggle the Type imports edge on',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 20
         });
       });
 
-      // tests/acceptance/specs/example-vue.md:22
+      // tests/acceptance/specs/example-vue.md:21
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:23
       await test.step('Then I can see there are 15 nodes and 12 connections', async () => {
         await runAcceptanceStep(context, 'I can see there are 15 nodes and 12 connections', {
           keyword: 'Then',
           text: 'I can see there are 15 nodes and 12 connections',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
-          line: 22
-        });
-      });
-
-      // tests/acceptance/specs/example-vue.md:24
-      await test.step('And src/main.ts points to src/App.vue', async () => {
-        await runAcceptanceStep(context, 'src/main.ts points to src/App.vue', {
-          keyword: 'And',
-          text: 'src/main.ts points to src/App.vue',
-          sourcePath: 'tests/acceptance/specs/example-vue.md',
-          line: 24
+          line: 23
         });
       });
 
       // tests/acceptance/specs/example-vue.md:25
-      await test.step('And src/App.vue points to src/components/CounterPanel.vue', async () => {
-        await runAcceptanceStep(context, 'src/App.vue points to src/components/CounterPanel.vue', {
+      await test.step('And src/main.ts points to src/App.vue', async () => {
+        await runAcceptanceStep(context, 'src/main.ts points to src/App.vue', {
           keyword: 'And',
-          text: 'src/App.vue points to src/components/CounterPanel.vue',
+          text: 'src/main.ts points to src/App.vue',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 25
         });
       });
 
       // tests/acceptance/specs/example-vue.md:26
-      await test.step('And src/App.vue points to src/components/UserCard.vue', async () => {
-        await runAcceptanceStep(context, 'src/App.vue points to src/components/UserCard.vue', {
+      await test.step('And src/App.vue points to src/components/CounterPanel.vue', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/components/CounterPanel.vue', {
           keyword: 'And',
-          text: 'src/App.vue points to src/components/UserCard.vue',
+          text: 'src/App.vue points to src/components/CounterPanel.vue',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/example-vue.md:27
-      await test.step('And src/App.vue points to src/components/LazyProfilePanel.vue', async () => {
-        await runAcceptanceStep(context, 'src/App.vue points to src/components/LazyProfilePanel.vue', {
+      await test.step('And src/App.vue points to src/components/UserCard.vue', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/components/UserCard.vue', {
           keyword: 'And',
-          text: 'src/App.vue points to src/components/LazyProfilePanel.vue',
+          text: 'src/App.vue points to src/components/UserCard.vue',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/example-vue.md:28
-      await test.step('And src/App.vue points to src/data/users.ts', async () => {
-        await runAcceptanceStep(context, 'src/App.vue points to src/data/users.ts', {
+      await test.step('And src/App.vue points to src/components/LazyProfilePanel.vue', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/components/LazyProfilePanel.vue', {
           keyword: 'And',
-          text: 'src/App.vue points to src/data/users.ts',
+          text: 'src/App.vue points to src/components/LazyProfilePanel.vue',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/example-vue.md:29
-      await test.step('And src/App.vue points to src/composables/useCounter.ts', async () => {
-        await runAcceptanceStep(context, 'src/App.vue points to src/composables/useCounter.ts', {
+      await test.step('And src/App.vue points to src/data/users.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/data/users.ts', {
           keyword: 'And',
-          text: 'src/App.vue points to src/composables/useCounter.ts',
+          text: 'src/App.vue points to src/data/users.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/example-vue.md:30
-      await test.step('And src/data/users.ts points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/data/users.ts points to src/types.ts', {
+      await test.step('And src/App.vue points to src/composables/useCounter.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/composables/useCounter.ts', {
           keyword: 'And',
-          text: 'src/data/users.ts points to src/types.ts',
+          text: 'src/App.vue points to src/composables/useCounter.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 30
         });
       });
 
       // tests/acceptance/specs/example-vue.md:31
-      await test.step('And src/components/LazyProfilePanel.vue points to src/data/users.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/LazyProfilePanel.vue points to src/data/users.ts', {
+      await test.step('And src/data/users.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/data/users.ts points to src/types.ts', {
           keyword: 'And',
-          text: 'src/components/LazyProfilePanel.vue points to src/data/users.ts',
+          text: 'src/data/users.ts points to src/types.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 31
         });
       });
 
       // tests/acceptance/specs/example-vue.md:32
-      await test.step('And src/components/UserCard.vue points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/UserCard.vue points to src/types.ts', {
+      await test.step('And src/components/LazyProfilePanel.vue points to src/data/users.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/LazyProfilePanel.vue points to src/data/users.ts', {
           keyword: 'And',
-          text: 'src/components/UserCard.vue points to src/types.ts',
+          text: 'src/components/LazyProfilePanel.vue points to src/data/users.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 32
         });
       });
 
       // tests/acceptance/specs/example-vue.md:33
-      await test.step('And src/components/CounterPanel.vue points to src/components/StatusBadge.vue', async () => {
-        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/components/StatusBadge.vue', {
+      await test.step('And src/components/UserCard.vue points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/UserCard.vue points to src/types.ts', {
           keyword: 'And',
-          text: 'src/components/CounterPanel.vue points to src/components/StatusBadge.vue',
+          text: 'src/components/UserCard.vue points to src/types.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 33
         });
       });
 
       // tests/acceptance/specs/example-vue.md:34
-      await test.step('And src/components/CounterPanel.vue points to src/composables/useCounter.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/composables/useCounter.ts', {
+      await test.step('And src/components/CounterPanel.vue points to src/components/StatusBadge.vue', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/components/StatusBadge.vue', {
           keyword: 'And',
-          text: 'src/components/CounterPanel.vue points to src/composables/useCounter.ts',
+          text: 'src/components/CounterPanel.vue points to src/components/StatusBadge.vue',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 34
         });
       });
 
       // tests/acceptance/specs/example-vue.md:35
-      await test.step('And src/components/CounterPanel.vue points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/types.ts', {
+      await test.step('And src/components/CounterPanel.vue points to src/composables/useCounter.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/composables/useCounter.ts', {
           keyword: 'And',
-          text: 'src/components/CounterPanel.vue points to src/types.ts',
+          text: 'src/components/CounterPanel.vue points to src/composables/useCounter.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 35
         });
       });
 
-      // tests/acceptance/specs/example-vue.md:37
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/example-vue.md:36
+      await test.step('And src/components/CounterPanel.vue points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/types.ts', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/components/CounterPanel.vue points to src/types.ts',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
-          line: 37
+          line: 36
         });
       });
 
       // tests/acceptance/specs/example-vue.md:38
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 38
         });
       });
 
       // tests/acceptance/specs/example-vue.md:39
-      await test.step('And package.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'package.json is an orphan node', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'package.json is an orphan node',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 39
         });
       });
 
       // tests/acceptance/specs/example-vue.md:40
-      await test.step('And tsconfig.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
           keyword: 'And',
-          text: 'tsconfig.json is an orphan node',
+          text: 'package.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
           line: 40
         });
       });
 
       // tests/acceptance/specs/example-vue.md:41
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+          keyword: 'And',
+          text: 'tsconfig.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/example-vue.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/example-vue.md:42
       await test.step('And vite.config.ts is an orphan node', async () => {
         await runAcceptanceStep(context, 'vite.config.ts is an orphan node', {
           keyword: 'And',
           text: 'vite.config.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/example-vue.md',
-          line: 41
+          line: 42
         });
       });
 
@@ -2288,52 +2458,92 @@ test.describe('Go Example', () => {
       });
 
       // tests/acceptance/specs/go-example.md:12
-      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
-          keyword: 'Then',
-          text: 'I can see there are 5 nodes and 1 connection',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/go-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/go-example.md:13
-      await test.step('And main.go points to internal/service/service.go', async () => {
-        await runAcceptanceStep(context, 'main.go points to internal/service/service.go', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'main.go points to internal/service/service.go',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/go-example.md',
           line: 13
         });
       });
 
+      // tests/acceptance/specs/go-example.md:14
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 14
+        });
+      });
+
       // tests/acceptance/specs/go-example.md:15
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/go-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/go-example.md:16
+      // tests/acceptance/specs/go-example.md:17
+      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:18
+      await test.step('And main.go points to internal/service/service.go', async () => {
+        await runAcceptanceStep(context, 'main.go points to internal/service/service.go', {
+          keyword: 'And',
+          text: 'main.go points to internal/service/service.go',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:20
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:21
       await test.step('And go.mod is an orphan node', async () => {
         await runAcceptanceStep(context, 'go.mod is an orphan node', {
           keyword: 'And',
           text: 'go.mod is an orphan node',
           sourcePath: 'tests/acceptance/specs/go-example.md',
-          line: 16
+          line: 21
         });
       });
 
-      // tests/acceptance/specs/go-example.md:17
+      // tests/acceptance/specs/go-example.md:22
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/go-example.md',
-          line: 17
+          line: 22
         });
       });
 
@@ -2462,133 +2672,173 @@ test.describe('Godot Example', () => {
         });
       });
 
-      // tests/acceptance/specs/godot-example.md:17
-      await test.step('And project.godot points to scenes/main.tscn', async () => {
-        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
-          keyword: 'And',
-          text: 'project.godot points to scenes/main.tscn',
-          sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 17
-        });
-      });
-
       // tests/acceptance/specs/godot-example.md:18
-      await test.step('And project.godot points to scripts/game_manager.gd', async () => {
-        await runAcceptanceStep(context, 'project.godot points to scripts/game_manager.gd', {
-          keyword: 'And',
-          text: 'project.godot points to scripts/game_manager.gd',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/godot-example.md:19
-      await test.step('And scripts/player.gd points to scripts/utils/math_helpers.gd', async () => {
-        await runAcceptanceStep(context, 'scripts/player.gd points to scripts/utils/math_helpers.gd', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'scripts/player.gd points to scripts/utils/math_helpers.gd',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/godot-example.md:20
-      await test.step('And scripts/player.gd points to scenes/ui/loadout_preview.tscn', async () => {
-        await runAcceptanceStep(context, 'scripts/player.gd points to scenes/ui/loadout_preview.tscn', {
-          keyword: 'And',
-          text: 'scripts/player.gd points to scenes/ui/loadout_preview.tscn',
+      await test.step('Then the available edge types are References, Inherits, Loads', async () => {
+        await runAcceptanceStep(context, 'the available edge types are References, Inherits, Loads', {
+          keyword: 'Then',
+          text: 'the available edge types are References, Inherits, Loads',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/godot-example.md:21
-      await test.step('And scripts/player.gd points to resources/player_loadout.tres', async () => {
-        await runAcceptanceStep(context, 'scripts/player.gd points to resources/player_loadout.tres', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'scripts/player.gd points to resources/player_loadout.tres',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 21
         });
       });
 
-      // tests/acceptance/specs/godot-example.md:22
-      await test.step('And resources/player_loadout.tres points to scripts/data/player_loadout.gd', async () => {
-        await runAcceptanceStep(context, 'resources/player_loadout.tres points to scripts/data/player_loadout.gd', {
-          keyword: 'And',
-          text: 'resources/player_loadout.tres points to scripts/data/player_loadout.gd',
-          sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 22
-        });
-      });
-
       // tests/acceptance/specs/godot-example.md:23
-      await test.step('And resources/player_loadout.tres points to textures/player_card.png', async () => {
-        await runAcceptanceStep(context, 'resources/player_loadout.tres points to textures/player_card.png', {
+      await test.step('And project.godot points to scenes/main.tscn', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
           keyword: 'And',
-          text: 'resources/player_loadout.tres points to textures/player_card.png',
+          text: 'project.godot points to scenes/main.tscn',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 23
         });
       });
 
       // tests/acceptance/specs/godot-example.md:24
-      await test.step('And scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', async () => {
-        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', {
+      await test.step('And project.godot points to scripts/game_manager.gd', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scripts/game_manager.gd', {
           keyword: 'And',
-          text: 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres',
+          text: 'project.godot points to scripts/game_manager.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/godot-example.md:25
-      await test.step('And scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', async () => {
-        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', {
+      await test.step('And scripts/player.gd points to scripts/utils/math_helpers.gd', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to scripts/utils/math_helpers.gd', {
           keyword: 'And',
-          text: 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd',
+          text: 'scripts/player.gd points to scripts/utils/math_helpers.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 25
         });
       });
 
-      // tests/acceptance/specs/godot-example.md:27
-      await test.step('And scripts/orphan.gd is an orphan node', async () => {
-        await runAcceptanceStep(context, 'scripts/orphan.gd is an orphan node', {
+      // tests/acceptance/specs/godot-example.md:26
+      await test.step('And scripts/player.gd points to scenes/ui/loadout_preview.tscn', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to scenes/ui/loadout_preview.tscn', {
           keyword: 'And',
-          text: 'scripts/orphan.gd is an orphan node',
+          text: 'scripts/player.gd points to scenes/ui/loadout_preview.tscn',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:27
+      await test.step('And scripts/player.gd points to resources/player_loadout.tres', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to resources/player_loadout.tres', {
+          keyword: 'And',
+          text: 'scripts/player.gd points to resources/player_loadout.tres',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/godot-example.md:28
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And resources/player_loadout.tres points to scripts/data/player_loadout.gd', async () => {
+        await runAcceptanceStep(context, 'resources/player_loadout.tres points to scripts/data/player_loadout.gd', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'resources/player_loadout.tres points to scripts/data/player_loadout.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/godot-example.md:29
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And resources/player_loadout.tres points to textures/player_card.png', async () => {
+        await runAcceptanceStep(context, 'resources/player_loadout.tres points to textures/player_card.png', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'resources/player_loadout.tres points to textures/player_card.png',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/godot-example.md:30
+      await test.step('And scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', async () => {
+        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', {
+          keyword: 'And',
+          text: 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:31
+      await test.step('And scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', async () => {
+        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', {
+          keyword: 'And',
+          text: 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:33
+      await test.step('And scripts/orphan.gd is an orphan node', async () => {
+        await runAcceptanceStep(context, 'scripts/orphan.gd is an orphan node', {
+          keyword: 'And',
+          text: 'scripts/orphan.gd is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:34
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:35
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:36
       await test.step('And .vscode/settings.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
           text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 30
+          line: 36
         });
       });
 
@@ -3238,72 +3488,112 @@ test.describe('Haskell Example', () => {
       });
 
       // tests/acceptance/specs/haskell-example.md:12
-      await test.step('Then I can see there are 6 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 3 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 3 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/haskell-example.md:13
-      await test.step('And src/Main.hs points to src/App/Feature/Runner.hs', async () => {
-        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Feature/Runner.hs', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/Main.hs points to src/App/Feature/Runner.hs',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/haskell-example.md:14
-      await test.step('And src/Main.hs points to src/App/Model/User.hs', async () => {
-        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Model/User.hs', {
-          keyword: 'And',
-          text: 'src/Main.hs points to src/App/Model/User.hs',
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/haskell-example.md:15
-      await test.step('And src/App/Feature/Runner.hs points to src/App/Model/User.hs', async () => {
-        await runAcceptanceStep(context, 'src/App/Feature/Runner.hs points to src/App/Model/User.hs', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/App/Feature/Runner.hs points to src/App/Model/User.hs',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/haskell-example.md:17
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
-          keyword: 'And',
-          text: 'README.md is an orphan node',
+      await test.step('Then I can see there are 6 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 3 connections',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/haskell-example.md:18
-      await test.step('And example-haskell.cabal is an orphan node', async () => {
-        await runAcceptanceStep(context, 'example-haskell.cabal is an orphan node', {
+      await test.step('And src/Main.hs points to src/App/Feature/Runner.hs', async () => {
+        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Feature/Runner.hs', {
           keyword: 'And',
-          text: 'example-haskell.cabal is an orphan node',
+          text: 'src/Main.hs points to src/App/Feature/Runner.hs',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/haskell-example.md:19
+      await test.step('And src/Main.hs points to src/App/Model/User.hs', async () => {
+        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Model/User.hs', {
+          keyword: 'And',
+          text: 'src/Main.hs points to src/App/Model/User.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:20
+      await test.step('And src/App/Feature/Runner.hs points to src/App/Model/User.hs', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.hs points to src/App/Model/User.hs', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.hs points to src/App/Model/User.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:22
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:23
+      await test.step('And example-haskell.cabal is an orphan node', async () => {
+        await runAcceptanceStep(context, 'example-haskell.cabal is an orphan node', {
+          keyword: 'And',
+          text: 'example-haskell.cabal is an orphan node',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:24
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
-          line: 19
+          line: 24
         });
       });
 
@@ -3508,32 +3798,72 @@ test.describe('Java Example', () => {
       });
 
       // tests/acceptance/specs/java-example.md:12
-      await test.step('Then I can see there are 5 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 5 nodes and 1 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/java-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/java-example.md:13
-      await test.step('And src/com/example/app/App.java points to src/com/example/app/Helper.java', async () => {
-        await runAcceptanceStep(context, 'src/com/example/app/App.java points to src/com/example/app/Helper.java', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/com/example/app/App.java points to src/com/example/app/Helper.java',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/java-example.md',
           line: 13
         });
       });
 
+      // tests/acceptance/specs/java-example.md:14
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 14
+        });
+      });
+
       // tests/acceptance/specs/java-example.md:15
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:17
+      await test.step('Then I can see there are 5 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 1 connections',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:18
+      await test.step('And src/com/example/app/App.java points to src/com/example/app/Helper.java', async () => {
+        await runAcceptanceStep(context, 'src/com/example/app/App.java points to src/com/example/app/Helper.java', {
+          keyword: 'And',
+          text: 'src/com/example/app/App.java points to src/com/example/app/Helper.java',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:20
       await test.step('And README.md is an orphan node', async () => {
         await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/java-example.md',
-          line: 15
+          line: 20
         });
       });
 
@@ -3613,92 +3943,132 @@ test.describe('Kotlin Example', () => {
       });
 
       // tests/acceptance/specs/kotlin-example.md:12
-      await test.step('Then I can see there are 9 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 3 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 9 nodes and 3 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:13
-      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt', async () => {
-        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:14
-      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt', async () => {
-        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt', {
-          keyword: 'And',
-          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:15
-      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt', async () => {
-        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:17
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
-          keyword: 'And',
-          text: 'README.md is an orphan node',
+      await test.step('Then I can see there are 9 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 3 connections',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:18
-      await test.step('And build.gradle.kts is an orphan node', async () => {
-        await runAcceptanceStep(context, 'build.gradle.kts is an orphan node', {
+      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt', {
           keyword: 'And',
-          text: 'build.gradle.kts is an orphan node',
+          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:19
-      await test.step('And settings.gradle.kts is an orphan node', async () => {
-        await runAcceptanceStep(context, 'settings.gradle.kts is an orphan node', {
+      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt', {
           keyword: 'And',
-          text: 'settings.gradle.kts is an orphan node',
+          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/kotlin-example.md:20
-      await test.step('And src/main/kotlin/com/example/app/Main.kt is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/Main.kt is an orphan node', {
+      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt', {
           keyword: 'And',
-          text: 'src/main/kotlin/com/example/app/Main.kt is an orphan node',
+          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 20
         });
       });
 
-      // tests/acceptance/specs/kotlin-example.md:21
+      // tests/acceptance/specs/kotlin-example.md:22
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:23
+      await test.step('And build.gradle.kts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'build.gradle.kts is an orphan node', {
+          keyword: 'And',
+          text: 'build.gradle.kts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:24
+      await test.step('And settings.gradle.kts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'settings.gradle.kts is an orphan node', {
+          keyword: 'And',
+          text: 'settings.gradle.kts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:25
+      await test.step('And src/main/kotlin/com/example/app/Main.kt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/Main.kt is an orphan node', {
+          keyword: 'And',
+          text: 'src/main/kotlin/com/example/app/Main.kt is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:26
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
-          line: 21
+          line: 26
         });
       });
 
@@ -3778,52 +4148,92 @@ test.describe('Lua Example', () => {
       });
 
       // tests/acceptance/specs/lua-example.md:12
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/lua-example.md:13
-      await test.step('And main.lua points to app/runner.lua', async () => {
-        await runAcceptanceStep(context, 'main.lua points to app/runner.lua', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'main.lua points to app/runner.lua',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/lua-example.md:14
-      await test.step('And app/runner.lua points to app/model/user.lua', async () => {
-        await runAcceptanceStep(context, 'app/runner.lua points to app/model/user.lua', {
-          keyword: 'And',
-          text: 'app/runner.lua points to app/model/user.lua',
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 14
         });
       });
 
-      // tests/acceptance/specs/lua-example.md:16
+      // tests/acceptance/specs/lua-example.md:15
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:17
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:18
+      await test.step('And main.lua points to app/runner.lua', async () => {
+        await runAcceptanceStep(context, 'main.lua points to app/runner.lua', {
+          keyword: 'And',
+          text: 'main.lua points to app/runner.lua',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:19
+      await test.step('And app/runner.lua points to app/model/user.lua', async () => {
+        await runAcceptanceStep(context, 'app/runner.lua points to app/model/user.lua', {
+          keyword: 'And',
+          text: 'app/runner.lua points to app/model/user.lua',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:21
       await test.step('And README.md is an orphan node', async () => {
         await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
-          line: 16
+          line: 21
         });
       });
 
-      // tests/acceptance/specs/lua-example.md:17
+      // tests/acceptance/specs/lua-example.md:22
       await test.step('And .luarc.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.luarc.json is an orphan node', {
           keyword: 'And',
           text: '.luarc.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
-          line: 17
+          line: 22
         });
       });
 
@@ -3903,82 +4313,122 @@ test.describe('Markdown Example', () => {
       });
 
       // tests/acceptance/specs/markdown-example.md:12
-      await test.step('Then I can see there are 7 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 7 nodes and 4 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 7 nodes and 4 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/markdown-example.md:13
-      await test.step('And notes/Home.md points to notes/Architecture.md', async () => {
-        await runAcceptanceStep(context, 'notes/Home.md points to notes/Architecture.md', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'notes/Home.md points to notes/Architecture.md',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/markdown-example.md:14
-      await test.step('And notes/Home.md points to notes/assets/Diagram.md', async () => {
-        await runAcceptanceStep(context, 'notes/Home.md points to notes/assets/Diagram.md', {
-          keyword: 'And',
-          text: 'notes/Home.md points to notes/assets/Diagram.md',
+      await test.step('Then the available edge types are Imports, References, Calls, Re-exports, Type imports', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Re-exports, Type imports', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls, Re-exports, Type imports',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/markdown-example.md:15
-      await test.step('And notes/Home.md points to src/commented.ts', async () => {
-        await runAcceptanceStep(context, 'notes/Home.md points to src/commented.ts', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'notes/Home.md points to src/commented.ts',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/markdown-example.md:16
-      await test.step('And src/commented.ts points to notes/Architecture.md', async () => {
-        await runAcceptanceStep(context, 'src/commented.ts points to notes/Architecture.md', {
-          keyword: 'And',
-          text: 'src/commented.ts points to notes/Architecture.md',
+      // tests/acceptance/specs/markdown-example.md:17
+      await test.step('Then I can see there are 7 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
-          line: 16
+          line: 17
         });
       });
 
       // tests/acceptance/specs/markdown-example.md:18
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And notes/Home.md points to notes/Architecture.md', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to notes/Architecture.md', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'notes/Home.md points to notes/Architecture.md',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/markdown-example.md:19
-      await test.step('And notes/guides/Setup.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'notes/guides/Setup.md is an orphan node', {
+      await test.step('And notes/Home.md points to notes/assets/Diagram.md', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to notes/assets/Diagram.md', {
           keyword: 'And',
-          text: 'notes/guides/Setup.md is an orphan node',
+          text: 'notes/Home.md points to notes/assets/Diagram.md',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/markdown-example.md:20
+      await test.step('And notes/Home.md points to src/commented.ts', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to src/commented.ts', {
+          keyword: 'And',
+          text: 'notes/Home.md points to src/commented.ts',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:21
+      await test.step('And src/commented.ts points to notes/Architecture.md', async () => {
+        await runAcceptanceStep(context, 'src/commented.ts points to notes/Architecture.md', {
+          keyword: 'And',
+          text: 'src/commented.ts points to notes/Architecture.md',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:23
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:24
+      await test.step('And notes/guides/Setup.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'notes/guides/Setup.md is an orphan node', {
+          keyword: 'And',
+          text: 'notes/guides/Setup.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:25
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
-          line: 20
+          line: 25
         });
       });
 
@@ -4213,152 +4663,192 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:12
-      await test.step('Then I can see there are 13 nodes and 13 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 13 nodes and 13 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 13 nodes and 13 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:13
-      await test.step('And Sources/main.m points to Sources/AppDelegate.h', async () => {
-        await runAcceptanceStep(context, 'Sources/main.m points to Sources/AppDelegate.h', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'Sources/main.m points to Sources/AppDelegate.h',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:14
-      await test.step('And Sources/AppDelegate.m points to Sources/AppDelegate.h', async () => {
-        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/AppDelegate.h', {
-          keyword: 'And',
-          text: 'Sources/AppDelegate.m points to Sources/AppDelegate.h',
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:15
-      await test.step('And Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', async () => {
-        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/objective-c-example.md:16
-      await test.step('And Sources/AppDelegate.m points to Sources/Data/SessionStore.h', async () => {
-        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h', {
-          keyword: 'And',
-          text: 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h',
-          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
-          line: 16
-        });
-      });
-
       // tests/acceptance/specs/objective-c-example.md:17
-      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h', {
-          keyword: 'And',
-          text: 'Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h',
+      await test.step('Then I can see there are 13 nodes and 13 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 13 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 13 nodes and 13 connections',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:18
-      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', {
+      await test.step('And Sources/main.m points to Sources/AppDelegate.h', async () => {
+        await runAcceptanceStep(context, 'Sources/main.m points to Sources/AppDelegate.h', {
           keyword: 'And',
-          text: 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h',
+          text: 'Sources/main.m points to Sources/AppDelegate.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:19
-      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', {
+      await test.step('And Sources/AppDelegate.m points to Sources/AppDelegate.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/AppDelegate.h', {
           keyword: 'And',
-          text: 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h',
+          text: 'Sources/AppDelegate.m points to Sources/AppDelegate.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:20
-      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h', {
+      await test.step('And Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', {
           keyword: 'And',
-          text: 'Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h',
+          text: 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:21
-      await test.step('And Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h', {
+      await test.step('And Sources/AppDelegate.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h', {
           keyword: 'And',
-          text: 'Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h',
+          text: 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:22
-      await test.step('And Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', {
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h', {
           keyword: 'And',
-          text: 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:23
-      await test.step('And Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', {
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', {
           keyword: 'And',
-          text: 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 23
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:24
-      await test.step('And Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', {
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', {
           keyword: 'And',
-          text: 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/objective-c-example.md:25
-      await test.step('And Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', async () => {
-        await runAcceptanceStep(context, 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', {
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h', {
           keyword: 'And',
-          text: 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 25
         });
       });
 
+      // tests/acceptance/specs/objective-c-example.md:26
+      await test.step('And Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h', {
+          keyword: 'And',
+          text: 'Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 26
+        });
+      });
+
       // tests/acceptance/specs/objective-c-example.md:27
+      await test.step('And Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:28
+      await test.step('And Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:29
+      await test.step('And Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:30
+      await test.step('And Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:32
       await test.step('And README.md is an orphan node', async () => {
         await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
-          line: 27
+          line: 32
         });
       });
 
@@ -4438,112 +4928,152 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:12
-      await test.step('Then I can see there are 9 nodes and 9 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 9 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 9 nodes and 9 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:13
-      await test.step('And src/Main.pas points to src/SampleApp.pas', async () => {
-        await runAcceptanceStep(context, 'src/Main.pas points to src/SampleApp.pas', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/Main.pas points to src/SampleApp.pas',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:14
-      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:15
-      await test.step('And src/SampleApp.pas points to src/OrderModel.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderModel.pas', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/SampleApp.pas points to src/OrderModel.pas',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/pascal-example.md:16
-      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
-          sourcePath: 'tests/acceptance/specs/pascal-example.md',
-          line: 16
-        });
-      });
-
       // tests/acceptance/specs/pascal-example.md:17
-      await test.step('And src/SampleApp.pas points to src/PricingService.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/PricingService.pas', {
-          keyword: 'And',
-          text: 'src/SampleApp.pas points to src/PricingService.pas',
+      await test.step('Then I can see there are 9 nodes and 9 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 9 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 9 connections',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:18
-      await test.step('And src/SampleApp.pas points to src/ReceiptView.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/ReceiptView.pas', {
+      await test.step('And src/Main.pas points to src/SampleApp.pas', async () => {
+        await runAcceptanceStep(context, 'src/Main.pas points to src/SampleApp.pas', {
           keyword: 'And',
-          text: 'src/SampleApp.pas points to src/ReceiptView.pas',
+          text: 'src/Main.pas points to src/SampleApp.pas',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:19
-      await test.step('And src/OrderRepository.pas points to src/OrderModel.pas', async () => {
-        await runAcceptanceStep(context, 'src/OrderRepository.pas points to src/OrderModel.pas', {
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
           keyword: 'And',
-          text: 'src/OrderRepository.pas points to src/OrderModel.pas',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:20
-      await test.step('And src/PricingService.pas points to src/OrderModel.pas', async () => {
-        await runAcceptanceStep(context, 'src/PricingService.pas points to src/OrderModel.pas', {
+      await test.step('And src/SampleApp.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderModel.pas', {
           keyword: 'And',
-          text: 'src/PricingService.pas points to src/OrderModel.pas',
+          text: 'src/SampleApp.pas points to src/OrderModel.pas',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:21
-      await test.step('And src/ReceiptView.pas points to src/OrderModel.pas', async () => {
-        await runAcceptanceStep(context, 'src/ReceiptView.pas points to src/OrderModel.pas', {
+      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
           keyword: 'And',
-          text: 'src/ReceiptView.pas points to src/OrderModel.pas',
+          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 21
         });
       });
 
+      // tests/acceptance/specs/pascal-example.md:22
+      await test.step('And src/SampleApp.pas points to src/PricingService.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/PricingService.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/PricingService.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 22
+        });
+      });
+
       // tests/acceptance/specs/pascal-example.md:23
+      await test.step('And src/SampleApp.pas points to src/ReceiptView.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/ReceiptView.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/ReceiptView.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:24
+      await test.step('And src/OrderRepository.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/OrderRepository.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/OrderRepository.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:25
+      await test.step('And src/PricingService.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/PricingService.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/PricingService.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:26
+      await test.step('And src/ReceiptView.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/ReceiptView.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/ReceiptView.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:28
       await test.step('And README.md is an orphan node', async () => {
         await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
-          line: 23
+          line: 28
         });
       });
 
@@ -4623,72 +5153,112 @@ test.describe('PHP Example', () => {
       });
 
       // tests/acceptance/specs/php-example.md:12
-      await test.step('Then I can see there are 7 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 7 nodes and 3 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 7 nodes and 3 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/php-example.md:13
-      await test.step('And src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php', async () => {
-        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/php-example.md:14
-      await test.step('And src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php', async () => {
-        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php', {
-          keyword: 'And',
-          text: 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/php-example.md:15
-      await test.step('And src/App/Feature/Runner.php points to src/App/Model/User.php', async () => {
-        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Model/User.php', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/App/Feature/Runner.php points to src/App/Model/User.php',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/php-example.md:17
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
-          keyword: 'And',
-          text: 'README.md is an orphan node',
+      await test.step('Then I can see there are 7 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 3 connections',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/php-example.md:18
-      await test.step('And composer.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'composer.json is an orphan node', {
+      await test.step('And src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php', {
           keyword: 'And',
-          text: 'composer.json is an orphan node',
+          text: 'src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/php-example.md:19
+      await test.step('And src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:20
+      await test.step('And src/App/Feature/Runner.php points to src/App/Model/User.php', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Model/User.php', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.php points to src/App/Model/User.php',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:22
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:23
+      await test.step('And composer.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'composer.json is an orphan node', {
+          keyword: 'And',
+          text: 'composer.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:24
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/php-example.md',
-          line: 19
+          line: 24
         });
       });
 
@@ -4768,172 +5338,212 @@ test.describe('Python Example', () => {
       });
 
       // tests/acceptance/specs/python-example.md:12
-      await test.step('Then I can see there are 15 nodes and 11 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 11 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 15 nodes and 11 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/python-example.md:13
-      await test.step('And src/main.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/main.py points to src/utils/helpers.py', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/main.py points to src/utils/helpers.py',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/python-example.md:14
-      await test.step('And src/main.py points to src/config.py', async () => {
-        await runAcceptanceStep(context, 'src/main.py points to src/config.py', {
-          keyword: 'And',
-          text: 'src/main.py points to src/config.py',
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/python-example.md:15
-      await test.step('And src/main.py points to src/services/api.py', async () => {
-        await runAcceptanceStep(context, 'src/main.py points to src/services/api.py', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/main.py points to src/services/api.py',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/python-example.md:16
-      await test.step('And src/utils/__init__.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/utils/__init__.py points to src/utils/helpers.py', {
-          keyword: 'And',
-          text: 'src/utils/__init__.py points to src/utils/helpers.py',
-          sourcePath: 'tests/acceptance/specs/python-example.md',
-          line: 16
-        });
-      });
-
       // tests/acceptance/specs/python-example.md:17
-      await test.step('And src/utils/__init__.py points to src/utils/format.py', async () => {
-        await runAcceptanceStep(context, 'src/utils/__init__.py points to src/utils/format.py', {
-          keyword: 'And',
-          text: 'src/utils/__init__.py points to src/utils/format.py',
+      await test.step('Then I can see there are 15 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 11 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 11 connections',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/python-example.md:18
-      await test.step('And src/utils/helpers.py points to src/utils/format.py', async () => {
-        await runAcceptanceStep(context, 'src/utils/helpers.py points to src/utils/format.py', {
+      await test.step('And src/main.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/utils/helpers.py', {
           keyword: 'And',
-          text: 'src/utils/helpers.py points to src/utils/format.py',
+          text: 'src/main.py points to src/utils/helpers.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/python-example.md:19
-      await test.step('And src/services/api.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/services/api.py points to src/utils/helpers.py', {
+      await test.step('And src/main.py points to src/config.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/config.py', {
           keyword: 'And',
-          text: 'src/services/api.py points to src/utils/helpers.py',
+          text: 'src/main.py points to src/config.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/python-example.md:20
-      await test.step('And src/member_imports.py points to src/services/api.py', async () => {
-        await runAcceptanceStep(context, 'src/member_imports.py points to src/services/api.py', {
+      await test.step('And src/main.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/services/api.py', {
           keyword: 'And',
-          text: 'src/member_imports.py points to src/services/api.py',
+          text: 'src/main.py points to src/services/api.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/python-example.md:21
-      await test.step('And src/member_imports.py points to src/utils/helpers.py', async () => {
-        await runAcceptanceStep(context, 'src/member_imports.py points to src/utils/helpers.py', {
+      await test.step('And src/utils/__init__.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/__init__.py points to src/utils/helpers.py', {
           keyword: 'And',
-          text: 'src/member_imports.py points to src/utils/helpers.py',
+          text: 'src/utils/__init__.py points to src/utils/helpers.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/python-example.md:22
-      await test.step('And src/services/__init__.py points to src/services/api.py', async () => {
-        await runAcceptanceStep(context, 'src/services/__init__.py points to src/services/api.py', {
+      await test.step('And src/utils/__init__.py points to src/utils/format.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/__init__.py points to src/utils/format.py', {
           keyword: 'And',
-          text: 'src/services/__init__.py points to src/services/api.py',
+          text: 'src/utils/__init__.py points to src/utils/format.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/python-example.md:23
-      await test.step('And src/namespace_consumer.py points to src/ns_pkg/member.py', async () => {
-        await runAcceptanceStep(context, 'src/namespace_consumer.py points to src/ns_pkg/member.py', {
+      await test.step('And src/utils/helpers.py points to src/utils/format.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/helpers.py points to src/utils/format.py', {
           keyword: 'And',
-          text: 'src/namespace_consumer.py points to src/ns_pkg/member.py',
+          text: 'src/utils/helpers.py points to src/utils/format.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 23
         });
       });
 
-      // tests/acceptance/specs/python-example.md:25
-      await test.step('And src/orphan.py is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/orphan.py is an orphan node', {
+      // tests/acceptance/specs/python-example.md:24
+      await test.step('And src/services/api.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/services/api.py points to src/utils/helpers.py', {
           keyword: 'And',
-          text: 'src/orphan.py is an orphan node',
+          text: 'src/services/api.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:25
+      await test.step('And src/member_imports.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/member_imports.py points to src/services/api.py', {
+          keyword: 'And',
+          text: 'src/member_imports.py points to src/services/api.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 25
         });
       });
 
       // tests/acceptance/specs/python-example.md:26
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/member_imports.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/member_imports.py points to src/utils/helpers.py', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/member_imports.py points to src/utils/helpers.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/python-example.md:27
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And src/services/__init__.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/services/__init__.py points to src/services/api.py', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'src/services/__init__.py points to src/services/api.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/python-example.md:28
-      await test.step('And pyproject.toml is an orphan node', async () => {
-        await runAcceptanceStep(context, 'pyproject.toml is an orphan node', {
+      await test.step('And src/namespace_consumer.py points to src/ns_pkg/member.py', async () => {
+        await runAcceptanceStep(context, 'src/namespace_consumer.py points to src/ns_pkg/member.py', {
           keyword: 'And',
-          text: 'pyproject.toml is an orphan node',
+          text: 'src/namespace_consumer.py points to src/ns_pkg/member.py',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 28
         });
       });
 
-      // tests/acceptance/specs/python-example.md:29
+      // tests/acceptance/specs/python-example.md:30
+      await test.step('And src/orphan.py is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/orphan.py is an orphan node', {
+          keyword: 'And',
+          text: 'src/orphan.py is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:31
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:32
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:33
+      await test.step('And pyproject.toml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'pyproject.toml is an orphan node', {
+          keyword: 'And',
+          text: 'pyproject.toml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:34
       await test.step('And .vscode/settings.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
           text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/python-example.md',
-          line: 29
+          line: 34
         });
       });
 
@@ -5013,82 +5623,122 @@ test.describe('Ruby Example', () => {
       });
 
       // tests/acceptance/specs/ruby-example.md:12
-      await test.step('Then I can see there are 8 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 8 nodes and 3 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 8 nodes and 3 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:13
-      await test.step('And lib/example_ruby.rb points to lib/app/runner.rb', async () => {
-        await runAcceptanceStep(context, 'lib/example_ruby.rb points to lib/app/runner.rb', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'lib/example_ruby.rb points to lib/app/runner.rb',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:14
-      await test.step('And lib/app/runner.rb points to lib/base/base_runner.rb', async () => {
-        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/base/base_runner.rb', {
-          keyword: 'And',
-          text: 'lib/app/runner.rb points to lib/base/base_runner.rb',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:15
-      await test.step('And lib/app/runner.rb points to lib/model/user.rb', async () => {
-        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/model/user.rb', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'lib/app/runner.rb points to lib/model/user.rb',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:17
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
-          keyword: 'And',
-          text: 'README.md is an orphan node',
+      await test.step('Then I can see there are 8 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 8 nodes and 3 connections',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:18
-      await test.step('And Gemfile is an orphan node', async () => {
-        await runAcceptanceStep(context, 'Gemfile is an orphan node', {
+      await test.step('And lib/example_ruby.rb points to lib/app/runner.rb', async () => {
+        await runAcceptanceStep(context, 'lib/example_ruby.rb points to lib/app/runner.rb', {
           keyword: 'And',
-          text: 'Gemfile is an orphan node',
+          text: 'lib/example_ruby.rb points to lib/app/runner.rb',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:19
-      await test.step('And example_ruby.gemspec is an orphan node', async () => {
-        await runAcceptanceStep(context, 'example_ruby.gemspec is an orphan node', {
+      await test.step('And lib/app/runner.rb points to lib/base/base_runner.rb', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/base/base_runner.rb', {
           keyword: 'And',
-          text: 'example_ruby.gemspec is an orphan node',
+          text: 'lib/app/runner.rb points to lib/base/base_runner.rb',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/ruby-example.md:20
+      await test.step('And lib/app/runner.rb points to lib/model/user.rb', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/model/user.rb', {
+          keyword: 'And',
+          text: 'lib/app/runner.rb points to lib/model/user.rb',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:22
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:23
+      await test.step('And Gemfile is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Gemfile is an orphan node', {
+          keyword: 'And',
+          text: 'Gemfile is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:24
+      await test.step('And example_ruby.gemspec is an orphan node', async () => {
+        await runAcceptanceStep(context, 'example_ruby.gemspec is an orphan node', {
+          keyword: 'And',
+          text: 'example_ruby.gemspec is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:25
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
-          line: 20
+          line: 25
         });
       });
 
@@ -5168,62 +5818,102 @@ test.describe('Rust Example', () => {
       });
 
       // tests/acceptance/specs/rust-example.md:12
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/rust-example.md:13
-      await test.step('And src/main.rs points to src/util.rs', async () => {
-        await runAcceptanceStep(context, 'src/main.rs points to src/util.rs', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/main.rs points to src/util.rs',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/rust-example.md:14
-      await test.step('And src/main.rs points to src/inner.rs', async () => {
-        await runAcceptanceStep(context, 'src/main.rs points to src/inner.rs', {
-          keyword: 'And',
-          text: 'src/main.rs points to src/inner.rs',
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
           line: 14
         });
       });
 
-      // tests/acceptance/specs/rust-example.md:16
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/rust-example.md:15
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
-          line: 16
+          line: 15
         });
       });
 
       // tests/acceptance/specs/rust-example.md:17
-      await test.step('And Cargo.toml is an orphan node', async () => {
-        await runAcceptanceStep(context, 'Cargo.toml is an orphan node', {
-          keyword: 'And',
-          text: 'Cargo.toml is an orphan node',
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/rust-example.md:18
+      await test.step('And src/main.rs points to src/util.rs', async () => {
+        await runAcceptanceStep(context, 'src/main.rs points to src/util.rs', {
+          keyword: 'And',
+          text: 'src/main.rs points to src/util.rs',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:19
+      await test.step('And src/main.rs points to src/inner.rs', async () => {
+        await runAcceptanceStep(context, 'src/main.rs points to src/inner.rs', {
+          keyword: 'And',
+          text: 'src/main.rs points to src/inner.rs',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:21
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:22
+      await test.step('And Cargo.toml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Cargo.toml is an orphan node', {
+          keyword: 'And',
+          text: 'Cargo.toml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:23
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
-          line: 18
+          line: 23
         });
       });
 
@@ -5303,142 +5993,182 @@ test.describe('Scala Example', () => {
       });
 
       // tests/acceptance/specs/scala-example.md:12
-      await test.step('Then I can see there are 11 nodes and 10 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 10 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 11 nodes and 10 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/scala-example.md:13
-      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/scala-example.md:14
-      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', {
-          keyword: 'And',
-          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala',
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/scala-example.md:15
-      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/scala-example.md:16
-      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala', {
-          keyword: 'And',
-          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala',
-          sourcePath: 'tests/acceptance/specs/scala-example.md',
-          line: 16
-        });
-      });
-
       // tests/acceptance/specs/scala-example.md:17
-      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala', {
-          keyword: 'And',
-          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala',
+      await test.step('Then I can see there are 11 nodes and 10 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 10 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 10 connections',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/scala-example.md:18
-      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', {
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/scala-example.md:19
-      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/scala-example.md:20
-      await test.step('And src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', {
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/scala-example.md:21
-      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala', {
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/scala-example.md:22
-      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', async () => {
-        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', {
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala', {
           keyword: 'And',
-          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 22
         });
       });
 
-      // tests/acceptance/specs/scala-example.md:24
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/scala-example.md:23
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:24
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/scala-example.md:25
-      await test.step('And build.sbt is an orphan node', async () => {
-        await runAcceptanceStep(context, 'build.sbt is an orphan node', {
+      await test.step('And src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', {
           keyword: 'And',
-          text: 'build.sbt is an orphan node',
+          text: 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 25
         });
       });
 
       // tests/acceptance/specs/scala-example.md:26
+      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:27
+      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:29
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:30
+      await test.step('And build.sbt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'build.sbt is an orphan node', {
+          keyword: 'And',
+          text: 'build.sbt is an orphan node',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:31
       await test.step('And project/build.properties is an orphan node', async () => {
         await runAcceptanceStep(context, 'project/build.properties is an orphan node', {
           keyword: 'And',
           text: 'project/build.properties is an orphan node',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
-          line: 26
+          line: 31
         });
       });
 
@@ -5773,102 +6503,112 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:28
-      await test.step('Then I see a list of edge types with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
+      await test.step('Then the available edge types are Imports, References, Calls, Re-exports, Type imports', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Re-exports, Type imports', {
           keyword: 'Then',
-          text: 'I see a list of edge types with toggles',
+          text: 'the available edge types are Imports, References, Calls, Re-exports, Type imports',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:29
-      await test.step('And I toggle the Type imports edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
+      await test.step('And I see a list of edge types with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
           keyword: 'And',
-          text: 'I toggle the Type imports edge on',
+          text: 'I see a list of edge types with toggles',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:30
-      await test.step('And I close the Graph Scope', async () => {
-        await runAcceptanceStep(context, 'I close the Graph Scope', {
+      await test.step('And I toggle the Type imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
           keyword: 'And',
-          text: 'I close the Graph Scope',
+          text: 'I toggle the Type imports edge on',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 30
         });
       });
 
-      // tests/acceptance/specs/svelte-example.md:32
-      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 12 nodes and 6 connections',
+      // tests/acceptance/specs/svelte-example.md:31
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
-          line: 32
+          line: 31
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:33
-      await test.step('And src/App.svelte points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/App.svelte points to src/types.ts', {
-          keyword: 'And',
-          text: 'src/App.svelte points to src/types.ts',
+      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 12 nodes and 6 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 33
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:34
-      await test.step('And src/components/UserCard.svelte points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/components/UserCard.svelte points to src/types.ts', {
+      await test.step('And src/App.svelte points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.svelte points to src/types.ts', {
           keyword: 'And',
-          text: 'src/components/UserCard.svelte points to src/types.ts',
+          text: 'src/App.svelte points to src/types.ts',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 34
         });
       });
 
-      // tests/acceptance/specs/svelte-example.md:36
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/svelte-example.md:35
+      await test.step('And src/components/UserCard.svelte points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/UserCard.svelte points to src/types.ts', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/components/UserCard.svelte points to src/types.ts',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
-          line: 36
+          line: 35
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:37
-      await test.step('And index.html is an orphan node', async () => {
-        await runAcceptanceStep(context, 'index.html is an orphan node', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: 'index.html is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 37
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:38
-      await test.step('And package.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'package.json is an orphan node', {
+      await test.step('And index.html is an orphan node', async () => {
+        await runAcceptanceStep(context, 'index.html is an orphan node', {
           keyword: 'And',
-          text: 'package.json is an orphan node',
+          text: 'index.html is an orphan node',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 38
         });
       });
 
       // tests/acceptance/specs/svelte-example.md:39
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
+          keyword: 'And',
+          text: 'package.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:40
       await test.step('And tsconfig.json is an orphan node', async () => {
         await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
           keyword: 'And',
           text: 'tsconfig.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
-          line: 39
+          line: 40
         });
       });
 
@@ -5948,52 +6688,92 @@ test.describe('Swift Example', () => {
       });
 
       // tests/acceptance/specs/swift-example.md:12
-      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
-          keyword: 'Then',
-          text: 'I can see there are 5 nodes and 1 connection',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/swift-example.md:13
-      await test.step('And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift', async () => {
-        await runAcceptanceStep(context, 'Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 13
         });
       });
 
+      // tests/acceptance/specs/swift-example.md:14
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Inherits',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 14
+        });
+      });
+
       // tests/acceptance/specs/swift-example.md:15
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/swift-example.md:16
+      // tests/acceptance/specs/swift-example.md:17
+      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:18
+      await test.step('And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift', async () => {
+        await runAcceptanceStep(context, 'Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift', {
+          keyword: 'And',
+          text: 'Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:20
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:21
       await test.step('And Package.swift is an orphan node', async () => {
         await runAcceptanceStep(context, 'Package.swift is an orphan node', {
           keyword: 'And',
           text: 'Package.swift is an orphan node',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
-          line: 16
+          line: 21
         });
       });
 
-      // tests/acceptance/specs/swift-example.md:17
+      // tests/acceptance/specs/swift-example.md:22
       await test.step('And .gitignore is an orphan node', async () => {
         await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
-          line: 17
+          line: 22
         });
       });
 
@@ -6073,172 +6853,252 @@ test.describe('TypeScript Example', () => {
       });
 
       // tests/acceptance/specs/typescript-example.md:12
-      await test.step('Then I can see there are 11 nodes and 5 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 5 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 11 nodes and 5 connections',
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:13
-      await test.step('And src/index.ts points to src/types.ts', async () => {
-        await runAcceptanceStep(context, 'src/index.ts points to src/types.ts', {
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
           keyword: 'And',
-          text: 'src/index.ts points to src/types.ts',
+          text: 'I select edge types',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:14
-      await test.step('And src/index.ts points to src/utils.ts', async () => {
-        await runAcceptanceStep(context, 'src/index.ts points to src/utils.ts', {
-          keyword: 'And',
-          text: 'src/index.ts points to src/utils.ts',
+      await test.step('Then the available edge types are Imports, References, Calls, Re-exports, Type imports', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Re-exports, Type imports', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls, Re-exports, Type imports',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:15
-      await test.step('And src/utils.ts points to src/depth.ts', async () => {
-        await runAcceptanceStep(context, 'src/utils.ts points to src/depth.ts', {
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
           keyword: 'And',
-          text: 'src/utils.ts points to src/depth.ts',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:16
-      await test.step('And src/depth.ts points to src/leaf.ts', async () => {
-        await runAcceptanceStep(context, 'src/depth.ts points to src/leaf.ts', {
-          keyword: 'And',
-          text: 'src/depth.ts points to src/leaf.ts',
+      // tests/acceptance/specs/typescript-example.md:17
+      await test.step('Then I can see there are 11 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 5 connections',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 16
+          line: 17
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:18
-      await test.step('And src/orphan.ts is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/orphan.ts is an orphan node', {
+      await test.step('And src/index.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/index.ts points to src/types.ts', {
           keyword: 'And',
-          text: 'src/orphan.ts is an orphan node',
+          text: 'src/index.ts points to src/types.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:19
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/index.ts points to src/utils.ts', async () => {
+        await runAcceptanceStep(context, 'src/index.ts points to src/utils.ts', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/index.ts points to src/utils.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 19
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:20
-      await test.step('And package.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'package.json is an orphan node', {
+      await test.step('And src/utils.ts points to src/depth.ts', async () => {
+        await runAcceptanceStep(context, 'src/utils.ts points to src/depth.ts', {
           keyword: 'And',
-          text: 'package.json is an orphan node',
+          text: 'src/utils.ts points to src/depth.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:21
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And src/depth.ts points to src/leaf.ts', async () => {
+        await runAcceptanceStep(context, 'src/depth.ts points to src/leaf.ts', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'src/depth.ts points to src/leaf.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 21
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:22
-      await test.step('And tsconfig.json is an orphan node', async () => {
-        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
-          keyword: 'And',
-          text: 'tsconfig.json is an orphan node',
-          sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 22
-        });
-      });
-
       // tests/acceptance/specs/typescript-example.md:23
-      await test.step('And src/alias/greeting.ts is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/alias/greeting.ts is an orphan node', {
+      await test.step('And src/orphan.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/orphan.ts is an orphan node', {
           keyword: 'And',
-          text: 'src/alias/greeting.ts is an orphan node',
+          text: 'src/orphan.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 23
         });
       });
 
+      // tests/acceptance/specs/typescript-example.md:24
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 24
+        });
+      });
+
       // tests/acceptance/specs/typescript-example.md:25
-      await test.step('When I click the plugins button', async () => {
-        await runAcceptanceStep(context, 'I click the plugins button', {
-          keyword: 'When',
-          text: 'I click the plugins button',
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
+          keyword: 'And',
+          text: 'package.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 25
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:26
-      await test.step('Then I see a list of plugins with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
-          keyword: 'Then',
-          text: 'I see a list of plugins with toggles',
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:27
-      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
-        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
           keyword: 'And',
-          text: 'I toggle the TypeScript/JavaScript plugin on',
+          text: 'tsconfig.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:28
-      await test.step('Then I can see there are 11 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 11 nodes and 6 connections',
+      await test.step('And src/alias/greeting.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/alias/greeting.ts is an orphan node', {
+          keyword: 'And',
+          text: 'src/alias/greeting.ts is an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 28
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:29
+      // tests/acceptance/specs/typescript-example.md:30
+      await test.step('When I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
+          keyword: 'When',
+          text: 'I click the plugins button',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:31
+      await test.step('Then I see a list of plugins with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of plugins with toggles',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:32
+      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
+          keyword: 'And',
+          text: 'I toggle the TypeScript/JavaScript plugin on',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:33
+      await test.step('Then I can see there are 11 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:35
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:36
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
+          keyword: 'And',
+          text: 'I select edge types',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:37
+      await test.step('Then the available edge types are Imports, References, Calls, Re-exports, Type imports, TypeScript Alias Import', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Re-exports, Type imports, TypeScript Alias Import', {
+          keyword: 'Then',
+          text: 'the available edge types are Imports, References, Calls, Re-exports, Type imports, TypeScript Alias Import',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:38
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:40
       await test.step('And I see src/index.ts points to src/alias/greeting.ts', async () => {
         await runAcceptanceStep(context, 'I see src/index.ts points to src/alias/greeting.ts', {
           keyword: 'And',
           text: 'I see src/index.ts points to src/alias/greeting.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 29
+          line: 40
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:30
+      // tests/acceptance/specs/typescript-example.md:41
       await test.step('And src/alias/greeting.ts is no longer an orphan node', async () => {
         await runAcceptanceStep(context, 'src/alias/greeting.ts is no longer an orphan node', {
           keyword: 'And',
           text: 'src/alias/greeting.ts is no longer an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 30
+          line: 41
         });
       });
 

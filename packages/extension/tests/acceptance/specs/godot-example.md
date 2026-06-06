@@ -14,6 +14,12 @@ Then I see a list of plugins with toggles
 And I toggle the GDScript (Godot) plugin on
 Then I see edges
 And I can see there are 19 nodes and 28 connections
+
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are References, Inherits, Loads
+And I close the Graph Scope
+
 And project.godot points to scenes/main.tscn
 And project.godot points to scripts/game_manager.gd
 And scripts/player.gd points to scripts/utils/math_helpers.gd

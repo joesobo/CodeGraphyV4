@@ -9,6 +9,11 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-dart workspace
 
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References, Inherits
+And I close the Graph Scope
+
 Then I can see there are 7 nodes and 4 connections
 And bin/sample_app.dart points to lib/app/runner.dart
 And bin/sample_app.dart points to lib/model/profile.dart

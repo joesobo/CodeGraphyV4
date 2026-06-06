@@ -9,6 +9,11 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-ruby workspace
 
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References, Inherits
+And I close the Graph Scope
+
 Then I can see there are 8 nodes and 3 connections
 And lib/example_ruby.rb points to lib/app/runner.rb
 And lib/app/runner.rb points to lib/base/base_runner.rb
