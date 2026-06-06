@@ -20,4 +20,12 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       expect(listTreeSitterEdgeTypeCapabilities([filePath]), filePath).toContain('call');
     }
   });
+
+  it('does not advertise TypeScript inheritance from a docs helper file without inherit evidence', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['src/commented.ts'])).toEqual([
+      'import',
+      'type-import',
+      'call',
+    ]);
+  });
 });
