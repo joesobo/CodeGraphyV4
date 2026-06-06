@@ -65,11 +65,17 @@ export function mergeEdgeTypes(
   edgeTypeCapabilities: GraphEdgeTypeCapabilityLike[] = [],
 ): IGraphEdgeTypeDefinition[] {
   const availableEdgeKinds = collectAvailableEdgeKinds(graphData, edgeTypeCapabilities);
+  const capabilityEdgeKinds = new Set<string>(edgeTypeCapabilities);
   const definitions = new Map<string, IGraphEdgeTypeDefinition>();
 
   for (const definition of CORE_GRAPH_EDGE_TYPES) {
     if (availableEdgeKinds.has(definition.id)) {
-      definitions.set(definition.id, definition);
+      definitions.set(definition.id, {
+        ...definition,
+        ...(definition.id === 'overrides' && !capabilityEdgeKinds.has(definition.id)
+          ? { requiresEdgeType: 'inherit' as const }
+          : {}),
+      });
     }
   }
 
@@ -92,6 +98,7 @@ export function mergeEdgeTypes(
         label: prettifyIdentifier(edge.kind),
         defaultColor: edge.color ?? '#94A3B8',
         defaultVisible: true,
+        ...(edge.kind === 'overrides' ? { requiresEdgeType: 'inherit' as const } : {}),
       });
     }
   }

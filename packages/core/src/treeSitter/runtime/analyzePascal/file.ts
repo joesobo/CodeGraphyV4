@@ -134,7 +134,7 @@ function readPascalDeclaredTypeNames(filePath: string): string[] {
 function collectPascalReceiverTypeNames(source: string): Map<string, string> {
   const receiverTypeNames = new Map<string, string>();
 
-  for (const match of source.matchAll(/\b([A-Za-z_]\w*)\s*:\s*(T[A-Za-z_]\w*)\b/g)) {
+  for (const match of source.matchAll(/^\s*([A-Za-z_]\w*)\s*:\s*(T[A-Za-z_]\w*)\s*;/gm)) {
     receiverTypeNames.set(match[1], match[2]);
   }
 

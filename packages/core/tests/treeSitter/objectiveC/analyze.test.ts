@@ -181,6 +181,11 @@ describe('treeSitter/analyzeObjectiveC', () => {
 
   it('extracts Objective-C call relationships from nested allocation messages', async () => {
     const workspaceRoot = await createWorkspace({
+      'Sources/Data/SessionStore.h': [
+        '@interface SessionStore : NSObject',
+        '+ (instancetype)demoStore;',
+        '@end',
+      ].join('\n'),
       'Sources/Models/UserProfile.h': [
         '@interface UserProfile : NSObject',
         '- (instancetype)initWithName:(NSString *)name role:(NSString *)role;',
@@ -189,8 +194,12 @@ describe('treeSitter/analyzeObjectiveC', () => {
     });
     const filePath = path.join(workspaceRoot, 'Sources/Data/SessionStore.m');
     const source = [
+      '#import "SessionStore.h"',
       '#import "../Models/UserProfile.h"',
       '@implementation SessionStore',
+      '+ (instancetype)demoStore {',
+      '  return [SessionStore new];',
+      '}',
       '- (UserProfile *)currentUser {',
       '  return [[UserProfile alloc] initWithName:@"Ada" role:@"Graph Explorer"];',
       '}',
@@ -206,6 +215,48 @@ describe('treeSitter/analyzeObjectiveC', () => {
         specifier: 'UserProfile',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'Sources/Models/UserProfile.h'),
+      }),
+    ]));
+    expect(result?.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'SessionStore',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Data/SessionStore.h'),
+      }),
+    ]));
+  });
+
+  it('extracts Objective-C call relationships from self property receivers', async () => {
+    const workspaceRoot = await createWorkspace({
+      'Sources/Data/SessionStore.h': [
+        '@interface SessionStore : NSObject',
+        '- (id)currentUser;',
+        '@end',
+      ].join('\n'),
+    });
+    const filePath = path.join(workspaceRoot, 'Sources/Controllers/DashboardController.m');
+    const source = [
+      '#import "../Data/SessionStore.h"',
+      '@interface DashboardController ()',
+      '@property(nonatomic, strong) SessionStore *store;',
+      '@end',
+      '@implementation DashboardController',
+      '- (void)reloadDashboard {',
+      '  [self.store currentUser];',
+      '}',
+      '@end',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'SessionStore',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Data/SessionStore.h'),
       }),
     ]));
   });

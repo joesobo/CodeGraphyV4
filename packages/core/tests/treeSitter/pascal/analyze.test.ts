@@ -97,6 +97,7 @@ describe('treeSitter/analyzePascal', () => {
     const workspaceRoot = await createWorkspace({
       'src/SampleApp.pas': 'unit SampleApp;\ninterface\ntype TAppRunner = class end;\nimplementation\nend.',
       'src/OrderRepository.pas': 'unit OrderRepository;\ninterface\ntype TOrderRepository = class end;\nimplementation\nend.',
+      'src/OrderModel.pas': 'unit OrderModel;\ninterface\ntype TOrder = record end;\nimplementation\nend.',
       'src/PricingService.pas': 'unit PricingService;\ninterface\ntype TPricingService = class end;\nimplementation\nend.',
       'src/ReceiptView.pas': 'unit ReceiptView;\ninterface\ntype TReceiptView = class end;\nimplementation\nend.',
     });
@@ -116,7 +117,7 @@ describe('treeSitter/analyzePascal', () => {
     const sampleSource = [
       'unit SampleApp;',
       'interface',
-      'uses OrderRepository, PricingService, ReceiptView;',
+      'uses OrderRepository, PricingService, ReceiptView, OrderModel;',
       'type',
       '  TAppRunner = class',
       '  private',
@@ -135,6 +136,10 @@ describe('treeSitter/analyzePascal', () => {
       '  Repository.CurrentOrder;',
       '  Pricing.TotalFor(nil);',
       '  View.Render(nil, 0);',
+      'end;',
+      'function TAppRunner.TotalFor(Order: TOrder): Currency;',
+      'begin',
+      '  Result := Order.Subtotal;',
       'end;',
       'end.',
     ].join('\n');
@@ -172,6 +177,14 @@ describe('treeSitter/analyzePascal', () => {
         specifier: 'ReceiptView',
         fromFilePath: samplePath,
         resolvedPath: path.join(workspaceRoot, 'src/ReceiptView.pas'),
+      }),
+    ]));
+    expect(sampleResult?.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'OrderModel',
+        fromFilePath: samplePath,
+        resolvedPath: path.join(workspaceRoot, 'src/OrderModel.pas'),
       }),
     ]));
   });

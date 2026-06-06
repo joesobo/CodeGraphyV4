@@ -61,6 +61,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRust/bindings', () => {
     expect(getLastPathSegment).toHaveBeenCalledWith('crate::services::run', '::');
   });
 
+  it('resolves module-qualified Rust calls by the module segment when available', () => {
+    vi.mocked(getIdentifierText).mockReturnValue(null);
+    const importedBinding = { importedName: 'inner', specifier: 'inner', resolvedPath: '/workspace/src/inner.rs' };
+    const importedBindings = new Map([['inner', importedBinding]]);
+    const calleeNode = createNode({ type: 'scoped_identifier', text: 'inner::helper' });
+
+    expect(
+      getRustCallBinding(
+        createNode({ namedChildren: [calleeNode] }) as never,
+        importedBindings,
+      ),
+    ).toBe(importedBinding);
+  });
+
   it('returns null when the call does not resolve to a known imported binding', () => {
     vi.mocked(getIdentifierText).mockReturnValue(null);
 
