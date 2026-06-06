@@ -83,7 +83,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
     },
     _sendGraphControls: () => {
       sendGraphControlsUpdated(
-        source._graphData,
+        source._rawGraphData,
         source._analyzer,
         message => send(message),
         getCodeGraphyConfiguration(),
