@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-pascal work
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, References, Inherits
+Then the available edge types are Imports, References, Calls, Inherits
 And I close the Graph Scope
 
 When I toggle the Imports edge on
@@ -46,3 +46,12 @@ And src/SampleApp.pas points to src/RunnerSupport.pas
 Then I toggle the Overrides edge on
 Then I can see there are 9 nodes and 2 connections
 And src/SampleApp.pas has 2 edges pointing to src/RunnerSupport.pas
+
+Then I toggle the Inherits edge off
+And I toggle the Overrides edge off
+And I toggle the Calls edge on
+Then I can see there are 9 nodes and 4 connections
+And src/Main.pas points to src/SampleApp.pas
+And src/SampleApp.pas points to src/OrderRepository.pas
+And src/SampleApp.pas points to src/PricingService.pas
+And src/SampleApp.pas points to src/ReceiptView.pas

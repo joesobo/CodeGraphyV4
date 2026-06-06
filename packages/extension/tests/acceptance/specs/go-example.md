@@ -22,3 +22,8 @@ And main.go points to internal/service/service.go
 And README.md is an orphan node
 And go.mod is an orphan node
 And .gitignore is an orphan node
+
+Then I toggle the Imports edge off
+And I toggle the Calls edge on
+Then I can see there are 5 nodes and 1 connection
+And main.go points to internal/service/service.go

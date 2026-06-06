@@ -23,3 +23,9 @@ And src/main.rs points to src/inner.rs
 And README.md is an orphan node
 And Cargo.toml is an orphan node
 And .gitignore is an orphan node
+
+Then I toggle the Imports edge off
+And I toggle the Calls edge on
+Then I can see there are 6 nodes and 2 connections
+And src/main.rs points to src/util.rs
+And src/main.rs points to src/inner.rs

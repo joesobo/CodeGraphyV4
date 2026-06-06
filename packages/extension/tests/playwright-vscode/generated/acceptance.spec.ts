@@ -238,10 +238,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:14
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 14
         });
@@ -314,6 +314,56 @@ test.describe('C Example', () => {
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 23
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:25
+      await test.step('Then I toggle the Imports edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Imports edge off',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:26
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:27
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:28
+      await test.step('And src/main.c points to src/math/add.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/math/add.h', {
+          keyword: 'And',
+          text: 'src/main.c points to src/math/add.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:29
+      await test.step('And src/math/add.c points to src/math/add.h', async () => {
+        await runAcceptanceStep(context, 'src/math/add.c points to src/math/add.h', {
+          keyword: 'And',
+          text: 'src/math/add.c points to src/math/add.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 29
         });
       });
 
@@ -828,10 +878,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 15
         });
@@ -1067,6 +1117,86 @@ test.describe('C# Example', () => {
         });
       });
 
+      // tests/acceptance/specs/csharp-example.md:44
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:45
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:46
+      await test.step('Then I can see there are 11 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 5 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:47
+      await test.step('And src/Program.cs points to src/Config.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Config.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:48
+      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Services/ApiService.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:49
+      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Utils/Helpers.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 49
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:50
+      await test.step('And src/Services/ApiService.cs points to src/Services/BaseService.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Services/BaseService.cs', {
+          keyword: 'And',
+          text: 'src/Services/ApiService.cs points to src/Services/BaseService.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 50
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:51
+      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
+        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
+          keyword: 'And',
+          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 51
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -1173,10 +1303,10 @@ test.describe('Dart Example', () => {
       });
 
       // tests/acceptance/specs/dart-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 15
         });
@@ -1349,6 +1479,66 @@ test.describe('Dart Example', () => {
           text: 'lib/app/runner.dart points to lib/app/runnable.dart',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 35
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:37
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:38
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:39
+      await test.step('Then I can see there are 9 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:40
+      await test.step('And bin/sample_app.dart points to lib/app/runner.dart', async () => {
+        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/app/runner.dart', {
+          keyword: 'And',
+          text: 'bin/sample_app.dart points to lib/app/runner.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:41
+      await test.step('And bin/sample_app.dart points to lib/model/profile.dart', async () => {
+        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/model/profile.dart', {
+          keyword: 'And',
+          text: 'bin/sample_app.dart points to lib/model/profile.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:42
+      await test.step('And lib/app/runner.dart points to lib/model/user.dart', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/user.dart', {
+          keyword: 'And',
+          text: 'lib/app/runner.dart points to lib/model/user.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 42
         });
       });
 
@@ -2689,6 +2879,46 @@ test.describe('Go Example', () => {
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/go-example.md',
           line: 24
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:26
+      await test.step('Then I toggle the Imports edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Imports edge off',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:27
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:28
+      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:29
+      await test.step('And main.go points to internal/service/service.go', async () => {
+        await runAcceptanceStep(context, 'main.go points to internal/service/service.go', {
+          keyword: 'And',
+          text: 'main.go points to internal/service/service.go',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 29
         });
       });
 
@@ -4752,10 +4982,10 @@ test.describe('Haskell Example', () => {
       });
 
       // tests/acceptance/specs/haskell-example.md:15
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 15
         });
@@ -4848,6 +5078,56 @@ test.describe('Haskell Example', () => {
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 26
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:28
+      await test.step('Then I toggle the Imports edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Imports edge off',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:29
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:30
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:31
+      await test.step('And src/Main.hs points to src/App/Feature/Runner.hs', async () => {
+        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Feature/Runner.hs', {
+          keyword: 'And',
+          text: 'src/Main.hs points to src/App/Feature/Runner.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:32
+      await test.step('And src/Main.hs points to src/App/Model/User.hs', async () => {
+        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Model/User.hs', {
+          keyword: 'And',
+          text: 'src/Main.hs points to src/App/Model/User.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 32
         });
       });
 
@@ -5191,6 +5471,46 @@ test.describe('Java Example', () => {
         });
       });
 
+      // tests/acceptance/specs/java-example.md:30
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:31
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:32
+      await test.step('Then I can see there are 6 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:33
+      await test.step('And src/com/example/app/App.java points to src/com/example/app/Helper.java', async () => {
+        await runAcceptanceStep(context, 'src/com/example/app/App.java points to src/com/example/app/Helper.java', {
+          keyword: 'And',
+          text: 'src/com/example/app/App.java points to src/com/example/app/Helper.java',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 33
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -5297,10 +5617,10 @@ test.describe('Kotlin Example', () => {
       });
 
       // tests/acceptance/specs/kotlin-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 15
         });
@@ -5466,6 +5786,46 @@ test.describe('Kotlin Example', () => {
         });
       });
 
+      // tests/acceptance/specs/kotlin-example.md:36
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:37
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:38
+      await test.step('Then I can see there are 9 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:39
+      await test.step('And src/main/kotlin/com/example/app/Main.kt points to src/main/kotlin/com/example/app/AppRunner.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/Main.kt points to src/main/kotlin/com/example/app/AppRunner.kt', {
+          keyword: 'And',
+          text: 'src/main/kotlin/com/example/app/Main.kt points to src/main/kotlin/com/example/app/AppRunner.kt',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 39
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -5572,10 +5932,10 @@ test.describe('Lua Example', () => {
       });
 
       // tests/acceptance/specs/lua-example.md:15
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 15
         });
@@ -5648,6 +6008,56 @@ test.describe('Lua Example', () => {
           text: '.luarc.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 24
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:26
+      await test.step('Then I toggle the Imports edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Imports edge off',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:27
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:28
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:29
+      await test.step('And main.lua points to app/runner.lua', async () => {
+        await runAcceptanceStep(context, 'main.lua points to app/runner.lua', {
+          keyword: 'And',
+          text: 'main.lua points to app/runner.lua',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:30
+      await test.step('And app/runner.lua points to app/model/user.lua', async () => {
+        await runAcceptanceStep(context, 'app/runner.lua points to app/model/user.lua', {
+          keyword: 'And',
+          text: 'app/runner.lua points to app/model/user.lua',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 30
         });
       });
 
@@ -5863,6 +6273,36 @@ test.describe('Markdown Example', () => {
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 27
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:29
+      await test.step('Then I toggle the References edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the References edge off', {
+          keyword: 'Then',
+          text: 'I toggle the References edge off',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:30
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:31
+      await test.step('Then I can see there are 7 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 0 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 0 connections',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 31
         });
       });
 
@@ -6127,10 +6567,10 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 15
         });
@@ -6246,6 +6686,96 @@ test.describe('Objective-C Example', () => {
         });
       });
 
+      // tests/acceptance/specs/objective-c-example.md:31
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:32
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:33
+      await test.step('Then I can see there are 15 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:34
+      await test.step('And Sources/main.m points to Sources/AppDelegate.h', async () => {
+        await runAcceptanceStep(context, 'Sources/main.m points to Sources/AppDelegate.h', {
+          keyword: 'And',
+          text: 'Sources/main.m points to Sources/AppDelegate.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:35
+      await test.step('And Sources/AppDelegate.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h', {
+          keyword: 'And',
+          text: 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:36
+      await test.step('And Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', {
+          keyword: 'And',
+          text: 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:37
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', {
+          keyword: 'And',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:38
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', {
+          keyword: 'And',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:39
+      await test.step('And Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 39
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -6352,10 +6882,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 15
         });
@@ -6641,6 +7171,86 @@ test.describe('Pascal Example', () => {
         });
       });
 
+      // tests/acceptance/specs/pascal-example.md:50
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 50
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:51
+      await test.step('And I toggle the Overrides edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Overrides edge off', {
+          keyword: 'And',
+          text: 'I toggle the Overrides edge off',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 51
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:52
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 52
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:53
+      await test.step('Then I can see there are 9 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 4 connections',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 53
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:54
+      await test.step('And src/Main.pas points to src/SampleApp.pas', async () => {
+        await runAcceptanceStep(context, 'src/Main.pas points to src/SampleApp.pas', {
+          keyword: 'And',
+          text: 'src/Main.pas points to src/SampleApp.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 54
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:55
+      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 55
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:56
+      await test.step('And src/SampleApp.pas points to src/PricingService.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/PricingService.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/PricingService.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 56
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:57
+      await test.step('And src/SampleApp.pas points to src/ReceiptView.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/ReceiptView.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/ReceiptView.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 57
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -6747,10 +7357,10 @@ test.describe('PHP Example', () => {
       });
 
       // tests/acceptance/specs/php-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 15
         });
@@ -6893,6 +7503,36 @@ test.describe('PHP Example', () => {
           text: 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 32
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:34
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:35
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:36
+      await test.step('Then I can see there are 7 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 0 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 0 connections',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 36
         });
       });
 
@@ -7251,6 +7891,96 @@ test.describe('Python Example', () => {
         });
       });
 
+      // tests/acceptance/specs/python-example.md:44
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:45
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:46
+      await test.step('Then I can see there are 16 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:47
+      await test.step('And src/main.py points to src/config.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/config.py', {
+          keyword: 'And',
+          text: 'src/main.py points to src/config.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:48
+      await test.step('And src/main.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/services/api.py', {
+          keyword: 'And',
+          text: 'src/main.py points to src/services/api.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:49
+      await test.step('And src/main.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/utils/helpers.py', {
+          keyword: 'And',
+          text: 'src/main.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 49
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:50
+      await test.step('And src/services/api.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/services/api.py points to src/utils/helpers.py', {
+          keyword: 'And',
+          text: 'src/services/api.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 50
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:51
+      await test.step('And src/utils/helpers.py points to src/utils/format.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/helpers.py points to src/utils/format.py', {
+          keyword: 'And',
+          text: 'src/utils/helpers.py points to src/utils/format.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 51
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:52
+      await test.step('And src/namespace_consumer.py points to src/ns_pkg/member.py', async () => {
+        await runAcceptanceStep(context, 'src/namespace_consumer.py points to src/ns_pkg/member.py', {
+          keyword: 'And',
+          text: 'src/namespace_consumer.py points to src/ns_pkg/member.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 52
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -7357,10 +8087,10 @@ test.describe('Ruby Example', () => {
       });
 
       // tests/acceptance/specs/ruby-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 15
         });
@@ -7503,6 +8233,46 @@ test.describe('Ruby Example', () => {
           text: 'lib/app/runner.rb points to lib/base/base_runner.rb',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 32
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:34
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:35
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:36
+      await test.step('Then I can see there are 8 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 8 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:37
+      await test.step('And lib/app/runner.rb points to lib/model/user.rb', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/model/user.rb', {
+          keyword: 'And',
+          text: 'lib/app/runner.rb points to lib/model/user.rb',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 37
         });
       });
 
@@ -7701,6 +8471,56 @@ test.describe('Rust Example', () => {
         });
       });
 
+      // tests/acceptance/specs/rust-example.md:27
+      await test.step('Then I toggle the Imports edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Imports edge off',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:28
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:29
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:30
+      await test.step('And src/main.rs points to src/util.rs', async () => {
+        await runAcceptanceStep(context, 'src/main.rs points to src/util.rs', {
+          keyword: 'And',
+          text: 'src/main.rs points to src/util.rs',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:31
+      await test.step('And src/main.rs points to src/inner.rs', async () => {
+        await runAcceptanceStep(context, 'src/main.rs points to src/inner.rs', {
+          keyword: 'And',
+          text: 'src/main.rs points to src/inner.rs',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 31
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -7807,10 +8627,10 @@ test.describe('Scala Example', () => {
       });
 
       // tests/acceptance/specs/scala-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 15
         });
@@ -8013,6 +8833,116 @@ test.describe('Scala Example', () => {
           text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 38
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:40
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:41
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:42
+      await test.step('Then I can see there are 11 nodes and 8 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 8 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 8 connections',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:43
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 43
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:44
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:45
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/app/AppRunner.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/app/AppRunner.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/app/AppRunner.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:46
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:47
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:48
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:49
+      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 49
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:50
+      await test.step('And src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 50
         });
       });
 
@@ -8526,6 +9456,46 @@ test.describe('Svelte Example', () => {
         });
       });
 
+      // tests/acceptance/specs/svelte-example.md:50
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 50
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:51
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 51
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:52
+      await test.step('Then I can see there are 13 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 13 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 52
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:53
+      await test.step('And src/App.svelte points to src/loadFeature.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.svelte points to src/loadFeature.ts', {
+          keyword: 'And',
+          text: 'src/App.svelte points to src/loadFeature.ts',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 53
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -8632,10 +9602,10 @@ test.describe('Swift Example', () => {
       });
 
       // tests/acceptance/specs/swift-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 15
         });
@@ -8718,6 +9688,36 @@ test.describe('Swift Example', () => {
           text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 25
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:27
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:28
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:29
+      await test.step('Then I can see there are 6 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 0 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 0 connections',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 29
         });
       });
 
@@ -9146,6 +10146,86 @@ test.describe('TypeScript Example', () => {
         });
       });
 
+      // tests/acceptance/specs/typescript-example.md:53
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 53
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:54
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 54
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:55
+      await test.step('Then I can see there are 14 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 14 nodes and 5 connections',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 55
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:56
+      await test.step('And src/index.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/index.ts points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/index.ts points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 56
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:57
+      await test.step('And src/index.ts points to src/utils.ts', async () => {
+        await runAcceptanceStep(context, 'src/index.ts points to src/utils.ts', {
+          keyword: 'And',
+          text: 'src/index.ts points to src/utils.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 57
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:58
+      await test.step('And src/utils.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/utils.ts points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/utils.ts points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 58
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:59
+      await test.step('And src/utils.ts points to src/depth.ts', async () => {
+        await runAcceptanceStep(context, 'src/utils.ts points to src/depth.ts', {
+          keyword: 'And',
+          text: 'src/utils.ts points to src/depth.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 59
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:60
+      await test.step('And src/depth.ts points to src/leaf.ts', async () => {
+        await runAcceptanceStep(context, 'src/depth.ts points to src/leaf.ts', {
+          keyword: 'And',
+          text: 'src/depth.ts points to src/leaf.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 60
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -9508,6 +10588,56 @@ test.describe('Vue Example', () => {
           text: 'src/types.ts points to src/inheritance.ts',
           sourcePath: 'tests/acceptance/specs/vue-example.md',
           line: 45
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:47
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:48
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:49
+      await test.step('Then I can see there are 16 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 49
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:50
+      await test.step('And src/App.vue points to src/composables/useCounter.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/composables/useCounter.ts', {
+          keyword: 'And',
+          text: 'src/App.vue points to src/composables/useCounter.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 50
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:51
+      await test.step('And src/components/CounterPanel.vue points to src/composables/useCounter.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/composables/useCounter.ts', {
+          keyword: 'And',
+          text: 'src/components/CounterPanel.vue points to src/composables/useCounter.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 51
         });
       });
 

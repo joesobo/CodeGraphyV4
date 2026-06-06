@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-ruby worksp
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, References, Inherits
+Then the available edge types are Imports, References, Calls, Inherits
 And I close the Graph Scope
 
 When I toggle the Imports edge on
@@ -30,3 +30,8 @@ Then I toggle the Imports edge off
 And I toggle the Inherits edge on
 Then I can see there are 8 nodes and 1 connections
 And lib/app/runner.rb points to lib/base/base_runner.rb
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 8 nodes and 1 connection
+And lib/app/runner.rb points to lib/model/user.rb

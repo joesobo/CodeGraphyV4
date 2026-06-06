@@ -46,3 +46,8 @@ Then I toggle the Type Imports edge off
 And I toggle the Inherits edge on
 Then I can see there are 13 nodes and 1 connections
 And src/types.ts points to src/inheritance.ts
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 13 nodes and 1 connection
+And src/App.svelte points to src/loadFeature.ts

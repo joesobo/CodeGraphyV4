@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-scala works
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, References, Inherits
+Then the available edge types are Imports, References, Calls, Inherits
 And I close the Graph Scope
 
 When I toggle the Imports edge on
@@ -36,3 +36,15 @@ Then I toggle the Imports edge off
 And I toggle the Inherits edge on
 Then I can see there are 11 nodes and 1 connections
 And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 11 nodes and 8 connections
+And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala
+And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala
+And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/app/AppRunner.scala
+And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala
+And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala
+And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala
+And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala
+And src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala
