@@ -11,7 +11,9 @@ import {
 
 describe('shared/graphControls/defaults/nodeTypes', () => {
   it('declares the core graph node defaults', () => {
-    expect(createCoreGraphNodeTypes()).toEqual([
+    const nodeTypes = createCoreGraphNodeTypes();
+
+    expect(nodeTypes).toMatchObject([
       {
         id: 'file',
         label: 'File',
@@ -106,6 +108,11 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolFilePath: '**/*.gd',
       },
     ]);
+    expect(nodeTypes.every((nodeType) => nodeType.description?.description)).toBe(true);
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'file')?.description?.examples?.[0]?.code)
+      .toBe('src/components/Button.tsx');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:function')?.description?.examples?.[0]?.code)
+      .toBe('function parseSettings() {}');
     expect(CORE_GRAPH_NODE_TYPES).toEqual(createCoreGraphNodeTypes());
   });
 });

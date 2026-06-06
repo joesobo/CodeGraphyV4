@@ -30,6 +30,10 @@ describe('createTypeScriptPlugin', () => {
         label: 'TypeScript Alias Import',
         defaultColor: '#38BDF8',
         defaultVisible: true,
+        description: {
+          description: 'Shows imports resolved through TypeScript path aliases instead of relative paths.',
+          examples: [{ code: 'import { thing } from "@/module";' }],
+        },
       },
     ]);
     expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([

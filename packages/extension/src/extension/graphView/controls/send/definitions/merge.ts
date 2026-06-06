@@ -80,6 +80,7 @@ export function mergeEdgeTypes(
         label: definition.label,
         defaultColor: definition.defaultColor,
         defaultVisible: definition.defaultVisible,
+        description: definition.description,
       });
     }
   }

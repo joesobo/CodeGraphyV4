@@ -26,6 +26,10 @@ _Avoid_: Vertex, dot, point
 The category that describes what kind of thing a node represents, such as file, folder, package, or a plugin-defined type.
 _Avoid_: Legend entry, node style
 
+**Node Type Definition**:
+The shared description of a **Node Type**, including its label, default visibility, visual defaults, and optional user-facing explanation or examples. **Graph Scope**, **Legend**, and plugin contributions consume Node Type Definitions instead of redefining what a Node Type means locally.
+_Avoid_: Graph Scope tooltip source, local node metadata, UI-only node description
+
 **File Node**:
 A node representing a concrete file in the workspace or selected graph revision.
 _Avoid_: Folder node, package node
@@ -79,6 +83,10 @@ _Avoid_: Edge source when referring to Relationship provenance
 **Applicable Edge Type Capability Provider**:
 An enabled Edge Type Capability Provider whose language, file, or project matcher applies to the current CodeGraphy Workspace. Graph Scope should use Applicable providers when deciding which Edge Type Capabilities to show.
 _Avoid_: Installed provider when enablement and workspace applicability have not both been checked
+
+**Edge Type Definition**:
+The shared description of an **Edge Type**, including its label, default visibility, visual defaults, and optional user-facing explanation or examples. **Graph Scope**, **Legend**, and plugin contributions consume Edge Type Definitions instead of redefining what an Edge Type means locally.
+_Avoid_: Graph Scope tooltip source, local edge metadata, UI-only edge description
 
 **Edge Direction**:
 The source-to-target orientation of an edge, where the source node initiates the relationship and the target node is the thing being used, referenced, tested, or contained.
