@@ -34,5 +34,5 @@ Then I can see there are 6 nodes and 1 connections
 And src/app.cpp points to src/lib/widget.hpp
 
 Then I toggle the Overrides edge on
-Then I can see there are 8 nodes and 2 connections
+Then I can see there are 6 nodes and 2 connections
 And src/app.cpp has 2 edges pointing to src/lib/widget.hpp
