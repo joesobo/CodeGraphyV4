@@ -8,12 +8,14 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import {
+  addCallRelation,
   addInheritRelation,
   addOverrideRelation,
   createSymbolId,
   normalizeAnalysisResult,
 } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import type { ImportedBinding } from '../analyze/model';
 import { handleCInclude } from '../analyzeCFamily/includes';
 import { handleCFamilySymbol } from '../analyzeCFamily/symbols';
 import {
@@ -55,7 +57,7 @@ export function analyzeCppFile(
   walkTree(tree.rootNode, {}, (node) =>
     visitCppNode(node, filePath, workspaceRoot, relations, symbols, symbolsEnabled),
   );
-  addCppInheritanceRelations(tree.rootNode, filePath, relations, symbolsEnabled);
+  addCppSemanticRelations(tree.rootNode, filePath, relations, symbolsEnabled);
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
@@ -65,7 +67,7 @@ interface CppIncludedDeclarations {
   typePathByName: ReadonlyMap<string, string | null>;
 }
 
-function addCppInheritanceRelations(
+function addCppSemanticRelations(
   rootNode: Parser.SyntaxNode,
   filePath: string,
   relations: IAnalysisRelation[],
@@ -74,6 +76,11 @@ function addCppInheritanceRelations(
   const includedDeclarations = readCppIncludedDeclarations(relations);
 
   walkTree(rootNode, {}, (node) => {
+    if (node.type === 'call_expression') {
+      addCppCallRelation(node, filePath, relations, includedDeclarations, symbolsEnabled);
+      return;
+    }
+
     if (!CPP_TYPE_NODE_TYPES.has(node.type)) {
       return;
     }
@@ -81,6 +88,31 @@ function addCppInheritanceRelations(
     addCppTypeRelations(node, filePath, relations, includedDeclarations, symbolsEnabled);
     return { skipChildren: true };
   });
+}
+
+function addCppCallRelation(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  includedDeclarations: CppIncludedDeclarations,
+  symbolsEnabled: boolean,
+): void {
+  const calleeName = readCppCallName(node);
+  if (!calleeName) {
+    return;
+  }
+
+  const targetPath = resolveCppCallPath(includedDeclarations, calleeName);
+  if (!targetPath) {
+    return;
+  }
+
+  addCallRelation(
+    relations,
+    filePath,
+    createCppCallBinding(calleeName, targetPath),
+    symbolsEnabled ? readCppEnclosingFunctionSymbolId(node, filePath) : undefined,
+  );
 }
 
 function readCppIncludedDeclarations(relations: readonly IAnalysisRelation[]): CppIncludedDeclarations {
@@ -215,6 +247,50 @@ function readCppOverrideMethodNames(typeNode: Parser.SyntaxNode): string[] {
   return methodNames;
 }
 
+function readCppCallName(callExpression: Parser.SyntaxNode): string | null {
+  const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
+  if (!calleeNode) {
+    return null;
+  }
+
+  if (calleeNode.type === 'field_expression') {
+    return readCppDeclaratorName(
+      calleeNode.childForFieldName('field')
+        ?? calleeNode.namedChildren.find((child) => child.type === 'field_identifier'),
+    );
+  }
+
+  return readCppDeclaratorName(calleeNode) ?? readCppTypeName(calleeNode);
+}
+
+function readCppEnclosingFunctionSymbolId(node: Parser.SyntaxNode, filePath: string): string | undefined {
+  let current: Parser.SyntaxNode | null = node.parent;
+  while (current) {
+    if (current.type === 'function_definition') {
+      const functionName = readCppDeclaratorName(current.childForFieldName('declarator') ?? undefined);
+      if (!functionName) {
+        return undefined;
+      }
+
+      const symbolKind = isCppMethodDefinition(current) ? 'method' : 'function';
+      return createSymbolId(filePath, symbolKind, functionName);
+    }
+
+    current = current.parent;
+  }
+
+  return undefined;
+}
+
+function isCppMethodDefinition(functionDefinition: Parser.SyntaxNode): boolean {
+  if (functionDefinition.parent && CPP_TYPE_NODE_TYPES.has(functionDefinition.parent.type)) {
+    return true;
+  }
+
+  const declaratorName = functionDefinition.childForFieldName('declarator')?.text ?? '';
+  return declaratorName.includes('::');
+}
+
 function readCppTypeName(node: Parser.SyntaxNode): string | null {
   if (node.type === 'template_type') {
     return readCppTypeName(node.childForFieldName('name') ?? node.namedChildren[0]);
@@ -267,4 +343,28 @@ function resolveCppOverridePath(
 
   return inheritedTypePaths.find((inheritedTypePath): inheritedTypePath is string => Boolean(inheritedTypePath))
     ?? includedDeclarations.fallbackPath;
+}
+
+function resolveCppCallPath(
+  includedDeclarations: CppIncludedDeclarations,
+  calleeName: string,
+): string | null {
+  const methodPath = includedDeclarations.methodPathByName.get(calleeName);
+  if (methodPath) {
+    return methodPath;
+  }
+
+  const typePath = includedDeclarations.typePathByName.get(calleeName);
+  return typePath ?? null;
+}
+
+function createCppCallBinding(calleeName: string, targetPath: string): ImportedBinding {
+  return {
+    specifier: calleeName,
+    resolvedPath: targetPath,
+    bindingKind: 'named',
+    importedName: calleeName,
+    localName: calleeName,
+    memberName: calleeName,
+  };
 }

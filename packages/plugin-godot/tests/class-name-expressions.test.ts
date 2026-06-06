@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   matchStaticAccess,
+  matchStaticCall,
   matchIsAs,
   matchGenerics,
 } from '../src/sources/class-name-expressions';
@@ -32,6 +33,20 @@ describe('matchStaticAccess', () => {
 
   it('should return empty when there is no dot access', () => {
     const result = matchStaticAccess('var x = Player');
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('matchStaticCall', () => {
+  it('should match uppercase class before static method call', () => {
+    const result = matchStaticCall('MathHelpers.random_point_in_circle(16.0)');
+
+    expect(result).toEqual(['MathHelpers']);
+  });
+
+  it('should ignore static property access without a call', () => {
+    const result = matchStaticCall('MathHelpers.DEFAULT_RADIUS');
 
     expect(result).toEqual([]);
   });

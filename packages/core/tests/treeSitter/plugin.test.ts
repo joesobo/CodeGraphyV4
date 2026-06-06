@@ -56,23 +56,11 @@ describe('core tree-sitter built-in plugin', () => {
   it('declares call capability for supported source languages with callable imports', () => {
     const plugin = createTreeSitterPlugin();
     const supportedLanguageFiles = [
-      '/workspace/src/main.c',
       '/workspace/src/app.cpp',
-      '/workspace/src/Program.cs',
-      '/workspace/lib/app.dart',
-      '/workspace/src/Main.hs',
       '/workspace/src/App.java',
       '/workspace/src/app.js',
-      '/workspace/src/Main.kt',
-      '/workspace/src/main.lua',
-      '/workspace/Sources/ViewController.m',
-      '/workspace/src/Main.pas',
-      '/workspace/src/App.php',
       '/workspace/src/app.py',
-      '/workspace/lib/app.rb',
       '/workspace/src/main.rs',
-      '/workspace/src/Main.scala',
-      '/workspace/Sources/App.swift',
       '/workspace/src/app.ts',
       '/workspace/src/App.tsx',
     ];

@@ -17,7 +17,7 @@ When I toggle the References edge on
 Then I see edges
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are References, Inherits, Loads
+Then the available edge types are References, Calls, Inherits, Loads
 And I close the Graph Scope
 
 And I can see there are 19 nodes and 6 connections
@@ -29,6 +29,11 @@ And .gitignore is an orphan node
 And .vscode/settings.json is an orphan node
 
 Then I toggle the Reference edge off
+And I toggle the Calls edge on
+Then I can see there are 19 nodes and 1 connections
+And scripts/enemy.gd points to scripts/utils/math_helpers.gd
+
+Then I toggle the Calls edge off
 And I toggle the Loads edge on
 Then I can see there are 19 nodes and 22 connections
 And project.godot points to scenes/main.tscn

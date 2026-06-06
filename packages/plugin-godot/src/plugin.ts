@@ -59,7 +59,7 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly sources = manifest.sources;
 
   contributeEdgeTypeCapabilities(): GraphEdgeKind[] {
-    return ['load', 'inherit', 'reference'];
+    return ['call', 'load', 'inherit', 'reference'];
   }
 
   private projectRoots = new Set<string>();
