@@ -101,4 +101,38 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       expect.objectContaining({ filePath: appPath, kind: 'function', name: 'boot' }),
     ]));
   });
+
+  it('extracts Kotlin calls to top-level functions in the same package', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/main/kotlin/com/example/app/AppRunner.kt': [
+        'package com.example.app',
+        'fun boot(): String = "ready"',
+        '',
+      ].join('\n'),
+    });
+    const mainPath = path.join(workspaceRoot, 'src/main/kotlin/com/example/app/Main.kt');
+    const source = [
+      'package com.example.app',
+      '',
+      'fun main() {',
+      '  boot()',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        pluginId: 'codegraphy.treesitter',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'boot',
+        fromFilePath: mainPath,
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/app/AppRunner.kt'),
+        toFilePath: path.join(workspaceRoot, 'src/main/kotlin/com/example/app/AppRunner.kt'),
+      }),
+    ]));
+  });
 });
