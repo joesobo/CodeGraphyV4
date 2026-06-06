@@ -40,3 +40,13 @@ Then I toggle the Imports edge off
 And I toggle the Inherits edge on
 Then I can see there are 16 nodes and 1 connections
 And src/services/api.py points to src/services/base.py
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 16 nodes and 6 connections
+And src/main.py points to src/config.py
+And src/main.py points to src/services/api.py
+And src/main.py points to src/utils/helpers.py
+And src/services/api.py points to src/utils/helpers.py
+And src/utils/helpers.py points to src/utils/format.py
+And src/namespace_consumer.py points to src/ns_pkg/member.py

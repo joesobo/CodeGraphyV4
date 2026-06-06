@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-csharp work
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, References, Inherits
+Then the available edge types are Imports, References, Calls, Inherits
 And I close the Graph Scope
 
 When I toggle the Imports edge on
@@ -40,3 +40,12 @@ And I toggle the Inherits edge on
 Then I can see there are 11 nodes and 2 connections
 And src/Services/ApiService.cs points to src/Services/BaseService.cs
 And src/Services/ApiService.cs points to src/Contracts/IRunner.cs
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 11 nodes and 5 connections
+And src/Program.cs points to src/Config.cs
+And src/Program.cs points to src/Services/ApiService.cs
+And src/Program.cs points to src/Utils/Helpers.cs
+And src/Services/ApiService.cs points to src/Services/BaseService.cs
+And src/Utils/Helpers.cs points to src/Utils/Formatter.cs

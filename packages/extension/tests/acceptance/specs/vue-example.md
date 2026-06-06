@@ -43,3 +43,9 @@ Then I toggle the Type Imports edge off
 And I toggle the Inherits edge on
 Then I can see there are 16 nodes and 1 connections
 And src/types.ts points to src/inheritance.ts
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 16 nodes and 2 connections
+And src/App.vue points to src/composables/useCounter.ts
+And src/components/CounterPanel.vue points to src/composables/useCounter.ts

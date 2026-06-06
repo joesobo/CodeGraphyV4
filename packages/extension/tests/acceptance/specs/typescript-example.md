@@ -49,3 +49,12 @@ And I toggle the Inherits edge on
 Then I can see there are 14 nodes and 2 connections
 And src/runner.ts points to src/baseRunner.ts
 And src/runner.ts points to src/runnableThing.ts
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 14 nodes and 5 connections
+And src/index.ts points to src/types.ts
+And src/index.ts points to src/utils.ts
+And src/utils.ts points to src/types.ts
+And src/utils.ts points to src/depth.ts
+And src/depth.ts points to src/leaf.ts

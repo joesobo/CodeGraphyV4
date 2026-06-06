@@ -26,3 +26,8 @@ And I toggle the Inherits edge on
 Then I can see there are 6 nodes and 2 connections
 And src/com/example/app/App.java points to src/com/example/app/BaseService.java
 And src/com/example/app/App.java points to src/com/example/app/RunnableThing.java
+
+Then I toggle the Inherits edge off
+And I toggle the Calls edge on
+Then I can see there are 6 nodes and 1 connection
+And src/com/example/app/App.java points to src/com/example/app/Helper.java
