@@ -25,9 +25,7 @@ export default function GraphScopePanel({
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
-  const edgeTypesAvailable = useGraphStore(
-    (state) => state.graphHasIndex && state.graphIndexFreshness === 'fresh',
-  );
+  const edgeTypesAvailable = useGraphStore((state) => state.graphHasIndex);
   const edgeColors = useMemo(
     () => resolveEdgeTypeColors(edgeTypes, legends),
     [edgeTypes, legends],
