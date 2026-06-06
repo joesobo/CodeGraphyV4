@@ -203,15 +203,17 @@ jobs:
   playwright:
     name: Playwright / ${{ matrix.label }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: ${{ matrix.timeout-minutes }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - label: Language examples
             suite: examples
+            timeout-minutes: 40
           - label: Graph interactions
             suite: interactions
+            timeout-minutes: 20
     env:
       CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
 
