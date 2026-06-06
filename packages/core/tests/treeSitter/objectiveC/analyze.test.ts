@@ -119,4 +119,94 @@ describe('treeSitter/analyzeObjectiveC', () => {
       expect.objectContaining({ filePath, kind: 'method', name: 'renderProfile' }),
     ]));
   });
+
+  it('extracts Objective-C call relationships from imported class and typed receiver messages', async () => {
+    const workspaceRoot = await createWorkspace({
+      'Sources/Data/SessionStore.h': [
+        '@interface SessionStore : NSObject',
+        '+ (instancetype)demoStore;',
+        '@end',
+      ].join('\n'),
+      'Sources/Feature/UserCardView.h': [
+        '@interface UserCardView : NSObject',
+        '- (void)renderProfile:(id)profile;',
+        '@end',
+      ].join('\n'),
+      'Sources/Models/UserProfile.h': [
+        '@interface UserProfile : NSObject',
+        '@end',
+      ].join('\n'),
+    });
+    const filePath = path.join(workspaceRoot, 'Sources/Controllers/DashboardController.m');
+    const source = [
+      '#import "../Data/SessionStore.h"',
+      '#import "../Feature/UserCardView.h"',
+      '#import "../Models/UserProfile.h"',
+      '',
+      '@interface DashboardController ()',
+      '@property(nonatomic, strong) SessionStore *store;',
+      '@property(nonatomic, strong) UserCardView *cardView;',
+      '@end',
+      '',
+      '@implementation DashboardController',
+      '- (void)load {',
+      '  SessionStore *store = [SessionStore demoStore];',
+      '  UserProfile *profile = [self.store currentUser];',
+      '  _cardView = [UserCardView new];',
+      '  [self.cardView renderProfile:profile];',
+      '  [store currentUser];',
+      '}',
+      '@end',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'SessionStore',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Data/SessionStore.h'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'UserCardView',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Feature/UserCardView.h'),
+      }),
+    ]));
+  });
+
+  it('extracts Objective-C call relationships from nested allocation messages', async () => {
+    const workspaceRoot = await createWorkspace({
+      'Sources/Models/UserProfile.h': [
+        '@interface UserProfile : NSObject',
+        '- (instancetype)initWithName:(NSString *)name role:(NSString *)role;',
+        '@end',
+      ].join('\n'),
+    });
+    const filePath = path.join(workspaceRoot, 'Sources/Data/SessionStore.m');
+    const source = [
+      '#import "../Models/UserProfile.h"',
+      '@implementation SessionStore',
+      '- (UserProfile *)currentUser {',
+      '  return [[UserProfile alloc] initWithName:@"Ada" role:@"Graph Explorer"];',
+      '}',
+      '@end',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'UserProfile',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Models/UserProfile.h'),
+      }),
+    ]));
+  });
 });
