@@ -44,6 +44,10 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
       '    def run(user)',
       '      user.name',
       '    end',
+      '',
+      '    def call(user = User.new)',
+      '      run(user)',
+      '    end',
       '  end',
       'end',
       '',
@@ -83,6 +87,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
         toFilePath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        pluginId: 'codegraphy.treesitter',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: '../model/user',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:method:call`,
+        resolvedPath: path.join(workspaceRoot, 'lib/model/user.rb'),
+        toFilePath: path.join(workspaceRoot, 'lib/model/user.rb'),
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
