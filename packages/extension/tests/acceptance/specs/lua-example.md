@@ -9,6 +9,11 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-lua workspace
 
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References
+And I close the Graph Scope
+
 Then I can see there are 6 nodes and 2 connections
 And main.lua points to app/runner.lua
 And app/runner.lua points to app/model/user.lua

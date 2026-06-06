@@ -9,6 +9,11 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References, Calls, Re-exports, Type imports
+And I close the Graph Scope
+
 Then I can see there are 11 nodes and 5 connections
 And src/index.ts points to src/types.ts
 And src/index.ts points to src/utils.ts
@@ -26,5 +31,11 @@ When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the TypeScript/JavaScript plugin on
 Then I can see there are 11 nodes and 6 connections
+
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References, Calls, Re-exports, Type imports, TypeScript Alias Import
+And I close the Graph Scope
+
 And I see src/index.ts points to src/alias/greeting.ts
 And src/alias/greeting.ts is no longer an orphan node
