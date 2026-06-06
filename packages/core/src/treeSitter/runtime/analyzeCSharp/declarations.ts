@@ -5,7 +5,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import type { CSharpWalkState } from './model';
 import type { TreeWalkAction } from '../analyze/model';
-import { getCSharpTypeDeclarationKind, resolveCSharpUsingImport } from './resolution';
+import { getCSharpTypeDeclarationKind, resolveCSharpUsingType } from './resolution';
 import { getIdentifierText } from '../analyze/nodes';
 import { addInheritRelation, createSymbol } from '../analyze/results';
 
@@ -19,35 +19,42 @@ export function handleCSharpTypeDeclaration(
   usingNamespaces: ReadonlySet<string>,
   importTargetsByNamespace: Map<string, Set<string>>,
   symbolsEnabled: boolean,
-): void {
+): string[] {
   const name = getIdentifierText(node.childForFieldName('name'));
   if (name && symbolsEnabled) {
     symbols.push(createSymbol(filePath, getCSharpTypeDeclarationKind(node), name, node));
   }
 
   if (node.type === 'enum_declaration') {
-    return;
+    return [];
   }
 
+  const resolvedBaseTypePaths: string[] = [];
   for (const baseType of node.descendantsOfType(['identifier', 'qualified_name'])) {
     if (baseType.parent?.type !== 'base_list') {
       continue;
+    }
+
+    const resolvedType = resolveCSharpUsingType(
+      workspaceRoot,
+      filePath,
+      usingNamespaces,
+      importTargetsByNamespace,
+      baseType.text,
+      state.currentNamespace,
+    );
+    if (resolvedType?.kind === 'class') {
+      resolvedBaseTypePaths.push(resolvedType.filePath);
     }
 
     addInheritRelation(
       relations,
       filePath,
       baseType.text,
-      resolveCSharpUsingImport(
-        workspaceRoot,
-        filePath,
-        usingNamespaces,
-        importTargetsByNamespace,
-        baseType.text,
-        state.currentNamespace,
-      ),
+      resolvedType?.filePath ?? null,
     );
   }
+  return resolvedBaseTypePaths;
 }
 
 export function handleCSharpMethodDeclaration(

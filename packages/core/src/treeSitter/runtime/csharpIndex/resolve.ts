@@ -1,12 +1,13 @@
 import { getCSharpWorkspaceIndex } from './store';
+import type { CSharpIndexedType } from './store';
 
-export function resolveCSharpTypePath(
+export function resolveCSharpType(
   workspaceRoot: string,
   filePath: string,
   typeName: string,
   currentNamespace: string | null,
   usingNamespaces: readonly string[],
-): string | null {
+): CSharpIndexedType | null {
   const index = getCSharpWorkspaceIndex(workspaceRoot);
   if (!index) {
     return null;
@@ -26,18 +27,34 @@ export function resolveCSharpTypePath(
       continue;
     }
 
-    return match.filePath;
+    return match;
   }
 
   return null;
 }
 
-export function resolveCSharpTypePathInNamespace(
+export function resolveCSharpTypePath(
+  workspaceRoot: string,
+  filePath: string,
+  typeName: string,
+  currentNamespace: string | null,
+  usingNamespaces: readonly string[],
+): string | null {
+  return resolveCSharpType(
+    workspaceRoot,
+    filePath,
+    typeName,
+    currentNamespace,
+    usingNamespaces,
+  )?.filePath ?? null;
+}
+
+export function resolveCSharpTypeInNamespace(
   workspaceRoot: string,
   filePath: string,
   namespaceName: string,
   typeName: string,
-): string | null {
+): CSharpIndexedType | null {
   const index = getCSharpWorkspaceIndex(workspaceRoot);
   if (!index) {
     return null;
@@ -48,5 +65,19 @@ export function resolveCSharpTypePathInNamespace(
     return null;
   }
 
-  return match.filePath;
+  return match;
+}
+
+export function resolveCSharpTypePathInNamespace(
+  workspaceRoot: string,
+  filePath: string,
+  namespaceName: string,
+  typeName: string,
+): string | null {
+  return resolveCSharpTypeInNamespace(
+    workspaceRoot,
+    filePath,
+    namespaceName,
+    typeName,
+  )?.filePath ?? null;
 }
