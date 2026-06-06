@@ -65,8 +65,10 @@ describe('treeSitter/analyzeLua/symbols', () => {
 
     expect(handleLuaFunctionDeclaration(node('function_declaration', 'function run', [
       node('identifier', 'run'),
-    ]), '/workspace/app.lua', symbols as never)).toEqual({ skipChildren: true });
-    expect(handleLuaFunctionDeclaration(node('function_declaration'), '/workspace/app.lua', symbols as never)).toEqual({ skipChildren: true });
+    ]), '/workspace/app.lua', symbols as never)).toEqual({
+      nextContext: { currentSymbolId: '/workspace/app.lua:function:run' },
+    });
+    expect(handleLuaFunctionDeclaration(node('function_declaration'), '/workspace/app.lua', symbols as never)).toBeUndefined();
 
     expect(symbols).toEqual([
       expect.objectContaining({ filePath: '/workspace/app.lua', kind: 'function', name: 'run' }),
