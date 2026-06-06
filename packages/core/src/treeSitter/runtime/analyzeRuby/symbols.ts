@@ -69,11 +69,14 @@ export function handleRubyMethod(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
-): TreeWalkAction<SymbolWalkState> {
+): TreeWalkAction<SymbolWalkState> | void {
   const name = node.childForFieldName('name')?.text;
   if (name) {
-    symbols.push(createSymbol(filePath, isInsideRubyClass(node) ? 'method' : 'function', name, node));
+    const kind = isInsideRubyClass(node) ? 'method' : 'function';
+    const symbol = createSymbol(filePath, kind, name, node);
+    symbols.push(symbol);
+    return { nextContext: { currentSymbolId: symbol.id } };
   }
 
-  return { skipChildren: true };
+  return;
 }
