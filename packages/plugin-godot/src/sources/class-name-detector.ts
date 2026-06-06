@@ -6,7 +6,7 @@
 
 import type { IGDScriptReference } from '../parser';
 import { matchExtendsClass, matchTypeAnnotations, matchReturnType } from './class-name-declarations';
-import { matchStaticAccess, matchIsAs, matchGenerics } from './class-name-expressions';
+import { matchStaticAccess, matchStaticCall, matchIsAs, matchGenerics } from './class-name-expressions';
 
 /**
  * Detect potential class_name usages in a single line.
@@ -17,12 +17,12 @@ export function detectUsagesInLine(line: string, lineNumber = 0): IGDScriptRefer
 	const references: IGDScriptReference[] = [];
 	const seen = new Set<string>();
 
-	const push = (name: string) => {
+	const push = (name: string, referenceType: IGDScriptReference['referenceType'] = 'class_name_usage') => {
 		if (!seen.has(name)) {
 			seen.add(name);
 			references.push({
 				resPath: name,
-				referenceType: 'class_name_usage',
+				referenceType,
 				importType: 'static',
 				line: lineNumber,
 				isDeclaration: false,
@@ -40,6 +40,7 @@ export function detectUsagesInLine(line: string, lineNumber = 0): IGDScriptRefer
 	const returnType = matchReturnType(line);
 	if (returnType) push(returnType);
 
+	for (const name of matchStaticCall(line)) push(name, 'class_name_static_call');
 	for (const name of matchStaticAccess(line)) push(name);
 	for (const name of matchIsAs(line)) push(name);
 	for (const name of matchGenerics(line)) push(name);

@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-haskell wor
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, References, Calls
+Then the available edge types are Imports, References
 And I close the Graph Scope
 
 When I toggle the Imports edge on

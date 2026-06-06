@@ -37,6 +37,8 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         '  virtual void render();',
         '};',
         '',
+        'Widget make_widget();',
+        '',
       ].join('\n'),
     });
     const appPath = path.join(workspaceRoot, 'src/app.cpp');
@@ -53,6 +55,8 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       '',
       'int boot() {',
       '  Runner runner;',
+      '  Widget widget = make_widget();',
+      '  widget.render();',
       '  runner.run();',
       '  return 0;',
       '}',
@@ -102,12 +106,67 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
         toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
       }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'make_widget',
+        fromFilePath: appPath,
+        fromSymbolId: `${appPath}:function:boot`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'render',
+        fromFilePath: appPath,
+        fromSymbolId: `${appPath}:function:boot`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ filePath: appPath, kind: 'namespace', name: 'app' }),
       expect.objectContaining({ filePath: appPath, kind: 'class', name: 'Runner' }),
       expect.objectContaining({ filePath: appPath, kind: 'method', name: 'run' }),
       expect.objectContaining({ filePath: appPath, kind: 'function', name: 'boot' }),
+    ]));
+  });
+
+  it('extracts C++ calls from implementation files to included declarations', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/lib/widget.hpp': [
+        '#pragma once',
+        'class Widget {',
+        'public:',
+        '  Widget();',
+        '  virtual void render();',
+        '};',
+        '',
+      ].join('\n'),
+    });
+    const widgetPath = path.join(workspaceRoot, 'src/lib/widget.cpp');
+    const source = [
+      '#include "widget.hpp"',
+      '',
+      'Widget make_widget() {',
+      '  return Widget();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(widgetPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'Widget',
+        fromFilePath: widgetPath,
+        fromSymbolId: `${widgetPath}:function:make_widget`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
     ]));
   });
 

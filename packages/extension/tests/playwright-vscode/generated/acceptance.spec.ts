@@ -238,10 +238,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:14
-      await test.step('Then the available edge types are Imports, References, Calls', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 14
         });
@@ -662,6 +662,66 @@ test.describe('C++ Example', () => {
         });
       });
 
+      // tests/acceptance/specs/cpp-example.md:45
+      await test.step('Then I toggle the Inherits edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Inherits edge off',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:46
+      await test.step('And I toggle the Overrides edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Overrides edge off', {
+          keyword: 'And',
+          text: 'I toggle the Overrides edge off',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:47
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:48
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:49
+      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/app.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 49
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:50
+      await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 50
+        });
+      });
+
     } finally {
       await context.cleanup?.();
     }
@@ -768,10 +828,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 15
         });
@@ -1113,10 +1173,10 @@ test.describe('Dart Example', () => {
       });
 
       // tests/acceptance/specs/dart-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 15
         });
@@ -2788,10 +2848,10 @@ test.describe('Godot Example', () => {
       });
 
       // tests/acceptance/specs/godot-example.md:20
-      await test.step('Then the available edge types are References, Inherits, Loads', async () => {
-        await runAcceptanceStep(context, 'the available edge types are References, Inherits, Loads', {
+      await test.step('Then the available edge types are References, Calls, Inherits, Loads', async () => {
+        await runAcceptanceStep(context, 'the available edge types are References, Calls, Inherits, Loads', {
           keyword: 'Then',
-          text: 'the available edge types are References, Inherits, Loads',
+          text: 'the available edge types are References, Calls, Inherits, Loads',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 20
         });
@@ -2878,82 +2938,122 @@ test.describe('Godot Example', () => {
       });
 
       // tests/acceptance/specs/godot-example.md:32
-      await test.step('And I toggle the Loads edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Loads edge on', {
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
           keyword: 'And',
-          text: 'I toggle the Loads edge on',
+          text: 'I toggle the Calls edge on',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 32
         });
       });
 
       // tests/acceptance/specs/godot-example.md:33
-      await test.step('Then I can see there are 19 nodes and 22 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 19 nodes and 22 connections', {
+      await test.step('Then I can see there are 19 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 19 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 19 nodes and 22 connections',
+          text: 'I can see there are 19 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 33
         });
       });
 
       // tests/acceptance/specs/godot-example.md:34
-      await test.step('And project.godot points to scenes/main.tscn', async () => {
-        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
+      await test.step('And scripts/enemy.gd points to scripts/utils/math_helpers.gd', async () => {
+        await runAcceptanceStep(context, 'scripts/enemy.gd points to scripts/utils/math_helpers.gd', {
           keyword: 'And',
-          text: 'project.godot points to scenes/main.tscn',
+          text: 'scripts/enemy.gd points to scripts/utils/math_helpers.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 34
         });
       });
 
-      // tests/acceptance/specs/godot-example.md:35
-      await test.step('And project.godot points to scripts/game_manager.gd', async () => {
-        await runAcceptanceStep(context, 'project.godot points to scripts/game_manager.gd', {
-          keyword: 'And',
-          text: 'project.godot points to scripts/game_manager.gd',
+      // tests/acceptance/specs/godot-example.md:36
+      await test.step('Then I toggle the Calls edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Calls edge off',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 35
+          line: 36
         });
       });
 
       // tests/acceptance/specs/godot-example.md:37
-      await test.step('Then I toggle the Loads edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Loads edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Loads edge off',
+      await test.step('And I toggle the Loads edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Loads edge on', {
+          keyword: 'And',
+          text: 'I toggle the Loads edge on',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 37
         });
       });
 
       // tests/acceptance/specs/godot-example.md:38
-      await test.step('And I toggle the Inherits edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
-          keyword: 'And',
-          text: 'I toggle the Inherits edge on',
+      await test.step('Then I can see there are 19 nodes and 22 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 19 nodes and 22 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 19 nodes and 22 connections',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 38
         });
       });
 
       // tests/acceptance/specs/godot-example.md:39
-      await test.step('Then I can see there are 19 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 19 nodes and 1 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 19 nodes and 1 connections',
+      await test.step('And project.godot points to scenes/main.tscn', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
+          keyword: 'And',
+          text: 'project.godot points to scenes/main.tscn',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 39
         });
       });
 
       // tests/acceptance/specs/godot-example.md:40
+      await test.step('And project.godot points to scripts/game_manager.gd', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scripts/game_manager.gd', {
+          keyword: 'And',
+          text: 'project.godot points to scripts/game_manager.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:42
+      await test.step('Then I toggle the Loads edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Loads edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Loads edge off',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:43
+      await test.step('And I toggle the Inherits edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+          keyword: 'And',
+          text: 'I toggle the Inherits edge on',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 43
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:44
+      await test.step('Then I can see there are 19 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 19 nodes and 1 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 19 nodes and 1 connections',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:45
       await test.step('And scripts/enemy.gd points to scripts/base/entity.gd', async () => {
         await runAcceptanceStep(context, 'scripts/enemy.gd points to scripts/base/entity.gd', {
           keyword: 'And',
           text: 'scripts/enemy.gd points to scripts/base/entity.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 40
+          line: 45
         });
       });
 
@@ -4652,10 +4752,10 @@ test.describe('Haskell Example', () => {
       });
 
       // tests/acceptance/specs/haskell-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 15
         });
@@ -5197,10 +5297,10 @@ test.describe('Kotlin Example', () => {
       });
 
       // tests/acceptance/specs/kotlin-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 15
         });
@@ -5472,10 +5572,10 @@ test.describe('Lua Example', () => {
       });
 
       // tests/acceptance/specs/lua-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
+      await test.step('Then the available edge types are Imports, References', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls',
+          text: 'the available edge types are Imports, References',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 15
         });
@@ -6027,10 +6127,10 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 15
         });
@@ -6252,10 +6352,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 15
         });
@@ -6647,10 +6747,10 @@ test.describe('PHP Example', () => {
       });
 
       // tests/acceptance/specs/php-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 15
         });
@@ -7257,10 +7357,10 @@ test.describe('Ruby Example', () => {
       });
 
       // tests/acceptance/specs/ruby-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 15
         });
@@ -7707,10 +7807,10 @@ test.describe('Scala Example', () => {
       });
 
       // tests/acceptance/specs/scala-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 15
         });
@@ -8532,10 +8632,10 @@ test.describe('Swift Example', () => {
       });
 
       // tests/acceptance/specs/swift-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Inherits',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 15
         });
