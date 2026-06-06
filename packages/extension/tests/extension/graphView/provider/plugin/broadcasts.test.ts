@@ -167,8 +167,19 @@ describe('graphView/provider/plugin/broadcasts', () => {
     );
   });
 
-  it('sends graph controls and plugin exporters through the provider bridge', () => {
-    const source = createPluginSource();
+  it('sends graph controls from the raw workspace graph before view narrowing', () => {
+    const rawGraphData = {
+      nodes: [{ id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' }],
+      edges: [],
+    };
+    const visibleGraphData = {
+      nodes: [{ id: 'src/focused.ts', label: 'Focused', color: '#222222', nodeType: 'file' }],
+      edges: [],
+    };
+    const source = createPluginSource({
+      _rawGraphData: rawGraphData,
+      _graphData: visibleGraphData,
+    });
     const sendGraphControlsUpdatedSpy = vi
       .spyOn(controlsSendModule, 'sendGraphControlsUpdated')
       .mockImplementation((_graphData, _analyzer, sendMessage) => {
@@ -198,7 +209,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
     methods._sendPluginExporters();
 
     expect(sendGraphControlsUpdatedSpy).toHaveBeenCalledWith(
-      source._graphData,
+      source._rawGraphData,
       source._analyzer,
       expect.any(Function),
       expect.any(Object),

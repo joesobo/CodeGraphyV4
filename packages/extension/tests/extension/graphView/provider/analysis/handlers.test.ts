@@ -116,7 +116,7 @@ describe('graphView/provider/analysis/handlers', () => {
       payload: graphData,
     });
     expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
-      graphData,
+      source._rawGraphData,
       source._analyzer,
       expect.any(Function),
     );

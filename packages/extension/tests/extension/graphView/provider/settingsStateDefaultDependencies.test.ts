@@ -89,6 +89,7 @@ function createSource(
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
     _analyzer: undefined,
@@ -104,6 +105,7 @@ function createSource(
   }
 
   source._graphData ??= { nodes: [], edges: [] } satisfies IGraphData;
+  source._rawGraphData ??= { nodes: [], edges: [] } satisfies IGraphData;
   source._disabledPlugins ??= new Set<string>();
 
   return source;
