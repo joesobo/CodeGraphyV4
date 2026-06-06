@@ -107,6 +107,140 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('hides symbol nodes that are disconnected after edge scope is applied', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/widget.cpp'),
+					node('include/base.h'),
+					symbolNode('src/widget.cpp#Widget:class', {
+						id: 'src/widget.cpp#Widget:class',
+						name: 'Widget',
+						kind: 'class',
+						filePath: 'src/widget.cpp',
+					}),
+					symbolNode('include/base.h#Base:class', {
+						id: 'include/base.h#Base:class',
+						name: 'Base',
+						kind: 'class',
+						filePath: 'include/base.h',
+					}),
+				],
+				edges: [
+					edge('src/widget.cpp', 'include/base.h', 'import'),
+					edge('src/widget.cpp', 'src/widget.cpp#Widget:class', 'contains'),
+					edge('include/base.h', 'include/base.h#Base:class', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:class', enabled: true },
+				],
+				edges: [
+					{ type: 'import', enabled: true },
+					{ type: 'contains', enabled: false },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/widget.cpp', 'include/base.h'],
+			edges: ['src/widget.cpp->include/base.h#import'],
+		});
+	});
+
+	it('removes duplicate file edges when an equivalent symbol relation edge is visible', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/runner.cpp'),
+					node('src/base.hpp'),
+					symbolNode('src/runner.cpp#Runner:class', {
+						id: 'src/runner.cpp#Runner:class',
+						name: 'Runner',
+						kind: 'class',
+						filePath: 'src/runner.cpp',
+					}),
+					symbolNode('src/base.hpp#Base:class', {
+						id: 'src/base.hpp#Base:class',
+						name: 'Base',
+						kind: 'class',
+						filePath: 'src/base.hpp',
+					}),
+				],
+				edges: [
+					edge('src/runner.cpp', 'src/base.hpp', 'inherit'),
+					edge('src/runner.cpp', 'src/base.hpp#Base:class', 'inherit'),
+					edge('src/runner.cpp#Runner:class', 'src/base.hpp#Base:class', 'inherit'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:class', enabled: true },
+				],
+				edges: [
+					{ type: 'inherit', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'src/runner.cpp',
+				'src/base.hpp',
+				'src/runner.cpp#Runner:class',
+				'src/base.hpp#Base:class',
+			],
+			edges: ['src/runner.cpp#Runner:class->src/base.hpp#Base:class#inherit'],
+		});
+	});
+
+	it('keeps one visible edge for repeated edges with the same identity', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					symbolNode('src/app.py#process_data:function', {
+						id: 'src/app.py#process_data:function',
+						name: 'process_data',
+						kind: 'function',
+						filePath: 'src/app.py',
+					}),
+					symbolNode('src/format.py#format_output:function', {
+						id: 'src/format.py#format_output:function',
+						name: 'format_output',
+						kind: 'function',
+						filePath: 'src/format.py',
+					}),
+				],
+				edges: [
+					edge('src/app.py#process_data:function', 'src/format.py#format_output:function', 'call'),
+					edge('src/app.py#process_data:function', 'src/format.py#format_output:function', 'call'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:function', enabled: true },
+				],
+				edges: [
+					{ type: 'call', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'src/app.py#process_data:function',
+				'src/format.py#format_output:function',
+			],
+			edges: ['src/app.py#process_data:function->src/format.py#format_output:function#call'],
+		});
+	});
+
 	it('uses the most specific plugin symbol rule before a general symbol kind rule', () => {
 		const result = applyGraphScope(
 			{

@@ -40,10 +40,14 @@ type JavaScriptNodeVisitor = (
 ) => TreeWalkAction<SymbolWalkState> | void;
 
 const handleTypeDeclarationNode: JavaScriptNodeVisitor = (node, context) => {
-  if (!context.symbolsEnabled) {
-    return;
-  }
-  handleJavaScriptTypeDeclaration(node, context.filePath, context.symbols);
+  handleJavaScriptTypeDeclaration(
+    node,
+    context.filePath,
+    context.relations,
+    context.symbols,
+    context.importedBindings,
+    context.symbolsEnabled,
+  );
 };
 
 const JAVASCRIPT_NODE_VISITORS: Record<string, JavaScriptNodeVisitor> = {
@@ -57,10 +61,14 @@ const JAVASCRIPT_NODE_VISITORS: Record<string, JavaScriptNodeVisitor> = {
     );
   },
   class_declaration: (node, context) => {
-    if (!context.symbolsEnabled) {
-      return;
-    }
-    handleJavaScriptClassDeclaration(node, context.filePath, context.symbols);
+    handleJavaScriptClassDeclaration(
+      node,
+      context.filePath,
+      context.relations,
+      context.symbols,
+      context.importedBindings,
+      context.symbolsEnabled,
+    );
   },
   enum_declaration: handleTypeDeclarationNode,
   export_statement: (node, context) => {

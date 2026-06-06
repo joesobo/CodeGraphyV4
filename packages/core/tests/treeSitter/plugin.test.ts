@@ -37,7 +37,6 @@ describe('core tree-sitter built-in plugin', () => {
       'import',
       'reference',
       'call',
-      'reexport',
       'type-import',
       'inherit',
     ]);
@@ -49,7 +48,6 @@ describe('core tree-sitter built-in plugin', () => {
     })).toEqual([
       'import',
       'call',
-      'reexport',
       'type-import',
     ]);
     expect(plugin.contributeEdgeTypeCapabilities?.({

@@ -135,6 +135,124 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('removes symbol nodes that are disconnected after edge type filtering', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.cpp'),
+        node('src/widget.hpp'),
+        node('src/app.cpp#Runner:class', 'symbol', symbol({
+          id: 'src/app.cpp:class:Runner',
+          kind: 'class',
+          name: 'Runner',
+        })),
+      ],
+      edges: [
+        edge('src/app.cpp', 'src/widget.hpp', 'import'),
+        edge('src/app.cpp', 'src/app.cpp#Runner:class', 'contains'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:class', enabled: true },
+      ],
+      edges: [
+        { type: 'import', enabled: true },
+        { type: 'contains', enabled: false },
+      ],
+    })).toEqual({
+      nodes: [
+        node('src/app.cpp'),
+        node('src/widget.hpp'),
+      ],
+      edges: [
+        edge('src/app.cpp', 'src/widget.hpp', 'import'),
+      ],
+    });
+  });
+
+  it('removes duplicate file edges when an equivalent symbol relation edge is visible', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/runner.cpp'),
+        node('src/base.hpp'),
+        node('src/runner.cpp#Runner:class', 'symbol', symbol({
+          id: 'src/runner.cpp:class:Runner',
+          filePath: 'src/runner.cpp',
+          kind: 'class',
+          name: 'Runner',
+        })),
+        node('src/base.hpp#Base:class', 'symbol', symbol({
+          id: 'src/base.hpp:class:Base',
+          filePath: 'src/base.hpp',
+          kind: 'class',
+          name: 'Base',
+        })),
+      ],
+      edges: [
+        edge('src/runner.cpp', 'src/base.hpp', 'inherit'),
+        edge('src/runner.cpp', 'src/base.hpp#Base:class', 'inherit'),
+        edge('src/runner.cpp#Runner:class', 'src/base.hpp#Base:class', 'inherit'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:class', enabled: true },
+      ],
+      edges: [
+        { type: 'inherit', enabled: true },
+      ],
+    })).toEqual({
+      nodes: graphData.nodes,
+      edges: [
+        edge('src/runner.cpp#Runner:class', 'src/base.hpp#Base:class', 'inherit'),
+      ],
+    });
+  });
+
+  it('keeps one visible edge for repeated edges with the same identity', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.py#process_data:function', 'symbol', symbol({
+          id: 'src/app.py:function:process_data',
+          filePath: 'src/app.py',
+          kind: 'function',
+          name: 'process_data',
+        })),
+        node('src/format.py#format_output:function', 'symbol', symbol({
+          id: 'src/format.py:function:format_output',
+          filePath: 'src/format.py',
+          kind: 'function',
+          name: 'format_output',
+        })),
+      ],
+      edges: [
+        edge('src/app.py#process_data:function', 'src/format.py#format_output:function', 'call'),
+        edge('src/app.py#process_data:function', 'src/format.py#format_output:function', 'call'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:function', enabled: true },
+      ],
+      edges: [
+        { type: 'call', enabled: true },
+      ],
+    })).toEqual({
+      nodes: graphData.nodes,
+      edges: [
+        edge('src/app.py#process_data:function', 'src/format.py#format_output:function', 'call'),
+      ],
+    });
+  });
+
   it('disables variable nodes whenever the symbol root is disabled', () => {
     expect(getDisabledNodeTypes(scopeConfig([
       { type: 'symbol', enabled: false },

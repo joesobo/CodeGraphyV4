@@ -46,6 +46,7 @@ describe('treeSitter/analyzePhp/symbols', () => {
       new Map([
         ['BaseRunner', { specifier: 'BaseRunner', resolvedPath: '/workspace/BaseRunner.php' }],
       ]) as never,
+      true,
     );
 
     expect(symbols).toEqual([
@@ -69,7 +70,7 @@ describe('treeSitter/analyzePhp/symbols', () => {
     const symbols: unknown[] = [];
     const relations: unknown[] = [];
 
-    handlePhpTypeDeclaration(node('class_declaration'), '/workspace/Runner.php', null, null, relations as never, symbols as never, new Map());
+    handlePhpTypeDeclaration(node('class_declaration'), '/workspace/Runner.php', null, null, relations as never, symbols as never, new Map(), true);
     handlePhpFunctionDefinition(node('function_definition'), '/workspace/Runner.php', symbols as never);
     handlePhpMethodDeclaration(node('method_declaration'), '/workspace/Runner.php', symbols as never);
 

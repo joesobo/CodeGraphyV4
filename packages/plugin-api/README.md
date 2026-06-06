@@ -49,7 +49,7 @@ Exact merge behavior:
 
 - `nodeTypes`, `edgeTypes`, `nodes`, `symbols`: merge by `id`
 - `relations`: merge by relationship identity
-  - imports/reexports/loads/inherits override by shared source identity
+  - imports/loads/inherits override by shared source identity
   - distinct call/reference targets coexist
 
 Edge Type definitions and capabilities are separate. Use `contributeEdgeTypes()` when a plugin owns a new Edge Type's label, color, and default visibility. Use `contributeEdgeTypeCapabilities(context)` to declare which core or plugin-owned Edge Types are relevant when the plugin is applicable to the indexed workspace. The `context.filePaths` array contains indexed workspace files that made the plugin applicable, so multi-language plugins can return a precise union instead of one broad package-level list. Capability declarations are not emitted relationships; they only let Graph Scope present the right toggles before matching edges exist.

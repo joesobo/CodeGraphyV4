@@ -130,7 +130,7 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(files).toContain('.gitignore');
   });
 
-  it('exposes Svelte type import edges from the copied example settings', () => {
+  it('keeps Svelte type import edges disabled until the spec toggles them on', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
@@ -141,7 +141,7 @@ describe('acceptance graph view workspace fixtures', () => {
       edgeVisibility?: Record<string, boolean>;
     };
 
-    expect(settings.edgeVisibility?.['type-import']).toBe(true);
+    expect(settings.edgeVisibility?.['type-import']).toBe(false);
   });
 
   it('copies Vue active plugins and filters from the example settings', () => {
@@ -257,8 +257,9 @@ describe('acceptance graph view workspace fixtures', () => {
 
     expect(files).toContain('src/App.vue');
     expect(files).toContain('src/components/LazyProfilePanel.vue');
+    expect(files).toContain('src/inheritance.ts');
     expect(files).not.toContain('src/vue.d.ts');
-    expect(files).toHaveLength(15);
+    expect(files).toHaveLength(16);
   });
 
   it('rewrites markdown example links for the copied workspace root', () => {

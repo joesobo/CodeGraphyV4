@@ -39,15 +39,6 @@ function isSymbolDependentNodeType(nodeType: string): boolean {
     || (nodeType.startsWith('plugin:') && nodeType.includes(':symbol:'));
 }
 
-async function enableSymbolContainsEdges(
-  handlers: GraphViewSettingsMessageHandlers,
-): Promise<void> {
-  await handlers.updateConfig('edgeVisibility', {
-    ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
-    contains: true,
-  });
-}
-
 async function applySymbolVisibilityUpdate(
   visible: boolean,
   handlers: GraphViewSettingsMessageHandlers,
@@ -61,10 +52,6 @@ async function applySymbolVisibilityUpdate(
   };
 
   await handlers.updateConfig('nodeVisibility', nodeVisibility);
-
-  if (visible) {
-    await enableSymbolContainsEdges(handlers);
-  }
 
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
@@ -97,7 +84,6 @@ async function applySymbolDependentVisibilityUpdate(
   };
 
   await handlers.updateConfig('nodeVisibility', nodeVisibility);
-  await enableSymbolContainsEdges(handlers);
 
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
