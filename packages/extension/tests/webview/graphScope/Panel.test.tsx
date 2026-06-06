@@ -22,10 +22,13 @@ function setStoreState() {
     graphEdgeTypes: [
       { id: 'import', label: 'Imports', defaultColor: '#333333', defaultVisible: true },
       { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
+      { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
     ],
     nodeColors: { file: '#555555' },
     nodeVisibility: { folder: true },
     edgeVisibility: { reference: false },
+    graphHasIndex: true,
+    graphIndexFreshness: 'fresh',
     legends: [],
   });
 }
@@ -107,6 +110,47 @@ describe('GraphScopePanel', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
+    });
+  });
+
+  it('keeps edge types unavailable until the graph index is fresh', () => {
+    graphStore.setState({
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeDisabled();
+
+    fireEvent.click(edgeTypesButton);
+
+    expect(screen.getByRole('button', { name: 'Node Types' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
+  });
+
+  it('hides the Nests edge toggle when folder nodes are disabled', () => {
+    graphStore.setState({ nodeVisibility: { folder: false } });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
+
+    expect(screen.queryByText('Nests')).not.toBeInTheDocument();
+  });
+
+  it('shows the Nests edge toggle with its saved state when folder nodes are enabled', () => {
+    graphStore.setState({
+      nodeVisibility: { folder: true },
+      edgeVisibility: { nests: false },
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
+    fireEvent.click(screen.getByLabelText('Toggle Nests'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_EDGE_VISIBILITY',
+      payload: { edgeKind: 'nests', visible: true },
     });
   });
 

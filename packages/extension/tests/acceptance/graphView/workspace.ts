@@ -17,6 +17,8 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 ]);
 
 interface CopyExampleWorkspaceOptions {
+  includeImportEdges?: boolean;
+  includeNestsEdges?: boolean;
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
   pluginPackages?: string[];
@@ -81,7 +83,9 @@ export function copyExampleWorkspace(
 }
 
 function hasAcceptanceSettingsOverrides(options: CopyExampleWorkspaceOptions): boolean {
-  return options.includeTypeImportEdges !== undefined
+  return options.includeImportEdges !== undefined
+    || options.includeNestsEdges !== undefined
+    || options.includeTypeImportEdges !== undefined
     || options.pluginPackages !== undefined;
 }
 
@@ -154,8 +158,8 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
       .map(pluginPackage => ({ package: pluginPackage })),
     filterPatterns: [],
     edgeVisibility: {
-      nests: false,
-      import: true,
+      nests: options.includeNestsEdges ?? false,
+      import: options.includeImportEdges ?? true,
       'type-import': options.includeTypeImportEdges ?? false,
       reexport: false,
       call: false,

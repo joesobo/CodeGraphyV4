@@ -1,9 +1,5 @@
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../graph/contracts';
-import {
-  getNearestWorkspacePackageRoot,
-} from '../../graphControls/packages/roots';
-import { getWorkspacePackageNodeId } from '../../graphControls/packages/workspace';
-import { isFileNode, STRUCTURAL_NESTS_EDGE_KIND } from '../model';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../model';
 import type { StructuralProjectionOptions } from './options';
 
 export function createStructuralEdge(from: string, to: string): IGraphEdge {
@@ -37,30 +33,9 @@ export function buildContainmentEdges(
   return edges;
 }
 
-export function buildWorkspacePackageEdges(
-  packageRoots: ReadonlySet<string>,
-  nodes: readonly IGraphNode[],
-): IGraphData['edges'] {
-  const edges: IGraphData['edges'] = [];
-
-  for (const node of nodes) {
-    if (!isFileNode(node)) {
-      continue;
-    }
-
-    const packageRoot = getNearestWorkspacePackageRoot(node.id, packageRoots);
-    if (packageRoot) {
-      edges.push(createStructuralEdge(getWorkspacePackageNodeId(packageRoot), node.id));
-    }
-  }
-
-  return edges;
-}
-
 export function buildProjectedStructuralEdges(
   options: StructuralProjectionOptions,
   folderPaths: ReadonlySet<string>,
-  packageRoots: ReadonlySet<string>,
   visibleFileNodes: readonly IGraphNode[],
 ): IGraphData['edges'] {
   if (!options.nestsEnabled) {
@@ -69,7 +44,6 @@ export function buildProjectedStructuralEdges(
 
   return [
     ...(options.folderEnabled ? buildContainmentEdges(folderPaths, visibleFileNodes) : []),
-    ...(options.packageEnabled ? buildWorkspacePackageEdges(packageRoots, visibleFileNodes) : []),
   ];
 }
 

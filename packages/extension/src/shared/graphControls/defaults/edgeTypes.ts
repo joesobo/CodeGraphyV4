@@ -68,9 +68,9 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       id: STRUCTURAL_NESTS_EDGE_KIND,
       label: 'Nests',
       defaultColor: '#64748B',
-      defaultVisible: false,
+      defaultVisible: true,
       description: {
-        description: 'Shows folder or package structure around files and nested folders.',
+        description: 'Shows folder containment around files and nested folders.',
         examples: [{ code: 'src/ contains src/index.ts' }],
       },
     },
