@@ -110,4 +110,53 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       expect.objectContaining({ filePath: appPath, kind: 'function', name: 'boot' }),
     ]));
   });
+
+  it('resolves C++ inheritance and override targets from matching included declarations', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/lib/logger.hpp': [
+        '#pragma once',
+        'class Logger {',
+        'public:',
+        '  void log();',
+        '};',
+        '',
+      ].join('\n'),
+      'src/lib/widget.hpp': [
+        '#pragma once',
+        'class Widget {',
+        'public:',
+        '  virtual void render();',
+        '};',
+        '',
+      ].join('\n'),
+    });
+    const appPath = path.join(workspaceRoot, 'src/app.cpp');
+    const source = [
+      '#include "lib/logger.hpp"',
+      '#include "lib/widget.hpp"',
+      '',
+      'class Runner : public Widget {',
+      'public:',
+      '  void render() override {}',
+      '};',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Widget',
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
+      expect.objectContaining({
+        kind: 'overrides',
+        specifier: 'render',
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
+    ]));
+  });
 });
