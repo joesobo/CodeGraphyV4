@@ -4,10 +4,13 @@ import type {
   IGraphNodeTypeDefinition,
   IGraphTypeDescription,
 } from '../../../shared/graphControls/contracts';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults/edgeTypes';
 import { postMessage } from '../../vscodeApi';
 import { cn } from '../ui/cn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
 import { Switch } from '../ui/switch';
+
+const FOLDER_NODE_TYPE = 'folder';
 
 interface ScopeRowProps {
   color?: string;
@@ -28,6 +31,7 @@ interface EdgeTypeRowsProps {
   edgeColors: Record<string, string>;
   edgeTypes: IGraphEdgeTypeDefinition[];
   edgeVisibility: Record<string, boolean>;
+  nodeVisibility: Record<string, boolean>;
 }
 
 export function resolveScopeRowClassName(enabled: boolean): string {
@@ -168,10 +172,16 @@ export function EdgeTypeRows({
   edgeColors,
   edgeTypes,
   edgeVisibility,
+  nodeVisibility,
 }: EdgeTypeRowsProps): React.ReactElement {
+  const folderNodesEnabled = nodeVisibility[FOLDER_NODE_TYPE] ?? false;
+  const visibleEdgeTypes = folderNodesEnabled
+    ? edgeTypes
+    : edgeTypes.filter((edgeType) => edgeType.id !== STRUCTURAL_NESTS_EDGE_KIND);
+
   return (
     <>
-      {edgeTypes.map((edgeType) => {
+      {visibleEdgeTypes.map((edgeType) => {
         const color = edgeColors[edgeType.id] ?? edgeType.defaultColor;
         const enabled = edgeVisibility[edgeType.id] ?? edgeType.defaultVisible;
 

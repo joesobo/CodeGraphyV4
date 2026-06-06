@@ -82,6 +82,28 @@ describe('acceptance graph view workspace fixtures', () => {
     }));
   });
 
+  it('can start a TypeScript fixture with import edges hidden and nests ready for graph scope scenarios', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleTypescriptWorkspace(tempRoot, {
+      includeImportEdges: false,
+      includeNestsEdges: true,
+      includeTypeImportEdges: true,
+    });
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+    };
+
+    expect(settings.edgeVisibility).toEqual(expect.objectContaining({
+      import: false,
+      nests: true,
+      'type-import': true,
+    }));
+  });
+
   it('keeps Markdown example reference edges visible for the relationships asserted by its spec', () => {
     const sourceSettingsPath = path.resolve(__dirname, '../../../examples/example-markdown/.codegraphy/settings.json');
     const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
