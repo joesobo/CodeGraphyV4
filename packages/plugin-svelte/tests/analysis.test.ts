@@ -110,4 +110,66 @@ describe('Svelte component analysis', () => {
       removeWorkspaceRoot(workspaceRoot);
     }
   });
+
+  it('emits call relationships when Svelte scripts call imported functions', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const source = [
+        '<script context="module" lang="ts">',
+        "import { loadFeature } from './loadFeature';",
+        '</script>',
+        '<script lang="ts">',
+        "import UserCard from './components/UserCard.svelte';",
+        'const feature = loadFeature();',
+        '</script>',
+        '<UserCard />',
+      ].join('\n');
+      const sourcePath = writeWorkspaceFile(workspaceRoot, 'src/App.svelte', source);
+      const loadFeaturePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/loadFeature.ts',
+        'export function loadFeature(): void {}\n',
+      );
+      const userCardPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/components/UserCard.svelte',
+        '<script>export let name;</script>\n',
+      );
+
+      const result = await createSveltePlugin().analyzeFile?.(sourcePath, source, workspaceRoot);
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'import',
+          sourceId: 'svelte-script-import',
+          fromFilePath: sourcePath,
+          toFilePath: loadFeaturePath,
+          resolvedPath: loadFeaturePath,
+          specifier: './loadFeature',
+        },
+        {
+          kind: 'import',
+          sourceId: 'svelte-script-import',
+          fromFilePath: sourcePath,
+          toFilePath: userCardPath,
+          resolvedPath: userCardPath,
+          specifier: './components/UserCard.svelte',
+        },
+        {
+          kind: 'call',
+          sourceId: 'svelte-script-call',
+          fromFilePath: sourcePath,
+          toFilePath: loadFeaturePath,
+          resolvedPath: loadFeaturePath,
+          specifier: './loadFeature',
+          metadata: {
+            importedName: 'loadFeature',
+            localName: 'loadFeature',
+          },
+        },
+      ]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
 });

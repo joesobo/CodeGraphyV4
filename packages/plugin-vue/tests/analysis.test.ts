@@ -148,6 +148,61 @@ describe('Vue SFC analysis', () => {
     }
   });
 
+  it('emits call relationships when Vue scripts call imported composables', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const source = [
+        '<script setup lang="ts">',
+        "import CounterPanel from './components/CounterPanel.vue';",
+        "import { useCounter } from './composables/useCounter';",
+        'const { count } = useCounter(2);',
+        '</script>',
+      ].join('\n');
+      const sourcePath = writeWorkspaceFile(workspaceRoot, 'src/App.vue', source);
+      const counterPanelPath = writeWorkspaceFile(workspaceRoot, 'src/components/CounterPanel.vue', '<template />\n');
+      const counterPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/composables/useCounter.ts',
+        'export function useCounter(): void {}\n',
+      );
+
+      const result = await createVuePlugin().analyzeFile?.(sourcePath, source, workspaceRoot);
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'import',
+          sourceId: 'sfc-script-import',
+          fromFilePath: sourcePath,
+          toFilePath: counterPanelPath,
+          resolvedPath: counterPanelPath,
+          specifier: './components/CounterPanel.vue',
+        },
+        {
+          kind: 'import',
+          sourceId: 'sfc-script-import',
+          fromFilePath: sourcePath,
+          toFilePath: counterPath,
+          resolvedPath: counterPath,
+          specifier: './composables/useCounter',
+        },
+        {
+          kind: 'call',
+          sourceId: 'sfc-script-call',
+          fromFilePath: sourcePath,
+          toFilePath: counterPath,
+          resolvedPath: counterPath,
+          specifier: './composables/useCounter',
+          metadata: {
+            importedName: 'useCounter',
+            localName: 'useCounter',
+          },
+        },
+      ]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
   it('ignores package imports and malformed SFCs instead of emitting unresolved edges', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {

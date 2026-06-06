@@ -1,6 +1,7 @@
 import { parse } from 'svelte/compiler';
 import type { AST } from 'svelte/compiler';
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelation, IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import { extractScriptCalls } from './calls';
 import { extractScriptImports } from './imports';
 import { resolveSvelteScriptImport } from './resolver';
 
@@ -22,25 +23,35 @@ export function analyzeSvelteComponent(filePath: string, content: string): IFile
 
   return {
     filePath,
-    relations: scriptContents
-      .flatMap(scriptContent => extractScriptImports(filePath, scriptContent))
-      .map(scriptImport => ({
-        scriptImport,
-        resolvedPath: resolveSvelteScriptImport(filePath, scriptImport.specifier),
-      }))
-      .filter((relation): relation is {
-        scriptImport: ReturnType<typeof extractScriptImports>[number];
-        resolvedPath: string;
-      } => Boolean(relation.resolvedPath))
-      .map(({ scriptImport, resolvedPath }) => ({
-        kind: scriptImport.kind,
-        sourceId: getSvelteScriptImportSourceId(scriptImport),
-        fromFilePath: filePath,
-        toFilePath: resolvedPath,
-        resolvedPath,
-        specifier: scriptImport.specifier,
-      })),
+    relations: [
+      ...extractSvelteScriptImportRelations(filePath, scriptContents),
+      ...extractScriptCalls(filePath, scriptContents.join('\n')),
+    ],
   };
+}
+
+function extractSvelteScriptImportRelations(
+  filePath: string,
+  scriptContents: string[],
+): IAnalysisRelation[] {
+  return scriptContents
+    .flatMap(scriptContent => extractScriptImports(filePath, scriptContent))
+    .map(scriptImport => ({
+      scriptImport,
+      resolvedPath: resolveSvelteScriptImport(filePath, scriptImport.specifier),
+    }))
+    .filter((relation): relation is {
+      scriptImport: ReturnType<typeof extractScriptImports>[number];
+      resolvedPath: string;
+    } => Boolean(relation.resolvedPath))
+    .map(({ scriptImport, resolvedPath }) => ({
+      kind: scriptImport.kind,
+      sourceId: getSvelteScriptImportSourceId(scriptImport),
+      fromFilePath: filePath,
+      toFilePath: resolvedPath,
+      resolvedPath,
+      specifier: scriptImport.specifier,
+    }));
 }
 
 function parseSvelteComponent(filePath: string, content: string): AST.Root | null {
