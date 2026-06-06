@@ -131,6 +131,25 @@ describe('GraphScopePanel', () => {
     expect(screen.queryByText('Imports')).not.toBeInTheDocument();
   });
 
+  it('returns to node types when the active edge tab becomes unavailable', () => {
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
+    expect(screen.getByText('Imports')).toBeInTheDocument();
+
+    act(() => {
+      graphStore.setState({
+        graphHasIndex: false,
+        graphIndexFreshness: 'missing',
+      });
+    });
+
+    expect(screen.getByRole('button', { name: 'Node Types' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Edge Types' })).toBeDisabled();
+    expect(screen.getByText('File')).toBeInTheDocument();
+    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
+  });
+
   it('enables edge types when the workspace has a stale index', () => {
     graphStore.setState({
       graphHasIndex: true,
