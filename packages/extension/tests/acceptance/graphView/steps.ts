@@ -1302,7 +1302,14 @@ async function setPanelSwitch(
     await switchInRow.click();
   }
 
-  if (!enabled && current !== String(enabled) && !(await switchInRow.isVisible().catch(() => false))) {
+  if (!enabled && current !== String(enabled)) {
+    await expect.poll(async () => {
+      if (!(await switchInRow.isVisible().catch(() => false))) {
+        return String(enabled);
+      }
+
+      return await switchInRow.getAttribute('aria-checked').catch(() => String(enabled));
+    }).toBe(String(enabled));
     return;
   }
 
