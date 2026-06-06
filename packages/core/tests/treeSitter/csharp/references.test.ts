@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
-import { handleCSharpReferenceNode } from '../../../src/treeSitter/runtime/analyzeCSharp/references';
+import {
+  handleCSharpCallNode,
+  handleCSharpReferenceNode,
+} from '../../../src/treeSitter/runtime/analyzeCSharp/references';
 import {
   getCSharpTypeName,
   resolveCSharpUsingImport,
 } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
 import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { addReferenceRelation } from '../../../src/treeSitter/runtime/analyze/results';
+import { addCallRelation, addReferenceRelation } from '../../../src/treeSitter/runtime/analyze/results';
 
 vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeName: vi.fn(),
@@ -18,6 +21,7 @@ vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+  addCallRelation: vi.fn(),
   addReferenceRelation: vi.fn(),
 }));
 
@@ -214,5 +218,108 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
 
     expect(resolveCSharpUsingImport).toHaveBeenCalledTimes(1);
     expect(addReferenceRelation).not.toHaveBeenCalled();
+  });
+
+  it('records C# calls to resolved object creation and static member targets', () => {
+    const objectTypeNode = createNode({ type: 'identifier' });
+    const staticTypeNode = createNode({ type: 'identifier' });
+    vi.mocked(getCSharpTypeName).mockReturnValueOnce('ApiService');
+    vi.mocked(getIdentifierText)
+      .mockReturnValueOnce('Config')
+      .mockReturnValueOnce('LoadConfig');
+    vi.mocked(resolveCSharpUsingImport)
+      .mockReturnValueOnce('/workspace/src/Services/ApiService.cs')
+      .mockReturnValueOnce('/workspace/src/Config.cs');
+
+    handleCSharpCallNode(
+      createNode({
+        type: 'object_creation_expression',
+        fields: { type: objectTypeNode },
+      }) as never,
+      state as never,
+      filePath,
+      workspaceRoot,
+      relations,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+    handleCSharpCallNode(
+      createNode({
+        type: 'invocation_expression',
+        fields: {
+          function: createNode({
+            type: 'member_access_expression',
+            fields: { expression: staticTypeNode },
+            namedChildren: [staticTypeNode, createNode({ type: 'identifier' })],
+          }),
+        },
+      }) as never,
+      state as never,
+      filePath,
+      workspaceRoot,
+      relations,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+
+    expect(addCallRelation).toHaveBeenNthCalledWith(
+      1,
+      relations,
+      filePath,
+      expect.objectContaining({
+        importedName: 'ApiService',
+        localName: 'ApiService',
+        resolvedPath: '/workspace/src/Services/ApiService.cs',
+        specifier: 'ApiService',
+      }),
+      '/workspace/src/App.cs:method:Run',
+    );
+    expect(addCallRelation).toHaveBeenNthCalledWith(
+      2,
+      relations,
+      filePath,
+      expect.objectContaining({
+        importedName: 'Config',
+        localName: 'Config',
+        memberName: 'LoadConfig',
+        resolvedPath: '/workspace/src/Config.cs',
+        specifier: 'Config',
+      }),
+      '/workspace/src/App.cs:method:Run',
+    );
+  });
+
+  it('records C# calls to inherited methods when the containing type has one resolved base type', () => {
+    vi.mocked(getIdentifierText).mockReturnValueOnce('Status');
+
+    handleCSharpCallNode(
+      createNode({
+        type: 'invocation_expression',
+        fields: {
+          function: createNode({ type: 'identifier' }),
+        },
+      }) as never,
+      {
+        ...state,
+        currentBaseTypePaths: ['/workspace/src/Services/BaseService.cs'],
+      },
+      filePath,
+      workspaceRoot,
+      relations,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+
+    expect(addCallRelation).toHaveBeenCalledWith(
+      relations,
+      filePath,
+      expect.objectContaining({
+        importedName: 'Status',
+        localName: 'Status',
+        resolvedPath: '/workspace/src/Services/BaseService.cs',
+        specifier: 'Status',
+      }),
+      '/workspace/src/App.cs:method:Run',
+    );
   });
 });

@@ -33,6 +33,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     const index = createEmptyCSharpIndex();
     index.typesByQualifiedName.set('MyApp.Services.ApiService', {
       filePath: '/workspace/src/Services/ApiService.cs',
+      kind: 'class',
       namespaceName: 'MyApp.Services',
       typeName: 'ApiService',
     });
@@ -74,16 +75,19 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     const index = createEmptyCSharpIndex();
     index.typesByQualifiedName.set('MyApp.Services.ApiService', {
       filePath: '/workspace-using/src/Program.cs',
+      kind: 'class',
       namespaceName: 'MyApp.Services',
       typeName: 'ApiService',
     });
     index.typesByQualifiedName.set('MyApp.Shared.ApiService', {
       filePath: '/workspace-using/src/Shared/ApiService.cs',
+      kind: 'class',
       namespaceName: 'MyApp.Shared',
       typeName: 'ApiService',
     });
     index.typesByQualifiedName.set('ApiService', {
       filePath: '/workspace-using/src/Fallback/ApiService.cs',
+      kind: 'class',
       namespaceName: '',
       typeName: 'ApiService',
     });
@@ -105,6 +109,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     const index = createEmptyCSharpIndex();
     index.typesByQualifiedName.set('ApiService', {
       filePath: '/workspace-fallback/src/Fallback/ApiService.cs',
+      kind: 'class',
       namespaceName: '',
       typeName: 'ApiService',
     });
@@ -126,6 +131,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     const index = createEmptyCSharpIndex();
     index.typesByQualifiedName.set('MyApp.Services.ApiService', {
       filePath: '/workspace-2/src/Services/ApiService.cs',
+      kind: 'class',
       namespaceName: 'MyApp.Services',
       typeName: 'ApiService',
     });
