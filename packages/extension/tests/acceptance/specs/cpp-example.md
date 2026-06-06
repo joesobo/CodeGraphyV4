@@ -41,3 +41,10 @@ And src/app.cpp points to src/lib/widget.hpp
 Then I toggle the Overrides edge on
 Then I can see there are 6 nodes and 2 connections
 And src/app.cpp has 2 edges pointing to src/lib/widget.hpp
+
+Then I toggle the Inherits edge off
+And I toggle the Overrides edge off
+And I toggle the Calls edge on
+Then I can see there are 6 nodes and 2 connections
+And src/app.cpp points to src/lib/widget.hpp
+And src/lib/widget.cpp points to src/lib/widget.hpp
