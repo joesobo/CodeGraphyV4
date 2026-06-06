@@ -25,6 +25,9 @@ export default function GraphScopePanel({
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
+  const edgeTypesAvailable = useGraphStore(
+    (state) => state.graphHasIndex && state.graphIndexFreshness === 'fresh',
+  );
   const edgeColors = useMemo(
     () => resolveEdgeTypeColors(edgeTypes, legends),
     [edgeTypes, legends],
@@ -49,7 +52,11 @@ export default function GraphScopePanel({
             <ScopeTabButton active={activeTab === 'nodes'} onClick={() => setActiveTab('nodes')}>
               Node Types
             </ScopeTabButton>
-            <ScopeTabButton active={activeTab === 'edges'} onClick={() => setActiveTab('edges')}>
+            <ScopeTabButton
+              active={activeTab === 'edges'}
+              disabled={!edgeTypesAvailable}
+              onClick={() => setActiveTab('edges')}
+            >
               Edge Types
             </ScopeTabButton>
           </div>
@@ -65,12 +72,13 @@ export default function GraphScopePanel({
                   nodeVisibility={nodeVisibility}
                 />
               ) : (
-                <EdgeTypeRows
-                  edgeColors={edgeColors}
-                  edgeTypes={edgeTypes}
-                  edgeVisibility={edgeVisibility}
-                />
-              )}
+                  <EdgeTypeRows
+                    edgeColors={edgeColors}
+                    edgeTypes={edgeTypes}
+                    edgeVisibility={edgeVisibility}
+                    nodeVisibility={nodeVisibility}
+                  />
+                )}
             </div>
           </div>
         </ScrollArea>

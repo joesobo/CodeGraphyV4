@@ -117,7 +117,7 @@ describe('extension/graphView/controls/snapshot', () => {
     expect(snapshot.edgeVisibility).toEqual(expect.objectContaining({
       import: true,
       'plugin:route': false,
-      [STRUCTURAL_NESTS_EDGE_KIND]: false,
+      [STRUCTURAL_NESTS_EDGE_KIND]: true,
       'custom:route': true,
     }));
   });
@@ -161,6 +161,6 @@ describe('extension/graphView/controls/snapshot', () => {
     });
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toContain('import');
     expect(snapshot.edgeVisibility.import).toBe(true);
-    expect(snapshot.edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND]).toBe(false);
+    expect(snapshot.edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND]).toBe(true);
   });
 });
