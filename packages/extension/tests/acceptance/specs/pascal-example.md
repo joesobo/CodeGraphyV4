@@ -25,19 +25,19 @@ And src/ReceiptView.pas points to src/OrderModel.pas
 And README.md is an orphan node
 
 Then I toggle the Imports edge off
-Then I show only the File and Class node types
+And I toggle the Class node on
+Then I can see there are 14 nodes and 0 connections
 Then I toggle the Contains edge on
 Then I can see there are 14 nodes and 5 connections
 And src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class
 And src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class
 
 Then I toggle the Contains edge off
+And I toggle the Class node off
 And I toggle the Inherits edge on
-Then I can see there are 10 nodes and 1 connections
-And src/SampleApp.pas points to src/RunnerSupport.pas#TBaseRunner:class
+Then I can see there are 9 nodes and 1 connections
+And src/SampleApp.pas points to src/RunnerSupport.pas
 
-Then I toggle the Inherits edge off
-Then I show only the File and Function node types
 Then I toggle the Overrides edge on
-Then I can see there are 11 nodes and 1 connections
-And src/SampleApp.pas#Start:method points to src/RunnerSupport.pas#Start:method
+Then I can see there are 11 nodes and 2 connections
+And src/SampleApp.pas has 2 edges pointing to src/RunnerSupport.pas

@@ -60,12 +60,11 @@ And src/types.ts points to src/inheritance.ts
 Given I open the examples/example-cpp workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
-When I show only the File and Class node types
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Inherits edge on
 Then the top right of the graph says "1 connection"
-And src/app.cpp#Runner:class points to src/lib/widget.hpp#Widget:class
+And src/app.cpp points to src/lib/widget.hpp
 
 ## Scenario: Loads edges work
 
@@ -112,9 +111,8 @@ And src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class
 Given I open the examples/example-cpp workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
-When I show only the File and Function node types
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Overrides edge on
 Then the top right of the graph says "1 connection"
-And src/app.cpp#render:method points to src/lib/widget.hpp#render:method
+And src/app.cpp points to src/lib/widget.hpp
