@@ -314,11 +314,14 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
 };
 
 const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
-  step(/^I open the examples\/(.+) workspace in VS Code$/, async (context, _step, match) => {
+  step(/^I open the examples\/(.+) workspace in VS Code$/, async (context, step, match) => {
     const exampleName = match[1];
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
+    if (step.sourcePath.endsWith('/svelte-example.md')) {
+      setWorkspaceEdgeVisibility(context.workspacePath, 'type-import', false);
+    }
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
@@ -746,7 +749,6 @@ async function applyExampleScenarioStartingUiState(
       return;
     case 'svelte-example.md':
       await setPluginSwitch(context, 'Svelte', false);
-      await setEdgeTypeSwitch(context, 'Type imports', false);
       return;
     case 'typescript-example.md':
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
@@ -991,6 +993,24 @@ function readWorkspaceFavorites(context: GraphAcceptanceContext): string[] {
   return settings.favorites ?? [];
 }
 
+function setWorkspaceEdgeVisibility(
+  workspacePath: string,
+  edgeKind: string,
+  visible: boolean,
+): void {
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+    edgeVisibility?: Record<string, boolean>;
+  };
+
+  settings.edgeVisibility = {
+    ...settings.edgeVisibility,
+    [edgeKind]: visible,
+  };
+
+  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
 async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
@@ -1000,18 +1020,6 @@ async function setPluginSwitch(
   await clickToolbarButton(frame, 'Plugins');
   await setPanelSwitch(context, label, enabled);
   await waitForIndexingToFinish(context);
-  await closePanelIfOpen(frame);
-}
-
-async function setEdgeTypeSwitch(
-  context: GraphAcceptanceContext,
-  label: string,
-  enabled: boolean,
-): Promise<void> {
-  const frame = requireGraphFrame(context);
-  await frame.getByRole('button', { name: 'Graph Scope' }).click();
-  await frame.getByRole('button', { name: 'Edge Types' }).click();
-  await setPanelSwitch(context, label, enabled);
   await closePanelIfOpen(frame);
 }
 
@@ -1039,6 +1047,11 @@ async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
 
   if (await switchInRow.count()) {
     return switchInRow;
+  }
+
+  const exactSwitch = frame.getByRole('switch', { name: label, exact: true });
+  if (await exactSwitch.count()) {
+    return exactSwitch;
   }
 
   return frame.getByRole('switch', { name: `Toggle ${label}`, exact: true });
