@@ -1303,14 +1303,18 @@ async function setPanelSwitch(
   }
 
   if (!enabled && current !== String(enabled)) {
-    await expect.poll(async () => {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       if (!(await switchInRow.isVisible().catch(() => false))) {
-        return String(enabled);
+        return;
       }
 
-      return await switchInRow.getAttribute('aria-checked').catch(() => String(enabled));
-    }).toBe(String(enabled));
-    return;
+      if (await switchInRow.getAttribute('aria-checked').catch(() => String(enabled)) === String(enabled)) {
+        return;
+      }
+
+      await switchInRow.click();
+      await requireGraphFrame(context).waitForTimeout(150);
+    }
   }
 
   await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
