@@ -114,6 +114,18 @@ async function expectOrphanNode(
   expect(touchingEdges).toEqual([]);
 }
 
+async function countVisibleEdgesBetween(
+  frame: Frame,
+  sourcePath: string,
+  targetPath: string,
+): Promise<number> {
+  return frame.locator('[aria-label^="Graph edge "]').evaluateAll((elements, options) =>
+    elements.filter(element =>
+      element.getAttribute('aria-label') === `Graph edge ${options.sourcePath} to ${options.targetPath}`,
+    ).length,
+  { sourcePath, targetPath });
+}
+
 const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
   'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
@@ -402,6 +414,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expectVisibleEdgeBetween(context, match[1], match[2]);
   }),
 
+  step(/^(.+) has (\d+) edges pointing to (.+)$/, async (context, _step, match) => {
+    const frame = requireGraphFrame(context);
+    const sourcePath = match[1];
+    const expectedCount = Number(match[2]);
+    const targetPath = match[3];
+    await expect.poll(() => countVisibleEdgesBetween(frame, sourcePath, targetPath)).toBe(expectedCount);
+  }),
+
   step(/^(.+) is an orphan node$/, async (context, _step, match) => {
     const frame = requireGraphFrame(context);
     const nodePath = match[1];
@@ -611,6 +631,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I toggle the (.+) edge off$/, async (context, _step, match) => {
     await toggleEdgeTypesOff(context, parseScopeTypeList(match[1]));
+  }),
+
+  step(/^I toggle the (.+) node on$/, async (context, _step, match) => {
+    await toggleNodeTypes(context, parseScopeTypeList(match[1]), true);
+  }),
+
+  step(/^I toggle the (.+) node off$/, async (context, _step, match) => {
+    await toggleNodeTypes(context, parseScopeTypeList(match[1]), false);
   }),
 
   step(/^I show only the (.+) node type$/, async (context, _step, match) => {
@@ -1109,6 +1137,25 @@ async function toggleEdgeTypesOff(
   for (const label of labels) {
     await setPanelSwitch(context, label, false);
   }
+  await closePanelIfOpen(frame);
+}
+
+async function toggleNodeTypes(
+  context: GraphAcceptanceContext,
+  labels: string[],
+  enabled: boolean,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Node Types');
+  const labelsToToggle = new Set(labels.flatMap(label => [
+    label,
+    ...(enabled && CHILD_NODE_TYPE_PARENTS[label] ? [CHILD_NODE_TYPE_PARENTS[label]] : []),
+  ]));
+
+  for (const label of labelsToToggle) {
+    await setPanelSwitch(context, label, enabled);
+  }
+
   await closePanelIfOpen(frame);
 }
 
