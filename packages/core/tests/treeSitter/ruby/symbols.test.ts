@@ -79,10 +79,14 @@ describe('treeSitter/analyzeRuby/symbols', () => {
 
     expect(handleRubyMethod(node('method', 'def run', {
       name: node('identifier', 'run'),
-    }, classNode), '/workspace/app.rb', symbols as never)).toEqual({ skipChildren: true });
+    }, classNode), '/workspace/app.rb', symbols as never)).toEqual({
+      nextContext: { currentSymbolId: '/workspace/app.rb:method:run' },
+    });
     expect(handleRubyMethod(node('method', 'def configure', {
       name: node('identifier', 'configure'),
-    }, singletonClassNode), '/workspace/app.rb', symbols as never)).toEqual({ skipChildren: true });
+    }, singletonClassNode), '/workspace/app.rb', symbols as never)).toEqual({
+      nextContext: { currentSymbolId: '/workspace/app.rb:method:configure' },
+    });
     handleRubyMethod(node('method', 'def boot', {
       name: node('identifier', 'boot'),
     }), '/workspace/app.rb', symbols as never);
