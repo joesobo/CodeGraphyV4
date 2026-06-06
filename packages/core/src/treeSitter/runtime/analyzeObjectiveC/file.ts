@@ -100,7 +100,12 @@ function addObjectiveCMessageCallRelations(
 
     const receiverType = readObjectiveCMessageReceiverType(node, receiverTypes, importedTypePaths);
     const resolvedPath = receiverType ? importedTypePaths.get(receiverType) : undefined;
-    if (!receiverType || !resolvedPath || seen.has(receiverType)) {
+    if (
+      !receiverType
+      || !resolvedPath
+      || seen.has(receiverType)
+      || isObjectiveCImplementationOwnHeaderCall(filePath, receiverType, resolvedPath)
+    ) {
       return;
     }
 
@@ -113,6 +118,15 @@ function addObjectiveCMessageCallRelations(
   });
 }
 
+function isObjectiveCImplementationOwnHeaderCall(
+  filePath: string,
+  receiverType: string,
+  resolvedPath: string,
+): boolean {
+  return path.basename(filePath).replace(/\.[^.]+$/, '') === receiverType
+    && path.basename(resolvedPath).replace(/\.[^.]+$/, '') === receiverType;
+}
+
 function collectObjectiveCReceiverTypes(rootNode: Parser.SyntaxNode): Map<string, string> {
   const receiverTypes = new Map<string, string>();
 
@@ -121,7 +135,7 @@ function collectObjectiveCReceiverTypes(rootNode: Parser.SyntaxNode): Map<string
       return;
     }
 
-    const typeName = node.namedChildren.find(child => child.type === 'type_identifier')?.text;
+    const typeName = findFirstObjectiveCTypeIdentifier(node);
     const variableName = findLastObjectiveCIdentifier(node);
     if (typeName && variableName) {
       receiverTypes.set(variableName, typeName);
@@ -129,6 +143,21 @@ function collectObjectiveCReceiverTypes(rootNode: Parser.SyntaxNode): Map<string
   });
 
   return receiverTypes;
+}
+
+function findFirstObjectiveCTypeIdentifier(node: Parser.SyntaxNode): string | null {
+  if (node.type === 'type_identifier') {
+    return node.text;
+  }
+
+  for (const child of node.namedChildren) {
+    const typeName = findFirstObjectiveCTypeIdentifier(child);
+    if (typeName) {
+      return typeName;
+    }
+  }
+
+  return null;
 }
 
 function readObjectiveCMessageReceiverType(

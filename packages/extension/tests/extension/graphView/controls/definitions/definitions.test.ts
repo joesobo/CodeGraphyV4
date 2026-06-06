@@ -91,4 +91,21 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     expect(prettifyIdentifier).toHaveBeenCalledWith('dynamicImport');
     expect(prettifyIdentifier).toHaveBeenCalledWith('unstyled');
   });
+
+  it('marks inferred overrides edges as requiring inherits visibility', () => {
+    const definitions = mergeEdgeTypes(
+      {
+        nodes: [],
+        edges: [{ id: 'a-b', kind: 'overrides' }],
+      } as never,
+      [],
+    );
+
+    expect(definitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'overrides',
+        requiresEdgeType: 'inherit',
+      }),
+    ]));
+  });
 });
