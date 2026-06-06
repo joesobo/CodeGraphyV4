@@ -1147,9 +1147,13 @@ async function setPluginSwitch(
   enabled: boolean,
 ): Promise<void> {
   const frame = requireGraphFrame(context);
-  if (await findPanelSwitch(frame, normalizePanelLabel(label)).then(switchInRow => switchInRow.count()) === 0) {
+  const normalizedLabel = normalizePanelLabel(label);
+  const switchInOpenPanel = await findPanelSwitch(frame, normalizedLabel);
+  if (!(await switchInOpenPanel.isVisible().catch(() => false))) {
     await clickToolbarButton(frame, 'Plugins');
+    await expect(await findPanelSwitch(frame, normalizedLabel)).toBeVisible({ timeout: 15_000 });
   }
+
   await setPanelSwitch(context, label, enabled);
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
