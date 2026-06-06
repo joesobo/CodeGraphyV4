@@ -238,10 +238,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:14
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 14
         });
@@ -423,10 +423,10 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits, Contains, Overrides', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits, Contains, Overrides', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits, Contains, Overrides', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits, Contains, Overrides', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits, Contains, Overrides',
+          text: 'the available edge types are Imports, References, Calls, Inherits, Contains, Overrides',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 15
         });
@@ -768,10 +768,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 15
         });
@@ -1113,10 +1113,10 @@ test.describe('Dart Example', () => {
       });
 
       // tests/acceptance/specs/dart-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/dart-example.md',
           line: 15
         });
@@ -4652,10 +4652,10 @@ test.describe('Haskell Example', () => {
       });
 
       // tests/acceptance/specs/haskell-example.md:15
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 15
         });
@@ -5197,10 +5197,10 @@ test.describe('Kotlin Example', () => {
       });
 
       // tests/acceptance/specs/kotlin-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/kotlin-example.md',
           line: 15
         });
@@ -5472,10 +5472,10 @@ test.describe('Lua Example', () => {
       });
 
       // tests/acceptance/specs/lua-example.md:15
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls',
           sourcePath: 'tests/acceptance/specs/lua-example.md',
           line: 15
         });
@@ -6027,10 +6027,10 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:15
-      await test.step('Then the available edge types are Imports, References', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 15
         });
@@ -6252,10 +6252,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 15
         });
@@ -6647,10 +6647,10 @@ test.describe('PHP Example', () => {
       });
 
       // tests/acceptance/specs/php-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 15
         });
@@ -7257,10 +7257,10 @@ test.describe('Ruby Example', () => {
       });
 
       // tests/acceptance/specs/ruby-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 15
         });
@@ -7707,10 +7707,10 @@ test.describe('Scala Example', () => {
       });
 
       // tests/acceptance/specs/scala-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 15
         });
@@ -8532,10 +8532,10 @@ test.describe('Swift Example', () => {
       });
 
       // tests/acceptance/specs/swift-example.md:15
-      await test.step('Then the available edge types are Imports, References, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits',
           sourcePath: 'tests/acceptance/specs/swift-example.md',
           line: 15
         });
