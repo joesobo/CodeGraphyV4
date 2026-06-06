@@ -1943,342 +1943,272 @@ test.describe('Folder Context Menu', () => {
       });
 
       // tests/acceptance/specs/folder-context-menu.md:7
-      await test.step('And I have indexed the workspace', async () => {
-        await runAcceptanceStep(context, 'I have indexed the workspace', {
+      await test.step('And I have not yet indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have not yet indexed the workspace', {
           keyword: 'And',
-          text: 'I have indexed the workspace',
+          text: 'I have not yet indexed the workspace',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 7
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:8
-      await test.step('Then I see graph nodes', async () => {
-        await runAcceptanceStep(context, 'I see graph nodes', {
-          keyword: 'Then',
-          text: 'I see graph nodes',
+      await test.step('And I open the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I open the Graph Scope', {
+          keyword: 'And',
+          text: 'I open the Graph Scope',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 8
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:9
-      await test.step('And I see edges', async () => {
-        await runAcceptanceStep(context, 'I see edges', {
-          keyword: 'And',
-          text: 'I see edges',
+      await test.step('Then the Edge Types button is disabled', async () => {
+        await runAcceptanceStep(context, 'the Edge Types button is disabled', {
+          keyword: 'Then',
+          text: 'the Edge Types button is disabled',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 9
         });
       });
 
-      // tests/acceptance/specs/folder-context-menu.md:10
-      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
-        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
-          keyword: 'And',
-          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 10
-        });
-      });
-
       // tests/acceptance/specs/folder-context-menu.md:11
-      await test.step('And I can see there are 11 nodes and 6 connections displayed', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections displayed', {
-          keyword: 'And',
-          text: 'I can see there are 11 nodes and 6 connections displayed',
+      await test.step('When I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'When',
+          text: 'I have indexed the workspace',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 11
         });
       });
 
+      // tests/acceptance/specs/folder-context-menu.md:12
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 12
+        });
+      });
+
       // tests/acceptance/specs/folder-context-menu.md:13
-      await test.step('When I click the Graph Scope button', async () => {
-        await runAcceptanceStep(context, 'I click the Graph Scope button', {
-          keyword: 'When',
-          text: 'I click the Graph Scope button',
+      await test.step('And I do not see edges', async () => {
+        await runAcceptanceStep(context, 'I do not see edges', {
+          keyword: 'And',
+          text: 'I do not see edges',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:14
-      await test.step('And I see to buttons for switching views between node type and edge type toggles', async () => {
-        await runAcceptanceStep(context, 'I see to buttons for switching views between node type and edge type toggles', {
+      await test.step('And I can see there are 11 nodes and 0 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 0 connections displayed', {
           keyword: 'And',
-          text: 'I see to buttons for switching views between node type and edge type toggles',
+          text: 'I can see there are 11 nodes and 0 connections displayed',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:15
-      await test.step('And I select node types', async () => {
-        await runAcceptanceStep(context, 'I select node types', {
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
           keyword: 'And',
-          text: 'I select node types',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:17
-      await test.step('Then I see a list of node types with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of node types with toggles', {
-          keyword: 'Then',
-          text: 'I see a list of node types with toggles',
+      await test.step('When I open the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I open the Graph Scope', {
+          keyword: 'When',
+          text: 'I open the Graph Scope',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:18
-      await test.step('And I toggle the Folder node on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Folder node on', {
-          keyword: 'And',
-          text: 'I toggle the Folder node on',
+      await test.step('Then the Edge Types button is no longer disabled', async () => {
+        await runAcceptanceStep(context, 'the Edge Types button is no longer disabled', {
+          keyword: 'Then',
+          text: 'the Edge Types button is no longer disabled',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:19
-      await test.step('And I close the Graph Scope', async () => {
-        await runAcceptanceStep(context, 'I close the Graph Scope', {
-          keyword: 'And',
-          text: 'I close the Graph Scope',
+      await test.step('Then I toggle the Imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
+          keyword: 'Then',
+          text: 'I toggle the Imports edge on',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 19
         });
       });
 
-      // tests/acceptance/specs/folder-context-menu.md:21
-      await test.step('And I can see there are 14 nodes and 6 connections displayed', async () => {
-        await runAcceptanceStep(context, 'I can see there are 14 nodes and 6 connections displayed', {
+      // tests/acceptance/specs/folder-context-menu.md:20
+      await test.step('And I can see there are 11 nodes and 6 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections displayed', {
           keyword: 'And',
-          text: 'I can see there are 14 nodes and 6 connections displayed',
+          text: 'I can see there are 11 nodes and 6 connections displayed',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 21
+          line: 20
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:22
-      await test.step('And I can see a new "src" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "src" node in the graph', {
-          keyword: 'And',
-          text: 'I can see a new "src" node in the graph',
+      await test.step('Then I toggle the Folder node on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Folder node on', {
+          keyword: 'Then',
+          text: 'I toggle the Folder node on',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:23
-      await test.step('And I can see a new "alias" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "alias" node in the graph', {
+      await test.step('And the Nests edge is toggled on', async () => {
+        await runAcceptanceStep(context, 'the Nests edge is toggled on', {
           keyword: 'And',
-          text: 'I can see a new "alias" node in the graph',
+          text: 'the Nests edge is toggled on',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 23
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:24
-      await test.step('And I can see a new "(root)" node in the graph', async () => {
-        await runAcceptanceStep(context, 'I can see a new "(root)" node in the graph', {
+      await test.step('And I can see there are 14 nodes and 19 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 19 connections displayed', {
           keyword: 'And',
-          text: 'I can see a new "(root)" node in the graph',
+          text: 'I can see there are 14 nodes and 19 connections displayed',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:26
-      await test.step('When I click the Graph Scope button', async () => {
-        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+      await test.step('When I right click one of the folder nodes to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click one of the folder nodes to open its Graph Context Menu', {
           keyword: 'When',
-          text: 'I click the Graph Scope button',
+          text: 'I right click one of the folder nodes to open its Graph Context Menu',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:27
-      await test.step('And I see to buttons for switching views between node type and edge type toggles', async () => {
-        await runAcceptanceStep(context, 'I see to buttons for switching views between node type and edge type toggles', {
+      await test.step('And I see the "New File" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "New File" entry', {
           keyword: 'And',
-          text: 'I see to buttons for switching views between node type and edge type toggles',
+          text: 'I see the "New File" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:28
-      await test.step('And I select edge types', async () => {
-        await runAcceptanceStep(context, 'I select edge types', {
+      await test.step('And I see the "New Folder" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "New Folder" entry', {
           keyword: 'And',
-          text: 'I select edge types',
+          text: 'I see the "New Folder" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 28
         });
       });
 
+      // tests/acceptance/specs/folder-context-menu.md:29
+      await test.step('And I see the "Reveal in explorer" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Reveal in explorer" entry', {
+          keyword: 'And',
+          text: 'I see the "Reveal in explorer" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 29
+        });
+      });
+
       // tests/acceptance/specs/folder-context-menu.md:30
-      await test.step('Then I see a list of edge types with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
-          keyword: 'Then',
-          text: 'I see a list of edge types with toggles',
+      await test.step('And I see the "Copy Relative Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Relative Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Relative Path" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 30
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:31
-      await test.step('And I toggle the Nests edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Nests edge on', {
+      await test.step('And I see the "Copy Absolute Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Absolute Path" entry', {
           keyword: 'And',
-          text: 'I toggle the Nests edge on',
+          text: 'I see the "Copy Absolute Path" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 31
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:32
-      await test.step('And I close the Graph Scope', async () => {
-        await runAcceptanceStep(context, 'I close the Graph Scope', {
+      await test.step('And I see the "Add to Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add to Favorites" entry', {
           keyword: 'And',
-          text: 'I close the Graph Scope',
+          text: 'I see the "Add to Favorites" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 32
         });
       });
 
-      // tests/acceptance/specs/folder-context-menu.md:34
-      await test.step('And I can see there are 14 nodes and 19 connections displayed', async () => {
-        await runAcceptanceStep(context, 'I can see there are 14 nodes and 19 connections displayed', {
+      // tests/acceptance/specs/folder-context-menu.md:33
+      await test.step('And I see the "Focus Node" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Focus Node" entry', {
           keyword: 'And',
-          text: 'I can see there are 14 nodes and 19 connections displayed',
+          text: 'I see the "Focus Node" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:34
+      await test.step('And I see the "Add Filter Pattern" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Filter Pattern" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Filter Pattern" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 34
         });
       });
 
+      // tests/acceptance/specs/folder-context-menu.md:35
+      await test.step('And I see the "Add Legend Group" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Legend Group" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Legend Group" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 35
+        });
+      });
+
       // tests/acceptance/specs/folder-context-menu.md:36
-      await test.step('When I right click one of the folder nodes to open its Graph Context Menu', async () => {
-        await runAcceptanceStep(context, 'I right click one of the folder nodes to open its Graph Context Menu', {
-          keyword: 'When',
-          text: 'I right click one of the folder nodes to open its Graph Context Menu',
+      await test.step('And I see the "Rename Folder" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Rename Folder" entry', {
+          keyword: 'And',
+          text: 'I see the "Rename Folder" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
           line: 36
         });
       });
 
       // tests/acceptance/specs/folder-context-menu.md:37
-      await test.step('And I see the "New File" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "New File" entry', {
-          keyword: 'And',
-          text: 'I see the "New File" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 37
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:38
-      await test.step('And I see the "New Folder" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "New Folder" entry', {
-          keyword: 'And',
-          text: 'I see the "New Folder" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 38
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:39
-      await test.step('And I see the "Reveal in explorer" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Reveal in explorer" entry', {
-          keyword: 'And',
-          text: 'I see the "Reveal in explorer" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 39
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:40
-      await test.step('And I see the "Copy Relative Path" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Copy Relative Path" entry', {
-          keyword: 'And',
-          text: 'I see the "Copy Relative Path" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 40
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:41
-      await test.step('And I see the "Copy Absolute Path" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Copy Absolute Path" entry', {
-          keyword: 'And',
-          text: 'I see the "Copy Absolute Path" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 41
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:42
-      await test.step('And I see the "Add to Favorites" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Add to Favorites" entry', {
-          keyword: 'And',
-          text: 'I see the "Add to Favorites" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 42
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:43
-      await test.step('And I see the "Focus Node" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Focus Node" entry', {
-          keyword: 'And',
-          text: 'I see the "Focus Node" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 43
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:44
-      await test.step('And I see the "Add Filter Pattern" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Add Filter Pattern" entry', {
-          keyword: 'And',
-          text: 'I see the "Add Filter Pattern" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 44
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:45
-      await test.step('And I see the "Add Legend Group" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Add Legend Group" entry', {
-          keyword: 'And',
-          text: 'I see the "Add Legend Group" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 45
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:46
-      await test.step('And I see the "Rename Folder" entry', async () => {
-        await runAcceptanceStep(context, 'I see the "Rename Folder" entry', {
-          keyword: 'And',
-          text: 'I see the "Rename Folder" entry',
-          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 46
-        });
-      });
-
-      // tests/acceptance/specs/folder-context-menu.md:47
       await test.step('And I see the "Delete Folder" entry', async () => {
         await runAcceptanceStep(context, 'I see the "Delete Folder" entry', {
           keyword: 'And',
           text: 'I see the "Delete Folder" entry',
           sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
-          line: 47
+          line: 37
         });
       });
 
