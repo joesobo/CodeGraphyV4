@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
-import type Parser from 'tree-sitter';
+import CppLanguage from 'tree-sitter-cpp';
+import Parser from 'tree-sitter';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
@@ -20,10 +21,7 @@ import {
   type TreeSitterAnalysisOptions,
 } from '../options';
 
-const CPP_INHERITANCE_PATTERN = /\bclass\s+([A-Za-z_]\w*)\s*:\s*(?:public|protected|private)?\s*([A-Za-z_]\w*)\s*\{/g;
-const CPP_OVERRIDE_PATTERN = /\b([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:const\s*)?override\b/g;
-const CPP_TYPE_DECLARATION_PATTERN = /\b(?:class|struct|union)\s+([A-Za-z_]\w*)\b/g;
-const CPP_METHOD_DECLARATION_PATTERN = /\b(?:virtual\s+)?(?:[\w:<>~*&]+\s+)+([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:const\s*)?(?:=\s*0\s*)?;/g;
+const CPP_TYPE_NODE_TYPES = new Set(['class_specifier', 'struct_specifier', 'union_specifier']);
 
 function visitCppNode(
   node: Parser.SyntaxNode,
@@ -57,7 +55,7 @@ export function analyzeCppFile(
   walkTree(tree.rootNode, {}, (node) =>
     visitCppNode(node, filePath, workspaceRoot, relations, symbols, symbolsEnabled),
   );
-  addCppInheritanceRelations(tree.rootNode.text, filePath, relations, symbolsEnabled);
+  addCppInheritanceRelations(tree.rootNode, filePath, relations, symbolsEnabled);
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
@@ -68,28 +66,21 @@ interface CppIncludedDeclarations {
 }
 
 function addCppInheritanceRelations(
-  source: string,
+  rootNode: Parser.SyntaxNode,
   filePath: string,
   relations: IAnalysisRelation[],
   symbolsEnabled: boolean,
 ): void {
   const includedDeclarations = readCppIncludedDeclarations(relations);
-  const inheritedTypePaths: Array<string | null> = [];
 
-  for (const match of source.matchAll(CPP_INHERITANCE_PATTERN)) {
-    const [, className, baseName] = match;
-    const targetPath = resolveCppInheritedTypePath(includedDeclarations, baseName);
-    inheritedTypePaths.push(targetPath);
-    const classSymbolId = symbolsEnabled ? createSymbolId(filePath, 'class', className) : undefined;
-    addInheritRelation(relations, filePath, baseName, targetPath, classSymbolId);
-  }
+  walkTree(rootNode, {}, (node) => {
+    if (!CPP_TYPE_NODE_TYPES.has(node.type)) {
+      return;
+    }
 
-  for (const methodMatch of source.matchAll(CPP_OVERRIDE_PATTERN)) {
-    const methodName = methodMatch[1];
-    const methodSymbolId = symbolsEnabled ? createSymbolId(filePath, 'method', methodName) : undefined;
-    const targetPath = resolveCppOverridePath(includedDeclarations, inheritedTypePaths, methodName);
-    addOverrideRelation(relations, filePath, methodName, targetPath, methodSymbolId);
-  }
+    addCppTypeRelations(node, filePath, relations, includedDeclarations, symbolsEnabled);
+    return { skipChildren: true };
+  });
 }
 
 function readCppIncludedDeclarations(relations: readonly IAnalysisRelation[]): CppIncludedDeclarations {
@@ -101,16 +92,16 @@ function readCppIncludedDeclarations(relations: readonly IAnalysisRelation[]): C
   const methodPathByName = new Map<string, string | null>();
 
   for (const includedPath of includedPaths) {
-    const source = readIncludedSource(includedPath);
-    if (!source) {
+    const includedRootNode = readIncludedCppRootNode(includedPath);
+    if (!includedRootNode) {
       continue;
     }
 
-    for (const typeName of readCppDeclaredTypeNames(source)) {
+    for (const typeName of readCppDeclaredTypeNames(includedRootNode)) {
       setUniquePath(typePathByName, typeName, includedPath);
     }
 
-    for (const methodName of readCppDeclaredMethodNames(source)) {
+    for (const methodName of readCppDeclaredMethodNames(includedRootNode)) {
       setUniquePath(methodPathByName, methodName, includedPath);
     }
   }
@@ -122,26 +113,133 @@ function readCppIncludedDeclarations(relations: readonly IAnalysisRelation[]): C
   };
 }
 
-function readIncludedSource(filePath: string): string | null {
+function readIncludedCppRootNode(filePath: string): Parser.SyntaxNode | null {
   try {
-    return fs.readFileSync(filePath, 'utf8');
+    const parser = new Parser();
+    parser.setLanguage(CppLanguage as unknown as Parser.Language);
+    return parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
   } catch {
     return null;
   }
 }
 
-function readCppDeclaredTypeNames(source: string): string[] {
-  return Array.from(
-    source.matchAll(CPP_TYPE_DECLARATION_PATTERN),
-    match => match[1],
-  );
+function addCppTypeRelations(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  includedDeclarations: CppIncludedDeclarations,
+  symbolsEnabled: boolean,
+): void {
+  const typeName = node.childForFieldName('name')?.text;
+  const typeKind = readCppTypeKind(node);
+  const inheritedTypePaths = readCppBaseTypeNames(node).map((baseName) => {
+    const targetPath = resolveCppInheritedTypePath(includedDeclarations, baseName);
+    const typeSymbolId = symbolsEnabled && typeName
+      ? createSymbolId(filePath, typeKind, typeName)
+      : undefined;
+    addInheritRelation(relations, filePath, baseName, targetPath, typeSymbolId);
+    return targetPath;
+  });
+
+  for (const methodName of readCppOverrideMethodNames(node)) {
+    const methodSymbolId = symbolsEnabled ? createSymbolId(filePath, 'method', methodName) : undefined;
+    const targetPath = resolveCppOverridePath(includedDeclarations, inheritedTypePaths, methodName);
+    addOverrideRelation(relations, filePath, methodName, targetPath, methodSymbolId);
+  }
 }
 
-function readCppDeclaredMethodNames(source: string): string[] {
-  return Array.from(
-    source.matchAll(CPP_METHOD_DECLARATION_PATTERN),
-    match => match[1],
-  );
+function readCppTypeKind(node: Parser.SyntaxNode): 'class' | 'struct' | 'union' {
+  if (node.type === 'union_specifier') {
+    return 'union';
+  }
+
+  return node.type === 'struct_specifier' ? 'struct' : 'class';
+}
+
+function readCppDeclaredTypeNames(rootNode: Parser.SyntaxNode): string[] {
+  const names: string[] = [];
+  walkTree(rootNode, {}, (node) => {
+    if (CPP_TYPE_NODE_TYPES.has(node.type)) {
+      const typeName = node.childForFieldName('name')?.text;
+      if (typeName) {
+        names.push(typeName);
+      }
+    }
+  });
+  return names;
+}
+
+function readCppDeclaredMethodNames(rootNode: Parser.SyntaxNode): string[] {
+  const names: string[] = [];
+  walkTree(rootNode, {}, (node) => {
+    if (node.type === 'function_declarator') {
+      const methodName = readCppDeclaratorName(node);
+      if (methodName) {
+        names.push(methodName);
+      }
+    }
+  });
+  return names;
+}
+
+function readCppBaseTypeNames(typeNode: Parser.SyntaxNode): string[] {
+  const baseClause = typeNode.namedChildren.find((child) => child.type === 'base_class_clause');
+  if (!baseClause) {
+    return [];
+  }
+
+  return baseClause.namedChildren
+    .filter((child) => child.type !== 'access_specifier')
+    .map(readCppTypeName)
+    .filter((typeName): typeName is string => Boolean(typeName));
+}
+
+function readCppOverrideMethodNames(typeNode: Parser.SyntaxNode): string[] {
+  const methodNames: string[] = [];
+  walkTree(typeNode, {}, (node) => {
+    if (node.type !== 'function_declarator') {
+      return;
+    }
+
+    if (!node.namedChildren.some((child) =>
+      child.type === 'virtual_specifier' && child.text === 'override'
+    )) {
+      return;
+    }
+
+    const methodName = readCppDeclaratorName(node);
+    if (methodName) {
+      methodNames.push(methodName);
+    }
+  });
+  return methodNames;
+}
+
+function readCppTypeName(node: Parser.SyntaxNode): string | null {
+  if (node.type === 'template_type') {
+    return readCppTypeName(node.childForFieldName('name') ?? node.namedChildren[0]);
+  }
+
+  if (node.type === 'qualified_identifier') {
+    const unqualifiedName = node.namedChildren.at(-1);
+    return unqualifiedName ? readCppTypeName(unqualifiedName) : null;
+  }
+
+  return node.type.endsWith('identifier') ? node.text : null;
+}
+
+function readCppDeclaratorName(node: Parser.SyntaxNode | undefined): string | null {
+  if (!node) {
+    return null;
+  }
+
+  if (node.type === 'field_identifier' || node.type === 'identifier') {
+    return node.text;
+  }
+
+  return node.childForFieldName('declarator')
+    ? readCppDeclaratorName(node.childForFieldName('declarator') ?? undefined)
+    : node.namedChildren.map(readCppDeclaratorName).find(Boolean) ?? null;
 }
 
 function setUniquePath(pathsByName: Map<string, string | null>, name: string, filePath: string): void {
@@ -163,8 +261,10 @@ function resolveCppOverridePath(
   methodName: string,
 ): string | null {
   const resolvedPath = includedDeclarations.methodPathByName.get(methodName);
-  return resolvedPath !== undefined
-    ? resolvedPath
-    : inheritedTypePaths.find((inheritedTypePath): inheritedTypePath is string => Boolean(inheritedTypePath))
-      ?? includedDeclarations.fallbackPath;
+  if (resolvedPath) {
+    return resolvedPath;
+  }
+
+  return inheritedTypePaths.find((inheritedTypePath): inheritedTypePath is string => Boolean(inheritedTypePath))
+    ?? includedDeclarations.fallbackPath;
 }

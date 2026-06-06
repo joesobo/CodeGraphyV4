@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../store/state';
 import { resolveEdgeTypeColors } from '../../graphControls/edgeTypeColors';
@@ -30,6 +30,12 @@ export default function GraphScopePanel({
     () => resolveEdgeTypeColors(edgeTypes, legends),
     [edgeTypes, legends],
   );
+
+  useEffect(() => {
+    if (!edgeTypesAvailable && activeTab === 'edges') {
+      setActiveTab('nodes');
+    }
+  }, [activeTab, edgeTypesAvailable]);
 
   if (!isOpen) {
     return null;

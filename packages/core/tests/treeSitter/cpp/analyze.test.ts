@@ -159,4 +159,61 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
     ]));
   });
+
+  it('extracts C++ inheritance from AST base clauses with structs, templates, and multiple bases', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/lib/base.hpp': [
+        '#pragma once',
+        'template <typename T>',
+        'struct Base {',
+        '  virtual void update() = 0;',
+        '};',
+        '',
+      ].join('\n'),
+      'src/lib/logger.hpp': [
+        '#pragma once',
+        'class Logger {',
+        'public:',
+        '  virtual void update();',
+        '};',
+        '',
+      ].join('\n'),
+    });
+    const appPath = path.join(workspaceRoot, 'src/app.cpp');
+    const source = [
+      '#include "lib/base.hpp"',
+      '#include "lib/logger.hpp"',
+      '',
+      'struct Runner final : public Base<Runner>, private Logger {',
+      '  void update() const override final {}',
+      '};',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Base',
+        fromSymbolId: `${appPath}:struct:Runner`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/base.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/base.hpp'),
+      }),
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Logger',
+        fromSymbolId: `${appPath}:struct:Runner`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/logger.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/logger.hpp'),
+      }),
+      expect.objectContaining({
+        kind: 'overrides',
+        specifier: 'update',
+        fromSymbolId: `${appPath}:method:update`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/base.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/base.hpp'),
+      }),
+    ]));
+  });
 });

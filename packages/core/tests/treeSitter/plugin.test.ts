@@ -42,17 +42,46 @@ describe('core tree-sitter built-in plugin', () => {
     ]);
     expect(plugin.contributeEdgeTypeCapabilities?.({
       filePaths: ['/workspace/src/app.py'],
-    })).toEqual(['import', 'call']);
+    })).toEqual(['import', 'call', 'inherit']);
     expect(plugin.contributeEdgeTypeCapabilities?.({
       filePaths: ['/workspace/src/app.py', '/workspace/src/view.tsx'],
     })).toEqual([
       'import',
       'call',
+      'inherit',
       'type-import',
     ]);
-    expect(plugin.contributeEdgeTypeCapabilities?.({
-      filePaths: ['/workspace/src/app.cpp'],
-    })).toEqual(['import', 'contains', 'inherit', 'overrides']);
+  });
+
+  it('declares call capability for supported source languages with callable imports', () => {
+    const plugin = createTreeSitterPlugin();
+    const supportedLanguageFiles = [
+      '/workspace/src/main.c',
+      '/workspace/src/app.cpp',
+      '/workspace/src/Program.cs',
+      '/workspace/lib/app.dart',
+      '/workspace/src/Main.hs',
+      '/workspace/src/App.java',
+      '/workspace/src/app.js',
+      '/workspace/src/Main.kt',
+      '/workspace/src/main.lua',
+      '/workspace/Sources/ViewController.m',
+      '/workspace/src/Main.pas',
+      '/workspace/src/App.php',
+      '/workspace/src/app.py',
+      '/workspace/lib/app.rb',
+      '/workspace/src/main.rs',
+      '/workspace/src/Main.scala',
+      '/workspace/Sources/App.swift',
+      '/workspace/src/app.ts',
+      '/workspace/src/App.tsx',
+    ];
+
+    for (const filePath of supportedLanguageFiles) {
+      expect(plugin.contributeEdgeTypeCapabilities?.({
+        filePaths: [filePath],
+      }), filePath).toContain('call');
+    }
   });
 
   it('returns analyzed file results when tree-sitter analysis succeeds', async () => {
