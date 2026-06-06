@@ -92,4 +92,87 @@ describe('treeSitter/analyzePascal', () => {
       expect.objectContaining({ filePath, kind: 'method', name: 'Run' }),
     ]));
   });
+
+  it('extracts Pascal call relationships from used unit types and typed receivers', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/SampleApp.pas': 'unit SampleApp;\ninterface\ntype TAppRunner = class end;\nimplementation\nend.',
+      'src/OrderRepository.pas': 'unit OrderRepository;\ninterface\ntype TOrderRepository = class end;\nimplementation\nend.',
+      'src/PricingService.pas': 'unit PricingService;\ninterface\ntype TPricingService = class end;\nimplementation\nend.',
+      'src/ReceiptView.pas': 'unit ReceiptView;\ninterface\ntype TReceiptView = class end;\nimplementation\nend.',
+    });
+
+    const mainPath = path.join(workspaceRoot, 'src/Main.pas');
+    const mainSource = [
+      'program Main;',
+      'uses SampleApp;',
+      'var',
+      '  App: TAppRunner;',
+      'begin',
+      '  App := TAppRunner.Create;',
+      '  App.Start;',
+      'end.',
+    ].join('\n');
+    const samplePath = path.join(workspaceRoot, 'src/SampleApp.pas');
+    const sampleSource = [
+      'unit SampleApp;',
+      'interface',
+      'uses OrderRepository, PricingService, ReceiptView;',
+      'type',
+      '  TAppRunner = class',
+      '  private',
+      '    Repository: TOrderRepository;',
+      '    Pricing: TPricingService;',
+      '    View: TReceiptView;',
+      '  public',
+      '    procedure Run;',
+      '  end;',
+      'implementation',
+      'procedure TAppRunner.Run;',
+      'begin',
+      '  Repository := TOrderRepository.Create;',
+      '  Pricing := TPricingService.Create;',
+      '  View := TReceiptView.Create;',
+      '  Repository.CurrentOrder;',
+      '  Pricing.TotalFor(nil);',
+      '  View.Render(nil, 0);',
+      'end;',
+      'end.',
+    ].join('\n');
+
+    const mainResult = await analyzeFileWithTreeSitter(mainPath, mainSource, workspaceRoot);
+    const sampleResult = await analyzeFileWithTreeSitter(samplePath, sampleSource, workspaceRoot);
+
+    expect(mainResult?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'SampleApp',
+        fromFilePath: mainPath,
+        resolvedPath: path.join(workspaceRoot, 'src/SampleApp.pas'),
+      }),
+    ]));
+    expect(sampleResult?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'OrderRepository',
+        fromFilePath: samplePath,
+        resolvedPath: path.join(workspaceRoot, 'src/OrderRepository.pas'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'PricingService',
+        fromFilePath: samplePath,
+        resolvedPath: path.join(workspaceRoot, 'src/PricingService.pas'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'ReceiptView',
+        fromFilePath: samplePath,
+        resolvedPath: path.join(workspaceRoot, 'src/ReceiptView.pas'),
+      }),
+    ]));
+  });
 });
