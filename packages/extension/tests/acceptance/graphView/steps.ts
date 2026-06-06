@@ -1211,7 +1211,7 @@ async function toggleEdgeTypesOff(
   const frame = requireGraphFrame(context);
   await openGraphScopeSection(context, 'Edge Types');
   for (const label of labels) {
-    await setPanelSwitch(context, label, false);
+    await setPanelSwitchIfPresent(context, label, false);
   }
   await closePanelIfOpen(frame);
 }
@@ -1329,8 +1329,10 @@ async function setPanelSwitchIfPresent(
   label: string,
   enabled: boolean,
 ): Promise<void> {
-  const switchInRow = await findPanelSwitch(requireGraphFrame(context), normalizePanelLabel(label));
-  if (await switchInRow.count() === 0) {
+  const frame = requireGraphFrame(context);
+  const normalizedLabel = normalizePanelLabel(label);
+  const switchInRow = await findPanelSwitchIfPresent(frame, normalizedLabel);
+  if (!switchInRow) {
     return;
   }
 
@@ -1340,19 +1342,45 @@ async function setPanelSwitchIfPresent(
     await switchInRow.click();
   }
 
+  if (!enabled) {
+    await expect.poll(async () => {
+      const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
+      if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+        return 'false';
+      }
+
+      return await currentSwitch.getAttribute('aria-checked') ?? 'false';
+    }).toBe('false');
+    return;
+  }
+
   await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
 }
 
-async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
+export async function findPanelSwitchIfPresent(frame: Frame, label: string): Promise<Locator | undefined> {
+  for (const candidate of panelSwitchCandidates(frame, label)) {
+    if (await candidate.count()) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
+function panelSwitchCandidates(frame: Frame, label: string): Locator[] {
   const row = frame
     .locator('[data-scope-row]')
     .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
     .first();
-  const candidates = [
+  return [
     row.getByRole('switch').first(),
     frame.getByRole('switch', { name: `Toggle ${label}`, exact: true }),
     frame.getByRole('switch', { name: label, exact: true }),
   ];
+}
+
+async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
+  const candidates = panelSwitchCandidates(frame, label);
 
   for (let attempt = 0; attempt < 50; attempt += 1) {
     for (const candidate of candidates) {
