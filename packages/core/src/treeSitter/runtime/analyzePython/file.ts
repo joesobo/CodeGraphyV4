@@ -30,6 +30,7 @@ function visitPythonNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  localSymbolBindings: Map<string, ImportedBinding>,
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
@@ -40,19 +41,16 @@ function visitPythonNode(
       return handlePythonImportFromStatement(node, filePath, workspaceRoot, relations, importedBindings);
     }
     case 'class_definition': {
-      if (!symbolsEnabled) {
-        return;
-      }
-      handlePythonClassDefinition(node, filePath, symbols);
+      handlePythonClassDefinition(node, filePath, relations, symbols, importedBindings, symbolsEnabled, localSymbolBindings);
       return;
     }
     case 'function_definition': {
       return symbolsEnabled
-        ? handlePythonFunctionDefinition(node, filePath, symbols, walk)
+        ? handlePythonFunctionDefinition(node, filePath, symbols, walk, localSymbolBindings)
         : undefined;
     }
     case 'call': {
-      handlePythonCall(node, filePath, relations, importedBindings, state.currentSymbolId);
+      handlePythonCall(node, filePath, relations, importedBindings, localSymbolBindings, state.currentSymbolId);
       return;
     }
     default:
@@ -70,6 +68,7 @@ export function analyzePythonFile(
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
+  const localSymbolBindings = new Map<string, ImportedBinding>();
   walkTree(tree.rootNode, {}, (node, state, walk) =>
     visitPythonNode(
       node,
@@ -80,6 +79,7 @@ export function analyzePythonFile(
       relations,
       symbols,
       importedBindings,
+      localSymbolBindings,
       symbolsEnabled,
     ),
   );

@@ -35,9 +35,6 @@ function visitKotlinNode(
       return { skipChildren: true };
     }
     case 'class_declaration': {
-      if (!symbolsEnabled) {
-        return;
-      }
       handleKotlinTypeDeclaration(
         node,
         filePath,
@@ -46,6 +43,7 @@ function visitKotlinNode(
         relations,
         symbols,
         importedBindings,
+        symbolsEnabled,
       );
       return;
     }

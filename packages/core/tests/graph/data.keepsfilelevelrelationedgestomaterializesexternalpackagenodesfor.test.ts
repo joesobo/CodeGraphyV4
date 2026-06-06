@@ -17,7 +17,6 @@ function createPlugin(id: string): IPlugin {
     sources: [
       { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
       { id: 'dynamic-import', name: 'Dynamic import', description: 'Dynamic import()' },
-      { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
     ],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
@@ -26,7 +25,7 @@ function createPlugin(id: string): IPlugin {
 describe('core/graph/data', () => {
 
 
-    it('keeps file-level relation edges while adding symbol relation edges without plugin sources', () => {
+    it('uses symbol edges instead of duplicate file-level edges for symbol endpoint relations', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({
         cacheFiles: {
           'src/source.ts': { size: 10 },
@@ -79,15 +78,6 @@ describe('core/graph/data', () => {
             expect.objectContaining({
               label: 'ES6 import',
               sourceId: 'es6-import',
-            }),
-          ],
-        }),
-        expect.objectContaining({
-          kind: 'reference',
-          sources: [
-            expect.objectContaining({
-              label: 'reference',
-              sourceId: 'reference',
             }),
           ],
         }),
@@ -231,8 +221,8 @@ describe('core/graph/data', () => {
       const fileConnections = new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
       ]);
@@ -260,19 +250,11 @@ describe('core/graph/data', () => {
               sourceId: 'es6-import',
               label: 'ES6 import',
             },
-          ],
-        },
-        {
-          id: 'src/index.ts->src/utils.ts#reexport',
-          from: 'src/index.ts',
-          to: 'src/utils.ts',
-          kind: 'reexport',
-          sources: [
             {
-              id: 'plugin.typescript:reexport',
+              id: 'plugin.typescript:dynamic-import',
               pluginId: 'plugin.typescript',
-              sourceId: 'reexport',
-              label: 'Re-export',
+              sourceId: 'dynamic-import',
+              label: 'Dynamic import',
             },
           ],
         },

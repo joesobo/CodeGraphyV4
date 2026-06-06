@@ -10,6 +10,7 @@ Project shape:
 - `scripts/game_manager.gd` is configured as an autoload singleton
 - `scenes/player.tscn`, `scenes/enemy.tscn`, and `scenes/ui/game_ui.tscn` make the project feel like a real Godot workspace instead of isolated fixture files
 - `resources/player_loadout.tres` is a real data resource backed by `scripts/data/player_loadout.gd`
+- `scripts/enemy.gd` extends `scripts/base/entity.gd`, giving the Godot plugin a file-backed inheritance edge distinct from built-in engine class inheritance
 
 Suggested Depth Mode check:
 
@@ -58,3 +59,4 @@ Expected behavior:
 - Godot `class_name` symbol nodes hide when Variable is off because they are plugin-owned variable-style declaration symbols.
 - The individual Godot `class_name` row keeps its saved on/off state when Variable is toggled.
 - Relationship edges such as `Player -> PlayerLoadout` and scene/resource load edges still tell the story of how the runnable project is assembled.
+- `Enemy -> Entity` appears through the `Inherits` edge when Graph Scope enables that edge type.

@@ -73,4 +73,50 @@ describe('treeSitter/analyzeObjectiveC', () => {
       expect.objectContaining({ filePath, kind: 'method', name: 'applicationDidFinishLaunching' }),
     ]));
   });
+
+  it('extracts Objective-C header inheritance and protocol conformance', async () => {
+    const workspaceRoot = await createWorkspace({
+      'Sources/Feature/AppView.h': [
+        '#import <Foundation/Foundation.h>',
+        '@interface AppView : NSObject',
+        '@end',
+      ].join('\n'),
+      'Sources/Feature/ProfileRenderable.h': [
+        '#import <Foundation/Foundation.h>',
+        '@protocol ProfileRenderable',
+        '@end',
+      ].join('\n'),
+    });
+    const filePath = path.join(workspaceRoot, 'Sources/Feature/UserCardView.h');
+    const source = [
+      '#import <Foundation/Foundation.h>',
+      '#import "AppView.h"',
+      '#import "ProfileRenderable.h"',
+      '',
+      '@interface UserCardView : AppView <ProfileRenderable>',
+      '- (void)renderProfile;',
+      '@end',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'AppView',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Feature/AppView.h'),
+      }),
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'ProfileRenderable',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'Sources/Feature/ProfileRenderable.h'),
+      }),
+    ]));
+    expect(result?.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath, kind: 'class', name: 'UserCardView' }),
+      expect.objectContaining({ filePath, kind: 'method', name: 'renderProfile' }),
+    ]));
+  });
 });

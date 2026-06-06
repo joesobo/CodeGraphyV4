@@ -1,3 +1,4 @@
+using MyApp.Contracts;
 using MyApp.Utils;
 
 namespace MyApp.Services
@@ -5,8 +6,13 @@ namespace MyApp.Services
     /// <summary>
     /// API service for fetching data.
     /// </summary>
-    public class ApiService
+    public class ApiService : BaseService, IRunner
     {
+        public string Run()
+        {
+            return Status();
+        }
+
         /// <summary>
         /// Fetch data from the API.
         /// This is a mock implementation for testing.

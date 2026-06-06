@@ -16,17 +16,40 @@ export function handleDartClassDefinition(
   filePath: string,
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
+  symbolsEnabled: boolean,
+  importedTypePaths: ReadonlyMap<string, string | null>,
 ): void {
-  addDartNamedSymbol(symbols, filePath, 'class', node);
+  if (symbolsEnabled) {
+    addDartNamedSymbol(symbols, filePath, 'class', node);
+  }
 
+  for (const typeName of readDartInheritedTypeNames(node)) {
+    addInheritRelation(relations, filePath, typeName, importedTypePaths.get(typeName) ?? null);
+  }
+}
+
+function readDartInheritedTypeNames(node: Parser.SyntaxNode): string[] {
   const superclass = node.childForFieldName('superclass');
-  if (!superclass) {
-    return;
+  const names = new Set<string>(
+    superclass?.descendantsOfType('type_identifier').map(typeIdentifier => typeIdentifier.text) ?? [],
+  );
+
+  for (const pattern of [
+    /\bextends\s+([A-Za-z_]\w*)/g,
+    /\bwith\s+([^{]+)/g,
+    /\bimplements\s+([^{]+)/g,
+  ]) {
+    for (const match of node.text.matchAll(pattern)) {
+      for (const entry of match[1].split(',')) {
+        const typeName = entry.trim().match(/^([A-Za-z_]\w*)/)?.[1];
+        if (typeName) {
+          names.add(typeName);
+        }
+      }
+    }
   }
 
-  for (const typeIdentifier of superclass.descendantsOfType('type_identifier')) {
-    addInheritRelation(relations, filePath, typeIdentifier.text, null);
-  }
+  return [...names];
 }
 
 export function handleDartTypeDeclaration(

@@ -24,18 +24,23 @@ function visitDartNode(
   workspaceRoot: string,
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
+  importedTypePaths: Map<string, string | null>,
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'library_import') {
     handleDartLibraryImport(node, filePath, workspaceRoot, relations);
+    const importRelation = relations.at(-1);
+    if (importRelation?.kind === 'import') {
+      const typeName = toDartTypeName(importRelation.specifier ?? '');
+      if (typeName) {
+        importedTypePaths.set(typeName, importRelation.resolvedPath ?? null);
+      }
+    }
     return { skipChildren: true };
   }
 
   if (node.type === 'class_definition') {
-    if (!symbolsEnabled) {
-      return;
-    }
-    handleDartClassDefinition(node, filePath, relations, symbols);
+    handleDartClassDefinition(node, filePath, relations, symbols, symbolsEnabled, importedTypePaths);
     return;
   }
 
@@ -70,9 +75,23 @@ export function analyzeDartFile(
 ): IFileAnalysisResult {
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const importedTypePaths = new Map<string, string | null>();
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   walkTree(tree.rootNode, {}, (node) =>
-    visitDartNode(node, filePath, workspaceRoot, relations, symbols, symbolsEnabled),
+    visitDartNode(node, filePath, workspaceRoot, relations, symbols, importedTypePaths, symbolsEnabled),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);
+}
+
+function toDartTypeName(specifier: string): string | null {
+  const basename = specifier.split('/').pop()?.replace(/\.dart$/, '');
+  if (!basename) {
+    return null;
+  }
+
+  return basename
+    .split('_')
+    .filter(Boolean)
+    .map(part => `${part[0].toUpperCase()}${part.slice(1)}`)
+    .join('');
 }

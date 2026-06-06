@@ -106,7 +106,7 @@ describe('settingsMessages/updates/controls', () => {
     }));
   });
 
-  it('enables Contains when Symbols is enabled', async () => {
+  it('enables Symbols without changing edge visibility', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -126,13 +126,14 @@ describe('settingsMessages/updates/controls', () => {
       ),
     ).resolves.toBe(true);
 
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', { symbol: true });
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', { contains: true });
+    expect(handlers.updateConfig).toHaveBeenCalledOnce();
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', { symbol: true });
+    expect(handlers.updateConfig).not.toHaveBeenCalledWith('edgeVisibility', expect.anything());
     expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('enables Symbols and reprocesses scope when a symbol child type is enabled', async () => {
+  it('enables Symbols and reprocesses scope without changing edge visibility when a symbol child type is enabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -152,13 +153,12 @@ describe('settingsMessages/updates/controls', () => {
       ),
     ).resolves.toBe(true);
 
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', {
+    expect(handlers.updateConfig).toHaveBeenCalledOnce();
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
       symbol: true,
       'symbol:function': true,
     });
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', {
-      contains: true,
-    });
+    expect(handlers.updateConfig).not.toHaveBeenCalledWith('edgeVisibility', expect.anything());
     expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });

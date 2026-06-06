@@ -176,6 +176,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
         expect.any(Array),
         expect.any(Set),
         expect.any(Map),
+        true,
       );
     }
     expect(csharpHarness.handleCSharpMethodDeclaration).toHaveBeenCalledWith(

@@ -147,8 +147,8 @@ describe('PluginRegistry collection', () => {
           defaultVisible: false,
         },
         {
-          id: 'test',
-          label: 'Tests',
+          id: 'plugin:verify',
+          label: 'Verifies',
           defaultColor: '#00aaff',
           defaultVisible: true,
         },
@@ -163,8 +163,8 @@ describe('PluginRegistry collection', () => {
         defaultVisible: false,
       },
       {
-        id: 'test',
-        label: 'Tests',
+        id: 'plugin:verify',
+        label: 'Verifies',
         defaultColor: '#00aaff',
         defaultVisible: true,
       },
@@ -214,13 +214,13 @@ describe('PluginRegistry collection', () => {
     registry.register(createMockPlugin({
       id: 'wildcard',
       supportedExtensions: ['*'],
-      contributeEdgeTypeCapabilities: () => ['test'],
+      contributeEdgeTypeCapabilities: () => ['plugin:test'],
     }));
 
     expect(registry.listEdgeTypeCapabilities(['src/app.ts'])).toEqual([
       'import',
       'plugin:route',
-      'test',
+      'plugin:test',
     ]);
     expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
       filePaths: ['src/app.ts'],

@@ -17,9 +17,10 @@ export function handleKotlinTypeDeclaration(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
-  if (name) {
+  if (name && symbolsEnabled) {
     symbols.push(createSymbol(filePath, getKotlinTypeKind(node), name, node));
   }
 

@@ -5,7 +5,7 @@ import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
-import { normalizeAnalysisResult } from '../analyze/results';
+import { addInheritRelation, normalizeAnalysisResult } from '../analyze/results';
 import {
   addLocalImport,
   addTextSymbol,
@@ -40,6 +40,27 @@ export function analyzeObjectiveCFile(
     );
   }
 
+  for (const match of source.matchAll(/^\s*@interface\s+([A-Za-z_]\w*)\s*:\s*([A-Za-z_]\w*)(?:\s*<([^>]+)>)?/gm)) {
+    const className = match[1];
+    const inheritedNames = [
+      match[2],
+      ...(match[3]?.split(',').map(name => name.trim()).filter(Boolean) ?? []),
+    ];
+    const fromSymbolId = shouldIncludeTreeSitterSymbols(options)
+      ? `${filePath}:class:${className}`
+      : undefined;
+
+    for (const typeName of inheritedNames) {
+      addInheritRelation(
+        relations,
+        filePath,
+        typeName,
+        resolveObjectiveCImportPathForType(relations, typeName),
+        fromSymbolId,
+      );
+    }
+  }
+
   if (shouldIncludeTreeSitterSymbols(options)) {
     for (const match of source.matchAll(/^\s*@(interface|protocol|implementation)\s+([A-Za-z_]\w*)/gm)) {
       const kind = match[1] === 'protocol' ? 'protocol' : 'class';
@@ -52,4 +73,15 @@ export function analyzeObjectiveCFile(
   }
 
   return normalizeAnalysisResult(filePath, symbols, relations);
+}
+
+function resolveObjectiveCImportPathForType(
+  relations: readonly IAnalysisRelation[],
+  typeName: string,
+): string | null {
+  return relations.find((relation) =>
+    relation.kind === 'import'
+    && relation.resolvedPath
+    && relation.specifier?.split('/').pop()?.replace(/\.[hm]+$/, '') === typeName
+  )?.resolvedPath ?? null;
 }

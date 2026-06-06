@@ -76,6 +76,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       [] as never[],
       new Set(['CodeGraphy.Contracts']),
       importTargetsByNamespace,
+      true,
     );
 
     expect(createSymbol).toHaveBeenCalledWith('/workspace/src/Program.cs', 'class', 'Program', expect.anything());
@@ -108,6 +109,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       [] as never[],
       new Set(),
       new Map(),
+      true,
     );
 
     expect(createSymbol).not.toHaveBeenCalled();
@@ -134,6 +136,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       [] as never[],
       new Set(),
       new Map(),
+      true,
     );
 
     expect(createSymbol).toHaveBeenCalledWith('/workspace/src/Status.cs', 'enum', 'Status', expect.anything());

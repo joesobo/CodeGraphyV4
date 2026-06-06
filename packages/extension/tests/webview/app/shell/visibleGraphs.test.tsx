@@ -21,6 +21,7 @@ function defaultInput(graphData: IGraphData, activeFilterPatterns: string[] = []
     edgeVisibility: {},
     graphData,
     graphEdgeTypes: [],
+    graphNodeTypes: [],
     nodeVisibility: {},
     searchOptions: { matchCase: false, regex: false, wholeWord: false },
     showOrphans: true,

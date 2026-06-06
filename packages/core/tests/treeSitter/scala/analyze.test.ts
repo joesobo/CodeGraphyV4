@@ -40,7 +40,7 @@ describe('treeSitter/analyzeScala', () => {
       'import com.example.base.BaseRunner',
       'import com.example.model.User',
       '',
-      'class AppRunner extends BaseRunner {',
+      'final case class AppRunner(service: User) extends BaseRunner {',
       '  def run(user: User): String = user.name',
       '}',
       '',
