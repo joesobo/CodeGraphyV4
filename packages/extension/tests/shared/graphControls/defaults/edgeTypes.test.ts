@@ -63,7 +63,7 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         id: 'nests',
         label: 'Nests',
         defaultColor: '#64748B',
-        defaultVisible: false,
+        defaultVisible: true,
       },
       {
         id: 'contains',

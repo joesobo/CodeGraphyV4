@@ -89,7 +89,7 @@ describe('shared/visibleGraph/structure/applyStructuralProjection', () => {
     });
   });
 
-  it('projects workspace package nodes and links files to their nearest package', () => {
+  it('projects workspace package nodes without package-to-file nests edges', () => {
     const result = applyStructuralProjection(
       {
         nodes: [
@@ -117,11 +117,7 @@ describe('shared/visibleGraph/structure/applyStructuralProjection', () => {
         `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.`,
         extensionPackageId,
       ],
-      edges: [
-        `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.->package.json#nests`,
-        `${extensionPackageId}->packages/extension/package.json#nests`,
-        `${extensionPackageId}->packages/extension/src/index.ts#nests`,
-      ],
+      edges: [],
     });
   });
 

@@ -82,7 +82,8 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     context.workspacePath = step.sourcePath.endsWith('/typescript-example.md')
       ? copyExampleTypescriptWorkspace(context.workspaceTempRoot)
       : copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
-        includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
+        includeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? false : undefined,
+        includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? true : undefined,
         includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
           || step.sourcePath.endsWith('/graph-navigation.md'),
         pluginPackages: ['@codegraphy-dev/plugin-markdown'],
@@ -313,19 +314,23 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
 };
 
 const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
-  step(/^I open the examples\/(.+) workspace in VS Code$/, async (context, _step, match) => {
+  step(/^I open the examples\/(.+) workspace in VS Code$/, async (context, step, match) => {
     const exampleName = match[1];
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
-    if (exampleName === 'example-svelte') {
-      writeWorkspaceEdgeVisibility(context.workspacePath, 'type-import', false);
+    if (step.sourcePath.endsWith('/svelte-example.md')) {
+      setWorkspaceEdgeVisibility(context.workspacePath, 'type-import', false);
     }
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
     await indexWorkspace(context);
     await waitForIndexingToFinish(context);
+  }),
+
+  step(/^I have not yet indexed the workspace$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' })).toBeVisible();
   }),
 
   step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
@@ -539,6 +544,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
   }),
 
+  step(/^I open the Graph Scope$/, async (context) => {
+    await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
+  }),
+
   step(/^I see to buttons for switching views between node type and edge type toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Node Types' })).toBeVisible();
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeVisible();
@@ -552,6 +561,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
   }),
 
+  step(/^the Edge Types button is disabled$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeDisabled();
+  }),
+
+  step(/^the Edge Types button is no longer disabled$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeEnabled();
+  }),
+
   step(/^I see a list of node types with toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByText('Folder', { exact: true })).toBeVisible();
   }),
@@ -560,12 +577,26 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
   }),
 
+  step(/^I toggle the Imports edge on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
+    await setPanelSwitch(context, 'Imports', true);
+    await setPanelSwitch(context, 'Type imports', true);
+  }),
+
   step(/^I toggle the Folder node on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Node Types' }).click();
     await setPanelSwitch(context, 'Folder', true);
   }),
 
   step(/^I toggle the Nests edge on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
     await setPanelSwitch(context, 'Nests', true);
+  }),
+
+  step(/^the Nests edge is toggled on$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: 'Edge Types' }).click();
+    await expect(await findPanelSwitch(frame, 'Nests')).toHaveAttribute('aria-checked', 'true');
   }),
 
   step(/^I close the Graph Scope$/, async (context) => {
@@ -723,28 +754,6 @@ async function applyExampleScenarioStartingUiState(
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
   }
-}
-
-function writeWorkspaceEdgeVisibility(
-  workspacePath: string,
-  edgeKind: string,
-  visible: boolean,
-): void {
-  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
-    edgeVisibility?: Record<string, boolean>;
-  };
-
-  fs.writeFileSync(
-    settingsPath,
-    `${JSON.stringify({
-      ...settings,
-      edgeVisibility: {
-        ...settings.edgeVisibility,
-        [edgeKind]: visible,
-      },
-    }, null, 2)}\n`,
-  );
 }
 
 async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
@@ -984,6 +993,24 @@ function readWorkspaceFavorites(context: GraphAcceptanceContext): string[] {
   return settings.favorites ?? [];
 }
 
+function setWorkspaceEdgeVisibility(
+  workspacePath: string,
+  edgeKind: string,
+  visible: boolean,
+): void {
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+    edgeVisibility?: Record<string, boolean>;
+  };
+
+  settings.edgeVisibility = {
+    ...settings.edgeVisibility,
+    [edgeKind]: visible,
+  };
+
+  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
 async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
@@ -1012,14 +1039,22 @@ async function setPanelSwitch(
 }
 
 async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
-  const row = frame.getByText(label, { exact: true }).locator('xpath=ancestor::*[self::label or self::div][1]');
+  const row = frame
+    .locator('[data-scope-row]')
+    .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
+    .first();
   const switchInRow = row.getByRole('switch').first();
 
   if (await switchInRow.count()) {
     return switchInRow;
   }
 
-  return frame.getByRole('switch', { name: label });
+  const exactSwitch = frame.getByRole('switch', { name: label, exact: true });
+  if (await exactSwitch.count()) {
+    return exactSwitch;
+  }
+
+  return frame.getByRole('switch', { name: `Toggle ${label}`, exact: true });
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {
