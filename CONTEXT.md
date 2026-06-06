@@ -458,7 +458,7 @@ _Avoid_: Graph export
 - Plugins can contribute additional **Edge Types**.
 - **Graph Scope** should show **Edge Type Capabilities** from the union of active **Edge Type Capability Providers** for the CodeGraphy Workspace, not from a hardcoded language list or only from currently observed Edges.
 - **Graph Scope** does not need to explain which providers made an **Edge Type Capability** applicable; user-facing Edge Type help should explain what the Edge Type means.
-- **Graph Scope** should show disabled Edge Type controls while the CodeGraphy Workspace has no Graph Cache because there is no indexed relationship source yet. A stale Graph Cache is enough to enable Edge Type controls while **Graph Cache Sync** catches up. A short tooltip such as "Index workspace to enable Edge Type controls" is enough explanation for the disabled state.
+- **Graph Scope** should show disabled Edge Type controls while the CodeGraphy Workspace has no Graph Cache because there is no indexed relationship source yet. Any existing Graph Cache is enough to enable Edge Type controls, even when **Graph Cache Sync** still needs to catch up. A short tooltip such as "Index workspace to enable Edge Type controls" is enough explanation for the disabled state.
 - A **Nests Relationship** points from the container to the contained node, and a folder node should usually only participate in **Nests Relationships**.
 - **Edge Direction** points from the node initiating the relationship to the node being related to.
 - **Downstream** only describes direction through the graph; it does not describe whether the relationship is a dependency, reference, link, or another edge type.
