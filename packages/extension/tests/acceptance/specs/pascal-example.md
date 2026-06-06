@@ -39,5 +39,5 @@ Then I can see there are 9 nodes and 1 connections
 And src/SampleApp.pas points to src/RunnerSupport.pas
 
 Then I toggle the Overrides edge on
-Then I can see there are 11 nodes and 2 connections
+Then I can see there are 9 nodes and 2 connections
 And src/SampleApp.pas has 2 edges pointing to src/RunnerSupport.pas
