@@ -33,7 +33,7 @@ async function collectDesiredRegistrations(
   { settings, workspaceRoot }: WorkspacePipelineSettingsResult,
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<WorkspacePipelinePluginRegistration[]> {
-  const desired = getBuiltInWorkspacePipelinePluginRegistrations(settings);
+  const desired = getBuiltInWorkspacePipelinePluginRegistrations(settings, dependencies.disabledPlugins);
 
   if (workspaceRoot && settings) {
     desired.push(...await loadWorkspacePackagePluginRegistrations(

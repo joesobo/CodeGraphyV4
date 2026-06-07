@@ -65,6 +65,52 @@ export default function createPlugin() {
   );
 }
 
+async function createPluginPackageWithRuntimeMarkers(packageRoot: string): Promise<{
+  factoryMarkerPath: string;
+  importMarkerPath: string;
+}> {
+  const importMarkerPath = path.join(packageRoot, 'runtime-imported.txt');
+  const factoryMarkerPath = path.join(packageRoot, 'factory-called.txt');
+
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-plugin-extension-bootstrap',
+      version: '1.0.0',
+      type: 'module',
+      exports: './plugin.js',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+import { writeFileSync } from 'node:fs';
+
+writeFileSync(${JSON.stringify(importMarkerPath)}, 'imported');
+
+export default function createPlugin() {
+  writeFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory called');
+  return {
+    id: 'acme.extension-bootstrap',
+    name: 'Extension Bootstrap',
+    version: '1.0.0',
+    apiVersion: '^2.0.0',
+    supportedExtensions: ['.txt']
+  };
+}
+`,
+    'utf-8',
+  );
+
+  return { factoryMarkerPath, importMarkerPath };
+}
+
 async function createDataHostPluginPackage(packageRoot: string): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
@@ -431,6 +477,51 @@ describe('pipeline/plugins/bootstrap', () => {
       registry.register.mock.calls.map(([plugin]) => plugin.id),
     ).toEqual(['codegraphy.treesitter']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+  });
+
+  it('does not register disabled Markdown or package runtimes during extension pipeline initialization', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-extension-bootstrap',
+    );
+    const { factoryMarkerPath, importMarkerPath } = await createPluginPackageWithRuntimeMarkers(packageRoot);
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.extension-bootstrap',
+        pluginName: 'Extension Bootstrap',
+        supportedExtensions: ['.txt'],
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { package: '@codegraphy-dev/plugin-markdown' },
+        { package: '@acme/codegraphy-plugin-extension-bootstrap' },
+      ],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      disabledPlugins: new Set(['codegraphy.markdown', 'acme.extension-bootstrap']),
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual(['codegraphy.treesitter']);
+    expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+    await expect(fs.access(importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
   });
 
   it('syncs workspace plugin selection without unregistering unchanged core plugins', async () => {

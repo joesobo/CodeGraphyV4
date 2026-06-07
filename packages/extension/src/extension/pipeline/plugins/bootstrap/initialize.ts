@@ -17,7 +17,7 @@ export async function initializeWorkspacePipeline(
 ): Promise<void> {
   const { settings, workspaceRoot } = readWorkspacePipelineSettings(() => dependencies.getWorkspaceRoot());
 
-  registerBuiltInWorkspacePipelinePlugins(registry, settings);
+  registerBuiltInWorkspacePipelinePlugins(registry, settings, dependencies.disabledPlugins);
 
   if (workspaceRoot && settings) {
     await registerWorkspacePackagePlugins(registry, settings, workspaceRoot, dependencies);
