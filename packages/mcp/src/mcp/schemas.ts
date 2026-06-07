@@ -25,6 +25,11 @@ export const packagePluginSchema = {
   packageName: z.string().min(1),
 };
 
+export const pluginActivitySchema = {
+  ...workspacePathSchema,
+  pluginId: z.string().min(1),
+};
+
 export const listQuerySchema = {
   ...workspacePathSchema,
   scope: scopeSchema,

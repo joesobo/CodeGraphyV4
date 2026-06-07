@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettings,
@@ -29,9 +30,11 @@ async function createPackage(
 function createPluginRecord(
   packageName: string,
   packageRoot: string,
+  pluginId = packageName,
 ): CodeGraphyInstalledPluginRecord {
   return {
     package: packageName,
+    pluginId,
     version: '1.2.3',
     apiVersion: '^2.0.0',
     disclosures: [],
@@ -119,7 +122,11 @@ describe('plugins/command', () => {
   it('enables and disables a cached plugin for one workspace', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
-    const record = createPluginRecord('@codegraphy-dev/plugin-python', '/global/@codegraphy-dev/plugin-python');
+    const record = createPluginRecord(
+      '@codegraphy-dev/plugin-python',
+      '/global/@codegraphy-dev/plugin-python',
+      'codegraphy.python',
+    );
     writeCodeGraphyInstalledPluginCache({
       version: 1,
       plugins: [record],
@@ -134,12 +141,13 @@ describe('plugins/command', () => {
 
     expect(enableResult).toEqual({
       exitCode: 0,
-      output: `Enabled @codegraphy-dev/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Enabled codegraphy.python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
       {
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
         options: { includeTests: true },
       },
     ]);
@@ -153,11 +161,16 @@ describe('plugins/command', () => {
 
     expect(disableResult).toEqual({
       exitCode: 0,
-      output: `Disabled @codegraphy-dev/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Disabled codegraphy.python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
-    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-    }]);
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+      {
+        id: 'codegraphy.python',
+        enabled: false,
+        options: { includeTests: true },
+      },
+    ]);
   });
 
   it('enables bundled Markdown without requiring it in the user installed plugin cache', async () => {
@@ -171,7 +184,10 @@ describe('plugins/command', () => {
       workspacePath: workspaceRoot,
     }, { homeDir });
     expect(disableResult.exitCode).toBe(0);
-    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([]);
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: false,
+    }]);
 
     const enableResult = await runPluginsCommand({
       name: 'plugins',
@@ -182,10 +198,11 @@ describe('plugins/command', () => {
 
     expect(enableResult).toEqual({
       exitCode: 0,
-      output: `Enabled ${CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Enabled ${CODEGRAPHY_MARKDOWN_PLUGIN_ID} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: true,
     }]);
   });
 
@@ -208,7 +225,7 @@ describe('plugins/command', () => {
 
     expect(result.output).toContain('Enabled in workspace:\nnone');
     expect(result.output).toContain('Registered but disabled:');
-    expect(result.output).toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME}`);
+    expect(result.output).toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
   });
 
   it('lists enabled workspace plugins separately from registered disabled plugins', async () => {
@@ -217,8 +234,16 @@ describe('plugins/command', () => {
     writeCodeGraphyInstalledPluginCache({
       version: 1,
       plugins: [
-        createPluginRecord('@codegraphy-dev/plugin-markdown', '/global/@codegraphy-dev/plugin-markdown'),
-        createPluginRecord('@codegraphy-dev/plugin-python', '/global/@codegraphy-dev/plugin-python'),
+        createPluginRecord(
+          '@codegraphy-dev/plugin-markdown',
+          '/global/@codegraphy-dev/plugin-markdown',
+          CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        ),
+        createPluginRecord(
+          '@codegraphy-dev/plugin-python',
+          '/global/@codegraphy-dev/plugin-python',
+          'codegraphy.python',
+        ),
       ],
     }, { homeDir });
     await runPluginsCommand({
@@ -236,10 +261,10 @@ describe('plugins/command', () => {
 
     expect(result.output).toContain(`CodeGraphy plugins for ${workspaceRoot}`);
     expect(result.output).toContain('Enabled in workspace:');
-    expect(result.output).toContain('1. @codegraphy-dev/plugin-markdown');
-    expect(result.output).toContain('2. @codegraphy-dev/plugin-python');
+    expect(result.output).toContain(`1. ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
+    expect(result.output).toContain('2. codegraphy.python');
     expect(result.output).toContain('Registered but disabled:');
-    expect(result.output).not.toContain('- @codegraphy-dev/plugin-markdown');
+    expect(result.output).not.toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
   });
 
   it('returns plugin help for unknown actions', async () => {
@@ -255,8 +280,8 @@ describe('plugins/command', () => {
         '  codegraphy plugins register <package>',
         '  codegraphy plugins link <package-root>',
         '  codegraphy plugins list [workspace]',
-        '  codegraphy plugins enable <package> [workspace]',
-        '  codegraphy plugins disable <package> [workspace]',
+        '  codegraphy plugins enable <plugin-id-or-package> [workspace]',
+        '  codegraphy plugins disable <plugin-id-or-package> [workspace]',
       ].join('\n'),
     });
   });

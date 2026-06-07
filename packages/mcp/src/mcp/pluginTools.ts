@@ -3,7 +3,7 @@ import { runPluginsCommand, type CliCommand, type CommandExecutionResult, type P
 import * as z from 'zod/v4';
 import type { CodeGraphyMcpServerDependencies } from './contracts';
 import { createMcpDiagnostics } from './diagnostics';
-import { packagePluginSchema, workspacePathSchema } from './schemas';
+import { packagePluginSchema, pluginActivitySchema, workspacePathSchema } from './schemas';
 import { createToolResult } from './toolResult';
 
 async function executePluginsCommand(
@@ -23,15 +23,17 @@ function registerPluginToggleTool(
   server.registerTool(
     `codegraphy_plugins_${action}`,
     {
-      description: `${action === 'enable' ? 'Enable' : 'Disable'} a registered plugin package for the current or explicit CodeGraphy Workspace.`,
-      inputSchema: z.object(packagePluginSchema),
+      description: action === 'enable'
+        ? 'Enable a registered Plugin ID for the current or explicit CodeGraphy Workspace.'
+        : 'Disable a Plugin ID for the current or explicit CodeGraphy Workspace.',
+      inputSchema: z.object(pluginActivitySchema),
     },
     async (input) => {
       const diagnostics = createMcpDiagnostics(input);
       const result = await executePluginsCommand({
         name: 'plugins',
         action,
-        packageName: input.packageName,
+        packageName: input.pluginId,
         workspacePath: input.path,
         ...(input.verboseDiagnostics === true ? { verbose: true } : {}),
       }, dependencies);

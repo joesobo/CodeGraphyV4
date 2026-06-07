@@ -2,7 +2,7 @@ import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
-import { findRegisteredPlugin } from './installed';
+import { findRegisteredPlugin, getRegisteredPluginId } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runEnableCommand(
@@ -29,8 +29,9 @@ export function runEnableCommand(
 
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
   dependencies.enableWorkspacePlugin(workspaceRoot, plugin);
+  const pluginId = getRegisteredPluginId(plugin);
   return {
     exitCode: 0,
-    output: `Enabled ${plugin.package} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+    output: `Enabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
   };
 }

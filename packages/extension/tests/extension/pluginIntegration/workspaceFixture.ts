@@ -28,6 +28,7 @@ export interface PluginIntegrationPackage {
 
 interface InstallPluginIntegrationPackageOptions {
   graphViewContributions?: boolean;
+  importMarkerPath?: string;
   packageName?: string;
   pluginId?: string;
   webviewContributions?: boolean;
@@ -84,6 +85,10 @@ export async function installPluginIntegrationPackage(
   await fs.writeFile(
     path.join(packageRoot, 'plugin.js'),
     `
+${options.importMarkerPath ? `
+import fs from 'node:fs';
+fs.writeFileSync(${JSON.stringify(options.importMarkerPath)}, 'imported\\n');
+` : ''}
 export default function createPlugin() {
   return {
     id: '${pluginId}',

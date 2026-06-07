@@ -23,7 +23,7 @@ describe('cli/plugins/enable', () => {
 
     expect(runEnableCommand({ name: 'plugins', action: 'enable' }, deps)).toEqual({
       exitCode: 1,
-      output: 'Usage: codegraphy plugins enable <package> [workspace]',
+      output: 'Usage: codegraphy plugins enable <plugin-id-or-package> [workspace]',
     });
     expect(deps.readInstalledPluginCache).not.toHaveBeenCalled();
   });
@@ -43,6 +43,7 @@ describe('cli/plugins/enable', () => {
     const enableWorkspacePlugin = vi.fn();
     const plugin = {
       package: '@codegraphy-dev/plugin-python',
+      pluginId: 'codegraphy.python',
       version: '1.0.0',
       apiVersion: '^2.0.0',
       disclosures: [],
@@ -60,7 +61,7 @@ describe('cli/plugins/enable', () => {
       readInstalledPluginCache: () => ({ version: 1, plugins: [plugin] }),
     }))).toEqual({
       exitCode: 0,
-      output: 'Enabled @codegraphy-dev/plugin-python for /workspace/repo. Run `codegraphy index /workspace/repo` to refresh the Graph Cache.',
+      output: 'Enabled codegraphy.python for /workspace/repo. Run `codegraphy index /workspace/repo` to refresh the Graph Cache.',
     });
     expect(enableWorkspacePlugin).toHaveBeenCalledWith('/workspace/repo', plugin);
   });
