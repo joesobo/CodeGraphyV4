@@ -14,7 +14,7 @@ import { resolveNpmGlobalPackageRoots } from './globalPackages';
 
 export interface PluginsCommandDependencies {
   cwd(): string;
-  disableWorkspacePlugin(workspaceRoot: string, packageName: string): void;
+  disableWorkspacePlugin(workspaceRoot: string, pluginId: string): void;
   enableWorkspacePlugin(workspaceRoot: string, plugin: CodeGraphyInstalledPluginRecord): void;
   homeDir?: string;
   linkInstalledPluginPackage(
