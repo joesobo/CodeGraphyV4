@@ -40,7 +40,7 @@ describe('treeSitter/analyzeScala', () => {
       'import com.example.base.BaseRunner',
       'import com.example.model.User',
       '',
-      'class AppRunner extends BaseRunner {',
+      'final case class AppRunner(service: User) extends BaseRunner {',
       '  def run(user: User): String = user.name',
       '}',
       '',
@@ -74,6 +74,104 @@ describe('treeSitter/analyzeScala', () => {
       expect.objectContaining({ filePath, kind: 'object', name: 'AppConfig' }),
       expect.objectContaining({ filePath, kind: 'enum', name: 'Status' }),
       expect.objectContaining({ filePath, kind: 'type', name: 'UserName' }),
+    ]));
+  });
+
+  it('extracts Scala call relationships from imports, same-package symbols, and typed receivers', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/main/scala/com/example/app/AppRunner.scala': 'package com.example.app\nfinal case class AppRunner(service: com.example.service.UserService)\n',
+      'src/main/scala/com/example/model/User.scala': 'package com.example.model\ncase class User(id: String)\n',
+      'src/main/scala/com/example/service/UserService.scala': 'package com.example.service\nfinal case class UserService()\n',
+      'src/main/scala/com/example/view/DashboardView.scala': 'package com.example.view\nfinal case class DashboardView()\n',
+    });
+    const filePath = path.join(workspaceRoot, 'src/main/scala/com/example/app/Main.scala');
+    const source = [
+      'package com.example.app',
+      '',
+      'import com.example.model.User',
+      'import com.example.service.UserService',
+      'import com.example.view.DashboardView',
+      '',
+      'object Main {',
+      '  def main(args: Array[String]): Unit = {',
+      '    val service = UserService.demo()',
+      '    val view = DashboardView()',
+      '    println(AppRunner(service).run(User("ada")))',
+      '  }',
+      '}',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'UserService',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/service/UserService.scala'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'DashboardView',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/view/DashboardView.scala'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'AppRunner',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/app/AppRunner.scala'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'User',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/model/User.scala'),
+      }),
+    ]));
+  });
+
+  it('extracts Scala call relationships from typed constructor parameters', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/main/scala/com/example/service/UserService.scala': 'package com.example.service\nfinal case class UserService()\n',
+      'src/main/scala/com/example/view/DashboardView.scala': 'package com.example.view\nfinal case class DashboardView()\n',
+    });
+    const filePath = path.join(workspaceRoot, 'src/main/scala/com/example/app/AppRunner.scala');
+    const source = [
+      'package com.example.app',
+      '',
+      'import com.example.service.UserService',
+      'import com.example.view.DashboardView',
+      '',
+      'final case class AppRunner(service: UserService, view: DashboardView) {',
+      '  def run(): String = {',
+      '    val enriched = service.enrich()',
+      '    view.render(enriched)',
+      '  }',
+      '}',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'UserService',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/service/UserService.scala'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'DashboardView',
+        fromFilePath: filePath,
+        resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/view/DashboardView.scala'),
+      }),
     ]));
   });
 });

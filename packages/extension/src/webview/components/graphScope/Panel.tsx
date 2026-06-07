@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../store/state';
 import { resolveEdgeTypeColors } from '../../graphControls/edgeTypeColors';
@@ -25,13 +25,17 @@ export default function GraphScopePanel({
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
-  const edgeTypesAvailable = useGraphStore(
-    (state) => state.graphHasIndex && state.graphIndexFreshness === 'fresh',
-  );
+  const edgeTypesAvailable = useGraphStore((state) => state.graphHasIndex);
   const edgeColors = useMemo(
     () => resolveEdgeTypeColors(edgeTypes, legends),
     [edgeTypes, legends],
   );
+
+  useEffect(() => {
+    if (!edgeTypesAvailable && activeTab === 'edges') {
+      setActiveTab('nodes');
+    }
+  }, [activeTab, edgeTypesAvailable]);
 
   if (!isOpen) {
     return null;
@@ -56,6 +60,7 @@ export default function GraphScopePanel({
               active={activeTab === 'edges'}
               disabled={!edgeTypesAvailable}
               onClick={() => setActiveTab('edges')}
+              title={!edgeTypesAvailable ? 'Index workspace to enable Edge Type controls' : undefined}
             >
               Edge Types
             </ScopeTabButton>

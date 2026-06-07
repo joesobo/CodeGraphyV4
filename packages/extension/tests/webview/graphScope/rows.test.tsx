@@ -133,6 +133,69 @@ describe('graph scope rows', () => {
     });
   });
 
+  it('hides edge rows until their prerequisite edge type is enabled', () => {
+    const { container, rerender } = render(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'inherit', label: 'Inherits', defaultColor: '#111111', defaultVisible: false },
+          {
+            id: 'overrides',
+            label: 'Overrides',
+            defaultColor: '#222222',
+            defaultVisible: false,
+            requiresEdgeType: 'inherit',
+          },
+        ]}
+        edgeVisibility={{ inherit: false }}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Inherits')).toBeInTheDocument();
+    expect(scopeRow(container, 'Overrides')).not.toBeInTheDocument();
+
+    rerender(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'inherit', label: 'Inherits', defaultColor: '#111111', defaultVisible: false },
+          {
+            id: 'overrides',
+            label: 'Overrides',
+            defaultColor: '#222222',
+            defaultVisible: false,
+            requiresEdgeType: 'inherit',
+          },
+        ]}
+        edgeVisibility={{ inherit: true }}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Overrides')).toBeInTheDocument();
+
+    rerender(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'inherit', label: 'Inherits', defaultColor: '#111111', defaultVisible: false },
+          {
+            id: 'overrides',
+            label: 'Overrides',
+            defaultColor: '#222222',
+            defaultVisible: false,
+            requiresEdgeType: 'inherit',
+          },
+        ]}
+        edgeVisibility={{ inherit: false, overrides: true }}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Overrides')).toBeInTheDocument();
+  });
+
   it('shows example tooltip text for edge rows that define examples', async () => {
     const { container } = render(
       <TooltipProvider delayDuration={0}>

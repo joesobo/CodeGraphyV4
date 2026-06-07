@@ -16,12 +16,24 @@ import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
 import type { IPluginDataHost } from './data';
 import type { Disposable } from './disposable';
-import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
+import type {
+  GraphEdgeKind,
+  GraphNodeShape2D,
+  GraphNodeShape3D,
+  IGraphData,
+} from './graph';
 import type { IGraphViewContributions } from './graphView';
 
 export interface IPluginWebviewContributions {
   scripts?: string[];
   styles?: string[];
+}
+
+export interface IPluginEdgeTypeCapabilityContext {
+  /**
+   * File paths from the indexed workspace graph that made the plugin applicable.
+   */
+  filePaths: readonly string[];
 }
 
 export interface IPluginWebviewMessage {
@@ -220,6 +232,16 @@ export interface IPlugin {
    * Optional edge-type contributions shown in graph controls and legends.
    */
   contributeEdgeTypes?(): IPluginEdgeType[];
+
+  /**
+   * Optional edge-type capabilities this plugin can make relevant when it is
+   * applicable to the indexed workspace.
+   *
+   * These declarations are independent from emitted relations, so graph controls
+   * can show relevant toggles even before the current graph contains matching
+   * edges. Plugins may declare core edge kinds and plugin-owned edge kinds.
+   */
+  contributeEdgeTypeCapabilities?(context?: IPluginEdgeTypeCapabilityContext): GraphEdgeKind[];
 
   // ---------------------------------------------------------------------------
   // Optional analysis hooks

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const csharpHarness = vi.hoisted(() => ({
   appendCSharpUsingImportRelations: vi.fn(),
   getCSharpFileScopedNamespaceName: vi.fn(() => 'MyApp'),
+  handleCSharpCallNode: vi.fn(),
   handleCSharpMethodDeclaration: vi.fn(),
   handleCSharpNamespaceNode: vi.fn(),
   handleCSharpReferenceNode: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock(
   '../../../src/treeSitter/runtime/analyzeCSharp/references',
   () => ({
     appendCSharpUsingImportRelations: csharpHarness.appendCSharpUsingImportRelations,
+    handleCSharpCallNode: csharpHarness.handleCSharpCallNode,
     handleCSharpReferenceNode: csharpHarness.handleCSharpReferenceNode,
   }),
 );
@@ -55,6 +57,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
     csharpHarness.appendCSharpUsingImportRelations.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReturnValue('MyApp');
+    csharpHarness.handleCSharpCallNode.mockReset();
     csharpHarness.handleCSharpMethodDeclaration.mockReset();
     csharpHarness.handleCSharpNamespaceNode.mockReset();
     csharpHarness.handleCSharpReferenceNode.mockReset();
@@ -176,6 +179,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
         expect.any(Array),
         expect.any(Set),
         expect.any(Map),
+        true,
       );
     }
     expect(csharpHarness.handleCSharpMethodDeclaration).toHaveBeenCalledWith(
@@ -184,6 +188,15 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
       '/workspace/App.cs',
       expect.any(Array),
       walk,
+    );
+    expect(csharpHarness.handleCSharpCallNode).toHaveBeenCalledWith(
+      referenceNode,
+      state,
+      '/workspace/App.cs',
+      '/workspace',
+      expect.any(Array),
+      expect.any(Set),
+      expect.any(Map),
     );
     expect(csharpHarness.handleCSharpReferenceNode).toHaveBeenCalledWith(
       referenceNode,

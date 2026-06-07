@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import {
   getCodeGraphyConfiguration,
   initializeCurrentCodeGraphyConfiguration,
@@ -82,6 +82,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
 
     await analyzer.initialize();
     analyzer.registry.unregister('codegraphy.typescript');
+    analyzer.registry.unregister('codegraphy.gdscript');
     analyzer.registry.register(createTypeScriptPlugin());
     analyzer.registry.register(createGDScriptPlugin());
 
@@ -138,7 +139,9 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-haskell/src/App/Feature/Runner.hs->example-haskell/src/App/Model/User.hs#import',
       'example-lua/main.lua->example-lua/app/runner.lua#import',
       'example-lua/app/runner.lua->example-lua/app/model/user.lua#import',
-      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Worker.swift#import',
+      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Runnable.swift#import',
+      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Worker.swift#inherit',
+      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Runnable.swift#inherit',
       'example-dart/bin/sample_app.dart->example-dart/lib/app/runner.dart#import',
       'example-dart/lib/app/runner.dart->example-dart/lib/model/profile.dart#import',
       'example-dart/lib/app/runner.dart->example-dart/lib/model/user.dart#import',
@@ -217,6 +220,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     );
 
     await analyzer.initialize();
+    analyzer.registry.unregister('codegraphy.csharp');
     analyzer.registry.register(createCSharpPlugin());
 
     const graph = await analyzer.analyze();

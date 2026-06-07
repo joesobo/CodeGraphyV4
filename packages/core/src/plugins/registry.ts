@@ -13,6 +13,7 @@ import type {
   IPluginAnalysisContext,
   IPluginEdgeType,
   IPluginNodeType,
+  GraphEdgeKind,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { CORE_PLUGIN_API_VERSION } from './api';
@@ -33,6 +34,7 @@ import { addPluginToExtensionMap } from './extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
+  type AnalyzeFileResultOptions,
   type CoreFileAnalysisResultProvider,
 } from './routing/router/analyze';
 import {
@@ -43,6 +45,7 @@ import {
 import {
   getPluginForFile,
   getPluginsForExtension,
+  getPluginsForFile,
   getSupportedExtensions,
   supportsFile,
 } from './routing/router/lookups';
@@ -116,20 +119,49 @@ export class CorePluginRegistry {
     return [...this.plugins.values()];
   }
 
-  listNodeTypes(): IPluginNodeType[] {
+  listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
     return listPluginContributions(
       this.plugins,
       plugin => plugin.contributeNodeTypes?.() ?? [],
       definition => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypes(): IPluginEdgeType[] {
+  listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
     return listPluginContributions(
       this.plugins,
       plugin => plugin.contributeEdgeTypes?.() ?? [],
       definition => definition.id,
+      disabledPlugins,
     );
+  }
+
+  listEdgeTypeCapabilities(
+    filePaths: readonly string[] = [],
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): GraphEdgeKind[] {
+    const applicablePluginIds = new Set<string>();
+
+    for (const filePath of filePaths) {
+      for (const plugin of getPluginsForFile(filePath, this.plugins, this.extensionMap)) {
+        if (disabledPlugins.has(plugin.id)) {
+          continue;
+        }
+
+        applicablePluginIds.add(plugin.id);
+      }
+    }
+
+    const capabilities = new Set<GraphEdgeKind>();
+    for (const pluginId of applicablePluginIds) {
+      const plugin = this.plugins.get(pluginId)?.plugin;
+      for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
+        capabilities.add(capability);
+      }
+    }
+
+    return [...capabilities];
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
@@ -182,6 +214,10 @@ export class CorePluginRegistry {
     const contributions = createEmptyGraphViewContributionSet();
 
     for (const info of this.plugins.values()) {
+      if (context.disabledPlugins?.has(info.plugin.id)) {
+        continue;
+      }
+
       const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
       if (!pluginAccess.available) {
         continue;
@@ -239,6 +275,7 @@ export class CorePluginRegistry {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -248,6 +285,7 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -256,6 +294,7 @@ export class CorePluginRegistry {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -265,6 +304,7 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -274,6 +314,7 @@ export class CorePluginRegistry {
     workspaceRoot: string,
     pluginIds: readonly string[],
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -283,7 +324,10 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
-      { pluginIds: new Set(pluginIds) },
+      {
+        ...options,
+        pluginIds: new Set(pluginIds),
+      },
     );
   }
 
@@ -295,27 +339,29 @@ export class CorePluginRegistry {
     files: AnalyzeFile[],
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<void> {
-    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext);
+    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
   }
 
   async notifyFilesChanged(
     files: AnalyzeFile[],
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<IPluginFilesChangedResult> {
-    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext);
+    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
   }
 
-  notifyPostAnalyze(graph: IGraphData): void {
-    notifyPostAnalyze(this.plugins, graph);
+  notifyPostAnalyze(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyPostAnalyze(this.plugins, graph, disabledPlugins);
   }
 
-  notifyWorkspaceReady(graph: IGraphData): void {
-    notifyWorkspaceReady(this.plugins, graph);
+  notifyWorkspaceReady(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyWorkspaceReady(this.plugins, graph, disabledPlugins);
   }
 
-  notifyGraphRebuild(graph: IGraphData): void {
-    notifyGraphRebuild(this.plugins, graph);
+  notifyGraphRebuild(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyGraphRebuild(this.plugins, graph, disabledPlugins);
   }
 }

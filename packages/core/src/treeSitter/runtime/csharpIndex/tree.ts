@@ -7,6 +7,22 @@ import {
 } from './nodes';
 import type { CSharpIndexedType, CSharpWorkspaceIndex } from './store';
 
+function getCSharpIndexedTypeKind(node: Parser.SyntaxNode): CSharpIndexedType['kind'] {
+  if (node.type === 'interface_declaration') {
+    return 'interface';
+  }
+
+  if (node.type === 'struct_declaration') {
+    return 'struct';
+  }
+
+  if (node.type === 'enum_declaration') {
+    return 'enum';
+  }
+
+  return 'class';
+}
+
 function getCSharpIndexNamespace(
   node: Parser.SyntaxNode,
   currentNamespace: string | null,
@@ -25,11 +41,13 @@ function recordIndexedType(
   index: CSharpWorkspaceIndex,
   filePath: string,
   namespaceName: string | null,
+  kind: CSharpIndexedType['kind'],
   typeName: string,
 ): void {
   const qualifiedName = namespaceName ? `${namespaceName}.${typeName}` : typeName;
   index.typesByQualifiedName.set(qualifiedName, {
     filePath,
+    kind,
     namespaceName,
     typeName,
   } satisfies CSharpIndexedType);
@@ -47,7 +65,7 @@ function recordCSharpIndexedType(
 
   const typeName = getCSharpIdentifierText(node.childForFieldName('name'));
   if (typeName) {
-    recordIndexedType(index, filePath, currentNamespace, typeName);
+    recordIndexedType(index, filePath, currentNamespace, getCSharpIndexedTypeKind(node), typeName);
   }
 }
 

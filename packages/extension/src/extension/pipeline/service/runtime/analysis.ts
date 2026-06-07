@@ -14,12 +14,29 @@ export async function preAnalyzeWorkspacePipelinePlugins(
     notifyPreAnalyze(
       files: Array<{ absolutePath: string; relativePath: string; content: string }>,
       workspaceRoot: string,
+      analysisContext?: undefined,
+      disabledPlugins?: Set<string>,
     ): Promise<void>;
     readContent(file: IDiscoveredFile): Promise<string>;
   },
   signal?: AbortSignal,
+  disabledPlugins: Set<string> = new Set(),
 ): Promise<void> {
-  await preAnalyzeWorkspacePipelineFiles(files, workspaceRoot, dependencies, signal);
+  await preAnalyzeWorkspacePipelineFiles(
+    files,
+    workspaceRoot,
+    {
+      notifyPreAnalyze: (analysisFiles, rootPath) =>
+        dependencies.notifyPreAnalyze(
+          analysisFiles,
+          rootPath,
+          undefined,
+          disabledPlugins,
+        ),
+      readContent: file => dependencies.readContent(file),
+    },
+    signal,
+  );
 }
 
 export async function analyzeWorkspacePipelineDiscoveredFiles(
@@ -34,6 +51,7 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
   signal?: AbortSignal,
   cacheTiers?: AnalysisCacheTierOptions,
   pluginIds?: readonly string[],
+  disabledPlugins: Set<string> = new Set(),
 ): Promise<IWorkspaceFileAnalysisResult> {
   return analyzeWorkspacePipelineFiles(
     cache,
@@ -47,5 +65,6 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
     signal,
     cacheTiers,
     pluginIds,
+    disabledPlugins,
   );
 }

@@ -21,7 +21,7 @@ function readRelationSymbolName(
   const memberName = readRelationMetadataString(relation, 'memberName');
   const importedName = readRelationMetadataString(relation, 'importedName');
 
-  return memberName ?? readNamedImport(importedName);
+  return memberName ?? readNamedImport(importedName) ?? relation.specifier;
 }
 
 function readNamedImport(importedName: string | undefined): string | undefined {

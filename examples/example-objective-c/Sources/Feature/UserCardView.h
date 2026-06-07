@@ -1,11 +1,9 @@
 #import <Foundation/Foundation.h>
+#import "AppView.h"
+#import "ProfileRenderable.h"
 
 @class UserProfile;
 
-@protocol ProfileRenderable
-- (NSString *)renderTitle;
-@end
-
-@interface UserCardView : NSObject <ProfileRenderable>
+@interface UserCardView : AppView <ProfileRenderable>
 - (void)renderProfile:(UserProfile *)profile;
 @end

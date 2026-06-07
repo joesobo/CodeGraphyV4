@@ -5,7 +5,7 @@ import type {
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
-import { normalizeAnalysisResult } from '../analyze/results';
+import { addCallRelation, normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
 import { handleRubyRequireCall } from './imports';
 import {
@@ -40,10 +40,7 @@ function visitRubyNode(
   }
 
   if (node.type === 'class') {
-    if (!symbolsEnabled) {
-      return;
-    }
-    handleRubyClass(node, filePath, relations, symbols, importedBindings);
+    handleRubyClass(node, filePath, relations, symbols, importedBindings, symbolsEnabled);
     return;
   }
 
@@ -66,8 +63,37 @@ export function analyzeRubyFile(
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
-  walkTree(tree.rootNode, {}, (node) =>
-    visitRubyNode(node, filePath, workspaceRoot, relations, symbols, importedBindings, symbolsEnabled),
-  );
+  walkTree<SymbolWalkState>(tree.rootNode, {}, (node, state) => {
+    const action = visitRubyNode(node, filePath, workspaceRoot, relations, symbols, importedBindings, symbolsEnabled);
+    if (node.type === 'call') {
+      handleRubyImportedCall(node, filePath, relations, importedBindings, state.currentSymbolId);
+    }
+    return action;
+  });
   return normalizeAnalysisResult(filePath, symbols, relations);
+}
+
+function handleRubyImportedCall(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  currentSymbolId?: string,
+): void {
+  const receiver = node.childForFieldName('receiver') ?? node.namedChildren[0];
+  const constantName = receiver?.type === 'constant'
+    ? receiver.text
+    : receiver?.type === 'scope_resolution'
+      ? receiver.namedChildren.at(-1)?.text
+      : null;
+  if (!constantName) {
+    return;
+  }
+
+  const binding = importedBindings.get(constantName);
+  if (!binding?.resolvedPath) {
+    return;
+  }
+
+  addCallRelation(relations, filePath, binding, currentSymbolId);
 }

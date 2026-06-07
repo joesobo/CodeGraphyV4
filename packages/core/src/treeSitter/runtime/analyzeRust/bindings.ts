@@ -7,11 +7,17 @@ export function getRustCallBinding(
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
-  const identifier = getIdentifierText(calleeNode) ?? (
-    calleeNode?.type === 'scoped_identifier'
-      ? getLastPathSegment(calleeNode.text, '::')
-      : null
-  );
+  const identifier = getIdentifierText(calleeNode);
+  if (identifier) {
+    return importedBindings.get(identifier) ?? null;
+  }
 
-  return identifier ? importedBindings.get(identifier) ?? null : null;
+  if (calleeNode?.type !== 'scoped_identifier') {
+    return null;
+  }
+
+  const [moduleName] = calleeNode.text.split('::');
+  return importedBindings.get(moduleName)
+    ?? importedBindings.get(getLastPathSegment(calleeNode.text, '::') ?? '')
+    ?? null;
 }

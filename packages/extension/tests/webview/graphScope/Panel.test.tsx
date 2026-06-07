@@ -113,7 +113,7 @@ describe('GraphScopePanel', () => {
     });
   });
 
-  it('keeps edge types unavailable until the graph index is fresh', () => {
+  it('keeps edge types unavailable until the workspace has an index', () => {
     graphStore.setState({
       graphHasIndex: false,
       graphIndexFreshness: 'missing',
@@ -122,19 +122,56 @@ describe('GraphScopePanel', () => {
 
     const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
     expect(edgeTypesButton).toBeDisabled();
+    expect(edgeTypesButton).toHaveAttribute('title', 'Index workspace to enable Edge Type controls');
 
     fireEvent.click(edgeTypesButton);
 
-    expect(screen.getByRole('button', { name: 'Node Types' })).toHaveAttribute('aria-pressed', 'true');
+    expect(edgeTypesButton).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText('File')).toBeInTheDocument();
     expect(screen.queryByText('Imports')).not.toBeInTheDocument();
   });
 
-  it('hides the Nests edge toggle when folder nodes are disabled', () => {
+  it('returns to node types when the active edge tab becomes unavailable', () => {
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
+    expect(screen.getByText('Imports')).toBeInTheDocument();
+
+    act(() => {
+      graphStore.setState({
+        graphHasIndex: false,
+        graphIndexFreshness: 'missing',
+      });
+    });
+
+    expect(screen.getByRole('button', { name: 'Node Types' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Edge Types' })).toBeDisabled();
+    expect(screen.getByText('File')).toBeInTheDocument();
+    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
+  });
+
+  it('enables edge types when the workspace has a stale index', () => {
+    graphStore.setState({
+      graphHasIndex: true,
+      graphIndexFreshness: 'stale',
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeEnabled();
+
+    fireEvent.click(edgeTypesButton);
+
+    expect(screen.getByText('Imports')).toBeInTheDocument();
+  });
+
+  it('hides only the Nests edge toggle when folder nodes are disabled', () => {
     graphStore.setState({ nodeVisibility: { folder: false } });
     render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
 
+    expect(screen.getByText('Imports')).toBeInTheDocument();
     expect(screen.queryByText('Nests')).not.toBeInTheDocument();
   });
 

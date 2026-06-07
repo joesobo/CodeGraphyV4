@@ -24,6 +24,15 @@ describe('pipeline/plugins/treesitter/runtime/projectRoots/search', () => {
     expect(findNearestProjectRoot(filePath, ['pyproject.toml'], workspaceRoot)).toBe(projectRoot);
   });
 
+  it('finds the nearest marker for workspace-relative file paths', () => {
+    const workspaceRoot = createProjectRootsWorkspace();
+    const projectRoot = path.join(workspaceRoot, 'packages', 'api');
+    writeProjectRootsFile(workspaceRoot, 'packages/api/src/index.py');
+    writeProjectRootsFile(workspaceRoot, 'packages/api/pyproject.toml');
+
+    expect(findNearestProjectRoot('packages/api/src/index.py', ['pyproject.toml'], workspaceRoot)).toBe(projectRoot);
+  });
+
   it('returns the workspace root when the nearest marker lives at the workspace boundary', () => {
     const workspaceRoot = createProjectRootsWorkspace();
     const filePath = writeProjectRootsFile(workspaceRoot, 'src/index.py');

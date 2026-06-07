@@ -6,13 +6,19 @@ import type {
 import {
   CORE_GRAPH_EDGE_TYPES,
   CORE_GRAPH_NODE_TYPES,
+  STRUCTURAL_NESTS_EDGE_KIND,
 } from '../../../../../shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   normalizeHexColor,
 } from '../../../../../shared/fileColors';
+import { isFileNode } from '../../../../../shared/visibleGraph/model';
 import { prettifyIdentifier } from './identifiers';
-import type { GraphEdgeTypeLike, GraphNodeTypeLike } from './contracts';
+import type {
+  GraphEdgeTypeCapabilityLike,
+  GraphEdgeTypeLike,
+  GraphNodeTypeLike,
+} from './contracts';
 
 export function mergeNodeTypes(
   graphData: IGraphData,
@@ -56,19 +62,33 @@ export function mergeNodeTypes(
 export function mergeEdgeTypes(
   graphData: IGraphData,
   pluginEdgeTypes: GraphEdgeTypeLike[],
+  edgeTypeCapabilities: GraphEdgeTypeCapabilityLike[] = [],
 ): IGraphEdgeTypeDefinition[] {
-  const definitions = new Map<string, IGraphEdgeTypeDefinition>(
-    CORE_GRAPH_EDGE_TYPES.map((definition) => [definition.id, definition]),
-  );
+  const availableEdgeKinds = collectAvailableEdgeKinds(graphData, edgeTypeCapabilities);
+  const capabilityEdgeKinds = new Set<string>(edgeTypeCapabilities);
+  const definitions = new Map<string, IGraphEdgeTypeDefinition>();
+
+  for (const definition of CORE_GRAPH_EDGE_TYPES) {
+    if (availableEdgeKinds.has(definition.id)) {
+      definitions.set(definition.id, {
+        ...definition,
+        ...(definition.id === 'overrides' && !capabilityEdgeKinds.has(definition.id)
+          ? { requiresEdgeType: 'inherit' as const }
+          : {}),
+      });
+    }
+  }
 
   for (const definition of pluginEdgeTypes) {
-    definitions.set(definition.id, {
-      id: definition.id as IGraphEdgeTypeDefinition['id'],
-      label: definition.label,
-      defaultColor: definition.defaultColor,
-      defaultVisible: definition.defaultVisible,
-      description: definition.description,
-    });
+    if (availableEdgeKinds.has(definition.id)) {
+      definitions.set(definition.id, {
+        id: definition.id as IGraphEdgeTypeDefinition['id'],
+        label: definition.label,
+        defaultColor: definition.defaultColor,
+        defaultVisible: definition.defaultVisible,
+        description: definition.description,
+      });
+    }
   }
 
   for (const edge of graphData.edges) {
@@ -78,9 +98,28 @@ export function mergeEdgeTypes(
         label: prettifyIdentifier(edge.kind),
         defaultColor: edge.color ?? '#94A3B8',
         defaultVisible: true,
+        ...(edge.kind === 'overrides' ? { requiresEdgeType: 'inherit' as const } : {}),
       });
     }
   }
 
   return Array.from(definitions.values());
+}
+
+function collectAvailableEdgeKinds(
+  graphData: IGraphData,
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[],
+): Set<string> {
+  const edgeKinds = new Set<string>(edgeTypeCapabilities);
+
+  for (const edge of graphData.edges) {
+    edgeKinds.add(edge.kind);
+  }
+
+  if (graphData.nodes.some(isFileNode)) {
+    edgeKinds.add('reference');
+    edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
+  }
+
+  return edgeKinds;
 }

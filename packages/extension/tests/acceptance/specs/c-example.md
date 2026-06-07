@@ -9,6 +9,11 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-c workspace
 
+When I click the Graph Scope button
+And I select edge types
+Then the available edge types are Imports, References, Calls
+And I close the Graph Scope
+
 Then I can see there are 6 nodes and 2 connections
 And src/main.c points to src/math/add.h
 And src/math/add.c points to src/math/add.h
@@ -16,3 +21,9 @@ And src/math/add.c points to src/math/add.h
 And README.md is an orphan node
 And Makefile is an orphan node
 And .gitignore is an orphan node
+
+Then I toggle the Imports edge off
+And I toggle the Calls edge on
+Then I can see there are 6 nodes and 2 connections
+And src/main.c points to src/math/add.h
+And src/math/add.c points to src/math/add.h

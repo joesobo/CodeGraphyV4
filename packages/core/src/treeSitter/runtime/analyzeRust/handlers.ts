@@ -14,15 +14,17 @@ export function handleRustModuleItem(
   node: Parser.SyntaxNode,
   filePath: string,
   relations: IAnalysisRelation[],
+  importedBindings: Map<string, ImportedBinding>,
 ): void {
   const moduleName = getIdentifierText(node.childForFieldName('name'));
   if (moduleName) {
-    addImportRelation(
-      relations,
-      filePath,
-      moduleName,
-      resolveRustModuleDeclarationPath(filePath, moduleName),
-    );
+    const resolvedPath = resolveRustModuleDeclarationPath(filePath, moduleName);
+    addImportRelation(relations, filePath, moduleName, resolvedPath);
+    importedBindings.set(moduleName, {
+      importedName: moduleName,
+      specifier: moduleName,
+      resolvedPath,
+    });
   }
 }
 

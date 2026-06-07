@@ -15,7 +15,6 @@ function createPlugin(id: string): IPlugin {
     sources: [
       { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
       { id: 'dynamic-import', name: 'Dynamic import', description: 'Dynamic import()' },
-      { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
     ],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
@@ -275,9 +274,63 @@ describe('core/graph/data', () => {
       ]));
     });
 
+    it('resolves symbol relation targets from the relation specifier when the analyzer knows the target file', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {
+          'src/runner.ts': { size: 10 },
+          'src/base.ts': { size: 20 },
+        },
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['src/runner.ts', {
+            filePath: '/workspace/src/runner.ts',
+            symbols: [{
+              id: 'runner-symbol',
+              filePath: '/workspace/src/runner.ts',
+              kind: 'class',
+              name: 'Runner',
+            }],
+            relations: [{
+              kind: 'inherit',
+              pluginId: 'codegraphy.treesitter',
+              sourceId: 'inherit',
+              fromFilePath: '/workspace/src/runner.ts',
+              fromSymbolId: 'runner-symbol',
+              specifier: 'BaseRunner',
+              toFilePath: '/workspace/src/base.ts',
+            }],
+          }],
+          ['src/base.ts', {
+            filePath: '/workspace/src/base.ts',
+            symbols: [{
+              id: 'base-symbol',
+              filePath: '/workspace/src/base.ts',
+              kind: 'class',
+              name: 'BaseRunner',
+            }],
+            relations: [],
+          }],
+        ]),
+        showOrphans: true,
+        churnCounts: {},
+        nodeVisibility: { symbol: true },
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.treesitter'),
+      });
+
+      expect(graph.edges).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          id: 'src/runner.ts#Runner:class->src/base.ts#BaseRunner:class#inherit',
+          from: 'src/runner.ts#Runner:class',
+          to: 'src/base.ts#BaseRunner:class',
+          kind: 'inherit',
+        }),
+      ]));
+    });
 
 
-    it('keeps file-level connections when the same relation resolves to symbol endpoints', () => {
+
+    it('projects symbol endpoint relations without duplicate file-level edges when symbols are enabled', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({
         cacheFiles: {
           'src/source.ts': { size: 10 },
@@ -323,18 +376,74 @@ describe('core/graph/data', () => {
 
       expect(graph.edges).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          id: 'src/source.ts->src/target.ts#import',
-          from: 'src/source.ts',
-          to: 'src/target.ts',
-          kind: 'import',
-        }),
-        expect.objectContaining({
           id: 'src/source.ts#source:function->src/target.ts#target:function#import',
           from: 'src/source.ts#source:function',
           to: 'src/target.ts#target:function',
           kind: 'import',
         }),
       ]));
+      expect(graph.edges).not.toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          id: 'src/source.ts->src/target.ts#import',
+          from: 'src/source.ts',
+          to: 'src/target.ts',
+          kind: 'import',
+        }),
+      ]));
+    });
+
+    it('keeps file-level fallback edges for symbol endpoint relations when symbols are disabled', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {
+          'src/source.ts': { size: 10 },
+          'src/target.ts': { size: 20 },
+        },
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['src/source.ts', {
+            filePath: '/workspace/src/source.ts',
+            symbols: [{
+              id: 'source-symbol',
+              filePath: '/workspace/src/source.ts',
+              kind: 'function',
+              name: 'source',
+            }],
+            relations: [{
+              kind: 'import',
+              pluginId: 'plugin.symbols',
+              sourceId: 'es6-import',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+              toFilePath: '/workspace/src/target.ts',
+              toSymbolId: 'target-symbol',
+            }],
+          }],
+          ['src/target.ts', {
+            filePath: '/workspace/src/target.ts',
+            symbols: [{
+              id: 'target-symbol',
+              filePath: '/workspace/src/target.ts',
+              kind: 'function',
+              name: 'target',
+            }],
+            relations: [],
+          }],
+        ]),
+        showOrphans: true,
+        churnCounts: {},
+        nodeVisibility: { symbol: false },
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('plugin.symbols'),
+      });
+
+      expect(graph.edges).toEqual([
+        expect.objectContaining({
+          id: 'src/source.ts->src/target.ts#import',
+          from: 'src/source.ts',
+          to: 'src/target.ts',
+          kind: 'import',
+        }),
+      ]);
     });
 
 

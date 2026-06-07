@@ -75,6 +75,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
 
     expect(index.typesByQualifiedName.get('Point')).toEqual({
       filePath: '/workspace/src/Point.cs',
+      kind: 'struct',
       namespaceName: null,
       typeName: 'Point',
     });
@@ -113,6 +114,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
 
     expect(index.typesByQualifiedName.get('MyApp.Runnable')).toEqual({
       filePath: '/workspace/src/Program.cs',
+      kind: 'interface',
       namespaceName: 'MyApp',
       typeName: 'Runnable',
     });
@@ -154,11 +156,13 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
 
     expect(index.typesByQualifiedName.get('MyApp.Container')).toEqual({
       filePath: '/workspace/src/Program.cs',
+      kind: 'class',
       namespaceName: 'MyApp',
       typeName: 'Container',
     });
     expect(index.typesByQualifiedName.get('MyApp.Nested')).toEqual({
       filePath: '/workspace/src/Program.cs',
+      kind: 'struct',
       namespaceName: 'MyApp',
       typeName: 'Nested',
     });

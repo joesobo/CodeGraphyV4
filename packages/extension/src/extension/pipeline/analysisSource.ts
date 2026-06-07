@@ -18,6 +18,8 @@ export interface WorkspacePipelineSourceOwner {
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     nextSignal?: AbortSignal,
+    pluginIds?: readonly string[],
+    disabledPlugins?: Set<string>,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -37,6 +39,7 @@ export interface WorkspacePipelineSourceOwner {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     nextSignal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ): Promise<void>;
   _eventBus?: EventBus;
   _lastDiscoveredDirectories: string[];
@@ -60,7 +63,16 @@ export function createWorkspacePipelineAnalysisSource(
       workspaceRoot: string,
       onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
       nextSignal?: AbortSignal,
-    ) => owner._analyzeFiles(files, workspaceRoot, onProgress, nextSignal),
+      pluginIds?: readonly string[],
+      disabledPlugins?: Set<string>,
+    ) => owner._analyzeFiles(
+      files,
+      workspaceRoot,
+      onProgress,
+      nextSignal,
+      pluginIds,
+      disabledPlugins,
+    ),
     _buildGraphData: (
       fileConnections: Map<string, IProjectedConnection[]>,
       workspaceRoot: string,
@@ -93,7 +105,8 @@ export function createWorkspacePipelineAnalysisSource(
       files: IDiscoveredFile[],
       workspaceRoot: string,
       nextSignal?: AbortSignal,
-    ) => owner._preAnalyzePlugins(files, workspaceRoot, nextSignal),
+      disabledPlugins?: Set<string>,
+    ) => owner._preAnalyzePlugins(files, workspaceRoot, nextSignal, disabledPlugins),
     getPluginFilterPatterns: (disabledPlugins?: ReadonlySet<string>) =>
       owner.getPluginFilterPatterns(disabledPlugins),
   } as WorkspacePipelineAnalysisSource;

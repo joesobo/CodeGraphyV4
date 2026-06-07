@@ -41,6 +41,7 @@ export interface GraphViewProviderSettingsStateMethodsSource {
   _userGroups: IGroup[];
   _filterPatterns: string[];
   _graphData: IGraphData;
+  _rawGraphData: IGraphData;
   _disabledPlugins: Set<string>;
   _nodeSizeMode: NodeSizeMode;
   _analyzer?: GraphViewProviderSettingsAnalyzerLike;
@@ -133,10 +134,11 @@ export function createGraphViewProviderSettingsStateMethods(
       sendMessage: message => source._sendMessage(message),
     });
     sendGraphControlsUpdated(
-      source._graphData,
+      source._rawGraphData,
       source._analyzer,
       message => source._sendMessage(message),
       dependencies.getConfiguration('codegraphy'),
+      source._disabledPlugins,
     );
   };
 
@@ -171,10 +173,11 @@ export function createGraphViewProviderSettingsStateMethods(
     });
 
     sendGraphControlsUpdated(
-      source._graphData,
+      source._rawGraphData,
       source._analyzer,
       message => source._sendMessage(message),
       dependencies.getConfiguration('codegraphy'),
+      source._disabledPlugins,
     );
 
     syncGroupStateToSource(state);

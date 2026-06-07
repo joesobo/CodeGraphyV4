@@ -55,7 +55,7 @@ function visitRustNode(
   }
 
   if (node.type === 'mod_item') {
-    handleRustModuleItem(node, filePath, relations);
+    handleRustModuleItem(node, filePath, relations, importedBindings);
     return;
   }
 

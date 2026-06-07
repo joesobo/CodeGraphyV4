@@ -125,16 +125,18 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   public preAnalyzePlugins(
     files: Array<{ absolutePath: string; relativePath: string }>,
     workspaceRoot: string,
+    disabledPlugins?: Set<string>,
   ): Promise<void> {
-    return this._preAnalyzePlugins(files as never, workspaceRoot);
+    return this._preAnalyzePlugins(files as never, workspaceRoot, undefined, disabledPlugins);
   }
 
   public analyzeFiles(
     files: Array<{ absolutePath: string; relativePath: string }>,
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+    disabledPlugins?: Set<string>,
   ) {
-    return this._analyzeFiles(files as never, workspaceRoot, onProgress);
+    return this._analyzeFiles(files as never, workspaceRoot, onProgress, undefined, undefined, disabledPlugins);
   }
 
   public buildGraphData(
@@ -245,18 +247,20 @@ describe('extension/pipeline/service/internalBase', () => {
   it('delegates pre-analysis through the shared helper with registry and discovery callbacks', async () => {
     const source = new TestInternalBase();
     const files = [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }];
+    const disabledPlugins = new Set(['plugin.disabled']);
     source._registry = {
       ...source._registry,
       notifyPreAnalyze: vi.fn(async () => undefined),
     } as never;
 
-    await source.preAnalyzePlugins(files, '/workspace');
+    await source.preAnalyzePlugins(files, '/workspace', disabledPlugins);
 
     expect(preAnalyzeWorkspacePipelinePlugins).toHaveBeenCalledWith(
       files,
       '/workspace',
       expect.any(Object),
       undefined,
+      disabledPlugins,
     );
     const dependencies = vi.mocked(preAnalyzeWorkspacePipelinePlugins).mock.calls[0][2];
     await dependencies.notifyPreAnalyze(
@@ -266,6 +270,8 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(source._registry.notifyPreAnalyze).toHaveBeenCalledWith(
       [{ relativePath: 'src/a.ts' }],
       '/workspace',
+      undefined,
+      disabledPlugins,
     );
     await expect(dependencies.readContent(files[0] as never)).resolves.toBe(
       'contents:/workspace/src/a.ts',
@@ -276,6 +282,7 @@ describe('extension/pipeline/service/internalBase', () => {
   it('delegates file analysis through the shared helper with the current collaborators', async () => {
     const source = new TestInternalBase();
     const progress = vi.fn();
+    const disabledPlugins = new Set(['plugin.disabled']);
     source.setEventBus({ emit: vi.fn() } as never);
     const state = source as unknown as { _eventBus: unknown };
     const getFileStat = vi
@@ -286,6 +293,7 @@ describe('extension/pipeline/service/internalBase', () => {
       [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }],
       '/workspace',
       progress,
+      disabledPlugins,
     );
 
     expect(analyzeWorkspacePipelineDiscoveredFiles).toHaveBeenCalledWith(
@@ -304,6 +312,7 @@ describe('extension/pipeline/service/internalBase', () => {
         required: ['baseline', 'plugin:plugin.a'],
       },
       ['plugin.a'],
+      disabledPlugins,
     );
     await expect(
       vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mock.calls[0][4]('/workspace/src/a.ts'),

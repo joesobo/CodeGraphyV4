@@ -45,6 +45,45 @@ import {
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from './vscode';
 
 const TARGET_NODE = 'src/index.ts';
+const CORE_EDGE_TYPE_LABELS = [
+  'Imports',
+  'References',
+  'Calls',
+  'Type imports',
+  'Inherits',
+  'Loads',
+  'Nests',
+  'Contains',
+  'Overrides',
+  'TypeScript Alias Import',
+];
+
+const CORE_NODE_TYPE_LABELS = [
+  'File',
+  'Folder',
+  'Package',
+  'Symbol',
+  'Function',
+  'Class',
+  'Interface',
+  'Type',
+  'Struct',
+  'Enum',
+  'Variable',
+  'Constant',
+  'Godot class_name',
+];
+
+const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
+  Class: 'Symbol',
+  Constant: 'Variable',
+  Enum: 'Symbol',
+  Function: 'Symbol',
+  Interface: 'Symbol',
+  Struct: 'Symbol',
+  Type: 'Symbol',
+  'Godot class_name': 'Variable',
+};
 
 interface PatternAcceptanceStep {
   pattern: RegExp;
@@ -75,6 +114,18 @@ async function expectOrphanNode(
   expect(touchingEdges).toEqual([]);
 }
 
+async function countVisibleEdgesBetween(
+  frame: Frame,
+  sourcePath: string,
+  targetPath: string,
+): Promise<number> {
+  return frame.locator('[aria-label^="Graph edge "]').evaluateAll((elements, options) =>
+    elements.filter(element =>
+      element.getAttribute('aria-label') === `Graph edge ${options.sourcePath} to ${options.targetPath}`,
+    ).length,
+  { sourcePath, targetPath });
+}
+
 const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
   'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
@@ -97,7 +148,9 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     });
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);
-    await applyExampleScenarioStartingUiState(context, step.sourcePath);
+    await applyExampleScenarioStartingUiState(context, step.sourcePath, {
+      requireCoreNodeTypes: true,
+    });
   },
 
   'I see graph nodes': async (context) => {
@@ -119,7 +172,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await indexWorkspace(context);
   },
 
-  'I have indexed the workspace': async (context) => {
+  'I have indexed the workspace': async (context, step) => {
     await graphStage(requireGraphFrame(context)).screenshot().then(image => {
       context.beforeIndexStageImage = image;
     });
@@ -127,6 +180,8 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await expect(
       requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
     ).toBeHidden({ timeout: 30_000 });
+    await applyExampleScenarioStartingUiState(context, step.sourcePath);
+    await applyPostIndexScenarioStartingUiState(context, step.sourcePath);
   },
 
   'I see indexing progress': async (context) => {
@@ -174,7 +229,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I toggle the Type imports edge on': async (context) => {
-    await setPanelSwitch(context, 'Type imports', true);
+    await toggleEdgeTypeOn(context, 'Type imports');
   },
 
   'I close the Graph Scope': async (context) => {
@@ -324,9 +379,13 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     }
   }),
 
-  step(/^I have indexed the workspace$/, async (context) => {
+  step(/^I have indexed the workspace$/, async (context, stepDefinition) => {
     await indexWorkspace(context);
     await waitForIndexingToFinish(context);
+    await applyExampleScenarioStartingUiState(context, stepDefinition.sourcePath, {
+      requireCoreNodeTypes: true,
+    });
+    await applyPostIndexScenarioStartingUiState(context, stepDefinition.sourcePath);
   }),
 
   step(/^I have not yet indexed the workspace$/, async (context) => {
@@ -353,12 +412,24 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expectGraphCounts(context, Number(match[1]), Number(match[2]));
   }),
 
+  step(/^the top right of the graph says "(\d+) connections?"$/, async (context, _step, match) => {
+    await expect.poll(async () => (await getGraphCounts(requireGraphFrame(context))).edges).toBe(Number(match[1]));
+  }),
+
   step(/^(?!I see )(.+) points to (.+)$/, async (context, _step, match) => {
     await expectVisibleEdgeBetween(context, match[1], match[2]);
   }),
 
   step(/^I see (.+) points to (.+)$/, async (context, _step, match) => {
     await expectVisibleEdgeBetween(context, match[1], match[2]);
+  }),
+
+  step(/^(.+) has (\d+) edges pointing to (.+)$/, async (context, _step, match) => {
+    const frame = requireGraphFrame(context);
+    const sourcePath = match[1];
+    const expectedCount = Number(match[2]);
+    const targetPath = match[3];
+    await expect.poll(() => countVisibleEdgesBetween(frame, sourcePath, targetPath)).toBe(expectedCount);
   }),
 
   step(/^(.+) is an orphan node$/, async (context, _step, match) => {
@@ -384,8 +455,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the (.+) plugin on$/, async (context, _step, match) => {
-    await setPanelSwitch(context, match[1], true);
-    await waitForIndexingToFinish(context);
+    await setPluginSwitch(context, match[1], true);
   }),
 
   step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
@@ -561,6 +631,38 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
   }),
 
+  step(/^I show only the (.+) edge type$/, async (context, _step, match) => {
+    await showOnlyEdgeType(context, match[1]);
+  }),
+
+  step(/^I show no edge types$/, async (context) => {
+    await showNoEdgeTypes(context);
+  }),
+
+  step(/^I toggle the (.+) edge on$/, async (context, _step, match) => {
+    await toggleEdgeTypeOn(context, match[1]);
+  }),
+
+  step(/^I toggle the (.+) edge off$/, async (context, _step, match) => {
+    await toggleEdgeTypesOff(context, parseScopeTypeList(match[1]));
+  }),
+
+  step(/^I toggle the (.+) node on$/, async (context, _step, match) => {
+    await toggleNodeTypes(context, parseScopeTypeList(match[1]), true);
+  }),
+
+  step(/^I toggle the (.+) node off$/, async (context, _step, match) => {
+    await toggleNodeTypes(context, parseScopeTypeList(match[1]), false);
+  }),
+
+  step(/^I show only the (.+) node type$/, async (context, _step, match) => {
+    await showOnlyNodeTypes(context, parseScopeTypeList(match[1]));
+  }),
+
+  step(/^I show only the (.+) node types$/, async (context, _step, match) => {
+    await showOnlyNodeTypes(context, parseScopeTypeList(match[1]));
+  }),
+
   step(/^the Edge Types button is disabled$/, async (context) => {
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeDisabled();
   }),
@@ -577,6 +679,17 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
   }),
 
+  step(/^the available edge types are (.+)$/, async (context, _step, match) => {
+    const expectedEdgeTypes = match[1].split(',').map((label) => label.trim());
+    const frame = requireGraphFrame(context);
+
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label)),
+    )).toEqual(expectedEdgeTypes);
+  }),
+
   step(/^I toggle the Imports edge on$/, async (context) => {
     await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
     await setPanelSwitch(context, 'Imports', true);
@@ -584,19 +697,20 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the Folder node on$/, async (context) => {
-    await requireGraphFrame(context).getByRole('button', { name: 'Node Types' }).click();
+    await openGraphScopeSection(context, 'Node Types');
     await setPanelSwitch(context, 'Folder', true);
+    await closePanelIfOpen(requireGraphFrame(context));
   }),
 
   step(/^I toggle the Nests edge on$/, async (context) => {
-    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
-    await setPanelSwitch(context, 'Nests', true);
+    await toggleEdgeTypeOn(context, 'Nests');
   }),
 
   step(/^the Nests edge is toggled on$/, async (context) => {
     const frame = requireGraphFrame(context);
-    await frame.getByRole('button', { name: 'Edge Types' }).click();
+    await openGraphScopeSection(context, 'Edge Types');
     await expect(await findPanelSwitch(frame, 'Nests')).toHaveAttribute('aria-checked', 'true');
+    await closePanelIfOpen(frame);
   }),
 
   step(/^I close the Graph Scope$/, async (context) => {
@@ -742,7 +856,14 @@ function findPatternStep(
 async function applyExampleScenarioStartingUiState(
   context: GraphAcceptanceContext,
   sourcePath: string,
+  options: { requireCoreNodeTypes?: boolean } = {},
 ): Promise<void> {
+  if (path.basename(sourcePath).endsWith('-example.md')) {
+    await showOnlyNodeTypes(context, ['File'], {
+      requireCoreNodeTypes: options.requireCoreNodeTypes,
+    });
+  }
+
   switch (path.basename(sourcePath)) {
     case 'godot-example.md':
       await setPluginSwitch(context, 'GDScript (Godot)', false);
@@ -753,6 +874,15 @@ async function applyExampleScenarioStartingUiState(
     case 'typescript-example.md':
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
+  }
+}
+
+async function applyPostIndexScenarioStartingUiState(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+): Promise<void> {
+  if (path.basename(sourcePath) === 'folder-context-menu.md') {
+    await showNoEdgeTypes(context);
   }
 }
 
@@ -1017,10 +1147,151 @@ async function setPluginSwitch(
   enabled: boolean,
 ): Promise<void> {
   const frame = requireGraphFrame(context);
-  await clickToolbarButton(frame, 'Plugins');
+  const normalizedLabel = normalizePanelLabel(label);
+  const switchInOpenPanel = await findPanelSwitch(frame, normalizedLabel);
+  if (!(await switchInOpenPanel.isVisible().catch(() => false))) {
+    await clickToolbarButton(frame, 'Plugins');
+    await expect(await findPanelSwitch(frame, normalizedLabel)).toBeVisible({ timeout: 15_000 });
+  }
+
   await setPanelSwitch(context, label, enabled);
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
+}
+
+async function showOnlyEdgeType(
+  context: GraphAcceptanceContext,
+  label: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Edge Types');
+
+  for (const edgeTypeLabel of CORE_EDGE_TYPE_LABELS) {
+    await setPanelSwitchIfPresent(context, edgeTypeLabel, edgeTypeLabel === label);
+  }
+
+  await setPanelSwitch(context, label, true);
+  await closePanelIfOpen(frame);
+}
+
+async function showNoEdgeTypes(context: GraphAcceptanceContext): Promise<void> {
+  await setCoreEdgeTypes(context, () => false);
+  await requireGraphFrame(context).waitForTimeout(150);
+  await setCoreEdgeTypes(context, () => false);
+}
+
+async function setCoreEdgeTypes(
+  context: GraphAcceptanceContext,
+  enabledForLabel: (label: string) => boolean,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Edge Types');
+
+  for (const edgeTypeLabel of CORE_EDGE_TYPE_LABELS) {
+    await setPanelSwitchIfPresent(context, edgeTypeLabel, enabledForLabel(edgeTypeLabel));
+  }
+
+  await closePanelIfOpen(frame);
+}
+
+async function toggleEdgeTypeOn(
+  context: GraphAcceptanceContext,
+  label: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Edge Types');
+  await setPanelSwitch(context, label, true);
+  await closePanelIfOpen(frame);
+}
+
+async function toggleEdgeTypesOff(
+  context: GraphAcceptanceContext,
+  labels: string[],
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Edge Types');
+  for (const label of labels) {
+    await setPanelSwitchIfPresent(context, label, false);
+  }
+  await closePanelIfOpen(frame);
+}
+
+async function toggleNodeTypes(
+  context: GraphAcceptanceContext,
+  labels: string[],
+  enabled: boolean,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Node Types');
+  const labelsToToggle = new Set(labels.flatMap(label => [
+    label,
+    ...(enabled && CHILD_NODE_TYPE_PARENTS[label] ? [CHILD_NODE_TYPE_PARENTS[label]] : []),
+  ]));
+
+  for (const label of labelsToToggle) {
+    await setPanelSwitch(context, label, enabled);
+  }
+
+  await closePanelIfOpen(frame);
+}
+
+async function showOnlyNodeTypes(
+  context: GraphAcceptanceContext,
+  labels: string[],
+  options: { requireCoreNodeTypes?: boolean } = {},
+): Promise<void> {
+  await setOnlyNodeTypes(context, labels, options);
+  if (options.requireCoreNodeTypes) {
+    await requireGraphFrame(context).waitForTimeout(150);
+    await setOnlyNodeTypes(context, labels, options);
+  }
+}
+
+async function setOnlyNodeTypes(
+  context: GraphAcceptanceContext,
+  labels: string[],
+  options: { requireCoreNodeTypes?: boolean } = {},
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await openGraphScopeSection(context, 'Node Types');
+  const labelsToEnable = new Set(labels.flatMap(label => [
+    label,
+    ...(CHILD_NODE_TYPE_PARENTS[label] ? [CHILD_NODE_TYPE_PARENTS[label]] : []),
+  ]));
+
+  for (const nodeTypeLabel of CORE_NODE_TYPE_LABELS) {
+    if (options.requireCoreNodeTypes) {
+      await setPanelSwitch(context, nodeTypeLabel, labelsToEnable.has(nodeTypeLabel));
+    } else {
+      await setPanelSwitchIfPresent(context, nodeTypeLabel, labelsToEnable.has(nodeTypeLabel));
+    }
+  }
+
+  for (const nodeTypeLabel of labelsToEnable) {
+    await setPanelSwitch(context, nodeTypeLabel, true);
+  }
+
+  await closePanelIfOpen(frame);
+}
+
+async function openGraphScopeSection(
+  context: GraphAcceptanceContext,
+  sectionName: 'Edge Types' | 'Node Types',
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  if (!(await frame.getByRole('button', { name: sectionName }).isVisible().catch(() => false))) {
+    await clickToolbarButton(frame, 'Graph Scope');
+  }
+
+  const sectionButton = frame.getByRole('button', { name: sectionName });
+  if (sectionName === 'Edge Types' && await sectionButton.isDisabled().catch(() => false)) {
+    await closePanelIfOpen(frame);
+    await indexWorkspace(context);
+    await waitForIndexingToFinish(context);
+    await clickToolbarButton(frame, 'Graph Scope');
+  }
+
+  await frame.getByRole('button', { name: sectionName }).click();
 }
 
 async function setPanelSwitch(
@@ -1028,33 +1299,119 @@ async function setPanelSwitch(
   label: string,
   enabled: boolean,
 ): Promise<void> {
-  const switchInRow = await findPanelSwitch(requireGraphFrame(context), label);
+  const switchInRow = await findPanelSwitch(requireGraphFrame(context), normalizePanelLabel(label));
   const current = await switchInRow.getAttribute('aria-checked');
 
   if (current !== String(enabled)) {
     await switchInRow.click();
   }
 
+  if (!enabled && current !== String(enabled)) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (!(await switchInRow.isVisible().catch(() => false))) {
+        return;
+      }
+
+      if (await switchInRow.getAttribute('aria-checked').catch(() => String(enabled)) === String(enabled)) {
+        return;
+      }
+
+      await switchInRow.click();
+      await requireGraphFrame(context).waitForTimeout(150);
+    }
+  }
+
   await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
 }
 
-async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
+async function setPanelSwitchIfPresent(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const normalizedLabel = normalizePanelLabel(label);
+  const switchInRow = await findPanelSwitchIfPresent(frame, normalizedLabel);
+  if (!switchInRow) {
+    return;
+  }
+
+  const current = await switchInRow.getAttribute('aria-checked');
+
+  if (current !== String(enabled)) {
+    await switchInRow.click();
+  }
+
+  if (!enabled) {
+    await expect.poll(async () => {
+      const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
+      if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+        return 'false';
+      }
+
+      return await currentSwitch.getAttribute('aria-checked') ?? 'false';
+    }).toBe('false');
+    return;
+  }
+
+  await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
+}
+
+export async function findPanelSwitchIfPresent(frame: Frame, label: string): Promise<Locator | undefined> {
+  for (const candidate of panelSwitchCandidates(frame, label)) {
+    if (await candidate.count()) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
+function panelSwitchCandidates(frame: Frame, label: string): Locator[] {
   const row = frame
     .locator('[data-scope-row]')
     .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
     .first();
-  const switchInRow = row.getByRole('switch').first();
+  return [
+    row.getByRole('switch').first(),
+    frame.getByRole('switch', { name: `Toggle ${label}`, exact: true }),
+    frame.getByRole('switch', { name: label, exact: true }),
+  ];
+}
 
-  if (await switchInRow.count()) {
-    return switchInRow;
+async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
+  const candidates = panelSwitchCandidates(frame, label);
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    for (const candidate of candidates) {
+      if (await candidate.count()) {
+        return candidate;
+      }
+    }
+    await frame.waitForTimeout(100);
   }
 
-  const exactSwitch = frame.getByRole('switch', { name: label, exact: true });
-  if (await exactSwitch.count()) {
-    return exactSwitch;
-  }
+  return candidates.at(-1) ?? frame.getByRole('switch', { name: label, exact: true });
+}
 
-  return frame.getByRole('switch', { name: `Toggle ${label}`, exact: true });
+function parseScopeTypeList(value: string): string[] {
+  return value
+    .split(/\s+and\s+|,\s*/)
+    .map(entry => entry.trim().replace(/^the\s+/i, ''))
+    .filter(Boolean);
+}
+
+function normalizePanelLabel(label: string): string {
+  const normalized = label.trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    reference: 'References',
+    references: 'References',
+    'type imports': 'Type imports',
+    'type import': 'Type imports',
+    'typescript alias import': 'TypeScript Alias Import',
+  };
+
+  return aliases[normalized] ?? label;
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {

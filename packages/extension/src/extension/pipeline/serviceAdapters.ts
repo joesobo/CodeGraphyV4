@@ -34,13 +34,14 @@ export async function preAnalyzeWorkspacePipelinePlugins(
   registry: Pick<PluginRegistry, 'notifyPreAnalyze'>,
   discovery: Pick<FileDiscovery, 'readContent'>,
   signal?: AbortSignal,
+  disabledPlugins: Set<string> = new Set(),
 ): Promise<void> {
   await preAnalyzeWorkspacePipelineFiles(
     files,
     workspaceRoot,
     {
       notifyPreAnalyze: (v2Files, rootPath) =>
-        registry.notifyPreAnalyze(v2Files, rootPath),
+        registry.notifyPreAnalyze(v2Files, rootPath, undefined, disabledPlugins),
       readContent: file => discovery.readContent(file),
     },
     signal,
@@ -59,6 +60,7 @@ export function analyzeWorkspacePipelineFiles(
   signal?: AbortSignal,
   cacheTiers?: AnalysisCacheTierOptions,
   pluginIds?: readonly string[],
+  disabledPlugins: Set<string> = new Set(),
 ): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
@@ -72,6 +74,7 @@ export function analyzeWorkspacePipelineFiles(
         registry,
         discovery,
         abortSignal,
+        disabledPlugins,
       ),
     _registry: registry,
   };
@@ -87,6 +90,7 @@ export function analyzeWorkspacePipelineFiles(
     signal,
     cacheTiers,
     pluginIds,
+    disabledPlugins,
   );
 }
 

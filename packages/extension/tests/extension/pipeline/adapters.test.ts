@@ -220,6 +220,7 @@ describe('WorkspacePipeline adapters', () => {
       "import './utils'",
       '/test/workspace',
       expectWorkspaceAnalysisContext(false),
+      { disabledPlugins: new Set() },
     );
     expect(eventBus.emit).toHaveBeenCalledWith('analysis:fileProcessed', {
       filePath: file.relativePath,
@@ -320,6 +321,7 @@ describe('WorkspacePipeline adapters', () => {
       '/test/workspace',
       ['codegraphy.python'],
       expectWorkspaceAnalysisContext(false),
+      { disabledPlugins: new Set() },
     );
     expect(analyzeFileSpy).not.toHaveBeenCalled();
   });

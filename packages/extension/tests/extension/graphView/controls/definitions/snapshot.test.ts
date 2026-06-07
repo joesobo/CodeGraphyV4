@@ -3,6 +3,83 @@ import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphContr
 import { captureGraphControlsSnapshot } from '../../../../../src/extension/graphView/controls/send';
 
 describe('extension/graphView/controls/snapshot', () => {
+  it('advertises edge capabilities even when the current graph has no matching edges', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'edgeVisibility') {
+            return { import: false, 'plugin:route': false, overrides: true } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [
+        {
+          id: 'plugin:route',
+          label: 'Route Links',
+          defaultColor: '#10B981',
+          defaultVisible: true,
+        },
+      ],
+      ['import', 'plugin:route'],
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'import',
+      'reference',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'plugin:route',
+    ]);
+    expect(snapshot.edgeVisibility).toEqual({
+      import: false,
+      reference: false,
+      [STRUCTURAL_NESTS_EDGE_KIND]: true,
+      'plugin:route': false,
+    });
+  });
+
+  it('advertises only edge types available in the current project graph', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'edgeVisibility') {
+            return { import: false, inherit: true, overrides: true } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111111', nodeType: 'file' },
+          { id: 'src/model.ts', label: 'Model', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          { id: 'src/App.ts->src/model.ts#import', from: 'src/App.ts', to: 'src/model.ts', kind: 'import', sources: [] },
+        ],
+      },
+      [],
+      [],
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'import',
+      'reference',
+      STRUCTURAL_NESTS_EDGE_KIND,
+    ]);
+    expect(snapshot.edgeVisibility).toEqual({
+      import: false,
+      reference: false,
+      [STRUCTURAL_NESTS_EDGE_KIND]: true,
+    });
+  });
+
   it('merges core and plugin graph control definitions with stored settings overrides', () => {
     const snapshot = captureGraphControlsSnapshot(
       {
@@ -54,6 +131,7 @@ describe('extension/graphView/controls/snapshot', () => {
           },
         },
       ],
+      ['plugin:route'],
     );
 
     expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
@@ -74,6 +152,7 @@ describe('extension/graphView/controls/snapshot', () => {
     ]);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === 'custom:route')).toBe(true);
+    expect(snapshot.edgeTypes.some(edgeType => edgeType.id === 'plugin:route')).toBe(true);
     expect(snapshot.nodeTypes.find((nodeType) => nodeType.id === 'route')?.description).toEqual({
       description: 'Application routes exposed by a framework.',
       examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],

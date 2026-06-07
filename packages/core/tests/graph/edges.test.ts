@@ -17,7 +17,6 @@ function createPlugin(id: string): IPlugin {
     supportedExtensions: ['.ts'],
     sources: [
       { id: 'import', name: 'Import', description: 'Import relation' },
-      { id: 'reexport', name: 'Re-export', description: 'Re-export relation' },
       { id: 'dynamic-import', name: 'Dynamic Import', description: 'Dynamic import relation' },
     ],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
@@ -45,8 +44,8 @@ describe('core/graph/edges', () => {
       fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
       ]),
@@ -67,19 +66,11 @@ describe('core/graph/edges', () => {
             sourceId: 'import',
             label: 'Import',
           },
-        ],
-      },
-      {
-        id: 'src/index.ts->src/utils.ts#reexport',
-        from: 'src/index.ts',
-        to: 'src/utils.ts',
-        kind: 'reexport',
-        sources: [
           {
-            id: 'plugin.typescript:reexport',
+            id: 'plugin.typescript:dynamic-import',
             pluginId: 'plugin.typescript',
-            sourceId: 'reexport',
-            label: 'Re-export',
+            sourceId: 'dynamic-import',
+            label: 'Dynamic Import',
           },
         ],
       },

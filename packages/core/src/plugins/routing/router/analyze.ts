@@ -24,6 +24,7 @@ export type CoreFileAnalysisResultProvider = (
 ) => Promise<IFileAnalysisResult | null>;
 
 export interface AnalyzeFileResultOptions {
+  disabledPlugins?: ReadonlySet<string>;
   pluginIds?: ReadonlySet<string>;
 }
 
@@ -32,10 +33,13 @@ function filterPluginInfosBySelection(
   options: AnalyzeFileResultOptions,
 ): IRoutablePluginInfo[] {
   if (!options.pluginIds) {
-    return pluginInfos;
+    return pluginInfos.filter(pluginInfo => !options.disabledPlugins?.has(pluginInfo.plugin.id));
   }
 
-  return pluginInfos.filter(pluginInfo => options.pluginIds?.has(pluginInfo.plugin.id));
+  return pluginInfos.filter(pluginInfo =>
+    options.pluginIds?.has(pluginInfo.plugin.id)
+    && !options.disabledPlugins?.has(pluginInfo.plugin.id)
+  );
 }
 
 /**

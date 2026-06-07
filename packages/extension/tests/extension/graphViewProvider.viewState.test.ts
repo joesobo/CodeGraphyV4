@@ -343,7 +343,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(notifyGraphRebuild).toHaveBeenCalledWith({ nodes: [], edges: [] });
+    expect(notifyGraphRebuild).toHaveBeenCalledWith({ nodes: [], edges: [] }, new Set());
   });
 
   it('applies refreshed resource roots to editor panels', () => {

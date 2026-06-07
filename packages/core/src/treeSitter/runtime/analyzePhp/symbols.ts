@@ -16,9 +16,10 @@ export function handlePhpTypeDeclaration(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): void {
   const name = node.childForFieldName('name')?.text;
-  if (name) {
+  if (name && symbolsEnabled) {
     symbols.push(createSymbol(filePath, getPhpTypeKind(node), name, node));
   }
 

@@ -24,6 +24,7 @@ export interface WorkspaceIndexRefreshSource {
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
     pluginIds?: readonly string[],
+    disabledPlugins?: Set<string>,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -44,6 +45,7 @@ export interface WorkspaceIndexRefreshSource {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ): Promise<void>;
   _readAnalysisFiles(
     files: IDiscoveredFile[],
@@ -66,6 +68,8 @@ export interface WorkspaceIndexRefreshDependencies {
   notifyFilesChanged(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string,
+    analysisContext?: undefined,
+    disabledPlugins?: Set<string>,
   ): Promise<{ additionalFilePaths: string[]; requiresFullRefresh: boolean }>;
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   persistCache(): void;
@@ -232,6 +236,8 @@ export async function refreshWorkspaceIndexAnalysisScope(
       });
     },
     dependencies.signal,
+    undefined,
+    dependencies.disabledPlugins,
   );
 
   source._lastFileAnalysis = analysisResult.fileAnalysis;
@@ -289,6 +295,7 @@ export async function refreshWorkspaceIndexPluginFiles(
       },
       dependencies.signal,
       registeredPluginIds,
+      dependencies.disabledPlugins,
     );
 
     for (const [filePath, analysis] of analysisResult.fileAnalysis) {
@@ -333,6 +340,8 @@ export async function refreshWorkspaceIndexChangedFiles(
   const incrementalLifecycle = await dependencies.notifyFilesChanged(
     changedAnalysisFiles,
     dependencies.workspaceRoot,
+    undefined,
+    dependencies.disabledPlugins,
   );
 
   if (incrementalLifecycle.requiresFullRefresh) {
@@ -375,6 +384,8 @@ export async function refreshWorkspaceIndexChangedFiles(
       });
     },
     dependencies.signal,
+    undefined,
+    dependencies.disabledPlugins,
   );
 
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
