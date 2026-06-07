@@ -6,6 +6,7 @@ import {
 } from '../../src/indexing/defaultPlugins';
 import type { CorePluginRegistry } from '../../src/plugins/registry';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createDefaultCodeGraphyWorkspaceSettings,
 } from '../../src/workspace/settingsDefaults';
@@ -50,7 +51,7 @@ describe('indexing/defaultPlugins', () => {
       { workspaceRoot: '/workspace', includeCorePlugins: false },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       },
     );
 
@@ -67,11 +68,13 @@ describe('indexing/defaultPlugins', () => {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            id: 'codegraphy.python',
+            enabled: true,
             options: { includeTests: true },
           },
           {
-            package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+            id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+            enabled: true,
             options: { wikilinks: true },
           },
         ],
@@ -97,7 +100,7 @@ describe('indexing/defaultPlugins', () => {
       { workspaceRoot: '/workspace' },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: '@codegraphy-dev/plugin-python' }],
+        plugins: [{ id: 'codegraphy.python', enabled: true }],
       },
     );
 
@@ -117,7 +120,7 @@ describe('indexing/defaultPlugins', () => {
       },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       },
     );
 
@@ -135,7 +138,7 @@ describe('indexing/defaultPlugins', () => {
       { workspaceRoot: '/workspace', plugins: [markdown] },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       },
     );
     registerProvidedPlugins(harness.registry, [markdown, plugin('custom')]);

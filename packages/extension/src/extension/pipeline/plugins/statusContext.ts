@@ -39,10 +39,13 @@ export function readWorkspacePluginStatusContext(
     return { installedPlugins };
   }
 
-  const workspacePluginPackages = readCodeGraphyWorkspaceSettings(workspaceRoot).plugins.map(plugin => plugin.package);
+  const workspacePluginIds = readCodeGraphyWorkspaceSettings(workspaceRoot)
+    .plugins
+    .filter(plugin => plugin.enabled)
+    .map(plugin => plugin.id);
 
   return {
     installedPlugins,
-    workspaceEnabledPackageNames: new Set(workspacePluginPackages),
+    workspaceEnabledPackageNames: new Set(workspacePluginIds),
   };
 }

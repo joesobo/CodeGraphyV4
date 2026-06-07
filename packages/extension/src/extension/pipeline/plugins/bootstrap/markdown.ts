@@ -1,5 +1,5 @@
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 
@@ -11,7 +11,7 @@ export function getDefaultMarkdownPluginOptions(
   }
 
   for (const plugin of settings.plugins) {
-    if (plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME) {
+    if (plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled) {
       return plugin.options;
     }
   }
@@ -24,5 +24,5 @@ export function shouldRegisterMarkdownPlugin(settings: CodeGraphyWorkspaceSettin
     return true;
   }
 
-  return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME);
+  return settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled);
 }

@@ -9,7 +9,7 @@ import type {
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
   readGraphCacheStatus,
@@ -357,7 +357,8 @@ describe('indexCodeGraphyWorkspace', () => {
     });
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: true,
     }]);
     expect(result.graph.edges).toContainEqual(
       expect.objectContaining({
@@ -387,6 +388,7 @@ describe('indexCodeGraphyWorkspace', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.options',
         defaultOptions: {
           targetFile: 'target.txt',
         },
@@ -395,7 +397,8 @@ describe('indexCodeGraphyWorkspace', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-options',
+        id: 'acme.options',
+        enabled: true,
         options: {
           targetFile: 'target.txt',
         },
@@ -441,7 +444,8 @@ describe('indexCodeGraphyWorkspace', () => {
       settings: {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
         plugins: [{
-          package: '@codegraphy-dev/plugin-text',
+          id: 'codegraphy.test-text',
+          enabled: true,
           disabledFilterPatterns: ['**/ignored.txt'],
         }],
       },

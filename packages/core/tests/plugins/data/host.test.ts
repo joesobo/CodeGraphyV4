@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createWorkspacePluginDataHost,
   getWorkspaceSettingsPath,
   readCodeGraphyWorkspaceSettings,
@@ -29,7 +29,8 @@ describe('Workspace plugin data host', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+        id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        enabled: true,
       }],
     });
 
@@ -45,7 +46,8 @@ describe('Workspace plugin data host', () => {
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
     )).toMatchObject({
       plugins: [{
-        package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+        id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        enabled: true,
       }],
       pluginData: {
         'acme.workspace-notes': {
@@ -60,7 +62,8 @@ describe('Workspace plugin data host', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+        id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        enabled: true,
       }],
     });
     const settingsPath = getWorkspaceSettingsPath(workspaceRoot);

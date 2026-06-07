@@ -20,7 +20,6 @@ export async function applySettingsToggleMessage(
           handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
           {
             pluginId: message.payload.pluginId,
-            packageName: message.payload.packageName,
             enabled: message.payload.enabled,
             defaultOptions: message.payload.enabled
               ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)

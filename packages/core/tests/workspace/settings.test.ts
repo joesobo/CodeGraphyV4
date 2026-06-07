@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspaceSettingsSignature,
   ensureCodeGraphyWorkspaceSettings,
   getWorkspaceSettingsPath,
@@ -28,7 +28,8 @@ describe('CodeGraphy Workspace settings', () => {
     const settings = ensureCodeGraphyWorkspaceSettings(workspaceRoot);
 
     expect(settings.plugins).toEqual([{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: true,
     }]);
     expect(JSON.parse(
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
@@ -39,7 +40,8 @@ describe('CodeGraphy Workspace settings', () => {
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
     )).toMatchObject({
       plugins: [{
-        package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+        id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+        enabled: true,
       }],
     });
   });
@@ -62,7 +64,8 @@ describe('CodeGraphy Workspace settings', () => {
     const workspaceRoot = await createWorkspace();
 
     expect(readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins).toEqual([{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: true,
     }]);
     await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });
@@ -76,11 +79,13 @@ describe('CodeGraphy Workspace settings', () => {
         maxFiles: 50,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            id: 'codegraphy.python',
+            enabled: false,
             disabledFilterPatterns: ['**/__pycache__/**', 42],
             options: { includeTests: true },
           },
-          { package: '' },
+          { id: '' },
+          { id: 'codegraphy.vue' },
           { name: '@codegraphy-dev/plugin-legacy' },
         ],
       }),
@@ -90,7 +95,8 @@ describe('CodeGraphy Workspace settings', () => {
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot)).toMatchObject({
       maxFiles: 50,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: false,
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],
@@ -104,8 +110,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@codegraphy-dev/plugin-python' },
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'codegraphy.python', enabled: true },
       ],
     });
 
@@ -115,8 +121,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { package: '@codegraphy-dev/plugin-python' },
-        { package: '@codegraphy-dev/plugin-markdown' },
+        { id: 'codegraphy.python', enabled: true },
+        { id: 'codegraphy.markdown', enabled: true },
       ],
     });
 
@@ -171,7 +177,8 @@ describe('CodeGraphy Workspace settings', () => {
       disabledCustomFilterPatterns: ['generated/**'],
       pluginData: {},
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: '@codegraphy-dev/plugin-python',
+        enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],

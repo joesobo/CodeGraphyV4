@@ -1,3 +1,7 @@
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+} from '@codegraphy-dev/core';
 import { isPlainObject } from '../plainObject';
 import { readStringArray } from './stringArray';
 
@@ -29,13 +33,15 @@ function normalizePersistedPlugin(plugin: unknown): Record<string, unknown> | nu
     return null;
   }
 
-  const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
-  if (packageName.length === 0) {
+  const id = readPluginId(plugin);
+  const enabled = readPluginEnabled(plugin);
+  if (id.length === 0 || enabled === null) {
     return null;
   }
 
   const normalizedPlugin: Record<string, unknown> = {
-    package: packageName,
+    id,
+    enabled,
   };
   const disabledFilterPatterns = readStringArray(plugin.disabledFilterPatterns);
   if (disabledFilterPatterns.length > 0) {
@@ -45,4 +51,28 @@ function normalizePersistedPlugin(plugin: unknown): Record<string, unknown> | nu
     normalizedPlugin.options = { ...plugin.options };
   }
   return normalizedPlugin;
+}
+
+function readString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function readPluginId(plugin: Record<string, unknown>): string {
+  const id = readString(plugin.id);
+  if (id.length > 0) {
+    return id;
+  }
+
+  const packageName = readString(plugin.package);
+  return packageName === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME
+    ? CODEGRAPHY_MARKDOWN_PLUGIN_ID
+    : packageName;
+}
+
+function readPluginEnabled(plugin: Record<string, unknown>): boolean | null {
+  if (typeof plugin.enabled === 'boolean') {
+    return plugin.enabled;
+  }
+
+  return readString(plugin.package).length > 0 ? true : null;
 }

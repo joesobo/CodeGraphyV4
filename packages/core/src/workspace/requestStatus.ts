@@ -43,7 +43,7 @@ export function readCodeGraphyWorkspaceStatusForCli(
       state: status.state,
       hasGraphCache: status.hasGraphCache,
       staleReasons: status.staleReasons,
-      enabledPluginCount: settings.plugins.length,
+      enabledPluginCount: settings.plugins.filter(plugin => plugin.enabled).length,
     },
   }));
 
@@ -53,7 +53,9 @@ export function readCodeGraphyWorkspaceStatusForCli(
     state: status.state,
     hasGraphCache: status.hasGraphCache,
     staleReasons: status.staleReasons,
-    enabledPlugins: settings.plugins.map(plugin => plugin.package),
+    enabledPlugins: settings.plugins
+      .filter(plugin => plugin.enabled)
+      .map(plugin => plugin.id),
     message: createStatusMessage(status.state),
   };
 }

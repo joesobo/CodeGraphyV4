@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -104,8 +105,8 @@ describe('pipeline/service plugin statuses', () => {
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       plugins: [
-        { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
-        { package: '@codegraphy-dev/plugin-typescript' },
+        { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
+        { id: 'codegraphy.typescript', enabled: true },
       ],
     });
 

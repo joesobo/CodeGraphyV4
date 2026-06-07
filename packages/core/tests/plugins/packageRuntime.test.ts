@@ -125,6 +125,7 @@ describe('CodeGraphy package runtime', () => {
         apiVersion: '^2.0.0',
         disclosures: ['workspaceWrites'],
         packageRoot,
+        pluginId: 'acme.data-host',
         defaultOptions: {
           marker: 'from-default-options',
         },
@@ -133,7 +134,8 @@ describe('CodeGraphy package runtime', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-data-host',
+        id: 'acme.data-host',
+        enabled: true,
         options: {
           marker: 'from-workspace-options',
         },
@@ -182,7 +184,8 @@ describe('CodeGraphy package runtime', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-disabled-runtime',
+        id: 'acme.disabled-runtime',
+        enabled: true,
       }],
     });
 
