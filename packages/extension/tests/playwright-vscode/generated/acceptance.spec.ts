@@ -6167,10 +6167,10 @@ test.describe('Markdown Example', () => {
       });
 
       // tests/acceptance/specs/markdown-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Type imports', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Type imports', {
+      await test.step('Then the available edge types are Imports, References, Calls, Type imports, Inherits', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Type imports, Inherits', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Type imports',
+          text: 'the available edge types are Imports, References, Calls, Type imports, Inherits',
           sourcePath: 'tests/acceptance/specs/markdown-example.md',
           line: 15
         });
