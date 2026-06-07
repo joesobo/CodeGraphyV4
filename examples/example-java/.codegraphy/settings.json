@@ -9,7 +9,8 @@
   "showOrphans": true,
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-markdown"
+      "id": "codegraphy.markdown",
+      "enabled": true
     }
   ],
   "pluginData": {},

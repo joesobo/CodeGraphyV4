@@ -32,7 +32,8 @@ interface AcceptanceFilterSettings {
   maxFiles: number;
   plugins: Array<{
     disabledFilterPatterns?: string[];
-    package: string;
+    enabled: boolean;
+    packageName: string;
   }>;
   respectGitignore: boolean;
 }
@@ -98,7 +99,11 @@ export async function readExampleWorkspaceFiles(workspacePath: string): Promise<
   ]);
   const filterPatterns = settings.filterPatterns
     .filter(pattern => !disabledCustomPatterns.has(pattern));
-  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(settings.plugins.map(plugin => plugin.package))
+  const pluginFilterPatterns = readAcceptancePluginFilterPatterns(
+    settings.plugins
+      .filter(plugin => plugin.enabled)
+      .map(plugin => plugin.packageName),
+  )
     .filter(pattern => !disabledPluginPatterns.has(pattern));
 
   return discoverAcceptanceWorkspaceFiles(workspacePath, {
@@ -155,7 +160,10 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
     version: 1,
     respectGitignore: false,
     plugins: (options.pluginPackages ?? ['@codegraphy-dev/plugin-markdown'])
-      .map(pluginPackage => ({ package: pluginPackage })),
+      .map(pluginPackage => ({
+        id: acceptancePluginIdForPackage(pluginPackage),
+        enabled: true,
+      })),
     filterPatterns: [],
     edgeVisibility: {
       nests: options.includeNestsEdges ?? false,
@@ -236,6 +244,60 @@ function readAcceptancePluginFilterPatterns(pluginPackages: readonly string[]): 
   });
 }
 
+function acceptancePluginIdForPackage(pluginPackage: string): string {
+  const relativePath = acceptancePluginPackageRelativePathForPackage(pluginPackage);
+  if (!relativePath) {
+    return pluginPackage;
+  }
+
+  try {
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
+    ) as { id?: unknown };
+    return typeof manifest.id === 'string' && manifest.id.trim().length > 0
+      ? manifest.id.trim()
+      : pluginPackage;
+  } catch {
+    return pluginPackage;
+  }
+}
+
+function acceptancePluginPackageForId(pluginId: string): string | undefined {
+  const packagesPath = path.join(repoRoot(), 'packages');
+  let entries: fs.Dirent[];
+
+  try {
+    entries = fs.readdirSync(packagesPath, { withFileTypes: true });
+  } catch {
+    return undefined;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith('plugin-')) {
+      continue;
+    }
+
+    const relativePath = path.posix.join('packages', entry.name);
+    try {
+      const manifest = JSON.parse(
+        fs.readFileSync(path.join(repoRoot(), relativePath, 'codegraphy.json'), 'utf8'),
+      ) as { id?: unknown };
+      if (manifest.id !== pluginId) {
+        continue;
+      }
+
+      const packageJson = JSON.parse(
+        fs.readFileSync(path.join(repoRoot(), relativePath, 'package.json'), 'utf8'),
+      ) as { name?: unknown };
+      return typeof packageJson.name === 'string' ? packageJson.name : undefined;
+    } catch {
+      // Ignore incomplete plugin packages in test fixtures.
+    }
+  }
+
+  return undefined;
+}
+
 function acceptancePluginPackageRelativePathForPackage(pluginPackage: string): string | undefined {
   const packagesPath = path.join(repoRoot(), 'packages');
   let entries: fs.Dirent[];
@@ -275,14 +337,19 @@ function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings[
   return value
     .filter(isRecord)
     .map((entry) => {
-      const packageName = typeof entry.package === 'string' ? entry.package.trim() : '';
+      const packageName = typeof entry.package === 'string'
+        ? entry.package.trim()
+        : typeof entry.id === 'string'
+          ? acceptancePluginPackageForId(entry.id.trim()) ?? ''
+          : '';
       if (packageName.length === 0) {
         return undefined;
       }
 
       const disabledFilterPatterns = readStringArray(entry.disabledFilterPatterns);
       return {
-        package: packageName,
+        enabled: entry.enabled !== false,
+        packageName,
         ...(disabledFilterPatterns.length > 0
           ? { disabledFilterPatterns: [...new Set(disabledFilterPatterns)] }
           : {}),

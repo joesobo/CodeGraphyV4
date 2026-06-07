@@ -63,13 +63,13 @@ describe('acceptance graph view workspace fixtures', () => {
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
       edgeVisibility?: Record<string, boolean>;
       favorites?: string[];
-      plugins?: Array<{ package?: string }>;
+      plugins?: Array<{ enabled?: boolean; id?: string }>;
       respectGitignore?: boolean;
     };
 
     expect(settings.favorites).toBeUndefined();
     expect(settings.plugins).toEqual([
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
     ]);
     expect(settings.respectGitignore).toBe(false);
     expect(settings.edgeVisibility).toEqual(expect.objectContaining({
@@ -108,11 +108,11 @@ describe('acceptance graph view workspace fixtures', () => {
     const sourceSettingsPath = path.resolve(__dirname, '../../../examples/example-markdown/.codegraphy/settings.json');
     const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
       edgeVisibility?: Record<string, boolean>;
-      plugins?: Array<{ package?: string }>;
+      plugins?: Array<{ enabled?: boolean; id?: string }>;
     };
 
     expect(sourceSettings.plugins).toEqual([
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
     ]);
     expect(sourceSettings.edgeVisibility).toEqual(expect.objectContaining({
       reference: true,
@@ -153,13 +153,13 @@ describe('acceptance graph view workspace fixtures', () => {
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
       filterPatterns?: string[];
-      plugins?: Array<{ package?: string }>;
+      plugins?: Array<{ enabled?: boolean; id?: string }>;
     };
 
     expect(settings.plugins).toEqual([
-      { package: '@codegraphy-dev/plugin-markdown' },
-      { package: '@codegraphy-dev/plugin-typescript' },
-      { package: '@codegraphy-dev/plugin-vue' },
+      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.typescript', enabled: true },
+      { id: 'codegraphy.vue', enabled: true },
     ]);
     expect(settings.filterPatterns).toEqual(['src/vue.d.ts']);
   });
@@ -232,10 +232,11 @@ describe('acceptance graph view workspace fixtures', () => {
         ...settings,
         disabledCustomFilterPatterns: ['src/app.d.ts'],
         plugins: [
-          { package: '@codegraphy-dev/plugin-markdown' },
-          { package: '@codegraphy-dev/plugin-typescript' },
+          { id: 'codegraphy.markdown', enabled: true },
+          { id: 'codegraphy.typescript', enabled: true },
           {
-            package: '@codegraphy-dev/plugin-svelte',
+            id: 'codegraphy.svelte',
+            enabled: true,
             disabledFilterPatterns: ['**/.svelte-kit/**'],
           },
         ],

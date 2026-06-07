@@ -8,9 +8,10 @@ import type { IProjectedConnection } from '../../../src/core/plugins/types/contr
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
+import { readWorkspacePluginStatusContext } from '../../../src/extension/pipeline/plugins/statusContext';
 
 vi.mock('../../../src/extension/pipeline/plugins/statusContext', () => ({
-  readWorkspacePluginStatusContext: vi.fn(() => ({ installedPlugins: [] })),
+  readWorkspacePluginStatusContext: vi.fn(),
 }));
 
 // Set up workspace folders before tests
@@ -38,6 +39,10 @@ describe('WorkspacePipeline sources', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
+      installedPlugins: [],
+      workspaceEnabledPluginIds: new Set(['codegraphy.markdown']),
+    });
 
     mockContext = {
       subscriptions: [],
@@ -76,8 +81,9 @@ describe('WorkspacePipeline sources', () => {
       expect(names).not.toContain('Tree-sitter');
     });
 
-    it('marks registered runtime plugins as enabled when no disabled set', async () => {
+    it('marks registered provided runtime plugins as enabled when no disabled set', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set());
       const registeredRuntimeStatuses = statuses.filter(status => status.id.startsWith('codegraphy.'));
 
@@ -87,6 +93,14 @@ describe('WorkspacePipeline sources', () => {
     });
 
     it('marks a plugin as disabled when in disabled set', async () => {
+      vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
+        installedPlugins: [],
+        workspaceEnabledPluginIds: new Set([
+          'codegraphy.markdown',
+          'codegraphy.python',
+          'codegraphy.typescript',
+        ]),
+      });
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
       const disabledPlugins = new Set(['codegraphy.typescript']);
