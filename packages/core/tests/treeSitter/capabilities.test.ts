@@ -21,11 +21,12 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     }
   });
 
-  it('does not advertise TypeScript inheritance from a docs helper file without inherit evidence', () => {
+  it('advertises TypeScript inheritance because the language supports it even without inherit evidence', () => {
     expect(listTreeSitterEdgeTypeCapabilities(['src/commented.ts'])).toEqual([
       'import',
       'type-import',
       'call',
+      'inherit',
     ]);
   });
 });

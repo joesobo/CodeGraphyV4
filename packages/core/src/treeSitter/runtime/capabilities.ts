@@ -31,8 +31,8 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   rust: ['import', 'call'],
   scala: ['import', 'call', 'inherit'],
   swift: ['import', 'reference', 'call', 'inherit'],
-  tsx: ['import', 'type-import', 'call'],
-  typescript: ['import', 'type-import', 'call'],
+  tsx: ['import', 'type-import', 'call', 'inherit'],
+  typescript: ['import', 'type-import', 'call', 'inherit'],
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly GraphEdgeKind[]>;
 
 export function listTreeSitterEdgeTypeCapabilities(
