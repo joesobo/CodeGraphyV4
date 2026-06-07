@@ -56,7 +56,7 @@ function createDependencies(
       state: 'fresh',
       hasGraphCache: true,
       staleReasons: [],
-      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
+      enabledPlugins: ['codegraphy.markdown'],
       message: 'CodeGraphy Workspace Graph Cache is fresh.',
     }),
     indexWorkspace: async ({ workspacePath }: { workspacePath?: string }) => ({
