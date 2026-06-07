@@ -252,6 +252,13 @@ export {
   createEmptyGraphViewContributionSet,
   resolvePluginAccess,
 } from './plugins/access/checks';
+export {
+  createPluginActivityState,
+} from './plugins/activityState/model';
+export type {
+  CreatePluginActivityStateOptions,
+  PluginActivityState,
+} from './plugins/activityState/model';
 export { createWorkspacePluginDataHost } from './plugins/data/host';
 export type {
   LoadedCodeGraphyWorkspacePluginPackage,
