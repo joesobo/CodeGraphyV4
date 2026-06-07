@@ -89,7 +89,7 @@ describe('plugins/status', () => {
           },
         },
       ],
-      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-typescript']),
+      workspaceEnabledPluginIds: new Set(['plugin.typescript']),
     });
 
     expect(statuses).toEqual([
@@ -141,12 +141,49 @@ describe('plugins/status', () => {
             },
           },
         ],
-        workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-typescript']),
+        workspaceEnabledPluginIds: new Set(['plugin.typescript']),
       }),
     ).toEqual([
       expect.objectContaining({
         id: 'plugin.typescript',
         enabled: true,
+        status: 'installed',
+      }),
+    ]);
+  });
+
+  it('keeps package-backed registered plugins disabled until workspace activity enables their plugin ID', () => {
+    expect(
+      buildWorkspaceIndexPluginStatuses({
+        disabledPlugins: new Set<string>(),
+        discoveredFiles: [{ relativePath: 'src/index.ts' }],
+        fileConnections: new Map(),
+        installedPlugins: [{
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          package: '@codegraphy-dev/plugin-typescript',
+          packageRoot: '/plugins/typescript',
+          pluginId: 'plugin.typescript',
+          pluginName: 'TypeScript',
+          version: '1.0.0',
+        }],
+        pluginInfos: [
+          {
+            builtIn: false,
+            sourcePackage: '@codegraphy-dev/plugin-typescript',
+            plugin: {
+              id: 'plugin.typescript',
+              name: 'TypeScript',
+              version: '1.0.0',
+              supportedExtensions: ['.ts'],
+            },
+          },
+        ],
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'plugin.typescript',
+        enabled: false,
         status: 'installed',
       }),
     ]);

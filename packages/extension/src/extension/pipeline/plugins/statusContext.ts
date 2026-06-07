@@ -11,7 +11,7 @@ import {
 
 export interface WorkspacePluginStatusContext {
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[];
-  workspaceEnabledPackageNames?: ReadonlySet<string>;
+  workspaceEnabledPluginIds?: ReadonlySet<string>;
 }
 
 function withBundledMarkdownPluginRecord(
@@ -46,6 +46,6 @@ export function readWorkspacePluginStatusContext(
 
   return {
     installedPlugins,
-    workspaceEnabledPackageNames: new Set(workspacePluginIds),
+    workspaceEnabledPluginIds: new Set(workspacePluginIds),
   };
 }

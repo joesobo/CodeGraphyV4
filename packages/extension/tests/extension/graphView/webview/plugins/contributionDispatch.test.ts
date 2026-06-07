@@ -128,6 +128,15 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     const sendMessage = vi.fn();
     const resolveAssetPath = vi.fn((assetPath: string, pluginId?: string) => `${pluginId}:${assetPath}`);
     const disabledPlugins = new Set(['plugin.disabled']);
+    const getPluginAPI = vi.fn((pluginId: string) => ({
+      contextMenuItems: [{ label: pluginId, when: 'node' as const }],
+      exporters: [{ id: pluginId, label: pluginId }],
+      toolbarActions: [{
+        id: pluginId,
+        label: pluginId,
+        items: [{ id: `${pluginId}.item`, label: pluginId }],
+      }],
+    }));
     const analyzer = {
       registry: {
         list: () => [
@@ -151,15 +160,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
             },
           },
         ],
-        getPluginAPI: (pluginId: string) => ({
-          contextMenuItems: [{ label: pluginId, when: 'node' as const }],
-          exporters: [{ id: pluginId, label: pluginId }],
-          toolbarActions: [{
-            id: pluginId,
-            label: pluginId,
-            items: [{ id: `${pluginId}.item`, label: pluginId }],
-          }],
-        }),
+        getPluginAPI,
         listAvailableGraphViewContributions: vi.fn(async () => ({
           runtimeNodes: [{
             pluginId: 'plugin.enabled',
@@ -214,6 +215,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
       expect(JSON.stringify(message)).not.toContain('plugin.disabled');
     }
     expect(resolveAssetPath).not.toHaveBeenCalledWith('disabled.js', 'plugin.disabled');
+    expect(getPluginAPI).not.toHaveBeenCalledWith('plugin.disabled');
   });
 
   it('sends available Graph View contribution statuses without posting function values', async () => {

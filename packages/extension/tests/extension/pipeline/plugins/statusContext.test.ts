@@ -27,7 +27,7 @@ describe('pipeline/plugins/statusContext', () => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
-  it('reads the user installed plugin cache and workspace enabled plugin packages', () => {
+  it('reads the user installed plugin cache and workspace enabled plugin IDs', () => {
     writeCodeGraphyInstalledPluginCache(
       {
         version: 1,
@@ -70,8 +70,8 @@ describe('pipeline/plugins/statusContext', () => {
       '@codegraphy-dev/plugin-python',
       '@codegraphy-dev/plugin-godot',
     ]);
-    expect(statusContext.workspaceEnabledPackageNames?.has('codegraphy.python')).toBe(true);
-    expect(statusContext.workspaceEnabledPackageNames?.has('codegraphy.godot')).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.python')).toBe(true);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.godot')).toBe(false);
   });
 
   it('does not materialize workspace settings when the workspace has no settings file yet', () => {
@@ -97,7 +97,7 @@ describe('pipeline/plugins/statusContext', () => {
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy-dev/plugin-python',
     ]);
-    expect(statusContext.workspaceEnabledPackageNames).toBeUndefined();
+    expect(statusContext.workspaceEnabledPluginIds).toBeUndefined();
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 
@@ -118,6 +118,6 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toContain(
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     );
-    expect(statusContext.workspaceEnabledPackageNames?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(false);
   });
 });

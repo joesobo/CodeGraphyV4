@@ -166,7 +166,7 @@ describe('pipeline/service/lifecycleFacade', () => {
           packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
         },
       ],
-      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
+      workspaceEnabledPluginIds: new Set(['codegraphy.python']),
     });
     vi.mocked(invalidateWorkspacePipelineFiles).mockReturnValue(['src/a.ts']);
     vi.mocked(resolveWorkspacePipelinePluginFilePaths).mockReturnValue(['/workspace/src/a.ts']);
@@ -193,7 +193,7 @@ describe('pipeline/service/lifecycleFacade', () => {
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
           },
         ],
-        workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
+        workspaceEnabledPluginIds: new Set(['codegraphy.python']),
       },
     );
   });
