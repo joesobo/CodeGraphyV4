@@ -74,7 +74,7 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.godot')).toBe(false);
   });
 
-  it('does not materialize workspace settings when the workspace has no settings file yet', () => {
+  it('uses initial Markdown activity state without materializing workspace settings', () => {
     writeCodeGraphyInstalledPluginCache(
       {
         version: 1,
@@ -97,7 +97,8 @@ describe('pipeline/plugins/statusContext', () => {
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy-dev/plugin-python',
     ]);
-    expect(statusContext.workspaceEnabledPluginIds).toBeUndefined();
+    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(true);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.python')).toBe(false);
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 

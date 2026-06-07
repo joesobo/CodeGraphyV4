@@ -1,10 +1,8 @@
-import * as fs from 'node:fs';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createBundledMarkdownInstalledPluginRecord,
-  getWorkspaceSettingsPath,
   readCodeGraphyInstalledPluginCache,
-  readCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettingsOrInitial,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyUserStateOptions,
 } from '@codegraphy-dev/core';
@@ -35,11 +33,11 @@ export function readWorkspacePluginStatusContext(
     readCodeGraphyInstalledPluginCache(options).plugins,
   );
 
-  if (!workspaceRoot || !fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))) {
+  if (!workspaceRoot) {
     return { installedPlugins };
   }
 
-  const workspacePluginIds = readCodeGraphyWorkspaceSettings(workspaceRoot)
+  const workspacePluginIds = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
     .plugins
     .filter(plugin => plugin.enabled)
     .map(plugin => plugin.id);
