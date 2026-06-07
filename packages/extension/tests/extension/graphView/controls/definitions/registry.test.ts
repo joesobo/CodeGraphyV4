@@ -48,11 +48,12 @@ describe('extension/graphView/controls/registry', () => {
     ).toEqual([]);
   });
 
-  it('calls registry reader methods with the registry as this and without arguments', () => {
+  it('calls registry reader methods with the registry as this and a disabled plugin set', () => {
     const registry = {
       listNodeTypes(this: unknown, ...args: unknown[]) {
         expect(this).toBe(registry);
-        expect(args).toEqual([]);
+        expect(args).toEqual([expect.any(Set)]);
+        expect((args[0] as Set<unknown>).size).toBe(0);
         return [{ id: 'route', label: 'Route', defaultColor: '#22C55E', defaultVisible: true }];
       },
     };
@@ -64,9 +65,10 @@ describe('extension/graphView/controls/registry', () => {
 
   it('reads edge capabilities with workspace file paths', () => {
     const registry = {
-      listEdgeTypeCapabilities(this: unknown, filePaths: readonly string[]) {
+      listEdgeTypeCapabilities(this: unknown, filePaths: readonly string[], disabledPlugins: ReadonlySet<string>) {
         expect(this).toBe(registry);
         expect(filePaths).toEqual(['src/app.ts', 'src/routes.ts']);
+        expect(disabledPlugins.size).toBe(0);
         return ['import', 'plugin:route', null];
       },
     };
