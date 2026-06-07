@@ -17,7 +17,9 @@ export interface WorkspacePipelinePluginRegistration {
 
 export function getBuiltInWorkspacePipelinePluginRegistrations(
   settings: CodeGraphyWorkspaceSettings | undefined,
+  disabledPluginsInput: Iterable<string> = [],
 ): WorkspacePipelinePluginRegistration[] {
+  const disabledPlugins = new Set(disabledPluginsInput);
   const registrations: WorkspacePipelinePluginRegistration[] = [
     {
       plugin: createTreeSitterPlugin(),
@@ -26,6 +28,10 @@ export function getBuiltInWorkspacePipelinePluginRegistrations(
   ];
 
   if (!shouldRegisterMarkdownPlugin(settings)) {
+    return registrations;
+  }
+
+  if (disabledPlugins.has('codegraphy.markdown')) {
     return registrations;
   }
 
@@ -45,8 +51,9 @@ export function getBuiltInWorkspacePipelinePluginRegistrations(
 export function registerBuiltInWorkspacePipelinePlugins(
   registry: PluginRegistry,
   settings: CodeGraphyWorkspaceSettings | undefined,
+  disabledPlugins?: Iterable<string>,
 ): void {
-  for (const registration of getBuiltInWorkspacePipelinePluginRegistrations(settings)) {
+  for (const registration of getBuiltInWorkspacePipelinePluginRegistrations(settings, disabledPlugins)) {
     registry.register(registration.plugin, registration.options);
   }
 }

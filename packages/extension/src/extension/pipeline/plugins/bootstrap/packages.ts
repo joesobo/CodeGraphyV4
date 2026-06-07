@@ -6,6 +6,7 @@ import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { WorkspacePipelinePluginRegistration } from './builtIns';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
+  disabledPlugins?: Iterable<string>;
   userHomeDir?: string;
   warn?: (message: string) => void;
 }
@@ -16,6 +17,7 @@ export async function loadWorkspacePackagePluginRegistrations(
   dependencies: WorkspacePackagePluginRegistrationDependencies,
 ): Promise<WorkspacePipelinePluginRegistration[]> {
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    disabledPlugins: dependencies.disabledPlugins,
     settings,
     workspaceRoot,
     homeDir: dependencies.userHomeDir,
