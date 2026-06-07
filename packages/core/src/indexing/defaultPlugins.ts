@@ -1,5 +1,5 @@
-import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import type { CorePluginRegistry } from '../plugins/registry';
+import { loadBundledMarkdownPlugin } from '../plugins/markdown/runtime';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
@@ -36,18 +36,18 @@ function getDefaultMarkdownPluginOptions(
   return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)?.options;
 }
 
-export function registerDefaultIndexPlugins(
+export async function registerDefaultIndexPlugins(
   registry: CorePluginRegistry,
   options: IndexCodeGraphyWorkspaceOptions,
   settings: CodeGraphyWorkspaceSettings,
-): void {
+): Promise<void> {
   if (options.includeCorePlugins !== false) {
     registry.register(createTreeSitterPlugin(), { builtIn: true });
   }
 
   if (shouldRegisterDefaultMarkdownPlugin(options, settings)) {
     const markdownOptions = getDefaultMarkdownPluginOptions(settings);
-    registry.register(createMarkdownPlugin(), {
+    registry.register(await loadBundledMarkdownPlugin(), {
       builtIn: true,
       sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       ...(markdownOptions ? { options: markdownOptions } : {}),

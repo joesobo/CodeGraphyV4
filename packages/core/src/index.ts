@@ -295,6 +295,7 @@ export {
   updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
+export { loadBundledMarkdownPlugin } from './plugins/markdown/runtime';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
 export { withWorkspacePluginAnalysisOptions } from './plugins/context/workspace';
 export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
