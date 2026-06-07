@@ -8,6 +8,7 @@ import type { IGraphData } from '../graph/contracts';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { analyzeWorkspaceIndexFiles } from './analysis';
+import { createDisabledPluginSet } from '../plugins/activityState/model';
 import {
   mapDiscoveredWorkspaceIndexFilesByRelativePath,
   mergeDiscoveredWorkspaceIndexFiles,
@@ -118,6 +119,12 @@ function buildWorkspaceEngineGraph(
   return state.graph;
 }
 
+function createWorkspaceEngineDisabledPlugins(runtime: WorkspaceEngineRuntime): Set<string> {
+  return runtime.state.settings
+    ? createDisabledPluginSet(runtime.state.settings, runtime.options.disabledPlugins)
+    : new Set(runtime.options.disabledPlugins ?? []);
+}
+
 function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
   const { state, workspaceRoot } = runtime;
   if (!state.registry || !state.settings) {
@@ -158,7 +165,8 @@ async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime): Promi
   const { options, state, workspaceRoot } = runtime;
   state.cache = createEmptyWorkspaceAnalysisCache();
   state.settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot);
+  const disabledPlugins = createDisabledPluginSet(state.settings, options.disabledPlugins);
+  const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot, disabledPlugins);
   state.registry = registryResult.registry;
   state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
   state.workspaceRoot = workspaceRoot;
@@ -185,13 +193,14 @@ async function indexWorkspaceEngine(
   const { discovery, options, state, workspaceRoot } = runtime;
   await initializeWorkspaceEngine(runtime);
 
-  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
   await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
 
   const analysisResult = await analyzeWorkspaceIndexFiles({
     cache: state.cache,
     discovery,
     discoveryResult: state.discoveryResult!,
+    disabledPlugins,
     options,
     registry: state.registry!,
     workspaceRoot,
@@ -279,7 +288,7 @@ export function createCodeGraphyWorkspaceEngine(
       return index();
     }
 
-    const disabledPlugins = new Set(options.disabledPlugins ?? []);
+    const disabledPlugins = createWorkspaceEngineDisabledPlugins(runtime);
     await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
     const registry = state.registry!;
 

@@ -253,6 +253,7 @@ export {
   resolvePluginAccess,
 } from './plugins/access/checks';
 export {
+  createDisabledPluginSet,
   createPluginActivityState,
 } from './plugins/activityState/model';
 export type {

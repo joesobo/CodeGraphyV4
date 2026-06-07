@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultCodeGraphyWorkspaceSettings } from '../../../src';
-import { createPluginActivityState } from '../../../src/plugins/activityState/model';
+import {
+  createDisabledPluginSet,
+  createPluginActivityState,
+} from '../../../src/plugins/activityState/model';
 
 describe('plugins/activityState/model', () => {
   it('keeps duplicate installed package claims inactive with a developer-console warning', () => {
@@ -83,5 +86,17 @@ describe('plugins/activityState/model', () => {
     expect([...state.disabledPluginIds]).toEqual(['codegraphy.python']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([]);
+  });
+
+  it('combines caller-disabled ids with workspace disabled plugin intent', () => {
+    const disabledPlugins = createDisabledPluginSet({
+      ...createDefaultCodeGraphyWorkspaceSettings(),
+      plugins: [
+        { id: 'codegraphy.python', enabled: false },
+        { id: 'codegraphy.vue', enabled: true },
+      ],
+    }, ['codegraphy.markdown']);
+
+    expect([...disabledPlugins]).toEqual(['codegraphy.markdown', 'codegraphy.python']);
   });
 });
