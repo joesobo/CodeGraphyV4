@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import {
   getCodeGraphyConfiguration,
   initializeCurrentCodeGraphyConfiguration,

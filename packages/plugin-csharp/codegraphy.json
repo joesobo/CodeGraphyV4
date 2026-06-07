@@ -8,8 +8,12 @@
     ".cs"
   ],
   "defaultFilters": [
-    "**/bin/**",
-    "**/obj/**",
+    "**/bin/Debug/**",
+    "**/bin/Release/**",
+    "**/obj/Debug/**",
+    "**/obj/Release/**",
+    "**/obj/project.assets.json",
+    "**/obj/*.csproj.nuget.*",
     "**/.vs/**",
     "**/TestResults/**",
     "**/*.Designer.cs",
