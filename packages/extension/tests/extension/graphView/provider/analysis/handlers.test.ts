@@ -119,6 +119,8 @@ describe('graphView/provider/analysis/handlers', () => {
       source._rawGraphData,
       source._analyzer,
       expect.any(Function),
+      undefined,
+      source._disabledPlugins,
     );
     expect(source._sendDepthState).toHaveBeenCalledOnce();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
@@ -185,6 +187,8 @@ describe('graphView/provider/analysis/handlers', () => {
       graphData,
       source._analyzer,
       expect.any(Function),
+      undefined,
+      source._disabledPlugins,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_CONTROLS_UPDATED',

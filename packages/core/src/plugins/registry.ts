@@ -118,27 +118,36 @@ export class CorePluginRegistry {
     return [...this.plugins.values()];
   }
 
-  listNodeTypes(): IPluginNodeType[] {
+  listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
     return listPluginContributions(
       this.plugins,
       plugin => plugin.contributeNodeTypes?.() ?? [],
       definition => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypes(): IPluginEdgeType[] {
+  listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
     return listPluginContributions(
       this.plugins,
       plugin => plugin.contributeEdgeTypes?.() ?? [],
       definition => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypeCapabilities(filePaths: readonly string[] = []): GraphEdgeKind[] {
+  listEdgeTypeCapabilities(
+    filePaths: readonly string[] = [],
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): GraphEdgeKind[] {
     const applicablePluginIds = new Set<string>();
 
     for (const filePath of filePaths) {
       for (const plugin of getPluginsForFile(filePath, this.plugins, this.extensionMap)) {
+        if (disabledPlugins.has(plugin.id)) {
+          continue;
+        }
+
         applicablePluginIds.add(plugin.id);
       }
     }
@@ -204,6 +213,10 @@ export class CorePluginRegistry {
     const contributions = createEmptyGraphViewContributionSet();
 
     for (const info of this.plugins.values()) {
+      if (context.disabledPlugins?.has(info.plugin.id)) {
+        continue;
+      }
+
       const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
       if (!pluginAccess.available) {
         continue;

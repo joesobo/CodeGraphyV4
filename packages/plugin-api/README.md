@@ -52,7 +52,9 @@ Exact merge behavior:
   - imports/loads/inherits override by shared source identity
   - distinct call/reference targets coexist
 
-Edge Type definitions and capabilities are separate. Use `contributeEdgeTypes()` when a plugin owns a new Edge Type's label, color, and default visibility. Use `contributeEdgeTypeCapabilities(context)` to declare which core or plugin-owned Edge Types are relevant when the plugin is applicable to the indexed workspace. The `context.filePaths` array contains indexed workspace files that made the plugin applicable, so multi-language plugins can return a precise union instead of one broad package-level list. Capability declarations are not emitted relationships; they only let Graph Scope present the right toggles before matching edges exist.
+Edge Type definitions and capabilities are separate. Use `contributeEdgeTypes()` when a plugin owns a new Edge Type's label, color, and default visibility. Use `contributeEdgeTypeCapabilities(context)` to declare which core or plugin-owned Edge Types are relevant when the plugin is enabled and applicable to the indexed workspace. The `context.filePaths` array contains indexed workspace files that made the plugin applicable, so multi-language plugins can return a precise union instead of one broad package-level list. Capability declarations are not emitted relationships; they only let Graph Scope present the right toggles before matching edges exist.
+
+When a workspace disables a plugin, CodeGraphy treats that plugin as inactive for graph analysis and Graph View UI contributions. Disabled plugins do not contribute filter groups, Node Types, Edge Types, Edge Type capabilities, Graph View toolbar/context/export actions, runtime graph contributions, or webview assets until they are enabled again.
 
 Path and source rules:
 

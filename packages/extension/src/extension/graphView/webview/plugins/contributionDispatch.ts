@@ -67,9 +67,16 @@ interface GraphViewContributionSet {
 interface GraphViewContributionAnalyzer {
   registry: {
     listAvailableGraphViewContributions?(
-      context?: { workspaceRoot?: string },
+      context?: { workspaceRoot?: string; disabledPlugins?: ReadonlySet<string> },
     ): Promise<GraphViewContributionSet>;
   };
+}
+
+function listActivePluginInfos(
+  registry: GraphViewPluginRegistry,
+  disabledPlugins: ReadonlySet<string>,
+): ReturnType<GraphViewPluginRegistry['list']> {
+  return registry.list().filter(info => !disabledPlugins.has(info.plugin.id));
 }
 
 function collectContributionStatuses(
@@ -105,12 +112,16 @@ export async function sendGraphViewContributionStatuses(
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>
   ) => void,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): Promise<void> {
   if (!analyzer?.registry.listAvailableGraphViewContributions) {
     return;
   }
 
-  const contributions = await analyzer.registry.listAvailableGraphViewContributions(context);
+  const contributions = await analyzer.registry.listAvailableGraphViewContributions({
+    ...context,
+    disabledPlugins,
+  });
   sendMessage({
     type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
     payload: {
@@ -124,11 +135,12 @@ export function sendGraphViewContextMenuItems(
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'CONTEXT_MENU_ITEMS' }>
   ) => void,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   if (!analyzer) return;
 
   const items = collectGraphViewContextMenuItems(
-    analyzer.registry.list(),
+    listActivePluginInfos(analyzer.registry, disabledPlugins),
     (pluginId) => analyzer.registry.getPluginAPI(pluginId),
   );
   sendMessage({ type: 'CONTEXT_MENU_ITEMS', payload: { items } });
@@ -139,11 +151,12 @@ export function sendGraphViewPluginExporters(
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>
   ) => void,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   if (!analyzer) return;
 
   const items = collectGraphViewExporters(
-    analyzer.registry.list(),
+    listActivePluginInfos(analyzer.registry, disabledPlugins),
     (pluginId) => {
       const api = analyzer.registry.getPluginAPI(pluginId);
       if (!api) return undefined;
@@ -160,11 +173,12 @@ export function sendGraphViewPluginToolbarActions(
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>
   ) => void,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   if (!analyzer) return;
 
   const items = collectGraphViewToolbarActions(
-    analyzer.registry.list(),
+    listActivePluginInfos(analyzer.registry, disabledPlugins),
     (pluginId) => {
       const api = analyzer.registry.getPluginAPI(pluginId);
       if (!api) return undefined;
@@ -182,11 +196,12 @@ export function sendGraphViewPluginWebviewInjections(
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_WEBVIEW_INJECT' }>
   ) => void,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   if (!analyzer) return;
 
   const injections = collectGraphViewWebviewInjections(
-    analyzer.registry.list(),
+    listActivePluginInfos(analyzer.registry, disabledPlugins),
     resolveAssetPath,
   );
   for (const injection of injections) {

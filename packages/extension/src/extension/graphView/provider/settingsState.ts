@@ -138,6 +138,7 @@ export function createGraphViewProviderSettingsStateMethods(
       source._analyzer,
       message => source._sendMessage(message),
       dependencies.getConfiguration('codegraphy'),
+      source._disabledPlugins,
     );
   };
 
@@ -176,6 +177,7 @@ export function createGraphViewProviderSettingsStateMethods(
       source._analyzer,
       message => source._sendMessage(message),
       dependencies.getConfiguration('codegraphy'),
+      source._disabledPlugins,
     );
 
     syncGroupStateToSource(state);

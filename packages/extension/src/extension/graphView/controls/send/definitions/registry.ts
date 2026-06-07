@@ -11,6 +11,7 @@ export function readRegistryDefinitions<TDefinition>(
   registry: unknown,
   methodName: 'listNodeTypes' | 'listEdgeTypes',
   isDefinition: GraphDefinitionReader<TDefinition>,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): TDefinition[] {
   if (!registry || typeof registry !== 'object') {
     return [];
@@ -21,7 +22,7 @@ export function readRegistryDefinitions<TDefinition>(
     return [];
   }
 
-  const definitions: unknown = Reflect.apply(candidate, registry, []);
+  const definitions: unknown = Reflect.apply(candidate, registry, [disabledPlugins]);
   if (!Array.isArray(definitions)) {
     return [];
   }
@@ -29,17 +30,24 @@ export function readRegistryDefinitions<TDefinition>(
   return definitions.filter(isDefinition);
 }
 
-export function readNodeTypes(registry: unknown): GraphNodeTypeLike[] {
-  return readRegistryDefinitions(registry, 'listNodeTypes', isGraphNodeTypeLike);
+export function readNodeTypes(
+  registry: unknown,
+  disabledPlugins: ReadonlySet<string> = new Set(),
+): GraphNodeTypeLike[] {
+  return readRegistryDefinitions(registry, 'listNodeTypes', isGraphNodeTypeLike, disabledPlugins);
 }
 
-export function readEdgeTypes(registry: unknown): GraphEdgeTypeLike[] {
-  return readRegistryDefinitions(registry, 'listEdgeTypes', isGraphEdgeTypeLike);
+export function readEdgeTypes(
+  registry: unknown,
+  disabledPlugins: ReadonlySet<string> = new Set(),
+): GraphEdgeTypeLike[] {
+  return readRegistryDefinitions(registry, 'listEdgeTypes', isGraphEdgeTypeLike, disabledPlugins);
 }
 
 export function readEdgeTypeCapabilities(
   registry: unknown,
   filePaths: readonly string[],
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): GraphEdgeTypeCapabilityLike[] {
   if (!registry || typeof registry !== 'object') {
     return [];
@@ -50,7 +58,7 @@ export function readEdgeTypeCapabilities(
     return [];
   }
 
-  const capabilities: unknown = Reflect.apply(candidate, registry, [filePaths]);
+  const capabilities: unknown = Reflect.apply(candidate, registry, [filePaths, disabledPlugins]);
   if (!Array.isArray(capabilities)) {
     return [];
   }

@@ -77,8 +77,9 @@ describe('graphView/provider/plugin/broadcasts', () => {
 
   it('sends Graph View contribution statuses with the active workspace root', () => {
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
-    const sendGraphViewContributionStatuses = vi.fn(async (_analyzer, context, callback) => {
+    const sendGraphViewContributionStatuses = vi.fn(async (_analyzer, context, callback, disabledPlugins) => {
       expect(context).toEqual({ workspaceRoot: '/workspace' });
+      expect(disabledPlugins).toBe(source._disabledPlugins);
       callback({
         type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
         payload: {
@@ -107,6 +108,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
       source._analyzer,
       { workspaceRoot: '/workspace' },
       expect.any(Function),
+      source._disabledPlugins,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
@@ -213,8 +215,13 @@ describe('graphView/provider/plugin/broadcasts', () => {
       source._analyzer,
       expect.any(Function),
       expect.any(Object),
+      source._disabledPlugins,
     );
-    expect(sendPluginExporters).toHaveBeenCalledWith(source._analyzer, expect.any(Function));
+    expect(sendPluginExporters).toHaveBeenCalledWith(
+      source._analyzer,
+      expect.any(Function),
+      source._disabledPlugins,
+    );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_CONTROLS_UPDATED',
       payload: {

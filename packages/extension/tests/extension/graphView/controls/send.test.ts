@@ -110,6 +110,35 @@ describe('extension/graphView/controls/send', () => {
     ]));
   });
 
+  it('passes disabled plugins through graph control definition and capability reads', () => {
+    const sendMessage = vi.fn();
+    const disabledPlugins = new Set(['codegraphy.godot']);
+    const registry = {
+      listNodeTypes: vi.fn((_disabledPlugins?: ReadonlySet<string>) => [
+        { id: 'godot-scene', label: 'Godot Scene', defaultColor: '#478CBF', defaultVisible: true },
+      ]),
+      listEdgeTypes: vi.fn((_disabledPlugins?: ReadonlySet<string>) => [
+        { id: 'load', label: 'Loads', defaultColor: '#478CBF', defaultVisible: true },
+      ]),
+      listEdgeTypeCapabilities: vi.fn((_filePaths: readonly string[], _disabledPlugins?: ReadonlySet<string>) => ['load']),
+    };
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [{ id: 'game/player.gd', label: 'Player', color: '#111111', nodeType: 'file' }],
+        edges: [],
+      },
+      { registry },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+      disabledPlugins,
+    );
+
+    expect(registry.listNodeTypes).toHaveBeenCalledWith(disabledPlugins);
+    expect(registry.listEdgeTypes).toHaveBeenCalledWith(disabledPlugins);
+    expect(registry.listEdgeTypeCapabilities).toHaveBeenCalledWith(['game/player.gd'], disabledPlugins);
+  });
+
   it('uses only core definitions when the analyzer is absent', () => {
     const sendMessage = vi.fn();
 

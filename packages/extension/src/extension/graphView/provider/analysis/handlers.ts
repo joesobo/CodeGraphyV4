@@ -40,6 +40,8 @@ export function createGraphViewProviderAnalysisHandlers(
         source._rawGraphData,
         source._analyzer,
         message => source._sendMessage(message),
+        undefined,
+        source._disabledPlugins,
       );
       source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
     },
