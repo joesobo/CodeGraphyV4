@@ -74,6 +74,46 @@ export function filterDisabledPluginFileAnalysis(
   );
 }
 
+function hasInactivePluginId(
+  pluginId: string | undefined,
+  activePluginIds: ReadonlySet<string>,
+): boolean {
+  return pluginId !== undefined && !activePluginIds.has(pluginId);
+}
+
+export function filterInactivePluginAnalysisFacts(
+  analysis: IFileAnalysisResult,
+  activePluginIds: ReadonlySet<string>,
+): IFileAnalysisResult {
+  return {
+    ...analysis,
+    nodes: filterOptionalFacts(
+      analysis.nodes,
+      node => hasInactivePluginId(readAnalysisNodePluginId(node), activePluginIds),
+    ),
+    symbols: filterOptionalFacts(
+      analysis.symbols,
+      symbol => hasInactivePluginId(readAnalysisSymbolPluginId(symbol), activePluginIds),
+    ),
+    relations: filterOptionalFacts(
+      analysis.relations,
+      relation => hasInactivePluginId(relation.pluginId, activePluginIds),
+    ),
+  };
+}
+
+export function filterInactivePluginFileAnalysis(
+  fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
+  activePluginIds: ReadonlySet<string>,
+): ReadonlyMap<string, IFileAnalysisResult> {
+  return new Map(
+    Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
+      filePath,
+      filterInactivePluginAnalysisFacts(analysis, activePluginIds),
+    ]),
+  );
+}
+
 export function filterDisabledPluginSnapshotFacts(
   snapshot: {
     symbols: readonly IAnalysisSymbol[];
@@ -97,6 +137,26 @@ export function filterDisabledPluginSnapshotFacts(
     ),
     relations: snapshot.relations.filter(relation =>
       !hasDisabledPluginId(relation.pluginId, disabledPlugins),
+    ),
+  };
+}
+
+export function filterInactivePluginSnapshotFacts(
+  snapshot: {
+    symbols: readonly IAnalysisSymbol[];
+    relations: readonly IAnalysisRelation[];
+  },
+  activePluginIds: ReadonlySet<string>,
+): {
+  symbols: IAnalysisSymbol[];
+  relations: IAnalysisRelation[];
+} {
+  return {
+    symbols: snapshot.symbols.filter(symbol =>
+      !hasInactivePluginId(readAnalysisSymbolPluginId(symbol), activePluginIds),
+    ),
+    relations: snapshot.relations.filter(relation =>
+      !hasInactivePluginId(relation.pluginId, activePluginIds),
     ),
   };
 }
