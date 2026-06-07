@@ -10,6 +10,7 @@ export interface LoadedCodeGraphyWorkspacePluginPackage {
 }
 
 export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
+  disabledPlugins?: Iterable<string>;
   settings: CodeGraphyWorkspaceSettings;
   homeDir?: string;
   warn?: (message: string) => void;

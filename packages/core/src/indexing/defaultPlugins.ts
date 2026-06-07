@@ -19,6 +19,11 @@ function shouldRegisterDefaultMarkdownPlugin(
     return false;
   }
 
+  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  if (disabledPlugins.has('codegraphy.markdown')) {
+    return false;
+  }
+
   const providedPluginIds = new Set((options.plugins ?? []).map(plugin => readPluginEntry(plugin).plugin.id));
   return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)
     && !providedPluginIds.has('codegraphy.markdown');
@@ -60,9 +65,15 @@ function readPluginEntry(plugin: IndexCodeGraphyWorkspacePlugin): IndexCodeGraph
 export function registerProvidedPlugins(
   registry: CorePluginRegistry,
   plugins: readonly IndexCodeGraphyWorkspacePlugin[] | undefined,
+  disabledPluginsInput: Iterable<string> = [],
 ): void {
+  const disabledPlugins = new Set(disabledPluginsInput);
   for (const pluginInput of plugins ?? []) {
     const entry = readPluginEntry(pluginInput);
+    if (disabledPlugins.has(entry.plugin.id)) {
+      continue;
+    }
+
     registry.register(entry.plugin, {
       ...(entry.builtIn !== undefined ? { builtIn: entry.builtIn } : {}),
       ...(entry.sourcePackage ? { sourcePackage: entry.sourcePackage } : {}),

@@ -59,6 +59,52 @@ export default function createPlugin(factoryOptions = {}) {
   );
 }
 
+async function createPluginPackageWithRuntimeMarkers(packageRoot: string): Promise<{
+  factoryMarkerPath: string;
+  importMarkerPath: string;
+}> {
+  const importMarkerPath = path.join(packageRoot, 'runtime-imported.txt');
+  const factoryMarkerPath = path.join(packageRoot, 'factory-called.txt');
+
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    `${JSON.stringify({
+      name: '@acme/codegraphy-plugin-disabled-runtime',
+      version: '1.0.0',
+      type: 'module',
+      exports: './plugin.js',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    }, null, 2)}\n`,
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+import { writeFileSync } from 'node:fs';
+
+writeFileSync(${JSON.stringify(importMarkerPath)}, 'imported');
+
+export default function createPlugin() {
+  writeFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory called');
+  return {
+    id: 'acme.disabled-runtime',
+    name: 'Disabled Runtime Plugin',
+    version: '1.0.0',
+    apiVersion: '^2.0.0',
+    supportedExtensions: ['.disabled']
+  };
+}
+`,
+    'utf-8',
+  );
+
+  return { factoryMarkerPath, importMarkerPath };
+}
+
 describe('CodeGraphy package runtime', () => {
   it('passes workspace plugin data host and options to package plugin factories', async () => {
     const workspaceRoot = await createWorkspace();
@@ -107,5 +153,48 @@ describe('CodeGraphy package runtime', () => {
         marker: 'from-workspace-options',
       },
     });
+  });
+
+  it('leaves disabled installed package runtimes unloaded while retaining static metadata', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-disabled-runtime',
+    );
+    const { factoryMarkerPath, importMarkerPath } = await createPluginPackageWithRuntimeMarkers(packageRoot);
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-disabled-runtime',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.disabled-runtime',
+        pluginName: 'Disabled Runtime Plugin',
+        supportedExtensions: ['.disabled'],
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        package: '@acme/codegraphy-plugin-disabled-runtime',
+      }],
+    });
+
+    const loadedPlugins = await loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+      disabledPlugins: new Set(['acme.disabled-runtime']),
+    });
+
+    expect(loadedPlugins).toEqual([]);
+    await expect(fs.access(importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
   });
 });

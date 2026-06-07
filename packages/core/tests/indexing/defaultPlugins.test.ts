@@ -106,6 +106,26 @@ describe('indexing/defaultPlugins', () => {
     ]);
   });
 
+  it('registers tree-sitter without Markdown when Plugin Activity State disables Markdown', () => {
+    const harness = registry();
+
+    registerDefaultIndexPlugins(
+      harness.registry,
+      {
+        workspaceRoot: '/workspace',
+        disabledPlugins: ['codegraphy.markdown'],
+      },
+      {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+      },
+    );
+
+    expect(harness.registered).toEqual([
+      { id: 'codegraphy.treesitter', builtIn: true },
+    ]);
+  });
+
   it('does not register Markdown when a provided plugin already owns the Markdown id', () => {
     const harness = registry();
     const markdown = plugin('codegraphy.markdown');
@@ -133,5 +153,17 @@ describe('indexing/defaultPlugins', () => {
     registerProvidedPlugins(harness.registry, undefined);
 
     expect(harness.registered).toEqual([]);
+  });
+
+  it('does not register provided plugins disabled by Plugin Activity State', () => {
+    const harness = registry();
+
+    registerProvidedPlugins(
+      harness.registry,
+      [plugin('active'), plugin('disabled')],
+      ['disabled'],
+    );
+
+    expect(harness.registered.map(entry => entry.id)).toEqual(['active']);
   });
 });
