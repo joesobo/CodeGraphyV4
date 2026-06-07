@@ -328,6 +328,13 @@ describe('WebviewPluginHost', () => {
     api.registerNodeRenderer('.ts', vi.fn());
     api.registerOverlay('heatmap', vi.fn());
     api.registerTooltipProvider(() => ({ sections: [{ title: 'One', content: 'First' }] }));
+    api.registerGraphViewContributions({
+      runtimeNodes: [{
+        id: 'acme.runtime-node',
+        label: 'Runtime Node',
+        createNodes: () => [],
+      }],
+    });
     api.onMessage(handler);
     otherApi.registerOverlay('other', vi.fn());
 
@@ -342,6 +349,7 @@ describe('WebviewPluginHost', () => {
       edges: [],
     })).toBeNull();
     expect(host.getOverlays()).toEqual([{ id: 'other.plugin:other', fn: expect.any(Function) }]);
+    expect(host.getGraphViewContributions().runtimeNodes).toEqual([]);
     expect(handler).not.toHaveBeenCalled();
   });
 
