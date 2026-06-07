@@ -25,7 +25,7 @@ export async function createWorkspaceIndexRegistry(
     ...(options.warn ? { warn: options.warn } : {}),
   });
 
-  registerDefaultIndexPlugins(registry, { ...options, disabledPlugins }, settings);
+  await registerDefaultIndexPlugins(registry, { ...options, disabledPlugins }, settings);
   for (const loadedPlugin of loadedPackagePlugins) {
     registry.register(loadedPlugin.plugin, {
       sourcePackage: loadedPlugin.packageName,

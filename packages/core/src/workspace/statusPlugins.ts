@@ -1,6 +1,6 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
-import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import { readCodeGraphyInstalledPluginCache } from '../plugins/installedCache';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_METADATA } from '../plugins/markdown/metadata';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
@@ -15,7 +15,10 @@ function createDefaultStatusRuntimePlugins(
 ): Array<Pick<IPlugin, 'id' | 'version'>> {
   const plugins: Array<Pick<IPlugin, 'id' | 'version'>> = [createTreeSitterPlugin()];
   if (settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)) {
-    plugins.push(createMarkdownPlugin());
+    plugins.push({
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.id,
+      version: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.version,
+    });
   }
   return plugins;
 }

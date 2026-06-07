@@ -43,10 +43,10 @@ function plugin(id: string): IPlugin {
 }
 
 describe('indexing/defaultPlugins', () => {
-  it('skips bundled defaults when core plugins are disabled', () => {
+  it('skips bundled defaults when core plugins are disabled', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace', includeCorePlugins: false },
       {
@@ -58,10 +58,10 @@ describe('indexing/defaultPlugins', () => {
     expect(harness.registered).toEqual([]);
   });
 
-  it('registers tree-sitter and configured Markdown when enabled after other workspace plugins', () => {
+  it('registers tree-sitter and configured Markdown when enabled after other workspace plugins', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace' },
       {
@@ -92,10 +92,10 @@ describe('indexing/defaultPlugins', () => {
     ]);
   });
 
-  it('registers tree-sitter without Markdown when Markdown is not enabled in workspace settings', () => {
+  it('registers tree-sitter without Markdown when Markdown is not enabled in workspace settings', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace' },
       {
@@ -109,10 +109,10 @@ describe('indexing/defaultPlugins', () => {
     ]);
   });
 
-  it('registers tree-sitter without Markdown when Plugin Activity State disables Markdown', () => {
+  it('registers tree-sitter without Markdown when Plugin Activity State disables Markdown', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       {
         workspaceRoot: '/workspace',
@@ -129,11 +129,11 @@ describe('indexing/defaultPlugins', () => {
     ]);
   });
 
-  it('does not register Markdown when a provided plugin already owns the Markdown id', () => {
+  it('does not register Markdown when a provided plugin already owns the Markdown id', async () => {
     const harness = registry();
     const markdown = plugin('codegraphy.markdown');
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace', plugins: [markdown] },
       {
