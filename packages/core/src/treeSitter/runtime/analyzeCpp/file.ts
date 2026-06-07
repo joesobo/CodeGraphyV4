@@ -62,7 +62,6 @@ export function analyzeCppFile(
 }
 
 interface CppIncludedDeclarations {
-  fallbackPath: string | null;
   methodPathByName: ReadonlyMap<string, string | null>;
   typePathByName: ReadonlyMap<string, string | null>;
 }
@@ -139,7 +138,6 @@ function readCppIncludedDeclarations(relations: readonly IAnalysisRelation[]): C
   }
 
   return {
-    fallbackPath: includedPaths.length === 1 ? includedPaths[0] : null,
     methodPathByName,
     typePathByName,
   };
@@ -328,7 +326,7 @@ function resolveCppInheritedTypePath(
   typeName: string,
 ): string | null {
   const resolvedPath = includedDeclarations.typePathByName.get(typeName);
-  return resolvedPath !== undefined ? resolvedPath : includedDeclarations.fallbackPath;
+  return resolvedPath ?? null;
 }
 
 function resolveCppOverridePath(
@@ -337,12 +335,16 @@ function resolveCppOverridePath(
   methodName: string,
 ): string | null {
   const resolvedPath = includedDeclarations.methodPathByName.get(methodName);
-  if (resolvedPath) {
+  const inheritedPathSet = new Set(
+    inheritedTypePaths.filter((inheritedTypePath): inheritedTypePath is string => Boolean(inheritedTypePath)),
+  );
+
+  if (resolvedPath && inheritedPathSet.has(resolvedPath)) {
     return resolvedPath;
   }
 
   return inheritedTypePaths.find((inheritedTypePath): inheritedTypePath is string => Boolean(inheritedTypePath))
-    ?? includedDeclarations.fallbackPath;
+    ?? null;
 }
 
 function resolveCppCallPath(

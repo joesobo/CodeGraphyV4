@@ -275,4 +275,43 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
     ]));
   });
+
+  it('does not resolve unknown C++ inheritance or overrides to the only included header', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/lib/widget.hpp': [
+        '#pragma once',
+        'class Widget {',
+        'public:',
+        '  virtual void render();',
+        '};',
+        '',
+      ].join('\n'),
+    });
+    const appPath = path.join(workspaceRoot, 'src/app.cpp');
+    const headerPath = path.join(workspaceRoot, 'src/lib/widget.hpp');
+    const source = [
+      '#include "lib/widget.hpp"',
+      '',
+      'class Runner : public MissingBase {',
+      'public:',
+      '  void render() override {}',
+      '};',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, source, workspaceRoot);
+
+    expect(result?.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'MissingBase',
+        resolvedPath: headerPath,
+      }),
+      expect.objectContaining({
+        kind: 'overrides',
+        specifier: 'render',
+        resolvedPath: headerPath,
+      }),
+    ]));
+  });
 });
