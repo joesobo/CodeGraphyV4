@@ -314,6 +314,7 @@ export class CorePluginRegistry {
     workspaceRoot: string,
     pluginIds: readonly string[],
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -323,7 +324,10 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
-      { pluginIds: new Set(pluginIds) },
+      {
+        ...options,
+        pluginIds: new Set(pluginIds),
+      },
     );
   }
 

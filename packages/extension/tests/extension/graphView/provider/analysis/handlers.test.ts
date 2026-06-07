@@ -130,7 +130,7 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(callbacks.markWorkspaceReady).toHaveBeenCalledWith(graphData);
+    expect(callbacks.markWorkspaceReady).toHaveBeenCalledWith(graphData, undefined);
     expect(callbacks.isAbortError).toHaveBeenCalledOnce();
     expect(dependencies.logError).toHaveBeenCalledOnce();
   });

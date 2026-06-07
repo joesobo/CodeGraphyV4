@@ -75,8 +75,8 @@ export function publishAnalyzedGraph(
   const graphData = handlers.getGraphData();
   handlers.sendGraphDataUpdated(graphData);
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
-  state.analyzer?.registry.notifyPostAnalyze(graphData);
-  handlers.markWorkspaceReady(graphData);
+  state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
+  handlers.markWorkspaceReady(graphData, state.disabledPlugins);
 }
 
 export function publishAnalysisFailure(

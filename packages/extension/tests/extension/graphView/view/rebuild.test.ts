@@ -58,7 +58,7 @@ describe('graphView/view/rebuild', () => {
         rebuildGraph: vi.fn(() => graphData),
         registry: { notifyGraphRebuild },
       },
-      _disabledPlugins: new Set<string>(),
+      _disabledPlugins: new Set<string>(['plugin.disabled']),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     };
@@ -85,7 +85,7 @@ describe('graphView/view/rebuild', () => {
       sendMessage,
     });
 
-    expect(state._analyzer.rebuildGraph).toHaveBeenCalledWith(new Set(), false);
+    expect(state._analyzer.rebuildGraph).toHaveBeenCalledWith(state._disabledPlugins, false);
     expect(state._rawGraphData).toEqual(graphData);
     expect(computeMergedGroups).toHaveBeenCalledTimes(1);
     expect(sendGroupsUpdated).toHaveBeenCalledTimes(1);
@@ -99,7 +99,10 @@ describe('graphView/view/rebuild', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(notifyGraphRebuild).toHaveBeenCalledWith({ nodes: [], edges: [] });
+    expect(notifyGraphRebuild).toHaveBeenCalledWith(
+      { nodes: [], edges: [] },
+      state._disabledPlugins,
+    );
   });
 
   it('recomputes legends after the rebuilt graph has been transformed', () => {
