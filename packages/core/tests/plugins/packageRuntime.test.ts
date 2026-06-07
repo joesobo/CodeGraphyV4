@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   loadCodeGraphyWorkspacePluginPackages,
@@ -59,7 +59,11 @@ export default function createPlugin(factoryOptions = {}) {
   );
 }
 
-async function createPluginPackageWithRuntimeMarkers(packageRoot: string): Promise<{
+async function createPluginPackageWithRuntimeMarkers(
+  packageRoot: string,
+  packageName = '@acme/codegraphy-plugin-disabled-runtime',
+  pluginId = 'acme.disabled-runtime',
+): Promise<{
   factoryMarkerPath: string;
   importMarkerPath: string;
 }> {
@@ -70,7 +74,7 @@ async function createPluginPackageWithRuntimeMarkers(packageRoot: string): Promi
   await fs.writeFile(
     path.join(packageRoot, 'package.json'),
     `${JSON.stringify({
-      name: '@acme/codegraphy-plugin-disabled-runtime',
+      name: packageName,
       version: '1.0.0',
       type: 'module',
       exports: './plugin.js',
@@ -91,7 +95,7 @@ writeFileSync(${JSON.stringify(importMarkerPath)}, 'imported');
 export default function createPlugin() {
   writeFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory called');
   return {
-    id: 'acme.disabled-runtime',
+    id: ${JSON.stringify(pluginId)},
     name: 'Disabled Runtime Plugin',
     version: '1.0.0',
     apiVersion: '^2.0.0',
@@ -199,5 +203,78 @@ describe('CodeGraphy package runtime', () => {
     expect(loadedPlugins).toEqual([]);
     await expect(fs.access(importMarkerPath)).rejects.toThrow();
     await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
+  });
+
+  it('leaves conflicting enabled package runtimes unloaded and warns from static metadata', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRootOne = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-vue-one',
+    );
+    const packageRootTwo = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-vue-two',
+    );
+    const firstMarkers = await createPluginPackageWithRuntimeMarkers(
+      packageRootOne,
+      '@acme/codegraphy-plugin-vue-one',
+      'codegraphy.vue',
+    );
+    const secondMarkers = await createPluginPackageWithRuntimeMarkers(
+      packageRootTwo,
+      '@acme/codegraphy-plugin-vue-two',
+      'codegraphy.vue',
+    );
+    const warn = vi.fn();
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [
+        {
+          package: '@acme/codegraphy-plugin-vue-one',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: packageRootOne,
+          pluginId: 'codegraphy.vue',
+        },
+        {
+          package: '@acme/codegraphy-plugin-vue-two',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: packageRootTwo,
+          pluginId: 'codegraphy.vue',
+        },
+      ],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        id: 'codegraphy.vue',
+        enabled: true,
+      }],
+    });
+
+    const loadedPlugins = await loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+      warn,
+    });
+
+    expect(loadedPlugins).toEqual([]);
+    expect(warn).toHaveBeenCalledWith(
+      "CodeGraphy plugin 'codegraphy.vue' is enabled but multiple installed packages claim it: @acme/codegraphy-plugin-vue-one, @acme/codegraphy-plugin-vue-two. No runtime was loaded.",
+    );
+    await expect(fs.access(firstMarkers.importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(firstMarkers.factoryMarkerPath)).rejects.toThrow();
+    await expect(fs.access(secondMarkers.importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(secondMarkers.factoryMarkerPath)).rejects.toThrow();
   });
 });
