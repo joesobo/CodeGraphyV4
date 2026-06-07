@@ -3,6 +3,8 @@ import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { createDiagnosticEvent } from '../diagnostics/events';
 import { loadWorkspaceAnalysisDatabaseCache, readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
 import { buildWorkspaceGraphDataFromAnalysis } from '../graph/data';
+import { createDisabledPluginSet } from '../plugins/activityState/model';
+import { filterDisabledPluginSnapshotFacts } from '../plugins/activityState/analysisFacts';
 import {
   executeGraphQuery,
   type GraphQueryRequest,
@@ -80,8 +82,10 @@ export async function requestWorkspaceGraphQuery(
   }
 
   const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+  const disabledPlugins = createDisabledPluginSet(settings);
   const cache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
   const snapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+  const activeSnapshotFacts = filterDisabledPluginSnapshotFacts(snapshot, disabledPlugins);
   const fileAnalysis = new Map<string, IFileAnalysisResult>(
     Object.entries(cache.files).map(([filePath, entry]) => [filePath, entry.analysis]),
   );
@@ -89,7 +93,7 @@ export async function requestWorkspaceGraphQuery(
     cacheFiles: cache.files,
     churnCounts: {},
     directoryPaths: collectDirectoryPaths(Object.keys(cache.files)),
-    disabledPlugins: new Set(),
+    disabledPlugins,
     fileAnalysis,
     getPluginForFile: () => undefined,
     showOrphans: settings.showOrphans,
@@ -97,8 +101,8 @@ export async function requestWorkspaceGraphQuery(
   });
   const queryResult = executeGraphQuery({
     graphData,
-    symbols: snapshot.symbols,
-    relations: snapshot.relations,
+    symbols: activeSnapshotFacts.symbols,
+    relations: activeSnapshotFacts.relations,
   }, {
     report: input.report,
     arguments: input.arguments,
