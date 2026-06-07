@@ -183,6 +183,8 @@ describe('pipeline/service/refreshFacade', () => {
     expect((facade._registry as { notifyFilesChanged: ReturnType<typeof vi.fn> }).notifyFilesChanged).toHaveBeenCalledWith(
       [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts', content: 'content:a' }],
       '/workspace',
+      undefined,
+      disabledPlugins,
     );
 
     refreshDependencies.persistCache();
@@ -192,7 +194,14 @@ describe('pipeline/service/refreshFacade', () => {
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
 
     await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
-    expect(facade._analyzeFiles).toHaveBeenCalledWith([], '/workspace', undefined, signal, undefined);
+    expect(facade._analyzeFiles).toHaveBeenCalledWith(
+      [],
+      '/workspace',
+      undefined,
+      signal,
+      undefined,
+      disabledPlugins,
+    );
 
     refreshSource._buildGraphData(new Map(), '/workspace', disabledPlugins);
     expect(facade._buildGraphData).toHaveBeenCalledWith(new Map(), '/workspace', true, disabledPlugins);

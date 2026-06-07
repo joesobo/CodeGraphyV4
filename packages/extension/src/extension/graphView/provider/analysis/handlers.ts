@@ -17,7 +17,7 @@ interface GraphViewProviderAnalysisHandlerCallbacks {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
   isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   isAbortError(error: unknown): boolean;
-  markWorkspaceReady(graph: IGraphData): void;
+  markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
 }
 
 export function createGraphViewProviderAnalysisHandlers(
@@ -66,7 +66,8 @@ export function createGraphViewProviderAnalysisHandlers(
     sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
     sendGraphViewContributionStatuses: () => source._sendGraphViewContributionStatuses?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections?.(),
-    markWorkspaceReady: graphData => callbacks.markWorkspaceReady(graphData),
+    markWorkspaceReady: (graphData, disabledPlugins) =>
+      callbacks.markWorkspaceReady(graphData, disabledPlugins),
     isAbortError: error => callbacks.isAbortError(error),
     logError: (message, error) => {
       dependencies.logError(message, error);

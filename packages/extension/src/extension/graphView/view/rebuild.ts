@@ -6,7 +6,10 @@ interface GraphViewAnalyzerLike {
     showOrphans: boolean,
   ): IGraphData;
   registry: {
-    notifyGraphRebuild(graphData: IGraphData): void;
+    notifyGraphRebuild(
+      graphData: IGraphData,
+      disabledPlugins?: ReadonlySet<string>,
+    ): void;
   };
 }
 
@@ -64,7 +67,7 @@ export function rebuildGraphViewData(
   sendGraphControls();
   sendPluginStatuses();
   sendDecorations();
-  state._analyzer.registry.notifyGraphRebuild(state._graphData);
+  state._analyzer.registry.notifyGraphRebuild(state._graphData, state._disabledPlugins);
 }
 
 export function smartRebuildGraphView(

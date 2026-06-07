@@ -29,6 +29,7 @@ export interface WorkspacePipelineFilesDependencies {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ) => Promise<void>;
   readContent: (file: IDiscoveredFile) => Promise<string>;
   signal?: AbortSignal;
@@ -46,6 +47,7 @@ export interface WorkspacePipelineFilesSource {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ): Promise<void>;
   _registry: {
     analyzeFileResult(
@@ -53,6 +55,7 @@ export interface WorkspacePipelineFilesSource {
       content: string,
       workspaceRoot: string,
       analysisContext?: IPluginAnalysisContext,
+      options?: { disabledPlugins?: ReadonlySet<string> },
     ): Promise<IFileAnalysisResult | null>;
     analyzeFileResultForPlugins?(
       absolutePath: string,
@@ -60,6 +63,7 @@ export interface WorkspacePipelineFilesSource {
       workspaceRoot: string,
       pluginIds: readonly string[],
       analysisContext?: IPluginAnalysisContext,
+      options?: { disabledPlugins?: ReadonlySet<string> },
     ): Promise<IFileAnalysisResult | null>;
   };
 }
@@ -79,9 +83,11 @@ function analyzeWorkspacePipelineFileWithRegistry(
   content: string,
   workspaceRoot: string,
   pluginIds: readonly string[] | undefined,
+  disabledPlugins: ReadonlySet<string>,
   request: WorkspaceFileAnalysisRequest,
 ): Promise<IFileAnalysisResult | null> {
   const analysisContext = createWorkspacePipelinePluginAnalysisContext(workspaceRoot, request);
+  const options = { disabledPlugins };
 
   if (pluginIds && pluginIds.length > 0 && source._registry.analyzeFileResultForPlugins) {
     return source._registry.analyzeFileResultForPlugins(
@@ -90,10 +96,17 @@ function analyzeWorkspacePipelineFileWithRegistry(
       workspaceRoot,
       pluginIds,
       analysisContext,
+      options,
     );
   }
 
-  return source._registry.analyzeFileResult(absolutePath, content, workspaceRoot, analysisContext);
+  return source._registry.analyzeFileResult(
+    absolutePath,
+    content,
+    workspaceRoot,
+    analysisContext,
+    options,
+  );
 }
 
 export async function analyzeWorkspacePipelineFiles(
@@ -128,6 +141,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
   signal?: AbortSignal,
   cacheTiers?: AnalysisCacheTierOptions,
   pluginIds?: readonly string[],
+  disabledPlugins: Set<string> = new Set(),
 ): Promise<IWorkspaceFileAnalysisResult> {
   const eventBus = source._eventBus;
 
@@ -139,6 +153,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
         content,
         rootPath,
         pluginIds,
+        disabledPlugins,
         request,
       ).then(result => result ?? ({
         filePath: absolutePath,
@@ -155,7 +170,12 @@ export async function analyzeWorkspacePipelineSourceFiles(
     onProgress,
     preAnalyzeFiles: source._preAnalyzePlugins
       ? (preAnalyzeFiles, rootPath, abortSignal) =>
-          source._preAnalyzePlugins?.(preAnalyzeFiles, rootPath, abortSignal) ?? Promise.resolve()
+          source._preAnalyzePlugins?.(
+            preAnalyzeFiles,
+            rootPath,
+            abortSignal,
+            disabledPlugins,
+          ) ?? Promise.resolve()
       : undefined,
     readContent: file => source._discovery.readContent(file),
     signal,

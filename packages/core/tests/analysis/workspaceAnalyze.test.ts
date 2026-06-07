@@ -154,6 +154,8 @@ describe('pipeline/analysis/analyze', () => {
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
+      new Set<string>(['plugin.python']),
     );
     expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
       fileAnalysis,

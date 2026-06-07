@@ -112,6 +112,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     workspaceRoot: string,
     pluginIds: readonly string[],
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -121,7 +122,10 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
-      { pluginIds: new Set(pluginIds) },
+      {
+        ...options,
+        pluginIds: new Set(pluginIds),
+      },
     );
   }
 

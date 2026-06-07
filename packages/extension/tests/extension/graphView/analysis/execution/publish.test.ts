@@ -51,6 +51,7 @@ describe('graph view analysis execution publish', () => {
       edges: [],
     };
     const state = createExecutionState({
+      disabledPlugins: new Set(['plugin.disabled']),
       analyzer: createExecutionAnalyzer({
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
       }),
@@ -73,8 +74,14 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(getGraphData());
-    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
+    expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
   });
 
   it('reports graph view update progress before publishing an explicit index result', () => {
@@ -192,7 +199,10 @@ describe('graph view analysis execution publish', () => {
       'CodeGraphy index is missing. Index the workspace to build the graph.',
     );
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(getGraphData());
-    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
   });
 
   it('publishes an empty graph fallback with plugin state updates after failures', () => {

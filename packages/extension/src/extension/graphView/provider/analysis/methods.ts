@@ -23,7 +23,10 @@ import { createGraphViewProviderDoAnalyzeAndSendData } from './execution';
 import { createGraphViewProviderAnalyzeAndSendData } from './request';
 
 interface GraphViewProviderWorkspaceReadyRegistryLike {
-  notifyWorkspaceReady(graphData: IGraphData): void;
+  notifyWorkspaceReady(
+    graphData: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void;
 }
 
 interface GraphViewProviderAnalysisAnalyzerLike {
@@ -59,7 +62,11 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendPluginWebviewInjections?(): void;
   _loadAndSendData?(this: void): Promise<void>;
   _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
-  _markWorkspaceReady?(this: void, graph: IGraphData): void;
+  _markWorkspaceReady?(
+    this: void,
+    graph: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void;
   _isAnalysisStale?(this: void, signal: AbortSignal, requestId: number): boolean;
   _isAbortError?(this: void, error: unknown): boolean;
 }
@@ -71,7 +78,7 @@ export interface GraphViewProviderAnalysisMethods {
   _refreshAndSendData(): Promise<void>;
   _incrementalAnalyzeAndSendData(filePaths: readonly string[]): Promise<void>;
   _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
-  _markWorkspaceReady(graph: IGraphData): void;
+  _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   _isAbortError(error: unknown): boolean;
 }
@@ -94,6 +101,7 @@ export interface GraphViewProviderAnalysisMethodDependencies {
     },
     registry: GraphViewProviderWorkspaceReadyRegistryLike | undefined,
     graphData: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
   ) => void;
   isAnalysisStale: (
     signal: AbortSignal,
@@ -205,10 +213,18 @@ export function createGraphViewProviderAnalysisMethods(
 ): GraphViewProviderAnalysisMethods {
   const fullIndexAnalysis = createFullIndexAnalysisCoordinator(dependencies);
 
-  const _markWorkspaceReady = (graph: IGraphData): void => {
+  const _markWorkspaceReady = (
+    graph: IGraphData,
+    disabledPlugins: ReadonlySet<string> = source._disabledPlugins,
+  ): void => {
     const state = createGraphViewProviderWorkspaceReadyState(source);
 
-    dependencies.markWorkspaceReady(state, source._analyzer?.registry, graph);
+    dependencies.markWorkspaceReady(
+      state,
+      source._analyzer?.registry,
+      graph,
+      disabledPlugins,
+    );
 
     syncGraphViewProviderWorkspaceReadyState(source, state);
   };
@@ -219,7 +235,7 @@ export function createGraphViewProviderAnalysisMethods(
   const _isAbortError = (error: unknown): boolean => dependencies.isAbortError(error);
 
   const delegates = createGraphViewProviderAnalysisDelegates(source, {
-    markWorkspaceReady: graph => _markWorkspaceReady(graph),
+    markWorkspaceReady: (graph, disabledPlugins) => _markWorkspaceReady(graph, disabledPlugins),
     isAnalysisStale: (signal, requestId) => _isAnalysisStale(signal, requestId),
     isAbortError: error => _isAbortError(error),
   });

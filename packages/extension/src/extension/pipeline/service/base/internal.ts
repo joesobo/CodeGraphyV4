@@ -35,17 +35,24 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins: Set<string> = new Set(),
   ): Promise<void> {
     await preAnalyzeWorkspacePipelinePlugins(
       files,
       workspaceRoot,
       {
         notifyPreAnalyze: async (v2Files, rootPath) => {
-          await this._registry.notifyPreAnalyze(v2Files, rootPath);
+          await this._registry.notifyPreAnalyze(
+            v2Files,
+            rootPath,
+            undefined,
+            disabledPlugins,
+          );
         },
         readContent: file => this._discovery.readContent(file),
       },
       signal,
+      disabledPlugins,
     );
   }
 
@@ -55,8 +62,12 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
     pluginCacheTierIds?: readonly string[],
+    disabledPlugins: Set<string> = new Set(),
   ): Promise<IWorkspaceFileAnalysisResult> {
-    const analysisPluginIds = pluginCacheTierIds ?? this._getActiveAnalysisPluginIds();
+    const analysisPluginIds = this._getActiveAnalysisPluginIds(
+      pluginCacheTierIds,
+      disabledPlugins,
+    );
 
     return analyzeWorkspacePipelineDiscoveredFiles(
       this._cache,
@@ -73,15 +84,21 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
         analysisPluginIds,
       ),
       analysisPluginIds,
+      disabledPlugins,
     );
   }
 
-  private _getActiveAnalysisPluginIds(): string[] {
-    return this._registry.list()
+  private _getActiveAnalysisPluginIds(
+    pluginIds: readonly string[] | undefined,
+    disabledPlugins: ReadonlySet<string>,
+  ): string[] {
+    const candidateIds = pluginIds ?? this._registry.list()
       .map(({ plugin }) => plugin.id)
       .filter((pluginId): pluginId is string =>
         typeof pluginId === 'string' && pluginId.length > 0,
       );
+
+    return candidateIds.filter(pluginId => !disabledPlugins.has(pluginId));
   }
 
   protected _buildGraphData(

@@ -45,7 +45,10 @@ interface GraphViewAnalyzerLike {
     onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   registry: {
-    notifyPostAnalyze(graph: IGraphData): void;
+    notifyPostAnalyze(
+      graph: IGraphData,
+      disabledPlugins?: ReadonlySet<string>,
+    ): void;
   };
 }
 
@@ -81,7 +84,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections?(): void;
-  markWorkspaceReady(graphData: IGraphData): void;
+  markWorkspaceReady(graphData: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
   emitDiagnostic?(input: DiagnosticEventInput): void;

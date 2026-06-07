@@ -70,8 +70,8 @@ export async function indexCodeGraphyWorkspace(
     workspaceRoot,
   });
 
-  registry.notifyPostAnalyze(graph);
-  registry.notifyWorkspaceReady(graph);
+  registry.notifyPostAnalyze(graph, disabledPlugins);
+  registry.notifyWorkspaceReady(graph, disabledPlugins);
   saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
   persistWorkspaceIndexMetadata({
     loadedPackagePlugins,
