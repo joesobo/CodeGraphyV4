@@ -22,6 +22,7 @@ async function createPackage(
   root: string,
   packageName: string,
   packageJson: Record<string, unknown>,
+  descriptor?: Record<string, unknown>,
 ): Promise<void> {
   const packageRoot = path.join(root, ...packageName.split('/'));
   await fs.mkdir(packageRoot, { recursive: true });
@@ -30,6 +31,13 @@ async function createPackage(
     `${JSON.stringify({ name: packageName, ...packageJson }, null, 2)}\n`,
     'utf-8',
   );
+  if (descriptor) {
+    await fs.writeFile(
+      path.join(packageRoot, 'codegraphy.json'),
+      `${JSON.stringify(descriptor, null, 2)}\n`,
+      'utf-8',
+    );
+  }
 }
 
 describe('CodeGraphy Plugin Registry', () => {
@@ -43,6 +51,8 @@ describe('CodeGraphy Plugin Registry', () => {
         apiVersion: '^2.0.0',
         disclosures: ['externalProcesses'],
       },
+    }, {
+      id: 'private-plugin',
     });
 
     const record = await registerCodeGraphyInstalledPlugin({
@@ -55,6 +65,7 @@ describe('CodeGraphy Plugin Registry', () => {
       package: 'private-plugin',
       version: '4.5.6',
       apiVersion: '^2.0.0',
+      pluginId: 'private-plugin',
       disclosures: ['externalProcesses'],
       packageRoot: path.join(globalRoot, 'private-plugin'),
     });
@@ -177,6 +188,10 @@ describe('CodeGraphy Plugin Registry', () => {
         type: 'plugin',
         apiVersion: '^2.0.0',
       },
+    }, {
+      id: 'codegraphy.python',
+      name: 'Python',
+      supportedExtensions: ['.py'],
     });
     await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
       version: '1.0.0',
@@ -188,11 +203,30 @@ describe('CodeGraphy Plugin Registry', () => {
       package: '@codegraphy-dev/plugin-python',
       version: '1.2.3',
       apiVersion: '^2.0.0',
+      pluginId: 'codegraphy.python',
+      pluginName: 'Python',
+      supportedExtensions: ['.py'],
       disclosures: [],
       packageRoot: pluginRoot,
     });
     await expect(readPackageManifest(nonPluginRoot)).resolves.toBeNull();
     await expect(readPackageManifest(path.join(pluginRoot, 'missing'))).resolves.toBeNull();
+  });
+
+  it('requires plugin packages to declare a static plugin id in codegraphy.json', async () => {
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
+    await createPackage(packageRoot, '@codegraphy-dev/plugin-missing-id', {
+      version: '1.2.3',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    });
+    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-missing-id');
+
+    await expect(readPackageManifest(pluginRoot)).resolves.toBeNull();
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-missing-id', pluginRoot))
+      .rejects.toThrow("Package '@codegraphy-dev/plugin-missing-id' is missing codegraphy.json with a static plugin id.");
   });
 
   it('requires a matching CodeGraphy plugin package manifest', async () => {
@@ -204,6 +238,8 @@ describe('CodeGraphy Plugin Registry', () => {
         apiVersion: '^2.0.0',
         disclosures: ['network'],
       },
+    }, {
+      id: 'codegraphy.python',
     });
     await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
       version: '1.0.0',
@@ -214,6 +250,8 @@ describe('CodeGraphy Plugin Registry', () => {
         type: 'plugin',
         apiVersion: '^2.0.0',
       },
+    }, {
+      id: 'codegraphy.ruby',
     });
     const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-python');
     const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
@@ -223,6 +261,7 @@ describe('CodeGraphy Plugin Registry', () => {
       package: '@codegraphy-dev/plugin-python',
       version: '1.2.3',
       apiVersion: '^2.0.0',
+      pluginId: 'codegraphy.python',
       disclosures: ['network'],
       packageRoot: pluginRoot,
     });

@@ -53,7 +53,7 @@ Installation and enablement are separate:
 - Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index [workspace]` once to refresh the Graph Cache.
 - `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes `codegraphy.markdown` as the first `enabled: true` plugin when a new CodeGraphy Workspace is indexed for the first time.
 
-Plugin packages declare CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
+Plugin packages declare package-level CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
 
 ```json
 {
@@ -79,13 +79,29 @@ Plugin packages declare CodeGraphy metadata in `package.json` so registration ca
 }
 ```
 
-The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, register, link, list, enable, or disable commands.
+The same package must also include a static `codegraphy.json` descriptor. Core reads this file before runtime import; its `id` is the Plugin ID written into workspace settings and used for enablement, conflicts, provenance, Plugin Data, and Graph View contribution ownership.
+
+```json
+{
+  "$schema": "./codegraphy.schema.json",
+  "id": "codegraphy.python",
+  "name": "Python",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [".py", ".pyi"],
+  "defaultFilters": []
+}
+```
+
+`codegraphy.json#id` is required for `codegraphy plugins register` and `codegraphy plugins link`. `name` and `supportedExtensions` let CodeGraphy Interfaces render installed-but-disabled plugins from static metadata without importing or factory-creating the runtime. The runtime plugin object's `id` must match `codegraphy.json#id`.
+
+The npm package's normal `exports` field owns runtime import behavior. The `package.json#codegraphy` block is for package compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing or targeted plugin refresh, not during install, register, link, list, enable, or disable commands.
 
 For local private plugin development, keep the private source outside this public monorepo and link its package root:
 
 ```bash
 codegraphy plugins link ~/src/acme-graph-tools
-codegraphy plugins enable @acme/graph-tools /path/to/indexed-folder
+codegraphy plugins enable acme.graph-tools /path/to/indexed-folder
 codegraphy index /path/to/indexed-folder
 ```
 
@@ -118,7 +134,7 @@ const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
 export default createPlugin;
 ```
 
-The data host persists under the plugin id returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
+The data host persists under the Plugin ID declared in `codegraphy.json` and returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
 
 Default options are copied into workspace settings when the plugin is enabled so the user can see and edit the starting values for that workspace. For example, enabling a Godot plugin whose package manifest contains:
 

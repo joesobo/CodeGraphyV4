@@ -17,6 +17,7 @@ async function createPackage(
   root: string,
   packageName: string,
   packageJson: Record<string, unknown>,
+  descriptor?: Record<string, unknown>,
 ): Promise<void> {
   const packageRoot = path.join(root, ...packageName.split('/'));
   await fs.mkdir(packageRoot, { recursive: true });
@@ -25,6 +26,13 @@ async function createPackage(
     `${JSON.stringify({ name: packageName, ...packageJson }, null, 2)}\n`,
     'utf-8',
   );
+  if (descriptor) {
+    await fs.writeFile(
+      path.join(packageRoot, 'codegraphy.json'),
+      `${JSON.stringify(descriptor, null, 2)}\n`,
+      'utf-8',
+    );
+  }
 }
 
 function createPluginRecord(
@@ -54,6 +62,8 @@ describe('plugins/command', () => {
         type: 'plugin',
         apiVersion: '^2.0.0',
       },
+    }, {
+      id: 'private-plugin',
     });
 
     const result = await runPluginsCommand({
@@ -94,6 +104,14 @@ describe('plugins/command', () => {
       }, null, 2)}\n`,
       'utf-8',
     );
+    await fs.writeFile(
+      path.join(packageRoot, 'codegraphy.json'),
+      `${JSON.stringify({
+        id: 'acme.private',
+        name: 'Acme Private',
+      }, null, 2)}\n`,
+      'utf-8',
+    );
 
     const result = await runPluginsCommand({
       name: 'plugins',
@@ -111,12 +129,42 @@ describe('plugins/command', () => {
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([
       expect.objectContaining({
         package: '@acme/codegraphy-private-plugin',
+        pluginId: 'acme.private',
         packageRoot,
       }),
     ]);
     await expect(fs.stat(path.join(workspaceRoot, '.codegraphy', 'settings.json'))).rejects.toMatchObject({
       code: 'ENOENT',
     });
+  });
+
+  it('rejects plugin packages that do not declare a static plugin id', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-'));
+    await createPackage(globalRoot, 'private-plugin', {
+      version: '4.5.6',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    });
+
+    const result = await runPluginsCommand({
+      name: 'plugins',
+      action: 'register',
+      packageName: 'private-plugin',
+    }, {
+      cwd: () => workspaceRoot,
+      homeDir,
+      resolveGlobalPackageRoots: () => [globalRoot],
+    });
+
+    expect(result).toEqual({
+      exitCode: 1,
+      output: "Package 'private-plugin' is missing codegraphy.json with a static plugin id.",
+    });
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([]);
   });
 
   it('enables and disables a cached plugin for one workspace', async () => {
