@@ -52,6 +52,11 @@ const TREE_SITTER_FILE_ANALYZERS: Record<string, TreeSitterFileAnalyzer> = {
   typescript: analyzeJavaScriptFamilyFile,
 };
 
+function shouldAnalyzeHeaderAsObjectiveC(filePath: string, content: string): boolean {
+  return filePath.toLowerCase().endsWith('.h')
+    && /^\s*@(interface|protocol|implementation)\b/m.test(content);
+}
+
 export async function analyzeFileWithTreeSitter(
   filePath: string,
   content: string,
@@ -62,7 +67,9 @@ export async function analyzeFileWithTreeSitter(
     return analyzePascalTextFile(filePath, content, workspaceRoot, options);
   }
 
-  const runtime = await createTreeSitterRuntime(filePath);
+  const runtime = await createTreeSitterRuntime(
+    shouldAnalyzeHeaderAsObjectiveC(filePath, content) ? `${filePath}.m` : filePath,
+  );
   if (!runtime) {
     return null;
   }

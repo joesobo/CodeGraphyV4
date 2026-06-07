@@ -170,6 +170,8 @@ describe('indexing/refresh', () => {
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
+      new Set(),
     );
   });
 
@@ -205,6 +207,7 @@ describe('indexing/refresh', () => {
       expect.any(Function),
       undefined,
       ['codegraphy.typescript'],
+      new Set(),
     );
     expect(graph.nodes.map(node => node.id)).toEqual([
       'src/plugin.ts',
@@ -326,6 +329,8 @@ describe('indexing/refresh', () => {
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
+      new Set(),
     );
     expect(persistCache).toHaveBeenCalledOnce();
     expect(persistIndexMetadata).toHaveBeenCalledOnce();

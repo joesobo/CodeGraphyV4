@@ -15,7 +15,10 @@ describe('extension/graphView/controls/send', () => {
     sendGraphControlsUpdated(
       {
         nodes: [{ id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' }],
-        edges: [{ id: 'src/app.ts->src/lib.ts#import', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import', sources: [] }],
+        edges: [
+          { id: 'src/app.ts->src/lib.ts#import', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import', sources: [] },
+          { id: 'src/app.ts->src/lib.ts#plugin:route', from: 'src/app.ts', to: 'src/lib.ts', kind: 'plugin:route', sources: [] },
+        ],
       },
       {
         registry: {
@@ -75,6 +78,99 @@ describe('extension/graphView/controls/send', () => {
     expect(payload).toBeDefined();
     expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(CORE_NODE_TYPE_IDS);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
+  });
+
+  it('includes capability-declared edge types even before the graph has matching edges', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [{ id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' }],
+        edges: [],
+      },
+      {
+        registry: {
+          listEdgeTypes: () => [
+            { id: 'plugin:route', label: 'Route', defaultColor: '#10B981', defaultVisible: true },
+          ],
+          listEdgeTypeCapabilities: (filePaths: readonly string[]) => {
+            expect(filePaths).toEqual(['src/app.ts']);
+            return ['import', 'plugin:route'];
+          },
+        },
+      },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+    );
+
+    const payload = sendMessage.mock.calls[0][0].payload;
+    expect(payload.edgeTypes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'import' }),
+      expect.objectContaining({ id: 'plugin:route' }),
+    ]));
+  });
+
+  it('passes disabled plugins through graph control definition and capability reads', () => {
+    const sendMessage = vi.fn();
+    const disabledPlugins = new Set(['codegraphy.godot']);
+    const registry = {
+      listNodeTypes: vi.fn((_disabledPlugins?: ReadonlySet<string>) => [
+        { id: 'godot-scene', label: 'Godot Scene', defaultColor: '#478CBF', defaultVisible: true },
+      ]),
+      listEdgeTypes: vi.fn((_disabledPlugins?: ReadonlySet<string>) => [
+        { id: 'load', label: 'Loads', defaultColor: '#478CBF', defaultVisible: true },
+      ]),
+      listEdgeTypeCapabilities: vi.fn((_filePaths: readonly string[], _disabledPlugins?: ReadonlySet<string>) => ['load']),
+    };
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [{ id: 'game/player.gd', label: 'Player', color: '#111111', nodeType: 'file' }],
+        edges: [],
+      },
+      { registry },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+      disabledPlugins,
+    );
+
+    expect(registry.listNodeTypes).toHaveBeenCalledWith(disabledPlugins);
+    expect(registry.listEdgeTypes).toHaveBeenCalledWith(disabledPlugins);
+    expect(registry.listEdgeTypeCapabilities).toHaveBeenCalledWith(['game/player.gd'], disabledPlugins);
+  });
+
+  it('does not infer edge type toggles from disabled plugin edges in raw graph data', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [
+          { id: 'game/player.gd', label: 'Player', color: '#111111', nodeType: 'file' },
+          { id: 'game/enemy.gd', label: 'Enemy', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          {
+            id: 'game/player.gd->game/enemy.gd#load',
+            from: 'game/player.gd',
+            to: 'game/enemy.gd',
+            kind: 'load',
+            sources: [{ id: 'godot-load', label: 'Godot Load', pluginId: 'codegraphy.godot', sourceId: 'godot-load' }],
+          },
+        ],
+      },
+      {
+        registry: {
+          listEdgeTypes: () => [],
+          listEdgeTypeCapabilities: () => [],
+        },
+      },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+      new Set(['codegraphy.godot']),
+    );
+
+    const payload = sendMessage.mock.calls[0][0].payload as IGraphControlsSnapshot;
+    expect(payload.edgeTypes.some(edgeType => edgeType.id === 'load')).toBe(false);
   });
 
   it('uses only core definitions when the analyzer is absent', () => {

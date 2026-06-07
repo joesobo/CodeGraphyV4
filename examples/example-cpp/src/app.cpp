@@ -1,10 +1,9 @@
 #include "lib/widget.hpp"
 #include <vector>
 
-namespace example {
-
 class Runner : public Widget {
 public:
+  void render() override {}
   void run() {}
 };
 
@@ -14,6 +13,4 @@ int boot() {
   widget.render();
   runner.run();
   return 0;
-}
-
 }

@@ -24,6 +24,7 @@ export interface IGraphEdgeTypeDefinition {
   defaultColor: string;
   defaultVisible: boolean;
   description?: IGraphTypeDescription;
+  requiresEdgeType?: GraphEdgeKind;
 }
 
 export interface IGraphTypeExample {

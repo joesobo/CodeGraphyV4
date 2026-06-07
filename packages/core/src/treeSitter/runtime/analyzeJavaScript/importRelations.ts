@@ -37,6 +37,7 @@ export function addTypeImportRelations(context: ImportStatementContext): void {
   }
 
   for (const binding of typeBindings) {
+    context.importedBindings.set(binding.localName ?? binding.importedName ?? context.specifier, binding);
     addTypeImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath, binding);
   }
 }

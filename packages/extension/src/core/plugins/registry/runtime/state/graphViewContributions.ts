@@ -122,6 +122,10 @@ export async function listAvailableGraphViewContributionsForPlugins(
   const contributions = createEmptyGraphViewContributionSet();
 
   for (const info of pluginInfoList) {
+    if (context.disabledPlugins?.has(info.plugin.id)) {
+      continue;
+    }
+
     const pluginAccess = await resolvePluginAccess(info.plugin, accessProviders, context);
     if (!pluginAccess.available) {
       continue;

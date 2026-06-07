@@ -7,7 +7,7 @@ import {
 } from '../../../src/treeSitter/runtime/analyzeJavaScript/declarations';
 import { getVariableAssignedFunctionSymbol } from '../../../src/treeSitter/runtime/analyze/imports';
 import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
+import { addInheritRelation, createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
 import { walkSymbolBody } from '../../../src/treeSitter/runtime/analyze/walk';
 
 vi.mock('../../../src/treeSitter/runtime/analyze/imports', () => ({
@@ -19,6 +19,7 @@ vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+  addInheritRelation: vi.fn(),
   createSymbol: vi.fn(),
 }));
 
@@ -29,12 +30,14 @@ vi.mock('../../../src/treeSitter/runtime/analyze/walk', () => ({
 function createNode(
   overrides: Partial<{
     type: string;
+    text: string;
     namedChildren: unknown[];
     childForFieldName: (name: string) => unknown;
   }> = {},
 ) {
   return {
     type: 'node',
+    text: '',
     namedChildren: [],
     childForFieldName: () => null,
     ...overrides,
@@ -92,11 +95,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJavaScript/declarations', (
     vi.mocked(getIdentifierText).mockReturnValue('Runner');
     vi.mocked(createSymbol).mockReturnValue(symbol as never);
 
-    handleJavaScriptClassDeclaration(node as never, '/workspace/app.ts', symbols);
+    handleJavaScriptClassDeclaration(node as never, '/workspace/app.ts', [], symbols, new Map(), true);
 
     expect(getIdentifierText).toHaveBeenCalledWith(fallbackName);
     expect(createSymbol).toHaveBeenCalledWith('/workspace/app.ts', 'class', 'Runner', node);
     expect(symbols).toEqual([symbol]);
+    expect(addInheritRelation).not.toHaveBeenCalled();
   });
 
   it('skips class declarations when the name is missing', () => {
@@ -110,7 +114,10 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJavaScript/declarations', (
     handleJavaScriptClassDeclaration(
       createNode({ type: 'class_declaration', childForFieldName, namedChildren: [createNode()] }) as never,
       '/workspace/app.ts',
+      [],
       symbols,
+      new Map(),
+      true,
     );
 
     expect(createSymbol).not.toHaveBeenCalled();

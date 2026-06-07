@@ -1,8 +1,7 @@
+import 'base_runner.dart';
+import 'runnable.dart';
 import '../model/user.dart';
 import 'package:sample_app/model/profile.dart';
-
-abstract class BaseRunner {}
-mixin Runnable {}
 
 class Runner extends BaseRunner with Runnable {
   String run(User user) {

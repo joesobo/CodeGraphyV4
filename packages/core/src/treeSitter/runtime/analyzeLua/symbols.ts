@@ -27,11 +27,13 @@ export function handleLuaFunctionDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
-): TreeWalkAction<SymbolWalkState> {
+): TreeWalkAction<SymbolWalkState> | void {
   const name = getLuaFunctionName(node);
   if (name) {
-    symbols.push(createSymbol(filePath, 'function', name, node));
+    const symbol = createSymbol(filePath, 'function', name, node);
+    symbols.push(symbol);
+    return { nextContext: { currentSymbolId: symbol.id } };
   }
 
-  return { skipChildren: true };
+  return;
 }

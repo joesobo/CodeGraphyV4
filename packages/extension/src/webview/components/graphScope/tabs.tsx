@@ -8,6 +8,7 @@ interface ScopeTabButtonProps {
   children: React.ReactNode;
   disabled?: boolean;
   onClick: () => void;
+  title?: string;
 }
 
 export function ScopeTabButton({
@@ -15,6 +16,7 @@ export function ScopeTabButton({
   children,
   disabled = false,
   onClick,
+  title,
 }: ScopeTabButtonProps): React.ReactElement {
   return (
     <Button
@@ -24,6 +26,7 @@ export function ScopeTabButton({
       className="h-7 flex-1 px-2 text-xs"
       disabled={disabled}
       onClick={onClick}
+      title={title}
     >
       {children}
     </Button>

@@ -21,6 +21,8 @@ export interface WorkspacePipelineAnalysisSource {
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
+    pluginIds?: readonly string[],
+    disabledPlugins?: Set<string>,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -44,6 +46,7 @@ export interface WorkspacePipelineAnalysisSource {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ): Promise<void>;
   getPluginFilterPatterns(disabledPlugins?: ReadonlySet<string>): string[];
 }
@@ -136,6 +139,8 @@ export async function analyzeWorkspaceWithAnalyzer(
       });
     },
     signal,
+    undefined,
+    disabledPlugins,
   );
 
   throwIfWorkspaceAnalysisAborted(signal);

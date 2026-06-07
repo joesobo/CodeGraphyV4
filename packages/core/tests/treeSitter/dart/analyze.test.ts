@@ -32,6 +32,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
     const workspaceRoot = await createWorkspace({
       'lib/model/profile.dart': 'class Profile { final String name; Profile(this.name); }\n',
       'lib/model/user.dart': 'class User { final String name; User(this.name); }\n',
+      'lib/app/runner.dart': 'String boot(Profile profile) => profile.name;\n',
     });
     const runnerPath = path.join(workspaceRoot, 'lib/app/runner.dart');
     const source = [
@@ -104,6 +105,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
         resolvedPath: null,
         toFilePath: null,
       }),
+      expect.objectContaining({
+        kind: 'call',
+        pluginId: 'codegraphy.treesitter',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'User',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:function:boot`,
+        resolvedPath: path.join(workspaceRoot, 'lib/model/user.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/model/user.dart'),
+      }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'BaseRunner' }),
@@ -112,6 +123,36 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'Runner' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'method', name: 'run' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'boot' }),
+    ]));
+  });
+
+  it('extracts Dart calls to top-level functions from imported files', async () => {
+    const workspaceRoot = await createWorkspace({
+      'lib/app/runner.dart': 'String boot() => "ready";\n',
+    });
+    const mainPath = path.join(workspaceRoot, 'bin/sample_app.dart');
+    const source = [
+      "import 'package:sample_app/app/runner.dart';",
+      '',
+      'void main() {',
+      '  boot();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        pluginId: 'codegraphy.treesitter',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'boot',
+        fromFilePath: mainPath,
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'lib/app/runner.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/app/runner.dart'),
+      }),
     ]));
   });
 });

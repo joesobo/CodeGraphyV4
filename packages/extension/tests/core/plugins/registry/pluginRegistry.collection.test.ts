@@ -99,6 +99,125 @@ describe('PluginRegistry collection', () => {
     ]);
   });
 
+  it('excludes disabled plugins from graph type and capability contributions', () => {
+    const registry = createConfiguredRegistry();
+    const disabledPlugins = new Set(['godot']);
+    registry.register(createMockPlugin({
+      id: 'godot',
+      supportedExtensions: ['.gd'],
+      contributeNodeTypes: () => [
+        {
+          id: 'godot-scene',
+          label: 'Godot Scene',
+          defaultColor: '#478CBF',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypes: () => [
+        {
+          id: 'load',
+          label: 'Loads',
+          defaultColor: '#478CBF',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypeCapabilities: () => ['load'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeNodeTypes: () => [
+        {
+          id: 'route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypes: () => [
+        {
+          id: 'plugin:route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypeCapabilities: () => ['plugin:route'],
+    }));
+
+    expect(registry.listNodeTypes(disabledPlugins)).toEqual([
+      {
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+    ]);
+    expect(registry.listEdgeTypes(disabledPlugins)).toEqual([
+      {
+        id: 'plugin:route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+    ]);
+    expect(registry.listEdgeTypeCapabilities(['game/player.gd', 'src/app.ts'], disabledPlugins)).toEqual([
+      'plugin:route',
+    ]);
+  });
+
+  it('excludes disabled plugins from file analysis', async () => {
+    const registry = createConfiguredRegistry();
+    const analyzeFile = vi.fn(async (filePath: string) => ({
+      filePath,
+      relations: [],
+    }));
+    registry.register(createMockPlugin({
+      id: 'plugin.disabled',
+      supportedExtensions: ['.ts'],
+      analyzeFile,
+    }));
+
+    await expect(
+      registry.analyzeFileResult(
+        '/workspace/src/app.ts',
+        "import './target'",
+        '/workspace',
+        undefined,
+        { disabledPlugins: new Set(['plugin.disabled']) },
+      ),
+    ).resolves.toBeNull();
+
+    expect(analyzeFile).not.toHaveBeenCalled();
+  });
+
+  it('excludes disabled plugins from targeted file analysis', async () => {
+    const registry = createConfiguredRegistry();
+    const analyzeFile = vi.fn(async (filePath: string) => ({
+      filePath,
+      relations: [],
+    }));
+    registry.register(createMockPlugin({
+      id: 'plugin.disabled',
+      supportedExtensions: ['.ts'],
+      analyzeFile,
+    }));
+
+    await expect(
+      registry.analyzeFileResultForPlugins(
+        '/workspace/src/app.ts',
+        "import './target'",
+        '/workspace',
+        ['plugin.disabled'],
+        undefined,
+        { disabledPlugins: new Set(['plugin.disabled']) },
+      ),
+    ).resolves.toBeNull();
+
+    expect(analyzeFile).not.toHaveBeenCalled();
+  });
+
+
   it('ignores plugins without node-type contributions when listing node types', () => {
     const registry = createConfiguredRegistry();
     registry.register(createMockPlugin({ id: 'noop' }));
@@ -147,8 +266,8 @@ describe('PluginRegistry collection', () => {
           defaultVisible: false,
         },
         {
-          id: 'test',
-          label: 'Tests',
+          id: 'plugin:verify',
+          label: 'Verifies',
           defaultColor: '#00aaff',
           defaultVisible: true,
         },
@@ -163,8 +282,8 @@ describe('PluginRegistry collection', () => {
         defaultVisible: false,
       },
       {
-        id: 'test',
-        label: 'Tests',
+        id: 'plugin:verify',
+        label: 'Verifies',
         defaultColor: '#00aaff',
         defaultVisible: true,
       },
@@ -193,6 +312,57 @@ describe('PluginRegistry collection', () => {
         defaultColor: '#22C55E',
         defaultVisible: true,
       },
+    ]);
+  });
+
+  it('returns edge capabilities from plugins that support workspace files', () => {
+    const registry = createConfiguredRegistry();
+    const readTypeScriptCapabilities = vi.fn(() =>
+      ['import', 'plugin:route'] as Array<'import' | 'plugin:route'>
+    );
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeEdgeTypeCapabilities: readTypeScriptCapabilities,
+    }));
+    registry.register(createMockPlugin({
+      id: 'python',
+      supportedExtensions: ['.py'],
+      contributeEdgeTypeCapabilities: () => ['reference'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'wildcard',
+      supportedExtensions: ['*'],
+      contributeEdgeTypeCapabilities: () => ['plugin:test'],
+    }));
+
+    expect(registry.listEdgeTypeCapabilities(['src/app.ts'])).toEqual([
+      'import',
+      'plugin:route',
+      'plugin:test',
+    ]);
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
+      filePaths: ['src/app.ts'],
+    });
+  });
+
+  it('deduplicates edge capabilities when multiple applicable plugins declare the same kind', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      supportedExtensions: ['.ts'],
+      contributeEdgeTypeCapabilities: () => ['import', 'reference'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      supportedExtensions: ['.tsx'],
+      contributeEdgeTypeCapabilities: () => ['import', 'call'],
+    }));
+
+    expect(registry.listEdgeTypeCapabilities(['src/app.ts', 'src/view.tsx'])).toEqual([
+      'import',
+      'reference',
+      'call',
     ]);
   });
 

@@ -14,7 +14,10 @@ interface GraphViewProviderRefreshAnalyzerLike {
     showOrphans: boolean,
   ): IGraphData;
   registry: {
-    notifyGraphRebuild(graphData: IGraphData): void;
+    notifyGraphRebuild(
+      graphData: IGraphData,
+      disabledPlugins?: ReadonlySet<string>,
+    ): void;
   };
   clearCache(): void;
   refreshAnalysisScope?(
@@ -155,7 +158,7 @@ function publishScopedRefreshGraphData(
   source._sendGraphControls?.();
   source._sendPluginStatuses();
   source._sendDecorations();
-  source._analyzer?.registry.notifyGraphRebuild(source._graphData);
+  source._analyzer?.registry.notifyGraphRebuild(source._graphData, source._disabledPlugins);
 }
 
 export function createGraphViewProviderRefreshMethods(

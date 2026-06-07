@@ -4,9 +4,14 @@ import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
+import CLanguage from 'tree-sitter-c';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import {
+  addCFamilyCallRelation,
+  readCFamilyIncludedCallDeclarations,
+} from '../analyzeCFamily/calls';
 import { handleCInclude } from '../analyzeCFamily/includes';
 import { handleCFamilySymbol } from '../analyzeCFamily/symbols';
 import {
@@ -46,5 +51,14 @@ export function analyzeCFile(
   walkTree(tree.rootNode, {}, (node) =>
     visitCNode(node, filePath, workspaceRoot, relations, symbols, symbolsEnabled),
   );
+  const includedDeclarations = readCFamilyIncludedCallDeclarations(
+    relations,
+    CLanguage as unknown as Parser.Language,
+  );
+  walkTree(tree.rootNode, {}, (node) => {
+    if (node.type === 'call_expression') {
+      addCFamilyCallRelation(node, filePath, relations, includedDeclarations, symbolsEnabled);
+    }
+  });
   return normalizeAnalysisResult(filePath, symbols, relations);
 }

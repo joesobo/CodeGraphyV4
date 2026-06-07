@@ -54,6 +54,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRust/handlers', () => {
   it('adds module import relations only for named module items', () => {
     vi.mocked(getIdentifierText).mockReturnValueOnce('services').mockReturnValueOnce(null);
     vi.mocked(resolveRustModuleDeclarationPath).mockReturnValue('/workspace/src/services.rs');
+    const importedBindings = new Map();
 
     handleRustModuleItem(
       createNode({
@@ -64,6 +65,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRust/handlers', () => {
       }) as never,
       '/workspace/src/lib.rs',
       [] as never[],
+      importedBindings,
     );
     handleRustModuleItem(
       createNode({
@@ -74,6 +76,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRust/handlers', () => {
       }) as never,
       '/workspace/src/lib.rs',
       [] as never[],
+      importedBindings,
     );
 
     expect(addImportRelation).toHaveBeenCalledTimes(1);
@@ -83,6 +86,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRust/handlers', () => {
       'services',
       '/workspace/src/services.rs',
     );
+    expect(importedBindings).toEqual(new Map([
+      ['services', {
+        importedName: 'services',
+        specifier: 'services',
+        resolvedPath: '/workspace/src/services.rs',
+      }],
+    ]));
   });
 
   it('creates named Rust symbols, skips unnamed ones, and distinguishes functions from impl methods', () => {

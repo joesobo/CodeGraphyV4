@@ -178,10 +178,15 @@ export function EdgeTypeRows({
   const visibleEdgeTypes = folderNodesEnabled
     ? edgeTypes
     : edgeTypes.filter((edgeType) => edgeType.id !== STRUCTURAL_NESTS_EDGE_KIND);
+  const availableEdgeTypes = visibleEdgeTypes.filter((edgeType) =>
+    !edgeType.requiresEdgeType
+    || edgeVisibility[edgeType.requiresEdgeType] === true
+    || edgeVisibility[edgeType.id] === true
+  );
 
   return (
     <>
-      {visibleEdgeTypes.map((edgeType) => {
+      {availableEdgeTypes.map((edgeType) => {
         const color = edgeColors[edgeType.id] ?? edgeType.defaultColor;
         const enabled = edgeVisibility[edgeType.id] ?? edgeType.defaultVisible;
 

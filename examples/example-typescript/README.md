@@ -31,12 +31,13 @@ Suggested symbol check:
 
 1. Open `src/index.ts`.
 2. In Graph Scope, enable **Symbol** and **Variable**.
-3. Search for `buildGreeting`, `UserName`, and `currentUser`.
+3. Search for `buildGreeting`, `UserName`, `AppRunner`, `BaseRunner`, `RunnableThing`, and `currentUser`.
 
 Expected behavior:
 
 - `buildGreeting` appears as a Function symbol imported from `src/utils.ts`.
 - `UserName` appears as a Type symbol reached through a type-only import.
+- `AppRunner` extends `BaseRunner` and implements `RunnableThing`, giving the TypeScript example an inheritance edge pair.
 - `currentUser` appears as a Variable node, giving the tiny app a file/function/type/value story.
 
 ## TypeScript Plugin Alias Demo

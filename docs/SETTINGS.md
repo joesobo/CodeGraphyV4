@@ -266,7 +266,7 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 ## Graph scope and settings controls
 
 - **Nodes**: choose Graph Scope for File, Folder, Package, Symbol, Variable, and plugin-added Node Types
-- **Edges**: choose Graph Scope for `NESTS`, `contains`, semantic Edge Types, and plugin-added Edge Types
+- **Edges**: choose Graph Scope for indexed workspace Edge Type capabilities, including structural `NESTS`, semantic Edge Types, and plugin-added Edge Types
 - **Legends**: edit Legend Entries and their priority
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
@@ -275,7 +275,11 @@ Fresh CodeGraphy Workspaces default built-in Edge Type scope to **Imports** and 
 
 Hover a Graph Scope row to see a short description of what that Node Type or Edge Type means. Rows may include a compact example, such as a file path for File Nodes or a source snippet for an Edge Type. These tooltips explain the meaning of the type only; they do not explain why a contextual toggle is currently visible.
 
-Graph Scope lists built-in Edge Types by common usefulness: **Imports**, **References**, **Calls**, **Tests**, **Re-exports**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
+Graph Scope lists Edge Types that are relevant to the indexed workspace. Relevance comes from active Edge Type Capability Providers, such as Core Tree-sitter coverage for detected file extensions and enabled plugins that declare core or plugin-owned edge capabilities. An Edge Type can appear even when the current graph has zero matching edges, because Graph Scope reflects what the indexed workspace can produce rather than only what the latest graph already contains. CodeGraphy decides this Edge Type list from the indexed workspace before Depth Mode, Filter Settings, Search, or other view narrowing changes what is displayed. **References** and structural **Nests** remain available for indexed file graphs. Until a workspace has a Graph Cache, Edge Type controls are visible but disabled with a short indexing tooltip. Any existing Graph Cache enables Edge Type controls, even while Graph Cache Sync catches up.
+
+Disabling a plugin makes that plugin inactive for the workspace graph surface. Its analysis, filter groups, Node Type definitions, Edge Type definitions, Edge Type capabilities, Graph View contributions, toolbar/context/export actions, and webview assets are not used while the plugin is disabled.
+
+When several relevant Edge Types are available, built-in Edge Types keep their common-usefulness order: **Imports**, **References**, **Calls**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
 
 Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first; enabling Symbols or a plugin computes the missing tier and keeps it cached when that scope is turned off again.
 

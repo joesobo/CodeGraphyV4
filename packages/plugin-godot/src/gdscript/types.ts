@@ -1,7 +1,13 @@
 import type { GDScriptPathResolver } from '../PathResolver';
 
 /** Types of GDScript references */
-export type GDScriptReferenceType = 'preload' | 'load' | 'extends' | 'class_name' | 'class_name_usage';
+export type GDScriptReferenceType =
+  | 'preload'
+  | 'load'
+  | 'extends'
+  | 'class_name'
+  | 'class_name_usage'
+  | 'class_name_static_call';
 
 /** Raw detected reference from GDScript */
 export interface IGDScriptReference {

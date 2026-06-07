@@ -19,7 +19,7 @@ describe('graphView/provider/analysis/delegates', () => {
 
     delegates.callMarkWorkspaceReady(graph);
 
-    expect(source._markWorkspaceReady).toHaveBeenCalledWith(graph);
+    expect(source._markWorkspaceReady).toHaveBeenCalledWith(graph, undefined);
   });
 
   it('falls back to the provided workspace-ready callback when the source callback is missing', () => {

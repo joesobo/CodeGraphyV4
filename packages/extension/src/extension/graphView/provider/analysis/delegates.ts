@@ -2,13 +2,13 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphViewProviderAnalysisMethodsSource } from './methods';
 
 interface GraphViewProviderAnalysisDelegateMethods {
-  markWorkspaceReady(graph: IGraphData): void;
+  markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   isAbortError(error: unknown): boolean;
 }
 
 export interface GraphViewProviderAnalysisDelegateCalls {
-  callMarkWorkspaceReady(graph: IGraphData): void;
+  callMarkWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   callIsAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   callIsAbortError(error: unknown): boolean;
 }
@@ -17,14 +17,17 @@ export function createGraphViewProviderAnalysisDelegates(
   source: GraphViewProviderAnalysisMethodsSource,
   methods: GraphViewProviderAnalysisDelegateMethods,
 ): GraphViewProviderAnalysisDelegateCalls {
-  const callMarkWorkspaceReady = (graph: IGraphData): void => {
+  const callMarkWorkspaceReady = (
+    graph: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void => {
     const implementation = source._markWorkspaceReady;
     if (implementation) {
-      implementation(graph);
+      implementation(graph, disabledPlugins);
       return;
     }
 
-    methods.markWorkspaceReady(graph);
+    methods.markWorkspaceReady(graph, disabledPlugins);
   };
 
   const callIsAnalysisStale = (signal: AbortSignal, requestId: number): boolean => {

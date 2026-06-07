@@ -15,6 +15,7 @@ import {
 import type { CSharpWalkState } from './model';
 import {
   appendCSharpUsingImportRelations,
+  handleCSharpCallNode,
   handleCSharpReferenceNode,
 } from './references';
 import type { TreeWalkAction } from '../analyze/model';
@@ -43,12 +44,12 @@ function handleCSharpTypeNode(
   usingNamespaces: Set<string>,
   importTargetsByNamespace: Map<string, Set<string>>,
   symbolsEnabled: boolean,
-): boolean {
-  if (!symbolsEnabled || !CSHARP_TYPE_DECLARATIONS.has(node.type)) {
-    return false;
+): TreeWalkAction<CSharpWalkState> | null {
+  if (!CSHARP_TYPE_DECLARATIONS.has(node.type)) {
+    return null;
   }
 
-  handleCSharpTypeDeclaration(
+  const currentBaseTypePaths = handleCSharpTypeDeclaration(
     node,
     state,
     filePath,
@@ -57,8 +58,14 @@ function handleCSharpTypeNode(
     symbols,
     usingNamespaces,
     importTargetsByNamespace,
+    symbolsEnabled,
   );
-  return true;
+  return {
+    nextContext: {
+      ...state,
+      currentBaseTypePaths,
+    },
+  };
 }
 
 function visitCSharpNode(
@@ -82,20 +89,19 @@ function visitCSharpNode(
     return;
   }
 
-  if (
-    handleCSharpTypeNode(
-      node,
-      state,
-      filePath,
-      workspaceRoot,
-      relations,
-      symbols,
-      usingNamespaces,
-      importTargetsByNamespace,
-      symbolsEnabled,
-    )
-  ) {
-    return;
+  const typeAction = handleCSharpTypeNode(
+    node,
+    state,
+    filePath,
+    workspaceRoot,
+    relations,
+    symbols,
+    usingNamespaces,
+    importTargetsByNamespace,
+    symbolsEnabled,
+  );
+  if (typeAction) {
+    return typeAction;
   }
 
   if (node.type === 'method_declaration') {
@@ -103,6 +109,16 @@ function visitCSharpNode(
       ? handleCSharpMethodDeclaration(node, state, filePath, symbols, walk)
       : undefined;
   }
+
+  handleCSharpCallNode(
+    node,
+    state,
+    filePath,
+    workspaceRoot,
+    relations,
+    usingNamespaces,
+    importTargetsByNamespace,
+  );
 
   handleCSharpReferenceNode(
     node,

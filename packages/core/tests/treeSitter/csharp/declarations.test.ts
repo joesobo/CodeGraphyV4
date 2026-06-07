@@ -3,13 +3,13 @@ import {
   handleCSharpMethodDeclaration,
   handleCSharpTypeDeclaration,
 } from '../../../src/treeSitter/runtime/analyzeCSharp/declarations';
-import { getCSharpTypeDeclarationKind, resolveCSharpUsingImport } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
+import { getCSharpTypeDeclarationKind, resolveCSharpUsingType } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
 import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
 import { addInheritRelation, createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
 
 vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeDeclarationKind: vi.fn(),
-  resolveCSharpUsingImport: vi.fn(),
+  resolveCSharpUsingType: vi.fn(),
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
@@ -50,10 +50,22 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
     const importTargetsByNamespace = new Map<string, Set<string>>();
     vi.mocked(getIdentifierText).mockReturnValue('Program');
     vi.mocked(getCSharpTypeDeclarationKind).mockReturnValue('class');
-    vi.mocked(resolveCSharpUsingImport).mockReturnValue('/workspace/src/BaseController.cs');
+    vi.mocked(resolveCSharpUsingType)
+      .mockReturnValueOnce({
+        filePath: '/workspace/src/BaseController.cs',
+        kind: 'class',
+        namespaceName: 'CodeGraphy.App',
+        typeName: 'BaseController',
+      })
+      .mockReturnValueOnce({
+        filePath: '/workspace/src/Contracts/ITracked.cs',
+        kind: 'interface',
+        namespaceName: 'CodeGraphy.Contracts',
+        typeName: 'ITracked',
+      });
     vi.mocked(createSymbol).mockReturnValue({ id: 'csharp:Program' } as never);
 
-    handleCSharpTypeDeclaration(
+    const currentBaseTypePaths = handleCSharpTypeDeclaration(
       createNode({
         childForFieldName: (name: string) => {
           expect(name).toBe('name');
@@ -76,11 +88,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       [] as never[],
       new Set(['CodeGraphy.Contracts']),
       importTargetsByNamespace,
+      true,
     );
 
     expect(createSymbol).toHaveBeenCalledWith('/workspace/src/Program.cs', 'class', 'Program', expect.anything());
     expect(addInheritRelation).toHaveBeenCalledTimes(2);
-    expect(resolveCSharpUsingImport).toHaveBeenNthCalledWith(
+    expect(resolveCSharpUsingType).toHaveBeenNthCalledWith(
       1,
       '/workspace',
       '/workspace/src/Program.cs',
@@ -89,6 +102,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       'BaseController',
       'CodeGraphy.App',
     );
+    expect(currentBaseTypePaths).toEqual(['/workspace/src/BaseController.cs']);
   });
 
   it('skips symbol creation when the type declaration name is missing', () => {
@@ -108,6 +122,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       [] as never[],
       new Set(),
       new Map(),
+      true,
     );
 
     expect(createSymbol).not.toHaveBeenCalled();
@@ -134,6 +149,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       [] as never[],
       new Set(),
       new Map(),
+      true,
     );
 
     expect(createSymbol).toHaveBeenCalledWith('/workspace/src/Status.cs', 'enum', 'Status', expect.anything());

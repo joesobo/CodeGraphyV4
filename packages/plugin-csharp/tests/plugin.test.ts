@@ -17,7 +17,10 @@ describe('createCSharpPlugin', () => {
   it('keeps C# ecosystem filters while leaving file theming to core Material defaults', () => {
     const plugin = createCSharpPlugin();
 
-    expect(plugin.defaultFilters).toContain('**/bin/**');
+    expect(plugin.defaultFilters).toContain('**/bin/Debug/**');
+    expect(plugin.defaultFilters).toContain('**/obj/Release/**');
+    expect(plugin.defaultFilters).not.toContain('**/bin/**');
+    expect(plugin.defaultFilters).not.toContain('**/obj/**');
     expect(plugin.defaultFilters).not.toContain('**/packages/**');
     expect(plugin.fileColors).toEqual({});
   });

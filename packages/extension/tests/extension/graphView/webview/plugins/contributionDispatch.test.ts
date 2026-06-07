@@ -124,6 +124,98 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
     });
   });
 
+  it('excludes disabled plugins from graph view dispatches', async () => {
+    const sendMessage = vi.fn();
+    const resolveAssetPath = vi.fn((assetPath: string, pluginId?: string) => `${pluginId}:${assetPath}`);
+    const disabledPlugins = new Set(['plugin.disabled']);
+    const analyzer = {
+      registry: {
+        list: () => [
+          {
+            plugin: {
+              id: 'plugin.disabled',
+              name: 'Disabled Plugin',
+              webviewContributions: {
+                scripts: ['disabled.js'],
+                styles: ['disabled.css'],
+              },
+            },
+          },
+          {
+            plugin: {
+              id: 'plugin.enabled',
+              name: 'Enabled Plugin',
+              webviewContributions: {
+                scripts: ['enabled.js'],
+              },
+            },
+          },
+        ],
+        getPluginAPI: (pluginId: string) => ({
+          contextMenuItems: [{ label: pluginId, when: 'node' as const }],
+          exporters: [{ id: pluginId, label: pluginId }],
+          toolbarActions: [{
+            id: pluginId,
+            label: pluginId,
+            items: [{ id: `${pluginId}.item`, label: pluginId }],
+          }],
+        }),
+        listAvailableGraphViewContributions: vi.fn(async () => ({
+          runtimeNodes: [{
+            pluginId: 'plugin.enabled',
+            contribution: { id: 'enabled.runtime', label: 'Enabled Runtime' },
+          }],
+          runtimeEdges: [],
+          projections: [],
+          forces: [],
+          nodeDragEnd: [],
+          contextMenu: [],
+          ui: [],
+        })),
+      },
+    };
+
+    sendGraphViewContextMenuItems(analyzer, sendMessage, disabledPlugins);
+    sendGraphViewPluginExporters(analyzer, sendMessage, disabledPlugins);
+    sendGraphViewPluginToolbarActions(analyzer, sendMessage, disabledPlugins);
+    sendGraphViewPluginWebviewInjections(analyzer, resolveAssetPath, sendMessage, disabledPlugins);
+    await sendGraphViewContributionStatuses(
+      analyzer,
+      { workspaceRoot: '/workspace' },
+      sendMessage,
+      disabledPlugins,
+    );
+
+    expect(sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'CONTEXT_MENU_ITEMS',
+      payload: { items: [expect.objectContaining({ pluginId: 'plugin.enabled' })] },
+    }));
+    expect(sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'PLUGIN_EXPORTERS_UPDATED',
+      payload: { items: [expect.objectContaining({ pluginId: 'plugin.enabled' })] },
+    }));
+    expect(sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED',
+      payload: { items: [expect.objectContaining({ pluginId: 'plugin.enabled' })] },
+    }));
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'PLUGIN_WEBVIEW_INJECT',
+      payload: {
+        pluginId: 'plugin.enabled',
+        scripts: ['plugin.enabled:enabled.js'],
+        styles: [],
+      },
+    });
+    expect(analyzer.registry.listAvailableGraphViewContributions).toHaveBeenCalledWith({
+      workspaceRoot: '/workspace',
+      disabledPlugins,
+    });
+    for (const [message] of sendMessage.mock.calls) {
+      expect(JSON.stringify(message)).not.toContain('plugin.disabled');
+    }
+    expect(resolveAssetPath).not.toHaveBeenCalledWith('disabled.js', 'plugin.disabled');
+  });
+
   it('sends available Graph View contribution statuses without posting function values', async () => {
     const sendMessage = vi.fn();
     const runtimeNode = vi.fn();
@@ -164,6 +256,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
 
     expect(analyzer.registry.listAvailableGraphViewContributions).toHaveBeenCalledWith({
       workspaceRoot: '/workspace',
+      disabledPlugins: new Set(),
     });
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',

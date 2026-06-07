@@ -117,6 +117,58 @@ describe('CorePluginRegistry', () => {
     expect(onGraphRebuild).toHaveBeenCalledWith(graph);
   });
 
+  it('does not analyze or notify disabled plugins', async () => {
+    const registry = new CorePluginRegistry();
+    const activeAnalyzeFile = vi.fn(async filePath => ({ filePath, relations: [] }));
+    const disabledAnalyzeFile = vi.fn(async filePath => ({
+      filePath,
+      relations: [{ kind: 'reference' as const, sourceId: 'disabled', fromFilePath: filePath, toFilePath: 'target.test' }],
+    }));
+    const disabledOnPreAnalyze = vi.fn();
+    const disabledOnFilesChanged = vi.fn(async () => ['src/extra.test']);
+    const disabledOnPostAnalyze = vi.fn();
+    const disabledOnWorkspaceReady = vi.fn();
+    const disabledOnGraphRebuild = vi.fn();
+    const disabledPlugins = new Set(['disabled']);
+    const files = [{ absolutePath: '/workspace/src/app.test', relativePath: 'src/app.test', content: '' }];
+    const graph = { nodes: [], edges: [] };
+
+    registry.register(plugin({ id: 'active', analyzeFile: activeAnalyzeFile }));
+    registry.register(plugin({
+      id: 'disabled',
+      analyzeFile: disabledAnalyzeFile,
+      onPreAnalyze: disabledOnPreAnalyze,
+      onFilesChanged: disabledOnFilesChanged,
+      onPostAnalyze: disabledOnPostAnalyze,
+      onWorkspaceReady: disabledOnWorkspaceReady,
+      onGraphRebuild: disabledOnGraphRebuild,
+    }));
+
+    await expect(registry.analyzeFileResult(
+      'src/app.test',
+      'content',
+      '/workspace',
+      undefined,
+      { disabledPlugins },
+    )).resolves.toMatchObject({
+      relations: [],
+    });
+    await registry.notifyPreAnalyze(files, '/workspace', undefined, disabledPlugins);
+    await expect(registry.notifyFilesChanged(files, '/workspace', undefined, disabledPlugins))
+      .resolves.toEqual({ additionalFilePaths: [], requiresFullRefresh: false });
+    registry.notifyPostAnalyze(graph, disabledPlugins);
+    registry.notifyWorkspaceReady(graph, disabledPlugins);
+    registry.notifyGraphRebuild(graph, disabledPlugins);
+
+    expect(activeAnalyzeFile).toHaveBeenCalledOnce();
+    expect(disabledAnalyzeFile).not.toHaveBeenCalled();
+    expect(disabledOnPreAnalyze).not.toHaveBeenCalled();
+    expect(disabledOnFilesChanged).not.toHaveBeenCalled();
+    expect(disabledOnPostAnalyze).not.toHaveBeenCalled();
+    expect(disabledOnWorkspaceReady).not.toHaveBeenCalled();
+    expect(disabledOnGraphRebuild).not.toHaveBeenCalled();
+  });
+
   it('initializes registered plugins through the registry facade', async () => {
     const registry = new CorePluginRegistry();
     const firstInitialize = vi.fn();
@@ -160,5 +212,39 @@ describe('CorePluginRegistry', () => {
       { id: 'plugin:custom-edge', label: 'Custom Edge', defaultColor: '#222222', defaultVisible: false },
       { id: 'plugin:other-edge', label: 'Other Edge', defaultColor: '#444444', defaultVisible: true },
     ]);
+  });
+
+  it('lists edge capabilities contributed by plugins that support workspace files', () => {
+    const registry = new CorePluginRegistry();
+    const readTypeScriptCapabilities = vi.fn(() =>
+      ['import', 'codegraphy.typescript:alias-import'] as Array<'import' | 'codegraphy.typescript:alias-import'>
+    );
+
+    registry.register(plugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeEdgeTypeCapabilities: readTypeScriptCapabilities,
+    }));
+    registry.register(plugin({
+      id: 'godot',
+      supportedExtensions: ['.gd'],
+      contributeEdgeTypeCapabilities: () => ['load', 'inherit', 'reference'],
+    }));
+    registry.register(plugin({
+      id: 'wildcard',
+      supportedExtensions: ['*'],
+      contributeEdgeTypeCapabilities: () => ['reference'],
+    }));
+
+    expect(registry.listEdgeTypeCapabilities(['src/app.ts', 'game/player.gd'])).toEqual([
+      'import',
+      'codegraphy.typescript:alias-import',
+      'reference',
+      'load',
+      'inherit',
+    ]);
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
+      filePaths: ['src/app.ts', 'game/player.gd'],
+    });
   });
 });

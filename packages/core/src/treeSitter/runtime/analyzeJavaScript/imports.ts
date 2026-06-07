@@ -61,8 +61,8 @@ export function handleJavaScriptExportStatement(
 
   const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
   addRelation(relations, {
-    kind: 'reexport',
-    sourceId: TREE_SITTER_SOURCE_IDS.reexport,
+    kind: 'import',
+    sourceId: TREE_SITTER_SOURCE_IDS.import,
     fromFilePath: filePath,
     specifier,
     resolvedPath,

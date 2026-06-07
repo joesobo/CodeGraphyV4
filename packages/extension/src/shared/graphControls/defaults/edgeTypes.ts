@@ -35,26 +35,6 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       },
     },
     {
-      id: 'test',
-      label: 'Tests',
-      defaultColor: '#EF4444',
-      defaultVisible: false,
-      description: {
-        description: 'Shows test code that verifies behavior from another file or symbol.',
-        examples: [{ code: 'expect(result).toEqual(value);' }],
-      },
-    },
-    {
-      id: 'reexport',
-      label: 'Re-exports',
-      defaultColor: '#A78BFA',
-      defaultVisible: false,
-      description: {
-        description: 'Shows files that forward exports from another file or package.',
-        examples: [{ code: 'export { thing } from "./module";' }],
-      },
-    },
-    {
       id: 'type-import',
       label: 'Type imports',
       defaultColor: '#38BDF8',

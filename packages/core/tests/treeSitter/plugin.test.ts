@@ -33,6 +33,43 @@ describe('core tree-sitter built-in plugin', () => {
     expect(plugin.supportedExtensions).toEqual(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.supportedExtensions).not.toBe(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.fileColors).toBeUndefined();
+    expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+    ]);
+    expect(plugin.contributeEdgeTypeCapabilities?.({
+      filePaths: ['/workspace/src/app.py'],
+    })).toEqual(['import', 'call', 'inherit']);
+    expect(plugin.contributeEdgeTypeCapabilities?.({
+      filePaths: ['/workspace/src/app.py', '/workspace/src/view.tsx'],
+    })).toEqual([
+      'import',
+      'call',
+      'inherit',
+      'type-import',
+    ]);
+  });
+
+  it('declares call capability for supported source languages with callable imports', () => {
+    const plugin = createTreeSitterPlugin();
+    const supportedLanguageFiles = [
+      '/workspace/src/app.cpp',
+      '/workspace/src/App.java',
+      '/workspace/src/app.js',
+      '/workspace/src/app.py',
+      '/workspace/src/main.rs',
+      '/workspace/src/app.ts',
+      '/workspace/src/App.tsx',
+    ];
+
+    for (const filePath of supportedLanguageFiles) {
+      expect(plugin.contributeEdgeTypeCapabilities?.({
+        filePaths: [filePath],
+      }), filePath).toContain('call');
+    }
   });
 
   it('returns analyzed file results when tree-sitter analysis succeeds', async () => {

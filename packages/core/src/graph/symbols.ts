@@ -4,17 +4,23 @@ import { projectProjectedConnectionsFromFileAnalysis } from '../analysis/project
 import type { IGraphEdge, IGraphNode } from './contracts';
 import { createCanonicalSymbolIds } from './symbolIds';
 import { createContainsEdge, createSymbolNode } from './symbolNodes';
-import { createSymbolRelationEdges } from './symbolRelations';
+import { createSymbolRelationEdges, hasSymbolEndpoint } from './symbolRelations';
 import { toRepoRelativeGraphPath } from './symbolPaths';
 
 export function projectFileAnalysisConnections(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
   workspaceRoot: string,
+  options: { includeSymbolEndpointRelations?: boolean } = {},
 ): Map<string, IProjectedConnection[]> {
   return new Map(
     Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
       toRepoRelativeGraphPath(filePath, workspaceRoot),
-      projectProjectedConnectionsFromFileAnalysis(analysis),
+      projectProjectedConnectionsFromFileAnalysis({
+        ...analysis,
+        relations: options.includeSymbolEndpointRelations === false
+          ? analysis.relations?.filter((relation) => !hasSymbolEndpoint(relation))
+          : analysis.relations,
+      }),
     ]),
   );
 }

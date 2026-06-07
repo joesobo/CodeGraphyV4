@@ -6,6 +6,7 @@ import type {
   IPluginInfo,
   IPluginNodeType,
   IProjectedConnection,
+  GraphEdgeKind,
 } from '../../../types/contracts';
 import {
   resolvePluginAccess,
@@ -16,9 +17,11 @@ import {
 import {
   analyzeFile,
   analyzeFileResult,
+  type AnalyzeFileResultOptions,
 } from '../../../routing/router/analyze';
 import {
   getPluginForFile,
+  getPluginsForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
@@ -70,6 +73,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -79,6 +83,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -87,6 +92,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -96,6 +102,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -105,6 +112,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     workspaceRoot: string,
     pluginIds: readonly string[],
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -114,7 +122,10 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
-      { pluginIds: new Set(pluginIds) },
+      {
+        ...options,
+        pluginIds: new Set(pluginIds),
+      },
     );
   }
 
@@ -122,20 +133,49 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     return Array.from(this._plugins.values());
   }
 
-  listNodeTypes(): IPluginNodeType[] {
+  listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
     return listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeNodeTypes?.() ?? [],
       (definition) => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypes(): IPluginEdgeType[] {
+  listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
     return listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeEdgeTypes?.() ?? [],
       (definition) => definition.id,
+      disabledPlugins,
     );
+  }
+
+  listEdgeTypeCapabilities(
+    filePaths: readonly string[] = [],
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): GraphEdgeKind[] {
+    const applicablePluginIds = new Set<string>();
+
+    for (const filePath of filePaths) {
+      for (const plugin of getPluginsForFile(filePath, this._plugins, this._extensionMap)) {
+        if (disabledPlugins.has(plugin.id)) {
+          continue;
+        }
+
+        applicablePluginIds.add(plugin.id);
+      }
+    }
+
+    const capabilities = new Set<GraphEdgeKind>();
+    for (const pluginId of applicablePluginIds) {
+      const plugin = this._plugins.get(pluginId)?.plugin;
+      for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
+        capabilities.add(capability);
+      }
+    }
+
+    return [...capabilities];
   }
 
   get size(): number {

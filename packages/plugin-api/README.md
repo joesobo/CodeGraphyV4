@@ -25,6 +25,7 @@ This package is type-only. Use `import type` in plugin code.
 Main surfaces in the current API:
 
 - per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
+- Edge Type capabilities through `contributeEdgeTypeCapabilities({ filePaths })`, so Graph Scope can show relevant toggles for an indexed workspace even before the current graph has matching relationships
 - default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
 - package plugin factories can receive `IPluginFactoryOptions` with merged workspace options and a plugin-owned data host
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
@@ -48,8 +49,12 @@ Exact merge behavior:
 
 - `nodeTypes`, `edgeTypes`, `nodes`, `symbols`: merge by `id`
 - `relations`: merge by relationship identity
-  - imports/reexports/loads/inherits override by shared source identity
+  - imports/loads/inherits override by shared source identity
   - distinct call/reference targets coexist
+
+Edge Type definitions and capabilities are separate. Use `contributeEdgeTypes()` when a plugin owns a new Edge Type's label, color, and default visibility. Use `contributeEdgeTypeCapabilities(context)` to declare which core or plugin-owned Edge Types are relevant when the plugin is enabled and applicable to the indexed workspace. The `context.filePaths` array contains indexed workspace files that made the plugin applicable, so multi-language plugins can return a precise union instead of one broad package-level list. Capability declarations are not emitted relationships; they only let Graph Scope present the right toggles before matching edges exist.
+
+When a workspace disables a plugin, CodeGraphy treats that plugin as inactive for graph analysis and Graph View UI contributions. Disabled plugins do not contribute filter groups, Node Types, Edge Types, Edge Type capabilities, Graph View toolbar/context/export actions, runtime graph contributions, or webview assets until they are enabled again.
 
 Path and source rules:
 

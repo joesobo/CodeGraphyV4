@@ -7,8 +7,11 @@ export function findNearestProjectRoot(
   markers: readonly string[],
   workspaceRoot: string,
 ): string | null {
-  let currentPath = path.dirname(filePath);
   const normalizedWorkspaceRoot = path.resolve(workspaceRoot);
+  const normalizedFilePath = path.isAbsolute(filePath)
+    ? path.resolve(filePath)
+    : path.resolve(normalizedWorkspaceRoot, filePath);
+  let currentPath = path.dirname(normalizedFilePath);
 
   while (true) {
     for (const marker of markers) {

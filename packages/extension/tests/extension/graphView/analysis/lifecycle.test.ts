@@ -181,6 +181,7 @@ describe('graph view provider analysis lifecycle helper', () => {
 
   it('marks workspace ready once and resolves waiters', () => {
     const resolveFirstWorkspaceReady = vi.fn();
+    const disabledPlugins = new Set(['plugin.disabled']);
     const workspaceReadyState = {
       firstAnalysis: true,
       resolveFirstWorkspaceReady,
@@ -193,12 +194,12 @@ describe('graph view provider analysis lifecycle helper', () => {
       edges: [],
     };
 
-    markGraphViewWorkspaceReady(workspaceReadyState, registry, graphData);
-    markGraphViewWorkspaceReady(workspaceReadyState, registry, graphData);
+    markGraphViewWorkspaceReady(workspaceReadyState, registry, graphData, disabledPlugins);
+    markGraphViewWorkspaceReady(workspaceReadyState, registry, graphData, disabledPlugins);
 
     expect(workspaceReadyState.firstAnalysis).toBe(false);
     expect(workspaceReadyState.resolveFirstWorkspaceReady).toBeUndefined();
-    expect(registry.notifyWorkspaceReady).toHaveBeenCalledTimes(1);
+    expect(registry.notifyWorkspaceReady).toHaveBeenCalledWith(graphData, disabledPlugins);
     expect(resolveFirstWorkspaceReady).toHaveBeenCalledTimes(1);
   });
 

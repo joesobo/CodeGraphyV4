@@ -17,9 +17,10 @@ export function handleKotlinTypeDeclaration(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
-  if (name) {
+  if (name && symbolsEnabled) {
     symbols.push(createSymbol(filePath, getKotlinTypeKind(node), name, node));
   }
 
@@ -48,12 +49,14 @@ export function handleKotlinFunctionDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
-): TreeWalkAction<SymbolWalkState> {
+): TreeWalkAction<SymbolWalkState> | void {
   const name = getIdentifierText(node.childForFieldName('name'));
   if (name) {
     const kind = isInsideKotlinType(node) ? 'method' : 'function';
-    symbols.push(createSymbol(filePath, kind, name, node));
+    const symbol = createSymbol(filePath, kind, name, node);
+    symbols.push(symbol);
+    return { nextContext: { currentSymbolId: symbol.id } };
   }
 
-  return { skipChildren: true };
+  return;
 }

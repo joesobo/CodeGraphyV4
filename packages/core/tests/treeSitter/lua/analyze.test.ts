@@ -73,6 +73,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeLua', () => {
         resolvedPath: null,
         toFilePath: null,
       }),
+      expect.objectContaining({
+        kind: 'call',
+        pluginId: 'codegraphy.treesitter',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'app.model.user',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:function:Runner.run`,
+        resolvedPath: path.join(workspaceRoot, 'app/model/user.lua'),
+        toFilePath: path.join(workspaceRoot, 'app/model/user.lua'),
+      }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ filePath: runnerPath, kind: 'table', name: 'Runner' }),

@@ -13,11 +13,14 @@ src/
 ├── Program.cs         # Entry point
 ├── Config.cs          # Configuration
 ├── Orphan.cs          # No relationships (test showOrphans)
+├── Contracts/
+│   └── IRunner.cs     # Runner contract
 ├── Utils/
 │   ├── Helpers.cs     # Utility functions
 │   └── Formatter.cs   # Formatting utilities
 └── Services/
-    └── ApiService.cs  # API service
+    ├── ApiService.cs  # API service
+    └── BaseService.cs # Base service
 ```
 
 ## Expected Graph Structure
@@ -29,6 +32,9 @@ Program.cs ────┬──▶ Config.cs
                │
                └──▶ Utils/Helpers.cs
 
+Services/ApiService.cs ──inherit──▶ Services/BaseService.cs
+Services/ApiService.cs ──inherit──▶ Contracts/IRunner.cs
+
 Orphan.cs (Orphan Node - only visible with showOrphans=true)
 ```
 
@@ -38,6 +44,7 @@ Orphan.cs (Orphan Node - only visible with showOrphans=true)
 |---------|---------|------|
 | Namespace using | `using MyApp.Utils;` | Program.cs |
 | Relative path | `using MyApp.Services;` | Program.cs |
+| Inheritance | `class ApiService : BaseService, IRunner` | ApiService.cs |
 | System usings | `using System;` | (ignored) |
 
 ## Files
@@ -46,10 +53,12 @@ Orphan.cs (Orphan Node - only visible with showOrphans=true)
 |------|------|---------|
 | `Program.cs` | Config, ApiService, Helpers | — |
 | `Config.cs` | — | Program |
+| `Contracts/IRunner.cs` | — | ApiService |
 | `Orphan.cs` | — | — |
 | `Utils/Helpers.cs` | Formatter | Program, ApiService |
 | `Utils/Formatter.cs` | — | Helpers |
-| `Services/ApiService.cs` | Helpers | Program |
+| `Services/ApiService.cs` | BaseService, IRunner, Helpers | Program |
+| `Services/BaseService.cs` | — | ApiService |
 
 ## How to Test
 
@@ -65,9 +74,9 @@ Suggested symbol check:
 
 1. Open `src/Program.cs`.
 2. In Graph Scope, enable **Symbol**.
-3. Search for `Program`, `Config`, `ApiService`, and `Helpers`.
+3. Search for `Program`, `Config`, `ApiService`, `BaseService`, `IRunner`, and `Helpers`.
 
 Expected behavior:
 
-- Class and Function symbols show the application entry point, configuration object, service class, and helper calls.
+- Class, Interface, and Function symbols show the application entry point, configuration object, service class, inherited base, implemented contract, and helper calls.
 - The file graph stays small, while symbol nodes explain why `Program.cs` reaches the service and utility files.

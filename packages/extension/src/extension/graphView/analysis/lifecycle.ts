@@ -11,7 +11,10 @@ import {
 import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 
 interface GraphViewWorkspaceReadyRegistryLike {
-  notifyWorkspaceReady(graphData: IGraphData): void;
+  notifyWorkspaceReady(
+    graphData: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void;
 }
 
 export interface GraphViewProviderAnalysisState
@@ -85,11 +88,12 @@ export function markGraphViewWorkspaceReady(
   state: GraphViewWorkspaceReadyState,
   registry: GraphViewWorkspaceReadyRegistryLike | undefined,
   graphData: IGraphData,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   if (!state.firstAnalysis) return;
 
   state.firstAnalysis = false;
-  registry?.notifyWorkspaceReady(graphData);
+  registry?.notifyWorkspaceReady(graphData, disabledPlugins);
   state.resolveFirstWorkspaceReady?.();
   state.resolveFirstWorkspaceReady = undefined;
 }

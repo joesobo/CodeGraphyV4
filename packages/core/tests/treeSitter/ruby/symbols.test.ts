@@ -40,7 +40,7 @@ describe('treeSitter/analyzeRuby/symbols', () => {
       superclass: superclass([node('constant', 'BaseRunner')]),
     }), '/workspace/app.rb', relations as never, symbols as never, new Map([
       ['BaseRunner', { specifier: '../base', resolvedPath: '/workspace/base.rb' }],
-    ]) as never);
+    ]) as never, true);
 
     expect(symbols).toEqual([
       expect.objectContaining({ filePath: '/workspace/app.rb', kind: 'module', name: 'App' }),
@@ -64,7 +64,7 @@ describe('treeSitter/analyzeRuby/symbols', () => {
     handleRubyClass(node('class', '', {
       name: node('constant', 'Runner'),
       superclass: superclass([]),
-    }), '/workspace/app.rb', relations as never, symbols as never, new Map());
+    }), '/workspace/app.rb', relations as never, symbols as never, new Map(), true);
 
     expect(symbols).toEqual([
       expect.objectContaining({ kind: 'class', name: 'Runner' }),
@@ -79,10 +79,14 @@ describe('treeSitter/analyzeRuby/symbols', () => {
 
     expect(handleRubyMethod(node('method', 'def run', {
       name: node('identifier', 'run'),
-    }, classNode), '/workspace/app.rb', symbols as never)).toEqual({ skipChildren: true });
+    }, classNode), '/workspace/app.rb', symbols as never)).toEqual({
+      nextContext: { currentSymbolId: '/workspace/app.rb:method:run' },
+    });
     expect(handleRubyMethod(node('method', 'def configure', {
       name: node('identifier', 'configure'),
-    }, singletonClassNode), '/workspace/app.rb', symbols as never)).toEqual({ skipChildren: true });
+    }, singletonClassNode), '/workspace/app.rb', symbols as never)).toEqual({
+      nextContext: { currentSymbolId: '/workspace/app.rb:method:configure' },
+    });
     handleRubyMethod(node('method', 'def boot', {
       name: node('identifier', 'boot'),
     }), '/workspace/app.rb', symbols as never);

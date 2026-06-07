@@ -13,7 +13,9 @@ import {
 } from './runtime/refresh';
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
-  private _createWorkspaceIndexRefreshSource(): WorkspacePipelineRefreshSource {
+  private _createWorkspaceIndexRefreshSource(
+    disabledPlugins: Set<string> = new Set(),
+  ): WorkspacePipelineRefreshSource {
     const source = {
       _analyzeFiles: (
         files,
@@ -21,13 +23,21 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         progress,
         abortSignal,
         pluginIds,
-      ) => this._analyzeFiles(files, root, progress, abortSignal, pluginIds),
+        nextDisabledPlugins = disabledPlugins,
+      ) => this._analyzeFiles(
+        files,
+        root,
+        progress,
+        abortSignal,
+        pluginIds,
+        nextDisabledPlugins,
+      ),
       _buildGraphData: (fileConnections, root, selectedPlugins) =>
         this._buildGraphData(fileConnections, root, true, selectedPlugins),
       _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
         this._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
-      _preAnalyzePlugins: (files, root, abortSignal) =>
-        this._preAnalyzePlugins(files, root, abortSignal),
+      _preAnalyzePlugins: (files, root, abortSignal, nextDisabledPlugins = disabledPlugins) =>
+        this._preAnalyzePlugins(files, root, abortSignal, nextDisabledPlugins),
       _readAnalysisFiles: files => this._readAnalysisFiles(files),
       analyze: (patterns, selectedPlugins, abortSignal, progress) =>
         this.analyze(patterns, selectedPlugins, abortSignal, progress),
@@ -97,7 +107,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       },
     );
 
-    return refreshWorkspacePipelineAnalysisScope(this._createWorkspaceIndexRefreshSource(), {
+    return refreshWorkspacePipelineAnalysisScope(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories ?? [],
       discoveredFiles: discoveryResult.files,
@@ -140,7 +150,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         vscode.window.showWarningMessage(message);
       },
     );
-    return refreshWorkspacePipelinePluginFiles(this._createWorkspaceIndexRefreshSource(), {
+    return refreshWorkspacePipelinePluginFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories ?? [],
       discoveredFiles: discoveryResult.files,
@@ -187,13 +197,24 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     );
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
 
-    return refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(), {
+    return refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories ?? [],
       discoveredFiles: discoveryResult.files,
       filePaths,
       filterPatterns,
-      notifyFilesChanged: (files, root) => this._registry.notifyFilesChanged(files, root),
+      notifyFilesChanged: (
+        files,
+        root,
+        analysisContext,
+        nextDisabledPlugins = disabledPlugins,
+      ) =>
+        this._registry.notifyFilesChanged(
+          files,
+          root,
+          analysisContext,
+          nextDisabledPlugins,
+        ),
       onProgress,
       persistCache: () => {
         this._persistCache();
