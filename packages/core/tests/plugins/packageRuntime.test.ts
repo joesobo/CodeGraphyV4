@@ -277,4 +277,52 @@ describe('CodeGraphy package runtime', () => {
     await expect(fs.access(secondMarkers.importMarkerPath)).rejects.toThrow();
     await expect(fs.access(secondMarkers.factoryMarkerPath)).rejects.toThrow();
   });
+
+  it('refuses package runtimes whose plugin id does not match static metadata', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-id-mismatch',
+    );
+    await createPluginPackageWithRuntimeMarkers(
+      packageRoot,
+      '@acme/codegraphy-plugin-id-mismatch',
+      'acme.runtime-id',
+    );
+    const warn = vi.fn();
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-id-mismatch',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.static-id',
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        id: 'acme.static-id',
+        enabled: true,
+      }],
+    });
+
+    const loadedPlugins = await loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+      warn,
+    });
+
+    expect(loadedPlugins).toEqual([]);
+    expect(warn).toHaveBeenCalledWith(
+      "CodeGraphy plugin 'acme.static-id' could not be loaded: Package '@acme/codegraphy-plugin-id-mismatch' exported plugin id 'acme.runtime-id', but codegraphy.json declares 'acme.static-id'.",
+    );
+  });
 });

@@ -21,10 +21,14 @@ interface CodeGraphyInstalledPluginRecord {
   packageRoot: string;
   defaultOptions?: Record<string, unknown>;
   disclosures: string[];
+  pluginId: string;
+  pluginName?: string;
+  supportedExtensions?: string[];
 }
 
 interface CodeGraphyWorkspacePluginSettings {
-  package: string;
+  id: string;
+  enabled: boolean;
   options?: Record<string, unknown>;
 }
 
@@ -39,7 +43,7 @@ interface E2EWorkspaceSettings {
   plugins: CodeGraphyWorkspacePluginSettings[];
 }
 
-const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy-dev/plugin-markdown';
+const CODEGRAPHY_MARKDOWN_PLUGIN_ID = 'codegraphy.markdown';
 const DEFAULT_MAX_FILES = 1000;
 const DEFAULT_INCLUDE = ['**/*'];
 
@@ -91,6 +95,33 @@ function readStringArray(value: unknown): string[] {
     : [];
 }
 
+function readOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function readScenarioPackageDescriptor(
+  packageRoot: string,
+): Pick<CodeGraphyInstalledPluginRecord, 'pluginId' | 'pluginName' | 'supportedExtensions'> {
+  const descriptorPath = path.join(packageRoot, 'codegraphy.json');
+  const descriptor = JSON.parse(fs.readFileSync(descriptorPath, 'utf-8')) as unknown;
+  if (!isRecord(descriptor)) {
+    throw new Error(`E2E scenario package has invalid codegraphy.json: ${packageRoot}`);
+  }
+
+  const pluginId = readOptionalString(descriptor.id);
+  if (!pluginId) {
+    throw new Error(`E2E scenario package is missing codegraphy.json id: ${packageRoot}`);
+  }
+
+  const pluginName = readOptionalString(descriptor.name);
+  const supportedExtensions = readStringArray(descriptor.supportedExtensions);
+  return {
+    pluginId,
+    ...(pluginName ? { pluginName } : {}),
+    ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+  };
+}
+
 function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPluginRecord {
   const packageJsonPath = path.join(packageRoot, 'package.json');
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as unknown;
@@ -118,6 +149,7 @@ function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPlug
     apiVersion,
     packageRoot,
     disclosures: readStringArray(packageJson.codegraphy.disclosures),
+    ...readScenarioPackageDescriptor(packageRoot),
   };
   if (isRecord(packageJson.codegraphy.defaultOptions)) {
     plugin.defaultOptions = { ...packageJson.codegraphy.defaultOptions };
@@ -138,7 +170,7 @@ function createInitialWorkspaceSettings(
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     plugins: [
-      { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
+      { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
       ...plugins.map(createWorkspacePluginSettings),
     ],
   };
@@ -179,12 +211,16 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
     plugins: settings.plugins
       .filter(isRecord)
       .map((plugin): CodeGraphyWorkspacePluginSettings | null => {
-        const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
-        if (packageName.length === 0) {
+        const pluginId = readOptionalString(plugin.id)
+          ?? readOptionalString(plugin.package);
+        if (!pluginId) {
           return null;
         }
 
-        const normalized: CodeGraphyWorkspacePluginSettings = { package: packageName };
+        const normalized: CodeGraphyWorkspacePluginSettings = {
+          id: pluginId,
+          enabled: typeof plugin.enabled === 'boolean' ? plugin.enabled : true,
+        };
         if (isRecord(plugin.options)) {
           normalized.options = { ...plugin.options };
         }
@@ -203,7 +239,10 @@ function writeWorkspaceSettings(workspacePath: string, settings: E2EWorkspaceSet
 function createWorkspacePluginSettings(
   plugin: CodeGraphyInstalledPluginRecord,
 ): CodeGraphyWorkspacePluginSettings {
-  const settings: CodeGraphyWorkspacePluginSettings = { package: plugin.package };
+  const settings: CodeGraphyWorkspacePluginSettings = {
+    id: plugin.pluginId,
+    enabled: true,
+  };
   if (plugin.defaultOptions && Object.keys(plugin.defaultOptions).length > 0) {
     settings.options = { ...plugin.defaultOptions };
   }
@@ -228,13 +267,13 @@ function prepareScenarioWorkspacePlugins(
   }
 
   const settings = readWorkspaceSettingsOrInitial(workspacePath);
-  const enabledPackages = new Set(settings.plugins.map(plugin => plugin.package));
+  const enabledPluginIds = new Set(settings.plugins.map(plugin => plugin.id));
   writeWorkspaceSettings(workspacePath, {
     ...settings,
     plugins: [
       ...settings.plugins,
       ...plugins
-        .filter(plugin => !enabledPackages.has(plugin.package))
+        .filter(plugin => !enabledPluginIds.has(plugin.pluginId))
         .map(createWorkspacePluginSettings),
     ],
   });

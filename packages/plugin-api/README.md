@@ -35,6 +35,21 @@ Recommended plugins are headless npm packages. They communicate with `@codegraph
 
 The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy-dev/extension`.
 
+Package plugins need static metadata before Core can import runtime code. Put package compatibility, default options, and disclosures in `package.json#codegraphy`; put the Plugin ID and display metadata in `codegraphy.json`:
+
+```json
+{
+  "$schema": "./codegraphy.schema.json",
+  "id": "acme.plugin",
+  "name": "Acme Plugin",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [".ts"]
+}
+```
+
+The runtime plugin object's `id` must match `codegraphy.json#id`.
+
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged additively in the workspace plugin order. Plugins should add more specific evidence instead of deleting or suppressing core baseline relationships.
 
 Current Legend Layer precedence in the host is:

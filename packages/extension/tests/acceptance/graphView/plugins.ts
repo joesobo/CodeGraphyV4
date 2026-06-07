@@ -93,22 +93,22 @@ function readAcceptanceInstalledPluginRecord(packageRoot: string): AcceptanceIns
 function readAcceptancePluginDisplayFields(
   packageRoot: string,
 ): Pick<AcceptanceInstalledPluginRecord, 'pluginId' | 'pluginName' | 'supportedExtensions'> {
-  try {
-    const descriptor = JSON.parse(
-      fs.readFileSync(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
-    ) as CodeGraphyPluginDescriptor;
-    const pluginId = readOptionalString(descriptor.id);
-    const pluginName = readOptionalString(descriptor.name);
-    const supportedExtensions = readStringArray(descriptor.supportedExtensions);
-
-    return {
-      ...(pluginId ? { pluginId } : {}),
-      ...(pluginName ? { pluginName } : {}),
-      ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
-    };
-  } catch {
-    return {};
+  const descriptorPath = path.join(packageRoot, 'codegraphy.json');
+  const descriptor = JSON.parse(
+    fs.readFileSync(descriptorPath, 'utf-8'),
+  ) as CodeGraphyPluginDescriptor;
+  const pluginId = readOptionalString(descriptor.id);
+  if (!pluginId) {
+    throw new Error(`Acceptance plugin package is missing codegraphy.json id: ${packageRoot}`);
   }
+
+  const pluginName = readOptionalString(descriptor.name);
+  const supportedExtensions = readStringArray(descriptor.supportedExtensions);
+  return {
+    pluginId,
+    ...(pluginName ? { pluginName } : {}),
+    ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+  };
 }
 
 function readRequiredString(value: unknown, label: string): string {

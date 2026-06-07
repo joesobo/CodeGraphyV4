@@ -365,7 +365,7 @@ A headless CodeGraphy npm package that communicates with `@codegraphy-dev/core` 
 _Avoid_: VS Code extension when referring to the CodeGraphy capability
 
 **Plugin Package**:
-An npm package that declares `package.json#codegraphy` metadata and exports a CodeGraphy plugin runtime through normal package exports.
+An npm package that declares package compatibility in `package.json#codegraphy`, declares static Plugin ID and display metadata in `codegraphy.json`, and exports a CodeGraphy plugin runtime through normal package exports.
 _Avoid_: VS Code extension package
 
 **Installed Plugin Package**:
@@ -373,7 +373,7 @@ A Plugin Package registered in the user-level Plugin Registry and discoverable t
 _Avoid_: Enabled plugin, active plugin
 
 **Plugin ID**:
-The stable CodeGraphy capability identifier used for Plugin Activity State, Plugin API ownership, graph provenance, lifecycle hooks, Graph View roles, and workspace enablement. Third-party npm Plugin Packages should normally use the npm package name as their Plugin ID, but Core treats the npm package name as package identity and the Plugin ID as capability identity. If two Installed Plugin Packages claim the same Plugin ID, Core must surface a Plugin Identity Conflict and refuse to enable that Plugin ID until the conflict is resolved.
+The stable CodeGraphy capability identifier declared in static `codegraphy.json` metadata and used for Plugin Activity State, Plugin API ownership, graph provenance, lifecycle hooks, Graph View roles, Plugin Data, and workspace enablement. Core treats the npm package name as package identity and the Plugin ID as capability identity; package authors may choose a package-derived ID or a CodeGraphy-style ID such as `codegraphy.vue`, but runtime `plugin.id` must match `codegraphy.json#id`. If two Installed Plugin Packages claim the same Plugin ID, Core must surface a Plugin Identity Conflict and refuse to enable that Plugin ID until the conflict is resolved.
 _Avoid_: Package name when referring to workspace activity, runtime instance
 
 **Plugin Identity Conflict**:
@@ -417,7 +417,7 @@ A plugin developed with CodeGraphy and shipped from the monorepo as part of the 
 _Avoid_: Required plugin
 
 **Markdown Plugin**:
-The Plugin Package bundled with CodeGraphy, enabled by default for new CodeGraphy Workspaces, and still toggleable like any other Plugin. Markdown writes its default `enabled: true` activity intent into `.codegraphy/settings.json` for a new workspace; when the user disables it, the setting persists as `enabled: false`. The Markdown Plugin exists because Tree-sitter Analysis does not provide CodeGraphy's markdown relationships; disabling it fully unloads the plugin runtime and leaves only static metadata for the enable toggle.
+The Plugin Package bundled with CodeGraphy, enabled by default for new CodeGraphy Workspaces, and still toggleable like any other Plugin. Core Plugin Activity State treats Markdown as enabled for a fresh workspace before settings are materialized, so CodeGraphy Interfaces can show its toggle as enabled without creating `.codegraphy/settings.json`. When workspace settings are created, such as during first Indexing or an explicit plugin toggle, Markdown is written as `enabled: true` unless the user disables it; disabling persists `enabled: false`. The Markdown Plugin exists because Tree-sitter Analysis does not provide CodeGraphy's markdown relationships; disabling it fully unloads the plugin runtime and leaves only static metadata for the enable toggle.
 _Avoid_: External markdown extension, special-case markdown runtime
 
 ### Settings And Styling
