@@ -139,6 +139,40 @@ describe('extension/graphView/controls/send', () => {
     expect(registry.listEdgeTypeCapabilities).toHaveBeenCalledWith(['game/player.gd'], disabledPlugins);
   });
 
+  it('does not infer edge type toggles from disabled plugin edges in raw graph data', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [
+          { id: 'game/player.gd', label: 'Player', color: '#111111', nodeType: 'file' },
+          { id: 'game/enemy.gd', label: 'Enemy', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          {
+            id: 'game/player.gd->game/enemy.gd#load',
+            from: 'game/player.gd',
+            to: 'game/enemy.gd',
+            kind: 'load',
+            sources: [{ id: 'godot-load', label: 'Godot Load', pluginId: 'codegraphy.godot', sourceId: 'godot-load' }],
+          },
+        ],
+      },
+      {
+        registry: {
+          listEdgeTypes: () => [],
+          listEdgeTypeCapabilities: () => [],
+        },
+      },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+      new Set(['codegraphy.godot']),
+    );
+
+    const payload = sendMessage.mock.calls[0][0].payload as IGraphControlsSnapshot;
+    expect(payload.edgeTypes.some(edgeType => edgeType.id === 'load')).toBe(false);
+  });
+
   it('uses only core definitions when the analyzer is absent', () => {
     const sendMessage = vi.fn();
 

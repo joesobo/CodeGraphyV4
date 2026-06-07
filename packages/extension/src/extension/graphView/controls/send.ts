@@ -25,6 +25,28 @@ export function buildGraphControlsUpdatedMessage(
   };
 }
 
+function isEdgeFromDisabledPlugin(
+  edge: IGraphData['edges'][number],
+  disabledPlugins: ReadonlySet<string>,
+): boolean {
+  return edge.sources.length > 0
+    && edge.sources.every(source => source.pluginId && disabledPlugins.has(source.pluginId));
+}
+
+function filterDisabledPluginEdgesForControls(
+  graphData: IGraphData,
+  disabledPlugins: ReadonlySet<string>,
+): IGraphData {
+  if (disabledPlugins.size === 0) {
+    return graphData;
+  }
+
+  return {
+    ...graphData,
+    edges: graphData.edges.filter(edge => !isEdgeFromDisabledPlugin(edge, disabledPlugins)),
+  };
+}
+
 export function sendGraphControlsUpdated(
   graphData: IGraphData,
   analyzer: GraphControlsAnalyzerLike | undefined,
@@ -33,7 +55,8 @@ export function sendGraphControlsUpdated(
   disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   const registry = analyzer?.registry;
-  const filePaths = graphData.nodes
+  const controlsGraphData = filterDisabledPluginEdgesForControls(graphData, disabledPlugins);
+  const filePaths = controlsGraphData.nodes
     .filter(isFileNode)
     .map((node) => node.id);
 
@@ -41,7 +64,7 @@ export function sendGraphControlsUpdated(
     buildGraphControlsUpdatedMessage(
       captureGraphControlsSnapshot(
         config,
-        graphData,
+        controlsGraphData,
         readNodeTypes(registry, disabledPlugins),
         readEdgeTypes(registry, disabledPlugins),
         readEdgeTypeCapabilities(registry, filePaths, disabledPlugins),
