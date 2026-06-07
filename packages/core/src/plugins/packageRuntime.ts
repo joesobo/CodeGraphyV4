@@ -12,15 +12,24 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   type CodeGraphyWorkspacePluginSettings,
 } from '../workspace/settings';
+import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 
 function shouldLoadPackagePlugin(settings: CodeGraphyWorkspacePluginSettings): boolean {
   return settings.package !== CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME;
+}
+
+function isInstalledPluginRecordDisabled(
+  record: CodeGraphyInstalledPluginRecord,
+  disabledPlugins: ReadonlySet<string>,
+): boolean {
+  return !!record.pluginId && disabledPlugins.has(record.pluginId);
 }
 
 export async function loadCodeGraphyWorkspacePluginPackages(
   options: LoadCodeGraphyWorkspacePluginPackagesOptions,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage[]> {
   const warn = options.warn ?? (() => undefined);
+  const disabledPlugins = new Set(options.disabledPlugins ?? []);
   const recordsByPackage = new Map(
     readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir })
       .plugins
@@ -32,6 +41,9 @@ export async function loadCodeGraphyWorkspacePluginPackages(
     const record = recordsByPackage.get(pluginSettings.package);
     if (!record) {
       warn(`CodeGraphy plugin package '${pluginSettings.package}' is enabled but not installed.`);
+      continue;
+    }
+    if (isInstalledPluginRecordDisabled(record, disabledPlugins)) {
       continue;
     }
 

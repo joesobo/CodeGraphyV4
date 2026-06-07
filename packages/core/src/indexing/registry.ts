@@ -17,6 +17,7 @@ export async function createWorkspaceIndexRegistry(
 }> {
   const registry = new CorePluginRegistry();
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    disabledPlugins: options.disabledPlugins,
     settings,
     workspaceRoot,
     ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
@@ -31,6 +32,6 @@ export async function createWorkspaceIndexRegistry(
     });
   }
 
-  registerProvidedPlugins(registry, options.plugins);
+  registerProvidedPlugins(registry, options.plugins, options.disabledPlugins);
   return { registry, loadedPackagePlugins };
 }
