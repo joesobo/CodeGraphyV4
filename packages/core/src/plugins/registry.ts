@@ -34,6 +34,7 @@ import { addPluginToExtensionMap } from './extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
+  type AnalyzeFileResultOptions,
   type CoreFileAnalysisResultProvider,
 } from './routing/router/analyze';
 import {
@@ -274,6 +275,7 @@ export class CorePluginRegistry {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -283,6 +285,7 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -291,6 +294,7 @@ export class CorePluginRegistry {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -300,6 +304,7 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -330,27 +335,29 @@ export class CorePluginRegistry {
     files: AnalyzeFile[],
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<void> {
-    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext);
+    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
   }
 
   async notifyFilesChanged(
     files: AnalyzeFile[],
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<IPluginFilesChangedResult> {
-    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext);
+    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
   }
 
-  notifyPostAnalyze(graph: IGraphData): void {
-    notifyPostAnalyze(this.plugins, graph);
+  notifyPostAnalyze(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyPostAnalyze(this.plugins, graph, disabledPlugins);
   }
 
-  notifyWorkspaceReady(graph: IGraphData): void {
-    notifyWorkspaceReady(this.plugins, graph);
+  notifyWorkspaceReady(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyWorkspaceReady(this.plugins, graph, disabledPlugins);
   }
 
-  notifyGraphRebuild(graph: IGraphData): void {
-    notifyGraphRebuild(this.plugins, graph);
+  notifyGraphRebuild(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyGraphRebuild(this.plugins, graph, disabledPlugins);
   }
 }

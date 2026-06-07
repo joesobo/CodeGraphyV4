@@ -35,8 +35,13 @@ export function notifyWebviewReadyForPlugin(info: ILifecyclePluginInfo): void {
 export function notifyWorkspaceReady(
   plugins: Map<string, ILifecyclePluginInfo>,
   graph: IGraphData,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   for (const info of plugins.values()) {
+    if (disabledPlugins.has(info.plugin.id)) {
+      continue;
+    }
+
     notifyWorkspaceReadyForPlugin(info, graph);
   }
 }

@@ -17,6 +17,7 @@ import {
 import {
   analyzeFile,
   analyzeFileResult,
+  type AnalyzeFileResultOptions,
 } from '../../../routing/router/analyze';
 import {
   getPluginForFile,
@@ -72,6 +73,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -81,6 +83,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -89,6 +92,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -98,6 +102,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 

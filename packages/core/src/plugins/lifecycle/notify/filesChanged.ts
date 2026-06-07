@@ -50,11 +50,16 @@ export async function notifyFilesChanged(
   files: AnalyzeFile[],
   workspaceRoot: string,
   analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): Promise<IPluginFilesChangedResult> {
   const additionalFilePaths = new Set<string>();
   let requiresFullRefresh = false;
 
   for (const info of plugins.values()) {
+    if (disabledPlugins.has(info.plugin.id)) {
+      continue;
+    }
+
     const pluginFiles = getPluginFiles(info, files);
     if (pluginFiles.length === 0) {
       continue;

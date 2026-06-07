@@ -21,8 +21,13 @@ export async function notifyPreAnalyze(
   files: AnalyzeFile[],
   workspaceRoot: string,
   analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): Promise<void> {
   for (const info of plugins.values()) {
+    if (disabledPlugins.has(info.plugin.id)) {
+      continue;
+    }
+
     if (!info.plugin.onPreAnalyze) {
       continue;
     }
@@ -42,8 +47,13 @@ export async function notifyPreAnalyze(
 export function notifyPostAnalyze(
   plugins: Map<string, ILifecyclePluginInfo>,
   graph: IGraphData,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   for (const info of plugins.values()) {
+    if (disabledPlugins.has(info.plugin.id)) {
+      continue;
+    }
+
     if (!info.plugin.onPostAnalyze) {
       continue;
     }
@@ -59,8 +69,13 @@ export function notifyPostAnalyze(
 export function notifyGraphRebuild(
   plugins: Map<string, ILifecyclePluginInfo>,
   graph: IGraphData,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   for (const info of plugins.values()) {
+    if (disabledPlugins.has(info.plugin.id)) {
+      continue;
+    }
+
     if (!info.plugin.onGraphRebuild) {
       continue;
     }
