@@ -129,7 +129,7 @@ export function buildRegisteredWorkspaceIndexPluginStatus(
     supportedExtensions: plugin.supportedExtensions,
     status: getWorkspaceIndexPluginWorkspaceStatus(matchingFileCount, connectionCount),
     enabled: pluginInfo.sourcePackage && workspaceEnabledPackageNames
-      ? workspaceEnabledPackageNames.has(pluginInfo.sourcePackage)
+      ? workspaceEnabledPackageNames.has(plugin.id)
       : !disabledPlugins.has(plugin.id),
     connectionCount,
   };
@@ -139,8 +139,8 @@ export function buildUnregisteredInstalledWorkspaceIndexPluginStatus(
   plugin: CodeGraphyInstalledPluginRecord,
   workspaceEnabledPackageNames?: ReadonlySet<string>,
 ): WorkspaceIndexPluginStatus {
-  const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
   const id = plugin.pluginId ?? plugin.package;
+  const enabled = workspaceEnabledPackageNames?.has(id) ?? false;
   const name = plugin.pluginName ?? plugin.package;
   const supportedExtensions = plugin.supportedExtensions ?? [];
 

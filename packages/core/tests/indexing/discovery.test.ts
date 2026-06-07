@@ -31,7 +31,8 @@ describe('indexing/discovery', () => {
         maxFiles: 50,
         filterPatterns: ['**/generated/**', '**/dist/**'],
         plugins: [{
-          package: '@codegraphy-dev/plugin-test',
+          id: 'codegraphy.test',
+          enabled: true,
           disabledFilterPatterns: ['**/ignored/**'],
         }],
       },

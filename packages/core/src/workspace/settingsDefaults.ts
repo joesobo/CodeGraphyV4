@@ -2,6 +2,7 @@ import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
 import type { CodeGraphyWorkspaceSettings } from './settingsContracts';
 
 export const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy-dev/plugin-markdown';
+export const CODEGRAPHY_MARKDOWN_PLUGIN_ID = 'codegraphy.markdown';
 
 export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceSettings {
   return {
@@ -21,7 +22,8 @@ export function createInitialCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
   return {
     ...createDefaultCodeGraphyWorkspaceSettings(),
     plugins: [{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: true,
     }],
   };
 }

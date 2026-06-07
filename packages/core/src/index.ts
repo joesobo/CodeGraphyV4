@@ -348,6 +348,7 @@ export type {
   CodeGraphyWorkspaceSettings,
 } from './workspace/settings';
 export {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createDefaultCodeGraphyWorkspaceSettings,
   createInitialCodeGraphyWorkspaceSettings,

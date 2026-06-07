@@ -1,4 +1,8 @@
-import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME, type CodeGraphyWorkspaceSettings } from '@codegraphy-dev/core';
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  type CodeGraphyWorkspaceSettings,
+} from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IPlugin } from '../../../../core/plugins/types/contracts';
 import { createMarkdownPlugin } from '../../../../../../plugin-markdown/src/plugin';
@@ -31,7 +35,7 @@ export function getBuiltInWorkspacePipelinePluginRegistrations(
     return registrations;
   }
 
-  if (disabledPlugins.has('codegraphy.markdown')) {
+  if (disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
     return registrations;
   }
 

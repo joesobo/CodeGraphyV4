@@ -280,17 +280,20 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        id: 'acme.extension-bootstrap',
+        enabled: true,
         options: {
           includeFrontmatter: false,
         },
       }, {
-        package: '@codegraphy-dev/plugin-markdown',
+        id: 'codegraphy.markdown',
+        enabled: true,
         options: {
           includeFrontmatter: true,
         },
@@ -331,6 +334,7 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
         defaultOptions: {
           mode: 'strict',
         },
@@ -339,9 +343,11 @@ describe('pipeline/plugins/bootstrap', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@codegraphy-dev/plugin-markdown',
+        id: 'codegraphy.markdown',
+        enabled: true,
       }, {
-        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        id: 'acme.extension-bootstrap',
+        enabled: true,
         options: {
           mode: 'strict',
         },
@@ -387,11 +393,12 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      plugins: [{ package: '@codegraphy-dev/plugin-markdown' }],
+      plugins: [{ id: 'codegraphy.markdown', enabled: true }],
     });
 
     await initializeWorkspacePipeline(registry as never, {
@@ -425,6 +432,7 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: ['workspaceWrites'],
         packageRoot,
+        pluginId: 'acme.extension-data-host',
         defaultOptions: {
           mode: 'default',
         },
@@ -433,7 +441,8 @@ describe('pipeline/plugins/bootstrap', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-extension-data-host',
+        id: 'acme.extension-data-host',
+        enabled: true,
         options: {
           mode: 'workspace',
         },
@@ -507,8 +516,8 @@ describe('pipeline/plugins/bootstrap', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@acme/codegraphy-plugin-extension-bootstrap' },
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'acme.extension-bootstrap', enabled: true },
       ],
     });
 
@@ -591,13 +600,14 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@acme/codegraphy-plugin-extension-bootstrap' },
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'acme.extension-bootstrap', enabled: true },
       ],
     });
     const registeredPlugins = new Map<string, {

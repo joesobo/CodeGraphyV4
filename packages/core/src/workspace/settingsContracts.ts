@@ -1,5 +1,7 @@
 export interface CodeGraphyWorkspacePluginSettings {
-  package: string;
+  id: string;
+  enabled: boolean;
+  package?: string;
   disabledFilterPatterns?: string[];
   options?: Record<string, unknown>;
 }

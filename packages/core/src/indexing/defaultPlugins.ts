@@ -2,6 +2,7 @@ import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import type { CorePluginRegistry } from '../plugins/registry';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   type CodeGraphyWorkspaceSettings,
 } from '../workspace/settings';
@@ -20,19 +21,19 @@ function shouldRegisterDefaultMarkdownPlugin(
   }
 
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
-  if (disabledPlugins.has('codegraphy.markdown')) {
+  if (disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
     return false;
   }
 
   const providedPluginIds = new Set((options.plugins ?? []).map(plugin => readPluginEntry(plugin).plugin.id));
-  return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)
-    && !providedPluginIds.has('codegraphy.markdown');
+  return settings.plugins.some(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)
+    && !providedPluginIds.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID);
 }
 
 function getDefaultMarkdownPluginOptions(
   settings: CodeGraphyWorkspaceSettings,
 ): Record<string, unknown> | undefined {
-  return settings.plugins.find(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)?.options;
+  return settings.plugins.find(plugin => plugin.id === CODEGRAPHY_MARKDOWN_PLUGIN_ID && plugin.enabled)?.options;
 }
 
 export function registerDefaultIndexPlugins(
