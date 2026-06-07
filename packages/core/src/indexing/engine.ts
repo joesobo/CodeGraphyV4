@@ -198,8 +198,8 @@ async function indexWorkspaceEngine(
   });
   updateStateFromAnalysis(state, analysisResult);
   const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
-  state.registry!.notifyPostAnalyze(graph);
-  state.registry!.notifyWorkspaceReady(graph);
+  state.registry!.notifyPostAnalyze(graph, disabledPlugins);
+  state.registry!.notifyWorkspaceReady(graph, disabledPlugins);
   persistWorkspaceEngine(runtime);
   options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
 
@@ -213,11 +213,18 @@ function hasWorkspaceEngineIndexState(state: WorkspaceEngineState): boolean {
 async function analyzeWorkspaceEngineChangedFiles(
   runtime: WorkspaceEngineRuntime,
   filesToAnalyze: IDiscoveredFile[],
+  disabledPlugins: ReadonlySet<string>,
 ): Promise<IWorkspaceFileAnalysisResult> {
   const { discovery, options, state, workspaceRoot } = runtime;
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
-      state.registry?.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
+      state.registry?.analyzeFileResult(
+        absolutePath,
+        content,
+        rootPath,
+        undefined,
+        { disabledPlugins },
+      ).then(result => result ?? ({
         filePath: absolutePath,
         relations: [],
       })) ?? { filePath: absolutePath, relations: [] },
@@ -294,6 +301,8 @@ export function createCodeGraphyWorkspaceEngine(
     const pluginChanges = await registry.notifyFilesChanged(
       changedAnalysisFiles,
       workspaceRoot,
+      undefined,
+      disabledPlugins,
     );
 
     if (pluginChanges.requiresFullRefresh) {
@@ -311,11 +320,11 @@ export function createCodeGraphyWorkspaceEngine(
       filesToAnalyze.map(file => file.absolutePath),
     );
 
-    const analysisResult = await analyzeWorkspaceEngineChangedFiles(runtime, filesToAnalyze);
+    const analysisResult = await analyzeWorkspaceEngineChangedFiles(runtime, filesToAnalyze, disabledPlugins);
     applyWorkspaceEngineAnalysisResult(state, analysisResult);
 
     const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
-    registry.notifyPostAnalyze(graph);
+    registry.notifyPostAnalyze(graph, disabledPlugins);
     persistWorkspaceEngine(runtime);
 
     return createWorkspaceEngineIndexResult(runtime, graph);

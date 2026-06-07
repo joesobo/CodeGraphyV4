@@ -13,11 +13,18 @@ export async function analyzeWorkspaceIndexFiles(input: {
   discoveryResult: IDiscoveryResult;
   options: IndexCodeGraphyWorkspaceOptions;
   registry: CorePluginRegistry;
-  workspaceRoot: string;
-}) {
+    workspaceRoot: string;
+  }) {
+  const disabledPlugins = new Set(input.options.disabledPlugins ?? []);
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
-      input.registry.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
+      input.registry.analyzeFileResult(
+        absolutePath,
+        content,
+        rootPath,
+        undefined,
+        { disabledPlugins },
+      ).then(result => result ?? ({
         filePath: absolutePath,
         relations: [],
       })),
@@ -36,7 +43,12 @@ export async function analyzeWorkspaceIndexFiles(input: {
         rootPath,
         {
           notifyPreAnalyze: (preAnalyzeFiles, preAnalyzeRootPath) =>
-            input.registry.notifyPreAnalyze(preAnalyzeFiles, preAnalyzeRootPath),
+            input.registry.notifyPreAnalyze(
+              preAnalyzeFiles,
+              preAnalyzeRootPath,
+              undefined,
+              disabledPlugins,
+            ),
           readContent: file => input.discovery.readContent(file),
         },
         signal,
