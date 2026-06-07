@@ -458,4 +458,33 @@ describe('indexCodeGraphyWorkspace', () => {
       path.resolve(workspaceRoot),
     );
   });
+
+  it('keeps settings-disabled provided plugins unloaded during indexing', async () => {
+    const workspaceRoot = await createWorkspace();
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+
+    const result = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [createTextPlugin(calls)],
+      settings: {
+        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+        plugins: [{
+          id: 'codegraphy.test-text',
+          enabled: false,
+        }],
+      },
+    });
+
+    expect(calls.onPreAnalyze).not.toHaveBeenCalled();
+    expect(calls.analyzeFile).not.toHaveBeenCalled();
+    expect(calls.onPostAnalyze).not.toHaveBeenCalled();
+    expect(calls.onWorkspaceReady).not.toHaveBeenCalled();
+    expect(result.graph.edges).toEqual([]);
+  });
 });

@@ -84,3 +84,16 @@ export function createPluginActivityState(
     warnings,
   };
 }
+
+export function createDisabledPluginSet(
+  settings: CodeGraphyWorkspaceSettings,
+  disabledPluginsInput: Iterable<string> = [],
+): Set<string> {
+  const disabledPlugins = new Set(disabledPluginsInput);
+  for (const plugin of settings.plugins) {
+    if (!plugin.enabled) {
+      disabledPlugins.add(plugin.id);
+    }
+  }
+  return disabledPlugins;
+}
