@@ -210,7 +210,7 @@ jobs:
         include:
           - label: Language examples
             suite: examples
-            timeout-minutes: 40
+            timeout-minutes: 15
           - label: Graph interactions
             suite: interactions
             timeout-minutes: 20

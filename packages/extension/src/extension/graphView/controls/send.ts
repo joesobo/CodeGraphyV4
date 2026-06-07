@@ -30,6 +30,7 @@ export function sendGraphControlsUpdated(
   analyzer: GraphControlsAnalyzerLike | undefined,
   sendMessage: (message: ExtensionToWebviewMessage) => void,
   config: GraphControlsConfigurationLike = getCodeGraphyConfiguration(),
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   const registry = analyzer?.registry;
   const filePaths = graphData.nodes
@@ -41,9 +42,9 @@ export function sendGraphControlsUpdated(
       captureGraphControlsSnapshot(
         config,
         graphData,
-        readNodeTypes(registry),
-        readEdgeTypes(registry),
-        readEdgeTypeCapabilities(registry, filePaths),
+        readNodeTypes(registry, disabledPlugins),
+        readEdgeTypes(registry, disabledPlugins),
+        readEdgeTypeCapabilities(registry, filePaths, disabledPlugins),
       ),
     ),
   );

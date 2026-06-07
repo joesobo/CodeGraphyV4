@@ -6,7 +6,6 @@ import { addCallRelation, createSymbolId } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
 
 interface CFamilyIncludedCallDeclarations {
-  fallbackPath: string | null;
   functionPathByName: ReadonlyMap<string, string | null>;
 }
 
@@ -32,7 +31,6 @@ export function readCFamilyIncludedCallDeclarations(
   }
 
   return {
-    fallbackPath: includedPaths.length === 1 ? includedPaths[0] : null,
     functionPathByName,
   };
 }
@@ -129,7 +127,7 @@ function resolveCallPath(
     return functionPath;
   }
 
-  return includedDeclarations.fallbackPath;
+  return null;
 }
 
 function createCallBinding(calleeName: string, targetPath: string): ImportedBinding {

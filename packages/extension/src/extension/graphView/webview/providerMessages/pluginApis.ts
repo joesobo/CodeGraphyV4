@@ -19,22 +19,30 @@ type GraphViewToolbarActionPluginApi = {
 export function createGraphViewProviderPluginApis(
   source: GraphViewProviderMessageListenerSource,
 ) {
+  const getActivePluginApi = (pluginId: string): unknown => {
+    if (source._disabledPlugins?.has(pluginId)) {
+      return undefined;
+    }
+
+    return source._analyzer?.registry?.getPluginAPI(pluginId);
+  };
+
   return {
     notifyWebviewReady: () => source._analyzer?.registry?.notifyWebviewReady(),
     getInteractionPluginApi: (pluginId: string) =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
+      getActivePluginApi(pluginId) as
         | GraphViewInteractionPluginApi
         | undefined,
     getContextMenuPluginApi: (pluginId: string) =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
+      getActivePluginApi(pluginId) as
         | GraphViewContextMenuPluginApi
         | undefined,
     getExporterPluginApi: (pluginId: string) =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
+      getActivePluginApi(pluginId) as
         | GraphViewExporterPluginApi
         | undefined,
     getToolbarActionPluginApi: (pluginId: string) =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
+      getActivePluginApi(pluginId) as
         | GraphViewToolbarActionPluginApi
         | undefined,
   };

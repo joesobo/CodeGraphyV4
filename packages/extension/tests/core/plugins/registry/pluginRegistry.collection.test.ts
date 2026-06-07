@@ -99,6 +99,74 @@ describe('PluginRegistry collection', () => {
     ]);
   });
 
+  it('excludes disabled plugins from graph type and capability contributions', () => {
+    const registry = createConfiguredRegistry();
+    const disabledPlugins = new Set(['godot']);
+    registry.register(createMockPlugin({
+      id: 'godot',
+      supportedExtensions: ['.gd'],
+      contributeNodeTypes: () => [
+        {
+          id: 'godot-scene',
+          label: 'Godot Scene',
+          defaultColor: '#478CBF',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypes: () => [
+        {
+          id: 'load',
+          label: 'Loads',
+          defaultColor: '#478CBF',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypeCapabilities: () => ['load'],
+    }));
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeNodeTypes: () => [
+        {
+          id: 'route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypes: () => [
+        {
+          id: 'plugin:route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypeCapabilities: () => ['plugin:route'],
+    }));
+
+    expect(registry.listNodeTypes(disabledPlugins)).toEqual([
+      {
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+    ]);
+    expect(registry.listEdgeTypes(disabledPlugins)).toEqual([
+      {
+        id: 'plugin:route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+    ]);
+    expect(registry.listEdgeTypeCapabilities(['game/player.gd', 'src/app.ts'], disabledPlugins)).toEqual([
+      'plugin:route',
+    ]);
+  });
+
+
   it('ignores plugins without node-type contributions when listing node types', () => {
     const registry = createConfiguredRegistry();
     registry.register(createMockPlugin({ id: 'noop' }));

@@ -15,6 +15,7 @@ import type {
 
 export interface CorePluginAccessContext {
   workspaceRoot?: string;
+  disabledPlugins?: ReadonlySet<string>;
 }
 
 export interface CorePluginAccessCheck {

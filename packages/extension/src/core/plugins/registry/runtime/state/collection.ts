@@ -124,27 +124,36 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     return Array.from(this._plugins.values());
   }
 
-  listNodeTypes(): IPluginNodeType[] {
+  listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
     return listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeNodeTypes?.() ?? [],
       (definition) => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypes(): IPluginEdgeType[] {
+  listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
     return listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeEdgeTypes?.() ?? [],
       (definition) => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypeCapabilities(filePaths: readonly string[] = []): GraphEdgeKind[] {
+  listEdgeTypeCapabilities(
+    filePaths: readonly string[] = [],
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): GraphEdgeKind[] {
     const applicablePluginIds = new Set<string>();
 
     for (const filePath of filePaths) {
       for (const plugin of getPluginsForFile(filePath, this._plugins, this._extensionMap)) {
+        if (disabledPlugins.has(plugin.id)) {
+          continue;
+        }
+
         applicablePluginIds.add(plugin.id);
       }
     }

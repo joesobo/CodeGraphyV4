@@ -87,6 +87,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
         source._analyzer,
         message => send(message),
         getCodeGraphyConfiguration(),
+        source._disabledPlugins,
       );
     },
     _sendPluginStatuses: () => {
@@ -100,13 +101,13 @@ export function createGraphViewProviderPluginBroadcastMethods(
       resolved.sendDecorations(source._decorationManager, send);
     },
     _sendContextMenuItems: () => {
-      resolved.sendContextMenuItems(source._analyzer, send);
+      resolved.sendContextMenuItems(source._analyzer, send, source._disabledPlugins);
     },
     _sendPluginExporters: () => {
-      resolved.sendPluginExporters(source._analyzer, send);
+      resolved.sendPluginExporters(source._analyzer, send, source._disabledPlugins);
     },
     _sendPluginToolbarActions: () => {
-      resolved.sendPluginToolbarActions(source._analyzer, send);
+      resolved.sendPluginToolbarActions(source._analyzer, send, source._disabledPlugins);
     },
     _sendGraphViewContributionStatuses: () => {
       void resolved.sendGraphViewContributionStatuses(
@@ -115,6 +116,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
           workspaceRoot: resolved.getWorkspaceFolders()?.[0]?.uri.fsPath,
         },
         send,
+        source._disabledPlugins,
       );
     },
     _sendPluginWebviewInjections: () => {
@@ -124,6 +126,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
         source._analyzer,
         (assetPath, pluginId) => source._resolveWebviewAssetPath(assetPath, pluginId),
         send,
+        source._disabledPlugins,
       );
     },
     _sendGroupsUpdated: () => {

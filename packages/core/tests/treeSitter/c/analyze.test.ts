@@ -124,4 +124,37 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
     ]));
   });
+
+  it('does not turn unmatched C calls into edges to the only included header', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/math/add.h': [
+        '#pragma once',
+        'int add(int left, int right);',
+        '',
+      ].join('\n'),
+    });
+    const mainPath = path.join(workspaceRoot, 'src/main.c');
+    const source = [
+      '#include "math/add.h"',
+      '',
+      'static int helper(void) {',
+      '  return 1;',
+      '}',
+      '',
+      'int main(void) {',
+      '  return helper();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+
+    expect(result?.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'helper',
+        resolvedPath: path.join(workspaceRoot, 'src/math/add.h'),
+      }),
+    ]));
+  });
 });
