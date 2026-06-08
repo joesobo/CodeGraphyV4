@@ -471,7 +471,6 @@ test.describe('C Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('C example exposes logger symbols when symbol scope is enabled', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4039,7 +4038,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('References edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4152,7 +4150,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Calls edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4275,7 +4272,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Type imports edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4408,7 +4404,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Inherits edges works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4501,7 +4496,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Loads edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4634,7 +4628,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Nests edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4737,7 +4730,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Contains edges works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4850,7 +4842,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Overrides edges works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
