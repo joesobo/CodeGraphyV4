@@ -125,6 +125,155 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     ]));
   });
 
+  it('extracts tiny logger include and call relationships from Tree-sitter C analysis', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/logger/logger.h': [
+        '#pragma once',
+        '',
+        'typedef enum LogLevel {',
+        '  LOG_LEVEL_INFO,',
+        '  LOG_LEVEL_WARN,',
+        '  LOG_LEVEL_ERROR',
+        '} LogLevel;',
+        '',
+        'typedef struct Logger {',
+        '  LogLevel level;',
+        '  int message_count;',
+        '} Logger;',
+        '',
+        'void logger_init(Logger *logger, LogLevel level);',
+        'void logger_write(Logger *logger, LogLevel level, const char *message);',
+        'void logger_flush(Logger *logger);',
+        '',
+      ].join('\n'),
+      'src/logger/format.h': [
+        '#pragma once',
+        '',
+        '#include "logger.h"',
+        '',
+        'typedef struct LogRecord {',
+        '  LogLevel level;',
+        '  const char *message;',
+        '} LogRecord;',
+        '',
+        'const char *logger_level_name(LogLevel level);',
+        'void logger_format_line(const LogRecord *record, char *buffer, int buffer_size);',
+        '',
+      ].join('\n'),
+    });
+    const headerPath = path.join(workspaceRoot, 'src/logger/logger.h');
+    const mainPath = path.join(workspaceRoot, 'src/main.c');
+    const source = [
+      '#include "logger/logger.h"',
+      '',
+      'int main(void) {',
+      '  Logger logger;',
+      '  logger_init(&logger, LOG_LEVEL_INFO);',
+      '  logger_write(&logger, LOG_LEVEL_INFO, "boot complete");',
+      '  logger_flush(&logger);',
+      '  return 0;',
+      '}',
+      '',
+    ].join('\n');
+    const loggerPath = path.join(workspaceRoot, 'src/logger/logger.c');
+    const loggerSource = [
+      '#include "logger.h"',
+      '#include "format.h"',
+      '',
+      'void logger_init(Logger *logger, LogLevel level) {',
+      '  logger->level = level;',
+      '  logger->message_count = 0;',
+      '}',
+      '',
+      'void logger_write(Logger *logger, LogLevel level, const char *message) {',
+      '  char line[128];',
+      '  LogRecord record = { level, message };',
+      '  logger_format_line(&record, line, sizeof line);',
+      '  logger->message_count += 1;',
+      '}',
+      '',
+      'void logger_flush(Logger *logger) {',
+      '  logger->message_count = 0;',
+      '}',
+      '',
+    ].join('\n');
+
+    const headerResult = await analyzeFileWithTreeSitter(
+      headerPath,
+      await fs.readFile(headerPath, 'utf8'),
+      workspaceRoot,
+    );
+    const mainResult = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+    const loggerResult = await analyzeFileWithTreeSitter(loggerPath, loggerSource, workspaceRoot);
+
+    expect(mainResult?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'import',
+        sourceId: 'codegraphy.treesitter:include',
+        type: 'include',
+        specifier: 'logger/logger.h',
+        resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
+        toFilePath: path.join(workspaceRoot, 'src/logger/logger.h'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'logger_init',
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
+        toFilePath: path.join(workspaceRoot, 'src/logger/logger.h'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'logger_write',
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
+        toFilePath: path.join(workspaceRoot, 'src/logger/logger.h'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'logger_flush',
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
+        toFilePath: path.join(workspaceRoot, 'src/logger/logger.h'),
+      }),
+    ]));
+    expect(loggerResult?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'import',
+        sourceId: 'codegraphy.treesitter:include',
+        type: 'include',
+        specifier: 'logger.h',
+        resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
+      }),
+      expect.objectContaining({
+        kind: 'import',
+        sourceId: 'codegraphy.treesitter:include',
+        type: 'include',
+        specifier: 'format.h',
+        resolvedPath: path.join(workspaceRoot, 'src/logger/format.h'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'codegraphy.treesitter:call',
+        specifier: 'logger_format_line',
+        fromSymbolId: `${loggerPath}:function:logger_write`,
+        resolvedPath: path.join(workspaceRoot, 'src/logger/format.h'),
+      }),
+    ]));
+    expect(headerResult?.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: headerPath, kind: 'enum', name: 'LogLevel' }),
+      expect.objectContaining({ filePath: headerPath, kind: 'struct', name: 'Logger' }),
+      expect.objectContaining({ filePath: headerPath, kind: 'type', name: 'LogLevel' }),
+      expect.objectContaining({ filePath: headerPath, kind: 'type', name: 'Logger' }),
+      expect.objectContaining({ filePath: headerPath, kind: 'function', name: 'logger_init' }),
+      expect.objectContaining({ filePath: headerPath, kind: 'function', name: 'logger_write' }),
+      expect.objectContaining({ filePath: headerPath, kind: 'function', name: 'logger_flush' }),
+    ]));
+  });
+
   it('does not turn unmatched C calls into edges to the only included header', async () => {
     const workspaceRoot = await createWorkspace({
       'src/math/add.h': [
