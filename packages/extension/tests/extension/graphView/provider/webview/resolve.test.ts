@@ -244,9 +244,9 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._view).toBe(graphView);
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'search');
     expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
-    expect(executeCommand).toHaveBeenNthCalledWith(1, 'codegraphy.searchView.focus');
+    expect(executeCommand).toHaveBeenNthCalledWith(1, 'workbench.action.openView', 'codegraphy.searchView');
     expect(executeCommand).toHaveBeenCalledWith('workbench.action.decreaseViewSize');
-    expect(executeCommand).toHaveBeenLastCalledWith('codegraphy.graphView.focus');
+    expect(executeCommand).toHaveBeenLastCalledWith('workbench.action.openView', 'codegraphy.graphView');
 
     disposeListener?.();
 
