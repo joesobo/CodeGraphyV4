@@ -212,10 +212,16 @@
 			"codegraphy": [
 				{
 					"type": "webview",
+					"id": "codegraphy.searchView",
+					"name": "Search",
+					"initialSize": 1
+				},
+				{
+					"type": "webview",
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg",
-					"size": 20
+					"initialSize": 20
 				},
 				{
 					"type": "webview",

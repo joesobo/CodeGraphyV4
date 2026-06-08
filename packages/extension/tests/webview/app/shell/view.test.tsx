@@ -461,10 +461,10 @@ describe('App', () => {
     expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
   });
 
-  it('keeps compact search controls in the graph view while graph data loads', async () => {
+  it('does not render search controls inside the graph view while graph data loads', async () => {
     render(<App />);
 
-    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search files... (Ctrl+F)')).not.toBeInTheDocument();
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
 
     await act(async () => {
@@ -478,7 +478,7 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search files... (Ctrl+F)')).not.toBeInTheDocument();
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
   });
 
@@ -494,7 +494,7 @@ describe('App', () => {
 
     render(<App />);
 
-    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search files... (Ctrl+F)')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open src/App.ts' })).toBeInTheDocument();
   });
 
