@@ -1,17 +1,13 @@
-#include "math/add.h"
-#include <stdio.h>
-
-typedef struct Counter {
-  int value;
-} Counter;
-
-static int next_count(Counter counter) {
-  AddInput input = { counter.value, 1 };
-  return add_input(input);
-}
+#include "logger/logger.h"
 
 int main(void) {
-  Counter counter = { 1 };
-  printf("%d\n", next_count(counter));
+  Logger logger;
+
+  logger_init(&logger, LOG_LEVEL_INFO);
+  logger_write(&logger, LOG_LEVEL_INFO, "logger started");
+  logger_write(&logger, LOG_LEVEL_WARN, "disk space is getting low");
+  logger_write(&logger, LOG_LEVEL_ERROR, "failed to rotate log file");
+  logger_flush(&logger);
+
   return 0;
 }
