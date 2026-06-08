@@ -7,6 +7,8 @@ import {
   supportsWorkspaceIndexPluginExtension,
 } from './extensions';
 
+const TREE_SITTER_PLUGIN_ID = 'codegraphy.treesitter';
+
 export {
   getWorkspaceIndexPluginMatchingFiles,
   supportsWorkspaceIndexPluginExtension,
@@ -293,7 +295,8 @@ export function getWorkspaceIndexPluginNameForFile(
   workspaceRoot: string,
   registry: Pick<WorkspaceIndexPluginRegistry, 'getPluginForFile'>,
 ): string | undefined {
-  return registry.getPluginForFile(path.join(workspaceRoot, relativePath))?.name;
+  const plugin = registry.getPluginForFile(path.join(workspaceRoot, relativePath));
+  return plugin?.id === TREE_SITTER_PLUGIN_ID ? undefined : plugin?.name;
 }
 
 export function resolveWorkspaceIndexPluginNameForFile(
