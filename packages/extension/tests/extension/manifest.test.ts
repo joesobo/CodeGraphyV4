@@ -21,6 +21,7 @@ function readExtensionManifest() {
           id?: string;
           name?: string;
           icon?: string;
+          initialSize?: number;
           visibility?: string;
         }>;
       };
@@ -67,6 +68,16 @@ describe('extension manifest', () => {
     expect(searchView?.name).toBe('Search');
     expect(searchIndex).toBeGreaterThanOrEqual(0);
     expect(graphIndex).toBeGreaterThan(searchIndex);
+  });
+
+  it('keeps the search view compact relative to the graph view', () => {
+    const { manifest } = readExtensionManifest();
+    const views = manifest.contributes?.views?.codegraphy ?? [];
+    const searchView = views.find(entry => entry.id === 'codegraphy.searchView');
+    const graphView = views.find(entry => entry.id === 'codegraphy.graphView');
+
+    expect(searchView?.initialSize).toBeGreaterThan(0);
+    expect(graphView?.initialSize).toBeGreaterThan(searchView?.initialSize ?? 0);
   });
 
   it('declares a dedicated timeline view in the CodeGraphy container', () => {
