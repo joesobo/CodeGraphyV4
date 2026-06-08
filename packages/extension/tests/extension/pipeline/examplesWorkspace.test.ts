@@ -158,6 +158,9 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference:static',
       'example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference:static',
       'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
+      'example-javascript/src/index.js->example-javascript/src/utils.js#buildGreeting:function#import',
+      'example-javascript/src/index.js->example-javascript/src/user.js#normalizeUserName:function#import',
+      'example-javascript/src/utils.js->example-javascript/src/depth.js#getDepthTarget:function#import',
       'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
       'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
       'example-typescript/src/utils.ts->example-typescript/src/depth.ts#getDepthTarget:function#import',
@@ -166,8 +169,17 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
 
     const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
     expect(missingEdgeIds).toEqual([]);
+    expect(nodeIds.has('example-javascript/src/index.js#currentUser:constant')).toBe(true);
     expect(nodeIds.has('example-typescript/src/index.ts#currentUser:constant')).toBe(true);
     expect(graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'example-javascript/src/index.js#currentUser:constant',
+        nodeType: 'variable',
+        symbol: expect.objectContaining({
+          kind: 'constant',
+          name: 'currentUser',
+        }),
+      }),
       expect.objectContaining({
         id: 'example-typescript/src/index.ts#currentUser:constant',
         nodeType: 'variable',
@@ -192,10 +204,23 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     expect(missingStorySymbolIds).toEqual([]);
 
     const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    const persistedJavaScriptFiles = persistedSnapshot.files
+      .map(file => file.filePath)
+      .filter(filePath => filePath.startsWith('example-javascript/'));
     const persistedTypeScriptFiles = persistedSnapshot.files
       .map(file => file.filePath)
       .filter(filePath => filePath.startsWith('example-typescript/'));
 
+    expect(persistedJavaScriptFiles).toEqual(
+      expect.arrayContaining([
+        'example-javascript/src/index.js',
+        'example-javascript/src/orphan.js',
+        'example-javascript/src/utils.js',
+        'example-javascript/src/depth.js',
+        'example-javascript/src/leaf.js',
+        'example-javascript/src/user.js',
+      ]),
+    );
     expect(persistedTypeScriptFiles).toEqual(
       expect.arrayContaining([
         'example-typescript/src/index.ts',

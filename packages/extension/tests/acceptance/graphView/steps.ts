@@ -876,6 +876,7 @@ async function applyExampleScenarioStartingUiState(
     case 'svelte-example.md':
       await setPluginSwitch(context, 'Svelte', false);
       return;
+    case 'javascript-example.md':
     case 'typescript-example.md':
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
