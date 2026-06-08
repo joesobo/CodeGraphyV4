@@ -214,35 +214,38 @@ describe('CorePluginRegistry', () => {
     ]);
   });
 
-  it('lists edge capabilities contributed by plugins that support workspace files', () => {
+  it('lists graph scope capabilities contributed by plugins that support workspace files', () => {
     const registry = new CorePluginRegistry();
     const readTypeScriptCapabilities = vi.fn(() =>
-      ['import', 'codegraphy.typescript:alias-import'] as Array<'import' | 'codegraphy.typescript:alias-import'>
+      ({
+        nodeTypes: ['symbol:function', 'symbol:interface'],
+        edgeTypes: ['import', 'codegraphy.typescript:alias-import'],
+      }) as const
     );
 
     registry.register(plugin({
       id: 'typescript',
       supportedExtensions: ['.ts'],
-      contributeEdgeTypeCapabilities: readTypeScriptCapabilities,
+      contributeGraphScopeCapabilities: readTypeScriptCapabilities,
     }));
     registry.register(plugin({
       id: 'godot',
       supportedExtensions: ['.gd'],
-      contributeEdgeTypeCapabilities: () => ['load', 'inherit', 'reference'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['plugin:codegraphy.gdscript:symbol:godot-class-name'],
+        edgeTypes: ['load', 'inherit', 'reference'],
+      }),
     }));
     registry.register(plugin({
       id: 'wildcard',
       supportedExtensions: ['*'],
-      contributeEdgeTypeCapabilities: () => ['reference'],
+      contributeGraphScopeCapabilities: () => ({ edgeTypes: ['reference'] }),
     }));
 
-    expect(registry.listEdgeTypeCapabilities(['src/app.ts', 'game/player.gd'])).toEqual([
-      'import',
-      'codegraphy.typescript:alias-import',
-      'reference',
-      'load',
-      'inherit',
-    ]);
+    expect(registry.listGraphScopeCapabilities(['src/app.ts', 'game/player.gd'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:interface', 'plugin:codegraphy.gdscript:symbol:godot-class-name'],
+      edgeTypes: ['import', 'codegraphy.typescript:alias-import', 'reference', 'load', 'inherit'],
+    });
     expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
       filePaths: ['src/app.ts', 'game/player.gd'],
     });

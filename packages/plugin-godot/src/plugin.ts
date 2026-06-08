@@ -6,7 +6,7 @@
  */
 
 import type {
-  GraphEdgeKind,
+  IPluginGraphScopeCapabilities,
   IPluginAnalysisContext,
 } from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
@@ -58,8 +58,16 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly defaultFilters = manifest.defaultFilters;
   readonly sources = manifest.sources;
 
-  contributeEdgeTypeCapabilities(): GraphEdgeKind[] {
-    return ['call', 'load', 'inherit', 'reference'];
+  contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
+    return {
+      nodeTypes: [
+        'symbol:function',
+        'symbol:enum',
+        'symbol:constant',
+        'plugin:codegraphy.gdscript:symbol:godot-class-name',
+      ],
+      edgeTypes: ['call', 'load', 'inherit', 'reference'],
+    };
   }
 
   private projectRoots = new Set<string>();

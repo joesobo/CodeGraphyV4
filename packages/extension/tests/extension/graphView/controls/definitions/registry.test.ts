@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  readEdgeTypeCapabilities,
   readEdgeTypes,
+  readGraphScopeCapabilities,
   readNodeTypes,
   readRegistryDefinitions,
 } from '../../../../../src/extension/graphView/controls/send/definitions/registry';
@@ -42,10 +42,10 @@ describe('extension/graphView/controls/registry', () => {
     ).toEqual([]);
 
     expect(
-      readEdgeTypeCapabilities({
-        listEdgeTypeCapabilities: () => 'not-an-array',
+      readGraphScopeCapabilities({
+        listGraphScopeCapabilities: () => 'not-an-object',
       }, ['src/app.ts']),
-    ).toEqual([]);
+    ).toEqual({ nodeTypes: [], edgeTypes: [] });
   });
 
   it('calls registry reader methods with the registry as this and a disabled plugin set', () => {
@@ -63,20 +63,34 @@ describe('extension/graphView/controls/registry', () => {
     ]);
   });
 
-  it('reads edge capabilities with workspace file paths', () => {
+  it('reads graph scope capabilities with workspace file paths', () => {
     const registry = {
-      listEdgeTypeCapabilities(this: unknown, filePaths: readonly string[], disabledPlugins: ReadonlySet<string>) {
+      listGraphScopeCapabilities(this: unknown, filePaths: readonly string[], disabledPlugins: ReadonlySet<string>) {
         expect(this).toBe(registry);
         expect(filePaths).toEqual(['src/app.ts', 'src/routes.ts']);
         expect(disabledPlugins.size).toBe(0);
-        return ['import', 'plugin:route', null];
+        return {
+          nodeTypes: ['symbol:function', 'route', null],
+          edgeTypes: ['import', 'plugin:route', null],
+        };
       },
     };
 
-    expect(readEdgeTypeCapabilities(registry, ['src/app.ts', 'src/routes.ts'])).toEqual([
-      'import',
-      'plugin:route',
-    ]);
+    expect(readGraphScopeCapabilities(registry, ['src/app.ts', 'src/routes.ts'])).toEqual({
+      nodeTypes: [],
+      edgeTypes: [],
+    });
+
+    const validRegistry = {
+      listGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function', 'route'],
+        edgeTypes: ['import', 'plugin:route'],
+      }),
+    };
+    expect(readGraphScopeCapabilities(validRegistry, ['src/app.ts', 'src/routes.ts'])).toEqual({
+      nodeTypes: ['symbol:function', 'route'],
+      edgeTypes: ['import', 'plugin:route'],
+    });
   });
 
   it('reads node and edge definitions from their matching registry methods', () => {

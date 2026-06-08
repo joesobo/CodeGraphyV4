@@ -91,6 +91,19 @@ Example:
 | `physics.*` | object | see file | Force simulation controls |
 | `timeline.*` | object | see file | Timeline indexing/playback controls |
 
+## Graph Scope settings
+
+Graph Scope writes Node Type visibility to `nodeVisibility` and Edge Type visibility to `edgeVisibility`. These maps store user intent by type id. A key can remain in settings even when the current workspace no longer shows that row; CodeGraphy preserves the saved value so toggles come back with the user's last choice if the relevant language or plugin returns.
+
+Node Type rows are capability-driven:
+
+- `file`, `folder`, and `package` are structural Node Types and are always available in Graph Scope.
+- `symbol` and `variable` are parent toggles. They appear only when at least one visible child Node Type belongs under them.
+- Child Symbol and Variable rows appear when the active analyzer or plugin declares them relevant for the indexed workspace through Graph Scope capabilities.
+- Before a workspace has indexed file paths and Node Type capabilities, Graph Scope shows only structural Node Types.
+
+Edge Type rows follow the same workspace-capability model. Active analyzers and plugins declare which Edge Types are relevant for all indexed files in the workspace, so mixed-language workspaces show the union of relevant controls while single-language workspaces hide impossible controls.
+
 ## Timeline settings
 
 | Setting | Type | Default | Description |

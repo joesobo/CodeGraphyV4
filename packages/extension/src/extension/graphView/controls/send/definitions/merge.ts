@@ -9,24 +9,34 @@ import {
   STRUCTURAL_NESTS_EDGE_KIND,
 } from '../../../../../shared/graphControls/defaults/definitions';
 import {
-  DEFAULT_FOLDER_NODE_COLOR,
   normalizeHexColor,
 } from '../../../../../shared/fileColors';
 import { isFileNode } from '../../../../../shared/visibleGraph/model';
 import { prettifyIdentifier } from './identifiers';
 import type {
   GraphEdgeTypeCapabilityLike,
+  GraphNodeTypeCapabilityLike,
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
 } from './contracts';
 
+const STRUCTURAL_NODE_TYPE_IDS = new Set(['file', 'folder', 'package']);
+
 export function mergeNodeTypes(
-  graphData: IGraphData,
+  _graphData: IGraphData,
   pluginNodeTypes: GraphNodeTypeLike[],
   configuredNodeColors: Record<string, string>,
+  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[] = [],
 ): IGraphNodeTypeDefinition[] {
-  const definitions = new Map<string, IGraphNodeTypeDefinition>(
-    CORE_GRAPH_NODE_TYPES.map((definition) => [
+  const availableNodeTypes = collectAvailableNodeTypes(nodeTypeCapabilities);
+  const definitions = new Map<string, IGraphNodeTypeDefinition>();
+
+  for (const definition of CORE_GRAPH_NODE_TYPES) {
+    if (!availableNodeTypes.has(definition.id)) {
+      continue;
+    }
+
+    definitions.set(
       definition.id,
       definition.id === 'folder'
         ? {
@@ -37,26 +47,34 @@ export function mergeNodeTypes(
             ),
           }
         : definition,
-    ]),
-  );
-
-  for (const definition of pluginNodeTypes) {
-    definitions.set(definition.id, definition);
+    );
   }
 
-  for (const node of graphData.nodes) {
-    const nodeType = node.nodeType ?? 'file';
-    if (!definitions.has(nodeType)) {
-      definitions.set(nodeType, {
-        id: nodeType,
-        label: prettifyIdentifier(nodeType),
-        defaultColor: node.color || DEFAULT_FOLDER_NODE_COLOR,
-        defaultVisible: true,
-      });
+  for (const definition of pluginNodeTypes) {
+    if (availableNodeTypes.has(definition.id)) {
+      definitions.set(definition.id, definition);
     }
   }
 
   return Array.from(definitions.values());
+}
+
+function collectAvailableNodeTypes(
+  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[],
+): Set<string> {
+  const availableNodeTypes = new Set<string>(STRUCTURAL_NODE_TYPE_IDS);
+
+  for (const nodeType of nodeTypeCapabilities) {
+    availableNodeTypes.add(nodeType);
+  }
+
+  for (const definition of CORE_GRAPH_NODE_TYPES) {
+    if (definition.parentId && availableNodeTypes.has(definition.id)) {
+      availableNodeTypes.add(definition.parentId);
+    }
+  }
+
+  return availableNodeTypes;
 }
 
 export function mergeEdgeTypes(

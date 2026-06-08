@@ -33,24 +33,39 @@ describe('core tree-sitter built-in plugin', () => {
     expect(plugin.supportedExtensions).toEqual(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.supportedExtensions).not.toBe(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.fileColors).toBeUndefined();
-    expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([
-      'import',
-      'reference',
-      'call',
-      'type-import',
-      'inherit',
-    ]);
-    expect(plugin.contributeEdgeTypeCapabilities?.({
+    expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
+      nodeTypes: [],
+      edgeTypes: [
+        'import',
+        'reference',
+        'call',
+        'type-import',
+        'inherit',
+      ],
+    });
+    expect(plugin.contributeGraphScopeCapabilities?.({
       filePaths: ['/workspace/src/app.py'],
-    })).toEqual(['import', 'call', 'inherit']);
-    expect(plugin.contributeEdgeTypeCapabilities?.({
+    })).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:class', 'symbol:constant'],
+      edgeTypes: ['import', 'call', 'inherit'],
+    });
+    expect(plugin.contributeGraphScopeCapabilities?.({
       filePaths: ['/workspace/src/app.py', '/workspace/src/view.tsx'],
-    })).toEqual([
-      'import',
-      'call',
-      'inherit',
-      'type-import',
-    ]);
+    })).toEqual({
+      nodeTypes: [
+        'symbol:function',
+        'symbol:class',
+        'symbol:constant',
+        'symbol:interface',
+        'symbol:type',
+      ],
+      edgeTypes: [
+        'import',
+        'call',
+        'inherit',
+        'type-import',
+      ],
+    });
   });
 
   it('declares call capability for supported source languages with callable imports', () => {
@@ -66,9 +81,9 @@ describe('core tree-sitter built-in plugin', () => {
     ];
 
     for (const filePath of supportedLanguageFiles) {
-      expect(plugin.contributeEdgeTypeCapabilities?.({
+      expect(plugin.contributeGraphScopeCapabilities?.({
         filePaths: [filePath],
-      }), filePath).toContain('call');
+      })?.edgeTypes, filePath).toContain('call');
     }
   });
 
