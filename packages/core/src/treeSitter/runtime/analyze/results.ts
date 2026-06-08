@@ -75,16 +75,37 @@ export function addImportRelation(
   type?: string,
   sourceId: string = TREE_SITTER_SOURCE_IDS.import,
   binding?: ImportedBinding,
+  fromSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'import',
     sourceId,
     fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,
     type,
     metadata: createBindingMetadata(binding),
+  });
+}
+
+export function addIncludeRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null,
+  fromSymbolId?: string,
+): void {
+  addRelation(relations, {
+    kind: 'include',
+    sourceId: TREE_SITTER_SOURCE_IDS.include,
+    fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+    type: 'include',
   });
 }
 
@@ -111,12 +132,14 @@ export function addCallRelation(
   filePath: string,
   binding: ImportedBinding,
   fromSymbolId?: string,
+  toSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'call',
     sourceId: TREE_SITTER_SOURCE_IDS.call,
     fromFilePath: filePath,
     fromSymbolId,
+    toSymbolId,
     specifier: binding.specifier,
     resolvedPath: binding.resolvedPath,
     toFilePath: binding.resolvedPath,

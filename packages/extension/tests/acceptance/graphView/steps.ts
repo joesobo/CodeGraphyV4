@@ -51,6 +51,7 @@ import {
 
 const TARGET_NODE = 'src/index.ts';
 const CORE_EDGE_TYPE_LABELS = [
+  'Include',
   'Imports',
   'References',
   'Calls',
@@ -69,13 +70,18 @@ const CORE_NODE_TYPE_LABELS = [
   'Package',
   'Symbol',
   'Function',
+  'Include',
+  'Prototype',
   'Class',
   'Interface',
   'Type',
   'Struct',
+  'Union',
   'Enum',
+  'Typedef',
   'Variable',
   'Constant',
+  'Global',
   'Godot class_name',
 ];
 
@@ -84,9 +90,14 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Constant: 'Variable',
   Enum: 'Symbol',
   Function: 'Symbol',
+  Global: 'Variable',
+  Include: 'Symbol',
   Interface: 'Symbol',
+  Prototype: 'Symbol',
   Struct: 'Symbol',
+  Typedef: 'Symbol',
   Type: 'Symbol',
+  Union: 'Symbol',
   'Godot class_name': 'Variable',
 };
 

@@ -13,7 +13,7 @@ const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
 ] as const satisfies readonly GraphEdgeKind[];
 
 const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
-  'c': ['import', 'call'],
+  'c': ['include', 'call', 'contains'],
   cpp: ['import', 'call', 'contains', 'inherit', 'overrides'],
   csharp: ['import', 'reference', 'call', 'inherit'],
   dart: ['import', 'call', 'inherit'],

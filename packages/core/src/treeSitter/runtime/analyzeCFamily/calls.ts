@@ -4,20 +4,34 @@ import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../analyze/model';
 import { addCallRelation, createSymbolId } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import { hasFunctionDeclarator } from './names';
 
-interface CFamilyIncludedCallDeclarations {
-  functionPathByName: ReadonlyMap<string, string | null>;
+interface CFamilyCallDeclarationTarget {
+  filePath: string;
+  symbolId?: string;
 }
 
-export function readCFamilyIncludedCallDeclarations(
+interface CFamilyCallDeclarations {
+  functionTargetByName: ReadonlyMap<string, CFamilyCallDeclarationTarget | null>;
+}
+
+export function readCFamilyCallDeclarations(
+  rootNode: Parser.SyntaxNode,
+  filePath: string,
   relations: readonly IAnalysisRelation[],
   language: Parser.Language,
-): CFamilyIncludedCallDeclarations {
+  symbolsEnabled: boolean,
+): CFamilyCallDeclarations {
+  const functionTargetByName = new Map<string, CFamilyCallDeclarationTarget | null>();
+
+  for (const declaration of readDeclaredFunctions(rootNode, filePath, symbolsEnabled)) {
+    setUniqueTarget(functionTargetByName, declaration.name, declaration.target);
+  }
+
   const includedPaths = relations
-    .filter((relation) => relation.kind === 'import' && relation.resolvedPath)
+    .filter((relation) => (relation.kind === 'include' || relation.kind === 'import') && relation.resolvedPath)
     .map((relation) => relation.resolvedPath)
     .filter((resolvedPath): resolvedPath is string => Boolean(resolvedPath));
-  const functionPathByName = new Map<string, string | null>();
 
   for (const includedPath of includedPaths) {
     const includedRootNode = readIncludedRootNode(includedPath, language);
@@ -25,13 +39,13 @@ export function readCFamilyIncludedCallDeclarations(
       continue;
     }
 
-    for (const functionName of readDeclaredFunctionNames(includedRootNode)) {
-      setUniquePath(functionPathByName, functionName, includedPath);
+    for (const declaration of readDeclaredFunctions(includedRootNode, includedPath, symbolsEnabled)) {
+      setUniqueTarget(functionTargetByName, declaration.name, declaration.target);
     }
   }
 
   return {
-    functionPathByName,
+    functionTargetByName,
   };
 }
 
@@ -39,7 +53,7 @@ export function addCFamilyCallRelation(
   node: Parser.SyntaxNode,
   filePath: string,
   relations: IAnalysisRelation[],
-  includedDeclarations: CFamilyIncludedCallDeclarations,
+  declarations: CFamilyCallDeclarations,
   symbolsEnabled: boolean,
 ): void {
   const calleeName = readCallName(node);
@@ -47,16 +61,17 @@ export function addCFamilyCallRelation(
     return;
   }
 
-  const targetPath = resolveCallPath(includedDeclarations, calleeName);
-  if (!targetPath) {
+  const target = resolveCallTarget(declarations, calleeName);
+  if (!target) {
     return;
   }
 
   addCallRelation(
     relations,
     filePath,
-    createCallBinding(calleeName, targetPath),
+    createCallBinding(calleeName, target.filePath),
     symbolsEnabled ? readEnclosingFunctionSymbolId(node, filePath) : undefined,
+    symbolsEnabled ? target.symbolId : undefined,
   );
 }
 
@@ -70,19 +85,42 @@ function readIncludedRootNode(filePath: string, language: Parser.Language): Pars
   }
 }
 
-function readDeclaredFunctionNames(rootNode: Parser.SyntaxNode): string[] {
-  const names: string[] = [];
+function readDeclaredFunctions(
+  rootNode: Parser.SyntaxNode,
+  filePath: string,
+  symbolsEnabled: boolean,
+): Array<{ name: string; target: CFamilyCallDeclarationTarget }> {
+  const declarations: Array<{ name: string; target: CFamilyCallDeclarationTarget }> = [];
   walkTree(rootNode, {}, (node) => {
-    if (node.type !== 'declaration' && node.type !== 'function_declaration') {
+    const symbolKind = getCallableDeclarationSymbolKind(node);
+    if (!symbolKind) {
       return;
     }
 
     const functionName = readDeclaratorName(node.childForFieldName('declarator') ?? undefined);
     if (functionName) {
-      names.push(functionName);
+      declarations.push({
+        name: functionName,
+        target: {
+          filePath,
+          ...(symbolsEnabled ? { symbolId: createSymbolId(filePath, symbolKind, functionName) } : {}),
+        },
+      });
     }
   });
-  return names;
+  return declarations;
+}
+
+function getCallableDeclarationSymbolKind(node: Parser.SyntaxNode): 'function' | 'prototype' | null {
+  if (node.type === 'function_definition') {
+    return 'function';
+  }
+
+  if (node.type === 'declaration' || node.type === 'function_declaration') {
+    return hasFunctionDeclarator(node) ? 'prototype' : null;
+  }
+
+  return null;
 }
 
 function readCallName(callExpression: Parser.SyntaxNode): string | null {
@@ -118,13 +156,13 @@ function readDeclaratorName(node: Parser.SyntaxNode | undefined | null): string 
     : node.namedChildren.map(readDeclaratorName).find(Boolean) ?? null;
 }
 
-function resolveCallPath(
-  includedDeclarations: CFamilyIncludedCallDeclarations,
+function resolveCallTarget(
+  declarations: CFamilyCallDeclarations,
   calleeName: string,
-): string | null {
-  const functionPath = includedDeclarations.functionPathByName.get(calleeName);
-  if (functionPath !== undefined) {
-    return functionPath;
+): CFamilyCallDeclarationTarget | null {
+  const target = declarations.functionTargetByName.get(calleeName);
+  if (target !== undefined) {
+    return target;
   }
 
   return null;
@@ -139,7 +177,25 @@ function createCallBinding(calleeName: string, targetPath: string): ImportedBind
   };
 }
 
-function setUniquePath(pathsByName: Map<string, string | null>, name: string, filePath: string): void {
-  const existingPath = pathsByName.get(name);
-  pathsByName.set(name, existingPath && existingPath !== filePath ? null : filePath);
+function setUniqueTarget(
+  targetsByName: Map<string, CFamilyCallDeclarationTarget | null>,
+  name: string,
+  target: CFamilyCallDeclarationTarget,
+): void {
+  if (!targetsByName.has(name)) {
+    targetsByName.set(name, target);
+    return;
+  }
+
+  const existingTarget = targetsByName.get(name);
+  if (!existingTarget) {
+    return;
+  }
+
+  targetsByName.set(
+    name,
+    existingTarget.filePath === target.filePath && existingTarget.symbolId === target.symbolId
+      ? existingTarget
+      : null,
+  );
 }

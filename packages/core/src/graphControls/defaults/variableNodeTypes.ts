@@ -15,6 +15,13 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     parentId: 'variable',
   },
   {
+    id: 'symbol:global',
+    label: 'Global',
+    defaultColor: '#0D9488',
+    defaultVisible: false,
+    parentId: 'variable',
+  },
+  {
     id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
     label: 'Godot class_name',
     defaultColor: '#478CBF',
