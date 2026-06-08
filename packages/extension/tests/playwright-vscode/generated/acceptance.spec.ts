@@ -248,10 +248,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:15
-      await test.step('Then the available edge types are Include, References, Calls, Nests, Contains', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Include, References, Calls, Nests, Contains', {
+      await test.step('Then the available edge types are Include, References, Calls, Contains', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Include, References, Calls, Contains', {
           keyword: 'Then',
-          text: 'the available edge types are Include, References, Calls, Nests, Contains',
+          text: 'the available edge types are Include, References, Calls, Contains',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 15
         });
@@ -561,10 +561,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:54
-      await test.step('Then I can see there are 15 nodes and 8 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 8 connections', {
+      await test.step('Then I can see there are 15 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 11 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 8 connections',
+          text: 'I can see there are 15 nodes and 11 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 54
         });
@@ -631,272 +631,292 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:63
-      await test.step('Then I show only the Include node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Include node type', {
+      await test.step('Then I show only the Contains edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Contains edge type', {
           keyword: 'Then',
-          text: 'I show only the Include node type',
+          text: 'I show only the Contains edge type',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 63
         });
       });
 
       // tests/acceptance/specs/c-example.md:64
-      await test.step('Then I can see there are 15 nodes and 7 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 7 connections', {
+      await test.step('Then I show only the File and Include node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Include node types', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 7 connections',
+          text: 'I show only the File and Include node types',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 64
         });
       });
 
       // tests/acceptance/specs/c-example.md:65
-      await test.step('And src/main.c points to src/main.c#logger/logger.h:include', async () => {
-        await runAcceptanceStep(context, 'src/main.c points to src/main.c#logger/logger.h:include', {
-          keyword: 'And',
-          text: 'src/main.c points to src/main.c#logger/logger.h:include',
+      await test.step('Then I can see there are 15 nodes and 7 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 7 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 7 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 65
         });
       });
 
-      // tests/acceptance/specs/c-example.md:67
-      await test.step('When I toggle the Include edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Include edge on', {
-          keyword: 'When',
-          text: 'I toggle the Include edge on',
+      // tests/acceptance/specs/c-example.md:66
+      await test.step('And src/main.c points to src/main.c#logger/logger.h:include', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/main.c#logger/logger.h:include', {
+          keyword: 'And',
+          text: 'src/main.c points to src/main.c#logger/logger.h:include',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 67
+          line: 66
         });
       });
 
       // tests/acceptance/specs/c-example.md:68
-      await test.step('Then I can see there are 15 nodes and 12 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 12 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 15 nodes and 12 connections',
+      await test.step('When I toggle the Include edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Include edge on', {
+          keyword: 'When',
+          text: 'I toggle the Include edge on',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 68
         });
       });
 
       // tests/acceptance/specs/c-example.md:69
-      await test.step('And src/main.c#logger/logger.h:include points to src/logger/logger.h', async () => {
-        await runAcceptanceStep(context, 'src/main.c#logger/logger.h:include points to src/logger/logger.h', {
-          keyword: 'And',
-          text: 'src/main.c#logger/logger.h:include points to src/logger/logger.h',
+      await test.step('Then I can see there are 15 nodes and 12 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 12 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 12 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 69
         });
       });
 
-      // tests/acceptance/specs/c-example.md:71
-      await test.step('Then I show only the Struct node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Struct node type', {
-          keyword: 'Then',
-          text: 'I show only the Struct node type',
+      // tests/acceptance/specs/c-example.md:70
+      await test.step('And src/main.c#logger/logger.h:include points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c#logger/logger.h:include points to src/logger/logger.h', {
+          keyword: 'And',
+          text: 'src/main.c#logger/logger.h:include points to src/logger/logger.h',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 71
+          line: 70
         });
       });
 
       // tests/acceptance/specs/c-example.md:72
-      await test.step('Then I can see there are 10 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 10 nodes and 2 connections', {
+      await test.step('Then I show only the Contains edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Contains edge type', {
           keyword: 'Then',
-          text: 'I can see there are 10 nodes and 2 connections',
+          text: 'I show only the Contains edge type',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 72
         });
       });
 
-      // tests/acceptance/specs/c-example.md:74
-      await test.step('Then I show only the Union node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Union node type', {
+      // tests/acceptance/specs/c-example.md:73
+      await test.step('Then I show only the File and Struct node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Struct node types', {
           keyword: 'Then',
-          text: 'I show only the Union node type',
+          text: 'I show only the File and Struct node types',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 73
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:74
+      await test.step('Then I can see there are 10 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 10 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 10 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 74
         });
       });
 
-      // tests/acceptance/specs/c-example.md:75
-      await test.step('Then I can see there are 9 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connection', {
+      // tests/acceptance/specs/c-example.md:76
+      await test.step('Then I show only the File and Union node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Union node types', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 1 connection',
+          text: 'I show only the File and Union node types',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 75
+          line: 76
         });
       });
 
       // tests/acceptance/specs/c-example.md:77
-      await test.step('Then I show only the Enum node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Enum node type', {
+      await test.step('Then I can see there are 9 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I show only the Enum node type',
+          text: 'I can see there are 9 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 77
         });
       });
 
-      // tests/acceptance/specs/c-example.md:78
-      await test.step('Then I can see there are 9 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connection', {
+      // tests/acceptance/specs/c-example.md:79
+      await test.step('Then I show only the File and Enum node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Enum node types', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 1 connection',
+          text: 'I show only the File and Enum node types',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 78
+          line: 79
         });
       });
 
       // tests/acceptance/specs/c-example.md:80
-      await test.step('Then I show only the Typedef node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Typedef node type', {
+      await test.step('Then I can see there are 9 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I show only the Typedef node type',
+          text: 'I can see there are 9 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 80
         });
       });
 
-      // tests/acceptance/specs/c-example.md:81
+      // tests/acceptance/specs/c-example.md:82
+      await test.step('Then I show only the File and Typedef node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Typedef node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Typedef node types',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 82
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:83
       await test.step('Then I can see there are 12 nodes and 4 connections', async () => {
         await runAcceptanceStep(context, 'I can see there are 12 nodes and 4 connections', {
           keyword: 'Then',
           text: 'I can see there are 12 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 81
-        });
-      });
-
-      // tests/acceptance/specs/c-example.md:83
-      await test.step('Then I show only the Global node type', async () => {
-        await runAcceptanceStep(context, 'I show only the Global node type', {
-          keyword: 'Then',
-          text: 'I show only the Global node type',
-          sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 83
         });
       });
 
-      // tests/acceptance/specs/c-example.md:84
+      // tests/acceptance/specs/c-example.md:85
+      await test.step('Then I show only the File and Global node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Global node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Global node types',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 85
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:86
       await test.step('Then I can see there are 9 nodes and 1 connection', async () => {
         await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connection', {
           keyword: 'Then',
           text: 'I can see there are 9 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 84
-        });
-      });
-
-      // tests/acceptance/specs/c-example.md:86
-      await test.step('Then I show only the Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types', async () => {
-        await runAcceptanceStep(context, 'I show only the Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types', {
-          keyword: 'Then',
-          text: 'I show only the Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types',
-          sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 86
         });
       });
 
-      // tests/acceptance/specs/c-example.md:87
-      await test.step('And I toggle the Include edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Include edge on', {
-          keyword: 'And',
-          text: 'I toggle the Include edge on',
-          sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 87
-        });
-      });
-
       // tests/acceptance/specs/c-example.md:88
-      await test.step('And I toggle the Contains edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
-          keyword: 'And',
-          text: 'I toggle the Contains edge on',
+      await test.step('Then I show only the File, Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File, Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types', {
+          keyword: 'Then',
+          text: 'I show only the File, Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 88
         });
       });
 
       // tests/acceptance/specs/c-example.md:89
-      await test.step('And I toggle the Calls edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+      await test.step('And I toggle the Include edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Include edge on', {
           keyword: 'And',
-          text: 'I toggle the Calls edge on',
+          text: 'I toggle the Include edge on',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 89
         });
       });
 
       // tests/acceptance/specs/c-example.md:90
-      await test.step('Then I can see there are 36 nodes and 39 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 36 nodes and 39 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 36 nodes and 39 connections',
+      await test.step('And I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'And',
+          text: 'I toggle the Contains edge on',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 90
         });
       });
 
       // tests/acceptance/specs/c-example.md:91
-      await test.step('Then I toggle the Contains edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Contains edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Contains edge off',
+      await test.step('And I toggle the Calls edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+          keyword: 'And',
+          text: 'I toggle the Calls edge on',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 91
         });
       });
 
       // tests/acceptance/specs/c-example.md:92
-      await test.step('Then I can see there are 22 nodes and 11 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 22 nodes and 11 connections', {
+      await test.step('Then I can see there are 36 nodes and 39 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 36 nodes and 39 connections', {
           keyword: 'Then',
-          text: 'I can see there are 22 nodes and 11 connections',
+          text: 'I can see there are 36 nodes and 39 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 92
         });
       });
 
       // tests/acceptance/specs/c-example.md:93
-      await test.step('Then I toggle the Include edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Include edge off', {
+      await test.step('Then I toggle the Contains edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge off', {
           keyword: 'Then',
-          text: 'I toggle the Include edge off',
+          text: 'I toggle the Contains edge off',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 93
         });
       });
 
       // tests/acceptance/specs/c-example.md:94
-      await test.step('Then I can see there are 17 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 17 nodes and 6 connections', {
+      await test.step('Then I can see there are 22 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 22 nodes and 11 connections', {
           keyword: 'Then',
-          text: 'I can see there are 17 nodes and 6 connections',
+          text: 'I can see there are 22 nodes and 11 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 94
         });
       });
 
       // tests/acceptance/specs/c-example.md:95
-      await test.step('Then I toggle the Calls edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Calls edge off', {
+      await test.step('Then I toggle the Include edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Include edge off', {
           keyword: 'Then',
-          text: 'I toggle the Calls edge off',
+          text: 'I toggle the Include edge off',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 95
         });
       });
 
       // tests/acceptance/specs/c-example.md:96
+      await test.step('Then I can see there are 17 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 17 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 96
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:97
+      await test.step('Then I toggle the Calls edge off', async () => {
+        await runAcceptanceStep(context, 'I toggle the Calls edge off', {
+          keyword: 'Then',
+          text: 'I toggle the Calls edge off',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 97
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:98
       await test.step('Then I can see there are 36 nodes and 0 connections', async () => {
         await runAcceptanceStep(context, 'I can see there are 36 nodes and 0 connections', {
           keyword: 'Then',
           text: 'I can see there are 36 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 96
+          line: 98
         });
       });
 
