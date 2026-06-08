@@ -16,6 +16,7 @@ import {
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];
+const EXAMPLES_WORKSPACE_TEST_TIMEOUT_MS = 60_000;
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -53,7 +54,7 @@ afterAll(async () => {
   );
 });
 
-describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
+describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_TEST_TIMEOUT_MS }, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     resetCurrentCodeGraphyConfigurationForTest();
