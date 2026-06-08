@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  listCoreTreeSitterEdgeTypeCapabilities,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -22,6 +23,7 @@ function createRegistry() {
     initializePlugin: vi.fn(async () => undefined),
     register: vi.fn(),
     setCoreAnalyzeFileResult: vi.fn(),
+    setCoreEdgeTypeCapabilitiesProvider: vi.fn(),
     unregister: vi.fn(() => true),
   };
 }
@@ -251,6 +253,9 @@ describe('pipeline/plugins/bootstrap', () => {
     });
 
     expect(registry.setCoreAnalyzeFileResult).toHaveBeenCalledOnce();
+    expect(registry.setCoreEdgeTypeCapabilitiesProvider).toHaveBeenCalledWith(
+      listCoreTreeSitterEdgeTypeCapabilities,
+    );
     expect(registry.register).toHaveBeenCalledTimes(1);
     expect(registry.register.mock.calls.map(([, options]) => options)).toEqual([
       { builtIn: true, sourcePackage: '@codegraphy-dev/plugin-markdown' },
