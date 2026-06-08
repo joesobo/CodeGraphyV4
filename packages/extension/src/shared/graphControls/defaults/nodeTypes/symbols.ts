@@ -25,6 +25,28 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:include',
+      label: 'Include',
+      defaultColor: '#38BDF8',
+      defaultVisible: false,
+      parentId: 'symbol',
+      description: {
+        description: 'Language-level include or import statements represented as named symbols.',
+        examples: [{ label: 'C', code: '#include "logger.h"' }],
+      },
+    },
+    {
+      id: 'symbol:prototype',
+      label: 'Prototype',
+      defaultColor: '#A78BFA',
+      defaultVisible: false,
+      parentId: 'symbol',
+      description: {
+        description: 'Function declarations without bodies, such as C prototypes.',
+        examples: [{ label: 'C', code: 'void logger_flush(Logger *logger);' }],
+      },
+    },
+    {
       id: 'symbol:class',
       label: 'Class',
       defaultColor: '#3B82F6',
@@ -69,6 +91,17 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:union',
+      label: 'Union',
+      defaultColor: '#14B8A6',
+      defaultVisible: false,
+      parentId: 'symbol',
+      description: {
+        description: 'Union declarations that store one of several field layouts in shared storage.',
+        examples: [{ label: 'C', code: 'union LogMessage { const char *text; int code; }' }],
+      },
+    },
+    {
       id: 'symbol:enum',
       label: 'Enum',
       defaultColor: '#F59E0B',
@@ -77,6 +110,17 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       description: {
         description: 'Enum declarations that define a named set of values.',
         examples: [{ code: 'enum GraphMode { TwoD, ThreeD }' }],
+      },
+    },
+    {
+      id: 'symbol:typedef',
+      label: 'Typedef',
+      defaultColor: '#F472B6',
+      defaultVisible: false,
+      parentId: 'symbol',
+      description: {
+        description: 'C typedef declarations that introduce an alias for a named type.',
+        examples: [{ label: 'C', code: 'typedef struct Logger Logger;' }],
       },
     },
   ];

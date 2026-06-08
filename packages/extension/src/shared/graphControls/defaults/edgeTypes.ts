@@ -5,6 +5,16 @@ export const STRUCTURAL_NESTS_EDGE_KIND = 'nests' as const;
 export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
   return [
     {
+      id: 'include',
+      label: 'Include',
+      defaultColor: '#38BDF8',
+      defaultVisible: true,
+      description: {
+        description: 'Shows files that include another local source or header file.',
+        examples: [{ label: 'C', code: '#include "logger.h"' }],
+      },
+    },
+    {
       id: 'import',
       label: 'Imports',
       defaultColor: '#60A5FA',

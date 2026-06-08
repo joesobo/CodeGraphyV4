@@ -47,7 +47,9 @@ export function getFunctionNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode 
 }
 
 export function hasFunctionDeclarator(node: Parser.SyntaxNode): boolean {
-  return node.namedChildren.some((child) => child.type === 'function_declarator');
+  return node.namedChildren.some((child) =>
+    child.type === 'function_declarator' || hasFunctionDeclarator(child),
+  );
 }
 
 export function isInsideClassLike(node: Parser.SyntaxNode): boolean {

@@ -26,6 +26,7 @@ export type GraphNodeShape3D =
 
 export type CoreEdgeKind =
   | 'nests'
+  | 'include'
   | 'import'
   | 'type-import'
   | 'call'

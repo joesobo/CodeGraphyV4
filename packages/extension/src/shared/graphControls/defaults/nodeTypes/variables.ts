@@ -24,6 +24,17 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:global',
+      label: 'Global',
+      defaultColor: '#0D9488',
+      defaultVisible: false,
+      parentId: 'variable',
+      description: {
+        description: 'File-scope variables declared outside functions.',
+        examples: [{ label: 'C', code: 'static int logger_output_enabled = 1;' }],
+      },
+    },
+    {
       id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
       label: 'Godot class_name',
       defaultColor: '#478CBF',

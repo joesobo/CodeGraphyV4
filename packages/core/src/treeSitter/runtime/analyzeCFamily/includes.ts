@@ -1,8 +1,8 @@
 import * as path from 'node:path';
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { findExistingFile } from '../analyze/existingFile';
-import { addImportRelation } from '../analyze/results';
+import { addImportRelation, addIncludeRelation, createSymbol, createSymbolId } from '../analyze/results';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 
 interface IncludeSpecifier {
@@ -61,9 +61,22 @@ export function handleCInclude(
   filePath: string,
   workspaceRoot: string,
   relations: IAnalysisRelation[],
+  symbols?: IAnalysisSymbol[],
+  edgeKind: 'import' | 'include' = 'import',
 ): void {
   const include = readIncludeSpecifier(node);
   if (!include) {
+    return;
+  }
+
+  if (symbols) {
+    symbols.push(createSymbol(filePath, 'include', include.specifier, node));
+  }
+
+  const resolvedPath = resolveIncludePath(filePath, workspaceRoot, include);
+  const fromSymbolId = symbols ? createSymbolId(filePath, 'include', include.specifier) : undefined;
+  if (edgeKind === 'include') {
+    addIncludeRelation(relations, filePath, include.specifier, resolvedPath, fromSymbolId);
     return;
   }
 
@@ -71,8 +84,10 @@ export function handleCInclude(
     relations,
     filePath,
     include.specifier,
-    resolveIncludePath(filePath, workspaceRoot, include),
+    resolvedPath,
     'include',
     TREE_SITTER_SOURCE_IDS.include,
+    undefined,
+    fromSymbolId,
   );
 }

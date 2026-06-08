@@ -10,14 +10,14 @@ import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
 import {
   addCFamilyCallRelation,
-  readCFamilyIncludedCallDeclarations,
+  readCFamilyCallDeclarations,
 } from '../analyzeCFamily/calls';
 import { handleCInclude } from '../analyzeCFamily/includes';
-import { handleCFamilySymbol } from '../analyzeCFamily/symbols';
 import {
   shouldIncludeTreeSitterSymbols,
   type TreeSitterAnalysisOptions,
 } from '../options';
+import { handleCSymbol } from './symbols';
 
 function visitCNode(
   node: Parser.SyntaxNode,
@@ -28,7 +28,14 @@ function visitCNode(
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'preproc_include') {
-    handleCInclude(node, filePath, workspaceRoot, relations);
+    handleCInclude(
+      node,
+      filePath,
+      workspaceRoot,
+      relations,
+      symbolsEnabled ? symbols : undefined,
+      'include',
+    );
     return { skipChildren: true };
   }
 
@@ -36,7 +43,7 @@ function visitCNode(
     return;
   }
 
-  return handleCFamilySymbol(node, filePath, symbols);
+  return handleCSymbol(node, filePath, symbols);
 }
 
 export function analyzeCFile(
@@ -51,13 +58,16 @@ export function analyzeCFile(
   walkTree(tree.rootNode, {}, (node) =>
     visitCNode(node, filePath, workspaceRoot, relations, symbols, symbolsEnabled),
   );
-  const includedDeclarations = readCFamilyIncludedCallDeclarations(
+  const declarations = readCFamilyCallDeclarations(
+    tree.rootNode,
+    filePath,
     relations,
     CLanguage as unknown as Parser.Language,
+    symbolsEnabled,
   );
   walkTree(tree.rootNode, {}, (node) => {
     if (node.type === 'call_expression') {
-      addCFamilyCallRelation(node, filePath, relations, includedDeclarations, symbolsEnabled);
+      addCFamilyCallRelation(node, filePath, relations, declarations, symbolsEnabled);
     }
   });
   return normalizeAnalysisResult(filePath, symbols, relations);

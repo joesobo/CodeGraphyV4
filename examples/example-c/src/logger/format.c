@@ -9,6 +9,6 @@ void logger_format_line(const LogRecord *record, char *buffer, int buffer_size) 
     "[%s] #%d %s",
     logger_level_name(record->level),
     record->sequence,
-    record->message
+    record->message.text
   );
 }

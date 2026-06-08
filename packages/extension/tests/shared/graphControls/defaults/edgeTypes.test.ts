@@ -12,6 +12,12 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
 
     expect(edgeTypes).toMatchObject([
       {
+        id: 'include',
+        label: 'Include',
+        defaultColor: '#38BDF8',
+        defaultVisible: true,
+      },
+      {
         id: 'import',
         label: 'Imports',
         defaultColor: '#60A5FA',

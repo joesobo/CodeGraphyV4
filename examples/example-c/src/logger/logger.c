@@ -3,8 +3,10 @@
 
 #include <stdio.h>
 
+static int logger_output_enabled = 1;
+
 static int logger_accepts(const Logger *logger, LogLevel level) {
-  return level >= logger->minimum_level;
+  return logger_output_enabled && level >= logger->minimum_level;
 }
 
 const char *logger_level_name(LogLevel level) {
@@ -33,7 +35,7 @@ void logger_write(Logger *logger, LogLevel level, const char *message) {
   }
 
   char line[128];
-  LogRecord record = { level, message, logger->message_count + 1 };
+  LogRecord record = { level, { .text = message }, logger->message_count + 1 };
   logger_format_line(&record, line, sizeof line);
   printf("%s\n", line);
   logger->message_count += 1;
@@ -44,4 +46,3 @@ void logger_flush(Logger *logger) {
   logger->message_count = 0;
   logger->dropped_count = 0;
 }
-
