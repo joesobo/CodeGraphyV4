@@ -32,6 +32,12 @@ describe('acceptance graph view plugin fixtures', () => {
     }
   });
 
+  it('registers the TypeScript plugin for the JavaScript example', () => {
+    expect(acceptancePluginPackageRelativePathsForExample('example-javascript')).toEqual([
+      'packages/plugin-typescript',
+    ]);
+  });
+
   it('registers the Godot plugin for the Godot example', () => {
     expect(acceptancePluginPackageRelativePathsForExample('example-godot')).toEqual([
       'packages/plugin-godot',
