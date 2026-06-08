@@ -61,7 +61,7 @@ describe('treeSitter/runtime/analyzeRust/imports', () => {
     expect(relations).toEqual([
       {
         kind: 'import',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         fromFilePath: '/workspace/src/lib.rs',
         specifier: 'crate::http::routes',
         resolvedPath: '/workspace/src/routes.rs',

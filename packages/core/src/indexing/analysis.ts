@@ -4,6 +4,7 @@ import { preAnalyzeWorkspacePipelineFiles } from '../analysis/workspacePreAnalyz
 import type { IDiscoveryResult } from '../discovery/contracts';
 import type { FileDiscovery } from '../discovery/file/service';
 import type { CorePluginRegistry } from '../plugins/registry';
+import { preAnalyzeCoreTreeSitterFiles } from '../treeSitter/core';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { getFileStat } from './fileStat';
 
@@ -42,13 +43,15 @@ export async function analyzeWorkspaceIndexFiles(input: {
         files,
         rootPath,
         {
-          notifyPreAnalyze: (preAnalyzeFiles, preAnalyzeRootPath) =>
-            input.registry.notifyPreAnalyze(
+          notifyPreAnalyze: async (preAnalyzeFiles, preAnalyzeRootPath) => {
+            await preAnalyzeCoreTreeSitterFiles(preAnalyzeFiles, preAnalyzeRootPath);
+            await input.registry.notifyPreAnalyze(
               preAnalyzeFiles,
               preAnalyzeRootPath,
               undefined,
               input.disabledPlugins,
-            ),
+            );
+          },
           readContent: file => input.discovery.readContent(file),
         },
         signal,

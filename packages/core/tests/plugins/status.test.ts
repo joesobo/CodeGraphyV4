@@ -308,22 +308,6 @@ describe('plugins/status', () => {
     expect(getPluginForFile).toHaveBeenCalledWith('/workspace/src/index.ts');
   });
 
-  it('omits the core Tree-sitter runtime from plugin display names', () => {
-    const getPluginForFile = vi.fn(() => ({
-      id: 'codegraphy.treesitter',
-      name: 'Tree-sitter',
-    }));
-
-    expect(
-      getWorkspaceIndexPluginNameForFile(
-        'src/index.ts',
-        '/workspace',
-        { getPluginForFile } as never,
-      ),
-    ).toBeUndefined();
-    expect(getPluginForFile).toHaveBeenCalledWith('/workspace/src/index.ts');
-  });
-
   it('matches plugin files case-insensitively for targeted refreshes', () => {
     expect(supportsWorkspaceIndexPluginExtension(['.TS'], '.ts')).toBe(true);
     expect(

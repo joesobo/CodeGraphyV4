@@ -108,7 +108,12 @@ describe('plugin routing', () => {
             coreAnalyzeFileResult,
           );
 
-          expect(coreAnalyzeFileResult).toHaveBeenCalledWith('src/app.ts', 'content', '/ws');
+          expect(coreAnalyzeFileResult).toHaveBeenCalledWith(
+            'src/app.ts',
+            'content',
+            '/ws',
+            expect.objectContaining({ mode: 'workspace' }),
+          );
           expect(result).toEqual([{
             kind: 'reference',
             pluginId: undefined,

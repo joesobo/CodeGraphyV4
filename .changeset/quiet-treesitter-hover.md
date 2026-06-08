@@ -1,5 +1,6 @@
 ---
 "@codegraphy-dev/core": patch
+"@codegraphy-dev/extension": patch
 ---
 
-Stop showing Tree-sitter as a plugin in file hover metadata.
+Model Tree-sitter as core analysis instead of a plugin so hover and plugin UI metadata only show real plugin contributions.

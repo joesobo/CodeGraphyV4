@@ -23,7 +23,7 @@ const queryData: GraphQueryData = {
   relations: [
     {
       kind: 'import',
-      sourceId: 'codegraphy.treesitter:import',
+      sourceId: 'core:treesitter:import',
       fromFilePath: 'a.ts',
       toFilePath: 'b.ts',
       toSymbolId: 'b.ts#Thing',

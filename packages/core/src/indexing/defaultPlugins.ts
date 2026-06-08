@@ -1,6 +1,6 @@
 import type { CorePluginRegistry } from '../plugins/registry';
 import { loadBundledMarkdownPlugin } from '../plugins/markdown/runtime';
-import { createTreeSitterPlugin } from '../treeSitter/plugin';
+import { analyzeFileWithCoreTreeSitter } from '../treeSitter/core';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
@@ -42,7 +42,7 @@ export async function registerDefaultIndexPlugins(
   settings: CodeGraphyWorkspaceSettings,
 ): Promise<void> {
   if (options.includeCorePlugins !== false) {
-    registry.register(createTreeSitterPlugin(), { builtIn: true });
+    registry.setCoreAnalyzeFileResult(analyzeFileWithCoreTreeSitter);
   }
 
   if (shouldRegisterDefaultMarkdownPlugin(options, settings)) {

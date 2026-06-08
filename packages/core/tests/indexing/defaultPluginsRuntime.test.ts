@@ -20,9 +20,13 @@ describe('indexing/defaultPlugins runtime loading', () => {
       createDefaultCodeGraphyWorkspaceSettings,
     } = await import('../../src/workspace/settingsDefaults');
     const registered: string[] = [];
+    let coreAnalyzerRegistered = false;
     const registry = {
       register(plugin: IPlugin) {
         registered.push(plugin.id);
+      },
+      setCoreAnalyzeFileResult() {
+        coreAnalyzerRegistered = true;
       },
     } as unknown as CorePluginRegistry;
 
@@ -38,6 +42,7 @@ describe('indexing/defaultPlugins runtime loading', () => {
       },
     );
 
-    expect(registered).toEqual(['codegraphy.treesitter']);
+    expect(registered).toEqual([]);
+    expect(coreAnalyzerRegistered).toBe(true);
   });
 });
