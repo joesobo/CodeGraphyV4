@@ -25,6 +25,7 @@ function readExtensionManifest() {
           initialSize?: number;
           size?: number;
           visibility?: string;
+          when?: string;
         }>;
       };
     };
@@ -62,12 +63,13 @@ describe('extension manifest', () => {
   it('declares a compact search view above the graph view', () => {
     const { manifest } = readExtensionManifest();
     const views = manifest.contributes?.views?.codegraphy ?? [];
-    const searchView = views.find(entry => entry.id === 'codegraphy.searchView');
+    const searchView = views.find(entry => entry.id === 'codegraphy.searchControlsView');
     const graphView = views.find(entry => entry.id === 'codegraphy.graphView');
 
     expect(searchView).toBeDefined();
     expect(searchView?.type).toBe('webview');
     expect(searchView?.name).toBe('Search');
+    expect(searchView?.when).toBe('codegraphy.searchControlsVisible');
     expect(searchView?.initialSize).toBe(1);
     expect(searchView?.size).toBeUndefined();
     expect(views.indexOf(searchView!)).toBeLessThan(views.indexOf(graphView!));

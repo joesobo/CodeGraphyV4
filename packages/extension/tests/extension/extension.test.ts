@@ -32,7 +32,7 @@ describe('Extension', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
       expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
-        'codegraphy.searchView',
+        'codegraphy.searchControlsView',
         expect.any(Object),
         { webviewOptions: { retainContextWhenHidden: true } }
       );
@@ -45,6 +45,16 @@ describe('Extension', () => {
         'codegraphy.timelineView',
         expect.any(Object),
         { webviewOptions: { retainContextWhenHidden: true } }
+      );
+    });
+
+    it('hides the search controls until the graph view is ready', () => {
+      activate(mockContext as unknown as Parameters<typeof activate>[0]);
+
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'setContext',
+        'codegraphy.searchControlsVisible',
+        false
       );
     });
 

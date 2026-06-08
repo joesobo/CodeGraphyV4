@@ -45,6 +45,11 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     context: { workspaceFolders: vscode.workspace.workspaceFolders?.length ?? 0 },
   });
   const provider = new GraphViewProvider(context.extensionUri, context);
+  void vscode.commands.executeCommand(
+    'setContext',
+    GraphViewProvider.searchControlsVisibleContext,
+    false,
+  );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
