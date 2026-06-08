@@ -358,6 +358,30 @@ describe('PluginRegistry collection', () => {
     });
   });
 
+  it('passes only each plugin applicable workspace files into graph scope capabilities', () => {
+    const registry = createConfiguredRegistry();
+    const readTypeScriptCapabilities = vi.fn(() => ({ edgeTypes: ['import'] }) as const);
+    const readSvelteCapabilities = vi.fn(() => ({ edgeTypes: ['call'] }) as const);
+
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: readTypeScriptCapabilities,
+    }));
+    registry.register(createMockPlugin({
+      id: 'svelte',
+      supportedExtensions: ['.svelte'],
+      contributeGraphScopeCapabilities: readSvelteCapabilities,
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts', 'src/App.svelte'])).toEqual({
+      nodeTypes: [],
+      edgeTypes: ['import', 'call'],
+    });
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({ filePaths: ['src/app.ts'] });
+    expect(readSvelteCapabilities).toHaveBeenCalledWith({ filePaths: ['src/App.svelte'] });
+  });
+
   it('deduplicates graph scope capabilities when multiple applicable plugins declare the same kind', () => {
     const registry = createConfiguredRegistry();
     registry.register(createMockPlugin({

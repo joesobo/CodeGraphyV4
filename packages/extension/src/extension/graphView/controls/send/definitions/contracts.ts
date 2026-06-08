@@ -6,6 +6,7 @@ export interface GraphNodeTypeLike {
   defaultColor: string;
   defaultVisible: boolean;
   description?: GraphTypeDescriptionLike;
+  parentId?: string;
 }
 
 export interface GraphEdgeTypeLike {

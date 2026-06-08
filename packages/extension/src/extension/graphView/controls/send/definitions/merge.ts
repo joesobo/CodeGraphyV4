@@ -28,7 +28,7 @@ export function mergeNodeTypes(
   configuredNodeColors: Record<string, string>,
   nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[] = [],
 ): IGraphNodeTypeDefinition[] {
-  const availableNodeTypes = collectAvailableNodeTypes(nodeTypeCapabilities);
+  const availableNodeTypes = collectAvailableNodeTypes(nodeTypeCapabilities, pluginNodeTypes);
   const definitions = new Map<string, IGraphNodeTypeDefinition>();
 
   for (const definition of CORE_GRAPH_NODE_TYPES) {
@@ -61,16 +61,26 @@ export function mergeNodeTypes(
 
 function collectAvailableNodeTypes(
   nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[],
+  pluginNodeTypes: readonly GraphNodeTypeLike[],
 ): Set<string> {
   const availableNodeTypes = new Set<string>(STRUCTURAL_NODE_TYPE_IDS);
+  const definitions = [...CORE_GRAPH_NODE_TYPES, ...pluginNodeTypes];
 
   for (const nodeType of nodeTypeCapabilities) {
     availableNodeTypes.add(nodeType);
   }
 
-  for (const definition of CORE_GRAPH_NODE_TYPES) {
-    if (definition.parentId && availableNodeTypes.has(definition.id)) {
+  let changed = true;
+  while (changed) {
+    changed = false;
+
+    for (const definition of definitions) {
+      if (!definition.parentId || !availableNodeTypes.has(definition.id) || availableNodeTypes.has(definition.parentId)) {
+        continue;
+      }
+
       availableNodeTypes.add(definition.parentId);
+      changed = true;
     }
   }
 

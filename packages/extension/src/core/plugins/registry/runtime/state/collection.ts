@@ -156,7 +156,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     filePaths: readonly string[] = [],
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): Required<IPluginGraphScopeCapabilities> {
-    const applicablePluginIds = new Set<string>();
+    const applicableFilePathsByPluginId = new Map<string, string[]>();
 
     for (const filePath of filePaths) {
       for (const plugin of getPluginsForFile(filePath, this._plugins, this._extensionMap)) {
@@ -164,15 +164,17 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
           continue;
         }
 
-        applicablePluginIds.add(plugin.id);
+        const pluginFilePaths = applicableFilePathsByPluginId.get(plugin.id) ?? [];
+        pluginFilePaths.push(filePath);
+        applicableFilePathsByPluginId.set(plugin.id, pluginFilePaths);
       }
     }
 
     const nodeTypes = new Set<string>();
     const edgeTypes = new Set<GraphEdgeKind>();
-    for (const pluginId of applicablePluginIds) {
+    for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
       const plugin = this._plugins.get(pluginId)?.plugin;
-      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths });
+      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
       for (const nodeType of capabilities?.nodeTypes ?? []) {
         nodeTypes.add(nodeType);
       }

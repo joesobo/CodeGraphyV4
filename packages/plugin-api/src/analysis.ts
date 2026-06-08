@@ -13,6 +13,7 @@ export interface IPluginNodeType {
   defaultColor: string;
   defaultVisible: boolean;
   description?: IPluginGraphTypeDescription;
+  parentId?: NodeType;
 }
 
 export interface IPluginEdgeType {

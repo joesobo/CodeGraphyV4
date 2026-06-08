@@ -11,6 +11,9 @@ export function createSveltePlugin(): IPlugin {
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
     fileColors: manifest.fileColors,
+    contributeGraphScopeCapabilities: () => ({
+      edgeTypes: ['import', 'type-import', 'call'],
+    }),
     analyzeFile(filePath: string, content: string): Promise<IFileAnalysisResult> {
       return Promise.resolve(analyzeSvelteComponent(filePath, content));
     },
