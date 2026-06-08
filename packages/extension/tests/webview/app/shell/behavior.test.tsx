@@ -232,8 +232,6 @@ describe('App behavior', () => {
 
       expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/App.ts');
       expect(screen.getByTestId('graph-edge-ids')).toHaveTextContent('');
-      expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-result-count', '1');
-      expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-total-count', '2');
     });
 
 
@@ -353,8 +351,6 @@ describe('App behavior', () => {
       render(<App />);
 
       expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('');
-      expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-result-count', '0');
-      expect(screen.getByTestId('mock-search-bar').getAttribute('data-regex-error')).toMatch(/unterminated|invalid|character/i);
     });
 
 
@@ -379,7 +375,7 @@ describe('App behavior', () => {
 
 
 
-    it('updates search query and search options through SearchBar callbacks', async () => {
+    it('updates graph filtering from host-owned search state', async () => {
       graphStore.setState({
         graphData: {
           nodes: [
@@ -393,11 +389,12 @@ describe('App behavior', () => {
       render(<App />);
 
       await act(async () => {
-        (harness.searchBarProps?.onChange as ((value: string) => void))('Todo');
-        (harness.searchBarProps?.onOptionsChange as ((value: { matchCase: boolean; wholeWord: boolean; regex: boolean }) => void))({
-          matchCase: true,
-          wholeWord: false,
-          regex: false,
+        sendAppMessage({
+          type: 'SEARCH_STATE_UPDATED',
+          payload: {
+            query: 'Todo',
+            options: { matchCase: true, wholeWord: false, regex: false },
+          },
         });
       });
 
