@@ -240,12 +240,12 @@ describe('App (mutation targets)', () => {
     expect(screen.queryByTestId('timeline')).not.toBeInTheDocument();
   });
 
-  it('keeps search controls out of the graph view when graph data is available', () => {
+  it('renders compact search controls with the graph view when graph data is available', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
     });
     render(<App />);
-    expect(screen.queryByTestId('mock-search-bar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('mock-search-bar')).toBeInTheDocument();
   });
 
   it('sets up message listener on mount and cleans up on unmount', () => {
@@ -408,11 +408,11 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
     expect(screen.getByTestId('graph-node-count')).toHaveTextContent('1');
   });
 
-  it('does not render the search bar when graphData is null', () => {
+  it('keeps the search bar available when graphData is null', () => {
     graphStore.setState({
       graphData: null,
     });
     render(<App />);
-    expect(screen.queryByTestId('mock-search-bar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('mock-search-bar')).toBeInTheDocument();
   });
 });

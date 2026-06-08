@@ -287,12 +287,12 @@ Color that encodes Relationship Graph meaning, such as Node Type, Edge Type, Leg
 _Avoid_: Chrome color, brand color
 
 **Graph View**:
-The CodeGraphy view where users interact with the Visible Graph, graph-local controls, the Active File breadcrumb, and graph-local panels or prompts.
+The CodeGraphy view where users edit the compact Search Surface, interact with the Visible Graph, use graph-local controls, see the Active File breadcrumb, and open graph-local panels or prompts.
 _Avoid_: Visible graph
 
-**Search View**:
-The CodeGraphy view where users edit temporary **Search** text and persistent **Filter** controls for the current CodeGraphy Workspace. Search state is owned by the extension host and replayed to CodeGraphy webviews so the **Search View** can stay usable while the **Graph View** reloads graph data.
-_Avoid_: Graph View header, filter panel when referring to the native VS Code view container
+**Search Surface**:
+The compact top surface inside the **Graph View** where users edit temporary **Search** text and persistent **Filter** controls for the current CodeGraphy Workspace. Search state is owned by the extension host and replayed to CodeGraphy webviews so the **Search Surface** can stay usable while graph data reloads.
+_Avoid_: Native Search View, Graph Tool Rail, filter panel when referring to the top search/filter controls
 
 **Graph Stage**:
 The themed canvas surface inside the **Graph View** where the **Relationship Graph** is rendered. The Graph Stage may use a dedicated CodeGraphy surface token for graph readability, but that token must be derived from the active VS Code theme.
@@ -574,8 +574,8 @@ _Avoid_: Graph export
 - **Refresh** only reruns the force graph simulation and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
 - The Graph View can show `Loading graph...` before the first graph render for a webview page. After the first render, later **Graph Cache Sync**, **Live Update**, or **Re-index** work should keep the current **Visible Graph** rendered and use graph-local progress.
-- CodeGraphy has three sidebar **Views**: the **Search View**, the **Graph View**, and the **Timeline View**.
-- The **Search View** contains **Search** and **Filter** controls. The **Graph View** contains the **Visible Graph**, graph-local popups, settings UI, and overlay controls.
+- CodeGraphy has two sidebar **Views**: the **Graph View** and the **Timeline View**.
+- The **Graph View** contains the compact **Search Surface**, the **Visible Graph**, graph-local popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
 - **VS Code Theme Integration** is the top UI rule: extension chrome should inherit the active VS Code theme through CodeGraphy/shadcn semantic tokens before applying CodeGraphy-specific styling.
 - UI cleanup should establish the VS Code token bridge and local CodeGraphy UI-kit primitives before reshaping individual surfaces such as the **Graph Tool Rail**, **Search**, **Filter**, **Settings**, and **Graph Panels**.
@@ -594,26 +594,26 @@ _Avoid_: Graph export
 - When **Graph Data Color** has poor contrast on the themed **Graph Stage**, CodeGraphy should preserve the semantic color when possible and add theme-aware support treatments such as outlines, label colors, selection rings, or edge strokes. Mutating graph-data colors should be a final readability fallback.
 - Graph contrast and readability decisions should live in one graph theme or appearance adapter that receives resolved CodeGraphy CSS tokens and **Graph Data Colors**, then outputs concrete render colors and support treatments. Individual renderers should consume that appearance model instead of owning separate contrast rules.
 - The **Graph Stage** should be a VS Code-derived graph surface, not a hardcoded dark or light canvas.
-- The **Search View** surface is for temporary **Search** and find-style controls; it should not be moved into the **Graph Tool Rail**.
-- Search option controls such as match case, whole word, and regex should stay visible inline in the **Search View** surface, styled as VS Code-like search option buttons rather than hidden in a popover.
-- **Filter** access should stay attached to the **Search View** surface but remain visually distinct from temporary **Search** options; the trigger should use icon-and-count chrome, with the full Filter label/title inside the popup or expanded surface.
-- The **Search View** **Search** field and expanded **Filter** surface should share one VS Code-like container rather than appearing as detached bands.
+- The **Search Surface** is for temporary **Search** and find-style controls; it should not be moved into the **Graph Tool Rail**.
+- Search option controls such as match case, whole word, and regex should stay visible inline in the **Search Surface**, styled as VS Code-like search option buttons rather than hidden in a popover.
+- **Filter** access should stay attached to the **Search Surface** but remain visually distinct from temporary **Search** options; the trigger should use icon-and-count chrome, with the full Filter label/title inside the popup or expanded surface.
+- The **Search Surface** **Search** field and expanded **Filter** surface should share one VS Code-like container rather than appearing as detached bands.
 - The shared **Search** and **Filter** container should use the same uniform CodeGraphy shadcn/Radix density as the rest of the UI while borrowing VS Code Search structure and theme integration; do not introduce a special compact density for this surface.
 - **Search** and **Filter** controls should reuse the same local CodeGraphy Button and Input variants as panels and settings. The shared top container may define its own layout wrapper and token bridge, but it should not fork component variants for this surface.
 - The **Filter** popup or expanded surface should borrow from VS Code Search by presenting Include and Exclude sections, while keeping those values as persistent **Filter Settings** rather than temporary **Search** text.
 - The first **Filter Setting** UI should aim for feature parity with VS Code Search's include/exclude pattern fields, not graph-aware criteria. Node and edge type eligibility remains **Graph Scope**, plugin enablement remains **Plugins**, and temporary text matching remains **Search**.
-- The **Filter** surface should expand inline under the **Search View** search field, like VS Code Search, and provide a clean rule-management area for built-in, plugin-contributed, and custom **Filter Rules**.
-- Expanding the shared **Search** and **Filter** container should stay inside the native **Search View** layout instead of overlaying the **Graph Stage**.
-- The expanded **Filter** area's bounded max height should be responsive to the **Search View** height rather than a single fixed size.
+- The **Filter** surface should expand inline under the **Search Surface** search field, like VS Code Search, and provide a clean rule-management area for built-in, plugin-contributed, and custom **Filter Rules**.
+- Expanding the shared **Search** and **Filter** container should stay inside the **Graph View** top layout instead of overlaying the **Graph Stage**.
+- The expanded **Filter** area's bounded max height should be responsive to the **Graph View** height rather than a single fixed size.
 - Built-in and plugin-contributed **Filter Rules** are source-owned and should not be directly editable. Users can enable or disable them; editing creates a custom user-owned **Filter Rule Override** or copy.
 - Disabled **Filter Rules** should stay in place within their Include or Exclude list and use normal disabled styling, such as lower-contrast text and subdued controls, instead of moving into a separate disabled section.
 - **Filter Rule** origins should use both subtle visible labels and tooltips: small labels such as Default, a plugin name, or User appear when row space allows, while the tooltip always gives the full source.
 - Expanded Include and Exclude sections should each keep an always-visible inline input for adding custom **Filter Rules**, matching VS Code Search's pattern-entry feel rather than hiding rule creation behind an add button.
 - The **Filter** trigger count should show all enabled **Filter Rules**, regardless of origin, because those are the rules currently affecting the graph.
 - The expanded **Filter** surface should break enabled-rule counts down by Include and Exclude sections, while the collapsed trigger keeps a single total count.
-- The expanded or collapsed state of the **Filter** surface should be remembered as UI state across **Search View** sessions; it is not workspace-local graph behavior and should not persist in `.codegraphy/settings.json`.
+- The expanded or collapsed state of the **Filter** surface should be remembered as UI state across **Graph View** sessions; it is not workspace-local graph behavior and should not persist in `.codegraphy/settings.json`.
 - Include and Exclude rule-list sections inside the expanded **Filter** surface should default collapsed.
-- Include and Exclude rule-list section open or closed state should also be remembered as UI state across **Search View** sessions, not persisted in `.codegraphy/settings.json`.
+- Include and Exclude rule-list section open or closed state should also be remembered as UI state across **Graph View** sessions, not persisted in `.codegraphy/settings.json`.
 - Adding an Include or Exclude **Filter Rule** should require expanding that section first; collapsed section headers are quiet summaries, not editing surfaces.
 - Collapsed Include and Exclude section headers should show enabled-rule counts plus subtle status markers for conflicts or invalid drafts. They should not surface neutral per-rule no-match metadata such as "0 matches".
 - Conflict and invalid-draft markers in collapsed Include and Exclude headers should be icon-only with tooltips; fuller text feedback belongs in expanded rows.
@@ -627,7 +627,7 @@ _Avoid_: Graph export
 - Custom user **Filter Rules** should edit inline in their row for simple path/glob pattern changes, preserving the lightweight VS Code Search feel.
 - Inline **Filter Rule** edits should apply on Enter or blur, and Escape should cancel the edit, so partial pattern typing does not continuously reshape the graph.
 - Always-visible Include and Exclude add inputs should create a new custom **Filter Rule** only on Enter. Blur should not create a rule, even when the draft pattern is valid, because accidentally leaving the input should not mutate persistent filters.
-- Add-input drafts should survive collapsing and reopening the expanded **Filter** surface during the current **Search View** session, but drafts are UI state only and should never persist to `.codegraphy/settings.json` until Enter creates a **Filter Rule**.
+- Add-input drafts should survive collapsing and reopening the expanded **Filter** surface during the current **Graph View** session, but drafts are UI state only and should never persist to `.codegraphy/settings.json` until Enter creates a **Filter Rule**.
 - A valid **Filter Rule** that currently matches no graph items is allowed because it may be preparing for future files, another branch, or a different **Timeline Snapshot**. No-match is not the same as invalid pattern syntax.
 - A **Filter Rule** should be rejected only when it is empty or the chosen matcher cannot parse it. Weird but parseable patterns are allowed, even if they match nothing.
 - The expanded **Filter** surface should show subtle per-rule match metadata such as "0 matches" or "12 matches". Match metadata is neutral information, not a warning when the count is zero.
