@@ -32,6 +32,7 @@ interface AcceptanceInstalledPluginRecord {
 
 export function acceptancePluginPackageRelativePathsForExample(exampleName: string | undefined): string[] {
   switch (exampleName) {
+    case 'example-javascript':
     case 'example-typescript':
       return ['packages/plugin-typescript'];
     case 'example-godot':
