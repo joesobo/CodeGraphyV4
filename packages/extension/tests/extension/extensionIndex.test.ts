@@ -53,7 +53,7 @@ describe('extension activate API', () => {
     activate(mockContext as never);
 
     expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
-      'codegraphy.searchView',
+      'codegraphy.searchControlsView',
       expect.any(Object),
       { webviewOptions: { retainContextWhenHidden: true } }
     );

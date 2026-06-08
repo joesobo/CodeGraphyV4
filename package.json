@@ -212,8 +212,9 @@
 			"codegraphy": [
 				{
 					"type": "webview",
-					"id": "codegraphy.searchView",
+					"id": "codegraphy.searchControlsView",
 					"name": "Search",
+					"when": "codegraphy.searchControlsVisible",
 					"initialSize": 1
 				},
 				{

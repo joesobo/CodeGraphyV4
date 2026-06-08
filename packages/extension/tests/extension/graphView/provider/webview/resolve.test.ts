@@ -3,6 +3,84 @@ import * as vscode from 'vscode';
 import { resolveGraphViewProviderWebviewView } from '../../../../../src/extension/graphView/provider/webview/resolve';
 
 describe('graphView/provider/webview/resolve', () => {
+  it('reveals the search controls after the visible graph view resolves', async () => {
+    vi.useFakeTimers();
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const executeCommand = vi.fn(() => Promise.resolve(undefined));
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<graph html />'),
+      executeCommand,
+      getWorkspaceTitle: vi.fn(() => 'CodeGraphyV4'),
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    expect(executeCommand).not.toHaveBeenCalledWith(
+      'setContext',
+      'codegraphy.searchControlsVisible',
+      true
+    );
+
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(executeCommand).toHaveBeenCalledWith(
+      'setContext',
+      'codegraphy.searchControlsVisible',
+      true
+    );
+    vi.useRealTimers();
+  });
+
+  it('does not reveal the search controls when the search view resolves', async () => {
+    vi.useFakeTimers();
+    const webviewView = {
+      viewType: 'codegraphy.searchControlsView',
+      webview: {},
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const executeCommand = vi.fn(() => Promise.resolve(undefined));
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _searchView: undefined,
+      _view: undefined,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<search html />'),
+      executeCommand,
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(executeCommand).not.toHaveBeenCalledWith(
+      'setContext',
+      'codegraphy.searchControlsVisible',
+      true
+    );
+    vi.useRealTimers();
+  });
+
   it('titles the graph view with the current workspace name', () => {
     const webviewView = {
       viewType: 'codegraphy.graphView',
@@ -205,7 +283,7 @@ describe('graphView/provider/webview/resolve', () => {
       html: '',
     } as unknown as vscode.Webview;
     const webviewView = {
-      viewType: 'codegraphy.searchView',
+      viewType: 'codegraphy.searchControlsView',
       webview,
       visible: true,
       onDidChangeVisibility: vi.fn(() => undefined),
