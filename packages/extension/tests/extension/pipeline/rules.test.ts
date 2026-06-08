@@ -256,7 +256,7 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable the metadata-only Python plugin. Tree-sitter-owned edges should remain unchanged.
+      // Disable the metadata-only Python plugin. Core Tree-sitter edges should remain unchanged.
       const disabledPlugins = new Set(['codegraphy.python']);
       const result = analyzer.rebuildGraph(disabledPlugins, true);
 

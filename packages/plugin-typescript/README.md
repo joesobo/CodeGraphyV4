@@ -18,7 +18,7 @@ codegraphy index
 
 ## What It Provides
 
-The built-in Tree-sitter plugin now handles JS/TS analysis inside `@codegraphy-dev/core`.
+Core Tree-sitter Analysis now handles JS/TS analysis inside `@codegraphy-dev/core`.
 This plugin contributes TypeScript project-aware analysis and TypeScript/JavaScript
 ecosystem defaults on top:
 
