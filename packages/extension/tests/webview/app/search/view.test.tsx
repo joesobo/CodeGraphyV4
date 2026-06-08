@@ -104,7 +104,7 @@ describe('SearchApp', () => {
 
     expect(screen.getByTestId('mock-search-bar')).toBeInTheDocument();
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(container.firstElementChild).toHaveClass('min-h-0');
+    expect(container.firstElementChild).toHaveClass('flex', 'h-screen', 'items-end');
     expect(harness.searchBarProps?.filterPopover).toMatchObject({
       customPatterns: [],
       open: false,
