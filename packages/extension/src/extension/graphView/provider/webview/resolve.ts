@@ -16,12 +16,14 @@ function assignResolvedWebviewView(
   source: GraphViewProviderWebviewResolveSource,
   webviewView: vscode.WebviewView,
   isTimelineView: boolean,
+  workspaceTitle: string | undefined,
 ): void {
   if (isTimelineView) {
     source._timelineView = webviewView;
     return;
   }
 
+  webviewView.title = workspaceTitle ?? 'Graph';
   source._view = webviewView;
 }
 
@@ -53,12 +55,17 @@ export function resolveGraphViewProviderWebviewView(
   source: GraphViewProviderWebviewResolveSource,
   dependencies: Pick<
     GraphViewProviderWebviewMethodDependencies,
-    'createHtml' | 'executeCommand' | 'resolveWebviewView' | 'setWebviewMessageListener'
+    'createHtml' | 'executeCommand' | 'getWorkspaceTitle' | 'resolveWebviewView' | 'setWebviewMessageListener'
   >,
   webviewView: vscode.WebviewView,
 ): void {
   const isTimelineView = isTimelineWebviewView(webviewView);
-  assignResolvedWebviewView(source, webviewView, isTimelineView);
+  assignResolvedWebviewView(
+    source,
+    webviewView,
+    isTimelineView,
+    dependencies.getWorkspaceTitle?.(),
+  );
 
   webviewView.onDidDispose(() => {
     clearResolvedWebviewView(source, webviewView, isTimelineView);
