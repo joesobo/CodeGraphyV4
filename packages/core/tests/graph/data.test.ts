@@ -292,8 +292,7 @@ describe('core/graph/data', () => {
             }],
             relations: [{
               kind: 'inherit',
-              pluginId: 'codegraphy.treesitter',
-              sourceId: 'inherit',
+              sourceId: 'core:treesitter:inherit',
               fromFilePath: '/workspace/src/runner.ts',
               fromSymbolId: 'runner-symbol',
               specifier: 'BaseRunner',
@@ -315,7 +314,7 @@ describe('core/graph/data', () => {
         churnCounts: {},
         nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
-        getPluginForFile: () => createPlugin('codegraphy.treesitter'),
+        getPluginForFile: () => undefined,
       });
 
       expect(graph.edges).toEqual(expect.arrayContaining([

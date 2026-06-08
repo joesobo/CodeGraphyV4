@@ -55,14 +55,14 @@ describe('treeSitter/analyzeScala', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'com.example.base.BaseRunner',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/base/BaseRunner.scala'),
       }),
       expect.objectContaining({
         kind: 'inherit',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/base/BaseRunner.scala'),
@@ -106,28 +106,28 @@ describe('treeSitter/analyzeScala', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'UserService',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/service/UserService.scala'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'DashboardView',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/view/DashboardView.scala'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'AppRunner',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/app/AppRunner.scala'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'User',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/model/User.scala'),
@@ -160,14 +160,14 @@ describe('treeSitter/analyzeScala', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'UserService',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/service/UserService.scala'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'DashboardView',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/main/scala/com/example/view/DashboardView.scala'),

@@ -52,10 +52,7 @@ export function normalizeAnalysisResult(
 ): IFileAnalysisResult {
   return {
     filePath,
-    relations: relations.map((relation) => ({
-      ...relation,
-      pluginId: 'codegraphy.treesitter',
-    })),
+    relations,
     symbols,
   };
 }

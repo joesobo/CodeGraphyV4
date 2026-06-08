@@ -59,8 +59,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'com.example.base.BaseRunner',
         fromFilePath: appPath,
         resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/base/BaseRunner.kt'),
@@ -68,8 +67,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'kotlin.collections.List',
         fromFilePath: appPath,
         resolvedPath: null,
@@ -77,8 +75,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: appPath,
         resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/base/BaseRunner.kt'),
@@ -86,8 +83,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'RunnableThing',
         fromFilePath: appPath,
         resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/base/RunnableThing.kt'),
@@ -125,8 +121,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'boot',
         fromFilePath: mainPath,
         fromSymbolId: `${mainPath}:function:main`,
