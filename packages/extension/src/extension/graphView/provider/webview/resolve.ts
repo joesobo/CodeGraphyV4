@@ -91,11 +91,11 @@ function compactSearchView(
 
   source._searchViewCompacted = true;
   void (async () => {
-    await dependencies.executeCommand('codegraphy.searchView.focus');
+    await dependencies.executeCommand('workbench.action.openView', 'codegraphy.searchView');
     for (let index = 0; index < SEARCH_VIEW_DECREASE_STEPS; index += 1) {
       await dependencies.executeCommand('workbench.action.decreaseViewSize');
     }
-    await dependencies.executeCommand('codegraphy.graphView.focus');
+    await dependencies.executeCommand('workbench.action.openView', 'codegraphy.graphView');
   })().catch(() => undefined);
 }
 

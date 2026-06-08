@@ -178,12 +178,14 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I have indexed the workspace': async (context, step) => {
-    await graphStage(requireGraphFrame(context)).screenshot().then(image => {
+    const frame = requireGraphFrame(context);
+    await graphStage(frame).screenshot().then(image => {
       context.beforeIndexStageImage = image;
     });
-    await requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' }).click();
+    await closePanelIfOpen(frame);
+    await frame.getByRole('button', { name: 'Index Workspace' }).click();
     await expect(
-      requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
+      frame.getByRole('progressbar', { name: 'Indexing progress' }),
     ).toBeHidden({ timeout: 30_000 });
     await applyExampleScenarioStartingUiState(context, step.sourcePath);
     await applyPostIndexScenarioStartingUiState(context, step.sourcePath);
@@ -778,7 +780,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the legend group text should be prefilled with "(.+)"$/, async (context, _step, match) => {
     const frame = requireGraphFrame(context);
     await expectInputValue(frame, match[1]);
-    await frame.getByRole('button', { name: 'Cancel' }).click();
+    await frame.getByRole('button', { name: 'Cancel' }).click({ force: true });
     await expect(frame.getByText('Add Legend Group', { exact: true })).toBeHidden({ timeout: 5_000 });
   }),
 
