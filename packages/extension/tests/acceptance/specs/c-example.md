@@ -45,7 +45,7 @@ Given I open the examples/example-c workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 Then I see graph nodes
-And I toggle the Function, Struct, Enum, and Type node on
+And I toggle the Function, Struct, Enum and Type node on
 And I toggle the Contains edge on
 Then I can see there are 25 nodes and 27 connections
 
