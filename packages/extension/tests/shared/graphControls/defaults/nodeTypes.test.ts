@@ -47,6 +47,20 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['function', 'method'],
       },
       {
+        id: 'symbol:include',
+        label: 'Include',
+        defaultColor: '#38BDF8',
+        defaultVisible: false,
+        parentId: 'symbol',
+      },
+      {
+        id: 'symbol:prototype',
+        label: 'Prototype',
+        defaultColor: '#A78BFA',
+        defaultVisible: false,
+        parentId: 'symbol',
+      },
+      {
         id: 'symbol:class',
         label: 'Class',
         defaultColor: '#3B82F6',
@@ -75,9 +89,23 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         parentId: 'symbol',
       },
       {
+        id: 'symbol:union',
+        label: 'Union',
+        defaultColor: '#14B8A6',
+        defaultVisible: false,
+        parentId: 'symbol',
+      },
+      {
         id: 'symbol:enum',
         label: 'Enum',
         defaultColor: '#F59E0B',
+        defaultVisible: false,
+        parentId: 'symbol',
+      },
+      {
+        id: 'symbol:typedef',
+        label: 'Typedef',
+        defaultColor: '#F472B6',
         defaultVisible: false,
         parentId: 'symbol',
       },
@@ -91,6 +119,13 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         id: 'symbol:constant',
         label: 'Constant',
         defaultColor: '#22C55E',
+        defaultVisible: false,
+        parentId: 'variable',
+      },
+      {
+        id: 'symbol:global',
+        label: 'Global',
+        defaultColor: '#0D9488',
         defaultVisible: false,
         parentId: 'variable',
       },
@@ -113,6 +148,10 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
       .toBe('src/components/Button.tsx');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:function')?.description?.examples?.[0]?.code)
       .toBe('function parseSettings() {}');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:prototype')?.description?.examples?.[0]?.code)
+      .toBe('void logger_flush(Logger *logger);');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:global')?.description?.examples?.[0]?.code)
+      .toBe('static int logger_output_enabled = 1;');
     expect(CORE_GRAPH_NODE_TYPES).toEqual(createCoreGraphNodeTypes());
   });
 });

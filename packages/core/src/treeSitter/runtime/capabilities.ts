@@ -4,6 +4,11 @@ import { getFileExtension, type TreeSitterLanguageKind } from './languages/catal
 
 type TreeSitterCapabilityLanguageKind = TreeSitterLanguageKind | 'pascal';
 
+interface TreeSitterCapabilityContext {
+  hasCSource: boolean;
+  hasObjectiveCSource: boolean;
+}
+
 const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
   'import',
   'reference',
@@ -43,9 +48,10 @@ export function listTreeSitterEdgeTypeCapabilities(
   }
 
   const capabilities = new Set<GraphEdgeKind>();
+  const context = createTreeSitterCapabilityContext(filePaths);
 
   for (const filePath of filePaths) {
-    for (const capability of readTreeSitterLanguageCapabilities(filePath)) {
+    for (const capability of readTreeSitterLanguageCapabilities(filePath, context)) {
       capabilities.add(capability);
     }
   }
@@ -53,7 +59,23 @@ export function listTreeSitterEdgeTypeCapabilities(
   return [...capabilities];
 }
 
-function readTreeSitterLanguageCapabilities(filePath: string): readonly GraphEdgeKind[] {
+function createTreeSitterCapabilityContext(filePaths: readonly string[]): TreeSitterCapabilityContext {
+  const extensions = new Set(filePaths.map(getFileExtension));
+  return {
+    hasCSource: extensions.has('.c'),
+    hasObjectiveCSource: extensions.has('.m') || extensions.has('.mm'),
+  };
+}
+
+function readTreeSitterLanguageCapabilities(
+  filePath: string,
+  context: TreeSitterCapabilityContext,
+): readonly GraphEdgeKind[] {
+  const extension = getFileExtension(filePath);
+  if (extension === '.h' && context.hasObjectiveCSource && !context.hasCSource) {
+    return TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE.objectiveC;
+  }
+
   const languageKind = getTreeSitterCapabilityLanguageKind(filePath);
   return languageKind
     ? TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE[languageKind]

@@ -29,4 +29,16 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'inherit',
     ]);
   });
+
+  it('does not advertise C-only header capabilities for Objective-C workspaces', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'Sources/AppDelegate.m',
+      'Sources/AppDelegate.h',
+      'Sources/Feature/UserCardView.h',
+    ])).toEqual([
+      'import',
+      'call',
+      'inherit',
+    ]);
+  });
 });
