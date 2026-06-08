@@ -11,6 +11,7 @@ import { sendGraphViewFavorites } from '../../favorites';
 interface GraphViewProviderFileInfoAnalyzerLike {
   initialize(): Promise<void>;
   getPluginNameForFile(filePath: string): string | undefined;
+  getPluginNamesForIds(pluginIds: readonly string[]): string[];
 }
 
 interface GraphViewProviderFavoritesConfigLike {
