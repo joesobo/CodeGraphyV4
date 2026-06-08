@@ -167,7 +167,10 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       }
     }
 
-    const capabilities = new Set<GraphEdgeKind>();
+    const capabilities = new Set<GraphEdgeKind>(
+      this._coreEdgeTypeCapabilitiesProvider?.(filePaths) ?? [],
+    );
+
     for (const pluginId of applicablePluginIds) {
       const plugin = this._plugins.get(pluginId)?.plugin;
       for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
@@ -194,6 +197,12 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analyzeFileResultProvider: typeof this._coreAnalyzeFileResult,
   ): void {
     this._coreAnalyzeFileResult = analyzeFileResultProvider;
+  }
+
+  setCoreEdgeTypeCapabilitiesProvider(
+    provider: typeof this._coreEdgeTypeCapabilitiesProvider,
+  ): void {
+    this._coreEdgeTypeCapabilitiesProvider = provider;
   }
 
   disposeAll(): void {
