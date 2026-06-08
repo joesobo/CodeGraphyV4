@@ -113,7 +113,7 @@ export default function SearchApp(): React.ReactElement {
   };
 
   return (
-    <div className="flex h-screen w-full items-end overflow-visible">
+    <div className="min-h-0 w-full overflow-visible">
       <SearchHeader
         searchQuery={searchQuery}
         searchOptions={searchOptions}
