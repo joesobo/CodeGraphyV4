@@ -93,7 +93,7 @@ function compactSearchView(
   void (async () => {
     await dependencies.executeCommand('workbench.action.openView', 'codegraphy.searchView');
     for (let index = 0; index < SEARCH_VIEW_DECREASE_STEPS; index += 1) {
-      await dependencies.executeCommand('workbench.action.decreaseViewSize');
+      await dependencies.executeCommand('workbench.action.decreaseViewHeight');
     }
     await dependencies.executeCommand('workbench.action.openView', 'codegraphy.graphView');
   })().catch(() => undefined);
