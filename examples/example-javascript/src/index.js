@@ -1,6 +1,6 @@
-import { formatUser } from './types.js';
+import { normalizeUserName } from './user.js';
 import { buildGreeting } from './utils.js';
 
-export const currentUser = formatUser('CodeGraphy');
+export const currentUser = normalizeUserName('CodeGraphy');
 
 console.log(buildGreeting(currentUser));

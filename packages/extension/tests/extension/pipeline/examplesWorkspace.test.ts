@@ -159,7 +159,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference:static',
       'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
       'example-javascript/src/index.js->example-javascript/src/utils.js#buildGreeting:function#import',
-      'example-javascript/src/index.js->example-javascript/src/types.js#formatUser:function#import',
+      'example-javascript/src/index.js->example-javascript/src/user.js#normalizeUserName:function#import',
       'example-javascript/src/utils.js->example-javascript/src/depth.js#getDepthTarget:function#import',
       'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
       'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
@@ -218,7 +218,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
         'example-javascript/src/utils.js',
         'example-javascript/src/depth.js',
         'example-javascript/src/leaf.js',
-        'example-javascript/src/types.js',
+        'example-javascript/src/user.js',
       ]),
     );
     expect(persistedTypeScriptFiles).toEqual(

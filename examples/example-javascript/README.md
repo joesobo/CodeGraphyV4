@@ -18,7 +18,7 @@ Suggested Depth Mode check:
 
 Expected behavior:
 
-- Depth `1` shows `src/index.js`, `src/utils.js`, and `src/types.js`.
+- Depth `1` shows `src/index.js`, `src/utils.js`, and `src/user.js`.
 - Depth `2` adds `src/depth.js`.
 - Depth `3` adds `src/leaf.js`.
 - `src/orphan.js` stays out of the focused depth area because it is an Orphan Node.

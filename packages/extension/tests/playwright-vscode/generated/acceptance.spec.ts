@@ -5657,10 +5657,10 @@ test.describe('JavaScript Example', () => {
       });
 
       // tests/acceptance/specs/javascript-example.md:20
-      await test.step('And src/index.js points to src/types.js', async () => {
-        await runAcceptanceStep(context, 'src/index.js points to src/types.js', {
+      await test.step('And src/index.js points to src/user.js', async () => {
+        await runAcceptanceStep(context, 'src/index.js points to src/user.js', {
           keyword: 'And',
-          text: 'src/index.js points to src/types.js',
+          text: 'src/index.js points to src/user.js',
           sourcePath: 'tests/acceptance/specs/javascript-example.md',
           line: 20
         });
@@ -5837,10 +5837,10 @@ test.describe('JavaScript Example', () => {
       });
 
       // tests/acceptance/specs/javascript-example.md:41
-      await test.step('And src/index.js points to src/types.js', async () => {
-        await runAcceptanceStep(context, 'src/index.js points to src/types.js', {
+      await test.step('And src/index.js points to src/user.js', async () => {
+        await runAcceptanceStep(context, 'src/index.js points to src/user.js', {
           keyword: 'And',
-          text: 'src/index.js points to src/types.js',
+          text: 'src/index.js points to src/user.js',
           sourcePath: 'tests/acceptance/specs/javascript-example.md',
           line: 41
         });
@@ -5857,10 +5857,10 @@ test.describe('JavaScript Example', () => {
       });
 
       // tests/acceptance/specs/javascript-example.md:43
-      await test.step('And src/utils.js points to src/types.js', async () => {
-        await runAcceptanceStep(context, 'src/utils.js points to src/types.js', {
+      await test.step('And src/utils.js points to src/user.js', async () => {
+        await runAcceptanceStep(context, 'src/utils.js points to src/user.js', {
           keyword: 'And',
-          text: 'src/utils.js points to src/types.js',
+          text: 'src/utils.js points to src/user.js',
           sourcePath: 'tests/acceptance/specs/javascript-example.md',
           line: 43
         });
