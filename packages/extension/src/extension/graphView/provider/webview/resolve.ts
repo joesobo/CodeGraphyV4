@@ -10,7 +10,7 @@ export interface GraphViewProviderWebviewResolveSource extends GraphViewProvider
   flushPendingWorkspaceRefresh?(): void;
 }
 
-const SEARCH_VIEW_DECREASE_STEPS = 12;
+const SEARCH_VIEW_DECREASE_STEPS = 24;
 
 function isTimelineWebviewView(webviewView: vscode.WebviewView): boolean {
   return webviewView.viewType === 'codegraphy.timelineView';
@@ -92,6 +92,7 @@ function compactSearchView(
   source._searchViewCompacted = true;
   void (async () => {
     await dependencies.executeCommand('workbench.action.openView', 'codegraphy.searchView');
+    await dependencies.executeCommand('workbench.action.focusSideBar');
     for (let index = 0; index < SEARCH_VIEW_DECREASE_STEPS; index += 1) {
       await dependencies.executeCommand('workbench.action.decreaseViewHeight');
     }
