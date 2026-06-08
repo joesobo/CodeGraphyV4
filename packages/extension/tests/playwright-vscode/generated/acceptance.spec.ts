@@ -149,11 +149,11 @@ test.describe('Background Context Menu', () => {
 });
 
 test.describe('C Example', () => {
-  test('C example renders expected file nodes and include relationships', async ({}, testInfo) => {
+  test('C example renders the tiny logger file graph', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/c-example.md',
-      scenario: 'C example renders expected file nodes and include relationships'
+      scenario: 'C example renders the tiny logger file graph'
     });
 
     try {
@@ -258,112 +258,425 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:17
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+      await test.step('Then I can see there are 8 nodes and 8 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 8 connections', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+          text: 'I can see there are 8 nodes and 8 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 17
         });
       });
 
       // tests/acceptance/specs/c-example.md:18
-      await test.step('And src/main.c points to src/math/add.h', async () => {
-        await runAcceptanceStep(context, 'src/main.c points to src/math/add.h', {
+      await test.step('And src/main.c has 2 edges pointing to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c has 2 edges pointing to src/logger/logger.h', {
           keyword: 'And',
-          text: 'src/main.c points to src/math/add.h',
+          text: 'src/main.c has 2 edges pointing to src/logger/logger.h',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/c-example.md:19
-      await test.step('And src/math/add.c points to src/math/add.h', async () => {
-        await runAcceptanceStep(context, 'src/math/add.c points to src/math/add.h', {
+      await test.step('And src/logger/logger.c points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c points to src/logger/logger.h', {
           keyword: 'And',
-          text: 'src/math/add.c points to src/math/add.h',
+          text: 'src/logger/logger.c points to src/logger/logger.h',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 19
         });
       });
 
-      // tests/acceptance/specs/c-example.md:21
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      // tests/acceptance/specs/c-example.md:20
+      await test.step('And src/logger/logger.c has 2 edges pointing to src/logger/format.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c has 2 edges pointing to src/logger/format.h', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/logger/logger.c has 2 edges pointing to src/logger/format.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:21
+      await test.step('And src/logger/format.c has 2 edges pointing to src/logger/format.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.c has 2 edges pointing to src/logger/format.h', {
+          keyword: 'And',
+          text: 'src/logger/format.c has 2 edges pointing to src/logger/format.h',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/c-example.md:22
-      await test.step('And Makefile is an orphan node', async () => {
-        await runAcceptanceStep(context, 'Makefile is an orphan node', {
+      await test.step('And src/logger/format.h points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.h points to src/logger/logger.h', {
           keyword: 'And',
-          text: 'Makefile is an orphan node',
+          text: 'src/logger/format.h points to src/logger/logger.h',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 22
         });
       });
 
-      // tests/acceptance/specs/c-example.md:23
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      // tests/acceptance/specs/c-example.md:24
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 23
+          line: 24
         });
       });
 
       // tests/acceptance/specs/c-example.md:25
-      await test.step('Then I toggle the Imports edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Imports edge off',
+      await test.step('And Makefile is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Makefile is an orphan node', {
+          keyword: 'And',
+          text: 'Makefile is an orphan node',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 25
         });
       });
 
       // tests/acceptance/specs/c-example.md:26
-      await test.step('And I toggle the Calls edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'I toggle the Calls edge on',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 26
         });
       });
 
-      // tests/acceptance/specs/c-example.md:27
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
-          sourcePath: 'tests/acceptance/specs/c-example.md',
-          line: 27
-        });
-      });
-
       // tests/acceptance/specs/c-example.md:28
-      await test.step('And src/main.c points to src/math/add.h', async () => {
-        await runAcceptanceStep(context, 'src/main.c points to src/math/add.h', {
-          keyword: 'And',
-          text: 'src/main.c points to src/math/add.h',
+      await test.step('Then I show only the Imports edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Imports edge type', {
+          keyword: 'Then',
+          text: 'I show only the Imports edge type',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/c-example.md:29
-      await test.step('And src/math/add.c points to src/math/add.h', async () => {
-        await runAcceptanceStep(context, 'src/math/add.c points to src/math/add.h', {
-          keyword: 'And',
-          text: 'src/math/add.c points to src/math/add.h',
+      await test.step('Then I can see there are 8 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 8 nodes and 5 connections',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 29
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:30
+      await test.step('And src/main.c points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/logger/logger.h', {
+          keyword: 'And',
+          text: 'src/main.c points to src/logger/logger.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:31
+      await test.step('And src/logger/logger.c points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c points to src/logger/logger.h', {
+          keyword: 'And',
+          text: 'src/logger/logger.c points to src/logger/logger.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:32
+      await test.step('And src/logger/logger.c points to src/logger/format.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c points to src/logger/format.h', {
+          keyword: 'And',
+          text: 'src/logger/logger.c points to src/logger/format.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:33
+      await test.step('And src/logger/format.c points to src/logger/format.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.c points to src/logger/format.h', {
+          keyword: 'And',
+          text: 'src/logger/format.c points to src/logger/format.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:34
+      await test.step('And src/logger/format.h points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.h points to src/logger/logger.h', {
+          keyword: 'And',
+          text: 'src/logger/format.h points to src/logger/logger.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:36
+      await test.step('Then I show only the Calls edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Calls edge type', {
+          keyword: 'Then',
+          text: 'I show only the Calls edge type',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:37
+      await test.step('Then I can see there are 8 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 8 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:38
+      await test.step('And src/main.c points to src/logger/logger.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/logger/logger.h', {
+          keyword: 'And',
+          text: 'src/main.c points to src/logger/logger.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:39
+      await test.step('And src/logger/logger.c points to src/logger/format.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c points to src/logger/format.h', {
+          keyword: 'And',
+          text: 'src/logger/logger.c points to src/logger/format.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:40
+      await test.step('And src/logger/format.c points to src/logger/format.h', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.c points to src/logger/format.h', {
+          keyword: 'And',
+          text: 'src/logger/format.c points to src/logger/format.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 40
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+
+  test('C example exposes logger symbols when symbol scope is enabled', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/c-example.md',
+      scenario: 'C example exposes logger symbols when symbol scope is enabled'
+    });
+
+    try {
+      // tests/acceptance/specs/c-example.md:44
+      await test.step('Given I open the examples/example-c workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-c workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-c workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:45
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:46
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:47
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 47
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:48
+      await test.step('And I toggle the Function, Struct, Enum, and Type node on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Function, Struct, Enum, and Type node on', {
+          keyword: 'And',
+          text: 'I toggle the Function, Struct, Enum, and Type node on',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 48
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:49
+      await test.step('And I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'And',
+          text: 'I toggle the Contains edge on',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 49
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:50
+      await test.step('Then I can see there are 25 nodes and 27 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 25 nodes and 27 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 25 nodes and 27 connections',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 50
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:52
+      await test.step('And src/main.c points to src/main.c#main:function', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/main.c#main:function', {
+          keyword: 'And',
+          text: 'src/main.c points to src/main.c#main:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 52
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:53
+      await test.step('And src/logger/logger.h points to src/logger/logger.h#Logger:struct', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.h points to src/logger/logger.h#Logger:struct', {
+          keyword: 'And',
+          text: 'src/logger/logger.h points to src/logger/logger.h#Logger:struct',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 53
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:54
+      await test.step('And src/logger/logger.h points to src/logger/logger.h#Logger:type', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.h points to src/logger/logger.h#Logger:type', {
+          keyword: 'And',
+          text: 'src/logger/logger.h points to src/logger/logger.h#Logger:type',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 54
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:55
+      await test.step('And src/logger/logger.h points to src/logger/logger.h#LogLevel:enum', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.h points to src/logger/logger.h#LogLevel:enum', {
+          keyword: 'And',
+          text: 'src/logger/logger.h points to src/logger/logger.h#LogLevel:enum',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 55
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:56
+      await test.step('And src/logger/logger.h points to src/logger/logger.h#LogLevel:type', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.h points to src/logger/logger.h#LogLevel:type', {
+          keyword: 'And',
+          text: 'src/logger/logger.h points to src/logger/logger.h#LogLevel:type',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 56
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:57
+      await test.step('And src/logger/format.h points to src/logger/format.h#LogRecord:struct', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.h points to src/logger/format.h#LogRecord:struct', {
+          keyword: 'And',
+          text: 'src/logger/format.h points to src/logger/format.h#LogRecord:struct',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 57
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:58
+      await test.step('And src/logger/format.h points to src/logger/format.h#LogRecord:type', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.h points to src/logger/format.h#LogRecord:type', {
+          keyword: 'And',
+          text: 'src/logger/format.h points to src/logger/format.h#LogRecord:type',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 58
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:59
+      await test.step('And src/logger/logger.c points to src/logger/logger.c#logger_write:function', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c points to src/logger/logger.c#logger_write:function', {
+          keyword: 'And',
+          text: 'src/logger/logger.c points to src/logger/logger.c#logger_write:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 59
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:60
+      await test.step('And src/logger/format.c points to src/logger/format.c#logger_format_line:function', async () => {
+        await runAcceptanceStep(context, 'src/logger/format.c points to src/logger/format.c#logger_format_line:function', {
+          keyword: 'And',
+          text: 'src/logger/format.c points to src/logger/format.c#logger_format_line:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 60
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:62
+      await test.step('And src/main.c#main:function points to src/logger/logger.h#logger_init:function', async () => {
+        await runAcceptanceStep(context, 'src/main.c#main:function points to src/logger/logger.h#logger_init:function', {
+          keyword: 'And',
+          text: 'src/main.c#main:function points to src/logger/logger.h#logger_init:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 62
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:63
+      await test.step('And src/main.c#main:function points to src/logger/logger.h#logger_write:function', async () => {
+        await runAcceptanceStep(context, 'src/main.c#main:function points to src/logger/logger.h#logger_write:function', {
+          keyword: 'And',
+          text: 'src/main.c#main:function points to src/logger/logger.h#logger_write:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 63
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:64
+      await test.step('And src/main.c#main:function points to src/logger/logger.h#logger_flush:function', async () => {
+        await runAcceptanceStep(context, 'src/main.c#main:function points to src/logger/logger.h#logger_flush:function', {
+          keyword: 'And',
+          text: 'src/main.c#main:function points to src/logger/logger.h#logger_flush:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 64
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:65
+      await test.step('And src/logger/logger.c#logger_write:function points to src/logger/format.h#logger_format_line:function', async () => {
+        await runAcceptanceStep(context, 'src/logger/logger.c#logger_write:function points to src/logger/format.h#logger_format_line:function', {
+          keyword: 'And',
+          text: 'src/logger/logger.c#logger_write:function points to src/logger/format.h#logger_format_line:function',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 65
         });
       });
 
