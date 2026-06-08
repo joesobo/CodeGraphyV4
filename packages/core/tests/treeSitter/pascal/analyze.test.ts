@@ -67,20 +67,20 @@ describe('treeSitter/analyzePascal', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'RunnerSupport',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'src/RunnerSupport.pas'),
       }),
       expect.objectContaining({
         kind: 'inherit',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'TBaseRunner',
         fromFilePath: filePath,
       }),
       expect.objectContaining({
         kind: 'overrides',
-        sourceId: 'codegraphy.treesitter:override',
+        sourceId: 'core:treesitter:override',
         specifier: 'Start',
         fromFilePath: filePath,
         fromSymbolId: `${filePath}:method:Start`,
@@ -150,7 +150,7 @@ describe('treeSitter/analyzePascal', () => {
     expect(mainResult?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'SampleApp',
         fromFilePath: mainPath,
         resolvedPath: path.join(workspaceRoot, 'src/SampleApp.pas'),
@@ -159,21 +159,21 @@ describe('treeSitter/analyzePascal', () => {
     expect(sampleResult?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'OrderRepository',
         fromFilePath: samplePath,
         resolvedPath: path.join(workspaceRoot, 'src/OrderRepository.pas'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'PricingService',
         fromFilePath: samplePath,
         resolvedPath: path.join(workspaceRoot, 'src/PricingService.pas'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'ReceiptView',
         fromFilePath: samplePath,
         resolvedPath: path.join(workspaceRoot, 'src/ReceiptView.pas'),

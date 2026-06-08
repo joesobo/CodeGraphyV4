@@ -74,8 +74,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'include',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'math/add.h',
         fromFilePath: mainPath,
@@ -84,8 +83,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'include',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'stdio.h',
         fromFilePath: mainPath,
@@ -131,7 +129,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'add',
         fromFilePath: mainPath,
         fromSymbolId: `${mainPath}:function:main`,
@@ -242,7 +240,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(mainResult?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'include',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'logger/logger.h',
         resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
@@ -250,7 +248,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'logger_init',
         fromSymbolId: `${mainPath}:function:main`,
         toSymbolId: `${path.join(workspaceRoot, 'src/logger/logger.h')}:prototype:logger_init`,
@@ -259,7 +257,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'logger_write',
         fromSymbolId: `${mainPath}:function:main`,
         toSymbolId: `${path.join(workspaceRoot, 'src/logger/logger.h')}:prototype:logger_write`,
@@ -268,7 +266,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'logger_flush',
         fromSymbolId: `${mainPath}:function:main`,
         toSymbolId: `${path.join(workspaceRoot, 'src/logger/logger.h')}:prototype:logger_flush`,
@@ -279,7 +277,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(loggerResult?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'include',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         fromSymbolId: `${loggerPath}:include:logger.h`,
         type: 'include',
         specifier: 'logger.h',
@@ -287,7 +285,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'include',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         fromSymbolId: `${loggerPath}:include:format.h`,
         type: 'include',
         specifier: 'format.h',
@@ -295,7 +293,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'logger_format_line',
         fromSymbolId: `${loggerPath}:function:logger_write`,
         toSymbolId: `${path.join(workspaceRoot, 'src/logger/format.h')}:prototype:logger_format_line`,
@@ -303,7 +301,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'logger_accepts',
         fromSymbolId: `${loggerPath}:function:logger_write`,
         toSymbolId: `${loggerPath}:function:logger_accepts`,

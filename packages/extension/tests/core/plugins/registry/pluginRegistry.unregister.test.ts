@@ -52,8 +52,8 @@ describe('PluginRegistry unregister', () => {
     const registry = createConfiguredRegistry();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const plugin = createMockPlugin({
-      id: 'codegraphy.treesitter',
-      name: 'Tree-sitter',
+      id: 'test.plugin',
+      name: 'Test Plugin',
     });
 
     registry.register(plugin, { builtIn: true });
@@ -62,7 +62,7 @@ describe('PluginRegistry unregister', () => {
     registry.unregister(plugin.id);
 
     expect(logSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Unregistered plugin: codegraphy.treesitter'),
+      expect.stringContaining('Unregistered plugin: test.plugin'),
     );
   });
 });

@@ -32,11 +32,6 @@ describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
         pluginData: {},
       },
       ['codegraphy.markdown'],
-    )).resolves.toEqual([
-      expect.objectContaining({
-        plugin: expect.objectContaining({ id: 'codegraphy.treesitter' }),
-        options: { builtIn: true },
-      }),
-    ]);
+    )).resolves.toEqual([]);
   });
 });

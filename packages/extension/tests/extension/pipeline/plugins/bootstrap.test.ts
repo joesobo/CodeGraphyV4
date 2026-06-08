@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  listCoreTreeSitterEdgeTypeCapabilities,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -21,6 +22,8 @@ function createRegistry() {
     initializeAll: vi.fn(async () => undefined),
     initializePlugin: vi.fn(async () => undefined),
     register: vi.fn(),
+    setCoreAnalyzeFileResult: vi.fn(),
+    setCoreEdgeTypeCapabilitiesProvider: vi.fn(),
     unregister: vi.fn(() => true),
   };
 }
@@ -249,14 +252,17 @@ describe('pipeline/plugins/bootstrap', () => {
       getWorkspaceRoot: () => workspaceRoot,
     });
 
-    expect(registry.register).toHaveBeenCalledTimes(2);
+    expect(registry.setCoreAnalyzeFileResult).toHaveBeenCalledOnce();
+    expect(registry.setCoreEdgeTypeCapabilitiesProvider).toHaveBeenCalledWith(
+      listCoreTreeSitterEdgeTypeCapabilities,
+    );
+    expect(registry.register).toHaveBeenCalledTimes(1);
     expect(registry.register.mock.calls.map(([, options]) => options)).toEqual([
-      { builtIn: true },
       { builtIn: true, sourcePackage: '@codegraphy-dev/plugin-markdown' },
     ]);
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.treesitter', 'codegraphy.markdown']);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -305,7 +311,11 @@ describe('pipeline/plugins/bootstrap', () => {
       userHomeDir: homeDir,
     });
 
-    expect(registry.register.mock.calls[1][1]).toEqual({
+    const markdownRegistration = registry.register.mock.calls.find(
+      ([plugin]) => plugin.id === 'codegraphy.markdown',
+    );
+
+    expect(markdownRegistration?.[1]).toEqual({
       builtIn: true,
       sourcePackage: '@codegraphy-dev/plugin-markdown',
       options: {
@@ -369,7 +379,7 @@ describe('pipeline/plugins/bootstrap', () => {
         },
       }),
     );
-    expect(registry.register).toHaveBeenCalledTimes(3);
+    expect(registry.register).toHaveBeenCalledTimes(2);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -408,7 +418,7 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.treesitter', 'codegraphy.markdown']);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -460,7 +470,6 @@ describe('pipeline/plugins/bootstrap', () => {
     await plugin?.initialize?.(workspaceRoot);
 
     expect(registry.register.mock.calls.map(([registeredPlugin]) => registeredPlugin.id)).toEqual([
-      'codegraphy.treesitter',
       'acme.extension-data-host',
     ]);
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).pluginData).toEqual({
@@ -484,7 +493,7 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.treesitter']);
+    ).toEqual([]);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -527,13 +536,13 @@ describe('pipeline/plugins/bootstrap', () => {
       userHomeDir: homeDir,
     });
 
-    expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual(['codegraphy.treesitter']);
+    expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual([]);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
     await expect(fs.access(importMarkerPath)).rejects.toThrow();
     await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
   });
 
-  it('syncs workspace plugin selection without unregistering unchanged core plugins', async () => {
+  it('syncs workspace plugin selection without unregistering core Tree-sitter analysis', async () => {
     const workspaceRoot = await createWorkspace();
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
@@ -546,13 +555,6 @@ describe('pipeline/plugins/bootstrap', () => {
       sourcePackageRoot?: string;
       options?: Record<string, unknown>;
     }>([
-      [
-        'codegraphy.treesitter',
-        {
-          plugin: { id: 'codegraphy.treesitter' },
-          builtIn: true,
-        },
-      ],
       [
         'codegraphy.markdown',
         {
@@ -576,7 +578,6 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(registry.unregister).toHaveBeenCalledTimes(1);
     expect(registry.unregister).toHaveBeenCalledWith('codegraphy.markdown');
-    expect(registry.unregister).not.toHaveBeenCalledWith('codegraphy.treesitter');
     expect(registry.register).not.toHaveBeenCalled();
     expect(registry.initializePlugin).not.toHaveBeenCalled();
   });
@@ -617,13 +618,6 @@ describe('pipeline/plugins/bootstrap', () => {
       sourcePackageRoot?: string;
       options?: Record<string, unknown>;
     }>([
-      [
-        'codegraphy.treesitter',
-        {
-          plugin: { id: 'codegraphy.treesitter' },
-          builtIn: true,
-        },
-      ],
       [
         'codegraphy.markdown',
         {
@@ -676,7 +670,7 @@ describe('pipeline/plugins/bootstrap', () => {
       getWorkspaceRoot: () => undefined,
     });
 
-    expect(registry.register).toHaveBeenCalledTimes(2);
+    expect(registry.register).toHaveBeenCalledTimes(1);
     expect(registry.initializeAll).not.toHaveBeenCalled();
   });
 });

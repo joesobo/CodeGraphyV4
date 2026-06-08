@@ -13,12 +13,11 @@ function relation(pluginId: string | undefined): IAnalysisRelation {
 }
 
 describe('core/graphQuery/relationships/provenance', () => {
-  it('keeps plugin provenance and hides missing or core tree-sitter provenance', () => {
+  it('keeps plugin provenance and hides core relations without plugin provenance', () => {
     expect(createProvenance(relation('plugin.routes'))).toEqual({
       pluginId: 'plugin.routes',
       sourceId: 'source-id',
     });
-    expect(createProvenance(relation('codegraphy.treesitter'))).toBeUndefined();
     expect(createProvenance(relation(undefined))).toBeUndefined();
   });
 });

@@ -22,19 +22,15 @@ function createPlugin(id: string, sources: IPlugin['sources'] = [
 
 describe('core/graph/edgeSources', () => {
   it('qualifies source ids with the plugin id', () => {
-    expect(createQualifiedSourceId(createPlugin('plugin.typescript'), { sourceId: 'import' })).toBe(
-      'plugin.typescript:import',
-    );
+    expect(createQualifiedSourceId({ sourceId: 'import' })).toBeUndefined();
     expect(
       createQualifiedSourceId(
-        createPlugin('plugin.typescript'),
         { pluginId: 'plugin.markdown', sourceId: 'wikilink' },
       ),
     ).toBe('plugin.markdown:wikilink');
-    expect(createQualifiedSourceId(undefined, { sourceId: 'import' })).toBeUndefined();
+    expect(createQualifiedSourceId({ sourceId: 'import' })).toBeUndefined();
     expect(
       createQualifiedSourceId(
-        createPlugin('plugin.typescript'),
         { sourceId: '' },
       ),
     ).toBeUndefined();
