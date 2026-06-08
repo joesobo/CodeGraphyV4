@@ -2,6 +2,7 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
+import type { SearchState } from '../../../../shared/search/contracts';
 
 export interface GraphViewReadyState {
   maxFiles: number;
@@ -19,6 +20,7 @@ export interface GraphViewReadyState {
 export interface GraphViewReadyHandlers {
   getGraphData(): IGraphData;
   getFilterPatterns(): string[];
+  getSearchState(): SearchState;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
   getConfig<T>(key: string, defaultValue: T): T;
@@ -78,6 +80,10 @@ export function replayWebviewReadySettings(
       disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
       disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
     },
+  });
+  handlers.sendMessage({
+    type: 'SEARCH_STATE_UPDATED',
+    payload: handlers.getSearchState(),
   });
   handlers.sendMessage({
     type: 'MAX_FILES_UPDATED',

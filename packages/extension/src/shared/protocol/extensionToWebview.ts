@@ -6,6 +6,7 @@ import type { IPluginExporterItem } from '../plugins/exporters';
 import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
 import type { IGraphControlsSnapshot } from '../graphControls/contracts';
+import type { SearchState } from '../search/contracts';
 import type {
   BidirectionalEdgeMode,
   DagMode,
@@ -82,6 +83,7 @@ export type ExtensionToWebviewMessage =
         disabledPluginPatterns: string[];
       };
     }
+  | { type: 'SEARCH_STATE_UPDATED'; payload: SearchState }
   | {
       type: 'DIRECTION_SETTINGS_UPDATED';
       payload: {

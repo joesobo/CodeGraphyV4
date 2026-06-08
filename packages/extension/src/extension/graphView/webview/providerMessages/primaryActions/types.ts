@@ -47,6 +47,7 @@ export type GraphViewProviderPrimaryActions = Pick<
   | 'writeFile'
   | 'copyFile'
   | 'sendMessage'
+  | 'setSearchState'
   | 'applyViewTransform'
   | 'smartRebuild'
 >;

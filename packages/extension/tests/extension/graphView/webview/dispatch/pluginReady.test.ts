@@ -11,6 +11,10 @@ function createContext(
   return {
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
     getFilterPatterns: vi.fn(() => ['src/**']),
+    getSearchState: vi.fn(() => ({
+      query: 'Graph',
+      options: { matchCase: true, wholeWord: true, regex: false },
+    })),
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
@@ -78,6 +82,13 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
         pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
+      },
+    });
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'SEARCH_STATE_UPDATED',
+      payload: {
+        query: 'Graph',
+        options: { matchCase: true, wholeWord: true, regex: false },
       },
     });
     expect(context.sendMessage).toHaveBeenCalledWith({
