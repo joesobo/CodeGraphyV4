@@ -48,8 +48,12 @@ Then I can see there are 19 nodes and 0 connections
 
 When I toggle the Contains edge on
 Then I can see there are 19 nodes and 11 connections
-
 And src/main.c points to src/main.c#main:function
+
+When I toggle the Calls edge on
+Then I can see there are 19 nodes and 16 connections
+And the logger_write function points to logger_format_line function
+And the logger_write function points to logger_accepts function
 
 Then I toggle the Function node off
 And I toggle the Type node on
