@@ -2,14 +2,13 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './three/runtime';
 import App from './app/view';
-import SearchApp from './app/search/view';
 import TimelineApp from './app/timeline/view';
 import './index.css';
 import { getVsCodeApi, VsCodeApi } from './vscodeApi';
 
 const container = document.getElementById('root');
 const viewKind = document.body.dataset.codegraphyView;
-const RootComponent = viewKind === 'timeline' ? TimelineApp : viewKind === 'search' ? SearchApp : App;
+const RootComponent = viewKind === 'timeline' ? TimelineApp : App;
 if (container) {
   const root = createRoot(container);
   root.render(

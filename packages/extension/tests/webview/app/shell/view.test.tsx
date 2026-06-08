@@ -461,7 +461,28 @@ describe('App', () => {
     expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
   });
 
-  it('keeps search controls out of the graph view while retaining the active file breadcrumb', () => {
+  it('keeps compact search controls in the graph view while graph data loads', async () => {
+    render(<App />);
+
+    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/App.ts', label: 'App', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+  });
+
+  it('keeps the active file breadcrumb with the graph content', () => {
     graphStore.setState({
       graphData: {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#3B82F6' }],
@@ -473,7 +494,7 @@ describe('App', () => {
 
     render(<App />);
 
-    expect(screen.queryByPlaceholderText('Search files... (Ctrl+F)')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open src/App.ts' })).toBeInTheDocument();
   });
 

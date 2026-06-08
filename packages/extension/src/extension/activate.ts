@@ -48,15 +48,6 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      GraphViewProvider.searchViewType,
-      provider,
-      {
-        webviewOptions: {
-          retainContextWhenHidden: true,
-        },
-      }
-    ),
-    vscode.window.registerWebviewViewProvider(
       GraphViewProvider.viewType,
       provider,
       {
@@ -85,7 +76,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   diagnostics.emit({
     area: 'extension.lifecycle',
     event: 'activation-completed',
-    context: { registeredWebviewProviders: 3 },
+    context: { registeredWebviewProviders: 2 },
   });
 
   return {
