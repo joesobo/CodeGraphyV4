@@ -198,6 +198,53 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._view).toBe(webviewView);
   });
 
+  it('resolves the search view independently', () => {
+    let disposeListener: (() => void) | undefined;
+    const webview = {
+      options: {},
+      html: '',
+    } as unknown as vscode.Webview;
+    const webviewView = {
+      viewType: 'codegraphy.searchView',
+      webview,
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => undefined),
+      onDidDispose: vi.fn(listener => {
+        disposeListener = listener;
+        return { dispose: vi.fn() };
+      }),
+    } as unknown as vscode.WebviewView;
+    const graphView = { viewType: 'codegraphy.graphView' } as unknown as vscode.WebviewView;
+    const createHtml = vi.fn(() => '<search html />');
+    const resolveWebviewView = vi.fn((_view, options) => {
+      options.getHtml(webview);
+    });
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _searchView: undefined,
+      _view: graphView,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml,
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      resolveWebviewView,
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    expect(source._searchView).toBe(webviewView);
+    expect(source._view).toBe(graphView);
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'search');
+    expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
+
+    disposeListener?.();
+
+    expect(source._searchView).toBeUndefined();
+  });
+
   it('keeps a different graph view attached when the timeline view disposes', () => {
     let disposeListener: (() => void) | undefined;
     const webview = {

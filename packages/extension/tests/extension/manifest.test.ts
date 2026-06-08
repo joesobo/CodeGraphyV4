@@ -56,6 +56,19 @@ describe('extension manifest', () => {
     expect(existsSync(resolve(repoRoot, String(view?.icon)))).toBe(true);
   });
 
+  it('declares a dedicated search view above the graph view', () => {
+    const { manifest } = readExtensionManifest();
+    const views = manifest.contributes?.views?.codegraphy ?? [];
+    const searchView = views.find(entry => entry.id === 'codegraphy.searchView');
+    const searchIndex = views.findIndex(entry => entry.id === 'codegraphy.searchView');
+    const graphIndex = views.findIndex(entry => entry.id === 'codegraphy.graphView');
+
+    expect(searchView).toBeDefined();
+    expect(searchView?.name).toBe('Search');
+    expect(searchIndex).toBeGreaterThanOrEqual(0);
+    expect(graphIndex).toBeGreaterThan(searchIndex);
+  });
+
   it('declares a dedicated timeline view in the CodeGraphy container', () => {
     const { manifest } = readExtensionManifest();
     const view = manifest.contributes?.views?.codegraphy?.find(entry => entry.id === 'codegraphy.timelineView');

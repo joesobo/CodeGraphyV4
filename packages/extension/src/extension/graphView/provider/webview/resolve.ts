@@ -1,4 +1,5 @@
 import type * as vscode from 'vscode';
+import type { CodeGraphyWebviewKind } from '../../webview/html';
 import type { GraphViewProviderWebviewMethodDependencies } from './defaultDependencies';
 import type { GraphViewProviderSidebarViewSource } from './sidebarViews';
 
@@ -12,13 +13,34 @@ function isTimelineWebviewView(webviewView: vscode.WebviewView): boolean {
   return webviewView.viewType === 'codegraphy.timelineView';
 }
 
+function isSearchWebviewView(webviewView: vscode.WebviewView): boolean {
+  return webviewView.viewType === 'codegraphy.searchView';
+}
+
+function getWebviewKind(webviewView: vscode.WebviewView): CodeGraphyWebviewKind {
+  if (isSearchWebviewView(webviewView)) {
+    return 'search';
+  }
+
+  if (isTimelineWebviewView(webviewView)) {
+    return 'timeline';
+  }
+
+  return 'graph';
+}
+
 function assignResolvedWebviewView(
   source: GraphViewProviderWebviewResolveSource,
   webviewView: vscode.WebviewView,
-  isTimelineView: boolean,
+  viewKind: CodeGraphyWebviewKind,
   workspaceTitle: string | undefined,
 ): void {
-  if (isTimelineView) {
+  if (viewKind === 'search') {
+    source._searchView = webviewView;
+    return;
+  }
+
+  if (viewKind === 'timeline') {
     source._timelineView = webviewView;
     return;
   }
@@ -30,13 +52,17 @@ function assignResolvedWebviewView(
 function clearResolvedWebviewView(
   source: GraphViewProviderWebviewResolveSource,
   webviewView: vscode.WebviewView,
-  isTimelineView: boolean,
+  viewKind: CodeGraphyWebviewKind,
 ): void {
-  if (isTimelineView && source._timelineView === webviewView) {
+  if (viewKind === 'search' && source._searchView === webviewView) {
+    source._searchView = undefined;
+  }
+
+  if (viewKind === 'timeline' && source._timelineView === webviewView) {
     source._timelineView = undefined;
   }
 
-  if (!isTimelineView && source._view === webviewView) {
+  if (viewKind === 'graph' && source._view === webviewView) {
     source._view = undefined;
   }
 }
@@ -44,9 +70,9 @@ function clearResolvedWebviewView(
 function maybeFlushPendingWorkspaceRefresh(
   source: GraphViewProviderWebviewResolveSource,
   webviewView: vscode.WebviewView,
-  isTimelineView: boolean,
+  viewKind: CodeGraphyWebviewKind,
 ): void {
-  if (!isTimelineView && webviewView.visible) {
+  if (viewKind === 'graph' && webviewView.visible) {
     source.flushPendingWorkspaceRefresh?.();
   }
 }
@@ -59,20 +85,20 @@ export function resolveGraphViewProviderWebviewView(
   >,
   webviewView: vscode.WebviewView,
 ): void {
-  const isTimelineView = isTimelineWebviewView(webviewView);
+  const viewKind = getWebviewKind(webviewView);
   assignResolvedWebviewView(
     source,
     webviewView,
-    isTimelineView,
+    viewKind,
     dependencies.getWorkspaceTitle?.(),
   );
 
   webviewView.onDidDispose(() => {
-    clearResolvedWebviewView(source, webviewView, isTimelineView);
+    clearResolvedWebviewView(source, webviewView, viewKind);
   });
 
   webviewView.onDidChangeVisibility(() => {
-    maybeFlushPendingWorkspaceRefresh(source, webviewView, isTimelineView);
+    maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
   });
 
   dependencies.resolveWebviewView(webviewView, {
@@ -83,11 +109,11 @@ export function resolveGraphViewProviderWebviewView(
       dependencies.createHtml(
         source._extensionUri,
         nextWebview,
-        isTimelineView ? 'timeline' : 'graph',
+        viewKind,
       ),
     executeCommand: (command: string, key: string, value: boolean) =>
       dependencies.executeCommand(command, key, value),
   } as never);
 
-  maybeFlushPendingWorkspaceRefresh(source, webviewView, isTimelineView);
+  maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
 }

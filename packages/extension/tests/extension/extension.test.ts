@@ -32,6 +32,11 @@ describe('Extension', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
       expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
+        'codegraphy.searchView',
+        expect.any(Object),
+        { webviewOptions: { retainContextWhenHidden: true } }
+      );
+      expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
         'codegraphy.graphView',
         expect.any(Object),
         { webviewOptions: { retainContextWhenHidden: true } }
@@ -64,11 +69,11 @@ describe('Extension', () => {
     it('should add subscriptions to context', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
-      // view providers (2) + config listener (1) + active editor listener (1) + save listener (1)
+      // view providers (3) + config listener (1) + active editor listener (1) + save listener (1)
       // + file watcher events (2) + workspace file operation events (3) + file watcher (1)
       // + URI handler (1) + runtime bridge listener (1)
       // + 16 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode, cycleLayout, toggleDimension)
-      expect(mockContext.subscriptions.length).toBe(29);
+      expect(mockContext.subscriptions.length).toBe(30);
     });
 
     it('should ignore workspace settings saves when deciding graph refresh', async () => {
