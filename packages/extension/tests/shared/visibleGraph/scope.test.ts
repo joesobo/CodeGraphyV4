@@ -347,7 +347,7 @@ describe('shared/visibleGraph/scope', () => {
 			},
 			{
 				nodes: [
-					{ type: 'symbol', enabled: false },
+					{ type: 'symbol', enabled: true },
 					{ type: 'symbol:class', enabled: false },
 					{ type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
 				],

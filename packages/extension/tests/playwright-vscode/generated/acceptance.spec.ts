@@ -248,10 +248,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:15
-      await test.step('Then the available edge types are Include, References, Calls, Contains', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Include, References, Calls, Contains', {
+      await test.step('Then the available edge types are only Include, References, Calls, Contains', async () => {
+        await runAcceptanceStep(context, 'the available edge types are only Include, References, Calls, Contains', {
           keyword: 'Then',
-          text: 'the available edge types are Include, References, Calls, Contains',
+          text: 'the available edge types are only Include, References, Calls, Contains',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 15
         });

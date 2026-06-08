@@ -18,6 +18,7 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       defaultColor: '#22C55E',
       defaultVisible: false,
       parentId: 'variable',
+      matchSymbolKinds: ['constant'],
       description: {
         description: 'Named values intended to stay unchanged.',
         examples: [{ code: 'const DEFAULT_MAX_FILES = 5000;' }],
@@ -29,6 +30,7 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       defaultColor: '#0D9488',
       defaultVisible: false,
       parentId: 'variable',
+      matchSymbolKinds: ['global'],
       description: {
         description: 'File-scope variables declared outside functions.',
         examples: [{ label: 'C', code: 'static int logger_output_enabled = 1;' }],

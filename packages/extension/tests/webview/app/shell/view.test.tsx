@@ -560,7 +560,7 @@ describe('App', () => {
       isLoading: false,
       nodeVisibility: {
         file: true,
-        symbol: false,
+        symbol: true,
         'symbol:function': true,
       },
       edgeVisibility: {

@@ -30,6 +30,19 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     ]);
   });
 
+  it('advertises C includes without advertising imports for C source and header workspaces', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.c',
+      'src/logger/logger.c',
+      'src/logger/logger.h',
+      'src/logger/format.h',
+    ])).toEqual([
+      'include',
+      'call',
+      'contains',
+    ]);
+  });
+
   it('does not advertise C-only header capabilities for Objective-C workspaces', () => {
     expect(listTreeSitterEdgeTypeCapabilities([
       'Sources/AppDelegate.m',

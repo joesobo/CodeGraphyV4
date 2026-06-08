@@ -1,5 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import { pruneGraphControlConfigMap, type GraphControlConfigKey } from '../../../../../shared/graphControls/settings';
+import { CORE_GRAPH_NODE_TYPES } from '../../../../../shared/graphControls/defaults/nodeTypes';
 import type { GraphViewSettingsMessageHandlers } from '../router';
 
 function getUpdatedConfigMap(
@@ -37,6 +38,22 @@ function isSymbolDependentNodeType(nodeType: string): boolean {
   return nodeType === 'variable'
     || nodeType.startsWith('symbol:')
     || (nodeType.startsWith('plugin:') && nodeType.includes(':symbol:'));
+}
+
+function getParentNodeTypeUpdates(nodeType: string): Record<string, boolean> {
+  const updates: Record<string, boolean> = {};
+  let current = CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === nodeType);
+
+  while (current?.parentId) {
+    updates[current.parentId] = true;
+    current = CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === current?.parentId);
+  }
+
+  if (isSymbolDependentNodeType(nodeType)) {
+    updates.symbol = true;
+  }
+
+  return updates;
 }
 
 async function applySymbolVisibilityUpdate(
@@ -79,7 +96,7 @@ async function applySymbolDependentVisibilityUpdate(
       'nodeVisibility',
       handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
     ),
-    symbol: true,
+    ...getParentNodeTypeUpdates(nodeType),
     [nodeType]: true,
   };
 

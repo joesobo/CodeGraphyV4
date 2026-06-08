@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-c workspace
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Include, References, Calls, Contains
+Then the available edge types are only Include, References, Calls, Contains
 And I close the Graph Scope
 
 When I toggle the Include edge on

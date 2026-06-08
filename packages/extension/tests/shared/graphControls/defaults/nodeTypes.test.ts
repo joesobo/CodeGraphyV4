@@ -52,6 +52,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#38BDF8',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['include'],
       },
       {
         id: 'symbol:prototype',
@@ -59,6 +60,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#A78BFA',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['prototype'],
       },
       {
         id: 'symbol:class',
@@ -87,6 +89,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#0EA5E9',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['struct'],
       },
       {
         id: 'symbol:union',
@@ -94,6 +97,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#14B8A6',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['union'],
       },
       {
         id: 'symbol:enum',
@@ -101,6 +105,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#F59E0B',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['enum'],
       },
       {
         id: 'symbol:typedef',
@@ -108,6 +113,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#F472B6',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['typedef'],
       },
       {
         id: 'variable',
@@ -121,6 +127,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#22C55E',
         defaultVisible: false,
         parentId: 'variable',
+        matchSymbolKinds: ['constant'],
       },
       {
         id: 'symbol:global',
@@ -128,6 +135,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#0D9488',
         defaultVisible: false,
         parentId: 'variable',
+        matchSymbolKinds: ['global'],
       },
       {
         id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
