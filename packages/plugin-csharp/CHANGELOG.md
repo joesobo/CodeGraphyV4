@@ -1,5 +1,16 @@
 # @codegraphy-dev/plugin-csharp
 
+## 2.1.4
+
+### Patch Changes
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`78b5e2b`](https://github.com/joesobo/CodeGraphyV4/commit/78b5e2b16b97831ceba44af3edbf99f7df17ca6d) Thanks [@joesobo](https://github.com/joesobo)! - Keep C# default filters from hiding source folders named `bin` in mixed-language workspaces.
+
+  C# build output under `bin/Debug`, `bin/Release`, `obj/Debug`, and `obj/Release` is still filtered by default, but source folders such as Dart's `bin/` entrypoint folder remain discoverable.
+
+- Updated dependencies [[`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886), [`1d9180c`](https://github.com/joesobo/CodeGraphyV4/commit/1d9180c29554c163e660a7c899c59755c4b0bdff), [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561)]:
+  - @codegraphy-dev/plugin-api@4.0.0
+
 ## 2.1.3
 
 ### Patch Changes
