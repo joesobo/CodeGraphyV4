@@ -198,7 +198,7 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._view).toBe(webviewView);
   });
 
-  it('resolves the search view independently', () => {
+  it('resolves the search view independently', async () => {
     let disposeListener: (() => void) | undefined;
     const webview = {
       options: {},
@@ -216,6 +216,7 @@ describe('graphView/provider/webview/resolve', () => {
     } as unknown as vscode.WebviewView;
     const graphView = { viewType: 'codegraphy.graphView' } as unknown as vscode.WebviewView;
     const createHtml = vi.fn(() => '<search html />');
+    const executeCommand = vi.fn(() => Promise.resolve(undefined));
     const resolveWebviewView = vi.fn((_view, options) => {
       options.getHtml(webview);
     });
@@ -230,15 +231,22 @@ describe('graphView/provider/webview/resolve', () => {
 
     resolveGraphViewProviderWebviewView(source as never, {
       createHtml,
-      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      executeCommand,
       resolveWebviewView,
       setWebviewMessageListener: vi.fn(),
     }, webviewView);
+
+    for (let index = 0; index < 16; index += 1) {
+      await Promise.resolve();
+    }
 
     expect(source._searchView).toBe(webviewView);
     expect(source._view).toBe(graphView);
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'search');
     expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
+    expect(executeCommand).toHaveBeenNthCalledWith(1, 'codegraphy.searchView.focus');
+    expect(executeCommand).toHaveBeenCalledWith('workbench.action.decreaseViewSize');
+    expect(executeCommand).toHaveBeenLastCalledWith('codegraphy.graphView.focus');
 
     disposeListener?.();
 

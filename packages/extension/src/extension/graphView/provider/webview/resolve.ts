@@ -5,9 +5,12 @@ import type { GraphViewProviderSidebarViewSource } from './sidebarViews';
 
 export interface GraphViewProviderWebviewResolveSource extends GraphViewProviderSidebarViewSource {
   _extensionUri: vscode.Uri;
+  _searchViewCompacted?: boolean;
   _getLocalResourceRoots(): vscode.Uri[];
   flushPendingWorkspaceRefresh?(): void;
 }
+
+const SEARCH_VIEW_DECREASE_STEPS = 12;
 
 function isTimelineWebviewView(webviewView: vscode.WebviewView): boolean {
   return webviewView.viewType === 'codegraphy.timelineView';
@@ -77,6 +80,25 @@ function maybeFlushPendingWorkspaceRefresh(
   }
 }
 
+function compactSearchView(
+  source: GraphViewProviderWebviewResolveSource,
+  dependencies: Pick<GraphViewProviderWebviewMethodDependencies, 'executeCommand'>,
+  viewKind: CodeGraphyWebviewKind,
+): void {
+  if (viewKind !== 'search' || source._searchViewCompacted) {
+    return;
+  }
+
+  source._searchViewCompacted = true;
+  void (async () => {
+    await dependencies.executeCommand('codegraphy.searchView.focus');
+    for (let index = 0; index < SEARCH_VIEW_DECREASE_STEPS; index += 1) {
+      await dependencies.executeCommand('workbench.action.decreaseViewSize');
+    }
+    await dependencies.executeCommand('codegraphy.graphView.focus');
+  })().catch(() => undefined);
+}
+
 export function resolveGraphViewProviderWebviewView(
   source: GraphViewProviderWebviewResolveSource,
   dependencies: Pick<
@@ -115,5 +137,6 @@ export function resolveGraphViewProviderWebviewView(
       dependencies.executeCommand(command, key, value),
   } as never);
 
+  compactSearchView(source, dependencies, viewKind);
   maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
 }
