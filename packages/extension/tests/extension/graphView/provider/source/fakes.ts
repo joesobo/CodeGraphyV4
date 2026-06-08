@@ -138,6 +138,10 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _userGroups: [],
     _hiddenPluginGroupIds: new Set<string>(),
     _filterPatterns: [],
+    _searchState: {
+      query: '',
+      options: { matchCase: false, wholeWord: false, regex: false },
+    },
     _disabledPlugins: new Set<string>(),
     _gitAnalyzer: undefined,
     _currentCommitSha: undefined,
