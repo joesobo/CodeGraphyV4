@@ -23,12 +23,20 @@ describe('createGDScriptPlugin lifecycle', () => {
       expect(plugin.supportedExtensions).toContain('.godot');
       expect(plugin.supportedExtensions).toContain('.tscn');
       expect(plugin.supportedExtensions).toContain('.tres');
-      expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual([
-        'call',
-        'load',
-        'inherit',
-        'reference',
-      ]);
+      expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
+        nodeTypes: [
+          'symbol:function',
+          'symbol:enum',
+          'symbol:constant',
+          'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        ],
+        edgeTypes: [
+          'call',
+          'load',
+          'inherit',
+          'reference',
+        ],
+      });
     });
 
 

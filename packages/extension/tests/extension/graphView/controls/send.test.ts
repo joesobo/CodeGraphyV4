@@ -1,12 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
-import { CORE_GRAPH_NODE_TYPES } from '../../../../src/shared/graphControls/defaults/definitions';
 import {
   buildGraphControlsUpdatedMessage,
   sendGraphControlsUpdated,
 } from '../../../../src/extension/graphView/controls/send';
 
-const CORE_NODE_TYPE_IDS = CORE_GRAPH_NODE_TYPES.map((nodeType) => nodeType.id);
+const STRUCTURAL_NODE_TYPE_IDS = ['file', 'folder', 'package'];
 
 describe('extension/graphView/controls/send', () => {
   it('ignores invalid registry node and edge definitions when building the snapshot message', () => {
@@ -32,6 +31,10 @@ describe('extension/graphView/controls/send', () => {
             { id: 'plugin:route', label: 'Route', defaultColor: '#10B981', defaultVisible: true },
             { id: 'bad-edge', label: 'Bad Edge', defaultColor: '#10B981', defaultVisible: 'yes' },
           ],
+          listGraphScopeCapabilities: () => ({
+            nodeTypes: ['route'],
+            edgeTypes: ['plugin:route'],
+          }),
         },
       },
       sendMessage,
@@ -76,11 +79,11 @@ describe('extension/graphView/controls/send', () => {
 
     const payload = sendMessage.mock.calls[0][0].payload;
     expect(payload).toBeDefined();
-    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(CORE_NODE_TYPE_IDS);
+    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(STRUCTURAL_NODE_TYPE_IDS);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
 
-  it('includes capability-declared edge types even before the graph has matching edges', () => {
+  it('includes capability-declared graph scope types even before the graph has matching output', () => {
     const sendMessage = vi.fn();
 
     sendGraphControlsUpdated(
@@ -93,9 +96,15 @@ describe('extension/graphView/controls/send', () => {
           listEdgeTypes: () => [
             { id: 'plugin:route', label: 'Route', defaultColor: '#10B981', defaultVisible: true },
           ],
-          listEdgeTypeCapabilities: (filePaths: readonly string[]) => {
+          listNodeTypes: () => [
+            { id: 'route', label: 'Route', defaultColor: '#22C55E', defaultVisible: true },
+          ],
+          listGraphScopeCapabilities: (filePaths: readonly string[]) => {
             expect(filePaths).toEqual(['src/app.ts']);
-            return ['import', 'plugin:route'];
+            return {
+              nodeTypes: ['route'],
+              edgeTypes: ['import', 'plugin:route'],
+            };
           },
         },
       },
@@ -104,6 +113,9 @@ describe('extension/graphView/controls/send', () => {
     );
 
     const payload = sendMessage.mock.calls[0][0].payload;
+    expect(payload.nodeTypes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'route' }),
+    ]));
     expect(payload.edgeTypes).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'import' }),
       expect.objectContaining({ id: 'plugin:route' }),
@@ -120,7 +132,10 @@ describe('extension/graphView/controls/send', () => {
       listEdgeTypes: vi.fn((_disabledPlugins?: ReadonlySet<string>) => [
         { id: 'load', label: 'Loads', defaultColor: '#478CBF', defaultVisible: true },
       ]),
-      listEdgeTypeCapabilities: vi.fn((_filePaths: readonly string[], _disabledPlugins?: ReadonlySet<string>) => ['load']),
+      listGraphScopeCapabilities: vi.fn((_filePaths: readonly string[], _disabledPlugins?: ReadonlySet<string>) => ({
+        nodeTypes: ['godot-scene'],
+        edgeTypes: ['load'],
+      })),
     };
 
     sendGraphControlsUpdated(
@@ -136,7 +151,7 @@ describe('extension/graphView/controls/send', () => {
 
     expect(registry.listNodeTypes).toHaveBeenCalledWith(disabledPlugins);
     expect(registry.listEdgeTypes).toHaveBeenCalledWith(disabledPlugins);
-    expect(registry.listEdgeTypeCapabilities).toHaveBeenCalledWith(['game/player.gd'], disabledPlugins);
+    expect(registry.listGraphScopeCapabilities).toHaveBeenCalledWith(['game/player.gd'], disabledPlugins);
   });
 
   it('does not infer edge type toggles from disabled plugin edges in raw graph data', () => {
@@ -161,7 +176,7 @@ describe('extension/graphView/controls/send', () => {
       {
         registry: {
           listEdgeTypes: () => [],
-          listEdgeTypeCapabilities: () => [],
+          listGraphScopeCapabilities: () => ({ nodeTypes: [], edgeTypes: [] }),
         },
       },
       sendMessage,
@@ -193,7 +208,7 @@ describe('extension/graphView/controls/send', () => {
 
     const payload = sendMessage.mock.calls[0][0].payload;
     expect(payload).toBeDefined();
-    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(CORE_NODE_TYPE_IDS);
+    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(STRUCTURAL_NODE_TYPE_IDS);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
 

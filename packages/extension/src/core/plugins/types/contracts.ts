@@ -37,6 +37,7 @@ export type {
   IPluginAnalysisFileSystem,
   IPluginEdgeType,
   IPluginFileColorDefinition,
+  IPluginGraphScopeCapabilities,
   IPluginNodeType,
   NodeType,
 } from '../../../../../plugin-api/src';

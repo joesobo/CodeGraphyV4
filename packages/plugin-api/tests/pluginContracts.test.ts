@@ -11,7 +11,7 @@ import type {
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
   IPlugin,
-  IPluginEdgeTypeCapabilityContext,
+  IPluginGraphScopeCapabilityContext,
   CodeGraphyWebviewAPI,
   IPluginDataHost,
   IPluginFactory,
@@ -19,7 +19,7 @@ import type {
 } from '../src';
 
 describe('plugin API contracts', () => {
-  it('lets plugins declare edge type capabilities separately from emitted relationships', () => {
+  it('lets plugins declare graph scope capabilities separately from emitted graph output', () => {
     const plugin = {
       id: 'acme.routes',
       name: 'Acme Routes',
@@ -32,13 +32,16 @@ describe('plugin API contracts', () => {
         defaultColor: '#22C55E',
         defaultVisible: true,
       }],
-      contributeEdgeTypeCapabilities: (context?: IPluginEdgeTypeCapabilityContext) => {
+      contributeGraphScopeCapabilities: (context?: IPluginGraphScopeCapabilityContext) => {
         expectTypeOf(context?.filePaths).toMatchTypeOf<readonly string[] | undefined>();
-        return ['import', 'acme.routes:route'];
+        return {
+          nodeTypes: ['acme.routes:route'],
+          edgeTypes: ['import', 'acme.routes:route'],
+        };
       },
     } satisfies IPlugin;
 
-    expectTypeOf(plugin.contributeEdgeTypeCapabilities).toMatchTypeOf<IPlugin['contributeEdgeTypeCapabilities']>();
+    expectTypeOf(plugin.contributeGraphScopeCapabilities).toMatchTypeOf<IPlugin['contributeGraphScopeCapabilities']>();
   });
 
   it('lets packages register access plumbing and contribute account UI without owning feature behavior', () => {

@@ -142,9 +142,10 @@ export type {
 // Plugin interface
 export type {
   IPlugin,
+  IPluginGraphScopeCapabilities,
+  IPluginGraphScopeCapabilityContext,
   IPluginExportRequest,
   IPluginExporter,
-  IPluginEdgeTypeCapabilityContext,
   IPluginFactory,
   IPluginFactoryOptions,
   IPluginHostApi,

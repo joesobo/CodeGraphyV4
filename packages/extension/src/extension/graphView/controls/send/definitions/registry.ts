@@ -1,8 +1,8 @@
 import type {
   GraphDefinitionReader,
-  GraphEdgeTypeCapabilityLike,
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
+  GraphScopeCapabilitiesLike,
 } from './contracts';
 import { isGraphEdgeTypeLike } from './edgeGuard';
 import { isGraphNodeTypeLike } from './nodeGuard';
@@ -44,26 +44,36 @@ export function readEdgeTypes(
   return readRegistryDefinitions(registry, 'listEdgeTypes', isGraphEdgeTypeLike, disabledPlugins);
 }
 
-export function readEdgeTypeCapabilities(
+function isGraphScopeCapabilitiesLike(value: unknown): value is GraphScopeCapabilitiesLike {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return Array.isArray(candidate.nodeTypes)
+    && candidate.nodeTypes.every((nodeType) => typeof nodeType === 'string')
+    && Array.isArray(candidate.edgeTypes)
+    && candidate.edgeTypes.every((edgeType) => typeof edgeType === 'string');
+}
+
+export function readGraphScopeCapabilities(
   registry: unknown,
   filePaths: readonly string[],
   disabledPlugins: ReadonlySet<string> = new Set(),
-): GraphEdgeTypeCapabilityLike[] {
+): GraphScopeCapabilitiesLike {
   if (!registry || typeof registry !== 'object') {
-    return [];
+    return { nodeTypes: [], edgeTypes: [] };
   }
 
-  const candidate = (registry as Record<string, unknown>).listEdgeTypeCapabilities;
+  const candidate = (registry as Record<string, unknown>).listGraphScopeCapabilities;
   if (typeof candidate !== 'function') {
-    return [];
+    return { nodeTypes: [], edgeTypes: [] };
   }
 
   const capabilities: unknown = Reflect.apply(candidate, registry, [filePaths, disabledPlugins]);
-  if (!Array.isArray(capabilities)) {
-    return [];
+  if (!isGraphScopeCapabilitiesLike(capabilities)) {
+    return { nodeTypes: [], edgeTypes: [] };
   }
 
-  return capabilities.filter((capability): capability is GraphEdgeTypeCapabilityLike =>
-    typeof capability === 'string',
-  );
+  return capabilities;
 }
