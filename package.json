@@ -213,13 +213,15 @@
 				{
 					"type": "webview",
 					"id": "codegraphy.searchView",
-					"name": "Search"
+					"name": "Search",
+					"initialSize": 1
 				},
 				{
 					"type": "webview",
 					"id": "codegraphy.graphView",
 					"name": "Graph",
-					"icon": "assets/icon.svg"
+					"icon": "assets/icon.svg",
+					"initialSize": 20
 				},
 				{
 					"type": "webview",
