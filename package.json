@@ -222,7 +222,7 @@
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg",
-					"initialSize": 20
+					"initialSize": 200
 				},
 				{
 					"type": "webview",

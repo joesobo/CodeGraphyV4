@@ -72,6 +72,7 @@ describe('extension manifest', () => {
     expect(searchView?.when).toBe('codegraphy.searchControlsVisible');
     expect(searchView?.initialSize).toBe(1);
     expect(searchView?.size).toBeUndefined();
+    expect(graphView?.initialSize).toBeGreaterThan(100);
     expect(views.indexOf(searchView!)).toBeLessThan(views.indexOf(graphView!));
   });
 
