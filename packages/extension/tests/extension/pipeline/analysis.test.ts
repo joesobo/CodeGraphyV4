@@ -170,6 +170,33 @@ describe('WorkspacePipeline analysis', () => {
     );
   });
 
+  it('pre-analyzes core Tree-sitter files before C# workspace analysis', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/Contracts/IRunner.cs': 'namespace MyApp.Contracts;\npublic interface IRunner {}\n',
+      'src/Program.cs': 'using MyApp.Services;\nusing MyApp.Utils;\nApiService.Run();\nHelpers.Format();\n',
+      'src/Services/ApiService.cs': 'using MyApp.Contracts;\nnamespace MyApp.Services;\npublic class ApiService : IRunner { public static void Run() {} }\n',
+      'src/Utils/Helpers.cs': 'namespace MyApp.Utils;\npublic static class Helpers { public static string Format() => "ok"; }\n',
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const graph = await analyzer.analyze();
+
+    expect(graph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/Program.cs->src/Services/ApiService.cs#import',
+        'src/Program.cs->src/Utils/Helpers.cs#import',
+        'src/Services/ApiService.cs->src/Contracts/IRunner.cs#import',
+      ]),
+    );
+  });
+
   it('keeps Tree-sitter relations after workspace plugin reload and index refresh', async () => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
