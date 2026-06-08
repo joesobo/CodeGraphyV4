@@ -521,10 +521,10 @@ test.describe('C Example', () => {
       });
 
       // tests/acceptance/specs/c-example.md:48
-      await test.step('And I toggle the Function, Struct, Enum, and Type node on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Function, Struct, Enum, and Type node on', {
+      await test.step('And I toggle the Function, Struct, Enum and Type node on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Function, Struct, Enum and Type node on', {
           keyword: 'And',
-          text: 'I toggle the Function, Struct, Enum, and Type node on',
+          text: 'I toggle the Function, Struct, Enum and Type node on',
           sourcePath: 'tests/acceptance/specs/c-example.md',
           line: 48
         });
