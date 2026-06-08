@@ -198,7 +198,7 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._view).toBe(webviewView);
   });
 
-  it('resolves the search view independently and compacts the native view', async () => {
+  it('resolves the search view independently without resizing the side bar', () => {
     let disposeListener: (() => void) | undefined;
     const webview = {
       options: {},
@@ -236,18 +236,11 @@ describe('graphView/provider/webview/resolve', () => {
       setWebviewMessageListener: vi.fn(),
     }, webviewView);
 
-    for (let index = 0; index < 30; index += 1) {
-      await Promise.resolve();
-    }
-
     expect(source._searchView).toBe(webviewView);
     expect(source._view).toBe(graphView);
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'search');
     expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
-    expect(executeCommand).toHaveBeenNthCalledWith(1, 'workbench.action.openView', 'codegraphy.searchView');
-    expect(executeCommand).toHaveBeenNthCalledWith(2, 'workbench.action.focusSideBar');
-    expect(executeCommand).toHaveBeenCalledWith('workbench.action.decreaseViewSize');
-    expect(executeCommand).toHaveBeenLastCalledWith('workbench.action.openView', 'codegraphy.graphView');
+    expect(executeCommand).not.toHaveBeenCalled();
 
     disposeListener?.();
 
