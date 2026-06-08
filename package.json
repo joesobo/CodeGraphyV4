@@ -214,14 +214,14 @@
 					"type": "webview",
 					"id": "codegraphy.searchView",
 					"name": "Search",
-					"initialSize": 1
+					"size": 1
 				},
 				{
 					"type": "webview",
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg",
-					"initialSize": 20
+					"size": 20
 				},
 				{
 					"type": "webview",
