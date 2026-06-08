@@ -8,6 +8,10 @@ function createHandlers() {
       edges: [],
     })),
     getFilterPatterns: vi.fn(() => ['dist/**']),
+    getSearchState: vi.fn(() => ({
+      query: 'App',
+      options: { matchCase: true, wholeWord: false, regex: true },
+    })),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
     getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
     loadGroupsAndFilterPatterns: vi.fn(),
@@ -77,6 +81,13 @@ describe('graph view ready message', () => {
         pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
+      },
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'SEARCH_STATE_UPDATED',
+      payload: {
+        query: 'App',
+        options: { matchCase: true, wholeWord: false, regex: true },
       },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({

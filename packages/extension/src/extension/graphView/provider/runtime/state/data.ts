@@ -1,6 +1,7 @@
 import type * as vscode from 'vscode';
 import type { IViewContext } from '../../../../../core/views/contracts';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import type { SearchState } from '../../../../../shared/search/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import {
   createEmptyGraphData,
@@ -18,6 +19,7 @@ export function createGraphViewProviderRuntimeDataState(): {
   _groups: IGroup[];
   _userGroups: IGroup[];
   _filterPatterns: string[];
+  _searchState: SearchState;
   _disabledPlugins: Set<string>;
 } {
   return {
@@ -29,6 +31,10 @@ export function createGraphViewProviderRuntimeDataState(): {
     _groups: createEmptyGroups(),
     _userGroups: createEmptyGroups(),
     _filterPatterns: [],
+    _searchState: {
+      query: '',
+      options: { matchCase: false, wholeWord: false, regex: false },
+    },
     _disabledPlugins: createStringSet(),
   };
 }

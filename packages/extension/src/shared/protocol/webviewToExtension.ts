@@ -1,4 +1,5 @@
 import type { IGroup } from '../settings/groups';
+import type { SearchState } from '../search/contracts';
 import type {
   BidirectionalEdgeMode,
   DagMode,
@@ -56,6 +57,7 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_LEGEND_ORDER'; payload: { legendIds: string[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
+  | { type: 'UPDATE_SEARCH_STATE'; payload: SearchState }
   | {
       type: 'UPDATE_FILTER_PATTERN_STATE';
       payload: { source: 'custom' | 'plugin'; pattern: string; enabled: boolean };

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { SearchState } from '../../../../shared/search/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
@@ -17,6 +18,7 @@ export interface GraphViewPrimaryMessageContext {
   getCanMutateGraphRevision(): boolean;
   getUserGroups(): IGroup[];
   getFilterPatterns(): string[];
+  getSearchState(): SearchState;
   getGraphData(): IGraphData;
   getAnalyzer():
     | {
@@ -94,6 +96,7 @@ export interface GraphViewPrimaryMessageContext {
   sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendGraphControls(): void;
+  setSearchState(searchState: SearchState): void;
   reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];

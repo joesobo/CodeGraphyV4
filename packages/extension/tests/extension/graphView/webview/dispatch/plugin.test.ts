@@ -11,6 +11,10 @@ function createContext(
 ): GraphViewPluginMessageContext {
   const context = {
     getFilterPatterns: vi.fn(() => []),
+    getSearchState: vi.fn(() => ({
+      query: 'index',
+      options: { matchCase: false, wholeWord: true, regex: false },
+    })),
     getPluginFilterPatterns: vi.fn(() => []),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
@@ -73,6 +77,13 @@ describe('graph view plugin message dispatch', () => {
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(context.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(context.notifyWebviewReady).toHaveBeenCalledOnce();
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'SEARCH_STATE_UPDATED',
+      payload: {
+        query: 'index',
+        options: { matchCase: false, wholeWord: true, regex: false },
+      },
+    });
   });
 
   it('forwards plugin interaction events through the event bus bridge', async () => {
