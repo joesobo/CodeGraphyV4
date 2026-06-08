@@ -143,7 +143,7 @@ describe('App runtime mutations', () => {
 
     expect(screen.getByTestId('empty-state')).toHaveAttribute('data-full-screen', 'false');
     expect(harness.emptyStateProps).toMatchObject({ fullScreen: false });
-    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-result-count', '');
+    expect(screen.queryByTestId('mock-search-bar')).not.toBeInTheDocument();
   });
 
   it('re-subscribes the message listener when plugin host inputs change', () => {
