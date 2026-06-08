@@ -1,6 +1,6 @@
 import { getDepthTarget } from './depth.js';
-import { formatUser } from './types.js';
+import { normalizeUserName } from './user.js';
 
 export function buildGreeting(name) {
-  return `Hello ${formatUser(name)} from ${getDepthTarget()}`;
+  return `Hello ${normalizeUserName(name)} from ${getDepthTarget()}`;
 }

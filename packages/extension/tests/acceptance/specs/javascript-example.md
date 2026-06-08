@@ -17,7 +17,7 @@ And I close the Graph Scope
 
 When I toggle the Imports edge on
 Then I can see there are 13 nodes and 7 connections
-And src/index.js points to src/types.js
+And src/index.js points to src/user.js
 And src/index.js points to src/utils.js
 And src/runner.js points to src/baseRunner.js
 And src/runner.js points to src/runnableThing.js
@@ -38,8 +38,8 @@ And src/runner.js points to src/baseRunner.js
 Then I toggle the Inherits edge off
 And I toggle the Calls edge on
 Then I can see there are 13 nodes and 5 connections
-And src/index.js points to src/types.js
+And src/index.js points to src/user.js
 And src/index.js points to src/utils.js
-And src/utils.js points to src/types.js
+And src/utils.js points to src/user.js
 And src/utils.js points to src/depth.js
 And src/depth.js points to src/leaf.js
