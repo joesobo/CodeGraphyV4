@@ -42,7 +42,12 @@ import {
   createWorkspaceTempRoot,
   readExampleWorkspaceFiles,
 } from './workspace';
-import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from './vscode';
+import {
+  launchVSCodeWithWorkspace,
+  openGraphView,
+  VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
+  waitForGraphFrame,
+} from './vscode';
 
 const TARGET_NODE = 'src/index.ts';
 const CORE_EDGE_TYPE_LABELS = [
@@ -1151,7 +1156,9 @@ async function setPluginSwitch(
   const switchInOpenPanel = await findPanelSwitch(frame, normalizedLabel);
   if (!(await switchInOpenPanel.isVisible().catch(() => false))) {
     await clickToolbarButton(frame, 'Plugins');
-    await expect(await findPanelSwitch(frame, normalizedLabel)).toBeVisible({ timeout: 15_000 });
+    await expect(await findPanelSwitch(frame, normalizedLabel)).toBeVisible({
+      timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
+    });
   }
 
   await setPanelSwitch(context, label, enabled);

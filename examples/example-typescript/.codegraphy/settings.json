@@ -9,10 +9,12 @@
   "showOrphans": true,
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-markdown"
+      "id": "codegraphy.markdown",
+      "enabled": true
     },
     {
-      "package": "@codegraphy-dev/plugin-typescript"
+      "id": "codegraphy.typescript",
+      "enabled": true
     }
   ],
   "pluginData": {},

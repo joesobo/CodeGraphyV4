@@ -48,10 +48,12 @@ Example:
   },
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-markdown"
+      "id": "codegraphy.markdown",
+      "enabled": true
     },
     {
-      "package": "@codegraphy-dev/plugin-python",
+      "id": "codegraphy.python",
+      "enabled": true,
       "options": {
         "includeTests": true
       }
@@ -81,7 +83,7 @@ Example:
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
-| `plugins` | object[] | `[]` | Ordered enabled plugin package entries for this CodeGraphy Workspace |
+| `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
@@ -100,7 +102,7 @@ Timeline indexing also respects the workspace-local filter and plugin settings. 
 
 ## Plugin settings
 
-Plugin enablement is workspace-local. Installing a plugin package only makes it available; enabling it writes an entry into the workspace `plugins` array.
+Plugin enablement is workspace-local. Installing a plugin package only makes it available; enabling it writes Plugin ID activity into the workspace `plugins` array.
 
 First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
 
@@ -108,13 +110,14 @@ First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
 {
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-markdown"
+      "id": "codegraphy.markdown",
+      "enabled": true
     }
   ]
 }
 ```
 
-Removing that entry disables Markdown for the workspace. Other registered plugins stay disabled until they are added to the `plugins` array through the VS Code UI, CLI, or MCP.
+Setting that entry to `enabled: false` disables Markdown for the workspace. Other registered plugins stay disabled until they are enabled through the VS Code UI, CLI, or MCP. Absence means the plugin has never been toggled in that workspace.
 
 Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
 
@@ -124,7 +127,8 @@ When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin
 {
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-godot",
+      "id": "codegraphy.gdscript",
+      "enabled": true,
       "options": {
         "includeSceneResources": true,
         "includeAutoloads": true,

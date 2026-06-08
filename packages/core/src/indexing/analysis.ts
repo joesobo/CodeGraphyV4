@@ -11,11 +11,11 @@ export async function analyzeWorkspaceIndexFiles(input: {
   cache: IWorkspaceAnalysisCache;
   discovery: FileDiscovery;
   discoveryResult: IDiscoveryResult;
+  disabledPlugins: Set<string>;
   options: IndexCodeGraphyWorkspaceOptions;
   registry: CorePluginRegistry;
-    workspaceRoot: string;
-  }) {
-  const disabledPlugins = new Set(input.options.disabledPlugins ?? []);
+  workspaceRoot: string;
+}) {
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
       input.registry.analyzeFileResult(
@@ -23,7 +23,7 @@ export async function analyzeWorkspaceIndexFiles(input: {
         content,
         rootPath,
         undefined,
-        { disabledPlugins },
+        { disabledPlugins: input.disabledPlugins },
       ).then(result => result ?? ({
         filePath: absolutePath,
         relations: [],
@@ -47,7 +47,7 @@ export async function analyzeWorkspaceIndexFiles(input: {
               preAnalyzeFiles,
               preAnalyzeRootPath,
               undefined,
-              disabledPlugins,
+              input.disabledPlugins,
             ),
           readContent: file => input.discovery.readContent(file),
         },

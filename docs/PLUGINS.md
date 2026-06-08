@@ -47,13 +47,13 @@ Installation and enablement are separate:
 - `npm i -g @codegraphy-dev/plugin-python` installs a plugin package for the developer's toolchain.
 - `codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata.
 - `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins.
-- `codegraphy plugins enable <package> [workspace]` writes a registered plugin into the workspace-local `plugins` array.
-- `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
+- `codegraphy plugins enable <plugin-id-or-package> [workspace]` writes `enabled: true` Plugin ID activity into the workspace-local `plugins` array.
+- `codegraphy plugins disable <plugin-id-or-package> [workspace]` writes `enabled: false` Plugin ID activity into the workspace-local `plugins` array.
 - `[workspace]` is an optional trailing positional argument. When it is omitted, plugin enablement commands target the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index [workspace]` once to refresh the Graph Cache.
-- `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes it as the first enabled plugin when a new CodeGraphy Workspace is indexed for the first time.
+- `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes `codegraphy.markdown` as the first `enabled: true` plugin when a new CodeGraphy Workspace is indexed for the first time.
 
-Plugin packages declare CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
+Plugin packages declare package-level CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
 
 ```json
 {
@@ -79,13 +79,29 @@ Plugin packages declare CodeGraphy metadata in `package.json` so registration ca
 }
 ```
 
-The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, register, link, list, enable, or disable commands.
+The same package must also include a static `codegraphy.json` descriptor. Core reads this file before runtime import; its `id` is the Plugin ID written into workspace settings and used for enablement, conflicts, provenance, Plugin Data, and Graph View contribution ownership.
+
+```json
+{
+  "$schema": "./codegraphy.schema.json",
+  "id": "codegraphy.python",
+  "name": "Python",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [".py", ".pyi"],
+  "defaultFilters": []
+}
+```
+
+`codegraphy.json#id` is required for `codegraphy plugins register` and `codegraphy plugins link`. `name` and `supportedExtensions` let CodeGraphy Interfaces render installed-but-disabled plugins from static metadata without importing or factory-creating the runtime. The runtime plugin object's `id` must match `codegraphy.json#id`.
+
+The npm package's normal `exports` field owns runtime import behavior. The `package.json#codegraphy` block is for package compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing or targeted plugin refresh, not during install, register, link, list, enable, or disable commands.
 
 For local private plugin development, keep the private source outside this public monorepo and link its package root:
 
 ```bash
 codegraphy plugins link ~/src/acme-graph-tools
-codegraphy plugins enable @acme/graph-tools /path/to/indexed-folder
+codegraphy plugins enable acme.graph-tools /path/to/indexed-folder
 codegraphy index /path/to/indexed-folder
 ```
 
@@ -93,9 +109,9 @@ When testing through F5, launch only the public CodeGraphy VS Code extension. Do
 
 The `Run Extension` launch config runs `pnpm run build:devhost` before opening the Extension Development Host. That command builds the public extension, builds the local public language plugin packages, links those packages into `~/.codegraphy/plugins.json`, and best-effort links a local `@codegraphy-pro/organize` package when `CODEGRAPHY_ORGANIZE_PLUGIN_ROOT`, `CODEGRAPHY_PRO_PLUGINS_REPO`, or the standard sibling/private checkout path is present. It only upserts plugin registry entries; package enablement still belongs to the opened workspace and the Plugins panel.
 
-The Plugins panel is a package toggle surface. It shows package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
+The Plugins panel is a workspace Plugin ID toggle surface backed by static package metadata. It shows installed package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
 
-Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that package is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a package toggle. Disabling a package rebuilds the Graph View from cached analysis instead of rerunning full Indexing; enabling a package refreshes only the package-owned analysis tier for supported files, then keeps that tier in Graph Cache so future toggles can reuse it.
+Disabling a plugin writes `enabled: false` for that Plugin ID in the workspace `plugins` array and unloads its runtime immediately. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that Plugin ID is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a toggle. Disabling a plugin rebuilds the Graph View from cached analysis instead of rerunning full Indexing; enabling a plugin refreshes only the plugin-owned analysis tier for supported files, then keeps that tier in Graph Cache so future toggles can reuse it.
 
 When Indexing loads an enabled package, `@codegraphy-dev/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 
@@ -118,7 +134,7 @@ const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
 export default createPlugin;
 ```
 
-The data host persists under the plugin id returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
+The data host persists under the Plugin ID declared in `codegraphy.json` and returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
 
 Default options are copied into workspace settings when the plugin is enabled so the user can see and edit the starting values for that workspace. For example, enabling a Godot plugin whose package manifest contains:
 
@@ -142,7 +158,8 @@ writes a workspace entry like:
 {
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-godot",
+      "id": "codegraphy.gdscript",
+      "enabled": true,
       "options": {
         "includeSceneResources": true,
         "includeAutoloads": true,

@@ -69,7 +69,7 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     expect(fs.readFileSync(settingsPath, 'utf8')).toContain('"legend"');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"exclude"');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"edgeColors"');
-    expect(fs.readFileSync(settingsPath, 'utf8')).toContain('@codegraphy-dev/plugin-markdown');
+    expect(fs.readFileSync(settingsPath, 'utf8')).toContain('codegraphy.markdown');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('legacy.plugin');
   });
 

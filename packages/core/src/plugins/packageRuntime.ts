@@ -1,5 +1,6 @@
 import { readCodeGraphyInstalledPluginCache } from './installedCache';
 import { loadCodeGraphyWorkspacePluginPackage } from './packageLoad';
+import { createPluginActivityState } from './activityState/model';
 export type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
@@ -8,30 +9,51 @@ import type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
 } from './packageRuntimeContracts';
-import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-  type CodeGraphyWorkspacePluginSettings,
-} from '../workspace/settings';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '../workspace/settings';
+import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 
-function shouldLoadPackagePlugin(settings: CodeGraphyWorkspacePluginSettings): boolean {
-  return settings.package !== CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME;
+function getInstalledPluginId(record: CodeGraphyInstalledPluginRecord): string {
+  return record.pluginId ?? record.package;
+}
+
+function isInstalledPluginRecordDisabled(
+  record: CodeGraphyInstalledPluginRecord,
+  disabledPlugins: ReadonlySet<string>,
+): boolean {
+  return disabledPlugins.has(getInstalledPluginId(record));
 }
 
 export async function loadCodeGraphyWorkspacePluginPackages(
   options: LoadCodeGraphyWorkspacePluginPackagesOptions,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage[]> {
   const warn = options.warn ?? (() => undefined);
-  const recordsByPackage = new Map(
-    readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir })
-      .plugins
-      .map(record => [record.package, record] as const),
+  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  const installedPlugins = readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }).plugins;
+  const activityState = createPluginActivityState({
+    settings: options.settings,
+    installedPlugins,
+    builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
+  });
+  for (const warning of activityState.warnings) {
+    warn(warning);
+  }
+
+  const settingsById = new Map(
+    options.settings.plugins.map(plugin => [plugin.id, plugin] as const),
   );
   const loaded: LoadedCodeGraphyWorkspacePluginPackage[] = [];
 
-  for (const pluginSettings of options.settings.plugins.filter(shouldLoadPackagePlugin)) {
-    const record = recordsByPackage.get(pluginSettings.package);
-    if (!record) {
-      warn(`CodeGraphy plugin package '${pluginSettings.package}' is enabled but not installed.`);
+  for (const record of activityState.packagePlugins) {
+    const pluginId = getInstalledPluginId(record);
+    if (disabledPlugins.has(pluginId)) {
+      continue;
+    }
+
+    const pluginSettings = settingsById.get(pluginId);
+    if (!pluginSettings) {
+      continue;
+    }
+    if (isInstalledPluginRecordDisabled(record, disabledPlugins)) {
       continue;
     }
 
@@ -39,7 +61,7 @@ export async function loadCodeGraphyWorkspacePluginPackages(
       loaded.push(await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record, options.workspaceRoot));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      warn(`CodeGraphy plugin package '${pluginSettings.package}' could not be loaded: ${message}`);
+      warn(`CodeGraphy plugin '${pluginSettings.id}' could not be loaded: ${message}`);
     }
   }
 

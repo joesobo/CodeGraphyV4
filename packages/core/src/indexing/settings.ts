@@ -20,6 +20,8 @@ export function createEffectiveIndexSettings(
 
 export function getDisabledPluginFilterPatterns(settings: CodeGraphyWorkspaceSettings): Set<string> {
   return new Set(
-    settings.plugins.flatMap(plugin => plugin.disabledFilterPatterns ?? []),
+    settings.plugins
+      .filter(plugin => plugin.enabled)
+      .flatMap(plugin => plugin.disabledFilterPatterns ?? []),
   );
 }

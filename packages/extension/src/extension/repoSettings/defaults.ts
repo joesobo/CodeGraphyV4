@@ -3,7 +3,7 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
 import {
@@ -64,7 +64,8 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     respectGitignore: true,
     showOrphans: true,
     plugins: [{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+      enabled: true,
     }],
     pluginData: {},
     nodeColors: createDefaultNodeColors(),

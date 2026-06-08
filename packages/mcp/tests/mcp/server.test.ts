@@ -56,7 +56,7 @@ function createDependencies(
       state: 'fresh',
       hasGraphCache: true,
       staleReasons: [],
-      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
+      enabledPlugins: ['codegraphy.markdown'],
       message: 'CodeGraphy Workspace Graph Cache is fresh.',
     }),
     indexWorkspace: async ({ workspacePath }: { workspacePath?: string }) => ({
@@ -150,11 +150,11 @@ describe('mcp/server', () => {
     });
     const enableResult = await client.callTool({
       name: 'codegraphy_plugins_enable',
-      arguments: { packageName: '@codegraphy-dev/plugin-python', path: '/workspace/project' },
+      arguments: { pluginId: 'codegraphy.python', path: '/workspace/project' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_disable',
-      arguments: { packageName: '@codegraphy-dev/plugin-python', path: '/workspace/project' },
+      arguments: { pluginId: 'codegraphy.python', path: '/workspace/project' },
     });
 
     expect(enableResult.structuredContent).toEqual({
@@ -174,19 +174,19 @@ describe('mcp/server', () => {
       {
         name: 'plugins',
         action: 'enable',
-        packageName: '@codegraphy-dev/plugin-python',
+        packageName: 'codegraphy.python',
         workspacePath: '/workspace/project',
       },
       {
         name: 'plugins',
         action: 'disable',
-        packageName: '@codegraphy-dev/plugin-python',
+        packageName: 'codegraphy.python',
         workspacePath: '/workspace/project',
       },
     ]);
   });
 
-  it('describes plugin tool scope and package inputs explicitly', async () => {
+  it('describes plugin tool scope, package registration, and plugin activity inputs explicitly', async () => {
     const client = await connectServer(createDependencies());
     const tools = await client.listTools();
 
@@ -202,19 +202,19 @@ describe('mcp/server', () => {
       'List registered plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
     );
     expect(enableTool.description).toBe(
-      'Enable a registered plugin package for the current or explicit CodeGraphy Workspace.',
+      'Enable a registered Plugin ID for the current or explicit CodeGraphy Workspace.',
     );
     expect(disableTool.description).toBe(
-      'Disable a registered plugin package for the current or explicit CodeGraphy Workspace.',
+      'Disable a Plugin ID for the current or explicit CodeGraphy Workspace.',
     );
     expect(registerTool.inputSchema.required).toEqual(['packageName']);
     expect(propertiesFor(registerTool).packageName).toMatchObject({
       type: 'string',
       minLength: 1,
     });
-    expect(enableTool.inputSchema.required).toEqual(['packageName']);
-    expect(disableTool.inputSchema.required).toEqual(['packageName']);
-    expect(propertiesFor(enableTool).packageName).toMatchObject({
+    expect(enableTool.inputSchema.required).toEqual(['pluginId']);
+    expect(disableTool.inputSchema.required).toEqual(['pluginId']);
+    expect(propertiesFor(enableTool).pluginId).toMatchObject({
       type: 'string',
       minLength: 1,
     });

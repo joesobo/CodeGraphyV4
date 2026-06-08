@@ -11,6 +11,7 @@ import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { enrichWorkspaceFileAnalysis } from '../analysis/fileAnalysis/enrichment';
 import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis/cacheTiers';
 import { DEFAULT_NODE_COLOR } from '../fileColors';
+import { filterDisabledPluginFileAnalysis } from '../plugins/activityState/analysisFacts';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphEdges } from './edges';
 import { buildWorkspaceGraphNodes } from './nodes';
@@ -105,7 +106,8 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
 export function buildWorkspaceGraphDataFromAnalysis(
   options: IWorkspaceGraphAnalysisDataOptions,
 ): IGraphData {
-  const fileAnalysis = enrichWorkspaceFileAnalysis(options.fileAnalysis);
+  const activeFileAnalysis = filterDisabledPluginFileAnalysis(options.fileAnalysis, options.disabledPlugins);
+  const fileAnalysis = enrichWorkspaceFileAnalysis(activeFileAnalysis);
   const projectSymbolGraph = shouldProjectSymbolGraph(options.nodeVisibility);
   const graphData = buildWorkspaceGraphData({
     ...options,

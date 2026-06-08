@@ -1,7 +1,11 @@
-import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME, type CodeGraphyWorkspaceSettings } from '@codegraphy-dev/core';
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  loadBundledMarkdownPlugin,
+  type CodeGraphyWorkspaceSettings,
+} from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IPlugin } from '../../../../core/plugins/types/contracts';
-import { createMarkdownPlugin } from '../../../../../../plugin-markdown/src/plugin';
 import { createTreeSitterPlugin } from '../treesitter/plugin';
 import { getDefaultMarkdownPluginOptions, shouldRegisterMarkdownPlugin } from './markdown';
 
@@ -15,9 +19,11 @@ export interface WorkspacePipelinePluginRegistration {
   };
 }
 
-export function getBuiltInWorkspacePipelinePluginRegistrations(
+export async function getBuiltInWorkspacePipelinePluginRegistrations(
   settings: CodeGraphyWorkspaceSettings | undefined,
-): WorkspacePipelinePluginRegistration[] {
+  disabledPluginsInput: Iterable<string> = [],
+): Promise<WorkspacePipelinePluginRegistration[]> {
+  const disabledPlugins = new Set(disabledPluginsInput);
   const registrations: WorkspacePipelinePluginRegistration[] = [
     {
       plugin: createTreeSitterPlugin(),
@@ -29,9 +35,13 @@ export function getBuiltInWorkspacePipelinePluginRegistrations(
     return registrations;
   }
 
+  if (disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
+    return registrations;
+  }
+
   const markdownOptions = getDefaultMarkdownPluginOptions(settings);
   registrations.push({
-    plugin: createMarkdownPlugin(),
+    plugin: await loadBundledMarkdownPlugin() as IPlugin,
     options: {
       builtIn: true,
       sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
@@ -42,11 +52,12 @@ export function getBuiltInWorkspacePipelinePluginRegistrations(
   return registrations;
 }
 
-export function registerBuiltInWorkspacePipelinePlugins(
+export async function registerBuiltInWorkspacePipelinePlugins(
   registry: PluginRegistry,
   settings: CodeGraphyWorkspaceSettings | undefined,
-): void {
-  for (const registration of getBuiltInWorkspacePipelinePluginRegistrations(settings)) {
+  disabledPlugins?: Iterable<string>,
+): Promise<void> {
+  for (const registration of await getBuiltInWorkspacePipelinePluginRegistrations(settings, disabledPlugins)) {
     registry.register(registration.plugin, registration.options);
   }
 }

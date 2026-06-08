@@ -6,15 +6,12 @@ import type { CodeGraphyWorkspacePluginSettings } from '../../workspace/settings
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
 
 export interface UpdateCodeGraphyWorkspacePluginSelectionOptions {
-  packageName: string;
+  pluginId: string;
   enabled: boolean;
   defaultOptions?: Record<string, unknown>;
 }
 
-export interface CodeGraphyWorkspacePluginToggleOptions
-  extends UpdateCodeGraphyWorkspacePluginSelectionOptions {
-  pluginId: string;
-}
+export type CodeGraphyWorkspacePluginToggleOptions = UpdateCodeGraphyWorkspacePluginSelectionOptions;
 
 export type CodeGraphyWorkspacePluginIndexingPlan =
   | { kind: 'analyze-workspace' }
@@ -29,20 +26,24 @@ export function updateCodeGraphyWorkspacePluginSelection(
   plugins: readonly CodeGraphyWorkspacePluginSettings[],
   options: UpdateCodeGraphyWorkspacePluginSelectionOptions,
 ): CodeGraphyWorkspacePluginSettings[] {
-  if (!options.enabled) {
-    return plugins.filter(plugin => plugin.package !== options.packageName);
-  }
-
-  if (plugins.some(plugin => plugin.package === options.packageName)) {
-    return [...plugins];
-  }
-
-  const nextPlugin: CodeGraphyWorkspacePluginSettings = { package: options.packageName };
+  const existingIndex = plugins.findIndex(plugin => plugin.id === options.pluginId);
+  const nextPlugin: CodeGraphyWorkspacePluginSettings = {
+    ...(existingIndex >= 0 ? plugins[existingIndex] : {}),
+    id: options.pluginId,
+    enabled: options.enabled,
+  };
   if (options.defaultOptions && Object.keys(options.defaultOptions).length > 0) {
-    nextPlugin.options = { ...options.defaultOptions };
+    nextPlugin.options = {
+      ...options.defaultOptions,
+      ...nextPlugin.options,
+    };
   }
 
-  return [...plugins, nextPlugin];
+  if (existingIndex < 0) {
+    return [...plugins, nextPlugin];
+  }
+
+  return plugins.map((plugin, index) => index === existingIndex ? nextPlugin : plugin);
 }
 
 export function createCodeGraphyWorkspacePluginTogglePlan(
@@ -62,9 +63,11 @@ export function enableCodeGraphyWorkspacePlugin(
   plugin: CodeGraphyInstalledPluginRecord,
 ): void {
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
-  const existingIndex = settings.plugins.findIndex(entry => entry.package === plugin.package);
+  const pluginId = plugin.pluginId ?? plugin.package;
+  const existingIndex = settings.plugins.findIndex(entry => entry.id === pluginId);
   const entry = {
-    package: plugin.package,
+    id: pluginId,
+    enabled: true,
     ...(plugin.defaultOptions ? { options: { ...plugin.defaultOptions } } : {}),
   };
 
@@ -76,7 +79,8 @@ export function enableCodeGraphyWorkspacePlugin(
     };
     plugins[existingIndex] = {
       ...plugins[existingIndex],
-      package: plugin.package,
+      id: pluginId,
+      enabled: true,
       ...(Object.keys(mergedOptions).length > 0 ? { options: mergedOptions } : {}),
     };
   } else {
@@ -86,7 +90,7 @@ export function enableCodeGraphyWorkspacePlugin(
   writeCodeGraphyWorkspaceSettings(workspaceRoot, {
     ...settings,
     plugins: updateCodeGraphyWorkspacePluginSelection(plugins, {
-      packageName: plugin.package,
+      pluginId,
       enabled: true,
       defaultOptions: plugin.defaultOptions,
     }),
@@ -95,13 +99,13 @@ export function enableCodeGraphyWorkspacePlugin(
 
 export function disableCodeGraphyWorkspacePlugin(
   workspaceRoot: string,
-  packageName: string,
+  pluginId: string,
 ): void {
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   writeCodeGraphyWorkspaceSettings(workspaceRoot, {
     ...settings,
     plugins: updateCodeGraphyWorkspacePluginSelection(settings.plugins, {
-      packageName,
+      pluginId,
       enabled: false,
     }),
   });

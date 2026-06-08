@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME } from '@codegraphy-dev/core';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '@codegraphy-dev/core';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
@@ -18,7 +18,7 @@ describe('extension/repoSettings/defaults', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+      plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       pluginData: {},
       nodeColors: createDefaultNodeColors(),
       nodeVisibility: createDefaultNodeVisibility(),

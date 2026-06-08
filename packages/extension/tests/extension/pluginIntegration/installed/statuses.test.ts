@@ -1,6 +1,10 @@
 import * as fs from 'node:fs/promises';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import {
+  readCodeGraphyWorkspaceSettings,
+  writeCodeGraphyWorkspaceSettings,
+} from '@codegraphy-dev/core';
 import { activate } from '../../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../../graphViewProvider/internals';
@@ -107,12 +111,11 @@ async function waitForPluginStatuses(
   getMessages: () => Array<{
     type?: string;
     payload?: {
-      plugins?: Array<{ id: string }>;
+      plugins?: Array<{ enabled?: boolean; id: string; packageName?: string }>;
     };
   }>,
-): Promise<Array<{ id: string }>> {
-  const requiredPluginIds = ['codegraphy.markdown', 'acme.integration'];
-
+  requiredPluginIds = ['codegraphy.markdown', installedPackage!.pluginId],
+): Promise<Array<{ enabled?: boolean; id: string; packageName?: string }>> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const pluginMessage = getMessages()
       .filter(message => message.type === 'PLUGINS_UPDATED')
@@ -338,6 +341,92 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
         styles: [`${installedPackage!.packageRoot}/webview.css`],
       },
     });
+  }, 15000);
+
+  it('renders disabled installed package plugins from static metadata without importing runtime code', async () => {
+    const disabledWorkspace = await createPluginIntegrationWorkspace();
+    const importMarkerPath = `${disabledWorkspace.scratchPath}/disabled-runtime-imported.txt`;
+    const disabledPackage = await installPluginIntegrationPackage(
+      disabledWorkspace.workspacePath,
+      disabledWorkspace.scratchPath,
+      {
+        graphViewContributions: true,
+        importMarkerPath,
+        packageName: '@acme/disabled-graph-tools',
+        pluginId: 'acme.disabled-graph-tools',
+        webviewContributions: true,
+      },
+    );
+    writeCodeGraphyWorkspaceSettings(disabledWorkspace.workspacePath, {
+      ...readCodeGraphyWorkspaceSettings(disabledWorkspace.workspacePath),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        {
+          id: disabledPackage.pluginId,
+          enabled: false,
+          options: {
+            targetFile: 'src/utils.ts',
+          },
+        },
+      ],
+    });
+
+    try {
+      process.env.HOME = disabledPackage.homeDir;
+      workspaceFoldersValue = [
+        { uri: vscode.Uri.file(disabledWorkspace.workspacePath), name: 'workspace', index: 0 },
+      ];
+      currentContext = createContext();
+      activate(currentContext as unknown as vscode.ExtensionContext);
+
+      const provider = getRegisteredProvider();
+      const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
+
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+
+      const getMessages = () =>
+        mockWebview.postMessage.mock.calls.map((call: unknown[]) => call[0] as {
+          type?: string;
+          payload?: {
+            contributions?: Array<{ pluginId?: string }>;
+            plugins?: Array<{ enabled: boolean; id: string; packageName?: string }>;
+            pluginId?: string;
+          };
+        });
+      const plugins = await waitForPluginStatuses(
+        getMessages,
+        ['codegraphy.markdown', disabledPackage.pluginId],
+      );
+
+      expect(plugins).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            enabled: false,
+            id: disabledPackage.pluginId,
+            packageName: disabledPackage.packageName,
+          }),
+        ]),
+      );
+      await expect(fs.stat(importMarkerPath)).rejects.toMatchObject({ code: 'ENOENT' });
+      expect(getMessages()).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'PLUGIN_WEBVIEW_INJECT',
+            payload: expect.objectContaining({ pluginId: disabledPackage.pluginId }),
+          }),
+        ]),
+      );
+      const contributionMessages = getMessages().filter(message => message.type === 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED');
+      for (const message of contributionMessages) {
+        expect(message.payload?.contributions ?? []).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ pluginId: disabledPackage.pluginId }),
+          ]),
+        );
+      }
+    } finally {
+      await disabledWorkspace.cleanup();
+    }
   }, 15000);
 
   it('re-sends package plugin webview assets after analysis initializes package plugins', async () => {

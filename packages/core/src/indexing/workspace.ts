@@ -4,6 +4,7 @@ import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { analyzeWorkspaceIndexFiles } from './analysis';
+import { createDisabledPluginSet } from '../plugins/activityState/model';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
@@ -37,8 +38,13 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(options, settings, workspaceRoot);
-  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  const disabledPlugins = createDisabledPluginSet(settings, options.disabledPlugins);
+  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(
+    options,
+    settings,
+    workspaceRoot,
+    disabledPlugins,
+  );
 
   await registry.initializeAll(workspaceRoot);
 
@@ -56,6 +62,7 @@ export async function indexCodeGraphyWorkspace(
     discoveryResult,
     options,
     registry,
+    disabledPlugins,
     workspaceRoot,
   });
 

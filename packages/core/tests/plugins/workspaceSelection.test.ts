@@ -6,30 +6,31 @@ import {
 } from '../../src';
 
 describe('plugins/workspaceSelection', () => {
-  it('removes disabled package plugins from workspace settings', () => {
+  it('persists disabled plugin id intent in workspace settings', () => {
     const plugins: CodeGraphyWorkspacePluginSettings[] = [
-      { package: '@codegraphy-dev/plugin-markdown' },
-      { package: '@codegraphy-dev/plugin-python', options: { includeTests: true } },
+      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.python', enabled: true, options: { includeTests: true } },
     ];
 
     expect(
       updateCodeGraphyWorkspacePluginSelection(plugins, {
-        packageName: '@codegraphy-dev/plugin-python',
+        pluginId: 'codegraphy.python',
         enabled: false,
       }),
     ).toEqual([
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.python', enabled: false, options: { includeTests: true } },
     ]);
   });
 
-  it('adds enabled package plugins with default options', () => {
+  it('adds enabled plugin ids with default options', () => {
     const plugins: CodeGraphyWorkspacePluginSettings[] = [
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
     ];
 
     expect(
       updateCodeGraphyWorkspacePluginSelection(plugins, {
-        packageName: '@codegraphy-dev/plugin-godot',
+        pluginId: 'codegraphy.godot',
         enabled: true,
         defaultOptions: {
           includeAutoloads: true,
@@ -37,9 +38,10 @@ describe('plugins/workspaceSelection', () => {
         },
       }),
     ).toEqual([
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
       {
-        package: '@codegraphy-dev/plugin-godot',
+        id: 'codegraphy.godot',
+        enabled: true,
         options: {
           includeAutoloads: true,
           includeSceneResources: true,
@@ -48,28 +50,27 @@ describe('plugins/workspaceSelection', () => {
     ]);
   });
 
-  it('keeps existing enabled package plugin entries unchanged', () => {
+  it('keeps existing enabled plugin options unchanged', () => {
     const plugins: CodeGraphyWorkspacePluginSettings[] = [
-      { package: '@codegraphy-dev/plugin-python', options: { includeTests: true } },
+      { id: 'codegraphy.python', enabled: true, options: { includeTests: true } },
     ];
 
     expect(
       updateCodeGraphyWorkspacePluginSelection(plugins, {
-        packageName: '@codegraphy-dev/plugin-python',
+        pluginId: 'codegraphy.python',
         enabled: true,
         defaultOptions: { includeTests: false },
       }),
     ).toEqual([
-      { package: '@codegraphy-dev/plugin-python', options: { includeTests: true } },
+      { id: 'codegraphy.python', enabled: true, options: { includeTests: true } },
     ]);
   });
 
-  it('plans plugin file reprocessing when enabling a package plugin', () => {
+  it('plans plugin file reprocessing when enabling a plugin id', () => {
     const plan = createCodeGraphyWorkspacePluginTogglePlan([
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
     ], {
       pluginId: 'codegraphy.godot',
-      packageName: '@codegraphy-dev/plugin-godot',
       enabled: true,
       defaultOptions: {
         includeAutoloads: true,
@@ -78,9 +79,10 @@ describe('plugins/workspaceSelection', () => {
 
     expect(plan).toEqual({
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
+        { id: 'codegraphy.markdown', enabled: true },
         {
-          package: '@codegraphy-dev/plugin-godot',
+          id: 'codegraphy.godot',
+          enabled: true,
           options: { includeAutoloads: true },
         },
       ],
@@ -91,19 +93,19 @@ describe('plugins/workspaceSelection', () => {
     });
   });
 
-  it('plans a workspace analysis refresh when disabling a package plugin', () => {
+  it('plans a workspace analysis refresh when disabling a plugin id', () => {
     const plan = createCodeGraphyWorkspacePluginTogglePlan([
-      { package: '@codegraphy-dev/plugin-markdown' },
-      { package: '@codegraphy-dev/plugin-python' },
+      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.python', enabled: true },
     ], {
       pluginId: 'codegraphy.python',
-      packageName: '@codegraphy-dev/plugin-python',
       enabled: false,
     });
 
     expect(plan).toEqual({
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'codegraphy.python', enabled: false },
       ],
       indexing: {
         kind: 'analyze-workspace',

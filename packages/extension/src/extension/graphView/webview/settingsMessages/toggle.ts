@@ -14,36 +14,32 @@ export async function applySettingsToggleMessage(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
-    case 'TOGGLE_PLUGIN':
-      if (message.payload.packageName) {
-        const plan = createCodeGraphyWorkspacePluginTogglePlan(
-          handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
-          {
-            pluginId: message.payload.pluginId,
-            packageName: message.payload.packageName,
-            enabled: message.payload.enabled,
-            defaultOptions: message.payload.enabled
-              ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
-              : undefined,
-          },
-        );
-        await handlers.updateConfig('plugins', plan.plugins);
-        await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
-        handlers.sendPluginStatuses?.();
-        handlers.sendContextMenuItems?.();
-        handlers.sendPluginToolbarActions?.();
-        handlers.sendGraphViewContributionStatuses?.();
-        handlers.sendGraphControls();
-        if (plan.indexing.kind === 'reprocess-plugin-files') {
-          await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
-          return true;
-        }
-
-        handlers.smartRebuild(message.payload.pluginId);
+    case 'TOGGLE_PLUGIN': {
+      const plan = createCodeGraphyWorkspacePluginTogglePlan(
+        handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
+        {
+          pluginId: message.payload.pluginId,
+          enabled: message.payload.enabled,
+          defaultOptions: message.payload.enabled
+            ? handlers.getInstalledPluginDefaultOptions?.(message.payload.pluginId)
+            : undefined,
+        },
+      );
+      await handlers.updateConfig('plugins', plan.plugins);
+      await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
+      handlers.sendPluginStatuses?.();
+      handlers.sendContextMenuItems?.();
+      handlers.sendPluginToolbarActions?.();
+      handlers.sendGraphViewContributionStatuses?.();
+      handlers.sendGraphControls();
+      if (plan.indexing.kind === 'reprocess-plugin-files') {
+        await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
         return true;
       }
 
-      return false;
+      handlers.smartRebuild(message.payload.pluginId);
+      return true;
+    }
 
     default:
       return false;

@@ -30,8 +30,8 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       ],
     })).toEqual({
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@codegraphy-dev/plugin-python' },
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: '@codegraphy-dev/plugin-python', enabled: true },
       ],
     });
   });
@@ -272,11 +272,12 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     })).toEqual({
       plugins: [
         {
-          package: '@codegraphy-dev/plugin-markdown',
+          id: 'codegraphy.markdown',
+          enabled: true,
           disabledFilterPatterns: ['**/*.md'],
           options: { includeFrontmatter: true },
         },
-        { package: '@codegraphy-dev/plugin-python' },
+        { id: '@codegraphy-dev/plugin-python', enabled: true },
       ],
     });
   });

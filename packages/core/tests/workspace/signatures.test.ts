@@ -33,20 +33,23 @@ describe('workspace/signatures', () => {
     const withoutOptions = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
       }],
     });
     const first = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
         options: { includeTests: true, pythonVersion: '3.12' },
       }],
     });
     const second = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
         options: { pythonVersion: '3.12', includeTests: true },
       }],
     });
@@ -66,7 +69,8 @@ describe('workspace/signatures', () => {
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
     })).not.toBe(first);
@@ -77,27 +81,31 @@ describe('workspace/signatures', () => {
     const pythonPlugin = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
       }],
     });
 
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-ruby',
+        id: 'codegraphy.ruby',
+        enabled: true,
       }],
     })).not.toBe(pythonPlugin);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
         disabledFilterPatterns: [],
       }],
     })).toBe(pythonPlugin);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.python',
+        enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
     })).not.toBe(pythonPlugin);

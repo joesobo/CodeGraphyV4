@@ -8,9 +8,11 @@ import { listTreeSitterEdgeTypeCapabilities } from './runtime/capabilities';
 import { preAnalyzeCSharpTreeSitterFiles } from './runtime/csharpIndex';
 import { TREE_SITTER_SUPPORTED_EXTENSIONS } from './runtime/languages';
 
+export const TREE_SITTER_PLUGIN_ID = 'codegraphy.treesitter';
+
 export function createTreeSitterPlugin(): IPlugin {
   const plugin: IPlugin = {
-    id: 'codegraphy.treesitter',
+    id: TREE_SITTER_PLUGIN_ID,
     name: 'Tree-sitter',
     version: '1.0.0',
     apiVersion: '^2.0.0',

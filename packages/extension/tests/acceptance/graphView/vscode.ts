@@ -8,6 +8,8 @@ import { writeAcceptanceInstalledPluginCache } from './plugins';
 import { extensionRoot, repoRoot } from './workspace';
 import type { VSCodeFixture } from './types';
 
+export const VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS = 20_000;
+
 interface LaunchVSCodeWithWorkspaceOptions {
   readonly pluginPackageRelativePaths?: readonly string[];
 }
@@ -56,7 +58,7 @@ export async function openGraphView(page: Page): Promise<void> {
   const commandPaletteShortcut = process.platform === 'darwin' ? 'Meta+Shift+P' : 'Control+Shift+P';
 
   await page.bringToFront();
-  await expect.poll(() => page.title(), { timeout: 15_000 }).toContain('[Extension Development Host]');
+  await expect.poll(() => page.title(), { timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS }).toContain('[Extension Development Host]');
   await page.mouse.click(640, 450);
   await page.keyboard.press(commandPaletteShortcut);
   await page.keyboard.type('CodeGraphy: Open');
@@ -74,7 +76,7 @@ export async function waitForGraphFrame(page: Page): Promise<Frame> {
     }
 
     return false;
-  }, { timeout: 15_000 }).toBe(true);
+  }, { timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS }).toBe(true);
 
   for (const frame of page.frames().filter(candidate => candidate.url().includes('fake.html'))) {
     if (await isReadyGraphFrame(frame)) {

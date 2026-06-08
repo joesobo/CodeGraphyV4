@@ -248,7 +248,7 @@ describe('graph view settings router', () => {
     );
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy-dev/plugin-python' },
+      { id: 'codegraphy.python', enabled: true },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);

@@ -38,7 +38,7 @@ export interface WorkspaceIndexPluginStatusOptions {
     };
     sourcePackage?: string;
   }>;
-  workspaceEnabledPackageNames?: ReadonlySet<string>;
+  workspaceEnabledPluginIds?: ReadonlySet<string>;
 }
 
 type WorkspaceIndexPluginInfo = WorkspaceIndexPluginStatusOptions['pluginInfos'][number];
@@ -48,7 +48,7 @@ interface RegisteredPluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;
   matchingFileCount: number;
   pluginInfo: WorkspaceIndexPluginInfo;
-  workspaceEnabledPackageNames?: ReadonlySet<string>;
+  workspaceEnabledPluginIds?: ReadonlySet<string>;
 }
 
 interface RegisteredWorkspaceIndexPluginStatuses {
@@ -117,7 +117,7 @@ export function buildRegisteredWorkspaceIndexPluginStatus(
     disabledPlugins,
     matchingFileCount,
     pluginInfo,
-    workspaceEnabledPackageNames,
+    workspaceEnabledPluginIds,
   } = options;
   const plugin = pluginInfo.plugin;
 
@@ -128,8 +128,8 @@ export function buildRegisteredWorkspaceIndexPluginStatus(
     version: plugin.version,
     supportedExtensions: plugin.supportedExtensions,
     status: getWorkspaceIndexPluginWorkspaceStatus(matchingFileCount, connectionCount),
-    enabled: pluginInfo.sourcePackage && workspaceEnabledPackageNames
-      ? workspaceEnabledPackageNames.has(pluginInfo.sourcePackage)
+    enabled: pluginInfo.sourcePackage
+      ? workspaceEnabledPluginIds?.has(plugin.id) ?? false
       : !disabledPlugins.has(plugin.id),
     connectionCount,
   };
@@ -137,10 +137,10 @@ export function buildRegisteredWorkspaceIndexPluginStatus(
 
 export function buildUnregisteredInstalledWorkspaceIndexPluginStatus(
   plugin: CodeGraphyInstalledPluginRecord,
-  workspaceEnabledPackageNames?: ReadonlySet<string>,
+  workspaceEnabledPluginIds?: ReadonlySet<string>,
 ): WorkspaceIndexPluginStatus {
-  const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
   const id = plugin.pluginId ?? plugin.package;
+  const enabled = workspaceEnabledPluginIds?.has(id) ?? false;
   const name = plugin.pluginName ?? plugin.package;
   const supportedExtensions = plugin.supportedExtensions ?? [];
 
@@ -196,7 +196,7 @@ function buildRegisteredWorkspaceIndexPluginStatuses(
       disabledPlugins: options.disabledPlugins,
       matchingFileCount: matchingFiles.length,
       pluginInfo,
-      workspaceEnabledPackageNames: options.workspaceEnabledPackageNames,
+      workspaceEnabledPluginIds: options.workspaceEnabledPluginIds,
     });
 
     inPluginOrder.push(status);
@@ -213,14 +213,14 @@ function appendInstalledWorkspaceIndexPluginStatuses(
   statuses: WorkspaceIndexPluginStatus[],
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
   registeredByPackageName: ReadonlyMap<string, WorkspaceIndexPluginStatus>,
-  workspaceEnabledPackageNames?: ReadonlySet<string>,
+  workspaceEnabledPluginIds?: ReadonlySet<string>,
 ): void {
   for (const installedPlugin of installedPlugins) {
     statuses.push(
       registeredByPackageName.get(installedPlugin.package)
       ?? buildUnregisteredInstalledWorkspaceIndexPluginStatus(
         installedPlugin,
-        workspaceEnabledPackageNames,
+        workspaceEnabledPluginIds,
       ),
     );
   }
@@ -254,7 +254,7 @@ export function buildWorkspaceIndexPluginStatuses(
     statuses,
     installedPlugins,
     registered.byPackageName,
-    options.workspaceEnabledPackageNames,
+    options.workspaceEnabledPluginIds,
   );
   appendUninstalledRegisteredWorkspaceIndexPluginStatuses(
     statuses,
@@ -284,7 +284,7 @@ export function getWorkspaceIndexPluginStatuses(
     fileConnections: dependencies.fileConnections,
     installedPlugins: dependencies.installedPlugins,
     pluginInfos: dependencies.registry.list(),
-    workspaceEnabledPackageNames: dependencies.workspaceEnabledPackageNames,
+    workspaceEnabledPluginIds: dependencies.workspaceEnabledPluginIds,
   });
 }
 

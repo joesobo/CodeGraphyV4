@@ -4,12 +4,12 @@ import {
 } from '@codegraphy-dev/core';
 
 export function readInstalledPluginDefaultOptions(
-  packageName: string,
+  pluginId: string,
   options: CodeGraphyUserStateOptions = {},
 ): Record<string, unknown> | undefined {
   const defaultOptions = readCodeGraphyInstalledPluginCache(options)
     .plugins
-    .find(plugin => plugin.package === packageName)
+    .find(plugin => (plugin.pluginId ?? plugin.package) === pluginId)
     ?.defaultOptions;
 
   return defaultOptions ? { ...defaultOptions } : undefined;

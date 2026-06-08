@@ -2,7 +2,10 @@ import { readCodeGraphyWorkspaceSettingsOrInitial } from '../../workspace/settin
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
-import { listRegisteredPluginsWithBundledMarkdown } from './installed';
+import {
+  getRegisteredPluginId,
+  listRegisteredPluginsWithBundledMarkdown,
+} from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runListCommand(
@@ -15,24 +18,29 @@ export function runListCommand(
       homeDir: dependencies.homeDir,
     }),
   );
-  const enabledPlugins = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins;
-  const enabledPackages = new Set(enabledPlugins.map(plugin => plugin.package));
-  const disabledPlugins = registeredPlugins.filter(plugin => !enabledPackages.has(plugin.package));
+  const enabledPluginIds = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot)
+    .plugins
+    .filter(plugin => plugin.enabled)
+    .map(plugin => plugin.id);
+  const enabledPluginIdSet = new Set(enabledPluginIds);
+  const disabledPlugins = registeredPlugins.filter(plugin =>
+    !enabledPluginIdSet.has(getRegisteredPluginId(plugin))
+  );
 
   const lines = [
     `CodeGraphy plugins for ${workspaceRoot}`,
     '',
     'Enabled in workspace:',
     ...(
-      enabledPlugins.length > 0
-        ? enabledPlugins.map((plugin, index) => `${index + 1}. ${plugin.package}`)
+      enabledPluginIds.length > 0
+        ? enabledPluginIds.map((pluginId, index) => `${index + 1}. ${pluginId}`)
         : ['none']
     ),
     '',
     'Registered but disabled:',
     ...(
       disabledPlugins.length > 0
-        ? disabledPlugins.map(plugin => `- ${plugin.package}`)
+        ? disabledPlugins.map(plugin => `- ${getRegisteredPluginId(plugin)}`)
         : ['none']
     ),
   ];
