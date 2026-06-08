@@ -18,9 +18,11 @@ function readExtensionManifest() {
       };
       views?: {
         codegraphy?: Array<{
+          type?: string;
           id?: string;
           name?: string;
           icon?: string;
+          initialSize?: number;
           size?: number;
           visibility?: string;
         }>;
@@ -57,11 +59,18 @@ describe('extension manifest', () => {
     expect(existsSync(resolve(repoRoot, String(view?.icon)))).toBe(true);
   });
 
-  it('does not allocate a native search view above the graph view', () => {
+  it('declares a compact search view above the graph view', () => {
     const { manifest } = readExtensionManifest();
     const views = manifest.contributes?.views?.codegraphy ?? [];
+    const searchView = views.find(entry => entry.id === 'codegraphy.searchView');
+    const graphView = views.find(entry => entry.id === 'codegraphy.graphView');
 
-    expect(views.find(entry => entry.id === 'codegraphy.searchView')).toBeUndefined();
+    expect(searchView).toBeDefined();
+    expect(searchView?.type).toBe('webview');
+    expect(searchView?.name).toBe('Search');
+    expect(searchView?.initialSize).toBe(1);
+    expect(searchView?.size).toBeUndefined();
+    expect(views.indexOf(searchView!)).toBeLessThan(views.indexOf(graphView!));
   });
 
   it('declares a dedicated timeline view in the CodeGraphy container', () => {

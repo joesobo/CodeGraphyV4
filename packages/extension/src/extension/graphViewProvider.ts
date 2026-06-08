@@ -15,6 +15,7 @@ export class GraphViewProvider
   extends GraphViewProviderRuntime
   implements vscode.WebviewViewProvider
 {
+  public static readonly searchViewType = 'codegraphy.searchView';
   public static readonly viewType = 'codegraphy.graphView';
   public static readonly timelineViewType = 'codegraphy.timelineView';
 }
