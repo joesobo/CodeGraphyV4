@@ -70,8 +70,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'lib/widget.hpp',
         fromFilePath: appPath,
@@ -80,8 +79,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'vector',
         fromFilePath: appPath,
@@ -90,7 +88,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'Widget',
         fromFilePath: appPath,
         fromSymbolId: `${appPath}:class:Runner`,
@@ -99,7 +97,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
       expect.objectContaining({
         kind: 'overrides',
-        sourceId: 'codegraphy.treesitter:override',
+        sourceId: 'core:treesitter:override',
         specifier: 'render',
         fromFilePath: appPath,
         fromSymbolId: `${appPath}:method:render`,
@@ -108,7 +106,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'make_widget',
         fromFilePath: appPath,
         fromSymbolId: `${appPath}:function:boot`,
@@ -117,7 +115,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'render',
         fromFilePath: appPath,
         fromSymbolId: `${appPath}:function:boot`,
@@ -160,7 +158,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'Widget',
         fromFilePath: widgetPath,
         fromSymbolId: `${widgetPath}:function:make_widget`,

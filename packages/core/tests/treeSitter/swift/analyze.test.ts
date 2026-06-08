@@ -77,8 +77,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'Foundation',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -86,8 +85,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'LocalKit',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'Sources/LocalKit/Worker.swift'),
@@ -95,8 +93,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -104,8 +101,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'Runnable',
         fromFilePath: runnerPath,
         resolvedPath: null,

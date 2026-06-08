@@ -210,6 +210,21 @@ describe('pipeline/service/lifecycleFacade', () => {
     );
   });
 
+  it('resolves plugin names for contributed graph source plugin ids', () => {
+    const facade = new TestLifecycleFacade();
+    lifecycleState(facade)._registry.list.mockReturnValue([
+      { plugin: { id: 'codegraphy.markdown', name: 'Markdown' } },
+      { plugin: { id: 'codegraphy.vue', name: 'Vue' } },
+      { plugin: { id: 'codegraphy.python', name: 'Python' } },
+    ]);
+
+    expect(facade.getPluginNamesForIds([
+      'codegraphy.markdown',
+      'codegraphy.unknown',
+      'codegraphy.vue',
+    ])).toEqual(['Markdown', 'Vue']);
+  });
+
   it('replaces the cache through the stored-cache helper and logs its messages', () => {
     const facade = new TestLifecycleFacade();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);

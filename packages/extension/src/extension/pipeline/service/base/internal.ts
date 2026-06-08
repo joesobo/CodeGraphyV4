@@ -5,6 +5,7 @@ import type {
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
+import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
@@ -42,6 +43,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       workspaceRoot,
       {
         notifyPreAnalyze: async (v2Files, rootPath) => {
+          await preAnalyzeCoreTreeSitterFiles(v2Files, rootPath);
           await this._registry.notifyPreAnalyze(
             v2Files,
             rootPath,

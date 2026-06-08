@@ -68,7 +68,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
     });
   });
 
-  it('normalizes relations with the Tree-sitter plugin id without mutating inputs', () => {
+  it('normalizes core Tree-sitter results without adding plugin provenance', () => {
     const relation = {
       kind: 'import',
       sourceId: 'source-id',
@@ -91,13 +91,12 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
       relations: [
         {
           ...relation,
-          pluginId: 'codegraphy.treesitter',
         },
       ],
     });
     expect(result.relations).toBeDefined();
-    expect(result.relations?.[0]).not.toBe(relation);
     expect(relation).not.toHaveProperty('pluginId');
+    expect(result.relations?.[0]).not.toHaveProperty('pluginId');
     expect(result.symbols).toBe(symbols);
   });
 

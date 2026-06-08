@@ -62,8 +62,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzePhp', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'App\\Base\\BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'src/App/Base/BaseRunner.php'),
@@ -71,8 +70,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzePhp', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'Vendor\\Package\\Thing',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -80,8 +78,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzePhp', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'src/App/Base/BaseRunner.php'),
@@ -89,8 +86,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzePhp', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'Runnable',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'src/App/Contracts/Runnable.php'),
