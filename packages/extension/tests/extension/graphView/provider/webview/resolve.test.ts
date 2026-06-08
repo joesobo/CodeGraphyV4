@@ -236,7 +236,7 @@ describe('graphView/provider/webview/resolve', () => {
       setWebviewMessageListener: vi.fn(),
     }, webviewView);
 
-    for (let index = 0; index < 16; index += 1) {
+    for (let index = 0; index < 30; index += 1) {
       await Promise.resolve();
     }
 
@@ -245,6 +245,7 @@ describe('graphView/provider/webview/resolve', () => {
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'search');
     expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
     expect(executeCommand).toHaveBeenNthCalledWith(1, 'workbench.action.openView', 'codegraphy.searchView');
+    expect(executeCommand).toHaveBeenNthCalledWith(2, 'workbench.action.focusSideBar');
     expect(executeCommand).toHaveBeenCalledWith('workbench.action.decreaseViewHeight');
     expect(executeCommand).toHaveBeenLastCalledWith('workbench.action.openView', 'codegraphy.graphView');
 
