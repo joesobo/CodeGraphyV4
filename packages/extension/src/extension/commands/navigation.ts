@@ -4,12 +4,12 @@
  */
 
 import * as vscode from 'vscode';
-import type { GraphViewProvider } from '../graphViewProvider';
+import { GraphViewProvider } from '../graphViewProvider';
 import type { CommandDefinition } from './definitions';
 
 export function getNavCommands(provider: GraphViewProvider): CommandDefinition[] {
   return [
-    { id: 'codegraphy.open', handler: () => { vscode.commands.executeCommand('workbench.view.extension.codegraphy'); } },
+    { id: 'codegraphy.open', handler: () => { vscode.commands.executeCommand('workbench.action.openView', GraphViewProvider.viewType); } },
     { id: 'codegraphy.openInEditor', handler: () => { provider.openInEditor(); } },
     { id: 'codegraphy.fitView', handler: () => { provider.sendCommand('FIT_VIEW'); } },
     { id: 'codegraphy.zoomIn', handler: () => { provider.sendCommand('ZOOM_IN'); } },

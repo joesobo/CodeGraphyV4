@@ -30,7 +30,7 @@ describe('getNavCommands', () => {
   });
 
   describe('open command', () => {
-    it('executes the workbench view command', () => {
+    it('opens the graph view directly', () => {
       const provider = makeProvider();
       const commands = getNavCommands(provider as never);
       const cmd = commands.find((cmd) => cmd.id === 'codegraphy.open')!;
@@ -38,7 +38,8 @@ describe('getNavCommands', () => {
       cmd.handler();
 
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'workbench.view.extension.codegraphy'
+        'workbench.action.openView',
+        'codegraphy.graphView'
       );
     });
   });
