@@ -17,6 +17,10 @@ function createContext(
     getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getFilterPatterns: vi.fn(() => []),
+    getSearchState: vi.fn(() => ({
+      query: 'App',
+      options: { matchCase: false, wholeWord: true, regex: false },
+    })),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
     getFocusedFile: vi.fn(() => undefined),
@@ -95,6 +99,7 @@ function createContext(
     logError: vi.fn(),
     setUserGroups: vi.fn(),
     setFilterPatterns: vi.fn(),
+    setSearchState: vi.fn(),
     setWebviewReadyNotified: vi.fn(),
     ...overrides,
   };
@@ -199,6 +204,13 @@ describe('graph view webview message listener', () => {
     await messageHandler?.({ type: 'WEBVIEW_READY' });
 
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'SEARCH_STATE_UPDATED',
+      payload: {
+        query: 'App',
+        options: { matchCase: false, wholeWord: true, regex: false },
+      },
+    });
   });
 
   it('replays settings but not empty bootstrap payloads for duplicate WEBVIEW_READY during first analysis', async () => {
@@ -251,6 +263,11 @@ describe('graph view webview message listener', () => {
     ).toHaveLength(0);
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(2);
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(2);
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'SEARCH_STATE_UPDATED'
+      ),
+    ).toHaveLength(2);
     expect(context.sendSettings).toHaveBeenCalledTimes(2);
     expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(2);
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
