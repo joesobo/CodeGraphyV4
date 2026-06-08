@@ -780,7 +780,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the legend group text should be prefilled with "(.+)"$/, async (context, _step, match) => {
     const frame = requireGraphFrame(context);
     await expectInputValue(frame, match[1]);
-    await frame.getByRole('button', { name: 'Cancel' }).click({ force: true });
+    await frame.getByRole('button', { name: 'Cancel' }).evaluate((button: HTMLElement) => button.click());
     await expect(frame.getByText('Add Legend Group', { exact: true })).toBeHidden({ timeout: 5_000 });
   }),
 
