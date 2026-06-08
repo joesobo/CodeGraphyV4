@@ -5,35 +5,31 @@ import {
 } from '../../../src/graph/edgeSources/identity';
 
 describe('core/graph/edgeSources/identity', () => {
-  it('builds qualified source ids from the connection plugin id or plugin fallback', () => {
+  it('builds qualified source ids from explicit connection plugin ids only', () => {
     expect(
       createQualifiedSourceId(
-        { id: 'fallback-plugin' } as never,
         { pluginId: 'connection-plugin', sourceId: 'route' } as never,
       ),
     ).toBe('connection-plugin:route');
 
     expect(
       createQualifiedSourceId(
-        { id: 'fallback-plugin' } as never,
         { pluginId: undefined, sourceId: 'route' } as never,
       ),
-    ).toBe('fallback-plugin:route');
+    ).toBeUndefined();
   });
 
   it('returns undefined when a connection does not have a source id', () => {
     expect(
       createQualifiedSourceId(
-        { id: 'fallback-plugin' } as never,
         { pluginId: 'connection-plugin', sourceId: undefined } as never,
       ),
     ).toBeUndefined();
   });
 
-  it('resolves plugin and source identities from explicit and fallback values', () => {
+  it('resolves plugin and source identities from explicit connection plugin ids only', () => {
     expect(
       resolveEdgeSourceIdentity(
-        { id: 'fallback-plugin' } as never,
         {
           pluginId: 'connection-plugin',
           sourceId: 'route',
@@ -47,36 +43,31 @@ describe('core/graph/edgeSources/identity', () => {
 
     expect(
       resolveEdgeSourceIdentity(
-        { id: 'fallback-plugin' } as never,
         {
           pluginId: undefined,
           sourceId: 'route',
         } as never,
       ),
-    ).toEqual({
-      pluginId: 'fallback-plugin',
-      qualifiedSourceId: 'fallback-plugin:route',
-      sourceId: 'route',
-    });
+    ).toBeUndefined();
   });
 
   it('rejects malformed or incomplete qualified source ids', () => {
     expect(
-      resolveEdgeSourceIdentity(undefined, {
+      resolveEdgeSourceIdentity({
         pluginId: undefined,
         sourceId: undefined,
       } as never),
     ).toBeUndefined();
 
     expect(
-      resolveEdgeSourceIdentity(undefined, {
+      resolveEdgeSourceIdentity({
         pluginId: undefined,
         sourceId: 'missing-plugin',
       } as never),
     ).toBeUndefined();
 
     expect(
-      resolveEdgeSourceIdentity(undefined, {
+      resolveEdgeSourceIdentity({
         pluginId: '',
         sourceId: 'route',
       } as never),

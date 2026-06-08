@@ -79,7 +79,12 @@ describe('PluginRegistry analysis', () => {
 
     const result = await registry.analyzeFileResult('/src/styles.css', 'content', '/workspace');
 
-    expect(coreAnalyzeFileResult).toHaveBeenCalledWith('/src/styles.css', 'content', '/workspace');
+    expect(coreAnalyzeFileResult).toHaveBeenCalledWith(
+      '/src/styles.css',
+      'content',
+      '/workspace',
+      expect.objectContaining({ mode: 'workspace' }),
+    );
     expect(result).toEqual({
       filePath: '/src/styles.css',
       edgeTypes: [],

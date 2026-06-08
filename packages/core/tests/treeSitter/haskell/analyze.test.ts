@@ -56,8 +56,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'App.Model.User',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'src/App/Model/User.hs'),
@@ -65,8 +64,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'Data.Text',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -110,8 +108,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'boot',
         fromFilePath: mainPath,
         fromSymbolId: `${mainPath}:function:main`,
@@ -120,8 +117,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'User',
         fromFilePath: mainPath,
         fromSymbolId: `${mainPath}:function:main`,

@@ -1,5 +1,6 @@
 import type * as vscode from 'vscode';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
+import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { FileDiscovery } from '@codegraphy-dev/core';
 import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
@@ -40,8 +41,10 @@ export async function preAnalyzeWorkspacePipelinePlugins(
     files,
     workspaceRoot,
     {
-      notifyPreAnalyze: (v2Files, rootPath) =>
-        registry.notifyPreAnalyze(v2Files, rootPath, undefined, disabledPlugins),
+      notifyPreAnalyze: async (v2Files, rootPath) => {
+        await preAnalyzeCoreTreeSitterFiles(v2Files, rootPath);
+        await registry.notifyPreAnalyze(v2Files, rootPath, undefined, disabledPlugins);
+      },
       readContent: file => discovery.readContent(file),
     },
     signal,

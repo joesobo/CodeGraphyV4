@@ -166,6 +166,23 @@ describe('PluginRegistry collection', () => {
     ]);
   });
 
+  it('includes core edge type capabilities without treating core analysis as a plugin', () => {
+    const registry = createConfiguredRegistry();
+    registry.setCoreEdgeTypeCapabilitiesProvider((filePaths) => {
+      expect(filePaths).toEqual(['src/app.cpp']);
+      return ['import', 'call', 'contains', 'inherit', 'overrides'];
+    });
+
+    expect(registry.list()).toEqual([]);
+    expect(registry.listEdgeTypeCapabilities(['src/app.cpp'])).toEqual([
+      'import',
+      'call',
+      'contains',
+      'inherit',
+      'overrides',
+    ]);
+  });
+
   it('excludes disabled plugins from file analysis', async () => {
     const registry = createConfiguredRegistry();
     const analyzeFile = vi.fn(async (filePath: string) => ({

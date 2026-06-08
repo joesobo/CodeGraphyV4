@@ -65,8 +65,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'math/add.h',
         fromFilePath: mainPath,
@@ -75,8 +74,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'stdio.h',
         fromFilePath: mainPath,
@@ -115,7 +113,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'add',
         fromFilePath: mainPath,
         fromSymbolId: `${mainPath}:function:main`,

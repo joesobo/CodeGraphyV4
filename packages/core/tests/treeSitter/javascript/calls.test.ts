@@ -41,7 +41,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJavaScript/calls', () => {
     const importRelation = {
       kind: 'import',
       fromFilePath: '/workspace/src/app.ts',
-      sourceId: 'codegraphy.treesitter:dynamic-import',
+      sourceId: 'core:treesitter:dynamic-import',
     };
 
     vi.mocked(getImportRelationForJavaScriptCallExpression).mockReturnValue(importRelation as never);

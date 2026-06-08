@@ -26,6 +26,7 @@ import {
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../../../../src/extension/pipeline/service/cache/signatures';
+import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 
 vi.mock('../../../../../src/extension/pipeline/serviceAdapters', () => ({
   readWorkspacePipelineFileStat: vi.fn(),
@@ -62,6 +63,11 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/signatures', () => 
   createWorkspacePipelineSettingsSignature: vi.fn(),
   readWorkspacePipelineCurrentCommitSha: vi.fn(),
   readWorkspacePipelineCurrentCommitShaSync: vi.fn(),
+}));
+
+vi.mock('@codegraphy-dev/core', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@codegraphy-dev/core')>()),
+  preAnalyzeCoreTreeSitterFiles: vi.fn(),
 }));
 
 vi.mock('vscode', () => ({
@@ -221,6 +227,7 @@ describe('extension/pipeline/service/internalBase', () => {
       mtime: 123,
       size: 456,
     });
+    vi.mocked(preAnalyzeCoreTreeSitterFiles).mockResolvedValue(undefined);
     vi.mocked(preAnalyzeWorkspacePipelinePlugins).mockResolvedValue(undefined);
     vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mockResolvedValue({
       fileAnalysis: new Map(),
