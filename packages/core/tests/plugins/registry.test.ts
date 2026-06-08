@@ -247,7 +247,7 @@ describe('CorePluginRegistry', () => {
       edgeTypes: ['import', 'codegraphy.typescript:alias-import', 'reference', 'load', 'inherit'],
     });
     expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
-      filePaths: ['src/app.ts', 'game/player.gd'],
+      filePaths: ['src/app.ts'],
     });
   });
 });

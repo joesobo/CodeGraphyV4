@@ -61,6 +61,28 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     expect(prettifyIdentifier).not.toHaveBeenCalled();
   });
 
+  it('shows parent rows for plugin-owned child node types', () => {
+    const definitions = mergeNodeTypes(
+      { nodes: [], edges: [] } as never,
+      [
+        {
+          id: 'plugin:test:symbol:concept',
+          label: 'Concept',
+          defaultColor: '#999999',
+          defaultVisible: false,
+          parentId: 'symbol',
+        },
+      ],
+      {},
+      ['plugin:test:symbol:concept'],
+    );
+
+    expect(definitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'symbol' }),
+      expect.objectContaining({ id: 'plugin:test:symbol:concept', parentId: 'symbol' }),
+    ]));
+  });
+
   it('merges plugin and inferred edge types while preserving core entries', () => {
     const graphData = {
       nodes: [],
