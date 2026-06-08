@@ -356,13 +356,57 @@ _Avoid_: VS Code extension when referring to headless engine behavior
 A user, agent, terminal, or programmer-facing way to interact with the **Core Package** without owning the engine. The **VS Code Extension** is the graphical user interface, **CodeGraphy CLI** is the terminal interface, **CodeGraphy MCP** is the agent interface, and **Plugin API** is the programmer interface for plugin authors.
 _Avoid_: Engine, core owner, implementation package
 
+**Plugin Processing**:
+The Core Package-owned workflow for discovering Installed Plugin Packages, enabling or disabling Plugins for a CodeGraphy Workspace, loading active plugin runtimes, routing plugin roles, emitting plugin lifecycle events, and deciding when plugin work runs. CodeGraphy Interfaces request Plugin Processing actions from Core and render Core results; they do not own plugin activation or role execution.
+_Avoid_: Extension plugin handling, interface-owned plugin runtime
+
 **Plugin**:
 A headless CodeGraphy npm package that communicates with `@codegraphy-dev/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
 _Avoid_: VS Code extension when referring to the CodeGraphy capability
 
 **Plugin Package**:
-An npm package that declares `package.json#codegraphy` metadata and exports a CodeGraphy plugin runtime through normal package exports.
+An npm package that declares package compatibility in `package.json#codegraphy`, declares static Plugin ID and display metadata in `codegraphy.json`, and exports a CodeGraphy plugin runtime through normal package exports.
 _Avoid_: VS Code extension package
+
+**Installed Plugin Package**:
+A Plugin Package registered in the user-level Plugin Registry and discoverable through CodeGraphy Interfaces such as the CodeGraphy CLI, CodeGraphy MCP, and VS Code Extension. An Installed Plugin Package is available to enable from any CodeGraphy Workspace, but installation does not make it active in any workspace. Its npm package name and version identify the installed package source; its Plugin ID identifies the CodeGraphy capability that can become workspace active. CodeGraphy Interfaces should receive installed package identity and Plugin ID from Core and render available Disabled Plugins from static metadata, without importing or creating the plugin runtime.
+_Avoid_: Enabled plugin, active plugin
+
+**Plugin ID**:
+The stable CodeGraphy capability identifier declared in static `codegraphy.json` metadata and used for Plugin Activity State, Plugin API ownership, graph provenance, lifecycle hooks, Graph View roles, Plugin Data, and workspace enablement. Core treats the npm package name as package identity and the Plugin ID as capability identity; package authors may choose a package-derived ID or a CodeGraphy-style ID such as `codegraphy.vue`, but runtime `plugin.id` must match `codegraphy.json#id`. If two Installed Plugin Packages claim the same Plugin ID, Core must surface a Plugin Identity Conflict and refuse to enable that Plugin ID until the conflict is resolved.
+_Avoid_: Package name when referring to workspace activity, runtime instance
+
+**Plugin Identity Conflict**:
+A Core-detected ambiguity where more than one Installed Plugin Package claims the same Plugin ID. A conflicted Plugin ID is not a Workspace Enabled Plugin and must not be imported, created, registered, or executed. CodeGraphy Interfaces should surface the conflict as a developer-console warning from static metadata, but they must not silently choose a winning package.
+_Avoid_: Last package wins, disabled plugin when ambiguity is the reason, user-facing conflict chooser
+
+**Workspace Enabled Plugin**:
+An Installed Plugin Package or Built-in Plugin explicitly enabled for the current CodeGraphy Workspace and loaded through Plugin Integration. CodeGraphy Workspace settings persist Plugin ID activity intent by the Plugin ID declared in static `codegraphy.json` metadata, such as `codegraphy.vue`: `enabled: true` means the plugin has been set active, `enabled: false` means the plugin has been set disabled, and no entry means the plugin has not been touched in that workspace. Core resolves each `enabled: true` Plugin ID to exactly one Installed Plugin Package or Built-in Plugin when building Plugin Activity State. Installed Plugin Packages are disabled by default for a workspace until a CodeGraphy Interface enables their Plugin ID for that workspace. Only Workspace Enabled Plugins can access the Plugin API and extend the Core Package or VS Code Extension. Importing, creating, registering, and running the plugin runtime is part of enabling the plugin for a workspace.
+_Avoid_: Installed plugin, available plugin
+
+**Disabled Plugin**:
+An Installed Plugin Package or Built-in Plugin with `enabled: false` in the current CodeGraphy Workspace, or no workspace setting entry when the plugin is disabled by default. A Disabled Plugin is unloaded: it has no Plugin API access, runs no analysis, contributes no graph concepts, publishes no Graph View roles, and does not communicate with the Core Package or VS Code Extension except through static metadata used to render its enable toggle.
+_Avoid_: Hidden active plugin, inactive background plugin
+
+**Plugin Integration**:
+The host module that loads Workspace Enabled Plugins and connects them to CodeGraphy roles such as Plugin Analysis, Edge Type Capabilities, Node Type and Edge Type Definitions, Filter Rules, Graph View contributions, webview assets, and lifecycle hooks. Plugin Integration must consult Plugin Activity State before loading, executing, or publishing plugin roles. Core Plugin Integration owns Core Package roles such as Plugin Activity State, Plugin Analysis, Edge Type Capabilities, Node Type and Edge Type Definitions, Filter Rules, lifecycle hooks, Graph Cache, and Graph Query consistency. Core Plugin Integration also owns the enable/disable plan for a CodeGraphy Workspace, including whether Graph Cache Sync, targeted plugin-file reprocessing, or Re-index is required after a plugin toggle. Disabling a Plugin unloads the runtime immediately, but plugin-produced Graph Cache facts can remain as dormant facts that Graph Projection and Graph Query exclude while the Plugin is disabled and can reuse when the Plugin is re-enabled unless stale. Graph View Plugin Integration consumes Core Plugin Integration activity decisions and owns VS Code Extension adapters such as context menus, exporters, toolbar actions, webview injections, contribution statuses, decorations, and plugin-owned UI publishing. The VS Code Extension can ask Core to enable a Plugin for a workspace and can render Core-approved active plugin roles, but it does not own plugin activation.
+_Avoid_: Scattered plugin wiring, plugin UI refresh path
+
+**Plugin Activity State**:
+The Core Package-owned CodeGraphy Workspace state that decides which Plugin IDs are Workspace Enabled Plugins and which are Disabled Plugins from persisted workspace activity intent. Plugin Activity State resolves `enabled: true` Plugin IDs against Built-in Plugins and Installed Plugin Packages before any runtime import, factory creation, registration, lifecycle call, analysis, or contribution publishing. An `enabled: true` Plugin ID that is missing, conflicted, invalid, or incompatible remains active intent in workspace settings but inactive in Plugin Activity State, and Core or the calling CodeGraphy Interface should surface a developer-console warning from static metadata. A Disabled Plugin is unloaded and contributes nothing: no analysis, graph types, capabilities, filters, Graph View roles, webview assets, lifecycle hooks, or plugin-owned UI. The VS Code Extension should consume the same Plugin Activity State and add Graph View-specific adapters on top. Plugin Activity State is distinct from toggling individual Plugin-owned Filter Rules and from Plugin Data.
+_Avoid_: Disabled plugin filter patterns, installed plugins, registered plugins
+
+**Plugin Data**:
+Workspace-local plugin-owned persisted state stored under `.codegraphy/settings.json#pluginData` by Plugin ID and exposed to enabled plugin runtimes through the Plugin API data host. Plugin Data belongs to the plugin for feature state such as saved sections, plugin-owned UI state, or other workspace-specific plugin state. It must not represent whether a Plugin ID is enabled or disabled; Plugin Activity State owns enablement. Plugin Data for a Disabled Plugin may remain dormant in workspace settings, but the disabled plugin cannot read or write it because its runtime is unloaded.
+_Avoid_: Plugin Activity State, plugin options, installed package metadata
+
+**Plugin Options**:
+Host-owned configuration merged from an Installed Plugin Package's defaults and CodeGraphy Workspace settings, then passed to an enabled plugin runtime when Core creates the plugin factory options. Plugin Options configure how a plugin should run; Plugin Data is plugin-owned state saved after the plugin runs. Plugin Options must not represent whether a Plugin ID is enabled or disabled.
+_Avoid_: Plugin Data, Plugin Activity State
+
+**Disabled Plugin Test Contract**:
+Tests for disabled plugin behavior must prove the plugin runtime is not imported, created, registered, initialized, loaded with Plugin API access, called through lifecycle hooks, or allowed to publish Core Package or Graph View contributions. Tests that only prove disabled plugin contributions are filtered out are insufficient for Plugin Activity State.
+_Avoid_: Visibility-only disabled plugin tests
 
 **Plugin Registry**:
 The user-level list of globally installed plugin packages CodeGraphy has explicitly registered at `~/.codegraphy/plugins.json`. A registered plugin is available to enable in a CodeGraphy Workspace, but registration does not enable it anywhere.
@@ -373,8 +417,8 @@ A plugin developed with CodeGraphy and shipped from the monorepo as part of the 
 _Avoid_: Required plugin
 
 **Markdown Plugin**:
-The headless plugin installed with `@codegraphy-dev/core`, enabled by default for new CodeGraphy Workspaces, and still toggleable like other plugins.
-_Avoid_: External markdown extension
+The Plugin Package bundled with CodeGraphy, enabled by default for new CodeGraphy Workspaces, and still toggleable like any other Plugin. Core Plugin Activity State treats Markdown as enabled for a fresh workspace before settings are materialized, so CodeGraphy Interfaces can show its toggle as enabled without creating `.codegraphy/settings.json`. When workspace settings are created, such as during first Indexing or an explicit plugin toggle, Markdown is written as `enabled: true` unless the user disables it; disabling persists `enabled: false`. The Markdown Plugin exists because Tree-sitter Analysis does not provide CodeGraphy's markdown relationships; disabling it fully unloads the plugin runtime and leaves only static metadata for the enable toggle.
+_Avoid_: External markdown extension, special-case markdown runtime
 
 ### Settings And Styling
 

@@ -32,8 +32,8 @@ codegraphy index /absolute/path/to/folder
 | `codegraphy index [workspace]` | Runs Indexing for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins register <package>` | Registers one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata |
 | `codegraphy plugins list [workspace]` | Shows registered plugins and which ones are enabled for a CodeGraphy Workspace |
-| `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin package for the current or explicit CodeGraphy Workspace |
-| `codegraphy plugins disable <package> [workspace]` | Removes a plugin package from the workspace-local enabled plugin array |
+| `codegraphy plugins enable <plugin-id-or-package> [workspace]` | Writes `enabled: true` Plugin ID activity for the current or explicit CodeGraphy Workspace |
+| `codegraphy plugins disable <plugin-id-or-package> [workspace]` | Writes `enabled: false` Plugin ID activity for the current or explicit CodeGraphy Workspace |
 | `codegraphy-mcp` | Starts the local stdio MCP server for agent clients |
 
 Plugin commands use `@codegraphy-dev/core` directly and do not import plugin runtime code. Installing and registering a plugin package only makes it available; enabling it writes the workspace-local `plugins` array and tells the user to run Indexing explicitly.
@@ -50,8 +50,8 @@ MCP tools mirror the core CLI command semantics. They call Core APIs directly in
 | `codegraphy_index` | Runs Indexing for the MCP server working directory or an explicit `path` without focusing VS Code |
 | `codegraphy_plugins_register` | Registers one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata |
 | `codegraphy_plugins_list` | Shows registered plugins and which ones are enabled for the current or explicit CodeGraphy Workspace |
-| `codegraphy_plugins_enable` | Enables a registered plugin package for the current or explicit CodeGraphy Workspace |
-| `codegraphy_plugins_disable` | Removes a plugin package from the workspace-local enabled plugin array |
+| `codegraphy_plugins_enable` | Enables a registered Plugin ID for the current or explicit CodeGraphy Workspace |
+| `codegraphy_plugins_disable` | Disables a Plugin ID for the current or explicit CodeGraphy Workspace |
 | `codegraphy_list_nodes` | Lists graph nodes, defaulting to File Nodes; accepts optional `path` |
 | `codegraphy_list_edges` | Lists high-level `from` / `to` connections with grouped Edge Types; accepts optional `path` |
 | `codegraphy_list_relationships` | Lists detailed relationships grouped by node pair and Edge Type; accepts optional `path` |

@@ -38,12 +38,12 @@ describe('pipeline/service/cache/signatures', () => {
       },
     ] as never, {
       installedPlugins: [
-        { package: '@codegraphy-dev/plugin-python', version: '2.0.4' },
+        { package: '@codegraphy-dev/plugin-python', version: '2.0.4', pluginId: 'codegraphy.python' },
       ],
       settings: {
         plugins: [
-          { package: '@codegraphy-dev/plugin-markdown' },
-          { package: '@codegraphy-dev/plugin-python' },
+          { id: 'codegraphy.markdown', enabled: true },
+          { id: 'codegraphy.python', enabled: true },
         ],
       },
     });
@@ -58,10 +58,10 @@ describe('pipeline/service/cache/signatures', () => {
       installedPlugins: [],
       settings: {
         plugins: [
-          { package: '@codegraphy-dev/plugin-python' },
+          { id: 'codegraphy.python', enabled: true },
         ],
       },
-    })).toBe('npm:@codegraphy-dev/plugin-python@missing');
+    })).toBe('npm:codegraphy.python@missing');
   });
 
   it('includes workspace plugin settings and filter patterns in the settings signature', () => {
@@ -75,7 +75,7 @@ describe('pipeline/service/cache/signatures', () => {
         filterPatterns: ['dist/**'],
         disabledCustomFilterPatterns: [],
         disabledPluginFilterPatterns: [],
-        plugins: [{ package: '@codegraphy-dev/plugin-python', options: { includeTests: true } }],
+        plugins: [{ id: 'codegraphy.python', enabled: true, options: { includeTests: true } }],
       })),
     };
 
@@ -92,7 +92,7 @@ describe('pipeline/service/cache/signatures', () => {
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
         disabledPluginFilterPatterns: [],
-        plugins: [{ package: '@codegraphy-dev/plugin-python', options: { includeTests: true } }],
+        plugins: [{ id: 'codegraphy.python', enabled: true, options: { includeTests: true } }],
       }),
     } as never));
     expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({

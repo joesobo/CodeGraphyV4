@@ -6,6 +6,7 @@ import {
 } from '../../src/indexing/defaultPlugins';
 import type { CorePluginRegistry } from '../../src/plugins/registry';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createDefaultCodeGraphyWorkspaceSettings,
 } from '../../src/workspace/settingsDefaults';
@@ -42,36 +43,38 @@ function plugin(id: string): IPlugin {
 }
 
 describe('indexing/defaultPlugins', () => {
-  it('skips bundled defaults when core plugins are disabled', () => {
+  it('skips bundled defaults when core plugins are disabled', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace', includeCorePlugins: false },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       },
     );
 
     expect(harness.registered).toEqual([]);
   });
 
-  it('registers tree-sitter and configured Markdown when enabled after other workspace plugins', () => {
+  it('registers tree-sitter and configured Markdown when enabled after other workspace plugins', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace' },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            id: 'codegraphy.python',
+            enabled: true,
             options: { includeTests: true },
           },
           {
-            package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+            id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+            enabled: true,
             options: { wikilinks: true },
           },
         ],
@@ -89,15 +92,15 @@ describe('indexing/defaultPlugins', () => {
     ]);
   });
 
-  it('registers tree-sitter without Markdown when Markdown is not enabled in workspace settings', () => {
+  it('registers tree-sitter without Markdown when Markdown is not enabled in workspace settings', async () => {
     const harness = registry();
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace' },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: '@codegraphy-dev/plugin-python' }],
+        plugins: [{ id: 'codegraphy.python', enabled: true }],
       },
     );
 
@@ -106,16 +109,36 @@ describe('indexing/defaultPlugins', () => {
     ]);
   });
 
-  it('does not register Markdown when a provided plugin already owns the Markdown id', () => {
+  it('registers tree-sitter without Markdown when Plugin Activity State disables Markdown', async () => {
+    const harness = registry();
+
+    await registerDefaultIndexPlugins(
+      harness.registry,
+      {
+        workspaceRoot: '/workspace',
+        disabledPlugins: ['codegraphy.markdown'],
+      },
+      {
+        ...createDefaultCodeGraphyWorkspaceSettings(),
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
+      },
+    );
+
+    expect(harness.registered).toEqual([
+      { id: 'codegraphy.treesitter', builtIn: true },
+    ]);
+  });
+
+  it('does not register Markdown when a provided plugin already owns the Markdown id', async () => {
     const harness = registry();
     const markdown = plugin('codegraphy.markdown');
 
-    registerDefaultIndexPlugins(
+    await registerDefaultIndexPlugins(
       harness.registry,
       { workspaceRoot: '/workspace', plugins: [markdown] },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+        plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       },
     );
     registerProvidedPlugins(harness.registry, [markdown, plugin('custom')]);
@@ -133,5 +156,17 @@ describe('indexing/defaultPlugins', () => {
     registerProvidedPlugins(harness.registry, undefined);
 
     expect(harness.registered).toEqual([]);
+  });
+
+  it('does not register provided plugins disabled by Plugin Activity State', () => {
+    const harness = registry();
+
+    registerProvidedPlugins(
+      harness.registry,
+      [plugin('active'), plugin('disabled')],
+      ['disabled'],
+    );
+
+    expect(harness.registered.map(entry => entry.id)).toEqual(['active']);
   });
 });

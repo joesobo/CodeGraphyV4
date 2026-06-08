@@ -3,6 +3,7 @@ export type {
   CodeGraphyWorkspaceSettings,
 } from './settingsContracts';
 export {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createDefaultCodeGraphyWorkspaceSettings,
   createInitialCodeGraphyWorkspaceSettings,

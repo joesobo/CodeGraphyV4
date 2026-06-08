@@ -24,12 +24,11 @@ function setPluginEnabled(pluginId: string, enabled: boolean): void {
   }));
 }
 
-function postPluginToggle(pluginId: string, packageName: string, enabled: boolean): void {
+function postPluginToggle(pluginId: string, enabled: boolean): void {
   postMessage({
     type: 'TOGGLE_PLUGIN',
     payload: {
       pluginId,
-      packageName,
       enabled,
     },
   });
@@ -37,7 +36,7 @@ function postPluginToggle(pluginId: string, packageName: string, enabled: boolea
 
 interface PluginRowProps {
   plugin: IPluginStatus;
-  onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
+  onTogglePlugin(this: void, pluginId: string, enabled: boolean): void;
 }
 
 function PluginRow({
@@ -57,7 +56,7 @@ function PluginRow({
           aria-label={plugin.name}
           checked={plugin.enabled}
           disabled={!plugin.packageName}
-          onCheckedChange={(val) => onTogglePlugin(plugin.id, plugin.packageName, val)}
+          onCheckedChange={(val) => onTogglePlugin(plugin.id, val)}
         />
       </div>
     </div>
@@ -66,7 +65,7 @@ function PluginRow({
 
 interface PluginListProps {
   plugins: readonly IPluginStatus[];
-  onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
+  onTogglePlugin(this: void, pluginId: string, enabled: boolean): void;
 }
 
 function PluginList({
@@ -95,13 +94,9 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
 
   if (!isOpen) return null;
 
-  const handleTogglePlugin = (pluginId: string, packageName: string | undefined, enabled: boolean) => {
-    if (!packageName) {
-      return;
-    }
-
+  const handleTogglePlugin = (pluginId: string, enabled: boolean) => {
     setPluginEnabled(pluginId, enabled);
-    postPluginToggle(pluginId, packageName, enabled);
+    postPluginToggle(pluginId, enabled);
   };
 
   return (

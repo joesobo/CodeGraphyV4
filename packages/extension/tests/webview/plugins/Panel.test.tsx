@@ -85,7 +85,7 @@ describe('PluginsPanel', () => {
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map([['src/index.ts', []]]),
       pluginInfos: registry.list(),
-      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-typescript']),
+      workspaceEnabledPluginIds: new Set(['codegraphy.typescript']),
     });
 
     graphStore.getState().handleExtensionMessage({
@@ -128,7 +128,6 @@ describe('PluginsPanel', () => {
       type: 'TOGGLE_PLUGIN',
       payload: {
         pluginId: 'codegraphy.typescript',
-        packageName: '@codegraphy-dev/plugin-typescript',
         enabled: false,
       },
     });

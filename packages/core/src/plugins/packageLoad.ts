@@ -11,6 +11,22 @@ import type {
 } from './packageRuntimeContracts';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
 
+function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
+  return record.pluginId ?? record.package;
+}
+
+function validateRuntimePluginId(
+  pluginId: string,
+  record: CodeGraphyInstalledPluginRecord,
+): void {
+  const staticPluginId = getStaticPluginId(record);
+  if (pluginId !== staticPluginId) {
+    throw new Error(
+      `Package '${record.package}' exported plugin id '${pluginId}', but codegraphy.json declares '${staticPluginId}'.`,
+    );
+  }
+}
+
 export async function loadCodeGraphyWorkspacePluginPackage(
   settings: CodeGraphyWorkspacePluginSettings,
   record: CodeGraphyInstalledPluginRecord,
@@ -23,6 +39,7 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
   const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
+  validateRuntimePluginId(plugin.id, record);
 
   return {
     plugin,

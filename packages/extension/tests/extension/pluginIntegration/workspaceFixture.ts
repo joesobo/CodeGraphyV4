@@ -28,6 +28,7 @@ export interface PluginIntegrationPackage {
 
 interface InstallPluginIntegrationPackageOptions {
   graphViewContributions?: boolean;
+  importMarkerPath?: string;
   packageName?: string;
   pluginId?: string;
   webviewContributions?: boolean;
@@ -84,6 +85,10 @@ export async function installPluginIntegrationPackage(
   await fs.writeFile(
     path.join(packageRoot, 'plugin.js'),
     `
+${options.importMarkerPath ? `
+import fs from 'node:fs';
+fs.writeFileSync(${JSON.stringify(options.importMarkerPath)}, 'imported\\n');
+` : ''}
 export default function createPlugin() {
   return {
     id: '${pluginId}',
@@ -172,6 +177,7 @@ export default function createPlugin() {
       apiVersion: '^2.0.0',
       disclosures: [],
       packageRoot,
+      pluginId,
       defaultOptions: {
         targetFile: 'src/utils.ts',
       },
@@ -180,9 +186,11 @@ export default function createPlugin() {
   writeCodeGraphyWorkspaceSettings(workspacePath, {
     ...readCodeGraphyWorkspaceSettings(workspacePath),
     plugins: [{
-      package: '@codegraphy-dev/plugin-markdown',
+      id: 'codegraphy.markdown',
+      enabled: true,
     }, {
-      package: packageName,
+      id: pluginId,
+      enabled: true,
       options: {
         targetFile: 'src/utils.ts',
       },

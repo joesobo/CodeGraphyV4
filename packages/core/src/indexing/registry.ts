@@ -11,19 +11,21 @@ export async function createWorkspaceIndexRegistry(
   options: IndexCodeGraphyWorkspaceOptions,
   settings: CodeGraphyWorkspaceSettings,
   workspaceRoot: string,
+  disabledPlugins: ReadonlySet<string> = new Set(options.disabledPlugins ?? []),
 ): Promise<{
   registry: CorePluginRegistry;
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
 }> {
   const registry = new CorePluginRegistry();
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    disabledPlugins,
     settings,
     workspaceRoot,
     ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
     ...(options.warn ? { warn: options.warn } : {}),
   });
 
-  registerDefaultIndexPlugins(registry, options, settings);
+  await registerDefaultIndexPlugins(registry, { ...options, disabledPlugins }, settings);
   for (const loadedPlugin of loadedPackagePlugins) {
     registry.register(loadedPlugin.plugin, {
       sourcePackage: loadedPlugin.packageName,
@@ -31,6 +33,6 @@ export async function createWorkspaceIndexRegistry(
     });
   }
 
-  registerProvidedPlugins(registry, options.plugins);
+  registerProvidedPlugins(registry, options.plugins, disabledPlugins);
   return { registry, loadedPackagePlugins };
 }

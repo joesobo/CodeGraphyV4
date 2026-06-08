@@ -74,8 +74,8 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue) ?? defaultValue,
     updateConfig: async (key, value) => persistConfig(key, value),
-    getInstalledPluginDefaultOptions: (packageName: string) =>
-      readInstalledPluginDefaultOptions(packageName),
+    getInstalledPluginDefaultOptions: (pluginId: string) =>
+      readInstalledPluginDefaultOptions(pluginId),
     reloadWorkspacePlugins: () => {
       const analyzer = source._analyzer;
       if (!analyzer?.reloadWorkspacePlugins) {

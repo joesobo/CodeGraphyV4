@@ -1,8 +1,8 @@
 import type {
   IAnalysisRelation,
-  IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
+import { readAnalysisSymbolPluginId } from '../../plugins/activityState/analysisFacts';
 
 export const BASELINE_ANALYSIS_CACHE_TIER = 'baseline';
 export const SYMBOLS_ANALYSIS_CACHE_TIER = 'symbols';
@@ -40,19 +40,10 @@ function hasSymbolFacts(analysis: IFileAnalysisResult): boolean {
   );
 }
 
-function readStringMetadataValue(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-function readSymbolPluginId(symbol: IAnalysisSymbol): string | undefined {
-  return readStringMetadataValue(symbol.metadata?.pluginId)
-    ?? readStringMetadataValue(symbol.metadata?.source);
-}
-
 function hasPluginFacts(analysis: IFileAnalysisResult, pluginId: string): boolean {
   return Boolean(
     analysis.relations?.some(relation => relation.pluginId === pluginId)
-    || analysis.symbols?.some(symbol => readSymbolPluginId(symbol) === pluginId),
+    || analysis.symbols?.some(symbol => readAnalysisSymbolPluginId(symbol) === pluginId),
   );
 }
 

@@ -252,6 +252,14 @@ export {
   createEmptyGraphViewContributionSet,
   resolvePluginAccess,
 } from './plugins/access/checks';
+export {
+  createDisabledPluginSet,
+  createPluginActivityState,
+} from './plugins/activityState/model';
+export type {
+  CreatePluginActivityStateOptions,
+  PluginActivityState,
+} from './plugins/activityState/model';
 export { createWorkspacePluginDataHost } from './plugins/data/host';
 export type {
   LoadedCodeGraphyWorkspacePluginPackage,
@@ -287,6 +295,7 @@ export {
   updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
+export { loadBundledMarkdownPlugin } from './plugins/markdown/runtime';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
 export { withWorkspacePluginAnalysisOptions } from './plugins/context/workspace';
 export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
@@ -348,6 +357,7 @@ export type {
   CodeGraphyWorkspaceSettings,
 } from './workspace/settings';
 export {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createDefaultCodeGraphyWorkspaceSettings,
   createInitialCodeGraphyWorkspaceSettings,

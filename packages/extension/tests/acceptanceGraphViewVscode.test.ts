@@ -4,6 +4,7 @@ import {
   createVSCodeLaunchArgs,
   resolveRefocusAppName,
   selectVSCodeTempBaseDir,
+  VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
 } from './acceptance/graphView/vscode';
 
 describe('createVSCodeLaunchArgs', () => {
@@ -22,6 +23,10 @@ describe('createVSCodeLaunchArgs', () => {
 
   it('uses a short temp base for macOS VS Code IPC sockets', () => {
     expect(selectVSCodeTempBaseDir('darwin', '/var/folders/very/long/T')).toBe('/tmp');
+  });
+
+  it('allows twenty seconds for VS Code Playwright readiness waits', () => {
+    expect(VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS).toBe(20_000);
   });
 
   it('builds a quoted macOS app activation script', () => {
