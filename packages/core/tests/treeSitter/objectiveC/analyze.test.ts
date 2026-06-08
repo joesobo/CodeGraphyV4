@@ -62,7 +62,7 @@ describe('treeSitter/analyzeObjectiveC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        sourceId: 'codegraphy.treesitter:include',
+        sourceId: 'core:treesitter:include',
         specifier: 'Feature/UserCard.h',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'Sources/Feature/UserCard.h'),
@@ -164,14 +164,14 @@ describe('treeSitter/analyzeObjectiveC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'SessionStore',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'Sources/Data/SessionStore.h'),
       }),
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'UserCardView',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'Sources/Feature/UserCardView.h'),
@@ -211,7 +211,7 @@ describe('treeSitter/analyzeObjectiveC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'UserProfile',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'Sources/Models/UserProfile.h'),
@@ -253,7 +253,7 @@ describe('treeSitter/analyzeObjectiveC', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'SessionStore',
         fromFilePath: filePath,
         resolvedPath: path.join(workspaceRoot, 'Sources/Data/SessionStore.h'),

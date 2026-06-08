@@ -362,7 +362,7 @@ _Avoid_: Extension plugin handling, interface-owned plugin runtime
 
 **Plugin**:
 A headless CodeGraphy npm package that communicates with `@codegraphy-dev/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
-_Avoid_: VS Code extension when referring to the CodeGraphy capability
+_Avoid_: VS Code extension when referring to the CodeGraphy capability, Tree-sitter Analysis
 
 **Plugin Package**:
 An npm package that declares package compatibility in `package.json#codegraphy`, declares static Plugin ID and display metadata in `codegraphy.json`, and exports a CodeGraphy plugin runtime through normal package exports.

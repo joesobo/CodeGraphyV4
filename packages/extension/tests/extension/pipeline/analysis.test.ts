@@ -75,16 +75,15 @@ describe('WorkspacePipeline analysis', () => {
     vi.restoreAllMocks();
   });
 
-  it('registers all built-in plugins as built-in entries during initialize', async () => {
+  it('registers built-in plugin entries during initialize', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
     );
 
     await analyzer.initialize();
 
-    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true, true]);
+    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true]);
     expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
-      'codegraphy.treesitter',
       'codegraphy.markdown',
     ]);
   });
@@ -105,7 +104,7 @@ describe('WorkspacePipeline analysis', () => {
     expect(analyzer.getPluginFilterPatterns()).toEqual(expectedPatterns);
   });
 
-  it('wires the built-in Tree-sitter plugin into the registry during initialize', async () => {
+  it('wires core Tree-sitter analysis into the registry during initialize', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
     );
@@ -124,14 +123,14 @@ describe('WorkspacePipeline analysis', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
-          sourceId: 'codegraphy.treesitter:import',
+          sourceId: 'core:treesitter:import',
           specifier: './utils',
         }),
       ]),
     );
   });
 
-  it('wires the built-in Tree-sitter plugin into the registry for Python files without a marketplace plugin', async () => {
+  it('wires core Tree-sitter analysis for Python files without a marketplace plugin', async () => {
     const workspaceRoot = await createWorkspace({
       'pkg/thing.py': 'def run():\n    return True\n',
       'app.py': 'from .pkg import thing\nclass App:\n    def run(self):\n        thing.run()\n',
@@ -157,13 +156,13 @@ describe('WorkspacePipeline analysis', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
-          sourceId: 'codegraphy.treesitter:import',
+          sourceId: 'core:treesitter:import',
           specifier: '.pkg.thing',
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
         expect.objectContaining({
           kind: 'call',
-          sourceId: 'codegraphy.treesitter:call',
+          sourceId: 'core:treesitter:call',
           specifier: '.pkg.thing',
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
@@ -191,7 +190,7 @@ describe('WorkspacePipeline analysis', () => {
     await analyzer.reloadWorkspacePlugins();
     const refreshedGraph = await analyzer.refreshIndex();
 
-    expect(analyzer.registry.get('codegraphy.treesitter')).toBeDefined();
+    expect(analyzer.registry.get('codegraphy.markdown')).toBeDefined();
     expect(refreshedGraph.edges.map(edge => edge.id)).toEqual(
       expect.arrayContaining([
         'src/index.ts->src/utils.ts#import',

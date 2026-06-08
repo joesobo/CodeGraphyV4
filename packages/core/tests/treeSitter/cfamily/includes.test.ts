@@ -46,7 +46,7 @@ describe('treeSitter/analyzeCFamily/includes', () => {
 
     expect(relations).toEqual([expect.objectContaining({
       kind: 'import',
-      sourceId: 'codegraphy.treesitter:include',
+      sourceId: 'core:treesitter:include',
       fromFilePath: sourcePath,
       specifier: 'local.h',
       type: 'include',

@@ -21,6 +21,7 @@ export type CoreFileAnalysisResultProvider = (
   filePath: string,
   content: string,
   workspaceRoot: string,
+  analysisContext: IPluginAnalysisContext,
 ) => Promise<IFileAnalysisResult | null>;
 
 export interface AnalyzeFileResultOptions {
@@ -82,7 +83,7 @@ export async function analyzeFileResult(
     getPluginInfosForFile(filePath, plugins, extensionMap),
     options,
   );
-  const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot) ?? null;
+  const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot, analysisContext) ?? null;
   const normalizedCoreResult = coreResult
     ? mergeFileAnalysisResults(createEmptyFileAnalysisResult(filePath), coreResult)
     : null;

@@ -13,7 +13,7 @@ describe('core/graphQuery/relationships/symbolMetadata', () => {
       range: { startLine: 1, endLine: 3 },
       metadata: {
         language: 'typescript',
-        source: 'codegraphy.treesitter',
+        source: 'core:treesitter',
         pluginKind: 'type-alias',
         ignored: 42,
       },
@@ -23,7 +23,7 @@ describe('core/graphQuery/relationships/symbolMetadata', () => {
       signature: 'type User = { id: string }',
       range: { startLine: 1, endLine: 3 },
       language: 'typescript',
-      source: 'codegraphy.treesitter',
+      source: 'core:treesitter',
       pluginKind: 'type-alias',
     });
     expect(createSymbolMetadata({
