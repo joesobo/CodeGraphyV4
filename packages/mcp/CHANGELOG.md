@@ -1,5 +1,18 @@
 # @codegraphy-dev/mcp
 
+## 2.2.1
+
+### Patch Changes
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`bc3e9c2`](https://github.com/joesobo/CodeGraphyV4/commit/bc3e9c2e6ef028832aa66458a29b4c54d02fe037) Thanks [@joesobo](https://github.com/joesobo)! - Make CLI, MCP, and workspace status output use Plugin ID activity.
+
+  `codegraphy plugins enable` and `codegraphy plugins disable` now resolve package-name input to the static Plugin ID before writing workspace settings, list enabled plugins by Plugin ID, and keep disabled plugins as `enabled: false` intent instead of removing them. Workspace status reports enabled Plugin IDs, example settings use the same `id` plus `enabled` shape, and MCP enable and disable tools now accept `pluginId` so agents use the same workspace activity identity as Core.
+
+  Plugin registration and linking now require package plugins to declare their static Plugin ID in `codegraphy.json`, and Core rejects package runtimes whose returned `plugin.id` does not match that static ID.
+
+- Updated dependencies [[`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2), [`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886), [`91e33a2`](https://github.com/joesobo/CodeGraphyV4/commit/91e33a219ab1c1db2069391525de0786921581fb), [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2), [`4907fa2`](https://github.com/joesobo/CodeGraphyV4/commit/4907fa2b31c417f19045690526deb39877a82755), [`0d558f0`](https://github.com/joesobo/CodeGraphyV4/commit/0d558f02e64760e9800fe40ab608eea6a73631fb), [`ac1cff8`](https://github.com/joesobo/CodeGraphyV4/commit/ac1cff8ded4ff8aed45ca3af5fa6028f3872e9c4), [`f8787fa`](https://github.com/joesobo/CodeGraphyV4/commit/f8787fae1b40739301dfd784b2a6a1177acebfb7), [`bc3e9c2`](https://github.com/joesobo/CodeGraphyV4/commit/bc3e9c2e6ef028832aa66458a29b4c54d02fe037), [`6917391`](https://github.com/joesobo/CodeGraphyV4/commit/69173916c7bd341296f23dcb11732746d273f805), [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561), [`77503ee`](https://github.com/joesobo/CodeGraphyV4/commit/77503ee7b437924386fb86b4381847a6a16deb1c)]:
+  - @codegraphy-dev/core@1.4.0
+
 ## 2.2.0
 
 ### Minor Changes

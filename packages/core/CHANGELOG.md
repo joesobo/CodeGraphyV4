@@ -1,5 +1,63 @@
 # @codegraphy-dev/core
 
+## 1.4.0
+
+### Minor Changes
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886) Thanks [@joesobo](https://github.com/joesobo)! - Graph Scope now shows Edge Type controls from indexed workspace capabilities instead of every theoretical toggle or only currently observed edges. Relevant Edge Types can appear even when the latest graph has zero matching relationships, and CodeGraphy decides the relevant Edge Type list before Depth Mode, filters, search, or other view narrowing changes what is displayed. Edge Type controls stay visible but disabled until the workspace has a Graph Cache, and Graph Scope returns to Node Types if an unindexed workspace is opened while Edge Types was selected. Any existing Graph Cache enables Edge Type controls, even while Graph Cache Sync catches up.
+
+  Source-language workspaces now surface Calls as a relevant Edge Type when their analyzer can emit imported-call relationships. C++ now emits Calls edges for calls to declarations in included headers, and the Godot plugin now emits Calls edges for `class_name` static method calls while keeping `load()` and `preload()` on the Loads edge.
+
+  Plugins can declare core or plugin-owned Edge Type capabilities with `contributeEdgeTypeCapabilities(context)`. Plugin authors should use `context.filePaths` when a plugin supports multiple languages or file families with different Edge Types, so Graph Scope only shows toggles that are relevant to the indexed workspace.
+
+- [#247](https://github.com/joesobo/CodeGraphyV4/pull/247) [`91e33a2`](https://github.com/joesobo/CodeGraphyV4/commit/91e33a219ab1c1db2069391525de0786921581fb) Thanks [@joesobo](https://github.com/joesobo)! - Add core language coverage for Objective-C, Scala, and Pascal workspaces.
+
+  Objective-C and Scala use native Tree-sitter grammars so users get file nodes, local/imported file relationships, inheritance where the analyzer can resolve it, and useful symbol nodes for classes, protocols, traits, objects, enums, type aliases, and methods. Pascal is handled by a core text-baseline analyzer because the available `tree-sitter-pascal` package does not ship a usable native binding; users still get Pascal unit `uses` relationships, class inheritance relationships, and class/record/interface/procedure symbols without breaking the Tree-sitter runtime.
+
+### Patch Changes
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2) Thanks [@joesobo](https://github.com/joesobo)! - Stop attributing unmatched C function calls to the only included header.
+
+  C call edges now point to included headers only when the analyzer finds a matching function declaration in that header. Local helper calls and other unresolved calls no longer create misleading file-to-header Call edges just because the source file has one include.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2) Thanks [@joesobo](https://github.com/joesobo)! - Keep disabled plugins fully inactive across Graph View surfaces.
+
+  When a workspace disables a plugin, CodeGraphy now excludes that plugin's graph analysis contributions, default filter groups, Graph Scope Node Type and Edge Type definitions, Edge Type capabilities, Graph View contribution statuses, toolbar/context/export actions, and webview assets. This keeps disabled plugins from leaving behind toggles or UI actions for features that are no longer active.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`4907fa2`](https://github.com/joesobo/CodeGraphyV4/commit/4907fa2b31c417f19045690526deb39877a82755) Thanks [@joesobo](https://github.com/joesobo)! - Keep disabled plugins unloaded during Core and VS Code extension indexing so disabled package, bundled Markdown, and provided plugin runtimes are not registered or run.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`0d558f0`](https://github.com/joesobo/CodeGraphyV4/commit/0d558f02e64760e9800fe40ab608eea6a73631fb) Thanks [@joesobo](https://github.com/joesobo)! - Warn when enabled plugin IDs cannot resolve to exactly one runtime.
+
+  Enabled plugins that are missing or claimed by multiple installed packages now stay inactive before runtime import. CodeGraphy reports a developer-console warning from static metadata and does not silently choose a package or load conflicting plugin code.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`ac1cff8`](https://github.com/joesobo/CodeGraphyV4/commit/ac1cff8ded4ff8aed45ca3af5fa6028f3872e9c4) Thanks [@joesobo](https://github.com/joesobo)! - Honor workspace-disabled plugin IDs throughout Core indexing.
+
+  Plugins set to `enabled: false` now stay unloaded even when a caller provides the plugin runtime directly. Core derives disabled plugin decisions from Plugin Activity State before registry setup, analysis, graph building, and lifecycle notifications.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`f8787fa`](https://github.com/joesobo/CodeGraphyV4/commit/f8787fae1b40739301dfd784b2a6a1177acebfb7) Thanks [@joesobo](https://github.com/joesobo)! - Persist workspace plugin activity by Plugin ID with an explicit enabled state.
+
+  New workspaces now write Markdown as an enabled plugin intent entry, and plugin toggles keep `enabled: false` entries when users disable a plugin. CodeGraphy uses the Plugin ID from static plugin metadata to resolve installed package runtimes, so disabled plugins keep their user intent and plugin-owned data without loading runtime code.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`bc3e9c2`](https://github.com/joesobo/CodeGraphyV4/commit/bc3e9c2e6ef028832aa66458a29b4c54d02fe037) Thanks [@joesobo](https://github.com/joesobo)! - Make CLI, MCP, and workspace status output use Plugin ID activity.
+
+  `codegraphy plugins enable` and `codegraphy plugins disable` now resolve package-name input to the static Plugin ID before writing workspace settings, list enabled plugins by Plugin ID, and keep disabled plugins as `enabled: false` intent instead of removing them. Workspace status reports enabled Plugin IDs, example settings use the same `id` plus `enabled` shape, and MCP enable and disable tools now accept `pluginId` so agents use the same workspace activity identity as Core.
+
+  Plugin registration and linking now require package plugins to declare their static Plugin ID in `codegraphy.json`, and Core rejects package runtimes whose returned `plugin.id` does not match that static ID.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`6917391`](https://github.com/joesobo/CodeGraphyV4/commit/69173916c7bd341296f23dcb11732746d273f805) Thanks [@joesobo](https://github.com/joesobo)! - Make plugin toggles use Plugin IDs as the workspace activity identity.
+
+  The Plugins panel and Graph View settings now enable and disable plugins by the static Plugin ID, while package names stay as install metadata. Disabled plugins are written as explicit `enabled: false` workspace entries, enabled plugins are written as `enabled: true`, and default plugin options are looked up by Plugin ID with a package-name fallback for older installed-plugin records.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561) Thanks [@joesobo](https://github.com/joesobo)! - Remove the unused Tests and Re-exports edge types from Graph Scope.
+
+  Export-from relationships now appear as Imports instead of a separate Re-exports edge, so users have fewer duplicate-looking edge toggles to reason about.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`77503ee`](https://github.com/joesobo/CodeGraphyV4/commit/77503ee7b437924386fb86b4381847a6a16deb1c) Thanks [@joesobo](https://github.com/joesobo)! - Fix symbol-level graph scope behavior for inheritance, containment, overrides, and language example graphs.
+
+- Updated dependencies [[`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886), [`1d9180c`](https://github.com/joesobo/CodeGraphyV4/commit/1d9180c29554c163e660a7c899c59755c4b0bdff), [`b1be863`](https://github.com/joesobo/CodeGraphyV4/commit/b1be8636176b990e878b17e1aad751877568e5d5), [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561)]:
+  - @codegraphy-dev/plugin-api@4.0.0
+  - @codegraphy-dev/plugin-markdown@1.1.4
+
 ## 1.3.0
 
 ### Minor Changes

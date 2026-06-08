@@ -1,5 +1,54 @@
 # @codegraphy-dev/extension
 
+## 5.8.0
+
+### Minor Changes
+
+- [#247](https://github.com/joesobo/CodeGraphyV4/pull/247) [`91e33a2`](https://github.com/joesobo/CodeGraphyV4/commit/91e33a219ab1c1db2069391525de0786921581fb) Thanks [@joesobo](https://github.com/joesobo)! - Bundle the new Objective-C and Scala native Tree-sitter runtimes with the VS Code extension.
+
+  Users can open Objective-C, Scala, and Pascal workspaces in the extension and index them without installing separate language plugins. The extension package now vendors the Objective-C and Scala native grammar packages during build/VSIX packaging so language analysis works consistently across supported desktop platforms.
+
+- [#251](https://github.com/joesobo/CodeGraphyV4/pull/251) [`1d9180c`](https://github.com/joesobo/CodeGraphyV4/commit/1d9180c29554c163e660a7c899c59755c4b0bdff) Thanks [@joesobo](https://github.com/joesobo)! - Add Graph Scope tooltips for Node Types and Edge Types, with optional plugin-provided descriptions and compact examples.
+
+### Patch Changes
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886) Thanks [@joesobo](https://github.com/joesobo)! - Graph Scope now shows Edge Type controls from indexed workspace capabilities instead of every theoretical toggle or only currently observed edges. Relevant Edge Types can appear even when the latest graph has zero matching relationships, and CodeGraphy decides the relevant Edge Type list before Depth Mode, filters, search, or other view narrowing changes what is displayed. Edge Type controls stay visible but disabled until the workspace has a Graph Cache, and Graph Scope returns to Node Types if an unindexed workspace is opened while Edge Types was selected. Any existing Graph Cache enables Edge Type controls, even while Graph Cache Sync catches up.
+
+  Source-language workspaces now surface Calls as a relevant Edge Type when their analyzer can emit imported-call relationships. C++ now emits Calls edges for calls to declarations in included headers, and the Godot plugin now emits Calls edges for `class_name` static method calls while keeping `load()` and `preload()` on the Loads edge.
+
+  Plugins can declare core or plugin-owned Edge Type capabilities with `contributeEdgeTypeCapabilities(context)`. Plugin authors should use `context.filePaths` when a plugin supports multiple languages or file families with different Edge Types, so Graph Scope only shows toggles that are relevant to the indexed workspace.
+
+- [#245](https://github.com/joesobo/CodeGraphyV4/pull/245) [`70096e8`](https://github.com/joesobo/CodeGraphyV4/commit/70096e81c526486781794be00c46ad7590a27922) Thanks [@joesobo](https://github.com/joesobo)! - Curve different edge types between the same nodes so every visible edge can be seen.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2) Thanks [@joesobo](https://github.com/joesobo)! - Keep disabled plugins fully inactive across Graph View surfaces.
+
+  When a workspace disables a plugin, CodeGraphy now excludes that plugin's graph analysis contributions, default filter groups, Graph Scope Node Type and Edge Type definitions, Edge Type capabilities, Graph View contribution statuses, toolbar/context/export actions, and webview assets. This keeps disabled plugins from leaving behind toggles or UI actions for features that are no longer active.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`4907fa2`](https://github.com/joesobo/CodeGraphyV4/commit/4907fa2b31c417f19045690526deb39877a82755) Thanks [@joesobo](https://github.com/joesobo)! - Keep disabled plugins unloaded during Core and VS Code extension indexing so disabled package, bundled Markdown, and provided plugin runtimes are not registered or run.
+
+- [#252](https://github.com/joesobo/CodeGraphyV4/pull/252) [`c66210c`](https://github.com/joesobo/CodeGraphyV4/commit/c66210cae9cdf4ad6bb08e7c747b1a8116b134b0) Thanks [@joesobo](https://github.com/joesobo)! - Disable Graph Scope edge type controls until the workspace graph has been indexed.
+
+- [#246](https://github.com/joesobo/CodeGraphyV4/pull/246) [`1d115c9`](https://github.com/joesobo/CodeGraphyV4/commit/1d115c9e95b85c169900d9059fb72e7c77780c63) Thanks [@joesobo](https://github.com/joesobo)! - Show hover popup connection counts for the currently visible edge types.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`f8787fa`](https://github.com/joesobo/CodeGraphyV4/commit/f8787fae1b40739301dfd784b2a6a1177acebfb7) Thanks [@joesobo](https://github.com/joesobo)! - Persist workspace plugin activity by Plugin ID with an explicit enabled state.
+
+  New workspaces now write Markdown as an enabled plugin intent entry, and plugin toggles keep `enabled: false` entries when users disable a plugin. CodeGraphy uses the Plugin ID from static plugin metadata to resolve installed package runtimes, so disabled plugins keep their user intent and plugin-owned data without loading runtime code.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`6917391`](https://github.com/joesobo/CodeGraphyV4/commit/69173916c7bd341296f23dcb11732746d273f805) Thanks [@joesobo](https://github.com/joesobo)! - Make plugin toggles use Plugin IDs as the workspace activity identity.
+
+  The Plugins panel and Graph View settings now enable and disable plugins by the static Plugin ID, while package names stay as install metadata. Disabled plugins are written as explicit `enabled: false` workspace entries, enabled plugins are written as `enabled: true`, and default plugin options are looked up by Plugin ID with a package-name fallback for older installed-plugin records.
+
+- [#252](https://github.com/joesobo/CodeGraphyV4/pull/252) [`24f2148`](https://github.com/joesobo/CodeGraphyV4/commit/24f2148f8744617f1f66307b467b4e4ae1df2dcb) Thanks [@joesobo](https://github.com/joesobo)! - Hide the Nests edge scope control until Folder Nodes are enabled, default Nests edges on for fresh workspaces, and stop drawing Nests edges from Package Nodes to files.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561) Thanks [@joesobo](https://github.com/joesobo)! - Remove the unused Tests and Re-exports edge types from Graph Scope.
+
+  Export-from relationships now appear as Imports instead of a separate Re-exports edge, so users have fewer duplicate-looking edge toggles to reason about.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`77503ee`](https://github.com/joesobo/CodeGraphyV4/commit/77503ee7b437924386fb86b4381847a6a16deb1c) Thanks [@joesobo](https://github.com/joesobo)! - Fix symbol-level graph scope behavior for inheritance, containment, overrides, and language example graphs.
+
+- Updated dependencies [[`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2), [`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886), [`91e33a2`](https://github.com/joesobo/CodeGraphyV4/commit/91e33a219ab1c1db2069391525de0786921581fb), [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2), [`4907fa2`](https://github.com/joesobo/CodeGraphyV4/commit/4907fa2b31c417f19045690526deb39877a82755), [`0d558f0`](https://github.com/joesobo/CodeGraphyV4/commit/0d558f02e64760e9800fe40ab608eea6a73631fb), [`ac1cff8`](https://github.com/joesobo/CodeGraphyV4/commit/ac1cff8ded4ff8aed45ca3af5fa6028f3872e9c4), [`f8787fa`](https://github.com/joesobo/CodeGraphyV4/commit/f8787fae1b40739301dfd784b2a6a1177acebfb7), [`bc3e9c2`](https://github.com/joesobo/CodeGraphyV4/commit/bc3e9c2e6ef028832aa66458a29b4c54d02fe037), [`6917391`](https://github.com/joesobo/CodeGraphyV4/commit/69173916c7bd341296f23dcb11732746d273f805), [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561), [`77503ee`](https://github.com/joesobo/CodeGraphyV4/commit/77503ee7b437924386fb86b4381847a6a16deb1c)]:
+  - @codegraphy-dev/core@1.4.0
+
 ## 5.7.0
 
 ### Minor Changes
