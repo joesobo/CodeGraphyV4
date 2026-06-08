@@ -697,7 +697,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
   }),
 
-  step(/^the available edge types are (.+)$/, async (context, _step, match) => {
+  step(/^the available edge types are (?:only )?(.+)$/, async (context, _step, match) => {
     const expectedEdgeTypes = match[1].split(',').map((label) => label.trim());
     const frame = requireGraphFrame(context);
 

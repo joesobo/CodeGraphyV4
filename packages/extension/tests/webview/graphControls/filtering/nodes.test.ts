@@ -22,6 +22,18 @@ function node(id: string, nodeType?: string, color = ''): IGraphNode {
   };
 }
 
+function symbolNode(id: string, kind: string, nodeType = 'symbol'): IGraphNode {
+  return {
+    ...node(id, nodeType),
+    symbol: {
+      id,
+      name: id,
+      kind,
+      filePath: 'src/logger/logger.h',
+    },
+  };
+}
+
 const nodes: IGraphNode[] = [
   node('a.ts'),
   node('src', 'folder'),
@@ -67,6 +79,24 @@ describe('webview/graphControls/filtering nodes', () => {
     ], {})).toEqual([
       node('unknown', 'plugin-route', '#route'),
       { ...node('plain'), color: DEFAULT_NODE_COLOR },
+    ]);
+  });
+
+  it('applies the most-specific graph scope color for symbol and variable child nodes', () => {
+    expect(applyNodeTypeColors([
+      symbolNode('src/logger/logger.h#logger.h:include', 'include'),
+      symbolNode('src/logger/logger.h#Logger:typedef', 'typedef'),
+      symbolNode('src/logger/logger.c#logger_output_enabled:global', 'global', 'variable'),
+    ], {
+      symbol: '#symbol',
+      variable: '#variable',
+      'symbol:include': '#include',
+      'symbol:typedef': '#typedef',
+      'symbol:global': '#global',
+    })).toEqual([
+      { ...symbolNode('src/logger/logger.h#logger.h:include', 'include'), color: '#include' },
+      { ...symbolNode('src/logger/logger.h#Logger:typedef', 'typedef'), color: '#typedef' },
+      { ...symbolNode('src/logger/logger.c#logger_output_enabled:global', 'global', 'variable'), color: '#global' },
     ]);
   });
 

@@ -4,9 +4,33 @@ import {
   DEFAULT_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,
 } from '../../../shared/fileColors';
+import type { IGraphNodeTypeDefinition } from '../../../shared/graphControls/contracts';
+import { CORE_GRAPH_NODE_TYPES } from '../../../shared/graphControls/defaults/nodeTypes';
+import { symbolMatchesScopedDefinition } from '../../../shared/visibleGraph/scope/symbolMatch';
 
 function getResolvedNodeType(node: IGraphNode): string {
   return node.nodeType ?? 'file';
+}
+
+function getSymbolDefinitionSpecificity(definition: IGraphNodeTypeDefinition): number {
+  return [
+    definition.matchSymbolKinds,
+    definition.matchSymbolPluginKind,
+    definition.matchSymbolSource,
+    definition.matchSymbolLanguage,
+    definition.matchSymbolFilePath,
+  ].filter(Boolean).length;
+}
+
+function getColorNodeType(node: IGraphNode, nodeColors: Record<string, string>): string {
+  const symbolDefinition = CORE_GRAPH_NODE_TYPES
+    .filter((definition) => definition.parentId && nodeColors[definition.id])
+    .filter((definition) => symbolMatchesScopedDefinition(node, definition))
+    .sort((left, right) =>
+      getSymbolDefinitionSpecificity(right) - getSymbolDefinitionSpecificity(left)
+    )[0];
+
+  return symbolDefinition?.id ?? getResolvedNodeType(node);
 }
 
 export function isNodeVisible(node: IGraphNode, visibility: Record<string, boolean>): boolean {
@@ -25,7 +49,7 @@ export function applyNodeTypeColors(
   nodeColors: Record<string, string>,
 ): IGraphNode[] {
   return nodes.map((node) => {
-    const nodeType = getResolvedNodeType(node);
+    const nodeType = getColorNodeType(node, nodeColors);
 
     return {
       ...node,
