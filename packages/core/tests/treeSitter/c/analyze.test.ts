@@ -140,6 +140,76 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     ]));
   });
 
+  it('prefers same-file function definitions over matching included prototypes for C calls', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/api.h': [
+        '#pragma once',
+        'void api_a(void);',
+        'void api_b(void);',
+        '',
+      ].join('\n'),
+    });
+    const sourcePath = path.join(workspaceRoot, 'src/api.c');
+    const source = [
+      '#include "api.h"',
+      '',
+      'void api_b(void) {',
+      '}',
+      '',
+      'void api_a(void) {',
+      '  api_b();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(sourcePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        specifier: 'api_b',
+        fromFilePath: sourcePath,
+        fromSymbolId: `${sourcePath}:function:api_a`,
+        toSymbolId: `${sourcePath}:function:api_b`,
+        resolvedPath: sourcePath,
+        toFilePath: sourcePath,
+      }),
+    ]));
+  });
+
+  it('extracts C function pointer declarations as globals rather than prototypes', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const sourcePath = path.join(workspaceRoot, 'src/callbacks.c');
+    const source = [
+      'int (*logger_callback)(const char *message);',
+      'void logger_flush(void);',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(sourcePath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        filePath: sourcePath,
+        kind: 'global',
+        name: 'logger_callback',
+      }),
+      expect.objectContaining({
+        filePath: sourcePath,
+        kind: 'prototype',
+        name: 'logger_flush',
+      }),
+    ]));
+    expect(result?.symbols).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        filePath: sourcePath,
+        kind: 'prototype',
+        name: 'logger_callback',
+      }),
+    ]));
+  });
+
   it('extracts tiny logger include and call relationships from Tree-sitter C analysis', async () => {
     const workspaceRoot = await createWorkspace({
       'src/logger/logger.h': [

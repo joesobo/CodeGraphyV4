@@ -4,10 +4,13 @@ import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../analyze/model';
 import { addCallRelation, createSymbolId } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
-import { hasFunctionDeclarator } from './names';
+import { hasCallableFunctionDeclarator } from './names';
+
+type CallableDeclarationSymbolKind = 'function' | 'prototype';
 
 interface CFamilyCallDeclarationTarget {
   filePath: string;
+  symbolKind: CallableDeclarationSymbolKind;
   symbolId?: string;
 }
 
@@ -103,6 +106,7 @@ function readDeclaredFunctions(
         name: functionName,
         target: {
           filePath,
+          symbolKind,
           ...(symbolsEnabled ? { symbolId: createSymbolId(filePath, symbolKind, functionName) } : {}),
         },
       });
@@ -111,13 +115,13 @@ function readDeclaredFunctions(
   return declarations;
 }
 
-function getCallableDeclarationSymbolKind(node: Parser.SyntaxNode): 'function' | 'prototype' | null {
+function getCallableDeclarationSymbolKind(node: Parser.SyntaxNode): CallableDeclarationSymbolKind | null {
   if (node.type === 'function_definition') {
     return 'function';
   }
 
   if (node.type === 'declaration' || node.type === 'function_declaration') {
-    return hasFunctionDeclarator(node) ? 'prototype' : null;
+    return hasCallableFunctionDeclarator(node) ? 'prototype' : null;
   }
 
   return null;
@@ -189,6 +193,15 @@ function setUniqueTarget(
 
   const existingTarget = targetsByName.get(name);
   if (!existingTarget) {
+    return;
+  }
+
+  if (existingTarget.symbolKind === 'prototype' && target.symbolKind === 'function') {
+    targetsByName.set(name, target);
+    return;
+  }
+
+  if (existingTarget.symbolKind === 'function' && target.symbolKind === 'prototype') {
     return;
   }
 
