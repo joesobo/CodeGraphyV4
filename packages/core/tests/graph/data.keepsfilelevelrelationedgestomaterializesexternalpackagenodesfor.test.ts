@@ -65,7 +65,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: { symbol: true, 'symbol:function': true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
       });
