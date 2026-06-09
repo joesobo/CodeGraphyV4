@@ -13,10 +13,6 @@ export function createPrimaryMessageContext(
     getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getFilterPatterns: vi.fn(() => []),
-    getSearchState: vi.fn(() => ({
-      query: '',
-      options: { matchCase: false, wholeWord: false, regex: false },
-    })),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
     openSelectedNode: vi.fn(() => Promise.resolve()),
@@ -65,7 +61,6 @@ export function createPrimaryMessageContext(
     getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
-    setSearchState: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),

@@ -16,7 +16,6 @@ import {
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
   handleSettingsUpdated,
-  handleSearchStateUpdated,
   handleShowLabelsUpdated,
   handleVerboseDiagnosticsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
@@ -239,16 +238,6 @@ describe('webview/store/messageHandlers/graph', () => {
       disabledPluginFilterPatterns: [],
     });
 
-    expect(handleSearchStateUpdated({
-      type: 'SEARCH_STATE_UPDATED',
-      payload: {
-        query: 'App',
-        options: { matchCase: true, wholeWord: false, regex: true },
-      },
-    })).toEqual({
-      searchQuery: 'App',
-      searchOptions: { matchCase: true, wholeWord: false, regex: true },
-    });
   });
 
   it('maps depth, direction, physics, labels, max-files, and active-file payloads', () => {

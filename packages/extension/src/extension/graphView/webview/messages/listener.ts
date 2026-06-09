@@ -17,7 +17,6 @@ export interface GraphViewMessageListenerContext
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   setUserGroups(groups: IGroup[]): void;
   setFilterPatterns(patterns: string[]): void;
-  setSearchState(searchState: ReturnType<GraphViewPrimaryMessageContext['getSearchState']>): void;
   setWebviewReadyNotified(nextValue: boolean): void;
 }
 

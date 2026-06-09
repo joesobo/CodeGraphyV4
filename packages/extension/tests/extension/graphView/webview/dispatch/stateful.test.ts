@@ -41,30 +41,6 @@ describe('graph view primary stateful dispatch', () => {
     });
   });
 
-  it('stores and broadcasts search state updates', async () => {
-    const context = createPrimaryMessageContext();
-    const searchState = {
-      query: 'App',
-      options: { matchCase: true, wholeWord: false, regex: true },
-    };
-
-    await expect(
-      dispatchGraphViewPrimaryStateMessage(
-        { type: 'UPDATE_SEARCH_STATE', payload: searchState },
-        context,
-      ),
-    ).resolves.toEqual({
-      handled: true,
-      filterPatterns: undefined,
-    });
-
-    expect(context.setSearchState).toHaveBeenCalledWith(searchState);
-    expect(context.sendMessage).toHaveBeenCalledWith({
-      type: 'SEARCH_STATE_UPDATED',
-      payload: searchState,
-    });
-  });
-
   it('persists verbose diagnostics updates from settings messages', async () => {
     const context = createPrimaryMessageContext();
 

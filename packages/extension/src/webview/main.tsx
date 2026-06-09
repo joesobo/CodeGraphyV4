@@ -8,9 +8,7 @@ import { getVsCodeApi, VsCodeApi } from './vscodeApi';
 
 const container = document.getElementById('root');
 const viewKind = document.body.dataset.codegraphyView;
-const RootComponent = viewKind === 'timeline'
-    ? TimelineApp
-    : App;
+const RootComponent = viewKind === 'timeline' ? TimelineApp : App;
 if (container) {
   const root = createRoot(container);
   root.render(

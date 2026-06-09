@@ -12,7 +12,6 @@ type GraphViewProviderReadContext = Pick<
   | 'getUserGroups'
   | 'getDepthMode'
   | 'getFilterPatterns'
-  | 'getSearchState'
   | 'getPluginFilterGroups'
   | 'getPluginFilterPatterns'
   | 'getGraphData'
@@ -42,7 +41,6 @@ export function createGraphViewProviderMessageReadContext(
     getUserGroups: () => source._userGroups,
     getDepthMode: () => source._depthMode,
     getFilterPatterns: () => source._filterPatterns,
-    getSearchState: () => source._searchState,
     getPluginFilterPatterns: () =>
       typeof source._analyzer?.getPluginFilterPatterns === 'function'
         ? source._analyzer.getPluginFilterPatterns()

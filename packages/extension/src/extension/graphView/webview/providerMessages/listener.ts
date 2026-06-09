@@ -7,7 +7,6 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
-import type { SearchState } from '../../../../shared/search/contracts';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
@@ -78,7 +77,6 @@ export interface GraphViewProviderMessageListenerSource {
   _userGroups: IGroup[];
   _disabledPlugins: Set<string>;
   _filterPatterns: string[];
-  _searchState: SearchState;
   _graphData: IGraphData;
   _viewContext: IViewContext;
   _depthMode: boolean;

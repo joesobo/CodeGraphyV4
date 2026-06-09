@@ -373,37 +373,4 @@ describe('App behavior', () => {
       expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/App.ts');
     });
 
-
-
-    it('updates graph filtering from host-owned search state', async () => {
-      graphStore.setState({
-        graphData: {
-          nodes: [
-            { id: 'src/App.ts', label: 'App', color: '#123456' },
-            { id: 'src/Todo.ts', label: 'Todo', color: '#654321' },
-          ],
-          edges: [],
-        },
-      });
-
-      render(<App />);
-
-      await act(async () => {
-        sendAppMessage({
-          type: 'SEARCH_STATE_UPDATED',
-          payload: {
-            query: 'Todo',
-            options: { matchCase: true, wholeWord: false, regex: false },
-          },
-        });
-      });
-
-      expect(graphStore.getState().searchQuery).toBe('Todo');
-      expect(graphStore.getState().searchOptions).toEqual({
-        matchCase: true,
-        wholeWord: false,
-        regex: false,
-      });
-      expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/Todo.ts');
-    });
 });

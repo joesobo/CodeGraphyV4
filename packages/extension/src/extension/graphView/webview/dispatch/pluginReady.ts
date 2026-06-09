@@ -1,7 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { SearchState } from '../../../../shared/search/contracts';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { applyWebviewReady } from '../messages/ready';
 
@@ -10,7 +9,6 @@ type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW
 export interface GraphViewPluginReadyContext {
   getGraphData(): IGraphData;
   getFilterPatterns(): string[];
-  getSearchState(): SearchState;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
   getConfig<T>(key: string, defaultValue: T): T;
@@ -66,7 +64,6 @@ export async function dispatchGraphViewPluginReadyMessage(
     {
       getGraphData: () => context.getGraphData(),
       getFilterPatterns: () => context.getFilterPatterns(),
-      getSearchState: () => context.getSearchState(),
       getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
       getPluginFilterGroups: () => context.getPluginFilterGroups?.() ?? [],
       getConfig: (key, defaultValue) => context.getConfig(key, defaultValue),

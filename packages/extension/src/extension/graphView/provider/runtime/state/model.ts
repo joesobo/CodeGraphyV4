@@ -8,7 +8,6 @@ import { ViewRegistry } from '../../../../../core/views/registry';
 import { DecorationManager } from '../../../../../core/plugins/decoration/manager';
 import { EventBus } from '../../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
-import type { SearchState } from '../../../../../shared/search/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../../gitHistory/analyzer';
@@ -68,7 +67,6 @@ export class GraphViewProviderRuntime {
   protected _groups!: IGroup[];
   protected _userGroups!: IGroup[];
   protected _filterPatterns!: string[];
-  protected _searchState!: SearchState;
   protected _disabledPlugins!: Set<string>;
   protected _gitAnalyzer?: GitHistoryAnalyzer;
   protected _currentCommitSha?: string;

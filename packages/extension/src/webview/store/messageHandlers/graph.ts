@@ -161,15 +161,6 @@ export function handleFilterPatternsUpdated(
   };
 }
 
-export function handleSearchStateUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'SEARCH_STATE_UPDATED' }>,
-): PartialState {
-  return {
-    searchQuery: message.payload.query,
-    searchOptions: message.payload.options,
-  };
-}
-
 export function handleDepthModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>,
 ): PartialState {

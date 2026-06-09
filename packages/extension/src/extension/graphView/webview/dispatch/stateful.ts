@@ -11,18 +11,6 @@ export async function dispatchGraphViewPrimaryStateMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
-  if (message.type === 'UPDATE_SEARCH_STATE') {
-    context.setSearchState(message.payload);
-    context.sendMessage({
-      type: 'SEARCH_STATE_UPDATED',
-      payload: message.payload,
-    });
-    return {
-      handled: true,
-      filterPatterns: undefined,
-    };
-  }
-
   const legendState = createGraphViewPrimaryLegendMessageState(context);
   if (await applyLegendMessage(message, legendState, context)) {
     return {
