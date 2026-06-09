@@ -334,7 +334,7 @@ describe('Graph wiring', () => {
 		}));
 	});
 
-	it('auto-fits after switching into 3d mode when the graph ref is ready', () => {
+	it('does not auto-fit after switching into 3d mode when the graph ref is ready', () => {
 		vi.useFakeTimers();
 		const graphState = createGraphState();
 		graphState.renderer.fg3dRef.current = {
@@ -354,6 +354,6 @@ describe('Graph wiring', () => {
 			vi.runAllTimers();
 		});
 
-		expect(interactionRuntime.interactionHandlers.fitView).toHaveBeenCalledOnce();
+		expect(interactionRuntime.interactionHandlers.fitView).not.toHaveBeenCalled();
 	});
 });

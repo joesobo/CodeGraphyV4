@@ -583,8 +583,12 @@ describe('graph/viewport/shell', () => {
 		graphData.nodes[1] = { ...graphData.nodes[1], x: 30, y: 40 };
 		const graphState = createGraphState(graphData);
 		let frameOffset = 0;
+		const graph2ScreenCoords = vi.fn((x: number, y: number) => ({
+			x: x + frameOffset,
+			y: y + frameOffset,
+		}));
 		graphState.renderer.fg2dRef.current = {
-			graph2ScreenCoords: (x: number, y: number) => ({ x: x + frameOffset, y: y + frameOffset }),
+			graph2ScreenCoords,
 			screen2GraphCoords: (x: number, y: number) => ({ x: x - frameOffset, y: y - frameOffset }),
 			zoom: () => 1,
 		} as never;
@@ -615,6 +619,7 @@ describe('graph/viewport/shell', () => {
 		});
 
 		const renderCountAfterAccessibilityPublish = harness.viewport.mock.calls.length;
+		const projectedNodesAfterAccessibilityPublish = graph2ScreenCoords.mock.calls.length;
 
 		for (frameOffset = 2; frameOffset <= 12; frameOffset += 1) {
 			act(() => {
@@ -624,6 +629,59 @@ describe('graph/viewport/shell', () => {
 
 		expect(renderCountAfterAccessibilityPublish).toBeGreaterThan(1);
 		expect(harness.viewport.mock.calls.length).toBe(renderCountAfterAccessibilityPublish);
+		expect(graph2ScreenCoords.mock.calls.length).toBe(projectedNodesAfterAccessibilityPublish);
+	});
+
+	it('waits for graph coordinates before projecting accessibility nodes', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const graph2ScreenCoords = vi.fn((x: number, y: number) => ({ x, y }));
+		graphState.renderer.fg2dRef.current = {
+			graph2ScreenCoords,
+			screen2GraphCoords: (x: number, y: number) => ({ x, y }),
+			zoom: () => 1,
+		} as never;
+		const interactions = createInteractions();
+		const callbacks = createCallbacks();
+		const viewState = { ...createViewState(), graphMode: '2d' as const };
+
+		render(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		});
+		expect(graph2ScreenCoords).not.toHaveBeenCalled();
+
+		graphState.renderer.graphDataRef.current.nodes[0] = {
+			...graphState.renderer.graphDataRef.current.nodes[0],
+			x: 10,
+			y: 20,
+		};
+		graphState.renderer.graphDataRef.current.nodes[1] = {
+			...graphState.renderer.graphDataRef.current.nodes[1],
+			x: 30,
+			y: 40,
+		};
+
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		});
+		expect(graph2ScreenCoords).toHaveBeenCalledTimes(2);
 	});
 
 	it('skips plugin viewport state publication when no plugin host is mounted', () => {
