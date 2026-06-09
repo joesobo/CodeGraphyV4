@@ -12,7 +12,6 @@ import { resolveGraphViewProviderWebviewView } from './resolve';
 export interface GraphViewProviderWebviewSource
   extends GraphViewProviderMessageListenerSource {
   _extensionUri: vscode.Uri;
-  _searchView?: vscode.WebviewView;
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];

@@ -49,7 +49,6 @@ import {
 } from '../workspaceRefreshPersistence';
 
 export class GraphViewProviderRuntime {
-  protected _searchView?: vscode.WebviewView;
   protected _view?: vscode.WebviewView;
   protected _timelineView?: vscode.WebviewView;
   protected _panels!: vscode.WebviewPanel[];

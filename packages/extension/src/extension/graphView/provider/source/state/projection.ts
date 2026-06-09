@@ -2,7 +2,6 @@ import type { GraphViewProviderMethodSourceOwner } from '../contracts';
 import { attachMutableAccessors, attachReadonlyAccessors } from './accessors';
 
 const MUTABLE_STATE_KEYS = [
-  '_searchView',
   '_view',
   '_timelineView',
   '_panels',

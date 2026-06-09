@@ -9,22 +9,11 @@ export interface GraphViewProviderWebviewResolveSource extends GraphViewProvider
   flushPendingWorkspaceRefresh?(): void;
 }
 
-const SEARCH_CONTROLS_VISIBLE_CONTEXT = 'codegraphy.searchControlsVisible';
-const SEARCH_CONTROLS_REVEAL_DELAY_MS = 50;
-
-function isSearchWebviewView(webviewView: vscode.WebviewView): boolean {
-  return webviewView.viewType === 'codegraphy.searchControlsView';
-}
-
 function isTimelineWebviewView(webviewView: vscode.WebviewView): boolean {
   return webviewView.viewType === 'codegraphy.timelineView';
 }
 
 function getWebviewKind(webviewView: vscode.WebviewView): CodeGraphyWebviewKind {
-  if (isSearchWebviewView(webviewView)) {
-    return 'search';
-  }
-
   if (isTimelineWebviewView(webviewView)) {
     return 'timeline';
   }
@@ -38,11 +27,6 @@ function assignResolvedWebviewView(
   viewKind: CodeGraphyWebviewKind,
   workspaceTitle: string | undefined,
 ): void {
-  if (viewKind === 'search') {
-    source._searchView = webviewView;
-    return;
-  }
-
   if (viewKind === 'timeline') {
     source._timelineView = webviewView;
     return;
@@ -57,10 +41,6 @@ function clearResolvedWebviewView(
   webviewView: vscode.WebviewView,
   viewKind: CodeGraphyWebviewKind,
 ): void {
-  if (viewKind === 'search' && source._searchView === webviewView) {
-    source._searchView = undefined;
-  }
-
   if (viewKind === 'timeline' && source._timelineView === webviewView) {
     source._timelineView = undefined;
   }
@@ -78,20 +58,6 @@ function maybeFlushPendingWorkspaceRefresh(
   if (viewKind === 'graph' && webviewView.visible) {
     source.flushPendingWorkspaceRefresh?.();
   }
-}
-
-function maybeRevealSearchControlsView(
-  dependencies: Pick<GraphViewProviderWebviewMethodDependencies, 'executeCommand'>,
-  webviewView: vscode.WebviewView,
-  viewKind: CodeGraphyWebviewKind,
-): void {
-  if (viewKind !== 'graph' || !webviewView.visible) {
-    return;
-  }
-
-  setTimeout(() => {
-    void dependencies.executeCommand('setContext', SEARCH_CONTROLS_VISIBLE_CONTEXT, true);
-  }, SEARCH_CONTROLS_REVEAL_DELAY_MS);
 }
 
 export function resolveGraphViewProviderWebviewView(
@@ -116,7 +82,6 @@ export function resolveGraphViewProviderWebviewView(
 
   webviewView.onDidChangeVisibility(() => {
     maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
-    maybeRevealSearchControlsView(dependencies, webviewView, viewKind);
   });
 
   dependencies.resolveWebviewView(webviewView, {
@@ -134,5 +99,4 @@ export function resolveGraphViewProviderWebviewView(
   } as never);
 
   maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
-  maybeRevealSearchControlsView(dependencies, webviewView, viewKind);
 }
