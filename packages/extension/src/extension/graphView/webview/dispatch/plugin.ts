@@ -1,7 +1,6 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
-import type { SearchState } from '../../../../shared/search/contracts';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
 import { applyPluginContextMenuAction } from '../pluginMessages/contextMenu';
@@ -11,7 +10,6 @@ import { applyPluginInteraction } from '../pluginMessages/interaction';
 
 export interface GraphViewPluginMessageContext {
   getFilterPatterns(): string[];
-  getSearchState(): SearchState;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];
   getConfig<T>(key: string, defaultValue: T): T;

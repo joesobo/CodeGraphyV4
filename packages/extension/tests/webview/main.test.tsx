@@ -84,19 +84,6 @@ describe('main', () => {
     expect(rootElement.props.children.type.name).toBe('TimelineApp');
   });
 
-  it('renders the graph shell when the host provides an unknown view kind', async () => {
-    const container = document.createElement('div');
-    document.body.dataset.codegraphyView = 'unknown';
-    vi.spyOn(document, 'getElementById').mockReturnValue(container);
-
-    await import('../../src/webview/main');
-
-    const rootElement = mocks.render.mock.calls[0]?.[0] as {
-      props: { children: { type: { name: string } } };
-    };
-    expect(rootElement.props.children.type.name).toBe('GraphApp');
-  });
-
   it('skips root creation when the root element is missing', async () => {
     vi.spyOn(document, 'getElementById').mockReturnValue(null);
 

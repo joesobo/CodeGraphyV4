@@ -28,7 +28,7 @@ export interface GraphViewProviderWebviewMethodDependencies {
   sendWebviewMessage: typeof sendGraphViewWebviewMessage;
   onWebviewMessage: typeof onGraphViewWebviewMessage;
   setWebviewMessageListener: typeof setGraphViewProviderMessageListener;
-  executeCommand(command: string, ...args: unknown[]): Thenable<unknown>;
+  executeCommand(command: string, key: string, value: boolean): Thenable<unknown>;
   createPanel: typeof vscode.window.createWebviewPanel;
   getWorkspaceTitle?(): string | undefined;
 }
@@ -78,7 +78,7 @@ export function createDefaultGraphViewProviderWebviewMethodDependencies(): Graph
     sendWebviewMessage: sendGraphViewWebviewMessage,
     onWebviewMessage: onGraphViewWebviewMessage,
     setWebviewMessageListener: setGraphViewProviderMessageListener,
-    executeCommand: (command, ...args) => vscode.commands.executeCommand(command, ...args),
+    executeCommand: (command, key, value) => vscode.commands.executeCommand(command, key, value),
     createPanel: (viewType, title, column, options) =>
       vscode.window.createWebviewPanel(viewType, title, column, options),
     getWorkspaceTitle: () => vscode.workspace.workspaceFolders?.[0]?.name,

@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import type { SearchOptions } from '../../components/searchBar/field/model';
 import { useTheme } from '../../theme/useTheme';
 import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
-import { postMessage } from '../../vscodeApi';
 import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
@@ -148,20 +146,6 @@ export default function App(): React.ReactElement {
       openFilterPrompt(pattern);
     }
   };
-  const commitSearchState = (query: string, options: SearchOptions): void => {
-    postMessage({
-      type: 'UPDATE_SEARCH_STATE',
-      payload: { query, options },
-    });
-  };
-  const handleSearchQueryChange = (query: string): void => {
-    setSearchQuery(query);
-    commitSearchState(query, searchOptions);
-  };
-  const handleSearchOptionsChange = (options: SearchOptions): void => {
-    setSearchOptions(options);
-    commitSearchState(searchQuery, options);
-  };
   const graphContent = (() => {
     if (isLoading) {
       return <LoadingState fullScreen={false} />;
@@ -234,8 +218,8 @@ export default function App(): React.ReactElement {
           pluginPatterns: pluginFilterPatterns,
         }}
         regexError={regexError}
-        onSearchQueryChange={handleSearchQueryChange}
-        onSearchOptionsChange={handleSearchOptionsChange}
+        onSearchQueryChange={setSearchQuery}
+        onSearchOptionsChange={setSearchOptions}
       />
       <div className="flex-1 min-h-0 relative">
         {graphContent}
