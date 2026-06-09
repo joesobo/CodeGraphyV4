@@ -171,8 +171,21 @@ jobs:
         run: pnpm run test:release
 
   vsix-artifact-tests:
-    runs-on: ubuntu-latest
+    name: VSIX artifacts / ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            os: ubuntu-latest
+          - target: darwin-arm64
+            os: macos-14
+          - target: win32-x64
+            os: windows-latest
+    env:
+      CODEGRAPHY_VSIX_TARGETS: ${{ matrix.target }}
 
     steps:
       - name: Checkout
@@ -199,6 +212,17 @@ jobs:
 
       - name: Validate VSIX native binaries
         run: pnpm run check:vsix-native-artifacts
+
+      - name: Compile VS Code smoke tests
+        run: pnpm --filter @codegraphy-dev/extension exec tsc -p src/e2e/tsconfig.json
+
+      - name: Smoke installed VSIX activation
+        if: runner.os != 'Linux'
+        run: pnpm run check:vsix-activation
+
+      - name: Smoke installed VSIX activation
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum pnpm run check:vsix-activation
 
   playwright:
     name: Playwright / ${{ matrix.label }}
