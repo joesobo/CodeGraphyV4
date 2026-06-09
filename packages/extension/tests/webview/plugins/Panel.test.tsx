@@ -160,15 +160,6 @@ describe('PluginsPanel', () => {
   it('hides core and legacy extension plugin rows that cannot be toggled as packages', () => {
     renderPanel([
       {
-        id: 'codegraphy.treesitter',
-        name: 'Tree-sitter',
-        version: '1.0.0',
-        supportedExtensions: ['*'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 42,
-      },
-      {
         id: 'codegraphy.legacy-extension',
         name: 'Legacy Extension Plugin',
         version: '1.0.0',
@@ -189,7 +180,6 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(screen.queryByText('Tree-sitter')).not.toBeInTheDocument();
     expect(screen.queryByText('Legacy Extension Plugin')).not.toBeInTheDocument();
     expect(screen.getByText('Graph Tools')).toBeInTheDocument();
     expect(screen.queryAllByRole('switch')).toHaveLength(1);

@@ -293,7 +293,8 @@ export function getWorkspaceIndexPluginNameForFile(
   workspaceRoot: string,
   registry: Pick<WorkspaceIndexPluginRegistry, 'getPluginForFile'>,
 ): string | undefined {
-  return registry.getPluginForFile(path.join(workspaceRoot, relativePath))?.name;
+  const plugin = registry.getPluginForFile(path.join(workspaceRoot, relativePath));
+  return plugin?.name;
 }
 
 export function resolveWorkspaceIndexPluginNameForFile(

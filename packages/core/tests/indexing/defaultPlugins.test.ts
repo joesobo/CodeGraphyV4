@@ -17,9 +17,11 @@ interface RegisteredPlugin {
   sourcePackage?: string;
 }
 
-function registry(): { registry: CorePluginRegistry; registered: RegisteredPlugin[] } {
+function registry(): { coreAnalyzerRegistered: { current: boolean }; registry: CorePluginRegistry; registered: RegisteredPlugin[] } {
   const registered: RegisteredPlugin[] = [];
+  const coreAnalyzerRegistered = { current: false };
   return {
+    coreAnalyzerRegistered,
     registered,
     registry: {
       register(plugin: IPlugin, options: Omit<RegisteredPlugin, 'id'> = {}) {
@@ -27,6 +29,9 @@ function registry(): { registry: CorePluginRegistry; registered: RegisteredPlugi
           id: plugin.id,
           ...options,
         });
+      },
+      setCoreAnalyzeFileResult() {
+        coreAnalyzerRegistered.current = true;
       },
     } as unknown as CorePluginRegistry,
   };
@@ -56,9 +61,10 @@ describe('indexing/defaultPlugins', () => {
     );
 
     expect(harness.registered).toEqual([]);
+    expect(harness.coreAnalyzerRegistered.current).toBe(false);
   });
 
-  it('registers tree-sitter and configured Markdown when enabled after other workspace plugins', async () => {
+  it('registers core Tree-sitter analysis and configured Markdown when enabled after other workspace plugins', async () => {
     const harness = registry();
 
     await registerDefaultIndexPlugins(
@@ -82,7 +88,6 @@ describe('indexing/defaultPlugins', () => {
     );
 
     expect(harness.registered).toEqual([
-      { id: 'codegraphy.treesitter', builtIn: true },
       {
         id: 'codegraphy.markdown',
         builtIn: true,
@@ -90,9 +95,10 @@ describe('indexing/defaultPlugins', () => {
         options: { wikilinks: true },
       },
     ]);
+    expect(harness.coreAnalyzerRegistered.current).toBe(true);
   });
 
-  it('registers tree-sitter without Markdown when Markdown is not enabled in workspace settings', async () => {
+  it('registers core Tree-sitter analysis without Markdown when Markdown is not enabled in workspace settings', async () => {
     const harness = registry();
 
     await registerDefaultIndexPlugins(
@@ -104,12 +110,11 @@ describe('indexing/defaultPlugins', () => {
       },
     );
 
-    expect(harness.registered).toEqual([
-      { id: 'codegraphy.treesitter', builtIn: true },
-    ]);
+    expect(harness.registered).toEqual([]);
+    expect(harness.coreAnalyzerRegistered.current).toBe(true);
   });
 
-  it('registers tree-sitter without Markdown when Plugin Activity State disables Markdown', async () => {
+  it('registers core Tree-sitter analysis without Markdown when Plugin Activity State disables Markdown', async () => {
     const harness = registry();
 
     await registerDefaultIndexPlugins(
@@ -124,9 +129,8 @@ describe('indexing/defaultPlugins', () => {
       },
     );
 
-    expect(harness.registered).toEqual([
-      { id: 'codegraphy.treesitter', builtIn: true },
-    ]);
+    expect(harness.registered).toEqual([]);
+    expect(harness.coreAnalyzerRegistered.current).toBe(true);
   });
 
   it('does not register Markdown when a provided plugin already owns the Markdown id', async () => {
@@ -144,10 +148,10 @@ describe('indexing/defaultPlugins', () => {
     registerProvidedPlugins(harness.registry, [markdown, plugin('custom')]);
 
     expect(harness.registered.map(entry => entry.id)).toEqual([
-      'codegraphy.treesitter',
       'codegraphy.markdown',
       'custom',
     ]);
+    expect(harness.coreAnalyzerRegistered.current).toBe(true);
   });
 
   it('ignores missing provided plugin arrays', () => {

@@ -7,6 +7,7 @@ import {
 
 interface GraphViewFileInfoAnalyzer {
   getPluginNameForFile(filePath: string): string | undefined;
+  getPluginNamesForIds(pluginIds: readonly string[]): string[];
 }
 
 interface GraphViewFileInfoOptions {
@@ -24,8 +25,12 @@ export async function loadGraphViewFileInfo(
 
   const fileUri = vscode.Uri.joinPath(options.workspaceFolder.uri, filePath);
   const stat = await options.statFile(fileUri);
-  const analyzer = await options.ensureAnalyzerReady();
-  const plugin = analyzer?.getPluginNameForFile(filePath);
+  const pluginIds = getGraphViewFileInfoPluginIds(filePath, options.graphData);
+  const analyzer = pluginIds.length > 0
+    ? await options.ensureAnalyzerReady()
+    : undefined;
+  const pluginNames = analyzer?.getPluginNamesForIds(pluginIds) ?? [];
+  const plugin = pluginNames.length > 0 ? pluginNames.join(', ') : undefined;
 
   return buildGraphViewFileInfoPayload(
     filePath,
@@ -33,4 +38,25 @@ export async function loadGraphViewFileInfo(
     options.graphData,
     plugin,
   );
+}
+
+export function getGraphViewFileInfoPluginIds(
+  filePath: string,
+  graphData: IGraphData,
+): string[] {
+  const pluginIds = new Set<string>();
+
+  for (const edge of graphData.edges) {
+    if (edge.from !== filePath && edge.to !== filePath) {
+      continue;
+    }
+
+    for (const source of edge.sources ?? []) {
+      if (source.pluginId) {
+        pluginIds.add(source.pluginId);
+      }
+    }
+  }
+
+  return [...pluginIds];
 }

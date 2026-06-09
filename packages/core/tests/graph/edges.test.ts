@@ -43,9 +43,9 @@ describe('core/graph/edges', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
       ]),
@@ -82,7 +82,7 @@ describe('core/graph/edges', () => {
       disabledPlugins: new Set<string>(['plugin.typescript']),
       fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'import' },
         ]],
         ['src/utils.ts', []],
       ]),
@@ -109,14 +109,7 @@ describe('core/graph/edges', () => {
         from: 'src/index.ts',
         to: 'src/utils.ts',
         kind: 'import',
-        sources: [
-          {
-            id: 'plugin.typescript:import',
-            pluginId: 'plugin.typescript',
-            sourceId: 'import',
-            label: 'Import',
-          },
-        ],
+        sources: [],
       },
     ]);
   });
@@ -215,9 +208,9 @@ describe('core/graph/edges', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
       ]),
@@ -251,8 +244,8 @@ describe('core/graph/edges', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', type: 'static', sourceId: 'import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', type: 'dynamic', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', type: 'static', pluginId: 'plugin.typescript', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', type: 'dynamic', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
       ]),

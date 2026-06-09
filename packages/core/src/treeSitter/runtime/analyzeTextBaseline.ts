@@ -46,7 +46,7 @@ export function addLocalImport(
       path.resolve(workspaceRoot, ...normalizedSpecifier.split('/')) + extension
     ),
   ]);
-  addImportRelation(relations, filePath, specifier, resolvedPath, undefined, 'codegraphy.treesitter:include');
+  addImportRelation(relations, filePath, specifier, resolvedPath, undefined, 'core:treesitter:include');
   return resolvedPath;
 }
 

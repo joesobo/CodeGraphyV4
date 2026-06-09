@@ -17,6 +17,7 @@ function createSource() {
     _analyzer: {
       initialize: vi.fn(async () => undefined),
       getPluginNameForFile: vi.fn(() => undefined),
+      getPluginNamesForIds: vi.fn(() => []),
     },
     _analyzerInitialized: false,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
