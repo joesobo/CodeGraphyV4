@@ -63,8 +63,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: path.join(workspaceRoot, 'pkg/thing.py'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
-            sourceId: 'codegraphy.treesitter:import',
-            pluginId: 'codegraphy.treesitter',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',
@@ -72,8 +71,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:import',
-            pluginId: 'codegraphy.treesitter',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'call',
@@ -82,8 +80,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
             fromSymbolId: expect.stringContaining(`${appPath}:method:run`),
-            sourceId: 'codegraphy.treesitter:call',
-            pluginId: 'codegraphy.treesitter',
+            sourceId: 'core:treesitter:call',
           }),
         ]),
       );
@@ -157,7 +154,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: path.join(workspaceRoot, 'src/util.rs'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/util.rs'),
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',
@@ -165,7 +162,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',
@@ -173,7 +170,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: path.join(workspaceRoot, 'src/inner.rs'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/inner.rs'),
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'call',
@@ -182,7 +179,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/util.rs'),
             fromSymbolId: expect.stringContaining(`${appPath}:function:main`),
-            sourceId: 'codegraphy.treesitter:call',
+            sourceId: 'core:treesitter:call',
           }),
         ]),
       );
@@ -219,7 +216,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'call',
@@ -228,7 +225,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             fromFilePath: appPath,
             toFilePath: null,
             fromSymbolId: expect.stringContaining(`${appPath}:function:run`),
-            sourceId: 'codegraphy.treesitter:call',
+            sourceId: 'core:treesitter:call',
           }),
         ]),
       );
@@ -265,7 +262,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'call',
@@ -274,7 +271,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             fromFilePath: appPath,
             toFilePath: null,
             fromSymbolId: expect.stringContaining(`${appPath}:method:run`),
-            sourceId: 'codegraphy.treesitter:call',
+            sourceId: 'core:treesitter:call',
           }),
           expect.objectContaining({
             kind: 'inherit',
@@ -283,7 +280,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             fromFilePath: appPath,
             toFilePath: null,
             fromSymbolId: expect.stringContaining(`${appPath}:class:App`),
-            sourceId: 'codegraphy.treesitter:inherit',
+            sourceId: 'core:treesitter:inherit',
           }),
         ]),
       );
@@ -325,7 +322,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'inherit',
@@ -333,7 +330,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:inherit',
+            sourceId: 'core:treesitter:inherit',
           }),
         ]),
       );
@@ -408,31 +405,31 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             kind: 'import',
             specifier: 'MyApp.Services',
             resolvedPath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',
             specifier: 'MyApp.Utils',
             resolvedPath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'reference',
             specifier: 'Config',
             resolvedPath: path.join(workspaceRoot, 'src/Config.cs'),
-            sourceId: 'codegraphy.treesitter:reference',
+            sourceId: 'core:treesitter:reference',
           }),
           expect.objectContaining({
             kind: 'reference',
             specifier: 'ApiService',
             resolvedPath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
-            sourceId: 'codegraphy.treesitter:reference',
+            sourceId: 'core:treesitter:reference',
           }),
           expect.objectContaining({
             kind: 'reference',
             specifier: 'Helpers',
             resolvedPath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
-            sourceId: 'codegraphy.treesitter:reference',
+            sourceId: 'core:treesitter:reference',
           }),
         ]),
       );

@@ -34,6 +34,24 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
     );
   }
 
+  getPluginNamesForIds(pluginIds: readonly string[]): string[] {
+    if (pluginIds.length === 0) {
+      return [];
+    }
+
+    const requestedPluginIds = new Set(pluginIds);
+    const namesByPluginId = new Map(
+      this._registry
+        .list()
+        .filter(({ plugin }) => requestedPluginIds.has(plugin.id))
+        .map(({ plugin }) => [plugin.id, plugin.name]),
+    );
+
+    return pluginIds
+      .map(pluginId => namesByPluginId.get(pluginId))
+      .filter((pluginName): pluginName is string => Boolean(pluginName));
+  }
+
   override clearCache(): void {
     this._cache = clearWorkspacePipelineStoredCache(
       this._getWorkspaceRoot(),

@@ -16,6 +16,7 @@ describe('graph view file-info request helper', () => {
       analyzer: {
         initialize: vi.fn(() => Promise.resolve()),
         getPluginNameForFile: vi.fn(() => undefined),
+        getPluginNamesForIds: vi.fn(() => []),
       },
       analyzerInitialized: false,
       graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -80,6 +81,7 @@ describe('graph view file-info request helper', () => {
     const analyzer = {
       initialize: vi.fn(() => Promise.resolve()),
       getPluginNameForFile: vi.fn(() => undefined),
+      getPluginNamesForIds: vi.fn(() => []),
     };
     const state = {
       analyzer,

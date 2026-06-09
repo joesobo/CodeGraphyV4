@@ -28,8 +28,7 @@ describe('GraphViewProvider query methods', () => {
       relations: [
         {
           kind: 'type-import' as const,
-          pluginId: 'codegraphy.treesitter',
-          sourceId: 'codegraphy.treesitter:type-import',
+          sourceId: 'core:treesitter:type-import',
           fromFilePath: 'src/a.ts',
           toFilePath: 'src/b.ts',
           toSymbolId: 'src/b.ts#UserConfig',

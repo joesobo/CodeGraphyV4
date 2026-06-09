@@ -16,7 +16,7 @@ const symbols: IAnalysisSymbol[] = [
     range: { startLine: 2, endLine: 4 },
     metadata: {
       language: 'typescript',
-      source: 'codegraphy.treesitter',
+      source: 'core:treesitter',
       pluginKind: 'type-alias',
     },
   },
@@ -60,7 +60,7 @@ describe('core/graphQuery/relationships/symbols', () => {
       signature: 'type User = { id: string }',
       range: { startLine: 2, endLine: 4 },
       language: 'typescript',
-      source: 'codegraphy.treesitter',
+      source: 'core:treesitter',
       pluginKind: 'type-alias',
     });
     expect(createRelationshipSymbol('type-import', relation(), symbolById)).toEqual({
@@ -70,7 +70,7 @@ describe('core/graphQuery/relationships/symbols', () => {
       signature: 'type User = { id: string }',
       range: { startLine: 2, endLine: 4 },
       language: 'typescript',
-      source: 'codegraphy.treesitter',
+      source: 'core:treesitter',
       pluginKind: 'type-alias',
     });
   });
@@ -111,12 +111,11 @@ describe('core/graphQuery/relationships/symbols', () => {
     });
   });
 
-  it('keeps plugin provenance while hiding core tree-sitter provenance', () => {
+  it('keeps plugin provenance while hiding core relations without plugin provenance', () => {
     expect(createProvenance(relation())).toEqual({
       pluginId: 'plugin.routes',
       sourceId: 'route-import',
     });
-    expect(createProvenance(relation({ pluginId: 'codegraphy.treesitter' }))).toBeUndefined();
     expect(createProvenance(relation({ pluginId: undefined }))).toBeUndefined();
   });
 });
