@@ -168,6 +168,10 @@ function isSymbolScopedNodeType(nodeType: string): boolean {
 export function requiresSymbolAnalysisCacheTier(
   nodeVisibility: Readonly<Record<string, boolean>>,
 ): boolean {
+  if (nodeVisibility.variable === true) {
+    return true;
+  }
+
   if (nodeVisibility.symbol === false) {
     return false;
   }
