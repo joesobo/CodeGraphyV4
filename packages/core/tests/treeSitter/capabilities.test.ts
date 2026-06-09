@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { listTreeSitterEdgeTypeCapabilities } from '../../src/treeSitter/runtime/capabilities';
+import {
+  listTreeSitterEdgeTypeCapabilities,
+  listTreeSitterNodeTypeCapabilities,
+} from '../../src/treeSitter/runtime/capabilities';
 
 describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   it('advertises calls for languages whose example workspaces expose the Calls edge toggle', () => {
@@ -27,6 +30,15 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'type-import',
       'call',
       'inherit',
+    ]);
+  });
+
+  it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
+    expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
+      'symbol:function',
+      'symbol:class',
+      'symbol:struct',
+      'symbol:interface',
     ]);
   });
 });

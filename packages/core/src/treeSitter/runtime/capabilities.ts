@@ -51,7 +51,7 @@ const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   kotlin: ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:type', 'symbol:enum', 'symbol:constant'],
   lua: ['symbol:function', 'symbol:constant'],
   objectiveC: ['symbol:function', 'symbol:class', 'symbol:constant'],
-  pascal: ['symbol:function', 'symbol:type', 'symbol:constant'],
+  pascal: ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:interface'],
   php: ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:type', 'symbol:constant'],
   python: ['symbol:function', 'symbol:class', 'symbol:constant'],
   ruby: ['symbol:function', 'symbol:class', 'symbol:constant'],
