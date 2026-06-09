@@ -128,10 +128,50 @@ describe('graphView/webview/plugins/registration', () => {
     );
     expect(refreshWebviewResourceRoots).toHaveBeenCalledOnce();
     expect(sendDepthState).toHaveBeenCalledOnce();
-    expect(sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(sendPluginStatuses).toHaveBeenCalledTimes(2);
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(reprocessPluginFiles).not.toHaveBeenCalled();
+  });
+
+  it('refreshes plugin statuses again after external plugin initialization completes', async () => {
+    const sendPluginStatuses = vi.fn();
+    const initializePlugin = vi.fn(async () => undefined);
+    const state = createState({
+      analyzer: {
+        clearCache: vi.fn(),
+        registry: {
+          register: vi.fn(),
+          initializePlugin,
+          replayReadinessForPlugin: vi.fn(),
+        },
+      },
+    });
+
+    registerGraphViewExternalPlugin(
+      {
+        id: 'plugin.test',
+        name: 'Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
+      },
+      undefined,
+      state,
+      createHandlers({ sendPluginStatuses }),
+    );
+
+    await flushPluginRegistration();
+
+    expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
+    expect(sendPluginStatuses).toHaveBeenCalledTimes(2);
+    expect(sendPluginStatuses.mock.invocationCallOrder[0]).toBeLessThan(
+      initializePlugin.mock.invocationCallOrder[0],
+    );
+    expect(sendPluginStatuses.mock.invocationCallOrder[1]).toBeGreaterThan(
+      initializePlugin.mock.invocationCallOrder[0],
+    );
   });
 
   it('defers readiness replay after first analysis even before the webview is marked ready', async () => {
