@@ -112,6 +112,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         label: 'Variable',
         defaultColor: '#14B8A6',
         defaultVisible: false,
+        parentId: 'symbol',
       },
       {
         id: 'symbol:constant',
@@ -152,6 +153,8 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
       .toBe('void logger_flush(Logger *logger);');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:global')?.description?.examples?.[0]?.code)
       .toBe('static int logger_output_enabled = 1;');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol')?.description?.examples).toBeUndefined();
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'variable')?.description?.examples).toBeUndefined();
     expect(CORE_GRAPH_NODE_TYPES).toEqual(createCoreGraphNodeTypes());
   });
 });

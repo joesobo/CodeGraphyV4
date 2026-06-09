@@ -7,9 +7,9 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       label: 'Variable',
       defaultColor: '#14B8A6',
       defaultVisible: false,
+      parentId: 'symbol',
       description: {
-        description: 'Named values or fields that code can read or write.',
-        examples: [{ code: 'const graphScope = buildScope();' }],
+        description: 'Quick toggle for named values or fields that code can read or write.',
       },
     },
     {

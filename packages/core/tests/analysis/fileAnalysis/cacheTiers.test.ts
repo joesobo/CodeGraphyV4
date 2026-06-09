@@ -17,9 +17,32 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
     });
   });
 
-  it('requires symbol enrichment when the Variable root scope is enabled while Symbols is disabled', () => {
+  it('keeps symbol enrichment inactive when only parent scopes are enabled', () => {
+    expect(createWorkspaceIndexAnalysisCacheTiers({
+      symbol: true,
+      variable: true,
+    })).toEqual({
+      active: [BASELINE_ANALYSIS_CACHE_TIER],
+      completed: [BASELINE_ANALYSIS_CACHE_TIER],
+      required: [BASELINE_ANALYSIS_CACHE_TIER],
+    });
+  });
+
+  it('keeps symbol enrichment inactive when a leaf child is enabled under a disabled parent scope', () => {
     expect(createWorkspaceIndexAnalysisCacheTiers({
       symbol: false,
+      variable: true,
+      'symbol:global': true,
+    })).toEqual({
+      active: [BASELINE_ANALYSIS_CACHE_TIER],
+      completed: [BASELINE_ANALYSIS_CACHE_TIER],
+      required: [BASELINE_ANALYSIS_CACHE_TIER],
+    });
+  });
+
+  it('requires symbol enrichment when an enabled leaf child has enabled parent scopes', () => {
+    expect(createWorkspaceIndexAnalysisCacheTiers({
+      symbol: true,
       variable: true,
       'symbol:global': true,
     })).toEqual({

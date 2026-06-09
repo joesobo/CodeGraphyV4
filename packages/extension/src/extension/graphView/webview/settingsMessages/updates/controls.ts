@@ -1,6 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import { pruneGraphControlConfigMap, type GraphControlConfigKey } from '../../../../../shared/graphControls/settings';
 import { CORE_GRAPH_NODE_TYPES } from '../../../../../shared/graphControls/defaults/nodeTypes';
+import { requiresSymbolAnalysisCacheTier } from '../../../../pipeline/service/cache/tiers';
 import type { GraphViewSettingsMessageHandlers } from '../router';
 
 function getUpdatedConfigMap(
@@ -61,11 +62,12 @@ async function applySymbolVisibilityUpdate(
   visible: boolean,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
+  const previousVisibility = pruneGraphControlConfigMap(
+    'nodeVisibility',
+    handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+  );
   const nodeVisibility: Record<string, boolean> = {
-    ...pruneGraphControlConfigMap(
-      'nodeVisibility',
-      handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
-    ),
+    ...previousVisibility,
     symbol: visible,
   };
 
@@ -74,12 +76,12 @@ async function applySymbolVisibilityUpdate(
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
   handlers.sendGraphControls();
-  if (visible) {
+  if (
+    !requiresSymbolAnalysisCacheTier(previousVisibility)
+    && requiresSymbolAnalysisCacheTier(nodeVisibility)
+  ) {
     await handlers.reprocessGraphScope();
-    return true;
   }
-
-  handlers.smartRebuild('symbol');
   return true;
 }
 
@@ -92,11 +94,12 @@ async function applySymbolDependentVisibilityUpdate(
     return applyGraphControlsUpdate('nodeVisibility', nodeType, false, handlers);
   }
 
+  const previousVisibility = pruneGraphControlConfigMap(
+    'nodeVisibility',
+    handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+  );
   const nodeVisibility: Record<string, boolean> = {
-    ...pruneGraphControlConfigMap(
-      'nodeVisibility',
-      handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
-    ),
+    ...previousVisibility,
     ...getParentNodeTypeUpdates(nodeType),
     [nodeType]: true,
   };
@@ -106,7 +109,12 @@ async function applySymbolDependentVisibilityUpdate(
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
   handlers.sendGraphControls();
-  await handlers.reprocessGraphScope();
+  if (
+    !requiresSymbolAnalysisCacheTier(previousVisibility)
+    && requiresSymbolAnalysisCacheTier(nodeVisibility)
+  ) {
+    await handlers.reprocessGraphScope();
+  }
   return true;
 }
 

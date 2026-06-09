@@ -1,7 +1,32 @@
 import type { IGraphData } from '../../graph/contracts';
+import { CORE_GRAPH_NODE_TYPES } from '../../graphControls/defaults/definitions';
 import { getNodeType } from '../model';
 import type { ScopedSymbolDefinition } from './definitions';
 import { symbolMatchesScopedDefinition } from './symbolMatch';
+
+const CORE_NODE_TYPE_BY_ID = new Map(CORE_GRAPH_NODE_TYPES.map((definition) => [definition.id, definition]));
+
+function hasDisabledAncestor(
+	parentId: string | undefined,
+	disabledNodeTypes: ReadonlySet<string>,
+): boolean {
+	let currentParentId = parentId;
+	while (currentParentId) {
+		if (disabledNodeTypes.has(currentParentId)) {
+			return true;
+		}
+		currentParentId = CORE_NODE_TYPE_BY_ID.get(currentParentId)?.parentId;
+	}
+
+	return false;
+}
+
+function nodeTypeHasDisabledAncestor(
+	nodeType: string,
+	disabledNodeTypes: ReadonlySet<string>,
+): boolean {
+	return hasDisabledAncestor(CORE_NODE_TYPE_BY_ID.get(nodeType)?.parentId, disabledNodeTypes);
+}
 
 function getScopedSymbolVisibility(
 	node: IGraphData['nodes'][number],
@@ -22,12 +47,13 @@ export function nodeMatchesScope(
 	const scopedSymbolDefinition = getScopedSymbolVisibility(node, scopedSymbolDefinitions);
 	if (
 		scopedSymbolDefinition?.definition.parentId
-		&& disabledNodeTypes.has(scopedSymbolDefinition.definition.parentId)
+		&& hasDisabledAncestor(scopedSymbolDefinition.definition.parentId, disabledNodeTypes)
 	) {
 		return false;
 	}
 
-	if (disabledNodeTypes.has(getNodeType(node))) {
+	const nodeType = getNodeType(node);
+	if (disabledNodeTypes.has(nodeType) || nodeTypeHasDisabledAncestor(nodeType, disabledNodeTypes)) {
 		return false;
 	}
 

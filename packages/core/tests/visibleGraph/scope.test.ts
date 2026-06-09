@@ -293,11 +293,23 @@ describe('visibleGraph/scope', () => {
     });
   });
 
-  it('does not disable variable nodes when the symbol root is disabled', () => {
+  it('tracks only directly disabled node types before ancestor matching is applied', () => {
     expect(getDisabledNodeTypes(scopeConfig([
       { type: 'symbol', enabled: false },
       { type: 'variable', enabled: true },
     ]))).toEqual(new Set(['symbol']));
+  });
+
+  it('rejects variable nodes when the symbol parent scope is disabled', () => {
+    expect(nodeMatchesScope(
+      scopeNode({
+        nodeType: 'variable',
+        symbol: symbol({ kind: 'global' }),
+      }),
+      new Set(['symbol']),
+      new Set(),
+      [],
+    )).toBe(false);
   });
 
   it('keeps regular disabled node types when the symbol root is enabled', () => {

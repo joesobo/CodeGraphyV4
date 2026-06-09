@@ -17,7 +17,7 @@ interface ScopeRowProps {
   enabled: boolean;
   label: string;
   onCheckedChange: (visible: boolean) => void;
-  nested?: boolean;
+  depth?: number;
   description?: IGraphTypeDescription;
 }
 
@@ -84,10 +84,10 @@ function ScopeRowTooltipContent({
 
 function ScopeRow({
   color,
+  depth = 0,
   description,
   enabled,
   label,
-  nested = false,
   onCheckedChange,
 }: ScopeRowProps): React.ReactElement {
   const row = (
@@ -95,9 +95,11 @@ function ScopeRow({
       className={cn(
         resolveScopeRowClassName(enabled),
         description && 'cursor-pointer',
-        nested && 'pl-7',
+        depth === 1 && 'pl-7',
+        depth >= 2 && 'pl-11',
       )}
       data-scope-row={label}
+      data-scope-depth={depth}
     >
       {color ? (
         <span
@@ -141,10 +143,31 @@ export function NodeTypeRows({
   nodeTypes,
   nodeVisibility,
 }: NodeTypeRowsProps): React.ReactElement {
+  const nodeTypeById = new Map(nodeTypes.map((nodeType) => [nodeType.id, nodeType]));
+  const parentIds = new Set(
+    nodeTypes
+      .map((nodeType) => nodeType.parentId)
+      .filter((parentId): parentId is string => Boolean(parentId)),
+  );
+  const getDepth = (nodeType: IGraphNodeTypeDefinition): number => {
+    let depth = 0;
+    let current = nodeType;
+    while (current.parentId) {
+      depth += 1;
+      const parent = nodeTypeById.get(current.parentId);
+      if (!parent) {
+        break;
+      }
+      current = parent;
+    }
+    return depth;
+  };
+
   return (
     <>
       {nodeTypes.map((nodeType) => {
-        const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
+        const isParentRow = parentIds.has(nodeType.id);
+        const color = isParentRow ? undefined : nodeColors[nodeType.id] ?? nodeType.defaultColor;
         const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
         return (
@@ -152,9 +175,9 @@ export function NodeTypeRows({
             key={nodeType.id}
             color={color}
             description={nodeType.description}
+            depth={getDepth(nodeType)}
             enabled={enabled}
             label={nodeType.label}
-            nested={Boolean(nodeType.parentId)}
             onCheckedChange={(visible) => {
               postMessage({
                 type: 'UPDATE_NODE_VISIBILITY',

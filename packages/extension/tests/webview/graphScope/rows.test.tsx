@@ -82,7 +82,13 @@ describe('graph scope rows', () => {
         defaultVisible: true,
         parentId: 'symbol',
       },
-      { id: 'variable', label: 'Variable', defaultColor: '#222222', defaultVisible: false },
+      {
+        id: 'variable',
+        label: 'Variable',
+        defaultColor: '#222222',
+        defaultVisible: false,
+        parentId: 'symbol',
+      },
       {
         id: 'symbol:constant',
         label: 'Constant',
@@ -103,8 +109,16 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'Function')).toBeInTheDocument();
     expect(scopeRow(container, 'Variable')).toBeInTheDocument();
     expect(scopeRow(container, 'Constant')).toBeInTheDocument();
+    expect(scopeRow(container, 'Symbol')).toHaveAttribute('data-scope-depth', '0');
+    expect(scopeRow(container, 'Function')).toHaveAttribute('data-scope-depth', '1');
+    expect(scopeRow(container, 'Variable')).toHaveAttribute('data-scope-depth', '1');
+    expect(scopeRow(container, 'Constant')).toHaveAttribute('data-scope-depth', '2');
     expect(scopeRow(container, 'Function')).not.toHaveClass('opacity-65');
     expect(scopeRow(container, 'Constant')).not.toHaveClass('opacity-65');
+    expect(container.querySelector('[data-scope-swatch="Symbol"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-scope-swatch="Variable"]')).not.toBeInTheDocument();
+    expect(scopeSwatch(container, 'Function')).toHaveStyle('background-color: #333333');
+    expect(scopeSwatch(container, 'Constant')).toHaveStyle('background-color: #444444');
   });
 
   it('renders edge rows from resolved colors and posts edge visibility changes', () => {
