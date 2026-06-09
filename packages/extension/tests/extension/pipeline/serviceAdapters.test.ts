@@ -185,7 +185,7 @@ describe('pipeline/serviceAdapters', () => {
       true,
       new Set(),
       [],
-      { nodeVisibility: { symbol: true } },
+      { nodeVisibility: { symbol: true, 'symbol:function': true } },
     );
 
     expect(graphData.nodes).toEqual(expect.arrayContaining([
@@ -324,7 +324,7 @@ describe('pipeline/serviceAdapters', () => {
       true,
       new Set(),
       [],
-      { nodeVisibility: { symbol: true } },
+      { nodeVisibility: { symbol: true, 'symbol:function': true } },
     );
 
     expect(graphData.nodes).not.toEqual(expect.arrayContaining([
