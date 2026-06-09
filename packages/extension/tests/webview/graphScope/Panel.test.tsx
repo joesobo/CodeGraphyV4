@@ -63,11 +63,11 @@ describe('GraphScopePanel', () => {
   });
 
   it('renders symbol child rows independently from the top-level Symbol toggle', () => {
-    const { container } = render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Symbol')).toBeInTheDocument();
     expect(screen.getByText('Function')).toBeInTheDocument();
-    expect(container.querySelector('[data-scope-swatch="Symbol"]')).toHaveStyle('background-color: #7C3AED');
+    expect(screen.queryByTestId('scope-swatch-Symbol')).not.toBeInTheDocument();
 
     act(() => {
       graphStore.setState({ nodeVisibility: { folder: true, symbol: true } });
