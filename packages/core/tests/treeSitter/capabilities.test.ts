@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { listTreeSitterEdgeTypeCapabilities } from '../../src/treeSitter/runtime/capabilities';
+import {
+  listTreeSitterEdgeTypeCapabilities,
+  listTreeSitterNodeTypeCapabilities,
+} from '../../src/treeSitter/runtime/capabilities';
 
 describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   it('advertises calls for languages whose example workspaces expose the Calls edge toggle', () => {
@@ -28,5 +31,43 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'inherit',
     ]);
+  });
+
+  it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
+    expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
+      'symbol:function',
+      'symbol:class',
+      'symbol:struct',
+      'symbol:interface',
+    ]);
+  });
+
+  it('advertises only supported Graph Scope rows for emitted language symbol kinds', () => {
+    const expectedCapabilitiesByFile = {
+      'src/main.c': ['symbol:function', 'symbol:struct', 'symbol:enum', 'symbol:type'],
+      'src/main.cpp': ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:enum', 'symbol:type'],
+      'src/Program.cs': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
+      'lib/app/runner.dart': ['symbol:function', 'symbol:class', 'symbol:enum'],
+      'cmd/app/main.go': ['symbol:function', 'symbol:struct', 'symbol:interface', 'symbol:type'],
+      'src/App/Feature/Runner.hs': ['symbol:function', 'symbol:type', 'symbol:class'],
+      'src/main/java/com/example/App.java': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:enum'],
+      'src/app.js': ['symbol:function', 'symbol:class', 'symbol:constant'],
+      'src/main/kotlin/com/example/app/Main.kt': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:enum'],
+      'app/runner.lua': ['symbol:function'],
+      'Sources/AppDelegate.m': ['symbol:function', 'symbol:class'],
+      'src/SampleApp.pas': ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:interface'],
+      'src/App/Feature/Runner.php': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:enum'],
+      'src/app.py': ['symbol:function', 'symbol:class'],
+      'lib/app/runner.rb': ['symbol:function', 'symbol:class'],
+      'src/main.rs': ['symbol:function', 'symbol:struct', 'symbol:enum'],
+      'src/main/scala/com/example/app/Main.scala': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:type', 'symbol:enum'],
+      'Sources/SwiftExample/main.swift': ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:enum'],
+      'src/app.ts': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:type', 'symbol:enum', 'symbol:constant'],
+      'src/App.tsx': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:type', 'symbol:enum', 'symbol:constant'],
+    } as const;
+
+    for (const [filePath, expectedCapabilities] of Object.entries(expectedCapabilitiesByFile)) {
+      expect(listTreeSitterNodeTypeCapabilities([filePath]), filePath).toEqual(expectedCapabilities);
+    }
   });
 });

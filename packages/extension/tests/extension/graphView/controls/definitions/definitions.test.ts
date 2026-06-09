@@ -22,7 +22,7 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     vi.mocked(prettifyIdentifier).mockImplementation((value: string) => `Pretty ${value}`);
   });
 
-  it('merges core, plugin, and inferred node types while normalizing the folder color', () => {
+  it('merges structural and capability-declared node types while normalizing the folder color', () => {
     const graphData = {
       nodes: [
         { id: 'src/app.ts', nodeType: 'service', color: '#123456' },
@@ -44,6 +44,7 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
         },
       ] as never,
       { folder: '#ABCDEF' },
+      ['pluginNode', 'symbol:function'],
     );
 
     expect(normalizeHexColor).toHaveBeenCalled();
@@ -51,12 +52,35 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
       expect.arrayContaining([
         expect.objectContaining({ id: 'folder', defaultColor: '#ABCDEF' }),
         expect.objectContaining({ id: 'pluginNode', label: 'Plugin Node', defaultVisible: false }),
-        expect.objectContaining({ id: 'service', label: 'Pretty service', defaultColor: '#123456', defaultVisible: true }),
-        expect.objectContaining({ id: 'background', label: 'Pretty background', defaultVisible: true }),
+        expect.objectContaining({ id: 'symbol', label: 'Symbol', defaultVisible: false }),
+        expect.objectContaining({ id: 'symbol:function', label: 'Function', defaultVisible: false }),
       ]),
     );
-    expect(prettifyIdentifier).toHaveBeenCalledWith('service');
-    expect(prettifyIdentifier).toHaveBeenCalledWith('background');
+    expect(definitions.some((definition) => definition.id === 'service')).toBe(false);
+    expect(definitions.some((definition) => definition.id === 'background')).toBe(false);
+    expect(prettifyIdentifier).not.toHaveBeenCalled();
+  });
+
+  it('shows parent rows for plugin-owned child node types', () => {
+    const definitions = mergeNodeTypes(
+      { nodes: [], edges: [] } as never,
+      [
+        {
+          id: 'plugin:test:symbol:concept',
+          label: 'Concept',
+          defaultColor: '#999999',
+          defaultVisible: false,
+          parentId: 'symbol',
+        },
+      ],
+      {},
+      ['plugin:test:symbol:concept'],
+    );
+
+    expect(definitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'symbol' }),
+      expect.objectContaining({ id: 'plugin:test:symbol:concept', parentId: 'symbol' }),
+    ]));
   });
 
   it('merges plugin and inferred edge types while preserving core entries', () => {

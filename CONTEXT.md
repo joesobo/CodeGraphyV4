@@ -30,6 +30,38 @@ _Avoid_: Legend entry, node style
 The shared description of a **Node Type**, including its label, default visibility, visual defaults, and optional user-facing explanation or examples. **Graph Scope**, **Legend**, and plugin contributions consume Node Type Definitions instead of redefining what a Node Type means locally.
 _Avoid_: Graph Scope tooltip source, local node metadata, UI-only node description
 
+**Node Type Capability**:
+A Node Type that is relevant to a CodeGraphy Workspace because at least one detected language, Core Tree-sitter Language Coverage path, or enabled Plugin can produce that Node Type for any file in the workspace. Node Type Capability is workspace-wide, so a mixed-language workspace can have capabilities from several languages at once. It is about what the workspace can produce, not whether the current Relationship Graph already contains a Node of that type.
+_Avoid_: Observed node type, visible node type, active-file node type, supported node when meaning current-workspace relevance
+
+**Structural Node Type**:
+A core Node Type that is always relevant to a CodeGraphy Workspace regardless of detected language or enabled Plugins. File, Folder, and Package are Structural Node Types.
+_Avoid_: Capability-driven node type, symbol parent when meaning always-available graph structure
+
+**Node Type Parent Toggle**:
+A Graph Scope row that groups child Node Type Capabilities and appears only when at least one child row is relevant to the CodeGraphy Workspace. Symbol and Variable are Node Type Parent Toggles, not always-visible Structural Node Types.
+_Avoid_: Structural node type, standalone node type when the row exists only to group children
+
+**Hidden Irrelevant Node Type Capability**:
+A Node Type Capability row that Graph Scope does not display because no Applicable Node Type Capability Provider can currently produce it for the CodeGraphy Workspace. Hiding an irrelevant row does not erase saved Graph Scope or Legend intent; if the capability becomes relevant again, saved visibility and color choices should apply again.
+_Avoid_: Disabled node type, deleted setting, observed-missing node
+
+**Pre-index Node Type Scope**:
+The Graph Scope Node Type state before CodeGraphy has indexed file paths that Applicable Node Type Capability Providers can evaluate. In this state, Graph Scope should show always-relevant Structural Node Types and hide capability-driven Symbol or Variable rows until workspace capabilities are known.
+_Avoid_: All-language default node scope, theoretical symbol scope
+
+**Node Type Capability Provider**:
+The source that explicitly declares a Node Type Capability for a CodeGraphy Workspace, such as detected core language coverage or an enabled Plugin. A provider can make core Node Types or plugin-owned Node Types relevant to the workspace. Node Type Capability Providers declare what they can produce; Graph Scope should not infer Node Type Capabilities only from currently observed graph output.
+_Avoid_: Node source when referring to Relationship provenance
+
+**Graph Scope Capability Declaration**:
+The canonical provider contract that declares relevant Node Type Capabilities and Edge Type Capabilities together for a CodeGraphy Workspace. Graph Scope Capability Declarations are the forward path for enabled Plugins and core language coverage; when this contract replaces an older capability hook, the older hook should be removed rather than kept as compatibility fallback. Changes to this contract should move the codebase to one clear current API and communicate any plugin-author migration through changesets. Capability declarations belong in the analyzer or Plugin layer that owns the language or project semantics, not in Graph Scope UI code, and they should not be inferred from currently observed graph output.
+_Avoid_: Legacy capability fallback, separate node capability hook, separate edge capability hook when describing the canonical provider contract
+
+**Applicable Node Type Capability Provider**:
+An enabled Node Type Capability Provider whose language, file, or project matcher applies to the current CodeGraphy Workspace. Graph Scope should use Applicable providers when deciding which Node Type Capabilities to show, and inactive Plugins should not contribute Node Type Capabilities. Plugin activity changes should update the available Node Type Capabilities even when inactive plugin-produced Graph Cache facts remain dormant.
+_Avoid_: Installed provider when enablement and workspace applicability have not both been checked
+
 **File Node**:
 A node representing a concrete file in the workspace or selected graph revision.
 _Avoid_: Folder node, package node

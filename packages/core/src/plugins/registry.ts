@@ -12,6 +12,7 @@ import type {
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
+  IPluginGraphScopeCapabilities,
   IPluginNodeType,
   GraphEdgeKind,
 } from '@codegraphy-dev/plugin-api';
@@ -137,11 +138,11 @@ export class CorePluginRegistry {
     );
   }
 
-  listEdgeTypeCapabilities(
+  listGraphScopeCapabilities(
     filePaths: readonly string[] = [],
     disabledPlugins: ReadonlySet<string> = new Set(),
-  ): GraphEdgeKind[] {
-    const applicablePluginIds = new Set<string>();
+  ): Required<IPluginGraphScopeCapabilities> {
+    const applicableFilePathsByPluginId = new Map<string, string[]>();
 
     for (const filePath of filePaths) {
       for (const plugin of getPluginsForFile(filePath, this.plugins, this.extensionMap)) {
@@ -149,19 +150,29 @@ export class CorePluginRegistry {
           continue;
         }
 
-        applicablePluginIds.add(plugin.id);
+        const pluginFilePaths = applicableFilePathsByPluginId.get(plugin.id) ?? [];
+        pluginFilePaths.push(filePath);
+        applicableFilePathsByPluginId.set(plugin.id, pluginFilePaths);
       }
     }
 
-    const capabilities = new Set<GraphEdgeKind>();
-    for (const pluginId of applicablePluginIds) {
+    const nodeTypes = new Set<string>();
+    const edgeTypes = new Set<GraphEdgeKind>();
+    for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
       const plugin = this.plugins.get(pluginId)?.plugin;
-      for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
-        capabilities.add(capability);
+      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
+      for (const nodeType of capabilities?.nodeTypes ?? []) {
+        nodeTypes.add(nodeType);
+      }
+      for (const edgeType of capabilities?.edgeTypes ?? []) {
+        edgeTypes.add(edgeType);
       }
     }
 
-    return [...capabilities];
+    return {
+      nodeTypes: [...nodeTypes],
+      edgeTypes: [...edgeTypes],
+    };
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
