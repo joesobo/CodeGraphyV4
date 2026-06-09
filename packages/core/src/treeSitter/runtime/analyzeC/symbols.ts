@@ -9,7 +9,7 @@ import {
   findDescendantByType,
   getDeclarationNameNode,
   getFunctionNameNode,
-  hasFunctionDeclarator,
+  hasCallableFunctionDeclarator,
 } from '../analyzeCFamily/names';
 
 const DECLARATOR_NODE_TYPES = new Set([
@@ -17,6 +17,7 @@ const DECLARATOR_NODE_TYPES = new Set([
   'attributed_declarator',
   'identifier',
   'init_declarator',
+  'function_declarator',
   'parenthesized_declarator',
   'pointer_declarator',
 ]);
@@ -68,7 +69,7 @@ function handleCDeclaration(
   filePath: string,
   symbols: IAnalysisSymbol[],
 ): TreeWalkAction<SymbolWalkState> | void {
-  if (hasFunctionDeclarator(node)) {
+  if (hasCallableFunctionDeclarator(node)) {
     addNamedSymbol(symbols, filePath, 'prototype', getFunctionNameNode(node), node);
     return { skipChildren: true };
   }
