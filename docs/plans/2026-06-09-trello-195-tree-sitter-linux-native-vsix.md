@@ -61,14 +61,46 @@ inside the `linux-x64` VSIX.
 
 ## Test-First Plan
 
-1. Add a failing release test for Tree-sitter native binary validation in VSIX
+1. [x] Add a failing release test for Tree-sitter native binary validation in VSIX
    artifacts.
-2. Reproduce the reported mismatch by inspecting the published `5.8.0`
-   `linux-x64` VSIX or by recreating the packaging path locally.
-3. Trace how `tree-sitter` enters `dist/node_modules` during extension build
+2. [x] Reproduce the reported mismatch by recreating the artifact-inspection
+   failure locally with a `linux-x64` VSIX fixture that contains a Mach-O
+   Tree-sitter binding.
+3. [x] Trace how `tree-sitter` enters `dist/node_modules` during extension build
    and VSIX packaging.
-4. Fix the release pipeline so target VSIX artifacts cannot contain host-native
+4. [x] Fix the release pipeline so target VSIX artifacts cannot contain host-native
    Tree-sitter bindings.
-5. Re-run the focused release/native validation tests, then package validation
+5. [x] Re-run the focused release/native validation tests, then package validation
    for supported targets.
 
+## Finding
+
+`tree-sitter@0.25.0` does not publish platform-specific optional native
+packages like `@ladybugdb/core` does. Its npm tarball contains source files and
+an install script that runs `node-gyp-build`; the installed package then has a
+host-built native file at:
+
+```text
+build/Release/tree_sitter_runtime_binding.node
+```
+
+The extension build copies that installed package into `dist/node_modules`.
+`vsce --target linux-x64` labels the VSIX for Linux, but it does not rebuild
+or replace the already-copied Tree-sitter binding. So a macOS arm64 release
+host can create a `linux-x64` VSIX whose Tree-sitter runtime is still a Mach-O
+arm64 binary.
+
+The previous native-artifact validation only inspected
+`@ladybugdb/core/lbugjs.node`, so it missed this second native runtime.
+
+## Fix
+
+- Validate both `@ladybugdb/core/lbugjs.node` and
+  `tree-sitter/build/Release/tree_sitter_runtime_binding.node` inside VSIX
+  artifacts.
+- Make VSIX packaging fail closed when a release host tries to package a VSIX
+  target that does not match its own native runtime platform.
+- Run CI VSIX artifact checks as a Linux/macOS/Windows target matrix so each
+  runner packages and validates the matching native artifact.
+- Split manual release workflow publishing so npm packages publish once, while
+  VSIX publishing runs per target on the matching OS runner.

@@ -171,8 +171,21 @@ jobs:
         run: pnpm run test:release
 
   vsix-artifact-tests:
-    runs-on: ubuntu-latest
+    name: VSIX artifacts / ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            os: ubuntu-latest
+          - target: darwin-arm64
+            os: macos-14
+          - target: win32-x64
+            os: windows-latest
+    env:
+      CODEGRAPHY_VSIX_TARGETS: ${{ matrix.target }}
 
     steps:
       - name: Checkout
