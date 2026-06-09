@@ -89,7 +89,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       extensionTestsPath,
       extensionTestsEnv: {
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
-        CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered',
+        CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
       },
       launchArgs: [
         workspacePath,
