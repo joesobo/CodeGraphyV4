@@ -53,20 +53,6 @@ describe('graphView/webview/html', () => {
     expect(html).toContain('data-codegraphy-view="timeline"');
   });
 
-  it('marks the search webview html with the search view kind', () => {
-    const html = createGraphViewHtml(
-      vscode.Uri.file('/test/extension'),
-      {
-        cspSource: 'vscode-webview://test',
-        asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
-      } as unknown as vscode.Webview,
-      'nonce-value',
-      'search',
-    );
-
-    expect(html).toContain('data-codegraphy-view="search"');
-  });
-
   it('marks the graph debug bridge as enabled when requested', () => {
     const html = createGraphViewHtml(
       vscode.Uri.file('/test/extension'),

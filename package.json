@@ -212,13 +212,6 @@
 			"codegraphy": [
 				{
 					"type": "webview",
-					"id": "codegraphy.searchControlsView",
-					"name": "Search",
-					"when": "codegraphy.searchControlsVisible",
-					"initialSize": 1
-				},
-				{
-					"type": "webview",
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg",

@@ -22,12 +22,6 @@ vi.mock('../../src/webview/app/view', () => ({
   },
 }));
 
-vi.mock('../../src/webview/app/search/view', () => ({
-  default: function SearchApp() {
-    return null;
-  },
-}));
-
 vi.mock('../../src/webview/app/timeline/view', () => ({
   default: function TimelineApp() {
     return null;
@@ -88,19 +82,6 @@ describe('main', () => {
       props: { children: { type: { name: string } } };
     };
     expect(rootElement.props.children.type.name).toBe('TimelineApp');
-  });
-
-  it('renders the search shell when the host marks the view as search', async () => {
-    const container = document.createElement('div');
-    document.body.dataset.codegraphyView = 'search';
-    vi.spyOn(document, 'getElementById').mockReturnValue(container);
-
-    await import('../../src/webview/main');
-
-    const rootElement = mocks.render.mock.calls[0]?.[0] as {
-      props: { children: { type: { name: string } } };
-    };
-    expect(rootElement.props.children.type.name).toBe('SearchApp');
   });
 
   it('renders the graph shell when the host provides an unknown view kind', async () => {

@@ -99,7 +99,6 @@ export type GraphViewProviderMethodSource =
   & GraphViewProviderWebviewSource;
 
 export interface GraphViewProviderMethodSourceOwner {
-  _searchView?: vscode.WebviewView;
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];

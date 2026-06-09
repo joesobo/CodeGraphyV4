@@ -116,7 +116,7 @@ describe('activate', () => {
       .filter(line => typeof line === 'string' && line.startsWith('[CodeGraphy] Extension activation'));
     expect(diagnosticLines).toEqual([
       '[CodeGraphy] Extension activation started: workspaceFolders=0',
-      '[CodeGraphy] Extension activation complete: registeredWebviewProviders=3',
+      '[CodeGraphy] Extension activation complete: registeredWebviewProviders=2',
     ]);
 
     log.mockRestore();
