@@ -9,6 +9,7 @@ import { postMessage } from '../../vscodeApi';
 import { cn } from '../ui/cn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
 import { Switch } from '../ui/switch';
+import { graphStore } from '../../store/state';
 
 const FOLDER_NODE_TYPE = 'folder';
 
@@ -32,6 +33,47 @@ interface EdgeTypeRowsProps {
   edgeTypes: IGraphEdgeTypeDefinition[];
   edgeVisibility: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
+}
+
+function getParentNodeTypeUpdates(
+  nodeTypes: IGraphNodeTypeDefinition[],
+  nodeTypeId: string,
+): Record<string, boolean> {
+  const nodeTypeById = new Map(nodeTypes.map((nodeType) => [nodeType.id, nodeType]));
+  const updates: Record<string, boolean> = {};
+  let current = nodeTypeById.get(nodeTypeId);
+
+  while (current?.parentId) {
+    updates[current.parentId] = true;
+    current = nodeTypeById.get(current.parentId);
+  }
+
+  return updates;
+}
+
+function updateNodeVisibilityOptimistically(
+  nodeTypes: IGraphNodeTypeDefinition[],
+  nodeTypeId: string,
+  visible: boolean,
+): void {
+  const parentUpdates = visible ? getParentNodeTypeUpdates(nodeTypes, nodeTypeId) : {};
+
+  graphStore.setState((state) => ({
+    nodeVisibility: {
+      ...state.nodeVisibility,
+      ...parentUpdates,
+      [nodeTypeId]: visible,
+    },
+  }));
+}
+
+function updateEdgeVisibilityOptimistically(edgeKind: string, visible: boolean): void {
+  graphStore.setState((state) => ({
+    edgeVisibility: {
+      ...state.edgeVisibility,
+      [edgeKind]: visible,
+    },
+  }));
 }
 
 export function resolveScopeRowClassName(enabled: boolean): string {
@@ -179,6 +221,7 @@ export function NodeTypeRows({
             enabled={enabled}
             label={nodeType.label}
             onCheckedChange={(visible) => {
+              updateNodeVisibilityOptimistically(nodeTypes, nodeType.id, visible);
               postMessage({
                 type: 'UPDATE_NODE_VISIBILITY',
                 payload: { nodeType: nodeType.id, visible },
@@ -221,6 +264,7 @@ export function EdgeTypeRows({
             enabled={enabled}
             label={edgeType.label}
             onCheckedChange={(visible) => {
+              updateEdgeVisibilityOptimistically(edgeType.id, visible);
               postMessage({
                 type: 'UPDATE_EDGE_VISIBILITY',
                 payload: { edgeKind: edgeType.id, visible },

@@ -61,5 +61,9 @@ export function nodeMatchesScope(
 		return scopedSymbolDefinition.enabled;
 	}
 
+	if (node.symbol) {
+		return false;
+	}
+
 	return true;
 }

@@ -76,16 +76,6 @@ export default function App(): React.ReactElement {
     legends,
   );
   const effectiveShowOrphans = graphHasIndex ? showOrphans : true;
-  const { countBaseData, filterVisibleData } = useShellVisibleGraphs({
-    activeFilterPatterns,
-    edgeVisibility,
-    graphData,
-    graphEdgeTypes,
-    graphNodeTypes,
-    nodeVisibility,
-    searchOptions,
-    showOrphans: effectiveShowOrphans,
-  });
   const {
     filteredData,
     coloredData,
@@ -105,6 +95,18 @@ export default function App(): React.ReactElement {
     effectiveShowOrphans,
     graphNodeTypes,
   );
+  const { countBaseData, filterVisibleData } = useShellVisibleGraphs({
+    activeFilterPatterns,
+    edgeVisibility,
+    filteredData,
+    graphData,
+    graphEdgeTypes,
+    graphNodeTypes,
+    nodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans: effectiveShowOrphans,
+  });
 
   const {
     closeRulePrompt,

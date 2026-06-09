@@ -17,7 +17,8 @@ function setStoreState() {
       { id: 'folder', label: 'Folder', defaultColor: '#222222', defaultVisible: false },
       { id: 'symbol', label: 'Symbol', defaultColor: '#7C3AED', defaultVisible: false },
       { id: 'symbol:function', label: 'Function', defaultColor: '#8B5CF6', defaultVisible: true, parentId: 'symbol' },
-      { id: 'variable', label: 'Variable', defaultColor: '#14B8A6', defaultVisible: false },
+      { id: 'variable', label: 'Variable', defaultColor: '#14B8A6', defaultVisible: false, parentId: 'symbol' },
+      { id: 'symbol:global', label: 'Global', defaultColor: '#0D9488', defaultVisible: false, parentId: 'variable' },
     ],
     graphEdgeTypes: [
       { id: 'import', label: 'Imports', defaultColor: '#333333', defaultVisible: true },
@@ -59,6 +60,30 @@ describe('GraphScopePanel', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_VISIBILITY',
       payload: { nodeType: 'file', visible: false },
+    });
+  });
+
+  it('updates node toggles optimistically before the extension responds', () => {
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle File'));
+
+    expect(graphStore.getState().nodeVisibility.file).toBe(false);
+  });
+
+  it('optimistically enables parent gates when a variable child is toggled on', () => {
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle Global'));
+
+    expect(graphStore.getState().nodeVisibility).toEqual(expect.objectContaining({
+      symbol: true,
+      variable: true,
+      'symbol:global': true,
+    }));
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_NODE_VISIBILITY',
+      payload: { nodeType: 'symbol:global', visible: true },
     });
   });
 
@@ -107,6 +132,7 @@ describe('GraphScopePanel', () => {
 
     fireEvent.click(screen.getByLabelText('Toggle References'));
 
+    expect(graphStore.getState().edgeVisibility.reference).toBe(true);
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'reference', visible: true },
