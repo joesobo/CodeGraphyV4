@@ -28,6 +28,17 @@ function nodeTypeHasDisabledAncestor(
   return hasDisabledAncestor(CORE_NODE_TYPE_BY_ID.get(nodeType), disabledNodeTypes);
 }
 
+function hasSymbolMatcher(definition: IGraphNodeTypeDefinition): boolean {
+  return Boolean(
+    definition.matchSymbolKinds
+    || definition.matchSymbolPluginKind
+    || definition.matchSymbolSource
+    || definition.matchSymbolLanguage
+    || definition.matchSymbolFilePath
+    || definition.id.startsWith('symbol:'),
+  );
+}
+
 export function nodeMatchesScope(
   node: IGraphData['nodes'][number],
   disabledNodeTypes: ReadonlySet<string>,
@@ -41,9 +52,10 @@ export function nodeMatchesScope(
 
   const symbolKind = node.symbol?.kind;
   const matchingSymbolDefinition = CORE_GRAPH_NODE_TYPES.find((definition) =>
-    definition.parentId && symbolMatchesScopedDefinition(node, definition)
+    definition.parentId && hasSymbolMatcher(definition) && symbolMatchesScopedDefinition(node, definition)
   );
   return (!symbolKind || !disabledSymbolKinds.has(symbolKind))
     && !hasDisabledAncestor(matchingSymbolDefinition, disabledNodeTypes)
+    && (!symbolKind || Boolean(matchingSymbolDefinition))
     && disabledScopedSymbolDefinitions.every((definition) => !symbolMatchesScopedDefinition(node, definition));
 }

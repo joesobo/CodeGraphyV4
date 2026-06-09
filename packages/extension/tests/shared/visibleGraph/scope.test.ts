@@ -191,6 +191,40 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('does not treat parent toggles as catch-all symbol node types', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/app.ts'),
+					symbolNode('src/app.ts#counter:variable', {
+						id: 'src/app.ts#counter:variable',
+						name: 'counter',
+						kind: 'variable',
+						filePath: 'src/app.ts',
+					}),
+				],
+				edges: [
+					edge('src/app.ts', 'src/app.ts#counter:variable', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'variable', enabled: true },
+				],
+				edges: [
+					{ type: 'contains', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/app.ts'],
+			edges: [],
+		});
+	});
+
 	it('removes duplicate file edges when an equivalent symbol relation edge is visible', () => {
 		const result = applyGraphScope(
 			{

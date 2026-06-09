@@ -312,6 +312,17 @@ describe('visibleGraph/scope', () => {
     )).toBe(false);
   });
 
+  it('does not treat parent toggles as catch-all symbol definitions', () => {
+    expect(nodeMatchesScope(
+      scopeNode({
+        symbol: symbol({ kind: 'variable' }),
+      }),
+      new Set(),
+      new Set(),
+      [],
+    )).toBe(false);
+  });
+
   it('keeps regular disabled node types when the symbol root is enabled', () => {
     expect(getDisabledNodeTypes(scopeConfig([
       { type: 'symbol', enabled: true },
