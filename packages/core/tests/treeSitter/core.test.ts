@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTreeSitterPlugin } from '../../src/treeSitter/plugin';
+import {
+  analyzeFileWithCoreTreeSitter,
+  listCoreTreeSitterEdgeTypeCapabilities,
+  listCoreTreeSitterGraphScopeCapabilities,
+  preAnalyzeCoreTreeSitterFiles,
+} from '../../src/treeSitter/core';
 import { analyzeFileWithTreeSitter } from '../../src/treeSitter/runtime/analyze';
 import { preAnalyzeCSharpTreeSitterFiles } from '../../src/treeSitter/runtime/csharpIndex';
-import { TREE_SITTER_SUPPORTED_EXTENSIONS } from '../../src/treeSitter/runtime/languages';
 
 vi.mock('../../src/treeSitter/runtime/analyze', () => ({
   analyzeFileWithTreeSitter: vi.fn(),
@@ -18,40 +22,44 @@ vi.mock('../../src/treeSitter/runtime/csharpIndex', async () => {
   };
 });
 
-describe('core tree-sitter built-in plugin', () => {
+describe('core tree-sitter baseline analysis', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('creates the tree-sitter plugin with metadata and supported extensions', () => {
-    const plugin = createTreeSitterPlugin();
+  it('reports core Tree-sitter edge capabilities without plugin metadata', () => {
+    expect(listCoreTreeSitterEdgeTypeCapabilities()).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+    ]);
+    expect(listCoreTreeSitterEdgeTypeCapabilities(['/workspace/src/app.py'])).toEqual([
+      'import',
+      'call',
+      'inherit',
+    ]);
+    expect(listCoreTreeSitterEdgeTypeCapabilities([
+      '/workspace/src/app.py',
+      '/workspace/src/view.tsx',
+    ])).toEqual([
+      'import',
+      'call',
+      'inherit',
+      'type-import',
+    ]);
+  });
 
-    expect(plugin.id).toBe('codegraphy.treesitter');
-    expect(plugin.name).toBe('Tree-sitter');
-    expect(plugin.version).toBe('1.0.0');
-    expect(plugin.apiVersion).toBe('^2.0.0');
-    expect(plugin.supportedExtensions).toEqual(TREE_SITTER_SUPPORTED_EXTENSIONS);
-    expect(plugin.supportedExtensions).not.toBe(TREE_SITTER_SUPPORTED_EXTENSIONS);
-    expect(plugin.fileColors).toBeUndefined();
-    expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
-      nodeTypes: [],
-      edgeTypes: [
-        'import',
-        'reference',
-        'call',
-        'type-import',
-        'inherit',
-      ],
-    });
-    expect(plugin.contributeGraphScopeCapabilities?.({
-      filePaths: ['/workspace/src/app.py'],
-    })).toEqual({
+  it('reports core Tree-sitter graph scope capabilities without plugin metadata', () => {
+    expect(listCoreTreeSitterGraphScopeCapabilities(['/workspace/src/app.py'])).toEqual({
       nodeTypes: ['symbol:function', 'symbol:class', 'symbol:constant'],
       edgeTypes: ['import', 'call', 'inherit'],
     });
-    expect(plugin.contributeGraphScopeCapabilities?.({
-      filePaths: ['/workspace/src/app.py', '/workspace/src/view.tsx'],
-    })).toEqual({
+    expect(listCoreTreeSitterGraphScopeCapabilities([
+      '/workspace/src/app.py',
+      '/workspace/src/view.tsx',
+    ])).toEqual({
       nodeTypes: [
         'symbol:function',
         'symbol:class',
@@ -69,7 +77,6 @@ describe('core tree-sitter built-in plugin', () => {
   });
 
   it('declares call capability for supported source languages with callable imports', () => {
-    const plugin = createTreeSitterPlugin();
     const supportedLanguageFiles = [
       '/workspace/src/app.cpp',
       '/workspace/src/App.java',
@@ -81,14 +88,11 @@ describe('core tree-sitter built-in plugin', () => {
     ];
 
     for (const filePath of supportedLanguageFiles) {
-      expect(plugin.contributeGraphScopeCapabilities?.({
-        filePaths: [filePath],
-      })?.edgeTypes, filePath).toContain('call');
+      expect(listCoreTreeSitterEdgeTypeCapabilities([filePath]), filePath).toContain('call');
     }
   });
 
   it('returns analyzed file results when tree-sitter analysis succeeds', async () => {
-    const plugin = createTreeSitterPlugin();
     const analysisResult = {
       filePath: '/workspace/src/app.ts',
       edgeTypes: ['import'],
@@ -100,7 +104,7 @@ describe('core tree-sitter built-in plugin', () => {
     vi.mocked(analyzeFileWithTreeSitter).mockResolvedValue(analysisResult as never);
 
     await expect(
-      plugin.analyzeFile?.('/workspace/src/app.ts', 'export const app = true;', '/workspace'),
+      analyzeFileWithCoreTreeSitter('/workspace/src/app.ts', 'export const app = true;', '/workspace'),
     ).resolves.toBe(analysisResult);
     expect(analyzeFileWithTreeSitter).toHaveBeenCalledWith(
       '/workspace/src/app.ts',
@@ -110,7 +114,6 @@ describe('core tree-sitter built-in plugin', () => {
   });
 
   it('requests relation-only tree-sitter analysis when symbols are disabled', async () => {
-    const plugin = createTreeSitterPlugin();
     const analysisResult = {
       filePath: '/workspace/src/app.ts',
       relations: [],
@@ -119,7 +122,7 @@ describe('core tree-sitter built-in plugin', () => {
     vi.mocked(analyzeFileWithTreeSitter).mockResolvedValue(analysisResult as never);
 
     await expect(
-      plugin.analyzeFile?.(
+      analyzeFileWithCoreTreeSitter(
         '/workspace/src/app.ts',
         'export const app = true;',
         '/workspace',
@@ -140,11 +143,10 @@ describe('core tree-sitter built-in plugin', () => {
   });
 
   it('falls back to an empty analysis result when tree-sitter returns null', async () => {
-    const plugin = createTreeSitterPlugin();
     vi.mocked(analyzeFileWithTreeSitter).mockResolvedValue(null);
 
     await expect(
-      plugin.analyzeFile?.('/workspace/src/app.ts', 'export const app = true;', '/workspace'),
+      analyzeFileWithCoreTreeSitter('/workspace/src/app.ts', 'export const app = true;', '/workspace'),
     ).resolves.toEqual({
       filePath: '/workspace/src/app.ts',
       edgeTypes: [],
@@ -156,12 +158,11 @@ describe('core tree-sitter built-in plugin', () => {
   });
 
   it('delegates pre-analysis to the csharp pre-analysis helper', async () => {
-    const plugin = createTreeSitterPlugin();
     const files = [
       { absolutePath: '/workspace/src/App.cs', content: 'class App {}' },
     ];
 
-    await plugin.onPreAnalyze?.(files as never, '/workspace');
+    await preAnalyzeCoreTreeSitterFiles(files as never, '/workspace');
 
     expect(preAnalyzeCSharpTreeSitterFiles).toHaveBeenCalledWith(files, '/workspace');
   });

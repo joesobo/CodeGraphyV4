@@ -328,7 +328,12 @@ export {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
 } from './plugins/routing/router/results/project';
-export { createTreeSitterPlugin } from './treeSitter/plugin';
+export {
+  analyzeFileWithCoreTreeSitter,
+  listCoreTreeSitterEdgeTypeCapabilities,
+  listCoreTreeSitterGraphScopeCapabilities,
+  preAnalyzeCoreTreeSitterFiles,
+} from './treeSitter/core';
 export { analyzeFileWithTreeSitter } from './treeSitter/runtime/analyze';
 export { preAnalyzeCSharpTreeSitterFiles } from './treeSitter/runtime/csharpIndex';
 export {

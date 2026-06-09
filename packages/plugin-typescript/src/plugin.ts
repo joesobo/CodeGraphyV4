@@ -10,7 +10,7 @@ import {
 /**
  * TypeScript/JavaScript metadata plugin.
  *
- * Base JS/TS parsing lives in the built-in Tree-sitter plugin. This plugin adds
+ * Base JS/TS parsing lives in Core Tree-sitter Analysis. This plugin adds
  * TypeScript project-aware relationships and ecosystem defaults on top.
  */
 export function createTypeScriptPlugin(): IPlugin {

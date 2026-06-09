@@ -173,6 +173,23 @@ describe('PluginRegistry collection', () => {
     });
   });
 
+  it('includes core graph scope capabilities without treating core analysis as a plugin', () => {
+    const registry = createConfiguredRegistry();
+    registry.setCoreGraphScopeCapabilitiesProvider((filePaths) => {
+      expect(filePaths).toEqual(['src/app.cpp']);
+      return {
+        nodeTypes: ['symbol:function', 'symbol:class'],
+        edgeTypes: ['import', 'call', 'contains', 'inherit', 'overrides'],
+      };
+    });
+
+    expect(registry.list()).toEqual([]);
+    expect(registry.listGraphScopeCapabilities(['src/app.cpp'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:class'],
+      edgeTypes: ['import', 'call', 'contains', 'inherit', 'overrides'],
+    });
+  });
+
   it('excludes disabled plugins from file analysis', async () => {
     const registry = createConfiguredRegistry();
     const analyzeFile = vi.fn(async (filePath: string) => ({

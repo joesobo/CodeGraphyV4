@@ -32,14 +32,14 @@ describe('PluginRegistry register', () => {
   it('does not log core-only built-ins as user-facing plugin registrations', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const plugin = createMockPlugin({
-      id: 'codegraphy.treesitter',
-      name: 'Tree-sitter',
+      id: 'test.plugin',
+      name: 'Test Plugin',
     });
 
     registry.register(plugin, { builtIn: true });
 
     expect(logSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Registered plugin: Tree-sitter'),
+      expect.stringContaining('Registered plugin: Test Plugin'),
     );
   });
 

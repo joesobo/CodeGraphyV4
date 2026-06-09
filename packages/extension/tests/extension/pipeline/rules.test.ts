@@ -221,10 +221,10 @@ describe('WorkspacePipeline sources', () => {
       const fullResult = analyzer.rebuildGraph(new Set(), true);
       expect(fullResult.edges.length).toBe(2);
 
-      // Disable the built-in Tree-sitter plugin: both language edges disappear
-      const disabledPlugins = new Set(['codegraphy.treesitter']);
+      // Core Tree-sitter analysis is not a plugin, so plugin activity cannot disable it.
+      const disabledPlugins = new Set(['core:treesitter']);
       const filteredResult = analyzer.rebuildGraph(disabledPlugins, true);
-      expect(filteredResult.edges.length).toBe(0);
+      expect(filteredResult.edges.length).toBe(2);
     });
 
     it('ignores source ids and still respects disabled plugins', async () => {
@@ -256,7 +256,7 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable the metadata-only Python plugin. Tree-sitter-owned edges should remain unchanged.
+      // Disable the metadata-only Python plugin. Core Tree-sitter edges should remain unchanged.
       const disabledPlugins = new Set(['codegraphy.python']);
       const result = analyzer.rebuildGraph(disabledPlugins, true);
 
@@ -294,32 +294,14 @@ describe('WorkspacePipeline sources', () => {
           from: 'src/index.ts',
           to: 'src/utils.ts',
           kind: 'import',
-          sources: [
-            {
-              id: 'codegraphy.treesitter:dynamic-import',
-              pluginId: 'codegraphy.treesitter',
-              sourceId: 'dynamic-import',
-              label: 'dynamic-import',
-              metadata: undefined,
-              variant: undefined,
-            },
-          ],
+          sources: [],
         },
         {
           id: 'src/index.ts->src/utils.ts#import:require',
           from: 'src/index.ts',
           to: 'src/utils.ts',
           kind: 'import',
-          sources: [
-            {
-              id: 'codegraphy.treesitter:commonjs-require',
-              pluginId: 'codegraphy.treesitter',
-              sourceId: 'commonjs-require',
-              label: 'commonjs-require',
-              metadata: undefined,
-              variant: undefined,
-            },
-          ],
+          sources: [],
         },
       ]);
     });

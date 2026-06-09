@@ -15,7 +15,6 @@ import {
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginCache,
 } from '../plugins/installedCache';
-import { TREE_SITTER_PLUGIN_ID } from '../treeSitter/plugin';
 import {
   executeGraphQuery,
   type GraphQueryRequest,
@@ -69,10 +68,7 @@ function createGraphQueryActivePluginSet(
     installedPlugins: installedPluginCache.plugins,
     builtInPluginIds: [CODEGRAPHY_MARKDOWN_PLUGIN_ID],
   });
-  return new Set([
-    TREE_SITTER_PLUGIN_ID,
-    ...activityState.activePluginIds,
-  ]);
+  return new Set(activityState.activePluginIds);
 }
 
 export async function requestWorkspaceGraphQuery(

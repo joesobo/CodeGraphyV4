@@ -20,12 +20,8 @@ describe('pipeline/service/cache/signatures', () => {
     vi.clearAllMocks();
   });
 
-  it('fingerprints built-in runtime plugins and npm package plugins with package versions', () => {
+  it('fingerprints built-in plugin runtimes and npm package plugins with package versions', () => {
     const signature = createWorkspacePipelinePluginSignature([
-      {
-        builtIn: true,
-        plugin: { id: 'codegraphy.treesitter', version: '1.0.0', extra: 'ignored' },
-      },
       {
         builtIn: true,
         sourcePackage: '@codegraphy-dev/plugin-markdown',
@@ -49,7 +45,7 @@ describe('pipeline/service/cache/signatures', () => {
     });
 
     expect(signature).toBe(
-      'codegraphy.treesitter@1.0.0|codegraphy.markdown@1.0.4|npm:@codegraphy-dev/plugin-python@2.0.4',
+      'codegraphy.markdown@1.0.4|npm:@codegraphy-dev/plugin-python@2.0.4',
     );
   });
 

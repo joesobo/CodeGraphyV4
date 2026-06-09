@@ -62,8 +62,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: '../model/user.dart',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/model/user.dart'),
@@ -71,8 +70,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'package:sample_app/model/profile.dart',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/model/profile.dart'),
@@ -80,8 +78,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'dart:convert',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -89,8 +86,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -98,8 +94,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'Runnable',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -107,8 +102,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'call',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'User',
         fromFilePath: runnerPath,
         fromSymbolId: `${runnerPath}:function:boot`,
@@ -145,8 +139,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'call',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:call',
+        sourceId: 'core:treesitter:call',
         specifier: 'boot',
         fromFilePath: mainPath,
         fromSymbolId: `${mainPath}:function:main`,
