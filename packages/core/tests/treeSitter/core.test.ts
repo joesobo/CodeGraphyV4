@@ -53,7 +53,7 @@ describe('core tree-sitter baseline analysis', () => {
 
   it('reports core Tree-sitter graph scope capabilities without plugin metadata', () => {
     expect(listCoreTreeSitterGraphScopeCapabilities(['/workspace/src/app.py'])).toEqual({
-      nodeTypes: ['symbol:function', 'symbol:class', 'symbol:constant'],
+      nodeTypes: ['symbol:function', 'symbol:class'],
       edgeTypes: ['import', 'call', 'inherit'],
     });
     expect(listCoreTreeSitterGraphScopeCapabilities([
@@ -63,9 +63,10 @@ describe('core tree-sitter baseline analysis', () => {
       nodeTypes: [
         'symbol:function',
         'symbol:class',
-        'symbol:constant',
         'symbol:interface',
         'symbol:type',
+        'symbol:enum',
+        'symbol:constant',
       ],
       edgeTypes: [
         'import',
