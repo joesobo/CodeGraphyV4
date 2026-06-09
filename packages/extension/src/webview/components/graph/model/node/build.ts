@@ -199,6 +199,34 @@ function createGraphNode(
   } as FGNode;
 }
 
+function hasFinitePosition(node: Pick<FGNode, 'x' | 'y'>): node is Pick<FGNode, 'x' | 'y'> & { x: number; y: number } {
+  return Number.isFinite(node.x) && Number.isFinite(node.y);
+}
+
+function seedMissingConnectedNodePositions(
+  nodes: FGNode[],
+  edges: readonly IGraphEdge[],
+  random: () => number,
+): void {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+
+  for (const node of nodes) {
+    if (hasFinitePosition(node)) {
+      continue;
+    }
+
+    const connectedEdge = edges.find((edge) => edge.from === node.id || edge.to === node.id);
+    const neighborId = connectedEdge?.from === node.id ? connectedEdge.to : connectedEdge?.from;
+    const neighbor = neighborId ? nodeById.get(neighborId) : undefined;
+    if (!neighbor || !hasFinitePosition(neighbor)) {
+      continue;
+    }
+
+    node.x = neighbor.x + (random() - 0.5) * 40;
+    node.y = neighbor.y + (random() - 0.5) * 40;
+  }
+}
+
 export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const {
     nodes,
@@ -221,6 +249,7 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   ));
 
   seedTimelinePositions(graphNodes, edges, timelineActive ? previousNodeStates : null, random);
+  seedMissingConnectedNodePositions(graphNodes, edges, random);
 
   return graphNodes;
 }

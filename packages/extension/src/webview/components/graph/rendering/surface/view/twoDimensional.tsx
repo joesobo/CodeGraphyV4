@@ -78,7 +78,7 @@ export function Surface2d({
         getLinkCanvasObjectMode(directionMode, link as FGLink)
       }
       onRenderFramePost={onRenderFramePost}
-      autoPauseRedraw={false}
+      autoPauseRedraw={directionMode !== 'particles'}
       enablePanInteraction={false}
     />
   );

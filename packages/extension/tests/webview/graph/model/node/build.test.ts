@@ -103,6 +103,39 @@ describe('graph/model/node/build', () => {
     expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
   });
 
+  it('seeds newly visible connected nodes near positioned neighbors outside timeline mode', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/logger/logger.c', label: 'logger.c', color: '#93C5FD' },
+        { id: 'src/logger/logger.c#logger_write:function', label: 'logger_write', color: '#8B5CF6' },
+      ],
+      edges: [{
+        id: 'src/logger/logger.c->src/logger/logger.c#logger_write:function#contains',
+        from: 'src/logger/logger.c',
+        to: 'src/logger/logger.c#logger_write:function',
+        kind: 'contains',
+        sources: [],
+      }],
+      nodeSizes: new Map([
+        ['src/logger/logger.c', 16],
+        ['src/logger/logger.c#logger_write:function', 16],
+      ]),
+      theme: 'dark',
+      favorites: new Set(),
+      timelineActive: false,
+      previousNodes: [
+        { id: 'src/logger/logger.c', x: 100, y: 200 } satisfies Pick<FGNode, 'id' | 'x' | 'y'>,
+      ],
+      random: () => 0.75,
+    });
+
+    expect(nodes.find(node => node.id === 'src/logger/logger.c')).toMatchObject({ x: 100, y: 200 });
+    expect(nodes.find(node => node.id === 'src/logger/logger.c#logger_write:function')).toMatchObject({
+      x: 110,
+      y: 210,
+    });
+  });
+
   it('preserves previous physics state outside timeline mode', () => {
     const nodes = buildGraphNodes({
       nodes: [
