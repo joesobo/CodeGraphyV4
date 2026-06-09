@@ -16,14 +16,6 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     matchSymbolKinds: ['function', 'method'],
   },
   {
-    id: 'symbol:include',
-    label: 'Include',
-    defaultColor: '#38BDF8',
-    defaultVisible: false,
-    parentId: 'symbol',
-    matchSymbolKinds: ['include'],
-  },
-  {
     id: 'symbol:prototype',
     label: 'Prototype',
     defaultColor: '#A78BFA',

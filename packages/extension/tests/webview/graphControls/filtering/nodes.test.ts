@@ -84,17 +84,14 @@ describe('webview/graphControls/filtering nodes', () => {
 
   it('applies the most-specific graph scope color for symbol and variable child nodes', () => {
     expect(applyNodeTypeColors([
-      symbolNode('src/logger/logger.h#logger.h:include', 'include'),
       symbolNode('src/logger/logger.h#Logger:typedef', 'typedef'),
       symbolNode('src/logger/logger.c#logger_output_enabled:global', 'global', 'variable'),
     ], {
       symbol: '#symbol',
       variable: '#variable',
-      'symbol:include': '#include',
       'symbol:typedef': '#typedef',
       'symbol:global': '#global',
     })).toEqual([
-      { ...symbolNode('src/logger/logger.h#logger.h:include', 'include'), color: '#include' },
       { ...symbolNode('src/logger/logger.h#Logger:typedef', 'typedef'), color: '#typedef' },
       { ...symbolNode('src/logger/logger.c#logger_output_enabled:global', 'global', 'variable'), color: '#global' },
     ]);

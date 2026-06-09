@@ -44,12 +44,13 @@ function getParentNodeTypeUpdates(nodeType: string): Record<string, boolean> {
   const updates: Record<string, boolean> = {};
   let current = CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === nodeType);
 
+  const hasKnownParent = Boolean(current?.parentId);
   while (current?.parentId) {
     updates[current.parentId] = true;
     current = CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === current?.parentId);
   }
 
-  if (isSymbolDependentNodeType(nodeType)) {
+  if (!hasKnownParent && isSymbolDependentNodeType(nodeType)) {
     updates.symbol = true;
   }
 

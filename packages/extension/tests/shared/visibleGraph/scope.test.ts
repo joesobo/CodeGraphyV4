@@ -107,7 +107,7 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
-	it('hides symbol nodes that are disconnected after edge scope is applied', () => {
+	it('keeps symbol nodes that are disconnected after edge scope is applied', () => {
 		const result = applyGraphScope(
 			{
 				nodes: [
@@ -146,8 +146,48 @@ describe('shared/visibleGraph/scope', () => {
 		);
 
 		expect(ids(result)).toEqual({
-			nodes: ['src/widget.cpp', 'include/base.h'],
+			nodes: ['src/widget.cpp', 'include/base.h', 'src/widget.cpp#Widget:class', 'include/base.h#Base:class'],
 			edges: ['src/widget.cpp->include/base.h#import'],
+		});
+	});
+
+	it('keeps enabled symbol nodes as orphans when unrelated file edges are visible', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/main.c'),
+					node('src/logger/logger.h'),
+					symbolNode('src/logger/logger.h#logger_init:prototype', {
+						id: 'src/logger/logger.h#logger_init:prototype',
+						name: 'logger_init',
+						kind: 'prototype',
+						filePath: 'src/logger/logger.h',
+					}),
+				],
+				edges: [
+					edge('src/main.c', 'src/logger/logger.h', 'include'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:prototype', enabled: true },
+				],
+				edges: [
+					{ type: 'include', enabled: true },
+					{ type: 'contains', enabled: false },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'src/main.c',
+				'src/logger/logger.h',
+				'src/logger/logger.h#logger_init:prototype',
+			],
+			edges: ['src/main.c->src/logger/logger.h#include'],
 		});
 	});
 

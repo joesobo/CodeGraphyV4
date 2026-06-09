@@ -60,14 +60,9 @@ And src/logger/logger.c#logger_write:function points to src/logger/format.h#logg
 And src/main.c#main:function points to src/logger/logger.h#logger_init:prototype
 And src/logger/format.c#logger_format_line:function points to src/logger/format.h#logger_level_name:prototype
 
-Then I show only the Contains edge type
-Then I show only the File and Include node types
-Then I can see there are 15 nodes and 7 connections
-And src/main.c points to src/main.c#logger/logger.h:include
-
-When I toggle the Include edge on
-Then I can see there are 15 nodes and 12 connections
-And src/main.c#logger/logger.h:include points to src/logger/logger.h
+Then I show only the Include edge type
+Then I can see there are 20 nodes and 5 connections
+And src/main.c points to src/logger/logger.h
 
 Then I show only the Contains edge type
 Then I show only the File and Struct node types
@@ -85,14 +80,14 @@ Then I can see there are 12 nodes and 4 connections
 Then I show only the File and Global node types
 Then I can see there are 9 nodes and 1 connection
 
-Then I show only the File, Include, Function, Prototype, Struct, Union, Enum, Typedef and Global node types
+Then I show only the File, Function, Prototype, Struct, Union, Enum, Typedef and Global node types
 And I toggle the Include edge on
 And I toggle the Contains edge on
 And I toggle the Calls edge on
-Then I can see there are 36 nodes and 39 connections
+Then I can see there are 29 nodes and 32 connections
 Then I toggle the Contains edge off
-Then I can see there are 22 nodes and 11 connections
+Then I can see there are 29 nodes and 11 connections
 Then I toggle the Include edge off
-Then I can see there are 17 nodes and 6 connections
+Then I can see there are 29 nodes and 6 connections
 Then I toggle the Calls edge off
-Then I can see there are 36 nodes and 0 connections
+Then I can see there are 29 nodes and 0 connections
