@@ -148,7 +148,6 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
 
   'I open the CodeGraphy extension graph view': async (context, step) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    applyExampleScenarioStartingWorkspaceState(context, step.sourcePath);
     context.vscode = await launchVSCodeWithWorkspace(workspacePath, {
       pluginPackageRelativePaths: acceptancePluginPackageRelativePathsForExample(context.exampleName),
     });
@@ -179,14 +178,12 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I have indexed the workspace': async (context, step) => {
-    const frame = requireGraphFrame(context);
-    await graphStage(frame).screenshot().then(image => {
+    await graphStage(requireGraphFrame(context)).screenshot().then(image => {
       context.beforeIndexStageImage = image;
     });
-    await closePanelIfOpen(frame);
-    await frame.getByRole('button', { name: 'Index Workspace' }).click();
+    await requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' }).click();
     await expect(
-      frame.getByRole('progressbar', { name: 'Indexing progress' }),
+      requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
     ).toBeHidden({ timeout: 30_000 });
     await applyExampleScenarioStartingUiState(context, step.sourcePath);
     await applyPostIndexScenarioStartingUiState(context, step.sourcePath);
@@ -781,7 +778,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the legend group text should be prefilled with "(.+)"$/, async (context, _step, match) => {
     const frame = requireGraphFrame(context);
     await expectInputValue(frame, match[1]);
-    await frame.getByRole('button', { name: 'Cancel' }).evaluate((button: HTMLElement) => button.click());
+    await frame.getByRole('button', { name: 'Cancel' }).click();
     await expect(frame.getByText('Add Legend Group', { exact: true })).toBeHidden({ timeout: 5_000 });
   }),
 
@@ -871,22 +868,17 @@ async function applyExampleScenarioStartingUiState(
       requireCoreNodeTypes: options.requireCoreNodeTypes,
     });
   }
-}
 
-function applyExampleScenarioStartingWorkspaceState(
-  context: GraphAcceptanceContext,
-  sourcePath: string,
-): void {
-  const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
   switch (path.basename(sourcePath)) {
     case 'godot-example.md':
-      setWorkspacePluginEnabled(workspacePath, 'codegraphy.gdscript', false);
+      await setPluginSwitch(context, 'GDScript (Godot)', false);
       return;
     case 'svelte-example.md':
-      setWorkspacePluginEnabled(workspacePath, 'codegraphy.svelte', false);
+      await setPluginSwitch(context, 'Svelte', false);
       return;
+    case 'javascript-example.md':
     case 'typescript-example.md':
-      setWorkspacePluginEnabled(workspacePath, 'codegraphy.typescript', false);
+      await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
   }
 }
@@ -1155,29 +1147,6 @@ function setWorkspaceEdgeVisibility(
   fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
-function setWorkspacePluginEnabled(
-  workspacePath: string,
-  pluginId: string,
-  enabled: boolean,
-): void {
-  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
-    plugins?: Array<{ id: string; enabled?: boolean }>;
-  };
-  const plugins = settings.plugins ?? [];
-  const index = plugins.findIndex(plugin => plugin.id === pluginId);
-
-  if (index === -1) {
-    settings.plugins = [...plugins, { id: pluginId, enabled }];
-  } else {
-    settings.plugins = plugins.map((plugin, pluginIndex) =>
-      pluginIndex === index ? { ...plugin, enabled } : plugin
-    );
-  }
-
-  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
-}
-
 async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
@@ -1339,7 +1308,6 @@ async function setPanelSwitch(
   enabled: boolean,
 ): Promise<void> {
   const switchInRow = await findPanelSwitch(requireGraphFrame(context), normalizePanelLabel(label));
-  await switchInRow.scrollIntoViewIfNeeded();
   const current = await switchInRow.getAttribute('aria-checked');
 
   if (current !== String(enabled)) {
@@ -1376,7 +1344,6 @@ async function setPanelSwitchIfPresent(
     return;
   }
 
-  await switchInRow.scrollIntoViewIfNeeded();
   const current = await switchInRow.getAttribute('aria-checked');
 
   if (current !== String(enabled)) {

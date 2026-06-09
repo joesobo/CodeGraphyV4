@@ -287,12 +287,8 @@ Color that encodes Relationship Graph meaning, such as Node Type, Edge Type, Leg
 _Avoid_: Chrome color, brand color
 
 **Graph View**:
-The CodeGraphy view where users interact with the Visible Graph, graph-local Search and Filter controls, the Active File breadcrumb, and graph-local panels or prompts.
+The CodeGraphy view where users interact with the Relationship Graph and its surrounding controls.
 _Avoid_: Visible graph
-
-**Graph Header Search**:
-The compact control area inside the **Graph View** where users edit temporary **Search** text and persistent **Filter** controls for the current CodeGraphy Workspace. Search state is owned by the extension host and replayed to CodeGraphy webviews so Graph Header Search can stay usable while graph data reloads.
-_Avoid_: Search View, Graph Tool Rail, filter panel when referring to the header controls
 
 **Graph Stage**:
 The themed canvas surface inside the **Graph View** where the **Relationship Graph** is rendered. The Graph Stage may use a dedicated CodeGraphy surface token for graph readability, but that token must be derived from the active VS Code theme.
@@ -366,7 +362,7 @@ _Avoid_: Extension plugin handling, interface-owned plugin runtime
 
 **Plugin**:
 A headless CodeGraphy npm package that communicates with `@codegraphy-dev/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
-_Avoid_: VS Code extension when referring to the CodeGraphy capability
+_Avoid_: VS Code extension when referring to the CodeGraphy capability, Tree-sitter Analysis
 
 **Plugin Package**:
 An npm package that declares package compatibility in `package.json#codegraphy`, declares static Plugin ID and display metadata in `codegraphy.json`, and exports a CodeGraphy plugin runtime through normal package exports.
@@ -574,8 +570,8 @@ _Avoid_: Graph export
 - **Refresh** only reruns the force graph simulation and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
 - The Graph View can show `Loading graph...` before the first graph render for a webview page. After the first render, later **Graph Cache Sync**, **Live Update**, or **Re-index** work should keep the current **Visible Graph** rendered and use graph-local progress.
-- CodeGraphy has two sidebar **Views**: the **Graph View** and the **Timeline View**.
-- The **Graph View** contains **Graph Header Search**, the **Visible Graph**, graph-local popups, settings UI, and overlay controls.
+- CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
+- The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
 - **VS Code Theme Integration** is the top UI rule: extension chrome should inherit the active VS Code theme through CodeGraphy/shadcn semantic tokens before applying CodeGraphy-specific styling.
 - UI cleanup should establish the VS Code token bridge and local CodeGraphy UI-kit primitives before reshaping individual surfaces such as the **Graph Tool Rail**, **Search**, **Filter**, **Settings**, and **Graph Panels**.
@@ -594,17 +590,17 @@ _Avoid_: Graph export
 - When **Graph Data Color** has poor contrast on the themed **Graph Stage**, CodeGraphy should preserve the semantic color when possible and add theme-aware support treatments such as outlines, label colors, selection rings, or edge strokes. Mutating graph-data colors should be a final readability fallback.
 - Graph contrast and readability decisions should live in one graph theme or appearance adapter that receives resolved CodeGraphy CSS tokens and **Graph Data Colors**, then outputs concrete render colors and support treatments. Individual renderers should consume that appearance model instead of owning separate contrast rules.
 - The **Graph Stage** should be a VS Code-derived graph surface, not a hardcoded dark or light canvas.
-- The **Graph Header Search** surface is for temporary **Search** and find-style controls; it should not be moved into the **Graph Tool Rail**.
-- Search option controls such as match case, whole word, and regex should stay visible inline in **Graph Header Search**, styled as VS Code-like search option buttons rather than hidden in a popover.
-- **Filter** access should stay attached to **Graph Header Search** but remain visually distinct from temporary **Search** options; the trigger should use icon-and-count chrome, with the full Filter label/title inside the popup or expanded surface.
-- The **Graph Header Search** **Search** field and expanded **Filter** surface should share one VS Code-like container rather than appearing as detached bands.
+- The top search surface is for temporary **Search** and find-style controls; it should not be moved into the **Graph Tool Rail**.
+- Search option controls such as match case, whole word, and regex should stay visible inline in the top search surface, styled as VS Code-like search option buttons rather than hidden in a popover.
+- **Filter** access should stay attached to the top search surface but remain visually distinct from temporary **Search** options; the trigger should use icon-and-count chrome, with the full Filter label/title inside the popup or expanded surface.
+- The top **Search** field and expanded **Filter** surface should share one VS Code-like container rather than appearing as detached bands.
 - The shared **Search** and **Filter** container should use the same uniform CodeGraphy shadcn/Radix density as the rest of the UI while borrowing VS Code Search structure and theme integration; do not introduce a special compact density for this surface.
 - **Search** and **Filter** controls should reuse the same local CodeGraphy Button and Input variants as panels and settings. The shared top container may define its own layout wrapper and token bridge, but it should not fork component variants for this surface.
 - The **Filter** popup or expanded surface should borrow from VS Code Search by presenting Include and Exclude sections, while keeping those values as persistent **Filter Settings** rather than temporary **Search** text.
 - The first **Filter Setting** UI should aim for feature parity with VS Code Search's include/exclude pattern fields, not graph-aware criteria. Node and edge type eligibility remains **Graph Scope**, plugin enablement remains **Plugins**, and temporary text matching remains **Search**.
-- The **Filter** surface should expand inline under the **Graph Header Search** field, like VS Code Search, and provide a clean rule-management area for built-in, plugin-contributed, and custom **Filter Rules**.
-- Expanding the shared **Search** and **Filter** container should stay inside the **Graph View** header layout instead of overlaying the **Graph Stage**.
-- The expanded **Filter** area's bounded max height should be responsive to the available **Graph View** height rather than a single fixed size.
+- The **Filter** surface should expand inline under the top search surface, like VS Code Search, and provide a clean rule-management area for built-in, plugin-contributed, and custom **Filter Rules**.
+- Expanding the shared **Search** and **Filter** container should push the **Graph Stage** down, not overlay it, but the expanded **Filter** area should have a bounded max height with internal scrolling so the graph remains the center focus.
+- The expanded **Filter** area's bounded max height should be responsive to the **Graph View** height rather than a single fixed size.
 - Built-in and plugin-contributed **Filter Rules** are source-owned and should not be directly editable. Users can enable or disable them; editing creates a custom user-owned **Filter Rule Override** or copy.
 - Disabled **Filter Rules** should stay in place within their Include or Exclude list and use normal disabled styling, such as lower-contrast text and subdued controls, instead of moving into a separate disabled section.
 - **Filter Rule** origins should use both subtle visible labels and tooltips: small labels such as Default, a plugin name, or User appear when row space allows, while the tooltip always gives the full source.
@@ -692,6 +688,7 @@ _Avoid_: Graph export
 - A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, Symbol Nodes, preset filters, and relationship evidence.
 - A **Plugin** can expand existing core **Edge Type Capabilities** for a workspace, contribute plugin-owned **Edge Types**, or do both.
 - A **Plugin** can analyze files by reading lines, using AST tooling, or any other analysis approach appropriate to its language or framework.
+- Graph View hover metadata should name Plugins only from plugin-owned graph facts that touch the hovered node, not from file support, broad analysis participation, or Core Tree-sitter Language Coverage. If multiple Plugins contribute graph facts touching the node, the hover may list each distinct Plugin name.
 - A **Plugin Package** is the packaging route for third-party plugins.
 - **Built-in Plugins** in this monorepo are examples and fast-development plugins, not required dependencies unless explicitly installed or bundled by the Core Package.
 - The **Markdown Plugin** is installed with `@codegraphy-dev/core` and enabled by default for new CodeGraphy Workspaces, but users can still toggle it off.

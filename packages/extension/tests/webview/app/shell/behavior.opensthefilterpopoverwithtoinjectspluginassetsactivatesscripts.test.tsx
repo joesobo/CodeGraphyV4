@@ -215,7 +215,7 @@ describe('App behavior', () => {
 
 
 
-    it('opens the filter prompt with a glob from graph requests', async () => {
+    it('opens the filter popover with a glob from graph requests', async () => {
       graphStore.setState({
         graphData: {
           nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
@@ -231,14 +231,16 @@ describe('App behavior', () => {
         (harness.graphProps?.onAddFilterRequested as ((patterns: string[]) => void))(['src/App.ts']);
       });
 
-      expect(screen.getByText('Add Filter')).toBeInTheDocument();
-      expect(screen.getByLabelText('Add Filter pattern')).toHaveValue('**/src/App.ts');
+      expect(harness.searchBarProps?.filterPopover).toMatchObject({
+        open: true,
+        pendingPatterns: ['**/src/App.ts'],
+      });
       expect(harness.sentMessages).toEqual([]);
     });
 
 
 
-    it('opens duplicate filter requests in the prompt without sending an update', async () => {
+    it('keeps duplicate filter requests in the popover without sending an update', async () => {
       graphStore.setState({
         graphData: {
           nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
@@ -255,8 +257,10 @@ describe('App behavior', () => {
       });
 
       expect(graphStore.getState().filterPatterns).toEqual(['**/src/App.ts']);
-      expect(screen.getByText('Add Filter')).toBeInTheDocument();
-      expect(screen.getByLabelText('Add Filter pattern')).toHaveValue('**/src/App.ts');
+      expect(harness.searchBarProps?.filterPopover).toMatchObject({
+        open: true,
+        pendingPatterns: ['**/src/App.ts'],
+      });
       expect(harness.sentMessages).toEqual([]);
     });
 

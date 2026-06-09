@@ -237,7 +237,6 @@ describe('webview/store/messageHandlers/graph', () => {
       disabledCustomFilterPatterns: ['custom/**'],
       disabledPluginFilterPatterns: [],
     });
-
   });
 
   it('maps depth, direction, physics, labels, max-files, and active-file payloads', () => {

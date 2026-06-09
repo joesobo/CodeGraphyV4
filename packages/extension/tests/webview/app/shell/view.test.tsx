@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults/definitions';
 
 // Mock window message listeners
 const messageListeners: ((event: MessageEvent) => void)[] = [];
@@ -461,43 +462,6 @@ describe('App', () => {
     expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
   });
 
-  it('keeps search controls inside the graph view while graph data loads', async () => {
-    render(<App />);
-
-    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
-    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
-
-    await act(async () => {
-      sendMessage({
-        type: 'GRAPH_DATA_UPDATED',
-        payload: {
-          nodes: [{ id: 'src/App.ts', label: 'App', color: '#3B82F6' }],
-          edges: [],
-        },
-      });
-      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
-    });
-
-    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
-    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-  });
-
-  it('keeps the active file breadcrumb with the graph content', () => {
-    graphStore.setState({
-      graphData: {
-        nodes: [{ id: 'src/App.ts', label: 'App', color: '#3B82F6' }],
-        edges: [],
-      },
-      isLoading: false,
-      activeFilePath: 'src/App.ts',
-    });
-
-    render(<App />);
-
-    expect(screen.getByPlaceholderText('Search files... (Ctrl+F)')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Open src/App.ts' })).toBeInTheDocument();
-  });
-
   it('keeps cold-cache file nodes visible after scope, filter, search, and Show Orphans', async () => {
     graphStore.setState({
       showOrphans: false,
@@ -524,6 +488,35 @@ describe('App', () => {
     });
 
     expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+  });
+
+  it('counts filters against the scoped visible graph instead of raw graph data', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/lib/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+          { id: 'README.md', label: 'README.md', color: '#3B82F6', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      graphEdgeTypes: [
+        { id: STRUCTURAL_NESTS_EDGE_KIND, label: 'Nests', defaultColor: '#222222', defaultVisible: true },
+      ],
+      filterPatterns: ['src/lib'],
+      isLoading: false,
+      nodeVisibility: {
+        file: false,
+        folder: true,
+      },
+      edgeVisibility: {
+        [STRUCTURAL_NESTS_EDGE_KIND]: true,
+      },
+      showOrphans: true,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
   });
 
   it('responds with the current visible graph state after scope settings apply', async () => {
@@ -593,6 +586,34 @@ describe('App', () => {
         edgeIds: ['src/app.ts->src/app.ts#run:function#contains'],
       },
     });
+  });
+
+  it('updates the excluded count immediately when plugin filters are disabled', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/generated/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+          { id: 'src/app.ts', label: 'app.ts', color: '#3B82F6', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      isLoading: false,
+      pluginFilterGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['**/generated/**'] },
+      ],
+      pluginFilterPatterns: ['**/generated/**'],
+      disabledPluginFilterPatterns: [],
+      showOrphans: true,
+    });
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 enabled' }));
+    expect(screen.getByText('1 excluded from graph')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Disable plugin Plugin One filters'));
+
+    expect(screen.getByText('0 excluded from graph')).toBeInTheDocument();
   });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {

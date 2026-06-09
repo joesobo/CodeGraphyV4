@@ -240,7 +240,7 @@ describe('App (mutation targets)', () => {
     expect(screen.queryByTestId('timeline')).not.toBeInTheDocument();
   });
 
-  it('renders search controls with the graph view when graph data is available', () => {
+  it('always renders the search bar when graph data is available', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
     });
@@ -365,7 +365,7 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
     vi.restoreAllMocks();
   });
 
-  it('passes graphData nodes to the graph surface when graphData has nodes', () => {
+  it('passes totalCount from graphData when graphData has nodes', () => {
     graphStore.setState({
       graphData: {
         nodes: [
@@ -376,10 +376,10 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
       },
     });
     render(<App />);
-    expect(screen.getByTestId('graph-node-count')).toHaveTextContent('2');
+    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-total-count', '2');
   });
 
-  it('passes filteredData nodes to the graph surface when search is active', () => {
+  it('passes resultCount from filteredData.nodes when search is active', () => {
     graphStore.setState({
       graphData: {
         nodes: [
@@ -391,10 +391,10 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
       searchQuery: 'App',
     });
     render(<App />);
-    expect(screen.getByTestId('graph-node-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-result-count', '1');
   });
 
-  it('passes all nodes to the graph surface when search is blank', () => {
+  it('passes resultCount equal to node count when search is blank', () => {
     graphStore.setState({
       graphData: {
         nodes: [
@@ -405,14 +405,17 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
       searchQuery: '',
     });
     render(<App />);
-    expect(screen.getByTestId('graph-node-count')).toHaveTextContent('1');
+    // When search is blank, filteredData === graphData, so resultCount === node count
+    const searchBar = screen.getByTestId('mock-search-bar');
+    const resultCount = searchBar.getAttribute('data-result-count');
+    expect(resultCount).toBe('1');
   });
 
-  it('keeps search controls available when graphData is null', () => {
+  it('does not render the search bar when graphData is null', () => {
     graphStore.setState({
       graphData: null,
     });
     render(<App />);
-    expect(screen.getByTestId('mock-search-bar')).toBeInTheDocument();
+    expect(screen.queryByTestId('mock-search-bar')).not.toBeInTheDocument();
   });
 });
