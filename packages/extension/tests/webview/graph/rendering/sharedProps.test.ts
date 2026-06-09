@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
   buildSharedGraphProps,
+  INITIAL_INTERACTIVE_COOLDOWN_TICKS,
   INTERACTIVE_COOLDOWN_TICKS,
   normalizeGraphDimension,
   TIMELINE_COOLDOWN_TICKS,
@@ -43,7 +44,7 @@ function createOptions(
     damping: 0.7,
     graphData: {
       links: [createLink()],
-      nodes: [createNode()],
+      nodes: [createNode({ x: 10, y: 20 })],
     },
     onBackgroundClick: vi.fn(),
     onBackgroundRightClick: vi.fn(),
@@ -95,6 +96,17 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.cooldownTicks).toBe(TIMELINE_COOLDOWN_TICKS);
     expect(props.dagMode).toBeUndefined();
     expect(props.dagLevelDistance).toBeUndefined();
+  });
+
+  it('keeps initial unpositioned interactive graphs on a short settling cooldown', () => {
+    const props = buildSharedGraphProps(createOptions({
+      graphData: {
+        links: [createLink()],
+        nodes: [createNode({ x: undefined, y: undefined })],
+      },
+    }));
+
+    expect(props.cooldownTicks).toBe(INITIAL_INTERACTIVE_COOLDOWN_TICKS);
   });
 
   it('normalizes width and height independently', () => {
