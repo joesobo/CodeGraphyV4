@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
   buildSharedGraphProps,
+  INTERACTIVE_COOLDOWN_TICKS,
   normalizeGraphDimension,
+  TIMELINE_COOLDOWN_TICKS,
   type BuildSharedGraphPropsOptions,
 } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 
@@ -76,7 +78,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.d3VelocityDecay).toBe(0.7);
     expect(props.d3AlphaDecay).toBe(0.0228);
     expect(props.warmupTicks).toBe(0);
-    expect(props.cooldownTicks).toBe(500);
+    expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
     expect(props.dagMode).toBe('td');
     expect(props.dagLevelDistance).toBe(60);
   });
@@ -90,7 +92,7 @@ describe('graph/rendering/surface/sharedProps', () => {
 
     expect(props.width).toBeUndefined();
     expect(props.height).toBeUndefined();
-    expect(props.cooldownTicks).toBe(50);
+    expect(props.cooldownTicks).toBe(TIMELINE_COOLDOWN_TICKS);
     expect(props.dagMode).toBeUndefined();
     expect(props.dagLevelDistance).toBeUndefined();
   });

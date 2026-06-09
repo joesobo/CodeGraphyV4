@@ -2,6 +2,9 @@ import type { DagMode } from '../../../../../shared/settings/modes';
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../model/build';
 
+export const INTERACTIVE_COOLDOWN_TICKS = 60;
+export const TIMELINE_COOLDOWN_TICKS = 50;
+
 export interface GraphContainerSize {
   height: number;
   width: number;
@@ -80,7 +83,7 @@ export function buildSharedGraphProps(
     d3VelocityDecay: options.damping,
     d3AlphaDecay: 0.0228,
     warmupTicks: 0,
-    cooldownTicks: options.timelineActive ? 50 : 500,
+    cooldownTicks: options.timelineActive ? TIMELINE_COOLDOWN_TICKS : INTERACTIVE_COOLDOWN_TICKS,
     nodeId: 'id',
     onNodeHover: (node) => options.onNodeHover(node as FGNode | null),
     dagMode: options.dagMode ?? undefined,

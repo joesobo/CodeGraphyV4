@@ -71,6 +71,7 @@ export function GraphViewportShell({
 }: GraphViewportShellProps): ReactElement {
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const lastAccessibilitySignatureRef = useRef('');
+  const accessibilityDirtyRef = useRef(true);
   const [accessibilityItems, setAccessibilityItems] = useState<GraphAccessibilityItems>({
     nodes: [],
     edges: [],
@@ -145,11 +146,21 @@ export function GraphViewportShell({
       return;
     }
 
+    if (!accessibilityDirtyRef.current) {
+      return;
+    }
+
     const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
     const nodes = graphState.renderer.graphDataRef.current.nodes;
     const links = graphState.renderer.graphDataRef.current.links;
+    const ready = nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y));
+    if (!ready) {
+      return;
+    }
+
     const signature = createGraphAccessibilitySignature(nodes, links);
     if (signature === lastAccessibilitySignatureRef.current) {
+      accessibilityDirtyRef.current = false;
       return;
     }
 
@@ -160,6 +171,7 @@ export function GraphViewportShell({
       typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
     );
     setAccessibilityItems(items);
+    accessibilityDirtyRef.current = false;
   };
 
   useEffect(() => {
@@ -167,6 +179,10 @@ export function GraphViewportShell({
       pluginHost?.setGraphViewViewportState(null);
     };
   }, [pluginHost]);
+
+  useEffect(() => {
+    accessibilityDirtyRef.current = true;
+  }, [graphDataLayoutKey, viewState.graphMode]);
 
   const surfaceProps = createGraphViewportSurfaceProps({
     callbacks,
