@@ -4,7 +4,7 @@ import type { IGraphControlsSnapshot } from '../../../shared/graphControls/contr
 import { isFileNode } from '../../../shared/visibleGraph/model';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import {
-  readEdgeTypeCapabilities,
+  readGraphScopeCapabilities,
   readEdgeTypes,
   readNodeTypes,
 } from './send/definitions/registry';
@@ -67,7 +67,7 @@ export function sendGraphControlsUpdated(
         controlsGraphData,
         readNodeTypes(registry, disabledPlugins),
         readEdgeTypes(registry, disabledPlugins),
-        readEdgeTypeCapabilities(registry, filePaths, disabledPlugins),
+        readGraphScopeCapabilities(registry, filePaths, disabledPlugins),
       ),
     ),
   );

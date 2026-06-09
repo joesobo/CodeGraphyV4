@@ -12,6 +12,12 @@ export const EXTENSION_VSIX_TARGETS = [
   'win32-x64',
 ];
 
+const EXTENSION_VSIX_HOST_BY_TARGET = {
+  'linux-x64': { platform: 'linux', arch: 'x64' },
+  'darwin-arm64': { platform: 'darwin', arch: 'arm64' },
+  'win32-x64': { platform: 'win32', arch: 'x64' },
+};
+
 const LADYBUG_NATIVE_PACKAGE_BY_TARGET = {
   'linux-x64': '@ladybugdb/core-linux-x64',
   'darwin-arm64': '@ladybugdb/core-darwin-arm64',
@@ -134,6 +140,64 @@ export function createCoreVsceInvocations({
       ],
     };
   });
+}
+
+export function resolveHostVsixTarget({
+  platform = process.platform,
+  arch = process.arch,
+} = {}) {
+  const hostTarget = EXTENSION_VSIX_TARGETS.find((target) => {
+    const host = EXTENSION_VSIX_HOST_BY_TARGET[target];
+    return host.platform === platform && host.arch === arch;
+  });
+
+  if (!hostTarget) {
+    throw new Error(
+      `Unsupported VSIX native build host: ${platform}-${arch}. `
+      + `Supported hosts are ${EXTENSION_VSIX_TARGETS.join(', ')}.`,
+    );
+  }
+
+  return hostTarget;
+}
+
+export function parseRequestedVsixTargets(value) {
+  if (!value) {
+    return undefined;
+  }
+
+  return value
+    .split(',')
+    .map(target => target.trim())
+    .filter(Boolean);
+}
+
+export function resolveCoreVsixTargets({
+  requestedTargets,
+  platform = process.platform,
+  arch = process.arch,
+} = {}) {
+  const hostTarget = resolveHostVsixTarget({ platform, arch });
+  const targets = requestedTargets ?? [hostTarget];
+  const unsupportedTarget = targets.find(target => !EXTENSION_VSIX_TARGETS.includes(target));
+
+  if (unsupportedTarget) {
+    throw new Error(
+      `Unsupported CodeGraphy VSIX target: ${unsupportedTarget}. `
+      + `Supported targets are ${EXTENSION_VSIX_TARGETS.join(', ')}.`,
+    );
+  }
+
+  for (const target of targets) {
+    if (target !== hostTarget) {
+      throw new Error(
+        `Cannot package ${hostTarget} host-built native runtime for ${target} VSIX. `
+        + 'Run this target on its matching release runner so Tree-sitter native bindings are built for the target platform.',
+      );
+    }
+  }
+
+  return targets;
 }
 
 function getStagedLadybugNativeBinaryPath(stageDir) {
@@ -310,6 +374,9 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
     process.exit(1);
   }
 
+  const targets = resolveCoreVsixTargets({
+    requestedTargets: parseRequestedVsixTargets(process.env.CODEGRAPHY_VSIX_TARGETS),
+  });
   prepareCoreReleaseBase(baseDir);
   const { stageDir, version } = createCoreReleaseStage(baseDir);
   const nativeCacheDir = mkdtempSync(path.join(tmpdir(), 'codegraphy-ladybug-native-'));
@@ -322,7 +389,7 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
   mkdirSync(artifactsDir, { recursive: true });
 
   try {
-    for (const invocation of createCoreVsceInvocations({ mode, version, artifactsDir })) {
+    for (const invocation of createCoreVsceInvocations({ mode, version, artifactsDir, targets })) {
       stageTargetLadybugNativeBinary({
         stageDir,
         target: invocation.target,

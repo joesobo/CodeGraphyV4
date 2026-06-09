@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   analyzeFileWithCoreTreeSitter,
   listCoreTreeSitterEdgeTypeCapabilities,
+  listCoreTreeSitterGraphScopeCapabilities,
   preAnalyzeCoreTreeSitterFiles,
 } from '../../src/treeSitter/core';
 import { analyzeFileWithTreeSitter } from '../../src/treeSitter/runtime/analyze';
@@ -48,6 +49,32 @@ describe('core tree-sitter baseline analysis', () => {
       'inherit',
       'type-import',
     ]);
+  });
+
+  it('reports core Tree-sitter graph scope capabilities without plugin metadata', () => {
+    expect(listCoreTreeSitterGraphScopeCapabilities(['/workspace/src/app.py'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:class'],
+      edgeTypes: ['import', 'call', 'inherit'],
+    });
+    expect(listCoreTreeSitterGraphScopeCapabilities([
+      '/workspace/src/app.py',
+      '/workspace/src/view.tsx',
+    ])).toEqual({
+      nodeTypes: [
+        'symbol:function',
+        'symbol:class',
+        'symbol:interface',
+        'symbol:type',
+        'symbol:enum',
+        'symbol:constant',
+      ],
+      edgeTypes: [
+        'import',
+        'call',
+        'inherit',
+        'type-import',
+      ],
+    });
   });
 
   it('declares call capability for supported source languages with callable imports', () => {

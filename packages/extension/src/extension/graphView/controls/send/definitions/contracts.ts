@@ -6,6 +6,7 @@ export interface GraphNodeTypeLike {
   defaultColor: string;
   defaultVisible: boolean;
   description?: GraphTypeDescriptionLike;
+  parentId?: string;
 }
 
 export interface GraphEdgeTypeLike {
@@ -36,4 +37,10 @@ export interface GraphControlsConfigurationLike {
 
 export type GraphDefinitionReader<TDefinition> = (definition: unknown) => definition is TDefinition;
 
+export type GraphNodeTypeCapabilityLike = string;
 export type GraphEdgeTypeCapabilityLike = GraphEdgeKind;
+
+export interface GraphScopeCapabilitiesLike {
+  nodeTypes: GraphNodeTypeCapabilityLike[];
+  edgeTypes: GraphEdgeTypeCapabilityLike[];
+}

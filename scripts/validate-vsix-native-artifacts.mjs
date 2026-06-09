@@ -4,13 +4,28 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const nativeBinaryPath = 'extension/dist/node_modules/@ladybugdb/core/lbugjs.node';
 
 const expectedNativeBinaryByTarget = {
   'linux-x64': 'ELF x86-64',
   'darwin-arm64': 'Mach-O arm64',
   'win32-x64': 'PE32+ x86-64',
 };
+
+const nativeBinaryPaths = [
+  'extension/dist/node_modules/@ladybugdb/core/lbugjs.node',
+  'extension/dist/node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node',
+];
+
+function parseRequestedTargets(value) {
+  if (!value) {
+    return Object.keys(expectedNativeBinaryByTarget);
+  }
+
+  return value
+    .split(',')
+    .map(target => target.trim())
+    .filter(Boolean);
+}
 
 function hasPrefix(binary, bytes) {
   return bytes.every((byte, index) => binary[index] === byte);
@@ -92,7 +107,7 @@ function findVsixForTarget({ artifactsDir, version, target }) {
     .at(0);
 }
 
-function extractNativeBinaryFromVsix(vsixPath) {
+function extractNativeBinaryFromVsix(vsixPath, nativeBinaryPath) {
   const result = spawnSync('unzip', ['-p', vsixPath, nativeBinaryPath], {
     encoding: 'buffer',
     maxBuffer: 64 * 1024 * 1024,
@@ -115,23 +130,34 @@ export function validateVsixNativeArtifacts({
   baseDir = repoRoot,
   artifactsDir = path.join(baseDir, 'artifacts', 'vsix'),
   version = readExtensionVersion(baseDir),
+  targets = parseRequestedTargets(process.env.CODEGRAPHY_VSIX_TARGETS),
 } = {}) {
-  for (const [target, expectedKind] of Object.entries(expectedNativeBinaryByTarget)) {
+  for (const target of targets) {
+    const expectedKind = expectedNativeBinaryByTarget[target];
+    if (!expectedKind) {
+      throw new Error(
+        `Unsupported CodeGraphy VSIX target: ${target}. `
+        + `Supported targets are ${Object.keys(expectedNativeBinaryByTarget).join(', ')}.`,
+      );
+    }
+
     const vsixPath = findVsixForTarget({ artifactsDir, version, target });
     if (!vsixPath) {
       throw new Error(`Missing VSIX artifact for ${target} in ${artifactsDir}.`);
     }
 
-    const binary = extractNativeBinaryFromVsix(vsixPath);
-    const actualKind = identifyNativeBinary(binary);
+    for (const nativeBinaryPath of nativeBinaryPaths) {
+      const binary = extractNativeBinaryFromVsix(vsixPath, nativeBinaryPath);
+      const actualKind = identifyNativeBinary(binary);
 
-    if (actualKind !== expectedKind) {
-      throw new Error(
-        `${path.basename(vsixPath)} contains ${actualKind} at ${nativeBinaryPath}; expected ${expectedKind}.`,
-      );
+      if (actualKind !== expectedKind) {
+        throw new Error(
+          `${path.basename(vsixPath)} contains ${actualKind} at ${nativeBinaryPath}; expected ${expectedKind}.`,
+        );
+      }
+
+      console.log(`${path.basename(vsixPath)}: ${nativeBinaryPath} is ${actualKind}`);
     }
-
-    console.log(`${path.basename(vsixPath)}: ${nativeBinaryPath} is ${actualKind}`);
   }
 }
 
