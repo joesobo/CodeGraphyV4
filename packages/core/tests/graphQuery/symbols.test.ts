@@ -82,7 +82,7 @@ const symbols: IAnalysisSymbol[] = [
     signature: 'type UserConfig = { name: string }',
     metadata: {
       language: 'typescript',
-      source: 'codegraphy.treesitter',
+      source: 'core:treesitter',
       pluginKind: 'type-alias',
     },
   },
@@ -91,16 +91,14 @@ const symbols: IAnalysisSymbol[] = [
 const relations: IAnalysisRelation[] = [
   {
     kind: 'type-import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:type-import',
+    sourceId: 'core:treesitter:type-import',
     fromFilePath: 'packages/app/src/a.ts',
     toFilePath: 'packages/app/src/b.ts',
     toSymbolId: 'packages/app/src/b.ts#UserConfig',
   },
   {
     kind: 'type-import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:type-import',
+    sourceId: 'core:treesitter:type-import',
     fromFilePath: 'packages/app/src/a.ts',
     toFilePath: 'packages/app/src/b.ts',
     toSymbolId: 'packages/app/src/b.ts#UserConfig',
@@ -149,7 +147,7 @@ describe('core/graphQuery symbols report', () => {
         signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
         language: 'typescript',
-        source: 'codegraphy.treesitter',
+        source: 'core:treesitter',
         pluginKind: 'type-alias',
       },
     ]);
@@ -188,7 +186,7 @@ describe('core/graphQuery symbols report', () => {
         signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
         language: 'typescript',
-        source: 'codegraphy.treesitter',
+        source: 'core:treesitter',
         pluginKind: 'type-alias',
       },
     ]);
@@ -281,7 +279,7 @@ describe('core/graphQuery symbols report', () => {
         signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
         language: 'typescript',
-        source: 'codegraphy.treesitter',
+        source: 'core:treesitter',
         pluginKind: 'type-alias',
       },
     ]);
@@ -350,7 +348,7 @@ describe('core/graphQuery symbols report', () => {
         signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
         language: 'typescript',
-        source: 'codegraphy.treesitter',
+        source: 'core:treesitter',
         pluginKind: 'type-alias',
       },
     ]);
@@ -367,7 +365,7 @@ describe('core/graphQuery symbols report', () => {
         edges: { contains: true },
       },
       filters: [
-        { field: 'source', op: 'equals', value: 'codegraphy.treesitter' },
+        { field: 'source', op: 'equals', value: 'core:treesitter' },
         { field: 'pluginKind', op: 'equals', value: 'type-alias' },
       ],
     });
@@ -381,7 +379,7 @@ describe('core/graphQuery symbols report', () => {
         signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
         language: 'typescript',
-        source: 'codegraphy.treesitter',
+        source: 'core:treesitter',
         pluginKind: 'type-alias',
       },
     ]);

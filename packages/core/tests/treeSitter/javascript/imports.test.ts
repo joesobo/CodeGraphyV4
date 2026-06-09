@@ -360,7 +360,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(addRelation).toHaveBeenCalledTimes(1);
     expect(addRelation).toHaveBeenCalledWith(relations, {
       kind: 'import',
-      sourceId: 'codegraphy.treesitter:import',
+      sourceId: 'core:treesitter:import',
       fromFilePath: '/workspace/src/app.ts',
       specifier: './lib',
       resolvedPath: '/workspace/src/lib.ts',

@@ -6,7 +6,6 @@ import {
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IPlugin } from '../../../../core/plugins/types/contracts';
-import { createTreeSitterPlugin } from '../treesitter/plugin';
 import { getDefaultMarkdownPluginOptions, shouldRegisterMarkdownPlugin } from './markdown';
 
 export interface WorkspacePipelinePluginRegistration {
@@ -24,12 +23,7 @@ export async function getBuiltInWorkspacePipelinePluginRegistrations(
   disabledPluginsInput: Iterable<string> = [],
 ): Promise<WorkspacePipelinePluginRegistration[]> {
   const disabledPlugins = new Set(disabledPluginsInput);
-  const registrations: WorkspacePipelinePluginRegistration[] = [
-    {
-      plugin: createTreeSitterPlugin(),
-      options: { builtIn: true },
-    },
-  ];
+  const registrations: WorkspacePipelinePluginRegistration[] = [];
 
   if (!shouldRegisterMarkdownPlugin(settings)) {
     return registrations;

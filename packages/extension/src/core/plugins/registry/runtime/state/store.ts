@@ -10,6 +10,11 @@ import {
 import type {
   CoreFileAnalysisResultProvider,
 } from '../../../routing/router/analyze';
+import type { IPluginGraphScopeCapabilities } from '../../../types/contracts';
+
+export type CoreGraphScopeCapabilitiesProvider = (
+  filePaths?: readonly string[],
+) => Required<IPluginGraphScopeCapabilities>;
 
 export interface IPluginInfoV2 extends IPluginInfo {
   api?: CodeGraphyAPIImpl;
@@ -25,6 +30,7 @@ export abstract class PluginRegistryState {
   protected _workspaceReadyNotified = false;
   protected _webviewReadyNotified = false;
   protected _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
+  protected _coreGraphScopeCapabilitiesProvider?: CoreGraphScopeCapabilitiesProvider;
 
   protected _replayReadinessForPlugin(info: IPluginInfoV2): void {
     lifecycleReplayReadiness(

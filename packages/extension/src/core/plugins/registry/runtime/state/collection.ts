@@ -170,8 +170,10 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       }
     }
 
-    const nodeTypes = new Set<string>();
-    const edgeTypes = new Set<GraphEdgeKind>();
+    const coreCapabilities = this._coreGraphScopeCapabilitiesProvider?.(filePaths);
+    const nodeTypes = new Set<string>(coreCapabilities?.nodeTypes ?? []);
+    const edgeTypes = new Set<GraphEdgeKind>(coreCapabilities?.edgeTypes ?? []);
+
     for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
       const plugin = this._plugins.get(pluginId)?.plugin;
       const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
@@ -205,6 +207,12 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analyzeFileResultProvider: typeof this._coreAnalyzeFileResult,
   ): void {
     this._coreAnalyzeFileResult = analyzeFileResultProvider;
+  }
+
+  setCoreGraphScopeCapabilitiesProvider(
+    provider: typeof this._coreGraphScopeCapabilitiesProvider,
+  ): void {
+    this._coreGraphScopeCapabilitiesProvider = provider;
   }
 
   disposeAll(): void {

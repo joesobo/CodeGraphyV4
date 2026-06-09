@@ -15,7 +15,7 @@ describe('pipeline/serviceAdapters', () => {
     const readContent = vi.fn(async () => 'content');
 
     await preAnalyzeWorkspacePipelinePlugins(
-      [{ relativePath: 'src/app.ts', fsPath: '/workspace/src/app.ts' } as never],
+      [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' } as never],
       '/workspace',
       { notifyPreAnalyze } as never,
       { readContent } as never,
@@ -23,8 +23,8 @@ describe('pipeline/serviceAdapters', () => {
 
     expect(notifyPreAnalyze).toHaveBeenCalledOnce();
     expect(readContent).toHaveBeenCalledWith({
+      absolutePath: '/workspace/src/app.ts',
       relativePath: 'src/app.ts',
-      fsPath: '/workspace/src/app.ts',
     });
   });
 
@@ -60,7 +60,7 @@ describe('pipeline/serviceAdapters', () => {
       undefined,
       registry as never,
       vi.fn(async () => stat),
-      [{ relativePath: 'src/app.ts', fsPath: '/workspace/src/app.ts' } as never],
+      [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' } as never],
       '/workspace',
     );
 

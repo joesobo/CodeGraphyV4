@@ -49,7 +49,7 @@ function appendConnectionEdge(
     workspaceRoot: string;
   },
 ): void {
-  const sourcePluginId = connection.pluginId ?? options.plugin?.id;
+  const sourcePluginId = connection.pluginId;
   if (sourcePluginId && options.disabledPlugins.has(sourcePluginId)) {
     return;
   }
