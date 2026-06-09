@@ -40,6 +40,39 @@ export function schedulePending3dAutoFit({
   };
 }
 
+export function schedulePending2dPreviewAutoFit({
+  fitView,
+  graphReady,
+  graphMode,
+  pendingAutoFitRef,
+}: {
+  fitView(this: void): void;
+  graphReady: boolean;
+  graphMode: '2d' | '3d';
+  pendingAutoFitRef: MutableRefObject<boolean>;
+}): (() => void) | undefined {
+  if (
+    graphMode !== '2d'
+    || !pendingAutoFitRef.current
+    || typeof window === 'undefined'
+    || !graphReady
+  ) {
+    return undefined;
+  }
+
+  const timer = window.setTimeout(() => {
+    if (!pendingAutoFitRef.current) {
+      return;
+    }
+
+    fitView();
+  }, 0);
+
+  return () => {
+    window.clearTimeout(timer);
+  };
+}
+
 export function runAutoFitEngineStop({
   fitView,
   handleEngineStop,
@@ -77,12 +110,19 @@ export function useGraphAutoFit({
   }, [graphData, graphMode]);
 
   useEffect(() => {
-    return schedulePending3dAutoFit({
-      fitView,
-      graphReady,
-      graphMode,
-      pendingAutoFitRef,
-    });
+    return graphMode === '2d'
+      ? schedulePending2dPreviewAutoFit({
+          fitView,
+          graphReady,
+          graphMode,
+          pendingAutoFitRef,
+        })
+      : schedulePending3dAutoFit({
+          fitView,
+          graphReady,
+          graphMode,
+          pendingAutoFitRef,
+        });
   }, [fitView, graphData, graphMode, graphReady]);
 
   return useCallback(() => {

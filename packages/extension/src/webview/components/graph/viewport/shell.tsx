@@ -126,6 +126,10 @@ export function GraphViewportShell({
       return;
     }
 
+    if (pluginHost.hasGraphViewViewportConsumers?.() === false) {
+      return;
+    }
+
     const graph = graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined;
     pluginHost.setGraphViewViewportState(createGraphViewViewportState({
       globalScale,

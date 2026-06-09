@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   resetPendingAutoFit,
   runAutoFitEngineStop,
+  schedulePending2dPreviewAutoFit,
   schedulePending3dAutoFit,
   useGraphAutoFit,
 } from '../../../../src/webview/components/graph/viewport/autoFit';
@@ -49,6 +50,24 @@ describe('webview/graph/autoFit', () => {
     cleanup?.();
   });
 
+  it('schedules a 2d preview auto-fit without clearing the pending settled fit', () => {
+    const fitView = vi.fn();
+    const pendingAutoFitRef = { current: true };
+
+    const cleanup = schedulePending2dPreviewAutoFit({
+      fitView,
+      graphReady: true,
+      graphMode: '2d',
+      pendingAutoFitRef,
+    });
+
+    vi.runAllTimers();
+
+    expect(fitView).toHaveBeenCalledOnce();
+    expect(pendingAutoFitRef.current).toBe(true);
+    cleanup?.();
+  });
+
   it('does not schedule auto-fit outside of 3d mode or before the graph is ready', () => {
     const fitView = vi.fn();
     const pendingAutoFitRef = { current: true };
@@ -84,6 +103,25 @@ describe('webview/graph/autoFit', () => {
     const pendingAutoFitRef = { current: true };
 
     expect(schedulePending3dAutoFit({
+      fitView,
+      graphReady: true,
+      graphMode: '3d',
+      pendingAutoFitRef,
+    })).toBeUndefined();
+  });
+
+  it('does not schedule 2d preview auto-fit before the graph is ready', () => {
+    const fitView = vi.fn();
+    const pendingAutoFitRef = { current: true };
+
+    expect(schedulePending2dPreviewAutoFit({
+      fitView,
+      graphReady: false,
+      graphMode: '2d',
+      pendingAutoFitRef,
+    })).toBeUndefined();
+
+    expect(schedulePending2dPreviewAutoFit({
       fitView,
       graphReady: true,
       graphMode: '3d',
@@ -187,7 +225,53 @@ describe('webview/graph/autoFit', () => {
     expect(fitView).toHaveBeenCalledTimes(2);
   });
 
-  it('schedules auto-fit again when graph mode changes back to 3d', () => {
+  it('preview-fits 2d graph changes before the physics engine settles', () => {
+    const fitView = vi.fn();
+    const handleEngineStop = vi.fn();
+    const initialGraphData: { nodes: Array<{ id?: string }> } = { nodes: [] };
+    const nextGraphData: { nodes: Array<{ id?: string }> } = { nodes: [{ id: 'a.ts' }] };
+
+    const { rerender, result } = renderHook(
+      ({ graphData, graphMode, graphReady }) =>
+        useGraphAutoFit({
+          fitView,
+          graphData,
+          graphMode,
+          graphReady,
+          handleEngineStop,
+        }),
+      {
+        initialProps: {
+          graphData: initialGraphData,
+          graphMode: '2d' as const,
+          graphReady: true,
+        },
+      },
+    );
+
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(fitView).toHaveBeenCalledOnce();
+
+    rerender({
+      graphData: nextGraphData,
+      graphMode: '2d' as const,
+      graphReady: true,
+    });
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(fitView).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      result.current();
+    });
+    expect(handleEngineStop).toHaveBeenCalledOnce();
+    expect(fitView).toHaveBeenCalledTimes(3);
+  });
+
+  it('schedules auto-fit again when graph mode changes from 2d to 3d', () => {
     const fitView = vi.fn();
     const handleEngineStop = vi.fn();
     const useAutoFitHook = ({ graphData, graphMode, graphReady }: AutoFitHookProps) =>
@@ -215,7 +299,7 @@ describe('webview/graph/autoFit', () => {
     act(() => {
       vi.runAllTimers();
     });
-    expect(fitView).not.toHaveBeenCalled();
+    expect(fitView).toHaveBeenCalledOnce();
 
     rerender(nextProps);
 
@@ -223,6 +307,6 @@ describe('webview/graph/autoFit', () => {
       vi.runAllTimers();
     });
 
-    expect(fitView).toHaveBeenCalledOnce();
+    expect(fitView).toHaveBeenCalledTimes(2);
   });
 });

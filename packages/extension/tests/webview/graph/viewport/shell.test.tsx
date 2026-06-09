@@ -504,6 +504,44 @@ describe('graph/viewport/shell', () => {
 		expect(reheatSimulation).toHaveBeenCalledOnce();
 	});
 
+	it('skips plugin viewport publication when the plugin host has no viewport consumers', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const interactions = createInteractions();
+		const callbacks = createCallbacks();
+		const viewState = { ...createViewState(), graphMode: '2d' as const };
+		const pluginHost = {
+			getOverlays: vi.fn(() => []),
+			hasGraphViewViewportConsumers: vi.fn(() => false),
+			setGraphViewViewportState: vi.fn(),
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				pluginHost={pluginHost as never}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		});
+
+		expect(pluginHost.hasGraphViewViewportConsumers).toHaveBeenCalledOnce();
+		expect(pluginHost.setGraphViewViewportState).not.toHaveBeenCalled();
+	});
+
 	it('publishes 2d graph viewport scale changes from render frames', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
