@@ -79,6 +79,8 @@ const CORE_NODE_TYPE_LABELS = [
   'Godot class_name',
 ];
 
+const REQUIRED_CORE_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package']);
+
 const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Class: 'Symbol',
   Constant: 'Variable',
@@ -1268,7 +1270,7 @@ async function setOnlyNodeTypes(
   ]));
 
   for (const nodeTypeLabel of CORE_NODE_TYPE_LABELS) {
-    if (options.requireCoreNodeTypes) {
+    if (options.requireCoreNodeTypes && requiresCoreNodeTypeSwitch(nodeTypeLabel)) {
       await setPanelSwitch(context, nodeTypeLabel, labelsToEnable.has(nodeTypeLabel));
     } else {
       await setPanelSwitchIfPresent(context, nodeTypeLabel, labelsToEnable.has(nodeTypeLabel));
@@ -1280,6 +1282,10 @@ async function setOnlyNodeTypes(
   }
 
   await closePanelIfOpen(frame);
+}
+
+export function requiresCoreNodeTypeSwitch(label: string): boolean {
+  return REQUIRED_CORE_NODE_TYPE_LABELS.has(label);
 }
 
 async function openGraphScopeSection(
