@@ -33,7 +33,6 @@ function visitCNode(
       filePath,
       workspaceRoot,
       relations,
-      symbolsEnabled ? symbols : undefined,
       'include',
     );
     return { skipChildren: true };

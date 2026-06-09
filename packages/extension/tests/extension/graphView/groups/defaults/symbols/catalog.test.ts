@@ -20,13 +20,6 @@ describe('graphView/default symbol group catalog', () => {
     ]);
     expect(TYPE_LIKE_SYMBOL_GROUPS.map(withoutImageUrl)).toEqual([
       {
-        id: 'default:symbol-kind:include',
-        displayLabel: 'Include',
-        color: '#38BDF8',
-        matchNodeType: 'symbol',
-        matchSymbolKind: 'include',
-      },
-      {
         id: 'default:symbol-kind:prototype',
         displayLabel: 'Prototype',
         color: '#A78BFA',

@@ -135,7 +135,7 @@ describe('visibleGraph/scope', () => {
     });
   });
 
-  it('removes symbol nodes that are disconnected after edge type filtering', () => {
+  it('keeps symbol nodes that are disconnected after edge type filtering', () => {
     const graphData: IGraphData = {
       nodes: [
         node('src/app.cpp'),
@@ -166,9 +166,49 @@ describe('visibleGraph/scope', () => {
       nodes: [
         node('src/app.cpp'),
         node('src/widget.hpp'),
+        node('src/app.cpp#Runner:class', 'symbol', symbol({
+          id: 'src/app.cpp:class:Runner',
+          kind: 'class',
+          name: 'Runner',
+        })),
       ],
       edges: [
         edge('src/app.cpp', 'src/widget.hpp', 'import'),
+      ],
+    });
+  });
+
+  it('keeps enabled symbol nodes as orphans when unrelated file edges are visible', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/main.c'),
+        node('src/logger/logger.h'),
+        node('src/logger/logger.h#logger_init:prototype', 'symbol', symbol({
+          id: 'src/logger/logger.h:prototype:logger_init',
+          filePath: 'src/logger/logger.h',
+          kind: 'prototype',
+          name: 'logger_init',
+        })),
+      ],
+      edges: [
+        edge('src/main.c', 'src/logger/logger.h', 'include'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:prototype', enabled: true },
+      ],
+      edges: [
+        { type: 'include', enabled: true },
+        { type: 'contains', enabled: false },
+      ],
+    })).toEqual({
+      nodes: graphData.nodes,
+      edges: [
+        edge('src/main.c', 'src/logger/logger.h', 'include'),
       ],
     });
   });
@@ -253,11 +293,11 @@ describe('visibleGraph/scope', () => {
     });
   });
 
-  it('disables variable nodes whenever the symbol root is disabled', () => {
+  it('does not disable variable nodes when the symbol root is disabled', () => {
     expect(getDisabledNodeTypes(scopeConfig([
       { type: 'symbol', enabled: false },
       { type: 'variable', enabled: true },
-    ]))).toEqual(new Set(['symbol', 'variable']));
+    ]))).toEqual(new Set(['symbol']));
   });
 
   it('keeps regular disabled node types when the symbol root is enabled', () => {

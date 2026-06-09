@@ -25,18 +25,6 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
-      id: 'symbol:include',
-      label: 'Include',
-      defaultColor: '#38BDF8',
-      defaultVisible: false,
-      parentId: 'symbol',
-      matchSymbolKinds: ['include'],
-      description: {
-        description: 'Language-level include or import statements represented as named symbols.',
-        examples: [{ label: 'C', code: '#include "logger.h"' }],
-      },
-    },
-    {
       id: 'symbol:prototype',
       label: 'Prototype',
       defaultColor: '#A78BFA',

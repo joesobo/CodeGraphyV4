@@ -13,7 +13,6 @@ describe('shared/graphControls/defaults/definitions', () => {
       'package',
       'symbol',
       'symbol:function',
-      'symbol:include',
       'symbol:prototype',
       'symbol:class',
       'symbol:interface',

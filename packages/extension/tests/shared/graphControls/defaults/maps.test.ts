@@ -14,7 +14,6 @@ describe('shared/graphControls/defaults/maps', () => {
       package: false,
       symbol: false,
       'symbol:function': false,
-      'symbol:include': false,
       'symbol:prototype': false,
       'symbol:class': false,
       'symbol:interface': false,

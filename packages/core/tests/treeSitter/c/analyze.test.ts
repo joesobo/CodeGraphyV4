@@ -92,8 +92,6 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
-      expect.objectContaining({ filePath: mainPath, kind: 'include', name: 'math/add.h' }),
-      expect.objectContaining({ filePath: mainPath, kind: 'include', name: 'stdio.h' }),
       expect.objectContaining({ filePath: mainPath, kind: 'struct', name: 'Counter' }),
       expect.objectContaining({ filePath: mainPath, kind: 'union', name: 'Payload' }),
       expect.objectContaining({ filePath: mainPath, kind: 'enum', name: 'Mode' }),
@@ -103,6 +101,9 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       expect.objectContaining({ filePath: mainPath, kind: 'prototype', name: 'prepare' }),
       expect.objectContaining({ filePath: mainPath, kind: 'function', name: 'helper' }),
       expect.objectContaining({ filePath: mainPath, kind: 'function', name: 'main' }),
+    ]));
+    expect(result?.symbols).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: mainPath, kind: 'include' }),
     ]));
   });
 
@@ -348,7 +349,6 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       expect.objectContaining({
         kind: 'include',
         sourceId: 'core:treesitter:include',
-        fromSymbolId: `${loggerPath}:include:logger.h`,
         type: 'include',
         specifier: 'logger.h',
         resolvedPath: path.join(workspaceRoot, 'src/logger/logger.h'),
@@ -356,7 +356,6 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
       expect.objectContaining({
         kind: 'include',
         sourceId: 'core:treesitter:include',
-        fromSymbolId: `${loggerPath}:include:format.h`,
         type: 'include',
         specifier: 'format.h',
         resolvedPath: path.join(workspaceRoot, 'src/logger/format.h'),
