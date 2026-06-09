@@ -106,6 +106,10 @@ export class WebviewPluginHost {
     return this._graphViewViewportState;
   }
 
+  hasGraphViewViewportConsumers(): boolean {
+    return this._overlays.size > 0 || this._graphViewViewportStateListeners.size > 0;
+  }
+
   setGraphViewViewportState(state: GraphViewViewportState | null): void {
     this._graphViewViewportState = state;
     notifyGraphViewViewportStateListeners(this._graphViewViewportStateListeners, state);
