@@ -6,16 +6,9 @@
 import React from 'react';
 import { GraphIcon } from '../../components/icons/GraphIcon';
 
-export function LoadingState({
-  fullScreen = true,
-}: {
-  fullScreen?: boolean;
-} = {}): React.ReactElement {
+export function LoadingState(): React.ReactElement {
   return (
-    <div className={fullScreen
-      ? 'flex flex-col items-center justify-center min-h-screen p-4'
-      : 'flex h-full flex-col items-center justify-center p-4'}
-    >
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="flex items-center gap-3 mb-4">
         <GraphIcon className="w-10 h-10 animate-pulse" />
         <h1 className="text-2xl font-bold text-primary">CodeGraphy</h1>

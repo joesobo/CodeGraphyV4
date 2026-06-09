@@ -27,11 +27,7 @@ export async function runExternalPluginRegistrationFollowUp(
     handlers: GraphViewExternalPluginRegistrationHandlers,
   ) => Promise<void>,
 ): Promise<void> {
-  const hasWorkspaceRoot = Boolean(handlers.getWorkspaceRoot());
   await initializeExternalPlugin(pluginId, state, handlers);
-  if (hasWorkspaceRoot) {
-    handlers.sendPluginStatuses();
-  }
   if (!shouldDeferReadinessReplay) {
     return;
   }

@@ -12,3 +12,4 @@ export function getGraphViewProviderSidebarViews(
     (view): view is vscode.WebviewView => view !== undefined,
   );
 }
+

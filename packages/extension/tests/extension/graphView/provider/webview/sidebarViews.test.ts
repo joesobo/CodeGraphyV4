@@ -31,11 +31,6 @@ describe('graphView/provider/webview/sidebarViews', () => {
         _timelineView: undefined,
       }),
     ).toEqual([graphView]);
-    expect(
-      getGraphViewProviderSidebarViews({
-        _view: undefined,
-        _timelineView: undefined,
-      }),
-    ).toEqual([]);
+    expect(getGraphViewProviderSidebarViews({ _view: undefined, _timelineView: undefined })).toEqual([]);
   });
 });

@@ -29,7 +29,7 @@ export function SearchHeader({
   onSearchOptionsChange,
 }: SearchHeaderProps): React.ReactElement {
   return (
-    <div className="flex-shrink-0 border-b border-border px-1 py-1">
+    <div className="flex-shrink-0 px-2 pt-2 pb-1 border-b border-border">
       <SearchBar
         value={searchQuery}
         onChange={onSearchQueryChange}
@@ -41,7 +41,6 @@ export function SearchHeader({
         filterPopover={filterPopover}
         placeholder="Search files... (Ctrl+F)"
         regexError={regexError}
-        className="p-1 shadow-none"
       />
       {activeFilePath && (
         <div className="mt-1">
