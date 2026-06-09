@@ -50,7 +50,7 @@ function getParentNodeTypeUpdates(nodeType: string): Record<string, boolean> {
     current = CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === current?.parentId);
   }
 
-  if (!hasKnownParent && isSymbolDependentNodeType(nodeType)) {
+  if (!hasKnownParent && nodeType !== 'variable' && isSymbolDependentNodeType(nodeType)) {
     updates.symbol = true;
   }
 

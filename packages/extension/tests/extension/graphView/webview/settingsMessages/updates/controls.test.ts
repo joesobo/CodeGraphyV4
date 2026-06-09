@@ -215,6 +215,31 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
+  it('enables Variables without enabling Symbols when the variable parent type is enabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, variable: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'variable', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: false,
+      variable: true,
+    });
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
   it('preserves child visibility settings when Symbols is disabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
