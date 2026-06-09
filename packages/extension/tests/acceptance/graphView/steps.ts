@@ -148,6 +148,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
 
   'I open the CodeGraphy extension graph view': async (context, step) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    applyExampleScenarioStartingWorkspaceState(context, step.sourcePath);
     context.vscode = await launchVSCodeWithWorkspace(workspacePath, {
       pluginPackageRelativePaths: acceptancePluginPackageRelativePathsForExample(context.exampleName),
     });
@@ -870,16 +871,22 @@ async function applyExampleScenarioStartingUiState(
       requireCoreNodeTypes: options.requireCoreNodeTypes,
     });
   }
+}
 
+function applyExampleScenarioStartingWorkspaceState(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+): void {
+  const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
   switch (path.basename(sourcePath)) {
     case 'godot-example.md':
-      await setPluginSwitch(context, 'GDScript (Godot)', false);
+      setWorkspacePluginEnabled(workspacePath, 'codegraphy.gdscript', false);
       return;
     case 'svelte-example.md':
-      await setPluginSwitch(context, 'Svelte', false);
+      setWorkspacePluginEnabled(workspacePath, 'codegraphy.svelte', false);
       return;
     case 'typescript-example.md':
-      await setPluginSwitch(context, 'TypeScript/JavaScript', false);
+      setWorkspacePluginEnabled(workspacePath, 'codegraphy.typescript', false);
       return;
   }
 }
@@ -1148,6 +1155,29 @@ function setWorkspaceEdgeVisibility(
   fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
+function setWorkspacePluginEnabled(
+  workspacePath: string,
+  pluginId: string,
+  enabled: boolean,
+): void {
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+    plugins?: Array<{ id: string; enabled?: boolean }>;
+  };
+  const plugins = settings.plugins ?? [];
+  const index = plugins.findIndex(plugin => plugin.id === pluginId);
+
+  if (index === -1) {
+    settings.plugins = [...plugins, { id: pluginId, enabled }];
+  } else {
+    settings.plugins = plugins.map((plugin, pluginIndex) =>
+      pluginIndex === index ? { ...plugin, enabled } : plugin
+    );
+  }
+
+  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
 async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
@@ -1309,6 +1339,7 @@ async function setPanelSwitch(
   enabled: boolean,
 ): Promise<void> {
   const switchInRow = await findPanelSwitch(requireGraphFrame(context), normalizePanelLabel(label));
+  await switchInRow.scrollIntoViewIfNeeded();
   const current = await switchInRow.getAttribute('aria-checked');
 
   if (current !== String(enabled)) {
@@ -1345,6 +1376,7 @@ async function setPanelSwitchIfPresent(
     return;
   }
 
+  await switchInRow.scrollIntoViewIfNeeded();
   const current = await switchInRow.getAttribute('aria-checked');
 
   if (current !== String(enabled)) {
