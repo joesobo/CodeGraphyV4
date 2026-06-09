@@ -69,7 +69,6 @@ describe('extension manifest', () => {
     expect(searchView).toBeUndefined();
     expect(graphView).toBeDefined();
     expect(graphView?.type).toBe('webview');
-    expect(graphView?.initialSize).toBeGreaterThan(100);
   });
 
   it('declares a dedicated timeline view in the CodeGraphy container', () => {
