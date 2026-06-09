@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
@@ -417,7 +417,9 @@ describe('graph/viewport/shell', () => {
 				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
 			};
 		};
-		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
+		});
 		expect(pluginHost.setGraphViewViewportState).toHaveBeenCalledWith(expect.objectContaining({
 			graphMode: '3d',
 			nodes: expect.arrayContaining([
@@ -469,7 +471,9 @@ describe('graph/viewport/shell', () => {
 				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
 			};
 		};
-		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		});
 		const viewportState = pluginHost.setGraphViewViewportState.mock.calls.at(-1)?.[0] as {
 			reheatSimulation(): void;
 			resumeAnimation(): void;
@@ -524,11 +528,64 @@ describe('graph/viewport/shell', () => {
 				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
 			};
 		};
-		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
+		});
 		expect(graphStore.getState().graphViewportScale).toBe(2);
 
-		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2.005);
+		act(() => {
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2.005);
+		});
 		expect(graphStore.getState().graphViewportScale).toBe(2);
+	});
+
+	it('does not rerender the viewport for every moving graph frame', () => {
+		const graphData = createGraphData();
+		graphData.nodes[0] = { ...graphData.nodes[0], x: 10, y: 20 };
+		graphData.nodes[1] = { ...graphData.nodes[1], x: 30, y: 40 };
+		const graphState = createGraphState(graphData);
+		let frameOffset = 0;
+		graphState.renderer.fg2dRef.current = {
+			graph2ScreenCoords: (x: number, y: number) => ({ x: x + frameOffset, y: y + frameOffset }),
+			screen2GraphCoords: (x: number, y: number) => ({ x: x - frameOffset, y: y - frameOffset }),
+			zoom: () => 1,
+		} as never;
+		const interactions = createInteractions();
+		const callbacks = createCallbacks();
+		const viewState = { ...createViewState(), graphMode: '2d' as const };
+
+		render(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		act(() => {
+			frameOffset = 1;
+			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		});
+
+		const renderCountAfterAccessibilityPublish = harness.viewport.mock.calls.length;
+
+		for (frameOffset = 2; frameOffset <= 12; frameOffset += 1) {
+			act(() => {
+				viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+			});
+		}
+
+		expect(renderCountAfterAccessibilityPublish).toBeGreaterThan(1);
+		expect(harness.viewport.mock.calls.length).toBe(renderCountAfterAccessibilityPublish);
 	});
 
 	it('skips plugin viewport state publication when no plugin host is mounted', () => {

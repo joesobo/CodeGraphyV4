@@ -24,6 +24,7 @@ import {
   type GraphAccessibilityItems,
   type GraphScreenProjector,
 } from './accessibility';
+import type { FGLink, FGNode } from '../model/build';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -36,6 +37,24 @@ export interface GraphViewportShellProps {
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
   viewState: GraphViewStoreState;
+}
+
+function createGraphAccessibilitySignature(
+  nodes: readonly FGNode[],
+  links: readonly FGLink[],
+): string {
+  const nodeSignature = nodes
+    .map(node => `${node.id}:${node.size}:${Number.isFinite(node.x) && Number.isFinite(node.y) ? 'ready' : 'pending'}`)
+    .join('|');
+  const linkSignature = links
+    .map(link => `${link.id}:${resolveLinkEndpoint(link.source)}:${resolveLinkEndpoint(link.target)}`)
+    .join('|');
+
+  return `${nodeSignature}::${linkSignature}`;
+}
+
+function resolveLinkEndpoint(endpoint: string | FGNode): string {
+  return typeof endpoint === 'string' ? endpoint : endpoint.id;
 }
 
 export function GraphViewportShell({
@@ -51,7 +70,7 @@ export function GraphViewportShell({
   viewState,
 }: GraphViewportShellProps): ReactElement {
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
-  const lastAccessibilitySnapshotRef = useRef('');
+  const lastAccessibilitySignatureRef = useRef('');
   const [accessibilityItems, setAccessibilityItems] = useState<GraphAccessibilityItems>({
     nodes: [],
     edges: [],
@@ -123,17 +142,19 @@ export function GraphViewportShell({
     }
 
     const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
-    const items = createGraphAccessibilityItems(
-      graphState.renderer.graphDataRef.current.nodes,
-      graphState.renderer.graphDataRef.current.links,
-      typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
-    );
-    const snapshot = JSON.stringify(items);
-    if (snapshot === lastAccessibilitySnapshotRef.current) {
+    const nodes = graphState.renderer.graphDataRef.current.nodes;
+    const links = graphState.renderer.graphDataRef.current.links;
+    const signature = createGraphAccessibilitySignature(nodes, links);
+    if (signature === lastAccessibilitySignatureRef.current) {
       return;
     }
 
-    lastAccessibilitySnapshotRef.current = snapshot;
+    lastAccessibilitySignatureRef.current = signature;
+    const items = createGraphAccessibilityItems(
+      nodes,
+      links,
+      typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
+    );
     setAccessibilityItems(items);
   };
 
