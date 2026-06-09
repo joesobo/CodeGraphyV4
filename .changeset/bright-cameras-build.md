@@ -1,4 +1,6 @@
 ---
+"@codegraphy-dev/plugin-api": patch
+"@codegraphy-dev/core": patch
 "@codegraphy-dev/extension": patch
 ---
 
