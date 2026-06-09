@@ -106,7 +106,7 @@ describe('settingsMessages/updates/controls', () => {
     }));
   });
 
-  it('enables Symbols without changing edge visibility', async () => {
+  it('enables Symbols without changing edge visibility or reprocessing analysis', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -129,7 +129,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.updateConfig).toHaveBeenCalledOnce();
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', { symbol: true });
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('edgeVisibility', expect.anything());
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
@@ -163,7 +163,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('enables Variables when a variable child type is enabled', async () => {
+  it('enables Symbols and Variables when a variable child type is enabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -181,7 +181,7 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
-      symbol: false,
+      symbol: true,
       variable: true,
       'symbol:constant': true,
     });
@@ -189,7 +189,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('enables Variables without enabling Symbols when a variable child type is enabled', async () => {
+  it('enables Symbols and Variables when a variable child type is enabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -207,7 +207,7 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
-      symbol: false,
+      symbol: true,
       variable: true,
       'symbol:global': true,
     });
@@ -215,7 +215,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('enables Variables without enabling Symbols when the variable parent type is enabled', async () => {
+  it('enables Symbols when the variable parent type is enabled without reprocessing analysis', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -233,10 +233,36 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
-      symbol: false,
+      symbol: true,
       variable: true,
     });
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('does not reprocess analysis when enabled symbol facts are already active', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: true, 'symbol:function': true, 'symbol:prototype': false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:prototype', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: true,
+      'symbol:function': true,
+      'symbol:prototype': true,
+    });
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -262,7 +288,7 @@ describe('settingsMessages/updates/controls', () => {
       'symbol:function': true,
     });
     expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('symbol');
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages without updating settings', async () => {

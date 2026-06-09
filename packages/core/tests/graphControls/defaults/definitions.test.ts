@@ -19,5 +19,8 @@ describe('graphControls/defaults/definitions', () => {
       'symbol:constant': false,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
     });
+
+    expect(CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === 'variable')?.parentId)
+      .toBe('symbol');
   });
 });

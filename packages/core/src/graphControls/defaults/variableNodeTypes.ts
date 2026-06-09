@@ -6,6 +6,7 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     label: 'Variable',
     defaultColor: '#14B8A6',
     defaultVisible: false,
+    parentId: 'symbol',
   },
   {
     id: 'symbol:constant',

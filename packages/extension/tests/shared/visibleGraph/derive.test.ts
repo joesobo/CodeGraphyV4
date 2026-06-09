@@ -301,6 +301,46 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
 
 
 
+    it('keeps enabled variable children hidden when Symbols is disabled', () => {
+      const result = deriveVisibleGraph(
+        {
+          nodes: [
+            node('src/logger.c'),
+            {
+              ...node('src/logger.c#logger_output_enabled:global', 'variable'),
+              symbol: {
+                id: 'src/logger.c#logger_output_enabled:global',
+                name: 'logger_output_enabled',
+                kind: 'global',
+                filePath: 'src/logger.c',
+              },
+            },
+          ],
+          edges: [
+            edge('src/logger.c', 'src/logger.c#logger_output_enabled:global', 'contains'),
+          ],
+        },
+        {
+          scope: {
+            nodes: [
+              { type: 'file', enabled: true },
+              { type: 'symbol', enabled: false },
+              { type: 'variable', enabled: true },
+              { type: 'symbol:global', enabled: true },
+            ],
+            edges: [{ type: 'contains', enabled: true }],
+          },
+        },
+      );
+
+      expect(ids(result.graphData)).toEqual({
+        nodes: ['src/logger.c'],
+        edges: [],
+      });
+    });
+
+
+
     it('projects folder nests edges and workspace package nodes without package nests edges', () => {
       const result = deriveVisibleGraph(
         {

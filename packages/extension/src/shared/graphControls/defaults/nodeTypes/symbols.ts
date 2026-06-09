@@ -8,8 +8,7 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       defaultColor: '#7C3AED',
       defaultVisible: false,
       description: {
-        description: 'Named code elements inside files, such as functions, classes, interfaces, and types.',
-        examples: [{ code: 'export function loadGraph() {}' }],
+        description: 'Quick toggle for all named code elements inside files.',
       },
     },
     {
