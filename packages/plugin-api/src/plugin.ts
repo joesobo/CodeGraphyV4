@@ -21,6 +21,7 @@ import type {
   GraphNodeShape2D,
   GraphNodeShape3D,
   IGraphData,
+  NodeType,
 } from './graph';
 import type { IGraphViewContributions } from './graphView';
 
@@ -29,11 +30,16 @@ export interface IPluginWebviewContributions {
   styles?: string[];
 }
 
-export interface IPluginEdgeTypeCapabilityContext {
+export interface IPluginGraphScopeCapabilityContext {
   /**
    * File paths from the indexed workspace graph that made the plugin applicable.
    */
   filePaths: readonly string[];
+}
+
+export interface IPluginGraphScopeCapabilities {
+  nodeTypes?: readonly NodeType[];
+  edgeTypes?: readonly GraphEdgeKind[];
 }
 
 export interface IPluginWebviewMessage {
@@ -234,14 +240,17 @@ export interface IPlugin {
   contributeEdgeTypes?(): IPluginEdgeType[];
 
   /**
-   * Optional edge-type capabilities this plugin can make relevant when it is
+   * Optional Graph Scope capabilities this plugin can make relevant when it is
    * applicable to the indexed workspace.
    *
-   * These declarations are independent from emitted relations, so graph controls
-   * can show relevant toggles even before the current graph contains matching
-   * edges. Plugins may declare core edge kinds and plugin-owned edge kinds.
+   * These declarations are independent from emitted graph output, so graph
+   * controls can show relevant toggles even before the current graph contains
+   * matching nodes or edges. Plugins may declare core and plugin-owned node
+   * types and edge kinds.
    */
-  contributeEdgeTypeCapabilities?(context?: IPluginEdgeTypeCapabilityContext): GraphEdgeKind[];
+  contributeGraphScopeCapabilities?(
+    context?: IPluginGraphScopeCapabilityContext,
+  ): IPluginGraphScopeCapabilities;
 
   // ---------------------------------------------------------------------------
   // Optional analysis hooks

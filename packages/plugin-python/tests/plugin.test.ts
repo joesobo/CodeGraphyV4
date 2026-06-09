@@ -26,6 +26,7 @@ describe('createPythonPlugin', () => {
 
     expect(plugin.sources).toBeUndefined();
     expect(plugin.analyzeFile).toBeUndefined();
+    expect(plugin.contributeGraphScopeCapabilities).toBeUndefined();
     expect(plugin.initialize).toBeUndefined();
     expect(plugin.onPreAnalyze).toBeUndefined();
     expect(plugin.onUnload).toBeUndefined();

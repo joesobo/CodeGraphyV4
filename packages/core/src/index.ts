@@ -331,6 +331,7 @@ export {
 export {
   analyzeFileWithCoreTreeSitter,
   listCoreTreeSitterEdgeTypeCapabilities,
+  listCoreTreeSitterGraphScopeCapabilities,
   preAnalyzeCoreTreeSitterFiles,
 } from './treeSitter/core';
 export { analyzeFileWithTreeSitter } from './treeSitter/runtime/analyze';

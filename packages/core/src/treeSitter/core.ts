@@ -4,11 +4,18 @@ import type {
   IPluginAnalysisContext,
 } from '@codegraphy-dev/plugin-api';
 import { analyzeFileWithTreeSitter } from './runtime/analyze';
-import { listTreeSitterEdgeTypeCapabilities } from './runtime/capabilities';
+import {
+  listTreeSitterEdgeTypeCapabilities,
+  listTreeSitterGraphScopeCapabilities,
+} from './runtime/capabilities';
 import { preAnalyzeCSharpTreeSitterFiles } from './runtime/csharpIndex';
 
 export function listCoreTreeSitterEdgeTypeCapabilities(filePaths?: readonly string[]) {
   return listTreeSitterEdgeTypeCapabilities(filePaths);
+}
+
+export function listCoreTreeSitterGraphScopeCapabilities(filePaths?: readonly string[]) {
+  return listTreeSitterGraphScopeCapabilities(filePaths);
 }
 
 export async function analyzeFileWithCoreTreeSitter(

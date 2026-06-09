@@ -3,6 +3,7 @@ import type {
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
+  IPluginGraphScopeCapabilities,
   IPluginInfo,
   IPluginNodeType,
   IProjectedConnection,
@@ -151,11 +152,11 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     );
   }
 
-  listEdgeTypeCapabilities(
+  listGraphScopeCapabilities(
     filePaths: readonly string[] = [],
     disabledPlugins: ReadonlySet<string> = new Set(),
-  ): GraphEdgeKind[] {
-    const applicablePluginIds = new Set<string>();
+  ): Required<IPluginGraphScopeCapabilities> {
+    const applicableFilePathsByPluginId = new Map<string, string[]>();
 
     for (const filePath of filePaths) {
       for (const plugin of getPluginsForFile(filePath, this._plugins, this._extensionMap)) {
@@ -163,22 +164,31 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
           continue;
         }
 
-        applicablePluginIds.add(plugin.id);
+        const pluginFilePaths = applicableFilePathsByPluginId.get(plugin.id) ?? [];
+        pluginFilePaths.push(filePath);
+        applicableFilePathsByPluginId.set(plugin.id, pluginFilePaths);
       }
     }
 
-    const capabilities = new Set<GraphEdgeKind>(
-      this._coreEdgeTypeCapabilitiesProvider?.(filePaths) ?? [],
-    );
+    const coreCapabilities = this._coreGraphScopeCapabilitiesProvider?.(filePaths);
+    const nodeTypes = new Set<string>(coreCapabilities?.nodeTypes ?? []);
+    const edgeTypes = new Set<GraphEdgeKind>(coreCapabilities?.edgeTypes ?? []);
 
-    for (const pluginId of applicablePluginIds) {
+    for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
       const plugin = this._plugins.get(pluginId)?.plugin;
-      for (const capability of plugin?.contributeEdgeTypeCapabilities?.({ filePaths }) ?? []) {
-        capabilities.add(capability);
+      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
+      for (const nodeType of capabilities?.nodeTypes ?? []) {
+        nodeTypes.add(nodeType);
+      }
+      for (const edgeType of capabilities?.edgeTypes ?? []) {
+        edgeTypes.add(edgeType);
       }
     }
 
-    return [...capabilities];
+    return {
+      nodeTypes: [...nodeTypes],
+      edgeTypes: [...edgeTypes],
+    };
   }
 
   get size(): number {
@@ -199,10 +209,10 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     this._coreAnalyzeFileResult = analyzeFileResultProvider;
   }
 
-  setCoreEdgeTypeCapabilitiesProvider(
-    provider: typeof this._coreEdgeTypeCapabilitiesProvider,
+  setCoreGraphScopeCapabilitiesProvider(
+    provider: typeof this._coreGraphScopeCapabilitiesProvider,
   ): void {
-    this._coreEdgeTypeCapabilitiesProvider = provider;
+    this._coreGraphScopeCapabilitiesProvider = provider;
   }
 
   disposeAll(): void {
