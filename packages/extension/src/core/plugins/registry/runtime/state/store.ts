@@ -10,11 +10,11 @@ import {
 import type {
   CoreFileAnalysisResultProvider,
 } from '../../../routing/router/analyze';
-import type { GraphEdgeKind } from '../../../types/contracts';
+import type { IPluginGraphScopeCapabilities } from '../../../types/contracts';
 
-export type CoreEdgeTypeCapabilitiesProvider = (
+export type CoreGraphScopeCapabilitiesProvider = (
   filePaths?: readonly string[],
-) => readonly GraphEdgeKind[];
+) => Required<IPluginGraphScopeCapabilities>;
 
 export interface IPluginInfoV2 extends IPluginInfo {
   api?: CodeGraphyAPIImpl;
@@ -30,7 +30,7 @@ export abstract class PluginRegistryState {
   protected _workspaceReadyNotified = false;
   protected _webviewReadyNotified = false;
   protected _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
-  protected _coreEdgeTypeCapabilitiesProvider?: CoreEdgeTypeCapabilitiesProvider;
+  protected _coreGraphScopeCapabilitiesProvider?: CoreGraphScopeCapabilitiesProvider;
 
   protected _replayReadinessForPlugin(info: IPluginInfoV2): void {
     lifecycleReplayReadiness(

@@ -71,6 +71,43 @@ test('publish mode publishes every target-specific VSIX target', () => {
   );
 });
 
+test('resolves the VSIX target that matches the host native runtime', () => {
+  assert.equal(
+    releaseCore.resolveHostVsixTarget({ platform: 'linux', arch: 'x64' }),
+    'linux-x64',
+  );
+  assert.equal(
+    releaseCore.resolveHostVsixTarget({ platform: 'darwin', arch: 'arm64' }),
+    'darwin-arm64',
+  );
+  assert.equal(
+    releaseCore.resolveHostVsixTarget({ platform: 'win32', arch: 'x64' }),
+    'win32-x64',
+  );
+});
+
+test('rejects cross-target VSIX packaging for host-built Tree-sitter bindings', () => {
+  assert.throws(
+    () => releaseCore.resolveCoreVsixTargets({
+      requestedTargets: ['linux-x64', 'darwin-arm64'],
+      platform: 'darwin',
+      arch: 'arm64',
+    }),
+    /Cannot package darwin-arm64 host-built native runtime for linux-x64 VSIX/,
+  );
+});
+
+test('allows one explicitly requested target when it matches the host native runtime', () => {
+  assert.deepEqual(
+    releaseCore.resolveCoreVsixTargets({
+      requestedTargets: ['linux-x64'],
+      platform: 'linux',
+      arch: 'x64',
+    }),
+    ['linux-x64'],
+  );
+});
+
 test('stages the target LadybugDB native binary before packaging a target VSIX', () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-release-native-'));
   const stageDir = path.join(tempDir, 'stage');

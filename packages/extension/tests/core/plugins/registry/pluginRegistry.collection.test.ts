@@ -121,7 +121,10 @@ describe('PluginRegistry collection', () => {
           defaultVisible: true,
         },
       ],
-      contributeEdgeTypeCapabilities: () => ['load'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['plugin:codegraphy.gdscript:symbol:godot-class-name'],
+        edgeTypes: ['load'],
+      }),
     }));
     registry.register(createMockPlugin({
       id: 'typescript',
@@ -142,7 +145,10 @@ describe('PluginRegistry collection', () => {
           defaultVisible: true,
         },
       ],
-      contributeEdgeTypeCapabilities: () => ['plugin:route'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['route'],
+        edgeTypes: ['plugin:route'],
+      }),
     }));
 
     expect(registry.listNodeTypes(disabledPlugins)).toEqual([
@@ -161,26 +167,27 @@ describe('PluginRegistry collection', () => {
         defaultVisible: true,
       },
     ]);
-    expect(registry.listEdgeTypeCapabilities(['game/player.gd', 'src/app.ts'], disabledPlugins)).toEqual([
-      'plugin:route',
-    ]);
+    expect(registry.listGraphScopeCapabilities(['game/player.gd', 'src/app.ts'], disabledPlugins)).toEqual({
+      nodeTypes: ['route'],
+      edgeTypes: ['plugin:route'],
+    });
   });
 
-  it('includes core edge type capabilities without treating core analysis as a plugin', () => {
+  it('includes core graph scope capabilities without treating core analysis as a plugin', () => {
     const registry = createConfiguredRegistry();
-    registry.setCoreEdgeTypeCapabilitiesProvider((filePaths) => {
+    registry.setCoreGraphScopeCapabilitiesProvider((filePaths) => {
       expect(filePaths).toEqual(['src/app.cpp']);
-      return ['import', 'call', 'contains', 'inherit', 'overrides'];
+      return {
+        nodeTypes: ['symbol:function', 'symbol:class'],
+        edgeTypes: ['import', 'call', 'contains', 'inherit', 'overrides'],
+      };
     });
 
     expect(registry.list()).toEqual([]);
-    expect(registry.listEdgeTypeCapabilities(['src/app.cpp'])).toEqual([
-      'import',
-      'call',
-      'contains',
-      'inherit',
-      'overrides',
-    ]);
+    expect(registry.listGraphScopeCapabilities(['src/app.cpp'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:class'],
+      edgeTypes: ['import', 'call', 'contains', 'inherit', 'overrides'],
+    });
   });
 
   it('excludes disabled plugins from file analysis', async () => {
@@ -332,55 +339,89 @@ describe('PluginRegistry collection', () => {
     ]);
   });
 
-  it('returns edge capabilities from plugins that support workspace files', () => {
+  it('returns graph scope capabilities from plugins that support workspace files', () => {
     const registry = createConfiguredRegistry();
     const readTypeScriptCapabilities = vi.fn(() =>
-      ['import', 'plugin:route'] as Array<'import' | 'plugin:route'>
+      ({
+        nodeTypes: ['symbol:function', 'symbol:interface'],
+        edgeTypes: ['import', 'plugin:route'],
+      }) as const
     );
     registry.register(createMockPlugin({
       id: 'typescript',
       supportedExtensions: ['.ts'],
-      contributeEdgeTypeCapabilities: readTypeScriptCapabilities,
+      contributeGraphScopeCapabilities: readTypeScriptCapabilities,
     }));
     registry.register(createMockPlugin({
       id: 'python',
       supportedExtensions: ['.py'],
-      contributeEdgeTypeCapabilities: () => ['reference'],
+      contributeGraphScopeCapabilities: () => ({ edgeTypes: ['reference'] }),
     }));
     registry.register(createMockPlugin({
       id: 'wildcard',
       supportedExtensions: ['*'],
-      contributeEdgeTypeCapabilities: () => ['plugin:test'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['plugin:test-node'],
+        edgeTypes: ['plugin:test'],
+      }),
     }));
 
-    expect(registry.listEdgeTypeCapabilities(['src/app.ts'])).toEqual([
-      'import',
-      'plugin:route',
-      'plugin:test',
-    ]);
+    expect(registry.listGraphScopeCapabilities(['src/app.ts'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:interface', 'plugin:test-node'],
+      edgeTypes: ['import', 'plugin:route', 'plugin:test'],
+    });
     expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
       filePaths: ['src/app.ts'],
     });
   });
 
-  it('deduplicates edge capabilities when multiple applicable plugins declare the same kind', () => {
+  it('passes only each plugin applicable workspace files into graph scope capabilities', () => {
+    const registry = createConfiguredRegistry();
+    const readTypeScriptCapabilities = vi.fn(() => ({ edgeTypes: ['import'] }) as const);
+    const readSvelteCapabilities = vi.fn(() => ({ edgeTypes: ['call'] }) as const);
+
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: readTypeScriptCapabilities,
+    }));
+    registry.register(createMockPlugin({
+      id: 'svelte',
+      supportedExtensions: ['.svelte'],
+      contributeGraphScopeCapabilities: readSvelteCapabilities,
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts', 'src/App.svelte'])).toEqual({
+      nodeTypes: [],
+      edgeTypes: ['import', 'call'],
+    });
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({ filePaths: ['src/app.ts'] });
+    expect(readSvelteCapabilities).toHaveBeenCalledWith({ filePaths: ['src/App.svelte'] });
+  });
+
+  it('deduplicates graph scope capabilities when multiple applicable plugins declare the same kind', () => {
     const registry = createConfiguredRegistry();
     registry.register(createMockPlugin({
       id: 'first',
       supportedExtensions: ['.ts'],
-      contributeEdgeTypeCapabilities: () => ['import', 'reference'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function', 'symbol:interface'],
+        edgeTypes: ['import', 'reference'],
+      }),
     }));
     registry.register(createMockPlugin({
       id: 'second',
       supportedExtensions: ['.tsx'],
-      contributeEdgeTypeCapabilities: () => ['import', 'call'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function', 'symbol:class'],
+        edgeTypes: ['import', 'call'],
+      }),
     }));
 
-    expect(registry.listEdgeTypeCapabilities(['src/app.ts', 'src/view.tsx'])).toEqual([
-      'import',
-      'reference',
-      'call',
-    ]);
+    expect(registry.listGraphScopeCapabilities(['src/app.ts', 'src/view.tsx'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:interface', 'symbol:class'],
+      edgeTypes: ['import', 'reference', 'call'],
+    });
   });
 
   it('disposes every registered plugin through unregister', () => {

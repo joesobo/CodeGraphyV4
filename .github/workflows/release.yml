@@ -30,11 +30,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  release-npm:
+    if: ${{ inputs.target != 'vsce' && inputs.target != 'core' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      VSCE_PAT: ${{ secrets.VSCE_PAT }}
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
@@ -57,4 +57,51 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Publish selected target
-        run: pnpm run release:publish ${{ inputs.target }}
+        shell: bash
+        run: |
+          if [[ "${{ inputs.target }}" == "all" ]]; then
+            pnpm run release:publish npm
+          else
+            pnpm run release:publish "${{ inputs.target }}"
+          fi
+
+  release-vsix:
+    if: ${{ inputs.target == 'all' || inputs.target == 'vsce' || inputs.target == 'core' }}
+    name: Release VSIX / ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            os: ubuntu-latest
+          - target: darwin-arm64
+            os: macos-14
+          - target: win32-x64
+            os: windows-latest
+    env:
+      CODEGRAPHY_VSIX_TARGETS: ${{ matrix.target }}
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish VSIX target
+        run: pnpm run release:publish vsce

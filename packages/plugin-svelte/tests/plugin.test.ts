@@ -16,6 +16,9 @@ describe('createSveltePlugin', () => {
     });
     expect(plugin.contributeNodeTypes).toBeUndefined();
     expect(plugin.contributeEdgeTypes).toBeUndefined();
+    expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
+      edgeTypes: ['import', 'type-import', 'call'],
+    });
   });
 
   it('analyzes Svelte component files', () => {

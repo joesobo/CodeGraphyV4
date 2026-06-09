@@ -13,5 +13,6 @@ export function isGraphNodeTypeLike(definition: unknown): definition is GraphNod
     && typeof record.defaultColor === 'string'
     && typeof record.defaultVisible === 'boolean'
     && (record.description === undefined || isGraphTypeDescriptionLike(record.description))
+    && (record.parentId === undefined || typeof record.parentId === 'string')
   );
 }

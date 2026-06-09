@@ -72,7 +72,9 @@ describe('createMarkdownPlugin', () => {
       expect(plugin.sources).toEqual([
         { id: 'wikilink', name: 'Wikilinks', description: '[[Note Name]], ![[embed]]' },
       ]);
-      expect(plugin.contributeEdgeTypeCapabilities?.()).toEqual(['reference']);
+      expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
+        edgeTypes: ['reference'],
+      });
     });
 
     it('exposes file color mappings for md and mdx', () => {

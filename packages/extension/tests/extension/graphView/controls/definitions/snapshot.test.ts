@@ -3,6 +3,204 @@ import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphContr
 import { captureGraphControlsSnapshot } from '../../../../../src/extension/graphView/controls/send';
 
 describe('extension/graphView/controls/snapshot', () => {
+  it('shows only structural node types before node capabilities are known', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(_key: string, defaultValue: T): T => defaultValue,
+      },
+      {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [],
+      { nodeTypes: [], edgeTypes: [] },
+    );
+
+    expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+    ]);
+    expect(snapshot.nodeVisibility).toEqual({
+      file: true,
+      folder: false,
+      package: false,
+    });
+  });
+
+  it('shows symbol parent rows only when declared child node capabilities are relevant', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'nodeVisibility') {
+            return {
+              symbol: true,
+              'symbol:function': true,
+              'symbol:class': true,
+              'symbol:interface': true,
+              variable: true,
+              'symbol:constant': true,
+            } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/app.c', label: 'app.c', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [],
+      {
+        nodeTypes: ['symbol:function', 'symbol:struct', 'symbol:enum', 'symbol:constant'],
+        edgeTypes: [],
+      },
+    );
+
+    expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+      'symbol',
+      'symbol:function',
+      'symbol:struct',
+      'symbol:enum',
+      'variable',
+      'symbol:constant',
+    ]);
+    expect(snapshot.nodeVisibility).toEqual({
+      file: true,
+      folder: false,
+      package: false,
+      symbol: true,
+      'symbol:function': true,
+      'symbol:struct': false,
+      'symbol:enum': false,
+      variable: true,
+      'symbol:constant': true,
+    });
+  });
+
+  it('preserves hidden node capability settings without showing irrelevant rows', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'nodeVisibility') {
+            return {
+              'symbol:class': true,
+              'symbol:interface': true,
+            } as T;
+          }
+          if (key === 'nodeColors') {
+            return {
+              'symbol:class': '#123456',
+            } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/app.c', label: 'app.c', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [],
+      { nodeTypes: ['symbol:function'], edgeTypes: [] },
+    );
+
+    expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+      'symbol',
+      'symbol:function',
+    ]);
+    expect(snapshot.nodeVisibility).not.toHaveProperty('symbol:class');
+    expect(snapshot.nodeVisibility).not.toHaveProperty('symbol:interface');
+    expect(snapshot.nodeColors).not.toHaveProperty('symbol:class');
+  });
+
+  it('shows only C-relevant symbol and variable child rows from C node capabilities', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'nodeVisibility') {
+            return {
+              symbol: true,
+              'symbol:function': true,
+              'symbol:prototype': true,
+              'symbol:type': true,
+              variable: true,
+              'symbol:constant': true,
+              'symbol:global': true,
+              'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
+            } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/main.c', label: 'main.c', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [],
+      {
+        nodeTypes: [
+          'symbol:function',
+          'symbol:prototype',
+          'symbol:struct',
+          'symbol:union',
+          'symbol:enum',
+          'symbol:typedef',
+          'symbol:global',
+        ],
+        edgeTypes: ['include', 'call', 'contains'],
+      },
+    );
+
+    expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+      'symbol',
+      'symbol:function',
+      'symbol:prototype',
+      'symbol:struct',
+      'symbol:union',
+      'symbol:enum',
+      'symbol:typedef',
+      'variable',
+      'symbol:global',
+    ]);
+    expect(snapshot.nodeVisibility).toEqual({
+      file: true,
+      folder: false,
+      package: false,
+      symbol: true,
+      'symbol:function': true,
+      'symbol:prototype': true,
+      'symbol:struct': false,
+      'symbol:union': false,
+      'symbol:enum': false,
+      'symbol:typedef': false,
+      variable: true,
+      'symbol:global': true,
+    });
+    expect(snapshot.nodeVisibility).not.toHaveProperty('symbol:type');
+    expect(snapshot.nodeVisibility).not.toHaveProperty('symbol:constant');
+    expect(snapshot.nodeVisibility).not.toHaveProperty('plugin:codegraphy.gdscript:symbol:godot-class-name');
+  });
+
   it('advertises edge capabilities even when the current graph has no matching edges', () => {
     const snapshot = captureGraphControlsSnapshot(
       {
@@ -28,7 +226,7 @@ describe('extension/graphView/controls/snapshot', () => {
           defaultVisible: true,
         },
       ],
-      ['import', 'plugin:route'],
+      { nodeTypes: [], edgeTypes: ['import', 'plugin:route'] },
     );
 
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
@@ -131,27 +329,13 @@ describe('extension/graphView/controls/snapshot', () => {
           },
         },
       ],
-      ['plugin:route'],
+      { nodeTypes: ['route'], edgeTypes: ['plugin:route'] },
     );
 
     expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
       'file',
       'folder',
       'package',
-      'symbol',
-      'symbol:function',
-      'symbol:prototype',
-      'symbol:class',
-      'symbol:interface',
-      'symbol:type',
-      'symbol:struct',
-      'symbol:union',
-      'symbol:enum',
-      'symbol:typedef',
-      'variable',
-      'symbol:constant',
-      'symbol:global',
-      'plugin:codegraphy.gdscript:symbol:godot-class-name',
       'route',
     ]);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
@@ -169,40 +353,12 @@ describe('extension/graphView/controls/snapshot', () => {
       file: '#ABCDEF',
       folder: '#A1A1AA',
       package: '#F59E0B',
-      symbol: '#7C3AED',
-      'symbol:function': '#8B5CF6',
-      'symbol:prototype': '#A78BFA',
-      'symbol:class': '#3B82F6',
-      'symbol:interface': '#06B6D4',
-      'symbol:type': '#EC4899',
-      'symbol:struct': '#0EA5E9',
-      'symbol:union': '#14B8A6',
-      'symbol:enum': '#F59E0B',
-      'symbol:typedef': '#F472B6',
-      variable: '#14B8A6',
-      'symbol:constant': '#22C55E',
-      'symbol:global': '#0D9488',
-      'plugin:codegraphy.gdscript:symbol:godot-class-name': '#478CBF',
       route: '#123456',
     });
     expect(snapshot.nodeVisibility).toEqual({
       file: true,
       folder: true,
       package: false,
-      symbol: false,
-      'symbol:function': false,
-      'symbol:prototype': false,
-      'symbol:class': false,
-      'symbol:interface': false,
-      'symbol:type': false,
-      'symbol:struct': false,
-      'symbol:union': false,
-      'symbol:enum': false,
-      'symbol:typedef': false,
-      variable: false,
-      'symbol:constant': false,
-      'symbol:global': false,
-      'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
       route: false,
     });
     expect(snapshot.edgeVisibility).toEqual(expect.objectContaining({
@@ -232,6 +388,7 @@ describe('extension/graphView/controls/snapshot', () => {
       },
       [],
       [],
+      { nodeTypes: [], edgeTypes: [] },
     );
 
     expect(snapshot.nodeColors.file).toBe('#A1A1AA');
@@ -239,20 +396,6 @@ describe('extension/graphView/controls/snapshot', () => {
       file: true,
       folder: false,
       package: false,
-      symbol: false,
-      'symbol:function': false,
-      'symbol:prototype': false,
-      'symbol:class': false,
-      'symbol:interface': false,
-      'symbol:type': false,
-      'symbol:struct': false,
-      'symbol:union': false,
-      'symbol:enum': false,
-      'symbol:typedef': false,
-      variable: false,
-      'symbol:constant': false,
-      'symbol:global': false,
-      'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
     });
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toContain('import');
     expect(snapshot.edgeVisibility.import).toBe(true);
