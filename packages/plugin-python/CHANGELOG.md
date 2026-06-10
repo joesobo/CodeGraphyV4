@@ -1,5 +1,12 @@
 # @codegraphy-dev/plugin-python
 
+## 2.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316), [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12)]:
+  - @codegraphy-dev/plugin-api@5.0.0
+
 ## 2.1.4
 
 ### Patch Changes

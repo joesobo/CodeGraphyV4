@@ -1,5 +1,17 @@
 # @codegraphy-dev/plugin-api
 
+## 5.0.0
+
+### Major Changes
+
+- [#259](https://github.com/joesobo/CodeGraphyV4/pull/259) [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12) Thanks [@joesobo](https://github.com/joesobo)! - Replace the edge-only capability hook with Graph Scope capabilities.
+
+  Plugins must replace `contributeEdgeTypeCapabilities(context)` with `contributeGraphScopeCapabilities(context)` and return `{ nodeTypes, edgeTypes }`. Capability declarations are still independent from emitted graph records, but now cover both Node Type and Edge Type controls.
+
+### Patch Changes
+
+- [#257](https://github.com/joesobo/CodeGraphyV4/pull/257) [`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316) Thanks [@joesobo](https://github.com/joesobo)! - Refresh the C example workspace as a tiny logger with C-native include edges plus prototype, struct, union, enum, typedef, function, and global graph coverage. Include relationships now stay edge-only for C-family analysis, enabled symbols can remain visible as orphans until Contains is shown, variable child toggles now activate the Variable parent without also activating Symbol, and graph scope node toggle bursts now coalesce settings updates and graph redraws instead of lagging through every intermediate state.
+
 ## 4.0.0
 
 ### Major Changes
