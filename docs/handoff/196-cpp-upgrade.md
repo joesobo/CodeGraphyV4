@@ -107,3 +107,38 @@
   - `ssh codegraphy-mini '... git fetch origin codex/196-cpp-upgrade:refs/remotes/origin/codex/196-cpp-upgrade ... git worktree add -B codex/196-cpp-upgrade /Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4 origin/codex/196-cpp-upgrade ...'`
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T20:59:23Z - Orchestrator Preliminary C++ Support Scan
+
+- Source: Orchestrator code scan before grill question 2.
+- Target: current C++ support baseline.
+- Result: identified current analyzer and acceptance-test shape; no files changed outside this handoff.
+- Current acceptance shape:
+  - `packages/extension/tests/acceptance/specs/c-example.md` has two scenarios: file-level edges and symbol-scope coverage.
+  - `packages/extension/tests/acceptance/specs/cpp-example.md` has one mixed scenario covering file nodes, Imports, Class/Contains, Inherits, Overrides, and Calls.
+- Current C++ example shape:
+  - `examples/example-cpp` is a tiny `Widget`/`Runner` project with `CMakeLists.txt`, `src/app.cpp`, `src/lib/widget.hpp`, and `src/lib/widget.cpp`.
+- Current analyzer support observed from source and tests:
+  - Local `#include` relationships.
+  - File-level Calls edges to declarations/types found in included headers.
+  - Inherits edges from C++ base clauses, including structs, templates, and multiple bases.
+  - Overrides edges from methods marked `override`, resolved against included inherited declarations.
+  - Symbol extraction for functions, methods, classes, structs, unions, enums, namespaces, and type aliases.
+- Current Graph Scope capability advertisement observed:
+  - C++ edge capabilities: Imports, Calls, Contains, Inherits, Overrides.
+  - C++ node capabilities: Function, Class, Struct, Enum, Type.
+  - Method symbols are covered by the Function node definition.
+  - Union symbols are emitted by the analyzer but are not currently advertised for C++ capabilities.
+  - Namespace symbols are emitted by the analyzer but there is no obvious default Namespace node type in the shared symbol definitions.
+- Commands run:
+  - `fd -a 'cpp|cfamily|c-example|cpp-example' ...`
+  - `sed -n ... packages/extension/tests/acceptance/specs/c-example.md`
+  - `sed -n ... packages/extension/tests/acceptance/specs/cpp-example.md`
+  - `sed -n ... packages/core/src/treeSitter/runtime/analyzeCpp/file.ts`
+  - `sed -n ... packages/core/src/treeSitter/runtime/analyzeCFamily/...`
+  - `sed -n ... packages/core/tests/treeSitter/cpp/analyze.test.ts`
+  - `sed -n ... packages/core/src/treeSitter/runtime/capabilities.ts`
+  - `sed -n ... packages/core/src/graphControls/defaults/symbolNodeTypes.ts`
+  - `sed -n ... packages/core/src/graphControls/defaults/variableNodeTypes.ts`
+- Next route:
+  - Continue grill on how broad the C++ support matrix should be before dispatching Specifier.
