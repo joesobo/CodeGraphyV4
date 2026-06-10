@@ -7,7 +7,7 @@
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
-- Draft PR: pending setup commit and push
+- Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` reachable, but base checkout needs fetch/worktree preparation before heavy checks.
 - Next route after human gate: Specifier.
 
@@ -21,7 +21,7 @@
 
 - `AGENTS.md`, `CONTEXT.md`, `docs/agents/codegraphy-loop.md`, and role loop contracts were read before setup.
 - Trello API credentials are present.
-- Trello card `pSAys9YA` is open, titled `C++ Upgrade`, and was in `Todo` during setup verification.
+- Trello card `pSAys9YA` is open, titled `C++ Upgrade`, was in `Todo` during setup verification, and was moved to `In Progress` after the draft PR was created.
 - PR #261 `Add CodeGraphy loop contracts` is merged and its checks were green before this pilot branch was created.
 - Protected checkout `/Users/poleski/Desktop/Projects/CodeGraphyV4` remained on `main` after worktree creation.
 - No existing `196` branch, worktree, PR, or handoff file was found before setup.
@@ -54,3 +54,20 @@
   - Local Graph Cache state was `fresh`.
 - Open blocker:
   - Human grill gate must resolve the first scope decision before Specifier dispatch or implementation work.
+
+### 2026-06-10T20:28:32Z - Orchestrator Draft PR And Trello Sync
+
+- Source: Orchestrator.
+- Target: Trello and draft PR setup.
+- Result: draft PR opened and Trello moved to `In Progress`.
+- PR: https://github.com/joesobo/CodeGraphyV4/pull/263
+- Trello update:
+  - Card moved to `In Progress`.
+  - Comment added with PR, branch, worktree, handoff path, and current human gate.
+- Files changed: this handoff file.
+- Commands run:
+  - `gh pr create --draft --title "Trello 196: C++ Upgrade" ...`
+  - `curl -s -X PUT ... /1/cards/pSAys9YA ... idList=69af003346ade5ee06fa328c`
+  - `curl -s -X POST ... /1/cards/pSAys9YA/actions/comments ...`
+- Open blocker:
+  - Human grill gate still active before Specifier dispatch or implementation work.
