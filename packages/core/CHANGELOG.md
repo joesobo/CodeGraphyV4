@@ -1,5 +1,23 @@
 # @codegraphy-dev/core
 
+## 1.5.0
+
+### Minor Changes
+
+- [#259](https://github.com/joesobo/CodeGraphyV4/pull/259) [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12) Thanks [@joesobo](https://github.com/joesobo)! - Hide impossible Graph Scope Node Type toggles for the current workspace.
+
+  Graph Scope now uses active analyzer and plugin capabilities to decide which Symbol and Variable child toggles are relevant across every indexed file in the workspace. File, Folder, and Package stay visible as structural Node Types. Symbol and Variable are shown only when they have at least one relevant child toggle.
+
+### Patch Changes
+
+- [#257](https://github.com/joesobo/CodeGraphyV4/pull/257) [`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316) Thanks [@joesobo](https://github.com/joesobo)! - Refresh the C example workspace as a tiny logger with C-native include edges plus prototype, struct, union, enum, typedef, function, and global graph coverage. Include relationships now stay edge-only for C-family analysis, enabled symbols can remain visible as orphans until Contains is shown, variable child toggles now activate the Variable parent without also activating Symbol, and graph scope node toggle bursts now coalesce settings updates and graph redraws instead of lagging through every intermediate state.
+
+- [#258](https://github.com/joesobo/CodeGraphyV4/pull/258) [`20b9b40`](https://github.com/joesobo/CodeGraphyV4/commit/20b9b40e970f1fc15e3c0bdd7a72531ce8ca0844) Thanks [@joesobo](https://github.com/joesobo)! - Model Tree-sitter as core analysis instead of a plugin so hover and plugin UI metadata only show real plugin contributions.
+
+- Updated dependencies [[`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316), [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12), [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12)]:
+  - @codegraphy-dev/plugin-api@5.0.0
+  - @codegraphy-dev/plugin-markdown@1.1.5
+
 ## 1.4.0
 
 ### Minor Changes

@@ -1,5 +1,30 @@
 # @codegraphy-dev/extension
 
+## 5.9.0
+
+### Minor Changes
+
+- [#259](https://github.com/joesobo/CodeGraphyV4/pull/259) [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12) Thanks [@joesobo](https://github.com/joesobo)! - Hide impossible Graph Scope Node Type toggles for the current workspace.
+
+  Graph Scope now uses active analyzer and plugin capabilities to decide which Symbol and Variable child toggles are relevant across every indexed file in the workspace. File, Folder, and Package stay visible as structural Node Types. Symbol and Variable are shown only when they have at least one relevant child toggle.
+
+- [#254](https://github.com/joesobo/CodeGraphyV4/pull/254) [`b436e82`](https://github.com/joesobo/CodeGraphyV4/commit/b436e82fd64f3bb5bf425257a91ff9cece80f57b) Thanks [@joesobo](https://github.com/joesobo)! - Show the current workspace name as the Graph view title.
+
+  The Graph view now shows the current workspace name in VS Code's view title, falling back to Graph when no workspace is open.
+
+### Patch Changes
+
+- [#257](https://github.com/joesobo/CodeGraphyV4/pull/257) [`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316) Thanks [@joesobo](https://github.com/joesobo)! - Refresh the C example workspace as a tiny logger with C-native include edges plus prototype, struct, union, enum, typedef, function, and global graph coverage. Include relationships now stay edge-only for C-family analysis, enabled symbols can remain visible as orphans until Contains is shown, variable child toggles now activate the Variable parent without also activating Symbol, and graph scope node toggle bursts now coalesce settings updates and graph redraws instead of lagging through every intermediate state.
+
+- [#256](https://github.com/joesobo/CodeGraphyV4/pull/256) [`9e4e999`](https://github.com/joesobo/CodeGraphyV4/commit/9e4e999162886c990f2e1aeea49c3057dabd09a0) Thanks [@joesobo](https://github.com/joesobo)! - Add a JavaScript example workspace with acceptance coverage for imports, calls, and inheritance.
+
+- [#258](https://github.com/joesobo/CodeGraphyV4/pull/258) [`20b9b40`](https://github.com/joesobo/CodeGraphyV4/commit/20b9b40e970f1fc15e3c0bdd7a72531ce8ca0844) Thanks [@joesobo](https://github.com/joesobo)! - Model Tree-sitter as core analysis instead of a plugin so hover and plugin UI metadata only show real plugin contributions.
+
+- [#260](https://github.com/joesobo/CodeGraphyV4/pull/260) [`16be6af`](https://github.com/joesobo/CodeGraphyV4/commit/16be6afb9dc4d9ad6fe77c1ae992233c2e93537f) Thanks [@joesobo](https://github.com/joesobo)! - Fix Linux VSIX packaging so native Tree-sitter bindings are built and validated for the target platform instead of copying the release host's binary.
+
+- Updated dependencies [[`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316), [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12), [`20b9b40`](https://github.com/joesobo/CodeGraphyV4/commit/20b9b40e970f1fc15e3c0bdd7a72531ce8ca0844)]:
+  - @codegraphy-dev/core@1.5.0
+
 ## 5.8.0
 
 ### Minor Changes
