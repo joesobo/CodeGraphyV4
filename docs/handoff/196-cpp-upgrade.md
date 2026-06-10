@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Specifier returned baseline/research/concept proposal; human decision gate active; no implementation started.
+- State: Task Queue Runner concept selected; Core capability/scope decisions continuing; no implementation started.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Human decision gate, then Specifier plan draft after concept/Core-upgrade selection.
+- Next route: Human decision gate for C++ symbol/variable/Core-upgrade scope, then Specifier plan draft.
 
 ## Human Gates
 
@@ -387,3 +387,22 @@
   - `gh pr edit 263 --body ...`
 - Next route:
   - Human decision gate.
+
+### 2026-06-10T21:51:39Z - Orchestrator Human Concept And Scope Decisions
+
+- Source: user decision after Specifier handoff.
+- Target: selected concept and Graph Scope/Core capability direction.
+- Result: Task Queue Runner selected; several Graph Scope decisions recorded.
+- User decisions:
+  - Select `Task Queue Runner` as the C++ example concept.
+  - The example should actually work, not only exist as illustrative source.
+  - Includes should be represented as an edge for C++.
+  - Class should be allowed for C++.
+  - Do not reuse/alias other languages' generic `Type` behavior for C++ `using` aliases.
+  - Add a new C++-visible `Using` toggle for `using Name = Type` aliases.
+  - Hide `Type` for the C++ example if the only planned use is `using` aliases.
+- Parser research basis:
+  - `tree-sitter-cpp` package version observed on `codegraphy-mini`: `0.23.4`.
+  - Its `src/node-types.json` exposes C++ AST node types for classes, structs, unions, enums, namespaces, aliases, declarations, declarators, parameters, fields, structured bindings, lambda captures, and related constructs.
+- Open gate:
+  - User requested a list of symbols and variables supported by Tree-sitter C++ before finalizing the Core upgrade set.
