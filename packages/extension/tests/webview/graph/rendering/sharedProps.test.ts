@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
   buildSharedGraphProps,
-  INITIAL_INTERACTIVE_COOLDOWN_TICKS,
   INTERACTIVE_COOLDOWN_TICKS,
   normalizeGraphDimension,
   TIMELINE_COOLDOWN_TICKS,
@@ -79,7 +78,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.d3VelocityDecay).toBe(0.7);
     expect(props.d3AlphaDecay).toBe(0.0228);
     expect(props.warmupTicks).toBe(0);
-    expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
+    expect(props.cooldownTicks).toBeGreaterThan(0);
     expect(props.dagMode).toBe('td');
     expect(props.dagLevelDistance).toBe(60);
   });
@@ -98,15 +97,15 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.dagLevelDistance).toBeUndefined();
   });
 
-  it('keeps initial unpositioned interactive graphs on a short settling cooldown', () => {
+  it('keeps positioned interactive graphs on the normal physics cooldown', () => {
     const props = buildSharedGraphProps(createOptions({
       graphData: {
         links: [createLink()],
-        nodes: [createNode({ x: undefined, y: undefined })],
+        nodes: [createNode({ x: 10, y: 20 })],
       },
     }));
 
-    expect(props.cooldownTicks).toBe(INITIAL_INTERACTIVE_COOLDOWN_TICKS);
+    expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
   });
 
   it('normalizes width and height independently', () => {

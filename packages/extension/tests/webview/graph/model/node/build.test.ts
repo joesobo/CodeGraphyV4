@@ -103,7 +103,7 @@ describe('graph/model/node/build', () => {
     expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
   });
 
-  it('seeds newly visible connected nodes near positioned neighbors outside timeline mode', () => {
+  it('leaves newly visible connected nodes unpositioned outside timeline mode', () => {
     const nodes = buildGraphNodes({
       nodes: [
         { id: 'src/logger/logger.c', label: 'logger.c', color: '#93C5FD' },
@@ -131,8 +131,8 @@ describe('graph/model/node/build', () => {
 
     expect(nodes.find(node => node.id === 'src/logger/logger.c')).toMatchObject({ x: 100, y: 200 });
     expect(nodes.find(node => node.id === 'src/logger/logger.c#logger_write:function')).toMatchObject({
-      x: 110,
-      y: 210,
+      x: undefined,
+      y: undefined,
     });
   });
 
