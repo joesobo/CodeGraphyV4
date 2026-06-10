@@ -1,11 +1,15 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   EdgeTypeRows,
   NodeTypeRows,
   resolveScopeRowClassName,
 } from '../../../src/webview/components/graphScope/rows';
+import {
+  flushGraphScopeVisibilityMessages,
+  resetGraphScopeVisibilityMessageQueueForTests,
+} from '../../../src/webview/components/graphScope/messages';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 
 const sentMessages: unknown[] = [];
@@ -25,6 +29,11 @@ function scopeSwatch(container: HTMLElement, label: string): HTMLElement {
 describe('graph scope rows', () => {
   beforeEach(() => {
     sentMessages.length = 0;
+    resetGraphScopeVisibilityMessageQueueForTests();
+  });
+
+  afterEach(() => {
+    resetGraphScopeVisibilityMessageQueueForTests();
   });
 
   it('keeps disabled scope rows visibly muted without muting enabled rows', () => {
@@ -51,10 +60,11 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'Folder')).not.toHaveClass('opacity-65');
 
     fireEvent.click(screen.getByLabelText('Toggle File'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'file', visible: false },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { nodeVisibility: { file: false } },
     });
   });
 
@@ -140,10 +150,11 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'References')).toHaveClass('opacity-65');
 
     fireEvent.click(screen.getByLabelText('Toggle References'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_EDGE_VISIBILITY',
-      payload: { edgeKind: 'reference', visible: true },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { edgeVisibility: { reference: true } },
     });
   });
 

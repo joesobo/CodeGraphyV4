@@ -1,7 +1,11 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import GraphScopePanel from '../../../src/webview/components/graphScope/Panel';
+import {
+  flushGraphScopeVisibilityMessages,
+  resetGraphScopeVisibilityMessageQueueForTests,
+} from '../../../src/webview/components/graphScope/messages';
 import { graphStore } from '../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
@@ -37,7 +41,12 @@ function setStoreState() {
 describe('GraphScopePanel', () => {
   beforeEach(() => {
     sentMessages.length = 0;
+    resetGraphScopeVisibilityMessageQueueForTests();
     setStoreState();
+  });
+
+  afterEach(() => {
+    resetGraphScopeVisibilityMessageQueueForTests();
   });
 
   it('returns null when closed', () => {
@@ -56,10 +65,11 @@ describe('GraphScopePanel', () => {
     expect(screen.getByText('Folder')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Toggle File'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'file', visible: false },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { nodeVisibility: { file: false } },
     });
   });
 
@@ -69,6 +79,20 @@ describe('GraphScopePanel', () => {
     fireEvent.click(screen.getByLabelText('Toggle File'));
 
     expect(graphStore.getState().nodeVisibility.file).toBe(false);
+  });
+
+  it('flushes pending scope messages when closed', () => {
+    const { rerender } = render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle File'));
+    expect(sentMessages).toEqual([]);
+
+    rerender(<GraphScopePanel isOpen={false} onClose={vi.fn()} />);
+
+    expect(sentMessages).toEqual([{
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { nodeVisibility: { file: false } },
+    }]);
   });
 
   it('optimistically enables parent gates when a variable child is toggled on', () => {
@@ -81,9 +105,10 @@ describe('GraphScopePanel', () => {
       variable: true,
       'symbol:global': true,
     }));
+    flushGraphScopeVisibilityMessages();
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'symbol:global', visible: true },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { nodeVisibility: { 'symbol:global': true } },
     });
   });
 
@@ -113,10 +138,11 @@ describe('GraphScopePanel', () => {
     render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByLabelText('Toggle Symbol'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toEqual([{
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'symbol', visible: false },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { nodeVisibility: { symbol: false } },
     }]);
   });
 
@@ -131,11 +157,12 @@ describe('GraphScopePanel', () => {
     expect(screen.getByText('References')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Toggle References'));
+    flushGraphScopeVisibilityMessages();
 
     expect(graphStore.getState().edgeVisibility.reference).toBe(true);
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_EDGE_VISIBILITY',
-      payload: { edgeKind: 'reference', visible: true },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { edgeVisibility: { reference: true } },
     });
   });
 
@@ -210,10 +237,11 @@ describe('GraphScopePanel', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Edge Types' }));
     fireEvent.click(screen.getByLabelText('Toggle Nests'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_EDGE_VISIBILITY',
-      payload: { edgeKind: 'nests', visible: true },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { edgeVisibility: { nests: true } },
     });
   });
 

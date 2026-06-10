@@ -118,10 +118,84 @@ async function applySymbolDependentVisibilityUpdate(
   return true;
 }
 
+function applyNodeVisibilityEntry(
+  nodeVisibility: Record<string, boolean>,
+  nodeType: string,
+  visible: boolean,
+): Record<string, boolean> {
+  if (!visible) {
+    return {
+      ...nodeVisibility,
+      [nodeType]: false,
+    };
+  }
+
+  return {
+    ...nodeVisibility,
+    ...(nodeType === 'symbol' ? {} : getParentNodeTypeUpdates(nodeType)),
+    [nodeType]: true,
+  };
+}
+
+async function applyGraphControlVisibilityBatch(
+  message: Extract<WebviewToExtensionMessage, { type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH' }>,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  const nodeVisibilityUpdates = message.payload.nodeVisibility ?? {};
+  const edgeVisibilityUpdates = message.payload.edgeVisibility ?? {};
+  const hasNodeUpdates = Object.keys(nodeVisibilityUpdates).length > 0;
+  const hasEdgeUpdates = Object.keys(edgeVisibilityUpdates).length > 0;
+
+  if (!hasNodeUpdates && !hasEdgeUpdates) {
+    return true;
+  }
+
+  if (hasNodeUpdates) {
+    const previousVisibility = pruneGraphControlConfigMap(
+      'nodeVisibility',
+      handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+    );
+    let nodeVisibility = previousVisibility;
+
+    for (const [nodeType, visible] of Object.entries(nodeVisibilityUpdates)) {
+      nodeVisibility = applyNodeVisibilityEntry(nodeVisibility, nodeType, visible);
+    }
+
+    const prunedNodeVisibility = pruneGraphControlConfigMap('nodeVisibility', nodeVisibility);
+    await handlers.updateConfig('nodeVisibility', prunedNodeVisibility);
+    handlers.recomputeGroups();
+    handlers.sendGroupsUpdated();
+
+    if (
+      !requiresSymbolAnalysisCacheTier(previousVisibility)
+      && requiresSymbolAnalysisCacheTier(prunedNodeVisibility)
+    ) {
+      await handlers.reprocessGraphScope();
+    }
+  }
+
+  if (hasEdgeUpdates) {
+    await handlers.updateConfig(
+      'edgeVisibility',
+      pruneGraphControlConfigMap('edgeVisibility', {
+        ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
+        ...edgeVisibilityUpdates,
+      }),
+    );
+  }
+
+  handlers.sendGraphControls();
+  return true;
+}
+
 export async function applyGraphControlMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
+  if (message.type === 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH') {
+    return applyGraphControlVisibilityBatch(message, handlers);
+  }
+
   if (message.type === 'UPDATE_NODE_VISIBILITY') {
     if (message.payload.nodeType === 'symbol') {
       return applySymbolVisibilityUpdate(message.payload.visible, handlers);

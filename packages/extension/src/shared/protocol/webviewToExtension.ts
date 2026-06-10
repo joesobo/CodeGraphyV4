@@ -78,6 +78,13 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }
+  | {
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH';
+      payload: {
+        nodeVisibility?: Record<string, boolean>;
+        edgeVisibility?: Record<string, boolean>;
+      };
+    }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'UPDATE_VERBOSE_DIAGNOSTICS'; payload: { verboseDiagnostics: boolean } }
   | { type: 'INDEX_REPO' }
