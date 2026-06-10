@@ -54,18 +54,14 @@ Measurable progress includes:
 - proposed scenarios becoming more testable
 - human questions becoming concrete decisions
 
-After three consecutive flat or regressing passes, stop and request human
-review.
-
 ## Handoff Entry
 
 The Specifier handoff entry must include:
 
 - result: skipped, needs human acceptance, or acceptance contract ready
 - acceptance draft or approved contract
-- files read
 - files changed, if any
 - human approval status
 - open questions
 
-Do not recommend the next role. Return to the orchestrator.
+Return to the orchestrator.
