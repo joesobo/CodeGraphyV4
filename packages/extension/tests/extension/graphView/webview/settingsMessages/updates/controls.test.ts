@@ -63,6 +63,66 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 
+  it('applies batched visibility updates with one publish cycle', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, 'symbol:function': false, folder: true } as T;
+        }
+        if (key === 'edgeVisibility') {
+          return { include: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        {
+          type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+          payload: {
+            nodeVisibility: {
+              'symbol:function': true,
+              folder: false,
+            },
+            edgeVisibility: {
+              include: true,
+            },
+          },
+        },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', {
+      symbol: true,
+      'symbol:function': true,
+      folder: false,
+    });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', {
+      include: true,
+    });
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+  });
+
+  it('ignores empty batched visibility updates', async () => {
+    const handlers = createHandlers();
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH', payload: {} },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(handlers.sendGraphControls).not.toHaveBeenCalled();
+  });
+
   it('prunes stale symbol control keys when graph control settings are written', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {

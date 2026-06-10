@@ -5,11 +5,14 @@ import type {
   IGraphTypeDescription,
 } from '../../../shared/graphControls/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults/edgeTypes';
-import { postMessage } from '../../vscodeApi';
 import { cn } from '../ui/cn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
 import { Switch } from '../ui/switch';
 import { graphStore } from '../../store/state';
+import {
+  scheduleEdgeVisibilityMessage,
+  scheduleNodeVisibilityMessage,
+} from './messages';
 
 const FOLDER_NODE_TYPE = 'folder';
 
@@ -222,10 +225,7 @@ export function NodeTypeRows({
             label={nodeType.label}
             onCheckedChange={(visible) => {
               updateNodeVisibilityOptimistically(nodeTypes, nodeType.id, visible);
-              postMessage({
-                type: 'UPDATE_NODE_VISIBILITY',
-                payload: { nodeType: nodeType.id, visible },
-              });
+              scheduleNodeVisibilityMessage(nodeType.id, visible);
             }}
           />
         );
@@ -265,10 +265,7 @@ export function EdgeTypeRows({
             label={edgeType.label}
             onCheckedChange={(visible) => {
               updateEdgeVisibilityOptimistically(edgeType.id, visible);
-              postMessage({
-                type: 'UPDATE_EDGE_VISIBILITY',
-                payload: { edgeKind: edgeType.id, visible },
-              });
+              scheduleEdgeVisibilityMessage(edgeType.id, visible);
             }}
           />
         );
