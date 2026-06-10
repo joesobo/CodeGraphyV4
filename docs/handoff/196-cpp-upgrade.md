@@ -262,3 +262,20 @@
   - Heavy VS Code baseline checks should run on `codegraphy-mini` from the verified remote worktree.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:24:18Z - Orchestrator Grill Decision 9
+
+- Source: user answer to grill question 9.
+- Target: criteria for new generic Graph Scope control proposals.
+- Result: Specifier may propose new generic Graph Scope controls when Tree-sitter C++ can reliably find the construct.
+- User decision:
+  - Allow proposals for new generic Graph Scope controls.
+  - A C++ construct is eligible for Core consideration when the `tree-sitter-cpp` package can find it from the AST.
+  - If Tree-sitter C++ can find the construct, the user is happy for Core to support showing it in CodeGraphy.
+  - The analysis should still stay Tree-sitter-backed rather than compiler, build-system, macro expansion, template instantiation, or project-aware semantic inference.
+- Routing implication:
+  - Specifier should not reject a potential Graph Scope control only because C++ is the first language needing it.
+  - Specifier should separate "Tree-sitter can find this AST construct" from "requires C++ compiler semantics" in the support matrix.
+  - Coder may implement new Core controls only after the chosen plan identifies them as Tree-sitter-backed reasonable Core upgrades and red-first tests define the gap.
+- Next route:
+  - Continue grill before dispatching Specifier.
