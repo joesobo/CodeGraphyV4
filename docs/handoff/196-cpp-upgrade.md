@@ -204,3 +204,23 @@
   - Specifier owns drafting the local plan; Orchestrator only records this decision now.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:14:33Z - Orchestrator Grill Decision 6
+
+- Source: user answer to grill question 6.
+- Target: Graph Scope capability gaps and acceptance phrasing.
+- Result: Graph Scope capability gaps belong in the C++ support matrix, but they should be framed through the visible user controls and graph changes.
+- Clarification:
+  - "Emitted but not advertised" was internal shorthand.
+  - User-facing phrasing should be: when `examples/example-cpp` is open, Graph Scope shows specific Node Type and Edge Type toggles, and toggling each one visibly changes the graph through nodes or connections.
+  - For example, if C++ source supports a symbol kind in analysis but the C++ workspace does not show a matching Graph Scope node toggle, that should be described as a visible capability/control gap.
+- User decision:
+  - The Specifier should include Graph Scope capability gaps in the support matrix.
+  - The support matrix should list the visible node toggles and edge toggles expected for the C++ example workspace.
+  - The acceptance contract should prove toggles actually affect the graph by checking resulting nodes and/or connections.
+  - Avoid relying on internal analyzer/source wording in user-facing acceptance prose.
+- Routing implication:
+  - Specifier should propose expected Graph Scope Node Type and Edge Type controls as part of each candidate's support matrix.
+  - Coder should prove any Graph Scope capability fix with visible behavior, not just analyzer output.
+- Next route:
+  - Continue grill before dispatching Specifier.
