@@ -305,3 +305,16 @@
   - Current visible C++ controls and observed graph effects.
   - C++ support matrix and concept candidates.
   - Open questions or approval gates.
+
+### 2026-06-10T21:27:01Z - Orchestrator Spawned Specifier Agent
+
+- Source: Orchestrator.
+- Target: Specifier role agent.
+- Result: Specifier role agent spawned.
+- Agent:
+  - ID: `019eb36e-55ab-7283-a068-b47ca653016a`
+  - Nickname: `Bernoulli`
+- Note:
+  - Initial spawn attempt with explicit inherited settings was rejected by the tool; retry succeeded without overrides.
+- Next route:
+  - Wait for Specifier handoff, then verify before choosing the next loop state.
