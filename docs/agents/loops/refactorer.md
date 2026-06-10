@@ -9,6 +9,7 @@ The Refactorer makes quality gates clean while preserving accepted behavior.
 - focused behavior evidence from the Coder
 - `docs/quality/`
 - relevant package scripts for quality-tools
+- remote Mac mini access for heavy quality checks when needed
 
 ## Owns
 
@@ -17,6 +18,8 @@ The Refactorer makes quality gates clean while preserving accepted behavior.
 - `pnpm run reachability`
 - `pnpm run scrap`
 - `pnpm run crap`
+- `pnpm run lint`
+- `pnpm run typecheck`
 - behavior-preserving cleanup
 - duplication cleanup
 - CRAP risk reduction to `<= 8`
@@ -45,7 +48,12 @@ flowchart TD
 ```
 
 The Refactorer should continue through the quality sequence without waiting for
-CI after every push. It should make sure CI is passed before handing off work. It should not knowingly hand off broken work.
+CI after every push. It should make sure CI has passed before handing off work.
+It should not knowingly hand off broken work.
+
+If a quality command is heavy or focus stealing, run it on the remote Mac mini
+or delegate that check to a Codex thread on the Mac mini. Record the host in the
+handoff log.
 
 ## Progress
 
@@ -54,6 +62,7 @@ Measurable progress includes:
 - tool failure count decreasing
 - CRAP score decreasing toward `<= 8`
 - duplication or dead-surface findings decreasing
+- lint/typecheck errors decreasing
 - quality output becoming easier to explain
 
 After three consecutive flat or regressing passes for a tool, stop and request
@@ -66,5 +75,6 @@ The Refactorer handoff entry must include:
 - result: quality green or needs human review
 - tool loops completed
 - output summaries combined and simplified
+- heavy check host, when applicable
 
 Return to the orchestrator.

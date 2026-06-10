@@ -12,6 +12,7 @@ for human review.
 - `docs/quality/mutation.md`
 - `docs/plans/2026-05-21-mutation-seed-cache.md`
 - `scripts/mutation/`
+- remote Mac mini access for Playwright and mutation checks
 
 ## Owns
 
@@ -35,54 +36,26 @@ for human review.
 
 ```mermaid
 flowchart TD
-    Start["Architect starts"] --> Sites["Mutation site loop"]
-    Sites --> Survivors["Mutation survivor loop"]
-    Survivors --> Review["Architecture review loop"]
-    Review --> Release["Release and CI loop"]
-    Release --> Done["Return handoff to orchestrator"]
-```
-
-## Mutation Site Loop
-
-```mermaid
-flowchart TD
-    Run["Inspect mutation site counts"] --> Clean{"Touched files <= 50 sites?"}
-    Clean -->|No| Fix["Split or refactor mutation hot spots"]
-    Fix --> Run
-    Clean -->|Yes| Done["Site loop clean"]
-```
-
-## Mutation Survivor Loop
-
-```mermaid
-flowchart TD
-    Plan["Choose scoped mutation strategy"] --> Run["Run scoped mutation using cache when possible"]
-    Run --> Clean{"Score >= 90 and survivors handled?"}
-    Clean -->|No| Fix["Kill survivors with tests or hardening"]
-    Fix --> Run
-    Clean -->|Yes| Done["Survivor loop clean"]
-```
-
-## Architecture Review Loop
-
-```mermaid
-flowchart TD
-    Review["Run architecture and PR review"] --> Clean{"Owned P1 and P2 findings clear?"}
-    Clean -->|No| Fix["Fix owned review findings"]
-    Fix --> Review
-    Clean -->|Yes| Done["Review loop clean"]
-```
-
-## Release And CI Loop
-
-```mermaid
-flowchart TD
-    Hygiene["Update docs changesets PR body handoff summary"] --> Push["Push branch"]
+    Start["Architect starts"] --> SiteRun["Inspect mutation site counts"]
+    SiteRun --> SiteClean{"Touched files <= 50 sites?"}
+    SiteClean -->|No| SiteFix["Split or refactor mutation hot spots"]
+    SiteFix --> SiteRun
+    SiteClean -->|Yes| MutPlan["Choose scoped mutation strategy"]
+    MutPlan --> MutRun["Run scoped mutation using cache when possible"]
+    MutRun --> MutClean{"Score >= 90 and survivors handled?"}
+    MutClean -->|No| MutFix["Kill survivors with tests or hardening"]
+    MutFix --> MutRun
+    MutClean -->|Yes| ReviewRun["Run architecture and PR review"]
+    ReviewRun --> ReviewClean{"Owned P1 and P2 findings clear?"}
+    ReviewClean -->|No| ReviewFix["Fix owned review findings"]
+    ReviewFix --> ReviewRun
+    ReviewClean -->|Yes| Hygiene["Update docs changesets PR body handoff summary"]
+    Hygiene --> Push["Push branch"]
     Push --> CI["Verify CI"]
-    CI --> Clean{"Release hygiene and CI clean?"}
-    Clean -->|No| Fix["Fix owned release or CI issues"]
-    Fix --> Hygiene
-    Clean -->|Yes| Done["Release loop clean"]
+    CI --> ReleaseClean{"Release hygiene and CI clean?"}
+    ReleaseClean -->|No| ReleaseFix["Fix owned release or CI issues"]
+    ReleaseFix --> Hygiene
+    ReleaseClean -->|Yes| Done["Return handoff to orchestrator"]
 ```
 
 ## Mutation Operating Rules
@@ -90,6 +63,8 @@ flowchart TD
 Mutation is expensive. A full run can take hours. The Architect must:
 
 - read `docs/quality/mutation.md` before running mutation commands
+- run mutation and VS Code Playwright checks on the remote Mac mini unless the
+  user explicitly approves a local run
 - prefer existing reports and seed cache before broad mutation
 - prefer file or directory scoped mutation during development
 - use package scoped mutation only when the touched scope requires it
@@ -118,6 +93,7 @@ The Architect handoff entry must include:
 - result: ready for human review or needs human review
 - mutation site counts for touched files
 - mutation score and survivor summary
+- heavy check host
 - architecture review findings
 - P1 and P2 fixes made
 - docs and changeset decision

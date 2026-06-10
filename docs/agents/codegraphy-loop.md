@@ -19,6 +19,21 @@ CodeGraphy uses these four roles:
 
 Each role has its own loop contract under `docs/agents/loops/`.
 
+## Heavy Process Host
+
+Heavy focus stealing work should run on the remote Mac mini, not the local
+MacBook, unless the user explicitly approves a local run.
+
+This includes:
+
+- VS Code Playwright acceptance runs
+- mutation runs
+- other long running quality commands that monopolize CPU or steal focus
+
+When a role needs one of these checks, it should run it from a CodeGraphy
+worktree on the Mac mini or delegate that exact check to a Codex thread on the
+Mac mini. Record the host used in the handoff log.
+
 ## State Machine
 
 ```mermaid
@@ -86,6 +101,7 @@ The handoff file must include:
 - Trello card or source request
 - PR number after one exists
 - branch and worktree
+- host used for heavy checks
 - current state
 - human gates
 - chronological event log
@@ -120,8 +136,23 @@ architect: cover graph scope preset mutation survivors
 ```
 
 The Coder commits after focused behavior evidence is green.
+The Coder also verifies lint and typecheck before handoff.
 The Refactorer commits and pushes after each quality tool or logical quality group is clean.
 The Architect may commit and push multiple times while mutation, review, release hygiene, and CI converge.
+
+## Examples And Docs
+
+Examples belong to the role that owns the reason they are needed:
+
+- Coder writes or updates example source files when examples are part of the
+  behavior under implementation or acceptance evidence.
+- Architect updates release-facing docs, README prose, screenshots, changesets,
+  PR body notes, and final example documentation polish.
+- Specifier may draft example expectations when they are part of the acceptance
+  contract, but human-owned acceptance spec Markdown still requires approval.
+
+The orchestrator decides which role receives example work by reading the card,
+handoff log, and current PR state.
 
 ## Ready For Human Review
 
