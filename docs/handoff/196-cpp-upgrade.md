@@ -224,3 +224,18 @@
   - Coder should prove any Graph Scope capability fix with visible behavior, not just analyzer output.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:16:42Z - Orchestrator Grill Decision 7
+
+- Source: user answer to grill question 7.
+- Target: visible C++ Graph Scope toggle coverage.
+- Result: every visible C++ Graph Scope toggle for the example workspace must be demonstrated by the chosen example and acceptance contract.
+- User decision:
+  - The chosen C++ example should demonstrate every visible C++ Node Type and Edge Type toggle.
+  - If a visible toggle cannot naturally change the graph in the chosen example, that is evidence to adjust the example, adjust the capability/control, or mark the behavior out of scope for this card.
+  - Do not leave visible C++ toggles as decorative controls with no acceptance proof.
+- Routing implication:
+  - Specifier should list all expected visible C++ node/edge toggles and map each one to at least one observable graph change.
+  - The acceptance draft should verify each visible C++ toggle through nodes or connections.
+- Next route:
+  - Continue grill before dispatching Specifier.
