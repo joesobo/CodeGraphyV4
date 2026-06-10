@@ -9,13 +9,16 @@
   "showOrphans": true,
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-markdown"
+      "id": "codegraphy.markdown",
+      "enabled": true
     },
     {
-      "package": "@codegraphy-dev/plugin-typescript"
+      "id": "@codegraphy-dev/plugin-typescript",
+      "enabled": true
     },
     {
-      "package": "@codegraphy-dev/plugin-godot"
+      "id": "@codegraphy-dev/plugin-godot",
+      "enabled": true
     }
   ],
   "pluginData": {},
@@ -25,13 +28,17 @@
     "package": "#F59E0B",
     "symbol": "#7C3AED",
     "symbol:function": "#8B5CF6",
+    "symbol:prototype": "#A78BFA",
     "symbol:class": "#3B82F6",
     "symbol:interface": "#06B6D4",
     "symbol:type": "#EC4899",
     "symbol:struct": "#0EA5E9",
+    "symbol:union": "#14B8A6",
     "symbol:enum": "#F59E0B",
+    "symbol:typedef": "#F472B6",
     "variable": "#14B8A6",
     "symbol:constant": "#22C55E",
+    "symbol:global": "#0D9488",
     "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
   },
   "nodeVisibility": {
@@ -40,27 +47,32 @@
     "package": false,
     "symbol": false,
     "symbol:function": false,
+    "symbol:prototype": false,
     "symbol:class": false,
     "symbol:interface": false,
     "symbol:type": false,
     "symbol:struct": false,
+    "symbol:union": false,
     "symbol:enum": false,
+    "symbol:typedef": false,
     "variable": false,
     "symbol:constant": false,
+    "symbol:global": false,
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
+    "include": true,
     "import": true,
     "reference": true,
-    "call": true,
-    "test": true,
-    "reexport": true,
-    "type-import": false,
+    "call": false,
+    "type-import": true,
     "inherit": true,
     "load": true,
     "nests": true,
-    "contains": true,
-    "overrides": true
+    "contains": false,
+    "overrides": true,
+    "test": true,
+    "reexport": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
@@ -283,8 +295,8 @@
   "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
-    "repelForce": 18,
-    "linkDistance": 70,
+    "repelForce": 17,
+    "linkDistance": 110,
     "linkForce": 1,
     "damping": 0.7,
     "centerForce": 0.1,
