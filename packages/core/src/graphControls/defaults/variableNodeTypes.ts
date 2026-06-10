@@ -6,6 +6,7 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     label: 'Variable',
     defaultColor: '#14B8A6',
     defaultVisible: false,
+    parentId: 'symbol',
   },
   {
     id: 'symbol:constant',
@@ -13,6 +14,15 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#22C55E',
     defaultVisible: false,
     parentId: 'variable',
+    matchSymbolKinds: ['constant'],
+  },
+  {
+    id: 'symbol:global',
+    label: 'Global',
+    defaultColor: '#0D9488',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['global'],
   },
   {
     id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',

@@ -5,10 +5,14 @@ import type {
   IGraphTypeDescription,
 } from '../../../shared/graphControls/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults/edgeTypes';
-import { postMessage } from '../../vscodeApi';
 import { cn } from '../ui/cn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
 import { Switch } from '../ui/switch';
+import { graphStore } from '../../store/state';
+import {
+  scheduleEdgeVisibilityMessage,
+  scheduleNodeVisibilityMessage,
+} from './messages';
 
 const FOLDER_NODE_TYPE = 'folder';
 
@@ -17,7 +21,7 @@ interface ScopeRowProps {
   enabled: boolean;
   label: string;
   onCheckedChange: (visible: boolean) => void;
-  nested?: boolean;
+  depth?: number;
   description?: IGraphTypeDescription;
 }
 
@@ -32,6 +36,47 @@ interface EdgeTypeRowsProps {
   edgeTypes: IGraphEdgeTypeDefinition[];
   edgeVisibility: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
+}
+
+function getParentNodeTypeUpdates(
+  nodeTypes: IGraphNodeTypeDefinition[],
+  nodeTypeId: string,
+): Record<string, boolean> {
+  const nodeTypeById = new Map(nodeTypes.map((nodeType) => [nodeType.id, nodeType]));
+  const updates: Record<string, boolean> = {};
+  let current = nodeTypeById.get(nodeTypeId);
+
+  while (current?.parentId) {
+    updates[current.parentId] = true;
+    current = nodeTypeById.get(current.parentId);
+  }
+
+  return updates;
+}
+
+function updateNodeVisibilityOptimistically(
+  nodeTypes: IGraphNodeTypeDefinition[],
+  nodeTypeId: string,
+  visible: boolean,
+): void {
+  const parentUpdates = visible ? getParentNodeTypeUpdates(nodeTypes, nodeTypeId) : {};
+
+  graphStore.setState((state) => ({
+    nodeVisibility: {
+      ...state.nodeVisibility,
+      ...parentUpdates,
+      [nodeTypeId]: visible,
+    },
+  }));
+}
+
+function updateEdgeVisibilityOptimistically(edgeKind: string, visible: boolean): void {
+  graphStore.setState((state) => ({
+    edgeVisibility: {
+      ...state.edgeVisibility,
+      [edgeKind]: visible,
+    },
+  }));
 }
 
 export function resolveScopeRowClassName(enabled: boolean): string {
@@ -84,10 +129,10 @@ function ScopeRowTooltipContent({
 
 function ScopeRow({
   color,
+  depth = 0,
   description,
   enabled,
   label,
-  nested = false,
   onCheckedChange,
 }: ScopeRowProps): React.ReactElement {
   const row = (
@@ -95,9 +140,11 @@ function ScopeRow({
       className={cn(
         resolveScopeRowClassName(enabled),
         description && 'cursor-pointer',
-        nested && 'pl-7',
+        depth === 1 && 'pl-7',
+        depth >= 2 && 'pl-11',
       )}
       data-scope-row={label}
+      data-scope-depth={depth}
     >
       {color ? (
         <span
@@ -141,10 +188,31 @@ export function NodeTypeRows({
   nodeTypes,
   nodeVisibility,
 }: NodeTypeRowsProps): React.ReactElement {
+  const nodeTypeById = new Map(nodeTypes.map((nodeType) => [nodeType.id, nodeType]));
+  const parentIds = new Set(
+    nodeTypes
+      .map((nodeType) => nodeType.parentId)
+      .filter((parentId): parentId is string => Boolean(parentId)),
+  );
+  const getDepth = (nodeType: IGraphNodeTypeDefinition): number => {
+    let depth = 0;
+    let current = nodeType;
+    while (current.parentId) {
+      depth += 1;
+      const parent = nodeTypeById.get(current.parentId);
+      if (!parent) {
+        break;
+      }
+      current = parent;
+    }
+    return depth;
+  };
+
   return (
     <>
       {nodeTypes.map((nodeType) => {
-        const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
+        const isParentRow = parentIds.has(nodeType.id);
+        const color = isParentRow ? undefined : nodeColors[nodeType.id] ?? nodeType.defaultColor;
         const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
         return (
@@ -152,14 +220,12 @@ export function NodeTypeRows({
             key={nodeType.id}
             color={color}
             description={nodeType.description}
+            depth={getDepth(nodeType)}
             enabled={enabled}
             label={nodeType.label}
-            nested={Boolean(nodeType.parentId)}
             onCheckedChange={(visible) => {
-              postMessage({
-                type: 'UPDATE_NODE_VISIBILITY',
-                payload: { nodeType: nodeType.id, visible },
-              });
+              updateNodeVisibilityOptimistically(nodeTypes, nodeType.id, visible);
+              scheduleNodeVisibilityMessage(nodeType.id, visible);
             }}
           />
         );
@@ -198,10 +264,8 @@ export function EdgeTypeRows({
             enabled={enabled}
             label={edgeType.label}
             onCheckedChange={(visible) => {
-              postMessage({
-                type: 'UPDATE_EDGE_VISIBILITY',
-                payload: { edgeKind: edgeType.id, visible },
-              });
+              updateEdgeVisibilityOptimistically(edgeType.id, visible);
+              scheduleEdgeVisibilityMessage(edgeType.id, visible);
             }}
           />
         );

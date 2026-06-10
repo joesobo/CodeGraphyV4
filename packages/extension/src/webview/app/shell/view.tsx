@@ -20,6 +20,7 @@ import { getShellGraphCountState } from './counts';
 import { useFilterPopoverState } from './filterPopover';
 import { useVisibleGraphStateResponse } from './visibleGraphResponse';
 import { useShellVisibleGraphs } from './visibleGraphs';
+import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets, resetPluginAssets } = usePluginManager();
@@ -76,16 +77,10 @@ export default function App(): React.ReactElement {
     legends,
   );
   const effectiveShowOrphans = graphHasIndex ? showOrphans : true;
-  const { countBaseData, filterVisibleData } = useShellVisibleGraphs({
-    activeFilterPatterns,
-    edgeVisibility,
-    graphData,
-    graphEdgeTypes,
-    graphNodeTypes,
-    nodeVisibility,
-    searchOptions,
-    showOrphans: effectiveShowOrphans,
-  });
+  const {
+    edgeVisibility: renderEdgeVisibility,
+    nodeVisibility: renderNodeVisibility,
+  } = useDebouncedGraphScopeVisibility(nodeVisibility, edgeVisibility);
   const {
     filteredData,
     coloredData,
@@ -97,14 +92,26 @@ export default function App(): React.ReactElement {
     searchOptions,
     legends,
     nodeColors,
-    nodeVisibility,
-    edgeVisibility,
+    renderNodeVisibility,
+    renderEdgeVisibility,
     graphEdgeTypes,
     edgeDecorations,
     activeFilterPatterns,
     effectiveShowOrphans,
     graphNodeTypes,
   );
+  const { countBaseData, filterVisibleData } = useShellVisibleGraphs({
+    activeFilterPatterns,
+    edgeVisibility: renderEdgeVisibility,
+    filteredData,
+    graphData,
+    graphEdgeTypes,
+    graphNodeTypes,
+    nodeVisibility: renderNodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans: effectiveShowOrphans,
+  });
 
   const {
     closeRulePrompt,

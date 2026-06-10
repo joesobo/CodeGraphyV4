@@ -20,6 +20,17 @@ function createPlugin(id: string): IPlugin {
   } as IPlugin;
 }
 
+const SYMBOL_NODE_VISIBILITY = {
+  symbol: true,
+  'symbol:function': true,
+};
+
+const VARIABLE_NODE_VISIBILITY = {
+  symbol: true,
+  variable: true,
+  'symbol:constant': true,
+};
+
 describe('core/graph/data', () => {
 
     it('projects analysis symbols as symbol nodes contained by their files', () => {
@@ -55,7 +66,7 @@ describe('core/graph/data', () => {
         churnCounts: {
           'src/player.gd': 4,
         },
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.godot'),
       });
@@ -183,7 +194,7 @@ describe('core/graph/data', () => {
         churnCounts: {
           'generated/virtual.ts': 7,
         },
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.typescript'),
       });
@@ -251,7 +262,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.godot'),
       });
@@ -312,7 +323,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => undefined,
       });
@@ -368,7 +379,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
       });
@@ -475,7 +486,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.typescript'),
       });
@@ -510,7 +521,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: VARIABLE_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.godot'),
       });
@@ -577,7 +588,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
-        nodeVisibility: { symbol: true },
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
       });

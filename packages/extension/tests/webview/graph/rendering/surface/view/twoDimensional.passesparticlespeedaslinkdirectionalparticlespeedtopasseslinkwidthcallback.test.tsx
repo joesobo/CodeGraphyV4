@@ -72,10 +72,10 @@ describe('Surface2d', () => {
 
 
 
-    it('sets autoPauseRedraw to false', () => {
+    it('auto-pauses redraw by default', () => {
       render(<Surface2d {...createDefaultProps()} />);
       const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.autoPauseRedraw).toBe(false);
+      expect(props.autoPauseRedraw).toBe(true);
     });
 
 

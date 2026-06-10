@@ -8,6 +8,11 @@ import { getFileExtension, type TreeSitterLanguageKind } from './languages/catal
 
 type TreeSitterCapabilityLanguageKind = TreeSitterLanguageKind | 'pascal';
 
+interface TreeSitterCapabilityContext {
+  hasCSource: boolean;
+  hasObjectiveCSource: boolean;
+}
+
 const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
   'import',
   'reference',
@@ -17,7 +22,7 @@ const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
 ] as const satisfies readonly GraphEdgeKind[];
 
 const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
-  'c': ['import', 'call'],
+  'c': ['include', 'call', 'contains'],
   cpp: ['import', 'call', 'contains', 'inherit', 'overrides'],
   csharp: ['import', 'reference', 'call', 'inherit'],
   dart: ['import', 'call', 'inherit'],
@@ -40,7 +45,15 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly GraphEdgeKind[]>;
 
 const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {
-  'c': ['symbol:function', 'symbol:struct', 'symbol:enum', 'symbol:type'],
+  'c': [
+    'symbol:function',
+    'symbol:prototype',
+    'symbol:struct',
+    'symbol:union',
+    'symbol:enum',
+    'symbol:typedef',
+    'symbol:global',
+  ],
   cpp: ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:enum', 'symbol:type'],
   csharp: ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
   dart: ['symbol:function', 'symbol:class', 'symbol:enum'],
@@ -70,9 +83,10 @@ export function listTreeSitterEdgeTypeCapabilities(
   }
 
   const capabilities = new Set<GraphEdgeKind>();
+  const context = createTreeSitterCapabilityContext(filePaths);
 
   for (const filePath of filePaths) {
-    for (const capability of readTreeSitterLanguageCapabilities(filePath)) {
+    for (const capability of readTreeSitterLanguageCapabilities(filePath, context)) {
       capabilities.add(capability);
     }
   }
@@ -97,9 +111,10 @@ export function listTreeSitterNodeTypeCapabilities(
   }
 
   const capabilities = new Set<NodeType>();
+  const context = createTreeSitterCapabilityContext(filePaths);
 
   for (const filePath of filePaths) {
-    for (const capability of readTreeSitterLanguageNodeTypeCapabilities(filePath)) {
+    for (const capability of readTreeSitterLanguageNodeTypeCapabilities(filePath, context)) {
       capabilities.add(capability);
     }
   }
@@ -107,14 +122,38 @@ export function listTreeSitterNodeTypeCapabilities(
   return [...capabilities];
 }
 
-function readTreeSitterLanguageCapabilities(filePath: string): readonly GraphEdgeKind[] {
+function createTreeSitterCapabilityContext(filePaths: readonly string[]): TreeSitterCapabilityContext {
+  const extensions = new Set(filePaths.map(getFileExtension));
+  return {
+    hasCSource: extensions.has('.c'),
+    hasObjectiveCSource: extensions.has('.m') || extensions.has('.mm'),
+  };
+}
+
+function readTreeSitterLanguageCapabilities(
+  filePath: string,
+  context: TreeSitterCapabilityContext,
+): readonly GraphEdgeKind[] {
+  const extension = getFileExtension(filePath);
+  if (extension === '.h' && context.hasObjectiveCSource && !context.hasCSource) {
+    return TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE.objectiveC;
+  }
+
   const languageKind = getTreeSitterCapabilityLanguageKind(filePath);
   return languageKind
     ? TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE[languageKind]
     : [];
 }
 
-function readTreeSitterLanguageNodeTypeCapabilities(filePath: string): readonly NodeType[] {
+function readTreeSitterLanguageNodeTypeCapabilities(
+  filePath: string,
+  context: TreeSitterCapabilityContext,
+): readonly NodeType[] {
+  const extension = getFileExtension(filePath);
+  if (extension === '.h' && context.hasObjectiveCSource && !context.hasCSource) {
+    return TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE.objectiveC;
+  }
+
   const languageKind = getTreeSitterCapabilityLanguageKind(filePath);
   return languageKind
     ? TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE[languageKind]

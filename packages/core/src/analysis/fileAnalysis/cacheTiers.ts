@@ -2,6 +2,7 @@ import type {
   IAnalysisRelation,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
+import { CORE_GRAPH_NODE_TYPES } from '../../graphControls/defaults/definitions';
 import { readAnalysisSymbolPluginId } from '../../plugins/activityState/analysisFacts';
 
 export const BASELINE_ANALYSIS_CACHE_TIER = 'baseline';
@@ -165,15 +166,39 @@ function isSymbolScopedNodeType(nodeType: string): boolean {
     || (nodeType.startsWith('plugin:') && nodeType.includes(':symbol:'));
 }
 
+const CORE_NODE_TYPE_BY_ID = new Map(CORE_GRAPH_NODE_TYPES.map((definition) => [definition.id, definition]));
+const CORE_PARENT_NODE_TYPE_IDS = new Set(
+  CORE_GRAPH_NODE_TYPES
+    .map((definition) => definition.parentId)
+    .filter((parentId): parentId is string => Boolean(parentId)),
+);
+
+function isLeafSymbolScopedNodeType(nodeType: string): boolean {
+  return isSymbolScopedNodeType(nodeType) && !CORE_PARENT_NODE_TYPE_IDS.has(nodeType);
+}
+
+function hasEnabledParentNodeTypes(
+  nodeType: string,
+  nodeVisibility: Readonly<Record<string, boolean>>,
+): boolean {
+  let current = CORE_NODE_TYPE_BY_ID.get(nodeType);
+  while (current?.parentId) {
+    if (nodeVisibility[current.parentId] !== true) {
+      return false;
+    }
+    current = CORE_NODE_TYPE_BY_ID.get(current.parentId);
+  }
+
+  return true;
+}
+
 export function requiresSymbolAnalysisCacheTier(
   nodeVisibility: Readonly<Record<string, boolean>>,
 ): boolean {
-  if (nodeVisibility.symbol === false) {
-    return false;
-  }
-
   return Object.entries(nodeVisibility).some(([nodeType, visible]) =>
-    visible === true && isSymbolScopedNodeType(nodeType),
+    visible === true
+    && isLeafSymbolScopedNodeType(nodeType)
+    && hasEnabledParentNodeTypes(nodeType, nodeVisibility),
   );
 }
 

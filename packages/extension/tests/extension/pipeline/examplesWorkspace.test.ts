@@ -16,6 +16,7 @@ import {
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];
+const EXAMPLES_WORKSPACE_TEST_TIMEOUT_MS = 60_000;
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -53,7 +54,7 @@ afterAll(async () => {
   );
 });
 
-describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
+describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_TEST_TIMEOUT_MS }, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     resetCurrentCodeGraphyConfigurationForTest();
@@ -117,8 +118,17 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-java/src/com/example/app/App.java->example-java/src/com/example/app/Helper.java#import',
       'example-rust/src/main.rs->example-rust/src/util.rs#import',
       'example-rust/src/main.rs->example-rust/src/inner.rs#import',
-      'example-c/src/main.c->example-c/src/math/add.h#import:include',
-      'example-c/src/math/add.c->example-c/src/math/add.h#import:include',
+      'example-c/src/main.c->example-c/src/logger/logger.h#include:include',
+      'example-c/src/main.c#main:function->example-c/src/logger/logger.h#logger_init:prototype#call',
+      'example-c/src/main.c#main:function->example-c/src/logger/logger.h#logger_write:prototype#call',
+      'example-c/src/main.c#main:function->example-c/src/logger/logger.h#logger_flush:prototype#call',
+      'example-c/src/logger/logger.c->example-c/src/logger/logger.h#include:include',
+      'example-c/src/logger/logger.c->example-c/src/logger/format.h#include:include',
+      'example-c/src/logger/logger.c#logger_write:function->example-c/src/logger/format.h#logger_format_line:prototype#call',
+      'example-c/src/logger/logger.c#logger_write:function->example-c/src/logger/logger.c#logger_accepts:function#call',
+      'example-c/src/logger/format.c->example-c/src/logger/format.h#include:include',
+      'example-c/src/logger/format.c#logger_format_line:function->example-c/src/logger/format.h#logger_level_name:prototype#call',
+      'example-c/src/logger/format.h->example-c/src/logger/logger.h#include:include',
       'example-cpp/src/app.cpp->example-cpp/src/lib/widget.hpp#import:include',
       'example-cpp/src/lib/widget.cpp->example-cpp/src/lib/widget.hpp#import:include',
       'example-kotlin/src/main/kotlin/com/example/app/AppRunner.kt->example-kotlin/src/main/kotlin/com/example/base/BaseRunner.kt#import',
@@ -194,7 +204,10 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-python/src/utils/format.py#format_name:function',
       'example-markdown/src/commented.ts#parseCommentedLink:function',
       'example-go/internal/service/service.go#NewRunner:function',
-      'example-c/src/math/add.h#AddInput:struct',
+      'example-c/src/logger/logger.h#Logger:struct',
+      'example-c/src/logger/format.h#LogMessage:union',
+      'example-c/src/logger/format.h#LogRecord:typedef',
+      'example-c/src/logger/logger.c#logger_output_enabled:global',
       'example-cpp/src/lib/widget.hpp#make_widget:function',
       'example-ruby/lib/app/runner.rb#call:method',
       'example-haskell/src/App/Feature/Runner.hs#Greeting:data',

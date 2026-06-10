@@ -21,7 +21,6 @@ import { useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
 import { useGraphInteractionRuntime } from '../runtime/use/interaction';
 import { useGraphRuntime } from '../runtime/use/state';
-import { isPhysicsGraphReady, selectActivePhysicsGraph } from '../runtime/physicsLifecycle/readiness';
 import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
@@ -149,17 +148,7 @@ export default function Graph({
     timelineActive: viewState.timelineActive,
   });
 
-  const activeGraph = selectActivePhysicsGraph(
-    viewState.graphMode,
-    graphRuntime.renderer.fg2dRef.current,
-    graphRuntime.renderer.fg3dRef.current,
-  );
-
   const handleEngineStop = useGraphAutoFit({
-    fitView: interactions.interactionHandlers.fitView,
-    graphData: graphRuntime.renderer.graphData,
-    graphMode: viewState.graphMode,
-    graphReady: isPhysicsGraphReady(viewState.graphMode, activeGraph),
     handleEngineStop: interactions.handleEngineStop,
   });
 

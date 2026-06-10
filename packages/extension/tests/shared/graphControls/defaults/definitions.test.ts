@@ -13,16 +13,21 @@ describe('shared/graphControls/defaults/definitions', () => {
       'package',
       'symbol',
       'symbol:function',
+      'symbol:prototype',
       'symbol:class',
       'symbol:interface',
       'symbol:type',
       'symbol:struct',
+      'symbol:union',
       'symbol:enum',
+      'symbol:typedef',
       'variable',
       'symbol:constant',
+      'symbol:global',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
     ]);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
+    expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'include')).toBe(true);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'import')).toBe(true);
   });
 });

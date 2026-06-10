@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildMacOSAppActivationScript,
   createVSCodeLaunchArgs,
+  OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS,
   resolveRefocusAppName,
   selectVSCodeTempBaseDir,
   VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
@@ -27,6 +28,10 @@ describe('createVSCodeLaunchArgs', () => {
 
   it('allows twenty seconds for VS Code Playwright readiness waits', () => {
     expect(VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS).toBe(20_000);
+  });
+
+  it('retries opening the graph view through the command palette', () => {
+    expect(OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS).toBe(3);
   });
 
   it('builds a quoted macOS app activation script', () => {

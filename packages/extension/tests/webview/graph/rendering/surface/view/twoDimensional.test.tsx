@@ -107,6 +107,24 @@ describe('Surface2d', () => {
 
 
 
+    it('auto-pauses redraw outside animated particle mode', () => {
+      render(<Surface2d {...createDefaultProps()} />);
+      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
+      expect(props.autoPauseRedraw).toBe(true);
+    });
+
+
+
+    it('keeps redraw active for animated particles', () => {
+      const defaultProps = createDefaultProps();
+      defaultProps.directionMode = 'particles';
+      render(<Surface2d {...defaultProps} />);
+      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
+      expect(props.autoPauseRedraw).toBe(false);
+    });
+
+
+
     it('passes particleSize as linkDirectionalParticleWidth', () => {
       render(<Surface2d {...createDefaultProps()} />);
       const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();

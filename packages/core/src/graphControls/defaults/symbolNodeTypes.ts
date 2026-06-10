@@ -16,11 +16,20 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     matchSymbolKinds: ['function', 'method'],
   },
   {
+    id: 'symbol:prototype',
+    label: 'Prototype',
+    defaultColor: '#A78BFA',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['prototype'],
+  },
+  {
     id: 'symbol:class',
     label: 'Class',
     defaultColor: '#3B82F6',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['class'],
   },
   {
     id: 'symbol:interface',
@@ -28,6 +37,7 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#06B6D4',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['interface'],
   },
   {
     id: 'symbol:type',
@@ -35,6 +45,7 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#EC4899',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['type'],
   },
   {
     id: 'symbol:struct',
@@ -42,6 +53,15 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#0EA5E9',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['struct'],
+  },
+  {
+    id: 'symbol:union',
+    label: 'Union',
+    defaultColor: '#14B8A6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['union'],
   },
   {
     id: 'symbol:enum',
@@ -49,5 +69,14 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#F59E0B',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['enum'],
+  },
+  {
+    id: 'symbol:typedef',
+    label: 'Typedef',
+    defaultColor: '#F472B6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['typedef'],
   },
 ];

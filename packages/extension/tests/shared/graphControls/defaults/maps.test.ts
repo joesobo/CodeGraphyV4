@@ -14,13 +14,17 @@ describe('shared/graphControls/defaults/maps', () => {
       package: false,
       symbol: false,
       'symbol:function': false,
+      'symbol:prototype': false,
       'symbol:class': false,
       'symbol:interface': false,
       'symbol:type': false,
       'symbol:struct': false,
+      'symbol:union': false,
       'symbol:enum': false,
+      'symbol:typedef': false,
       variable: false,
       'symbol:constant': false,
+      'symbol:global': false,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);

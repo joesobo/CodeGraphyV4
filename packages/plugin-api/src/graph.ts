@@ -3,7 +3,7 @@
  * @module @codegraphy-dev/plugin-api/graph
  */
 
-export type CoreNodeType = 'file' | 'folder' | 'package';
+export type CoreNodeType = 'file' | 'folder' | 'package' | 'symbol' | 'variable';
 
 export type NodeType = CoreNodeType | (string & {});
 
@@ -26,6 +26,7 @@ export type GraphNodeShape3D =
 
 export type CoreEdgeKind =
   | 'nests'
+  | 'include'
   | 'import'
   | 'type-import'
   | 'call'

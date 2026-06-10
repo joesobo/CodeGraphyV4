@@ -33,6 +33,31 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     ]);
   });
 
+  it('advertises C includes without advertising imports for C source and header workspaces', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.c',
+      'src/logger/logger.c',
+      'src/logger/logger.h',
+      'src/logger/format.h',
+    ])).toEqual([
+      'include',
+      'call',
+      'contains',
+    ]);
+  });
+
+  it('does not advertise C-only header capabilities for Objective-C workspaces', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'Sources/AppDelegate.m',
+      'Sources/AppDelegate.h',
+      'Sources/Feature/UserCardView.h',
+    ])).toEqual([
+      'import',
+      'call',
+      'inherit',
+    ]);
+  });
+
   it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
     expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
       'symbol:function',
@@ -44,7 +69,15 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
 
   it('advertises only supported Graph Scope rows for emitted language symbol kinds', () => {
     const expectedCapabilitiesByFile = {
-      'src/main.c': ['symbol:function', 'symbol:struct', 'symbol:enum', 'symbol:type'],
+      'src/main.c': [
+        'symbol:function',
+        'symbol:prototype',
+        'symbol:struct',
+        'symbol:union',
+        'symbol:enum',
+        'symbol:typedef',
+        'symbol:global',
+      ],
       'src/main.cpp': ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:enum', 'symbol:type'],
       'src/Program.cs': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
       'lib/app/runner.dart': ['symbol:function', 'symbol:class', 'symbol:enum'],
@@ -69,5 +102,16 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     for (const [filePath, expectedCapabilities] of Object.entries(expectedCapabilitiesByFile)) {
       expect(listTreeSitterNodeTypeCapabilities([filePath]), filePath).toEqual(expectedCapabilities);
     }
+  });
+
+  it('does not advertise C-only header node capabilities for Objective-C workspaces', () => {
+    expect(listTreeSitterNodeTypeCapabilities([
+      'Sources/AppDelegate.m',
+      'Sources/AppDelegate.h',
+      'Sources/Feature/UserCardView.h',
+    ])).toEqual([
+      'symbol:function',
+      'symbol:class',
+    ]);
   });
 });

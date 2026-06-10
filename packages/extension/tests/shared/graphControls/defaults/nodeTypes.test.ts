@@ -47,6 +47,14 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['function', 'method'],
       },
       {
+        id: 'symbol:prototype',
+        label: 'Prototype',
+        defaultColor: '#A78BFA',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['prototype'],
+      },
+      {
         id: 'symbol:class',
         label: 'Class',
         defaultColor: '#3B82F6',
@@ -73,6 +81,15 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#0EA5E9',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['struct'],
+      },
+      {
+        id: 'symbol:union',
+        label: 'Union',
+        defaultColor: '#14B8A6',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['union'],
       },
       {
         id: 'symbol:enum',
@@ -80,12 +97,22 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#F59E0B',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['enum'],
+      },
+      {
+        id: 'symbol:typedef',
+        label: 'Typedef',
+        defaultColor: '#F472B6',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['typedef'],
       },
       {
         id: 'variable',
         label: 'Variable',
         defaultColor: '#14B8A6',
         defaultVisible: false,
+        parentId: 'symbol',
       },
       {
         id: 'symbol:constant',
@@ -93,6 +120,15 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#22C55E',
         defaultVisible: false,
         parentId: 'variable',
+        matchSymbolKinds: ['constant'],
+      },
+      {
+        id: 'symbol:global',
+        label: 'Global',
+        defaultColor: '#0D9488',
+        defaultVisible: false,
+        parentId: 'variable',
+        matchSymbolKinds: ['global'],
       },
       {
         id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
@@ -113,6 +149,12 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
       .toBe('src/components/Button.tsx');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:function')?.description?.examples?.[0]?.code)
       .toBe('function parseSettings() {}');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:prototype')?.description?.examples?.[0]?.code)
+      .toBe('void logger_flush(Logger *logger);');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:global')?.description?.examples?.[0]?.code)
+      .toBe('static int logger_output_enabled = 1;');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol')?.description?.examples).toBeUndefined();
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'variable')?.description?.examples).toBeUndefined();
     expect(CORE_GRAPH_NODE_TYPES).toEqual(createCoreGraphNodeTypes());
   });
 });

@@ -125,7 +125,10 @@ describe('extension/pluginIntegration/typescript', () => {
     const api = activate(currentContext as unknown as vscode.ExtensionContext);
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
-    await getCodeGraphyConfiguration().update('nodeVisibility', { symbol: true });
+    await getCodeGraphyConfiguration().update('nodeVisibility', {
+      symbol: true,
+      'symbol:function': true,
+    });
 
     await internals._analysisMethods._analyzeAndSendData();
 
