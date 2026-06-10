@@ -73,6 +73,16 @@ describe('acceptance graph view panel switches', () => {
 
     expect(switchInRow.click).toHaveBeenCalledTimes(2);
   });
+
+  it('retries enabling an optional present switch until the checked state settles', async () => {
+    const { setPanelSwitchIfPresent } = await import('./acceptance/graphView/steps');
+    const switchInRow = settlingSwitchLocator({ checkedAfterClicks: 2 });
+    const frame = panelFrameForSwitch(switchInRow);
+
+    await setPanelSwitchIfPresent({ graphFrame: frame } as never, 'Type imports', true);
+
+    expect(switchInRow.click).toHaveBeenCalledTimes(2);
+  });
 });
 
 function locatorWithCount(count: number): Locator {
