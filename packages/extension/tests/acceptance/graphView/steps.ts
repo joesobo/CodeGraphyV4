@@ -1325,72 +1325,64 @@ export async function setPanelSwitch(
   label: string,
   enabled: boolean,
 ): Promise<void> {
-  const frame = requireGraphFrame(context);
-  const normalizedLabel = normalizePanelLabel(label);
-  const expected = String(enabled);
-  const switchInRow = await findPanelSwitch(frame, normalizedLabel);
-  const current = await switchInRow.getAttribute('aria-checked');
-
-  if (current !== expected) {
-    await switchInRow.click();
-  }
-
-  if (current !== expected) {
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-      const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
-      if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
-        if (!enabled) {
-          return;
-        }
-
-        await frame.waitForTimeout(150);
-        continue;
-      }
-
-      const checked = await currentSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
-      if (checked === expected) {
-        return;
-      }
-
-      await currentSwitch.click();
-      await frame.waitForTimeout(150);
-    }
-  }
-
-  await expect(await findPanelSwitch(frame, normalizedLabel)).toHaveAttribute('aria-checked', expected);
+  await setPanelSwitchState(context, label, enabled, { requirePresent: true });
 }
 
-async function setPanelSwitchIfPresent(
+export async function setPanelSwitchIfPresent(
   context: GraphAcceptanceContext,
   label: string,
   enabled: boolean,
 ): Promise<void> {
+  await setPanelSwitchState(context, label, enabled, { requirePresent: false });
+}
+
+async function setPanelSwitchState(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+  options: { requirePresent: boolean },
+): Promise<void> {
   const frame = requireGraphFrame(context);
   const normalizedLabel = normalizePanelLabel(label);
-  const switchInRow = await findPanelSwitchIfPresent(frame, normalizedLabel);
+  const expected = String(enabled);
+  const switchInRow = options.requirePresent
+    ? await findPanelSwitch(frame, normalizedLabel)
+    : await findPanelSwitchIfPresent(frame, normalizedLabel);
+
   if (!switchInRow) {
     return;
   }
 
-  const current = await switchInRow.getAttribute('aria-checked');
-
-  if (current !== String(enabled)) {
-    await switchInRow.click();
-  }
-
-  if (!enabled) {
-    await expect.poll(async () => {
-      const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
-      if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
-        return 'false';
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const currentSwitch = attempt === 0
+      ? switchInRow
+      : await findPanelSwitchIfPresent(frame, normalizedLabel);
+    if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+      if (!enabled) {
+        return;
       }
 
-      return await currentSwitch.getAttribute('aria-checked') ?? 'false';
-    }).toBe('false');
-    return;
+      await frame.waitForTimeout(150);
+      continue;
+    }
+
+    const checked = await currentSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
+    if (checked === expected) {
+      return;
+    }
+
+    await currentSwitch.click();
+    await frame.waitForTimeout(150);
   }
 
-  await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
+  await expect.poll(async () => {
+    const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
+    if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+      return enabled ? 'missing' : expected;
+    }
+
+    return await currentSwitch.getAttribute('aria-checked') ?? 'missing';
+  }).toBe(expected);
 }
 
 export async function findPanelSwitchIfPresent(frame: Frame, label: string): Promise<Locator | undefined> {
