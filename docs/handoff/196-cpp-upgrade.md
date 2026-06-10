@@ -239,3 +239,26 @@
   - The acceptance draft should verify each visible C++ toggle through nodes or connections.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:19:40Z - Orchestrator Grill Decision 8
+
+- Source: user answer to grill question 8.
+- Target: Specifier first-pass work order.
+- Result: Specifier should baseline current C++ graph behavior first, then research C++ AST-level gaps.
+- User decision:
+  - Start with a baseline check of current `examples/example-cpp` behavior.
+  - The baseline should record visible Graph Scope Node Type and Edge Type toggles when the C++ example folder is open.
+  - The baseline should record whether toggling each visible control actually changes the graph through nodes or connections.
+  - After the baseline, research C++ support needs around symbols, variables, and edges.
+  - Compare that research against what CodeGraphy supports today.
+  - The research should stay grounded in Tree-sitter AST structure and reasonable Core analysis.
+  - Deep C++ semantics that require compiler, macro, template-instantiation, build-system, or project-aware understanding stay out of Core and belong to future Plugin Analysis.
+- Routing implication:
+  - Specifier first handoff should include:
+    - current visible C++ Graph Scope controls and observed graph effects
+    - C++ support matrix for symbols, variables, and edges
+    - `showcase now`, `reasonable Core upgrade`, and `out of scope` buckets
+    - 2-3 candidate real-feeling project concepts mapped to the matrix
+  - Heavy VS Code baseline checks should run on `codegraphy-mini` from the verified remote worktree.
+- Next route:
+  - Continue grill before dispatching Specifier.
