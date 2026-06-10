@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Task Queue Runner concept selected; Core capability/scope decisions continuing; no implementation started.
+- State: Task Queue Runner concept and C++ control targets approved; dispatching Specifier to create the working example before acceptance-test edits.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Human decision gate for C++ symbol/variable/Core-upgrade scope, then Specifier plan draft.
+- Next route: Specifier example creation, then human review before acceptance-test edits.
 
 ## Human Gates
 
@@ -486,3 +486,33 @@
   - `sed -n ... packages/extension/src/shared/graphControls/defaults/edgeTypes.ts`
 - Next route:
   - Human decision gate for C++ edge controls, then route to Specifier for local plan draft under `docs/plans/`.
+
+### 2026-06-10T22:08:57Z - Orchestrator Dispatches Specifier For Example Creation
+
+- Source: user approval after edge discussion.
+- Target: Specifier role.
+- Result: ready to create the working Task Queue Runner example.
+- User decisions:
+  - C++ example should cover all approved visible nodes and edges.
+  - Proceed with Specifier to create the example.
+  - User will review after the example is committed.
+  - Acceptance tests come after the example review.
+  - Keep the new Specifier subagent open for back-and-forth.
+  - Orchestrator should reduce handoff commit/push frequency and batch updates at role boundaries/review points.
+- Approved C++ example concept:
+  - Task Queue Runner.
+- Approved visible node/control targets:
+  - Symbols: `Namespace`, `Class`, `Enum`, `Callable`, `Method`, `Alias`, `Template`.
+  - Variables: `Global`, `Constant`, `Field`, `Parameter`, `Local`.
+- Approved visible edge/control targets:
+  - `Include`, `Contains`, `References`, `Calls`, `Inherits`, `Overrides`.
+  - Structural `Nests` is not part of the C++ language edge contract.
+- Specifier scope:
+  - Create a real working C++ Task Queue Runner example under `examples/example-cpp`.
+  - Cover all approved node and edge targets naturally in the example.
+  - Make the example actually build/run.
+  - Do not edit acceptance spec Markdown yet.
+  - Do not implement Core analyzer or Graph Scope code unless the example cannot be shaped without a separate Coder route.
+  - Commit the example work for user review.
+- Next route:
+  - Wait for Specifier example handoff, then verify and present for human review.
