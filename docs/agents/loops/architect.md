@@ -30,6 +30,8 @@ for human review.
 ## Does Not Own
 
 - changing human-owned acceptance specs
+- changing the accepted behavior or product contract without Orchestrator
+  routing
 - broad all package mutation refreshes during ordinary feature work
 
 ## Loop
@@ -85,6 +87,19 @@ Measurable progress includes:
 
 After three consecutive flat or regressing passes for a mini-loop, stop and
 request human review.
+
+## Cross Stage Findings
+
+The Architect owns fixing P1 and P2 findings that are inside the architecture,
+mutation, release hygiene, or final-readiness mandate.
+
+If a P1 or P2 finding is significant enough to question the accepted behavior,
+product contract, or acceptance example, record the finding and return to the
+Orchestrator so it can route the loop back to the Specifier.
+
+If a P1 or P2 finding shows the implementation approach is wrong or needs a
+behavior-level rewrite, record the finding and return to the Orchestrator so it
+can route the loop back to the Coder.
 
 ## Handoff Entry
 
