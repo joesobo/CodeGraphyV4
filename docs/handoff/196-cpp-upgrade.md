@@ -2,18 +2,18 @@
 
 ## Current State
 
-- State: setup verified; human grill gate active; no implementation started.
+- State: grill gate complete; dispatching Specifier for baseline/research/concept proposal; no implementation started.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route after human gate: Specifier.
+- Next route: Specifier.
 
 ## Human Gates
 
-- Grill before implementation.
+- Grill before implementation: complete as of `2026-06-10T21:25:48Z`.
 - Specifier should make proposed human-owned acceptance spec Markdown changes locally in the worktree for review, but must not commit them. The user wants to review, approve, and make any needed edits before committing those spec changes themselves.
 - Heavy Playwright and mutation checks must run in the verified remote worktree on `codegraphy-mini` or in a remote Codex thread on that host, not on the MacBook.
 
@@ -279,3 +279,29 @@
   - Coder may implement new Core controls only after the chosen plan identifies them as Tree-sitter-backed reasonable Core upgrades and red-first tests define the gap.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:25:48Z - Orchestrator Grill Complete And Specifier Dispatch
+
+- Source: user answer to grill question 10.
+- Target: Specifier role.
+- Result: user approved Specifier dispatch.
+- Dispatch scope:
+  - Baseline current `examples/example-cpp` Graph Scope behavior.
+  - Research Tree-sitter-backed C++ support needs for symbols, variables, and edges.
+  - Compare desired support against current CodeGraphy support.
+  - Produce `showcase now`, `reasonable Core upgrade`, and `out of scope` buckets.
+  - Propose 2-3 believable C++ project concepts, each mapped to visible Graph Scope Node Type and Edge Type toggles and observable graph changes.
+- Hard stops:
+  - No production implementation.
+  - No example edits.
+  - No acceptance spec edits.
+  - No commits or pushes by Specifier.
+  - If local plan drafting becomes appropriate, draft under `docs/plans/` only after concept/support matrix selection.
+- Heavy check rule:
+  - Use `codegraphy-mini:/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` for VS Code/Playwright baseline work.
+- Expected Specifier output:
+  - Structured handoff summary for Orchestrator review.
+  - Commands run and host used.
+  - Current visible C++ controls and observed graph effects.
+  - C++ support matrix and concept candidates.
+  - Open questions or approval gates.
