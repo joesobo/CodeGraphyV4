@@ -174,3 +174,17 @@
   - The support matrix should still prove each showcased feature, but the project should not read as a checklist.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:07:43Z - Orchestrator Grill Decision 4
+
+- Source: user answer to grill question 4.
+- Target: Specifier output shape for C++ example concepting.
+- Result: Specifier should present multiple candidate project concepts before example or spec edits.
+- User decision:
+  - Specifier should bring 2-3 candidate C++ project concepts first.
+  - Each candidate should include a support-matrix sketch showing which supported C++ features it naturally demonstrates.
+  - Choose one concept before editing `examples/example-cpp` or drafting acceptance spec Markdown.
+- Routing implication:
+  - Specifier's first handoff should be a concept/support-matrix proposal, not source edits.
+- Next route:
+  - Continue grill before dispatching Specifier.
