@@ -75,6 +75,22 @@ Mutation is expensive. A full run can take hours. The Architect must:
 - record scoped target, score, killed count, survivors, no coverage entries, and
   equivalent mutant notes in the handoff log
 
+## Changesets
+
+When a user-facing change needs a changeset, write it as a changelog entry for
+users, not as an implementation note.
+
+Each changeset should:
+
+- split distinct user-visible changes into clear entries when one paragraph
+  would blur them together
+- say what changed
+- say how the change affects the user
+- use the product language from `CONTEXT.md`
+- avoid internal file names, test names, and agent workflow details unless they
+  directly affect the user
+- read cleanly in the generated changelog without extra context from the PR
+
 ## Progress
 
 Measurable progress includes:
