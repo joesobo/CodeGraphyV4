@@ -406,3 +406,40 @@
   - Its `src/node-types.json` exposes C++ AST node types for classes, structs, unions, enums, namespaces, aliases, declarations, declarators, parameters, fields, structured bindings, lambda captures, and related constructs.
 - Open gate:
   - User requested a list of symbols and variables supported by Tree-sitter C++ before finalizing the Core upgrade set.
+
+### 2026-06-10T22:00:46Z - Orchestrator Target C++ Graph Scope Controls
+
+- Source: user target list plus Orchestrator source check.
+- Target: C++ Graph Scope symbol/variable controls.
+- Result: target controls recorded; separation needs validation before implementation.
+- User target symbols visible for the C++ example:
+  - `Namespace`
+  - `Class`
+  - `Enum`
+  - `Callable`
+  - `Method`
+  - `Alias`
+  - `Template`
+- User target variables visible for the C++ example:
+  - `Namespace`
+  - `Constant`
+  - `Field`
+  - `Parameter`
+  - `Local`
+- User caveat:
+  - Double-check whether these are actually separate concepts/controls, especially `Namespace`, `Field`, and `Local`.
+- Current implementation validation:
+  - Existing shared symbol controls include `Function`, `Prototype`, `Class`, `Interface`, `Type`, `Struct`, `Union`, `Enum`, and `Typedef`.
+  - Existing `Function` control matches both `function` and `method` symbol kinds.
+  - Existing variable controls include `Variable`, `Constant`, `Global`, plus plugin-owned Godot class_name.
+  - Existing settings prune old `symbol:method`, `symbol:namespace`, `symbol:property`, and `symbol:variable` keys.
+  - Therefore the requested C++ controls require deliberate Graph Scope/control-model changes, not only analyzer changes.
+- Parser support note:
+  - `tree-sitter-cpp@0.23.4` exposes AST nodes for all requested categories in some form, but CodeGraphy still needs product-level decisions about which become durable Core node controls.
+- Commands run:
+  - `sed -n ... packages/core/src/graphControls/defaults/symbolNodeTypes.ts`
+  - `sed -n ... packages/core/src/graphControls/defaults/variableNodeTypes.ts`
+  - `sed -n ... packages/extension/src/shared/graphControls/settings.ts`
+  - `rg -n "symbol:namespace|symbol:method|symbol:property|symbol:variable|..." packages/core packages/extension packages/plugin-api ...`
+- Next route:
+  - Human decision gate, then route to Specifier for local plan draft under `docs/plans/`.
