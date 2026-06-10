@@ -188,3 +188,19 @@
   - Specifier's first handoff should be a concept/support-matrix proposal, not source edits.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:11:27Z - Orchestrator Grill Decision 5
+
+- Source: user answer to grill question 5.
+- Target: local plan artifact location and ownership.
+- Result: Specifier should draft a separate local plan under `docs/plans/`.
+- User decision:
+  - Candidate comparison can happen through the Specifier handoff.
+  - After a concept/support matrix is chosen, Specifier should draft a separate local plan file under `docs/plans/`.
+  - Prefer a path like `docs/plans/2026-06-10-trello-196-cpp-upgrade.md`.
+  - The plan should remain local for review until the user approves the concept and plan direction.
+- Routing implication:
+  - Do not use `docs/agents/` for the selected implementation plan.
+  - Specifier owns drafting the local plan; Orchestrator only records this decision now.
+- Next route:
+  - Continue grill before dispatching Specifier.
