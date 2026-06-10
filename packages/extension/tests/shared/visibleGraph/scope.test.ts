@@ -107,7 +107,7 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
-	it('hides symbol nodes that are disconnected after edge scope is applied', () => {
+	it('keeps symbol nodes that are disconnected after edge scope is applied', () => {
 		const result = applyGraphScope(
 			{
 				nodes: [
@@ -146,8 +146,82 @@ describe('shared/visibleGraph/scope', () => {
 		);
 
 		expect(ids(result)).toEqual({
-			nodes: ['src/widget.cpp', 'include/base.h'],
+			nodes: ['src/widget.cpp', 'include/base.h', 'src/widget.cpp#Widget:class', 'include/base.h#Base:class'],
 			edges: ['src/widget.cpp->include/base.h#import'],
+		});
+	});
+
+	it('keeps enabled symbol nodes as orphans when unrelated file edges are visible', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/main.c'),
+					node('src/logger/logger.h'),
+					symbolNode('src/logger/logger.h#logger_init:prototype', {
+						id: 'src/logger/logger.h#logger_init:prototype',
+						name: 'logger_init',
+						kind: 'prototype',
+						filePath: 'src/logger/logger.h',
+					}),
+				],
+				edges: [
+					edge('src/main.c', 'src/logger/logger.h', 'include'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:prototype', enabled: true },
+				],
+				edges: [
+					{ type: 'include', enabled: true },
+					{ type: 'contains', enabled: false },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'src/main.c',
+				'src/logger/logger.h',
+				'src/logger/logger.h#logger_init:prototype',
+			],
+			edges: ['src/main.c->src/logger/logger.h#include'],
+		});
+	});
+
+	it('does not treat parent toggles as catch-all symbol node types', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/app.ts'),
+					symbolNode('src/app.ts#counter:variable', {
+						id: 'src/app.ts#counter:variable',
+						name: 'counter',
+						kind: 'variable',
+						filePath: 'src/app.ts',
+					}),
+				],
+				edges: [
+					edge('src/app.ts', 'src/app.ts#counter:variable', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'variable', enabled: true },
+				],
+				edges: [
+					{ type: 'contains', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/app.ts'],
+			edges: [],
 		});
 	});
 
@@ -347,7 +421,7 @@ describe('shared/visibleGraph/scope', () => {
 			},
 			{
 				nodes: [
-					{ type: 'symbol', enabled: false },
+					{ type: 'symbol', enabled: true },
 					{ type: 'symbol:class', enabled: false },
 					{ type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
 				],

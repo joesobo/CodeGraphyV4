@@ -9,6 +9,7 @@ import { extensionRoot, repoRoot } from './workspace';
 import type { VSCodeFixture } from './types';
 
 export const VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS = 20_000;
+export const OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS = 3;
 
 interface LaunchVSCodeWithWorkspaceOptions {
   readonly pluginPackageRelativePaths?: readonly string[];
@@ -56,15 +57,29 @@ export async function launchVSCodeWithWorkspace(
 
 export async function openGraphView(page: Page): Promise<void> {
   const commandPaletteShortcut = process.platform === 'darwin' ? 'Meta+Shift+P' : 'Control+Shift+P';
+  let lastError: unknown;
 
   await page.bringToFront();
   await expect.poll(() => page.title(), { timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS }).toContain('[Extension Development Host]');
-  await page.mouse.click(640, 450);
-  await page.keyboard.press(commandPaletteShortcut);
-  await page.keyboard.type('CodeGraphy: Open');
-  await expect(page.getByText('CodeGraphy: Open', { exact: true }).first()).toBeVisible();
-  await page.keyboard.press('Enter');
-  refocusConfiguredLocalApp();
+
+  for (let attempt = 0; attempt < OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS; attempt += 1) {
+    try {
+      await page.mouse.click(640, 450);
+      await page.keyboard.press(commandPaletteShortcut);
+      await page.keyboard.type('CodeGraphy: Open');
+      await expect(page.getByText('CodeGraphy: Open', { exact: true }).first()).toBeVisible({
+        timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
+      });
+      await page.keyboard.press('Enter');
+      refocusConfiguredLocalApp();
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.keyboard.press('Escape').catch(() => {});
+    }
+  }
+
+  throw lastError;
 }
 
 export async function waitForGraphFrame(page: Page): Promise<Frame> {

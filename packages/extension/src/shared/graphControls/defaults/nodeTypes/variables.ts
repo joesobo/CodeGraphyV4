@@ -7,9 +7,9 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       label: 'Variable',
       defaultColor: '#14B8A6',
       defaultVisible: false,
+      parentId: 'symbol',
       description: {
-        description: 'Named values or fields that code can read or write.',
-        examples: [{ code: 'const graphScope = buildScope();' }],
+        description: 'Quick toggle for named values or fields that code can read or write.',
       },
     },
     {
@@ -18,9 +18,22 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       defaultColor: '#22C55E',
       defaultVisible: false,
       parentId: 'variable',
+      matchSymbolKinds: ['constant'],
       description: {
         description: 'Named values intended to stay unchanged.',
         examples: [{ code: 'const DEFAULT_MAX_FILES = 5000;' }],
+      },
+    },
+    {
+      id: 'symbol:global',
+      label: 'Global',
+      defaultColor: '#0D9488',
+      defaultVisible: false,
+      parentId: 'variable',
+      matchSymbolKinds: ['global'],
+      description: {
+        description: 'File-scope variables declared outside functions.',
+        examples: [{ label: 'C', code: 'static int logger_output_enabled = 1;' }],
       },
     },
     {

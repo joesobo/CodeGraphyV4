@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { findExistingFile } from '../analyze/existingFile';
-import { addImportRelation } from '../analyze/results';
+import { addImportRelation, addIncludeRelation } from '../analyze/results';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 
 interface IncludeSpecifier {
@@ -61,9 +61,16 @@ export function handleCInclude(
   filePath: string,
   workspaceRoot: string,
   relations: IAnalysisRelation[],
+  edgeKind: 'import' | 'include' = 'import',
 ): void {
   const include = readIncludeSpecifier(node);
   if (!include) {
+    return;
+  }
+
+  const resolvedPath = resolveIncludePath(filePath, workspaceRoot, include);
+  if (edgeKind === 'include') {
+    addIncludeRelation(relations, filePath, include.specifier, resolvedPath);
     return;
   }
 
@@ -71,7 +78,7 @@ export function handleCInclude(
     relations,
     filePath,
     include.specifier,
-    resolveIncludePath(filePath, workspaceRoot, include),
+    resolvedPath,
     'include',
     TREE_SITTER_SOURCE_IDS.include,
   );

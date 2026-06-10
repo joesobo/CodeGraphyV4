@@ -127,6 +127,80 @@ describe('extension/graphView/controls/snapshot', () => {
     expect(snapshot.nodeColors).not.toHaveProperty('symbol:class');
   });
 
+  it('shows only C-relevant symbol and variable child rows from C node capabilities', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'nodeVisibility') {
+            return {
+              symbol: true,
+              'symbol:function': true,
+              'symbol:prototype': true,
+              'symbol:type': true,
+              variable: true,
+              'symbol:constant': true,
+              'symbol:global': true,
+              'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
+            } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'src/main.c', label: 'main.c', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [],
+      {
+        nodeTypes: [
+          'symbol:function',
+          'symbol:prototype',
+          'symbol:struct',
+          'symbol:union',
+          'symbol:enum',
+          'symbol:typedef',
+          'symbol:global',
+        ],
+        edgeTypes: ['include', 'call', 'contains'],
+      },
+    );
+
+    expect(snapshot.nodeTypes.map((nodeType) => nodeType.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+      'symbol',
+      'symbol:function',
+      'symbol:prototype',
+      'symbol:struct',
+      'symbol:union',
+      'symbol:enum',
+      'symbol:typedef',
+      'variable',
+      'symbol:global',
+    ]);
+    expect(snapshot.nodeVisibility).toEqual({
+      file: true,
+      folder: false,
+      package: false,
+      symbol: true,
+      'symbol:function': true,
+      'symbol:prototype': true,
+      'symbol:struct': false,
+      'symbol:union': false,
+      'symbol:enum': false,
+      'symbol:typedef': false,
+      variable: true,
+      'symbol:global': true,
+    });
+    expect(snapshot.nodeVisibility).not.toHaveProperty('symbol:type');
+    expect(snapshot.nodeVisibility).not.toHaveProperty('symbol:constant');
+    expect(snapshot.nodeVisibility).not.toHaveProperty('plugin:codegraphy.gdscript:symbol:godot-class-name');
+  });
+
   it('advertises edge capabilities even when the current graph has no matching edges', () => {
     const snapshot = captureGraphControlsSnapshot(
       {

@@ -47,7 +47,23 @@ export function getFunctionNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode 
 }
 
 export function hasFunctionDeclarator(node: Parser.SyntaxNode): boolean {
-  return node.namedChildren.some((child) => child.type === 'function_declarator');
+  return node.namedChildren.some((child) =>
+    child.type === 'function_declarator' || hasFunctionDeclarator(child),
+  );
+}
+
+export function hasCallableFunctionDeclarator(node: Parser.SyntaxNode): boolean {
+  return node.namedChildren.some((child) =>
+    isCallableFunctionDeclarator(child) || hasCallableFunctionDeclarator(child),
+  );
+}
+
+function isCallableFunctionDeclarator(node: Parser.SyntaxNode): boolean {
+  if (node.type !== 'function_declarator') {
+    return false;
+  }
+
+  return node.childForFieldName('declarator')?.type !== 'parenthesized_declarator';
 }
 
 export function isInsideClassLike(node: Parser.SyntaxNode): boolean {

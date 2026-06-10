@@ -63,6 +63,66 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 
+  it('applies batched visibility updates with one publish cycle', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, 'symbol:function': false, folder: true } as T;
+        }
+        if (key === 'edgeVisibility') {
+          return { include: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        {
+          type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+          payload: {
+            nodeVisibility: {
+              'symbol:function': true,
+              folder: false,
+            },
+            edgeVisibility: {
+              include: true,
+            },
+          },
+        },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', {
+      symbol: true,
+      'symbol:function': true,
+      folder: false,
+    });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', {
+      include: true,
+    });
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+  });
+
+  it('ignores empty batched visibility updates', async () => {
+    const handlers = createHandlers();
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH', payload: {} },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(handlers.sendGraphControls).not.toHaveBeenCalled();
+  });
+
   it('prunes stale symbol control keys when graph control settings are written', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -106,7 +166,7 @@ describe('settingsMessages/updates/controls', () => {
     }));
   });
 
-  it('enables Symbols without changing edge visibility', async () => {
+  it('enables Symbols without changing edge visibility or reprocessing analysis', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'nodeVisibility') {
@@ -129,7 +189,7 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.updateConfig).toHaveBeenCalledOnce();
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', { symbol: true });
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('edgeVisibility', expect.anything());
-    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
@@ -163,6 +223,109 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
+  it('enables Symbols and Variables when a variable child type is enabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, variable: false, 'symbol:constant': false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:constant', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: true,
+      variable: true,
+      'symbol:constant': true,
+    });
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('enables Symbols and Variables when a variable child type is enabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, variable: false, 'symbol:global': false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:global', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: true,
+      variable: true,
+      'symbol:global': true,
+    });
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('enables Symbols when the variable parent type is enabled without reprocessing analysis', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, variable: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'variable', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: true,
+      variable: true,
+    });
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('does not reprocess analysis when enabled symbol facts are already active', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: true, 'symbol:function': true, 'symbol:prototype': false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:prototype', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: true,
+      'symbol:function': true,
+      'symbol:prototype': true,
+    });
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
   it('preserves child visibility settings when Symbols is disabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
@@ -185,7 +348,7 @@ describe('settingsMessages/updates/controls', () => {
       'symbol:function': true,
     });
     expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('symbol');
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages without updating settings', async () => {

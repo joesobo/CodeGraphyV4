@@ -8,6 +8,7 @@ import { TooltipProvider } from '../ui/overlay/tooltip';
 import { ScrollArea } from '../ui/scroll-area';
 import { NodeTypeRows, EdgeTypeRows } from './rows';
 import { type GraphScopeTab, ScopeTabButton } from './tabs';
+import { flushGraphScopeVisibilityMessages } from './messages';
 
 interface GraphScopePanelProps {
   isOpen: boolean;
@@ -36,6 +37,16 @@ export default function GraphScopePanel({
       setActiveTab('nodes');
     }
   }, [activeTab, edgeTypesAvailable]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      flushGraphScopeVisibilityMessages();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    return () => flushGraphScopeVisibilityMessages();
+  }, []);
 
   if (!isOpen) {
     return null;

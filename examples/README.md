@@ -18,7 +18,7 @@ alias behavior.
 - `example-rust` — Rust module/use example with strong core Tree-sitter coverage
 - `example-java` — Java import/inheritance example
 - `example-go` — Go package/import example
-- `example-c` — C include example
+- `example-c` — C tiny logger with include/call edges and C-native symbol nodes
 - `example-cpp` — C++ include, inheritance, and override example
 - `example-objective-c` — Objective-C dashboard/controller/store/view example
 - `example-kotlin` — Kotlin import/inheritance example
@@ -50,7 +50,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-rust` | `main.rs` uses local modules and declares `App`, `Status`, and `Service`, showing module edges plus type/function symbols. |
 | `example-java` | `App` imports `Helper`, extends `BaseService`, implements `RunnableThing`, and exposes class/interface/method symbols for import and inheritance checks. |
 | `example-go` | `main.go` imports `internal/service`; package functions and the `Runner` type show how Go package edges connect to declarations. |
-| `example-c` | `main.c` and `math/add.c` include `add.h`; function and struct symbols make the tiny C dependency chain inspectable. |
+| `example-c` | `main.c` drives a tiny logger API; `logger.c`, `format.c`, and their headers show local includes, call-derived edges, and C include/function/prototype/struct/union/enum/typedef/global symbols from Core Tree-sitter analysis. |
 | `example-cpp` | `app.cpp` and `widget.cpp` include `widget.hpp`; `Runner` inherits from `Widget` and overrides `render`, while class, method, and function symbols show both declaration and implementation files. |
 | `example-objective-c` | `main.m` launches an app delegate that wires a dashboard controller, session store, user model, and card view; `UserCardView` inherits from `AppView` and conforms to `ProfileRenderable`. |
 | `example-kotlin` | `AppRunner` imports a model, extends a base class, and implements an interface, giving a compact import/inheritance/symbol demo. |

@@ -20,6 +20,13 @@ describe('graphView/default symbol group catalog', () => {
     ]);
     expect(TYPE_LIKE_SYMBOL_GROUPS.map(withoutImageUrl)).toEqual([
       {
+        id: 'default:symbol-kind:prototype',
+        displayLabel: 'Prototype',
+        color: '#A78BFA',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'prototype',
+      },
+      {
         id: 'default:symbol-kind:class',
         displayLabel: 'Class',
         color: '#3B82F6',
@@ -48,11 +55,25 @@ describe('graphView/default symbol group catalog', () => {
         matchSymbolKind: 'struct',
       },
       {
+        id: 'default:symbol-kind:union',
+        displayLabel: 'Union',
+        color: '#14B8A6',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'union',
+      },
+      {
         id: 'default:symbol-kind:enum',
         displayLabel: 'Enum',
         color: '#F59E0B',
         matchNodeType: 'symbol',
         matchSymbolKind: 'enum',
+      },
+      {
+        id: 'default:symbol-kind:typedef',
+        displayLabel: 'Typedef',
+        color: '#F472B6',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'typedef',
       },
     ]);
     expect(VARIABLE_SYMBOL_GROUPS.map(withoutImageUrl)).toEqual([
@@ -69,6 +90,13 @@ describe('graphView/default symbol group catalog', () => {
         color: '#22C55E',
         matchNodeType: 'variable',
         matchSymbolKind: 'constant',
+      },
+      {
+        id: 'default:symbol-kind:global',
+        displayLabel: 'Global',
+        color: '#0D9488',
+        matchNodeType: 'variable',
+        matchSymbolKind: 'global',
       },
     ]);
     expect(CORE_SYMBOL_GROUPS).toEqual([

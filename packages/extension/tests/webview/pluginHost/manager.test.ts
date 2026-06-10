@@ -116,6 +116,25 @@ describe('WebviewPluginHost', () => {
     expect(handler).toHaveBeenNthCalledWith(2, state);
   });
 
+  it('reports Graph View viewport consumers when plugins listen or render overlays', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+
+    expect(host.hasGraphViewViewportConsumers()).toBe(false);
+
+    const listenerDisposable = api.onGraphViewViewportState(vi.fn());
+    expect(host.hasGraphViewViewportConsumers()).toBe(true);
+
+    listenerDisposable.dispose();
+    expect(host.hasGraphViewViewportConsumers()).toBe(false);
+
+    const overlayDisposable = api.registerOverlay('overlay', vi.fn());
+    expect(host.hasGraphViewViewportConsumers()).toBe(true);
+
+    overlayDisposable.dispose();
+    expect(host.hasGraphViewViewportConsumers()).toBe(false);
+  });
+
   it('removes scoped Graph View viewport listeners when a plugin is removed', () => {
     const host = new WebviewPluginHost();
     const api = host.createAPI('acme.plugin', vi.fn());

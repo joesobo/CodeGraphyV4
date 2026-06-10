@@ -253,7 +253,7 @@ describe('WorkspacePipeline adapters', () => {
     const file = createDiscoveredFile('src/index.ts');
     vi.spyOn(analyzerPrivate._config, 'get').mockImplementation(<T>(key: string, defaultValue: T): T => (
       key === 'nodeVisibility'
-        ? { symbol: true } as T
+        ? { symbol: true, 'symbol:function': true } as T
         : defaultValue
     ));
     vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });

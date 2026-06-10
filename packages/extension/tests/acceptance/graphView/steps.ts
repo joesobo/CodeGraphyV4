@@ -51,6 +51,7 @@ import {
 
 const TARGET_NODE = 'src/index.ts';
 const CORE_EDGE_TYPE_LABELS = [
+  'Include',
   'Imports',
   'References',
   'Calls',
@@ -69,13 +70,17 @@ const CORE_NODE_TYPE_LABELS = [
   'Package',
   'Symbol',
   'Function',
+  'Prototype',
   'Class',
   'Interface',
   'Type',
   'Struct',
+  'Union',
   'Enum',
+  'Typedef',
   'Variable',
   'Constant',
+  'Global',
   'Godot class_name',
 ];
 
@@ -86,9 +91,13 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Constant: 'Variable',
   Enum: 'Symbol',
   Function: 'Symbol',
+  Global: 'Variable',
   Interface: 'Symbol',
+  Prototype: 'Symbol',
   Struct: 'Symbol',
+  Typedef: 'Symbol',
   Type: 'Symbol',
+  Union: 'Symbol',
   'Godot class_name': 'Variable',
 };
 
@@ -180,12 +189,14 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I have indexed the workspace': async (context, step) => {
-    await graphStage(requireGraphFrame(context)).screenshot().then(image => {
+    const frame = requireGraphFrame(context);
+    await closePanelIfOpen(frame);
+    await graphStage(frame).screenshot().then(image => {
       context.beforeIndexStageImage = image;
     });
-    await requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' }).click();
+    await frame.getByRole('button', { name: 'Index Workspace' }).click();
     await expect(
-      requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
+      frame.getByRole('progressbar', { name: 'Indexing progress' }),
     ).toBeHidden({ timeout: 30_000 });
     await applyExampleScenarioStartingUiState(context, step.sourcePath);
     await applyPostIndexScenarioStartingUiState(context, step.sourcePath);
@@ -686,7 +697,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
   }),
 
-  step(/^the available edge types are (.+)$/, async (context, _step, match) => {
+  step(/^the available edge types are (?:only )?(.+)$/, async (context, _step, match) => {
     const expectedEdgeTypes = match[1].split(',').map((label) => label.trim());
     const frame = requireGraphFrame(context);
 
@@ -896,6 +907,7 @@ async function applyPostIndexScenarioStartingUiState(
 
 async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
   const frame = requireGraphFrame(context);
+  await closePanelIfOpen(frame);
   context.beforeIndexStageImage = await graphStage(frame).screenshot();
   await frame.getByRole('button', { name: 'Index Workspace' }).click();
 }
