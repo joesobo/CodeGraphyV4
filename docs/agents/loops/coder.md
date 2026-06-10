@@ -13,7 +13,7 @@ The Coder makes the accepted behavior true.
 
 - generated acceptance tests, step bindings, and fixtures
 - unit tests
-- example source files when examples are part of the accepted behavior
+- production and test support needed to make accepted examples pass
 - production implementation
 - focused behavior fixes
 - focused behavior evidence
