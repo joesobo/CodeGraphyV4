@@ -95,7 +95,7 @@
   - Host: `codegraphy-mini`
   - Path: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
   - Branch: `codex/196-cpp-upgrade`
-  - Ref: `a04b86f2`
+  - Created from `origin/codex/196-cpp-upgrade`; fetch and fast-forward this worktree before each heavy command.
   - Runtime: Node `v22.22.2`, pnpm `10.32.0`
 - User decision:
   - Before upgrading the example, first identify what C++ support should include: symbols, variables, edges, and related graph expectations.
