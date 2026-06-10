@@ -561,3 +561,20 @@
   - `cmake` was not on `PATH` on the local host or `codegraphy-mini`; CMake verification used the available MacPorts bootstrap binary by absolute path.
 - Next route:
   - Orchestrator verifies the local commit and presents the example for human review before acceptance-test work.
+
+### 2026-06-10T23:33:07Z - Specifier Applies Example Review Filter
+
+- Source: user review notes.
+- Target: `examples/example-cpp/.codegraphy/settings.json`.
+- Result: added explicit `**/build/**` custom filter pattern for the C++ example workspace.
+- Scope held:
+  - No human-owned acceptance spec Markdown edited.
+  - No generated acceptance tests edited.
+  - No Core analyzer or Graph Scope production code edited.
+  - No push performed.
+- Coverage assessment:
+  - Symbols covered in source: `Namespace`, `Class`, `Enum`, `Callable`, `Method`, `Alias`, and `Template`.
+  - Variables covered in source: `Global`, `Constant`, `Field`, `Parameter`, and `Local`.
+  - Edges covered in source shape: `Include`, `Contains`, `References`, `Calls`, `Inherits`, and `Overrides`.
+- Known gap:
+  - This pass only confirms source coverage. Current Graph Scope/analyzer support still needs later roles to expose and verify the approved visible controls.
