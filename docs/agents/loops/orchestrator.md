@@ -23,6 +23,7 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - creating and maintaining `docs/handoff/<trello-card>-<slug>.md`
 - dispatching role agents with a bounded task and the current handoff state
 - reading each role handoff before choosing the next state
+- preparing or delegating the remote Mac mini worktree before heavy checks
 - enforcing human gates
 - preserving the protected main checkout
 - keeping Trello and PR state aligned with the loop state
@@ -87,6 +88,33 @@ Common routing examples:
 - final human review finds an issue: route to the role that owns the reason
 
 Role agents report facts and evidence. They do not choose the next role.
+
+## Remote Heavy Checks
+
+The Orchestrator owns making the remote heavy-check path usable for the loop.
+The user should not need to manually set up the Mac mini for each card.
+
+When a role needs VS Code Playwright, mutation, or another long focus-stealing
+command, the Orchestrator should either start a remote Codex thread on
+`codegraphy-mini` or verify the remote host over SSH before dispatching the role.
+
+Use this sanity check before remote heavy work:
+
+```bash
+ssh codegraphy-mini 'export PATH="/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"; cd /Users/poleski/Desktop/Projects/CodeGraphyV4; hostname; node --version; pnpm --version; git status --short --branch'
+```
+
+The remote work must:
+
+- use the Node 22 PATH above
+- fetch the PR branch before running commands
+- run from an isolated remote worktree for that branch
+- record the remote host, worktree, command, and result in the handoff log
+- return findings through the handoff log, not through an unrecorded side
+  conversation
+
+If the remote repo, runtime, or worktree is not ready, the Orchestrator fixes or
+delegates that setup as part of the loop before the role runs heavy commands.
 
 ## Handoff Management
 

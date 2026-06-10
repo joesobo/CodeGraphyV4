@@ -39,9 +39,21 @@ project path is:
 codegraphy-mini:/Users/poleski/Desktop/Projects/CodeGraphyV4
 ```
 
-The heavy-check thread should verify its host, branch, worktree, and Node
-runtime before running commands. Prefer Node 22 there because CodeGraphy
-requires Node `<23`.
+The heavy-check thread must verify its host, branch, worktree, and Node runtime
+before running commands. Prefer Node 22 there because CodeGraphy requires Node
+`<23`.
+
+When checking or preparing the remote host over SSH, use the Homebrew Node 22
+path explicitly so `pnpm` and Codex resolve the same runtime:
+
+```bash
+ssh codegraphy-mini 'export PATH="/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"; cd /Users/poleski/Desktop/Projects/CodeGraphyV4; hostname; node --version; pnpm --version; git status --short --branch'
+```
+
+Before any heavy command, the remote thread must fetch the branch and use an
+isolated remote worktree for the PR branch. The Mac mini checkout may be stale,
+so do not assume `/Users/poleski/Desktop/Projects/CodeGraphyV4` is current just
+because it exists.
 
 Coder may need the mini for VS Code Playwright acceptance checks. Refactorer may
 need it for long quality commands. Architect may need it for mutation, VS Code
