@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: grill gate complete; dispatching Specifier for baseline/research/concept proposal; no implementation started.
+- State: Specifier returned baseline/research/concept proposal; human decision gate active; no implementation started.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Specifier.
+- Next route: Human decision gate, then Specifier plan draft after concept/Core-upgrade selection.
 
 ## Human Gates
 
@@ -318,3 +318,72 @@
   - Initial spawn attempt with explicit inherited settings was rejected by the tool; retry succeeded without overrides.
 - Next route:
   - Wait for Specifier handoff, then verify before choosing the next loop state.
+
+### 2026-06-10T21:41:30Z - Specifier Returned And Orchestrator Verified
+
+- Source: Specifier agent `019eb36e-55ab-7283-a068-b47ca653016a` (`Bernoulli`).
+- Target: Orchestrator.
+- Result: needs human acceptance.
+- Verification by Orchestrator:
+  - Local worktree status clean at `c8cdd2a5`.
+  - `codegraphy-mini` worktree status clean at `c8cdd2a5`.
+  - Draft PR #263 open, draft, merge state clean.
+  - PR #263 CI rollup green at verification time.
+- Specifier reported commands and hosts:
+  - Local MacBook: read docs/specs/source with `sed`, `rg`, and `fd`; inspected C++ analyzer, capabilities, and acceptance steps.
+  - `codegraphy-mini`: verified host/worktree/Node, installed dependencies, built VS Code target, ran focused C++ Playwright, ran temporary stdin probes with `pnpm exec tsx -`.
+  - Passed: `pnpm --filter @codegraphy-dev/extension run build:vscode`.
+  - Passed: focused Playwright grep for the C++ example scenario.
+  - Skipped: full `test:vscode`, unit tests, mutation.
+- Current visible C++ Node Type controls:
+  - `File`, `Folder`, `Package`, `Symbol`, `Function`, `Class`, `Type`, `Struct`, `Enum`.
+  - Current tiny example effects with no edge types:
+    - `File`: `6 nodes / 0 connections`.
+    - `Folder`: `9 / 0`, adds `(root)`, `src`, `src/lib`.
+    - `Package`: `7 / 0`, adds `pkg:vector`.
+    - `Symbol`: `6 / 0`, parent alone has no effect.
+    - `Function`: `13 / 0`.
+    - `Class`: `8 / 0`.
+    - `Type`, `Struct`, `Enum`: no effect in the current tiny example.
+- Current visible C++ Edge Type controls:
+  - `Imports`, `References`, `Calls`, `Inherits`, `Contains`, `Overrides`.
+  - Current tiny example effects with file nodes only:
+    - `Imports`: `6 / 2`.
+    - `References`: `6 / 0`, no current effect.
+    - `Calls`: `6 / 2`.
+    - `Inherits`: `6 / 1`.
+    - `Contains`: `6 / 0`, needs symbol nodes.
+    - `Overrides`: `6 / 1`.
+  - With all current C++ symbol rows enabled:
+    - Baseline: `15 / 0`.
+    - `Calls`: `3`.
+    - `Inherits`: `1`.
+    - `Contains`: `9`.
+    - `Overrides`: `1`.
+    - `References`: `0`.
+- Support matrix summary:
+  - Showcase now: local `#include` as Imports; external include as Package; functions/methods/classes/structs/enums; `typedef` aliases as Type; file-to-symbol Contains; class inheritance; method overrides; calls to included declarations/types.
+  - Reasonable Core upgrade candidates: `using Name = Type` alias declarations as Type; C++ Union visibility; meaningful C++ References for uniquely resolvable local/included type usages; same-file C++ calls for unique functions/methods; file/namespace-scope Global/Constant variables; possible generic Namespace node type.
+  - Out of scope: macro expansion; conditional compilation; compiler include paths; `compile_commands.json`; template instantiation; overload resolution; ADL; namespace import semantics; full system header indexing; local variable/data-flow graphs; C++ concepts/requires as first-class Core semantics.
+- Candidate concepts:
+  - `Telemetry Packet Monitor` (recommended): natural union/enum/struct territory; maps to packet structs, payload union, `PacketKind`, `using PacketId`, `Reporter`/`ConsoleReporter`, `decode_packet`, constants, and references through packet types.
+  - `Task Queue Runner`: believable CLI queue; maps to `Task`, `TaskSpec`, `TaskStatus`, `TaskRunner`, `Worker` inheritance, calls, aliases, and constants; union less natural unless task payloads matter.
+  - `Scene Renderer`: small rendering loop; maps to `Renderer`, `ConsoleRenderer`, `Frame`, `RenderMode`, `using FrameList`, overrides, calls, and includes; union/variable coverage possible but less central.
+- Human approval gates:
+  - Choose one concept.
+  - Decide which Core upgrades belong in this card, especially `References`, `Union`, `using` aliases, variables, and `Namespace`.
+  - After that, route back to Specifier to draft `docs/plans/...` and local acceptance-spec Markdown changes for user review only.
+- Orchestrator tracker/PR updates:
+  - Trello card moved to `Review`.
+  - Trello comment added with current gate and recommended concept.
+  - PR #263 body updated with current state and verification summary.
+- Commands run by Orchestrator:
+  - `git status --short --branch`
+  - `ssh codegraphy-mini '... git status --short --branch ...'`
+  - `gh pr view 263 --json ...`
+  - `curl ... /1/boards/69af002961713864de1a93ff/lists ...`
+  - `curl -s -X PUT ... /1/cards/pSAys9YA ... idList=6a29af2905c2bc5ffdd5f647`
+  - `curl -s -X POST ... /1/cards/pSAys9YA/actions/comments ...`
+  - `gh pr edit 263 --body ...`
+- Next route:
+  - Human decision gate.
