@@ -159,3 +159,18 @@
   - Coder should only implement `reasonable Core upgrade` items after red-first tests prove the gap and after the Orchestrator confirms the item belongs in Core rather than Plugin Analysis.
 - Next route:
   - Continue grill before dispatching Specifier.
+
+### 2026-06-10T21:05:54Z - Orchestrator Grill Decision 3
+
+- Source: user answer to grill question 3.
+- Target: C++ example project shape.
+- Result: example should optimize for a believable small C++ project first, with supported feature coverage woven in.
+- User decision:
+  - Do not build a pure syntax or feature showroom.
+  - Choose a real-feeling small project/domain first.
+  - Show off supported C++ features naturally through that project.
+- Routing implication:
+  - Specifier should propose an example shape that feels like a concise real C++ project a C++ developer would recognize.
+  - The support matrix should still prove each showcased feature, but the project should not read as a checklist.
+- Next route:
+  - Continue grill before dispatching Specifier.
