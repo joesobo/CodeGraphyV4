@@ -29,6 +29,7 @@
 - A CodeGraphy MCP tool surface was not exposed in this Codex thread; use the local CLI and source inspection unless later tools become available.
 - `codegraphy-mini` sanity check succeeded with Node `v22.22.2` and pnpm `10.32.0`, but its main checkout reported `behind 219`; prepare an isolated remote worktree from the pushed branch before any heavy role checks.
 - Git reported a background gc warning about unreachable loose objects during `git fetch`; no destructive cleanup was run.
+- Codex thread title/pin tools are available, but searching recent threads by this card text did not return the current live thread; no thread title or pin change was attempted.
 
 ## Event Log
 
@@ -71,3 +72,16 @@
   - `curl -s -X POST ... /1/cards/pSAys9YA/actions/comments ...`
 - Open blocker:
   - Human grill gate still active before Specifier dispatch or implementation work.
+
+### 2026-06-10T20:29:37Z - Orchestrator Thread Management Check
+
+- Source: Orchestrator.
+- Target: Codex thread setup.
+- Result: thread management tools were discovered, but the current live thread was not returned by card-text searches.
+- Commands run:
+  - `tool_search` for `set_thread_title` and `set_thread_pinned`.
+  - `list_threads` queries for `pSAys9YA 196 C++ Upgrade CodeGraphy Loop` and `Run the CodeGraphy Loop`.
+- Decision:
+  - Do not rename or pin a guessed thread.
+- Open blocker:
+  - If the user wants the orchestrator thread pinned, retry with a reliable current-thread identifier or a broader thread-listing pass.
