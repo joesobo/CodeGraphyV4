@@ -17,6 +17,8 @@ run.
 
 - deciding whether acceptance work is needed
 - drafting acceptance scenarios or contract notes
+- drafting or updating example source files when examples define the acceptance
+  contract
 - pruning acceptance scenarios to the smallest useful behavior contract
 - identifying human-owned spec Markdown changes
 - recording human acceptance gates in the handoff log
@@ -60,6 +62,7 @@ The Specifier handoff entry must include:
 
 - result: skipped, needs human acceptance, or acceptance contract ready
 - acceptance draft or approved contract
+- example source changes, if examples define the contract
 - files changed, if any
 - human approval status
 - open questions

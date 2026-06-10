@@ -144,8 +144,11 @@ The Architect may commit and push multiple times while mutation, review, release
 
 Examples belong to the role that owns the reason they are needed:
 
-- Coder writes or updates example source files when examples are part of the
-  behavior under implementation or acceptance evidence.
+- Specifier owns example shape because examples usually become the first
+  concrete acceptance fixture for the work. It may draft or update example
+  source files when examples define the acceptance contract.
+- Coder implements production behavior and executable test support needed to
+  make the accepted example pass.
 - Architect updates release-facing docs, README prose, screenshots, changesets,
   PR body notes, and final example documentation polish.
 - Specifier may draft example expectations when they are part of the acceptance
