@@ -9,8 +9,10 @@ write structured handoff entries, and return control to the Orchestrator.
 
 ## Roles
 
-CodeGraphy uses these four roles:
+CodeGraphy uses one Orchestrator and four role agents:
 
+- Orchestrator: owns state, routing, human gates, Trello, PR state, and the
+  handoff log.
 - Specifier: turns informal intent into an acceptance contract.
 - Coder: writes or updates tests and implementation until behavior is green.
 - Refactorer: runs quality loops and performs cleanup.
@@ -66,17 +68,7 @@ while it is making measurable progress.
 
 ## Orchestrator Contract
 
-The orchestrator owns:
-
-- reading `AGENTS.md`, `CONTEXT.md`, relevant ADRs, and these loop docs
-- working on exactly one Trello card, bug report, or explicit request
-- creating a dedicated `codex/` branch, isolated worktree, and draft PR
-- keeping one shared PR worktree for the loop
-- creating and maintaining `docs/handoff/<trello-card>-<slug>.md`
-- routing work to role agents
-- enforcing human gates
-- preserving the protected main checkout
-- moving final work to human review only after each role's conditions pass
+The Orchestrator contract lives in `docs/agents/loops/orchestrator.md`.
 
 The orchestrator should treat Trello as workflow state and the handoff file as
 the detailed loop record. The current V0 Trello model is:
