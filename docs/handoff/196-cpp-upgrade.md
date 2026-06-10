@@ -443,3 +443,46 @@
   - `rg -n "symbol:namespace|symbol:method|symbol:property|symbol:variable|..." packages/core packages/extension packages/plugin-api ...`
 - Next route:
   - Human decision gate, then route to Specifier for local plan draft under `docs/plans/`.
+
+### 2026-06-10T22:04:14Z - Orchestrator Target C++ Edge Controls
+
+- Source: user follow-up after target symbol/variable controls.
+- Target: C++ edge controls and variable naming.
+- Result: variable `Namespace` target renamed to `Global`; edge research summarized for next decision.
+- User decision:
+  - Use `Global` instead of variable `Namespace`.
+  - Other target symbol/variable controls look good pending validation.
+- Current Core edge vocabulary:
+  - `Include`
+  - `Imports`
+  - `References`
+  - `Calls`
+  - `Inherits`
+  - `Contains`
+  - `Overrides`
+  - plus structural `Nests` and other non-C++-specific edge kinds.
+- C++ edge direction to validate:
+  - Prefer visible `Include` for C++ `#include` relationships instead of generic `Imports`.
+  - Keep `Class` and symbol controls separate from edge naming.
+- Tree-sitter C++ AST support observed for edge candidates:
+  - Include/import-like syntax: `preproc_include`, `using_declaration`, `namespace_alias_definition`, `alias_declaration`.
+  - Calls: `call_expression`, `field_expression`, `new_expression`, `template_function`, `template_method`.
+  - Inheritance: `base_class_clause` under `class_specifier` / `struct_specifier`.
+  - References: `identifier`, `type_identifier`, `qualified_identifier`, `field_identifier`, `template_type`, `dependent_type`, `type_descriptor`.
+  - Contains/ownership: `declaration_list`, `field_declaration_list`, `parameter_list`, `enumerator_list`, `compound_statement`.
+- Orchestrator recommendation for C++ example edge controls:
+  - `Include`
+  - `References`
+  - `Calls`
+  - `Inherits`
+  - `Contains`
+  - `Overrides`
+  - Treat folder `Nests` as structural Graph Scope behavior, not part of the C++ language edge contract.
+- Likely out-of-scope C++ edge ideas:
+  - Template instantiates, overload resolves, ADL dispatches, macro expands, compile-database include resolution, namespace import semantics, field access/data-flow, and local variable flow.
+- Commands run:
+  - `rg -n "...GraphEdgeKind..." packages/plugin-api packages/core packages/extension/src/shared ...`
+  - `node` script against `tree-sitter-cpp@0.23.4` `src/node-types.json` on `codegraphy-mini`.
+  - `sed -n ... packages/extension/src/shared/graphControls/defaults/edgeTypes.ts`
+- Next route:
+  - Human decision gate for C++ edge controls, then route to Specifier for local plan draft under `docs/plans/`.
