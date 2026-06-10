@@ -32,9 +32,21 @@ This includes:
 - mutation runs
 - other long running quality commands that monopolize CPU or steal focus
 
-When a role needs one of these checks, it should run it from a CodeGraphy
-worktree on the Mac mini or delegate that exact check to a Codex thread on the
-Mac mini. Record the host used in the handoff log.
+Use a remote Codex thread on `codegraphy-mini` for these checks. The remote
+project path is:
+
+```text
+codegraphy-mini:/Users/poleski/Desktop/Projects/CodeGraphyV4
+```
+
+The heavy-check thread should verify its host, branch, worktree, and Node
+runtime before running commands. Prefer Node 22 there because CodeGraphy
+requires Node `<23`.
+
+Coder may need the mini for VS Code Playwright acceptance checks. Refactorer may
+need it for long quality commands. Architect may need it for mutation, VS Code
+Playwright, and final CI reproduction. Record the remote thread, host, command,
+and result in the handoff log.
 
 ## State Machine
 
