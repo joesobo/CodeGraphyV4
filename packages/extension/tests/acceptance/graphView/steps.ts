@@ -1320,34 +1320,44 @@ async function openGraphScopeSection(
   await frame.getByRole('button', { name: sectionName }).click();
 }
 
-async function setPanelSwitch(
+export async function setPanelSwitch(
   context: GraphAcceptanceContext,
   label: string,
   enabled: boolean,
 ): Promise<void> {
-  const switchInRow = await findPanelSwitch(requireGraphFrame(context), normalizePanelLabel(label));
+  const frame = requireGraphFrame(context);
+  const normalizedLabel = normalizePanelLabel(label);
+  const expected = String(enabled);
+  const switchInRow = await findPanelSwitch(frame, normalizedLabel);
   const current = await switchInRow.getAttribute('aria-checked');
 
-  if (current !== String(enabled)) {
+  if (current !== expected) {
     await switchInRow.click();
   }
 
-  if (!enabled && current !== String(enabled)) {
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      if (!(await switchInRow.isVisible().catch(() => false))) {
+  if (current !== expected) {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
+      if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+        if (!enabled) {
+          return;
+        }
+
+        await frame.waitForTimeout(150);
+        continue;
+      }
+
+      const checked = await currentSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
+      if (checked === expected) {
         return;
       }
 
-      if (await switchInRow.getAttribute('aria-checked').catch(() => String(enabled)) === String(enabled)) {
-        return;
-      }
-
-      await switchInRow.click();
-      await requireGraphFrame(context).waitForTimeout(150);
+      await currentSwitch.click();
+      await frame.waitForTimeout(150);
     }
   }
 
-  await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
+  await expect(await findPanelSwitch(frame, normalizedLabel)).toHaveAttribute('aria-checked', expected);
 }
 
 async function setPanelSwitchIfPresent(
