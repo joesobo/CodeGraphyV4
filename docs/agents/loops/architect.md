@@ -1,6 +1,6 @@
 # Architect Loop
 
-The Architect proves the PR is mutation-aware, architecturally sound, and ready
+The Architect proves the PR is mutation aware, architecturally sound, and ready
 for human review.
 
 ## Inputs
@@ -12,8 +12,6 @@ for human review.
 - `docs/quality/mutation.md`
 - `docs/plans/2026-05-21-mutation-seed-cache.md`
 - `scripts/mutation/`
-- current PR diff
-- current CI state, when available
 
 ## Owns
 
@@ -31,9 +29,7 @@ for human review.
 ## Does Not Own
 
 - changing human-owned acceptance specs
-- changing accepted behavior without routing through the orchestrator
-- broad all-package mutation refreshes during ordinary feature work
-- routing the next role
+- broad all package mutation refreshes during ordinary feature work
 
 ## Loop
 
@@ -96,11 +92,11 @@ Mutation is expensive. A full run can take hours. The Architect must:
 - read `docs/quality/mutation.md` before running mutation commands
 - prefer existing reports and seed cache before broad mutation
 - prefer file or directory scoped mutation during development
-- use package-scoped mutation only when the touched scope requires it
+- use package scoped mutation only when the touched scope requires it
 - never run bare `pnpm run mutate`
-- leave all-package mutation refreshes to the CI seed workflow
-- record scoped target, score, killed count, survivors, no-coverage entries, and
-  equivalent-mutant notes in the handoff log
+- leave all package mutation refreshes to the CI seed workflow
+- record scoped target, score, killed count, survivors, no coverage entries, and
+  equivalent mutant notes in the handoff log
 
 ## Progress
 
@@ -121,7 +117,6 @@ The Architect handoff entry must include:
 
 - result: ready for human review or needs human review
 - mutation site counts for touched files
-- mutation commands and scoped targets
 - mutation score and survivor summary
 - architecture review findings
 - P1 and P2 fixes made
@@ -130,4 +125,4 @@ The Architect handoff entry must include:
 - CI status
 - commits and pushes
 
-Do not recommend the next role. Return to the orchestrator.
+Return to the orchestrator.

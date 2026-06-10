@@ -1,7 +1,6 @@
 # Refactorer Loop
 
-The Refactorer makes non-mutation quality gates clean while preserving accepted
-behavior.
+The Refactorer makes quality gates clean while preserving accepted behavior.
 
 ## Inputs
 
@@ -9,7 +8,7 @@ behavior.
 - current PR worktree
 - focused behavior evidence from the Coder
 - `docs/quality/`
-- relevant package scripts
+- relevant package scripts for quality-tools
 
 ## Owns
 
@@ -18,8 +17,6 @@ behavior.
 - `pnpm run reachability`
 - `pnpm run scrap`
 - `pnpm run crap`
-- `pnpm run lint`
-- `pnpm run typecheck`
 - behavior-preserving cleanup
 - duplication cleanup
 - CRAP risk reduction to `<= 8`
@@ -31,7 +28,6 @@ behavior.
 - changing accepted behavior
 - changing human-owned acceptance specs
 - final architecture review
-- routing the next role
 
 ## Loop
 
@@ -49,7 +45,7 @@ flowchart TD
 ```
 
 The Refactorer should continue through the quality sequence without waiting for
-CI after every push. It should not knowingly hand off broken work.
+CI after every push. It should make sure CI is passed before handing off work. It should not knowingly hand off broken work.
 
 ## Progress
 
@@ -58,7 +54,6 @@ Measurable progress includes:
 - tool failure count decreasing
 - CRAP score decreasing toward `<= 8`
 - duplication or dead-surface findings decreasing
-- lint/typecheck errors decreasing
 - quality output becoming easier to explain
 
 After three consecutive flat or regressing passes for a tool, stop and request
@@ -70,10 +65,6 @@ The Refactorer handoff entry must include:
 
 - result: quality green or needs human review
 - tool loops completed
-- commands run
-- output summaries and report paths
-- files changed
-- commits and pushes
-- any CI state observed after pushes
+- output summaries combined and simplified
 
-Do not recommend the next role. Return to the orchestrator.
+Return to the orchestrator.

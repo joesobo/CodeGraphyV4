@@ -6,7 +6,6 @@ The Coder makes the accepted behavior true.
 
 - current handoff file
 - accepted acceptance contract or skipped-acceptance rationale
-- relevant source and test files
 - CodeGraphy domain language from `CONTEXT.md`
 - acceptance ownership rules from `docs/agents/acceptance-specs.md`
 
@@ -20,12 +19,10 @@ The Coder makes the accepted behavior true.
 
 ## Does Not Own
 
-- editing human-owned acceptance spec Markdown without explicit approval
-- non-mutation quality-tool cleanup beyond what is needed to make focused
-  behavior pass
+- editing human-owned acceptance spec Markdown
+- quality tool cleanup
 - mutation survivor campaigns
 - final architecture review
-- routing the next role
 
 ## Loop
 
@@ -49,7 +46,7 @@ focused unit and generated acceptance tests pass.
 Measurable progress includes:
 
 - failing behavior test becomes passing
-- smaller or clearer implementation
+- smaller, clearer, or simpler implementation
 - more specific executable coverage
 - fewer focused test failures
 
@@ -62,9 +59,6 @@ The Coder handoff entry must include:
 
 - result: behavior green or needs human review
 - files changed
-- commands run
 - focused test evidence
-- commit hash
-- known risks
 
-Do not recommend the next role. Return to the orchestrator.
+Return to the orchestrator.
