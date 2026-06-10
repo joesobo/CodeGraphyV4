@@ -142,3 +142,20 @@
   - `sed -n ... packages/core/src/graphControls/defaults/variableNodeTypes.ts`
 - Next route:
   - Continue grill on how broad the C++ support matrix should be before dispatching Specifier.
+
+### 2026-06-10T21:03:55Z - Orchestrator Grill Decision 2
+
+- Source: user answer to grill question 2.
+- Target: C++ support matrix boundary.
+- Result: support matrix should include reasonable Core upgrades, while explicitly separating out-of-scope C++ semantics.
+- User decision:
+  - The Specifier should include `showcase now`, `reasonable Core upgrade`, and `out of scope` buckets.
+  - Reasonable Core upgrades are allowed when Tree-sitter can support them as honest baseline C++ or shared C-family structure.
+  - Avoid super C++-specific behavior in Core.
+  - Prefer Tree-sitter-backed generic analysis rather than compiler, build-system, macro, template-instantiation, or project-aware semantics.
+  - Future users should be able to create plugins for deeper C++-specific CodeGraphy support.
+- Routing implication:
+  - Specifier should define the desired C++ feature matrix before drafting example or acceptance-spec changes.
+  - Coder should only implement `reasonable Core upgrade` items after red-first tests prove the gap and after the Orchestrator confirms the item belongs in Core rather than Plugin Analysis.
+- Next route:
+  - Continue grill before dispatching Specifier.
