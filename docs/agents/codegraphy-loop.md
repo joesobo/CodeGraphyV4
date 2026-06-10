@@ -76,7 +76,7 @@ role does once dispatched.
 
 ## Commit Policy
 
-Role commits use role prefixes:
+Role-owned commits use role prefixes:
 
 ```text
 specifier: draft graph scope acceptance contract
@@ -85,8 +85,7 @@ refactorer: pass organize for graph scope presets
 architect: cover graph scope preset mutation survivors
 ```
 
-Detailed commit timing belongs to each role contract. Shared convention:
-role-owned commits use role prefixes.
+Detailed commit timing belongs to each role contract.
 
 ## Examples And Docs
 
