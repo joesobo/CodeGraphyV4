@@ -8,14 +8,14 @@
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
-- Heavy-check host: `codegraphy-mini` reachable, but base checkout needs fetch/worktree preparation before heavy checks.
+- Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
 - Next route after human gate: Specifier.
 
 ## Human Gates
 
 - Grill before implementation.
-- Specifier must pause for explicit approval before creating, editing, renaming, or deleting human-owned acceptance spec Markdown under `packages/extension/tests/acceptance/specs/`.
-- Heavy Playwright and mutation checks must run in a remote Codex thread or verified remote worktree on `codegraphy-mini`, not on the MacBook.
+- Specifier should make proposed human-owned acceptance spec Markdown changes locally in the worktree for review, but must not commit them. The user wants to review, approve, and make any needed edits before committing those spec changes themselves.
+- Heavy Playwright and mutation checks must run in the verified remote worktree on `codegraphy-mini` or in a remote Codex thread on that host, not on the MacBook.
 
 ## Setup Verification
 
@@ -27,7 +27,7 @@
 - No existing `196` branch, worktree, PR, or handoff file was found before setup.
 - Local `codegraphy status .` reports a fresh Graph Cache.
 - A CodeGraphy MCP tool surface was not exposed in this Codex thread; use the local CLI and source inspection unless later tools become available.
-- `codegraphy-mini` sanity check succeeded with Node `v22.22.2` and pnpm `10.32.0`, but its main checkout reported `behind 219`; prepare an isolated remote worktree from the pushed branch before any heavy role checks.
+- `codegraphy-mini` sanity check succeeded with Node `v22.22.2` and pnpm `10.32.0`; its stale main checkout was left alone, and an isolated remote worktree was created from `origin/codex/196-cpp-upgrade`.
 - Git reported a background gc warning about unreachable loose objects during `git fetch`; no destructive cleanup was run.
 - Codex thread title/pin tools are available, but searching recent threads by this card text did not return the current live thread; no thread title or pin change was attempted.
 
@@ -85,3 +85,25 @@
   - Do not rename or pin a guessed thread.
 - Open blocker:
   - If the user wants the orchestrator thread pinned, retry with a reliable current-thread identifier or a broader thread-listing pass.
+
+### 2026-06-10T20:56:52Z - Orchestrator Remote Worktree And Grill Decision
+
+- Source: user answer to grill question 1 and Orchestrator remote setup.
+- Target: pilot setup and Specifier routing contract.
+- Result: remote heavy-check wrinkle handled; first acceptance-contract decision recorded.
+- Remote worktree:
+  - Host: `codegraphy-mini`
+  - Path: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Branch: `codex/196-cpp-upgrade`
+  - Ref: `a04b86f2`
+  - Runtime: Node `v22.22.2`, pnpm `10.32.0`
+- User decision:
+  - Before upgrading the example, first identify what C++ support should include: symbols, variables, edges, and related graph expectations.
+  - Compare that desired C++ support matrix against what CodeGraphy already supports.
+  - Then upgrade `examples/example-cpp` into a real-feeling C++ project that intentionally demonstrates the supported C++ features.
+  - After the example shape is right, modify the C++ acceptance test like the C acceptance test so it maps to the example and verifies the expected behavior.
+  - Specifier should draft acceptance spec Markdown changes locally in the worktree for user review, but must not commit them; the user will review, approve, edit if needed, and commit those spec changes themselves.
+- Commands run:
+  - `ssh codegraphy-mini '... git fetch origin codex/196-cpp-upgrade:refs/remotes/origin/codex/196-cpp-upgrade ... git worktree add -B codex/196-cpp-upgrade /Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4 origin/codex/196-cpp-upgrade ...'`
+- Next route:
+  - Continue grill before dispatching Specifier.
