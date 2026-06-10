@@ -2,7 +2,7 @@
 
 ## Current State
 
-- State: Task Queue Runner concept and C++ control targets approved; dispatching Specifier to create the working example before acceptance-test edits.
+- State: Task Queue Runner C++ example created locally for human review; acceptance-test edits still gated until review.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
@@ -516,3 +516,48 @@
   - Commit the example work for user review.
 - Next route:
   - Wait for Specifier example handoff, then verify and present for human review.
+
+### 2026-06-10T22:17:43Z - Specifier Creates Task Queue Runner Example
+
+- Source: Specifier role.
+- Target: `examples/example-cpp`.
+- Result: working Task Queue Runner example ready for human review.
+- Local commit message: `specifier: create cpp task queue example`.
+- Scope held:
+  - No human-owned acceptance spec Markdown edited.
+  - No generated acceptance tests edited.
+  - No Core analyzer or Graph Scope production code edited.
+  - No push performed.
+- Files changed:
+  - `examples/example-cpp/CMakeLists.txt`
+  - `examples/example-cpp/.gitignore`
+  - `examples/example-cpp/README.md`
+  - `examples/example-cpp/src/app.cpp`
+  - `examples/example-cpp/src/task.hpp`
+  - `examples/example-cpp/src/task.cpp`
+  - `examples/example-cpp/src/task_queue.hpp`
+  - `examples/example-cpp/src/worker.hpp`
+  - `examples/example-cpp/src/worker.cpp`
+  - `examples/example-cpp/src/runner.hpp`
+  - `examples/example-cpp/src/runner.cpp`
+  - `examples/example-cpp/src/seed.hpp`
+  - `examples/example-cpp/src/seed.cpp`
+  - Removed old `examples/example-cpp/src/lib/widget.hpp` and `examples/example-cpp/src/lib/widget.cpp`.
+  - `examples/README.md`
+- Example coverage:
+  - Symbols: `taskrunner` namespace; `Task`, `TaskQueue`, `Worker`, `ConsoleWorker`, and `TaskRunner` classes; `Priority` and `TaskStatus` enums; `main`, `make_task`, `seed_tasks`, and `priority_name` callables; class methods; `TaskId`, `TaskList`, and `PendingTaskQueue` aliases; `TaskQueue<Item>` template.
+  - Variables: namespace-scope `next_task_id`; constants `kInitialStatus` and `kDefaultPriority`; fields such as `queue_`, `worker_`, `items_`, `id_`, `name_`, `priority_`, and `status_`; parameters such as `task`, `worker`, `name`, and `priority`; locals such as `tasks`, `completed`, `id`, and `next`.
+  - Edges: local includes among app, runner, seed, task, queue, and worker files; file/symbol containment targets; type references through task/worker/queue signatures; calls from app, runner, worker, and seed flows; `ConsoleWorker` inherits from `Worker`; `ConsoleWorker::execute` overrides `Worker::execute`.
+- Verification:
+  - Direct compiler build passed: `clang++ -std=c++17 -Isrc src/app.cpp src/runner.cpp src/seed.cpp src/task.cpp src/worker.cpp -o /tmp/codegraphy-196-example-cpp`.
+  - Direct executable run passed with three queued tasks printed and exit code 0.
+  - CMake configure passed using local available CMake: `/opt/local/libexec/cmake-bootstrap/bin/cmake /Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4/examples/example-cpp` from `/tmp/codegraphy-196-example-cpp-cmake-build`.
+  - CMake build passed: `/opt/local/libexec/cmake-bootstrap/bin/cmake --build .`.
+  - CMake-built executable run passed with three queued tasks printed and exit code 0.
+  - Focused CodeGraphy CLI index passed: `codegraphy index .` reported 13 files, 24 nodes, and 32 edges.
+- Known gaps for later roles:
+  - The example contains all approved constructs, but current Graph Scope controls still need Core/Graph Scope work to surface `Namespace`, `Callable`, `Method`, `Alias`, `Template`, `Global`, `Field`, `Parameter`, `Local`, and `Include` as approved visible C++ controls.
+  - Current acceptance spec Markdown, generated acceptance tests, and the examples workspace pipeline test still reference the old Widget example; they were deliberately not changed in this pass.
+  - `cmake` was not on `PATH` on the local host or `codegraphy-mini`; CMake verification used the available MacPorts bootstrap binary by absolute path.
+- Next route:
+  - Orchestrator verifies the local commit and presents the example for human review before acceptance-test work.
