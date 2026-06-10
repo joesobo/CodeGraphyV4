@@ -80,6 +80,10 @@ Common routing examples:
   Refactorer
 - mutation sites, mutation survivors, architecture review, release docs,
   changesets, PR body, or final CI fail: Architect
+- significant P1/P2 architecture finding changes the accepted behavior or
+  product contract: Specifier
+- significant P1/P2 architecture finding shows the implementation approach is
+  wrong: Coder
 - final human review finds an issue: route to the role that owns the reason
 
 Role agents report facts and evidence. They do not choose the next role.
@@ -88,6 +92,22 @@ Role agents report facts and evidence. They do not choose the next role.
 
 The Orchestrator creates and maintains an append-only handoff file under
 `docs/handoff/`.
+
+Use the Trello card number in the filename when available:
+
+```text
+docs/handoff/214-graph-scope-search-presets.md
+```
+
+The handoff file must include:
+
+- Trello card or source request
+- PR number after one exists
+- branch and worktree
+- host used for heavy checks
+- current state
+- human gates
+- chronological event log
 
 Each dispatch entry should include:
 
@@ -123,6 +143,13 @@ The Orchestrator pauses the loop when:
 
 While paused, Trello should move to `Review`. When the user responds, the
 Orchestrator records the decision and routes the loop back to the correct role.
+
+The current V0 Trello model is:
+
+- existing `In Progress` state means the loop is running
+- `Review` means the loop is waiting for human acceptance review or final
+  human review
+- existing `Done` means the human has accepted and the work is complete
 
 ## Ready For Human Review
 

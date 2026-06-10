@@ -66,55 +66,13 @@ Default route: Specifier, Coder, Refactorer, Architect, Human review.
 The orchestrator may route backward after any handoff. A role keeps looping
 while it is making measurable progress.
 
-## Orchestrator Contract
+## Orchestrator
 
 The Orchestrator contract lives in `docs/agents/loops/orchestrator.md`.
 
-The orchestrator should treat Trello as workflow state and the handoff file as
-the detailed loop record. The current V0 Trello model is:
-
-- existing `In Progress` state means the loop is running
-- `Review` means the loop is waiting for human acceptance review or final
-  human review
-- existing `Done` means the human has accepted and the work is complete
-
-## Handoff Log
-
-Each loop run must have an append only handoff file in `docs/handoff/`.
-
-Use the Trello card number in the filename when available:
-
-```text
-docs/handoff/214-graph-scope-search-presets.md
-```
-
-The handoff file must include:
-
-- Trello card or source request
-- PR number after one exists
-- branch and worktree
-- host used for heavy checks
-- current state
-- human gates
-- chronological event log
-
-Role agents report facts. The orchestrator reads the handoff entry, checks the repo and PR state, and routes the next step.
-
-## Human Gates
-
-The loop pauses for human input when:
-
-- a human owned acceptance spec Markdown file needs to be created, edited,
-  renamed, or deleted
-- the acceptance contract is ambiguous
-- a role has three consecutive flat or regressing passes
-- a role would need to cross its mandate to proceed
-- a tool or environment problem blocks measurable progress
-- final human review finds an issue and asks the orchestrator to route it back
-
-The Specifier may draft acceptance changes locally, but it must not commit,
-push, or move the loop forward when human owned acceptance spec Markdown is
-involved until the user approves the acceptance contract.
+The Orchestrator owns the detailed handoff format, Trello state, routing,
+human gates, and final readiness checks. Role docs own the details of what each
+role does once dispatched.
 
 ## Commit Policy
 
@@ -127,10 +85,8 @@ refactorer: pass organize for graph scope presets
 architect: cover graph scope preset mutation survivors
 ```
 
-The Coder commits after focused behavior evidence is green.
-The Coder also verifies lint and typecheck before handoff.
-The Refactorer commits and pushes after each quality tool or logical quality group is clean.
-The Architect may commit and push multiple times while mutation, review, release hygiene, and CI converge.
+Detailed commit timing belongs to each role contract. Shared convention:
+role-owned commits use role prefixes.
 
 ## Examples And Docs
 
@@ -149,20 +105,9 @@ Examples belong to the role that owns the reason they are needed:
 The orchestrator decides which role receives example work by reading the card,
 handoff log, and current PR state.
 
-## Ready For Human Review
+## Final Review
 
-The orchestrator may mark the PR ready for human review only when:
-
-- required acceptance decisions are approved
-- Coder loop conditions pass
-- Refactorer loop conditions pass
-- Architect loop conditions pass
-- handoff log is current
-- PR body is current
-- relevant docs and changesets are handled
-- PR is pushed
-- CI is green, or the remaining CI state is explicitly documented for human
-  review
-
-Human review is not terminal by default. If human review finds an issue, the
-orchestrator records it in the handoff log and routes work back into the loop.
+Final human review is part of the loop, not an automatic terminal state. The
+Orchestrator may move work to human review only after the role contracts have
+passed and CI is green. If human review finds an issue, the Orchestrator records
+it and routes the loop back to the role that owns the reason.
