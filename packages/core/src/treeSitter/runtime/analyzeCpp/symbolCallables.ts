@@ -6,7 +6,7 @@ import { addNamedSymbol } from './symbolCreate';
 import {
   getFunctionNameNode,
   readQualifiedFunctionDeclaratorText,
-} from './symbolNames';
+} from './symbolLookupNames';
 import type { CppSymbolWalkState } from './symbolModel';
 
 export function handleCppFunctionDefinition(

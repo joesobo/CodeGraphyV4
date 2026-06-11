@@ -5,12 +5,11 @@ import { handleCFamilySymbol } from '../analyzeCFamily/symbols';
 import { addNamedSymbol } from './symbolCreate';
 import {
   getDeclarationNameNode,
-  getFunctionNameNode,
-} from './symbolNames';
+} from './symbolLookupNames';
 import {
-  CLASS_LIKE_NODE_TYPES,
   type CppSymbolWalkState,
 } from './symbolModel';
+import { getTemplateDeclarationNameNode } from './symbolTypeTemplates';
 
 export function handleCppAliasDeclaration(
   node: Parser.SyntaxNode,
@@ -35,9 +34,7 @@ export function handleCppTemplateDeclaration(
   symbols: IAnalysisSymbol[],
   state: CppSymbolWalkState,
 ): TreeWalkAction<CppSymbolWalkState> {
-  const declaration = node.namedChildren.find((child) => CLASS_LIKE_NODE_TYPES.has(child.type))
-    ?? node.namedChildren.find((child) => child.type === 'function_definition' || child.type === 'declaration')
-    ?? node.namedChildren.at(-1);
+  const declaration = readCppTemplateDeclarationTarget(node);
   const nameNode = declaration ? getTemplateDeclarationNameNode(declaration) : null;
   addNamedSymbol(symbols, filePath, 'template', nameNode, declaration ?? node);
 
@@ -47,14 +44,6 @@ export function handleCppTemplateDeclaration(
       suppressTypeDeclarationSymbol: true,
     },
   };
-}
-
-function getTemplateDeclarationNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
-  if (node.type === 'function_definition' || node.type === 'declaration') {
-    return getFunctionNameNode(node) ?? getDeclarationNameNode(node);
-  }
-
-  return getDeclarationNameNode(node);
 }
 
 export function handleCppTypeDeclaration(
@@ -77,6 +66,10 @@ export function handleCppTypeDeclaration(
       suppressTypeDeclarationSymbol: false,
     },
   };
+}
+
+function readCppTemplateDeclarationTarget(node: Parser.SyntaxNode): Parser.SyntaxNode | undefined {
+  return node.namedChildren.at(-1);
 }
 
 function cppTypeSymbolKind(node: Parser.SyntaxNode): string {

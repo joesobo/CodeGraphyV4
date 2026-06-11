@@ -8,12 +8,10 @@ import {
   handleCppTemplateDeclaration,
   handleCppTypeDeclaration,
 } from './symbolTypes';
-import {
-  handleCppDeclaration,
-  handleCppFieldDeclaration,
-  handleCppForRangeLoop,
-  handleCppParameterDeclaration,
-} from './symbolVariables';
+import { handleCppDeclaration } from './symbolDeclarationVariables';
+import { handleCppFieldDeclaration } from './symbolFieldVariables';
+import { handleCppForRangeLoop } from './symbolLoopVariables';
+import { handleCppParameterDeclaration } from './symbolParameterVariables';
 import type {
   CppSymbolHandler,
   CppSymbolWalkState,

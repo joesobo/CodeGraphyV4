@@ -1074,3 +1074,84 @@
   - Continue Architect loop for mutation/site-count cleanup because the first Architect pass made measurable progress by splitting `symbols.ts` and surfacing precise mutation blockers.
   - Architect must not edit `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`.
   - Orchestrator should separately route or ask for explicit approval to let Specifier draft local updates for `graph-scope-edge-node-types.md` once mutation work is no longer occupying the shared worktree, unless CI resolves without that change.
+
+### 2026-06-11T03:58:38Z - Architect Splits C++ Analyzer Mutation Hot Spots
+
+- Source: Architect role route-back.
+- Target: C++ analyzer mutation-site cleanup, survivor-focused hardening, release hygiene, PR/CI status.
+- Result: mutation-site threshold is now satisfied for all touched `analyzeCpp` files, but scoped mutation remains below the `>=90%` standard and needs Orchestrator routing.
+- Scope held:
+  - No human-owned acceptance spec Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited.
+  - No accepted C++ behavior or product contract was changed.
+  - Did not broaden into unrelated boundary/reachability/CRAP rows.
+- Host used for heavy checks:
+  - `codegraphy-mini:/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Required PATH used before remote commands: `/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+  - Remote worktree was fetched/ff-only checked against `origin/codex/196-cpp-upgrade` before mutation work.
+- Changes made by Architect:
+  - Split `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts` semantic relation expansion into focused modules for relation model, includes, declarations, inheritance, overrides, calls, type names, scopes, and semantic orchestration.
+  - Split oversized symbol helpers:
+    - `symbolNames.ts` became declarator/lookup/scope/descendant modules.
+    - `symbolVariables.ts` became declaration/field/loop/parameter variable modules.
+    - `symbolTypes.ts` shed template-name handling into `symbolTypeTemplates.ts`.
+  - Split the second-pass hot spots:
+    - `symbolDeclaratorNames.ts` now delegates to candidate/name/search modules.
+    - `relationOverrides.ts` now delegates to override-method and override-resolution modules.
+    - `relationDeclaredMethods.ts` now delegates to method-name and method-symbol modules.
+  - Simplified C++ template target selection to the last named child, removing equivalent-prone scans while preserving Tree-sitter C++ template behavior.
+  - Added `packages/core/tests/treeSitter/cpp/symbolTypes.test.ts` with survivor-focused coverage for template class/function symbol names and duplicate type-symbol suppression.
+- Verification after changes:
+  - Local focused Core tests passed:
+    - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cpp/analyze.test.ts tests/treeSitter/cpp/symbolTypes.test.ts tests/treeSitter/cfamily/symbols.test.ts`
+  - Local Core typecheck passed:
+    - `pnpm --filter @codegraphy-dev/core run typecheck`
+  - Local Core lint passed:
+    - `pnpm --filter @codegraphy-dev/core run lint`
+  - Local whitespace check passed:
+    - `git diff --check`
+  - Remote focused Core tests passed with the same three-test-file command before each mutation run.
+- Mutation evidence:
+  - Pre-route blocker from Orchestrator:
+    - Directory-scoped full-Core-test run: `63.94%`; `525` killed, `268` survived, `32` no coverage, `7` timeouts.
+    - Site-count violations: `file.ts` `482`, `symbolNames.ts` `147`, `symbolVariables.ts` `102`, `symbolTypes.ts` `60`.
+  - Split baseline during this pass:
+    - Command: `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+    - Result: `65.98%`; `536` killed, `247` survived, `33` no coverage, `7` timeouts.
+    - Remaining site-count violations at that point: `symbolDeclaratorNames.ts` `96`, `relationOverrides.ts` `62`, `relationDeclaredMethods.ts` `58`.
+  - After final hot-spot extraction:
+    - Same command as above.
+    - Result: `65.98%`; `536` killed, `247` survived, `33` no coverage, `7` timeouts.
+    - Site-count result: all files within the 50-site threshold.
+  - After template-target simplification:
+    - Same command as above.
+    - Result: `66.67%`; `533` killed, `238` survived, `32` no coverage, `7` timeouts.
+    - Site-count result: all files within the 50-site threshold.
+  - After first survivor-focused template-symbol test:
+    - Command added `--test-include packages/core/tests/treeSitter/cpp/symbolTypes.test.ts`.
+    - Result: `67.41%`; `539` killed, `232` survived, `32` no coverage, `7` timeouts.
+    - Site-count result: all files within the 50-site threshold.
+  - Final scoped mutation run:
+    - Command: `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cpp/symbolTypes.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+    - Result: `68.52%`; `548` killed, `228` survived, `27` no coverage, `7` timeouts.
+    - Runtime: `2m 15s`.
+    - Site-count result: all files within the 50-site threshold.
+    - Highest remaining site counts: `relationIncludeTraversal.ts` `44`, `symbolDeclaratorNameNode.ts` `42`, `relationDeclaredMethodSymbols.ts` `40`, `symbolFieldVariables.ts` `38`, `symbolTypes.ts` `36`.
+    - Notable improved files: `symbolTypes.ts` reached `88.89%`; `symbolTypeTemplates.ts` reached `91.67%`; `relationOverrides.ts`, `symbols.ts`, and `relationDeclarationCollect.ts` are at or above `95%`.
+- Architecture review findings:
+  - Resolved P1: branch-owned C++ analyzer files no longer exceed the `<=50` mutation-site guidance.
+  - Remaining P1: scoped C++ analyzer mutation is still far below `>=90%` at `68.52%`, with `228` survivors and `27` no-coverage mutants across the analyzer directory.
+  - Remaining P1 evidence: reaching `>=90%` would require killing roughly another 170 mutants from broad relation/symbol/helper surfaces, not a small hot-spot split. The largest survivor buckets remain relation method-symbol collection, relation declarator names, include traversal, override method/resolution, variable/declarator helpers, and symbol creation/search helpers.
+  - Remaining P2: some survivors are behaviorally weak assertions in generated analyzer integration tests, while some are equivalent or near-equivalent helper mutants such as return-action shape and optional chaining on already named nodes.
+- Docs/changeset/PR body status:
+  - Existing changeset `.changeset/cpp-graph-scope-upgrade.md` is still appropriate; this pass is behavior-preserving refactor/test hardening and does not need a new changeset.
+  - PR body needs updating after this commit/push to replace the stale mutation-site blocker with the new site-threshold-resolved / mutation-still-below-threshold state.
+- CI status checked:
+  - PR #263 at head `8d6a64e5b524226d7da92ea8ca1813fa593c4c20` is open draft; merge state `UNSTABLE`.
+  - All checks on run `27321791033` passed except `Playwright / Graph interactions`.
+  - `Playwright / Graph interactions` failed at `2026-06-11T03:38:27Z`, consistent with the already-confirmed stale Widget assertions in human-owned `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`.
+  - Architect did not edit that human-owned spec.
+- Blockers and return route:
+  - Return to Orchestrator; do not move to final human review.
+  - Site-count cleanup is complete for this route-back.
+  - Remaining mutation gap is structural for this card's current analyzer surface; Orchestrator should decide whether to route a larger dedicated mutation-test campaign or accept exact blocker/equivalent-mutant evidence for this PR stage.
+  - Separate Orchestrator/human/specifier gate still needed for stale `graph-scope-edge-node-types.md` Widget assertions if CI remains blocked by that acceptance contract.
