@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Human rejected the scoped mutation exception; Architect is routed to improve PR-touched mutation-capable files until scoped mutation reaches the acceptable `>=90%` threshold on the Mac mini.
+- State: Architect mutation campaign reached the accepted `>=90%` threshold for every PR-touched mutation-capable production TS/TSX file on `codegraphy-mini`; final readiness now depends on current PR CI state and Orchestrator routing.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Architect continues the mutation campaign on `codegraphy-mini`, using scoped mutation tests for PR-touched mutation-capable source files and recording explicit exclusions for non-mutation targets.
+- Next route: Orchestrator should verify the latest PR CI state and route to human review if checks are green.
 
 ## Human Gates
 
@@ -1506,3 +1506,118 @@
 - Route:
   - Architect should run mutation on `codegraphy-mini`, not the MacBook.
   - Architect should make focused code/test changes until the scoped mutation target reaches `>=90%`, while preserving the accepted behavior and human-owned acceptance specs.
+
+### 2026-06-11T19:30:19Z - Architect Completes PR-Touched Mutation Campaign
+
+- Source: human rejected the recorded scoped mutation exception and routed Architect to continue until the acceptable mutation threshold was met.
+- Target: every PR-touched mutation-capable production TS/TSX file, scoped mutation on `codegraphy-mini`.
+- Result: threshold met. All scored mutation-capable touched production TS/TSX files are now `>=90%`; explicit exclusions are recorded below.
+- Scope held:
+  - No human-owned acceptance Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited by Architect in this campaign.
+  - Accepted behavior/product contract was preserved.
+  - Bare `pnpm run mutate` was not run.
+- Commits pushed by Architect in this campaign after Orchestrator route `554e9a12`:
+  - `a50b390d` - `architect: cover cpp analyzer helper mutation`
+  - `e3b1f563` - `architect: cover cpp analyzer boundary mutation`
+  - `f7a73477` - `architect: cover cpp relation mutation boundaries`
+  - `a6f1931b` - `architect: finish cpp analyzer mutation survivors`
+  - `28d607bc` - `architect: cover touched mutation targets`
+  - `f2536b90` - `architect: raise touched mutation coverage`
+  - `d38b5894` - `architect: clear merge mutation threshold`
+- Worktree sync:
+  - Local worktree clean at `d38b5894`; `origin/codex/196-cpp-upgrade` also at `d38b5894`.
+  - `codegraphy-mini` worktree clean at `d38b5894`; `origin/codex/196-cpp-upgrade` also at `d38b5894`.
+  - Heavy-check PATH on the mini: `/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin`.
+- Touched-file inventory:
+  - `git diff --name-only origin/main...HEAD`: `99` changed files.
+  - Production TS/TSX under `packages/*/src`: `51` changed files.
+  - Mutation-scored production targets: `47` files, all `>=90%`.
+  - Production TS exclusions: `4` files:
+    - `packages/core/src/treeSitter/runtime/analyzeCpp/relationDeclaredMethods.ts` - pure barrel re-export of method-name/method-symbol readers; no independent executable mutation surface.
+    - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNames.ts` - pure barrel re-export of declarator-name helpers; no independent executable mutation surface.
+    - `packages/core/src/treeSitter/runtime/analyzeCpp/relationModel.ts` - directory mutation report classified as `n/a`, `0` mutants, `0` killed/survived/no coverage.
+    - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolModel.ts` - directory mutation report classified as `n/a`, `0` mutants, `0` killed/survived/no coverage.
+- Non-production exclusions from mutation:
+  - Changeset/docs: `.changeset/cpp-graph-scope-upgrade.md`, `docs/handoff/196-cpp-upgrade.md`.
+  - Example docs/settings/build/C++ source: `examples/README.md`, `examples/example-cpp/.codegraphy/settings.json`, `examples/example-cpp/.gitignore`, `examples/example-cpp/CMakeLists.txt`, `examples/example-cpp/README.md`, and all `examples/example-cpp/src/**/*.{cpp,hpp}` touched by this PR.
+  - Tests and generated test output: all touched `packages/core/tests/**`, `packages/extension/tests/**`, including `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`.
+  - Human-owned acceptance Markdown excluded and left untouched by Architect: `packages/extension/tests/acceptance/specs/cpp-example.md`, `graph-scope-edge-node-types.md`, `graph-scope-edge-types.md`, and `graph-scope-node-types.md`.
+- Local verification after final mutation-support edits:
+  - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/capabilities.test.ts tests/visibleGraph/scope.test.ts tests/graphControls/defaults/definitions.test.ts tests/graph/symbols.test.ts` passed with `49` tests.
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/graphView/controls/definitions/definitions.test.ts tests/extension/graphView/controls/definitions/snapshot.test.ts tests/shared/graphControls/defaults/nodeTypes.test.ts tests/shared/graphControls/settings.test.ts tests/shared/visibleGraph/scope.test.ts` passed with `38` tests.
+  - Pre-commit hooks for `28d607bc`, `f2536b90`, and `d38b5894` passed acceptance-spec ownership guard, full workspace `pnpm run typecheck` through Turbo, and lint-staged.
+  - Typecheck regenerated `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`; Architect restored that generated drift after each commit when it was not part of the intended change.
+- Mini mutation setup note:
+  - Stryker sandbox copying initially failed on ignored VS Code runtime cache under `packages/extension/.vscode-test` because of an Electron Framework socket/symlink. Architect moved that ignored cache aside on the mini to `/tmp/codegraphy-vscode-test-backup-20260611115555`; repo worktree remained clean.
+- Current-head scoped mutation commands/results on `codegraphy-mini`:
+  - `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cpp/symbolTypes.test.ts --test-include packages/core/tests/treeSitter/cpp/relationHelpers.test.ts --test-include packages/core/tests/treeSitter/cpp/symbolHelpers.test.ts --test-include packages/core/tests/treeSitter/cpp/relationBoundaryHelpers.test.ts --test-include packages/core/tests/treeSitter/cpp/symbolBoundaryHelpers.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+    - Result: `96.94%`; `751` killed, `10` timeouts, `23` survived, `1` no coverage; all analyzer files within mutation site threshold.
+  - `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyze/results.ts --test-include packages/core/tests/treeSitter/analyze/results.test.ts --force`
+    - Result: `98.08%`; `51` killed, `0` survived, `1` no coverage.
+  - `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/capabilities.ts --test-include packages/core/tests/treeSitter/capabilities.test.ts --test-include packages/core/tests/treeSitter/core.test.ts --force`
+    - Result: `96.97%`; `64` killed, `0` timeouts, `2` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/core/src/graphControls/defaults/symbolNodeTypes.ts --test-include packages/core/tests/graphControls/defaults/definitions.test.ts --test-include packages/core/tests/visibleGraph/scope.test.ts --test-include packages/core/tests/treeSitter/core.test.ts --force`
+    - Result: `100.00%`; `120` killed, `0` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/core/src/graphControls/defaults/variableNodeTypes.ts --test-include packages/core/tests/graphControls/defaults/definitions.test.ts --test-include packages/core/tests/visibleGraph/scope.test.ts --test-include packages/core/tests/treeSitter/core.test.ts --force`
+    - Result: `100.00%`; `61` killed, `0` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/core/src/visibleGraph/scopeSymbolTypes.ts --test-include packages/core/tests/visibleGraph/scope.test.ts --force`
+    - Result: `100.00%`; `31` killed, `0` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/core/src/graph/symbols.ts --test-include packages/core/tests/graph/data.test.ts --test-include packages/core/tests/graph/symbols.test.ts --test-include packages/core/tests/visibleGraph/scope.test.ts --force`
+    - Result: `97.87%`; `92` killed, `0` timeouts, `2` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/extension/src/extension/graphView/controls/send/definitions/merge.ts --test-include packages/extension/tests/extension/graphView/controls/definitions/definitions.test.ts --test-include packages/extension/tests/extension/graphView/controls/definitions/snapshot.test.ts --force`
+    - Result: `98.02%`; `94` killed, `5` timeouts, `2` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/extension/src/shared/graphControls/defaults/nodeTypes/symbols.ts --test-include packages/extension/tests/shared/graphControls/defaults/nodeTypes.test.ts --test-include packages/extension/tests/extension/graphView/controls/definitions/snapshot.test.ts --force`
+    - Result: `100.00%`; `200` killed, `0` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/extension/src/shared/graphControls/defaults/nodeTypes/variables.ts --test-include packages/extension/tests/shared/graphControls/defaults/nodeTypes.test.ts --test-include packages/extension/tests/extension/graphView/controls/definitions/snapshot.test.ts --force`
+    - Result: `100.00%`; `98` killed, `0` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/extension/src/shared/graphControls/settings.ts --test-include packages/extension/tests/shared/graphControls/settings.test.ts --test-include packages/extension/tests/extension/graphView/webview/settingsMessages/updates/controls.test.ts --force`
+    - Result: `100.00%`; `10` killed, `0` survived, `0` no coverage.
+  - `pnpm exec quality-tools mutate packages/extension/src/shared/visibleGraph/scope/definitions.ts --test-include packages/extension/tests/shared/visibleGraph/scope.test.ts --test-include packages/extension/tests/extension/graphView/controls/definitions/snapshot.test.ts --force`
+    - Result: `100.00%`; `38` killed, `0` survived, `0` no coverage.
+- Current-head analyzer per-file mutation evidence:
+  - `file.ts`: `100.00%`
+  - `relationCall.ts`: `100.00%`
+  - `relationCallNames.ts`: `100.00%`
+  - `relationCallTargets.ts`: `100.00%`
+  - `relationDeclarationCollect.ts`: `95.83%`
+  - `relationDeclaratorNames.ts`: `94.12%`
+  - `relationDeclaredFunctions.ts`: `94.44%`
+  - `relationDeclaredMethodNames.ts`: `94.44%`
+  - `relationDeclaredMethodSymbols.ts`: `92.50%`
+  - `relationDeclaredTypes.ts`: `100.00%`
+  - `relationFunctionNames.ts`: `96.15%`
+  - `relationIncludes.ts`: `90.91%`
+  - `relationIncludeTraversal.ts`: `90.00%`
+  - `relationInheritance.ts`: `94.12%`
+  - `relationOverrideMethods.ts`: `100.00%`
+  - `relationOverrideResolution.ts`: `100.00%`
+  - `relationOverrides.ts`: `100.00%`
+  - `relationScopes.ts`: `94.29%`
+  - `relationType.ts`: `100.00%`
+  - `relationTypeNames.ts`: `100.00%`
+  - `semanticRelations.ts`: `100.00%`
+  - `symbolCallables.ts`: `100.00%`
+  - `symbolCreate.ts`: `100.00%`
+  - `symbolDeclarationVariables.ts`: `96.00%`
+  - `symbolDeclaratorCandidates.ts`: `100.00%`
+  - `symbolDeclaratorNameNode.ts`: `92.86%`
+  - `symbolDeclaratorSearch.ts`: `100.00%`
+  - `symbolDescendants.ts`: `100.00%`
+  - `symbolFieldVariables.ts`: `97.37%`
+  - `symbolLookupNames.ts`: `100.00%`
+  - `symbolLoopVariables.ts`: `96.77%`
+  - `symbolParameterVariables.ts`: `100.00%`
+  - `symbols.ts`: `100.00%`
+  - `symbolScope.ts`: `100.00%`
+  - `symbolTypes.ts`: `100.00%`
+  - `symbolTypeTemplates.ts`: `100.00%`
+- Site-count notes:
+  - Analyzer directory report says all analyzer files are within the 50 mutation-site threshold.
+  - Several non-analyzer touched files still exceed the 50 site-count warning while meeting the requested `>=90%` mutation score: core `results.ts` (`52`), `capabilities.ts` (`66`), `graph/symbols.ts` (`94`), core symbol/variable catalogs (`120`/`61`), extension `merge.ts` (`105`), and extension symbol/variable catalogs (`200`/`98`). These are warnings, not score blockers, after the user's explicit target definition focused on per-file `>=90%` or justified exclusion.
+- Architecture and release findings:
+  - No new P1/P2 architecture or release blocker found in the mutation campaign.
+  - The campaign added behavior-focused tests and small behavior-preserving refactors for mutation-equivalent/default-array/catalog coverage surfaces.
+  - Existing user-facing changeset remains sufficient; Architect mutation/test/refactor work does not require a new changeset.
+- Next route:
+  - Verify PR #263 CI at the new head after this handoff/PR-body update.
+  - If CI is green, route to final human review.
