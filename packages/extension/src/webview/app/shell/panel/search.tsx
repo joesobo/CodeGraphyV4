@@ -29,7 +29,10 @@ export function SearchHeader({
   onSearchOptionsChange,
 }: SearchHeaderProps): React.ReactElement {
   return (
-    <div className="flex-shrink-0 px-2 pt-2 pb-1 border-b border-border">
+    <header
+      className="flex-shrink-0 px-2 pt-2 pb-1 border-b border-border"
+      data-codegraphy-region="search-header"
+    >
       <SearchBar
         value={searchQuery}
         onChange={onSearchQueryChange}
@@ -43,10 +46,10 @@ export function SearchHeader({
         regexError={regexError}
       />
       {activeFilePath && (
-        <div className="mt-1">
+        <div className="mt-1" data-codegraphy-region="active-file-breadcrumb">
           <ActiveFileBreadcrumb filePath={activeFilePath} />
         </div>
       )}
-    </div>
+    </header>
   );
 }

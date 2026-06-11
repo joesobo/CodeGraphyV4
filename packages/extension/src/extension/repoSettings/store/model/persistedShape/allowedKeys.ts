@@ -5,6 +5,7 @@ export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'include',
   'respectGitignore',
   'showOrphans',
+  'cssSnippets',
   'plugins',
   'pluginData',
   'nodeColors',

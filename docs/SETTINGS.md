@@ -23,6 +23,7 @@ Common top-level sections include:
 - `edgeVisibility`
 - `edgeColors`
 - `legend` (the stored Legend Entry list used by the Legends popup)
+- `cssSnippets`
 - `plugins`
 - `physics`
 - `timeline`
@@ -61,6 +62,9 @@ Example:
   ],
   "legend": [
     { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
+  ],
+  "cssSnippets": [
+    ".codegraphy/snippets/animated-graph-stage.css"
   ]
 }
 ```
@@ -83,6 +87,7 @@ Example:
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
+| `cssSnippets` | string[] | `[]` | Ordered workspace-relative CSS files loaded into the CodeGraphy Extension webview |
 | `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
@@ -90,6 +95,73 @@ Example:
 | `edgeColors` | object | generated | Edge-kind colors by id |
 | `physics.*` | object | see file | Force simulation controls |
 | `timeline.*` | object | see file | Timeline indexing/playback controls |
+
+## CSS Snippets
+
+CodeGraphy CSS Snippets let a workspace apply small CSS files to the CodeGraphy Extension UI without rebuilding a full VS Code theme.
+
+Create a CSS file inside the CodeGraphy Workspace, usually:
+
+```text
+.codegraphy/snippets/animated-graph-stage.css
+```
+
+Then list it in `.codegraphy/settings.json`:
+
+```json
+{
+  "cssSnippets": [
+    ".codegraphy/snippets/animated-graph-stage.css",
+    ".codegraphy/snippets/focus-mode-panel.css"
+  ]
+}
+```
+
+The array is the enable list. Listed snippets load into the webview; removing a path unloads it on the next settings update. Snippets load in array order, so later files can override earlier files through the normal CSS cascade.
+
+Path rules:
+
+- Paths are relative to the CodeGraphy Workspace root.
+- Paths must end in `.css`.
+- Paths must stay inside the CodeGraphy Workspace.
+- Absolute paths and `../` parent traversal are rejected.
+- Missing, invalid, or rejected paths write `[CodeGraphy]` warnings to the VS Code Developer Tools console.
+
+CodeGraphy watches `.codegraphy/settings.json`, so adding or removing entries updates the loaded snippet list. Editing the contents of an already loaded CSS file does not auto-reload yet; reload the webview or touch the settings file after changing snippet contents.
+
+### Styling Hooks
+
+Snippets should target CodeGraphy Styling Hooks: stable `data-codegraphy-*` attributes exposed by the extension UI. These hooks are the customization contract; avoid targeting generated classes or incidental React wrapper structure.
+
+Common hooks:
+
+| Hook | Values | Surface |
+|------|--------|---------|
+| `data-codegraphy-view` | `graph`, `timeline` | Webview body |
+| `data-codegraphy-surface` | `app`, `graph-view`, `graph-stage`, `timeline-view` | Main view surfaces |
+| `data-codegraphy-layer` | `graph-overlay`, `graph-stage-world-overlay`, `graph-stage-viewport-overlay`, `graph-accessibility` | Graph overlay layers |
+| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
+| `data-codegraphy-panel` | `filters`, `graph-scope`, `legend`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
+| `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs`, `timeline-playback`, `timeline-track` | Interactive controls |
+| `data-codegraphy-section` | `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings sections |
+| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `toolbar`, `timeline-panel` | Plugin contribution slots |
+| `data-codegraphy-state` | `loading`, `empty`, `graph-indexing`, `timeline-indexing`, `timeline-ready-to-index` | View states |
+| `data-codegraphy-row` | `plugin`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
+| `data-codegraphy-marker` | `timeline-commit`, `timeline-current-commit` | Timeline markers |
+
+Example:
+
+```css
+[data-codegraphy-surface='graph-stage'] {
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 32%);
+}
+
+[data-codegraphy-panel='graph-scope'] {
+  backdrop-filter: blur(12px);
+}
+```
+
+See `examples/css-snippets/` for copyable demo snippets.
 
 ## Graph Scope settings
 

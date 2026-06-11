@@ -12,11 +12,13 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     expect(normalizePersistedSettingsShape({
       verboseDiagnostics: true,
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
+      cssSnippets: ['.codegraphy/snippets/graph.css', 42, '.codegraphy/snippets/graph.css', '  .codegraphy/snippets/focus.css  '],
       edgeColors: { import: '#123456' },
       plugins: ['codegraphy.typescript'],
     })).toEqual({
       verboseDiagnostics: true,
       filterPatterns: ['**/*.png', '**/*.tmp'],
+      cssSnippets: ['.codegraphy/snippets/graph.css', '.codegraphy/snippets/focus.css'],
     });
   });
 
@@ -139,6 +141,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendVisibility: { 'legend-1': true },
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
+      cssSnippets: ['.codegraphy/snippets/graph.css'],
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,
@@ -182,6 +185,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendVisibility: { 'legend-1': true },
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
+      cssSnippets: ['.codegraphy/snippets/graph.css'],
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,

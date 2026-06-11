@@ -19,7 +19,7 @@ export function ForcesSection(): React.ReactElement {
   const setPhysicsSettings = useGraphStore((state) => state.setPhysicsSettings);
   const pendingPhysicsValuesRef = useRef<PendingPhysicsMap>({});
   const physicsPersistTimersRef = useRef<PhysicsTimerMap>({});
-  const cleanupRef = useRef<(node: HTMLDivElement | null) => void>((node) => {
+  const cleanupRef = useRef<(node: HTMLElement | null) => void>((node) => {
     if (node === null) {
       clearPhysicsTimerMap(physicsPersistTimersRef.current);
     }
@@ -53,7 +53,11 @@ export function ForcesSection(): React.ReactElement {
   };
 
   return (
-    <div className="mb-2 space-y-3 pt-1" ref={cleanupRef.current}>
+    <section
+      className="mb-2 space-y-3 pt-1"
+      data-codegraphy-section="settings-forces"
+      ref={cleanupRef.current}
+    >
       <div>
         <div className="flex items-center justify-between mb-1">
           <Label className="text-xs">Repel Force</Label>
@@ -119,6 +123,6 @@ export function ForcesSection(): React.ReactElement {
           onValueCommit={() => flushPhysicsSetting('linkForce')}
         />
       </div>
-    </div>
+    </section>
   );
 }

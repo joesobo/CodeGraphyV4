@@ -12,6 +12,7 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
   return (
     <TooltipProvider delayDuration={300}>
       <div
+        data-codegraphy-control="graph-toolbar"
         data-testid="toolbar"
         className="flex h-full min-h-0 flex-col items-center gap-2 bg-transparent"
       >
@@ -22,12 +23,14 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
             <SlotHost
               pluginHost={pluginHost}
               slot="graph.toolbar"
+              data-codegraphy-slot="graph-toolbar"
               data-testid="graph-toolbar-plugin-slot"
               className="flex flex-col items-center gap-1.5"
             />
             <SlotHost
               pluginHost={pluginHost}
               slot="toolbar"
+              data-codegraphy-slot="toolbar"
               data-testid="toolbar-plugin-slot"
               className="flex flex-col items-center gap-1.5"
             />

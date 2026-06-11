@@ -31,8 +31,24 @@ alias behavior.
 - `example-swift` — Swift Package module import example
 - `example-dart` — Dart relative/package import example
 - `example-svelte` — Svelte component, type import, and lazy module import example
+- `css-snippets` — copyable CodeGraphy CSS Snippet examples for styling the extension UI
 
 These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbol and Variable let you zoom into the declarations that explain why files are connected.
+
+## CSS Snippet Examples
+
+The `css-snippets/` folder contains reference snippets for CodeGraphy CSS Snippets. Copy a snippet into a CodeGraphy Workspace, usually under `.codegraphy/snippets/`, then list it in that workspace's `.codegraphy/settings.json`:
+
+```json
+{
+  "cssSnippets": [
+    ".codegraphy/snippets/animated-graph-stage.css",
+    ".codegraphy/snippets/focus-mode-panel.css"
+  ]
+}
+```
+
+Snippet paths are relative to the CodeGraphy Workspace and must stay inside it. Absolute paths and `../` parent traversal are rejected with `[CodeGraphy]` developer-console warnings.
 
 ## Symbol Node Stories
 

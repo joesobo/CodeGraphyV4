@@ -466,6 +466,24 @@ _Avoid_: Setting when referring only to the UI element
 A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, renderer mode, direction indicators, bidirectional edge display, and depth controls.
 _Avoid_: Graph Scope, Search, Filter Setting
 
+**CodeGraphy CSS Snippet**:
+A workspace-local CSS file referenced by the ordered `.codegraphy/settings.json#cssSnippets` array and loaded by CodeGraphy into the VS Code Extension webview to let users customize exposed CodeGraphy styling hooks without building a full theme. The `cssSnippets` array is the enable list: listed snippets load, removed snippets unload on the next settings update, and per-snippet toggles are a later UI capability. CSS Snippets can style stable CodeGraphy surfaces such as the Graph View and Graph Stage, use normal CSS cascade order where later snippet files can override earlier snippet files, but they do not replace VS Code Theme Integration, do not belong in Plugin Data, and should not change Relationship Graph data.
+_Avoid_: App theme, VS Code theme, graph data styling, plugin-owned state
+
+**CSS Snippet Loading**:
+The VS Code Extension behavior that resolves workspace-relative `.codegraphy/settings.json#cssSnippets` entries to stylesheet links and sends the ordered set to the webview. CSS Snippet paths must stay inside the CodeGraphy Workspace; absolute paths and parent traversal are outside the contract. Missing, invalid, or out-of-workspace snippet paths should produce developer-console warnings rather than user-visible interruption. CSS Snippet Loading should respond when CodeGraphy Workspace settings change; watching snippet file contents for automatic reload is a later capability.
+_Avoid_: Theme rebuild, CSS file watcher when only settings changes are observed, arbitrary local file loading
+
+CodeGraphy CSS Snippet user docs and changesets should explain how to create a workspace-local CSS file, add it to `.codegraphy/settings.json#cssSnippets`, reload or update settings to apply it, and use CodeGraphy Styling Hooks to target extension surfaces.
+
+**CodeGraphy Styling Hook**:
+A stable `data-codegraphy-*` attribute exposed by the VS Code Extension webview so CodeGraphy CSS Snippets can target intentional UI surfaces. Styling Hooks are a public customization contract across the CodeGraphy Extension UI and should describe durable product surfaces, regions, panels, controls, and graph layers instead of incidental React component structure. Adding Styling Hooks is a good time to replace generic `div` wrappers with semantic HTML elements such as `main`, `section`, `nav`, `form`, and `button` where those elements match the UI behavior.
+_Avoid_: Test id, internal class name, bare custom HTML attribute
+
+**Styling Hook Audit**:
+The implementation pass that inventories rendered CodeGraphy Extension UI surfaces, adds stable CodeGraphy Styling Hooks to meaningful user-recognizable regions, and upgrades generic wrappers to semantic HTML where appropriate before relying on CSS Snippets for customization.
+_Avoid_: Blanket div tagging, incidental DOM contract
+
 **Verbose Diagnostics**:
 A Setting that enables verbose CodeGraphy diagnostic logging for Core Package and VS Code Extension lifecycle support workflows while a user reproduces an issue. It stays off by default so ordinary CodeGraphy use remains quiet.
 _Avoid_: Dev Mode when the behavior only refers to diagnostic logging
