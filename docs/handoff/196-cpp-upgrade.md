@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Focused split Graph Scope acceptance is green after generated output regeneration; CI is running at `d45b3ad6`; remaining loop work is Architect-owned mutation/final-readiness for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Focused split Graph Scope acceptance is green after generated output regeneration; current-head scoped C++ analyzer mutation was rerun at `71fd6dad` and remains `68.52%`; PR CI at `71fd6dad` is green except the two Playwright jobs still in progress during Architect verification.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Architect reassesses mutation/final readiness, verifies CI, and either makes bounded measurable mutation progress or returns a human decision gate with exact evidence.
+- Next route: Orchestrator should pause for the mutation decision: either accept the recorded scoped mutation exception for this pilot and move to human review once CI is green, or route a dedicated broader Architect mutation campaign.
 
 ## Human Gates
 
@@ -1411,3 +1411,56 @@
   - Route Architect for final mutation/readiness pass.
   - Architect must not edit accepted human-owned acceptance specs.
   - Architect should use existing mutation evidence and remote Mac mini for heavy checks, make bounded measurable mutation progress if feasible, and return to Orchestrator with exact evidence if the remaining gap requires a human decision rather than a same-card fix.
+
+### 2026-06-11T17:36:01Z - Architect Reassesses Mutation Final Readiness
+
+- Source: Architect final-readiness route after Orchestrator commit `71fd6dad`.
+- Target: current-head mutation evidence, CI state, release readiness, and human decision gate.
+- Result: needs human mutation decision before final human review; no bounded same-card cleanup path was identified that can bring scoped C++ analyzer mutation to the `>=90%` standard.
+- Scope held:
+  - No human-owned acceptance Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited.
+  - No accepted C++ behavior or product contract was changed.
+  - No production code or tests were changed in this pass.
+- Worktree sync:
+  - Local worktree fetched and fast-forward checked against `origin/codex/196-cpp-upgrade`; already at `71fd6dad`.
+  - `codegraphy-mini` worktree fetched and fast-forwarded from `d45b3ad6` to `71fd6dad`.
+  - Heavy-check host: `codegraphy-mini` / `Poleskis-Mac-mini.local`.
+  - Runtime: Node `v22.22.2`, pnpm `10.32.0`.
+  - Required PATH used on the mini: `/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin`.
+- Current-head mutation rerun:
+  - Command on `codegraphy-mini`:
+    - `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cpp/symbolTypes.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+  - Result: `68.52%`; `548` killed, `228` survived, `27` no coverage, `7` timeouts.
+  - Runtime: `2m 12s`.
+  - Report paths on the mini:
+    - `reports/quality-tools/mutation/mutation.json`
+    - `reports/quality-tools/mutation/mutation.html`
+  - Site-count result: all `40` mutated `packages/core/src/treeSitter/runtime/analyzeCpp` files are within the `50` mutation-site threshold.
+- Survivor distribution from the current JSON report:
+  - Largest survivor/no-coverage/timeout buckets:
+    - `relationDeclaredMethodSymbols.ts`: `20` survived, `0` no coverage, `0` timeouts out of `40` mutants.
+    - `relationDeclaratorNames.ts`: `15` survived, `1` no coverage, `0` timeouts out of `34` mutants.
+    - `symbolDeclaratorNameNode.ts`: `15` survived, `0` no coverage, `0` timeouts out of `42` mutants.
+    - `symbolDeclaratorCandidates.ts`: `14` survived, `0` no coverage, `0` timeouts out of `42` mutants.
+    - `relationIncludeTraversal.ts`: `13` survived, `3` no coverage, `2` timeouts out of `44` mutants.
+    - `symbolLoopVariables.ts`: `12` survived, `1` no coverage, `0` timeouts out of `31` mutants.
+    - `relationOverrideMethods.ts`: `12` survived, `0` no coverage, `0` timeouts out of `31` mutants.
+    - `symbolFieldVariables.ts`: `11` survived, `0` no coverage, `0` timeouts out of `38` mutants.
+  - The rest of the `228` survivors are spread across relation call/name/type, inheritance, override resolution, symbol creation, declarator search, variable, and scope helpers.
+  - Reaching `>=90%` would require killing roughly another `180` mutants, so the remaining gap is a broad survivor campaign rather than one same-card cleanup cluster.
+- Decision:
+  - Did not start another survivor-focused code/test pass because the current-head evidence confirms the previous flat result and the remaining `>=90%` gap is structural across many helper surfaces.
+  - Recommended Orchestrator route: pause for a human mutation decision. Either accept this recorded mutation exception for the pilot and move to human review once CI is green, or route a dedicated broader Architect mutation campaign for the C++ analyzer.
+- CI state checked for PR #263:
+  - PR head: `71fd6dad48c219a6d9f4b9304db9b22f776450d6`.
+  - Draft PR remains open; `mergeStateStatus` is `UNSTABLE` while required checks are still in progress.
+  - Green at the time of Architect verification: lint, typecheck, build, release-tests, all unit-test jobs, all extension native runtime jobs, and all three VSIX artifact jobs.
+  - Still in progress at the time of Architect verification: `Playwright / Language examples` and `Playwright / Graph interactions`.
+- Architecture and release findings:
+  - No new P1/P2 architecture finding beyond the known mutation gate.
+  - C++ analyzer mutation site-count cleanup remains complete.
+  - Existing changeset `.changeset/cpp-graph-scope-upgrade.md` remains sufficient; this pass is handoff/PR-body evidence only and needs no new changeset.
+  - PR body should be updated to reflect the current-head mutation rerun and human decision gate.
+- Return route:
+  - Return to Orchestrator after committing/pushing this handoff evidence and updating the PR body.
+  - Recommended state: pause for the mutation decision rather than route Coder/Specifier/Refactorer.
