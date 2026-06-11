@@ -178,15 +178,21 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       'using TaskId = unsigned long;',
       'enum class Priority { normal };',
       'class Task {};',
+      'struct TaskStats { int completed; };',
+      'union TaskPayload { int numeric; };',
       'template <typename Item>',
       'class TaskQueue {',
       'public:',
       '  void push(Item item) {}',
       '};',
+      'template <typename Item>',
+      'Item unwrap(Item value) { return value; }',
       'class Runner {',
       'public:',
       '  void run();',
+      '  ~Runner() = default;',
       '};',
+      'void declared_only(int count);',
       'void Runner::run() {}',
       'Task make_task() { return Task{}; }',
       '}',
@@ -200,14 +206,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       expect.objectContaining({ filePath: appPath, kind: 'alias', name: 'TaskId' }),
       expect.objectContaining({ filePath: appPath, kind: 'enum', name: 'Priority' }),
       expect.objectContaining({ filePath: appPath, kind: 'class', name: 'Task' }),
+      expect.objectContaining({ filePath: appPath, kind: 'struct', name: 'TaskStats' }),
+      expect.objectContaining({ filePath: appPath, kind: 'union', name: 'TaskPayload' }),
       expect.objectContaining({ filePath: appPath, kind: 'template', name: 'TaskQueue' }),
+      expect.objectContaining({ filePath: appPath, kind: 'template', name: 'unwrap' }),
       expect.objectContaining({ filePath: appPath, kind: 'method', name: 'TaskQueue::push' }),
       expect.objectContaining({ filePath: appPath, kind: 'method', name: 'Runner::run' }),
+      expect.objectContaining({ filePath: appPath, kind: 'function', name: 'unwrap' }),
       expect.objectContaining({ filePath: appPath, kind: 'function', name: 'make_task' }),
     ]));
     expect(result?.symbols).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'class', name: 'TaskQueue' }),
       expect.objectContaining({ kind: 'type', name: 'TaskId' }),
+      expect.objectContaining({ kind: 'method', name: 'Runner::~Runner' }),
+      expect.objectContaining({ kind: 'function', name: 'declared_only' }),
     ]));
   });
 
@@ -217,12 +229,15 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
     const source = [
       'namespace taskrunner {',
       'int next_task_id = 1000;',
+      'int queued = 1, running = 2;',
       'constexpr int kDefaultPriority = 1;',
       'class Task {',
       'public:',
+      '  virtual void execute(int count) = 0;',
+      '  void declared_only(int count);',
       '  void set_priority(const int* priorities, int priority) {',
       '    const int local_priority = priority;',
-      '    int completed = local_priority;',
+      '    int completed = local_priority, retries = 0;',
       '    for (const auto& next_priority : priorities) {',
       '      completed += next_priority;',
       '    }',
@@ -238,12 +253,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
 
     expect(result?.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ filePath: appPath, kind: 'global', name: 'next_task_id' }),
+      expect.objectContaining({ filePath: appPath, kind: 'global', name: 'queued' }),
+      expect.objectContaining({ filePath: appPath, kind: 'global', name: 'running' }),
       expect.objectContaining({ filePath: appPath, kind: 'constant', name: 'kDefaultPriority' }),
       expect.objectContaining({ filePath: appPath, kind: 'field', name: 'id_' }),
+      expect.objectContaining({ filePath: appPath, kind: 'method', name: 'Task::execute' }),
+      expect.objectContaining({ filePath: appPath, kind: 'parameter', name: 'count' }),
       expect.objectContaining({ filePath: appPath, kind: 'parameter', name: 'priority' }),
       expect.objectContaining({ filePath: appPath, kind: 'local', name: 'local_priority' }),
       expect.objectContaining({ filePath: appPath, kind: 'local', name: 'completed' }),
+      expect.objectContaining({ filePath: appPath, kind: 'local', name: 'retries' }),
       expect.objectContaining({ filePath: appPath, kind: 'local', name: 'next_priority' }),
+    ]));
+    expect(result?.symbols).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: appPath, kind: 'method', name: 'Task::declared_only' }),
     ]));
   });
 

@@ -946,3 +946,89 @@
 - Routing decision:
   - Refactorer conditions are satisfied for this card's branch-owned cleanup.
   - Route Architect for mutation site strategy, scoped mutation, architecture review, release hygiene, PR body updates, and CI readiness.
+
+### 2026-06-11T03:20:47Z - Architect Mutation Readiness Blocker
+
+- Source: Architect role.
+- Target: C++ analyzer mutation site strategy, scoped mutation, release hygiene, CI readiness.
+- Result: needs Orchestrator routing before human review; scoped C++ analyzer mutation is not ready.
+- Scope held:
+  - No human-owned acceptance spec Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited.
+  - No accepted C++ acceptance contract was changed.
+  - Did not broaden into unrelated boundary/reachability/CRAP rows.
+- Host used for heavy checks:
+  - `codegraphy-mini:/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Required PATH used before remote commands: `/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+  - Remote worktree was verified on Node `v22.22.2` / pnpm `10.32.0`.
+- Mutation seed/cache note:
+  - Root wrapper seed hydration was attempted first with `pnpm run mutate -- packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`.
+  - It failed before Stryker because the mini could not download the `main-mutation-seed` artifact: GitHub API `HTTP 401 Requires authentication`; the wrapper advised `gh auth login`.
+  - Architect continued with direct `pnpm exec quality-tools mutate ...` scoped file/directory targets and explicit test includes instead of running a bare mutate command.
+- Changes made by Architect:
+  - Split `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts` into smaller symbol modules:
+    - `symbolCallables.ts`
+    - `symbolCreate.ts`
+    - `symbolModel.ts`
+    - `symbolNames.ts`
+    - `symbolTypes.ts`
+    - `symbolVariables.ts`
+    - reduced `symbols.ts` to dispatch.
+  - Added focused C++ analyzer test coverage for template functions, struct/union symbols, destructor/prototype suppression, multi-declarator globals/locals, pure virtual methods, and pure virtual parameters.
+  - Fixed Tree-sitter-backed template function naming so `template <typename Item> Item unwrap(...)` records the template as `unwrap` rather than the template parameter `Item`.
+- Verification after changes:
+  - Local focused Core tests passed:
+    - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cpp/analyze.test.ts tests/treeSitter/cfamily/symbols.test.ts`
+  - Local Core typecheck passed:
+    - `pnpm --filter @codegraphy-dev/core run typecheck`
+  - Local Core lint passed:
+    - `pnpm --filter @codegraphy-dev/core run lint`
+  - Local `pnpm run organize` exited 0 with existing broad advisory output only.
+  - Remote focused Core tests passed with the same C++/C-family test command.
+- Mutation evidence:
+  - Initial file-scoped run before the split:
+    - Command: `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+    - Result: `48.73%` total mutation score; `152` killed, `127` survived, `34` no coverage, `1` timeout.
+    - Site count: `332` mutation sites in `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`.
+  - Directory-scoped focused-test run after the split:
+    - Command: `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+    - Result: `65.43%` total mutation score; `523` killed, `246` survived, `34` no coverage, `7` timeouts.
+  - Directory-scoped full-Core-test run after the split:
+    - Command: `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --force`
+    - Result: `63.94%` total mutation score; `525` killed, `268` survived, `32` no coverage, `7` timeouts.
+    - Runtime: `28m 24s`; initial dry run ran `7331` tests.
+- Final mutation site counts from the full-Core-test run:
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts`: `482` sites, `322` killed, `136` survived, `18` no coverage, `6` timeouts.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolNames.ts`: `147` sites, `78` killed, `60` survived, `8` no coverage, `1` timeout.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolVariables.ts`: `102` sites, `63` killed, `35` survived, `4` no coverage.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolTypes.ts`: `60` sites, `36` killed, `23` survived, `1` no coverage.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolCallables.ts`: `22` sites, `20` killed, `2` survived.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolCreate.ts`: `12` sites, `4` killed, `7` survived, `1` no coverage.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolModel.ts`: `4` sites, `0` killed, `4` survived.
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`: `3` sites, `2` killed, `1` survived.
+- Architecture review findings:
+  - P1: C++ analyzer mutation remains below the `>=90%` standard; the branch-owned `file.ts` semantic relation expansion is too large to certify by mutation in the current shape.
+  - P1: Several touched analyzer files remain above the `<=50` mutation-site guidance. The first split helped the original symbol hotspot but did not reach the threshold for `file.ts`, `symbolNames.ts`, `symbolVariables.ts`, or `symbolTypes.ts`.
+  - P1: PR #263 CI is not green at pushed tip `7f19938b`; `Playwright / Graph interactions` failed.
+  - P2: CI failure appears branch-relevant: generated graph-interaction acceptance still expects old `src/lib/widget.hpp` / `src/lib/widget.cpp` C++ example nodes in five scenarios.
+  - P2: The stale `widget.hpp` assertions come from human-owned `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`, so Architect did not edit them without Orchestrator/human routing.
+- CI status checked:
+  - PR #263 is open draft; merge state `UNSTABLE`.
+  - CI run `27320098282` at head `7f19938b`: all checks green except `Playwright / Graph interactions`.
+  - Failing scenarios:
+    - `Graph Scope Edge And Node Types › Imports edges works`
+    - `Graph Scope Edge And Node Types › Inherits edges works`
+    - `Graph Scope Edge And Node Types › Nests edges work`
+    - `Graph Scope Edge And Node Types › Contains edges works`
+    - `Graph Scope Edge And Node Types › Overrides edges works`
+  - Failure examples:
+    - count polling timed out at `packages/extension/tests/acceptance/graphView/steps.ts:467`.
+    - graph node `src/lib/widget.hpp` was not attached at `packages/extension/tests/acceptance/graphView/canvas.ts:166`.
+- Docs/changeset/PR body status:
+  - Existing changeset `.changeset/cpp-graph-scope-upgrade.md` is still appropriate for the user-facing C++ Graph Scope upgrade.
+  - PR body was updated to report Architect blocker status.
+  - This handoff entry records the current mutation/CI blocker state.
+- Blockers and return route:
+  - Return to Orchestrator; do not move to final human review.
+  - Recommended routing:
+    - Route mutation cleanup for a deliberate C++ semantic relation split and survivor-focused tests, especially `analyzeCpp/file.ts`.
+    - Route acceptance-spec ownership decision for stale `graph-scope-edge-node-types.md` widget assertions, because the file is human-owned acceptance Markdown.
