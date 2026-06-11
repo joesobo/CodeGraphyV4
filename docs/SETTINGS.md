@@ -161,7 +161,7 @@ Example:
 }
 ```
 
-See `examples/css-snippets/` for copyable demo snippets.
+See `examples/css-snippets/` for copyable demo snippets, including Odysseus-inspired forest leaves, ocean constellations, and cyber synapse backgrounds.
 
 ## Graph Scope settings
 

@@ -58,6 +58,9 @@ The demo snippets currently include:
 - `hollow-blue-grid.css` — a soft blue hollow-glow grid background
 - `terminal-scan-grid.css` — a green terminal scanline grid
 - `ember-grid.css` — a warm ember drift grid
+- `odysseus-forest-leaves.css` — an Odysseus-inspired forest green grid with falling leaves
+- `odysseus-ocean-constellations.css` — an Odysseus-inspired ocean grid with drifting stars
+- `odysseus-cyber-synapse.css` — an Odysseus-inspired cyberpunk synapse grid
 
 ## Symbol Node Stories
 

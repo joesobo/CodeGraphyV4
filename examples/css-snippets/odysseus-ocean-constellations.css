@@ -1,0 +1,64 @@
+/*
+ * Demo CodeGraphy CSS Snippet: Odysseus-inspired ocean constellations.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/odysseus-ocean-constellations.css
+ *
+ * Then add "cssSnippets": [".codegraphy/snippets/odysseus-ocean-constellations.css"]
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(100, 210, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 10% 90%, rgba(30, 80, 116, 0.2), transparent 32%),
+    linear-gradient(180deg, #06101c 0%, #071a2c 50%, #030812 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-image:
+    linear-gradient(rgba(100, 210, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 80, 116, 0.12) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 0.48;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle, rgba(180, 232, 255, 0.72) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(100, 210, 255, 0.38) 0 1px, transparent 2px),
+    linear-gradient(115deg, transparent 0 46%, rgba(100, 210, 255, 0.12) 47%, transparent 49%);
+  background-position: 22px 18px, 94px 76px, 0 0;
+  background-size: 132px 118px, 188px 154px, 240px 240px;
+  opacity: 0.58;
+  animation: codegraphy-demo-ocean-stars 18s ease-in-out infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-ocean-stars {
+  0%,
+  100% {
+    background-position: 22px 18px, 94px 76px, 0 0;
+    opacity: 0.46;
+  }
+
+  50% {
+    background-position: 42px 32px, 74px 102px, 80px 80px;
+    opacity: 0.72;
+  }
+}
