@@ -33,39 +33,35 @@ const IDENTIFIER_NODE_TYPES = new Set([
   'type_identifier',
 ]);
 
+type CppSymbolHandler = (
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+  state: CppSymbolWalkState,
+) => TreeWalkAction<CppSymbolWalkState> | void;
+
+const CPP_SYMBOL_HANDLERS: Readonly<Record<string, CppSymbolHandler>> = {
+  alias_declaration: handleCppAliasDeclaration,
+  class_specifier: handleCppTypeDeclaration,
+  declaration: handleCppDeclaration,
+  enum_specifier: handleCppCFamilySymbol,
+  field_declaration: handleCppFieldDeclaration,
+  for_range_loop: handleCppForRangeLoop,
+  function_definition: handleCppFunctionDefinition,
+  namespace_definition: handleCppCFamilySymbol,
+  parameter_declaration: handleCppParameterDeclaration,
+  struct_specifier: handleCppTypeDeclaration,
+  template_declaration: handleCppTemplateDeclaration,
+  union_specifier: handleCppTypeDeclaration,
+};
+
 export function handleCppSymbol(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
   state: CppSymbolWalkState,
 ): TreeWalkAction<CppSymbolWalkState> | void {
-  switch (node.type) {
-    case 'alias_declaration':
-      addNamedSymbol(symbols, filePath, 'alias', getDeclarationNameNode(node), node);
-      return { skipChildren: true };
-    case 'class_specifier':
-    case 'struct_specifier':
-    case 'union_specifier':
-      return handleCppTypeDeclaration(node, filePath, symbols, state);
-    case 'declaration':
-      return handleCppDeclaration(node, filePath, symbols, state);
-    case 'enum_specifier':
-      return handleCFamilySymbol(node, filePath, symbols);
-    case 'field_declaration':
-      return handleCppFieldDeclaration(node, filePath, symbols, state);
-    case 'for_range_loop':
-      return handleCppForRangeLoop(node, filePath, symbols, state);
-    case 'function_definition':
-      return handleCppFunctionDefinition(node, filePath, symbols, state);
-    case 'namespace_definition':
-      return handleCFamilySymbol(node, filePath, symbols);
-    case 'parameter_declaration':
-      return handleCppParameterDeclaration(node, filePath, symbols, state);
-    case 'template_declaration':
-      return handleCppTemplateDeclaration(node, filePath, symbols, state);
-    default:
-      return;
-  }
+  return CPP_SYMBOL_HANDLERS[node.type]?.(node, filePath, symbols, state);
 }
 
 function addNamedSymbol(
@@ -82,6 +78,23 @@ function addNamedSymbol(
   }
 
   symbols.push(createSymbol(filePath, kind, name, rangeNode, signature));
+}
+
+function handleCppAliasDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): TreeWalkAction<CppSymbolWalkState> {
+  addNamedSymbol(symbols, filePath, 'alias', getDeclarationNameNode(node), node);
+  return { skipChildren: true };
+}
+
+function handleCppCFamilySymbol(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): TreeWalkAction<CppSymbolWalkState> | void {
+  return handleCFamilySymbol(node, filePath, symbols) as TreeWalkAction<CppSymbolWalkState> | void;
 }
 
 function handleCppTemplateDeclaration(
@@ -214,12 +227,28 @@ function handleCppForRangeLoop(
     return;
   }
 
-  const nameNode = node.namedChildren
-    .map((child) => ['reference_declarator', 'pointer_declarator', 'identifier'].includes(child.type)
-      ? getDeclaratorNameNode(child)
-      : null)
-    .find((candidate): candidate is Parser.SyntaxNode => Boolean(candidate?.text));
-  addNamedSymbol(symbols, filePath, 'local', nameNode ?? null, node);
+  addNamedSymbol(symbols, filePath, 'local', getForRangeLoopNameNode(node), node);
+}
+
+function getForRangeLoopNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
+  for (const child of node.namedChildren) {
+    if (!isRangeLoopVariableDeclarator(child)) {
+      continue;
+    }
+
+    const nameNode = getDeclaratorNameNode(child);
+    if (nameNode?.text) {
+      return nameNode;
+    }
+  }
+
+  return null;
+}
+
+function isRangeLoopVariableDeclarator(node: Parser.SyntaxNode): boolean {
+  return node.type === 'reference_declarator'
+    || node.type === 'pointer_declarator'
+    || node.type === 'identifier';
 }
 
 function handleCppParameterDeclaration(
@@ -276,34 +305,56 @@ function getFunctionNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null 
 }
 
 function getDeclaratorNameNode(node: Parser.SyntaxNode | null | undefined): Parser.SyntaxNode | null {
-  if (!node || node.type === 'destructor_name') {
+  if (!node || isIgnoredDeclaratorNameNode(node)) {
     return null;
   }
 
-  if (node.type === 'qualified_identifier') {
-    for (const child of [...node.namedChildren].reverse()) {
-      const match = getDeclaratorNameNode(child);
-      if (match) {
-        return match;
-      }
-    }
-    return null;
-  }
-
-  if (node.type === 'field_identifier' || node.type === 'identifier') {
+  if (isDeclaratorIdentifierNode(node)) {
     return node;
   }
 
+  return getQualifiedDeclaratorNameNode(node)
+    ?? getNestedDeclaratorNameNode(node);
+}
+
+function isIgnoredDeclaratorNameNode(node: Parser.SyntaxNode): boolean {
+  return node.type === 'destructor_name';
+}
+
+function isDeclaratorIdentifierNode(node: Parser.SyntaxNode): boolean {
+  return node.type === 'field_identifier' || node.type === 'identifier';
+}
+
+function getQualifiedDeclaratorNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
+  if (node.type !== 'qualified_identifier') {
+    return null;
+  }
+
+  return findLastDeclaratorNameNode(node.namedChildren);
+}
+
+function getNestedDeclaratorNameNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
   const declarator = node.childForFieldName('declarator');
   if (declarator) {
     return getDeclaratorNameNode(declarator);
   }
 
-  for (const child of node.namedChildren) {
-    if (child.type === 'parameter_declaration') {
-      continue;
-    }
+  return findFirstDeclaratorNameNode(node.namedChildren.filter((child) => child.type !== 'parameter_declaration'));
+}
 
+function findFirstDeclaratorNameNode(nodes: ReadonlyArray<Parser.SyntaxNode>): Parser.SyntaxNode | null {
+  for (const child of nodes) {
+    const match = getDeclaratorNameNode(child);
+    if (match) {
+      return match;
+    }
+  }
+
+  return null;
+}
+
+function findLastDeclaratorNameNode(nodes: ReadonlyArray<Parser.SyntaxNode>): Parser.SyntaxNode | null {
+  for (const child of [...nodes].reverse()) {
     const match = getDeclaratorNameNode(child);
     if (match) {
       return match;
@@ -329,19 +380,13 @@ function findDescendantByType(
   node: Parser.SyntaxNode | null | undefined,
   types: ReadonlySet<string>,
 ): Parser.SyntaxNode | null {
-  if (!node) {
-    return null;
-  }
-
-  if (types.has(node.type)) {
-    return node;
-  }
-
-  for (const child of node.namedChildren) {
-    const match = findDescendantByType(child, types);
-    if (match) {
-      return match;
+  const queue = node ? [node] : [];
+  for (const candidate of queue) {
+    if (types.has(candidate.type)) {
+      return candidate;
     }
+
+    queue.push(...candidate.namedChildren);
   }
 
   return null;

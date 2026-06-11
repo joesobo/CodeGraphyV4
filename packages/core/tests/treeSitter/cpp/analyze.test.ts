@@ -220,9 +220,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       'constexpr int kDefaultPriority = 1;',
       'class Task {',
       'public:',
-      '  void set_priority(int priority) {',
+      '  void set_priority(const int* priorities, int priority) {',
       '    const int local_priority = priority;',
       '    int completed = local_priority;',
+      '    for (const auto& next_priority : priorities) {',
+      '      completed += next_priority;',
+      '    }',
       '  }',
       'private:',
       '  int id_;',
@@ -240,6 +243,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       expect.objectContaining({ filePath: appPath, kind: 'parameter', name: 'priority' }),
       expect.objectContaining({ filePath: appPath, kind: 'local', name: 'local_priority' }),
       expect.objectContaining({ filePath: appPath, kind: 'local', name: 'completed' }),
+      expect.objectContaining({ filePath: appPath, kind: 'local', name: 'next_priority' }),
     ]));
   });
 

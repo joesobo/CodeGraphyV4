@@ -367,28 +367,55 @@ function readCppDeclaredMethodSymbols(rootNode: Parser.SyntaxNode): Array<{
   symbolName: string;
 }> {
   const methods: Array<{ methodName: string; symbolName: string }> = [];
-  walkTree(rootNode, {}, (node) => {
-    if (node.type === 'function_definition' && isCppMethodDefinition(node)) {
-      const symbolName = readCppFunctionSymbolName(node);
-      const methodName = readCppDeclaratorName(node.childForFieldName('declarator') ?? undefined);
-      if (methodName && symbolName) {
-        methods.push({ methodName, symbolName });
-      }
-      return { skipChildren: true };
-    }
-
-    if (node.type !== 'field_declaration' || !isPureVirtualDeclaration(node)) {
-      return;
-    }
-
-    const methodName = readCppDeclaratorName(node);
-    const className = readContainingCppTypeName(node);
-    if (methodName && className) {
-      methods.push({ methodName, symbolName: `${className}::${methodName}` });
-    }
-    return { skipChildren: true };
-  });
+  walkTree(rootNode, {}, (node) => collectCppDeclaredMethodSymbol(node, methods));
   return methods;
+}
+
+function collectCppDeclaredMethodSymbol(
+  node: Parser.SyntaxNode,
+  methods: Array<{ methodName: string; symbolName: string }>,
+): TreeWalkAction<unknown> | void {
+  const method = readCppDefinedMethodSymbol(node) ?? readCppPureVirtualMethodSymbol(node);
+  if (!method) {
+    return;
+  }
+
+  methods.push(method);
+  return { skipChildren: true };
+}
+
+function readCppDefinedMethodSymbol(
+  node: Parser.SyntaxNode,
+): { methodName: string; symbolName: string } | null {
+  if (node.type !== 'function_definition' || !isCppMethodDefinition(node)) {
+    return null;
+  }
+
+  return createCppMethodSymbol(
+    readCppDeclaratorName(node.childForFieldName('declarator') ?? undefined),
+    readCppFunctionSymbolName(node),
+  );
+}
+
+function readCppPureVirtualMethodSymbol(
+  node: Parser.SyntaxNode,
+): { methodName: string; symbolName: string } | null {
+  if (node.type !== 'field_declaration' || !isPureVirtualDeclaration(node)) {
+    return null;
+  }
+
+  const methodName = readCppDeclaratorName(node);
+  const className = readContainingCppTypeName(node);
+  return methodName && className
+    ? createCppMethodSymbol(methodName, `${className}::${methodName}`)
+    : null;
+}
+
+function createCppMethodSymbol(
+  methodName: string | null,
+  symbolName: string | null,
+): { methodName: string; symbolName: string } | null {
+  return methodName && symbolName ? { methodName, symbolName } : null;
 }
 
 function readCppDeclaredFunctionNames(rootNode: Parser.SyntaxNode): string[] {
@@ -523,18 +550,43 @@ function readCppDeclaratorName(node: Parser.SyntaxNode | undefined): string | nu
     return null;
   }
 
-  if (node.type === 'qualified_identifier') {
-    const unqualifiedName = node.namedChildren.at(-1);
-    return unqualifiedName ? readCppDeclaratorName(unqualifiedName) : null;
-  }
-
-  if (node.type === 'field_identifier' || node.type === 'identifier') {
+  if (isCppDeclaratorIdentifier(node)) {
     return node.text;
   }
 
-  return node.childForFieldName('declarator')
-    ? readCppDeclaratorName(node.childForFieldName('declarator') ?? undefined)
-    : node.namedChildren.map(readCppDeclaratorName).find(Boolean) ?? null;
+  return readQualifiedCppDeclaratorName(node) ?? readNestedCppDeclaratorName(node);
+}
+
+function isCppDeclaratorIdentifier(node: Parser.SyntaxNode): boolean {
+  return node.type === 'field_identifier' || node.type === 'identifier';
+}
+
+function readQualifiedCppDeclaratorName(node: Parser.SyntaxNode): string | null {
+  if (node.type !== 'qualified_identifier') {
+    return null;
+  }
+
+  return readCppDeclaratorName(node.namedChildren.at(-1));
+}
+
+function readNestedCppDeclaratorName(node: Parser.SyntaxNode): string | null {
+  const declarator = node.childForFieldName('declarator');
+  if (declarator) {
+    return readCppDeclaratorName(declarator);
+  }
+
+  return readFirstCppDeclaratorName(node.namedChildren);
+}
+
+function readFirstCppDeclaratorName(nodes: ReadonlyArray<Parser.SyntaxNode>): string | null {
+  for (const child of nodes) {
+    const name = readCppDeclaratorName(child);
+    if (name) {
+      return name;
+    }
+  }
+
+  return null;
 }
 
 function readCppFunctionSymbolName(functionDefinition: Parser.SyntaxNode): string | null {
