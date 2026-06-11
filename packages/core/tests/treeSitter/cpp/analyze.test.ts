@@ -509,4 +509,44 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       }),
     ]));
   });
+
+  it('keeps C++ symbols disabled while still returning include relations', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/lib/widget.hpp': [
+        '#pragma once',
+        'void make_widget();',
+        '',
+      ].join('\n'),
+    });
+    const appPath = path.join(workspaceRoot, 'src/app.cpp');
+    const headerPath = path.join(workspaceRoot, 'src/lib/widget.hpp');
+    const source = [
+      '#include "lib/widget.hpp"',
+      '',
+      'int boot() {',
+      '  make_widget();',
+      '  return 0;',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, source, workspaceRoot, {
+      includeSymbols: false,
+    });
+
+    expect(result?.symbols).toEqual([]);
+    expect(result?.relations).toEqual([
+      expect.objectContaining({
+        kind: 'include',
+        specifier: 'lib/widget.hpp',
+        resolvedPath: headerPath,
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'make_widget',
+        fromSymbolId: undefined,
+        resolvedPath: headerPath,
+      }),
+    ]);
+  });
 });

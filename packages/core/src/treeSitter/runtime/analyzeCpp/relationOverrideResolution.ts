@@ -28,9 +28,7 @@ export function resolveCppOverridePath(
   methodName: string,
 ): string | null {
   const resolvedPath = includedDeclarations.methodPathByName.get(methodName);
-  const inheritedPathSet = new Set(
-    inheritedTypePaths.filter((inheritedTypePath): inheritedTypePath is string => Boolean(inheritedTypePath)),
-  );
+  const inheritedPathSet = new Set(inheritedTypePaths);
 
   if (resolvedPath && inheritedPathSet.has(resolvedPath)) {
     return resolvedPath;

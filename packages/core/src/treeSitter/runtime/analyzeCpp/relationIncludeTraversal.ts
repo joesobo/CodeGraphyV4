@@ -6,10 +6,13 @@ import { walkTree } from '../analyze/walk';
 import { handleCInclude } from '../analyzeCFamily/includes';
 
 export function readInitialIncludedPaths(relations: readonly IAnalysisRelation[]): string[] {
-  return relations
-    .filter((relation) => relation.kind === 'include' && relation.resolvedPath)
-    .map((relation) => relation.resolvedPath)
-    .filter((resolvedPath): resolvedPath is string => Boolean(resolvedPath));
+  const includedPaths: string[] = [];
+  for (const relation of relations) {
+    if (relation.kind === 'include' && relation.resolvedPath) {
+      includedPaths.push(relation.resolvedPath);
+    }
+  }
+  return includedPaths;
 }
 
 export function readTransitiveIncludedPaths(
@@ -50,7 +53,6 @@ function readResolvedCppIncludePaths(
   walkTree(rootNode, {}, (node) => {
     if (node.type === 'preproc_include') {
       handleCInclude(node, filePath, workspaceRoot, relations, 'include');
-      return { skipChildren: true };
     }
   });
 

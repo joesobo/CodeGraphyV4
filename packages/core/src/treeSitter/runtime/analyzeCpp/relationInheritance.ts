@@ -25,7 +25,6 @@ function readCppBaseTypeNames(typeNode: Parser.SyntaxNode): string[] {
   }
 
   return baseClause.namedChildren
-    .filter((child) => child.type !== 'access_specifier')
     .map(readCppTypeName)
     .filter((typeName): typeName is string => Boolean(typeName));
 }
