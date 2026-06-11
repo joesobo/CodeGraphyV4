@@ -579,14 +579,7 @@ function readNestedCppDeclaratorName(node: Parser.SyntaxNode): string | null {
 }
 
 function readFirstCppDeclaratorName(nodes: ReadonlyArray<Parser.SyntaxNode>): string | null {
-  for (const child of nodes) {
-    const name = readCppDeclaratorName(child);
-    if (name) {
-      return name;
-    }
-  }
-
-  return null;
+  return nodes.reduce<string | null>((name, child) => name ?? readCppDeclaratorName(child), null);
 }
 
 function readCppFunctionSymbolName(functionDefinition: Parser.SyntaxNode): string | null {
