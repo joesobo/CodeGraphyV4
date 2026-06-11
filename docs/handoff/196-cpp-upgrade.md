@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Refactorer completed one quality pass, but Orchestrator verified branch-owned C++ CRAP threshold exceedances remain; routing Refactorer back for a narrower C++ analyzer CRAP cleanup pass.
+- State: Refactorer focused C++ CRAP cleanup is verified; ready to route Architect for mutation, architecture review, release hygiene, PR body, and CI readiness.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Refactorer reduces or explicitly resolves branch-owned C++ analyzer CRAP exceedances, then Orchestrator verifies before Architect routing.
+- Next route: Architect runs mutation-aware final readiness, architecture review, release hygiene, PR body update, CI verification, and returns to Orchestrator.
 
 ## Human Gates
 
@@ -909,3 +909,40 @@
   - The existing git background GC warning for protected main checkout worktree metadata still appears during commits; no destructive cleanup was attempted.
 - Return route:
   - Return to Orchestrator for loop coordination and next-role decision.
+
+### 2026-06-11T02:37:13Z - Orchestrator Verifies Focused Refactorer Pass And Routes Architect
+
+- Source: Orchestrator verification after focused Refactorer handoff.
+- Target: Architect routing decision.
+- Result: focused Refactorer pass verified; next route is Architect.
+- Branch state verified:
+  - Local worktree clean at `bd3be671`.
+  - `codegraphy-mini` worktree clean at `bd3be671`.
+  - Focused Refactorer commits `c9e09b96`, `4ef47518`, and `bd3be671` are pushed to `origin/codex/196-cpp-upgrade`.
+- Changed files since Orchestrator loop-back:
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts`
+  - `packages/core/tests/treeSitter/cpp/analyze.test.ts`
+  - `docs/handoff/196-cpp-upgrade.md`
+- Orchestrator verification commands:
+  - `git status --short --branch`
+  - `ssh codegraphy-mini '... git status --short --branch ...'`
+  - `git diff --name-status 874aa879..HEAD`
+  - `git diff --stat 874aa879..HEAD`
+  - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cfamily/symbols.test.ts tests/treeSitter/cpp/analyze.test.ts`
+  - `ssh codegraphy-mini '... pnpm run crap > /tmp/codegraphy-196-crap-orchestrator-verify.log 2>&1 ...'`
+  - `ssh codegraphy-mini '... grep -n "analyzeCpp" /tmp/codegraphy-196-crap-orchestrator-verify.log ...'`
+  - `pnpm --filter @codegraphy-dev/core run lint`
+  - `pnpm --filter @codegraphy-dev/core run typecheck`
+- Verification findings:
+  - No human-owned acceptance spec Markdown is dirty or changed by the focused Refactorer pass.
+  - Focused Core C++ and C-family tests passed locally: 2 files, 12 tests.
+  - Core lint passed locally.
+  - Core typecheck passed locally.
+  - `codegraphy-mini` `pnpm run crap` exited 0.
+  - The final CRAP log includes no threshold-table rows under `packages/core/src/treeSitter/runtime/analyzeCpp/`.
+  - The only `analyzeCpp` grep hit in the final CRAP log is the coverage table line for the directory, not a threshold finding.
+  - Full CRAP still reports 45 unrelated threshold rows outside `analyzeCpp`; those remain outside this card's Refactorer loop after the C++ branch-owned rows were cleared.
+- Routing decision:
+  - Refactorer conditions are satisfied for this card's branch-owned cleanup.
+  - Route Architect for mutation site strategy, scoped mutation, architecture review, release hygiene, PR body updates, and CI readiness.
