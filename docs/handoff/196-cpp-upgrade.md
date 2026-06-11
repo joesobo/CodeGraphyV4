@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Generated Playwright acceptance output for the split Graph Scope specs is validated, committed, and pushed in `ab38756a`; focused remote Graph interactions still has three non-generated-output failures; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Generated Playwright acceptance output is pushed and stale Widget references are cleared; focused Graph interactions still has three acceptance-contract reds that need a Specifier draft; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Orchestrator decides whether to route another acceptance-spec gate for the remaining focused Graph interactions failures or separately resolve/accept the `68.52%` mutation decision.
+- Next route: Specifier drafts local, uncommitted updates for the remaining split Graph Scope spec reds, then returns for human review before generated output is regenerated again.
 
 ## Human Gates
 
@@ -1271,3 +1271,29 @@
 - Return route:
   - Return to Orchestrator.
   - Recommended next step: decide whether to route a new Specifier/human gate for the remaining acceptance Markdown expectations, then route Coder only after the accepted contract is updated; keep the `68.52%` mutation decision separate.
+
+### 2026-06-11T17:32:30Z - Orchestrator Verifies Coder Handoff And Routes Specifier
+
+- Source: Orchestrator verification after Coder handoff.
+- Target: remaining focused Graph interactions reds.
+- Result: generated-output task is complete, but acceptance-contract cleanup remains before the loop can return to Coder/CI.
+- Branch state verified:
+  - Local worktree clean at `6c81a279`.
+  - `origin/codex/196-cpp-upgrade` points to `6c81a279`.
+  - Coder commits `ab38756a` and `6c81a279` are pushed.
+- Verification checks:
+  - `git status --short --branch`
+  - `git log --oneline --decorate -8`
+  - `git ls-remote origin refs/heads/codex/196-cpp-upgrade`
+  - `git show --stat --oneline --summary ab38756a 6c81a279`
+  - `gh pr view 263 --json headRefOid,mergeStateStatus,statusCheckRollup,url,title`
+  - `nl -ba packages/extension/tests/acceptance/specs/graph-scope-edge-types.md`
+  - `nl -ba packages/extension/tests/acceptance/specs/graph-scope-node-types.md`
+- Verified remaining red shape:
+  - `Graph Scope Edge Types > Calls edges work`: Coder observed `6 connections` while the spec expects `8 connections`.
+  - `Graph Scope Edge Types > Nests edges work`: Coder observed `14 connections`; the spec expects `15 connections` and still asserts `src points to src/lib`.
+  - `Graph Scope Node Types > Function node type works`: Coder observed the `Function` switch missing in `examples/example-cpp`, which matches the settled C++ visible-toggle direction of using `Callable` and `Method` instead of a visible C++ `Function` toggle.
+- Routing decision:
+  - Route Specifier to draft local, uncommitted updates to `graph-scope-edge-types.md` and `graph-scope-node-types.md` for human review.
+  - Specifier should verify counts against actual example behavior or focused acceptance evidence before changing them.
+  - Specifier must not edit generated Playwright output, production code, or commit/push.
