@@ -2,20 +2,21 @@
 
 ## Current State
 
-- State: Refactorer focused C++ CRAP cleanup is verified; ready to route Architect for mutation, architecture review, release hygiene, PR body, and CI readiness.
+- State: Architect reported mutation/site-count blockers and a human-owned acceptance-spec CI blocker; route Architect back for continued mutation/site-count work while holding `graph-scope-edge-node-types.md` as a human/specifier gate.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Architect runs mutation-aware final readiness, architecture review, release hygiene, PR body update, CI verification, and returns to Orchestrator.
+- Next route: Architect continues C++ analyzer mutation/site-count cleanup; Orchestrator must separately resolve the human-owned `graph-scope-edge-node-types.md` stale C++ example assertions before final CI readiness.
 
 ## Human Gates
 
 - Grill before implementation: complete as of `2026-06-10T21:25:48Z`.
 - Specifier should make proposed human-owned acceptance spec Markdown changes locally in the worktree for review, but must not commit them. The user wants to review, approve, and make any needed edits before committing those spec changes themselves.
 - Acceptance spec gate is complete for `packages/extension/tests/acceptance/specs/cpp-example.md`; user committed and pushed the reviewed spec in `448b1030`.
+- New human/specifier gate: `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md` still references the removed Widget C++ example paths and must not be edited without explicit routing/approval for that human-owned spec.
 - Heavy Playwright and mutation checks must run in the verified remote worktree on `codegraphy-mini` or in a remote Codex thread on that host, not on the MacBook.
 
 ## Setup Verification
@@ -1036,3 +1037,40 @@
   - Recommended routing:
     - Route mutation cleanup for a deliberate C++ semantic relation split and survivor-focused tests, especially `analyzeCpp/file.ts`.
     - Route acceptance-spec ownership decision for stale `graph-scope-edge-node-types.md` widget assertions, because the file is human-owned acceptance Markdown.
+
+### 2026-06-11T03:26:46Z - Orchestrator Verifies Architect Blockers And Routes Back
+
+- Source: Orchestrator verification after Architect handoff.
+- Target: Architect routing decision plus human/specifier gate.
+- Result: route Architect back for mutation/site-count cleanup; hold stale graph-scope acceptance spec as a human/specifier gate.
+- Branch state verified:
+  - Local worktree clean at `32df9606`.
+  - `codegraphy-mini` worktree clean at `32df9606`.
+  - `codegraphy-mini` has a non-destructive stash entry `stash@{0}: architect-copied-files-before-7e8e50d6`, as reported by Architect.
+  - Architect commits `7e8e50d6` and `32df9606` are pushed to `origin/codex/196-cpp-upgrade`.
+- Orchestrator checks:
+  - `git status --short --branch`
+  - `ssh codegraphy-mini '... git status --short --branch && git stash list ...'`
+  - `gh pr view 263 --json headRefOid,headRefName,state,isDraft,mergeStateStatus,statusCheckRollup,url,title`
+  - `git show --stat --oneline --summary 7e8e50d6 32df9606`
+  - `tail -n 220 docs/handoff/196-cpp-upgrade.md`
+  - `rg -n "widget|src/lib/widget|Widget|example-cpp" packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts packages/extension/tests/acceptance/specs/cpp-example.md`
+  - `sed -n '1,220p' docs/quality/mutation.md`
+  - `sed -n '1,180p' packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`
+- Verification findings:
+  - Architect changed only C++ analyzer modules, `packages/core/tests/treeSitter/cpp/analyze.test.ts`, and this handoff file.
+  - Mutation blocker is real and remains Architect-owned:
+    - Directory-scoped full-Core-test mutation score for `packages/core/src/treeSitter/runtime/analyzeCpp`: `63.94%`.
+    - Result summary: `525` killed, `268` survived, `32` no coverage, `7` timeouts.
+    - Mutation-site threshold still exceeded by `file.ts` (`482`), `symbolNames.ts` (`147`), `symbolVariables.ts` (`102`), and `symbolTypes.ts` (`60`).
+  - CI at PR head `32df960640a360405f82f182d56daf98e1805581` was still in progress during verification:
+    - Most checks were successful.
+    - `VSIX artifacts / win32-x64` and `Playwright / Graph interactions` were still in progress.
+    - PR merge state remained `UNSTABLE`.
+  - Stale Widget references are confirmed in human-owned `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`, including `src/lib/widget.hpp`, `src/lib/widget.cpp`, `Widget:class`, and stale C++ edge assertions.
+  - Generated Playwright output mirrors those stale spec assertions.
+- Routing decision:
+  - Do not move to final human review.
+  - Continue Architect loop for mutation/site-count cleanup because the first Architect pass made measurable progress by splitting `symbols.ts` and surfacing precise mutation blockers.
+  - Architect must not edit `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`.
+  - Orchestrator should separately route or ask for explicit approval to let Specifier draft local updates for `graph-scope-edge-node-types.md` once mutation work is no longer occupying the shared worktree, unless CI resolves without that change.
