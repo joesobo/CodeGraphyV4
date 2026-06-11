@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Waiting on human decision after Architect resolved C++ analyzer mutation-site counts but scoped mutation remains `68.52%` and `graph-scope-edge-node-types.md` needs a human-owned acceptance-spec update.
+- State: Local `graph-scope-edge-node-types.md` draft is ready for human review; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: human decides whether to route a larger Architect mutation-test campaign or accept the recorded mutation blocker for this pilot, and whether Specifier may draft local `graph-scope-edge-node-types.md` updates for review.
+- Next route: human reviews the local `graph-scope-edge-node-types.md` draft, then decides whether to commit it and whether to route a larger Architect mutation-test campaign or accept the recorded mutation evidence for this pilot.
 
 ## Human Gates
 
@@ -1183,3 +1183,28 @@
 - Tracker state:
   - Move Trello card to `Review`.
   - Add Trello comment summarizing the human decision gate.
+
+### 2026-06-11T15:53:47Z - Specifier Drafts Graph Scope Edge Spec Update For Review
+
+- Source: user approved local edits to `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`.
+- Target: Specifier role agent `019eb760-8c47-75b3-b0bd-e7c1d47c3645` (`Socrates`).
+- Result: local human-owned acceptance spec draft is dirty for user review and is not committed.
+- Scope held:
+  - Only `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md` and this handoff note were edited.
+  - No generated Playwright output edited.
+  - No step bindings, production code, commits, or pushes.
+  - No VS Code/Playwright acceptance run.
+- Draft changes:
+  - Replaced the stale C++ `Imports` scenario with a C++ `Include` scenario using Task Queue Runner include edges and `12 connections`.
+  - Updated C++ `Inherits` to assert `ConsoleWorker` inheriting from `Worker` in `src/worker.hpp`.
+  - Updated C++ `Nests` to current `src/*` file layout with `14 connections`.
+  - Updated C++ `Contains` to current Task Queue Runner class nodes and `4 connections`.
+  - Updated C++ `Overrides` to assert `ConsoleWorker::execute` overriding `Worker::execute`.
+- Orchestrator verification:
+  - `git diff --check` passed.
+  - Acceptance compile to `/tmp/codegraphy-196-graph-scope-edge-node-types.generated.ts` passed:
+    - `pnpm --filter @codegraphy-dev/extension exec quality-tools acceptance compile --spec "tests/acceptance/specs/**/*.md" --steps "tests/acceptance/steps.ts" --out "/tmp/codegraphy-196-graph-scope-edge-node-types.generated.ts"`
+  - Stale `Widget`, `src/lib`, and old C++ `Imports` references no longer appear in `graph-scope-edge-node-types.md`.
+- Next route:
+  - Human review of the local spec draft.
+  - If accepted, user may commit the human-owned spec change, then Orchestrator can route generated acceptance output/CI follow-up.
