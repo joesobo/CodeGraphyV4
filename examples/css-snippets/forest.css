@@ -1,11 +1,8 @@
 /*
- * Demo CodeGraphy CSS Snippet: forest.
+ * Demo CodeGraphy CSS Snippet: forest theme.
  *
- * Inspired by Odysseus' forest preset:
- *   bg #1b2a1b, fg #a8d5a2, panel #142414, border #3d6b3d, accent #7cb871.
- *
- * Then add "cssSnippets": { "./css-snippets/forest.css": true }
- * to .codegraphy/settings.json.
+ * This snippet is intentionally static. It demonstrates that CSS Snippets can
+ * theme the graph surface, panels, search, inputs, menus, and graph labels.
  */
 
 :root {
@@ -55,8 +52,14 @@ body,
 [data-codegraphy-region='graph-tool-rail'] button,
 [data-codegraphy-region='graph-corner-controls'] button {
   border-color: rgba(124, 184, 113, 0.36) !important;
-  background-color: rgba(20, 36, 20, 0.82) !important;
+  background-color: rgba(20, 36, 20, 0.86) !important;
   box-shadow: 0 0 0 1px rgba(168, 213, 162, 0.06), 0 12px 36px rgba(4, 12, 4, 0.36);
+}
+
+[data-codegraphy-control='search'] input,
+[data-codegraphy-panel] input,
+[data-codegraphy-panel] button {
+  border-color: rgba(124, 184, 113, 0.34) !important;
 }
 
 [data-codegraphy-region='panel-header'],
@@ -72,55 +75,8 @@ body,
   border: 1px solid rgba(124, 184, 113, 0.2) !important;
 }
 
-[data-codegraphy-surface='graph-stage']::before,
-[data-codegraphy-surface='graph-stage']::after {
-  position: absolute;
-  inset: -28% 0 0;
-  z-index: 1;
-  pointer-events: none;
-  content: '';
-  background-repeat: repeat-y;
-}
-
-[data-codegraphy-surface='graph-stage']::before {
-  background-image:
-    radial-gradient(ellipse 55% 32% at 50% 50%, rgba(207, 239, 190, 0.52) 0 38%, transparent 42%),
-    radial-gradient(ellipse 48% 28% at 50% 50%, rgba(124, 184, 113, 0.42) 0 36%, transparent 40%),
-    radial-gradient(ellipse 52% 30% at 50% 50%, rgba(168, 213, 162, 0.34) 0 34%, transparent 38%),
-    radial-gradient(ellipse 45% 24% at 50% 50%, rgba(229, 246, 206, 0.32) 0 32%, transparent 36%);
-  background-position: 9% -18%, 34% -34%, 62% -12%, 88% -42%;
-  background-size: 24px 170px, 18px 240px, 16px 210px, 13px 280px;
-  filter: blur(0.18px);
-  opacity: 0.62;
-  animation: codegraphy-theme-forest-leaves-a 14s linear infinite;
-}
-
-[data-codegraphy-surface='graph-stage']::after {
-  background-image:
-    radial-gradient(ellipse 50% 28% at 50% 50%, rgba(168, 213, 162, 0.26) 0 34%, transparent 38%),
-    radial-gradient(ellipse 48% 26% at 50% 50%, rgba(124, 184, 113, 0.24) 0 32%, transparent 36%),
-    radial-gradient(ellipse 44% 22% at 50% 50%, rgba(214, 243, 207, 0.22) 0 30%, transparent 34%);
-  background-position: 22% -42%, 54% -24%, 78% -50%;
-  background-size: 14px 230px, 20px 300px, 15px 260px;
-  filter: blur(0.32px);
-  opacity: 0.45;
-  animation: codegraphy-theme-forest-leaves-b 21s linear infinite;
-}
-
 [data-codegraphy-layer='graph-overlay'],
 [data-codegraphy-layer='graph-stage-viewport-overlay'],
 [data-codegraphy-layer='graph-stage-world-overlay'] {
   z-index: 2;
-}
-
-@keyframes codegraphy-theme-forest-leaves-a {
-  to {
-    background-position: 16% 118%, 28% 126%, 69% 116%, 82% 130%;
-  }
-}
-
-@keyframes codegraphy-theme-forest-leaves-b {
-  to {
-    background-position: 16% 126%, 61% 118%, 72% 132%;
-  }
 }

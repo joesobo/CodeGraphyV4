@@ -251,7 +251,6 @@ export function Viewport({
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
-
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -259,7 +258,7 @@ export function Viewport({
           ref={containerRef}
           data-codegraphy-surface="graph-stage"
           onContextMenu={handleContextMenu}
-          onMouseLeave={() => handleMouseLeave()}
+          onMouseLeave={handleMouseLeave}
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}

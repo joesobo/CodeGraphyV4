@@ -1,8 +1,8 @@
 /*
- * Demo CodeGraphy CSS Snippet: ocean.
+ * Demo CodeGraphy CSS Snippet: ocean theme.
  *
- * Inspired by Odysseus' ocean preset:
- *   bg #0b1a2c, fg #64d2ff, panel #091422, border #1e5074, accent #4facfe.
+ * This snippet is intentionally static. It demonstrates workspace-local UI
+ * theming without pretending CSS can produce real randomized particles.
  */
 
 :root {
@@ -51,8 +51,14 @@ body,
 [data-codegraphy-region='graph-tool-rail'] button,
 [data-codegraphy-region='graph-corner-controls'] button {
   border-color: rgba(100, 210, 255, 0.28) !important;
-  background-color: rgba(9, 20, 34, 0.84) !important;
+  background-color: rgba(9, 20, 34, 0.86) !important;
   box-shadow: 0 0 0 1px rgba(100, 210, 255, 0.05), 0 16px 42px rgba(0, 4, 12, 0.42);
+}
+
+[data-codegraphy-control='search'] input,
+[data-codegraphy-panel] input,
+[data-codegraphy-panel] button {
+  border-color: rgba(100, 210, 255, 0.28) !important;
 }
 
 [data-codegraphy-surface='graph-stage'] {
@@ -63,53 +69,8 @@ body,
   border: 1px solid rgba(100, 210, 255, 0.18) !important;
 }
 
-[data-codegraphy-surface='graph-stage']::before,
-[data-codegraphy-surface='graph-stage']::after {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  content: '';
-}
-
-[data-codegraphy-surface='graph-stage']::before {
-  background:
-    radial-gradient(ellipse at 50% 106%, rgba(100, 210, 255, 0.24), transparent 48%),
-    linear-gradient(108deg, transparent 0 42%, rgba(100, 210, 255, 0.12) 48%, transparent 56%),
-    linear-gradient(27deg, transparent 0 42%, rgba(79, 172, 254, 0.08) 50%, transparent 58%);
-  background-size: 100% 100%, 180% 180%, 220% 220%;
-  opacity: 0.66;
-  animation: codegraphy-theme-ocean-current 13s ease-in-out infinite;
-}
-
-[data-codegraphy-surface='graph-stage']::after {
-  background-image:
-    radial-gradient(circle, rgba(216, 246, 255, 0.72) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(100, 210, 255, 0.44) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(79, 172, 254, 0.32) 0 1px, transparent 1.8px);
-  background-position: 20px 18px, 94px 76px, 156px 26px;
-  background-size: 132px 118px, 190px 154px, 260px 214px;
-  filter: blur(0.12px);
-  opacity: 0.54;
-  animation: codegraphy-theme-ocean-glints 18s ease-in-out infinite;
-}
-
 [data-codegraphy-layer='graph-overlay'],
 [data-codegraphy-layer='graph-stage-viewport-overlay'],
 [data-codegraphy-layer='graph-stage-world-overlay'] {
   z-index: 2;
-}
-
-@keyframes codegraphy-theme-ocean-current {
-  50% {
-    background-position: 0 0, 72% 58%, 20% 72%;
-    opacity: 0.8;
-  }
-}
-
-@keyframes codegraphy-theme-ocean-glints {
-  50% {
-    background-position: 42px 32px, 74px 102px, 142px 10px;
-    opacity: 0.78;
-  }
 }

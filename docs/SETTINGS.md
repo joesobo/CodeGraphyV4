@@ -113,7 +113,7 @@ Then enable it in `.codegraphy/settings.json`:
   "cssSnippets": {
     ".codegraphy/snippets/base-grid.css": true,
     ".codegraphy/snippets/forest.css": false,
-    ".codegraphy/snippets/rain.css": true
+    ".codegraphy/snippets/ocean-image.css": true
   }
 }
 ```
@@ -162,7 +162,7 @@ Example:
 }
 ```
 
-See `examples/css-snippets/` for copyable demo snippets, including static grid, forest, ocean, terminal, rain, petals, constellations, perlin-flow, sparkles, and embers backgrounds.
+See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, a faded ocean image background, and a cursor-following graph glow.
 
 ## Graph Scope settings
 
