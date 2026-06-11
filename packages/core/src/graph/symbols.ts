@@ -68,10 +68,15 @@ export function buildSymbolNodesAndEdges(
 function collectProjectableNamespaceSymbolIds(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): Set<string> {
-  const namespaceSymbolsByName = new Map<string, IFileAnalysisResult['symbols']>();
+  const namespaceSymbolsByName = new Map<string, NonNullable<IFileAnalysisResult['symbols']>>();
 
   for (const analysis of fileAnalysis.values()) {
-    for (const symbol of analysis.symbols ?? []) {
+    const symbols = analysis.symbols;
+    if (!symbols) {
+      continue;
+    }
+
+    for (const symbol of symbols) {
       if (symbol.kind !== 'namespace') {
         continue;
       }
@@ -85,8 +90,8 @@ function collectProjectableNamespaceSymbolIds(
 
   return new Set(
     Array.from(namespaceSymbolsByName.values()).flatMap((symbols) => {
-      if (!symbols || symbols.length <= 1) {
-        return symbols?.map(symbol => symbol.id) ?? [];
+      if (symbols.length === 1) {
+        return [symbols[0].id];
       }
 
       return [selectCanonicalNamespaceSymbol(symbols, fileAnalysis).id];
@@ -120,7 +125,12 @@ function countIncomingIncludes(
   let count = 0;
 
   for (const analysis of fileAnalysis.values()) {
-    for (const relation of analysis.relations ?? []) {
+    const relations = analysis.relations;
+    if (!relations) {
+      continue;
+    }
+
+    for (const relation of relations) {
       if (relation.kind === 'include' && (relation.toFilePath ?? relation.resolvedPath) === filePath) {
         count += 1;
       }

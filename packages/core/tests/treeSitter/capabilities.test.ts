@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   listTreeSitterEdgeTypeCapabilities,
+  listTreeSitterGraphScopeCapabilities,
   listTreeSitterNodeTypeCapabilities,
 } from '../../src/treeSitter/runtime/capabilities';
 
@@ -144,8 +145,86 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
 
   it('keeps empty and unknown capability requests empty', () => {
     expect(listTreeSitterNodeTypeCapabilities()).toEqual([]);
+    expect(listTreeSitterNodeTypeCapabilities([])).toEqual([]);
+    expect(listTreeSitterGraphScopeCapabilities([])).toEqual({
+      nodeTypes: [],
+      edgeTypes: [
+        'import',
+        'reference',
+        'call',
+        'type-import',
+        'inherit',
+      ],
+    });
     expect(listTreeSitterEdgeTypeCapabilities(['src/readme.md'])).toEqual([]);
     expect(listTreeSitterNodeTypeCapabilities(['src/readme.md'])).toEqual([]);
+  });
+
+  it('treats standalone headers as C headers', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['include/shared.h'])).toEqual([
+      'include',
+      'call',
+      'contains',
+    ]);
+    expect(listTreeSitterNodeTypeCapabilities(['include/shared.h'])).toEqual([
+      'symbol:function',
+      'symbol:prototype',
+      'symbol:struct',
+      'symbol:union',
+      'symbol:enum',
+      'symbol:typedef',
+      'symbol:global',
+    ]);
+  });
+
+  it('treats headers as Objective-C when only .mm Objective-C sources share a workspace', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'Sources/AppDelegate.mm',
+      'Sources/AppDelegate.h',
+    ])).toEqual([
+      'import',
+      'call',
+      'inherit',
+    ]);
+    expect(listTreeSitterNodeTypeCapabilities([
+      'Sources/AppDelegate.mm',
+      'Sources/AppDelegate.h',
+    ])).toEqual([
+      'symbol:function',
+      'symbol:class',
+    ]);
+  });
+
+  it('does not treat non-header C++ files as Objective-C in mixed workspaces', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'Sources/AppDelegate.m',
+      'src/task.cpp',
+    ])).toEqual([
+      'import',
+      'call',
+      'inherit',
+      'include',
+      'contains',
+      'overrides',
+    ]);
+    expect(listTreeSitterNodeTypeCapabilities([
+      'Sources/AppDelegate.m',
+      'src/task.cpp',
+    ])).toEqual([
+      'symbol:function',
+      'symbol:class',
+      'symbol:namespace',
+      'symbol:enum',
+      'symbol:callable',
+      'symbol:method',
+      'symbol:alias',
+      'symbol:template',
+      'symbol:global',
+      'symbol:constant',
+      'symbol:field',
+      'symbol:parameter',
+      'symbol:local',
+    ]);
   });
 
   it('treats headers as C when C and Objective-C sources share a workspace', () => {

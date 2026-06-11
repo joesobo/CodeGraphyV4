@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CORE_GRAPH_NODE_TYPES } from '../../../src/graphControls/defaults/definitions';
-import { CORE_SYMBOL_NODE_TYPES } from '../../../src/graphControls/defaults/symbolNodeTypes';
-import { CORE_VARIABLE_NODE_TYPES } from '../../../src/graphControls/defaults/variableNodeTypes';
+import { createCoreSymbolNodeTypes } from '../../../src/graphControls/defaults/symbolNodeTypes';
+import { createCoreVariableNodeTypes } from '../../../src/graphControls/defaults/variableNodeTypes';
 
 describe('graphControls/defaults/definitions', () => {
   it('keeps symbol and variable node types disabled by default', () => {
@@ -27,7 +27,7 @@ describe('graphControls/defaults/definitions', () => {
   });
 
   it('declares concrete core symbol node type definitions', () => {
-    expect(CORE_SYMBOL_NODE_TYPES).toEqual([
+    expect(createCoreSymbolNodeTypes()).toEqual([
       { id: 'symbol', label: 'Symbol', defaultColor: '#7C3AED', defaultVisible: false },
       { id: 'symbol:function', label: 'Function', defaultColor: '#8B5CF6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['function', 'method'] },
       { id: 'symbol:namespace', label: 'Namespace', defaultColor: '#64748B', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['namespace'] },
@@ -47,7 +47,7 @@ describe('graphControls/defaults/definitions', () => {
   });
 
   it('declares concrete core variable node type definitions', () => {
-    expect(CORE_VARIABLE_NODE_TYPES).toEqual([
+    expect(createCoreVariableNodeTypes()).toEqual([
       { id: 'variable', label: 'Variable', defaultColor: '#14B8A6', defaultVisible: false, parentId: 'symbol' },
       { id: 'symbol:constant', label: 'Constant', defaultColor: '#22C55E', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['constant'] },
       { id: 'symbol:global', label: 'Global', defaultColor: '#0D9488', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['global'] },

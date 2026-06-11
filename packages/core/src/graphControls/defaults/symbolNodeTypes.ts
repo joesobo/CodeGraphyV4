@@ -1,6 +1,7 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
 
-export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
+export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
+  return [
   {
     id: 'symbol',
     label: 'Symbol',
@@ -119,4 +120,7 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     parentId: 'symbol',
     matchSymbolKinds: ['template'],
   },
-];
+  ];
+}
+
+export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = createCoreSymbolNodeTypes();

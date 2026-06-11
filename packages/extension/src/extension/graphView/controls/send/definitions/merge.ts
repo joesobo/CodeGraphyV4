@@ -26,7 +26,7 @@ export function mergeNodeTypes(
   _graphData: IGraphData,
   pluginNodeTypes: GraphNodeTypeLike[],
   configuredNodeColors: Record<string, string>,
-  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[] = [],
+  nodeTypeCapabilities?: readonly GraphNodeTypeCapabilityLike[],
 ): IGraphNodeTypeDefinition[] {
   const availableNodeTypes = collectAvailableNodeTypes(nodeTypeCapabilities, pluginNodeTypes);
   const definitions = new Map<string, IGraphNodeTypeDefinition>();
@@ -60,14 +60,16 @@ export function mergeNodeTypes(
 }
 
 function collectAvailableNodeTypes(
-  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[],
+  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[] | undefined,
   pluginNodeTypes: readonly GraphNodeTypeLike[],
 ): Set<string> {
   const availableNodeTypes = new Set<string>(STRUCTURAL_NODE_TYPE_IDS);
   const definitions = [...CORE_GRAPH_NODE_TYPES, ...pluginNodeTypes];
 
-  for (const nodeType of nodeTypeCapabilities) {
-    availableNodeTypes.add(nodeType);
+  if (nodeTypeCapabilities) {
+    for (const nodeType of nodeTypeCapabilities) {
+      availableNodeTypes.add(nodeType);
+    }
   }
 
   let changed = true;
@@ -90,10 +92,10 @@ function collectAvailableNodeTypes(
 export function mergeEdgeTypes(
   graphData: IGraphData,
   pluginEdgeTypes: GraphEdgeTypeLike[],
-  edgeTypeCapabilities: GraphEdgeTypeCapabilityLike[] = [],
+  edgeTypeCapabilities?: GraphEdgeTypeCapabilityLike[],
 ): IGraphEdgeTypeDefinition[] {
   const availableEdgeKinds = collectAvailableEdgeKinds(graphData, edgeTypeCapabilities);
-  const capabilityEdgeKinds = new Set<string>(edgeTypeCapabilities);
+  const capabilityEdgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
   const definitions = new Map<string, IGraphEdgeTypeDefinition>();
 
   for (const definition of CORE_GRAPH_EDGE_TYPES) {
@@ -136,9 +138,9 @@ export function mergeEdgeTypes(
 
 function collectAvailableEdgeKinds(
   graphData: IGraphData,
-  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[],
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
 ): Set<string> {
-  const edgeKinds = new Set<string>(edgeTypeCapabilities);
+  const edgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
 
   for (const edge of graphData.edges) {
     edgeKinds.add(edge.kind);
@@ -154,8 +156,22 @@ function collectAvailableEdgeKinds(
   return edgeKinds;
 }
 
+function collectCapabilityEdgeKinds(
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
+): Set<string> {
+  const edgeKinds = new Set<string>();
+
+  if (edgeTypeCapabilities) {
+    for (const edgeType of edgeTypeCapabilities) {
+      edgeKinds.add(edgeType);
+    }
+  }
+
+  return edgeKinds;
+}
+
 function shouldAddLegacyReferenceEdgeKind(
-  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[],
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
   edgeKinds: ReadonlySet<string>,
 ): boolean {
   const hasCppEdgeShape = edgeKinds.has('include') && edgeKinds.has('overrides');
@@ -163,7 +179,8 @@ function shouldAddLegacyReferenceEdgeKind(
     return false;
   }
 
-  return edgeTypeCapabilities.length === 0
+  return !edgeTypeCapabilities
+    || edgeTypeCapabilities.length === 0
     || edgeTypeCapabilities.includes('reference')
     || !edgeTypeCapabilities.includes('overrides');
 }

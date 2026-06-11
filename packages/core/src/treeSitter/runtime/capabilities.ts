@@ -89,9 +89,9 @@ const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly NodeType[]>;
 
 export function listTreeSitterEdgeTypeCapabilities(
-  filePaths: readonly string[] = [],
+  filePaths?: readonly string[],
 ): GraphEdgeKind[] {
-  if (filePaths.length === 0) {
+  if (!filePaths || filePaths.length === 0) {
     return [...DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES];
   }
 
@@ -108,7 +108,7 @@ export function listTreeSitterEdgeTypeCapabilities(
 }
 
 export function listTreeSitterGraphScopeCapabilities(
-  filePaths: readonly string[] = [],
+  filePaths?: readonly string[],
 ): Required<IPluginGraphScopeCapabilities> {
   return {
     nodeTypes: listTreeSitterNodeTypeCapabilities(filePaths),
@@ -117,9 +117,9 @@ export function listTreeSitterGraphScopeCapabilities(
 }
 
 export function listTreeSitterNodeTypeCapabilities(
-  filePaths: readonly string[] = [],
+  filePaths?: readonly string[],
 ): NodeType[] {
-  if (filePaths.length === 0) {
+  if (!filePaths || filePaths.length === 0) {
     return [];
   }
 

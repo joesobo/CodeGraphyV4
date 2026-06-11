@@ -469,6 +469,20 @@ describe('visibleGraph/scope', () => {
     ]))).toEqual(new Set(['function']));
   });
 
+  it('keeps earlier specific symbol rows ahead of later broader rows', () => {
+    expect(getDisabledSymbolKinds(scopeConfig([
+      { type: 'symbol:method', enabled: false },
+      { type: 'symbol:function', enabled: true },
+    ]))).toEqual(new Set(['method']));
+  });
+
+  it('lets later equal-specificity symbol rows replace earlier rows', () => {
+    expect(getDisabledSymbolKinds(scopeConfig([
+      { type: 'symbol:class', enabled: false },
+      { type: 'symbol:class', enabled: true },
+    ]))).toEqual(new Set());
+  });
+
   it('falls back to the symbol type suffix when no explicit kinds exist', () => {
     expect(getDisabledSymbolKinds(scopeConfig([
       { type: 'symbol:class', enabled: false },
