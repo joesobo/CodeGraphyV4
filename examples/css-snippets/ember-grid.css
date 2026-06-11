@@ -1,0 +1,56 @@
+/*
+ * Demo CodeGraphy CSS Snippet: ember grid drift.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/ember-grid.css
+ *
+ * Then add "cssSnippets": [".codegraphy/snippets/ember-grid.css"]
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 30% 80%, rgba(251, 146, 60, 0.2), transparent 32%),
+    radial-gradient(circle at 78% 12%, rgba(248, 113, 113, 0.14), transparent 26%),
+    linear-gradient(160deg, #080403, #1b0b06 52%, #050303);
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-image:
+    linear-gradient(rgba(253, 186, 116, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 146, 60, 0.08) 1px, transparent 1px);
+  background-size: 38px 38px;
+  opacity: 0.46;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle, rgba(253, 186, 116, 0.52) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(248, 113, 113, 0.34) 0 1px, transparent 2px);
+  background-position: 12px 110%, 68px 105%;
+  background-size: 96px 180px, 144px 220px;
+  opacity: 0.36;
+  animation: codegraphy-demo-ember-rise 8s linear infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-ember-rise {
+  to {
+    background-position: 24px -180px, 82px -220px;
+  }
+}

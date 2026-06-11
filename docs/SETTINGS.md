@@ -112,7 +112,7 @@ Then list it in `.codegraphy/settings.json`:
 {
   "cssSnippets": [
     ".codegraphy/snippets/animated-graph-stage.css",
-    ".codegraphy/snippets/focus-mode-panel.css"
+    ".codegraphy/snippets/falling-rain-grid.css"
   ]
 }
 ```
