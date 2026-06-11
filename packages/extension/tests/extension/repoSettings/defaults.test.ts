@@ -18,6 +18,7 @@ describe('extension/repoSettings/defaults', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
+      cssSnippets: {},
       plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       pluginData: {},
       nodeColors: createDefaultNodeColors(),
@@ -65,6 +66,7 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.plugins).not.toBe(first.plugins);
     expect(second.plugins[0]).not.toBe(first.plugins[0]);
     expect(second.pluginData).not.toBe(first.pluginData);
+    expect(second.cssSnippets).not.toBe(first.cssSnippets);
     expect(second.nodeColors).not.toBe(first.nodeColors);
     expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
     expect(second.edgeVisibility).not.toBe(first.edgeVisibility);
