@@ -305,7 +305,7 @@ describe('GraphStore message routing', () => {
       payload: {
         backgroundEffects: {
           enabled: true,
-          preset: 'leaves',
+          preset: 'petals',
           intensity: 0.35,
         },
       },
@@ -313,7 +313,7 @@ describe('GraphStore message routing', () => {
 
     expect(store.getState().backgroundEffects).toEqual({
       enabled: true,
-      preset: 'leaves',
+      preset: 'petals',
       intensity: 0.35,
     });
   });
