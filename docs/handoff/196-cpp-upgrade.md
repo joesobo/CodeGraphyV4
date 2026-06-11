@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Human-approved Graph Scope edge/node acceptance Markdown is committed locally; generated Playwright acceptance output is dirty and needs Coder validation/commit; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Generated Playwright acceptance output for the split Graph Scope specs is validated, committed, and pushed in `ab38756a`; focused remote Graph interactions still has three non-generated-output failures; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Coder regenerates and validates generated acceptance output for the split Graph Scope specs, runs the focused graph-interactions acceptance slice, then reports whether the stale Widget CI blocker is cleared.
+- Next route: Orchestrator decides whether to route another acceptance-spec gate for the remaining focused Graph interactions failures or separately resolve/accept the `68.52%` mutation decision.
 
 ## Human Gates
 
@@ -1224,3 +1224,50 @@
 - Scope reminder:
   - Coder must not edit human-owned acceptance Markdown unless the Orchestrator gets new explicit user approval.
   - Mutation score policy remains a separate Orchestrator/Architect decision after the generated acceptance blocker is cleared.
+
+### 2026-06-11T17:31:42Z - Coder Regenerates Split Graph Scope Acceptance Output
+
+- Source: Coder route after human approval commit `0a29a68f` and Orchestrator route commit `88eea0e3`.
+- Target: generated Playwright acceptance output and focused Graph interactions validation.
+- Result: generated output is valid and pushed; focused remote Graph interactions is still red for three scenarios.
+- Files changed:
+  - `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`
+  - `docs/handoff/196-cpp-upgrade.md`
+- Scope held:
+  - No human-owned acceptance Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited.
+  - No production code, step bindings, fixtures, or changesets were edited.
+- Generated-output validation:
+  - `pnpm --filter @codegraphy-dev/extension run generate:acceptance` passed.
+  - The regenerated file now contains `Graph Scope Edge Types` and `Graph Scope Node Types` suites sourced from `graph-scope-edge-types.md` and `graph-scope-node-types.md`.
+  - `rg -n "Widget|src/lib/widget|graph-scope-edge-node-types|Graph Scope Edge And Node Types" packages/extension/tests/acceptance/specs packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts` returned no matches.
+  - `git diff --check` passed before commit.
+  - `pnpm --filter @codegraphy-dev/extension run typecheck` passed; it reran acceptance generation and typechecked extension source, extension tests, and Playwright tests.
+  - Commit hook for `ab38756a` passed acceptance-spec ownership guard, full workspace `pnpm run typecheck` through Turbo, and lint-staged `eslint --fix` on the generated file.
+- Commits and pushes:
+  - `ab38756a` (`coder: regenerate split graph scope acceptance`) pushed to `origin/codex/196-cpp-upgrade`.
+- Heavy check host:
+  - Host: `codegraphy-mini` / `Poleskis-Mac-mini.local`
+  - Path: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Runtime: Node `v22.22.2`, pnpm `10.32.0`
+  - Remote worktree was clean, fetched, and fast-forwarded to `ab38756a`.
+- Remote commands:
+  - `pnpm --filter @codegraphy-dev/extension run build:vscode` passed on `codegraphy-mini`.
+  - `CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE=interactions CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS=1 pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "Graph Scope (Edge|Node) Types"` failed with `30 passed`, `3 failed`.
+- Remote pass evidence:
+  - Former stale Widget C++ scenarios no longer fail with `Widget` or `src/lib/widget` references.
+  - `Graph Scope Edge Types › Include edges work` passed.
+  - `Graph Scope Edge Types › Inherits edges work` passed.
+  - `Graph Scope Edge Types › Contains edges work` passed.
+  - `Graph Scope Edge Types › Overrides edges work` passed.
+- Remaining focused failures:
+  - `Graph Scope Edge Types › Calls edges work`: expected `8` connections, received `6` at `packages/extension/tests/acceptance/graphView/steps.ts:467`.
+  - `Graph Scope Edge Types › Nests edges work`: expected `15` connections, received `14` at `packages/extension/tests/acceptance/graphView/steps.ts:467`.
+  - `Graph Scope Node Types › Function node type works`: `When I show only the File and Function node types` could not find the `Function` switch; expected `true`, received `missing` at `packages/extension/tests/acceptance/graphView/steps.ts:1471`.
+- Coder findings:
+  - The stale Widget-specific generated-output blocker is cleared: no generated/spec references to `Widget`, `src/lib/widget`, or old `graph-scope-edge-node-types.md` remain.
+  - The overall Graph interactions blocker is not cleared because the focused split-suite run is still red.
+  - The C++ `Nests` scenario remains acceptance-owned and still includes `packages/extension/tests/acceptance/specs/graph-scope-edge-types.md:146` expecting `15 connections` plus line `148` asserting `src points to src/lib`; Coder did not edit it without Orchestrator/user approval.
+  - `Calls edges work` and `Function node type works` are not C++ Widget stale-reference failures and may need separate triage.
+- Return route:
+  - Return to Orchestrator.
+  - Recommended next step: decide whether to route a new Specifier/human gate for the remaining acceptance Markdown expectations, then route Coder only after the accepted contract is updated; keep the `68.52%` mutation decision separate.
