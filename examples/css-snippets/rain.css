@@ -1,49 +1,97 @@
 /*
  * Demo CodeGraphy CSS Snippet: rain.
  *
- * Try it by copying this file to:
- *   .codegraphy/snippets/rain.css
- *
- * Then add "cssSnippets": { ".codegraphy/snippets/rain.css": true }
- * to .codegraphy/settings.json.
+ * Inspired by Odysseus' midnight preset with the rain background pattern:
+ *   bg #0d1117, fg #c9d1d9, panel #161b22, border #30363d, accent #f85149.
  */
+
+:root {
+  --cg-background: #0d1117;
+  --cg-foreground: #c9d1d9;
+  --cg-panel-background: #161b22;
+  --cg-panel-foreground: #e6edf3;
+  --cg-popover: #161b22;
+  --cg-popover-foreground: #e6edf3;
+  --cg-primary: #f85149;
+  --cg-primary-foreground: #170302;
+  --cg-primary-hover: #ff716a;
+  --cg-secondary: #21262d;
+  --cg-secondary-foreground: #e6edf3;
+  --cg-secondary-hover: #30363d;
+  --cg-muted: #21262d;
+  --cg-muted-foreground: #8b949e;
+  --cg-accent: #30363d;
+  --cg-accent-foreground: #f0f6fc;
+  --cg-border: #30363d;
+  --cg-input: #0d1117;
+  --cg-input-foreground: #f0f6fc;
+  --cg-input-border: #30363d;
+  --cg-input-placeholder: #7d8590;
+  --cg-focus-border: #8b949e;
+  --cg-link: #79c0ff;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(201, 209, 217, 0.18);
+  --cg-graph-label-foreground: #f0f6fc;
+  --cg-graph-label-muted-foreground: #8b949e;
+  --cg-graph-link-highlight: #79c0ff;
+  --cg-graph-link-muted: rgba(201, 209, 217, 0.34);
+  --cg-menu-background: rgba(22, 27, 34, 0.96);
+  --cg-menu-border: #30363d;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(201, 209, 217, 0.18) !important;
+  background-color: rgba(22, 27, 34, 0.86) !important;
+  box-shadow: 0 16px 42px rgba(1, 4, 9, 0.46);
+}
 
 [data-codegraphy-surface='graph-stage'] {
   background:
-    radial-gradient(circle at 50% 0%, rgba(148, 163, 184, 0.16), transparent 32%),
-    linear-gradient(180deg, #050608 0%, #0b0f14 48%, #020304 100%);
+    radial-gradient(circle at 50% -8%, rgba(201, 209, 217, 0.16), transparent 36%),
+    linear-gradient(180deg, #06080c 0%, #0d1117 48%, #020304 100%) !important;
+  border: 1px solid rgba(201, 209, 217, 0.16) !important;
 }
 
 [data-codegraphy-surface='graph-stage']::before,
 [data-codegraphy-surface='graph-stage']::after {
   position: absolute;
-  inset: -30% 0 0;
+  inset: -34% 0 0;
   z-index: 1;
   pointer-events: none;
   content: '';
   background-repeat: repeat;
-  filter: blur(0.2px);
+  filter: blur(0.16px);
 }
 
 [data-codegraphy-surface='graph-stage']::before {
   background-image:
-    linear-gradient(172deg, transparent 0 42%, rgba(226, 232, 240, 0.4) 48%, transparent 56%),
-    linear-gradient(172deg, transparent 0 44%, rgba(148, 163, 184, 0.28) 50%, transparent 58%),
-    linear-gradient(172deg, transparent 0 46%, rgba(203, 213, 225, 0.34) 52%, transparent 60%);
-  background-size: 96px 210px, 132px 260px, 180px 310px;
-  background-position: 8px -210px, 54px -260px, 104px -310px;
-  opacity: 0.55;
-  animation: codegraphy-demo-rain-a 1.8s linear infinite;
+    linear-gradient(180deg, transparent 0 35%, rgba(240, 246, 252, 0.42) 48%, transparent 60%),
+    linear-gradient(180deg, transparent 0 40%, rgba(201, 209, 217, 0.28) 52%, transparent 64%),
+    linear-gradient(180deg, transparent 0 38%, rgba(121, 192, 255, 0.18) 50%, transparent 62%);
+  background-size: 74px 220px, 116px 290px, 164px 360px;
+  background-position: 8px -220px, 54px -290px, 104px -360px;
+  opacity: 0.62;
+  animation: codegraphy-theme-rain-a 1.6s linear infinite;
 }
 
 [data-codegraphy-surface='graph-stage']::after {
   background-image:
-    linear-gradient(172deg, transparent 0 42%, rgba(226, 232, 240, 0.22) 48%, transparent 56%),
-    linear-gradient(172deg, transparent 0 44%, rgba(148, 163, 184, 0.18) 50%, transparent 58%);
-  background-size: 150px 240px, 220px 360px;
-  background-position: 32px -240px, 122px -360px;
-  opacity: 0.42;
-  animation: codegraphy-demo-rain-b 2.7s linear infinite;
+    linear-gradient(180deg, transparent 0 36%, rgba(240, 246, 252, 0.2) 50%, transparent 62%),
+    linear-gradient(180deg, transparent 0 42%, rgba(201, 209, 217, 0.18) 54%, transparent 66%);
+  background-size: 138px 260px, 212px 410px;
+  background-position: 32px -260px, 122px -410px;
+  opacity: 0.46;
+  animation: codegraphy-theme-rain-b 2.45s linear infinite;
 }
 
 [data-codegraphy-layer='graph-overlay'],
@@ -52,14 +100,14 @@
   z-index: 2;
 }
 
-@keyframes codegraphy-demo-rain-a {
+@keyframes codegraphy-theme-rain-a {
   to {
-    background-position: 68px 210px, 14px 260px, 164px 310px;
+    background-position: 18px 220px, 78px 290px, 92px 360px;
   }
 }
 
-@keyframes codegraphy-demo-rain-b {
+@keyframes codegraphy-theme-rain-b {
   to {
-    background-position: -28px 240px, 182px 360px;
+    background-position: 22px 260px, 152px 410px;
   }
 }

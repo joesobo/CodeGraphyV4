@@ -1,24 +1,72 @@
 /*
  * Demo CodeGraphy CSS Snippet: petals.
  *
- * Try it by copying this file to:
- *   .codegraphy/snippets/petals.css
- *
- * Then add "cssSnippets": { ".codegraphy/snippets/petals.css": true }
- * to .codegraphy/settings.json.
+ * Inspired by Odysseus' ume preset with the petals background pattern:
+ *   bg #2b1b2e, fg #f5c2e7, panel #1e1420, border #6c4675, accent #f5a0c0.
  */
+
+:root {
+  --cg-background: #2b1b2e;
+  --cg-foreground: #f5c2e7;
+  --cg-panel-background: #1e1420;
+  --cg-panel-foreground: #ffe0f3;
+  --cg-popover: #1e1420;
+  --cg-popover-foreground: #ffe0f3;
+  --cg-primary: #f5a0c0;
+  --cg-primary-foreground: #220817;
+  --cg-primary-hover: #ffc2d7;
+  --cg-secondary: #3a2440;
+  --cg-secondary-foreground: #ffe0f3;
+  --cg-secondary-hover: #4a2d52;
+  --cg-muted: #36213b;
+  --cg-muted-foreground: #c896bd;
+  --cg-accent: #503058;
+  --cg-accent-foreground: #fff0f7;
+  --cg-border: #6c4675;
+  --cg-input: #1a101c;
+  --cg-input-foreground: #fff0f7;
+  --cg-input-border: #6c4675;
+  --cg-input-placeholder: #b184aa;
+  --cg-focus-border: #f5a0c0;
+  --cg-link: #ffd1e3;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(245, 160, 192, 0.22);
+  --cg-graph-label-foreground: #fff0f7;
+  --cg-graph-label-muted-foreground: #c896bd;
+  --cg-graph-link-highlight: #f5a0c0;
+  --cg-graph-link-muted: rgba(245, 194, 231, 0.38);
+  --cg-menu-background: rgba(30, 20, 32, 0.96);
+  --cg-menu-border: #6c4675;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #2b1b2e;
+  color: #f5c2e7;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(245, 160, 192, 0.28) !important;
+  background-color: rgba(30, 20, 32, 0.84) !important;
+  box-shadow: 0 16px 42px rgba(12, 4, 14, 0.42);
+}
 
 [data-codegraphy-surface='graph-stage'] {
   background:
-    radial-gradient(circle at 30% 12%, rgba(245, 160, 192, 0.16), transparent 30%),
-    radial-gradient(circle at 82% 84%, rgba(108, 70, 117, 0.2), transparent 34%),
-    linear-gradient(180deg, #140c16 0%, #241427 52%, #100911 100%);
+    radial-gradient(circle at 30% 12%, rgba(245, 160, 192, 0.18), transparent 30%),
+    radial-gradient(circle at 82% 84%, rgba(108, 70, 117, 0.24), transparent 34%),
+    linear-gradient(180deg, #140c16 0%, #241427 52%, #100911 100%) !important;
+  border: 1px solid rgba(245, 160, 192, 0.18) !important;
 }
 
 [data-codegraphy-surface='graph-stage']::before,
 [data-codegraphy-surface='graph-stage']::after {
   position: absolute;
-  inset: -24% 0 0;
+  inset: -26% 0 0;
   z-index: 1;
   pointer-events: none;
   content: '';
@@ -27,23 +75,24 @@
 
 [data-codegraphy-surface='graph-stage']::before {
   background-image:
-    radial-gradient(ellipse at 50% 50%, rgba(245, 194, 231, 0.54) 0 30%, transparent 32%),
-    radial-gradient(ellipse at 50% 50%, rgba(245, 160, 192, 0.4) 0 28%, transparent 30%);
-  background-position: 18% -22%, 68% -16%;
-  background-size: 18px 210px, 14px 270px;
-  opacity: 0.58;
-  animation: codegraphy-demo-petals-a 14s linear infinite;
+    radial-gradient(ellipse 58% 32% at 50% 50%, rgba(245, 194, 231, 0.56) 0 34%, transparent 38%),
+    radial-gradient(ellipse 55% 28% at 50% 50%, rgba(245, 160, 192, 0.42) 0 32%, transparent 36%),
+    radial-gradient(ellipse 50% 26% at 50% 50%, rgba(255, 224, 243, 0.34) 0 30%, transparent 34%);
+  background-position: 14% -20%, 48% -30%, 78% -16%;
+  background-size: 18px 210px, 14px 270px, 20px 320px;
+  opacity: 0.62;
+  animation: codegraphy-theme-petals-a 15s linear infinite;
 }
 
 [data-codegraphy-surface='graph-stage']::after {
   background-image:
-    radial-gradient(ellipse at 50% 50%, rgba(245, 194, 231, 0.34) 0 28%, transparent 30%),
-    radial-gradient(ellipse at 50% 50%, rgba(245, 160, 192, 0.28) 0 26%, transparent 28%);
-  background-position: 36% -30%, 84% -24%;
-  background-size: 12px 180px, 20px 330px;
-  filter: blur(0.2px);
+    radial-gradient(ellipse 54% 28% at 50% 50%, rgba(245, 194, 231, 0.34) 0 30%, transparent 34%),
+    radial-gradient(ellipse 50% 24% at 50% 50%, rgba(245, 160, 192, 0.28) 0 28%, transparent 32%);
+  background-position: 32% -38%, 88% -26%;
+  background-size: 12px 190px, 20px 360px;
+  filter: blur(0.22px);
   opacity: 0.48;
-  animation: codegraphy-demo-petals-b 19s linear infinite;
+  animation: codegraphy-theme-petals-b 22s linear infinite;
 }
 
 [data-codegraphy-layer='graph-overlay'],
@@ -52,14 +101,14 @@
   z-index: 2;
 }
 
-@keyframes codegraphy-demo-petals-a {
+@keyframes codegraphy-theme-petals-a {
   to {
-    background-position: 10% 116%, 74% 124%;
+    background-position: 8% 118%, 54% 126%, 73% 132%;
   }
 }
 
-@keyframes codegraphy-demo-petals-b {
+@keyframes codegraphy-theme-petals-b {
   to {
-    background-position: 42% 118%, 78% 132%;
+    background-position: 40% 120%, 80% 136%;
   }
 }

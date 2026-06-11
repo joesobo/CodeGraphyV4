@@ -1,18 +1,66 @@
 /*
  * Demo CodeGraphy CSS Snippet: sparkles.
  *
- * Try it by copying this file to:
- *   .codegraphy/snippets/sparkles.css
- *
- * Then add "cssSnippets": { ".codegraphy/snippets/sparkles.css": true }
- * to .codegraphy/settings.json.
+ * Inspired by Odysseus' cute preset with the sparkles background pattern:
+ *   bg #fff0f5, fg #d4608a, panel #fff8fa, border #f0c0d0, accent #ff6b9d.
  */
+
+:root {
+  --cg-background: #fff0f5;
+  --cg-foreground: #d4608a;
+  --cg-panel-background: #fff8fa;
+  --cg-panel-foreground: #8a2f51;
+  --cg-popover: #fff8fa;
+  --cg-popover-foreground: #8a2f51;
+  --cg-primary: #ff6b9d;
+  --cg-primary-foreground: #3a0719;
+  --cg-primary-hover: #ff8cb8;
+  --cg-secondary: #ffe4ee;
+  --cg-secondary-foreground: #8a2f51;
+  --cg-secondary-hover: #ffd5e5;
+  --cg-muted: #ffe8f0;
+  --cg-muted-foreground: #b8587d;
+  --cg-accent: #ffd6e6;
+  --cg-accent-foreground: #7d2448;
+  --cg-border: #f0c0d0;
+  --cg-input: #fff8fa;
+  --cg-input-foreground: #7d2448;
+  --cg-input-border: #f0c0d0;
+  --cg-input-placeholder: #c87898;
+  --cg-focus-border: #ff6b9d;
+  --cg-link: #d4477a;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(255, 107, 157, 0.26);
+  --cg-graph-label-foreground: #7d2448;
+  --cg-graph-label-muted-foreground: #b8587d;
+  --cg-graph-link-highlight: #ff6b9d;
+  --cg-graph-link-muted: rgba(212, 96, 138, 0.36);
+  --cg-menu-background: rgba(255, 248, 250, 0.96);
+  --cg-menu-border: #f0c0d0;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #fff0f5;
+  color: #d4608a;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(255, 107, 157, 0.28) !important;
+  background-color: rgba(255, 248, 250, 0.88) !important;
+  box-shadow: 0 16px 42px rgba(212, 96, 138, 0.18);
+}
 
 [data-codegraphy-surface='graph-stage'] {
   background:
-    radial-gradient(circle at 22% 18%, rgba(255, 140, 184, 0.18), transparent 30%),
-    radial-gradient(circle at 78% 82%, rgba(255, 214, 235, 0.2), transparent 34%),
-    linear-gradient(180deg, #2a1020 0%, #3a1627 52%, #160811 100%);
+    radial-gradient(circle at 22% 18%, rgba(255, 140, 184, 0.2), transparent 30%),
+    radial-gradient(circle at 78% 82%, rgba(255, 214, 235, 0.34), transparent 34%),
+    linear-gradient(180deg, #fff0f5 0%, #ffe4ee 52%, #fff8fa 100%) !important;
+  border: 1px solid rgba(255, 107, 157, 0.2) !important;
 }
 
 [data-codegraphy-surface='graph-stage']::before,
@@ -27,24 +75,25 @@
 
 [data-codegraphy-surface='graph-stage']::before {
   background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.9) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(255, 140, 184, 0.58) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(255, 214, 235, 0.5) 0 1px, transparent 1.8px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 140, 184, 0.64) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 107, 157, 0.44) 0 1px, transparent 1.8px);
   background-position: 18px 24px, 90px 80px, 150px 28px;
-  background-size: 124px 96px, 174px 138px, 220px 170px;
-  opacity: 0.5;
-  animation: codegraphy-demo-sparkles-a 7s ease-in-out infinite;
+  background-size: 118px 92px, 174px 138px, 232px 178px;
+  opacity: 0.66;
+  animation: codegraphy-theme-sparkles-a 6.5s ease-in-out infinite;
 }
 
 [data-codegraphy-surface='graph-stage']::after {
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.48) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(255, 140, 184, 0.36) 0 1px, transparent 2px);
-  background-position: 44px 60px, 130px 20px;
-  background-size: 164px 126px, 260px 210px;
-  filter: blur(0.2px);
+    linear-gradient(45deg, transparent 0 48%, rgba(255, 255, 255, 0.62) 49%, transparent 51%),
+    linear-gradient(135deg, transparent 0 48%, rgba(255, 140, 184, 0.36) 49%, transparent 51%),
+    radial-gradient(circle, rgba(255, 107, 157, 0.34) 0 1px, transparent 2px);
+  background-position: 44px 60px, 44px 60px, 130px 20px;
+  background-size: 164px 126px, 164px 126px, 260px 210px;
+  filter: blur(0.18px);
   opacity: 0.42;
-  animation: codegraphy-demo-sparkles-b 11s ease-in-out infinite;
+  animation: codegraphy-theme-sparkles-b 10s ease-in-out infinite;
 }
 
 [data-codegraphy-layer='graph-overlay'],
@@ -53,16 +102,16 @@
   z-index: 2;
 }
 
-@keyframes codegraphy-demo-sparkles-a {
+@keyframes codegraphy-theme-sparkles-a {
   50% {
     background-position: 24px 18px, 82px 92px, 164px 18px;
-    opacity: 0.82;
+    opacity: 0.92;
   }
 }
 
-@keyframes codegraphy-demo-sparkles-b {
+@keyframes codegraphy-theme-sparkles-b {
   50% {
-    background-position: 32px 72px, 144px 10px;
+    background-position: 32px 72px, 32px 72px, 144px 10px;
     opacity: 0.24;
   }
 }

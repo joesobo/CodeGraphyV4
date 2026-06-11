@@ -1,18 +1,65 @@
 /*
  * Demo CodeGraphy CSS Snippet: perlin-flow.
  *
- * Try it by copying this file to:
- *   .codegraphy/snippets/perlin-flow.css
- *
- * Then add "cssSnippets": { ".codegraphy/snippets/perlin-flow.css": true }
- * to .codegraphy/settings.json.
+ * Inspired by Odysseus' terminal preset with its perlin-flow particle stream.
  */
+
+:root {
+  --cg-background: #000000;
+  --cg-foreground: #00ff41;
+  --cg-panel-background: #0a0a0a;
+  --cg-panel-foreground: #8cff9f;
+  --cg-popover: #0a0a0a;
+  --cg-popover-foreground: #8cff9f;
+  --cg-primary: #00ff41;
+  --cg-primary-foreground: #001a07;
+  --cg-primary-hover: #6bff8d;
+  --cg-secondary: #071507;
+  --cg-secondary-foreground: #8cff9f;
+  --cg-secondary-hover: #0c240c;
+  --cg-muted: #061306;
+  --cg-muted-foreground: #2fbf4e;
+  --cg-accent: #062506;
+  --cg-accent-foreground: #b8ffc4;
+  --cg-border: #003b00;
+  --cg-input: #020802;
+  --cg-input-foreground: #b8ffc4;
+  --cg-input-border: #006b18;
+  --cg-input-placeholder: #24983b;
+  --cg-focus-border: #00ff41;
+  --cg-link: #7cff96;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(0, 255, 65, 0.22);
+  --cg-graph-label-foreground: #caffd2;
+  --cg-graph-label-muted-foreground: #37ba52;
+  --cg-graph-link-highlight: #00ff41;
+  --cg-graph-link-muted: rgba(0, 255, 65, 0.36);
+  --cg-menu-background: rgba(5, 10, 5, 0.98);
+  --cg-menu-border: #006b18;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #000;
+  color: #00ff41;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(0, 255, 65, 0.22) !important;
+  background-color: rgba(10, 10, 10, 0.88) !important;
+  box-shadow: 0 0 0 1px rgba(0, 255, 65, 0.06), 0 0 28px rgba(0, 255, 65, 0.08);
+}
 
 [data-codegraphy-surface='graph-stage'] {
   background:
-    radial-gradient(circle at 18% 24%, rgba(0, 255, 65, 0.12), transparent 32%),
-    radial-gradient(circle at 84% 74%, rgba(80, 250, 123, 0.08), transparent 36%),
-    linear-gradient(180deg, #000000 0%, #041007 52%, #000000 100%);
+    radial-gradient(circle at 18% 24%, rgba(0, 255, 65, 0.13), transparent 32%),
+    radial-gradient(circle at 84% 74%, rgba(80, 250, 123, 0.1), transparent 36%),
+    linear-gradient(180deg, #000000 0%, #041007 52%, #000000 100%) !important;
+  border: 1px solid rgba(0, 255, 65, 0.18) !important;
 }
 
 [data-codegraphy-surface='graph-stage']::before,
@@ -28,23 +75,25 @@
 
 [data-codegraphy-surface='graph-stage']::before {
   background-image:
-    radial-gradient(circle, rgba(0, 255, 65, 0.4) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(80, 250, 123, 0.22) 0 1px, transparent 2px);
-  background-size: 86px 74px, 134px 118px;
-  background-position: 12px 18px, 70px 42px;
-  filter: blur(0.25px);
-  opacity: 0.44;
-  animation: codegraphy-demo-flow-a 11s ease-in-out infinite;
+    radial-gradient(circle, rgba(0, 255, 65, 0.42) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(80, 250, 123, 0.24) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(202, 255, 210, 0.18) 0 1px, transparent 2px);
+  background-size: 86px 74px, 134px 118px, 210px 170px;
+  background-position: 12px 18px, 70px 42px, 130px 90px;
+  filter: blur(0.22px);
+  opacity: 0.48;
+  animation: codegraphy-theme-flow-particles 11s ease-in-out infinite;
 }
 
 [data-codegraphy-surface='graph-stage']::after {
   background:
-    linear-gradient(115deg, transparent 0 40%, rgba(0, 255, 65, 0.1) 48%, transparent 56%),
-    linear-gradient(35deg, transparent 0 42%, rgba(80, 250, 123, 0.08) 50%, transparent 58%);
-  background-size: 220px 220px, 280px 280px;
-  background-position: 0 0, 120px 80px;
-  opacity: 0.38;
-  animation: codegraphy-demo-flow-b 16s ease-in-out infinite;
+    linear-gradient(115deg, transparent 0 40%, rgba(0, 255, 65, 0.11) 48%, transparent 56%),
+    linear-gradient(35deg, transparent 0 42%, rgba(80, 250, 123, 0.09) 50%, transparent 58%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 255, 65, 0.06), transparent 64%);
+  background-size: 220px 220px, 280px 280px, 420px 260px;
+  background-position: 0 0, 120px 80px, 40px 60px;
+  opacity: 0.42;
+  animation: codegraphy-theme-flow-streams 16s ease-in-out infinite;
 }
 
 [data-codegraphy-layer='graph-overlay'],
@@ -53,15 +102,15 @@
   z-index: 2;
 }
 
-@keyframes codegraphy-demo-flow-a {
+@keyframes codegraphy-theme-flow-particles {
   50% {
-    background-position: 62px 70px, 20px 120px;
-    filter: blur(0.6px);
+    background-position: 62px 70px, 20px 120px, 180px 30px;
+    filter: blur(0.55px);
   }
 }
 
-@keyframes codegraphy-demo-flow-b {
+@keyframes codegraphy-theme-flow-streams {
   50% {
-    background-position: 90px 120px, 40px 20px;
+    background-position: 90px 120px, 40px 20px, 170px 100px;
   }
 }
