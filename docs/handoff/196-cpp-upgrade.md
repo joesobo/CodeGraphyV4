@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Coder implementation for the reviewed C++ acceptance contract is verified locally and on `codegraphy-mini`; ready to route Refactorer for non-mutation quality gates.
+- State: Refactorer completed one quality pass, but Orchestrator verified branch-owned C++ CRAP threshold exceedances remain; routing Refactorer back for a narrower C++ analyzer CRAP cleanup pass.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Refactorer runs behavior-preserving quality cleanup and non-mutation quality gates, then Orchestrator verifies before Architect routing.
+- Next route: Refactorer reduces or explicitly resolves branch-owned C++ analyzer CRAP exceedances, then Orchestrator verifies before Architect routing.
 
 ## Human Gates
 
@@ -812,3 +812,46 @@
   - Git continues to print an existing background GC warning for the protected main checkout worktree metadata; no destructive cleanup was attempted.
 - Return route:
   - Return to Orchestrator for loop coordination and next-role decision.
+
+### 2026-06-11T02:18:55Z - Orchestrator Verifies Refactorer And Loops Back
+
+- Source: Orchestrator verification after Refactorer handoff.
+- Target: Refactorer routing decision.
+- Result: loop back to Refactorer for a narrower C++ analyzer CRAP cleanup pass before Architect routing.
+- Branch state verified:
+  - Local worktree clean at `3c98a864`.
+  - `codegraphy-mini` worktree clean at `3c98a864`.
+  - Refactorer commits `a62f7611`, `1a161bfc`, and `3c98a864` are pushed to `origin/codex/196-cpp-upgrade`.
+- Orchestrator checks:
+  - `git diff --name-status 3e618109..HEAD`
+  - `git diff --stat 3e618109..HEAD`
+  - `pnpm exec quality-tools boundaries --help`
+  - `pnpm exec quality-tools crap --help`
+- Verification findings:
+  - No human-owned acceptance spec Markdown is dirty or changed by the Refactorer pass.
+  - Boundary check still exits 1, but the remaining 6 dead surfaces and 6 dead ends are unrelated example/plugin baseline paths:
+    - `examples/example-svelte/src/types.ts`
+    - `examples/example-typescript/src/runner.ts`
+    - `examples/example-typescript/src/utils.ts`
+    - `examples/example-vue/src/data/users.ts`
+    - `packages/plugin-svelte/src/plugin.ts`
+    - `packages/plugin-vue/src/plugin.ts`
+    - `examples/example-svelte/src/loadFeature.ts`
+    - `examples/example-svelte/src/main.ts`
+    - `examples/example-typescript/src/orphan.ts`
+    - `examples/example-typescript/src/alias/greeting.ts`
+    - `examples/example-vue/src/main.ts`
+    - `examples/example-vue/src/composables/useCounter.ts`
+  - `pnpm exec quality-tools crap --help` exits 0 after running the CRAP suite, but still reports branch-owned C++ analyzer threshold exceedances:
+    - `getDeclaratorNameNode` at `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts:278`, CRAP `25.1`, complexity `12`, coverage `55%`.
+    - `handleCppForRangeLoop` at `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts:207`, CRAP `20.0`, complexity `4`, coverage `0%`.
+    - `handleCppSymbol` at `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts:36`, CRAP `13.1`, complexity `13`, coverage `92%`.
+    - `findDescendantByType` at `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts:328`, CRAP `12.4`, complexity `5`, coverage `33%`.
+    - `readCppDeclaredMethodSymbols` at `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts:365`, CRAP `10.0`, complexity `10`, coverage `100%`.
+    - anonymous callback at `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts:370`, CRAP `10.0`, complexity `10`, coverage `100%`.
+    - `readCppDeclaratorName` at `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts:521`, CRAP `9.2`, complexity `9`, coverage `88%`.
+  - Local accidental CRAP run also verified the underlying test suite completed successfully while producing the threshold report.
+- Routing decision:
+  - Treat remaining boundary/reachability failures as unrelated baseline for this card after the branch-introduced dead surface cleanup.
+  - Do not advance to Architect yet because C++ branch-owned CRAP exceedances remain under the Refactorer contract.
+  - Send Refactorer back with a focused mandate: reduce those C++ analyzer CRAP scores below threshold through behavior-preserving refactors and/or targeted tests, or record exact evidence if any listed row is not safely addressable within Refactorer scope.
