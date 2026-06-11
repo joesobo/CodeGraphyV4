@@ -8,6 +8,7 @@ export function buildGraphViewSettingsMessages(
 ): Array<
   | Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>
   | Extract<ExtensionToWebviewMessage, { type: 'DIRECTION_SETTINGS_UPDATED' }>
+  | Extract<ExtensionToWebviewMessage, { type: 'BACKGROUND_EFFECTS_UPDATED' }>
   | Extract<ExtensionToWebviewMessage, { type: 'SHOW_LABELS_UPDATED' }>
 > {
   return [
@@ -26,6 +27,10 @@ export function buildGraphViewSettingsMessages(
         particleSize: settings.particleSize,
         directionColor: settings.directionColor,
       },
+    },
+    {
+      type: 'BACKGROUND_EFFECTS_UPDATED',
+      payload: { backgroundEffects: settings.backgroundEffects },
     },
     {
       type: 'SHOW_LABELS_UPDATED',
@@ -52,6 +57,7 @@ export function buildGraphViewAllSettingsMessages(
         particleSpeed: snapshot.particleSpeed,
         particleSize: snapshot.particleSize,
         directionColor: snapshot.directionColor,
+        backgroundEffects: snapshot.backgroundEffects,
         showLabels: snapshot.showLabels,
       }),
     ],

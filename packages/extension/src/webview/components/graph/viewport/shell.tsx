@@ -203,6 +203,7 @@ export function GraphViewportShell({
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
       containerBackgroundColor={viewportModel.containerBackgroundColor}
       borderColor={viewportModel.borderColor}
+      backgroundEffects={viewState.backgroundEffects}
       containerRef={graphState.renderer.containerRef}
       directionMode={viewState.directionMode}
       graphMode={viewState.graphMode}

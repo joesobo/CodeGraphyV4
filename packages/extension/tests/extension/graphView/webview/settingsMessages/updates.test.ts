@@ -132,6 +132,44 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('particleSpeed', 0.2);
   });
 
+  it('persists graph background effect updates and publishes them immediately', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_BACKGROUND_EFFECTS',
+          payload: {
+            backgroundEffects: {
+              enabled: true,
+              preset: 'constellations',
+              intensity: 0.6,
+            },
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('backgroundEffects', {
+      enabled: true,
+      preset: 'constellations',
+      intensity: 0.6,
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'BACKGROUND_EFFECTS_UPDATED',
+      payload: {
+        backgroundEffects: {
+          enabled: true,
+          preset: 'constellations',
+          intensity: 0.6,
+        },
+      },
+    });
+  });
+
   it('persists update-max-files through config updates', async () => {
     const state = createState();
     const handlers = createHandlers();

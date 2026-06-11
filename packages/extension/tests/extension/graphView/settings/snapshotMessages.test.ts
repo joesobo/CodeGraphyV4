@@ -52,6 +52,7 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: [],
       particleSpeed: 0.005,
       particleSize: 4,
+      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
       verboseDiagnostics: false,
@@ -75,6 +76,7 @@ describe('graphView/settings/snapshotMessages', () => {
         legendOrder: ['default:fileExtension:ts'],
         particleSpeed: 0.02,
         particleSize: 6,
+        backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
         showLabels: false,
         maxFiles: 250,
         verboseDiagnostics: true,
@@ -112,6 +114,7 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: ['default:fileExtension:ts'],
       particleSpeed: 0.02,
       particleSize: 6,
+      backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
       showLabels: false,
       maxFiles: 250,
       verboseDiagnostics: true,
@@ -128,6 +131,7 @@ describe('graphView/settings/snapshotMessages', () => {
         particleSpeed: 0.02,
         particleSize: 6,
         directionColor: '#00FF00',
+        backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
         showLabels: false,
       }),
     ).toEqual([
@@ -142,6 +146,12 @@ describe('graphView/settings/snapshotMessages', () => {
           particleSpeed: 0.02,
           particleSize: 6,
           directionColor: '#00FF00',
+        },
+      },
+      {
+        type: 'BACKGROUND_EFFECTS_UPDATED',
+        payload: {
+          backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
         },
       },
       {
@@ -177,6 +187,7 @@ describe('graphView/settings/snapshotMessages', () => {
           legendOrder: [],
           particleSpeed: 0.02,
           particleSize: 6,
+          backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
           showLabels: false,
           maxFiles: 250,
           verboseDiagnostics: true,
@@ -207,6 +218,12 @@ describe('graphView/settings/snapshotMessages', () => {
             particleSpeed: 0.02,
             particleSize: 6,
             directionColor: '#00FF00',
+          },
+        },
+        {
+          type: 'BACKGROUND_EFFECTS_UPDATED',
+          payload: {
+            backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
           },
         },
         {

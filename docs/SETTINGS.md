@@ -65,6 +65,11 @@ Example:
   ],
   "cssSnippets": {
     ".codegraphy/snippets/base-grid.css": true
+  },
+  "backgroundEffects": {
+    "enabled": true,
+    "preset": "embers",
+    "intensity": 0.6
   }
 }
 ```
@@ -88,6 +93,7 @@ Example:
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
 | `cssSnippets` | object | `{}` | Workspace-relative CSS snippet paths mapped to `true` to load or `false` to keep disabled |
+| `backgroundEffects` | object | `{ "enabled": false, "preset": "none", "intensity": 1 }` | Graph Stage background effect preset and intensity |
 | `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
@@ -250,6 +256,24 @@ Adjusts the physics simulation in real time.
 - **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
 
 See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.
+
+## Graph Background Effects
+
+The Legends popup includes a **Graph Background** section with animated ambience presets such as Leaves, Constellations, Embers, Rain, Petals, Sparkles, Ocean, and Terminal. These effects render behind the Relationship Graph on the Graph Stage and do not block graph interaction.
+
+Graph Background state persists in `.codegraphy/settings.json`:
+
+```json
+{
+  "backgroundEffects": {
+    "enabled": true,
+    "preset": "constellations",
+    "intensity": 0.6
+  }
+}
+```
+
+`preset` accepts `none`, `leaves`, `constellations`, `embers`, `rain`, `petals`, `sparkles`, `ocean`, or `terminal`. Effects respect the system reduced-motion preference.
 
 ### Legends
 

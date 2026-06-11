@@ -18,6 +18,12 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         '.codegraphy/snippets/invalid.css': 'yes',
         '': true,
       },
+      backgroundEffects: {
+        enabled: true,
+        preset: 'embers',
+        intensity: 0.75,
+        unknown: true,
+      },
       edgeColors: { import: '#123456' },
       plugins: ['codegraphy.typescript'],
     })).toEqual({
@@ -26,6 +32,27 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       cssSnippets: {
         '.codegraphy/snippets/graph.css': true,
         '.codegraphy/snippets/focus.css': false,
+      },
+      backgroundEffects: {
+        enabled: true,
+        preset: 'embers',
+        intensity: 0.75,
+      },
+    });
+  });
+
+  it('normalizes graph background effects settings', () => {
+    expect(normalizePersistedSettingsShape({
+      backgroundEffects: {
+        enabled: 'yes',
+        preset: 'unknown',
+        intensity: 4,
+      },
+    })).toEqual({
+      backgroundEffects: {
+        enabled: false,
+        preset: 'none',
+        intensity: 1,
       },
     });
   });
@@ -150,6 +177,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
+      backgroundEffects: { enabled: true, preset: 'leaves', intensity: 0.4 },
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,
@@ -194,6 +222,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
+      backgroundEffects: { enabled: true, preset: 'leaves', intensity: 0.4 },
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,

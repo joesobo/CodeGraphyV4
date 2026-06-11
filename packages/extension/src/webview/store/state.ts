@@ -19,6 +19,7 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
+import type { BackgroundEffectsSettings } from '../../shared/settings/backgroundEffects';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/contracts';
@@ -48,6 +49,7 @@ export interface GraphState {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
+  backgroundEffects: BackgroundEffectsSettings;
   physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
@@ -112,6 +114,7 @@ export interface GraphState {
   setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
+  setBackgroundEffects: (backgroundEffects: BackgroundEffectsSettings) => void;
   setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
