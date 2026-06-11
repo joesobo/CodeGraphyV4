@@ -2,19 +2,20 @@
 
 ## Current State
 
-- State: Task Queue Runner C++ example created locally for human review; acceptance-test edits still gated until review.
+- State: Human-reviewed C++ acceptance spec committed; ready to route Coder for implementation.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Specifier example creation, then human review before acceptance-test edits.
+- Next route: Coder implements the committed C++ acceptance contract, then Orchestrator verifies before review/refactor routing.
 
 ## Human Gates
 
 - Grill before implementation: complete as of `2026-06-10T21:25:48Z`.
 - Specifier should make proposed human-owned acceptance spec Markdown changes locally in the worktree for review, but must not commit them. The user wants to review, approve, and make any needed edits before committing those spec changes themselves.
+- Acceptance spec gate is complete for `packages/extension/tests/acceptance/specs/cpp-example.md`; user committed and pushed the reviewed spec in `448b1030`.
 - Heavy Playwright and mutation checks must run in the verified remote worktree on `codegraphy-mini` or in a remote Codex thread on that host, not on the MacBook.
 
 ## Setup Verification
@@ -609,6 +610,29 @@
 - Scope held:
   - Only `cpp-example.md` acceptance Markdown and this handoff note were edited.
   - No generated Playwright, step bindings, Core analyzer, Graph Scope production code, commit, or push.
+
+### 2026-06-11T00:46:09Z - Human Commits Acceptance Contract And Orchestrator Routes Coder
+
+- Source: user committed and pushed reviewed acceptance spec.
+- Target: Coder role.
+- Result: acceptance-spec gate complete; implementation may begin.
+- Authoritative spec commit:
+  - `448b1030` (`human review acceptance tests`).
+- Authoritative C++ acceptance contract:
+  - Single C++ scenario in `packages/extension/tests/acceptance/specs/cpp-example.md`.
+  - Baseline: 13 file nodes, 0 connections.
+  - Visible C++ edge controls: `Include`, `Calls`, `Inherits`, `Contains`, `Overrides`.
+  - Visible C++ node controls: `Namespace`, `Class`, `Enum`, `Callable`, `Method`, `Alias`, `Template`, `Global`, `Constant`, `Field`, `Parameter`, `Local`.
+  - `Type` is not available for the C++ example.
+  - No C++-specific `References` acceptance coverage in this card.
+  - Combined all-approved node state: 77 nodes and 0 connections with no edge types.
+  - Combined `Contains`: 77 nodes and 64 connections.
+  - Combined `Calls`: 77 nodes and 15 connections.
+  - Combined `Inherits`: 77 nodes and 1 connection.
+  - Combined `Overrides`: 77 nodes and 1 connection.
+  - Combined `Include`: 77 nodes and 12 connections.
+- Next route:
+  - Coder should regenerate/bind acceptance steps as needed, write failing tests first, implement minimal Core/Graph Scope changes, and report verification.
 
 ### 2026-06-11T00:36:02Z - Orchestrator Revises C++ References And Calls Contract
 
