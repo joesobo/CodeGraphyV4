@@ -12,10 +12,8 @@ import {
   readCppDeclaredFunctionNames,
   readCppDefinedFunctionNames,
 } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredFunctions';
-import {
-  readCppDeclaredMethodNames,
-  readCppDeclaredMethodSymbols,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethods';
+import { readCppDeclaredMethodNames } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethodNames';
+import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethodSymbols';
 import { readCppDeclaredTypeNames } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredTypes';
 import { readCppFunctionSymbolName, readQualifiedCppFunctionName } from '../../../src/treeSitter/runtime/analyzeCpp/relationFunctionNames';
 import { addCppInheritRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relationInheritance';

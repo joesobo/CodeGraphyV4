@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import { getDeclaratorNameNode } from './symbolDeclaratorNames';
+import { getDeclaratorNameNode } from './symbolDeclaratorNameNode';
 import { findDescendantByType } from './symbolDescendants';
 
 const IDENTIFIER_NODE_TYPES = new Set([

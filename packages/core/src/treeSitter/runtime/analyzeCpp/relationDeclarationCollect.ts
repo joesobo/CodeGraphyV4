@@ -4,10 +4,8 @@ import {
   readCppDeclaredFunctionNames,
   readCppDefinedFunctionNames,
 } from './relationDeclaredFunctions';
-import {
-  readCppDeclaredMethodNames,
-  readCppDeclaredMethodSymbols,
-} from './relationDeclaredMethods';
+import { readCppDeclaredMethodNames } from './relationDeclaredMethodNames';
+import { readCppDeclaredMethodSymbols } from './relationDeclaredMethodSymbols';
 import { readCppDeclaredTypeNames } from './relationDeclaredTypes';
 import type { MutableCppIncludedDeclarations } from './relationModel';
 

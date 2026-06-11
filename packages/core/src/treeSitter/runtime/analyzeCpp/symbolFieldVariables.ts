@@ -5,10 +5,8 @@ import {
   addNamedSymbol,
   createRangeSignature,
 } from './symbolCreate';
-import {
-  getDeclaratorNameNode,
-  getDeclaratorNameNodes,
-} from './symbolDeclaratorNames';
+import { getDeclaratorNameNodes } from './symbolDeclaratorCandidates';
+import { getDeclaratorNameNode } from './symbolDeclaratorNameNode';
 import { getFunctionNameNode } from './symbolLookupNames';
 import type { CppSymbolWalkState } from './symbolModel';
 import { hasFunctionDeclarator } from './symbolScope';

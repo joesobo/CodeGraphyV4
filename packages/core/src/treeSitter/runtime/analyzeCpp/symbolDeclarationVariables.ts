@@ -2,7 +2,7 @@ import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { TreeWalkAction } from '../analyze/model';
 import { addNamedSymbol } from './symbolCreate';
-import { getDeclaratorNameNodes } from './symbolDeclaratorNames';
+import { getDeclaratorNameNodes } from './symbolDeclaratorCandidates';
 import type { CppSymbolWalkState } from './symbolModel';
 import {
   hasFunctionDeclarator,

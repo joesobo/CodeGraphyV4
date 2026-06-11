@@ -1,10 +1,8 @@
 import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
-import {
-  getDeclaratorNameNode,
-  getDeclaratorNameNodes,
-} from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNames';
+import { getDeclaratorNameNodes } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorCandidates';
+import { getDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNameNode';
 import { findLastDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorSearch';
 import { handleCppFieldDeclaration } from '../../../src/treeSitter/runtime/analyzeCpp/symbolFieldVariables';
 import { handleCppForRangeLoop } from '../../../src/treeSitter/runtime/analyzeCpp/symbolLoopVariables';

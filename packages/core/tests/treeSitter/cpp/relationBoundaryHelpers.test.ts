@@ -2,7 +2,7 @@ import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
 import { readCppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relationIncludes';
-import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethods';
+import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethodSymbols';
 import {
   readCppDeclaredFunctionNames,
   readCppDefinedFunctionNames,

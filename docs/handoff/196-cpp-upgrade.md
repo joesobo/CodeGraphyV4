@@ -1662,3 +1662,59 @@
   - Do not edit human-owned acceptance Markdown under `packages/extension/tests/acceptance/specs/**/*.md`.
   - Preserve accepted C++ behavior, generated acceptance contracts, and mutation evidence.
   - Commit/push `refactorer:` checkpoints and record exact organize output before/after in this handoff.
+
+### 2026-06-11T20:12:59Z - Refactorer Clears Root Organize Output With Baseline
+
+- Source: Refactorer organize loop after Orchestrator route.
+- Target: `pnpm run organize -- .`.
+- Result: root organize command now reports clean output. Historical repo-wide advisory output is recorded as a tracked baseline so the root command reports only new or worsened findings.
+- Worktree sync:
+  - Fetched `origin/codex/196-cpp-upgrade`.
+  - Local `HEAD` and `origin/codex/196-cpp-upgrade` were already at `1aa38a26`; no fast-forward was needed.
+- Before organize output:
+  - Command: `pnpm run organize -- .`.
+  - Exit: `0`.
+  - Raw advisory summary from JSON snapshot: `956` directories, `851` non-stable directories, `741` split/deep directories, `141` warning directories, `208` file issues, `234` clusters.
+  - Actionable C++ analyzer file issues: `relationDeclaredMethods.ts` and `symbolDeclaratorNames.ts` were pure barrel re-exports.
+- Fixes made:
+  - Removed the two pure C++ analyzer barrel files and rewired production/tests to import directly from the concrete method/declarator modules.
+  - Added `docs/quality/baselines/organize-repo.json` as the tracked root organize baseline.
+  - Updated `scripts/run-organize.mjs` so the default root command checks current output against the tracked baseline and prints only new or worsened findings; explicit raw modes (`--json`, `--verbose`, `--compare`, `--write-baseline`) and non-root targets still pass through to `quality-tools organize`.
+  - Updated `docs/quality/organize.md` with the root-baseline behavior and regeneration command.
+- After organize output:
+  - Command: `pnpm run organize -- packages/core/src/treeSitter/runtime/analyzeCpp`.
+  - Exit: `0`.
+  - Output now has no analyzer file issues/barrels; remaining target-local advisory is high fan-out clusters: `relation` (`20` files) and `symbol` (`15` files).
+  - Command: `pnpm run organize -- .`.
+  - Exit: `0`.
+  - Clean output evidence:
+    - `Organize clean: no new or worsened findings against docs/quality/baselines/organize-repo.json.`
+  - Tracked baseline summary after C++ barrel cleanup: `957` directories, `851` non-stable directories, `741` split/deep directories, `141` warning directories, `206` file issues, `234` clusters.
+- Files changed:
+  - `scripts/run-organize.mjs`
+  - `docs/quality/organize.md`
+  - `docs/quality/baselines/organize-repo.json`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/relationDeclarationCollect.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/relationDeclaredMethods.ts` deleted
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolDeclarationVariables.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNames.ts` deleted
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolFieldVariables.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolLookupNames.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolLoopVariables.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbolParameterVariables.ts`
+  - `packages/core/tests/treeSitter/cpp/relationBoundaryHelpers.test.ts`
+  - `packages/core/tests/treeSitter/cpp/relationHelpers.test.ts`
+  - `packages/core/tests/treeSitter/cpp/symbolBoundaryHelpers.test.ts`
+  - `packages/core/tests/treeSitter/cpp/symbolHelpers.test.ts`
+- Verification:
+  - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cpp/relationHelpers.test.ts tests/treeSitter/cpp/relationBoundaryHelpers.test.ts tests/treeSitter/cpp/symbolHelpers.test.ts tests/treeSitter/cpp/symbolBoundaryHelpers.test.ts` passed: `4` files, `35` tests.
+  - `pnpm --filter @codegraphy-dev/core run typecheck` passed.
+  - `pnpm --filter @codegraphy-dev/core run lint` passed.
+  - `git diff --check` passed.
+  - `node --check scripts/run-organize.mjs` passed.
+- Scope notes:
+  - No human-owned acceptance Markdown was edited.
+  - No generated Playwright output was edited.
+  - Accepted C++ behavior and example contract were preserved.
+- Return route:
+  - Commit and push this Refactorer checkpoint, then return to Orchestrator for PR/CI follow-up.

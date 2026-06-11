@@ -2,10 +2,8 @@ import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
 import { addNamedSymbol, createRangeSignature } from '../../../src/treeSitter/runtime/analyzeCpp/symbolCreate';
-import {
-  getDeclaratorNameNode,
-  getDeclaratorNameNodes,
-} from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNames';
+import { getDeclaratorNameNodes } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorCandidates';
+import { getDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNameNode';
 import {
   findFirstDeclaratorNameNode,
   findLastDeclaratorNameNode,

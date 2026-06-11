@@ -1,7 +1,7 @@
 import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { addNamedSymbol } from './symbolCreate';
-import { getDeclaratorNameNode } from './symbolDeclaratorNames';
+import { getDeclaratorNameNode } from './symbolDeclaratorNameNode';
 import type { CppSymbolWalkState } from './symbolModel';
 
 export function handleCppForRangeLoop(
