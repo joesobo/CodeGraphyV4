@@ -1,18 +1,66 @@
 /*
  * Demo CodeGraphy CSS Snippet: ocean.
  *
- * Try it by copying this file to:
- *   .codegraphy/snippets/ocean.css
- *
- * Then add "cssSnippets": { ".codegraphy/snippets/ocean.css": true }
- * to .codegraphy/settings.json.
+ * Inspired by Odysseus' ocean preset:
+ *   bg #0b1a2c, fg #64d2ff, panel #091422, border #1e5074, accent #4facfe.
  */
+
+:root {
+  --cg-background: #0b1a2c;
+  --cg-foreground: #64d2ff;
+  --cg-panel-background: #091422;
+  --cg-panel-foreground: #b8eaff;
+  --cg-popover: #091422;
+  --cg-popover-foreground: #b8eaff;
+  --cg-primary: #4facfe;
+  --cg-primary-foreground: #04101d;
+  --cg-primary-hover: #64d2ff;
+  --cg-secondary: #0f2741;
+  --cg-secondary-foreground: #b8eaff;
+  --cg-secondary-hover: #153456;
+  --cg-muted: #102a46;
+  --cg-muted-foreground: #77a9c6;
+  --cg-accent: #123a5a;
+  --cg-accent-foreground: #d7f4ff;
+  --cg-border: #1e5074;
+  --cg-input: #071221;
+  --cg-input-foreground: #d7f4ff;
+  --cg-input-border: #1e5074;
+  --cg-input-placeholder: #5e8ba8;
+  --cg-focus-border: #64d2ff;
+  --cg-link: #9ee4ff;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(100, 210, 255, 0.22);
+  --cg-graph-label-foreground: #d7f4ff;
+  --cg-graph-label-muted-foreground: #7eb3d1;
+  --cg-graph-link-highlight: #64d2ff;
+  --cg-graph-link-muted: rgba(100, 210, 255, 0.38);
+  --cg-menu-background: rgba(9, 20, 34, 0.96);
+  --cg-menu-border: #1e5074;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #0b1a2c;
+  color: #64d2ff;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(100, 210, 255, 0.28) !important;
+  background-color: rgba(9, 20, 34, 0.84) !important;
+  box-shadow: 0 0 0 1px rgba(100, 210, 255, 0.05), 0 16px 42px rgba(0, 4, 12, 0.42);
+}
 
 [data-codegraphy-surface='graph-stage'] {
   background:
-    radial-gradient(circle at 50% 8%, rgba(100, 210, 255, 0.18), transparent 34%),
-    radial-gradient(circle at 10% 90%, rgba(30, 80, 116, 0.24), transparent 32%),
-    linear-gradient(180deg, #06101c 0%, #071a2c 50%, #030812 100%);
+    radial-gradient(circle at 50% -8%, rgba(100, 210, 255, 0.22), transparent 38%),
+    radial-gradient(circle at 12% 92%, rgba(30, 80, 116, 0.26), transparent 34%),
+    linear-gradient(180deg, #06101c 0%, #071a2c 52%, #030812 100%) !important;
+  border: 1px solid rgba(100, 210, 255, 0.18) !important;
 }
 
 [data-codegraphy-surface='graph-stage']::before,
@@ -26,21 +74,24 @@
 
 [data-codegraphy-surface='graph-stage']::before {
   background:
-    radial-gradient(ellipse at 50% 100%, rgba(100, 210, 255, 0.22), transparent 46%),
-    linear-gradient(105deg, transparent 0 42%, rgba(100, 210, 255, 0.1) 48%, transparent 54%);
-  background-size: 100% 100%, 190% 190%;
-  opacity: 0.58;
-  animation: codegraphy-demo-ocean-current 12s ease-in-out infinite;
+    radial-gradient(ellipse at 50% 106%, rgba(100, 210, 255, 0.24), transparent 48%),
+    linear-gradient(108deg, transparent 0 42%, rgba(100, 210, 255, 0.12) 48%, transparent 56%),
+    linear-gradient(27deg, transparent 0 42%, rgba(79, 172, 254, 0.08) 50%, transparent 58%);
+  background-size: 100% 100%, 180% 180%, 220% 220%;
+  opacity: 0.66;
+  animation: codegraphy-theme-ocean-current 13s ease-in-out infinite;
 }
 
 [data-codegraphy-surface='graph-stage']::after {
   background-image:
-    radial-gradient(circle, rgba(180, 232, 255, 0.64) 0 1px, transparent 2px),
-    radial-gradient(circle, rgba(100, 210, 255, 0.34) 0 1px, transparent 2px);
-  background-position: 22px 18px, 94px 76px;
-  background-size: 132px 118px, 188px 154px;
-  opacity: 0.52;
-  animation: codegraphy-demo-ocean-glints 18s ease-in-out infinite;
+    radial-gradient(circle, rgba(216, 246, 255, 0.72) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(100, 210, 255, 0.44) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(79, 172, 254, 0.32) 0 1px, transparent 1.8px);
+  background-position: 20px 18px, 94px 76px, 156px 26px;
+  background-size: 132px 118px, 190px 154px, 260px 214px;
+  filter: blur(0.12px);
+  opacity: 0.54;
+  animation: codegraphy-theme-ocean-glints 18s ease-in-out infinite;
 }
 
 [data-codegraphy-layer='graph-overlay'],
@@ -49,16 +100,16 @@
   z-index: 2;
 }
 
-@keyframes codegraphy-demo-ocean-current {
+@keyframes codegraphy-theme-ocean-current {
   50% {
-    background-position: 0 0, 70% 60%;
-    opacity: 0.74;
+    background-position: 0 0, 72% 58%, 20% 72%;
+    opacity: 0.8;
   }
 }
 
-@keyframes codegraphy-demo-ocean-glints {
+@keyframes codegraphy-theme-ocean-glints {
   50% {
-    background-position: 42px 32px, 74px 102px;
-    opacity: 0.72;
+    background-position: 42px 32px, 74px 102px, 142px 10px;
+    opacity: 0.78;
   }
 }
