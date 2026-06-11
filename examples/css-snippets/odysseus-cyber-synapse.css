@@ -1,0 +1,66 @@
+/*
+ * Demo CodeGraphy CSS Snippet: Odysseus-inspired cyber synapse.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/odysseus-cyber-synapse.css
+ *
+ * Then add "cssSnippets": [".codegraphy/snippets/odysseus-cyber-synapse.css"]
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(15, 240, 252, 0.16), transparent 30%),
+    radial-gradient(circle at 78% 72%, rgba(155, 48, 255, 0.18), transparent 34%),
+    linear-gradient(135deg, #05050a 0%, #100b1c 54%, #05050a 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-image:
+    linear-gradient(rgba(15, 240, 252, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(155, 48, 255, 0.1) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle, rgba(15, 240, 252, 0.6) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(224, 64, 251, 0.46) 0 1px, transparent 2px),
+    linear-gradient(125deg, transparent 0 45%, rgba(15, 240, 252, 0.16) 46%, transparent 48%),
+    linear-gradient(35deg, transparent 0 48%, rgba(224, 64, 251, 0.12) 49%, transparent 51%);
+  background-position: 12px 20px, 76px 86px, 0 0, 120px 0;
+  background-size: 96px 96px, 128px 128px, 220px 220px, 260px 260px;
+  mix-blend-mode: screen;
+  opacity: 0.64;
+  animation: codegraphy-demo-cyber-synapse 10s ease-in-out infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-cyber-synapse {
+  0%,
+  100% {
+    filter: hue-rotate(0deg);
+    transform: scale(1);
+  }
+
+  50% {
+    filter: hue-rotate(24deg);
+    transform: scale(1.02);
+  }
+}
