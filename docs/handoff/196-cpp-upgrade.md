@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Architect reported mutation/site-count blockers and a human-owned acceptance-spec CI blocker; route Architect back for continued mutation/site-count work while holding `graph-scope-edge-node-types.md` as a human/specifier gate.
+- State: Waiting on human decision after Architect resolved C++ analyzer mutation-site counts but scoped mutation remains `68.52%` and `graph-scope-edge-node-types.md` needs a human-owned acceptance-spec update.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Architect continues C++ analyzer mutation/site-count cleanup; Orchestrator must separately resolve the human-owned `graph-scope-edge-node-types.md` stale C++ example assertions before final CI readiness.
+- Next route: human decides whether to route a larger Architect mutation-test campaign or accept the recorded mutation blocker for this pilot, and whether Specifier may draft local `graph-scope-edge-node-types.md` updates for review.
 
 ## Human Gates
 
@@ -1155,3 +1155,31 @@
   - Site-count cleanup is complete for this route-back.
   - Remaining mutation gap is structural for this card's current analyzer surface; Orchestrator should decide whether to route a larger dedicated mutation-test campaign or accept exact blocker/equivalent-mutant evidence for this PR stage.
   - Separate Orchestrator/human/specifier gate still needed for stale `graph-scope-edge-node-types.md` Widget assertions if CI remains blocked by that acceptance contract.
+
+### 2026-06-11T04:04:47Z - Orchestrator Pauses For Human Decision Gate
+
+- Source: Orchestrator verification after second Architect handoff.
+- Target: human decision gate.
+- Result: pause loop in Review rather than continuing role work automatically.
+- Branch state verified:
+  - Local worktree clean at `b0a9d0e4`.
+  - `codegraphy-mini` worktree clean at `b0a9d0e4`.
+  - Architect commit `b0a9d0e4` is pushed to `origin/codex/196-cpp-upgrade`.
+- Orchestrator checks:
+  - `git status --short --branch`
+  - `ssh codegraphy-mini '... git status --short --branch ...'`
+  - `git show --stat --oneline --summary HEAD`
+  - `gh pr view 263 --json headRefOid,mergeStateStatus,statusCheckRollup,body`
+- Verification findings:
+  - Architect resolved the mutation-site-count blocker: final scoped mutation reports all `packages/core/src/treeSitter/runtime/analyzeCpp` files within the `<=50` site threshold.
+  - Scoped mutation remains below the `>=90%` standard: `68.52%`, `548` killed, `228` survived, `27` no coverage, `7` timeouts.
+  - Architect reported the remaining mutation gap as structural for this card's current analyzer surface rather than a small hot-spot split.
+  - PR body is updated with the mutation/site-count and human-owned spec blocker state.
+  - CI at PR head `b0a9d0e4d6e6d84ca14fa4ef23a1149d6627438e` is green except `Playwright / Graph interactions`, which was still in progress during this verification.
+  - The previous `Playwright / Graph interactions` failure and current source inspection both point to stale Widget assertions in human-owned `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md`.
+- Human decisions needed:
+  - Decide whether to authorize Specifier to draft local, uncommitted updates to `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md` so the graph-scope edge scenarios use the Task Queue Runner example instead of the removed Widget files.
+  - Decide whether this pilot should route a larger Architect mutation-test campaign to chase `>=90%`, or accept the recorded `68.52%` scoped mutation blocker/evidence for this PR stage.
+- Tracker state:
+  - Move Trello card to `Review`.
+  - Add Trello comment summarizing the human decision gate.
