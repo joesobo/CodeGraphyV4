@@ -14,6 +14,8 @@ describe('shared/graphControls/settings', () => {
     })).toEqual({
       symbol: '#8B5CF6',
       'symbol:function': '#8B5CF6',
+      'symbol:method': '#A855F7',
+      'symbol:namespace': '#64748B',
       file: '#111111',
     });
   });
@@ -30,6 +32,8 @@ describe('shared/graphControls/settings', () => {
     })).toEqual({
       symbol: true,
       'symbol:function': true,
+      'symbol:method': true,
+      'symbol:namespace': true,
       file: true,
     });
   });

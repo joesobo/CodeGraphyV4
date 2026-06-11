@@ -145,9 +145,25 @@ function collectAvailableEdgeKinds(
   }
 
   if (graphData.nodes.some(isFileNode)) {
-    edgeKinds.add('reference');
+    if (shouldAddLegacyReferenceEdgeKind(edgeTypeCapabilities, edgeKinds)) {
+      edgeKinds.add('reference');
+    }
     edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
   }
 
   return edgeKinds;
+}
+
+function shouldAddLegacyReferenceEdgeKind(
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[],
+  edgeKinds: ReadonlySet<string>,
+): boolean {
+  const hasCppEdgeShape = edgeKinds.has('include') && edgeKinds.has('overrides');
+  if (hasCppEdgeShape) {
+    return false;
+  }
+
+  return edgeTypeCapabilities.length === 0
+    || edgeTypeCapabilities.includes('reference')
+    || !edgeTypeCapabilities.includes('overrides');
 }

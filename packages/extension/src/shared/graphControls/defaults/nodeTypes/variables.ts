@@ -37,6 +37,42 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:field',
+      label: 'Field',
+      defaultColor: '#84CC16',
+      defaultVisible: false,
+      parentId: 'variable',
+      matchSymbolKinds: ['field'],
+      description: {
+        description: 'Named values stored on a class, struct, or similar type.',
+        examples: [{ label: 'C++', code: 'PendingTaskQueue queue_;' }],
+      },
+    },
+    {
+      id: 'symbol:parameter',
+      label: 'Parameter',
+      defaultColor: '#2DD4BF',
+      defaultVisible: false,
+      parentId: 'variable',
+      matchSymbolKinds: ['parameter'],
+      description: {
+        description: 'Named values passed into a callable.',
+        examples: [{ label: 'C++', code: 'void enqueue(Task task);' }],
+      },
+    },
+    {
+      id: 'symbol:local',
+      label: 'Local',
+      defaultColor: '#10B981',
+      defaultVisible: false,
+      parentId: 'variable',
+      matchSymbolKinds: ['local'],
+      description: {
+        description: 'Named values declared inside a callable body.',
+        examples: [{ label: 'C++', code: 'TaskList tasks;' }],
+      },
+    },
+    {
       id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
       label: 'Godot class_name',
       defaultColor: '#478CBF',

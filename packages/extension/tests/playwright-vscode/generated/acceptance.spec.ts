@@ -421,7 +421,6 @@ test.describe('C Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('C example exposes symbols when symbol scope is enabled', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -887,11 +886,11 @@ test.describe('C Example', () => {
 });
 
 test.describe('C++ Example', () => {
-  test('C++ example renders expected file nodes and include relationships', async ({}, testInfo) => {
+  test('C++ example covers Task Queue Runner graph scope', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/cpp-example.md',
-      scenario: 'C++ example renders expected file nodes and include relationships'
+      scenario: 'C++ example covers Task Queue Runner graph scope'
     });
 
     try {
@@ -946,10 +945,10 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:10
-      await test.step('Then I can see there are 6 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 0 connections', {
+      await test.step('Then I can see there are 13 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 0 connections',
+          text: 'I can see there are 13 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 10
         });
@@ -986,302 +985,1092 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits, Contains, Overrides', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits, Contains, Overrides', {
+      await test.step('Then the available edge types are only Include, Calls, Inherits, Contains, Overrides', async () => {
+        await runAcceptanceStep(context, 'the available edge types are only Include, Calls, Inherits, Contains, Overrides', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits, Contains, Overrides',
+          text: 'the available edge types are only Include, Calls, Inherits, Contains, Overrides',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:16
-      await test.step('And I close the Graph Scope', async () => {
-        await runAcceptanceStep(context, 'I close the Graph Scope', {
+      await test.step('And I select node types', async () => {
+        await runAcceptanceStep(context, 'I select node types', {
           keyword: 'And',
-          text: 'I close the Graph Scope',
+          text: 'I select node types',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 16
         });
       });
 
+      // tests/acceptance/specs/cpp-example.md:17
+      await test.step('Then the available C++ node types are only Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter, Local', async () => {
+        await runAcceptanceStep(context, 'the available C++ node types are only Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter, Local', {
+          keyword: 'Then',
+          text: 'the available C++ node types are only Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter, Local',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 17
+        });
+      });
+
       // tests/acceptance/specs/cpp-example.md:18
-      await test.step('When I toggle the Imports edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
-          keyword: 'When',
-          text: 'I toggle the Imports edge on',
+      await test.step('And the Type node type is not available for the C++ example', async () => {
+        await runAcceptanceStep(context, 'the Type node type is not available for the C++ example', {
+          keyword: 'And',
+          text: 'the Type node type is not available for the C++ example',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 18
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:19
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 19
         });
       });
 
-      // tests/acceptance/specs/cpp-example.md:20
-      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
-          keyword: 'And',
-          text: 'src/app.cpp points to src/lib/widget.hpp',
-          sourcePath: 'tests/acceptance/specs/cpp-example.md',
-          line: 20
-        });
-      });
-
       // tests/acceptance/specs/cpp-example.md:21
-      await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
-          keyword: 'And',
-          text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
+      await test.step('When I toggle the Include edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Include edge on', {
+          keyword: 'When',
+          text: 'I toggle the Include edge on',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 21
         });
       });
 
+      // tests/acceptance/specs/cpp-example.md:22
+      await test.step('Then I can see there are 13 nodes and 12 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 12 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 13 nodes and 12 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 22
+        });
+      });
+
       // tests/acceptance/specs/cpp-example.md:23
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/app.cpp points to src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/runner.hpp', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/app.cpp points to src/runner.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 23
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:24
-      await test.step('And CMakeLists.txt is an orphan node', async () => {
-        await runAcceptanceStep(context, 'CMakeLists.txt is an orphan node', {
+      await test.step('And src/app.cpp points to src/seed.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/seed.hpp', {
           keyword: 'And',
-          text: 'CMakeLists.txt is an orphan node',
+          text: 'src/app.cpp points to src/seed.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:25
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And src/app.cpp points to src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/worker.hpp', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'src/app.cpp points to src/worker.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 25
         });
       });
 
+      // tests/acceptance/specs/cpp-example.md:26
+      await test.step('And src/runner.cpp points to src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'src/runner.cpp points to src/runner.hpp', {
+          keyword: 'And',
+          text: 'src/runner.cpp points to src/runner.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 26
+        });
+      });
+
       // tests/acceptance/specs/cpp-example.md:27
-      await test.step('Then I toggle the Imports edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Imports edge off',
+      await test.step('And src/runner.hpp points to src/task_queue.hpp', async () => {
+        await runAcceptanceStep(context, 'src/runner.hpp points to src/task_queue.hpp', {
+          keyword: 'And',
+          text: 'src/runner.hpp points to src/task_queue.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:28
-      await test.step('And I toggle the Class node on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Class node on', {
+      await test.step('And src/runner.hpp points to src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'src/runner.hpp points to src/worker.hpp', {
           keyword: 'And',
-          text: 'I toggle the Class node on',
+          text: 'src/runner.hpp points to src/worker.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:29
-      await test.step('Then I can see there are 8 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 8 nodes and 0 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 8 nodes and 0 connections',
+      await test.step('And src/seed.cpp points to src/seed.hpp', async () => {
+        await runAcceptanceStep(context, 'src/seed.cpp points to src/seed.hpp', {
+          keyword: 'And',
+          text: 'src/seed.cpp points to src/seed.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:30
-      await test.step('Then I toggle the Contains edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
-          keyword: 'Then',
-          text: 'I toggle the Contains edge on',
+      await test.step('And src/seed.hpp points to src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'src/seed.hpp points to src/task.hpp', {
+          keyword: 'And',
+          text: 'src/seed.hpp points to src/task.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 30
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:31
-      await test.step('Then I can see there are 8 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 8 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 8 nodes and 2 connections',
+      await test.step('And src/task.cpp points to src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'src/task.cpp points to src/task.hpp', {
+          keyword: 'And',
+          text: 'src/task.cpp points to src/task.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 31
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:32
-      await test.step('And src/app.cpp points to src/app.cpp#Runner:class', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/app.cpp#Runner:class', {
+      await test.step('And src/task_queue.hpp points to src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'src/task_queue.hpp points to src/task.hpp', {
           keyword: 'And',
-          text: 'src/app.cpp points to src/app.cpp#Runner:class',
+          text: 'src/task_queue.hpp points to src/task.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 32
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:33
-      await test.step('And src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class', async () => {
-        await runAcceptanceStep(context, 'src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class', {
+      await test.step('And src/worker.cpp points to src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'src/worker.cpp points to src/worker.hpp', {
           keyword: 'And',
-          text: 'src/lib/widget.hpp points to src/lib/widget.hpp#Widget:class',
+          text: 'src/worker.cpp points to src/worker.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 33
         });
       });
 
-      // tests/acceptance/specs/cpp-example.md:35
-      await test.step('Then I toggle the Contains edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Contains edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Contains edge off',
+      // tests/acceptance/specs/cpp-example.md:34
+      await test.step('And src/worker.hpp points to src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'src/worker.hpp points to src/task.hpp', {
+          keyword: 'And',
+          text: 'src/worker.hpp points to src/task.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
-          line: 35
+          line: 34
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:36
-      await test.step('And I toggle the Class node off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Class node off', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: 'I toggle the Class node off',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 36
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:37
-      await test.step('And I toggle the Inherits edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
+      await test.step('And CMakeLists.txt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'CMakeLists.txt is an orphan node', {
           keyword: 'And',
-          text: 'I toggle the Inherits edge on',
+          text: 'CMakeLists.txt is an orphan node',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 37
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:38
-      await test.step('Then I can see there are 6 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 1 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 1 connections',
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 38
         });
       });
 
-      // tests/acceptance/specs/cpp-example.md:39
-      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
-          keyword: 'And',
-          text: 'src/app.cpp points to src/lib/widget.hpp',
+      // tests/acceptance/specs/cpp-example.md:40
+      await test.step('Then I show only the Contains edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Contains edge type', {
+          keyword: 'Then',
+          text: 'I show only the Contains edge type',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
-          line: 39
+          line: 40
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:41
-      await test.step('Then I toggle the Overrides edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Overrides edge on', {
+      await test.step('Then I show only the File and Namespace node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Namespace node types', {
           keyword: 'Then',
-          text: 'I toggle the Overrides edge on',
+          text: 'I show only the File and Namespace node types',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 41
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:42
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+      await test.step('Then I can see there are 14 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+          text: 'I can see there are 14 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 42
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:43
-      await test.step('And src/app.cpp has 2 edges pointing to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp has 2 edges pointing to src/lib/widget.hpp', {
+      await test.step('And the visible graph includes the Namespace node taskrunner from src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Namespace node taskrunner from src/task.hpp', {
           keyword: 'And',
-          text: 'src/app.cpp has 2 edges pointing to src/lib/widget.hpp',
+          text: 'the visible graph includes the Namespace node taskrunner from src/task.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 43
         });
       });
 
-      // tests/acceptance/specs/cpp-example.md:45
-      await test.step('Then I toggle the Inherits edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Inherits edge off',
+      // tests/acceptance/specs/cpp-example.md:44
+      await test.step('And src/task.hpp points to src/task.hpp#taskrunner:namespace', async () => {
+        await runAcceptanceStep(context, 'src/task.hpp points to src/task.hpp#taskrunner:namespace', {
+          keyword: 'And',
+          text: 'src/task.hpp points to src/task.hpp#taskrunner:namespace',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
-          line: 45
+          line: 44
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:46
-      await test.step('And I toggle the Overrides edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Overrides edge off', {
-          keyword: 'And',
-          text: 'I toggle the Overrides edge off',
+      await test.step('Then I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Class node types',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 46
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:47
-      await test.step('And I toggle the Calls edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
-          keyword: 'And',
-          text: 'I toggle the Calls edge on',
+      await test.step('Then I can see there are 17 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 17 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 47
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:48
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+      await test.step('And the visible graph includes the Class node Task from src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node Task from src/task.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Class node Task from src/task.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 48
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:49
-      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+      await test.step('And the visible graph includes the Class node Worker from src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node Worker from src/worker.hpp', {
           keyword: 'And',
-          text: 'src/app.cpp points to src/lib/widget.hpp',
+          text: 'the visible graph includes the Class node Worker from src/worker.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 49
         });
       });
 
       // tests/acceptance/specs/cpp-example.md:50
-      await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
-        await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
+      await test.step('And the visible graph includes the Class node ConsoleWorker from src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node ConsoleWorker from src/worker.hpp', {
           keyword: 'And',
-          text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
+          text: 'the visible graph includes the Class node ConsoleWorker from src/worker.hpp',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 50
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:51
+      await test.step('And the visible graph includes the Class node TaskRunner from src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node TaskRunner from src/runner.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Class node TaskRunner from src/runner.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 51
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:53
+      await test.step('Then I show only the File and Enum node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Enum node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Enum node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 53
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:54
+      await test.step('Then I can see there are 15 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 54
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:55
+      await test.step('And the visible graph includes the Enum node Priority from src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Enum node Priority from src/task.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Enum node Priority from src/task.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 55
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:56
+      await test.step('And the visible graph includes the Enum node TaskStatus from src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Enum node TaskStatus from src/task.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Enum node TaskStatus from src/task.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 56
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:58
+      await test.step('Then I show only the File and Callable node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Callable node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Callable node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 58
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:59
+      await test.step('Then I can see there are 17 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 17 nodes and 4 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 59
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:60
+      await test.step('And the visible graph includes the Callable node main from src/app.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Callable node main from src/app.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Callable node main from src/app.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 60
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:61
+      await test.step('And the visible graph includes the Callable node make_task from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Callable node make_task from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Callable node make_task from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 61
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:62
+      await test.step('And the visible graph includes the Callable node seed_tasks from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Callable node seed_tasks from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Callable node seed_tasks from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 62
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:63
+      await test.step('And the visible graph includes the Callable node priority_name from src/task.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Callable node priority_name from src/task.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Callable node priority_name from src/task.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 63
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:65
+      await test.step('Then I show only the File and Method node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Method node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Method node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 65
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:66
+      await test.step('Then I can see there are 30 nodes and 17 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 30 nodes and 17 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 30 nodes and 17 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 66
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:67
+      await test.step('And the visible graph includes the Method node TaskRunner::run from src/runner.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node TaskRunner::run from src/runner.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node TaskRunner::run from src/runner.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 67
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:68
+      await test.step('And the visible graph includes the Method node ConsoleWorker::execute from src/worker.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node ConsoleWorker::execute from src/worker.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node ConsoleWorker::execute from src/worker.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 68
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:69
+      await test.step('And the visible graph includes the Method node Task::mark_completed from src/task.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node Task::mark_completed from src/task.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node Task::mark_completed from src/task.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 69
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:71
+      await test.step('Then I show only the File and Alias node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Alias node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Alias node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 71
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:72
+      await test.step('Then I can see there are 16 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 72
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:73
+      await test.step('And the visible graph includes the Alias node TaskId from src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Alias node TaskId from src/task.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Alias node TaskId from src/task.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 73
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:74
+      await test.step('And the visible graph includes the Alias node TaskList from src/seed.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Alias node TaskList from src/seed.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Alias node TaskList from src/seed.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 74
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:75
+      await test.step('And the visible graph includes the Alias node PendingTaskQueue from src/task_queue.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Alias node PendingTaskQueue from src/task_queue.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Alias node PendingTaskQueue from src/task_queue.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 75
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:77
+      await test.step('Then I show only the File and Template node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Template node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Template node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 77
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:78
+      await test.step('Then I can see there are 14 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 14 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 78
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:79
+      await test.step('And the visible graph includes the Template node TaskQueue from src/task_queue.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Template node TaskQueue from src/task_queue.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Template node TaskQueue from src/task_queue.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 79
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:81
+      await test.step('Then I show only the File and Global node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Global node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Global node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 81
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:82
+      await test.step('Then I can see there are 14 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 14 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 82
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:83
+      await test.step('And the visible graph includes the Global node next_task_id from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Global node next_task_id from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Global node next_task_id from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 83
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:85
+      await test.step('Then I show only the File and Constant node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Constant node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Constant node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 85
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:86
+      await test.step('Then I can see there are 15 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 86
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:87
+      await test.step('And the visible graph includes the Constant node kInitialStatus from src/task.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constant node kInitialStatus from src/task.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constant node kInitialStatus from src/task.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 87
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:88
+      await test.step('And the visible graph includes the Constant node kDefaultPriority from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constant node kDefaultPriority from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constant node kDefaultPriority from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 88
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:90
+      await test.step('Then I show only the File and Field node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Field node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Field node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 90
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:91
+      await test.step('Then I can see there are 20 nodes and 7 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 20 nodes and 7 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 20 nodes and 7 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 91
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:92
+      await test.step('And the visible graph includes the Field node queue_ from src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node queue_ from src/runner.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node queue_ from src/runner.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 92
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:93
+      await test.step('And the visible graph includes the Field node worker_ from src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node worker_ from src/runner.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node worker_ from src/runner.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 93
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:94
+      await test.step('And the visible graph includes the Field node items_ from src/task_queue.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node items_ from src/task_queue.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node items_ from src/task_queue.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 94
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:95
+      await test.step('And the visible graph includes the Field node status_ from src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node status_ from src/task.hpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node status_ from src/task.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 95
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:97
+      await test.step('Then I show only the File and Parameter node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Parameter node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Parameter node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 97
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:98
+      await test.step('Then I can see there are 24 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 24 nodes and 11 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 24 nodes and 11 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 98
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:99
+      await test.step('And the visible graph includes the Parameter node task from src/runner.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node task from src/runner.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node task from src/runner.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 99
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:100
+      await test.step('And the visible graph includes the Parameter node worker from src/runner.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node worker from src/runner.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node worker from src/runner.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 100
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:101
+      await test.step('And the visible graph includes the Parameter node priority from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node priority from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node priority from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 101
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:103
+      await test.step('Then I show only the File and Local node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Local node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Local node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 103
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:104
+      await test.step('Then I can see there are 24 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 24 nodes and 11 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 24 nodes and 11 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 104
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:105
+      await test.step('And the visible graph includes the Local node completed from src/runner.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node completed from src/runner.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node completed from src/runner.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 105
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:106
+      await test.step('And the visible graph includes the Local node tasks from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node tasks from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node tasks from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 106
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:107
+      await test.step('And the visible graph includes the Local node id from src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node id from src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node id from src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 107
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:109
+      await test.step('Then I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'Then',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 109
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:110
+      await test.step('Then I show only the File, Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter and Local node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File, Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter and Local node types', {
+          keyword: 'Then',
+          text: 'I show only the File, Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter and Local node types',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 110
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:111
+      await test.step('Then I can see there are 77 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 77 nodes and 0 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 77 nodes and 0 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 111
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:113
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 113
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:114
+      await test.step('Then I can see there are 77 nodes and 64 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 77 nodes and 64 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 77 nodes and 64 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 114
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:115
+      await test.step('And src/task.hpp points to src/task.hpp#Task:class', async () => {
+        await runAcceptanceStep(context, 'src/task.hpp points to src/task.hpp#Task:class', {
+          keyword: 'And',
+          text: 'src/task.hpp points to src/task.hpp#Task:class',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 115
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:116
+      await test.step('And src/task.hpp points to src/task.hpp#Priority:enum', async () => {
+        await runAcceptanceStep(context, 'src/task.hpp points to src/task.hpp#Priority:enum', {
+          keyword: 'And',
+          text: 'src/task.hpp points to src/task.hpp#Priority:enum',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 116
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:117
+      await test.step('And src/task.hpp points to src/task.hpp#TaskId:alias', async () => {
+        await runAcceptanceStep(context, 'src/task.hpp points to src/task.hpp#TaskId:alias', {
+          keyword: 'And',
+          text: 'src/task.hpp points to src/task.hpp#TaskId:alias',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 117
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:118
+      await test.step('And src/task_queue.hpp points to src/task_queue.hpp#TaskQueue:template', async () => {
+        await runAcceptanceStep(context, 'src/task_queue.hpp points to src/task_queue.hpp#TaskQueue:template', {
+          keyword: 'And',
+          text: 'src/task_queue.hpp points to src/task_queue.hpp#TaskQueue:template',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 118
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:119
+      await test.step('And src/runner.hpp points to src/runner.hpp#TaskRunner:class', async () => {
+        await runAcceptanceStep(context, 'src/runner.hpp points to src/runner.hpp#TaskRunner:class', {
+          keyword: 'And',
+          text: 'src/runner.hpp points to src/runner.hpp#TaskRunner:class',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 119
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:120
+      await test.step('And src/runner.hpp points to src/runner.hpp#queue_:field', async () => {
+        await runAcceptanceStep(context, 'src/runner.hpp points to src/runner.hpp#queue_:field', {
+          keyword: 'And',
+          text: 'src/runner.hpp points to src/runner.hpp#queue_:field',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 120
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:121
+      await test.step('And src/seed.cpp points to src/seed.cpp#next_task_id:global', async () => {
+        await runAcceptanceStep(context, 'src/seed.cpp points to src/seed.cpp#next_task_id:global', {
+          keyword: 'And',
+          text: 'src/seed.cpp points to src/seed.cpp#next_task_id:global',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 121
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:122
+      await test.step('And src/seed.cpp points to src/seed.cpp#kDefaultPriority:constant', async () => {
+        await runAcceptanceStep(context, 'src/seed.cpp points to src/seed.cpp#kDefaultPriority:constant', {
+          keyword: 'And',
+          text: 'src/seed.cpp points to src/seed.cpp#kDefaultPriority:constant',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 122
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:123
+      await test.step('And src/runner.cpp points to src/runner.cpp#completed:local', async () => {
+        await runAcceptanceStep(context, 'src/runner.cpp points to src/runner.cpp#completed:local', {
+          keyword: 'And',
+          text: 'src/runner.cpp points to src/runner.cpp#completed:local',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 123
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:125
+      await test.step('Then I show only the Calls edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Calls edge type', {
+          keyword: 'Then',
+          text: 'I show only the Calls edge type',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 125
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:126
+      await test.step('Then I can see there are 77 nodes and 15 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 77 nodes and 15 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 77 nodes and 15 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 126
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:127
+      await test.step('And the visible graph shows main in src/app.cpp calling seed_tasks in src/seed.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows main in src/app.cpp calling seed_tasks in src/seed.hpp', {
+          keyword: 'And',
+          text: 'the visible graph shows main in src/app.cpp calling seed_tasks in src/seed.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 127
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:128
+      await test.step('And the visible graph shows main in src/app.cpp calling TaskRunner::enqueue in src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows main in src/app.cpp calling TaskRunner::enqueue in src/runner.hpp', {
+          keyword: 'And',
+          text: 'the visible graph shows main in src/app.cpp calling TaskRunner::enqueue in src/runner.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 128
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:129
+      await test.step('And the visible graph shows TaskRunner::run in src/runner.cpp calling Worker::execute in src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows TaskRunner::run in src/runner.cpp calling Worker::execute in src/worker.hpp', {
+          keyword: 'And',
+          text: 'the visible graph shows TaskRunner::run in src/runner.cpp calling Worker::execute in src/worker.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 129
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:130
+      await test.step('And the visible graph shows ConsoleWorker::execute in src/worker.cpp calling priority_name in src/task.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows ConsoleWorker::execute in src/worker.cpp calling priority_name in src/task.hpp', {
+          keyword: 'And',
+          text: 'the visible graph shows ConsoleWorker::execute in src/worker.cpp calling priority_name in src/task.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 130
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:131
+      await test.step('And the visible graph shows seed_tasks in src/seed.cpp calling make_task in src/seed.cpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows seed_tasks in src/seed.cpp calling make_task in src/seed.cpp', {
+          keyword: 'And',
+          text: 'the visible graph shows seed_tasks in src/seed.cpp calling make_task in src/seed.cpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 131
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:133
+      await test.step('Then I show only the Inherits edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Inherits edge type', {
+          keyword: 'Then',
+          text: 'I show only the Inherits edge type',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 133
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:134
+      await test.step('Then I can see there are 77 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 77 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 77 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 134
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:135
+      await test.step('And the visible graph shows ConsoleWorker in src/worker.hpp inheriting from Worker in src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows ConsoleWorker in src/worker.hpp inheriting from Worker in src/worker.hpp', {
+          keyword: 'And',
+          text: 'the visible graph shows ConsoleWorker in src/worker.hpp inheriting from Worker in src/worker.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 135
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:137
+      await test.step('Then I show only the Overrides edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Overrides edge type', {
+          keyword: 'Then',
+          text: 'I show only the Overrides edge type',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 137
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:138
+      await test.step('Then I can see there are 77 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 77 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 77 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 138
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:139
+      await test.step('And the visible graph shows ConsoleWorker::execute in src/worker.hpp overriding Worker::execute in src/worker.hpp', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows ConsoleWorker::execute in src/worker.hpp overriding Worker::execute in src/worker.hpp', {
+          keyword: 'And',
+          text: 'the visible graph shows ConsoleWorker::execute in src/worker.hpp overriding Worker::execute in src/worker.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 139
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:141
+      await test.step('Then I show only the Include edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Include edge type', {
+          keyword: 'Then',
+          text: 'I show only the Include edge type',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 141
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:142
+      await test.step('Then I can see there are 77 nodes and 12 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 77 nodes and 12 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 77 nodes and 12 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 142
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:143
+      await test.step('And src/app.cpp points to src/runner.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/runner.hpp', {
+          keyword: 'And',
+          text: 'src/app.cpp points to src/runner.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 143
         });
       });
 
@@ -4239,7 +5028,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('References edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4352,7 +5140,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Calls edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4475,7 +5262,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Type imports edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4608,7 +5394,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Inherits edges works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4701,7 +5486,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Loads edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4834,7 +5618,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Nests edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -4937,7 +5720,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Contains edges works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5050,7 +5832,6 @@ test.describe('Graph Scope Edge And Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Overrides edges works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,

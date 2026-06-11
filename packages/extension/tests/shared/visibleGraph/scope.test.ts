@@ -107,6 +107,39 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('uses the narrower method row before the broad function row for method symbols', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/runner.cpp'),
+					symbolNode('src/runner.cpp#TaskRunner::run:method', {
+						id: 'src/runner.cpp#TaskRunner::run:method',
+						name: 'TaskRunner::run',
+						kind: 'method',
+						filePath: 'src/runner.cpp',
+					}),
+				],
+				edges: [
+					edge('src/runner.cpp', 'src/runner.cpp#TaskRunner::run:method', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:function', enabled: false },
+					{ type: 'symbol:method', enabled: true },
+				],
+				edges: [{ type: 'contains', enabled: true }],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/runner.cpp', 'src/runner.cpp#TaskRunner::run:method'],
+			edges: ['src/runner.cpp->src/runner.cpp#TaskRunner::run:method#contains'],
+		});
+	});
+
 	it('keeps symbol nodes that are disconnected after edge scope is applied', () => {
 		const result = applyGraphScope(
 			{

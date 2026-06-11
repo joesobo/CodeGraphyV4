@@ -69,7 +69,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        kind: 'import',
+        kind: 'include',
         sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'lib/widget.hpp',
@@ -78,7 +78,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
       }),
       expect.objectContaining({
-        kind: 'import',
+        kind: 'include',
         sourceId: 'core:treesitter:include',
         type: 'include',
         specifier: 'vector',
@@ -100,7 +100,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         sourceId: 'core:treesitter:override',
         specifier: 'render',
         fromFilePath: appPath,
-        fromSymbolId: `${appPath}:method:render`,
+        fromSymbolId: `${appPath}:method:Runner::render`,
         resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
         toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
       }),
@@ -108,6 +108,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         kind: 'call',
         sourceId: 'core:treesitter:call',
         specifier: 'make_widget',
+        variant: 'make_widget',
         fromFilePath: appPath,
         fromSymbolId: `${appPath}:function:boot`,
         resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
@@ -117,6 +118,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         kind: 'call',
         sourceId: 'core:treesitter:call',
         specifier: 'render',
+        variant: 'render',
         fromFilePath: appPath,
         fromSymbolId: `${appPath}:function:boot`,
         resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
@@ -126,7 +128,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
     expect(result?.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ filePath: appPath, kind: 'namespace', name: 'app' }),
       expect.objectContaining({ filePath: appPath, kind: 'class', name: 'Runner' }),
-      expect.objectContaining({ filePath: appPath, kind: 'method', name: 'run' }),
+      expect.objectContaining({ filePath: appPath, kind: 'method', name: 'Runner::run' }),
       expect.objectContaining({ filePath: appPath, kind: 'function', name: 'boot' }),
     ]));
   });
@@ -165,6 +167,79 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
         toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
       }),
+    ]));
+  });
+
+  it('extracts C++ graph scope symbol controls separately', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const appPath = path.join(workspaceRoot, 'src/app.cpp');
+    const source = [
+      'namespace taskrunner {',
+      'using TaskId = unsigned long;',
+      'enum class Priority { normal };',
+      'class Task {};',
+      'template <typename Item>',
+      'class TaskQueue {',
+      'public:',
+      '  void push(Item item) {}',
+      '};',
+      'class Runner {',
+      'public:',
+      '  void run();',
+      '};',
+      'void Runner::run() {}',
+      'Task make_task() { return Task{}; }',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: appPath, kind: 'namespace', name: 'taskrunner' }),
+      expect.objectContaining({ filePath: appPath, kind: 'alias', name: 'TaskId' }),
+      expect.objectContaining({ filePath: appPath, kind: 'enum', name: 'Priority' }),
+      expect.objectContaining({ filePath: appPath, kind: 'class', name: 'Task' }),
+      expect.objectContaining({ filePath: appPath, kind: 'template', name: 'TaskQueue' }),
+      expect.objectContaining({ filePath: appPath, kind: 'method', name: 'TaskQueue::push' }),
+      expect.objectContaining({ filePath: appPath, kind: 'method', name: 'Runner::run' }),
+      expect.objectContaining({ filePath: appPath, kind: 'function', name: 'make_task' }),
+    ]));
+    expect(result?.symbols).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'class', name: 'TaskQueue' }),
+      expect.objectContaining({ kind: 'type', name: 'TaskId' }),
+    ]));
+  });
+
+  it('extracts C++ variable controls by declaration site', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const appPath = path.join(workspaceRoot, 'src/app.cpp');
+    const source = [
+      'namespace taskrunner {',
+      'int next_task_id = 1000;',
+      'constexpr int kDefaultPriority = 1;',
+      'class Task {',
+      'public:',
+      '  void set_priority(int priority) {',
+      '    const int local_priority = priority;',
+      '    int completed = local_priority;',
+      '  }',
+      'private:',
+      '  int id_;',
+      '};',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: appPath, kind: 'global', name: 'next_task_id' }),
+      expect.objectContaining({ filePath: appPath, kind: 'constant', name: 'kDefaultPriority' }),
+      expect.objectContaining({ filePath: appPath, kind: 'field', name: 'id_' }),
+      expect.objectContaining({ filePath: appPath, kind: 'parameter', name: 'priority' }),
+      expect.objectContaining({ filePath: appPath, kind: 'local', name: 'local_priority' }),
+      expect.objectContaining({ filePath: appPath, kind: 'local', name: 'completed' }),
     ]));
   });
 
@@ -213,6 +288,101 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         specifier: 'render',
         resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
         toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
+    ]));
+  });
+
+  it('resolves C++ calls and inheritance through same-file and transitive declarations', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/task.hpp': [
+        '#pragma once',
+        'const char* priority_name();',
+        '',
+      ].join('\n'),
+      'src/worker.hpp': [
+        '#pragma once',
+        '#include "task.hpp"',
+        'class Worker {',
+        'public:',
+        '  virtual void execute() = 0;',
+        '};',
+        'class ConsoleWorker : public Worker {',
+        'public:',
+        '  void execute() override;',
+        '};',
+        '',
+      ].join('\n'),
+    });
+    const workerPath = path.join(workspaceRoot, 'src/worker.cpp');
+    const source = [
+      '#include "worker.hpp"',
+      '',
+      'void ConsoleWorker::execute() {',
+      '  priority_name();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(workerPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'priority_name',
+        fromSymbolId: `${workerPath}:method:ConsoleWorker::execute`,
+        resolvedPath: path.join(workspaceRoot, 'src/task.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/task.hpp'),
+      }),
+    ]));
+
+    const headerPath = path.join(workspaceRoot, 'src/worker.hpp');
+    const header = await fs.readFile(headerPath, 'utf8');
+    const headerResult = await analyzeFileWithTreeSitter(headerPath, header, workspaceRoot);
+
+    expect(headerResult?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Worker',
+        fromSymbolId: `${headerPath}:class:ConsoleWorker`,
+        resolvedPath: headerPath,
+        toFilePath: headerPath,
+      }),
+      expect.objectContaining({
+        kind: 'overrides',
+        specifier: 'execute',
+        fromSymbolId: `${headerPath}:class:ConsoleWorker`,
+        toSymbolId: `${headerPath}:method:Worker::execute`,
+        resolvedPath: headerPath,
+        toFilePath: headerPath,
+      }),
+    ]));
+  });
+
+  it('resolves C++ same-file function calls to emitted function symbols', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const seedPath = path.join(workspaceRoot, 'src/seed.cpp');
+    const source = [
+      'int make_task() {',
+      '  return 1;',
+      '}',
+      '',
+      'int seed_tasks() {',
+      '  return make_task() + make_task();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(seedPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'make_task',
+        variant: 'make_task',
+        fromSymbolId: `${seedPath}:function:seed_tasks`,
+        resolvedPath: seedPath,
+        toFilePath: seedPath,
+        toSymbolId: `${seedPath}:function:make_task`,
       }),
     ]));
   });
@@ -267,7 +437,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       expect.objectContaining({
         kind: 'overrides',
         specifier: 'update',
-        fromSymbolId: `${appPath}:method:update`,
+        fromSymbolId: `${appPath}:method:Runner::update`,
         resolvedPath: path.join(workspaceRoot, 'src/lib/base.hpp'),
         toFilePath: path.join(workspaceRoot, 'src/lib/base.hpp'),
       }),

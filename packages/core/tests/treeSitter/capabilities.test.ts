@@ -78,7 +78,20 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
         'symbol:typedef',
         'symbol:global',
       ],
-      'src/main.cpp': ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:enum', 'symbol:type'],
+      'src/main.cpp': [
+        'symbol:namespace',
+        'symbol:class',
+        'symbol:enum',
+        'symbol:callable',
+        'symbol:method',
+        'symbol:alias',
+        'symbol:template',
+        'symbol:global',
+        'symbol:constant',
+        'symbol:field',
+        'symbol:parameter',
+        'symbol:local',
+      ],
       'src/Program.cs': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
       'lib/app/runner.dart': ['symbol:function', 'symbol:class', 'symbol:enum'],
       'cmd/app/main.go': ['symbol:function', 'symbol:struct', 'symbol:interface', 'symbol:type'],
@@ -102,6 +115,20 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     for (const [filePath, expectedCapabilities] of Object.entries(expectedCapabilitiesByFile)) {
       expect(listTreeSitterNodeTypeCapabilities([filePath]), filePath).toEqual(expectedCapabilities);
     }
+  });
+
+  it('advertises C++ includes without advertising imports for C++ source and header workspaces', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/app.cpp',
+      'src/runner.hpp',
+      'src/task.hpp',
+    ])).toEqual([
+      'include',
+      'call',
+      'contains',
+      'inherit',
+      'overrides',
+    ]);
   });
 
   it('does not advertise C-only header node capabilities for Objective-C workspaces', () => {
