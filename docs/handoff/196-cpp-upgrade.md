@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Ready for final human review after mutation campaign. PR-touched mutation-capable source files meet `>=90%` scoped mutation on the Mac mini, and PR CI was green at `e3d6fd78`.
+- State: Final review paused by user-requested Refactorer organize loop. PR was clean/ready at `28724add`; now route `pnpm run organize -- .` cleanup until the organize output is clean.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Orchestrator pushes this final handoff checkpoint, verifies the resulting CI run, then moves Trello/PR to final human review.
+- Next route: Refactorer runs the organize tool, fixes actionable output, reruns until clean, then returns evidence to Orchestrator.
 
 ## Human Gates
 
@@ -1644,3 +1644,21 @@
   - All GitHub checks complete and successful, including both Playwright jobs.
 - Next action:
   - Commit/push this final handoff checkpoint, then verify the new handoff-only CI run before moving the card/PR to final human review.
+
+### 2026-06-11T20:03:31Z - Orchestrator Routes Organize Cleanup Loop
+
+- Source: user requested another loop with the organization tool, reading outputs and making fixes until the tool output comes back clean.
+- Target: Refactorer.
+- Result: route back from final review into active quality cleanup.
+- Current pre-route state:
+  - Local worktree clean at `28724add`.
+  - PR #263 was ready for review, `mergeStateStatus=CLEAN`, with all checks green at `28724add`.
+- Tool target:
+  - `pnpm run organize -- .`
+  - Root script maps to `node scripts/run-organize.mjs`, which runs `quality-tools organize`.
+- Refactorer scope:
+  - Run `pnpm run organize -- .`.
+  - Read the organize output and make behavior-preserving structural/naming/cohesion fixes until the same command reports clean.
+  - Do not edit human-owned acceptance Markdown under `packages/extension/tests/acceptance/specs/**/*.md`.
+  - Preserve accepted C++ behavior, generated acceptance contracts, and mutation evidence.
+  - Commit/push `refactorer:` checkpoints and record exact organize output before/after in this handoff.
