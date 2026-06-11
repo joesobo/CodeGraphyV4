@@ -578,3 +578,93 @@
   - Edges covered in source shape: `Include`, `Contains`, `References`, `Calls`, `Inherits`, and `Overrides`.
 - Known gap:
   - This pass only confirms source coverage. Current Graph Scope/analyzer support still needs later roles to expose and verify the approved visible controls.
+
+### 2026-06-10T23:42:07Z - Specifier Drafts C++ Acceptance Spec For Review
+
+- Source: user approval to start C++ example acceptance spec modifications.
+- Target: `packages/extension/tests/acceptance/specs/cpp-example.md`.
+- Result: local human-owned spec draft is dirty for user review and is not committed.
+- Scope held:
+  - Only `cpp-example.md` acceptance Markdown was edited.
+  - No other acceptance spec Markdown edited.
+  - No step bindings or generated Playwright files edited.
+  - No Core analyzer or Graph Scope production code edited.
+  - No commit or push performed.
+- Draft contract:
+  - Replaces stale Widget example paths with the Task Queue Runner file set.
+  - Asserts file-only baseline at 13 nodes and Include-only file graph at 12 connections.
+  - Sets visible C++ edge controls to `Include`, `References`, `Calls`, `Inherits`, `Contains`, and `Overrides`.
+  - Sets visible C++ language node controls to `Namespace`, `Class`, `Enum`, `Callable`, `Method`, `Alias`, `Template`, `Global`, `Constant`, `Field`, `Parameter`, and `Local`, while keeping `Type` unavailable for this C++ example.
+  - Maps each approved node control to source examples and each approved edge control to an observable graph relationship.
+- Expected later Coder work:
+  - Add or update step bindings for new human-facing phrases such as available C++ node types and visible graph includes/shows relationship assertions.
+  - Regenerate Playwright acceptance output after the human approves the Markdown.
+  - Implement Core/Graph Scope changes needed for the approved C++ controls.
+
+### 2026-06-10T23:51:29Z - Specifier Revises C++ Spec Counts
+
+- Source: user review feedback on dirty spec draft.
+- Target: `packages/extension/tests/acceptance/specs/cpp-example.md`.
+- Result: added C-example-style node and connection count assertions after key node-type-only and edge-type-only Graph Scope transitions.
+- Scope held:
+  - Only `cpp-example.md` acceptance Markdown and this handoff note were edited.
+  - No generated Playwright, step bindings, Core analyzer, Graph Scope production code, commit, or push.
+
+### 2026-06-11T00:36:02Z - Orchestrator Revises C++ References And Calls Contract
+
+- Source: user review feedback after count audit.
+- Target: `packages/extension/tests/acceptance/specs/cpp-example.md`.
+- Result: removed C++-specific `References` acceptance coverage and updated the C++ `Calls` count.
+- User decision:
+  - Leave `References` for Markdown-oriented work for now.
+  - Do not assert C++-specific reference behavior in this acceptance spec.
+  - Match the C example's practical shape by validating C++ Include, Calls, Inherits, Contains, and Overrides without a C++ References section.
+- Spec changes:
+  - Available C++ edge types now read `Include`, `Calls`, `Inherits`, `Contains`, and `Overrides`.
+  - Removed the `References` edge-only count and relationship assertions.
+  - Updated the `Calls` edge-only count from `77 nodes and 5 connections` to `77 nodes and 15 connections`.
+- Calls count audit:
+  - The `15` call connections represent locally resolvable calls to supported C++ callable/method targets in the Task Queue Runner source, excluding standard library calls and collapsing repeated `make_task` call sites to one relationship.
+- Scope held:
+  - Only `cpp-example.md` acceptance Markdown and this handoff note were edited.
+  - No generated Playwright, step bindings, Core analyzer, Graph Scope production code, commit, or push.
+- Counting assumptions used for the review draft:
+  - File-only baseline is the 13 filtered example files.
+  - The new C++ node controls count one user-facing graph node per named C++ construct, with declaration/definition pairs collapsed for `Callable`, `Method`, `Parameter`, and related controls.
+  - `Contains` contributes one edge from the declaring file to each visible non-file construct.
+  - `References` and `Calls` count only the locally resolvable relationships named in the acceptance contract, not every possible member access or standard-library call.
+  - `Include` counts the 12 local `#include "..."` relationships in the Task Queue Runner source.
+
+### 2026-06-10T23:55:54Z - Specifier Collapses C++ Spec To One Scenario
+
+- Source: user review feedback on dirty spec draft.
+- Target: `packages/extension/tests/acceptance/specs/cpp-example.md`.
+- Result: collapsed the C++ example acceptance draft from three setup-heavy scenarios into one cohesive Task Queue Runner graph scope scenario.
+- Scope held:
+  - Only `cpp-example.md` acceptance Markdown and this handoff note were edited.
+  - No generated Playwright, step bindings, Core analyzer, Graph Scope production code, commit, or push.
+- Preserved contract:
+  - Approved C++ node controls: `Namespace`, `Class`, `Enum`, `Callable`, `Method`, `Alias`, `Template`, `Global`, `Constant`, `Field`, `Parameter`, and `Local`.
+  - Approved C++ edge controls: `Include`, `Contains`, `References`, `Calls`, `Inherits`, and `Overrides`.
+  - `Type` remains unavailable for the C++ example.
+  - Count assertions remain after baseline, available controls, Include checks, per-node-type Contains checks, combined node-type checks, and edge-type-only checks.
+
+### 2026-06-11T00:20:19Z - Specifier Corrects Combined Count State
+
+- Source: Orchestrator/user review correction.
+- Target: `packages/extension/tests/acceptance/specs/cpp-example.md`.
+- Result: added an explicit `Then I show no edge types` before the combined all-approved-node-types `77 nodes and 0 connections` assertion.
+- Reason:
+  - Current step bindings make `I show only the (.+) node types` call `showOnlyNodeTypes(...)` only.
+  - Node type scope changes do not reset edge type scope.
+  - The earlier `Then I show only the Contains edge type` would otherwise leave `Contains` active before the combined node-type assertion.
+- Re-audited combined count ledger:
+  - File nodes: 13.
+  - Approved non-file nodes: 64.
+  - Non-file breakdown: `Namespace` 1, `Class` 4, `Enum` 2, `Callable` 4, `Method` 17, `Alias` 3, `Template` 1, `Global` 1, `Constant` 2, `Field` 7, `Parameter` 11, `Local` 11.
+  - Method count assumption: `Task` has 7 methods, `TaskQueue` has 4 template methods, `Worker` has `execute`, `ConsoleWorker` has `execute`, and `TaskRunner` has 4 methods; destructor is not counted as a user-facing Method node.
+  - Combined no-edge state: 13 + 64 = 77 nodes and 0 connections.
+  - Combined Contains state: one Contains edge per approved non-file node, so 77 nodes and 64 connections.
+- Scope held:
+  - Only `cpp-example.md` acceptance Markdown and this handoff note were edited.
+  - No generated Playwright, step bindings, Core analyzer, Graph Scope production code, commit, or push.
