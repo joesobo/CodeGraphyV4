@@ -762,3 +762,53 @@
   - PR #263 body updated with current Coder verification and remaining role steps.
 - Next route:
   - Dispatch Refactorer to run non-mutation quality gates and behavior-preserving cleanup.
+
+### 2026-06-11T02:13:30Z - Refactorer Quality Gates And Cleanup
+
+- Source: Refactorer role agent.
+- Target: non-mutation quality gates and behavior-preserving cleanup for C++ Upgrade PR #263.
+- Result: Refactorer cleanup was committed and pushed; remaining non-mutation quality evidence is recorded for Orchestrator review.
+- Scope held:
+  - No mutation testing was run; mutation/final architecture remains Architect-owned.
+  - No human-owned acceptance spec Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited.
+  - No C++ acceptance contract or example behavior was changed.
+- Host used for heavy checks:
+  - `codegraphy-mini:/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Required PATH used before remote quality commands: `/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+  - Remote worktree was fetched and fast-forward checked before `lint` and `typecheck`.
+- Files changed by Refactorer:
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`
+  - `packages/extension/tests/extension/graphView/webview/settingsMessages/updates/controls.test.ts`
+  - `packages/extension/tests/extension/repoSettings/store/model/persistedShape/view.test.ts`
+  - `packages/extension/tests/extension/repoSettings/store/persistence/serialization.test.ts`
+  - `packages/extension/tests/shared/graphControls/defaults/maps.test.ts`
+  - `packages/extension/tests/shared/graphControls/defaults/nodeTypes.test.ts`
+  - `packages/extension/tests/shared/graphControls/defaults/definitions.test.ts`
+  - `packages/extension/tests/extension/pipeline/examplesWorkspace.test.ts`
+  - `docs/handoff/196-cpp-upgrade.md`
+- Behavior-preserving cleanup:
+  - Delegated C++ `enum_specifier` and `namespace_definition` handling to existing C-family symbol handling, removing the branch-introduced dead surface for `packages/core/src/treeSitter/runtime/analyzeCFamily/symbols.ts` without changing accepted C++ graph behavior.
+  - Refreshed stale Graph Scope/default-control tests so new C++ controls are preserved instead of pruned.
+  - Refreshed stale example-workspace expectations to match the current Task Queue Runner C++ example surface.
+- Commands run and outcomes:
+  - Local `pnpm run organize`: exit 0; advisory structural report only; no file changes.
+  - Remote `pnpm run boundaries`: exit 1; after cleanup, branch-introduced C-family dead surface was removed and the remaining 6 dead surfaces / 6 dead ends are pre-existing unrelated example/plugin surfaces.
+  - Remote `pnpm run reachability`: exit 1; same remaining 6 dead surfaces / 6 dead ends as `boundaries`.
+  - Remote `pnpm run scrap`: exit 0; broad advisory cleanup report only; no blocking exit.
+  - Remote `pnpm run crap`: process exit 0, but reported 52 functions over the CRAP threshold, including C++ analyzer functions such as `getDeclaratorNameNode`, `handleCppForRangeLoop`, `handleCppSymbol`, and `findDescendantByType`.
+  - Remote `pnpm run lint`: exit 0; generated acceptance output still reports 9 existing spacing warnings and 0 errors.
+  - Remote `pnpm run typecheck`: exit 0 across all packages.
+  - Local focused Core tests: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cfamily/symbols.test.ts tests/treeSitter/cpp/analyze.test.ts` passed.
+  - Local focused extension defaults/example tests passed:
+    - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/graphView/webview/settingsMessages/updates/controls.test.ts tests/extension/repoSettings/store/model/persistedShape/view.test.ts tests/extension/repoSettings/store/persistence/serialization.test.ts tests/shared/graphControls/defaults/maps.test.ts tests/shared/graphControls/defaults/nodeTypes.test.ts`
+    - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/shared/graphControls/defaults/definitions.test.ts tests/extension/pipeline/examplesWorkspace.test.ts`
+- Refactorer commits and pushes:
+  - `a62f7611` (`refactorer: clean cpp quality expectations`), pushed to `origin/codex/196-cpp-upgrade`.
+  - `1a161bfc` (`refactorer: refresh cpp example workspace checks`), pushed to `origin/codex/196-cpp-upgrade`.
+  - Final handoff checkpoint: `refactorer: record cpp quality handoff`, pushed as the branch tip after this entry was written.
+- Blockers and residual risk:
+  - `boundaries` and `reachability` still exit 1 because of existing unrelated dead surfaces/dead ends in example and plugin packages; the C++ branch-introduced dead surface was removed.
+  - `crap` exits 0 but reports 52 threshold exceedances; several are in the new C++ analyzer surface. Refactorer did not broaden into larger analyzer refactors because that would exceed behavior-preserving cleanup scope.
+  - Git continues to print an existing background GC warning for the protected main checkout worktree metadata; no destructive cleanup was attempted.
+- Return route:
+  - Return to Orchestrator for loop coordination and next-role decision.
