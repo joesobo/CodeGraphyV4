@@ -1297,3 +1297,30 @@
   - Route Specifier to draft local, uncommitted updates to `graph-scope-edge-types.md` and `graph-scope-node-types.md` for human review.
   - Specifier should verify counts against actual example behavior or focused acceptance evidence before changing them.
   - Specifier must not edit generated Playwright output, production code, or commit/push.
+
+### 2026-06-11T17:45:04Z - Specifier Drafts Remaining Graph Scope Contract Corrections
+
+- Source: Orchestrator route after focused split Graph Scope acceptance reds.
+- Target: remaining human-owned acceptance Markdown contract corrections.
+- Result: local uncommitted spec draft is ready for human review; generated Playwright output still needs a later Coder regeneration after approval.
+- Scope held:
+  - Edited only `packages/extension/tests/acceptance/specs/graph-scope-edge-types.md`, `packages/extension/tests/acceptance/specs/graph-scope-node-types.md`, and this handoff note.
+  - Did not edit generated Playwright output.
+  - Did not edit production code, step bindings, fixtures, changesets, commits, or pushes.
+- Draft changes:
+  - `Graph Scope Edge Types > Calls edges work`: changed expected visible Calls connections from `8` to `6` and removed the two self-edge assertions (`src/main.py -> src/main.py` and `src/services/api.py -> src/services/api.py`). The six remaining assertions match the focused acceptance observation and the cross-file Python call relationships in the example.
+  - `Graph Scope Edge Types > Nests edges work`: changed expected Nests connections from `15` to `14` and removed `src points to src/lib`. `src/lib` is not tracked in the C++ example source, and Coder's focused acceptance evidence observed `14` visible Nests connections.
+  - `Graph Scope Node Types > Function node type works`: moved the Function node scenario from `examples/example-cpp` to `examples/example-c`, restoring the C Function toggle contract with `15 nodes and 0 connections` and `src/main.c#main:function`. This keeps C++ aligned with its approved visible node toggles (`Callable` and `Method`) while still covering the supported `Function` node type.
+- Verification:
+  - `git diff --check` passed.
+  - Acceptance compile to temp output passed:
+    - `pnpm --filter @codegraphy-dev/extension exec quality-tools acceptance compile --spec "tests/acceptance/specs/**/*.md" --steps "tests/acceptance/steps.ts" --out "/tmp/codegraphy-196-remaining-graph-scope.generated.ts"`
+  - Source/evidence checks:
+    - Focused Coder acceptance evidence observed Calls `6`, Nests `14`, and missing C++ `Function` switch.
+    - Python source still has the six retained cross-file call relationships plus the two removed self-call shapes.
+    - `git ls-files examples/example-cpp/src/lib` returned no tracked files.
+    - `packages/core/src/treeSitter/runtime/capabilities.ts` advertises C `symbol:function` and C++ `symbol:callable` / `symbol:method`, consistent with the draft scenario split.
+- Human approval status:
+  - Needs human review before generated acceptance output is regenerated or committed.
+- Open questions:
+  - None from Specifier; next route after human approval should be Coder regeneration/focused validation.

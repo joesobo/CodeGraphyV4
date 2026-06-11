@@ -40,20 +40,13 @@ And the visible graph includes the Namespace node taskrunner from src/task.hpp
 
 ## Scenario: Function node type works
 
-Given I open the examples/example-cpp workspace in VS Code
+Given I open the examples/example-c workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Function node types
-Then I can see there are 13 nodes and 0 connections
-When I toggle the Callable and Method node on
-Then I can see there are 34 nodes and 0 connections
-And the visible graph includes the Callable node main from src/app.cpp
-And the visible graph includes the Method node TaskRunner::run from src/runner.cpp
-When I toggle the Function node off
-Then I can see there are 34 nodes and 0 connections
-And the visible graph includes the Callable node main from src/app.cpp
-And the visible graph includes the Method node TaskRunner::run from src/runner.cpp
+Then I can see there are 15 nodes and 0 connections
+And src/main.c#main:function is an orphan node
 
 ## Scenario: Class node type works
 

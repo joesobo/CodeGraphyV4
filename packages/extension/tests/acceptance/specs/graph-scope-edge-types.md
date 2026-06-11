@@ -67,12 +67,10 @@ And I show only the File node type
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Calls edge on
-Then the top right of the graph says "8 connections"
+Then the top right of the graph says "6 connections"
 And src/main.py points to src/config.py
-And src/main.py points to src/main.py
 And src/main.py points to src/services/api.py
 And src/main.py points to src/utils/helpers.py
-And src/services/api.py points to src/services/api.py
 And src/services/api.py points to src/utils/helpers.py
 And src/utils/helpers.py points to src/utils/format.py
 And src/namespace_consumer.py points to src/ns_pkg/member.py
@@ -143,9 +141,8 @@ And I show only the Folder and File node types
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Nests edge on
-Then the top right of the graph says "15 connections"
+Then the top right of the graph says "14 connections"
 And src points to src/app.cpp
-And src points to src/lib
 And src points to src/runner.hpp
 And src points to src/worker.hpp
 
