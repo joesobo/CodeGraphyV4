@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CORE_GRAPH_NODE_TYPES } from '../../../src/graphControls/defaults/definitions';
+import { CORE_SYMBOL_NODE_TYPES } from '../../../src/graphControls/defaults/symbolNodeTypes';
+import { CORE_VARIABLE_NODE_TYPES } from '../../../src/graphControls/defaults/variableNodeTypes';
 
 describe('graphControls/defaults/definitions', () => {
   it('keeps symbol and variable node types disabled by default', () => {
@@ -22,5 +24,49 @@ describe('graphControls/defaults/definitions', () => {
 
     expect(CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === 'variable')?.parentId)
       .toBe('symbol');
+  });
+
+  it('declares concrete core symbol node type definitions', () => {
+    expect(CORE_SYMBOL_NODE_TYPES).toEqual([
+      { id: 'symbol', label: 'Symbol', defaultColor: '#7C3AED', defaultVisible: false },
+      { id: 'symbol:function', label: 'Function', defaultColor: '#8B5CF6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['function', 'method'] },
+      { id: 'symbol:namespace', label: 'Namespace', defaultColor: '#64748B', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['namespace'] },
+      { id: 'symbol:callable', label: 'Callable', defaultColor: '#8B5CF6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['function'] },
+      { id: 'symbol:method', label: 'Method', defaultColor: '#A855F7', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['method'] },
+      { id: 'symbol:prototype', label: 'Prototype', defaultColor: '#A78BFA', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['prototype'] },
+      { id: 'symbol:class', label: 'Class', defaultColor: '#3B82F6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['class'] },
+      { id: 'symbol:interface', label: 'Interface', defaultColor: '#06B6D4', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['interface'] },
+      { id: 'symbol:type', label: 'Type', defaultColor: '#EC4899', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['type'] },
+      { id: 'symbol:struct', label: 'Struct', defaultColor: '#0EA5E9', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['struct'] },
+      { id: 'symbol:union', label: 'Union', defaultColor: '#14B8A6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['union'] },
+      { id: 'symbol:enum', label: 'Enum', defaultColor: '#F59E0B', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['enum'] },
+      { id: 'symbol:typedef', label: 'Typedef', defaultColor: '#F472B6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['typedef'] },
+      { id: 'symbol:alias', label: 'Alias', defaultColor: '#F472B6', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['alias'] },
+      { id: 'symbol:template', label: 'Template', defaultColor: '#C084FC', defaultVisible: false, parentId: 'symbol', matchSymbolKinds: ['template'] },
+    ]);
+  });
+
+  it('declares concrete core variable node type definitions', () => {
+    expect(CORE_VARIABLE_NODE_TYPES).toEqual([
+      { id: 'variable', label: 'Variable', defaultColor: '#14B8A6', defaultVisible: false, parentId: 'symbol' },
+      { id: 'symbol:constant', label: 'Constant', defaultColor: '#22C55E', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['constant'] },
+      { id: 'symbol:global', label: 'Global', defaultColor: '#0D9488', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['global'] },
+      { id: 'symbol:field', label: 'Field', defaultColor: '#84CC16', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['field'] },
+      { id: 'symbol:parameter', label: 'Parameter', defaultColor: '#2DD4BF', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['parameter'] },
+      { id: 'symbol:local', label: 'Local', defaultColor: '#10B981', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['local'] },
+      {
+        id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        label: 'Godot class_name',
+        defaultColor: '#478CBF',
+        defaultVisible: false,
+        parentId: 'variable',
+        pluginName: 'Godot',
+        matchSymbolKinds: ['class'],
+        matchSymbolPluginKind: 'godot-class-name',
+        matchSymbolSource: 'codegraphy.gdscript',
+        matchSymbolLanguage: 'gdscript',
+        matchSymbolFilePath: '**/*.gd',
+      },
+    ]);
   });
 });

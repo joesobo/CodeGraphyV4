@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mergeEdgeTypes, mergeNodeTypes } from '../../../../../src/extension/graphView/controls/send/definitions/merge';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphControls/defaults/definitions';
 import { normalizeHexColor } from '../../../../../src/shared/fileColors';
 import { prettifyIdentifier } from '../../../../../src/extension/graphView/controls/send/definitions/identifiers';
 
@@ -83,6 +84,28 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     ]));
   });
 
+  it('keeps only structural node rows when no capabilities are available', () => {
+    const definitions = mergeNodeTypes(
+      { nodes: [], edges: [] } as never,
+      [
+        {
+          id: 'pluginNode',
+          label: 'Plugin Node',
+          defaultColor: '#999999',
+          defaultVisible: false,
+        },
+      ] as never,
+      {},
+      [],
+    );
+
+    expect(definitions.map((definition) => definition.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+    ]);
+  });
+
   it('merges plugin and inferred edge types while preserving core entries', () => {
     const graphData = {
       nodes: [],
@@ -131,5 +154,64 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
         requiresEdgeType: 'inherit',
       }),
     ]));
+  });
+
+  it('does not add legacy reference for C++ capability shape', () => {
+    const definitions = mergeEdgeTypes(
+      {
+        nodes: [{ id: 'src/app.cpp', nodeType: 'file' }],
+        edges: [],
+      } as never,
+      [],
+      ['include', 'overrides'],
+    );
+
+    expect(definitions.map((definition) => definition.id)).toEqual([
+      'include',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'overrides',
+    ]);
+    expect(definitions.find((definition) => definition.id === 'overrides')).not.toHaveProperty('requiresEdgeType');
+  });
+
+  it('adds legacy reference and structural edges for file graphs without C++ override shape', () => {
+    const definitions = mergeEdgeTypes(
+      {
+        nodes: [{ id: 'src/app.ts', nodeType: 'file' }],
+        edges: [
+          { id: 'a-b', kind: 'import' },
+          { id: 'b-c', kind: 'pluginEdge' },
+        ],
+      } as never,
+      [
+        {
+          id: 'pluginEdge',
+          label: 'Plugin Edge',
+          defaultColor: '#445566',
+          defaultVisible: false,
+        },
+      ] as never,
+      ['reference'],
+    );
+
+    expect(definitions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'import' }),
+      expect.objectContaining({ id: 'reference' }),
+      expect.objectContaining({ id: STRUCTURAL_NESTS_EDGE_KIND }),
+      expect.objectContaining({ id: 'pluginEdge' }),
+    ]));
+  });
+
+  it('does not infer structural file edges when graph data has no file nodes', () => {
+    const definitions = mergeEdgeTypes(
+      {
+        nodes: [{ id: 'symbol', nodeType: 'symbol' }],
+        edges: [],
+      } as never,
+      [],
+      [],
+    );
+
+    expect(definitions).toEqual([]);
   });
 });

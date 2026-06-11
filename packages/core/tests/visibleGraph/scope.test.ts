@@ -462,6 +462,13 @@ describe('visibleGraph/scope', () => {
     ]))).toEqual(new Set(['function', 'method']));
   });
 
+  it('lets more specific symbol rows override broader disabled rows', () => {
+    expect(getDisabledSymbolKinds(scopeConfig([
+      { type: 'symbol:function', enabled: false },
+      { type: 'symbol:method', enabled: true },
+    ]))).toEqual(new Set(['function']));
+  });
+
   it('falls back to the symbol type suffix when no explicit kinds exist', () => {
     expect(getDisabledSymbolKinds(scopeConfig([
       { type: 'symbol:class', enabled: false },

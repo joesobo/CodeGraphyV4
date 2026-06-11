@@ -141,4 +141,38 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'symbol:class',
     ]);
   });
+
+  it('keeps empty and unknown capability requests empty', () => {
+    expect(listTreeSitterNodeTypeCapabilities()).toEqual([]);
+    expect(listTreeSitterEdgeTypeCapabilities(['src/readme.md'])).toEqual([]);
+    expect(listTreeSitterNodeTypeCapabilities(['src/readme.md'])).toEqual([]);
+  });
+
+  it('treats headers as C when C and Objective-C sources share a workspace', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.c',
+      'Sources/AppDelegate.m',
+      'include/shared.h',
+    ])).toEqual([
+      'include',
+      'call',
+      'contains',
+      'import',
+      'inherit',
+    ]);
+    expect(listTreeSitterNodeTypeCapabilities([
+      'src/main.c',
+      'Sources/AppDelegate.m',
+      'include/shared.h',
+    ])).toEqual([
+      'symbol:function',
+      'symbol:prototype',
+      'symbol:struct',
+      'symbol:union',
+      'symbol:enum',
+      'symbol:typedef',
+      'symbol:global',
+      'symbol:class',
+    ]);
+  });
 });
