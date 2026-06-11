@@ -16,6 +16,9 @@ import {
   resolveCppOverridePath,
   resolveCppOverrideSymbolId,
 } from '../../../src/treeSitter/runtime/analyzeCpp/relationOverrideResolution';
+import {
+  readTransitiveIncludedPaths,
+} from '../../../src/treeSitter/runtime/analyzeCpp/relationIncludeTraversal';
 import { isPureVirtualDeclaration, readContainingCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relationScopes';
 import { addCppTypeRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relationType';
 import { readCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relationTypeNames';
@@ -121,8 +124,8 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp relation boundary helpe
       type: 'qualified_identifier',
       text: 'taskrunner::Worker::run',
       namedChildren: [
-        createNode({ type: 'namespace_identifier', text: 'taskrunner' }),
-        createNode({ type: 'namespace_identifier', text: 'Worker' }),
+        identifier('taskrunner'),
+        identifier('Worker'),
         identifier('run'),
       ],
     });
@@ -315,13 +318,15 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp relation boundary helpe
   });
 
   it('keeps include declaration collection empty for missing includes', () => {
+    const missingPath = '/workspace/missing.hpp';
     const declarations = readCppIncludedDeclarations(
       createNode({ type: 'translation_unit' }),
       '/workspace/app.cpp',
       '/workspace',
-      [{ kind: 'include', resolvedPath: '/workspace/missing.hpp' } as IAnalysisRelation],
+      [{ kind: 'include', resolvedPath: missingPath } as IAnalysisRelation],
     );
 
+    expect(readTransitiveIncludedPaths([missingPath], '/workspace')).toEqual([missingPath]);
     expect(declarations).toEqual({
       functionPathByName: new Map(),
       functionSymbolIdByName: new Map(),

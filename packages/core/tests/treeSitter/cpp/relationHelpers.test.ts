@@ -224,6 +224,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp relation helpers', () =
         specifier: 'make_task',
         fromSymbolId: '/workspace/runner.cpp:function:run',
         toSymbolId: '/workspace/task.hpp:function:make_task',
+        metadata: expect.objectContaining({
+          bindingKind: 'named',
+          importedName: 'make_task',
+          localName: 'make_task',
+          memberName: 'make_task',
+        }),
       }),
       expect.objectContaining({
         kind: 'call',
@@ -231,6 +237,30 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp relation helpers', () =
         fromSymbolId: undefined,
       }),
     ]);
+  });
+
+  it('omits enclosing call symbol ids when the enclosing function has no name', () => {
+    const declarations = includedDeclarations({
+      functionPathByName: new Map([['make_task', '/workspace/task.hpp']]),
+      functionSymbolIdByName: new Map([['make_task', '/workspace/task.hpp:function:make_task']]),
+    });
+    const call = createNode({ type: 'call_expression', fields: { function: identifier('make_task') } });
+    createNode({
+      type: 'function_definition',
+      fields: { declarator: functionDeclarator(createNode({ type: 'destructor_name' })) },
+      namedChildren: [call],
+    });
+    const relations: IAnalysisRelation[] = [];
+
+    addCppCallRelation(call, '/workspace/runner.cpp', relations, declarations, true);
+
+    expect(relations).toHaveLength(1);
+    expect(relations[0]).toEqual(expect.objectContaining({
+      kind: 'call',
+      specifier: 'make_task',
+      toSymbolId: '/workspace/task.hpp:function:make_task',
+    }));
+    expect(relations[0]?.fromSymbolId).toBeUndefined();
   });
 
   it('reads declared free functions, defined free functions, methods, and declared types separately', () => {
@@ -423,9 +453,11 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp relation helpers', () =
     tempRoots.push(workspaceRoot);
     const first = path.join(workspaceRoot, 'include/first.hpp');
     const second = path.join(workspaceRoot, 'include/second.hpp');
+    const empty = path.join(workspaceRoot, 'include/empty.hpp');
     await fs.mkdir(path.dirname(first), { recursive: true });
     await fs.writeFile(first, '#include "second.hpp"\n#include "missing.hpp"\n', 'utf8');
     await fs.writeFile(second, '#include "first.hpp"\n', 'utf8');
+    await fs.writeFile(empty, 'int count;\n', 'utf8');
 
     expect(readInitialIncludedPaths([
       { kind: 'include', resolvedPath: first } as IAnalysisRelation,
@@ -433,6 +465,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp relation helpers', () =
       { kind: 'include', resolvedPath: null } as IAnalysisRelation,
     ])).toEqual([first]);
     expect(readTransitiveIncludedPaths([first], workspaceRoot)).toEqual([first, second]);
+    expect(readTransitiveIncludedPaths([empty], workspaceRoot)).toEqual([empty]);
     expect(readIncludedCppRootNode(path.join(workspaceRoot, 'missing.hpp'))).toBeNull();
   });
 });

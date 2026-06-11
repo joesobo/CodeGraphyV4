@@ -26,7 +26,7 @@ function visitCppNode(
 ): TreeWalkAction<CppSymbolWalkState> | void {
   if (node.type === 'preproc_include') {
     handleCInclude(node, filePath, workspaceRoot, relations, 'include');
-    return { skipChildren: true };
+    return;
   }
 
   if (!symbolsEnabled) {
