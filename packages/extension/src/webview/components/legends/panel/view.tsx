@@ -115,16 +115,19 @@ export default function LegendsPanel({
   }
 
   return (
-    <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-[30rem] max-w-[calc(100vw-2rem)] shadow-lg max-h-full flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
+    <section
+      className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-[30rem] max-w-[calc(100vw-2rem)] shadow-lg max-h-full flex flex-col overflow-hidden"
+      data-codegraphy-panel="legend"
+    >
+      <header className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0" data-codegraphy-region="panel-header">
         <span className="text-sm font-medium">Legends</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
           <MdiIcon path={mdiClose} size={16} />
         </Button>
-      </div>
+      </header>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="space-y-4 px-3 pb-3 pt-2">
+      <ScrollArea className="flex-1 min-h-0" data-codegraphy-region="panel-body">
+        <div className="space-y-4 px-3 pb-3 pt-2" data-codegraphy-region="legend-sections">
           <LegendSection
             title="Nodes"
             builtInEntries={displayNodeEntries}
@@ -189,6 +192,6 @@ export default function LegendsPanel({
           />
         </div>
       </ScrollArea>
-    </div>
+    </section>
   );
 }

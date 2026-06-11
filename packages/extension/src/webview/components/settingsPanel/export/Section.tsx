@@ -9,10 +9,10 @@ export function SettingsExportSection(): React.ReactElement {
   const pluginExporterGroups = buildPluginExporterGroups(pluginExporters);
 
   return (
-    <div className="mb-2 space-y-4">
+    <section className="mb-2 space-y-4" data-codegraphy-section="settings-export">
       <ExportSection title="Images" items={buildImageItems()} />
       <ExportSection title="Graph" items={buildGraphItems()} />
       <PluginExportSection groups={pluginExporterGroups} />
-    </div>
+    </section>
   );
 }

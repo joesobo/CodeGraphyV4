@@ -1,0 +1,33 @@
+/*
+ * Demo CodeGraphy CSS Snippet: quieter panels and search chrome.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/focus-mode-panel.css
+ *
+ * Then add "cssSnippets": [".codegraphy/snippets/focus-mode-panel.css"]
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-region='search-header'],
+[data-codegraphy-panel],
+[data-codegraphy-control='graph-toolbar'] {
+  border-color: rgba(148, 163, 184, 0.26);
+  background-color: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(16px);
+}
+
+[data-codegraphy-panel='graph-scope'],
+[data-codegraphy-panel='legend'],
+[data-codegraphy-panel='settings'],
+[data-codegraphy-panel='plugins'] {
+  box-shadow: 0 16px 48px rgba(2, 6, 23, 0.28);
+}
+
+[data-codegraphy-region='panel-header'] {
+  background-color: rgba(15, 23, 42, 0.44);
+}
+
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-state='timeline-indexing'] {
+  border-color: rgba(56, 189, 248, 0.42);
+}

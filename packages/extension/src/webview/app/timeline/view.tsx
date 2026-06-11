@@ -11,8 +11,11 @@ export default function TimelineApp(): React.ReactElement {
   }, [injectPluginAssets, pluginHost]);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+    <main
+      className="flex h-full min-h-0 w-full flex-col overflow-hidden"
+      data-codegraphy-surface="timeline-view"
+    >
       <Timeline pluginHost={pluginHost} />
-    </div>
+    </main>
   );
 }

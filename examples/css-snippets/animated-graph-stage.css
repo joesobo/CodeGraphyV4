@@ -1,0 +1,47 @@
+/*
+ * Demo CodeGraphy CSS Snippet: animated graph stage.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/animated-graph-stage.css
+ *
+ * Then add "cssSnippets": [".codegraphy/snippets/animated-graph-stage.css"]
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 16% 28%, rgba(56, 189, 248, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 18%, rgba(244, 114, 182, 0.16), transparent 30%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(20, 83, 45, 0.72));
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mix-blend-mode: screen;
+  opacity: 0.35;
+  animation: codegraphy-demo-grid-drift 14s linear infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-grid-drift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 42px 42px, 42px 42px;
+  }
+}

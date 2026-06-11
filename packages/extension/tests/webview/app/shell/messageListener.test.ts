@@ -126,6 +126,35 @@ describe('app message listener', () => {
     expect(handleExtensionMessage).not.toHaveBeenCalled();
   });
 
+  it('replaces css snippet stylesheets without forwarding to the graph store', () => {
+    document.head.innerHTML = '';
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
+    const handleExtensionMessage = vi.fn();
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+
+    const handler = createMessageHandler(injectPluginAssets, pluginHost);
+
+    handler({
+      data: {
+        type: 'CSS_SNIPPETS_UPDATED',
+        payload: { stylesheets: ['webview://base.css', 123, 'webview://override.css'] },
+      },
+    } as MessageEvent<unknown>);
+
+    expect(Array.from(
+      document.head.querySelectorAll('link[data-codegraphy-css-snippet="true"]'),
+    ).map(link => (link as HTMLLinkElement).href)).toEqual([
+      'webview://base.css',
+      'webview://override.css',
+    ]);
+    expect(injectPluginAssets).not.toHaveBeenCalled();
+    expect(pluginHost.deliverMessage).not.toHaveBeenCalled();
+    expect(handleExtensionMessage).not.toHaveBeenCalled();
+  });
+
   it('removes disabled plugin registrations before forwarding plugin status updates', () => {
     const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
     const pluginHost = {

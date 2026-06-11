@@ -28,14 +28,16 @@ export function SearchBar({
   const showResults = Boolean(countLabel) || (value.length > 0 && resultCount !== undefined && totalCount !== undefined);
 
   return (
-    <div
+    <form
       className={cn(
         'relative rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-popover-translucent)] p-2 shadow-sm backdrop-blur-sm',
         className,
       )}
+      data-codegraphy-control="search"
+      onSubmit={event => event.preventDefault()}
     >
-      <div className="flex flex-wrap items-center gap-2">
-      <div className="relative flex min-w-0 flex-1 items-center">
+      <div className="flex flex-wrap items-center gap-2" data-codegraphy-region="search-controls">
+      <div className="relative flex min-w-0 flex-1 items-center" data-codegraphy-control="search-field">
         <MdiIcon path={mdiMagnify} size={16} className="absolute left-3 text-[var(--cg-input-placeholder)]" />
         <input
           ref={inputRef}
@@ -65,13 +67,13 @@ export function SearchBar({
           onClear={handleClear}
         />
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1" data-codegraphy-control="search-options">
         <ToggleButton active={options.matchCase} onClick={() => toggleOption('matchCase')} title="Match Case" shortcut="Alt+C">Aa</ToggleButton>
         <ToggleButton active={options.wholeWord} onClick={() => toggleOption('wholeWord')} title="Match Whole Word" shortcut="Alt+W">Ab</ToggleButton>
         <ToggleButton active={options.regex} onClick={() => toggleOption('regex')} title="Use Regular Expression" shortcut="Alt+R" hasError={!!regexError}>.*</ToggleButton>
       </div>
       {filterPopover && <FilterPopover {...filterPopover} />}
       </div>
-    </div>
+    </form>
   );
 }

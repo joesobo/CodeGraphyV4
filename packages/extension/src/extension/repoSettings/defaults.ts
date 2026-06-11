@@ -19,6 +19,7 @@ export interface ICodeGraphyRepoSettings {
   include: string[];
   respectGitignore: boolean;
   showOrphans: boolean;
+  cssSnippets: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
   pluginData: Record<string, unknown>;
   nodeColors: Record<string, string>;
@@ -63,6 +64,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     include: ['**/*'],
     respectGitignore: true,
     showOrphans: true,
+    cssSnippets: [],
     plugins: [{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
       enabled: true,
