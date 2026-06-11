@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Paused for human mutation decision. PR CI is green at `a173f0d2`, focused split Graph Scope acceptance is green, and current-head scoped C++ analyzer mutation remains `68.52%`.
+- State: Human rejected the scoped mutation exception; Architect is routed to improve PR-touched mutation-capable files until scoped mutation reaches the acceptable `>=90%` threshold on the Mac mini.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Human decides whether to accept the recorded scoped mutation exception for this pilot and move to final human review, or route a dedicated broader Architect mutation campaign for the C++ analyzer.
+- Next route: Architect continues the mutation campaign on `codegraphy-mini`, using scoped mutation tests for PR-touched mutation-capable source files and recording explicit exclusions for non-mutation targets.
 
 ## Human Gates
 
@@ -1488,3 +1488,21 @@
 - Human decision needed:
   - Accept the recorded scoped mutation exception for this pilot and move the PR to final human review, or
   - Route a dedicated broader Architect mutation campaign for the C++ analyzer.
+
+### 2026-06-11T17:59:22Z - Orchestrator Routes Broader Mutation Campaign
+
+- Source: user decision after mutation gate.
+- Target: current Architect subagent for mutation improvement.
+- Result: mutation exception is not accepted for this pilot.
+- User decision:
+  - Continue with the current Architect subagent.
+  - Improve mutation testing until the acceptable threshold of `90%` is reached.
+  - This should apply to all touched files in this PR, using scoped mutation tests on the Mac mini.
+- Orchestrator target interpretation:
+  - `git diff --name-only origin/main...HEAD` currently reports `62` changed files.
+  - `52` changed files are production TS/TSX source files.
+  - `40` changed files are under `packages/core/src/treeSitter/runtime/analyzeCpp`.
+  - Architect should target PR-touched mutation-capable source files with scoped mutation and explicitly record any touched files excluded because they are docs, examples, generated output, tests, acceptance Markdown, C++ example source, or otherwise not mutation-tool targets.
+- Route:
+  - Architect should run mutation on `codegraphy-mini`, not the MacBook.
+  - Architect should make focused code/test changes until the scoped mutation target reaches `>=90%`, while preserving the accepted behavior and human-owned acceptance specs.
