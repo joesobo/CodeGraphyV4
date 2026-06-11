@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Generated Playwright acceptance output is pushed and stale Widget references are cleared; focused Graph interactions still has three acceptance-contract reds that need a Specifier draft; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Human-approved remaining Graph Scope spec corrections are committed locally in `a637449e`; generated Playwright acceptance output is dirty and needs Coder regeneration/validation; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Specifier drafts local, uncommitted updates for the remaining split Graph Scope spec reds, then returns for human review before generated output is regenerated again.
+- Next route: Coder validates/regenerates generated Playwright acceptance output for the approved remaining Graph Scope spec corrections, runs focused Graph interactions, and reports whether the split-suite reds are cleared.
 
 ## Human Gates
 
@@ -1324,3 +1324,21 @@
   - Needs human review before generated acceptance output is regenerated or committed.
 - Open questions:
   - None from Specifier; next route after human approval should be Coder regeneration/focused validation.
+
+### 2026-06-11T17:16:37Z - Orchestrator Accepts Remaining Graph Scope Spec Draft
+
+- Source: user said to continue the loop after the Specifier draft was presented for human review.
+- Target: approved human-owned acceptance Markdown plus next Coder route.
+- Result: committed the reviewed remaining Graph Scope spec corrections in `a637449e` (`orchestrator: accept remaining graph scope spec draft`).
+- Files committed:
+  - `packages/extension/tests/acceptance/specs/graph-scope-edge-types.md`
+  - `packages/extension/tests/acceptance/specs/graph-scope-node-types.md`
+  - `docs/handoff/196-cpp-upgrade.md`
+- Guard/verification:
+  - Initial commit attempt correctly failed the human-owned acceptance-spec guard.
+  - Reran the same commit with `ALLOW_ACCEPTANCE_SPEC_EDITS=1` because the user had explicitly approved continuing the reviewed spec draft.
+  - Pre-commit checks passed: acceptance-spec guard, full workspace typecheck through Turbo, and lint-staged.
+- Current dirty state:
+  - `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts` is modified by generated acceptance output and intentionally left unstaged for Coder validation.
+- Next route:
+  - Coder should regenerate/validate generated output, commit it with a `coder:` prefix, run focused Graph interactions on `codegraphy-mini`, then return to Orchestrator.
