@@ -31,6 +31,7 @@ function createSnapshot(
     legendOrder: [],
     particleSpeed: 0.005,
     particleSize: 4,
+    backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     showLabels: true,
     nodeSizeMode: 'uniform',
     maxFiles: 500,

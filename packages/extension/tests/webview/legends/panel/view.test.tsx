@@ -25,6 +25,7 @@ describe('LegendsPanel', () => {
       legends: [],
       optimisticLegendUpdates: {},
       optimisticUserLegends: null,
+      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     });
   });
 
@@ -282,6 +283,50 @@ describe('LegendsPanel', () => {
     expect(screen.queryByText('Rules')).not.toBeInTheDocument();
     expect(screen.getByDisplayValue('*/tests/**')).toBeInTheDocument();
     expect(screen.getByDisplayValue('src/**')).toBeInTheDocument();
+  });
+
+  it('toggles graph background effect presets from the theme panel', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [],
+      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle Embers background effect'));
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_BACKGROUND_EFFECTS',
+      payload: {
+        backgroundEffects: {
+          enabled: true,
+          preset: 'embers',
+          intensity: 1,
+        },
+      },
+    });
+    expect(graphStore.getState().backgroundEffects).toEqual({
+      enabled: true,
+      preset: 'embers',
+      intensity: 1,
+    });
+
+    fireEvent.click(screen.getByLabelText('Toggle Embers background effect'));
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_BACKGROUND_EFFECTS',
+      payload: {
+        backgroundEffects: {
+          enabled: false,
+          preset: 'none',
+          intensity: 1,
+        },
+      },
+    });
   });
 
   it('shows plugin default legend rules without exposing delete controls', () => {

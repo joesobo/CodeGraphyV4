@@ -7,6 +7,7 @@ export function createScalarActions(set: SetState) {
     setDirectionColor: (color: string) => set({ directionColor: color }),
     setParticleSpeed: (speed: number) => set({ particleSpeed: speed }),
     setParticleSize: (size: number) => set({ particleSize: size }),
+    setBackgroundEffects: (backgroundEffects: GraphState['backgroundEffects']) => set({ backgroundEffects }),
     setPhysicsPaused: (paused: boolean) => set({ physicsPaused: paused }),
     setBidirectionalMode: (mode: GraphState['bidirectionalMode']) => set({ bidirectionalMode: mode }),
     setDepthMode: (depthMode: boolean) => set({ depthMode }),

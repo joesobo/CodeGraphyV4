@@ -13,6 +13,7 @@ import type {
   NodeSizeMode,
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
+import type { BackgroundEffectsSettings } from '../settings/backgroundEffects';
 import type { IGroup } from '../settings/groups';
 import type { ITimelineData } from '../timeline/contracts';
 
@@ -96,6 +97,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
   | { type: 'VERBOSE_DIAGNOSTICS_UPDATED'; payload: { verboseDiagnostics: boolean } }
   | { type: 'CSS_SNIPPETS_UPDATED'; payload: { stylesheets: string[] } }
+  | { type: 'BACKGROUND_EFFECTS_UPDATED'; payload: { backgroundEffects: BackgroundEffectsSettings } }
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
   | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'TIMELINE_DATA'; payload: ITimelineData }

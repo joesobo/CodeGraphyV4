@@ -87,7 +87,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
   const handleMouseMoveCapture = vi.fn();
   const handleMouseUpCapture = vi.fn();
 
-  render(
+  const result = render(
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
@@ -95,6 +95,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
       graphMode="2d"
+      backgroundEffects={{ enabled: false, preset: 'none', intensity: 1 }}
       handleContextMenu={handleContextMenu}
       handleMenuAction={handleMenuAction}
       handleMouseDownCapture={handleMouseDownCapture}
@@ -141,7 +142,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     />,
   );
 
-  return { handleContextMenu, handleMouseLeave, handleMenuAction, handleMouseDownCapture, handleMouseMoveCapture, handleMouseUpCapture };
+  return { ...result, handleContextMenu, handleMouseLeave, handleMenuAction, handleMouseDownCapture, handleMouseMoveCapture, handleMouseUpCapture };
 }
 
 describe('Viewport tooltip count mutations (L111-112)', () => {
@@ -151,5 +152,21 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
       renderViewport({ graphMode: '2d' });
       expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
       expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
+    });
+
+    it('renders enabled background effects behind the graph surface without pointer events', () => {
+      const { container } = renderViewport({
+        backgroundEffects: { enabled: true, preset: 'embers', intensity: 0.5 },
+      });
+
+      const effectLayer = screen.getByTestId('graph-background-effects');
+      const surface = screen.getByTestId('surface-2d');
+
+      expect(effectLayer).toHaveAttribute('data-effect-preset', 'embers');
+      expect(effectLayer).toHaveStyle({ pointerEvents: 'none' });
+      expect(Array.from(container.querySelector('[aria-label="Graph Stage"]')?.children ?? [])).toEqual(
+        expect.arrayContaining([effectLayer, surface]),
+      );
+      expect(effectLayer.compareDocumentPosition(surface) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 });

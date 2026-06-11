@@ -3,6 +3,10 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
+  DEFAULT_BACKGROUND_EFFECTS,
+  type BackgroundEffectsSettings,
+} from '../../shared/settings/backgroundEffects';
+import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
@@ -20,6 +24,7 @@ export interface ICodeGraphyRepoSettings {
   respectGitignore: boolean;
   showOrphans: boolean;
   cssSnippets: Record<string, boolean>;
+  backgroundEffects: BackgroundEffectsSettings;
   plugins: CodeGraphyWorkspacePluginSettings[];
   pluginData: Record<string, unknown>;
   nodeColors: Record<string, string>;
@@ -65,6 +70,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     respectGitignore: true,
     showOrphans: true,
     cssSnippets: {},
+    backgroundEffects: DEFAULT_BACKGROUND_EFFECTS,
     plugins: [{
       id: CODEGRAPHY_MARKDOWN_PLUGIN_ID,
       enabled: true,

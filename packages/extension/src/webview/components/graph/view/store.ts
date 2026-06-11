@@ -4,6 +4,7 @@ import type { GraphState } from '../../../store/state';
 export type GraphViewStoreState = Pick<
   GraphState,
   | 'bidirectionalMode'
+  | 'backgroundEffects'
   | 'currentCommitSha'
   | 'dagMode'
   | 'directionMode'
@@ -26,6 +27,7 @@ export type GraphViewStoreState = Pick<
 export function useGraphViewStoreState(): GraphViewStoreState {
   return {
     bidirectionalMode: useGraphStore(state => state.bidirectionalMode),
+    backgroundEffects: useGraphStore(state => state.backgroundEffects),
     currentCommitSha: useGraphStore(state => state.currentCommitSha),
     dagMode: useGraphStore(state => state.dagMode),
     depthMode: useGraphStore(state => state.depthMode),

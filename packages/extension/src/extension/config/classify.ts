@@ -45,6 +45,7 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
     'codegraphy.nodeVisibility',
     'codegraphy.edgeVisibility',
     'codegraphy.cssSnippets',
+    'codegraphy.backgroundEffects',
   )) {
     return 'display';
   }

@@ -6,6 +6,7 @@ import type {
   NodeSizeMode,
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
+import type { BackgroundEffectsSettings } from '../settings/backgroundEffects';
 
 export interface GraphItemCreatePayload {
   directory: string;
@@ -72,6 +73,7 @@ export type WebviewToExtensionMessage =
       type: 'UPDATE_PARTICLE_SETTING';
       payload: { key: 'particleSpeed' | 'particleSize'; value: number };
     }
+  | { type: 'UPDATE_BACKGROUND_EFFECTS'; payload: { backgroundEffects: BackgroundEffectsSettings } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; packageName?: string; enabled: boolean } }

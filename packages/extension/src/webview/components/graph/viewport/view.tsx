@@ -26,14 +26,20 @@ import {
 import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
+import { GraphBackgroundEffects } from '../backgroundEffects/view';
 import type { GraphAccessibilityItems } from './accessibility';
 import type { FGLink, FGNode } from '../model/build';
+import {
+  DEFAULT_BACKGROUND_EFFECTS,
+  type BackgroundEffectsSettings,
+} from '../../../../shared/settings/backgroundEffects';
 
 export interface ViewportProps {
   accessibilityItems?: GraphAccessibilityItems;
   canvasBackgroundColor: string;
   containerBackgroundColor: string;
   borderColor: string;
+  backgroundEffects?: BackgroundEffectsSettings;
   containerRef: Ref<HTMLDivElement>;
   directionMode: DirectionMode;
   graphMode: '2d' | '3d';
@@ -229,6 +235,7 @@ export function Viewport({
   canvasBackgroundColor,
   containerBackgroundColor,
   borderColor,
+  backgroundEffects = DEFAULT_BACKGROUND_EFFECTS,
   containerRef,
   directionMode,
   graphMode,
@@ -267,6 +274,7 @@ export function Viewport({
           aria-label="Graph Stage"
           tabIndex={0}
         >
+          <GraphBackgroundEffects settings={backgroundEffects} />
           <ViewportSurface
             canvasBackgroundColor={canvasBackgroundColor}
             directionMode={directionMode}

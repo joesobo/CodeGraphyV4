@@ -7,6 +7,7 @@ import { applyGraphControlMessage } from '../controls';
 import { applyFilterPatternsUpdate } from '../filterPatterns';
 import { applyShowLabelsUpdate } from '../labels';
 import { applySimpleSettingsUpdate } from '../simple';
+import { applyBackgroundEffectsMessage } from './backgroundEffects';
 import { applyParticleSettingMessage } from './particle';
 
 export async function applyDirectSettingsUpdateMessage(
@@ -33,6 +34,10 @@ export async function applyStatelessSettingsUpdateMessage(
   }
 
   if (await applyParticleSettingMessage(message, handlers)) {
+    return true;
+  }
+
+  if (await applyBackgroundEffectsMessage(message, handlers)) {
     return true;
   }
 

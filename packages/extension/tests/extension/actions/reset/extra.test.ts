@@ -68,6 +68,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     legendOrder: [],
     particleSpeed: 0.001,
     particleSize: 4,
+    backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     showLabels: true,
     maxFiles: 500,
     verboseDiagnostics: false,
@@ -95,6 +96,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       legendOrder: [],
       particleSpeed: 0.001,
       particleSize: 4,
+      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
       showLabels: true,
       maxFiles: 500,
       verboseDiagnostics: false,
@@ -163,6 +165,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('edgeVisibility');
     expect(updatedKeys).toContain('particleSpeed');
     expect(updatedKeys).toContain('particleSize');
+    expect(updatedKeys).toContain('backgroundEffects');
     expect(updatedKeys).toContain('showLabels');
     expect(updatedKeys).toContain('maxFiles');
     expect(updatedKeys).toContain('nodeSizeMode');

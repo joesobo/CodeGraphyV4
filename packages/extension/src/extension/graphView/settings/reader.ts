@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR, normalizeHexColor } from '../../../shared/fileColors';
+import {
+  DEFAULT_BACKGROUND_EFFECTS,
+  normalizeBackgroundEffectsSettings,
+  type BackgroundEffectsSettings,
+} from '../../../shared/settings/backgroundEffects';
 import type { BidirectionalEdgeMode, DirectionMode } from '../../../shared/settings/modes';
 
 export interface IGraphViewSettingsSnapshot {
@@ -9,6 +14,7 @@ export interface IGraphViewSettingsSnapshot {
   particleSpeed: number;
   particleSize: number;
   directionColor: string;
+  backgroundEffects: BackgroundEffectsSettings;
   showLabels: boolean;
 }
 
@@ -43,6 +49,9 @@ export function readGraphViewSettings(
     particleSize: config.get<number>('particleSize', 4),
     directionColor: normalizeDirectionColor(
       config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)
+    ),
+    backgroundEffects: normalizeBackgroundEffectsSettings(
+      config.get('backgroundEffects', DEFAULT_BACKGROUND_EFFECTS),
     ),
     showLabels: config.get<boolean>('showLabels', true),
   };
