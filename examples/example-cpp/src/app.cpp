@@ -1,16 +1,22 @@
-#include "lib/widget.hpp"
-#include <vector>
+#include "runner.hpp"
+#include "seed.hpp"
+#include "worker.hpp"
 
-class Runner : public Widget {
-public:
-  void render() override {}
-  void run() {}
-};
+#include <cstddef>
+#include <iostream>
+#include <utility>
 
-int boot() {
-  Runner runner;
-  Widget widget = make_widget();
-  widget.render();
-  runner.run();
-  return 0;
+int main() {
+  taskrunner::ConsoleWorker worker;
+  taskrunner::TaskRunner runner(worker);
+  taskrunner::TaskList tasks = taskrunner::seed_tasks();
+
+  for (taskrunner::Task& task : tasks) {
+    runner.enqueue(std::move(task));
+  }
+
+  const std::size_t completed = runner.run();
+  std::cout << "completed " << completed << " task(s)\n";
+
+  return runner.idle() ? 0 : 1;
 }

@@ -10,7 +10,7 @@
   "plugins": [
     {
       "id": "codegraphy.markdown",
-      "enabled": true
+      "enabled": false
     }
   ],
   "pluginData": {},
@@ -60,7 +60,9 @@
   "legend": [],
   "legendVisibility": {},
   "legendOrder": [],
-  "filterPatterns": [],
+  "filterPatterns": [
+    "**/build/**"
+  ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
   "showLabels": true,

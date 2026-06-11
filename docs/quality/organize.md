@@ -12,8 +12,12 @@ pnpm run organize -- some/arbitrary/dir/
 ```
 
 The root command dogfoods the external `@poleski/quality-tools` analyzer and
-prints the current repo-wide advisory report. Pass a package, directory, or file
-target when you want a narrower report.
+checks the current repo-wide report against the tracked baseline in
+`docs/quality/baselines/organize-repo.json`. It prints only new or worsened root
+findings so historical advisory output stays written down without drowning out
+new organization debt. Pass a package, directory, file target, `--json`,
+`--verbose`, `--compare`, or `--write-baseline` when you want the raw analyzer
+report instead of the root baseline check.
 
 ## What it measures
 
@@ -69,4 +73,11 @@ All thresholds are configurable in quality.config.json under the organize key.
 2. Read the report — focus on SPLIT and WARNING directories
 3. Restructure: create subfolders for cohesion clusters, rename redundant files, remove barrel files
 4. Run the same target again to verify improvements
-5. Run `pnpm run organize -- .` when you want the repo-wide advisory report
+5. Run `pnpm run organize -- .` when you want the repo-wide baseline check
+
+When an intentional cleanup improves the repo-wide baseline, regenerate the
+tracked root baseline after the cleanup:
+
+```bash
+pnpm --silent exec quality-tools organize . --json > docs/quality/baselines/organize-repo.json
+```

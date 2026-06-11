@@ -24,6 +24,42 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:namespace',
+      label: 'Namespace',
+      defaultColor: '#64748B',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['namespace'],
+      description: {
+        description: 'Named scopes that group related code declarations.',
+        examples: [{ label: 'C++', code: 'namespace taskrunner {}' }],
+      },
+    },
+    {
+      id: 'symbol:callable',
+      label: 'Callable',
+      defaultColor: '#8B5CF6',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['function'],
+      description: {
+        description: 'Free functions and other callable declarations that are not class methods.',
+        examples: [{ label: 'C++', code: 'TaskList seed_tasks();' }],
+      },
+    },
+    {
+      id: 'symbol:method',
+      label: 'Method',
+      defaultColor: '#A855F7',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['method'],
+      description: {
+        description: 'Callable members that belong to a class or similar type.',
+        examples: [{ label: 'C++', code: 'std::size_t TaskRunner::run() {}' }],
+      },
+    },
+    {
       id: 'symbol:prototype',
       label: 'Prototype',
       defaultColor: '#A78BFA',
@@ -117,6 +153,30 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       description: {
         description: 'C typedef declarations that introduce an alias for a named type.',
         examples: [{ label: 'C', code: 'typedef struct Logger Logger;' }],
+      },
+    },
+    {
+      id: 'symbol:alias',
+      label: 'Alias',
+      defaultColor: '#F472B6',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['alias'],
+      description: {
+        description: 'Named aliases introduced for another type.',
+        examples: [{ label: 'C++', code: 'using TaskId = std::uint64_t;' }],
+      },
+    },
+    {
+      id: 'symbol:template',
+      label: 'Template',
+      defaultColor: '#C084FC',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['template'],
+      description: {
+        description: 'Template declarations that define reusable generic code.',
+        examples: [{ label: 'C++', code: 'template <typename Item> class TaskQueue {};' }],
       },
     },
   ];

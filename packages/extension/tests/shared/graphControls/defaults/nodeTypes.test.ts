@@ -47,6 +47,30 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['function', 'method'],
       },
       {
+        id: 'symbol:namespace',
+        label: 'Namespace',
+        defaultColor: '#64748B',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['namespace'],
+      },
+      {
+        id: 'symbol:callable',
+        label: 'Callable',
+        defaultColor: '#8B5CF6',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['function'],
+      },
+      {
+        id: 'symbol:method',
+        label: 'Method',
+        defaultColor: '#A855F7',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['method'],
+      },
+      {
         id: 'symbol:prototype',
         label: 'Prototype',
         defaultColor: '#A78BFA',
@@ -60,6 +84,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#3B82F6',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['class'],
       },
       {
         id: 'symbol:interface',
@@ -67,6 +92,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#06B6D4',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['interface'],
       },
       {
         id: 'symbol:type',
@@ -74,6 +100,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#EC4899',
         defaultVisible: false,
         parentId: 'symbol',
+        matchSymbolKinds: ['type'],
       },
       {
         id: 'symbol:struct',
@@ -108,6 +135,22 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['typedef'],
       },
       {
+        id: 'symbol:alias',
+        label: 'Alias',
+        defaultColor: '#F472B6',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['alias'],
+      },
+      {
+        id: 'symbol:template',
+        label: 'Template',
+        defaultColor: '#C084FC',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['template'],
+      },
+      {
         id: 'variable',
         label: 'Variable',
         defaultColor: '#14B8A6',
@@ -131,6 +174,30 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['global'],
       },
       {
+        id: 'symbol:field',
+        label: 'Field',
+        defaultColor: '#84CC16',
+        defaultVisible: false,
+        parentId: 'variable',
+        matchSymbolKinds: ['field'],
+      },
+      {
+        id: 'symbol:parameter',
+        label: 'Parameter',
+        defaultColor: '#2DD4BF',
+        defaultVisible: false,
+        parentId: 'variable',
+        matchSymbolKinds: ['parameter'],
+      },
+      {
+        id: 'symbol:local',
+        label: 'Local',
+        defaultColor: '#10B981',
+        defaultVisible: false,
+        parentId: 'variable',
+        matchSymbolKinds: ['local'],
+      },
+      {
         id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
         label: 'Godot class_name',
         defaultColor: '#478CBF',
@@ -149,10 +216,24 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
       .toBe('src/components/Button.tsx');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:function')?.description?.examples?.[0]?.code)
       .toBe('function parseSettings() {}');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:namespace')?.description?.examples?.[0]?.code)
+      .toBe('namespace taskrunner {}');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:method')?.description?.examples?.[0]?.code)
+      .toBe('std::size_t TaskRunner::run() {}');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:prototype')?.description?.examples?.[0]?.code)
       .toBe('void logger_flush(Logger *logger);');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:alias')?.description?.examples?.[0]?.code)
+      .toBe('using TaskId = std::uint64_t;');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:template')?.description?.examples?.[0]?.code)
+      .toBe('template <typename Item> class TaskQueue {};');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:global')?.description?.examples?.[0]?.code)
       .toBe('static int logger_output_enabled = 1;');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:field')?.description?.examples?.[0]?.code)
+      .toBe('PendingTaskQueue queue_;');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:parameter')?.description?.examples?.[0]?.code)
+      .toBe('void enqueue(Task task);');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:local')?.description?.examples?.[0]?.code)
+      .toBe('TaskList tasks;');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol')?.description?.examples).toBeUndefined();
     expect(nodeTypes.find((nodeType) => nodeType.id === 'variable')?.description?.examples).toBeUndefined();
     expect(CORE_GRAPH_NODE_TYPES).toEqual(createCoreGraphNodeTypes());
