@@ -2,6 +2,15 @@ packages:
   - "packages/*"
   - "apps/*"
   - "examples/*"
+overrides:
+  "ajv>fast-uri": "3.1.2"
+  "hono@<4.12.21": "4.12.25"
+  "ip-address@<=10.1.0": "10.2.0"
+  "lodash-es@>=4.0.0 <=4.17.23": "4.18.1"
+  "picomatch@>=4.0.0 <4.0.4": "4.0.4"
+  "postcss@<8.5.10": "8.5.15"
+  "qs@>=6.11.1 <=6.15.1": "6.15.2"
+  "yaml@>=2.0.0 <2.8.3": "2.8.3"
 onlyBuiltDependencies:
   - "@poleski/quality-tools"
 allowBuilds:
