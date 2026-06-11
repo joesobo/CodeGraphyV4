@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Human-approved remaining Graph Scope spec corrections are committed locally in `a637449e`; generated Playwright acceptance output is dirty and needs Coder regeneration/validation; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Generated Playwright acceptance output for the remaining Graph Scope spec corrections is validated, committed, and pushed in `7fb34cbf`; the focused split Graph Scope interactions slice is green on `codegraphy-mini`; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Coder validates/regenerates generated Playwright acceptance output for the approved remaining Graph Scope spec corrections, runs focused Graph interactions, and reports whether the split-suite reds are cleared.
+- Next route: Orchestrator verifies PR/CI state and decides the separate `68.52%` mutation decision or next loop route.
 
 ## Human Gates
 
@@ -1342,3 +1342,43 @@
   - `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts` is modified by generated acceptance output and intentionally left unstaged for Coder validation.
 - Next route:
   - Coder should regenerate/validate generated output, commit it with a `coder:` prefix, run focused Graph interactions on `codegraphy-mini`, then return to Orchestrator.
+
+### 2026-06-11T17:25:24Z - Coder Validates Remaining Graph Scope Generated Output
+
+- Source: Coder route after approved spec commit `a637449e` and Orchestrator route commit `ee27659a`.
+- Target: generated Playwright acceptance output and focused split Graph Scope acceptance validation.
+- Result: generated output is valid and pushed; focused split Graph Scope interactions are green on `codegraphy-mini`.
+- Files changed:
+  - `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`
+  - `docs/handoff/196-cpp-upgrade.md`
+- Scope held:
+  - No human-owned acceptance Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited by Coder.
+  - No production code, step bindings, fixtures, or changesets were edited.
+- Generated-output validation:
+  - `pnpm --filter @codegraphy-dev/extension run generate:acceptance` passed.
+  - `git diff --check` passed before the generated-output commit.
+  - `pnpm --filter @codegraphy-dev/extension run typecheck` passed; it reran acceptance generation and typechecked extension source, extension tests, and Playwright tests.
+  - The regenerated file reflects the approved corrections:
+    - `Calls edges work` expects `6 connections`.
+    - `Nests edges work` expects `14 connections`.
+    - `Function node type works` opens `examples/example-c`.
+  - Commit hook for `7fb34cbf` passed acceptance-spec ownership guard, full workspace `pnpm run typecheck` through Turbo, and lint-staged `eslint --fix` on the generated file.
+- Commits and pushes:
+  - `7fb34cbf` (`coder: regenerate graph scope acceptance corrections`) pushed to `origin/codex/196-cpp-upgrade`.
+- Heavy check host:
+  - Host: `codegraphy-mini` / `Poleskis-Mac-mini.local`
+  - Path: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Runtime: Node `v22.22.2`, pnpm `10.32.0`
+  - Remote worktree was clean, fetched, and fast-forwarded to `7fb34cbf`.
+- Remote commands:
+  - `pnpm --filter @codegraphy-dev/extension run build:vscode` passed on `codegraphy-mini`.
+  - `CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE=interactions CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS=1 pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "Graph Scope (Edge|Node) Types"` passed with `33 passed (3.0m)`.
+- Previous split-suite reds:
+  - `Graph Scope Edge Types › Calls edges work` is cleared.
+  - `Graph Scope Edge Types › Nests edges work` is cleared.
+  - `Graph Scope Node Types › Function node type works` is cleared.
+- Remaining blockers:
+  - No Coder-owned generated-output or focused split Graph Scope acceptance blocker remains.
+  - Separate Orchestrator/Architect decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- Return route:
+  - Return to Orchestrator for PR/CI verification and mutation decision routing.
