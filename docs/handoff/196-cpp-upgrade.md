@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Generated Playwright acceptance output for the remaining Graph Scope spec corrections is validated, committed, and pushed in `7fb34cbf`; the focused split Graph Scope interactions slice is green on `codegraphy-mini`; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Focused split Graph Scope acceptance is green after generated output regeneration; CI is running at `d45b3ad6`; remaining loop work is Architect-owned mutation/final-readiness for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Orchestrator verifies PR/CI state and decides the separate `68.52%` mutation decision or next loop route.
+- Next route: Architect reassesses mutation/final readiness, verifies CI, and either makes bounded measurable mutation progress or returns a human decision gate with exact evidence.
 
 ## Human Gates
 
@@ -1382,3 +1382,32 @@
   - Separate Orchestrator/Architect decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Return route:
   - Return to Orchestrator for PR/CI verification and mutation decision routing.
+
+### 2026-06-11T17:28:35Z - Orchestrator Verifies Coder Green Evidence And Routes Architect
+
+- Source: Orchestrator verification after Coder handoff.
+- Target: Architect mutation/final-readiness route.
+- Result: generated-output and focused acceptance blockers are cleared; mutation/final-readiness remains.
+- Branch state verified:
+  - Local worktree clean at `d45b3ad6`.
+  - `origin/codex/196-cpp-upgrade` points to `d45b3ad6`.
+  - `codegraphy-mini` worktree clean at `d45b3ad6`.
+  - Coder commits `7fb34cbf` and `d45b3ad6` are pushed.
+- Verification checks:
+  - `git status --short --branch`
+  - `git log --oneline --decorate -8`
+  - `git ls-remote origin refs/heads/codex/196-cpp-upgrade`
+  - `ssh codegraphy-mini '... git status --short --branch && git log --oneline -3'`
+  - `tail -n 120 docs/handoff/196-cpp-upgrade.md`
+  - `gh pr view 263 --json headRefOid,mergeStateStatus,statusCheckRollup,url,title,isDraft`
+- Evidence:
+  - Coder reported `pnpm --filter @codegraphy-dev/extension run generate:acceptance`, `git diff --check`, and `pnpm --filter @codegraphy-dev/extension run typecheck` passed.
+  - Coder reported `codegraphy-mini` `build:vscode` passed.
+  - Coder reported focused split Graph Scope Playwright passed with `33 passed (3.0m)`.
+  - PR CI at head `d45b3ad6` had many fast checks green; long VSIX/native/Playwright checks were still in progress during Orchestrator verification.
+- Remaining blocker:
+  - Architect previously resolved mutation site-count threshold but scoped C++ analyzer mutation remains `68.52%`, below the `>=90%` standard.
+- Routing decision:
+  - Route Architect for final mutation/readiness pass.
+  - Architect must not edit accepted human-owned acceptance specs.
+  - Architect should use existing mutation evidence and remote Mac mini for heavy checks, make bounded measurable mutation progress if feasible, and return to Orchestrator with exact evidence if the remaining gap requires a human decision rather than a same-card fix.
