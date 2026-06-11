@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Human-reviewed C++ acceptance spec committed; ready to route Coder for implementation.
+- State: Coder implementation for the reviewed C++ acceptance contract is verified locally and on `codegraphy-mini`; ready to route Refactorer for non-mutation quality gates.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Coder implements the committed C++ acceptance contract, then Orchestrator verifies before review/refactor routing.
+- Next route: Refactorer runs behavior-preserving quality cleanup and non-mutation quality gates, then Orchestrator verifies before Architect routing.
 
 ## Human Gates
 
@@ -692,3 +692,73 @@
 - Scope held:
   - Only `cpp-example.md` acceptance Markdown and this handoff note were edited.
   - No generated Playwright, step bindings, Core analyzer, Graph Scope production code, commit, or push.
+
+### 2026-06-11T01:56:41Z - Coder Implementation Verified And Refactorer Routed
+
+- Source: Coder role agent `019eb425-e097-7aa2-894d-0fa0e575aa35` (`Volta`).
+- Target: C++ analyzer, Graph Scope controls, generated acceptance support, and tests for the reviewed C++ acceptance contract.
+- Result: Coder implementation was committed, pushed, and verified by Orchestrator; next route is Refactorer.
+- Coder commit:
+  - `2562e7dd` (`coder: implement cpp acceptance contract`), pushed to `origin/codex/196-cpp-upgrade`.
+- Scope changed:
+  - Added Core C++ symbol/variable analysis for approved visible controls.
+  - Added visible Graph Scope controls for approved C++ node and edge types.
+  - Switched C++ local include relationships to the `Include` edge control.
+  - Kept `References` out of the C++ acceptance contract for this card.
+  - Disabled Markdown in the C++ example workspace settings so the example surface is C++-focused.
+  - Added a changeset for Core and extension user-facing Graph Scope behavior.
+  - Regenerated the Playwright acceptance output for the reviewed Markdown contract.
+- Files changed by Coder:
+  - `.changeset/cpp-graph-scope-upgrade.md`
+  - `examples/example-cpp/.codegraphy/settings.json`
+  - `packages/core/src/graph/symbols.ts`
+  - `packages/core/src/graphControls/defaults/symbolNodeTypes.ts`
+  - `packages/core/src/graphControls/defaults/variableNodeTypes.ts`
+  - `packages/core/src/treeSitter/runtime/analyze/results.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`
+  - `packages/core/src/treeSitter/runtime/capabilities.ts`
+  - `packages/core/src/visibleGraph/scopeSymbolTypes.ts`
+  - `packages/core/tests/graph/data.test.ts`
+  - `packages/core/tests/treeSitter/capabilities.test.ts`
+  - `packages/core/tests/treeSitter/cpp/analyze.test.ts`
+  - `packages/core/tests/visibleGraph/scope.test.ts`
+  - `packages/extension/src/extension/graphView/controls/send/definitions/merge.ts`
+  - `packages/extension/src/shared/graphControls/defaults/nodeTypes/symbols.ts`
+  - `packages/extension/src/shared/graphControls/defaults/nodeTypes/variables.ts`
+  - `packages/extension/src/shared/graphControls/settings.ts`
+  - `packages/extension/src/shared/visibleGraph/scope/definitions.ts`
+  - `packages/extension/tests/acceptance/graphView/steps.ts`
+  - `packages/extension/tests/extension/graphView/controls/definitions/snapshot.test.ts`
+  - `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`
+  - `packages/extension/tests/shared/graphControls/settings.test.ts`
+  - `packages/extension/tests/shared/visibleGraph/scope.test.ts`
+- Orchestrator verification:
+  - Local worktree clean at `2562e7dd`.
+  - Local Core focused tests passed:
+    - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cpp/analyze.test.ts tests/treeSitter/capabilities.test.ts tests/graph/data.test.ts tests/visibleGraph/scope.test.ts`
+  - Local extension focused tests passed:
+    - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/shared/graphControls/settings.test.ts tests/shared/visibleGraph/scope.test.ts tests/acceptanceSteps.test.ts tests/extension/graphView/controls/definitions/snapshot.test.ts`
+  - Local package checks passed:
+    - `pnpm --filter @codegraphy-dev/core run typecheck`
+    - `pnpm --filter @codegraphy-dev/core run lint`
+    - `pnpm --filter @codegraphy-dev/extension run typecheck`
+    - `pnpm --filter @codegraphy-dev/extension run lint`
+  - Local VS Code build passed:
+    - `pnpm --filter @codegraphy-dev/extension run build:vscode`
+  - Local focused C++ VS Code acceptance passed:
+    - `pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "C\\+\\+ example covers Task Queue Runner graph scope"`
+  - `codegraphy-mini` worktree was fast-forwarded to `2562e7dd` and clean.
+  - `codegraphy-mini` VS Code build passed:
+    - `pnpm --filter @codegraphy-dev/extension run build:vscode`
+  - `codegraphy-mini` focused C++ VS Code acceptance passed:
+    - `pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "C\\+\\+ example covers Task Queue Runner graph scope"`
+- Tooling note:
+  - Generated acceptance output was amended into the Coder commit after the generator removed blank lines in `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`.
+  - Extension lint exits cleanly with existing generated-file spacing warnings.
+- Trello/loop state:
+  - Card was still in `Review` from the human acceptance-spec gate; Orchestrator moved it back to `In Progress` because the loop is active again.
+  - Trello comment added with Coder verification summary and Refactorer next route.
+  - PR #263 body updated with current Coder verification and remaining role steps.
+- Next route:
+  - Dispatch Refactorer to run non-mutation quality gates and behavior-preserving cleanup.
