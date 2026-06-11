@@ -1,5 +1,5 @@
 /*
- * Demo CodeGraphy CSS Snippet: animated graph stage.
+ * Demo CodeGraphy CSS Snippet: black grid graph background.
  *
  * Try it by copying this file to:
  *   .codegraphy/snippets/animated-graph-stage.css
@@ -10,9 +10,9 @@
 
 [data-codegraphy-surface='graph-stage'] {
   background:
-    radial-gradient(circle at 16% 28%, rgba(56, 189, 248, 0.18), transparent 28%),
-    radial-gradient(circle at 82% 18%, rgba(244, 114, 182, 0.16), transparent 30%),
-    linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(20, 83, 45, 0.72));
+    radial-gradient(circle at 24% 18%, rgba(148, 163, 184, 0.12), transparent 28%),
+    radial-gradient(circle at 78% 84%, rgba(71, 85, 105, 0.14), transparent 30%),
+    linear-gradient(135deg, #050505, #111827 48%, #080808);
 }
 
 [data-codegraphy-surface='graph-stage']::before {
@@ -22,12 +22,25 @@
   pointer-events: none;
   content: '';
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mix-blend-mode: screen;
-  opacity: 0.35;
-  animation: codegraphy-demo-grid-drift 14s linear infinite;
+    linear-gradient(rgba(226, 232, 240, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 232, 240, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+  opacity: 0.42;
+  animation: codegraphy-demo-grid-drift 18s linear infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.07) 50%, transparent 58%),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 160% 160%, 100% 8px;
+  opacity: 0.28;
+  animation: codegraphy-demo-grid-sheen 12s ease-in-out infinite;
 }
 
 [data-codegraphy-layer='graph-overlay'],
@@ -42,6 +55,17 @@
   }
 
   to {
-    background-position: 42px 42px, 42px 42px;
+    background-position: 36px 36px, 36px 36px;
+  }
+}
+
+@keyframes codegraphy-demo-grid-sheen {
+  0%,
+  100% {
+    background-position: 140% 0, 0 0;
+  }
+
+  45% {
+    background-position: -40% 100%, 0 4px;
   }
 }

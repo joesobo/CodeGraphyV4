@@ -43,12 +43,21 @@ The `css-snippets/` folder contains reference snippets for CodeGraphy CSS Snippe
 {
   "cssSnippets": [
     ".codegraphy/snippets/animated-graph-stage.css",
-    ".codegraphy/snippets/focus-mode-panel.css"
+    ".codegraphy/snippets/falling-rain-grid.css",
+    ".codegraphy/snippets/hollow-blue-grid.css"
   ]
 }
 ```
 
 Snippet paths are relative to the CodeGraphy Workspace and must stay inside it. Absolute paths and `../` parent traversal are rejected with `[CodeGraphy]` developer-console warnings.
+
+The demo snippets currently include:
+
+- `animated-graph-stage.css` — a black and grey animated grid background
+- `falling-rain-grid.css` — a dark grid with animated falling rain
+- `hollow-blue-grid.css` — a soft blue hollow-glow grid background
+- `terminal-scan-grid.css` — a green terminal scanline grid
+- `ember-grid.css` — a warm ember drift grid
 
 ## Symbol Node Stories
 
