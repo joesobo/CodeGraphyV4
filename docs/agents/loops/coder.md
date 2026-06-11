@@ -48,9 +48,13 @@ flowchart TD
 The Coder does not need to check PR CI in V0. It must not hand off until its
 focused unit tests, generated acceptance tests, lint, and typecheck pass.
 
-When focused generated acceptance checks require VS Code Playwright, run them on
-the remote Mac mini or delegate that check to a Codex thread on the Mac mini.
-Record the host in the handoff log.
+If generated acceptance or focused behavior reds point back to human-owned
+acceptance Markdown, stop and return the failing evidence to the Orchestrator.
+This includes stale counts, paths, fixture names, visible-control expectations,
+or assertions that no longer match the approved behavior.
+
+Run VS Code Playwright checks on the remote Mac mini unless the user approves a
+local run.
 
 ## Progress
 

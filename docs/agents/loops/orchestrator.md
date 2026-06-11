@@ -19,11 +19,10 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 
 - working on exactly one card, bug report, or request
 - creating a dedicated `codex/` branch, isolated worktree, and draft PR
-- keeping one shared PR worktree for the loop
-- creating and maintaining `docs/handoff/<trello-card>-<slug>.md`
-- dispatching role agents with a bounded task and the current handoff state
+- keeping one shared PR worktree and one handoff file for the loop
+- dispatching one reusable thread per role with a bounded task and current state
 - reading each role handoff before choosing the next state
-- preparing or delegating the remote Mac mini worktree before heavy checks
+- preparing the remote Mac mini only when a role needs heavy checks
 - enforcing human gates
 - preserving the protected main checkout
 - keeping Trello and PR state aligned with the loop state
@@ -35,7 +34,10 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - implementing accepted behavior
 - running role-owned quality or mutation loops
 - bypassing a role because the next step seems obvious
+- closing an addressable role thread while that role may still need follow-up
+  work in the current loop
 - marking work done before human review accepts it
+- writing role evidence that belongs to the active role agent
 
 ## Loop
 
@@ -51,7 +53,7 @@ flowchart TD
     Wait --> Read
     Human -->|No| Dispatch["Dispatch one role agent"]
     Dispatch --> Return["Role returns handoff entry"]
-    Return --> Record["Record state PR and Trello updates"]
+    Return --> Record["Record role boundary state"]
     Record --> Ready{"All role conditions and CI green?"}
     Ready -->|No| Read
     Ready -->|Yes| Review["Move to human review"]
@@ -68,9 +70,20 @@ Default route:
 Specifier -> Coder -> Refactorer -> Architect -> Human review
 ```
 
-The Orchestrator may route backward after any handoff, but it should preserve
+The Orchestrator may route backward after any handoff, but should preserve
 the default route unless the handoff log, repo state, CI state, or human input
 shows a reason to move elsewhere.
+
+When the Orchestrator routes backward, every downstream role state becomes
+stale. Route forward again from that point before returning to human review.
+Use at most one reusable thread per role during the active loop so the same
+Specifier, Coder, Refactorer, or Architect can continue with the updated context
+when the loop returns to that role. If an earlier role thread is no longer
+addressable, spawn one replacement for that role and use it as the active thread
+for that role.
+
+Before dispatching a role, verify that the shared worktree is clean or that any
+dirty files are intentionally owned by the target role or an active human gate.
 
 Common routing examples:
 
@@ -81,45 +94,41 @@ Common routing examples:
   Refactorer
 - mutation sites, mutation survivors, architecture review, release docs,
   changesets, PR body, or final CI fail: Architect
+- post-mutation organization output is dirty: Refactorer, then Architect again
 - significant P1/P2 architecture finding changes the accepted behavior or
   product contract: Specifier
 - significant P1/P2 architecture finding shows the implementation approach is
   wrong: Coder
 - final human review finds an issue: route to the role that owns the reason
 
-Role agents report facts and evidence. They do not choose the next role.
+Role agents report facts and evidence. The Orchestrator chooses the next role.
 
 ## Remote Heavy Checks
 
-The Orchestrator owns making the remote heavy-check path usable for the loop.
 The user should not need to manually set up the Mac mini for each card.
 
-When a role needs VS Code Playwright, mutation, or another long focus-stealing
-command, the Orchestrator should either start a remote Codex thread on
-`codegraphy-mini` or verify the remote host over SSH before dispatching the role.
+Prepare the Mac mini lazily. Do not sync or create the remote worktree for every
+role. When a role needs VS Code Playwright, mutation, or another long command,
+the Orchestrator starts or verifies a remote Codex thread on `codegraphy-mini`
+before dispatching that role.
 
-Use this sanity check before remote heavy work:
+Remote work must:
 
-```bash
-ssh codegraphy-mini 'export PATH="/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"; cd /Users/poleski/Desktop/Projects/CodeGraphyV4; hostname; node --version; pnpm --version; git status --short --branch'
-```
-
-The remote work must:
-
-- use the Node 22 PATH above
 - fetch the PR branch before running commands
 - run from an isolated remote worktree for that branch
-- record the remote host, worktree, command, and result in the handoff log
-- return findings through the handoff log, not through an unrecorded side
-  conversation
+- verify GitHub auth before mutation commands that depend on seed artifacts or
+  GitHub-hosted reports
 
-If the remote repo, runtime, or worktree is not ready, the Orchestrator fixes or
-delegates that setup as part of the loop before the role runs heavy commands.
+If GitHub auth is missing, use direct scoped mutation when possible. Pause only
+when the cached artifact is required, and include the exact auth failure and
+command that needs auth.
+
+If the remote repo, toolchain, or worktree is not ready, fix or delegate that
+setup before the role runs heavy commands.
 
 ## Handoff Management
 
-The Orchestrator creates and maintains an append-only handoff file under
-`docs/handoff/`.
+The Orchestrator creates an append-only handoff file under `docs/handoff/`.
 
 Use the Trello card number in the filename when available:
 
@@ -127,37 +136,35 @@ Use the Trello card number in the filename when available:
 docs/handoff/214-graph-scope-search-presets.md
 ```
 
-The handoff file must include:
+It includes:
 
 - Trello card or source request
 - PR number after one exists
 - branch and worktree
-- host used for heavy checks
 - current state
 - human gates
 - chronological event log
 
-Each dispatch entry should include:
+Small Orchestrator entries record:
 
 - timestamp
-- source and target
-- reason for dispatch
-- input scope
-- expected role output
-- human gates that apply
+- state changes
+- role dispatches
+- human gates
+- public PR or Trello state changes
 
-Each received role entry should include:
+Role entries carry detailed evidence:
 
 - role result
 - files changed
-- commands run
 - evidence
-- commits and pushes
 - host used for heavy checks
 - blockers or human decisions needed
 
-The Orchestrator should keep the current state near the top of the handoff file
-and append the full event history below it.
+Keep the current state near the top and append event history below it. The
+handoff is a role boundary log, not a transcript. Commit it when dispatching a
+role, receiving a role handoff, entering or leaving a human gate, changing
+public PR or Trello state, or finishing the loop.
 
 ## Human Gates
 
@@ -188,7 +195,7 @@ The Orchestrator may move the card or PR to human review only when:
 - Coder conditions pass
 - Refactorer conditions pass
 - Architect conditions pass
-- handoff log is current
+- handoff current state is accurate
 - PR body is current
 - docs and changesets are handled
 - branch is pushed

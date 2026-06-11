@@ -23,6 +23,7 @@ The Refactorer makes quality gates clean while preserving accepted behavior.
 - behavior-preserving cleanup
 - duplication cleanup
 - CRAP risk reduction to `<= 8`
+- post-mutation organization cleanup when Architect changes file shape
 - committing and pushing clean quality checkpoints
 
 ## Does Not Own
@@ -51,9 +52,13 @@ The Refactorer should continue through the quality sequence without waiting for
 CI after every push. It should make sure CI has passed before handing off work.
 It should not knowingly hand off broken work.
 
-If a quality command is heavy or focus stealing, run it on the remote Mac mini
-or delegate that check to a Codex thread on the Mac mini. Record the host in the
-handoff log.
+Run heavy or focus-stealing quality commands on the remote Mac mini unless the
+user approves a local run.
+
+If the Orchestrator routes back after Architect mutation work, run the relevant
+organization pass first. Keep the scope tied to files and directories changed
+by the mutation campaign, then continue required non-mutation gates before
+returning to the Orchestrator.
 
 ## Progress
 
@@ -74,7 +79,7 @@ The Refactorer handoff entry must include:
 
 - result: quality green or needs human review
 - tool loops completed
-- output summaries combined and simplified
+- concise output summaries
 - heavy check host, when applicable
 
 Return to the orchestrator.
