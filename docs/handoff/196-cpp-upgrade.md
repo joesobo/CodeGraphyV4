@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Focused split Graph Scope acceptance is green after generated output regeneration; current-head scoped C++ analyzer mutation was rerun at `71fd6dad` and remains `68.52%`; PR CI at `71fd6dad` is green except the two Playwright jobs still in progress during Architect verification.
+- State: Paused for human mutation decision. PR CI is green at `a173f0d2`, focused split Graph Scope acceptance is green, and current-head scoped C++ analyzer mutation remains `68.52%`.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: Orchestrator should pause for the mutation decision: either accept the recorded scoped mutation exception for this pilot and move to human review once CI is green, or route a dedicated broader Architect mutation campaign.
+- Next route: Human decides whether to accept the recorded scoped mutation exception for this pilot and move to final human review, or route a dedicated broader Architect mutation campaign for the C++ analyzer.
 
 ## Human Gates
 
@@ -1464,3 +1464,27 @@
 - Return route:
   - Return to Orchestrator after committing/pushing this handoff evidence and updating the PR body.
   - Recommended state: pause for the mutation decision rather than route Coder/Specifier/Refactorer.
+
+### 2026-06-11T17:52:14Z - Orchestrator Verifies Architect Decision Gate
+
+- Source: Orchestrator verification after Architect handoff.
+- Target: human mutation decision gate.
+- Result: all implementation, generated acceptance, focused acceptance, and CI gates are green; only the scoped mutation standard decision remains.
+- Branch and worktree state verified:
+  - Local worktree clean at `a173f0d2`.
+  - `origin/codex/196-cpp-upgrade` points to `a173f0d2`.
+  - `codegraphy-mini` worktree clean at `a173f0d2`.
+- PR state verified:
+  - PR #263 head: `a173f0d2fee3720dbb9646848d2b39cfe4b05b28`.
+  - `mergeStateStatus`: `CLEAN`.
+  - All GitHub checks are complete and successful, including both Playwright jobs.
+- Mutation decision evidence:
+  - Architect reran the bounded scoped analyzer mutation on `codegraphy-mini`.
+  - Command:
+    - `pnpm exec quality-tools mutate packages/core/src/treeSitter/runtime/analyzeCpp --test-include packages/core/tests/treeSitter/cpp/analyze.test.ts --test-include packages/core/tests/treeSitter/cpp/symbolTypes.test.ts --test-include packages/core/tests/treeSitter/cfamily/symbols.test.ts --force`
+  - Result: `68.52%`; `548` killed, `228` survived, `27` no coverage, `7` timeouts, `2m12s`.
+  - All `analyzeCpp` files remain under the `50` mutation-site threshold.
+  - Architect found no bounded same-card cleanup path to reach `>=90%`; reaching threshold would require roughly another `180` killed mutants across many helper surfaces.
+- Human decision needed:
+  - Accept the recorded scoped mutation exception for this pilot and move the PR to final human review, or
+  - Route a dedicated broader Architect mutation campaign for the C++ analyzer.
