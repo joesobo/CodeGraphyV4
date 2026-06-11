@@ -6,6 +6,13 @@
 		"packages/*",
 		"apps/*"
 	],
+	"pnpm": {
+		"overrides": {
+			"fast-uri": "3.1.2",
+			"lodash-es": "4.18.1",
+			"picomatch@>=4.0.0 <4.0.4": "4.0.4"
+		}
+	},
 	"scripts": {
 		"build": "turbo run build",
 		"build:devhost": "node scripts/build-devhost.mjs",
