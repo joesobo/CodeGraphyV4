@@ -2,21 +2,21 @@
 
 ## Current State
 
-- State: Local `graph-scope-edge-node-types.md` draft is ready for human review; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
+- State: Human-approved Graph Scope edge/node acceptance Markdown is committed locally; generated Playwright acceptance output is dirty and needs Coder validation/commit; separate mutation decision remains for the recorded `68.52%` scoped C++ analyzer mutation score.
 - Trello card: https://trello.com/c/pSAys9YA/196-c-upgrade
 - Card title: C++ Upgrade
 - Branch: `codex/196-cpp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/263
 - Heavy-check host: `codegraphy-mini` has isolated worktree `/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4` on `codex/196-cpp-upgrade`.
-- Next route: human reviews the local `graph-scope-edge-node-types.md` draft, then decides whether to commit it and whether to route a larger Architect mutation-test campaign or accept the recorded mutation evidence for this pilot.
+- Next route: Coder regenerates and validates generated acceptance output for the split Graph Scope specs, runs the focused graph-interactions acceptance slice, then reports whether the stale Widget CI blocker is cleared.
 
 ## Human Gates
 
 - Grill before implementation: complete as of `2026-06-10T21:25:48Z`.
 - Specifier should make proposed human-owned acceptance spec Markdown changes locally in the worktree for review, but must not commit them. The user wants to review, approve, and make any needed edits before committing those spec changes themselves.
 - Acceptance spec gate is complete for `packages/extension/tests/acceptance/specs/cpp-example.md`; user committed and pushed the reviewed spec in `448b1030`.
-- New human/specifier gate: `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md` still references the removed Widget C++ example paths and must not be edited without explicit routing/approval for that human-owned spec.
+- Graph Scope edge/node acceptance spec gate is complete: the user approved and committed the split specs in `0a29a68f`, replacing stale Widget C++ assertions with Task Queue Runner coverage.
 - Heavy Playwright and mutation checks must run in the verified remote worktree on `codegraphy-mini` or in a remote Codex thread on that host, not on the MacBook.
 
 ## Setup Verification
@@ -1208,3 +1208,19 @@
 - Next route:
   - Human review of the local spec draft.
   - If accepted, user may commit the human-owned spec change, then Orchestrator can route generated acceptance output/CI follow-up.
+
+### 2026-06-11T16:45:21Z - Orchestrator Records Human Approval And Routes Coder
+
+- Source: user approval and local human commit `0a29a68f` (`human approve acceptance tests`).
+- Target: Coder route for generated acceptance output and focused graph-interactions validation.
+- Result: human-owned acceptance Markdown gate is complete; generated Playwright output remains dirty and must be validated before commit.
+- Human-approved spec state:
+  - `packages/extension/tests/acceptance/specs/graph-scope-edge-node-types.md` was split into `graph-scope-edge-types.md` and `graph-scope-node-types.md`.
+  - C++ edge scenarios now target the Task Queue Runner example, including `Include`, `Inherits`, `Nests`, `Contains`, and `Overrides`.
+  - C++ node scenarios now cover visible symbols and variables such as `Namespace`, `Class`, `Enum`, `Callable`, `Method`, `Alias`, `Template`, `Global`, `Constant`, `Field`, `Parameter`, and `Local`.
+- Current local dirty state:
+  - `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts` is modified and appears to mirror the approved spec split.
+  - Coder must verify/regenerate this output, run focused checks, and commit with a `coder:` prefix if valid.
+- Scope reminder:
+  - Coder must not edit human-owned acceptance Markdown unless the Orchestrator gets new explicit user approval.
+  - Mutation score policy remains a separate Orchestrator/Architect decision after the generated acceptance blocker is cleared.
