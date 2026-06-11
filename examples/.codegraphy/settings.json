@@ -11,13 +11,7 @@
     "./css-snippets/base-grid.css": false,
     "./css-snippets/forest.css": false,
     "./css-snippets/ocean.css": false,
-    "./css-snippets/terminal.css": false,
-    "./css-snippets/rain.css": false,
-    "./css-snippets/petals.css": false,
-    "./css-snippets/constellations.css": false,
-    "./css-snippets/perlin-flow.css": false,
-    "./css-snippets/sparkles.css": false,
-    "./css-snippets/embers.css": false
+    "./css-snippets/ocean-image.css": false
   },
   "plugins": [
     {

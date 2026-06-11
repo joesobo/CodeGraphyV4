@@ -44,7 +44,7 @@ The `css-snippets/` folder contains reference snippets for CodeGraphy CSS Snippe
   "cssSnippets": {
     ".codegraphy/snippets/base-grid.css": true,
     ".codegraphy/snippets/forest.css": false,
-    ".codegraphy/snippets/rain.css": true
+    ".codegraphy/snippets/ocean-image.css": true
   }
 }
 ```
@@ -54,15 +54,9 @@ Snippet paths are relative to the CodeGraphy Workspace and must stay inside it. 
 The demo snippets currently include:
 
 - `base-grid.css` — a static black and grey grid background
-- `forest.css` — deep green background with softly falling leaves
-- `ocean.css` — blue ocean background with drifting glints
-- `terminal.css` — dark terminal background with scanline and pulse effects
-- `rain.css` — dark rain background with staggered falling streaks
-- `petals.css` — soft pink-purple background with falling petals
-- `constellations.css` — blue night background with twinkling stars
-- `perlin-flow.css` — terminal-green particle flow approximation
-- `sparkles.css` — pink sparkle background
-- `embers.css` — warm ember background with randomized drift layers
+- `forest.css` — static forest palette that themes graph UI panels, inputs, menus, and labels
+- `ocean.css` — static ocean palette that themes graph UI panels, inputs, menus, and labels
+- `ocean-image.css` — faded local ocean image behind the graph stage
 
 ## Symbol Node Stories
 
