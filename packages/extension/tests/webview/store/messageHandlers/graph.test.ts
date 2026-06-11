@@ -48,6 +48,7 @@ function createState(
     particleSize: 1,
     physicsPaused: false,
     showLabels: true,
+    cssSnippets: {},
     graphMode: '2d',
     graphViewportScale: null,
     nodeSizeMode: 'uniform',

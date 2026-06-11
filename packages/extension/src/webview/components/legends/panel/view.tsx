@@ -17,6 +17,7 @@ import {
   readLegendPanelCollapsedState,
   writeLegendPanelCollapsedState,
 } from './storage';
+import { CssSnippetsSection } from './cssSnippets';
 
 interface LegendsPanelProps {
   isOpen: boolean;
@@ -67,6 +68,7 @@ export default function LegendsPanel({
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
+  const cssSnippets = useGraphStore((state) => state.cssSnippets);
   const optimisticLegendUpdates = useGraphStore((state) => state.optimisticLegendUpdates);
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
   const setOptimisticLegendUpdates = useGraphStore((state) => state.setOptimisticLegendUpdates);
@@ -117,79 +119,87 @@ export default function LegendsPanel({
   return (
     <section
       className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-[30rem] max-w-[calc(100vw-2rem)] shadow-lg max-h-full flex flex-col overflow-hidden"
-      data-codegraphy-panel="legend"
+      data-codegraphy-panel="themes"
     >
       <header className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0" data-codegraphy-region="panel-header">
-        <span className="text-sm font-medium">Legends</span>
+        <span className="text-sm font-medium">Themes</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
           <MdiIcon path={mdiClose} size={16} />
         </Button>
       </header>
 
       <ScrollArea className="flex-1 min-h-0" data-codegraphy-region="panel-body">
-        <div className="space-y-4 px-3 pb-3 pt-2" data-codegraphy-region="legend-sections">
-          <LegendSection
-            title="Nodes"
-            builtInEntries={displayNodeEntries}
-            displayRules={displayedNodeLegendRules}
-            userRules={nodeLegendRules}
-            legends={legends}
-            target="node"
-            onBuiltInColorChange={(nodeType, color) => {
-              postMessage({
-                type: 'UPDATE_NODE_COLOR',
-                payload: { nodeType, color },
-              });
-            }}
-            onRulesChange={(nextSectionRules, iconImports) => {
-              sendUserLegendRules(
-                replaceSectionRules(userLegendRules, 'node', nextSectionRules),
-                setOptimisticUserLegends,
-                iconImports,
-              );
-            }}
-            onToggleDefaultVisibility={(legendId, visible) => {
-              setOptimisticLegendUpdate(legendId, { disabled: !visible });
-              postMessage({
-                type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
-                payload: { legendId, visible },
-              });
-            }}
-            onToggleDefaultVisibilityBatch={toggleDefaultLegendVisibilityBatch}
-            collapsedEntries={collapsedEntries}
-            onCollapsedChange={setCollapsedEntry}
-          />
-          <LegendSection
-            title="Edges"
-            builtInEntries={edgeEntries}
-            displayRules={displayedEdgeLegendRules}
-            userRules={edgeLegendRules}
-            legends={legends}
-            target="edge"
-            onBuiltInColorChange={(edgeKind, color) => {
-              sendUserLegendRules(
-                upsertEdgeTypeColorRule(userLegendRules, edgeKind, color),
-                setOptimisticUserLegends,
-              );
-            }}
-            onRulesChange={(nextSectionRules, iconImports) => {
-              sendUserLegendRules(
-                replaceCustomEdgeRules(userLegendRules, edgeTypeIds, nextSectionRules),
-                setOptimisticUserLegends,
-                iconImports,
-              );
-            }}
-            onToggleDefaultVisibility={(legendId, visible) => {
-              setOptimisticLegendUpdate(legendId, { disabled: !visible });
-              postMessage({
-                type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
-                payload: { legendId, visible },
-              });
-            }}
-            onToggleDefaultVisibilityBatch={toggleDefaultLegendVisibilityBatch}
-            collapsedEntries={collapsedEntries}
-            onCollapsedChange={setCollapsedEntry}
-          />
+        <div className="space-y-5 px-3 pb-3 pt-2" data-codegraphy-region="theme-sections">
+          <section className="space-y-2" data-codegraphy-section="legends">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--cg-text-muted)]">
+              Legends
+            </h3>
+            <div className="space-y-4" data-codegraphy-region="legend-sections">
+              <LegendSection
+                title="Nodes"
+                builtInEntries={displayNodeEntries}
+                displayRules={displayedNodeLegendRules}
+                userRules={nodeLegendRules}
+                legends={legends}
+                target="node"
+                onBuiltInColorChange={(nodeType, color) => {
+                  postMessage({
+                    type: 'UPDATE_NODE_COLOR',
+                    payload: { nodeType, color },
+                  });
+                }}
+                onRulesChange={(nextSectionRules, iconImports) => {
+                  sendUserLegendRules(
+                    replaceSectionRules(userLegendRules, 'node', nextSectionRules),
+                    setOptimisticUserLegends,
+                    iconImports,
+                  );
+                }}
+                onToggleDefaultVisibility={(legendId, visible) => {
+                  setOptimisticLegendUpdate(legendId, { disabled: !visible });
+                  postMessage({
+                    type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
+                    payload: { legendId, visible },
+                  });
+                }}
+                onToggleDefaultVisibilityBatch={toggleDefaultLegendVisibilityBatch}
+                collapsedEntries={collapsedEntries}
+                onCollapsedChange={setCollapsedEntry}
+              />
+              <LegendSection
+                title="Edges"
+                builtInEntries={edgeEntries}
+                displayRules={displayedEdgeLegendRules}
+                userRules={edgeLegendRules}
+                legends={legends}
+                target="edge"
+                onBuiltInColorChange={(edgeKind, color) => {
+                  sendUserLegendRules(
+                    upsertEdgeTypeColorRule(userLegendRules, edgeKind, color),
+                    setOptimisticUserLegends,
+                  );
+                }}
+                onRulesChange={(nextSectionRules, iconImports) => {
+                  sendUserLegendRules(
+                    replaceCustomEdgeRules(userLegendRules, edgeTypeIds, nextSectionRules),
+                    setOptimisticUserLegends,
+                    iconImports,
+                  );
+                }}
+                onToggleDefaultVisibility={(legendId, visible) => {
+                  setOptimisticLegendUpdate(legendId, { disabled: !visible });
+                  postMessage({
+                    type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
+                    payload: { legendId, visible },
+                  });
+                }}
+                onToggleDefaultVisibilityBatch={toggleDefaultLegendVisibilityBatch}
+                collapsedEntries={collapsedEntries}
+                onCollapsedChange={setCollapsedEntry}
+              />
+            </div>
+          </section>
+          <CssSnippetsSection snippets={cssSnippets} />
         </div>
       </ScrollArea>
     </section>

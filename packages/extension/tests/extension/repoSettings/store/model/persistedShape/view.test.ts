@@ -14,7 +14,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
       cssSnippets: {
         '.codegraphy/snippets/graph.css': true,
-        '  .codegraphy/snippets/focus.css  ': false,
+        '  .codegraphy/snippets/ocean.css  ': false,
         '.codegraphy/snippets/invalid.css': 'yes',
         '': true,
       },
@@ -25,7 +25,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       filterPatterns: ['**/*.png', '**/*.tmp'],
       cssSnippets: {
         '.codegraphy/snippets/graph.css': true,
-        '.codegraphy/snippets/focus.css': false,
+        '.codegraphy/snippets/ocean.css': false,
       },
     });
   });

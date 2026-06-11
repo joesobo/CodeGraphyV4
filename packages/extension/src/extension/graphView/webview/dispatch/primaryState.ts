@@ -27,7 +27,13 @@ export function createGraphViewPrimaryNodeFileHandlers(
 export function createGraphViewPrimarySettingsMessageState(
   context: GraphViewPrimaryMessageContext,
 ): GraphViewSettingsMessageState {
+  const asWebviewUri = context.asWebviewUri
+    ? (uri: Parameters<NonNullable<typeof context.asWebviewUri>>[0]) => context.asWebviewUri?.(uri) ?? uri
+    : undefined;
+
   return {
     filterPatterns: context.getFilterPatterns(),
+    workspaceRoot: context.workspaceFolder?.uri.fsPath,
+    asWebviewUri,
   };
 }
