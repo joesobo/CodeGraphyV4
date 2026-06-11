@@ -3,7 +3,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 
 export interface ResolveCssSnippetStylesheetsOptions {
-  snippets: readonly string[];
+  snippets: Readonly<Record<string, boolean>>;
   warn?: (message: string) => void;
   webview?: Pick<vscode.Webview, 'asWebviewUri'>;
   workspaceRoot: string;
@@ -37,7 +37,11 @@ export function resolveCssSnippetStylesheets({
 }: ResolveCssSnippetStylesheetsOptions): string[] {
   const urls: string[] = [];
 
-  for (const snippet of snippets) {
+  for (const [snippet, enabled] of Object.entries(snippets)) {
+    if (!enabled) {
+      continue;
+    }
+
     if (path.isAbsolute(snippet)) {
       warn(`[CodeGraphy] CSS snippet ignored because absolute paths are not supported: ${snippet}`);
       continue;

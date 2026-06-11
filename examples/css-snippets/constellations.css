@@ -1,0 +1,64 @@
+/*
+ * Demo CodeGraphy CSS Snippet: constellations.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/constellations.css
+ *
+ * Then add "cssSnippets": { ".codegraphy/snippets/constellations.css": true }
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(100, 210, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, #06101c 0%, #071a2c 50%, #030812 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before,
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  background-image:
+    radial-gradient(circle, rgba(180, 232, 255, 0.78) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(100, 210, 255, 0.4) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.46) 0 1px, transparent 1.8px);
+  background-position: 22px 18px, 94px 76px, 144px 20px;
+  background-size: 132px 118px, 188px 154px, 248px 198px;
+  opacity: 0.58;
+  animation: codegraphy-demo-constellations-twinkle 13s ease-in-out infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  background:
+    linear-gradient(115deg, transparent 0 46%, rgba(100, 210, 255, 0.1) 47%, transparent 49%),
+    linear-gradient(25deg, transparent 0 46%, rgba(180, 232, 255, 0.08) 47%, transparent 49%);
+  background-position: 0 0, 90px 20px;
+  background-size: 240px 240px, 300px 300px;
+  opacity: 0.42;
+  animation: codegraphy-demo-constellations-drift 22s ease-in-out infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-constellations-twinkle {
+  50% {
+    background-position: 30px 24px, 82px 96px, 158px 10px;
+    opacity: 0.78;
+  }
+}
+
+@keyframes codegraphy-demo-constellations-drift {
+  50% {
+    background-position: 80px 80px, 20px 100px;
+  }
+}

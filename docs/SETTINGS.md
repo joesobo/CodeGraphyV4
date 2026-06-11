@@ -63,9 +63,9 @@ Example:
   "legend": [
     { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
   ],
-  "cssSnippets": [
-    ".codegraphy/snippets/animated-graph-stage.css"
-  ]
+  "cssSnippets": {
+    ".codegraphy/snippets/base-grid.css": true
+  }
 }
 ```
 
@@ -87,7 +87,7 @@ Example:
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
-| `cssSnippets` | string[] | `[]` | Ordered workspace-relative CSS files loaded into the CodeGraphy Extension webview |
+| `cssSnippets` | object | `{}` | Workspace-relative CSS snippet paths mapped to `true` to load or `false` to keep disabled |
 | `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
@@ -103,21 +103,22 @@ CodeGraphy CSS Snippets let a workspace apply small CSS files to the CodeGraphy 
 Create a CSS file inside the CodeGraphy Workspace, usually:
 
 ```text
-.codegraphy/snippets/animated-graph-stage.css
+.codegraphy/snippets/base-grid.css
 ```
 
-Then list it in `.codegraphy/settings.json`:
+Then enable it in `.codegraphy/settings.json`:
 
 ```json
 {
-  "cssSnippets": [
-    ".codegraphy/snippets/animated-graph-stage.css",
-    ".codegraphy/snippets/falling-rain-grid.css"
-  ]
+  "cssSnippets": {
+    ".codegraphy/snippets/base-grid.css": true,
+    ".codegraphy/snippets/forest.css": false,
+    ".codegraphy/snippets/rain.css": true
+  }
 }
 ```
 
-The array is the enable list. Listed snippets load into the webview; removing a path unloads it on the next settings update. Snippets load in array order, so later files can override earlier files through the normal CSS cascade.
+The object is the snippet toggle map. A path set to `true` loads into the webview. A path set to `false` stays in settings but does not load. A path that is not included does nothing. Enabled snippets load in object insertion order, so later enabled entries can override earlier enabled entries through the normal CSS cascade.
 
 Path rules:
 
@@ -161,7 +162,7 @@ Example:
 }
 ```
 
-See `examples/css-snippets/` for copyable demo snippets, including Odysseus-inspired forest leaves, ocean constellations, and cyber synapse backgrounds.
+See `examples/css-snippets/` for copyable demo snippets, including static grid, forest, ocean, terminal, rain, petals, constellations, perlin-flow, sparkles, and embers backgrounds.
 
 ## Graph Scope settings
 

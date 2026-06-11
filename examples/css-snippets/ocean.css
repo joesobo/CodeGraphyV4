@@ -1,0 +1,64 @@
+/*
+ * Demo CodeGraphy CSS Snippet: ocean.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/ocean.css
+ *
+ * Then add "cssSnippets": { ".codegraphy/snippets/ocean.css": true }
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(100, 210, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 10% 90%, rgba(30, 80, 116, 0.24), transparent 32%),
+    linear-gradient(180deg, #06101c 0%, #071a2c 50%, #030812 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before,
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(100, 210, 255, 0.22), transparent 46%),
+    linear-gradient(105deg, transparent 0 42%, rgba(100, 210, 255, 0.1) 48%, transparent 54%);
+  background-size: 100% 100%, 190% 190%;
+  opacity: 0.58;
+  animation: codegraphy-demo-ocean-current 12s ease-in-out infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  background-image:
+    radial-gradient(circle, rgba(180, 232, 255, 0.64) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(100, 210, 255, 0.34) 0 1px, transparent 2px);
+  background-position: 22px 18px, 94px 76px;
+  background-size: 132px 118px, 188px 154px;
+  opacity: 0.52;
+  animation: codegraphy-demo-ocean-glints 18s ease-in-out infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-ocean-current {
+  50% {
+    background-position: 0 0, 70% 60%;
+    opacity: 0.74;
+  }
+}
+
+@keyframes codegraphy-demo-ocean-glints {
+  50% {
+    background-position: 42px 32px, 74px 102px;
+    opacity: 0.72;
+  }
+}

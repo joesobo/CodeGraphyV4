@@ -70,7 +70,7 @@ function sendCssSnippetStylesheets(
   }
 
   const stylesheets = resolveCssSnippetStylesheets({
-    snippets: config.get<string[]>('cssSnippets', []) ?? [],
+    snippets: config.get<Record<string, boolean>>('cssSnippets', {}) ?? {},
     webview: getActiveWebview(source),
     workspaceRoot,
   });

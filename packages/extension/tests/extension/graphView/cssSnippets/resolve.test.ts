@@ -30,10 +30,11 @@ describe('graphView/cssSnippets/resolve', () => {
 
   it('resolves ordered workspace-relative css files to webview stylesheet urls', () => {
     const result = resolveCssSnippetStylesheets({
-      snippets: [
-        '.codegraphy/snippets/base.css',
-        '.codegraphy/snippets/override.css',
-      ],
+      snippets: {
+        '.codegraphy/snippets/base.css': true,
+        '.codegraphy/snippets/disabled.css': false,
+        '.codegraphy/snippets/override.css': true,
+      },
       warn,
       webview,
       workspaceRoot,
@@ -48,13 +49,14 @@ describe('graphView/cssSnippets/resolve', () => {
 
   it('warns and skips absolute paths, parent traversal, missing files, and non-css files', () => {
     const result = resolveCssSnippetStylesheets({
-      snippets: [
-        '/tmp/outside.css',
-        '../shared.css',
-        '.codegraphy/snippets/missing.css',
-        '.codegraphy/snippets/notes.txt',
-        '.codegraphy/snippets/base.css',
-      ],
+      snippets: {
+        '/tmp/outside.css': true,
+        '../shared.css': true,
+        '.codegraphy/snippets/missing.css': true,
+        '.codegraphy/snippets/notes.txt': true,
+        '.codegraphy/snippets/disabled-missing.css': false,
+        '.codegraphy/snippets/base.css': true,
+      },
       warn,
       webview,
       workspaceRoot,
