@@ -1,6 +1,7 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
 
-export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
+export function createCoreVariableNodeTypes(): IGraphNodeTypeDefinition[] {
+  return [
   {
     id: 'variable',
     label: 'Variable',
@@ -25,6 +26,30 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     matchSymbolKinds: ['global'],
   },
   {
+    id: 'symbol:field',
+    label: 'Field',
+    defaultColor: '#84CC16',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['field'],
+  },
+  {
+    id: 'symbol:parameter',
+    label: 'Parameter',
+    defaultColor: '#2DD4BF',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['parameter'],
+  },
+  {
+    id: 'symbol:local',
+    label: 'Local',
+    defaultColor: '#10B981',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['local'],
+  },
+  {
     id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
     label: 'Godot class_name',
     defaultColor: '#478CBF',
@@ -37,4 +62,7 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     matchSymbolLanguage: 'gdscript',
     matchSymbolFilePath: '**/*.gd',
   },
-];
+  ];
+}
+
+export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = createCoreVariableNodeTypes();

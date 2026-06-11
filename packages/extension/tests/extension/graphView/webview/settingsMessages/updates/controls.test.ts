@@ -158,10 +158,10 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeColors', {
       symbol: '#8B5CF6',
       'symbol:function': '#123456',
+      'symbol:method': '#A855F7',
+      'symbol:namespace': '#64748B',
     });
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('nodeColors', expect.objectContaining({
-      'symbol:method': expect.any(String),
-      'symbol:namespace': expect.any(String),
       'symbol:variable': expect.any(String),
     }));
   });

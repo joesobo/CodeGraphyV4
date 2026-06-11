@@ -23,13 +23,15 @@ export function getDefinitionSymbolKinds(
 }
 
 function getDefinitionSpecificity(definition: IGraphNodeTypeDefinition): number {
+	const symbolKinds = getDefinitionSymbolKinds(definition);
+	const symbolKindSpecificity = symbolKinds ? 1 / symbolKinds.length : 0;
+
 	return [
-		getDefinitionSymbolKinds(definition),
 		definition.matchSymbolPluginKind,
 		definition.matchSymbolSource,
 		definition.matchSymbolLanguage,
 		definition.matchSymbolFilePath,
-	].filter(Boolean).length;
+	].filter(Boolean).length + symbolKindSpecificity;
 }
 
 function hasSymbolMatcher(definition: IGraphNodeTypeDefinition): boolean {
