@@ -128,7 +128,6 @@ export function mergeEdgeTypes(
         label: prettifyIdentifier(edge.kind),
         defaultColor: edge.color ?? '#94A3B8',
         defaultVisible: true,
-        ...(edge.kind === 'overrides' ? { requiresEdgeType: 'inherit' as const } : {}),
       });
     }
   }

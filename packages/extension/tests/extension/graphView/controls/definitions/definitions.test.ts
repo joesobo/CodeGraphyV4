@@ -138,6 +138,20 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     ]);
   });
 
+  it('keeps structural node rows when capabilities are omitted', () => {
+    const definitions = mergeNodeTypes(
+      { nodes: [], edges: [] } as never,
+      [],
+      {},
+    );
+
+    expect(definitions.map((definition) => definition.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+    ]);
+  });
+
   it('merges plugin and inferred edge types while preserving core entries', () => {
     const graphData = {
       nodes: [],
@@ -253,6 +267,21 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     ]));
   });
 
+  it('adds legacy reference when edge capabilities are omitted for file graphs', () => {
+    const definitions = mergeEdgeTypes(
+      {
+        nodes: [{ id: 'src/app.ts', nodeType: 'file' }],
+        edges: [],
+      } as never,
+      [],
+    );
+
+    expect(definitions.map((definition) => definition.id)).toEqual([
+      'reference',
+      STRUCTURAL_NESTS_EDGE_KIND,
+    ]);
+  });
+
   it('adds legacy reference when only include capabilities are available', () => {
     const definitions = mergeEdgeTypes(
       {
@@ -268,6 +297,7 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
       'reference',
       STRUCTURAL_NESTS_EDGE_KIND,
     ]);
+    expect(definitions.find((definition) => definition.id === 'reference')).not.toHaveProperty('requiresEdgeType');
   });
 
   it('does not add legacy reference for override-only capabilities', () => {
