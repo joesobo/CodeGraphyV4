@@ -1,13 +1,12 @@
 export const BACKGROUND_EFFECT_PRESETS = [
   'none',
-  'leaves',
-  'constellations',
-  'embers',
+  'synapse',
   'rain',
+  'constellations',
+  'perlin-flow',
   'petals',
   'sparkles',
-  'ocean',
-  'terminal',
+  'embers',
 ] as const;
 
 export type BackgroundEffectPreset = typeof BACKGROUND_EFFECT_PRESETS[number];

@@ -273,7 +273,7 @@ Graph Background state persists in `.codegraphy/settings.json`:
 }
 ```
 
-`preset` accepts `none`, `leaves`, `constellations`, `embers`, `rain`, `petals`, `sparkles`, `ocean`, or `terminal`. Effects respect the system reduced-motion preference.
+`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, or `embers`. Effects respect the system reduced-motion preference.
 
 ### Legends
 

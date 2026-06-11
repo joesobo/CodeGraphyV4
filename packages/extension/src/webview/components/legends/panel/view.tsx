@@ -66,14 +66,13 @@ function useDisplayNodeEntries(
 type LegendSectionProps = React.ComponentProps<typeof LegendSection>;
 
 const BACKGROUND_EFFECT_PRESETS: Array<{ id: Exclude<BackgroundEffectPreset, 'none'>; label: string }> = [
-  { id: 'leaves', label: 'Leaves' },
-  { id: 'constellations', label: 'Constellations' },
-  { id: 'embers', label: 'Embers' },
+  { id: 'synapse', label: 'Synapse' },
   { id: 'rain', label: 'Rain' },
+  { id: 'constellations', label: 'Constellations' },
+  { id: 'perlin-flow', label: 'Perlin Flow' },
   { id: 'petals', label: 'Petals' },
   { id: 'sparkles', label: 'Sparkles' },
-  { id: 'ocean', label: 'Ocean' },
-  { id: 'terminal', label: 'Terminal' },
+  { id: 'embers', label: 'Embers' },
 ];
 
 function sendBackgroundEffects(

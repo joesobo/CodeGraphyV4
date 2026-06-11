@@ -19,13 +19,13 @@ graph data, **Graph Scope**, **Legend Entries**, or edge animation settings.
 ## Target Experience
 
 Users enable the graph background effects plugin, open the Theme popup, and
-toggle a small set of Odysseus-inspired presets such as leaves,
-constellations, embers, rain, petals, sparkles, ocean flow, or terminal scan.
+toggle a small set of Odysseus canvas presets such as synapse, rain,
+constellations, perlin flow, petals, sparkles, or embers.
 Only one background preset should be active at first unless implementation
 proves that layering is cheap and understandable.
 
-Effects should be visually close enough to validate the direction from PR #266's
-CSS demos, but implemented with a runtime renderer instead of fake CSS
+Effects should match Odysseus' open-source canvas routines closely instead of
+the earlier fake CSS
 pseudo-particles.
 
 ## Implementation Questions
