@@ -1,16 +1,16 @@
 import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
-import { getDeclaratorNameNodes } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorCandidates';
-import { getDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorNameNode';
-import { findLastDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbolDeclaratorSearch';
-import { handleCppFieldDeclaration } from '../../../src/treeSitter/runtime/analyzeCpp/symbolFieldVariables';
-import { handleCppForRangeLoop } from '../../../src/treeSitter/runtime/analyzeCpp/symbolLoopVariables';
+import { getDeclaratorNameNodes } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/declarator/candidates';
+import { getDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/declarator/nameNode';
+import { findLastDeclaratorNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/declarator/search';
+import { handleCppFieldDeclaration } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/variable/field';
+import { handleCppForRangeLoop } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/variable/loop';
 import {
   handleCppTemplateDeclaration,
   handleCppTypeDeclaration,
-} from '../../../src/treeSitter/runtime/analyzeCpp/symbolTypes';
-import { getTemplateDeclarationNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbolTypeTemplates';
+} from '../../../src/treeSitter/runtime/analyzeCpp/symbol/type/declaration';
+import { getTemplateDeclarationNameNode } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/type/templates';
 
 function createNode({
   type,

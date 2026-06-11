@@ -4,8 +4,8 @@ import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import {
   handleCppTemplateDeclaration,
   handleCppTypeDeclaration,
-} from '../../../src/treeSitter/runtime/analyzeCpp/symbolTypes';
-import type { CppSymbolWalkState } from '../../../src/treeSitter/runtime/analyzeCpp/symbolModel';
+} from '../../../src/treeSitter/runtime/analyzeCpp/symbol/type/declaration';
+import type { CppSymbolWalkState } from '../../../src/treeSitter/runtime/analyzeCpp/symbol/model';
 
 function createNode({
   type,

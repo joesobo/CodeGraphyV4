@@ -2866,65 +2866,223 @@
   },
   {
     "averageRedundancy": 0,
-    "clusters": [
-      {
-        "prefix": "relation",
-        "members": [
-          "relationCall.ts",
-          "relationCallNames.ts",
-          "relationCallTargets.ts",
-          "relationDeclarationCollect.ts",
-          "relationDeclaratorNames.ts",
-          "relationDeclaredFunctions.ts",
-          "relationDeclaredMethodNames.ts",
-          "relationDeclaredMethodSymbols.ts",
-          "relationDeclaredTypes.ts",
-          "relationFunctionNames.ts",
-          "relationIncludeTraversal.ts",
-          "relationIncludes.ts",
-          "relationInheritance.ts",
-          "relationModel.ts",
-          "relationOverrideMethods.ts",
-          "relationOverrideResolution.ts",
-          "relationOverrides.ts",
-          "relationScopes.ts",
-          "relationType.ts",
-          "relationTypeNames.ts"
-        ],
-        "memberCount": 20,
-        "suggestedFolder": "relation",
-        "confidence": "prefix+imports"
-      },
-      {
-        "prefix": "symbol",
-        "members": [
-          "symbolCallables.ts",
-          "symbolCreate.ts",
-          "symbolDeclarationVariables.ts",
-          "symbolDeclaratorCandidates.ts",
-          "symbolDeclaratorNameNode.ts",
-          "symbolDeclaratorSearch.ts",
-          "symbolDescendants.ts",
-          "symbolFieldVariables.ts",
-          "symbolLookupNames.ts",
-          "symbolLoopVariables.ts",
-          "symbolModel.ts",
-          "symbolParameterVariables.ts",
-          "symbolScope.ts",
-          "symbolTypeTemplates.ts",
-          "symbolTypes.ts"
-        ],
-        "memberCount": 15,
-        "suggestedFolder": "symbol",
-        "confidence": "prefix+imports"
-      }
-    ],
+    "clusters": [],
     "depth": 6,
     "depthVerdict": "DEEP",
     "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp",
     "fileIssues": [],
-    "fileFanOut": 38,
-    "fileFanOutVerdict": "SPLIT",
+    "fileFanOut": 2,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 2,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 7,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/relation",
+    "fileIssues": [],
+    "fileFanOut": 2,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 5,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "add",
+        "members": [
+          "add.ts",
+          "names.ts",
+          "targets.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "add",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/relation/call",
+    "fileIssues": [],
+    "fileFanOut": 3,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "method",
+        "members": [
+          "collect.ts",
+          "declaratorNames.ts",
+          "functionNames.ts",
+          "functions.ts",
+          "methodNames.ts",
+          "methodSymbols.ts",
+          "typeNames.ts"
+        ],
+        "memberCount": 7,
+        "suggestedFolder": "method",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/relation/declaration",
+    "fileIssues": [],
+    "fileFanOut": 7,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/relation/include",
+    "fileIssues": [],
+    "fileFanOut": 2,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "apply",
+        "members": [
+          "apply.ts",
+          "methods.ts",
+          "resolution.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "apply",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/relation/override",
+    "fileIssues": [],
+    "fileFanOut": 3,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "apply",
+        "members": [
+          "apply.ts",
+          "inheritance.ts",
+          "names.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "apply",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/relation/type",
+    "fileIssues": [],
+    "fileFanOut": 3,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "callables",
+        "members": [
+          "callables.ts",
+          "create.ts",
+          "model.ts",
+          "scope.ts",
+          "walk.ts"
+        ],
+        "memberCount": 5,
+        "suggestedFolder": "callables",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 7,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/symbol",
+    "fileIssues": [],
+    "fileFanOut": 5,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 4,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "candidates",
+        "members": [
+          "candidates.ts",
+          "nameNode.ts",
+          "search.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "candidates",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/symbol/declarator",
+    "fileIssues": [],
+    "fileFanOut": 3,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/symbol/lookup",
+    "fileIssues": [],
+    "fileFanOut": 2,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/symbol/type",
+    "fileIssues": [],
+    "fileFanOut": 2,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 8,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/src/treeSitter/runtime/analyzeCpp/symbol/variable",
+    "fileIssues": [],
+    "fileFanOut": 4,
+    "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
   },

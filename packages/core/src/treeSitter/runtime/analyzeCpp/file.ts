@@ -13,7 +13,7 @@ import {
   type TreeSitterAnalysisOptions,
 } from '../options';
 import { addCppSemanticRelations } from './semanticRelations';
-import { handleCppSymbol, type CppSymbolWalkState } from './symbols';
+import { handleCppSymbol, type CppSymbolWalkState } from './symbol/walk';
 
 function visitCppNode(
   node: Parser.SyntaxNode,

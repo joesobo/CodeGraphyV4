@@ -4,34 +4,34 @@ import * as path from 'node:path';
 import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { afterEach, describe, expect, it } from 'vitest';
-import { addCppCallRelation } from '../../../src/treeSitter/runtime/analyzeCpp/relationCall';
-import { readCppCallName } from '../../../src/treeSitter/runtime/analyzeCpp/relationCallNames';
-import { resolveCppCallTarget } from '../../../src/treeSitter/runtime/analyzeCpp/relationCallTargets';
-import { readCppDeclaratorName } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaratorNames';
+import { addCppCallRelation } from '../../../src/treeSitter/runtime/analyzeCpp/relation/call/add';
+import { readCppCallName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/call/names';
+import { resolveCppCallTarget } from '../../../src/treeSitter/runtime/analyzeCpp/relation/call/targets';
+import { readCppDeclaratorName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/declaratorNames';
 import {
   readCppDeclaredFunctionNames,
   readCppDefinedFunctionNames,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredFunctions';
-import { readCppDeclaredMethodNames } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethodNames';
-import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethodSymbols';
-import { readCppDeclaredTypeNames } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredTypes';
-import { readCppFunctionSymbolName, readQualifiedCppFunctionName } from '../../../src/treeSitter/runtime/analyzeCpp/relationFunctionNames';
-import { addCppInheritRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relationInheritance';
+} from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/functions';
+import { readCppDeclaredMethodNames } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/methodNames';
+import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/methodSymbols';
+import { readCppDeclaredTypeNames } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/typeNames';
+import { readCppFunctionSymbolName, readQualifiedCppFunctionName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/functionNames';
+import { addCppInheritRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relation/type/inheritance';
 import {
   readIncludedCppRootNode,
   readInitialIncludedPaths,
   readTransitiveIncludedPaths,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationIncludeTraversal';
-import type { CppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relationModel';
-import { readCppOverrideMethods } from '../../../src/treeSitter/runtime/analyzeCpp/relationOverrideMethods';
+} from '../../../src/treeSitter/runtime/analyzeCpp/relation/include/traversal';
+import type { CppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relation/model';
+import { readCppOverrideMethods } from '../../../src/treeSitter/runtime/analyzeCpp/relation/override/methods';
 import {
   readCppOverrideSourceSymbolId,
   resolveCppOverridePath,
   resolveCppOverrideSymbolId,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationOverrideResolution';
-import { isInsideClassLike, isInsideFunctionDefinition, isPureVirtualDeclaration, readContainingCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relationScopes';
-import { addCppTypeRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relationType';
-import { readCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relationTypeNames';
+} from '../../../src/treeSitter/runtime/analyzeCpp/relation/override/resolution';
+import { isInsideClassLike, isInsideFunctionDefinition, isPureVirtualDeclaration, readContainingCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/scopes';
+import { addCppTypeRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relation/type/apply';
+import { readCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/type/names';
 
 const tempRoots: string[] = [];
 

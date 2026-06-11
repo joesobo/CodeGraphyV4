@@ -1718,3 +1718,57 @@
   - Accepted C++ behavior and example contract were preserved.
 - Return route:
   - Commit and push this Refactorer checkpoint, then return to Orchestrator for PR/CI follow-up.
+
+### 2026-06-11T20:22:41Z - Refactorer Clears C++ Analyzer Organize Output
+
+- Source: Orchestrator follow-up verification found the root command clean but the touched C++ analyzer target still had actionable raw organize output.
+- Target: `pnpm run organize -- packages/core/src/treeSitter/runtime/analyzeCpp`.
+- Result: target-local C++ analyzer organize output is clean; no SPLIT/WARNING/actionable rows remain for the touched analyzer area.
+- Worktree sync:
+  - Fetched `origin/codex/196-cpp-upgrade`.
+  - Local `HEAD` and `origin/codex/196-cpp-upgrade` were already at `2d4e9bed`; no fast-forward was needed.
+- Before organize output:
+  - Command: `pnpm run organize -- packages/core/src/treeSitter/runtime/analyzeCpp`.
+  - Exit: `0`.
+  - Output:
+    - `.  [SPLIT]  files: 38  folders: 0  depth: 0  redundancy: 0.00  clusters: 2  redundant: 0  low-info: 0  barrels: 0`
+    - `Clusters: relation (20 files, prefix+imports) -> suggest ./relation/`
+    - `         symbol (15 files, prefix+imports) -> suggest ./symbol/`
+- Fixes made:
+  - Moved C++ relation helpers under feature folders:
+    - `relation/call/`
+    - `relation/declaration/`
+    - `relation/include/`
+    - `relation/override/`
+    - `relation/type/`
+  - Moved C++ symbol helpers under feature folders:
+    - `symbol/declarator/`
+    - `symbol/lookup/`
+    - `symbol/type/`
+    - `symbol/variable/`
+  - Kept `file.ts` and `semanticRelations.ts` as the analyzer entry/combiner files.
+  - Renamed moved files to remove redundant `relation`/`symbol` prefixes where the folder now carries that context.
+  - Updated production and focused test imports to the new paths.
+  - Regenerated `docs/quality/baselines/organize-repo.json` through a temporary file so the root baseline records the improved structure.
+- After organize output:
+  - Command: `pnpm run organize -- packages/core/src/treeSitter/runtime/analyzeCpp`.
+  - Exit: `0`.
+  - Output:
+    - `No directories found for organize analysis.`
+  - Support JSON check:
+    - Command: `pnpm --silent exec quality-tools organize packages/core/src/treeSitter/runtime/analyzeCpp --json | jq ...`
+    - Result: `12` directories, `0` formatter-visible rows, `0` file issues.
+  - Root command still clean:
+    - Command: `pnpm run organize -- .`
+    - Output: `Organize clean: no new or worsened findings against docs/quality/baselines/organize-repo.json.`
+- Verification:
+  - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cpp/analyze.test.ts tests/treeSitter/cpp/symbolTypes.test.ts tests/treeSitter/cpp/relationHelpers.test.ts tests/treeSitter/cpp/relationBoundaryHelpers.test.ts tests/treeSitter/cpp/symbolHelpers.test.ts tests/treeSitter/cpp/symbolBoundaryHelpers.test.ts tests/treeSitter/cfamily/symbols.test.ts` passed: `7` files, `50` tests.
+  - `pnpm --filter @codegraphy-dev/core run typecheck` passed.
+  - `pnpm --filter @codegraphy-dev/core run lint` passed.
+  - `git diff --check` passed.
+- Scope notes:
+  - No human-owned acceptance Markdown was edited.
+  - No generated Playwright output was edited.
+  - Accepted C++ behavior and example contract were preserved.
+- Return route:
+  - Commit and push this Refactorer checkpoint, then return to Orchestrator for PR/CI follow-up.

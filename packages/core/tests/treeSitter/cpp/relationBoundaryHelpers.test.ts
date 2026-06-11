@@ -1,27 +1,27 @@
 import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
-import { readCppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relationIncludes';
-import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredMethodSymbols';
+import { readCppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relation/include/read';
+import { readCppDeclaredMethodSymbols } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/methodSymbols';
 import {
   readCppDeclaredFunctionNames,
   readCppDefinedFunctionNames,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredFunctions';
-import { readCppDeclaredTypeNames } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaredTypes';
-import { readCppDeclaratorName } from '../../../src/treeSitter/runtime/analyzeCpp/relationDeclaratorNames';
-import { readCppFunctionSymbolName, readQualifiedCppFunctionName } from '../../../src/treeSitter/runtime/analyzeCpp/relationFunctionNames';
-import type { CppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relationModel';
-import { readCppOverrideMethods } from '../../../src/treeSitter/runtime/analyzeCpp/relationOverrideMethods';
+} from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/functions';
+import { readCppDeclaredTypeNames } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/typeNames';
+import { readCppDeclaratorName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/declaratorNames';
+import { readCppFunctionSymbolName, readQualifiedCppFunctionName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/declaration/functionNames';
+import type { CppIncludedDeclarations } from '../../../src/treeSitter/runtime/analyzeCpp/relation/model';
+import { readCppOverrideMethods } from '../../../src/treeSitter/runtime/analyzeCpp/relation/override/methods';
 import {
   resolveCppOverridePath,
   resolveCppOverrideSymbolId,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationOverrideResolution';
+} from '../../../src/treeSitter/runtime/analyzeCpp/relation/override/resolution';
 import {
   readTransitiveIncludedPaths,
-} from '../../../src/treeSitter/runtime/analyzeCpp/relationIncludeTraversal';
-import { isPureVirtualDeclaration, readContainingCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relationScopes';
-import { addCppTypeRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relationType';
-import { readCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relationTypeNames';
+} from '../../../src/treeSitter/runtime/analyzeCpp/relation/include/traversal';
+import { isPureVirtualDeclaration, readContainingCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/scopes';
+import { addCppTypeRelations } from '../../../src/treeSitter/runtime/analyzeCpp/relation/type/apply';
+import { readCppTypeName } from '../../../src/treeSitter/runtime/analyzeCpp/relation/type/names';
 import { addCppSemanticRelations } from '../../../src/treeSitter/runtime/analyzeCpp/semanticRelations';
 
 function createNode({

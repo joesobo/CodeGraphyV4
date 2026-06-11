@@ -1,10 +1,10 @@
 import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { walkTree } from '../analyze/walk';
-import { addCppCallRelation } from './relationCall';
-import { readCppIncludedDeclarations } from './relationIncludes';
-import { CPP_TYPE_NODE_TYPES } from './relationModel';
-import { addCppTypeRelations } from './relationType';
+import { addCppCallRelation } from './relation/call/add';
+import { readCppIncludedDeclarations } from './relation/include/read';
+import { CPP_TYPE_NODE_TYPES } from './relation/model';
+import { addCppTypeRelations } from './relation/type/apply';
 
 export function addCppSemanticRelations(
   rootNode: Parser.SyntaxNode,
