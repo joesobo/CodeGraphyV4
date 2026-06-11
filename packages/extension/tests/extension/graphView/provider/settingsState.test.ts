@@ -238,7 +238,10 @@ describe('graphView/provider/settingsState', () => {
     });
     configuration.get.mockImplementation((key, fallback) => (
       key === 'cssSnippets'
-        ? ['.codegraphy/snippets/graph.css']
+        ? {
+          '.codegraphy/snippets/graph.css': true,
+          '.codegraphy/snippets/disabled.css': false,
+        }
         : fallback
     ));
 

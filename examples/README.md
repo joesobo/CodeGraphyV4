@@ -41,26 +41,28 @@ The `css-snippets/` folder contains reference snippets for CodeGraphy CSS Snippe
 
 ```json
 {
-  "cssSnippets": [
-    ".codegraphy/snippets/animated-graph-stage.css",
-    ".codegraphy/snippets/falling-rain-grid.css",
-    ".codegraphy/snippets/hollow-blue-grid.css"
-  ]
+  "cssSnippets": {
+    ".codegraphy/snippets/base-grid.css": true,
+    ".codegraphy/snippets/forest.css": false,
+    ".codegraphy/snippets/rain.css": true
+  }
 }
 ```
 
-Snippet paths are relative to the CodeGraphy Workspace and must stay inside it. Absolute paths and `../` parent traversal are rejected with `[CodeGraphy]` developer-console warnings.
+Snippet paths are relative to the CodeGraphy Workspace and must stay inside it. Set a snippet to `true` to load it, `false` to keep it disabled, or omit it entirely. Absolute paths and `../` parent traversal are rejected with `[CodeGraphy]` developer-console warnings when enabled.
 
 The demo snippets currently include:
 
-- `animated-graph-stage.css` — a black and grey animated grid background
-- `falling-rain-grid.css` — a dark grid with animated falling rain
-- `hollow-blue-grid.css` — a soft blue hollow-glow grid background
-- `terminal-scan-grid.css` — a green terminal scanline grid
-- `ember-grid.css` — a warm ember drift grid
-- `odysseus-forest-leaves.css` — an Odysseus-inspired forest green grid with falling leaves
-- `odysseus-ocean-constellations.css` — an Odysseus-inspired ocean grid with drifting stars
-- `odysseus-cyber-synapse.css` — an Odysseus-inspired cyberpunk synapse grid
+- `base-grid.css` — a static black and grey grid background
+- `forest.css` — deep green background with softly falling leaves
+- `ocean.css` — blue ocean background with drifting glints
+- `terminal.css` — dark terminal background with scanline and pulse effects
+- `rain.css` — dark rain background with staggered falling streaks
+- `petals.css` — soft pink-purple background with falling petals
+- `constellations.css` — blue night background with twinkling stars
+- `perlin-flow.css` — terminal-green particle flow approximation
+- `sparkles.css` — pink sparkle background
+- `embers.css` — warm ember background with randomized drift layers
 
 ## Symbol Node Stories
 

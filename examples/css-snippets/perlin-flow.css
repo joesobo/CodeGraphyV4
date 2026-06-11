@@ -1,0 +1,67 @@
+/*
+ * Demo CodeGraphy CSS Snippet: perlin-flow.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/perlin-flow.css
+ *
+ * Then add "cssSnippets": { ".codegraphy/snippets/perlin-flow.css": true }
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(0, 255, 65, 0.12), transparent 32%),
+    radial-gradient(circle at 84% 74%, rgba(80, 250, 123, 0.08), transparent 36%),
+    linear-gradient(180deg, #000000 0%, #041007 52%, #000000 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before,
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-repeat: repeat;
+  mix-blend-mode: screen;
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  background-image:
+    radial-gradient(circle, rgba(0, 255, 65, 0.4) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(80, 250, 123, 0.22) 0 1px, transparent 2px);
+  background-size: 86px 74px, 134px 118px;
+  background-position: 12px 18px, 70px 42px;
+  filter: blur(0.25px);
+  opacity: 0.44;
+  animation: codegraphy-demo-flow-a 11s ease-in-out infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  background:
+    linear-gradient(115deg, transparent 0 40%, rgba(0, 255, 65, 0.1) 48%, transparent 56%),
+    linear-gradient(35deg, transparent 0 42%, rgba(80, 250, 123, 0.08) 50%, transparent 58%);
+  background-size: 220px 220px, 280px 280px;
+  background-position: 0 0, 120px 80px;
+  opacity: 0.38;
+  animation: codegraphy-demo-flow-b 16s ease-in-out infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-flow-a {
+  50% {
+    background-position: 62px 70px, 20px 120px;
+    filter: blur(0.6px);
+  }
+}
+
+@keyframes codegraphy-demo-flow-b {
+  50% {
+    background-position: 90px 120px, 40px 20px;
+  }
+}

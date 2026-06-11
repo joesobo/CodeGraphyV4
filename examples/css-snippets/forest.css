@@ -1,0 +1,66 @@
+/*
+ * Demo CodeGraphy CSS Snippet: forest.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/forest.css
+ *
+ * Then add "cssSnippets": { ".codegraphy/snippets/forest.css": true }
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 36% 16%, rgba(168, 213, 162, 0.13), transparent 28%),
+    radial-gradient(circle at 72% 82%, rgba(61, 107, 61, 0.22), transparent 36%),
+    linear-gradient(180deg, #071207 0%, #132513 48%, #071107 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before,
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: -24% 0 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-repeat: repeat-y;
+  filter: blur(0.15px);
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  background-image:
+    radial-gradient(ellipse at 50% 50%, rgba(168, 213, 162, 0.48) 0 34%, transparent 36%),
+    radial-gradient(ellipse at 50% 50%, rgba(124, 184, 113, 0.34) 0 32%, transparent 34%),
+    radial-gradient(ellipse at 50% 50%, rgba(200, 232, 181, 0.42) 0 30%, transparent 32%);
+  background-position: 12% -18%, 48% -28%, 82% -12%;
+  background-size: 22px 180px, 18px 260px, 14px 220px;
+  opacity: 0.58;
+  animation: codegraphy-demo-forest-leaves-a 13s linear infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  background-image:
+    radial-gradient(ellipse at 50% 50%, rgba(168, 213, 162, 0.3) 0 30%, transparent 32%),
+    radial-gradient(ellipse at 50% 50%, rgba(124, 184, 113, 0.24) 0 28%, transparent 30%);
+  background-position: 28% -36%, 66% -18%;
+  background-size: 16px 210px, 20px 290px;
+  opacity: 0.42;
+  animation: codegraphy-demo-forest-leaves-b 17s linear infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-forest-leaves-a {
+  to {
+    background-position: 18% 112%, 42% 120%, 88% 116%;
+  }
+}
+
+@keyframes codegraphy-demo-forest-leaves-b {
+  to {
+    background-position: 22% 118%, 72% 124%;
+  }
+}

@@ -1,0 +1,65 @@
+/*
+ * Demo CodeGraphy CSS Snippet: petals.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/petals.css
+ *
+ * Then add "cssSnippets": { ".codegraphy/snippets/petals.css": true }
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 30% 12%, rgba(245, 160, 192, 0.16), transparent 30%),
+    radial-gradient(circle at 82% 84%, rgba(108, 70, 117, 0.2), transparent 34%),
+    linear-gradient(180deg, #140c16 0%, #241427 52%, #100911 100%);
+}
+
+[data-codegraphy-surface='graph-stage']::before,
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: -24% 0 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-repeat: repeat-y;
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  background-image:
+    radial-gradient(ellipse at 50% 50%, rgba(245, 194, 231, 0.54) 0 30%, transparent 32%),
+    radial-gradient(ellipse at 50% 50%, rgba(245, 160, 192, 0.4) 0 28%, transparent 30%);
+  background-position: 18% -22%, 68% -16%;
+  background-size: 18px 210px, 14px 270px;
+  opacity: 0.58;
+  animation: codegraphy-demo-petals-a 14s linear infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  background-image:
+    radial-gradient(ellipse at 50% 50%, rgba(245, 194, 231, 0.34) 0 28%, transparent 30%),
+    radial-gradient(ellipse at 50% 50%, rgba(245, 160, 192, 0.28) 0 26%, transparent 28%);
+  background-position: 36% -30%, 84% -24%;
+  background-size: 12px 180px, 20px 330px;
+  filter: blur(0.2px);
+  opacity: 0.48;
+  animation: codegraphy-demo-petals-b 19s linear infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-petals-a {
+  to {
+    background-position: 10% 116%, 74% 124%;
+  }
+}
+
+@keyframes codegraphy-demo-petals-b {
+  to {
+    background-position: 42% 118%, 78% 132%;
+  }
+}

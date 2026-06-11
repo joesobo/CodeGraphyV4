@@ -1,0 +1,66 @@
+/*
+ * Demo CodeGraphy CSS Snippet: terminal.
+ *
+ * Try it by copying this file to:
+ *   .codegraphy/snippets/terminal.css
+ *
+ * Then add "cssSnippets": { ".codegraphy/snippets/terminal.css": true }
+ * to .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(0, 255, 65, 0.12), transparent 34%),
+    linear-gradient(180deg, #000000, #041007 52%, #000000);
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(0, 255, 65, 0.14) 48%, transparent 100%),
+    repeating-linear-gradient(180deg, rgba(0, 255, 65, 0.045) 0 1px, transparent 1px 6px);
+  background-size: 100% 210px, 100% 6px;
+  opacity: 0.46;
+  animation: codegraphy-demo-terminal-scan 6.5s linear infinite;
+}
+
+[data-codegraphy-surface='graph-stage']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle, rgba(0, 255, 65, 0.5) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(80, 250, 123, 0.24) 0 1px, transparent 2px);
+  background-size: 140px 110px, 210px 160px;
+  background-position: 16px 12px, 84px 50px;
+  opacity: 0.25;
+  animation: codegraphy-demo-terminal-pulse 8s ease-in-out infinite;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}
+
+@keyframes codegraphy-demo-terminal-scan {
+  from {
+    background-position: 0 -210px, 0 0;
+  }
+
+  to {
+    background-position: 0 100%, 0 6px;
+  }
+}
+
+@keyframes codegraphy-demo-terminal-pulse {
+  50% {
+    opacity: 0.42;
+  }
+}
