@@ -22,5 +22,5 @@ function readDeclaratorCandidates(node: Parser.SyntaxNode): Parser.SyntaxNode[] 
   const explicitDeclarators = declarators.filter((child) => child.type !== 'identifier' && child.type !== 'field_identifier');
   return explicitDeclarators.length > 0
     ? explicitDeclarators
-    : declarators.filter((child) => child.type === 'identifier' || child.type === 'field_identifier');
+    : declarators;
 }
