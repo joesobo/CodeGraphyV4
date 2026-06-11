@@ -2,6 +2,7 @@ import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { createSymbol, createSymbolId } from '../analyze/results';
+import { handleCFamilySymbol } from '../analyzeCFamily/symbols';
 
 interface CppSymbolWalkState extends SymbolWalkState {
   currentClassName?: string;
@@ -49,8 +50,7 @@ export function handleCppSymbol(
     case 'declaration':
       return handleCppDeclaration(node, filePath, symbols, state);
     case 'enum_specifier':
-      addNamedSymbol(symbols, filePath, 'enum', getDeclarationNameNode(node), node);
-      return { skipChildren: true };
+      return handleCFamilySymbol(node, filePath, symbols);
     case 'field_declaration':
       return handleCppFieldDeclaration(node, filePath, symbols, state);
     case 'for_range_loop':
@@ -58,8 +58,7 @@ export function handleCppSymbol(
     case 'function_definition':
       return handleCppFunctionDefinition(node, filePath, symbols, state);
     case 'namespace_definition':
-      addNamedSymbol(symbols, filePath, 'namespace', getDeclarationNameNode(node), node);
-      return;
+      return handleCFamilySymbol(node, filePath, symbols);
     case 'parameter_declaration':
       return handleCppParameterDeclaration(node, filePath, symbols, state);
     case 'template_declaration':
