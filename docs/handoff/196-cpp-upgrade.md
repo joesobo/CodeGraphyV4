@@ -1027,6 +1027,10 @@
   - Existing changeset `.changeset/cpp-graph-scope-upgrade.md` is still appropriate for the user-facing C++ Graph Scope upgrade.
   - PR body was updated to report Architect blocker status.
   - This handoff entry records the current mutation/CI blocker state.
+- Commits and pushes:
+  - `7e8e50d6` (`architect: record cpp mutation blockers`) pushed to `origin/codex/196-cpp-upgrade`.
+  - After push, `codegraphy-mini` had copied pre-commit files as local dirt; Architect used non-destructive `git stash push -u -m architect-copied-files-before-7e8e50d6`, then fast-forwarded the mini worktree to `7e8e50d6`.
+  - Mini worktree status after fast-forward: clean on `codex/196-cpp-upgrade...origin/codex/196-cpp-upgrade`; stash `stash@{0}` preserves the copied scratch files.
 - Blockers and return route:
   - Return to Orchestrator; do not move to final human review.
   - Recommended routing:
