@@ -855,3 +855,57 @@
   - Treat remaining boundary/reachability failures as unrelated baseline for this card after the branch-introduced dead surface cleanup.
   - Do not advance to Architect yet because C++ branch-owned CRAP exceedances remain under the Refactorer contract.
   - Send Refactorer back with a focused mandate: reduce those C++ analyzer CRAP scores below threshold through behavior-preserving refactors and/or targeted tests, or record exact evidence if any listed row is not safely addressable within Refactorer scope.
+
+### 2026-06-11T02:31:00Z - Refactorer Resolves C++ Analyzer CRAP Rows
+
+- Source: Refactorer role agent loop-back.
+- Target: branch-owned C++ analyzer CRAP exceedances listed by Orchestrator.
+- Result: resolved the listed C++ analyzer CRAP rows through behavior-preserving helper extraction plus one focused range-for local-symbol test.
+- Scope held:
+  - No mutation testing was run.
+  - No human-owned acceptance spec Markdown under `packages/extension/tests/acceptance/specs/**/*.md` was edited.
+  - No accepted C++ behavior or C++ acceptance contract was changed.
+  - Unrelated boundary/reachability dead surfaces were not touched.
+- Host used for heavy checks:
+  - `codegraphy-mini:/Users/poleski/.codex/worktrees/196-cpp-upgrade/CodeGraphyV4`
+  - Required PATH used before remote CRAP commands: `/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+  - Remote worktree was fetched and fast-forwarded before each CRAP run.
+- Files changed:
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/symbols.ts`
+  - `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts`
+  - `packages/core/tests/treeSitter/cpp/analyze.test.ts`
+  - `docs/handoff/196-cpp-upgrade.md`
+- Behavior-preserving cleanup:
+  - Replaced the high-complexity C++ symbol switch with a handler table.
+  - Split C++ declarator and method-symbol readers into smaller named helpers.
+  - Reworked descendant/declarator traversal helpers to keep each function below the CRAP threshold.
+  - Added focused coverage for range-for loop local variable symbol extraction.
+- Commands run and outcomes:
+  - Local focused Core tests passed:
+    - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter/cpp/analyze.test.ts tests/treeSitter/cfamily/symbols.test.ts`
+  - Local Core typecheck passed:
+    - `pnpm --filter @codegraphy-dev/core run typecheck`
+  - Local Core lint passed:
+    - `pnpm --filter @codegraphy-dev/core run lint`
+  - Pre-commit acceptance-spec ownership guard passed for both cleanup commits.
+  - Pre-commit full repo typecheck passed for both cleanup commits.
+  - Remote `pnpm run crap` at `c9e09b96`: exit 0; original seven Orchestrator-listed C++ rows were absent, but a new extracted helper row remained: `readFirstCppDeclaratorName` at `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts:581`, CRAP `12.0`, complexity `3`, coverage `0%`.
+  - Remote `pnpm run crap` at `4ef47518`: exit 0; the final threshold table lists 45 unrelated rows and no rows under `packages/core/src/treeSitter/runtime/analyzeCpp/`.
+- CRAP evidence for Orchestrator-listed rows:
+  - `getDeclaratorNameNode`: absent from final CRAP threshold table.
+  - `handleCppForRangeLoop`: absent from final CRAP threshold table.
+  - `handleCppSymbol`: absent from final CRAP threshold table.
+  - `findDescendantByType`: absent from final CRAP threshold table.
+  - `readCppDeclaredMethodSymbols`: absent from final CRAP threshold table.
+  - anonymous callback at `packages/core/src/treeSitter/runtime/analyzeCpp/file.ts:370`: absent from final CRAP threshold table.
+  - `readCppDeclaratorName`: absent from final CRAP threshold table.
+- Refactorer commits and pushes:
+  - `c9e09b96` (`refactorer: reduce cpp analyzer crap`), pushed to `origin/codex/196-cpp-upgrade`.
+  - `4ef47518` (`refactorer: finish cpp crap cleanup`), pushed to `origin/codex/196-cpp-upgrade`.
+  - Final handoff checkpoint: `refactorer: record focused cpp crap handoff`, pushed as the branch tip after this entry was written.
+- Blockers and residual risk:
+  - Full CRAP still reports 45 unrelated threshold rows outside `packages/core/src/treeSitter/runtime/analyzeCpp/`.
+  - Boundary/reachability baseline residuals remain as previously routed by Orchestrator.
+  - The existing git background GC warning for protected main checkout worktree metadata still appears during commits; no destructive cleanup was attempted.
+- Return route:
+  - Return to Orchestrator for loop coordination and next-role decision.
