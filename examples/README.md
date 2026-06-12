@@ -32,6 +32,7 @@ alias behavior.
 - `example-dart` — Dart relative/package import example
 - `example-svelte` — Svelte component, type import, and lazy module import example
 - `css-snippets` — copyable CodeGraphy CSS Snippet examples for styling the extension UI
+- `particles` — copyable custom particle effect examples for the Particles plugin
 
 These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbol and Variable let you zoom into the declarations that explain why files are connected.
 

@@ -211,9 +211,10 @@ as custom toggles in the Theme popup. Store the selected effect id in
 }
 ```
 
-For example, `.codegraphy/particles/fireflies.ts` appears as the
-Fireflies toggle. It should export `activateParticleEffect(context)` and may
-return a cleanup function.
+For example, copy `examples/particles/fireflies.ts` into a workspace at
+`.codegraphy/particles/fireflies.ts` to show a Fireflies toggle. Custom effect
+files should export `activateParticleEffect(context)` and may return a cleanup
+function.
 
 ## Graph Scope settings
 

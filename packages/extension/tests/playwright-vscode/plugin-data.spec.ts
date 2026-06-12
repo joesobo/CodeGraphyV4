@@ -4,6 +4,7 @@ import path from 'node:path';
 import {
   copyExampleTypescriptWorkspace,
   createWorkspaceTempRoot,
+  repoRoot,
 } from '../acceptance/graphView/workspace';
 import {
   launchVSCodeWithWorkspace,
@@ -108,16 +109,8 @@ function writeParticlePluginSettings(
 function writeFirefliesParticleEffect(workspacePath: string): void {
   const effectsDir = path.join(workspacePath, '.codegraphy', 'particles');
   fs.mkdirSync(effectsDir, { recursive: true });
-  fs.writeFileSync(
+  fs.copyFileSync(
+    path.join(repoRoot(), 'examples', 'particles', 'fireflies.ts'),
     path.join(effectsDir, 'fireflies.ts'),
-    `
-export function activateParticleEffect({ canvas }) {
-  canvas.dataset.customEffect = 'fireflies';
-  return () => {
-    delete canvas.dataset.customEffect;
-  };
-}
-`,
-    'utf8',
   );
 }
