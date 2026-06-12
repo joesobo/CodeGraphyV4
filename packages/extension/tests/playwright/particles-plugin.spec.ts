@@ -1,6 +1,18 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('particles plugin custom effects', () => {
+  test('starts persisted built-in particles on launch', async ({ page }) => {
+    await page.goto('/particles-plugin-embers-on-load');
+
+    await page.getByTitle('Themes').click();
+    await expect(page.getByRole('switch', { name: 'Toggle Embers background effect' }))
+      .toHaveAttribute('data-state', 'checked');
+
+    const canvas = page.locator('canvas.cg-bg-particles-canvas');
+    await expect(canvas).toBeVisible();
+    await expect.poll(async () => canvas.evaluate(readWarmPixelCount)).toBeGreaterThan(20);
+  });
+
   test('renders a compiled custom particle effect in the graph background', async ({ page }) => {
     await page.goto('/particles-plugin');
 

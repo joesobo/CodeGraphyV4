@@ -90,6 +90,14 @@ function PluginList({
 }
 
 function getPluginRowKey(plugin: IPluginStatus): string {
+  if (
+    plugin.id === 'codegraphy.particles'
+    || plugin.id === 'codegraphy.backgroundParticles'
+    || plugin.name === 'Background Particles'
+    || plugin.packageName === '@codegraphy-dev/plugin-particles'
+  ) {
+    return '@codegraphy-dev/plugin-particles';
+  }
   return plugin.packageName ?? plugin.id;
 }
 

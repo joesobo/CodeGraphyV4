@@ -11,10 +11,10 @@ describe('custom particle effects', () => {
     const sourceDir = path.join(workspaceRoot, '.codegraphy', 'particles');
     await mkdir(sourceDir, { recursive: true });
     await writeFile(
-      path.join(sourceDir, 'repo-fireflies.ts'),
+      path.join(sourceDir, 'fireflies.ts'),
       `
         export function activateParticleEffect({ canvas }) {
-          canvas.dataset.customEffect = 'repo-fireflies';
+          canvas.dataset.customEffect = 'fireflies';
           return () => {
             delete canvas.dataset.customEffect;
           };
@@ -28,17 +28,17 @@ describe('custom particle effects', () => {
 
     expect(plugin.webviewContributions.assets).toEqual([
       {
-        id: 'repo-fireflies',
+        id: 'fireflies',
         label: 'Fireflies',
-        path: path.join(workspaceRoot, '.codegraphy', 'cache', 'particles', 'repo-fireflies.js'),
+        path: path.join(workspaceRoot, '.codegraphy', 'cache', 'particles', 'fireflies.js'),
         kind: 'particle-effect',
         metadata: {
-          sourcePath: '.codegraphy/particles/repo-fireflies.ts',
+          sourcePath: '.codegraphy/particles/fireflies.ts',
         },
       },
     ]);
     await expect(readFile(
-      path.join(workspaceRoot, '.codegraphy', 'cache', 'particles', 'repo-fireflies.js'),
+      path.join(workspaceRoot, '.codegraphy', 'cache', 'particles', 'fireflies.js'),
       'utf8',
     )).resolves.toContain('activateParticleEffect');
   });
