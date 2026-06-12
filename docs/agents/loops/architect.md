@@ -19,6 +19,7 @@ for human review.
 - mutation site loop
 - mutation survivor loop
 - architecture and PR review loop
+- post-mutation organization check
 - release and CI loop
 - scoped mutation strategy
 - reducing touched files to `<= 50` mutation sites
@@ -47,7 +48,10 @@ flowchart TD
     MutRun --> MutClean{"Score >= 90 and survivors handled?"}
     MutClean -->|No| MutFix["Kill survivors with tests or hardening"]
     MutFix --> MutRun
-    MutClean -->|Yes| ReviewRun["Run architecture and PR review"]
+    MutClean -->|Yes| OrgCheck["Check organization after mutation changes"]
+    OrgCheck --> OrgClean{"Organization still clean?"}
+    OrgClean -->|No| OrgRoute["Return to Orchestrator for Refactorer"]
+    OrgClean -->|Yes| ReviewRun["Run architecture and PR review"]
     ReviewRun --> ReviewClean{"Owned P1 and P2 findings clear?"}
     ReviewClean -->|No| ReviewFix["Fix owned review findings"]
     ReviewFix --> ReviewRun
@@ -62,18 +66,33 @@ flowchart TD
 
 ## Mutation Operating Rules
 
-Mutation is expensive. A full run can take hours. The Architect must:
+Mutation is expensive. A full run can take hours.
 
-- read `docs/quality/mutation.md` before running mutation commands
+The Architect must:
+
+- read `docs/quality/mutation.md` before mutation commands
 - run mutation and VS Code Playwright checks on the remote Mac mini unless the
   user explicitly approves a local run
-- prefer existing reports and seed cache before broad mutation
-- prefer file or directory scoped mutation during development
-- use package scoped mutation only when the touched scope requires it
+- verify the remote host can access required seed artifacts or GitHub-hosted
+  reports before starting a long mutation run that depends on them
+- prefer existing reports, seed cache, and file or directory scoped mutation
+- if seed artifact auth is unavailable, fall back to direct scoped mutation
+  commands before asking for a human environment fix
 - never run bare `pnpm run mutate`
 - leave all package mutation refreshes to the CI seed workflow
 - record scoped target, score, killed count, survivors, no coverage entries, and
   equivalent mutant notes in the handoff log
+
+## Post-Mutation Organization
+
+Mutation survivor fixes often split files, add tests, or move helpers. After
+the mutation site and survivor loops pass, check whether the changed production
+areas still satisfy the organization tool.
+
+If organization output is dirty, do not start a Refactorer cleanup inside the
+Architect thread. Return to the Orchestrator with the affected paths and output
+summary. The Orchestrator routes Refactorer, then routes Architect again because
+Refactorer changes make the downstream mutation and architecture checks stale.
 
 ## Changesets
 
@@ -104,6 +123,14 @@ Measurable progress includes:
 After three consecutive flat or regressing passes for a mini-loop, stop and
 request human review.
 
+Do not ask to stop below the mutation threshold merely because the campaign is
+broad, slow, or expensive while the mutation site count, survivor count, or
+mutation score is still making measurable progress. Use scoped mutation runs and
+cached mutation reports when available. A human stop/continue decision is only
+appropriate after the flat-or-regressing threshold is reached, an external
+environment blocker prevents meaningful progress, or the next required fix
+would cross the Architect mandate.
+
 ## Cross Stage Findings
 
 The Architect owns fixing P1 and P2 findings that are inside the architecture,
@@ -130,6 +157,5 @@ The Architect handoff entry must include:
 - docs and changeset decision
 - PR body and handoff summary status
 - CI status
-- commits and pushes
 
 Return to the orchestrator.
