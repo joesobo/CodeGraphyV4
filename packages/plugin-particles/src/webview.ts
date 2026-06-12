@@ -1,4 +1,8 @@
 import type { CodeGraphyWebviewAPI } from '@codegraphy-dev/plugin-api';
+import {
+  startCustomParticleEffect,
+  startOdysseusBackgroundEffect,
+} from './effects';
 
 type ParticlePreset =
   | 'none'
@@ -11,18 +15,22 @@ type ParticlePreset =
   | 'embers'
   | 'custom';
 
-interface BackgroundEffectsSettings {
+interface ParticleSettings {
   enabled: boolean;
   preset: ParticlePreset;
   intensity: number;
   customModule?: string;
 }
 
-const DEFAULT_BACKGROUND_EFFECTS: BackgroundEffectsSettings = {
+const DEFAULT_PARTICLE_SETTINGS: ParticleSettings = {
   enabled: false,
   preset: 'none',
   intensity: 1,
 };
+const DEFAULT_EFFECT_COLOR = 'rgb(156 222 242)';
+const EMBERS_EFFECT_COLOR = 'rgb(201 169 90)';
+const LEAVES_EFFECT_COLOR = 'rgb(143 207 107)';
+const DEFAULT_BACKGROUND_COLOR = 'rgb(11 16 32)';
 
 const PRESETS: Array<{ id: Exclude<ParticlePreset, 'none' | 'custom'>; label: string }> = [
   { id: 'synapse', label: 'Synapse' },
@@ -34,22 +42,77 @@ const PRESETS: Array<{ id: Exclude<ParticlePreset, 'none' | 'custom'>; label: st
   { id: 'embers', label: 'Embers' },
 ];
 
-function isBackgroundEffectsSettings(value: unknown): value is BackgroundEffectsSettings {
+function isParticleSettings(value: unknown): value is ParticleSettings {
   if (!value || typeof value !== 'object') {
     return false;
   }
 
-  const candidate = value as Partial<BackgroundEffectsSettings>;
+  const candidate = value as Partial<ParticleSettings>;
   return typeof candidate.enabled === 'boolean'
     && typeof candidate.preset === 'string'
     && typeof candidate.intensity === 'number';
 }
 
-function readHostBackgroundEffects(api: CodeGraphyWebviewAPI): BackgroundEffectsSettings {
-  const state = api.getHostState();
-  return isBackgroundEffectsSettings(state.backgroundEffects)
-    ? state.backgroundEffects
-    : DEFAULT_BACKGROUND_EFFECTS;
+function readParticleSettings(api: CodeGraphyWebviewAPI): ParticleSettings {
+  const data = api.getPluginData();
+  return isParticleSettings(data)
+    ? data
+    : DEFAULT_PARTICLE_SETTINGS;
+}
+
+function resolveEffectColor(preset: ParticlePreset): string {
+  if (preset === 'embers') {
+    return EMBERS_EFFECT_COLOR;
+  }
+  if (preset === 'petals') {
+    return LEAVES_EFFECT_COLOR;
+  }
+  return DEFAULT_EFFECT_COLOR;
+}
+
+function renderParticleCanvas(container: HTMLElement, settings: ParticleSettings): () => void {
+  container.replaceChildren();
+  if (!settings.enabled || settings.preset === 'none') {
+    return () => undefined;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'cg-bg-particles-canvas';
+  canvas.setAttribute('aria-hidden', 'true');
+  container.appendChild(canvas);
+
+  if (settings.preset === 'custom') {
+    if (!settings.customModule) {
+      return () => {
+        canvas.remove();
+      };
+    }
+
+    const cleanup = startCustomParticleEffect({
+      canvas,
+      intensity: settings.intensity,
+      color: resolveEffectColor(settings.preset),
+      backgroundColor: DEFAULT_BACKGROUND_COLOR,
+      moduleUrl: settings.customModule,
+    });
+    return () => {
+      cleanup();
+      canvas.remove();
+    };
+  }
+
+  const cleanup = startOdysseusBackgroundEffect({
+    canvas,
+    preset: settings.preset,
+    intensity: settings.intensity,
+    color: resolveEffectColor(settings.preset),
+    backgroundColor: DEFAULT_BACKGROUND_COLOR,
+    prewarmFrames: 180,
+  });
+  return () => {
+    cleanup();
+    canvas.remove();
+  };
 }
 
 function createSwitch(checked: boolean, label: string): HTMLButtonElement {
@@ -63,14 +126,11 @@ function createSwitch(checked: boolean, label: string): HTMLButtonElement {
   return button;
 }
 
-function sendBackgroundEffects(api: CodeGraphyWebviewAPI, backgroundEffects: BackgroundEffectsSettings): void {
-  api.postHostMessage({
-    type: 'UPDATE_BACKGROUND_EFFECTS',
-    payload: { backgroundEffects },
-  });
+function sendParticleSettings(api: CodeGraphyWebviewAPI, settings: ParticleSettings): void {
+  api.setPluginData(settings);
 }
 
-function render(container: HTMLElement, api: CodeGraphyWebviewAPI, settings: BackgroundEffectsSettings): void {
+function render(container: HTMLElement, api: CodeGraphyWebviewAPI, settings: ParticleSettings): void {
   container.replaceChildren();
 
   const section = document.createElement('section');
@@ -101,9 +161,9 @@ function render(container: HTMLElement, api: CodeGraphyWebviewAPI, settings: Bac
       const nextEnabled = !(settings.enabled && settings.preset === preset.id);
       const nextSettings = nextEnabled
         ? { enabled: true, preset: preset.id, intensity: settings.intensity }
-        : { ...DEFAULT_BACKGROUND_EFFECTS, intensity: settings.intensity };
+        : { ...DEFAULT_PARTICLE_SETTINGS, intensity: settings.intensity };
       render(container, api, nextSettings);
-      sendBackgroundEffects(api, nextSettings);
+      sendParticleSettings(api, nextSettings);
     });
     row.appendChild(control);
     grid.appendChild(row);
@@ -121,6 +181,7 @@ function injectStyles(): void {
   style.id = 'cg-particles-plugin-style';
   style.textContent = `
     .cg-bg-particles-section { display: flex; flex-direction: column; gap: 0.5rem; }
+    .cg-bg-particles-canvas { height: 100%; inset: 0; pointer-events: none; position: absolute; width: 100%; }
     .cg-bg-particles-heading { color: var(--cg-text-muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0; line-height: 1rem; margin: 0; text-transform: uppercase; }
     .cg-bg-particles-grid { background: var(--cg-surface-subtle); border: 1px solid var(--cg-border-subtle); border-radius: 0.375rem; display: grid; gap: 0.5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0.5rem; }
     .cg-bg-particles-row { align-items: center; border-radius: 0.25rem; display: flex; gap: 0.5rem; justify-content: space-between; min-width: 0; padding: 0.25rem 0.5rem; }
@@ -135,16 +196,24 @@ function injectStyles(): void {
 
 export function activate(api: CodeGraphyWebviewAPI): void {
   injectStyles();
-  const container = api.getSlotContainer('theme.panel');
-  render(container, api, readHostBackgroundEffects(api));
+  const controlsContainer = api.getSlotContainer('theme.panel');
+  const canvasContainer = api.getSlotContainer('graph.stage.worldOverlay');
+  let canvasCleanup: () => void = () => undefined;
+  const update = (settings: ParticleSettings): void => {
+    render(controlsContainer, api, settings);
+    canvasCleanup();
+    canvasCleanup = renderParticleCanvas(canvasContainer, settings);
+  };
+
+  update(readParticleSettings(api));
 
   api.onMessage((message) => {
-    if (message.type !== 'BACKGROUND_EFFECTS_UPDATED') {
+    if (message.type !== 'PLUGIN_DATA_UPDATED') {
       return;
     }
 
-    if (isBackgroundEffectsSettings(message.data)) {
-      render(container, api, message.data);
+    if (isParticleSettings(message.data)) {
+      update(message.data);
     }
   });
 }

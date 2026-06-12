@@ -29,7 +29,8 @@ export function activateParticleEffect({ canvas, intensity }) {
 ```
 
 Workspace-local custom effects should live under `.codegraphy/particles/`.
-Set `backgroundEffects.preset` to `custom` and `backgroundEffects.customModule`
+Store the plugin's settings under `pluginData["codegraphy.particles"]` in
+`.codegraphy/settings.json`, then set `preset` to `custom` and `customModule`
 to the module path.
 
 ## License Note

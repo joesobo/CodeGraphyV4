@@ -196,14 +196,6 @@ export function handleDirectionSettingsUpdated(
   };
 }
 
-export function handleBackgroundEffectsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'BACKGROUND_EFFECTS_UPDATED' }>,
-): PartialState {
-  return {
-    backgroundEffects: message.payload.backgroundEffects,
-  };
-}
-
 export function handleShowLabelsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'SHOW_LABELS_UPDATED' }>,
 ): PartialState {

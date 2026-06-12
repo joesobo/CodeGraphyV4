@@ -19,21 +19,23 @@ export interface InjectAssetsParams {
 }
 
 export type ResetPluginAssets = (pluginId: string) => void;
+export type UpdatePluginData = (pluginId: string, data: unknown) => void;
 
-const BACKGROUND_PARTICLES_PLUGIN_ID = 'codegraphy.particles';
-
-function deliverBackgroundEffectsUpdateToPlugin(
+function handlePluginDataUpdatedMessage(
   raw: { type?: unknown; payload?: unknown },
-  pluginHost: WebviewPluginHost,
-): void {
-  if (raw.type !== 'BACKGROUND_EFFECTS_UPDATED' || !raw.payload || typeof raw.payload !== 'object') {
-    return;
+  updatePluginData: UpdatePluginData,
+): boolean {
+  if (raw.type !== 'PLUGIN_DATA_UPDATED' || !raw.payload || typeof raw.payload !== 'object') {
+    return false;
   }
 
-  pluginHost.deliverMessage(BACKGROUND_PARTICLES_PLUGIN_ID, {
-    type: 'BACKGROUND_EFFECTS_UPDATED',
-    data: (raw.payload as { backgroundEffects?: unknown }).backgroundEffects,
-  });
+  const payload = raw.payload as { pluginId?: unknown; data?: unknown };
+  if (typeof payload.pluginId !== 'string' || payload.pluginId.length === 0) {
+    return false;
+  }
+
+  updatePluginData(payload.pluginId, payload.data);
+  return true;
 }
 
 /**
@@ -43,6 +45,7 @@ export function createMessageHandler(
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>,
   pluginHost: WebviewPluginHost,
   resetPluginAssets?: ResetPluginAssets,
+  updatePluginData: UpdatePluginData = () => undefined,
 ): (event: MessageEvent<unknown>) => void {
   const packagePluginIdsByPackageName = new Map<string, string>();
 
@@ -66,7 +69,10 @@ export function createMessageHandler(
       return;
     }
 
-    deliverBackgroundEffectsUpdateToPlugin(raw, pluginHost);
+    if (handlePluginDataUpdatedMessage(raw, updatePluginData)) {
+      return;
+    }
+
     removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
     graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
   };
@@ -80,8 +86,9 @@ export function setupMessageListener(
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>,
   pluginHost: WebviewPluginHost,
   resetPluginAssets?: ResetPluginAssets,
+  updatePluginData?: UpdatePluginData,
 ): () => void {
-  const handleMessage = createMessageHandler(injectPluginAssets, pluginHost, resetPluginAssets);
+  const handleMessage = createMessageHandler(injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData);
   window.addEventListener('message', handleMessage);
   postWebviewReadyOnce(window);
 

@@ -35,7 +35,6 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   legendOrder: 'legendOrder',
   particleSpeed: 'particleSpeed',
   particleSize: 'particleSize',
-  backgroundEffects: 'backgroundEffects',
   showLabels: 'showLabels',
   maxFiles: 'maxFiles',
   verboseDiagnostics: 'verboseDiagnostics',

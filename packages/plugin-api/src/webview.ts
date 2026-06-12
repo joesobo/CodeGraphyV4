@@ -112,6 +112,8 @@ export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
   getHostState(): Record<string, unknown>;
+  getPluginData(): unknown;
+  setPluginData(data: unknown): void;
   getGraphViewViewportState(): GraphViewViewportState | null;
   onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): Disposable;
   registerNodeRenderer(type: string, fn: NodeRenderFn): Disposable;

@@ -6,7 +6,6 @@ export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'respectGitignore',
   'showOrphans',
   'cssSnippets',
-  'backgroundEffects',
   'plugins',
   'pluginData',
   'nodeColors',

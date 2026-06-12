@@ -31,7 +31,7 @@ function createSnapshot(
     legendOrder: [],
     particleSpeed: 0.005,
     particleSize: 4,
-    backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
+    pluginData: {},
     showLabels: true,
     nodeSizeMode: 'uniform',
     maxFiles: 500,
@@ -89,11 +89,10 @@ describe('graphView/settings/sync', () => {
       },
     });
 
-    expect(order.slice(0, 7)).toEqual([
+    expect(order.slice(0, 6)).toEqual([
       'PHYSICS_SETTINGS_UPDATED',
       'SETTINGS_UPDATED',
       'DIRECTION_SETTINGS_UPDATED',
-      'BACKGROUND_EFFECTS_UPDATED',
       'SHOW_LABELS_UPDATED',
       'RECOMPUTE_GROUPS',
       'SEND_LEGENDS_UPDATED',
@@ -123,5 +122,25 @@ describe('graphView/settings/sync', () => {
       'VERBOSE_DIAGNOSTICS_UPDATED',
       'NODE_SIZE_MODE_UPDATED',
     ]);
+  });
+
+  it('sends plugin-owned data after core settings', () => {
+    const order: string[] = [];
+    const state = createState();
+    const snapshot = createSnapshot({
+      pluginData: {
+        'acme.plugin': { enabled: true },
+      },
+    });
+
+    applyGraphViewAllSettingsSnapshot(snapshot, ['venv/**'], state, {
+      sendMessage: message => {
+        order.push(message.type);
+      },
+      recomputeGroups: () => undefined,
+      sendGroupsUpdated: () => undefined,
+    });
+
+    expect(order.at(-1)).toBe('PLUGIN_DATA_UPDATED');
   });
 });

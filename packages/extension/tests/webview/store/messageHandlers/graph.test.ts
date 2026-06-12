@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   handleActiveFileUpdated,
   handleAppBootstrapComplete,
-  handleBackgroundEffectsUpdated,
   handleDepthLimitRangeUpdated,
   handleDepthLimitUpdated,
   handleDepthModeUpdated,
@@ -47,7 +46,6 @@ function createState(
     directionColor: '#ffffff',
     particleSpeed: 0,
     particleSize: 1,
-    backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     physicsPaused: false,
     showLabels: true,
     cssSnippets: {},
@@ -304,25 +302,6 @@ describe('webview/store/messageHandlers/graph', () => {
       type: 'ACTIVE_FILE_UPDATED',
       payload: { filePath: undefined },
     })).toEqual({ activeFilePath: null });
-  });
-
-  it('maps graph background effect payloads', () => {
-    expect(handleBackgroundEffectsUpdated({
-      type: 'BACKGROUND_EFFECTS_UPDATED',
-      payload: {
-        backgroundEffects: {
-          enabled: true,
-          preset: 'embers',
-          intensity: 0.5,
-        },
-      },
-    })).toEqual({
-      backgroundEffects: {
-        enabled: true,
-        preset: 'embers',
-        intensity: 0.5,
-      },
-    });
   });
 
   it('returns nothing when legends and optimistic updates are unchanged', () => {

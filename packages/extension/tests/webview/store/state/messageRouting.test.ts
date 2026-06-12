@@ -299,25 +299,6 @@ describe('GraphStore message routing', () => {
     expect(store.getState().nodeSizeMode).toBe('churn');
   });
 
-  it('handles BACKGROUND_EFFECTS_UPDATED messages', () => {
-    store.getState().handleExtensionMessage({
-      type: 'BACKGROUND_EFFECTS_UPDATED',
-      payload: {
-        backgroundEffects: {
-          enabled: true,
-          preset: 'petals',
-          intensity: 0.35,
-        },
-      },
-    });
-
-    expect(store.getState().backgroundEffects).toEqual({
-      enabled: true,
-      preset: 'petals',
-      intensity: 0.35,
-    });
-  });
-
   it('CACHE_INVALIDATED clears indexing progress as well as timeline state', () => {
     store.setState({
       timelineActive: true,

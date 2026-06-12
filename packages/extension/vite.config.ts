@@ -22,10 +22,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@codegraphy-dev/plugin-particles/effects': resolve(
-        __dirname,
-        '../plugin-particles/src/effects.ts',
-      ),
     },
   },
 });
