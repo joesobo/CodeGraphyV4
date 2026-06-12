@@ -11,12 +11,20 @@ export type GraphPluginSlot =
   | 'toolbar'
   | 'graph.toolbar'
   | 'graph.panelSlot'
+  | 'theme.panel'
+  | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay'
   | 'node-details'
   | 'tooltip'
   | 'timeline-panel'
   | 'graph-overlay';
+
+export type WebviewPluginActivationCleanup = void | (() => void) | Disposable;
+
+export type WebviewPluginActivate = (
+  api: CodeGraphyWebviewAPI,
+) => WebviewPluginActivationCleanup | Promise<WebviewPluginActivationCleanup>;
 
 export interface NodeRenderContext {
   node: IGraphNode;
@@ -110,6 +118,9 @@ export interface LabelOptions {
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
+  getHostState(): Record<string, unknown>;
+  getPluginData(): unknown;
+  setPluginData(data: unknown): void;
   getGraphViewViewportState(): GraphViewViewportState | null;
   onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): Disposable;
   registerNodeRenderer(type: string, fn: NodeRenderFn): Disposable;
@@ -122,5 +133,6 @@ export interface CodeGraphyWebviewAPI {
     drawLabel(ctx: CanvasRenderingContext2D, options: LabelOptions): void;
   };
   sendMessage(message: { type: string; data: unknown }): void;
+  postHostMessage(message: unknown): void;
   onMessage(handler: (message: { type: string; data: unknown }) => void): Disposable;
 }

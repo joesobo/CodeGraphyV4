@@ -144,7 +144,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 - additive D3 force adapters
 - node drag-end policies for plugin-owned fixed-position behavior
 - context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
-- named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
+- named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldBackground`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
 
 The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw force-graph instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
 

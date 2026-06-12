@@ -9,6 +9,7 @@ import { WebviewPluginHost } from '../pluginHost/manager';
 import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts/webview';
 import { postMessage } from '../vscodeApi';
 import {
+  normalizePluginActivationCleanup,
   resolvePluginModuleActivator,
   PluginWebviewModule,
   PluginInjectPayload,
@@ -18,21 +19,30 @@ export interface IPluginManager {
   pluginHost: WebviewPluginHost;
   injectPluginAssets: (payload: PluginInjectPayload) => Promise<void>;
   resetPluginAssets: (pluginId: string) => void;
+  updatePluginData: (pluginId: string, data: unknown) => void;
 }
 
 interface PluginManagerRefs {
   activatedScriptKeys: MutableRefObject<Set<string>>;
   activatingScriptPromises: MutableRefObject<Map<string, Promise<void>>>;
   loadedStyles: MutableRefObject<Set<string>>;
+  pluginActivationCleanups: MutableRefObject<Map<string, Set<{ dispose(): void }>>>;
   pluginApis: MutableRefObject<Map<string, CodeGraphyWebviewAPI>>;
   pluginAssetVersions: MutableRefObject<Map<string, number>>;
+  pluginData: MutableRefObject<Map<string, unknown>>;
   pluginHost: MutableRefObject<WebviewPluginHost>;
 }
 
-function getPluginApi(refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginHost'>, pluginId: string): CodeGraphyWebviewAPI {
+function getPluginApi(refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginData' | 'pluginHost'>, pluginId: string): CodeGraphyWebviewAPI {
   const existing = refs.pluginApis.current.get(pluginId);
   if (existing) return existing;
-  const api = refs.pluginHost.current.createAPI(pluginId, postMessage);
+  const api = refs.pluginHost.current.createAPI(
+    pluginId,
+    postMessage,
+    message => postMessage(message as never),
+    () => ({}),
+    pid => refs.pluginData.current.get(pid),
+  );
   refs.pluginApis.current.set(pluginId, api);
   return api;
 }
@@ -50,7 +60,10 @@ function injectPluginStyle(refs: Pick<PluginManagerRefs, 'loadedStyles'>, style:
 }
 
 async function runPluginActivation(
-  refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginAssetVersions' | 'pluginHost'>,
+  refs: Pick<
+    PluginManagerRefs,
+    'pluginActivationCleanups' | 'pluginApis' | 'pluginAssetVersions' | 'pluginData' | 'pluginHost'
+  >,
   pluginId: string,
   script: string,
   activationKey: string,
@@ -68,7 +81,22 @@ async function runPluginActivation(
     return false;
   }
 
-  await activate(getPluginApi(refs, pluginId));
+  const cleanup = normalizePluginActivationCleanup(await activate(getPluginApi(refs, pluginId)));
+
+  if ((refs.pluginAssetVersions.current.get(pluginId) ?? 0) !== activationVersion) {
+    cleanup?.dispose();
+    return false;
+  }
+
+  if (cleanup) {
+    let cleanups = refs.pluginActivationCleanups.current.get(pluginId);
+    if (!cleanups) {
+      cleanups = new Set();
+      refs.pluginActivationCleanups.current.set(pluginId, cleanups);
+    }
+    cleanups.add(cleanup);
+  }
+
   return (refs.pluginAssetVersions.current.get(pluginId) ?? 0) === activationVersion
     && Boolean(activationKey);
 }
@@ -76,7 +104,8 @@ async function runPluginActivation(
 async function activatePluginScript(
   refs: Pick<
     PluginManagerRefs,
-    'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginApis' | 'pluginAssetVersions' | 'pluginHost'
+    'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginActivationCleanups' | 'pluginApis'
+    | 'pluginAssetVersions' | 'pluginHost' | 'pluginData'
   >,
   pluginId: string,
   script: string,
@@ -112,9 +141,17 @@ async function activatePluginScript(
 }
 
 function resetPluginScriptState(
-  refs: Pick<PluginManagerRefs, 'activatedScriptKeys' | 'activatingScriptPromises'>,
+  refs: Pick<PluginManagerRefs, 'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginActivationCleanups'>,
   pluginId: string,
 ): void {
+  const cleanups = refs.pluginActivationCleanups.current.get(pluginId);
+  if (cleanups) {
+    for (const cleanup of cleanups) {
+      cleanup.dispose();
+    }
+    refs.pluginActivationCleanups.current.delete(pluginId);
+  }
+
   const activationPrefix = `${pluginId}::`;
   for (const key of Array.from(refs.activatedScriptKeys.current)) {
     if (key.startsWith(activationPrefix)) {
@@ -138,15 +175,19 @@ export function usePluginManager(): IPluginManager {
   const loadedStylesRef = useRef<Set<string>>(new Set());
   const activatedScriptKeysRef = useRef<Set<string>>(new Set());
   const activatingScriptPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
+  const pluginActivationCleanupsRef = useRef<Map<string, Set<{ dispose(): void }>>>(new Map());
   const pluginAssetVersionsRef = useRef<Map<string, number>>(new Map());
+  const pluginDataRef = useRef<Map<string, unknown>>(new Map());
 
   return useMemo(() => {
     const refs: PluginManagerRefs = {
       activatedScriptKeys: activatedScriptKeysRef,
       activatingScriptPromises: activatingScriptPromisesRef,
       loadedStyles: loadedStylesRef,
+      pluginActivationCleanups: pluginActivationCleanupsRef,
       pluginApis: pluginApisRef,
       pluginAssetVersions: pluginAssetVersionsRef,
+      pluginData: pluginDataRef,
       pluginHost: pluginHostRef,
     };
 
@@ -162,6 +203,13 @@ export function usePluginManager(): IPluginManager {
           console.error(`[CodeGraphy] Failed to activate webview plugin script "${script}":`, error);
         }
       }
+
+      if (payload.assets && payload.assets.length > 0) {
+        pluginHostRef.current.deliverMessage(payload.pluginId, {
+          type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
+          data: payload.assets,
+        });
+      }
     }
 
     function resetPluginAssets(pluginId: string): void {
@@ -173,10 +221,19 @@ export function usePluginManager(): IPluginManager {
       resetPluginScriptState(refs, pluginId);
     }
 
+    function updatePluginData(pluginId: string, data: unknown): void {
+      pluginDataRef.current.set(pluginId, data);
+      pluginHostRef.current.deliverMessage(pluginId, {
+        type: 'PLUGIN_DATA_UPDATED',
+        data,
+      });
+    }
+
     return {
       pluginHost: pluginHostRef.current,
       injectPluginAssets,
       resetPluginAssets,
+      updatePluginData,
     };
   // All state is in refs — no dependencies needed
   }, []);

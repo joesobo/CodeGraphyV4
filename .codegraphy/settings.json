@@ -19,9 +19,18 @@
     {
       "id": "@codegraphy-dev/plugin-godot",
       "enabled": true
+    },
+    {
+      "id": "codegraphy.particles",
+      "enabled": true
     }
   ],
-  "pluginData": {},
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "embers"
+    }
+  },
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",

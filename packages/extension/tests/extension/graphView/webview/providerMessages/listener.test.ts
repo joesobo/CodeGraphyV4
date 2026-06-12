@@ -42,6 +42,7 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     legendOrder: [],
     particleSpeed: 0.005,
     particleSize: 4,
+    pluginData: {},
     showLabels: true,
     maxFiles: DEFAULT_MAX_FILES,
     verboseDiagnostics: false,

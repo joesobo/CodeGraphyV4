@@ -89,10 +89,47 @@ function PluginList({
   );
 }
 
+function getPluginRowKey(plugin: IPluginStatus): string {
+  if (
+    plugin.id === 'codegraphy.particles'
+    || plugin.id === 'codegraphy.backgroundParticles'
+    || plugin.name === 'Background Particles'
+    || plugin.packageName === '@codegraphy-dev/plugin-particles'
+  ) {
+    return '@codegraphy-dev/plugin-particles';
+  }
+  return plugin.packageName ?? plugin.id;
+}
+
+function shouldReplacePluginRow(current: IPluginStatus, next: IPluginStatus): boolean {
+  if (next.id === 'codegraphy.particles') {
+    return true;
+  }
+  if (current.id === 'codegraphy.particles') {
+    return false;
+  }
+  if (current.status !== 'active' && next.status === 'active') {
+    return true;
+  }
+  return current.name === current.packageName && next.name !== next.packageName;
+}
+
+function dedupePluginStatuses(plugins: readonly IPluginStatus[]): IPluginStatus[] {
+  const rows = new Map<string, IPluginStatus>();
+  for (const plugin of plugins) {
+    const key = getPluginRowKey(plugin);
+    const current = rows.get(key);
+    if (!current || shouldReplacePluginRow(current, plugin)) {
+      rows.set(key, plugin);
+    }
+  }
+  return Array.from(rows.values());
+}
+
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
   const pluginStatuses = useGraphStore(s => s.pluginStatuses);
   const plugins = useMemo(
-    () => pluginStatuses.filter(plugin => plugin.packageName),
+    () => dedupePluginStatuses(pluginStatuses.filter(plugin => plugin.packageName)),
     [pluginStatuses],
   );
 

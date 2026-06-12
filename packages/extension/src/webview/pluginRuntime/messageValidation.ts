@@ -7,6 +7,16 @@ export interface PluginInjectPayload {
   pluginId: string;
   scripts: string[];
   styles: string[];
+  assets?: PluginWebviewAsset[];
+}
+
+export interface PluginWebviewAsset {
+  id: string;
+  label: string;
+  url: string;
+  path?: string;
+  kind?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PluginScopedMessage {
@@ -19,7 +29,7 @@ export function normalizePluginInjectPayload(payload: unknown): PluginInjectPayl
     return null;
   }
 
-  const candidate = payload as { pluginId?: unknown; scripts?: unknown; styles?: unknown };
+  const candidate = payload as { pluginId?: unknown; scripts?: unknown; styles?: unknown; assets?: unknown };
   if (typeof candidate.pluginId !== 'string') {
     return null;
   }
@@ -32,7 +42,21 @@ export function normalizePluginInjectPayload(payload: unknown): PluginInjectPayl
     styles: Array.isArray(candidate.styles)
       ? candidate.styles.filter((style): style is string => typeof style === 'string')
       : [],
+    assets: Array.isArray(candidate.assets)
+      ? candidate.assets.filter(isPluginWebviewAsset)
+      : [],
   };
+}
+
+function isPluginWebviewAsset(value: unknown): value is PluginWebviewAsset {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<PluginWebviewAsset>;
+  return typeof candidate.id === 'string'
+    && typeof candidate.label === 'string'
+    && typeof candidate.url === 'string';
 }
 
 export function parsePluginScopedMessage(type: string, data: unknown): PluginScopedMessage | null {

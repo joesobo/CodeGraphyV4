@@ -41,7 +41,7 @@ export function PanelStack({
         className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
       />
       <GraphScopePanel isOpen={activePanel === 'graphScope'} onClose={onClosePanel} />
-      <LegendsPanel isOpen={activePanel === 'legends'} onClose={onClosePanel} />
+      <LegendsPanel isOpen={activePanel === 'legends'} onClose={onClosePanel} pluginHost={pluginHost} />
       <PluginsPanel isOpen={activePanel === 'plugins'} onClose={onClosePanel} />
       <SettingsPanel isOpen={activePanel === 'settings'} onClose={onClosePanel} />
       {hasGraphNodes && activePanel === 'none' ? (

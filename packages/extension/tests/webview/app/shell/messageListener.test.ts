@@ -73,6 +73,7 @@ describe('app message listener', () => {
       pluginId: 'codegraphy.typescript',
       scripts: ['one.js', 'two.js'],
       styles: ['one.css', 'two.css'],
+      assets: [],
     });
     expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
     expect(pluginHost.deliverMessage).not.toHaveBeenCalled();

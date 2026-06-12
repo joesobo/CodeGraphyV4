@@ -27,6 +27,10 @@ export async function applySettingsToggleMessage(
       );
       await handlers.updateConfig('plugins', plan.plugins);
       await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
+      if (message.payload.enabled) {
+        replaySavedPluginData(message.payload.pluginId, handlers);
+        handlers.sendPluginWebviewInjections?.();
+      }
       handlers.sendPluginStatuses?.();
       handlers.sendContextMenuItems?.();
       handlers.sendPluginToolbarActions?.();
@@ -44,4 +48,22 @@ export async function applySettingsToggleMessage(
     default:
       return false;
   }
+}
+
+function replaySavedPluginData(
+  pluginId: string,
+  handlers: GraphViewSettingsMessageHandlers,
+): void {
+  const pluginData = handlers.getConfig<Record<string, unknown>>('pluginData', {});
+  if (!pluginData || typeof pluginData !== 'object' || Array.isArray(pluginData) || !(pluginId in pluginData)) {
+    return;
+  }
+
+  handlers.sendMessage({
+    type: 'PLUGIN_DATA_UPDATED',
+    payload: {
+      pluginId,
+      data: pluginData[pluginId],
+    },
+  });
 }

@@ -114,13 +114,6 @@ function ViewportPluginOverlay({
     <>
       <SlotHost
         pluginHost={pluginHost}
-        slot="graph.stage.worldOverlay"
-        data-codegraphy-layer="graph-stage-world-overlay"
-        data-testid="graph-world-overlay-slot"
-        className="absolute inset-0 z-10 pointer-events-none"
-      />
-      <SlotHost
-        pluginHost={pluginHost}
         slot="graph-overlay"
         data-codegraphy-layer="graph-overlay"
         data-testid="graph-overlay-slot"
@@ -134,6 +127,34 @@ function ViewportPluginOverlay({
         className="absolute inset-0 z-30 pointer-events-none"
       />
     </>
+  ) : null;
+}
+
+function ViewportPluginBackground({
+  pluginHost,
+}: Pick<ViewportProps, 'pluginHost'>): ReactElement | null {
+  return pluginHost ? (
+    <SlotHost
+      pluginHost={pluginHost}
+      slot="graph.stage.worldBackground"
+      data-codegraphy-layer="graph-stage-world-background"
+      data-testid="graph-world-background-slot"
+      className="absolute inset-0 z-0 pointer-events-none"
+    />
+  ) : null;
+}
+
+function ViewportPluginWorldOverlay({
+  pluginHost,
+}: Pick<ViewportProps, 'pluginHost'>): ReactElement | null {
+  return pluginHost ? (
+    <SlotHost
+      pluginHost={pluginHost}
+      slot="graph.stage.worldOverlay"
+      data-codegraphy-layer="graph-stage-world-overlay"
+      data-testid="graph-world-overlay-slot"
+      className="absolute inset-0 z-10 pointer-events-none"
+    />
   ) : null;
 }
 
@@ -267,6 +288,7 @@ export function Viewport({
           aria-label="Graph Stage"
           tabIndex={0}
         >
+          <ViewportPluginBackground pluginHost={pluginHost} />
           <ViewportSurface
             canvasBackgroundColor={canvasBackgroundColor}
             directionMode={directionMode}
@@ -275,6 +297,7 @@ export function Viewport({
             surface2dProps={surface2dProps}
             surface3dProps={surface3dProps}
           />
+          <ViewportPluginWorldOverlay pluginHost={pluginHost} />
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
           <GraphAccessibilityOverlay

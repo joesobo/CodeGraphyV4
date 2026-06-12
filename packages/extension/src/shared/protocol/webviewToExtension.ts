@@ -72,6 +72,7 @@ export type WebviewToExtensionMessage =
       type: 'UPDATE_PARTICLE_SETTING';
       payload: { key: 'particleSpeed' | 'particleSize'; value: number };
     }
+  | { type: 'UPDATE_PLUGIN_DATA'; payload: { pluginId: string; data: unknown } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   | { type: 'UPDATE_CSS_SNIPPET'; payload: { path: string; enabled: boolean } }
   | { type: 'PHYSICS_STABILIZED' }

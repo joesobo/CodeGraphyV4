@@ -46,6 +46,7 @@ export function captureGraphViewSettingsSnapshot(
     legendOrder: readConfigList(config, 'legendOrder'),
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
+    pluginData: readConfigRecord<unknown>(config, 'pluginData'),
     showLabels: config.get('showLabels', true),
     maxFiles: config.get('maxFiles', DEFAULT_MAX_FILES),
     verboseDiagnostics: config.get('verboseDiagnostics', false),

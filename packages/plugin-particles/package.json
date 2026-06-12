@@ -1,0 +1,62 @@
+{
+  "name": "@codegraphy-dev/plugin-particles",
+  "version": "0.1.0",
+  "description": "CodeGraphy graph background particle effects plugin",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    },
+    "./effects": {
+      "types": "./dist/effects.d.ts",
+      "default": "./dist/effects.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/plugin-particles",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "engines": {
+    "node": ">=20.20.0 <23"
+  },
+  "keywords": [
+    "codegraphy",
+    "codegraphy-plugin",
+    "graph",
+    "particles",
+    "background"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "codegraphy.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js && pnpm exec esbuild src/effects.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=dist/effects.js --sourcemap && pnpm exec esbuild src/webview.ts --bundle --platform=browser --format=esm --target=es2020 --outfile=dist/webview.js --sourcemap",
+    "test": "vitest run",
+    "lint": "eslint --no-error-on-unmatched-pattern \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/plugin-api": "workspace:*",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0"
+  }
+}

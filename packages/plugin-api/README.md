@@ -35,6 +35,16 @@ Recommended plugins are headless npm packages. They communicate with `@codegraph
 
 The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy-dev/extension`.
 
+Webview plugins can persist their own workspace UI state with
+`api.getPluginData()` and `api.setPluginData(data)`. The host stores that data
+by Plugin ID and replays updates only to the owning plugin, so plugin UI can
+remember settings without adding extension-owned settings keys.
+
+Webview plugin `activate(api)` functions may return a cleanup function or
+`Disposable`. CodeGraphy calls that cleanup when the plugin is disabled or its
+webview assets are reset, so plugins should release animation loops, DOM
+subscriptions, timers, and injected styles from that cleanup.
+
 Package plugins need static metadata before Core can import runtime code. Put package compatibility, default options, and disclosures in `package.json#codegraphy`; put the Plugin ID and display metadata in `codegraphy.json`:
 
 ```json

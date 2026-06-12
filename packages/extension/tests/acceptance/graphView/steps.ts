@@ -1397,20 +1397,35 @@ async function openGraphScopeSection(
   context: GraphAcceptanceContext,
   sectionName: 'Edge Types' | 'Node Types',
 ): Promise<void> {
-  const frame = requireGraphFrame(context);
-  if (!(await frame.getByRole('button', { name: sectionName }).isVisible().catch(() => false))) {
-    await clickToolbarButton(frame, 'Graph Scope');
-  }
+  context.activeGraphScopeSection = sectionName;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await ensureGraphViewVisible(context);
+    const frame = requireGraphFrame(context);
 
-  const sectionButton = frame.getByRole('button', { name: sectionName });
-  if (sectionName === 'Edge Types' && await sectionButton.isDisabled().catch(() => false)) {
-    await closePanelIfOpen(frame);
-    await indexWorkspace(context);
-    await waitForIndexingToFinish(context);
-    await clickToolbarButton(frame, 'Graph Scope');
-  }
+    try {
+      if (!(await frame.getByRole('button', { name: sectionName }).isVisible().catch(() => false))) {
+        await clickToolbarButton(frame, 'Graph Scope');
+      }
 
-  await frame.getByRole('button', { name: sectionName }).click();
+      const sectionButton = frame.getByRole('button', { name: sectionName });
+      if (sectionName === 'Edge Types' && await sectionButton.isDisabled().catch(() => false)) {
+        await closePanelIfOpen(frame);
+        await indexWorkspace(context);
+        await waitForIndexingToFinish(context);
+        await ensureGraphViewVisible(context);
+        await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
+      }
+
+      await requireGraphFrame(context).getByRole('button', { name: sectionName }).click();
+      return;
+    } catch (error) {
+      if (!isFrameDetachedError(error) || attempt === 1) {
+        throw error;
+      }
+
+      await refreshGraphFrameAfterDetach(context);
+    }
+  }
 }
 
 export async function setPanelSwitch(
@@ -1435,57 +1450,93 @@ async function setPanelSwitchState(
   enabled: boolean,
   options: { requirePresent: boolean },
 ): Promise<void> {
-  const frame = requireGraphFrame(context);
   const normalizedLabel = normalizePanelLabel(label);
   const expected = String(enabled);
-  const switchInRow = options.requirePresent
-    ? await findPanelSwitch(frame, normalizedLabel)
-    : await findPanelSwitchIfPresent(frame, normalizedLabel);
 
-  if (!switchInRow) {
-    return;
-  }
+  for (let frameAttempt = 0; frameAttempt < 2; frameAttempt += 1) {
+    const frame = requireGraphFrame(context);
 
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const currentSwitch = attempt === 0
-      ? switchInRow
-      : await findPanelSwitchIfPresent(frame, normalizedLabel);
-    if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
-      if (!enabled) {
+    try {
+      const switchInRow = options.requirePresent
+        ? await findPanelSwitch(frame, normalizedLabel)
+        : await findPanelSwitchIfPresent(frame, normalizedLabel);
+
+      if (!switchInRow) {
         return;
       }
 
-      await frame.waitForTimeout(150);
-      continue;
-    }
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const currentSwitch = attempt === 0
+          ? switchInRow
+          : await findPanelSwitchIfPresent(frame, normalizedLabel);
+        if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+          if (!enabled) {
+            return;
+          }
 
-    const checked = await currentSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
-    if (checked === expected) {
+          await frame.waitForTimeout(150);
+          continue;
+        }
+
+        const checked = await currentSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
+        if (checked === expected) {
+          return;
+        }
+
+        await currentSwitch.click();
+        await frame.waitForTimeout(150);
+      }
+
+      await expect.poll(async () => {
+        const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
+        if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+          return enabled ? 'missing' : expected;
+        }
+
+        return await currentSwitch.getAttribute('aria-checked') ?? 'missing';
+      }).toBe(expected);
       return;
-    }
+    } catch (error) {
+      if (!isFrameDetachedError(error) || frameAttempt === 1) {
+        throw error;
+      }
 
-    await currentSwitch.click();
-    await frame.waitForTimeout(150);
+      await refreshGraphFrameAfterDetach(context);
+      if (context.activeGraphScopeSection) {
+        await openGraphScopeSection(context, context.activeGraphScopeSection);
+      }
+    }
   }
-
-  await expect.poll(async () => {
-    const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
-    if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
-      return enabled ? 'missing' : expected;
-    }
-
-    return await currentSwitch.getAttribute('aria-checked') ?? 'missing';
-  }).toBe(expected);
 }
 
 export async function findPanelSwitchIfPresent(frame: Frame, label: string): Promise<Locator | undefined> {
   for (const candidate of panelSwitchCandidates(frame, label)) {
-    if (await candidate.count()) {
+    if (await countPanelSwitchCandidate(candidate)) {
       return candidate;
     }
   }
 
   return undefined;
+}
+
+async function countPanelSwitchCandidate(candidate: Locator): Promise<number> {
+  try {
+    return await candidate.count();
+  } catch (error) {
+    if (isFrameDetachedError(error)) {
+      return 0;
+    }
+
+    throw error;
+  }
+}
+
+function isFrameDetachedError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('Frame was detached');
+}
+
+async function refreshGraphFrameAfterDetach(context: GraphAcceptanceContext): Promise<void> {
+  context.graphFrame = await waitForGraphFrame(requireValue(context.vscode, 'Expected VS Code to be launched').page);
 }
 
 function panelSwitchCandidates(frame: Frame, label: string): Locator[] {
@@ -1653,9 +1704,15 @@ function normalizePanelLabel(label: string): string {
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {
-  const closeButton = frame.getByRole('button', { name: 'Close' });
-  if (await closeButton.count()) {
-    await closeButton.first().click();
+  try {
+    const closeButton = frame.getByRole('button', { name: 'Close' });
+    if (await closeButton.count()) {
+      await closeButton.first().click();
+    }
+  } catch (error) {
+    if (!isFrameDetachedError(error)) {
+      throw error;
+    }
   }
 }
 

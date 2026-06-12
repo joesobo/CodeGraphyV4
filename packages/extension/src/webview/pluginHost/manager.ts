@@ -68,9 +68,18 @@ export class WebviewPluginHost {
   private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListenerEntry>();
   private _graphViewViewportState: GraphViewViewportState | null = null;
 
-  createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
+  createAPI(
+    pluginId: string,
+    postMessage: (msg: GraphInteractionMessage) => void,
+    postHostMessage: (msg: unknown) => void = () => undefined,
+    getHostState: () => Record<string, unknown> = () => ({}),
+    getPluginData: (pluginId: string) => unknown = () => undefined,
+  ): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
       pluginId, postMessage,
+      postHostMessage,
+      getHostState,
+      getPluginData,
       (pid) => getOrCreateContainer(pid, this._containers),
       (pid, slot) => getOrCreateSlotContainer(pid, slot, this._slotContainers, this._slotHosts),
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),

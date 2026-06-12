@@ -185,6 +185,63 @@ describe('PluginsPanel', () => {
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
+  it('deduplicates stale particle package status rows in favor of the canonical particles plugin', () => {
+    renderPanel([
+      {
+        id: 'codegraphy.backgroundParticles',
+        name: 'Background Particles',
+        version: '0.1.0',
+        packageName: '@codegraphy-dev/plugin-particles',
+        supportedExtensions: [],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+      {
+        id: 'codegraphy.particles',
+        name: 'Particles',
+        version: '0.1.0',
+        packageName: '@codegraphy-dev/plugin-particles',
+        supportedExtensions: [],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ]);
+
+    expect(screen.getByText('Particles')).toBeInTheDocument();
+    expect(screen.queryByText('Background Particles')).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('switch')).toHaveLength(1);
+  });
+
+  it('deduplicates stale particle status rows even when the stale row has no package name', () => {
+    renderPanel([
+      {
+        id: 'codegraphy.backgroundParticles',
+        name: 'Background Particles',
+        version: '0.1.0',
+        supportedExtensions: [],
+        status: 'installed',
+        enabled: false,
+        connectionCount: 0,
+      },
+      {
+        id: 'codegraphy.particles',
+        name: 'Particles',
+        version: '0.1.0',
+        packageName: '@codegraphy-dev/plugin-particles',
+        supportedExtensions: [],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ]);
+
+    expect(screen.getByText('Particles')).toBeInTheDocument();
+    expect(screen.queryByText('Background Particles')).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('switch')).toHaveLength(1);
+  });
+
   it('does not render runtime availability subtext for plugin rows', () => {
     renderPanel([
       {
