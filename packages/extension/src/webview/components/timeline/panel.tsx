@@ -43,9 +43,14 @@ function ReadyTimeline({
   return (
     <div
       className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border"
+      data-codegraphy-panel="timeline"
       data-testid="timeline-panel"
     >
-      <section className="flex-shrink-0 px-3 py-2" data-testid="timeline-track-shell">
+      <section
+        className="flex-shrink-0 px-3 py-2"
+        data-codegraphy-region="timeline-track-shell"
+        data-testid="timeline-track-shell"
+      >
         <Track
           dateTicks={controller.dateTicks}
           indicatorPosition={controller.indicatorPosition}
@@ -69,6 +74,7 @@ function ReadyTimeline({
         <SlotHost
           pluginHost={pluginHost}
           slot="timeline-panel"
+          data-codegraphy-slot="timeline-panel"
           data-testid="timeline-plugin-slot"
           className="px-3 pb-2"
         />

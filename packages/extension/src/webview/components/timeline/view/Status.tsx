@@ -29,7 +29,11 @@ export default function Status({
       indexProgress.total > 0 ? Math.round((indexProgress.current / indexProgress.total) * 100) : 0;
 
     return (
-      <div className="flex-shrink-0 border-t border-border p-3" data-testid="timeline-status">
+      <div
+        className="flex-shrink-0 border-t border-border p-3"
+        data-codegraphy-state="timeline-indexing"
+        data-testid="timeline-status"
+      >
         <div className="flex items-center gap-2 mb-1">
           <MdiIcon path={mdiRefresh} size={16} className="animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">
@@ -38,10 +42,12 @@ export default function Status({
         </div>
         <div
           className="w-full h-1.5 rounded-full overflow-hidden bg-muted"
+          data-codegraphy-region="timeline-progress-track"
           data-testid="timeline-status-progress-track"
         >
           <div
             className="h-full rounded-full transition-all duration-200 bg-primary"
+            data-codegraphy-region="timeline-progress-fill"
             data-testid="timeline-status-progress-fill"
             style={{ width: `${progressPercent}%` }}
           />
@@ -52,7 +58,11 @@ export default function Status({
 
   if (isIndexing) {
     return (
-      <div className="flex-shrink-0 border-t border-border p-3" data-testid="timeline-status">
+      <div
+        className="flex-shrink-0 border-t border-border p-3"
+        data-codegraphy-state="timeline-indexing"
+        data-testid="timeline-status"
+      >
         <div className="flex items-center gap-2">
           <MdiIcon path={mdiRefresh} size={16} className="animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Indexing repository...</span>
@@ -66,6 +76,7 @@ export default function Status({
   return (
     <div
       className="flex-shrink-0 border-t border-border p-2 flex items-center justify-center"
+      data-codegraphy-state="timeline-ready-to-index"
       data-testid="timeline-status"
     >
       <Button

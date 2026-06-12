@@ -24,9 +24,10 @@ export default function CommitList({
   return (
     <section
       className={`border-t border-border ${collapsed ? 'flex-shrink-0' : 'min-h-0 flex flex-1 flex-col overflow-hidden'}`}
+      data-codegraphy-panel="timeline-commits"
       data-testid="timeline-commit-list"
     >
-      <div className="px-3 py-2">
+      <header className="px-3 py-2" data-codegraphy-region="panel-header">
         <button
           type="button"
           aria-expanded={!collapsed}
@@ -39,9 +40,13 @@ export default function CommitList({
             Commits
           </span>
         </button>
-      </div>
+      </header>
       {!collapsed && (
-        <div className="min-h-0 flex-1 overflow-y-auto" data-testid="timeline-commit-list-scroll">
+        <div
+          className="min-h-0 flex-1 overflow-y-auto"
+          data-codegraphy-region="panel-body"
+          data-testid="timeline-commit-list-scroll"
+        >
           {commits.map((commit) => {
             const isCurrent = commit.sha === currentCommitSha;
             return (
@@ -53,6 +58,7 @@ export default function CommitList({
                     ? 'bg-[var(--cg-list-active-background)] text-[var(--cg-list-active-foreground)]'
                     : 'hover:bg-[var(--cg-list-hover-background)]'
                 }`}
+                data-codegraphy-row="timeline-commit"
                 data-testid="timeline-commit-item"
                 aria-current={isCurrent ? 'true' : undefined}
                 onClick={() => onSelectCommit(commit.sha)}

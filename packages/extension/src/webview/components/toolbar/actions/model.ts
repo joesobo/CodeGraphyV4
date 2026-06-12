@@ -45,7 +45,7 @@ export function getToolbarActionIconPath(action: { icon?: string }): string {
 
 export const GRAPH_TOOL_PANEL_BUTTONS: Array<{ iconPath: string; panel: ToolbarPanel; title: string }> = [
   { iconPath: mdiShapeOutline, panel: 'graphScope', title: 'Graph Scope' },
-  { iconPath: mdiPaletteOutline, panel: 'legends', title: 'Legends' },
+  { iconPath: mdiPaletteOutline, panel: 'legends', title: 'Themes' },
 ];
 
 export const SYSTEM_PANEL_BUTTONS: Array<{ iconPath: string; panel: ToolbarPanel; title: string }> = [

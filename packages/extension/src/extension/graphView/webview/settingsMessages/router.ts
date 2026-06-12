@@ -1,12 +1,16 @@
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type * as vscode from 'vscode';
 import { applySettingsUpdateMessage } from './updates/apply';
+import { applyCssSnippetMessage } from './cssSnippets';
 import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';
 
 export interface GraphViewSettingsMessageState {
   filterPatterns: string[];
+  workspaceRoot?: string;
+  asWebviewUri?(uri: vscode.Uri): { toString(): string };
 }
 
 export interface GraphViewSettingsMessageHandlers {
@@ -43,6 +47,10 @@ export async function applySettingsMessage(
   }
 
   if (await applySettingsDirectionMessage(message, state, handlers)) {
+    return true;
+  }
+
+  if (await applyCssSnippetMessage(message, state, handlers)) {
     return true;
   }
 
