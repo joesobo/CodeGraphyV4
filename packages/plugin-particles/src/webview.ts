@@ -194,7 +194,7 @@ function injectStyles(): void {
   document.head.appendChild(style);
 }
 
-export function activate(api: CodeGraphyWebviewAPI): void {
+export function activate(api: CodeGraphyWebviewAPI): () => void {
   injectStyles();
   const controlsContainer = api.getSlotContainer('theme.panel');
   const canvasContainer = api.getSlotContainer('graph.stage.worldOverlay');
@@ -207,7 +207,7 @@ export function activate(api: CodeGraphyWebviewAPI): void {
 
   update(readParticleSettings(api));
 
-  api.onMessage((message) => {
+  const messageSubscription = api.onMessage((message) => {
     if (message.type !== 'PLUGIN_DATA_UPDATED') {
       return;
     }
@@ -216,4 +216,13 @@ export function activate(api: CodeGraphyWebviewAPI): void {
       update(message.data);
     }
   });
+
+  return () => {
+    messageSubscription.dispose();
+    canvasCleanup();
+    canvasCleanup = () => undefined;
+    controlsContainer.replaceChildren();
+    canvasContainer.replaceChildren();
+    document.getElementById('cg-particles-plugin-style')?.remove();
+  };
 }

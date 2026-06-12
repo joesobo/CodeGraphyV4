@@ -177,4 +177,6 @@ export type {
   TooltipContent,
   TooltipContext,
   TooltipProviderFn,
+  WebviewPluginActivate,
+  WebviewPluginActivationCleanup,
 } from './webview';

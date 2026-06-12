@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolvePluginModuleActivator } from '../../../src/webview/pluginRuntime/moduleResolver';
+import {
+  normalizePluginActivationCleanup,
+  resolvePluginModuleActivator,
+} from '../../../src/webview/pluginRuntime/moduleResolver';
 
 describe('pluginRuntime/moduleResolver', () => {
   it('returns the top-level activate function when present', () => {
@@ -53,5 +56,23 @@ describe('pluginRuntime/moduleResolver', () => {
 
   it('returns undefined for null default values', () => {
     expect(resolvePluginModuleActivator({ default: null as unknown as (() => void) })).toBeUndefined();
+  });
+
+  it('normalizes a returned cleanup function to a disposable', () => {
+    const cleanup = () => undefined;
+
+    expect(normalizePluginActivationCleanup(cleanup)?.dispose).toBe(cleanup);
+  });
+
+  it('normalizes a returned disposable object', () => {
+    const disposable = { dispose: () => undefined };
+
+    expect(normalizePluginActivationCleanup(disposable)).toBe(disposable);
+  });
+
+  it('ignores activation results that are not cleanup callbacks', () => {
+    expect(normalizePluginActivationCleanup(undefined)).toBeUndefined();
+    expect(normalizePluginActivationCleanup(null)).toBeUndefined();
+    expect(normalizePluginActivationCleanup({})).toBeUndefined();
   });
 });

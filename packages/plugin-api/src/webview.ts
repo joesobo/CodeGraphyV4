@@ -19,6 +19,12 @@ export type GraphPluginSlot =
   | 'timeline-panel'
   | 'graph-overlay';
 
+export type WebviewPluginActivationCleanup = void | (() => void) | Disposable;
+
+export type WebviewPluginActivate = (
+  api: CodeGraphyWebviewAPI,
+) => WebviewPluginActivationCleanup | Promise<WebviewPluginActivationCleanup>;
+
 export interface NodeRenderContext {
   node: IGraphNode;
   ctx: CanvasRenderingContext2D;
