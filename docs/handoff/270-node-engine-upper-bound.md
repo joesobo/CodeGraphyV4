@@ -8,8 +8,8 @@ PR: https://github.com/joesobo/CodeGraphyV4/pull/270
 Remove the Node `<23` engine upper bound from package manifests and keep the
 published Node minimum at `>=20`.
 
-This intentionally leaves a known Node 26 install failure to fix in this PR
-rather than hiding it behind package metadata.
+The original Node 26 install failure is fixed in this PR by patching the
+`tree-sitter@0.25.0` native binding build to use C++20.
 
 CI should stay pinned to Node `22.22.0`. This card did not find a reason to
 redesign the CI runtime or matrix.
@@ -87,9 +87,19 @@ told which language standard to use.
 
 Next things to test:
 
-1. Check whether a newer `tree-sitter` runtime release sets C++20-compatible
-   build flags or otherwise supports Node 26.
-2. If the package has no newer compatible release, test a local package patch
-   that adds the C++20 build flag to the `tree-sitter` native binding build.
-3. Only after dependency installation works on Node 26, rerun the Node 26
-   install/typecheck/lint/unit smoke path.
+1. `npm view tree-sitter version versions --json` showed `0.25.0` is still the
+   latest published `tree-sitter` runtime, so there was no newer runtime package
+   to upgrade to for this failure.
+2. A local pnpm patch now changes the `tree-sitter@0.25.0` native binding build
+   from C++17 to C++20 in `binding.gyp`.
+
+The patch fixed the original Node 26 install blocker on `codegraphy-mini`:
+
+- Host: `Poleskis-Mac-mini.local`
+- Node: `v26.0.0`
+- pnpm: `10.32.0`
+- `pnpm install --frozen-lockfile` passed.
+- `pnpm --filter @codegraphy-dev/core typecheck` passed.
+- `pnpm --filter @codegraphy-dev/mcp test` passed: 1 file, 13 tests.
+
+CI was not re-waited after this change per the user's request.
