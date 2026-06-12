@@ -29,6 +29,38 @@ the in-thread subagent.
 The Orchestrator is the visible control surface for the loop. The handoff file
 is the shared state record between the Orchestrator and role subagents.
 
+## Setup And Alignment
+
+Before the first role loop begins, the Orchestrator creates the shared loop
+context: a dedicated branch, isolated worktree, draft PR, handoff file, and
+Trello/PR breadcrumbs. This setup is not role work; it gives the human and
+future role subagents one public anchor for the loop.
+
+After setup, the Orchestrator updates the handoff with the request, branch,
+worktree, PR, known human gates, and the context it read. Context must include:
+
+- `AGENTS.md`
+- `CONTEXT.md`
+- `docs/agents/codegraphy-loop.md`
+- `docs/agents/loops/orchestrator.md`
+- `docs/agents/acceptance-specs.md`
+- the Trello card text and comments
+- relevant example, acceptance spec, plugin, Core, Extension, MCP, docs, or
+  quality-tool files for the specific card
+- prior handoffs, pilot notes, or related PRs when they exist
+
+It then runs a short alignment gate with the human before dispatching the first
+role subagent.
+
+Use `grill-with-docs` for this gate when the request is broad, exploratory,
+language-support related, architecture-sensitive, acceptance-spec sensitive, or
+explicitly asks to grill. The Orchestrator asks one question at a time,
+grounded in the repo docs and current code, until the scope, acceptance shape,
+human gates, and first route are clear.
+
+Do not dispatch the first role subagent before this alignment gate passes,
+unless the human explicitly asks to skip alignment for the current loop.
+
 ## Heavy Work
 
 Run focus-stealing work on `codegraphy-mini` unless the user explicitly
@@ -48,7 +80,9 @@ mutation work.
 
 ```mermaid
 flowchart TD
-    O["Orchestrator reads handoff log and repo state"]
+    P["Orchestrator reads request card docs and repo state"]
+    O["Orchestrator creates or reads loop setup"]
+    G["Setup context and alignment grill"]
     S["Specifier loop"]
     C["Coder loop"]
     R["Refactorer loop"]
@@ -56,7 +90,9 @@ flowchart TD
     H["Human review"]
     D["Ready to merge or Done"]
 
-    O --> S
+    P --> O
+    O --> G
+    G --> S
     S --> O
     O --> C
     C --> O

@@ -9,9 +9,15 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - Trello card, bug report, or explicit user request
 - `AGENTS.md`
 - `CONTEXT.md`
-- relevant ADRs and domain docs
 - `docs/agents/codegraphy-loop.md`
+- `docs/agents/loops/orchestrator.md`
+- `docs/agents/acceptance-specs.md`
 - role contracts under `docs/agents/loops/`
+- the Trello card text and comments
+- relevant example, acceptance spec, plugin, Core, Extension, MCP, docs, or
+  quality-tool files for the specific card
+- relevant ADRs and domain docs
+- prior handoffs, pilot notes, or related PRs when they exist
 - current handoff file, if one exists
 - current branch, worktree, PR, and CI state
 
@@ -20,6 +26,8 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - working on exactly one card, bug report, or request
 - creating a dedicated `codex/` branch, isolated worktree, and draft PR
 - keeping one shared PR worktree and one handoff file for the loop
+- recording setup context before alignment
+- running pre-role alignment before dispatching the first role subagent
 - dispatching one in-thread Codex subagent for the selected role step
 - reading each role handoff before choosing the next state
 - preparing the remote Mac mini only when a role needs heavy checks
@@ -30,6 +38,8 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 
 ## Does Not Own
 
+- dispatching the first role subagent before setup context and alignment are
+  complete
 - editing human-owned acceptance spec Markdown
 - implementing accepted behavior
 - running role-owned quality or mutation loops
@@ -42,11 +52,15 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 
 ```mermaid
 flowchart TD
-    Start["Orchestrator starts"] --> Read["Read docs handoff repo PR and Trello state"]
+    Start["Orchestrator starts"] --> Read["Read request card docs repo and prior loop state"]
     Read --> Setup{"Branch worktree PR and handoff exist?"}
     Setup -->|No| Create["Create missing loop setup"]
     Create --> Read
-    Setup -->|Yes| Decide["Choose next state"]
+    Setup -->|Yes| Context["Record setup context in handoff"]
+    Context --> Align{"Pre-role alignment complete?"}
+    Align -->|No| Grill["Run docs-backed human alignment grill"]
+    Grill --> Read
+    Align -->|Yes| Decide["Choose next state"]
     Decide --> Human{"Human gate active?"}
     Human -->|Yes| Wait["Move to Review and wait for human input"]
     Wait --> Read
@@ -68,6 +82,20 @@ Default route:
 ```text
 Specifier -> Coder -> Refactorer -> Architect -> Human review
 ```
+
+Before the first role dispatch, the Orchestrator must finish setup and pass
+pre-role alignment. Setup creates the dedicated branch, isolated worktree,
+draft PR, handoff file, and Trello/PR breadcrumbs. Alignment then confirms the
+card/request scope, acceptance shape, known human gates, and likely first role.
+
+Use `grill-with-docs` for pre-role alignment when the card is broad,
+exploratory, language-support related, architecture-sensitive,
+acceptance-spec sensitive, or when the human asks to grill. Ask one question at
+a time and ground questions in `CONTEXT.md`, `AGENTS.md`, current repo docs,
+and code that can answer the question directly.
+
+The human may explicitly skip pre-role alignment for a specific loop. Record
+that decision in the handoff before dispatching the first role subagent.
 
 The Orchestrator may route backward after any handoff, but should preserve
 the default route unless the handoff log, repo state, CI state, or human input
@@ -146,14 +174,20 @@ It includes:
 - Trello card or source request
 - PR number after one exists
 - branch and worktree
+- docs and code context read for setup alignment, including the required input
+  docs and relevant example/spec/plugin/Core/etc. files
+- known prior handoffs, pilot notes, or related PRs
 - current state
 - human gates
+- pre-role alignment questions and decisions
 - chronological event log
 
 Small Orchestrator entries record:
 
 - timestamp
 - state changes
+- setup context gathered
+- alignment questions and human decisions
 - role subagent dispatches
 - human gates
 - public PR or Trello state changes
