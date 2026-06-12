@@ -16,6 +16,14 @@ export interface InjectAssetsParams {
   pluginId: string;
   scripts: string[];
   styles: string[];
+  assets?: Array<{
+    id: string;
+    label: string;
+    url: string;
+    path?: string;
+    kind?: string;
+    metadata?: Record<string, unknown>;
+  }>;
 }
 
 export type ResetPluginAssets = (pluginId: string) => void;

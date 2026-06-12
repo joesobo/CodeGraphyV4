@@ -596,6 +596,142 @@ const packageGraphViewPluginHtml = `<!doctype html>
   </body>
 </html>`;
 
+const particlesPluginHarnessScript = `
+  (() => {
+    const pluginId = 'codegraphy.particles';
+    const postToWebview = (message) => {
+      window.postMessage(message, '*');
+    };
+
+    const publishBaseState = () => {
+      postToWebview({
+        type: 'SETTINGS_UPDATED',
+        payload: { bidirectionalEdges: 'separate', showOrphans: true },
+      });
+      postToWebview({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: ${JSON.stringify(fullGraph)},
+      });
+      postToWebview({
+        type: 'PLUGINS_UPDATED',
+        payload: {
+          plugins: [{
+            id: pluginId,
+            packageName: '@codegraphy-dev/plugin-particles',
+            name: 'Particles',
+            version: '0.1.0',
+            supportedExtensions: [],
+            status: 'installed',
+            enabled: true,
+            connectionCount: 0,
+          }],
+        },
+      });
+    };
+
+    const injectParticlesPlugin = () => {
+      postToWebview({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId,
+          scripts: ['/plugin-particles/webview.js'],
+          styles: [],
+          assets: [{
+            id: 'repo-fireflies',
+            label: 'Repo Fireflies',
+            url: '/plugin-particles/repo-fireflies.js',
+            kind: 'particle-effect',
+          }],
+        },
+      });
+    };
+
+    const selectCustomEffect = () => {
+      postToWebview({
+        type: 'PLUGIN_DATA_UPDATED',
+        payload: {
+          pluginId,
+          data: {
+            enabled: true,
+            preset: 'custom',
+            intensity: 1,
+            customEffectId: 'repo-fireflies',
+          },
+        },
+      });
+    };
+
+    const handleWebviewMessage = (message) => {
+      if (message?.type !== 'WEBVIEW_READY') {
+        return;
+      }
+
+      publishBaseState();
+      injectParticlesPlugin();
+      window.setTimeout(selectCustomEffect, 100);
+      window.setTimeout(() => postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' }), 150);
+      window.setTimeout(() => postToWebview({ type: 'FIT_VIEW' }), 300);
+    };
+
+    window.acquireVsCodeApi = () => ({
+      getState: () => null,
+      postMessage: handleWebviewMessage,
+      setState: () => {},
+    });
+  })();
+`;
+
+const particlesPluginHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeGraphy Particles Plugin Harness</title>
+    <link rel="stylesheet" href="/dist/webview/index.css" />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>${particlesPluginHarnessScript}</script>
+    <script type="module" src="/dist/webview/index.js"></script>
+  </body>
+</html>`;
+
+const repoFirefliesModule = `
+  export function activateParticleEffect({ canvas }) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return () => {};
+    let active = true;
+    let frame = 0;
+    function draw() {
+      if (!active) return;
+      const width = canvas.width || 320;
+      const height = canvas.height || 180;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(132, 255, 170, 0.92)';
+      for (let index = 0; index < 24; index += 1) {
+        const x = 18 + ((index * 37 + frame * 2) % width);
+        const y = 18 + ((index * 19) % Math.max(24, height - 24));
+        ctx.beginPath();
+        ctx.arc(x, y, 5 + (index % 3), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      frame = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => {
+      active = false;
+      cancelAnimationFrame(frame);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+  }
+`;
+
 const server = http.createServer(async (req, res) => {
   try {
     const requestPath = req.url ?? '/';
@@ -618,12 +754,37 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (requestPath === '/particles-plugin') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(particlesPluginHtml);
+      return;
+    }
+
     if (requestPath === '/plugin/e2e-graph-view-plugin.js') {
       res.writeHead(200, {
         'Content-Type': 'application/javascript; charset=utf-8',
         'Cache-Control': 'no-store',
       });
       res.end(packageGraphViewPluginScript);
+      return;
+    }
+
+    if (requestPath === '/plugin-particles/repo-fireflies.js') {
+      res.writeHead(200, {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'no-store',
+      });
+      res.end(repoFirefliesModule);
+      return;
+    }
+
+    if (requestPath === '/plugin-particles/webview.js') {
+      const file = await readFile(path.join(root, 'packages', 'plugin-particles', 'dist', 'webview.js'));
+      res.writeHead(200, {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'no-store',
+      });
+      res.end(file);
       return;
     }
 

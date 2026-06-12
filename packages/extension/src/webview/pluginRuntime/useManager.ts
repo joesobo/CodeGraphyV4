@@ -203,6 +203,13 @@ export function usePluginManager(): IPluginManager {
           console.error(`[CodeGraphy] Failed to activate webview plugin script "${script}":`, error);
         }
       }
+
+      if (payload.assets && payload.assets.length > 0) {
+        pluginHostRef.current.deliverMessage(payload.pluginId, {
+          type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
+          data: payload.assets,
+        });
+      }
     }
 
     function resetPluginAssets(pluginId: string): void {

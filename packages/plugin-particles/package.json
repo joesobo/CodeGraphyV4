@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@codegraphy-dev/plugin-api": "workspace:*",
+    "esbuild": "^0.25.0",
     "typescript": "^5.3.3"
   },
   "codegraphy": {

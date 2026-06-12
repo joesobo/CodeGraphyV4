@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/plugin-api';
 import { createParticlesPlugin } from '../src/plugin';
 import { activate } from '../src/webview';
-import { startBackgroundParticleEffect } from '../src/effects';
+import { startBackgroundParticleEffect, startCustomParticleEffect } from '../src/effects';
 
 vi.mock('../src/effects', () => ({
   startCustomParticleEffect: vi.fn(() => vi.fn()),
@@ -17,6 +17,7 @@ describe('createParticlesPlugin', () => {
 
     expect(plugin.webviewContributions).toEqual({
       scripts: ['dist/webview.js'],
+      assets: [],
     });
   });
 
@@ -64,6 +65,55 @@ describe('createParticlesPlugin', () => {
       intensity: 1,
       preset: 'embers',
     });
+  });
+
+  it('renders compiled custom particle effects from plugin webview assets', () => {
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldOverlay': overlay,
+    });
+    vi.mocked(api.onMessage).mockImplementation((handler) => {
+      handlers.push(handler);
+      return { dispose: vi.fn() };
+    });
+
+    activate(api);
+    handlers[0]?.({
+      type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
+      data: [
+        {
+          id: 'repo-fireflies',
+          label: 'Repo Fireflies',
+          url: 'data:text/javascript,export function activateParticleEffect(){}',
+          kind: 'particle-effect',
+        },
+      ],
+    });
+    controls.querySelector<HTMLButtonElement>(
+      '[aria-label="Toggle Repo Fireflies custom background effect"]',
+    )?.click();
+
+    expect(api.setPluginData).toHaveBeenCalledWith({
+      enabled: true,
+      intensity: 1,
+      preset: 'custom',
+      customEffectId: 'repo-fireflies',
+    });
+    handlers[0]?.({
+      type: 'PLUGIN_DATA_UPDATED',
+      data: {
+        enabled: true,
+        intensity: 1,
+        preset: 'custom',
+        customEffectId: 'repo-fireflies',
+      },
+    });
+    expect(startCustomParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
+      moduleUrl: 'data:text/javascript,export function activateParticleEffect(){}',
+    }));
   });
 
   it('cleans up active particle work when the plugin is disposed', () => {

@@ -455,6 +455,9 @@ importers:
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
       typescript:
         specifier: ^5.3.3
         version: 5.9.3

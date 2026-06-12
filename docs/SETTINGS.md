@@ -196,6 +196,27 @@ Particle state is stored in `.codegraphy/settings.json` under
 
 Built-in presets are `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, and `embers`. The Theme popup labels `petals` as Leaves. Use `none` with `enabled: false` to disable the canvas.
 
+Custom particle effects are TypeScript files in `.codegraphy/particles/`.
+The Particles plugin compiles them for the Graph View webview and shows them
+as custom toggles in the Theme popup. Store the selected effect id in
+`customEffectId`:
+
+```json
+{
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "custom",
+      "intensity": 1,
+      "customEffectId": "repo-fireflies"
+    }
+  }
+}
+```
+
+For example, `.codegraphy/particles/repo-fireflies.ts` should export
+`activateParticleEffect(context)` and may return a cleanup function.
+
 ## Graph Scope settings
 
 Graph Scope writes Node Type visibility to `nodeVisibility` and Edge Type visibility to `edgeVisibility`. These maps store user intent by type id. A key can remain in settings even when the current workspace no longer shows that row; CodeGraphy preserves the saved value so toggles come back with the user's last choice if the relevant language or plugin returns.
