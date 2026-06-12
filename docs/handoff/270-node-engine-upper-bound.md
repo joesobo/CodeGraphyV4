@@ -10,6 +10,11 @@ published Node minimum at `>=20`.
 
 The original Node 26 install failure is fixed in this PR by patching the
 `tree-sitter@0.25.0` native binding build to use C++20.
+The patch is documented in `patches/README.md` and should be removed once
+`tree-sitter` publishes the upstream Node 23+ build fix:
+https://github.com/tree-sitter/node-tree-sitter/issues/276
+Follow-up Trello card:
+https://trello.com/c/Myxab48H
 
 CI should stay pinned to Node `22.22.0`. This card did not find a reason to
 redesign the CI runtime or matrix.
@@ -92,6 +97,9 @@ Next things to test:
    to upgrade to for this failure.
 2. A local pnpm patch now changes the `tree-sitter@0.25.0` native binding build
    from C++17 to C++20 in `binding.gyp`.
+   This is a temporary backport of the upstream fix while
+   https://github.com/tree-sitter/node-tree-sitter/issues/276 blocks a published
+   npm release with the fix.
 
 The patch fixed the original Node 26 install blocker on `codegraphy-mini`:
 
