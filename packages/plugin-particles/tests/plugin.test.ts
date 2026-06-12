@@ -4,11 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/plugin-api';
 import { createParticlesPlugin } from '../src/plugin';
 import { activate } from '../src/webview';
-import { startOdysseusBackgroundEffect } from '../src/effects';
+import { startBackgroundParticleEffect } from '../src/effects';
 
 vi.mock('../src/effects', () => ({
   startCustomParticleEffect: vi.fn(() => vi.fn()),
-  startOdysseusBackgroundEffect: vi.fn(() => vi.fn()),
+  startBackgroundParticleEffect: vi.fn(() => vi.fn()),
 }));
 
 describe('createParticlesPlugin', () => {
@@ -39,7 +39,7 @@ describe('createParticlesPlugin', () => {
       controls.querySelector('[aria-label="Toggle Leaves background effect"]')?.getAttribute('data-state'),
     ).toBe('checked');
     expect(overlay.querySelector('canvas.cg-bg-particles-canvas')).not.toBeNull();
-    expect(startOdysseusBackgroundEffect).toHaveBeenCalledWith(expect.objectContaining({
+    expect(startBackgroundParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
       canvas: overlay.querySelector('canvas.cg-bg-particles-canvas'),
       color: 'rgb(143 207 107)',
       intensity: 0.5,
@@ -68,7 +68,7 @@ describe('createParticlesPlugin', () => {
 
   it('cleans up active particle work when the plugin is disposed', () => {
     const cleanup = vi.fn();
-    vi.mocked(startOdysseusBackgroundEffect).mockReturnValueOnce(cleanup);
+    vi.mocked(startBackgroundParticleEffect).mockReturnValueOnce(cleanup);
     const controls = document.createElement('div');
     const overlay = document.createElement('div');
     const messageSubscription = { dispose: vi.fn() };

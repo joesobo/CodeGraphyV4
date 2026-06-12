@@ -17,7 +17,7 @@ export const BACKGROUND_PARTICLE_PRESETS = [
   'embers',
 ] as const;
 
-export type OdysseusBackgroundEffectPreset = typeof BACKGROUND_PARTICLE_PRESETS[number];
+export type BackgroundParticleEffectPreset = typeof BACKGROUND_PARTICLE_PRESETS[number];
 
 export interface CustomParticleEffectContext {
   canvas: HTMLCanvasElement;
@@ -33,9 +33,9 @@ export interface CustomParticleEffectModule {
   } | ((context: CustomParticleEffectContext) => void | (() => void) | Promise<void | (() => void)>);
 }
 
-interface OdysseusBackgroundEffectOptions {
+interface BackgroundParticleEffectOptions {
   canvas: HTMLCanvasElement;
-  preset: OdysseusBackgroundEffectPreset;
+  preset: BackgroundParticleEffectPreset;
   intensity: number;
   color?: string;
   backgroundColor?: string;
@@ -47,9 +47,7 @@ interface CustomParticleEffectOptions extends CustomParticleEffectContext {
   moduleUrl: string;
 }
 
-// Canvas effects adapted from Odysseus static/js/theme.js.
-// Source: https://github.com/pewdiepie-archdaemon/odysseus (AGPL-3.0)
-export function startOdysseusBackgroundEffect({
+export function startBackgroundParticleEffect({
   canvas,
   preset,
   intensity,
@@ -57,7 +55,7 @@ export function startOdysseusBackgroundEffect({
   backgroundColor = '#0b1020',
   prewarmFrames = 120,
   reduceMotion = false,
-}: OdysseusBackgroundEffectOptions): () => void {
+}: BackgroundParticleEffectOptions): () => void {
   let ctx: CanvasRenderingContext2D | null = null;
   try {
     ctx = canvas.getContext('2d');
@@ -178,7 +176,7 @@ function resolveCustomParticleEffectActivator(
 }
 
 function createEffectController(
-  preset: OdysseusBackgroundEffectPreset,
+  preset: BackgroundParticleEffectPreset,
   runtime: EffectRuntime,
 ): EffectController {
   switch (preset) {
