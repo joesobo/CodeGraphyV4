@@ -11,7 +11,7 @@
 - Current state: Orchestrator setup in progress
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
-- PR: pending
+- PR: https://github.com/joesobo/CodeGraphyV4/pull/275
 - Heavy-check host: not prepared yet; prepare `codegraphy-mini` lazily when a role needs VS Code Playwright, mutation, or other focus-stealing checks.
 - Human gates:
   - Human-owned acceptance spec Markdown under `packages/extension/tests/acceptance/specs/` must not be committed without explicit approval.
@@ -53,3 +53,16 @@ Definition of done:
 - Created branch `codex/201-csharp-upgrade`.
 - Noted existing older branch/worktree `codex/193-c-upgrade`; left it untouched because card 201 has its own current Trello contract.
 - Next route: finish setup by committing this handoff, pushing the branch, opening a draft PR, updating Trello/PR state, then dispatch Specifier.
+
+### 2026-06-12T20:26:28Z - Orchestrator Public Setup
+
+- Committed setup checkpoint `e0b15670` with the initial handoff file.
+- Pushed branch `codex/201-csharp-upgrade` to GitHub.
+- Opened draft PR #275: https://github.com/joesobo/CodeGraphyV4/pull/275
+- Next route: update Trello with the active loop state, then dispatch Specifier.
+
+### 2026-06-12T20:26:47Z - Orchestrator Trello Update
+
+- Added Trello setup comment `6a2c6b833b985697d7a84cd1`.
+- Trello card was already in `In Progress`, so no list move was needed.
+- Next route: dispatch Specifier for support audit and acceptance contract planning.
