@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Orchestrator setup is complete; the grill-before-implementation gate is active.
+- State: Waiting on human acceptance review of the locally drafted C# acceptance spec update before any commit or push can include that Markdown.
 - Trello card: https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Card title: C# Upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/273
 - Heavy-check host: `codegraphy-mini` is not prepared yet; prepare it lazily when a role needs VS Code Playwright, mutation, or another focus-stealing check.
-- Next route: Specifier pass is active on the local worktree to draft the combined C# acceptance contract and impact scan.
+- Next route: after human approval of the acceptance-spec direction, route forward to Coder.
 
 ## Human Gates
 
@@ -103,3 +103,40 @@
   - keep the contract as one combined scenario
   - do not create a separate card-specific plan doc
   - keep any acceptance spec Markdown edits uncommitted and unpushed pending human approval
+
+### 2026-06-12T18:42:30Z - Specifier Pass 1
+
+- Source: Specifier.
+- Target: acceptance contract for the C# upgrade loop.
+- Result: needs human acceptance.
+- Acceptance draft:
+  - Replace the old synthetic `Config` / `ApiService` / `Helpers` scenario with one combined end-to-end scenario for a more believable C# release-notifier workspace.
+  - Keep the file-level contract centered on Core C# capabilities already exposed in Graph Scope: `Imports`, `References`, `Calls`, and `Inherits`.
+  - Keep the symbol-level contract inside the same scenario by turning on `Class`, `Interface`, `Struct`, `Enum`, and `Function` plus `Contains`, then asserting a small set of visible type and method nodes and a few symbol-to-symbol `Calls` and `Inherits` relationships.
+  - Use a file-scoped-namespace workspace shape that a C# developer would recognize without requiring deeper project-aware or compiler-aware semantics.
+  - Treat records, delegates, partial types, using aliases, properties, fields, locals, and project-system semantics as out of scope for this card unless a later role proves a smaller Core addition belongs here.
+- Acceptance impact scan summary:
+  - Human-owned spec directly affected: `packages/extension/tests/acceptance/specs/csharp-example.md`.
+  - Generated acceptance output that will need recompilation after approval: `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`.
+  - Existing generic acceptance bindings appear reusable for the proposed scenario; no human-owned spec references to `example-csharp` were found outside `csharp-example.md`.
+  - Reference patterns reviewed but intentionally unaffected: `packages/extension/tests/acceptance/specs/c-example.md` and `packages/extension/tests/acceptance/specs/cpp-example.md`.
+- Example source changes, if examples define the contract:
+  - Proposed workspace shape:
+    - `src/Program.cs`
+    - `src/Config/ReleaseOptions.cs`
+    - `src/Contracts/INotifier.cs`
+    - `src/Models/RetryWindow.cs`
+    - `src/Models/PublishOutcome.cs`
+    - `src/Services/NotifierBase.cs`
+    - `src/Services/ReleaseNotifier.cs`
+    - `src/Formatting/SummaryFormatter.cs`
+  - Proposed behavior:
+    - `Program` loads release options, creates a retry window, selects a publish outcome, and publishes through `ReleaseNotifier`.
+    - `ReleaseNotifier` inherits from `NotifierBase`, implements `INotifier`, and calls `SummaryFormatter`.
+    - The example naturally demonstrates class, interface, struct, enum, and method symbols without leaning on unsupported C#-specific constructs.
+- Human approval status:
+  - Pending.
+  - Local draft updated in `packages/extension/tests/acceptance/specs/csharp-example.md`.
+  - Per loop contract, this Markdown must remain uncommitted and unpushed until the user approves it.
+- Open questions:
+  - none beyond the required human approval gate
