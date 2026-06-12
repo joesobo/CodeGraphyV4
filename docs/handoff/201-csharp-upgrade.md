@@ -143,3 +143,44 @@ Important card requirements:
   - verify the red-first `Contains` capability gap and add the smallest Core test/fix if needed;
   - measure expected node/edge counts for the upgraded example.
 - Human-owned acceptance spec Markdown remains gated until the upgraded example is measured and the proposed spec update is concrete.
+
+### 2026-06-12T22:42:00Z - Coder Example And Core Capability Pass
+
+- Result: behavior green for the Coder slice; ready for Orchestrator to approve or route the acceptance Markdown update.
+- Updated `examples/example-csharp` into a small task-runner/service demo:
+  - `Program.cs` calls `Config.LoadConfig()`, creates `ApiService`, creates a `RunRequest` struct, and formats the returned status through `Helpers`.
+  - `ApiService.cs` inherits `BaseService`, implements `IRunner`, calls inherited `Status()`, calls `Helpers.IsRunnable(...)`, and references `RunStatus`.
+  - Added `src/Models/RunRequest.cs` as the C# Struct target and `src/Models/RunStatus.cs` as the C# Enum target.
+  - Kept `Orphan.cs` as an intentionally unrelated class.
+  - Updated `examples/example-csharp/README.md` and `examples/README.md` to describe current Core Tree-sitter C# behavior and the metadata-only C# plugin boundary.
+- Verified the red-first Core gap:
+  - Added a focused failing test proving C# should advertise `Contains` when C# symbol node capabilities are available.
+  - Red evidence before the fix: `packages/core/tests/treeSitter/capabilities.test.ts` failed because C# edge capabilities were `import`, `reference`, `call`, `inherit` and missed `contains`.
+  - Smallest fix: added `contains` to the C# entry in `packages/core/src/treeSitter/runtime/capabilities.ts`.
+- Measured upgraded example using local Core source APIs:
+  - Default file graph after indexing `examples/example-csharp`: `13 files`, `13 nodes`, `22 edges`.
+  - File-only Graph Scope slices with package/folder disabled:
+    - no edges: `13 nodes / 0 edges`
+    - Imports: `13 nodes / 6 edges`
+    - References: `13 nodes / 7 edges`
+    - Calls: `13 nodes / 7 edges`
+    - Inherits: `13 nodes / 2 edges`
+    - Contains: `13 nodes / 0 edges`
+  - Representative file edges:
+    - Imports: `Program.cs -> Models/RunRequest.cs`, `Program.cs -> Services/ApiService.cs`, `Program.cs -> Utils/Helpers.cs`, `ApiService.cs -> Contracts/IRunner.cs`, `ApiService.cs -> Models/RunStatus.cs`, `ApiService.cs -> Utils/Helpers.cs`.
+    - References: `Program.cs -> Config.cs`, `Program.cs -> Models/RunRequest.cs`, `Program.cs -> Services/ApiService.cs`, `Program.cs -> Utils/Helpers.cs`, `ApiService.cs -> Models/RunStatus.cs`, `ApiService.cs -> Utils/Helpers.cs`, `Helpers.cs -> Formatter.cs`.
+    - Calls: `Program.cs -> Config.cs`, `Program.cs -> Models/RunRequest.cs`, `Program.cs -> Services/ApiService.cs`, `Program.cs -> Utils/Helpers.cs`, `ApiService.cs -> Services/BaseService.cs`, `ApiService.cs -> Utils/Helpers.cs`, `Helpers.cs -> Formatter.cs`.
+    - Inherits: `ApiService.cs -> Contracts/IRunner.cs`, `ApiService.cs -> Services/BaseService.cs`.
+  - Symbol-projected graph with File plus C# Function/Class/Interface/Struct/Enum enabled: `32 nodes`, `41 edges`.
+    - Symbols visible with no edges: `19` total, grouped as `7 class`, `9 method` under Function, `1 interface`, `1 struct`, `1 enum`.
+    - Contains slice: `32 nodes / 19 edges`; representative edges include `Models/RunRequest.cs -> Models/RunRequest.cs#RunRequest:struct`, `Models/RunStatus.cs -> Models/RunStatus.cs#RunStatus:enum`, `Program.cs -> Program.cs#Main:method`, and `Services/ApiService.cs -> Services/ApiService.cs#Run:method`.
+    - Calls slice with symbols enabled: `32 nodes / 7 edges`; representative symbol edges include `Program.cs#Main:method -> Config.cs#LoadConfig:method`, `Program.cs#Main:method -> Models/RunRequest.cs#RunRequest:struct`, `ApiService.cs#Run:method -> Services/BaseService.cs#Status:method`, and `Helpers.cs#FormatStatus:method -> Formatter.cs#FormatOutput:method`.
+- Verification:
+  - `pnpm test tests/treeSitter/csharp/analyze.test.ts tests/treeSitter/csharpIndex.test.ts tests/treeSitter/capabilities.test.ts` from `packages/core`: passed, `18 tests`.
+  - `pnpm --filter @codegraphy-dev/core lint`: passed.
+  - `pnpm --filter @codegraphy-dev/core typecheck`: passed.
+  - `pnpm run check:acceptance-specs`: passed; no human-owned acceptance spec Markdown edited.
+  - `git diff --check`: passed.
+- Notes for Orchestrator:
+  - Acceptance Markdown is still gated by the human-owned spec rule. The next acceptance update should use the measured file counts for file-edge scenarios and measured symbol-projected counts for symbol/Contains scenarios.
+  - This pass changes user-facing Core Graph Scope capability behavior for C# by advertising `Contains`; a changeset may be needed in a later loop role if release policy applies to this PR.

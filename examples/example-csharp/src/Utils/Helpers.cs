@@ -1,21 +1,14 @@
-using System.Linq;
+namespace MyApp.Utils;
 
-namespace MyApp.Utils
+public static class Helpers
 {
-    /// <summary>
-    /// Helper utilities.
-    /// </summary>
-    public static class Helpers
+    public static bool IsRunnable(MyApp.Models.RunRequest request, string currentStatus)
     {
-        public static string ProcessData(string[] data)
-        {
-            if (data == null || data.Length == 0)
-            {
-                return Formatter.FormatOutput("No data");
-            }
+        return request.MaxItems > 0 && currentStatus == "ready";
+    }
 
-            var processed = data.Select(item => item.ToUpper());
-            return Formatter.FormatOutput(string.Join(", ", processed));
-        }
+    public static string FormatStatus(MyApp.Models.RunStatus status)
+    {
+        return Formatter.FormatOutput(status);
     }
 }

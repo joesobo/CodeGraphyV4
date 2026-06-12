@@ -34,6 +34,25 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     ]);
   });
 
+  it('advertises C# contains when C# symbol node capabilities are available', () => {
+    expect(listTreeSitterGraphScopeCapabilities(['src/Program.cs'])).toEqual({
+      nodeTypes: [
+        'symbol:function',
+        'symbol:class',
+        'symbol:interface',
+        'symbol:struct',
+        'symbol:enum',
+      ],
+      edgeTypes: [
+        'import',
+        'reference',
+        'call',
+        'contains',
+        'inherit',
+      ],
+    });
+  });
+
   it('advertises C includes without advertising imports for C source and header workspaces', () => {
     expect(listTreeSitterEdgeTypeCapabilities([
       'src/main.c',
