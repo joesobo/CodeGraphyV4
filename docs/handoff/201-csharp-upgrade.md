@@ -2,12 +2,12 @@
 
 ## Current State
 
-- State: dispatching Coder for example/source and red-first Core gap work.
+- State: human gate for C# acceptance spec Markdown approval.
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - PR: [#276](https://github.com/joesobo/CodeGraphyV4/pull/276) draft.
-- Next route: Coder.
+- Next route: Coder for acceptance Markdown/generated acceptance update after approval.
 
 ## Human Gates
 
@@ -184,3 +184,10 @@ Important card requirements:
 - Notes for Orchestrator:
   - Acceptance Markdown is still gated by the human-owned spec rule. The next acceptance update should use the measured file counts for file-edge scenarios and measured symbol-projected counts for symbol/Contains scenarios.
   - This pass changes user-facing Core Graph Scope capability behavior for C# by advertising `Contains`; a changeset may be needed in a later loop role if release policy applies to this PR.
+
+### 2026-06-12T22:48:00Z - Orchestrator Receives Coder And Enters Human Gate
+
+- Verified Coder commit `e1ea6b0c` on `origin/codex/201-csharp-upgrade`.
+- Closed completed Coder subagent.
+- Moved Trello card to Review while waiting for human approval to edit human-owned acceptance spec Markdown.
+- Approval needed: edit `packages/extension/tests/acceptance/specs/csharp-example.md` so the C# acceptance spec matches the upgraded `examples/example-csharp` example and the measured counts recorded above, then regenerate generated acceptance output.
