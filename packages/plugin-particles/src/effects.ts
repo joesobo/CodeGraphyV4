@@ -130,6 +130,7 @@ export function startCustomParticleEffect({
 }: CustomParticleEffectOptions): () => void {
   let cleanup: void | (() => void);
   let active = true;
+  const stopSizingCanvas = bindCanvasToDisplaySize(canvas);
 
   void import(/* @vite-ignore */ moduleUrl)
     .then((mod: CustomParticleEffectModule) => {
@@ -160,6 +161,28 @@ export function startCustomParticleEffect({
   return () => {
     active = false;
     cleanup?.();
+    stopSizingCanvas();
+  };
+}
+
+function bindCanvasToDisplaySize(canvas: HTMLCanvasElement): () => void {
+  const resize = (): void => {
+    const rect = canvas.getBoundingClientRect();
+    const width = Math.max(1, rect.width || canvas.clientWidth || canvas.parentElement?.clientWidth || 1);
+    const height = Math.max(1, rect.height || canvas.clientHeight || canvas.parentElement?.clientHeight || 1);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+  };
+
+  resize();
+  const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
+  observer?.observe(canvas);
+  window.addEventListener('resize', resize);
+
+  return () => {
+    window.removeEventListener('resize', resize);
+    observer?.disconnect();
   };
 }
 

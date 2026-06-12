@@ -36,8 +36,8 @@ const DEFAULT_PARTICLE_SETTINGS: ParticleSettings = {
   intensity: 1,
 };
 const DEFAULT_EFFECT_COLOR = 'rgb(156 222 242)';
-const EMBERS_EFFECT_COLOR = 'rgb(201 169 90)';
-const LEAVES_EFFECT_COLOR = 'rgb(143 207 107)';
+const EMBERS_EFFECT_COLOR = '#f59e0b';
+const LEAVES_EFFECT_COLOR = '#8fcf6b';
 const DEFAULT_BACKGROUND_COLOR = 'rgb(11 16 32)';
 
 const PRESETS: Array<{ id: Exclude<ParticlePreset, 'none' | 'custom'>; label: string }> = [
@@ -275,19 +275,21 @@ export function activate(api: CodeGraphyWebviewAPI): () => void {
   const canvasContainer = api.getSlotContainer('graph.stage.worldOverlay');
   let canvasCleanup: () => void = () => undefined;
   let customEffects: ParticleEffectAsset[] = [];
+  let currentSettings = readParticleSettings(api);
   const update = (settings: ParticleSettings): void => {
+    currentSettings = settings;
     render(controlsContainer, api, settings, customEffects);
     canvasCleanup();
     canvasCleanup = renderParticleCanvas(canvasContainer, settings, customEffects);
   };
 
-  update(readParticleSettings(api));
+  update(currentSettings);
 
   const messageSubscription = api.onMessage((message) => {
     if (message.type === 'PLUGIN_WEBVIEW_ASSETS_UPDATED') {
       customEffects = readParticleEffectAssets(message.data);
       preloadCustomEffects(customEffects);
-      update(readParticleSettings(api));
+      update(currentSettings);
       return;
     }
 
