@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CodeGraphyWebviewAPI, GraphPluginSlot } from '@codegraphy-dev/plugin-api';
 import { createParticlesPlugin } from '../src/plugin';
 import { activate } from '../src/webview';
@@ -67,6 +67,54 @@ describe('createParticlesPlugin', () => {
     });
   });
 
+  it('renders and stores the Snow preset', () => {
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldOverlay': overlay,
+    });
+
+    activate(api);
+    controls.querySelector<HTMLButtonElement>('[aria-label="Toggle Snow background effect"]')?.click();
+
+    expect(api.setPluginData).toHaveBeenCalledWith({
+      enabled: true,
+      preset: 'snow',
+    });
+    expect(startBackgroundParticleEffect).toHaveBeenLastCalledWith(expect.objectContaining({
+      color: '#f8fafc',
+      preset: 'snow',
+    }));
+  });
+
+  it('refreshes persisted plugin data after activation so launch settings start immediately', () => {
+    vi.useFakeTimers();
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    const pluginDataRef: { current?: unknown } = {};
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldOverlay': overlay,
+    }, () => pluginDataRef.current);
+
+    activate(api);
+    pluginDataRef.current = {
+      enabled: true,
+      preset: 'embers',
+      intensity: 1,
+    };
+    vi.runOnlyPendingTimers();
+
+    expect(
+      controls.querySelector('[aria-label="Toggle Embers background effect"]')
+        ?.getAttribute('data-state'),
+    ).toBe('checked');
+    expect(startBackgroundParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
+      preset: 'embers',
+    }));
+  });
+
   it('renders compiled custom particle effects from plugin webview assets', () => {
     const controls = document.createElement('div');
     const overlay = document.createElement('div');
@@ -86,14 +134,14 @@ describe('createParticlesPlugin', () => {
       data: [
         {
           id: 'repo-fireflies',
-          label: 'Repo Fireflies',
+          label: 'Fireflies',
           url: 'data:text/javascript,export function activateParticleEffect(){}',
           kind: 'particle-effect',
         },
       ],
     });
     controls.querySelector<HTMLButtonElement>(
-      '[aria-label="Toggle Repo Fireflies custom background effect"]',
+      '[aria-label="Toggle Fireflies custom background effect"]',
     )?.click();
 
     expect(api.setPluginData).toHaveBeenCalledWith({
@@ -144,7 +192,7 @@ describe('createParticlesPlugin', () => {
       data: [
         {
           id: 'repo-fireflies',
-          label: 'Repo Fireflies',
+          label: 'Fireflies',
           url: 'data:text/javascript,export function activateParticleEffect(){}',
           kind: 'particle-effect',
         },
@@ -155,7 +203,7 @@ describe('createParticlesPlugin', () => {
       moduleUrl: 'data:text/javascript,export function activateParticleEffect(){}',
     }));
     expect(
-      controls.querySelector('[aria-label="Toggle Repo Fireflies custom background effect"]')
+      controls.querySelector('[aria-label="Toggle Fireflies custom background effect"]')
         ?.getAttribute('data-state'),
     ).toBe('checked');
   });
@@ -200,15 +248,19 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 function createWebviewApi(
   slots: Partial<Record<GraphPluginSlot, HTMLElement>>,
-  pluginData: unknown = undefined,
+  pluginData: unknown | (() => unknown) = undefined,
 ): CodeGraphyWebviewAPI {
   return {
     getContainer: vi.fn(() => document.createElement('div')),
     getSlotContainer: vi.fn((slot: GraphPluginSlot) => slots[slot]),
     getHostState: vi.fn(() => ({})),
-    getPluginData: vi.fn(() => pluginData),
+    getPluginData: vi.fn(() => typeof pluginData === 'function' ? pluginData() : pluginData),
     setPluginData: vi.fn(),
     getGraphViewViewportState: vi.fn(() => null),
     onGraphViewViewportState: vi.fn(() => ({ dispose: vi.fn() })),

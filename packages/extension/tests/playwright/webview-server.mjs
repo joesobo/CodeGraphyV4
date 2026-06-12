@@ -638,7 +638,7 @@ const particlesPluginHarnessScript = `
           styles: [],
           assets: [{
             id: 'repo-fireflies',
-            label: 'Repo Fireflies',
+            label: 'Fireflies',
             url: '/plugin-particles/repo-fireflies.js',
             kind: 'particle-effect',
           }],

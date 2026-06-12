@@ -3,7 +3,7 @@
 Canvas particle effects for the CodeGraphy Graph Stage background.
 
 The built-in presets are Synapse, Rain, Constellations, Perlin Flow, Leaves,
-Sparkles, and Embers.
+Sparkles, Embers, and Snow.
 
 ## Custom Effects
 
@@ -28,6 +28,8 @@ export function activateParticleEffect({ canvas, intensity }) {
 ```
 
 Use `pluginData["codegraphy.particles"].customEffectId` to select a custom
-effect by file name without the extension storing generated webview URLs.
+effect by file name without the extension storing generated webview URLs. For
+example, `.codegraphy/particles/repo-fireflies.ts` appears as the Fireflies
+toggle.
 The plugin defaults effect intensity internally, so workspace settings do not
 need to store an `intensity` value.

@@ -7,7 +7,7 @@ test.describe('particles plugin custom effects', () => {
     await page.getByTitle('Themes').click();
     await expect(page.getByText('Particles')).toBeVisible();
     await expect(page.getByText('Graph Background')).toHaveCount(0);
-    await expect(page.getByRole('switch', { name: 'Toggle Repo Fireflies custom background effect' }))
+    await expect(page.getByRole('switch', { name: 'Toggle Fireflies custom background effect' }))
       .toHaveAttribute('data-state', 'checked');
 
     const canvas = page.locator('canvas.cg-bg-particles-canvas');
@@ -42,7 +42,9 @@ test.describe('particles plugin custom effects', () => {
     await expect.poll(async () => canvas.evaluate(readWarmPixelCount)).toBeGreaterThan(20);
 
     await page.getByRole('switch', { name: 'Toggle Leaves background effect' }).click();
-    await expect.poll(async () => canvas.evaluate(readRightSideLeafPixelCount)).toBeGreaterThan(10);
+    await expect(page.getByRole('switch', { name: 'Toggle Leaves background effect' }))
+      .toHaveAttribute('data-state', 'checked');
+    await expect.poll(async () => canvas.evaluate(readLeafPixelCount)).toBeGreaterThan(10);
   });
 });
 
@@ -67,7 +69,7 @@ function readWarmPixelCount(element: Element): number {
   return count;
 }
 
-function readRightSideLeafPixelCount(element: Element): number {
+function readLeafPixelCount(element: Element): number {
   const canvas = element as HTMLCanvasElement;
   const context = canvas.getContext('2d');
   if (!context) {
@@ -75,14 +77,15 @@ function readRightSideLeafPixelCount(element: Element): number {
   }
 
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-  const startX = Math.floor(canvas.width * 0.6);
   let count = 0;
   for (let y = 0; y < canvas.height; y += 1) {
-    for (let x = startX; x < canvas.width; x += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
       const index = ((y * canvas.width) + x) * 4;
+      const red = pixels[index] ?? 0;
       const green = pixels[index + 1] ?? 0;
+      const blue = pixels[index + 2] ?? 0;
       const alpha = pixels[index + 3] ?? 0;
-      if (alpha > 0 && green > 0) {
+      if (alpha > 0 && green > red && green > blue) {
         count += 1;
       }
     }
