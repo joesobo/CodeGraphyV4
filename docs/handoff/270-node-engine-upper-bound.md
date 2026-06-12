@@ -37,6 +37,8 @@ Local sanity checks on the laptop used Node `v22.22.0` and pnpm `10.32.0`:
 
 - `pnpm install --frozen-lockfile` passed.
 - The pre-commit hook ran `pnpm run typecheck` and passed.
+- The pre-commit hook ran `pnpm run typecheck` again after adding this
+  investigation note and passed.
 
 Mac mini verification used an isolated worktree at
 `/Users/poleski/.codex/worktrees/270-node-engine-upper-bound/CodeGraphyV4`.
@@ -57,6 +59,25 @@ The failing command was:
 ```bash
 ssh codegraphy-mini 'set -euo pipefail; export PATH="/opt/homebrew/Cellar/node/26.0.0/bin:/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"; cd /Users/poleski/.codex/worktrees/270-node-engine-upper-bound/CodeGraphyV4; pnpm install --frozen-lockfile'
 ```
+
+The same remote worktree was then checked under the currently supported Node 22
+runtime:
+
+- Host: `Poleskis-Mac-mini.local`
+- Node: `v22.22.2`
+- pnpm: `10.32.0`
+- `pnpm install --frozen-lockfile` passed.
+- `pnpm run typecheck` passed.
+- `pnpm run lint` passed, with 32 existing generated-acceptance spacing
+  warnings emitted from
+  `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`.
+- `pnpm --filter @codegraphy-dev/mcp test` passed: 1 file, 13 tests.
+- `pnpm run mutate -- packages/mcp/src/mcp/server.ts` passed: 5 mutants, 100%
+  mutation score.
+
+No focused VS Code Playwright slice was run after the Node 26 install failure
+because the engine metadata change was rejected and no VS Code or Playwright
+runtime behavior changed.
 
 ## Recommendation
 
