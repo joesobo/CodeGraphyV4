@@ -9,6 +9,7 @@ import { WebviewPluginHost } from '../pluginHost/manager';
 import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts/webview';
 import { postMessage } from '../vscodeApi';
 import {
+  normalizePluginActivationCleanup,
   resolvePluginModuleActivator,
   PluginWebviewModule,
   PluginInjectPayload,
@@ -25,6 +26,7 @@ interface PluginManagerRefs {
   activatedScriptKeys: MutableRefObject<Set<string>>;
   activatingScriptPromises: MutableRefObject<Map<string, Promise<void>>>;
   loadedStyles: MutableRefObject<Set<string>>;
+  pluginActivationCleanups: MutableRefObject<Map<string, Set<{ dispose(): void }>>>;
   pluginApis: MutableRefObject<Map<string, CodeGraphyWebviewAPI>>;
   pluginAssetVersions: MutableRefObject<Map<string, number>>;
   pluginData: MutableRefObject<Map<string, unknown>>;
@@ -58,7 +60,10 @@ function injectPluginStyle(refs: Pick<PluginManagerRefs, 'loadedStyles'>, style:
 }
 
 async function runPluginActivation(
-  refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginAssetVersions' | 'pluginData' | 'pluginHost'>,
+  refs: Pick<
+    PluginManagerRefs,
+    'pluginActivationCleanups' | 'pluginApis' | 'pluginAssetVersions' | 'pluginData' | 'pluginHost'
+  >,
   pluginId: string,
   script: string,
   activationKey: string,
@@ -76,7 +81,22 @@ async function runPluginActivation(
     return false;
   }
 
-  await activate(getPluginApi(refs, pluginId));
+  const cleanup = normalizePluginActivationCleanup(await activate(getPluginApi(refs, pluginId)));
+
+  if ((refs.pluginAssetVersions.current.get(pluginId) ?? 0) !== activationVersion) {
+    cleanup?.dispose();
+    return false;
+  }
+
+  if (cleanup) {
+    let cleanups = refs.pluginActivationCleanups.current.get(pluginId);
+    if (!cleanups) {
+      cleanups = new Set();
+      refs.pluginActivationCleanups.current.set(pluginId, cleanups);
+    }
+    cleanups.add(cleanup);
+  }
+
   return (refs.pluginAssetVersions.current.get(pluginId) ?? 0) === activationVersion
     && Boolean(activationKey);
 }
@@ -84,8 +104,8 @@ async function runPluginActivation(
 async function activatePluginScript(
   refs: Pick<
     PluginManagerRefs,
-    'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginApis' | 'pluginAssetVersions' | 'pluginHost'
-    | 'pluginData'
+    'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginActivationCleanups' | 'pluginApis'
+    | 'pluginAssetVersions' | 'pluginHost' | 'pluginData'
   >,
   pluginId: string,
   script: string,
@@ -121,9 +141,17 @@ async function activatePluginScript(
 }
 
 function resetPluginScriptState(
-  refs: Pick<PluginManagerRefs, 'activatedScriptKeys' | 'activatingScriptPromises'>,
+  refs: Pick<PluginManagerRefs, 'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginActivationCleanups'>,
   pluginId: string,
 ): void {
+  const cleanups = refs.pluginActivationCleanups.current.get(pluginId);
+  if (cleanups) {
+    for (const cleanup of cleanups) {
+      cleanup.dispose();
+    }
+    refs.pluginActivationCleanups.current.delete(pluginId);
+  }
+
   const activationPrefix = `${pluginId}::`;
   for (const key of Array.from(refs.activatedScriptKeys.current)) {
     if (key.startsWith(activationPrefix)) {
@@ -147,6 +175,7 @@ export function usePluginManager(): IPluginManager {
   const loadedStylesRef = useRef<Set<string>>(new Set());
   const activatedScriptKeysRef = useRef<Set<string>>(new Set());
   const activatingScriptPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
+  const pluginActivationCleanupsRef = useRef<Map<string, Set<{ dispose(): void }>>>(new Map());
   const pluginAssetVersionsRef = useRef<Map<string, number>>(new Map());
   const pluginDataRef = useRef<Map<string, unknown>>(new Map());
 
@@ -155,6 +184,7 @@ export function usePluginManager(): IPluginManager {
       activatedScriptKeys: activatedScriptKeysRef,
       activatingScriptPromises: activatingScriptPromisesRef,
       loadedStyles: loadedStylesRef,
+      pluginActivationCleanups: pluginActivationCleanupsRef,
       pluginApis: pluginApisRef,
       pluginAssetVersions: pluginAssetVersionsRef,
       pluginData: pluginDataRef,

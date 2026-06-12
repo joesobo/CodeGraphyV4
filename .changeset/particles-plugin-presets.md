@@ -4,4 +4,4 @@
 
 Add the first CodeGraphy Particles plugin with Odysseus-style Graph Background presets.
 
-When the plugin is enabled, it adds a Graph Background section to the Theme popup and lets users toggle Synapse, Rain, Constellations, Perlin Flow, Leaves, Sparkles, and Embers behind the Relationship Graph. The plugin owns the particle controls, canvas renderer, prewarmed animations, green Leaves preset, and custom JavaScript module loading from `.codegraphy/particles/`.
+When the plugin is enabled, it adds a Graph Background section to the Theme popup and lets users toggle Synapse, Rain, Constellations, Perlin Flow, Leaves, Sparkles, and Embers behind the Relationship Graph. The plugin owns the particle controls, canvas renderer, prewarmed animations, and green Leaves preset.

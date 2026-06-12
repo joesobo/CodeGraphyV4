@@ -196,25 +196,6 @@ Particle state is stored in `.codegraphy/settings.json` under
 
 Built-in presets are `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, and `embers`. The Theme popup labels `petals` as Leaves. Use `none` with `enabled: false` to disable the canvas.
 
-Custom particle effects use the `custom` preset with a module path:
-
-```json
-{
-  "pluginData": {
-    "codegraphy.particles": {
-      "enabled": true,
-      "preset": "custom",
-      "intensity": 1,
-      "customModule": ".codegraphy/particles/my-effect.js"
-    }
-  }
-}
-```
-
-Custom modules are browser-side JavaScript files that export
-`activateParticleEffect(context)`. The function receives the background canvas,
-intensity, color, and background color, and may return a cleanup function.
-
 ## Graph Scope settings
 
 Graph Scope writes Node Type visibility to `nodeVisibility` and Edge Type visibility to `edgeVisibility`. These maps store user intent by type id. A key can remain in settings even when the current workspace no longer shows that row; CodeGraphy preserves the saved value so toggles come back with the user's last choice if the relevant language or plugin returns.
@@ -325,26 +306,7 @@ data:
 }
 ```
 
-`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, `embers`, or `custom`. The `petals` preset is shown as Leaves in the Theme popup.
-
-Custom effects use browser-side JavaScript modules:
-
-```json
-{
-  "pluginData": {
-    "codegraphy.particles": {
-      "enabled": true,
-      "preset": "custom",
-      "intensity": 1,
-      "customModule": ".codegraphy/particles/my-effect.js"
-    }
-  }
-}
-```
-
-The custom module should export `activateParticleEffect(context)` and may return
-a cleanup function. The module runs in the Graph View webview, so it should only
-use browser APIs.
+`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, or `embers`. The `petals` preset is shown as Leaves in the Theme popup.
 
 ### Legends
 

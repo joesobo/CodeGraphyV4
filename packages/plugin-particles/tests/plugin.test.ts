@@ -65,6 +65,35 @@ describe('createParticlesPlugin', () => {
       preset: 'embers',
     });
   });
+
+  it('cleans up active particle work when the plugin is disposed', () => {
+    const cleanup = vi.fn();
+    vi.mocked(startOdysseusBackgroundEffect).mockReturnValueOnce(cleanup);
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    const messageSubscription = { dispose: vi.fn() };
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldOverlay': overlay,
+    }, {
+      enabled: true,
+      preset: 'petals',
+      intensity: 1,
+    });
+    vi.mocked(api.onMessage).mockReturnValueOnce(messageSubscription);
+
+    const dispose = activate(api);
+    expect(overlay.querySelector('canvas.cg-bg-particles-canvas')).not.toBeNull();
+    expect(document.getElementById('cg-particles-plugin-style')).not.toBeNull();
+
+    dispose();
+
+    expect(cleanup).toHaveBeenCalledOnce();
+    expect(messageSubscription.dispose).toHaveBeenCalledOnce();
+    expect(controls.childElementCount).toBe(0);
+    expect(overlay.childElementCount).toBe(0);
+    expect(document.getElementById('cg-particles-plugin-style')).toBeNull();
+  });
 });
 
 beforeEach(() => {

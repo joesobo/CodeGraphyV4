@@ -19,6 +19,7 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerWarnings;
     delete (globalThis as Record<string, unknown>).__useManagerContainers;
     delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
+    delete (globalThis as Record<string, unknown>).__useManagerCleanupCount;
   });
 
   it('returns a stable pluginHost reference across re-renders', () => {
@@ -288,6 +289,31 @@ describe('usePluginManager', () => {
     });
 
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(2);
+  });
+
+  it('disposes plugin activation cleanup when plugin assets are reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate() {
+        globalThis.__useManagerActivationCount = (globalThis.__useManagerActivationCount || 0) + 1;
+        return () => {
+          globalThis.__useManagerCleanupCount = (globalThis.__useManagerCleanupCount || 0) + 1;
+        };
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'toggle-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    result.current.resetPluginAssets('toggle-plugin');
+
+    expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);
+    expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
   });
 
   it('warns when a script has no activate export', async () => {
