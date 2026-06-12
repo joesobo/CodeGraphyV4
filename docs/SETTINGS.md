@@ -169,7 +169,7 @@ Example:
 }
 ```
 
-See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
+See `examples/.codegraphy/snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
 
 ## Particles
 
@@ -211,9 +211,9 @@ as custom toggles in the Theme popup. Store the selected effect id in
 }
 ```
 
-For example, copy `examples/particles/fireflies.ts` into a workspace at
-`.codegraphy/particles/fireflies.ts` to show a Fireflies toggle. Custom effect
-files should export `activateParticleEffect(context)` and may return a cleanup
+For example, `examples/.codegraphy/particles/fireflies.ts` appears as a
+Fireflies toggle when the `examples/` workspace is open. Custom effect files
+should export `activateParticleEffect(context)` and may return a cleanup
 function.
 
 ## Graph Scope settings
