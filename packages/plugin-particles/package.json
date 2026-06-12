@@ -56,9 +56,6 @@
   },
   "codegraphy": {
     "type": "plugin",
-    "apiVersion": "^2.0.0",
-    "disclosures": [
-      "Contains canvas particle routines adapted from Odysseus, which is AGPL-3.0 licensed."
-    ]
+    "apiVersion": "^2.0.0"
   }
 }

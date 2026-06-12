@@ -1,7 +1,7 @@
 import type { CodeGraphyWebviewAPI } from '@codegraphy-dev/plugin-api';
 import {
   startCustomParticleEffect,
-  startOdysseusBackgroundEffect,
+  startBackgroundParticleEffect,
 } from './effects';
 
 type ParticlePreset =
@@ -101,7 +101,7 @@ function renderParticleCanvas(container: HTMLElement, settings: ParticleSettings
     };
   }
 
-  const cleanup = startOdysseusBackgroundEffect({
+  const cleanup = startBackgroundParticleEffect({
     canvas,
     preset: settings.preset,
     intensity: settings.intensity,

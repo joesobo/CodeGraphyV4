@@ -19,13 +19,12 @@ graph data, **Graph Scope**, **Legend Entries**, or edge animation settings.
 ## Target Experience
 
 Users enable the graph background effects plugin, open the Theme popup, and
-toggle a small plugin-injected set of Odysseus canvas presets such as synapse, rain,
+toggle a small plugin-injected set of canvas presets such as synapse, rain,
 constellations, perlin flow, leaves, sparkles, or embers.
 Only one background preset should be active at first unless implementation
 proves that layering is cheap and understandable.
 
-Effects should match Odysseus' open-source canvas routines closely instead of
-the earlier fake CSS
+Effects should use real canvas rendering instead of earlier fake CSS
 pseudo-particles.
 
 ## Implementation Questions
@@ -48,7 +47,7 @@ pseudo-particles.
    effect state.
 3. Implement the smallest generic plugin-data and slot plumbing needed to render
    background effects safely.
-4. Add Odysseus-inspired demo presets and plugin-injected Theme popup toggles
+4. Add demo presets and plugin-injected Theme popup toggles
    for validation.
 5. Add intensity behavior before broader visual polish.
 6. Update docs and add a user-facing changeset once behavior exists.
