@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import LegendsPanel from '../../../../src/webview/components/legends/panel/view';
 import { graphStore } from '../../../../src/webview/store/state';
+import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
 
 const sentMessages: unknown[] = [];
 let mockWebviewState: unknown;
@@ -286,48 +287,28 @@ describe('LegendsPanel', () => {
     expect(screen.getByDisplayValue('src/**')).toBeInTheDocument();
   });
 
-  it('toggles graph background effect presets from the theme panel', () => {
-    sentMessages.length = 0;
+  it('exposes plugin-owned theme controls through the theme panel slot', () => {
+    const pluginHost = {
+      attachSlotHost: vi.fn((_slot: string, host: HTMLDivElement) => {
+        const pluginSection = document.createElement('section');
+        pluginSection.textContent = 'Graph Background';
+        host.appendChild(pluginSection);
+      }),
+      detachSlotHost: vi.fn(),
+    } as unknown as WebviewPluginHost;
+
     graphStore.setState({
       graphNodeTypes: [],
       graphEdgeTypes: [],
       nodeColors: {},
       legends: [],
-      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     });
 
-    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} pluginHost={pluginHost} />);
 
-    fireEvent.click(screen.getByLabelText('Toggle Embers background effect'));
-
-    expect(sentMessages.at(-1)).toEqual({
-      type: 'UPDATE_BACKGROUND_EFFECTS',
-      payload: {
-        backgroundEffects: {
-          enabled: true,
-          preset: 'embers',
-          intensity: 1,
-        },
-      },
-    });
-    expect(graphStore.getState().backgroundEffects).toEqual({
-      enabled: true,
-      preset: 'embers',
-      intensity: 1,
-    });
-
-    fireEvent.click(screen.getByLabelText('Toggle Embers background effect'));
-
-    expect(sentMessages.at(-1)).toEqual({
-      type: 'UPDATE_BACKGROUND_EFFECTS',
-      payload: {
-        backgroundEffects: {
-          enabled: false,
-          preset: 'none',
-          intensity: 1,
-        },
-      },
-    });
+    expect(screen.getByTestId('theme-panel-plugin-slot')).toBeInTheDocument();
+    expect(screen.getByText('Graph Background')).toBeInTheDocument();
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith('theme.panel', expect.any(HTMLDivElement));
   });
 
   it('renders configured CSS snippets and toggles them optimistically', () => {

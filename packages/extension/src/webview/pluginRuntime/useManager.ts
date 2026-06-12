@@ -8,6 +8,7 @@ import { useRef, useMemo, type MutableRefObject } from 'react';
 import { WebviewPluginHost } from '../pluginHost/manager';
 import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts/webview';
 import { postMessage } from '../vscodeApi';
+import { graphStore } from '../store/state';
 import {
   resolvePluginModuleActivator,
   PluginWebviewModule,
@@ -32,7 +33,12 @@ interface PluginManagerRefs {
 function getPluginApi(refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginHost'>, pluginId: string): CodeGraphyWebviewAPI {
   const existing = refs.pluginApis.current.get(pluginId);
   if (existing) return existing;
-  const api = refs.pluginHost.current.createAPI(pluginId, postMessage);
+  const api = refs.pluginHost.current.createAPI(
+    pluginId,
+    postMessage,
+    message => postMessage(message as never),
+    () => ({ backgroundEffects: graphStore.getState().backgroundEffects }),
+  );
   refs.pluginApis.current.set(pluginId, api);
   return api;
 }

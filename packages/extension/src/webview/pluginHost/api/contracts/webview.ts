@@ -17,6 +17,7 @@ export type GraphPluginSlot =
   | 'toolbar'
   | 'graph.toolbar'
   | 'graph.panelSlot'
+  | 'theme.panel'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay'
   | 'node-details'
@@ -116,6 +117,7 @@ export interface LabelOpts {
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
+  getHostState(): Record<string, unknown>;
   getGraphViewViewportState(): GraphViewViewportState | null;
   onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): WebviewDisposable;
   registerNodeRenderer(type: string, fn: NodeRenderFn): WebviewDisposable;
@@ -128,5 +130,6 @@ export interface CodeGraphyWebviewAPI {
     drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void;
   };
   sendMessage(msg: { type: string; data: unknown }): void;
+  postHostMessage(msg: unknown): void;
   onMessage(handler: (msg: { type: string; data: unknown }) => void): WebviewDisposable;
 }

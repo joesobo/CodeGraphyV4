@@ -2,15 +2,11 @@ import React, { useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { SlotHost } from '../../../pluginHost/slotHost/view';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { ScrollArea } from '../../ui/scroll-area';
-import { Switch } from '../../ui/switch';
-import {
-  DEFAULT_BACKGROUND_EFFECTS,
-  type BackgroundEffectPreset,
-  type BackgroundEffectsSettings,
-} from '../../../../shared/settings/backgroundEffects';
 import {
   replaceCustomEdgeRules,
   upsertEdgeTypeColorRule,
@@ -28,6 +24,7 @@ import { CssSnippetsSection } from './cssSnippets';
 interface LegendsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  pluginHost?: WebviewPluginHost;
 }
 
 function useCollapsedLegendEntries(): readonly [
@@ -66,71 +63,10 @@ function useDisplayNodeEntries(
 
 type LegendSectionProps = React.ComponentProps<typeof LegendSection>;
 
-const BACKGROUND_EFFECT_PRESETS: Array<{ id: Exclude<BackgroundEffectPreset, 'none'>; label: string }> = [
-  { id: 'synapse', label: 'Synapse' },
-  { id: 'rain', label: 'Rain' },
-  { id: 'constellations', label: 'Constellations' },
-  { id: 'perlin-flow', label: 'Perlin Flow' },
-  { id: 'petals', label: 'Leaves' },
-  { id: 'sparkles', label: 'Sparkles' },
-  { id: 'embers', label: 'Embers' },
-];
-
-function sendBackgroundEffects(
-  backgroundEffects: BackgroundEffectsSettings,
-  setBackgroundEffects: (backgroundEffects: BackgroundEffectsSettings) => void,
-): void {
-  setBackgroundEffects(backgroundEffects);
-  postMessage({
-    type: 'UPDATE_BACKGROUND_EFFECTS',
-    payload: { backgroundEffects },
-  });
-}
-
-function BackgroundEffectsSection({
-  backgroundEffects,
-  setBackgroundEffects,
-}: {
-  backgroundEffects: BackgroundEffectsSettings;
-  setBackgroundEffects: (backgroundEffects: BackgroundEffectsSettings) => void;
-}): React.ReactElement {
-  const togglePreset = (preset: Exclude<BackgroundEffectPreset, 'none'>): void => {
-    const nextEnabled = !(backgroundEffects.enabled && backgroundEffects.preset === preset);
-    sendBackgroundEffects(
-      nextEnabled
-        ? { enabled: true, preset, intensity: backgroundEffects.intensity }
-        : { ...DEFAULT_BACKGROUND_EFFECTS, intensity: backgroundEffects.intensity },
-      setBackgroundEffects,
-    );
-  };
-
-  return (
-    <section className="space-y-2" data-codegraphy-section="background-effects">
-      <h3 className="px-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        Graph Background
-      </h3>
-      <div className="grid grid-cols-2 gap-2 rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] p-2">
-        {BACKGROUND_EFFECT_PRESETS.map((preset) => {
-          const checked = backgroundEffects.enabled && backgroundEffects.preset === preset.id;
-          return (
-            <div key={preset.id} className="flex items-center justify-between gap-2 rounded-sm px-2 py-1">
-              <span className="min-w-0 truncate text-xs">{preset.label}</span>
-              <Switch
-                aria-label={`Toggle ${preset.label} background effect`}
-                checked={checked}
-                onCheckedChange={() => togglePreset(preset.id)}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 export default function LegendsPanel({
   isOpen,
   onClose,
+  pluginHost,
 }: LegendsPanelProps): React.ReactElement | null {
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
@@ -141,8 +77,6 @@ export default function LegendsPanel({
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
   const setOptimisticLegendUpdates = useGraphStore((state) => state.setOptimisticLegendUpdates);
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
-  const backgroundEffects = useGraphStore((state) => state.backgroundEffects);
-  const setBackgroundEffects = useGraphStore((state) => state.setBackgroundEffects);
   const [collapsedEntries, setCollapsedEntry] = useCollapsedLegendEntries();
 
   const {
@@ -200,10 +134,15 @@ export default function LegendsPanel({
 
       <ScrollArea className="flex-1 min-h-0" data-codegraphy-region="panel-body">
         <div className="space-y-5 px-3 pb-3 pt-2" data-codegraphy-region="theme-sections">
-          <BackgroundEffectsSection
-            backgroundEffects={backgroundEffects}
-            setBackgroundEffects={setBackgroundEffects}
-          />
+          {pluginHost ? (
+            <SlotHost
+              pluginHost={pluginHost}
+              slot="theme.panel"
+              data-codegraphy-slot="theme-panel"
+              data-testid="theme-panel-plugin-slot"
+              className="space-y-3"
+            />
+          ) : null}
           <section className="space-y-2" data-codegraphy-section="legends">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--cg-text-muted)]">
               Legends

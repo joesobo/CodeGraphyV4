@@ -20,6 +20,22 @@ export interface InjectAssetsParams {
 
 export type ResetPluginAssets = (pluginId: string) => void;
 
+const BACKGROUND_PARTICLES_PLUGIN_ID = 'codegraphy.background-particles';
+
+function deliverBackgroundEffectsUpdateToPlugin(
+  raw: { type?: unknown; payload?: unknown },
+  pluginHost: WebviewPluginHost,
+): void {
+  if (raw.type !== 'BACKGROUND_EFFECTS_UPDATED' || !raw.payload || typeof raw.payload !== 'object') {
+    return;
+  }
+
+  pluginHost.deliverMessage(BACKGROUND_PARTICLES_PLUGIN_ID, {
+    type: 'BACKGROUND_EFFECTS_UPDATED',
+    data: (raw.payload as { backgroundEffects?: unknown }).backgroundEffects,
+  });
+}
+
 /**
  * Create the message event handler for the App's window listener.
  */
@@ -50,6 +66,7 @@ export function createMessageHandler(
       return;
     }
 
+    deliverBackgroundEffectsUpdateToPlugin(raw, pluginHost);
     removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
     graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
   };
