@@ -37,6 +37,7 @@ describe('extension/repoSettings/defaults', () => {
       directionColor: DEFAULT_DIRECTION_COLOR,
       particleSpeed: 0.005,
       particleSize: 4,
+      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
       depthMode: false,
       depthLimit: 1,
       dagMode: null,

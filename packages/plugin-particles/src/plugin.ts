@@ -1,6 +1,6 @@
 import manifest from '../codegraphy.json';
 
-export function createBackgroundParticlesPlugin() {
+export function createParticlesPlugin() {
   return {
     id: manifest.id,
     name: manifest.name,
@@ -14,4 +14,4 @@ export function createBackgroundParticlesPlugin() {
   };
 }
 
-export default createBackgroundParticlesPlugin;
+export default createParticlesPlugin;

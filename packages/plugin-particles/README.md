@@ -1,4 +1,4 @@
-# CodeGraphy Background Particles Plugin
+# CodeGraphy Particles Plugin
 
 Canvas particle effects for the CodeGraphy Graph Stage background.
 

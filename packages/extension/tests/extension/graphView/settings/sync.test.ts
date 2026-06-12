@@ -93,10 +93,10 @@ describe('graphView/settings/sync', () => {
       'PHYSICS_SETTINGS_UPDATED',
       'SETTINGS_UPDATED',
       'DIRECTION_SETTINGS_UPDATED',
+      'BACKGROUND_EFFECTS_UPDATED',
       'SHOW_LABELS_UPDATED',
       'RECOMPUTE_GROUPS',
       'SEND_LEGENDS_UPDATED',
-      'FILTER_PATTERNS_UPDATED',
     ]);
   });
 

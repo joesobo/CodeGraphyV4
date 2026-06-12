@@ -198,7 +198,7 @@ export function GraphViewportShell({
     viewState,
   });
   const backgroundParticlesEnabled = (viewState.pluginStatuses ?? []).some(plugin =>
-    plugin.id === 'codegraphy.background-particles' && plugin.enabled,
+    plugin.id === 'codegraphy.particles' && plugin.enabled,
   );
 
   return (
