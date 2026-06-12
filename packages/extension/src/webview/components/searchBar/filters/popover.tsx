@@ -113,17 +113,18 @@ export function FilterPopover({
       {isOpen ? (
         <div
           className="basis-full overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)]"
+          data-codegraphy-panel="filters"
           data-testid="filters-inline-surface"
         >
-          <div className="border-b px-3 py-2">
+          <header className="border-b px-3 py-2" data-codegraphy-region="panel-header">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium">Filters</h2>
               <span className="text-xs text-muted-foreground">{enabledCount} enabled</span>
             </div>
             <p className="text-[11px] text-muted-foreground">{formatExcludedCount(excludedCount)}</p>
-          </div>
+          </header>
 
-          <div className="max-h-[min(320px,35vh)] space-y-3 overflow-y-auto p-3">
+          <div className="max-h-[min(320px,35vh)] space-y-3 overflow-y-auto p-3" data-codegraphy-region="panel-body">
             <CustomFiltersSection
               canAdd={canAdd}
               customPatterns={customPatterns}

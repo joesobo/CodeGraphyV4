@@ -7,6 +7,12 @@
   ],
   "respectGitignore": true,
   "showOrphans": true,
+  "cssSnippets": {
+    "./css-snippets/base-grid.css": false,
+    "./css-snippets/forest.css": false,
+    "./css-snippets/ocean.css": false,
+    "./css-snippets/ocean-image.css": false
+  },
   "plugins": [
     {
       "id": "codegraphy.markdown",

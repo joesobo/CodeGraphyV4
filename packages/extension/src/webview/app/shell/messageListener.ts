@@ -10,6 +10,7 @@ import type { WebviewPluginHost } from '../../pluginHost/manager';
 import { handlePluginInjectMessage } from './messageListener/pluginInjection';
 import { removeDisabledPluginRegistrations } from './messageListener/pluginRegistrations';
 import { postWebviewReadyOnce, resetWebviewReadyPosted } from './messageListener/ready';
+import { handleCssSnippetsUpdatedMessage } from './messageListener/cssSnippets';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -36,6 +37,10 @@ export function createMessageHandler(
     }
 
     if (handlePluginInjectMessage(raw, injectPluginAssets)) {
+      return;
+    }
+
+    if (handleCssSnippetsUpdatedMessage(raw)) {
       return;
     }
 

@@ -115,18 +115,21 @@ function ViewportPluginOverlay({
       <SlotHost
         pluginHost={pluginHost}
         slot="graph.stage.worldOverlay"
+        data-codegraphy-layer="graph-stage-world-overlay"
         data-testid="graph-world-overlay-slot"
         className="absolute inset-0 z-10 pointer-events-none"
       />
       <SlotHost
         pluginHost={pluginHost}
         slot="graph-overlay"
+        data-codegraphy-layer="graph-overlay"
         data-testid="graph-overlay-slot"
         className="absolute inset-0 z-10 pointer-events-none"
       />
       <SlotHost
         pluginHost={pluginHost}
         slot="graph.stage.viewportOverlay"
+        data-codegraphy-layer="graph-stage-viewport-overlay"
         data-testid="graph-viewport-overlay-slot"
         className="absolute inset-0 z-30 pointer-events-none"
       />
@@ -248,14 +251,14 @@ export function Viewport({
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
-
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
           ref={containerRef}
+          data-codegraphy-surface="graph-stage"
           onContextMenu={handleContextMenu}
-          onMouseLeave={() => handleMouseLeave()}
+          onMouseLeave={handleMouseLeave}
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
@@ -390,7 +393,11 @@ function GraphAccessibilityOverlay({
   };
 
   return (
-    <div aria-label="Graph accessibility" className="absolute inset-0 pointer-events-none">
+    <div
+      aria-label="Graph accessibility"
+      className="absolute inset-0 pointer-events-none"
+      data-codegraphy-layer="graph-accessibility"
+    >
       {accessibilityItems.nodes.map(node => (
         <div
           key={node.id}

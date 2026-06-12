@@ -86,12 +86,13 @@ export function DisplaySection(): React.ReactElement {
   };
 
   return (
-    <div className="mb-2 space-y-3">
+    <section className="mb-2 space-y-3" data-codegraphy-section="settings-display">
       <div
+        data-codegraphy-control="display-modes"
         data-testid="display-mode-controls"
         className="space-y-2"
       >
-        <div data-testid="display-renderer-row">
+        <div data-codegraphy-row="display-renderer" data-testid="display-renderer-row">
           <ModeButtons
             label="Renderer"
             onSelect={onGraphModeChange}
@@ -99,7 +100,7 @@ export function DisplaySection(): React.ReactElement {
           />
         </div>
 
-        <div data-testid="display-direction-row">
+        <div data-codegraphy-row="display-direction" data-testid="display-direction-row">
           <ModeButtons
             label="Direction"
             onSelect={onDirectionModeChange}
@@ -107,7 +108,7 @@ export function DisplaySection(): React.ReactElement {
           />
         </div>
 
-        <div data-testid="display-bidirectional-row">
+        <div data-codegraphy-row="display-bidirectional" data-testid="display-bidirectional-row">
           <ModeButtons
             label="Bidirectional Edges"
             onSelect={onBidirectionalModeChange}
@@ -116,7 +117,7 @@ export function DisplaySection(): React.ReactElement {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2" data-codegraphy-control="display-depth">
         <div className="flex items-center justify-between py-0.5">
           <Label htmlFor="depth-mode" className="text-xs">
             Depth Mode
@@ -167,6 +168,6 @@ export function DisplaySection(): React.ReactElement {
       )}
 
       <LabelsToggle checked={showLabels} onCheckedChange={onShowLabelsChange} />
-    </div>
+    </section>
   );
 }

@@ -34,8 +34,12 @@ export default function Controls({
   onPlayPause,
 }: TimelineControlsProps): React.ReactElement {
   return (
-    <div className="mt-2 flex items-center justify-between gap-3" data-testid="timeline-controls">
-      <div className="flex items-center gap-1">
+    <div
+      className="mt-2 flex items-center justify-between gap-3"
+      data-codegraphy-control="timeline-playback"
+      data-testid="timeline-controls"
+    >
+      <div className="flex items-center gap-1" data-codegraphy-region="timeline-playback-buttons">
         <Button
           variant="outline"
           size="icon"
@@ -91,7 +95,7 @@ export default function Controls({
           <MdiIcon path={mdiSkipForward} size={16} />
         </Button>
       </div>
-      <span className="text-[10px] text-muted-foreground">
+      <span className="text-[10px] text-muted-foreground" data-codegraphy-region="timeline-current-date">
           {currentDateLabel}
       </span>
     </div>

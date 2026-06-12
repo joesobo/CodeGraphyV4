@@ -78,7 +78,7 @@ The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in 
 | Index Workspace / Re-index Workspace | Before indexing: runs Indexing and saves the Graph Cache. After indexing: rebuilds graph data and then refreshes layout. |
 | Refresh Graph | Reruns the force graph physics/layout without rebuilding graph data. |
 | Export | Dropdown for Graph Export as PNG, SVG, JPEG, JSON, or Markdown, plus Index Export symbol JSON. |
-| Legends | Opens Legend Entry editing and Legend Layer priority controls. |
+| Themes | Opens Legend Entry editing, Legend Layer priority controls, and CSS Snippet toggles. |
 | Plugins | Opens the plugins panel. |
 | Settings | Opens the settings panel. |
 
@@ -100,9 +100,9 @@ Choose Graph Scope for Node Types such as files, folders, packages, and plugin-a
 
 Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, and plugin-added Edge Types. Each row shows the current color for that Edge Type. Hover a row to see what the relationship means and, when available, a source-style example.
 
-### Legends (paint icon)
+### Themes (paint icon)
 
-Manage glob-based Legend styling. Legend Entries are grouped as `Custom`, `Plugins`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items.
+Manage visual styling. The **Legends** section controls glob-based Legend styling: Legend Entries are grouped as `Custom`, `Plugins`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items. The **CSS Snippets** section lists configured `cssSnippets` paths from `.codegraphy/settings.json` and toggles them on or off.
 
 ### Plugins (puzzle icon)
 

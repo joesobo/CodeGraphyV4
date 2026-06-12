@@ -58,8 +58,8 @@ export function ToolbarActions({
   const timelineActive = useGraphStore(s => s.timelineActive);
 
   return (
-    <div className="flex flex-col items-center gap-2" data-testid="toolbar-actions">
-      <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-lifecycle-group">
+    <div className="flex flex-col items-center gap-2" data-codegraphy-region="toolbar-actions" data-testid="toolbar-actions">
+      <div className="flex flex-col items-center gap-1.5" data-codegraphy-region="toolbar-lifecycle" data-testid="toolbar-lifecycle-group">
         <IndexToolbarAction
           graphHasIndex={graphHasIndex}
           graphIndexFreshness={graphIndexFreshness}
@@ -68,7 +68,7 @@ export function ToolbarActions({
         />
       </div>
       <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
-      <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
+      <div className="flex flex-col items-center gap-1.5" data-codegraphy-region="toolbar-graph-tools" data-testid="toolbar-graph-tools-group">
         <LayoutModePopover />
         <NodeSizeModePopover />
         <CreateToolbarAction
@@ -84,7 +84,7 @@ export function ToolbarActions({
         />
       </div>
       <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
-      <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-system-group">
+      <div className="flex flex-col items-center gap-1.5" data-codegraphy-region="toolbar-system" data-testid="toolbar-system-group">
         <ToolbarPanelButtons
           activePanel={activePanel}
           buttons={SYSTEM_PANEL_BUTTONS}

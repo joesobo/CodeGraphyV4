@@ -154,7 +154,10 @@ export default function App(): React.ReactElement {
   });
 
   return (
-    <div className="relative w-full h-screen flex flex-col">
+    <main
+      className="relative w-full h-screen flex flex-col"
+      data-codegraphy-surface="app"
+    >
       <SearchHeader
         searchQuery={searchQuery}
         searchOptions={searchOptions}
@@ -180,7 +183,10 @@ export default function App(): React.ReactElement {
         onSearchQueryChange={setSearchQuery}
         onSearchOptionsChange={setSearchOptions}
       />
-      <div className="flex-1 min-h-0 relative">
+      <section
+        className="flex-1 min-h-0 relative"
+        data-codegraphy-surface="graph-view"
+      >
         <GraphSurface
           graphData={graphData}
           coloredData={coloredData}
@@ -208,7 +214,7 @@ export default function App(): React.ReactElement {
           onClose={closeRulePrompt}
           onSubmit={handleRulePromptSubmit}
         />
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

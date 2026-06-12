@@ -29,10 +29,11 @@ export default function Track({
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="flex-shrink-0" data-testid="timeline">
+      <div className="flex-shrink-0" data-codegraphy-control="timeline-track" data-testid="timeline">
         <div
           ref={setTrackElement}
           className="relative cursor-pointer select-none rounded-sm"
+          data-codegraphy-region="timeline-track"
           data-testid="timeline-track"
           style={{
             height: TRACK_HEIGHT,
@@ -55,6 +56,7 @@ export default function Track({
                 <TooltipTrigger asChild>
                   <div
                     className="absolute top-[1px] bottom-[1px] -translate-x-1/2"
+                    data-codegraphy-marker="timeline-commit"
                     data-testid="timeline-commit-marker"
                     style={{
                       left: `${position}%`,
@@ -94,6 +96,7 @@ export default function Track({
 
           <div
             className="pointer-events-none absolute top-0 bottom-0 -translate-x-1/2"
+            data-codegraphy-marker="timeline-current-commit"
             data-testid="timeline-indicator"
             style={{
               left: `${indicatorPosition}%`,
@@ -110,7 +113,7 @@ export default function Track({
           </div>
         </div>
 
-        <div className="relative pb-1 pt-1">
+        <div className="relative pb-1 pt-1" data-codegraphy-region="timeline-axis">
           <div className="relative h-3">
             {dateTicks.map((timestamp) => {
               const position = ((timestamp - minTimestamp) / timeRange) * 100;

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 import {
   createGraphViewPrimarySettingsMessageState,
 } from '../../../../../../src/extension/graphView/webview/dispatch/primaryState';
@@ -67,12 +68,21 @@ function createContext(
 
 describe('createGraphViewPrimarySettingsMessageState', () => {
   it('reads the current settings state from the primary message context', () => {
+    const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
+    const asWebviewUri = vi.fn(uri => ({ toString: () => `webview:${uri.fsPath}` }));
     const context = createContext({
       getFilterPatterns: vi.fn(() => ['dist/**']),
+      workspaceFolder,
+      asWebviewUri,
     });
 
-    expect(createGraphViewPrimarySettingsMessageState(context)).toEqual({
+    const state = createGraphViewPrimarySettingsMessageState(context);
+
+    expect(state).toMatchObject({
       filterPatterns: ['dist/**'],
+      workspaceRoot: '/workspace',
     });
+    expect(state.asWebviewUri?.(vscode.Uri.file('/workspace/theme.css')).toString()).toBe('webview:/workspace/theme.css');
+    expect(asWebviewUri).toHaveBeenCalledWith(vscode.Uri.file('/workspace/theme.css'));
   });
 });

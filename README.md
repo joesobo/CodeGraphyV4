@@ -52,6 +52,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Graph Scope | Turn Node Types and Edge Types on or off so the graph matches the question you are asking. |
 | Material Icon Theme nodes | File and folder nodes use Material Icon Theme shapes and colors instead of generic dots. |
 | VS Code theme integration | Graph surfaces, panels, buttons, text, and directional arrows follow the active VS Code color theme. |
+| CSS Snippets | Load workspace-local CSS files from `.codegraphy/settings.json`, then toggle configured snippets from the Themes panel. |
 | 2D and 3D renderers | Use the fast 2D canvas for everyday work or switch to 3D WebGL when the shape of the repo matters. |
 | Timeline | Index Git history and scrub through how the Relationship Graph changes over commits. |
 | Context actions | Preview, open, reveal, rename, delete, favorite, filter, and export directly from the graph. |

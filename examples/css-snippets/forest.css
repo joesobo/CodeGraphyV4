@@ -1,0 +1,82 @@
+/*
+ * Demo CodeGraphy CSS Snippet: forest theme.
+ *
+ * This snippet is intentionally static. It demonstrates that CSS Snippets can
+ * theme the graph surface, panels, search, inputs, menus, and graph labels.
+ */
+
+:root {
+  --cg-background: #1b2a1b;
+  --cg-foreground: #a8d5a2;
+  --cg-panel-background: #142414;
+  --cg-panel-foreground: #c5e9bf;
+  --cg-popover: #142414;
+  --cg-popover-foreground: #c5e9bf;
+  --cg-primary: #7cb871;
+  --cg-primary-foreground: #081108;
+  --cg-primary-hover: #94cc88;
+  --cg-secondary: #213821;
+  --cg-secondary-foreground: #c5e9bf;
+  --cg-secondary-hover: #2a452a;
+  --cg-muted: #1e321e;
+  --cg-muted-foreground: #78a875;
+  --cg-accent: #294a29;
+  --cg-accent-foreground: #d6f3cf;
+  --cg-border: #3d6b3d;
+  --cg-input: #102010;
+  --cg-input-foreground: #d6f3cf;
+  --cg-input-border: #3d6b3d;
+  --cg-input-placeholder: #6f986a;
+  --cg-focus-border: #8ed483;
+  --cg-warning: #b7d77b;
+  --cg-link: #b4e7ad;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(124, 184, 113, 0.28);
+  --cg-graph-label-foreground: #d8f5d3;
+  --cg-graph-label-muted-foreground: #8eb789;
+  --cg-graph-link-highlight: #8ed483;
+  --cg-graph-link-muted: rgba(168, 213, 162, 0.4);
+  --cg-menu-background: rgba(20, 36, 20, 0.96);
+  --cg-menu-border: #3d6b3d;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #1b2a1b;
+  color: #a8d5a2;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(124, 184, 113, 0.36) !important;
+  background-color: rgba(20, 36, 20, 0.86) !important;
+  box-shadow: 0 0 0 1px rgba(168, 213, 162, 0.06), 0 12px 36px rgba(4, 12, 4, 0.36);
+}
+
+[data-codegraphy-control='search'] input,
+[data-codegraphy-panel] input,
+[data-codegraphy-panel] button {
+  border-color: rgba(124, 184, 113, 0.34) !important;
+}
+
+[data-codegraphy-region='panel-header'],
+[data-codegraphy-control='search'] {
+  color: #ccefc7;
+}
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 34% 12%, rgba(168, 213, 162, 0.16), transparent 26%),
+    radial-gradient(circle at 74% 86%, rgba(61, 107, 61, 0.26), transparent 38%),
+    linear-gradient(180deg, #071207 0%, #132513 48%, #071107 100%) !important;
+  border: 1px solid rgba(124, 184, 113, 0.2) !important;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}

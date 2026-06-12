@@ -13,6 +13,7 @@ import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
 import { sendGraphControlsUpdated } from '../controls/send';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
+import { resolveCssSnippetStylesheets } from '../cssSnippets/resolve';
 
 interface GraphViewProviderSettingsAnalyzerLike {
   getPluginFilterPatterns(): string[];
@@ -38,6 +39,8 @@ interface GraphViewProviderSettingsConfigLike {
 export interface GraphViewProviderSettingsStateMethodsSource {
   _context: { workspaceState: GraphViewProviderSettingsWorkspaceStateLike };
   _viewContext: IViewContext;
+  _view?: vscode.WebviewView;
+  _panels?: vscode.WebviewPanel[];
   _userGroups: IGroup[];
   _filterPatterns: string[];
   _graphData: IGraphData;
@@ -49,6 +52,30 @@ export interface GraphViewProviderSettingsStateMethodsSource {
   _sendGroupsUpdated(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _getPhysicsSettings(): IPhysicsSettings;
+}
+
+function getActiveWebview(source: GraphViewProviderSettingsStateMethodsSource): vscode.Webview | undefined {
+  return source._view?.webview ?? source._panels?.[0]?.webview;
+}
+
+function sendCssSnippetStylesheets(
+  source: GraphViewProviderSettingsStateMethodsSource,
+  config: GraphViewProviderSettingsConfigLike,
+  workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined,
+): void {
+  const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
+  if (!workspaceRoot) {
+    source._sendMessage({ type: 'CSS_SNIPPETS_UPDATED', payload: { snippets: {}, stylesheets: [] } });
+    return;
+  }
+
+  const snippets = config.get<Record<string, boolean>>('cssSnippets', {}) ?? {};
+  const stylesheets = resolveCssSnippetStylesheets({
+    snippets,
+    webview: getActiveWebview(source),
+    workspaceRoot,
+  });
+  source._sendMessage({ type: 'CSS_SNIPPETS_UPDATED', payload: { snippets, stylesheets } });
 }
 
 export interface GraphViewProviderSettingsStateMethods {
@@ -129,15 +156,17 @@ export function createGraphViewProviderSettingsStateMethods(
   };
 
   const _sendSettings = (): void => {
+    const config = dependencies.getConfiguration('codegraphy');
     dependencies.sendProviderSettings(source._viewContext, {
-      getConfiguration: () => dependencies.getConfiguration('codegraphy'),
+      getConfiguration: () => config,
       sendMessage: message => source._sendMessage(message),
     });
+    sendCssSnippetStylesheets(source, config, dependencies.getWorkspaceFolders());
     sendGraphControlsUpdated(
       source._rawGraphData,
       source._analyzer,
       message => source._sendMessage(message),
-      dependencies.getConfiguration('codegraphy'),
+      config,
       source._disabledPlugins,
     );
   };
@@ -172,11 +201,13 @@ export function createGraphViewProviderSettingsStateMethods(
       sendGroupsUpdated: () => source._sendGroupsUpdated(),
     });
 
+    const config = dependencies.getConfiguration('codegraphy');
+    sendCssSnippetStylesheets(source, config, dependencies.getWorkspaceFolders());
     sendGraphControlsUpdated(
       source._rawGraphData,
       source._analyzer,
       message => source._sendMessage(message),
-      dependencies.getConfiguration('codegraphy'),
+      config,
       source._disabledPlugins,
     );
 

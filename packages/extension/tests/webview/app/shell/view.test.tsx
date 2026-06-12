@@ -412,7 +412,7 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
-    expect(screen.getByTitle('Legends')).toBeInTheDocument();
+    expect(screen.getByTitle('Themes')).toBeInTheDocument();
     expect(screen.getByTitle('Plugins')).toBeInTheDocument();
     expect(screen.getByTitle('Settings')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();

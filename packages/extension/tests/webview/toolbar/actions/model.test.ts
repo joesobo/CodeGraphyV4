@@ -39,7 +39,7 @@ describe('webview/toolbar/model', () => {
     expect(getToolbarActionIconPath({ icon: undefined })).toBe(mdiLinkVariant);
     expect(TOOLBAR_PANEL_BUTTONS.map((button) => button.title)).toEqual([
       'Graph Scope',
-      'Legends',
+      'Themes',
       'Plugins',
       'Settings',
     ]);
