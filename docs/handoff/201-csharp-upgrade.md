@@ -2,7 +2,7 @@
 
 ## Current State
 
-- State: Orchestrator setup is complete enough to open the draft PR, but the loop is still paused at the initial grill-with-docs alignment gate before Specifier dispatch.
+- State: Draft PR and Trello are aligned; the loop is paused only at the initial grill-with-docs alignment gate before Specifier dispatch.
 - Trello card: https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Card title: C# Upgrade
 - Branch: `codex/201-csharp-upgrade`
@@ -77,3 +77,21 @@
   - Draft PR #271 now tracks the isolated worktree branch.
 - Open blocker:
   - Trello sync and the initial grill-with-docs alignment are still pending.
+
+### 2026-06-12T18:07:04Z - Orchestrator Trello Sync
+
+- Source: Orchestrator.
+- Target: Trello card state and visible loop status.
+- Result: Trello card moved to `In Progress` and annotated with PR/worktree/handoff details.
+- Trello update:
+  - Card moved to `In Progress`.
+  - Comment added with PR `#271`, branch, worktree path, handoff path, and the active grill/acceptance gate.
+- Files changed: this handoff file.
+- Commands run:
+  - `curl -s -X PUT "https://api.trello.com/1/cards/6a2b3d5a761a154a15731865?..."`
+  - `curl -s -X POST "https://api.trello.com/1/cards/6a2b3d5a761a154a15731865/actions/comments?..."`
+- Evidence:
+  - Card `rSYGlC3d` now matches the loop's running state.
+  - Review-sensitive acceptance spec work is visible to the user from the card comment before any spec edits are proposed.
+- Open blocker:
+  - Initial grill-with-docs alignment is still active before Specifier dispatch.
