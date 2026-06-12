@@ -32,6 +32,8 @@ type DrawingHelpers = {
 export function createPluginWebviewApi(
   pluginId: string,
   postMessage: (msg: GraphInteractionMessage) => void,
+  postHostMessage: (msg: unknown) => void,
+  getHostState: () => Record<string, unknown>,
   getOrCreateContainer: (pluginId: string) => HTMLDivElement,
   getOrCreateSlotContainer: (pluginId: string, slot: GraphPluginSlot) => HTMLDivElement,
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
@@ -46,6 +48,7 @@ export function createPluginWebviewApi(
   return {
     getContainer: () => getOrCreateContainer(pluginId),
     getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
+    getHostState,
     getGraphViewViewportState,
     onGraphViewViewportState,
     registerNodeRenderer: (type: string, fn: NodeRenderFn) => registerNodeRenderer(pluginId, type, fn),
@@ -64,6 +67,7 @@ export function createPluginWebviewApi(
         payload: { event: `plugin:${pluginId}:${msg.type}`, data: msg.data },
       });
     },
+    postHostMessage,
     onMessage: (handler: (msg: { type: string; data: unknown }) => void) => {
       let handlers = messageHandlers.get(pluginId);
       if (!handlers) {

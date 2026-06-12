@@ -17,6 +17,7 @@ export type GraphViewStoreState = Pick<
   | 'physicsPaused'
   | 'physicsSettings'
   | 'pluginContextMenuItems'
+  | 'pluginStatuses'
   | 'setGraphMode'
   | 'showLabels'
   | 'timelineActive'
@@ -41,6 +42,7 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     physicsPaused: useGraphStore(state => state.physicsPaused),
     physicsSettings: useGraphStore(state => state.physicsSettings),
     pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
+    pluginStatuses: useGraphStore(state => state.pluginStatuses),
     setGraphMode: useGraphStore(state => state.setGraphMode),
     showLabels: useGraphStore(state => state.showLabels),
     timelineActive: useGraphStore(state => state.timelineActive),

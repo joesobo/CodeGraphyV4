@@ -11,6 +11,7 @@ import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from './view';
 import { graphStore } from '../../../store/state';
+import { DEFAULT_BACKGROUND_EFFECTS } from '../../../../shared/settings/backgroundEffects';
 import { publishGraphViewportScale as publishGraphViewportScaleChange } from './shell/scale';
 import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
 import { useGraphViewportModelOptions } from './shell/modelOptions';
@@ -196,6 +197,9 @@ export function GraphViewportShell({
     sharedProps: viewportModel.sharedProps,
     viewState,
   });
+  const backgroundParticlesEnabled = (viewState.pluginStatuses ?? []).some(plugin =>
+    plugin.id === 'codegraphy.background-particles' && plugin.enabled,
+  );
 
   return (
     <Viewport
@@ -203,7 +207,7 @@ export function GraphViewportShell({
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
       containerBackgroundColor={viewportModel.containerBackgroundColor}
       borderColor={viewportModel.borderColor}
-      backgroundEffects={viewState.backgroundEffects}
+      backgroundEffects={backgroundParticlesEnabled ? viewState.backgroundEffects : DEFAULT_BACKGROUND_EFFECTS}
       containerRef={graphState.renderer.containerRef}
       directionMode={viewState.directionMode}
       graphMode={viewState.graphMode}

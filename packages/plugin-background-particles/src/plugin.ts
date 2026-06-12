@@ -8,7 +8,9 @@ export function createBackgroundParticlesPlugin() {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     webviewApiVersion: '^1.0.0',
-    webviewContributions: {},
+    webviewContributions: {
+      scripts: ['dist/webview.js'],
+    },
   };
 }
 
