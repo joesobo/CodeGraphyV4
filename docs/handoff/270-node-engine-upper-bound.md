@@ -110,4 +110,6 @@ The patch fixed the original Node 26 install blocker on `codegraphy-mini`:
 - `pnpm --filter @codegraphy-dev/core typecheck` passed.
 - `pnpm --filter @codegraphy-dev/mcp test` passed: 1 file, 13 tests.
 
-CI was not re-waited after this change per the user's request.
+GitHub CI passed on the latest PR commit, including lint, typecheck, unit
+tests, build, release tests, VSIX artifacts, Playwright slices, and extension
+native-runtime jobs.
