@@ -2,12 +2,12 @@
 
 ## Current State
 
-- State: dispatching Specifier.
+- State: dispatching Coder for example/source and red-first Core gap work.
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - PR: [#276](https://github.com/joesobo/CodeGraphyV4/pull/276) draft.
-- Next route: alignment gate, then likely Specifier.
+- Next route: Coder.
 
 ## Human Gates
 
@@ -133,3 +133,13 @@ Important card requirements:
   - Should Orchestrator treat the approval already given in this thread ("then we make sure the acceptance tests match the expected example") as permission to edit `packages/extension/tests/acceptance/specs/csharp-example.md`, or pause for an explicit spec-Markdown approval because the loop docs require it?
   - Should Coder make the example source update first and return measured counts before the spec Markdown is edited, or should the approved spec draft lead with expected names and allow Coder to fill counts after the example is implemented?
 - Exact files inspected are listed in `docs/plans/201-csharp-upgrade-specifier-plan.md`.
+
+### 2026-06-12T21:55:00Z - Orchestrator Receives Specifier
+
+- Verified Specifier commit `53c72492` on `origin/codex/201-csharp-upgrade`.
+- Closed completed Specifier subagent.
+- Routing to Coder for the first implementation slice:
+  - update `examples/example-csharp` source/README/settings so the example visibly demonstrates expected current C# Tree-sitter-supported nodes and edges;
+  - verify the red-first `Contains` capability gap and add the smallest Core test/fix if needed;
+  - measure expected node/edge counts for the upgraded example.
+- Human-owned acceptance spec Markdown remains gated until the upgraded example is measured and the proposed spec update is concrete.
