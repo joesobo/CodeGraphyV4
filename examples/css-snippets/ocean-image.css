@@ -1,0 +1,32 @@
+/*
+ * Demo CodeGraphy CSS Snippet: faded real-image ocean background.
+ *
+ * This snippet expects assets/ocean-surface.jpg beside this CSS file. Webviews
+ * do not allow arbitrary remote images, so keep image assets workspace-local.
+ * Image source: Wikimedia Commons, Blue ocean surface (Unsplash), CC0.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    linear-gradient(rgba(3, 8, 18, 0.7), rgba(3, 8, 18, 0.86)),
+    url('./assets/ocean-surface.jpg')
+      center / cover no-repeat !important;
+  border: 1px solid rgba(100, 210, 255, 0.18) !important;
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle at 50% 12%, rgba(100, 210, 255, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(3, 8, 18, 0.06), rgba(3, 8, 18, 0.42));
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}

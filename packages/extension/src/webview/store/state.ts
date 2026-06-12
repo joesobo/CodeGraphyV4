@@ -50,6 +50,7 @@ export interface GraphState {
   particleSize: number;
   physicsPaused: boolean;
   showLabels: boolean;
+  cssSnippets: Record<string, boolean>;
   graphMode: '2d' | '3d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
@@ -115,6 +116,7 @@ export interface GraphState {
   setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
+  setCssSnippets: (snippets: Record<string, boolean>) => void;
   setDepthMode: (depthMode: boolean) => void;
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;

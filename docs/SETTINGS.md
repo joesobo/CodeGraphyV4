@@ -23,6 +23,7 @@ Common top-level sections include:
 - `edgeVisibility`
 - `edgeColors`
 - `legend` (the stored Legend Entry list used by the Legends popup)
+- `cssSnippets`
 - `plugins`
 - `physics`
 - `timeline`
@@ -61,7 +62,10 @@ Example:
   ],
   "legend": [
     { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
-  ]
+  ],
+  "cssSnippets": {
+    ".codegraphy/snippets/base-grid.css": true
+  }
 }
 ```
 
@@ -83,6 +87,7 @@ Example:
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
+| `cssSnippets` | object | `{}` | Workspace-relative CSS snippet paths mapped to `true` to load or `false` to keep disabled |
 | `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
@@ -90,6 +95,74 @@ Example:
 | `edgeColors` | object | generated | Edge-kind colors by id |
 | `physics.*` | object | see file | Force simulation controls |
 | `timeline.*` | object | see file | Timeline indexing/playback controls |
+
+## CSS Snippets
+
+CodeGraphy CSS Snippets let a workspace apply small CSS files to the CodeGraphy Extension UI without rebuilding a full VS Code theme.
+
+Create a CSS file inside the CodeGraphy Workspace, usually:
+
+```text
+.codegraphy/snippets/base-grid.css
+```
+
+Then enable it in `.codegraphy/settings.json`:
+
+```json
+{
+  "cssSnippets": {
+    ".codegraphy/snippets/base-grid.css": true,
+    ".codegraphy/snippets/forest.css": false,
+    ".codegraphy/snippets/ocean-image.css": true
+  }
+}
+```
+
+The object is the snippet toggle map. A path set to `true` loads into the webview. A path set to `false` stays in settings but does not load. A path that is not included does nothing. Enabled snippets load in object insertion order, so later enabled entries can override earlier enabled entries through the normal CSS cascade.
+
+Path rules:
+
+- Paths are relative to the CodeGraphy Workspace root.
+- Paths must end in `.css`.
+- Paths must stay inside the CodeGraphy Workspace.
+- Absolute paths and `../` parent traversal are rejected.
+- Missing, invalid, or rejected paths write `[CodeGraphy]` warnings to the VS Code Developer Tools console.
+
+CodeGraphy watches `.codegraphy/settings.json`, so adding or removing entries updates the loaded snippet list. Editing the contents of an already loaded CSS file does not auto-reload yet; reload the webview or touch the settings file after changing snippet contents.
+
+### Styling Hooks
+
+Snippets should target CodeGraphy Styling Hooks: stable `data-codegraphy-*` attributes exposed by the extension UI. These hooks are the customization contract; avoid targeting generated classes or incidental React wrapper structure.
+
+Common hooks:
+
+| Hook | Values | Surface |
+|------|--------|---------|
+| `data-codegraphy-view` | `graph`, `timeline` | Webview body |
+| `data-codegraphy-surface` | `app`, `graph-view`, `graph-stage`, `timeline-view` | Main view surfaces |
+| `data-codegraphy-layer` | `graph-overlay`, `graph-stage-world-overlay`, `graph-stage-viewport-overlay`, `graph-accessibility` | Graph overlay layers |
+| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
+| `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
+| `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs`, `timeline-playback`, `timeline-track` | Interactive controls |
+| `data-codegraphy-section` | `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
+| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `toolbar`, `timeline-panel` | Plugin contribution slots |
+| `data-codegraphy-state` | `loading`, `empty`, `graph-indexing`, `timeline-indexing`, `timeline-ready-to-index` | View states |
+| `data-codegraphy-row` | `plugin`, `css-snippet`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
+| `data-codegraphy-marker` | `timeline-commit`, `timeline-current-commit` | Timeline markers |
+
+Example:
+
+```css
+[data-codegraphy-surface='graph-stage'] {
+  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 32%);
+}
+
+[data-codegraphy-panel='graph-scope'] {
+  backdrop-filter: blur(12px);
+}
+```
+
+See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
 
 ## Graph Scope settings
 
@@ -180,8 +253,8 @@ See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP suppor
 
 ### Legends
 
-Legend Entries now live in their own **Legends** popup, not inside the settings panel.
-The popup label and persisted key are both **Legends** / `legend`.
+Legend Entries now live in the **Themes** panel under the **Legends** section, not inside the settings panel.
+The persisted key remains `legend`.
 
 For node styling, the popup is split into these subsections from top to bottom:
 
@@ -276,7 +349,7 @@ To version-control filter patterns, add them to `settings.json`:
 - **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Node / edge colors** now live in the **Legends** popup and are stored under `nodeColors` / `edgeColors`.
+- **Node / edge colors** now live in the **Themes** panel's **Legends** section and are stored under `nodeColors` / `edgeColors`.
 
 Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups. The Graph View no longer switches between separate built-in graph views.
 
@@ -284,7 +357,7 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 
 - **Nodes**: choose Graph Scope for File, Folder, Package, Symbol, Variable, and plugin-added Node Types
 - **Edges**: choose Graph Scope for indexed workspace Edge Type capabilities, including structural `NESTS`, semantic Edge Types, and plugin-added Edge Types
-- **Legends**: edit Legend Entries and their priority
+- **Themes**: edit Legend Entries and their priority in **Legends**, and toggle configured CSS Snippets
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
 
@@ -449,7 +522,7 @@ Do not use `.codegraphy/` if you want to share any files under `.codegraphy/`; i
 
 **Nodes are all grey**
 
-No Legend Entries are configured. Add them in the **Legends** popup or directly in `.codegraphy/settings.json`.
+No Legend Entries are configured. Add them in the **Themes** panel's **Legends** section or directly in `.codegraphy/settings.json`.
 
 **Too many files**
 1. Add exclusion patterns in the Filters section or `filterPatterns`

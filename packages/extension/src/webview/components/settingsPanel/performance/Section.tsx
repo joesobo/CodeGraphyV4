@@ -24,7 +24,7 @@ export function PerformanceSection(): React.ReactElement {
   };
 
   return (
-    <div className="mb-2 space-y-3">
+    <section className="mb-2 space-y-3" data-codegraphy-section="settings-performance">
       <MaxFilesControl
         maxFiles={maxFiles}
         onBlur={(value) => commitMaxFiles(parseMaxFilesInput(value) ?? 1)}
@@ -58,6 +58,6 @@ export function PerformanceSection(): React.ReactElement {
           }}
         />
       </div>
-    </div>
+    </section>
   );
 }

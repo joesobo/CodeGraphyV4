@@ -239,10 +239,14 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(mocks.sendProviderSettings).toHaveBeenCalledOnce();
     expect(mocks.sendProviderAllSettings).not.toHaveBeenCalled();
-    expect(source._sendMessage).toHaveBeenCalledTimes(2);
+    expect(source._sendMessage).toHaveBeenCalledTimes(3);
     expect(source._sendMessage).toHaveBeenNthCalledWith(1, settingsMessage);
     expect(source._sendMessage).toHaveBeenNthCalledWith(
       2,
+      expect.objectContaining({ type: 'CSS_SNIPPETS_UPDATED' }),
+    );
+    expect(source._sendMessage).toHaveBeenNthCalledWith(
+      3,
       expect.objectContaining({ type: 'GRAPH_CONTROLS_UPDATED' }),
     );
   });
@@ -285,10 +289,14 @@ describe('graphView/provider/settingsState default dependencies', () => {
       { damping: 1 },
       'connections',
     );
-    expect(source._sendMessage).toHaveBeenCalledTimes(2);
+    expect(source._sendMessage).toHaveBeenCalledTimes(3);
     expect(source._sendMessage).toHaveBeenNthCalledWith(1, allSettingsMessage);
     expect(source._sendMessage).toHaveBeenNthCalledWith(
       2,
+      expect.objectContaining({ type: 'CSS_SNIPPETS_UPDATED' }),
+    );
+    expect(source._sendMessage).toHaveBeenNthCalledWith(
+      3,
       expect.objectContaining({ type: 'GRAPH_CONTROLS_UPDATED' }),
     );
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();

@@ -54,15 +54,18 @@ export default function GraphScopePanel({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-80 shadow-lg max-h-full flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
+      <section
+        className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-80 shadow-lg max-h-full flex flex-col overflow-hidden"
+        data-codegraphy-panel="graph-scope"
+      >
+        <header className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0" data-codegraphy-region="panel-header">
           <span className="text-sm font-medium">Graph Scope</span>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
             <MdiIcon path={mdiClose} size={16} />
           </Button>
-        </div>
+        </header>
 
-        <div className="border-b px-3 py-2">
+        <div className="border-b px-3 py-2" data-codegraphy-control="graph-scope-tabs">
           <div className="flex rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] p-0.5">
             <ScopeTabButton active={activeTab === 'nodes'} onClick={() => setActiveTab('nodes')}>
               Node Types
@@ -78,7 +81,7 @@ export default function GraphScopePanel({
           </div>
         </div>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <ScrollArea className="flex-1 min-h-0" data-codegraphy-region="panel-body">
           <div className="px-3 py-2">
             <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
               {activeTab === 'nodes' ? (
@@ -98,7 +101,7 @@ export default function GraphScopePanel({
             </div>
           </div>
         </ScrollArea>
-      </div>
+      </section>
     </TooltipProvider>
   );
 }

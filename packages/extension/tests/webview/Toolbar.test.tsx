@@ -105,7 +105,7 @@ describe('Toolbar', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Workspace', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Layout', 'Node Size', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
@@ -113,7 +113,7 @@ describe('Toolbar', () => {
       'Layout',
       'Node Size',
       'Graph Scope',
-      'Legends',
+      'Themes',
       'Plugins',
       'Settings',
     ]);
@@ -156,7 +156,7 @@ describe('Toolbar', () => {
     fireEvent.click(screen.getByTitle('Graph Scope'));
     expect(graphStore.getState().activePanel).toBe('graphScope');
 
-    fireEvent.click(screen.getByTitle('Legends'));
+    fireEvent.click(screen.getByTitle('Themes'));
     expect(graphStore.getState().activePanel).toBe('legends');
 
     fireEvent.click(screen.getByTitle('Plugins'));
