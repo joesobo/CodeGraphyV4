@@ -20,6 +20,7 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerContainers;
     delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
     delete (globalThis as Record<string, unknown>).__useManagerCleanupCount;
+    delete (globalThis as Record<string, unknown>).__useManagerMessages;
   });
 
   it('returns a stable pluginHost reference across re-renders', () => {
@@ -289,6 +290,34 @@ describe('usePluginManager', () => {
     });
 
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(2);
+  });
+
+  it('delivers resolved webview assets to the activated plugin script', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate(api) {
+        api.onMessage((message) => {
+          const messages = globalThis.__useManagerMessages || (globalThis.__useManagerMessages = []);
+          messages.push(message);
+        });
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'asset-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+        assets: [{ id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' }],
+      });
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerMessages).toEqual([
+      {
+        type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
+        data: [{ id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' }],
+      },
+    ]);
   });
 
   it('disposes plugin activation cleanup when plugin assets are reset', async () => {

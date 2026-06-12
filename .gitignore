@@ -21,3 +21,5 @@ reports/
 .pnpm-store/
 .codegraphy/*
 !.codegraphy/settings.json
+!.codegraphy/particles/
+!.codegraphy/particles/**/*.ts

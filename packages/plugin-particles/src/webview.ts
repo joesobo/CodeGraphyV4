@@ -20,6 +20,14 @@ interface ParticleSettings {
   preset: ParticlePreset;
   intensity: number;
   customModule?: string;
+  customEffectId?: string;
+}
+
+interface ParticleEffectAsset {
+  id: string;
+  label: string;
+  url: string;
+  kind?: string;
 }
 
 const DEFAULT_PARTICLE_SETTINGS: ParticleSettings = {
@@ -70,7 +78,11 @@ function resolveEffectColor(preset: ParticlePreset): string {
   return DEFAULT_EFFECT_COLOR;
 }
 
-function renderParticleCanvas(container: HTMLElement, settings: ParticleSettings): () => void {
+function renderParticleCanvas(
+  container: HTMLElement,
+  settings: ParticleSettings,
+  customEffects: readonly ParticleEffectAsset[] = [],
+): () => void {
   container.replaceChildren();
   if (!settings.enabled || settings.preset === 'none') {
     return () => undefined;
@@ -82,7 +94,9 @@ function renderParticleCanvas(container: HTMLElement, settings: ParticleSettings
   container.appendChild(canvas);
 
   if (settings.preset === 'custom') {
-    if (!settings.customModule) {
+    const moduleUrl = settings.customModule
+      ?? customEffects.find(effect => effect.id === settings.customEffectId)?.url;
+    if (!moduleUrl) {
       return () => {
         canvas.remove();
       };
@@ -93,7 +107,7 @@ function renderParticleCanvas(container: HTMLElement, settings: ParticleSettings
       intensity: settings.intensity,
       color: resolveEffectColor(settings.preset),
       backgroundColor: DEFAULT_BACKGROUND_COLOR,
-      moduleUrl: settings.customModule,
+      moduleUrl,
     });
     return () => {
       cleanup();
@@ -130,7 +144,12 @@ function sendParticleSettings(api: CodeGraphyWebviewAPI, settings: ParticleSetti
   api.setPluginData(settings);
 }
 
-function render(container: HTMLElement, api: CodeGraphyWebviewAPI, settings: ParticleSettings): void {
+function render(
+  container: HTMLElement,
+  api: CodeGraphyWebviewAPI,
+  settings: ParticleSettings,
+  customEffects: readonly ParticleEffectAsset[] = [],
+): void {
   container.replaceChildren();
 
   const section = document.createElement('section');
@@ -169,7 +188,63 @@ function render(container: HTMLElement, api: CodeGraphyWebviewAPI, settings: Par
     grid.appendChild(row);
   }
 
+  for (const effect of customEffects) {
+    const checked = settings.enabled
+      && settings.preset === 'custom'
+      && settings.customEffectId === effect.id;
+    const row = document.createElement('div');
+    row.className = 'cg-bg-particles-row';
+
+    const label = document.createElement('span');
+    label.textContent = effect.label;
+    label.title = effect.label;
+    row.appendChild(label);
+
+    const control = createSwitch(checked, `Toggle ${effect.label} custom background effect`);
+    control.addEventListener('click', () => {
+      const nextEnabled = !(settings.enabled && settings.preset === 'custom' && settings.customEffectId === effect.id);
+      const nextSettings = nextEnabled
+        ? {
+          enabled: true,
+          preset: 'custom' as const,
+          intensity: settings.intensity,
+          customEffectId: effect.id,
+        }
+        : { ...DEFAULT_PARTICLE_SETTINGS, intensity: settings.intensity };
+      render(container, api, nextSettings, customEffects);
+      sendParticleSettings(api, nextSettings);
+    });
+    row.appendChild(control);
+    grid.appendChild(row);
+  }
+
   container.appendChild(section);
+}
+
+function isParticleEffectAsset(value: unknown): value is ParticleEffectAsset {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<ParticleEffectAsset>;
+  return typeof candidate.id === 'string'
+    && typeof candidate.label === 'string'
+    && typeof candidate.url === 'string'
+    && (candidate.kind === undefined || candidate.kind === 'particle-effect');
+}
+
+function readParticleEffectAssets(value: unknown): ParticleEffectAsset[] {
+  return Array.isArray(value)
+    ? value.filter(isParticleEffectAsset)
+    : [];
+}
+
+function preloadCustomEffects(customEffects: readonly ParticleEffectAsset[]): void {
+  for (const effect of customEffects) {
+    void import(/* @vite-ignore */ effect.url).catch((error: unknown) => {
+      console.error(`[CodeGraphy] Failed to preload custom particle effect "${effect.label}":`, error);
+    });
+  }
 }
 
 function injectStyles(): void {
@@ -199,15 +274,23 @@ export function activate(api: CodeGraphyWebviewAPI): () => void {
   const controlsContainer = api.getSlotContainer('theme.panel');
   const canvasContainer = api.getSlotContainer('graph.stage.worldOverlay');
   let canvasCleanup: () => void = () => undefined;
+  let customEffects: ParticleEffectAsset[] = [];
   const update = (settings: ParticleSettings): void => {
-    render(controlsContainer, api, settings);
+    render(controlsContainer, api, settings, customEffects);
     canvasCleanup();
-    canvasCleanup = renderParticleCanvas(canvasContainer, settings);
+    canvasCleanup = renderParticleCanvas(canvasContainer, settings, customEffects);
   };
 
   update(readParticleSettings(api));
 
   const messageSubscription = api.onMessage((message) => {
+    if (message.type === 'PLUGIN_WEBVIEW_ASSETS_UPDATED') {
+      customEffects = readParticleEffectAssets(message.data);
+      preloadCustomEffects(customEffects);
+      update(readParticleSettings(api));
+      return;
+    }
+
     if (message.type !== 'PLUGIN_DATA_UPDATED') {
       return;
     }
