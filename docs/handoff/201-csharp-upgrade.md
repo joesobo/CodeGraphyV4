@@ -98,3 +98,38 @@ Important card requirements:
 - Dispatching Specifier with the clarified scope.
 - Relevant current C# Core surface: `packages/core/src/treeSitter/runtime/analyzeCSharp` emits `class`, `interface`, `enum`, and `method` symbols plus Imports, References, Calls, and Inherits relations. The C# plugin is metadata-only.
 - Specifier stopping condition: return an acceptance contract and example-shape plan, including whether human-owned `packages/extension/tests/acceptance/specs/csharp-example.md` needs an approved edit before Coder runs.
+
+### 2026-06-12T21:40:00Z - Specifier Inventory And Contract
+
+- Result: needs human acceptance before spec Markdown edits.
+- Plan path: `docs/plans/201-csharp-upgrade-specifier-plan.md`.
+- Inventory result:
+  - Core Tree-sitter C# owns C# analysis; `packages/plugin-csharp` is metadata-only and contributes supported extension/default-filter settings only.
+  - Current C# edge capability metadata advertises `Imports`, `References`, `Calls`, and `Inherits`.
+  - Current C# symbol node capability metadata advertises `Function`, `Class`, `Interface`, `Struct`, and `Enum`.
+  - C# method declarations are emitted with symbol kind `method`, but the product Graph Scope row for C# is `Function` because `symbol:function` matches both `function` and `method`. C# does not currently advertise the narrower `Method` node type.
+  - Analyzer tests prove C# can emit class/interface/struct/enum/method symbols, resolved namespace `Imports`, uppercase type `References`, object/static/inherited `Calls`, and base-list `Inherits`.
+- Example-shape plan:
+  - Keep all C# upgrade work in this loop.
+  - Reshape `examples/example-csharp` into a small file-scoped-namespace task-runner/service demo.
+  - Add explicit struct and enum source files, likely `src/Models/RunRequest.cs` and `src/Models/RunStatus.cs`, so every advertised C# symbol node type is visible.
+  - Keep representative classes/interfaces/methods: `Program`, `Config`, `ApiService`, `BaseService`, `IRunner`, `Helpers`, `Formatter`, and one intentional orphan class.
+  - Keep file relationships deliberate: Program resolves/calls Config, ApiService, RunRequest/RunStatus, and Helpers; ApiService inherits BaseService and implements IRunner; Helpers calls Formatter; ApiService calls an inherited BaseService method.
+  - Update README/settings honestly around Core Tree-sitter C# support and the metadata-only C# plugin.
+- Acceptance contract:
+  - Update `packages/extension/tests/acceptance/specs/csharp-example.md` only after human approval.
+  - Follow the C/C++ pattern with one file-relationship scenario and one symbol-node scenario.
+  - File scenario should assert available C# edge types, stable no-edge and per-edge counts, and representative file edges for Imports, References, Inherits, and Calls.
+  - Symbol scenario should assert available C# node types are only Function, Class, Interface, Struct, and Enum; Method and Type should not be available for this C# example.
+  - Symbol scenario should prove each supported C# symbol node type with visible graph assertions and use `Contains` to prove file-to-symbol projection.
+  - Red-first gap to verify: if `Contains` is unavailable for the upgraded C# symbol scenario, Coder should add the smallest Core capability test/fix that exposes `Contains` consistently with C# symbol nodes.
+- Acceptance impact scan:
+  - Directly affected human-owned spec: `packages/extension/tests/acceptance/specs/csharp-example.md`.
+  - Likely generated/tooling after approval: `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`.
+  - Potential fixture/docs edits: `examples/example-csharp/README.md`, `examples/example-csharp/src/**/*.cs`, `examples/example-csharp/.codegraphy/settings.json`, and `examples/README.md`.
+  - Intentionally unaffected specs: `c-example.md`, `cpp-example.md`, and generic Graph Scope specs unless Coder changes shared Graph Scope capability behavior for `Contains`.
+- Human approval status: required before editing human-owned acceptance spec Markdown.
+- Open questions:
+  - Should Orchestrator treat the approval already given in this thread ("then we make sure the acceptance tests match the expected example") as permission to edit `packages/extension/tests/acceptance/specs/csharp-example.md`, or pause for an explicit spec-Markdown approval because the loop docs require it?
+  - Should Coder make the example source update first and return measured counts before the spec Markdown is edited, or should the approved spec draft lead with expected names and allow Coder to fill counts after the example is implemented?
+- Exact files inspected are listed in `docs/plans/201-csharp-upgrade-specifier-plan.md`.
