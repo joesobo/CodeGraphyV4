@@ -2,14 +2,14 @@
 
 ## Current State
 
-- State: Draft PR and Trello are aligned; the loop is paused only at the initial grill-with-docs alignment gate before Specifier dispatch.
+- State: Draft PR and Trello are aligned, and Specifier is now running a bounded support-audit/acceptance-contract pass in its own role thread.
 - Trello card: https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Card title: C# Upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/271
 - Heavy-check host: not prepared yet; prepare `codegraphy-mini` lazily when a role actually needs VS Code Playwright, mutation, or another long focus-stealing check.
-- Next route: finish the initial alignment gate, then dispatch Specifier with a bounded C# support-audit and acceptance-contract task.
+- Next route: verify the Specifier handoff entry, then choose whether the loop can stay on the default route into Coder or needs a human acceptance gate first.
 
 ## Human Gates
 
@@ -95,3 +95,20 @@
   - Review-sensitive acceptance spec work is visible to the user from the card comment before any spec edits are proposed.
 - Open blocker:
   - Initial grill-with-docs alignment is still active before Specifier dispatch.
+
+### 2026-06-12T18:09:41Z - Orchestrator Dispatch To Specifier
+
+- Source: Orchestrator.
+- Target: `🪶 Specifier - C# Upgrade` (`019ebd06-5643-7d50-b6fc-655f68a43e23`).
+- Reason for dispatch: the loop setup is complete and the next default-route need is a bounded support audit plus acceptance-contract direction for the C# upgrade.
+- Input scope:
+  - work only in `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
+  - read loop docs, acceptance ownership rules, current C# example files, and current C# acceptance spec
+  - produce a `showcase now` / `reasonable Core upgrade` / `out of scope` support matrix
+  - propose 2-3 believable C# project concepts mapped to visible Graph Scope toggles
+  - recommend one concept and the smallest acceptance-contract direction to match the newer C/C++ pattern
+- Expected role output:
+  - Specifier handoff entry in this file with result, acceptance direction, example recommendation, files changed, human approval status, and open questions
+- Human gates that apply:
+  - any acceptance spec Markdown edits must stay local for review and must not be committed or pushed without explicit user approval
+  - the loop should pause if the Specifier concludes the contract cannot move forward without a human concept or scope choice
