@@ -29,7 +29,7 @@ describe('custom particle effects', () => {
     expect(plugin.webviewContributions.assets).toEqual([
       {
         id: 'repo-fireflies',
-        label: 'Repo Fireflies',
+        label: 'Fireflies',
         path: path.join(workspaceRoot, '.codegraphy', 'cache', 'particles', 'repo-fireflies.js'),
         kind: 'particle-effect',
         metadata: {

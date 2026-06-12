@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createPetalsEffect } from '../src/effects/petals';
+import { createSnowEffect } from '../src/effects/snow';
 import { rgba, type EffectRuntime } from '../src/effects/shared';
 
 describe('particle effect drawing', () => {
@@ -25,6 +26,22 @@ describe('particle effect drawing', () => {
 
     expect(Math.min(...translatedXs)).toBeLessThan(200);
     expect(Math.max(...translatedXs)).toBeGreaterThan(700);
+  });
+
+  it('prewarms snow across the background', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
+    const arcXs: number[] = [];
+    const runtime = createRuntime({
+      arc: (x: number) => {
+        arcXs.push(x);
+      },
+    });
+
+    const effect = createSnowEffect(runtime);
+    effect.draw(runtime);
+
+    expect(Math.min(...arcXs)).toBeLessThan(200);
+    expect(Math.max(...arcXs)).toBeGreaterThan(700);
   });
 });
 

@@ -13,6 +13,7 @@ type ParticlePreset =
   | 'petals'
   | 'sparkles'
   | 'embers'
+  | 'snow'
   | 'custom';
 
 interface ParticleSettings {
@@ -37,6 +38,7 @@ const DEFAULT_PARTICLE_SETTINGS: ParticleSettings = {
 const DEFAULT_EFFECT_COLOR = 'rgb(156 222 242)';
 const EMBERS_EFFECT_COLOR = '#f59e0b';
 const LEAVES_EFFECT_COLOR = '#8fcf6b';
+const SNOW_EFFECT_COLOR = '#f8fafc';
 const DEFAULT_BACKGROUND_COLOR = 'rgb(11 16 32)';
 
 const PRESETS: Array<{ id: Exclude<ParticlePreset, 'none' | 'custom'>; label: string }> = [
@@ -47,6 +49,7 @@ const PRESETS: Array<{ id: Exclude<ParticlePreset, 'none' | 'custom'>; label: st
   { id: 'petals', label: 'Leaves' },
   { id: 'sparkles', label: 'Sparkles' },
   { id: 'embers', label: 'Embers' },
+  { id: 'snow', label: 'Snow' },
 ];
 
 function isParticleSettings(value: unknown): value is ParticleSettings {
@@ -61,10 +64,12 @@ function isParticleSettings(value: unknown): value is ParticleSettings {
 }
 
 function readParticleSettings(api: CodeGraphyWebviewAPI): ParticleSettings {
+  return readParticleSettingsOrNull(api) ?? DEFAULT_PARTICLE_SETTINGS;
+}
+
+function readParticleSettingsOrNull(api: CodeGraphyWebviewAPI): ParticleSettings | null {
   const data = api.getPluginData();
-  return isParticleSettings(data)
-    ? data
-    : DEFAULT_PARTICLE_SETTINGS;
+  return isParticleSettings(data) ? data : null;
 }
 
 function getParticleIntensity(settings: ParticleSettings): number {
@@ -77,6 +82,9 @@ function resolveEffectColor(preset: ParticlePreset): string {
   }
   if (preset === 'petals') {
     return LEAVES_EFFECT_COLOR;
+  }
+  if (preset === 'snow') {
+    return SNOW_EFFECT_COLOR;
   }
   return DEFAULT_EFFECT_COLOR;
 }
@@ -152,6 +160,7 @@ function render(
   api: CodeGraphyWebviewAPI,
   settings: ParticleSettings,
   customEffects: readonly ParticleEffectAsset[] = [],
+  onSettingsChange: (settings: ParticleSettings) => void,
 ): void {
   container.replaceChildren();
 
@@ -200,7 +209,7 @@ function render(
       const nextSettings = nextEnabled
         ? { enabled: true, preset: preset.id }
         : { ...DEFAULT_PARTICLE_SETTINGS };
-      render(container, api, nextSettings);
+      onSettingsChange(nextSettings);
       sendParticleSettings(api, nextSettings);
     });
     row.appendChild(control);
@@ -229,7 +238,7 @@ function render(
           customEffectId: effect.id,
         }
         : { ...DEFAULT_PARTICLE_SETTINGS };
-      render(container, api, nextSettings, customEffects);
+      onSettingsChange(nextSettings);
       sendParticleSettings(api, nextSettings);
     });
     row.appendChild(control);
@@ -255,6 +264,14 @@ function readParticleEffectAssets(value: unknown): ParticleEffectAsset[] {
   return Array.isArray(value)
     ? value.filter(isParticleEffectAsset)
     : [];
+}
+
+function sameParticleSettings(left: ParticleSettings, right: ParticleSettings): boolean {
+  return left.enabled === right.enabled
+    && left.preset === right.preset
+    && left.intensity === right.intensity
+    && left.customModule === right.customModule
+    && left.customEffectId === right.customEffectId;
 }
 
 function preloadCustomEffects(customEffects: readonly ParticleEffectAsset[]): void {
@@ -299,21 +316,34 @@ export function activate(api: CodeGraphyWebviewAPI): () => void {
   const controlsContainer = api.getSlotContainer('theme.panel');
   const canvasContainer = api.getSlotContainer('graph.stage.worldOverlay');
   let canvasCleanup: () => void = () => undefined;
+  const refreshTimers: number[] = [];
   let customEffects: ParticleEffectAsset[] = [];
   let currentSettings = readParticleSettings(api);
   const update = (settings: ParticleSettings): void => {
     currentSettings = settings;
-    render(controlsContainer, api, settings, customEffects);
+    render(controlsContainer, api, settings, customEffects, update);
     canvasCleanup();
     canvasCleanup = renderParticleCanvas(canvasContainer, settings, customEffects);
   };
+  const refreshFromPluginData = (): void => {
+    const nextSettings = readParticleSettingsOrNull(api);
+    if (nextSettings && !sameParticleSettings(currentSettings, nextSettings)) {
+      update(nextSettings);
+    }
+  };
+  const queuePluginDataRefresh = (): void => {
+    refreshTimers.push(window.setTimeout(refreshFromPluginData, 0));
+    refreshTimers.push(window.setTimeout(refreshFromPluginData, 100));
+  };
 
   update(currentSettings);
+  queuePluginDataRefresh();
 
   const messageSubscription = api.onMessage((message) => {
     if (message.type === 'PLUGIN_WEBVIEW_ASSETS_UPDATED') {
       customEffects = readParticleEffectAssets(message.data);
       preloadCustomEffects(customEffects);
+      refreshFromPluginData();
       update(currentSettings);
       return;
     }
@@ -328,6 +358,9 @@ export function activate(api: CodeGraphyWebviewAPI): () => void {
   });
 
   return () => {
+    for (const timer of refreshTimers) {
+      window.clearTimeout(timer);
+    }
     messageSubscription.dispose();
     canvasCleanup();
     canvasCleanup = () => undefined;

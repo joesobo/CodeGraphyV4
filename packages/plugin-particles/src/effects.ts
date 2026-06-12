@@ -4,6 +4,7 @@ import { createPerlinFlowEffect } from './effects/perlinFlow';
 import { createPetalsEffect } from './effects/petals';
 import { createRainEffect } from './effects/rain';
 import type { EffectController, EffectRuntime } from './effects/shared';
+import { createSnowEffect } from './effects/snow';
 import { createSparklesEffect } from './effects/sparkles';
 import { createSynapseEffect } from './effects/synapse';
 
@@ -15,6 +16,7 @@ export const BACKGROUND_PARTICLE_PRESETS = [
   'petals',
   'sparkles',
   'embers',
+  'snow',
 ] as const;
 
 export type BackgroundParticleEffectPreset = typeof BACKGROUND_PARTICLE_PRESETS[number];
@@ -217,5 +219,7 @@ function createEffectController(
       return createSparklesEffect(runtime);
     case 'embers':
       return createEmbersEffect(runtime);
+    case 'snow':
+      return createSnowEffect(runtime);
   }
 }

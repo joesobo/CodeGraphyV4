@@ -21,6 +21,7 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
     delete (globalThis as Record<string, unknown>).__useManagerCleanupCount;
     delete (globalThis as Record<string, unknown>).__useManagerMessages;
+    delete (globalThis as Record<string, unknown>).__useManagerPluginData;
   });
 
   it('returns a stable pluginHost reference across re-renders', () => {
@@ -318,6 +319,31 @@ describe('usePluginManager', () => {
         data: [{ id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' }],
       },
     ]);
+  });
+
+  it('makes plugin data available to a script on first activation', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate(api) {
+        globalThis.__useManagerPluginData = api.getPluginData();
+      }
+    `);
+    const pluginData = {
+      enabled: true,
+      preset: 'embers',
+      intensity: 1,
+    };
+
+    result.current.updatePluginData('particle-plugin', pluginData);
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'particle-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerPluginData).toEqual(pluginData);
   });
 
   it('disposes plugin activation cleanup when plugin assets are reset', async () => {
