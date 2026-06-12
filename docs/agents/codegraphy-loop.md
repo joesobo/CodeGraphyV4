@@ -40,11 +40,12 @@ codegraphy-mini:/Users/poleski/Desktop/Projects/CodeGraphyV4
 ```
 
 The heavy-check thread must verify its host, branch, worktree, and Node runtime
-before running commands. Prefer Node 22 there because CodeGraphy requires Node
-`<23`.
+before running commands. Prefer the repo-pinned Node runtime there so remote
+checks match local and CI behavior.
 
-When checking or preparing the remote host over SSH, use the Homebrew Node 22
-path explicitly so `pnpm` and Codex resolve the same runtime:
+When checking or preparing the remote host over SSH, use the Homebrew path for
+the repo-pinned Node runtime explicitly so `pnpm` and Codex resolve the same
+runtime:
 
 ```bash
 ssh codegraphy-mini 'export PATH="/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"; cd /Users/poleski/Desktop/Projects/CodeGraphyV4; hostname; node --version; pnpm --version; git status --short --branch'

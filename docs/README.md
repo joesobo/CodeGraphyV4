@@ -1,7 +1,7 @@
 # Docs
 
 Use the root [README](../README.md) for the release overview, marketplace links, package map, and the V2 to V4 migration story.
-The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
+The published packages support Node 20.20.0 and newer. The repo-wide local and CI runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
 
 The rest of the docs are split by purpose:
 
