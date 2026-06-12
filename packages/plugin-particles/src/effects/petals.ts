@@ -6,6 +6,7 @@ interface Petal {
   size: number;
   rot: number;
   vr: number;
+  vx: number;
   vy: number;
   drift: number;
   driftSpeed: number;
@@ -14,12 +15,13 @@ interface Petal {
 
 export function createPetalsEffect(runtime: EffectRuntime): EffectController {
   const petals: Petal[] = [];
-  const makePetal = (width: number): Petal => ({
-    x: -20 + Math.random() * Math.min(width * 0.25, 160),
+  const makePetal = (width: number, prewarmed = false): Petal => ({
+    x: prewarmed ? Math.random() * width : -30 - Math.random() * Math.min(width * 0.2, 140),
     y: -10 - Math.random() * 40,
     size: 3 + Math.random() * 5,
     rot: Math.random() * Math.PI * 2,
     vr: (Math.random() - 0.5) * 0.03,
+    vx: 0.35 + Math.random() * 0.75,
     vy: 0.3 + Math.random() * 0.6,
     drift: Math.random() * Math.PI * 2,
     driftSpeed: 0.008 + Math.random() * 0.012,
@@ -30,7 +32,7 @@ export function createPetalsEffect(runtime: EffectRuntime): EffectController {
       return;
     }
     for (let i = 0; i < 30; i += 1) {
-      const petal = makePetal(width);
+      const petal = makePetal(width, true);
       petal.y = Math.random() * height;
       petals.push(petal);
     }
@@ -45,8 +47,8 @@ export function createPetalsEffect(runtime: EffectRuntime): EffectController {
         petal.y += petal.vy;
         petal.rot += petal.vr;
         petal.drift += petal.driftSpeed;
-        petal.x += Math.sin(petal.drift) * petal.wobble;
-        if (petal.y > height + 15) {
+        petal.x += petal.vx + Math.sin(petal.drift) * petal.wobble;
+        if (petal.y > height + 15 || petal.x > width + 30) {
           Object.assign(petal, makePetal(width));
         }
         ctx.save();

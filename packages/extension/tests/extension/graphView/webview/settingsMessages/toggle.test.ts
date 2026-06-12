@@ -353,7 +353,7 @@ describe('graph view settings toggle message', () => {
     expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
-  it('lets plugin file reprocessing publish webview injections after package toggles', async () => {
+  it('sends plugin webview injections before plugin file reprocessing after package toggles', async () => {
     const state = createState();
     const sendPluginWebviewInjections = vi.fn();
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
@@ -385,6 +385,49 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(true);
     expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.organize']);
     expect(analyzeAndSendData).not.toHaveBeenCalled();
-    expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections.mock.invocationCallOrder[0])
+      .toBeLessThan(reprocessPluginFiles.mock.invocationCallOrder[0]);
+  });
+
+  it('sends webview injections immediately after enabling a package-backed UI plugin', async () => {
+    const state = createState();
+    const sendPluginWebviewInjections = vi.fn();
+    const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [] as T;
+        }
+        return defaultValue;
+      }),
+      syncWorkspacePlugins,
+      sendPluginWebviewInjections,
+      reprocessPluginFiles,
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          enabled: true,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    const injectionOrder = sendPluginWebviewInjections.mock.invocationCallOrder[0];
+    const syncOrder = syncWorkspacePlugins.mock.invocationCallOrder[0];
+    const reprocessOrder = reprocessPluginFiles.mock.invocationCallOrder[0];
+    expect(injectionOrder).toEqual(expect.any(Number));
+    expect(syncOrder).toEqual(expect.any(Number));
+    expect(reprocessOrder).toEqual(expect.any(Number));
+    expect(injectionOrder).toBeGreaterThan(syncOrder as number);
+    expect(injectionOrder).toBeLessThan(reprocessOrder as number);
   });
 });

@@ -19,7 +19,7 @@ export interface EffectController {
 }
 
 export function rgba(color: string, alpha: number): string {
-  const rgb = hexToRgb(color) ?? { r: 156, g: 222, b: 242 };
+  const rgb = cssRgbToRgb(color) ?? hexToRgb(color) ?? { r: 156, g: 222, b: 242 };
   return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
 }
 
@@ -55,4 +55,17 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   }
   const value = parseInt(normalized, 16);
   return { r: (value >> 16) & 255, g: (value >> 8) & 255, b: value & 255 };
+}
+
+function cssRgbToRgb(color: string): { r: number; g: number; b: number } | null {
+  const match = String(color || '').trim().match(/^rgb\(\s*(\d{1,3})(?:\s+|,\s*)(\d{1,3})(?:\s+|,\s*)(\d{1,3})\s*\)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const [r, g, b] = match.slice(1).map(Number);
+  if ([r, g, b].some(channel => channel < 0 || channel > 255)) {
+    return null;
+  }
+  return { r, g, b };
 }

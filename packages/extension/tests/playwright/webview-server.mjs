@@ -662,15 +662,24 @@ const particlesPluginHarnessScript = `
     };
 
     const handleWebviewMessage = (message) => {
-      if (message?.type !== 'WEBVIEW_READY') {
+      if (message?.type === 'WEBVIEW_READY') {
+        publishBaseState();
+        injectParticlesPlugin();
+        window.setTimeout(selectCustomEffect, 100);
+        window.setTimeout(() => postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' }), 150);
+        window.setTimeout(() => postToWebview({ type: 'FIT_VIEW' }), 300);
         return;
       }
 
-      publishBaseState();
-      injectParticlesPlugin();
-      window.setTimeout(selectCustomEffect, 100);
-      window.setTimeout(() => postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' }), 150);
-      window.setTimeout(() => postToWebview({ type: 'FIT_VIEW' }), 300);
+      if (message?.type === 'UPDATE_PLUGIN_DATA' && message.payload?.pluginId === pluginId) {
+        postToWebview({
+          type: 'PLUGIN_DATA_UPDATED',
+          payload: {
+            pluginId,
+            data: message.payload.data,
+          },
+        });
+      }
     };
 
     window.acquireVsCodeApi = () => ({

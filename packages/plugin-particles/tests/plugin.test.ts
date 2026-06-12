@@ -42,7 +42,7 @@ describe('createParticlesPlugin', () => {
     expect(overlay.querySelector('canvas.cg-bg-particles-canvas')).not.toBeNull();
     expect(startBackgroundParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
       canvas: overlay.querySelector('canvas.cg-bg-particles-canvas'),
-      color: 'rgb(143 207 107)',
+      color: '#8fcf6b',
       intensity: 0.5,
       preset: 'petals',
       prewarmFrames: 180,
@@ -114,6 +114,53 @@ describe('createParticlesPlugin', () => {
     expect(startCustomParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
       moduleUrl: 'data:text/javascript,export function activateParticleEffect(){}',
     }));
+  });
+
+  it('starts a custom particle effect when asset urls arrive after plugin data', () => {
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldOverlay': overlay,
+    });
+    vi.mocked(api.onMessage).mockImplementation((handler) => {
+      handlers.push(handler);
+      return { dispose: vi.fn() };
+    });
+
+    activate(api);
+    handlers[0]?.({
+      type: 'PLUGIN_DATA_UPDATED',
+      data: {
+        enabled: true,
+        intensity: 1,
+        preset: 'custom',
+        customEffectId: 'repo-fireflies',
+      },
+    });
+
+    expect(startCustomParticleEffect).not.toHaveBeenCalled();
+
+    handlers[0]?.({
+      type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
+      data: [
+        {
+          id: 'repo-fireflies',
+          label: 'Repo Fireflies',
+          url: 'data:text/javascript,export function activateParticleEffect(){}',
+          kind: 'particle-effect',
+        },
+      ],
+    });
+
+    expect(startCustomParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
+      moduleUrl: 'data:text/javascript,export function activateParticleEffect(){}',
+    }));
+    expect(
+      controls.querySelector('[aria-label="Toggle Repo Fireflies custom background effect"]')
+        ?.getAttribute('data-state'),
+    ).toBe('checked');
   });
 
   it('cleans up active particle work when the plugin is disposed', () => {

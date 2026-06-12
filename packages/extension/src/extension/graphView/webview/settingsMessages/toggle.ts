@@ -27,6 +27,9 @@ export async function applySettingsToggleMessage(
       );
       await handlers.updateConfig('plugins', plan.plugins);
       await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
+      if (message.payload.enabled) {
+        handlers.sendPluginWebviewInjections?.();
+      }
       handlers.sendPluginStatuses?.();
       handlers.sendContextMenuItems?.();
       handlers.sendPluginToolbarActions?.();
