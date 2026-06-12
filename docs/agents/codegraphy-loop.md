@@ -1,18 +1,19 @@
 # CodeGraphy Loop
 
-The CodeGraphy Loop is a role based workflow for taking one Trello card, bug
+The CodeGraphy Loop is a role-based workflow for taking one Trello card, bug
 report, or explicit user request from informal intent to a PR that is ready for
 human review.
 
 The loop is orchestrated by one main Codex thread. Role agents do focused work,
-write structured handoff entries, and return control to the Orchestrator.
+write the substantive handoff entries at role boundaries, and return control to
+the Orchestrator.
 
 ## Roles
 
 CodeGraphy uses one Orchestrator and four role agents:
 
-- Orchestrator: owns state, routing, human gates, Trello, PR state, and the
-  handoff log.
+- Orchestrator: owns state, routing, human gates, Trello, PR state, and keeping
+  the handoff current.
 - Specifier: turns informal intent into an acceptance contract.
 - Coder: writes or updates tests and implementation until behavior is green.
 - Refactorer: runs quality loops and performs cleanup.
@@ -21,45 +22,20 @@ CodeGraphy uses one Orchestrator and four role agents:
 
 Each role has its own loop contract under `docs/agents/loops/`.
 
-## Heavy Process Host
+## Heavy Work
 
-Heavy focus stealing work should run on the remote Mac mini, not the local
-MacBook, unless the user explicitly approves a local run.
+Run focus-stealing work on `codegraphy-mini` unless the user explicitly
+approves a local run.
 
 This includes:
 
 - VS Code Playwright acceptance runs
 - mutation runs
-- other long running quality commands that monopolize CPU or steal focus
+- long quality commands that monopolize CPU or steal focus
 
-Use a remote Codex thread on `codegraphy-mini` for these checks. The remote
-project path is:
-
-```text
-codegraphy-mini:/Users/poleski/Desktop/Projects/CodeGraphyV4
-```
-
-The heavy-check thread must verify its host, branch, worktree, and Node runtime
-before running commands. Prefer the repo-pinned Node runtime there so remote
-checks match local and CI behavior.
-
-When checking or preparing the remote host over SSH, use the Homebrew path for
-the repo-pinned Node runtime explicitly so `pnpm` and Codex resolve the same
-runtime:
-
-```bash
-ssh codegraphy-mini 'export PATH="/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"; cd /Users/poleski/Desktop/Projects/CodeGraphyV4; hostname; node --version; pnpm --version; git status --short --branch'
-```
-
-Before any heavy command, the remote thread must fetch the branch and use an
-isolated remote worktree for the PR branch. The Mac mini checkout may be stale,
-so do not assume `/Users/poleski/Desktop/Projects/CodeGraphyV4` is current just
-because it exists.
-
-Coder may need the mini for VS Code Playwright acceptance checks. Refactorer may
-need it for long quality commands. Architect may need it for mutation, VS Code
-Playwright, and final CI reproduction. Record the remote thread, host, command,
-and result in the handoff log.
+Prepare the mini only when the next role needs it. The remote thread uses the
+PR branch in an isolated worktree and verifies GitHub auth before seed-backed
+mutation work.
 
 ## State Machine
 
@@ -91,13 +67,9 @@ Default route: Specifier, Coder, Refactorer, Architect, Human review.
 The orchestrator may route backward after any handoff. A role keeps looping
 while it is making measurable progress.
 
-## Orchestrator
-
-The Orchestrator contract lives in `docs/agents/loops/orchestrator.md`.
-
-The Orchestrator owns the detailed handoff format, Trello state, routing,
-human gates, and final readiness checks. Role docs own the details of what each
-role does once dispatched.
+When the orchestrator routes backward, downstream approvals are stale. For
+example, routing back to Specifier means the loop must pass through Coder,
+Refactorer, and Architect again before returning to human review.
 
 ## Commit Policy
 
@@ -110,7 +82,10 @@ refactorer: pass organize for graph scope presets
 architect: cover graph scope preset mutation survivors
 ```
 
-Detailed commit timing belongs to each role contract.
+Each role contract owns its commit timing. The Orchestrator commits handoff
+changes at role boundaries, human gates, public PR or Trello changes, and final
+readiness. It does not commit every grill question, internal decision, or status
+note.
 
 ## Examples And Docs
 
@@ -122,16 +97,9 @@ Examples belong to the role that owns the reason they are needed:
 - Coder implements production behavior and executable test support needed to
   make the accepted example pass.
 - Architect updates release-facing docs, README prose, screenshots, changesets,
-  PR body notes, and final example documentation polish.
+  PR body notes, and final example polish.
 - Specifier may draft example expectations when they are part of the acceptance
   contract, but human-owned acceptance spec Markdown still requires approval.
 
 The orchestrator decides which role receives example work by reading the card,
 handoff log, and current PR state.
-
-## Final Review
-
-Final human review is part of the loop, not an automatic terminal state. The
-Orchestrator may move work to human review only after the role contracts have
-passed and CI is green. If human review finds an issue, the Orchestrator records
-it and routes the loop back to the role that owns the reason.
