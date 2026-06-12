@@ -69,6 +69,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@codegraphy-dev/core': resolve(__dirname, '../core/src/index.ts'),
+      '@codegraphy-dev/plugin-particles/effects': resolve(__dirname, '../plugin-particles/src/effects.ts'),
       '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
       '@': resolve(__dirname, 'src'),
       react: resolve(extensionNodeModules, 'react'),
