@@ -1,9 +1,13 @@
 import React, { useEffect, useRef } from 'react';
+import {
+  startCustomParticleEffect,
+  startOdysseusBackgroundEffect,
+} from '@codegraphy-dev/plugin-background-particles/effects';
 import type { BackgroundEffectsSettings } from '../../../../shared/settings/backgroundEffects';
-import { startOdysseusBackgroundEffect } from './odysseus';
 
 const DEFAULT_EFFECT_COLOR = '#9cdef2';
 const EMBERS_EFFECT_COLOR = '#c9a95a';
+const LEAVES_EFFECT_COLOR = '#8fcf6b';
 const DEFAULT_BACKGROUND_COLOR = '#0b1020';
 
 function readCssColor(element: Element | null, names: readonly string[], fallback: string): string {
@@ -29,6 +33,20 @@ function hasCanvasRuntime(): boolean {
   return !navigator.userAgent.includes('jsdom');
 }
 
+function resolveEffectColor(preset: BackgroundEffectsSettings['preset']): string {
+  if (preset === 'embers') {
+    return EMBERS_EFFECT_COLOR;
+  }
+  if (preset === 'petals') {
+    return LEAVES_EFFECT_COLOR;
+  }
+  return readCssColor(
+    document.documentElement,
+    ['--bg-effect-color', '--cg-foreground', '--vscode-foreground'],
+    DEFAULT_EFFECT_COLOR,
+  );
+}
+
 export function GraphBackgroundEffects({
   settings,
 }: {
@@ -45,18 +63,25 @@ export function GraphBackgroundEffects({
       return undefined;
     }
 
-    const color = settings.preset === 'embers'
-      ? EMBERS_EFFECT_COLOR
-      : readCssColor(
-        document.documentElement,
-        ['--bg-effect-color', '--cg-foreground', '--vscode-foreground'],
-        DEFAULT_EFFECT_COLOR,
-      );
+    const color = resolveEffectColor(settings.preset);
     const backgroundColor = readCssColor(
       canvas.parentElement,
       ['--bg', '--cg-background', '--vscode-editor-background'],
       DEFAULT_BACKGROUND_COLOR,
     );
+
+    if (settings.preset === 'custom') {
+      if (!settings.customModule) {
+        return undefined;
+      }
+      return startCustomParticleEffect({
+        canvas,
+        intensity: settings.intensity,
+        color,
+        backgroundColor,
+        moduleUrl: settings.customModule,
+      });
+    }
 
     return startOdysseusBackgroundEffect({
       canvas,
@@ -64,9 +89,10 @@ export function GraphBackgroundEffects({
       intensity: settings.intensity,
       color,
       backgroundColor,
+      prewarmFrames: 120,
       reduceMotion: prefersReducedMotion(),
     });
-  }, [settings.enabled, settings.intensity, settings.preset]);
+  }, [settings.customModule, settings.enabled, settings.intensity, settings.preset]);
 
   if (!settings.enabled || settings.preset === 'none') {
     return null;

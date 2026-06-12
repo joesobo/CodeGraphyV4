@@ -22,6 +22,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@codegraphy-dev/plugin-background-particles/effects': resolve(
+        __dirname,
+        '../plugin-background-particles/src/effects.ts',
+      ),
     },
   },
 });

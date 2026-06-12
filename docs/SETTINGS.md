@@ -259,7 +259,7 @@ See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP suppor
 
 ## Graph Background Effects
 
-The Legends popup includes a **Graph Background** section with animated ambience presets such as Leaves, Constellations, Embers, Rain, Petals, Sparkles, Ocean, and Terminal. These effects render behind the Relationship Graph on the Graph Stage and do not block graph interaction.
+The Theme popup includes a **Graph Background** section with animated ambience presets such as Synapse, Rain, Constellations, Perlin Flow, Leaves, Sparkles, and Embers. These effects render behind the Relationship Graph on the Graph Stage and do not block graph interaction.
 
 Graph Background state persists in `.codegraphy/settings.json`:
 
@@ -273,7 +273,24 @@ Graph Background state persists in `.codegraphy/settings.json`:
 }
 ```
 
-`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, or `embers`. Effects respect the system reduced-motion preference.
+`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, `embers`, or `custom`. The `petals` preset is shown as Leaves in the Theme popup. Effects respect the system reduced-motion preference.
+
+Custom effects use browser-side JavaScript modules:
+
+```json
+{
+  "backgroundEffects": {
+    "enabled": true,
+    "preset": "custom",
+    "intensity": 1,
+    "customModule": ".codegraphy/particles/my-effect.js"
+  }
+}
+```
+
+The custom module should export `activateParticleEffect(context)` and may return
+a cleanup function. The module runs in the Graph View webview, so it should only
+use browser APIs.
 
 ### Legends
 

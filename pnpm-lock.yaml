@@ -209,6 +209,9 @@ importers:
       '@codegraphy-dev/core':
         specifier: workspace:*
         version: link:../core
+      '@codegraphy-dev/plugin-background-particles':
+        specifier: workspace:*
+        version: link:../plugin-background-particles
       '@driftlog/tree-sitter-dart':
         specifier: 1.0.4
         version: 1.0.4(node-addon-api@8.7.0)(tree-sitter@0.25.0)
@@ -419,6 +422,15 @@ importers:
         version: 4.3.6
 
   packages/plugin-api: {}
+
+  packages/plugin-background-particles:
+    dependencies:
+      '@codegraphy-dev/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
   packages/plugin-csharp:
     dependencies:

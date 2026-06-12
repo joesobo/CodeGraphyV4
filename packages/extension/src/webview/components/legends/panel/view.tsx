@@ -70,7 +70,7 @@ const BACKGROUND_EFFECT_PRESETS: Array<{ id: Exclude<BackgroundEffectPreset, 'no
   { id: 'rain', label: 'Rain' },
   { id: 'constellations', label: 'Constellations' },
   { id: 'perlin-flow', label: 'Perlin Flow' },
-  { id: 'petals', label: 'Petals' },
+  { id: 'petals', label: 'Leaves' },
   { id: 'sparkles', label: 'Sparkles' },
   { id: 'embers', label: 'Embers' },
 ];
