@@ -6,7 +6,7 @@
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
-- PR: pending initial setup push.
+- PR: [#276](https://github.com/joesobo/CodeGraphyV4/pull/276) draft.
 - Next route: alignment gate, then likely Specifier.
 
 ## Human Gates
@@ -80,3 +80,9 @@ Important card requirements:
 - Created isolated worktree `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4` on branch `codex/201-csharp-upgrade` from `origin/main`.
 - Recorded setup context and human gates.
 - Current blocker before first role dispatch: pre-role alignment is required because the card is language-support, acceptance-spec, and support-audit sensitive.
+
+### 2026-06-12T20:55:00Z - Draft PR Published
+
+- Pushed branch `codex/201-csharp-upgrade`.
+- Opened draft PR [#276](https://github.com/joesobo/CodeGraphyV4/pull/276).
+- Next action remains the pre-role alignment gate before dispatching Specifier.
