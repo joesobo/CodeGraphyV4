@@ -1,5 +1,11 @@
 # @codegraphy-dev/core
 
+## 1.6.0
+
+### Minor Changes
+
+- [#263](https://github.com/joesobo/CodeGraphyV4/pull/263) [`e7237bf`](https://github.com/joesobo/CodeGraphyV4/commit/e7237bf5e676bf20a0b5ca3445f5a597f072b64b) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade C++ graph scope support with dedicated C++ symbol and variable node controls, include/call/inheritance/contains/override edges, and C++ example acceptance coverage.
+
 ## 1.5.0
 
 ### Minor Changes
