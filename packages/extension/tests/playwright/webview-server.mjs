@@ -654,7 +654,6 @@ const particlesPluginHarnessScript = `
           data: {
             enabled: true,
             preset: 'custom',
-            intensity: 1,
             customEffectId: 'repo-fireflies',
           },
         },

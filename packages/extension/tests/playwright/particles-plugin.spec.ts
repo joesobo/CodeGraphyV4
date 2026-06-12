@@ -5,7 +5,8 @@ test.describe('particles plugin custom effects', () => {
     await page.goto('/particles-plugin');
 
     await page.getByTitle('Themes').click();
-    await expect(page.getByText('Graph Background')).toBeVisible();
+    await expect(page.getByText('Particles')).toBeVisible();
+    await expect(page.getByText('Graph Background')).toHaveCount(0);
     await expect(page.getByRole('switch', { name: 'Toggle Repo Fireflies custom background effect' }))
       .toHaveAttribute('data-state', 'checked');
 

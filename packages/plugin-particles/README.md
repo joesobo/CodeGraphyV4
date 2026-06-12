@@ -29,3 +29,5 @@ export function activateParticleEffect({ canvas, intensity }) {
 
 Use `pluginData["codegraphy.particles"].customEffectId` to select a custom
 effect by file name without the extension storing generated webview URLs.
+The plugin defaults effect intensity internally, so workspace settings do not
+need to store an `intensity` value.

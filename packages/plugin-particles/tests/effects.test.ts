@@ -11,7 +11,7 @@ describe('particle effect drawing', () => {
     expect(rgba('rgb(201 169 90)', 0.5)).toBe('rgba(201,169,90,0.5)');
   });
 
-  it('prewarms leaves across the background instead of trapping them in the left gutter', () => {
+  it('prewarms leaves across the background instead of clumping them at one spawn point', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9);
     const translatedXs: number[] = [];
     const runtime = createRuntime({
@@ -23,6 +23,7 @@ describe('particle effect drawing', () => {
     const effect = createPetalsEffect(runtime);
     effect.draw(runtime);
 
+    expect(Math.min(...translatedXs)).toBeLessThan(200);
     expect(Math.max(...translatedXs)).toBeGreaterThan(700);
   });
 });
