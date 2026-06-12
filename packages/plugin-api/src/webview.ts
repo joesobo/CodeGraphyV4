@@ -12,6 +12,7 @@ export type GraphPluginSlot =
   | 'graph.toolbar'
   | 'graph.panelSlot'
   | 'theme.panel'
+  | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay'
   | 'node-details'

@@ -20,7 +20,7 @@ interface Snowflake {
 
 export function createSnowEffect(runtime: EffectRuntime): EffectController {
   const flakes: Snowflake[] = [];
-  const flakeCount = 150;
+  const flakeCount = 105;
 
   const makeFlake = (
     width: number,
@@ -37,16 +37,16 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
       previousX: x,
       previousY: y,
       vx: -0.08 + Math.random() * 0.16,
-      vy: 0.16 + depth * 0.9 + Math.random() * 0.22,
-      radius: 0.45 + depth * 2.7 + Math.random() * 0.8,
-      alpha: 0.12 + depth * 0.48 + Math.random() * 0.16,
+      vy: 0.12 + depth * 0.62 + Math.random() * 0.18,
+      radius: 0.35 + depth * 1.85 + Math.random() * 0.5,
+      alpha: 0.06 + depth * 0.26 + Math.random() * 0.08,
       depth,
       drift: Math.random() * Math.PI * 2,
       driftSpeed: 0.006 + Math.random() * 0.018,
-      swing: 0.12 + Math.random() * 0.72,
+      swing: 0.08 + Math.random() * 0.44,
       spin: Math.random() * Math.PI * 2,
       spinSpeed: -0.012 + Math.random() * 0.024,
-      crystalline: depth > 0.58 && Math.random() > 0.58,
+      crystalline: depth > 0.72 && Math.random() > 0.68,
     };
   };
 
@@ -66,11 +66,11 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
     resize: seedFlakes,
     draw({ ctx, width, height, color, intensity, size }) {
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(0,0,0,0.26)';
+      ctx.fillStyle = 'rgba(0,0,0,0.34)';
       ctx.fillRect(0, 0, width, height);
       ctx.globalCompositeOperation = 'source-over';
 
-      const wind = Math.sin(Date.now() * 0.00012) * 0.16 * (0.6 + intensity);
+      const wind = Math.sin(Date.now() * 0.00012) * 0.1 * (0.6 + intensity);
 
       for (const flake of flakes) {
         flake.previousX = flake.x;
@@ -78,7 +78,7 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
         flake.drift += flake.driftSpeed * (0.8 + intensity);
         flake.spin += flake.spinSpeed;
         flake.x += flake.vx + wind * flake.depth + Math.sin(flake.drift) * flake.swing;
-        flake.y += flake.vy * (0.35 + intensity * 0.65);
+        flake.y += flake.vy * (0.28 + intensity * 0.54);
 
         if (flake.y > height + 18) {
           Object.assign(flake, makeFlake(width, height));
@@ -110,7 +110,7 @@ function drawSnowflake(
 ): void {
   const radius = flake.radius * size;
   const alpha = flake.alpha * Math.max(0.22, intensity);
-  const trailAlpha = alpha * 0.18 * flake.depth;
+  const trailAlpha = alpha * 0.08 * flake.depth;
 
   if (trailAlpha > 0.02) {
     const trail = ctx.createLinearGradient(flake.previousX, flake.previousY, flake.x, flake.y);
@@ -124,19 +124,19 @@ function drawSnowflake(
     ctx.stroke();
   }
 
-  const glow = ctx.createRadialGradient(flake.x, flake.y, 0, flake.x, flake.y, radius * 4);
-  glow.addColorStop(0, rgba('#ffffff', alpha * 0.55));
-  glow.addColorStop(0.45, rgba(color, alpha * 0.18));
+  const glow = ctx.createRadialGradient(flake.x, flake.y, 0, flake.x, flake.y, radius * 3);
+  glow.addColorStop(0, rgba('#ffffff', alpha * 0.34));
+  glow.addColorStop(0.45, rgba(color, alpha * 0.1));
   glow.addColorStop(1, rgba(color, 0));
   ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.arc(flake.x, flake.y, radius * 4, 0, Math.PI * 2);
+  ctx.arc(flake.x, flake.y, radius * 3, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.save();
   ctx.translate(flake.x, flake.y);
   ctx.rotate(flake.spin);
-  ctx.strokeStyle = rgba('#ffffff', alpha * 0.72);
+  ctx.strokeStyle = rgba('#ffffff', alpha * 0.48);
   ctx.fillStyle = rgba(color, alpha);
   ctx.lineWidth = Math.max(0.35, radius * 0.16);
 
