@@ -29,7 +29,7 @@
     "codegraphy.particles": {
       "enabled": true,
       "preset": "custom",
-      "customEffectId": "repo-fireflies"
+      "customEffectId": "fireflies"
     }
   },
   "nodeColors": {

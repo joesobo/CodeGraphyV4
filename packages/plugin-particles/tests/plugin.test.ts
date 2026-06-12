@@ -133,7 +133,7 @@ describe('createParticlesPlugin', () => {
       type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
       data: [
         {
-          id: 'repo-fireflies',
+          id: 'fireflies',
           label: 'Fireflies',
           url: 'data:text/javascript,export function activateParticleEffect(){}',
           kind: 'particle-effect',
@@ -147,19 +147,40 @@ describe('createParticlesPlugin', () => {
     expect(api.setPluginData).toHaveBeenCalledWith({
       enabled: true,
       preset: 'custom',
-      customEffectId: 'repo-fireflies',
+      customEffectId: 'fireflies',
     });
     handlers[0]?.({
       type: 'PLUGIN_DATA_UPDATED',
       data: {
         enabled: true,
         preset: 'custom',
-        customEffectId: 'repo-fireflies',
+        customEffectId: 'fireflies',
       },
     });
     expect(startCustomParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
       moduleUrl: 'data:text/javascript,export function activateParticleEffect(){}',
     }));
+  });
+
+  it('shows a selected custom effect toggle from persisted settings before asset urls arrive', () => {
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldOverlay': overlay,
+    }, {
+      enabled: true,
+      preset: 'custom',
+      customEffectId: 'fireflies',
+    });
+
+    activate(api);
+
+    expect(
+      controls.querySelector('[aria-label="Toggle Fireflies custom background effect"]')
+        ?.getAttribute('data-state'),
+    ).toBe('checked');
+    expect(startCustomParticleEffect).not.toHaveBeenCalled();
   });
 
   it('starts a custom particle effect when asset urls arrive after plugin data', () => {
@@ -181,7 +202,7 @@ describe('createParticlesPlugin', () => {
       data: {
         enabled: true,
         preset: 'custom',
-        customEffectId: 'repo-fireflies',
+        customEffectId: 'fireflies',
       },
     });
 
@@ -191,7 +212,7 @@ describe('createParticlesPlugin', () => {
       type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
       data: [
         {
-          id: 'repo-fireflies',
+          id: 'fireflies',
           label: 'Fireflies',
           url: 'data:text/javascript,export function activateParticleEffect(){}',
           kind: 'particle-effect',

@@ -29,7 +29,7 @@ export function activateParticleEffect({ canvas, intensity }) {
 
 Use `pluginData["codegraphy.particles"].customEffectId` to select a custom
 effect by file name without the extension storing generated webview URLs. For
-example, `.codegraphy/particles/repo-fireflies.ts` appears as the Fireflies
+example, `.codegraphy/particles/fireflies.ts` appears as the Fireflies
 toggle.
 The plugin defaults effect intensity internally, so workspace settings do not
 need to store an `intensity` value.

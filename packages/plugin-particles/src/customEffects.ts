@@ -78,8 +78,7 @@ function toEffectId(sourceFile: string): string {
 }
 
 function toEffectLabel(id: string): string {
-  const displayId = id.replace(/^repo[-_]+/i, '');
-  return displayId
+  return id
     .split(/[-_]+/)
     .filter(Boolean)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))

@@ -205,13 +205,13 @@ as custom toggles in the Theme popup. Store the selected effect id in
     "codegraphy.particles": {
       "enabled": true,
       "preset": "custom",
-      "customEffectId": "repo-fireflies"
+      "customEffectId": "fireflies"
     }
   }
 }
 ```
 
-For example, `.codegraphy/particles/repo-fireflies.ts` appears as the
+For example, `.codegraphy/particles/fireflies.ts` appears as the
 Fireflies toggle. It should export `activateParticleEffect(context)` and may
 return a cleanup function.
 

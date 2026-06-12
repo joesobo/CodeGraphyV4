@@ -155,6 +155,38 @@ function sendParticleSettings(api: CodeGraphyWebviewAPI, settings: ParticleSetti
   api.setPluginData(settings);
 }
 
+function toEffectLabel(id: string): string {
+  return id
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ') || id;
+}
+
+function getVisibleCustomEffects(
+  settings: ParticleSettings,
+  customEffects: readonly ParticleEffectAsset[],
+): ParticleEffectAsset[] {
+  if (
+    settings.enabled
+    && settings.preset === 'custom'
+    && settings.customEffectId
+    && !customEffects.some(effect => effect.id === settings.customEffectId)
+  ) {
+    return [
+      ...customEffects,
+      {
+        id: settings.customEffectId,
+        label: toEffectLabel(settings.customEffectId),
+        url: settings.customModule ?? '',
+        kind: 'particle-effect',
+      },
+    ];
+  }
+
+  return [...customEffects];
+}
+
 function render(
   container: HTMLElement,
   api: CodeGraphyWebviewAPI,
@@ -216,7 +248,7 @@ function render(
     grid.appendChild(row);
   }
 
-  for (const effect of customEffects) {
+  for (const effect of getVisibleCustomEffects(settings, customEffects)) {
     const checked = settings.enabled
       && settings.preset === 'custom'
       && settings.customEffectId === effect.id;

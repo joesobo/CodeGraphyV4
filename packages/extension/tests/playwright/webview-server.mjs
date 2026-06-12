@@ -637,9 +637,9 @@ const particlesPluginHarnessScript = `
           scripts: ['/plugin-particles/webview.js'],
           styles: [],
           assets: [{
-            id: 'repo-fireflies',
+            id: 'fireflies',
             label: 'Fireflies',
-            url: '/plugin-particles/repo-fireflies.js',
+            url: '/plugin-particles/fireflies.js',
             kind: 'particle-effect',
           }],
         },
@@ -654,7 +654,21 @@ const particlesPluginHarnessScript = `
           data: {
             enabled: true,
             preset: 'custom',
-            customEffectId: 'repo-fireflies',
+            customEffectId: 'fireflies',
+          },
+        },
+      });
+    };
+
+    const selectEmbersEffect = () => {
+      postToWebview({
+        type: 'PLUGIN_DATA_UPDATED',
+        payload: {
+          pluginId,
+          data: {
+            enabled: true,
+            preset: 'embers',
+            intensity: 1,
           },
         },
       });
@@ -663,8 +677,13 @@ const particlesPluginHarnessScript = `
     const handleWebviewMessage = (message) => {
       if (message?.type === 'WEBVIEW_READY') {
         publishBaseState();
-        injectParticlesPlugin();
-        window.setTimeout(selectCustomEffect, 100);
+        if (window.location.pathname === '/particles-plugin-embers-on-load') {
+          selectEmbersEffect();
+          injectParticlesPlugin();
+        } else {
+          injectParticlesPlugin();
+          window.setTimeout(selectCustomEffect, 100);
+        }
         window.setTimeout(() => postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' }), 150);
         window.setTimeout(() => postToWebview({ type: 'FIT_VIEW' }), 300);
         return;
@@ -762,7 +781,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (requestPath === '/particles-plugin') {
+    if (requestPath === '/particles-plugin' || requestPath === '/particles-plugin-embers-on-load') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(particlesPluginHtml);
       return;
@@ -777,7 +796,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (requestPath === '/plugin-particles/repo-fireflies.js') {
+    if (requestPath === '/plugin-particles/fireflies.js') {
       res.writeHead(200, {
         'Content-Type': 'application/javascript; charset=utf-8',
         'Cache-Control': 'no-store',
