@@ -38,9 +38,53 @@ test.describe('plugin data startup', () => {
       fs.rmSync(workspaceTempRoot, { recursive: true, force: true });
     }
   });
+
+  test('shows workspace custom particle effects in the Particles section on launch', async () => {
+    const workspaceTempRoot = createWorkspaceTempRoot();
+    const workspacePath = copyExampleTypescriptWorkspace(workspaceTempRoot, {
+      pluginPackages: ['@codegraphy-dev/plugin-particles'],
+    });
+    writeFirefliesParticleEffect(workspacePath);
+    writeParticlePluginSettings(workspacePath, {
+      enabled: true,
+      preset: 'custom',
+      customEffectId: 'fireflies',
+    });
+
+    const vscode = await launchVSCodeWithWorkspace(workspacePath, {
+      pluginPackageRelativePaths: ['packages/plugin-typescript', 'packages/plugin-particles'],
+    });
+
+    try {
+      await openGraphView(vscode.page);
+      const frame = await waitForGraphFrame(vscode.page);
+
+      await frame.getByTitle('Themes').click();
+
+      await expect(frame.getByRole('button', { name: /^Particles$/i })).toBeVisible();
+      await expect(frame.getByRole('switch', { name: 'Toggle Fireflies custom background effect' }))
+        .toHaveAttribute('data-state', 'checked');
+    } finally {
+      await vscode.app.close().catch(() => {});
+      fs.rmSync(vscode.tempRoot, { recursive: true, force: true });
+      fs.rmSync(workspaceTempRoot, { recursive: true, force: true });
+    }
+  });
 });
 
-function writeParticlePluginSettings(workspacePath: string): void {
+interface ParticlePluginData {
+  enabled: boolean;
+  preset: string;
+  customEffectId?: string;
+}
+
+function writeParticlePluginSettings(
+  workspacePath: string,
+  pluginData: ParticlePluginData = {
+    enabled: true,
+    preset: 'embers',
+  },
+): void {
   const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
   const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as Record<string, unknown>;
 
@@ -55,11 +99,25 @@ function writeParticlePluginSettings(workspacePath: string): void {
     },
   ];
   settings.pluginData = {
-    'codegraphy.particles': {
-      enabled: true,
-      preset: 'embers',
-    },
+    'codegraphy.particles': pluginData,
   };
 
   fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
+function writeFirefliesParticleEffect(workspacePath: string): void {
+  const effectsDir = path.join(workspacePath, '.codegraphy', 'particles');
+  fs.mkdirSync(effectsDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(effectsDir, 'fireflies.ts'),
+    `
+export function activateParticleEffect({ canvas }) {
+  canvas.dataset.customEffect = 'fireflies';
+  return () => {
+    delete canvas.dataset.customEffect;
+  };
+}
+`,
+    'utf8',
+  );
 }
