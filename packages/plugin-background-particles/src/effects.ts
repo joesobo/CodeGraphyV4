@@ -1,6 +1,28 @@
-import type { BackgroundEffectPreset } from '../../../../shared/settings/backgroundEffects';
+export const BACKGROUND_PARTICLE_PRESETS = [
+  'synapse',
+  'rain',
+  'constellations',
+  'perlin-flow',
+  'petals',
+  'sparkles',
+  'embers',
+] as const;
 
-export type OdysseusBackgroundEffectPreset = Exclude<BackgroundEffectPreset, 'none'>;
+export type OdysseusBackgroundEffectPreset = typeof BACKGROUND_PARTICLE_PRESETS[number];
+
+export interface CustomParticleEffectContext {
+  canvas: HTMLCanvasElement;
+  intensity: number;
+  color: string;
+  backgroundColor: string;
+}
+
+export interface CustomParticleEffectModule {
+  activateParticleEffect?: (context: CustomParticleEffectContext) => void | (() => void) | Promise<void | (() => void)>;
+  default?: {
+    activateParticleEffect?: (context: CustomParticleEffectContext) => void | (() => void) | Promise<void | (() => void)>;
+  } | ((context: CustomParticleEffectContext) => void | (() => void) | Promise<void | (() => void)>);
+}
 
 interface OdysseusBackgroundEffectOptions {
   canvas: HTMLCanvasElement;
@@ -8,7 +30,12 @@ interface OdysseusBackgroundEffectOptions {
   intensity: number;
   color?: string;
   backgroundColor?: string;
+  prewarmFrames?: number;
   reduceMotion?: boolean;
+}
+
+interface CustomParticleEffectOptions extends CustomParticleEffectContext {
+  moduleUrl: string;
 }
 
 interface EffectRuntime {
@@ -102,6 +129,7 @@ export function startOdysseusBackgroundEffect({
   intensity,
   color = '#9cdef2',
   backgroundColor = '#0b1020',
+  prewarmFrames = 120,
   reduceMotion = false,
 }: OdysseusBackgroundEffectOptions): () => void {
   let ctx: CanvasRenderingContext2D | null = null;
@@ -153,6 +181,9 @@ export function startOdysseusBackgroundEffect({
   const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
   observer?.observe(canvas);
   window.addEventListener('resize', resize);
+  for (let frame = 0; frame < prewarmFrames; frame += 1) {
+    effect.draw(runtime);
+  }
   tick();
 
   return () => {
@@ -164,6 +195,60 @@ export function startOdysseusBackgroundEffect({
     observer?.disconnect();
     ctx.clearRect(0, 0, runtime.width, runtime.height);
   };
+}
+
+export function startCustomParticleEffect({
+  canvas,
+  intensity,
+  color,
+  backgroundColor,
+  moduleUrl,
+}: CustomParticleEffectOptions): () => void {
+  let cleanup: void | (() => void);
+  let active = true;
+
+  void import(/* @vite-ignore */ moduleUrl)
+    .then((mod: CustomParticleEffectModule) => {
+      if (!active) {
+        return undefined;
+      }
+      const activate = resolveCustomParticleEffectActivator(mod);
+      if (!activate) {
+        console.warn(`[CodeGraphy] Custom particle effect module "${moduleUrl}" has no activateParticleEffect export`);
+        return undefined;
+      }
+      return activate({ canvas, intensity, color, backgroundColor });
+    })
+    .then((nextCleanup) => {
+      if (typeof nextCleanup !== 'function') {
+        return;
+      }
+      if (!active) {
+        nextCleanup();
+        return;
+      }
+      cleanup = nextCleanup;
+    })
+    .catch((error: unknown) => {
+      console.error(`[CodeGraphy] Failed to load custom particle effect module "${moduleUrl}":`, error);
+    });
+
+  return () => {
+    active = false;
+    cleanup?.();
+  };
+}
+
+function resolveCustomParticleEffectActivator(
+  mod: CustomParticleEffectModule,
+): CustomParticleEffectModule['activateParticleEffect'] {
+  if (typeof mod.activateParticleEffect === 'function') {
+    return mod.activateParticleEffect;
+  }
+  if (typeof mod.default === 'function') {
+    return mod.default;
+  }
+  return mod.default?.activateParticleEffect;
 }
 
 function createEffectController(
@@ -435,7 +520,7 @@ function createPerlinFlowEffect(runtime: EffectRuntime): EffectController {
 function createPetalsEffect(runtime: EffectRuntime): EffectController {
   const petals: Petal[] = [];
   const makePetal = (width: number): Petal => ({
-    x: Math.random() * width,
+    x: -20 + Math.random() * Math.min(width * 0.25, 160),
     y: -10 - Math.random() * 40,
     size: 3 + Math.random() * 5,
     rot: Math.random() * Math.PI * 2,

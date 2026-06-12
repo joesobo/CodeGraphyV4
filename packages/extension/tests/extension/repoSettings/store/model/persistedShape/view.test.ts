@@ -57,6 +57,40 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
+  it('preserves custom graph background effect modules when custom preset is enabled', () => {
+    expect(normalizePersistedSettingsShape({
+      backgroundEffects: {
+        enabled: true,
+        preset: 'custom',
+        intensity: 0.8,
+        customModule: ' .codegraphy/particles/my-effect.js ',
+      },
+    })).toEqual({
+      backgroundEffects: {
+        enabled: true,
+        preset: 'custom',
+        intensity: 0.8,
+        customModule: '.codegraphy/particles/my-effect.js',
+      },
+    });
+  });
+
+  it('disables custom graph background effects without a module', () => {
+    expect(normalizePersistedSettingsShape({
+      backgroundEffects: {
+        enabled: true,
+        preset: 'custom',
+        intensity: 0.8,
+      },
+    })).toEqual({
+      backgroundEffects: {
+        enabled: false,
+        preset: 'custom',
+        intensity: 0.8,
+      },
+    });
+  });
+
   it('drops legacy pluginOrder and disabledPlugins settings', () => {
     expect(normalizePersistedSettingsShape({
       pluginOrder: ['codegraphy.python'],

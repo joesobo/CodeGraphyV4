@@ -170,6 +170,47 @@ describe('graph view settings update message', () => {
     });
   });
 
+  it('persists custom graph background effect modules', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_BACKGROUND_EFFECTS',
+          payload: {
+            backgroundEffects: {
+              enabled: true,
+              preset: 'custom',
+              intensity: 0.7,
+              customModule: '.codegraphy/particles/ribbons.js',
+            },
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('backgroundEffects', {
+      enabled: true,
+      preset: 'custom',
+      intensity: 0.7,
+      customModule: '.codegraphy/particles/ribbons.js',
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'BACKGROUND_EFFECTS_UPDATED',
+      payload: {
+        backgroundEffects: {
+          enabled: true,
+          preset: 'custom',
+          intensity: 0.7,
+          customModule: '.codegraphy/particles/ribbons.js',
+        },
+      },
+    });
+  });
+
   it('persists update-max-files through config updates', async () => {
     const state = createState();
     const handlers = createHandlers();
