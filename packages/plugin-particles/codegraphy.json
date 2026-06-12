@@ -1,7 +1,7 @@
 {
   "$schema": "../../codegraphy.schema.json",
-  "id": "codegraphy.background-particles",
-  "name": "Background Particles",
+  "id": "codegraphy.particles",
+  "name": "Particles",
   "version": "0.1.0",
   "apiVersion": "^2.0.0",
   "supportedExtensions": [],

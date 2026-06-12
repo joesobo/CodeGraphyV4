@@ -20,7 +20,7 @@ export interface InjectAssetsParams {
 
 export type ResetPluginAssets = (pluginId: string) => void;
 
-const BACKGROUND_PARTICLES_PLUGIN_ID = 'codegraphy.background-particles';
+const BACKGROUND_PARTICLES_PLUGIN_ID = 'codegraphy.particles';
 
 function deliverBackgroundEffectsUpdateToPlugin(
   raw: { type?: unknown; payload?: unknown },

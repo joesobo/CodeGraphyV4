@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy-dev/plugin-background-particles",
+  "name": "@codegraphy-dev/plugin-particles",
   "version": "0.1.0",
   "description": "CodeGraphy graph background particle effects plugin",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "type": "git",
     "url": "https://github.com/joesobo/CodeGraphyV4.git"
   },
-  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/plugin-background-particles",
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/plugin-particles",
   "bugs": {
     "url": "https://github.com/joesobo/CodeGraphyV4/issues"
   },

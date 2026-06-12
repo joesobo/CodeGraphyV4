@@ -1,4 +1,4 @@
-# @codegraphy-dev/plugin-background-particles
+# @codegraphy-dev/plugin-particles
 
 ## 0.1.0
 

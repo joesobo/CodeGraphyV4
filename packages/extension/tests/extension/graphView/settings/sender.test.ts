@@ -26,12 +26,18 @@ describe('graphView/settings/sender', () => {
       sendMessage,
     });
 
-    expect(sendMessage).toHaveBeenCalledTimes(3);
+    expect(sendMessage).toHaveBeenCalledTimes(4);
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
       payload: { bidirectionalEdges: 'combined', showOrphans: false },
     });
     expect(sendMessage).toHaveBeenNthCalledWith(3, {
+      type: 'BACKGROUND_EFFECTS_UPDATED',
+      payload: {
+        backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
+      },
+    });
+    expect(sendMessage).toHaveBeenNthCalledWith(4, {
       type: 'SHOW_LABELS_UPDATED',
       payload: { showLabels: false },
     });

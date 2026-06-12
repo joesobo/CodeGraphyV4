@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { createBackgroundParticlesPlugin } from '../src/plugin';
+import { createParticlesPlugin } from '../src/plugin';
 
-describe('createBackgroundParticlesPlugin', () => {
+describe('createParticlesPlugin', () => {
   it('ships a webview script for plugin-owned theme controls', () => {
-    const plugin = createBackgroundParticlesPlugin();
+    const plugin = createParticlesPlugin();
 
     expect(plugin.webviewContributions).toEqual({
       scripts: ['dist/webview.js'],

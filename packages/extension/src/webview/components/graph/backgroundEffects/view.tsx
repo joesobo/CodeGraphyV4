@@ -2,13 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import {
   startCustomParticleEffect,
   startOdysseusBackgroundEffect,
-} from '@codegraphy-dev/plugin-background-particles/effects';
+} from '@codegraphy-dev/plugin-particles/effects';
 import type { BackgroundEffectsSettings } from '../../../../shared/settings/backgroundEffects';
 
-const DEFAULT_EFFECT_COLOR = '#9cdef2';
-const EMBERS_EFFECT_COLOR = '#c9a95a';
-const LEAVES_EFFECT_COLOR = '#8fcf6b';
-const DEFAULT_BACKGROUND_COLOR = '#0b1020';
+const DEFAULT_EFFECT_COLOR = 'rgb(156 222 242)';
+const EMBERS_EFFECT_COLOR = 'rgb(201 169 90)';
+const LEAVES_EFFECT_COLOR = 'rgb(143 207 107)';
+const DEFAULT_BACKGROUND_COLOR = 'rgb(11 16 32)';
 
 function readCssColor(element: Element | null, names: readonly string[], fallback: string): string {
   if (!element) {

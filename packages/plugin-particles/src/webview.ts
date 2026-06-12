@@ -113,12 +113,12 @@ function render(container: HTMLElement, api: CodeGraphyWebviewAPI, settings: Bac
 }
 
 function injectStyles(): void {
-  if (document.getElementById('cg-background-particles-plugin-style')) {
+  if (document.getElementById('cg-particles-plugin-style')) {
     return;
   }
 
   const style = document.createElement('style');
-  style.id = 'cg-background-particles-plugin-style';
+  style.id = 'cg-particles-plugin-style';
   style.textContent = `
     .cg-bg-particles-section { display: flex; flex-direction: column; gap: 0.5rem; }
     .cg-bg-particles-heading { color: var(--cg-text-muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0; line-height: 1rem; margin: 0; text-transform: uppercase; }
