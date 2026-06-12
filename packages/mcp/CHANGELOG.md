@@ -1,5 +1,14 @@
 # @codegraphy-dev/mcp
 
+## 2.2.3
+
+### Patch Changes
+
+- [#264](https://github.com/joesobo/CodeGraphyV4/pull/264) [`b966fe4`](https://github.com/joesobo/CodeGraphyV4/commit/b966fe4ea4972e5c8061b69cfc47b74e8beec84c) Thanks [@joesobo](https://github.com/joesobo)! - Resolve production dependency advisories in shipped package dependency graphs.
+
+- Updated dependencies [[`e7237bf`](https://github.com/joesobo/CodeGraphyV4/commit/e7237bf5e676bf20a0b5ca3445f5a597f072b64b)]:
+  - @codegraphy-dev/core@1.6.0
+
 ## 2.2.2
 
 ### Patch Changes

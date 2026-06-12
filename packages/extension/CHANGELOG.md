@@ -1,5 +1,24 @@
 # @codegraphy-dev/extension
 
+## 5.10.0
+
+### Minor Changes
+
+- [#263](https://github.com/joesobo/CodeGraphyV4/pull/263) [`e7237bf`](https://github.com/joesobo/CodeGraphyV4/commit/e7237bf5e676bf20a0b5ca3445f5a597f072b64b) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade C++ graph scope support with dedicated C++ symbol and variable node controls, include/call/inheritance/contains/override edges, and C++ example acceptance coverage.
+
+- [#266](https://github.com/joesobo/CodeGraphyV4/pull/266) [`d3dfdea`](https://github.com/joesobo/CodeGraphyV4/commit/d3dfdea7193d15fa53009d1885b3d70ad6aff57d) Thanks [@joesobo](https://github.com/joesobo)! - Add CodeGraphy CSS Snippets for workspace-local UI customization.
+
+  Create CSS files inside a CodeGraphy Workspace, such as `.codegraphy/snippets/base-grid.css`, then map them in `.codegraphy/settings.json` under `cssSnippets`. CodeGraphy loads paths set to `true`, keeps paths set to `false` disabled, removes stylesheets when paths are disabled or removed from settings, and keeps the paths workspace-local: absolute paths, parent traversal, non-CSS files, and missing files are skipped with `[CodeGraphy]` developer-console warnings when enabled.
+
+  The extension UI now exposes stable `data-codegraphy-*` Styling Hooks across the graph view, graph stage, search, toolbar, panels, settings sections, timeline, indexing states, and plugin slots so snippets can target CodeGraphy surfaces without depending on generated classes or rebuilding a full VS Code theme. See `docs/SETTINGS.md` and `examples/css-snippets/` for usage plus static grid, forest, ocean, and faded image background demo snippets.
+
+### Patch Changes
+
+- [#264](https://github.com/joesobo/CodeGraphyV4/pull/264) [`b966fe4`](https://github.com/joesobo/CodeGraphyV4/commit/b966fe4ea4972e5c8061b69cfc47b74e8beec84c) Thanks [@joesobo](https://github.com/joesobo)! - Resolve production dependency advisories in shipped package dependency graphs.
+
+- Updated dependencies [[`e7237bf`](https://github.com/joesobo/CodeGraphyV4/commit/e7237bf5e676bf20a0b5ca3445f5a597f072b64b)]:
+  - @codegraphy-dev/core@1.6.0
+
 ## 5.9.0
 
 ### Minor Changes
