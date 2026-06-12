@@ -1397,20 +1397,34 @@ async function openGraphScopeSection(
   context: GraphAcceptanceContext,
   sectionName: 'Edge Types' | 'Node Types',
 ): Promise<void> {
-  const frame = requireGraphFrame(context);
-  if (!(await frame.getByRole('button', { name: sectionName }).isVisible().catch(() => false))) {
-    await clickToolbarButton(frame, 'Graph Scope');
-  }
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await ensureGraphViewVisible(context);
+    const frame = requireGraphFrame(context);
 
-  const sectionButton = frame.getByRole('button', { name: sectionName });
-  if (sectionName === 'Edge Types' && await sectionButton.isDisabled().catch(() => false)) {
-    await closePanelIfOpen(frame);
-    await indexWorkspace(context);
-    await waitForIndexingToFinish(context);
-    await clickToolbarButton(frame, 'Graph Scope');
-  }
+    try {
+      if (!(await frame.getByRole('button', { name: sectionName }).isVisible().catch(() => false))) {
+        await clickToolbarButton(frame, 'Graph Scope');
+      }
 
-  await frame.getByRole('button', { name: sectionName }).click();
+      const sectionButton = frame.getByRole('button', { name: sectionName });
+      if (sectionName === 'Edge Types' && await sectionButton.isDisabled().catch(() => false)) {
+        await closePanelIfOpen(frame);
+        await indexWorkspace(context);
+        await waitForIndexingToFinish(context);
+        await ensureGraphViewVisible(context);
+        await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
+      }
+
+      await requireGraphFrame(context).getByRole('button', { name: sectionName }).click();
+      return;
+    } catch (error) {
+      if (!isFrameDetachedError(error) || attempt === 1) {
+        throw error;
+      }
+
+      context.graphFrame = await waitForGraphFrame(requireValue(context.vscode, 'Expected VS Code to be launched').page);
+    }
+  }
 }
 
 export async function setPanelSwitch(
@@ -1480,12 +1494,28 @@ async function setPanelSwitchState(
 
 export async function findPanelSwitchIfPresent(frame: Frame, label: string): Promise<Locator | undefined> {
   for (const candidate of panelSwitchCandidates(frame, label)) {
-    if (await candidate.count()) {
+    if (await countPanelSwitchCandidate(candidate)) {
       return candidate;
     }
   }
 
   return undefined;
+}
+
+async function countPanelSwitchCandidate(candidate: Locator): Promise<number> {
+  try {
+    return await candidate.count();
+  } catch (error) {
+    if (isFrameDetachedError(error)) {
+      return 0;
+    }
+
+    throw error;
+  }
+}
+
+function isFrameDetachedError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes('Frame was detached');
 }
 
 function panelSwitchCandidates(frame: Frame, label: string): Locator[] {
@@ -1653,9 +1683,15 @@ function normalizePanelLabel(label: string): string {
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {
-  const closeButton = frame.getByRole('button', { name: 'Close' });
-  if (await closeButton.count()) {
-    await closeButton.first().click();
+  try {
+    const closeButton = frame.getByRole('button', { name: 'Close' });
+    if (await closeButton.count()) {
+      await closeButton.first().click();
+    }
+  } catch (error) {
+    if (!isFrameDetachedError(error)) {
+      throw error;
+    }
   }
 }
 
