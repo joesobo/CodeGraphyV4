@@ -45,7 +45,7 @@ flowchart TD
     Commit --> Done["Return handoff to orchestrator"]
 ```
 
-The Coder does not need to check PR CI in V0. It must not hand off until its
+The Coder does not need to check PR CI. It must not hand off until its
 focused unit tests, generated acceptance tests, lint, and typecheck pass.
 
 If generated acceptance or focused behavior reds point back to human-owned
