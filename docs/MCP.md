@@ -18,7 +18,7 @@ Every `codegraphy ...` terminal subcommand lives in `@codegraphy-dev/core`. `@co
 
 ## Prerequisites
 
-- Node 20.20.0 or newer.
+- Node `22.22.0` or newer within the supported Node 22 range.
 - Codex, Claude, Cursor, or another MCP-capable agent.
 
 ## Quick Start

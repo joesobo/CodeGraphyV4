@@ -106,7 +106,7 @@ ssh codegraphy-mini 'export PATH="/opt/homebrew/Cellar/node@22/22.22.2_2/bin:/op
 
 The remote work must:
 
-- use the repo-pinned Node PATH above
+- use the Node 22 PATH above
 - fetch the PR branch before running commands
 - run from an isolated remote worktree for that branch
 - record the remote host, worktree, command, and result in the handoff log

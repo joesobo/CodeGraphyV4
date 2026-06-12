@@ -8,7 +8,7 @@ The MCP package owns only the agent-agnostic `codegraphy-mcp` server command. Co
 
 ## Prerequisites
 
-- Node 20.20.0 or newer.
+- Node `22.22.0` or newer within the supported Node 22 range.
 - Codex, Claude, Cursor, or another MCP-capable agent.
 
 ## Quick Start

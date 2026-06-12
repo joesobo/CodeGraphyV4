@@ -3,7 +3,7 @@
   "version": "5.0.0",
   "description": "Type definitions for CodeGraphy plugins",
   "engines": {
-    "node": ">=20.20.0"
+    "node": ">=20.20.0 <23"
   },
   "repository": {
     "type": "git",

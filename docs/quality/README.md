@@ -51,4 +51,4 @@ Implementation now lives in the external `@poleski/quality-tools` package.
 
 Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
 
-These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `@poleski/quality-tools` uses `path.matchesGlob`, so Node versions older than 20.20.0 are not supported.
+These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `@poleski/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.

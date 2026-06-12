@@ -6,7 +6,7 @@ Thanks for your interest in contributing to CodeGraphy!
 
 ### Prerequisites
 
-- Node.js 20.20.0 or newer
+- Node.js 22.22.0 LTS
 - pnpm 10+
 - VS Code 1.85+
 
@@ -107,7 +107,7 @@ pnpm --filter @codegraphy-dev/extension exec playwright install chromium  # Brow
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```
 
-The published packages support Node 20.20.0 and newer. The repo pins the local and CI runtime in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version); use that exact runtime before running release or quality-tool commands.
+The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
 
 ## Reporting issues
 
