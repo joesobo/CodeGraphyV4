@@ -2,7 +2,7 @@
 
 ## Current State
 
-- State: setup complete, pre-role alignment pending.
+- State: dispatching Specifier.
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
@@ -86,3 +86,15 @@ Important card requirements:
 - Pushed branch `codex/201-csharp-upgrade`.
 - Opened draft PR [#276](https://github.com/joesobo/CodeGraphyV4/pull/276).
 - Next action remains the pre-role alignment gate before dispatching Specifier.
+
+### 2026-06-12T21:02:00Z - Alignment Scope Clarified
+
+- Human decision: keep all C# upgrade work in this loop rather than spinning off the main C# support upgrades immediately.
+- Ordered scope: first make `examples/example-csharp` look like expected C# support, matching expected Tree-sitter-supported nodes and edges; then make acceptance tests match that expected example.
+- Implication for first route: Specifier should inventory the expected C# Tree-sitter node and edge capabilities, compare those to the current example, and draft the acceptance contract around the upgraded example shape before any human-owned spec Markdown is edited.
+
+### 2026-06-12T21:08:00Z - Specifier Dispatch
+
+- Dispatching Specifier with the clarified scope.
+- Relevant current C# Core surface: `packages/core/src/treeSitter/runtime/analyzeCSharp` emits `class`, `interface`, `enum`, and `method` symbols plus Imports, References, Calls, and Inherits relations. The C# plugin is metadata-only.
+- Specifier stopping condition: return an acceptance contract and example-shape plan, including whether human-owned `packages/extension/tests/acceptance/specs/csharp-example.md` needs an approved edit before Coder runs.
