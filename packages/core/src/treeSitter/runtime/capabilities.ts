@@ -23,7 +23,7 @@ const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
 
 const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   'c': ['include', 'call', 'contains'],
-  cpp: ['import', 'call', 'contains', 'inherit', 'overrides'],
+  cpp: ['include', 'call', 'contains', 'inherit', 'overrides'],
   csharp: ['import', 'reference', 'call', 'inherit'],
   dart: ['import', 'call', 'inherit'],
   go: ['import', 'call'],
@@ -54,7 +54,20 @@ const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {
     'symbol:typedef',
     'symbol:global',
   ],
-  cpp: ['symbol:function', 'symbol:class', 'symbol:struct', 'symbol:enum', 'symbol:type'],
+  cpp: [
+    'symbol:namespace',
+    'symbol:class',
+    'symbol:enum',
+    'symbol:callable',
+    'symbol:method',
+    'symbol:alias',
+    'symbol:template',
+    'symbol:global',
+    'symbol:constant',
+    'symbol:field',
+    'symbol:parameter',
+    'symbol:local',
+  ],
   csharp: ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
   dart: ['symbol:function', 'symbol:class', 'symbol:enum'],
   go: ['symbol:function', 'symbol:struct', 'symbol:interface', 'symbol:type'],
@@ -76,9 +89,9 @@ const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly NodeType[]>;
 
 export function listTreeSitterEdgeTypeCapabilities(
-  filePaths: readonly string[] = [],
+  filePaths?: readonly string[],
 ): GraphEdgeKind[] {
-  if (filePaths.length === 0) {
+  if (!filePaths || filePaths.length === 0) {
     return [...DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES];
   }
 
@@ -95,7 +108,7 @@ export function listTreeSitterEdgeTypeCapabilities(
 }
 
 export function listTreeSitterGraphScopeCapabilities(
-  filePaths: readonly string[] = [],
+  filePaths?: readonly string[],
 ): Required<IPluginGraphScopeCapabilities> {
   return {
     nodeTypes: listTreeSitterNodeTypeCapabilities(filePaths),
@@ -104,9 +117,9 @@ export function listTreeSitterGraphScopeCapabilities(
 }
 
 export function listTreeSitterNodeTypeCapabilities(
-  filePaths: readonly string[] = [],
+  filePaths?: readonly string[],
 ): NodeType[] {
-  if (filePaths.length === 0) {
+  if (!filePaths || filePaths.length === 0) {
     return [];
   }
 

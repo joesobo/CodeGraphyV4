@@ -28,5 +28,6 @@ export function createDisplayActions(set: SetState) {
     setDisabledPluginFilterPatterns: (patterns: string[]) => set({ disabledPluginFilterPatterns: patterns }),
     setShowOrphans: (show: boolean) => set({ showOrphans: show }),
     setShowLabels: (show: boolean) => set({ showLabels: show }),
+    setCssSnippets: (snippets: Record<string, boolean>) => set({ cssSnippets: snippets }),
   };
 }

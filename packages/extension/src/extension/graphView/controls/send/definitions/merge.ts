@@ -26,7 +26,7 @@ export function mergeNodeTypes(
   _graphData: IGraphData,
   pluginNodeTypes: GraphNodeTypeLike[],
   configuredNodeColors: Record<string, string>,
-  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[] = [],
+  nodeTypeCapabilities?: readonly GraphNodeTypeCapabilityLike[],
 ): IGraphNodeTypeDefinition[] {
   const availableNodeTypes = collectAvailableNodeTypes(nodeTypeCapabilities, pluginNodeTypes);
   const definitions = new Map<string, IGraphNodeTypeDefinition>();
@@ -60,14 +60,16 @@ export function mergeNodeTypes(
 }
 
 function collectAvailableNodeTypes(
-  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[],
+  nodeTypeCapabilities: readonly GraphNodeTypeCapabilityLike[] | undefined,
   pluginNodeTypes: readonly GraphNodeTypeLike[],
 ): Set<string> {
   const availableNodeTypes = new Set<string>(STRUCTURAL_NODE_TYPE_IDS);
   const definitions = [...CORE_GRAPH_NODE_TYPES, ...pluginNodeTypes];
 
-  for (const nodeType of nodeTypeCapabilities) {
-    availableNodeTypes.add(nodeType);
+  if (nodeTypeCapabilities) {
+    for (const nodeType of nodeTypeCapabilities) {
+      availableNodeTypes.add(nodeType);
+    }
   }
 
   let changed = true;
@@ -90,10 +92,10 @@ function collectAvailableNodeTypes(
 export function mergeEdgeTypes(
   graphData: IGraphData,
   pluginEdgeTypes: GraphEdgeTypeLike[],
-  edgeTypeCapabilities: GraphEdgeTypeCapabilityLike[] = [],
+  edgeTypeCapabilities?: GraphEdgeTypeCapabilityLike[],
 ): IGraphEdgeTypeDefinition[] {
   const availableEdgeKinds = collectAvailableEdgeKinds(graphData, edgeTypeCapabilities);
-  const capabilityEdgeKinds = new Set<string>(edgeTypeCapabilities);
+  const capabilityEdgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
   const definitions = new Map<string, IGraphEdgeTypeDefinition>();
 
   for (const definition of CORE_GRAPH_EDGE_TYPES) {
@@ -126,7 +128,6 @@ export function mergeEdgeTypes(
         label: prettifyIdentifier(edge.kind),
         defaultColor: edge.color ?? '#94A3B8',
         defaultVisible: true,
-        ...(edge.kind === 'overrides' ? { requiresEdgeType: 'inherit' as const } : {}),
       });
     }
   }
@@ -136,18 +137,49 @@ export function mergeEdgeTypes(
 
 function collectAvailableEdgeKinds(
   graphData: IGraphData,
-  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[],
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
 ): Set<string> {
-  const edgeKinds = new Set<string>(edgeTypeCapabilities);
+  const edgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
 
   for (const edge of graphData.edges) {
     edgeKinds.add(edge.kind);
   }
 
   if (graphData.nodes.some(isFileNode)) {
-    edgeKinds.add('reference');
+    if (shouldAddLegacyReferenceEdgeKind(edgeTypeCapabilities, edgeKinds)) {
+      edgeKinds.add('reference');
+    }
     edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
   }
 
   return edgeKinds;
+}
+
+function collectCapabilityEdgeKinds(
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
+): Set<string> {
+  const edgeKinds = new Set<string>();
+
+  if (edgeTypeCapabilities) {
+    for (const edgeType of edgeTypeCapabilities) {
+      edgeKinds.add(edgeType);
+    }
+  }
+
+  return edgeKinds;
+}
+
+function shouldAddLegacyReferenceEdgeKind(
+  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
+  edgeKinds: ReadonlySet<string>,
+): boolean {
+  const hasCppEdgeShape = edgeKinds.has('include') && edgeKinds.has('overrides');
+  if (hasCppEdgeShape) {
+    return false;
+  }
+
+  return !edgeTypeCapabilities
+    || edgeTypeCapabilities.length === 0
+    || edgeTypeCapabilities.includes('reference')
+    || !edgeTypeCapabilities.includes('overrides');
 }

@@ -1,6 +1,7 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
 
-export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
+export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
+  return [
   {
     id: 'symbol',
     label: 'Symbol',
@@ -14,6 +15,30 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultVisible: false,
     parentId: 'symbol',
     matchSymbolKinds: ['function', 'method'],
+  },
+  {
+    id: 'symbol:namespace',
+    label: 'Namespace',
+    defaultColor: '#64748B',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['namespace'],
+  },
+  {
+    id: 'symbol:callable',
+    label: 'Callable',
+    defaultColor: '#8B5CF6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['function'],
+  },
+  {
+    id: 'symbol:method',
+    label: 'Method',
+    defaultColor: '#A855F7',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['method'],
   },
   {
     id: 'symbol:prototype',
@@ -79,4 +104,23 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     parentId: 'symbol',
     matchSymbolKinds: ['typedef'],
   },
-];
+  {
+    id: 'symbol:alias',
+    label: 'Alias',
+    defaultColor: '#F472B6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['alias'],
+  },
+  {
+    id: 'symbol:template',
+    label: 'Template',
+    defaultColor: '#C084FC',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['template'],
+  },
+  ];
+}
+
+export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = createCoreSymbolNodeTypes();

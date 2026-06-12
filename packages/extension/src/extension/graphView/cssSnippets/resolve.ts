@@ -2,10 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
 
+export interface CssSnippetWebviewUriAdapter {
+  asWebviewUri(uri: vscode.Uri): unknown;
+}
+
 export interface ResolveCssSnippetStylesheetsOptions {
   snippets: Readonly<Record<string, boolean>>;
   warn?: (message: string) => void;
-  webview?: Pick<vscode.Webview, 'asWebviewUri'>;
+  webview?: CssSnippetWebviewUriAdapter;
   workspaceRoot: string;
 }
 
@@ -64,7 +68,7 @@ export function resolveCssSnippetStylesheets({
     }
 
     const uri = vscode.Uri.file(filePath);
-    urls.push(webview ? stringifyWebviewUri(webview.asWebviewUri(uri) as unknown) : uri.fsPath);
+    urls.push(webview ? stringifyWebviewUri(webview.asWebviewUri(uri)) : uri.fsPath);
   }
 
   return urls;

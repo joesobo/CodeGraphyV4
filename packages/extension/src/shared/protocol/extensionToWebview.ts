@@ -96,7 +96,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
   | { type: 'VERBOSE_DIAGNOSTICS_UPDATED'; payload: { verboseDiagnostics: boolean } }
-  | { type: 'CSS_SNIPPETS_UPDATED'; payload: { stylesheets: string[] } }
+  | { type: 'CSS_SNIPPETS_UPDATED'; payload: { snippets: Record<string, boolean>; stylesheets: string[] } }
   | { type: 'BACKGROUND_EFFECTS_UPDATED'; payload: { backgroundEffects: BackgroundEffectsSettings } }
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
   | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }

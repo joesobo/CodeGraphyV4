@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../src/shared/graph/contracts';
 import { applyGraphScope } from '../../../src/shared/visibleGraph/scope';
+import {
+	getDefinitionSymbolKinds,
+	getScopedSymbolDefinitions,
+} from '../../../src/shared/visibleGraph/scope/definitions';
 
 function node(id: string, nodeType = 'file'): IGraphNode {
 	return {
@@ -105,6 +109,90 @@ describe('shared/visibleGraph/scope', () => {
 			nodes: ['src/app.ts', 'src/app.ts#build:function'],
 			edges: ['src/app.ts->src/app.ts#build:function#contains'],
 		});
+	});
+
+	it('uses the narrower method row before the broad function row for method symbols', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/runner.cpp'),
+					symbolNode('src/runner.cpp#TaskRunner::run:method', {
+						id: 'src/runner.cpp#TaskRunner::run:method',
+						name: 'TaskRunner::run',
+						kind: 'method',
+						filePath: 'src/runner.cpp',
+					}),
+				],
+				edges: [
+					edge('src/runner.cpp', 'src/runner.cpp#TaskRunner::run:method', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:function', enabled: false },
+					{ type: 'symbol:method', enabled: true },
+				],
+				edges: [{ type: 'contains', enabled: true }],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/runner.cpp', 'src/runner.cpp#TaskRunner::run:method'],
+			edges: ['src/runner.cpp->src/runner.cpp#TaskRunner::run:method#contains'],
+		});
+	});
+
+	it('reads scoped symbol definition kinds and specificity from explicit and fallback matchers', () => {
+		expect(getDefinitionSymbolKinds({
+			id: 'symbol:function',
+			label: 'Function',
+			defaultColor: '#8B5CF6',
+			defaultVisible: false,
+			matchSymbolKinds: ['function', 'method'],
+		})).toEqual(['function', 'method']);
+		expect(getDefinitionSymbolKinds({
+			id: 'symbol:class',
+			label: 'Class',
+			defaultColor: '#3B82F6',
+			defaultVisible: false,
+		})).toEqual(['class']);
+		expect(getDefinitionSymbolKinds({
+			id: 'file',
+			label: 'File',
+			defaultColor: '#71717A',
+			defaultVisible: true,
+		})).toBeUndefined();
+
+		expect(getScopedSymbolDefinitions({
+			nodes: [
+				{ type: 'symbol:function', enabled: false },
+				{ type: 'symbol:method', enabled: true },
+				{ type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: false },
+			],
+			edges: [],
+		}).map((entry) => ({
+			id: entry.definition.id,
+			enabled: entry.enabled,
+			specificity: entry.specificity,
+		}))).toEqual([
+			{
+				id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
+				enabled: false,
+				specificity: 5,
+			},
+			{
+				id: 'symbol:method',
+				enabled: true,
+				specificity: 1,
+			},
+			{
+				id: 'symbol:function',
+				enabled: false,
+				specificity: 0.5,
+			},
+		]);
 	});
 
 	it('keeps symbol nodes that are disconnected after edge scope is applied', () => {
