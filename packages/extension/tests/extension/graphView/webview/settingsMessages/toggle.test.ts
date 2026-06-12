@@ -430,4 +430,54 @@ describe('graph view settings toggle message', () => {
     expect(injectionOrder).toBeGreaterThan(syncOrder as number);
     expect(injectionOrder).toBeLessThan(reprocessOrder as number);
   });
+
+  it('replays saved plugin data before injecting a newly enabled plugin webview', async () => {
+    const state = createState();
+    const sendMessage = vi.fn();
+    const sendPluginWebviewInjections = vi.fn();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [] as T;
+        }
+        if (key === 'pluginData') {
+          return {
+            'codegraphy.particles': {
+              enabled: true,
+              preset: 'embers',
+            },
+          } as T;
+        }
+        return defaultValue;
+      }),
+      sendMessage,
+      sendPluginWebviewInjections,
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          enabled: true,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'PLUGIN_DATA_UPDATED',
+      payload: {
+        pluginId: 'codegraphy.particles',
+        data: {
+          enabled: true,
+          preset: 'embers',
+        },
+      },
+    });
+    expect(sendMessage.mock.invocationCallOrder[0])
+      .toBeLessThan(sendPluginWebviewInjections.mock.invocationCallOrder[0]);
+  });
 });
