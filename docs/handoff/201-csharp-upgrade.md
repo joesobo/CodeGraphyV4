@@ -7,9 +7,9 @@
 - Card title: C# Upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
-- Draft PR: pending initial setup commit
+- Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/271
 - Heavy-check host: not prepared yet; prepare `codegraphy-mini` lazily when a role actually needs VS Code Playwright, mutation, or another long focus-stealing check.
-- Next route: create the setup checkpoint commit and draft PR, then finish the initial alignment gate before dispatching Specifier.
+- Next route: finish the initial alignment gate, then dispatch Specifier with a bounded C# support-audit and acceptance-contract task.
 
 ## Human Gates
 
@@ -59,3 +59,21 @@
   - New branch is `codex/201-csharp-upgrade`.
 - Open blocker:
   - Draft PR and Trello sync are still pending the initial setup commit.
+
+### 2026-06-12T18:07:04Z - Orchestrator Draft PR Setup
+
+- Source: Orchestrator.
+- Target: GitHub draft PR setup.
+- Result: draft PR opened successfully.
+- PR: https://github.com/joesobo/CodeGraphyV4/pull/271
+- Files changed: this handoff file.
+- Commands run:
+  - `git add docs/handoff/201-csharp-upgrade.md`
+  - `git commit -m "orchestrator: start C# upgrade loop"`
+  - `git push -u origin codex/201-csharp-upgrade`
+  - `gh pr create --draft --base main --head codex/201-csharp-upgrade --title "Trello 201: C# Upgrade" ...`
+- Evidence:
+  - Setup commit `ab1711d4` created the branch-visible handoff checkpoint.
+  - Draft PR #271 now tracks the isolated worktree branch.
+- Open blocker:
+  - Trello sync and the initial grill-with-docs alignment are still pending.
