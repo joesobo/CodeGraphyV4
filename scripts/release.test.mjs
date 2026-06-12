@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { collectReleaseTargets, resolveReleaseTargets } from './release.mjs';
+import { collectReleaseTargets, resolveReleaseTargets, runRelease } from './release.mjs';
 
 test('language plugin release targets resolve by short language name', () => {
   const repoRoot = createReleaseFixture({
@@ -57,6 +57,41 @@ test('release target list exposes plugin and short aliases', () => {
   });
 });
 
+test('already-published workspace dependencies still build before dependent npm targets publish', () => {
+  const repoRoot = createReleaseFixture({
+    'packages/plugin-api/package.json': packageManifest('@codegraphy-dev/plugin-api', {
+      scripts: {},
+    }),
+    'packages/plugin-markdown/package.json': packageManifest('@codegraphy-dev/plugin-markdown', {
+      dependencies: {
+        '@codegraphy-dev/plugin-api': 'workspace:*',
+      },
+    }),
+    'packages/core/package.json': packageManifest('@codegraphy-dev/core', {
+      dependencies: {
+        '@codegraphy-dev/plugin-markdown': 'workspace:*',
+      },
+    }),
+  });
+  const commands = [];
+
+  runRelease('publish', 'npm', repoRoot, (command, args) => {
+    commands.push([command, ...args]);
+
+    if (command === 'npm' && args[0] === 'view') {
+      return { status: args[1] === '@codegraphy-dev/core@1.0.0' ? 1 : 0 };
+    }
+
+    return { status: 0 };
+  });
+
+  assert.deepEqual(commands.filter(command => command[0] === 'pnpm'), [
+    ['pnpm', '--filter', '@codegraphy-dev/plugin-markdown', 'run', 'build'],
+    ['pnpm', '--filter', '@codegraphy-dev/core', 'run', 'build'],
+    ['pnpm', '--filter', '@codegraphy-dev/core', 'publish', '--access', 'public', '--no-git-checks'],
+  ]);
+});
+
 function createReleaseFixture(files) {
   const repoRoot = mkdtempSync(path.join(tmpdir(), 'codegraphy-release-test-'));
   writeFile(repoRoot, 'package.json', {
@@ -76,11 +111,12 @@ function writeFile(repoRoot, relativePath, contents) {
   writeFileSync(absolutePath, `${JSON.stringify(contents, null, 2)}\n`);
 }
 
-function packageManifest(name) {
+function packageManifest(name, overrides = {}) {
   return {
     name,
     version: '1.0.0',
     publishConfig: { access: 'public' },
     scripts: { build: 'echo build' },
+    ...overrides,
   };
 }
