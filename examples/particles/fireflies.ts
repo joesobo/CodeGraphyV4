@@ -1,5 +1,3 @@
-import type { CustomParticleEffectContext } from '../../packages/plugin-particles/src/effects';
-
 interface Firefly {
   x: number;
   y: number;
@@ -9,7 +7,12 @@ interface Firefly {
   size: number;
 }
 
-export function activateParticleEffect({ canvas, intensity }: CustomParticleEffectContext): () => void {
+interface ParticleEffectContext {
+  canvas: HTMLCanvasElement;
+  intensity: number;
+}
+
+export function activateParticleEffect({ canvas, intensity }: ParticleEffectContext): () => void {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
     return () => undefined;
