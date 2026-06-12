@@ -8,7 +8,7 @@
 
 ## Loop State
 
-- Current state: Orchestrator setup in progress
+- Current state: Specifier pass complete; route to Coder
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - PR: https://github.com/joesobo/CodeGraphyV4/pull/275
@@ -66,3 +66,32 @@ Definition of done:
 - Added Trello setup comment `6a2c6b833b985697d7a84cd1`.
 - Trello card was already in `In Progress`, so no list move was needed.
 - Next route: dispatch Specifier for support audit and acceptance contract planning.
+
+### 2026-06-12T20:29:17Z - Specifier Handoff
+
+- Result: acceptance contract ready with a human-owned spec gate.
+- Plan path: `docs/plans/201-csharp-upgrade-specifier-plan.md`
+- Support audit summary:
+  - Core Tree-sitter Analysis owns C# parsing and baseline C# graph output.
+  - `@codegraphy-dev/plugin-csharp` is metadata/default-filter support for this behavior; it does not provide supplemental analysis or Graph Scope capability declarations.
+  - Current Core C# surfaces are imports, references, calls, inherits, and class/interface/struct/enum/method symbols.
+  - C# cross-file resolution relies on the C# pre-analysis index.
+- Acceptance draft summary:
+  - Keep the existing file-edge scenario for Imports, References, Calls, and Inherits.
+  - Add a C# symbol/Graph Scope scenario following the upgraded C and C++ pattern.
+  - Proposed node-type assertions should cover File plus C#-appropriate Class, Interface, Struct, Enum, and Method only when the example proves those rows are available.
+  - Proposed symbol relationships should prove Contains, Calls, and Inherits on representative C# symbols.
+- Acceptance impact scan:
+  - Affected: `packages/extension/tests/acceptance/specs/csharp-example.md`.
+  - Pattern references only: C, C++, Graph Scope node-type, and Graph Scope edge-type specs.
+  - Step-binding impact: the current available-node-types step is C++-specific, so Coder likely needs a generic or C#-specific step before generated acceptance can pass.
+- Evidence:
+  - `codegraphy status .` reported missing Graph Cache in this fresh worktree.
+  - Static source/tests inspected: C# example, C# spec, C/C++ pattern specs, C# analyzer files, plugin C# metadata/tests, generated acceptance output, and Graph Scope step bindings.
+  - Primary docs checked: Microsoft C# language docs/spec pages and `tree-sitter/tree-sitter-c-sharp`.
+  - Focused executable analyzer inventory did not run because this worktree has no installed `node_modules`; `pnpm exec tsx` and focused `vitest` commands reported missing binaries.
+- Human approval status: pending for any final committed edit to `packages/extension/tests/acceptance/specs/csharp-example.md`.
+- Open questions:
+  - Whether to add believable struct/enum source files now, or keep current example shape and omit struct/enum acceptance rows if Graph Scope hides irrelevant capabilities.
+  - Whether Coder should reuse the older `codex/193-c-upgrade` findings manually, after inspecting them, or ignore that lane to avoid stale assumptions.
+- Recommended next route: Coder.
