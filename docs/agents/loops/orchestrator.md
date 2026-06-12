@@ -20,7 +20,7 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - working on exactly one card, bug report, or request
 - creating a dedicated `codex/` branch, isolated worktree, and draft PR
 - keeping one shared PR worktree and one handoff file for the loop
-- dispatching one reusable thread per role with a bounded task and current state
+- running each role as a bounded role pass inside the Orchestrator thread
 - reading each role handoff before choosing the next state
 - preparing the remote Mac mini only when a role needs heavy checks
 - enforcing human gates
@@ -34,8 +34,7 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - implementing accepted behavior
 - running role-owned quality or mutation loops
 - bypassing a role because the next step seems obvious
-- closing an addressable role thread while that role may still need follow-up
-  work in the current loop
+- changing the loop execution model without explicit user approval
 - marking work done before human review accepts it
 - writing role evidence that belongs to the active role agent
 
@@ -51,7 +50,7 @@ flowchart TD
     Decide --> Human{"Human gate active?"}
     Human -->|Yes| Wait["Move to Review and wait for human input"]
     Wait --> Read
-    Human -->|No| Dispatch["Dispatch one role agent"]
+    Human -->|No| Dispatch["Run one bounded role pass"]
     Dispatch --> Return["Role returns handoff entry"]
     Return --> Record["Record role boundary state"]
     Record --> Ready{"All role conditions and CI green?"}
@@ -76,11 +75,11 @@ shows a reason to move elsewhere.
 
 When the Orchestrator routes backward, every downstream role state becomes
 stale. Route forward again from that point before returning to human review.
-Use at most one reusable thread per role during the active loop so the same
-Specifier, Coder, Refactorer, or Architect can continue with the updated context
-when the loop returns to that role. If an earlier role thread is no longer
-addressable, spawn one replacement for that role and use it as the active thread
-for that role.
+
+Run role passes inside the Orchestrator thread. Keep continuity through the
+handoff file: when the loop returns to a role, read the prior handoff entries
+for that role, run the next bounded pass, and append the new result. Alternative
+execution models need explicit user approval for the current loop.
 
 Before dispatching a role, verify that the shared worktree is clean or that any
 dirty files are intentionally owned by the target role or an active human gate.
@@ -179,7 +178,7 @@ The Orchestrator pauses the loop when:
 While paused, Trello should move to `Review`. When the user responds, the
 Orchestrator records the decision and routes the loop back to the correct role.
 
-The current V0 Trello model is:
+The current Trello model is:
 
 - existing `In Progress` state means the loop is running
 - `Review` means the loop is waiting for human acceptance review or final

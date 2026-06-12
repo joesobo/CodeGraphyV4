@@ -4,9 +4,10 @@ The CodeGraphy Loop is a role-based workflow for taking one Trello card, bug
 report, or explicit user request from informal intent to a PR that is ready for
 human review.
 
-The loop is orchestrated by one main Codex thread. Role agents do focused work,
-write the substantive handoff entries at role boundaries, and return control to
-the Orchestrator.
+The loop is orchestrated by one main Codex thread. The Orchestrator runs each
+role as a bounded role pass, writes substantive handoff entries at role
+boundaries, and uses those entries as the continuity record when a later pass
+returns to the same role.
 
 ## Roles
 
@@ -21,6 +22,10 @@ CodeGraphy uses one Orchestrator and four role agents:
   CI readiness.
 
 Each role has its own loop contract under `docs/agents/loops/`.
+
+The Orchestrator is the visible control surface for the loop. Alternative
+execution models need explicit user approval for that loop and should still use
+the same handoff file as the shared state record.
 
 ## Heavy Work
 

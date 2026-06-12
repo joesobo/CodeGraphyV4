@@ -89,8 +89,8 @@ Mutation survivor fixes often split files, add tests, or move helpers. After
 the mutation site and survivor loops pass, check whether the changed production
 areas still satisfy the organization tool.
 
-If organization output is dirty, do not start a Refactorer cleanup inside the
-Architect thread. Return to the Orchestrator with the affected paths and output
+If organization output is dirty, do not start a Refactorer cleanup during the
+Architect pass. Return to the Orchestrator with the affected paths and output
 summary. The Orchestrator routes Refactorer, then routes Architect again because
 Refactorer changes make the downstream mutation and architecture checks stale.
 
