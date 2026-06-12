@@ -178,6 +178,35 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('uses the narrower method row before the broad function row for method symbols', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/runner.cpp'),
+        node('src/runner.cpp#TaskRunner::run:method', 'symbol', symbol({
+          id: 'src/runner.cpp:method:TaskRunner::run',
+          filePath: 'src/runner.cpp',
+          kind: 'method',
+          name: 'TaskRunner::run',
+        })),
+      ],
+      edges: [
+        edge('src/runner.cpp', 'src/runner.cpp#TaskRunner::run:method', 'contains'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:function', enabled: false },
+        { type: 'symbol:method', enabled: true },
+      ],
+      edges: [
+        { type: 'contains', enabled: true },
+      ],
+    })).toEqual(graphData);
+  });
+
   it('keeps enabled symbol nodes as orphans when unrelated file edges are visible', () => {
     const graphData: IGraphData = {
       nodes: [
@@ -431,6 +460,27 @@ describe('visibleGraph/scope', () => {
     expect(getDisabledSymbolKinds(scopeConfig([
       { type: 'symbol:function', enabled: false },
     ]))).toEqual(new Set(['function', 'method']));
+  });
+
+  it('lets more specific symbol rows override broader disabled rows', () => {
+    expect(getDisabledSymbolKinds(scopeConfig([
+      { type: 'symbol:function', enabled: false },
+      { type: 'symbol:method', enabled: true },
+    ]))).toEqual(new Set(['function']));
+  });
+
+  it('keeps earlier specific symbol rows ahead of later broader rows', () => {
+    expect(getDisabledSymbolKinds(scopeConfig([
+      { type: 'symbol:method', enabled: false },
+      { type: 'symbol:function', enabled: true },
+    ]))).toEqual(new Set(['method']));
+  });
+
+  it('lets later equal-specificity symbol rows replace earlier rows', () => {
+    expect(getDisabledSymbolKinds(scopeConfig([
+      { type: 'symbol:class', enabled: false },
+      { type: 'symbol:class', enabled: true },
+    ]))).toEqual(new Set());
   });
 
   it('falls back to the symbol type suffix when no explicit kinds exist', () => {

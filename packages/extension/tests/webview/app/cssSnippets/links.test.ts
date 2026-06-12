@@ -22,9 +22,9 @@ describe('webview/cssSnippets/links', () => {
       'webview://override.css',
     ]);
 
-    replaceCssSnippetStylesheets(['webview://focus.css']);
+    replaceCssSnippetStylesheets(['webview://ocean.css']);
 
-    expect(snippetLinks().map(link => link.href)).toEqual(['webview://focus.css']);
+    expect(snippetLinks().map(link => link.href)).toEqual(['webview://ocean.css']);
   });
 
   it('does not remove non-snippet stylesheet links', () => {

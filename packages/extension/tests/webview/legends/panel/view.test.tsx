@@ -279,6 +279,7 @@ describe('LegendsPanel', () => {
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
+    expect(screen.getByText('Themes')).toBeInTheDocument();
     expect(screen.getByText('Legends')).toBeInTheDocument();
     expect(screen.queryByText('Rules')).not.toBeInTheDocument();
     expect(screen.getByDisplayValue('*/tests/**')).toBeInTheDocument();
@@ -325,6 +326,36 @@ describe('LegendsPanel', () => {
           preset: 'none',
           intensity: 1,
         },
+      },
+    });
+  });
+
+  it('renders configured CSS snippets and toggles them optimistically', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [],
+      cssSnippets: {
+        '.codegraphy/snippets/base-grid.css': false,
+        '.codegraphy/snippets/ocean.css': true,
+      },
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.getByText('CSS Snippets')).toBeInTheDocument();
+    const baseGridToggle = screen.getByLabelText('Toggle .codegraphy/snippets/base-grid.css');
+
+    fireEvent.click(baseGridToggle);
+
+    expect(graphStore.getState().cssSnippets['.codegraphy/snippets/base-grid.css']).toBe(true);
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_CSS_SNIPPET',
+      payload: {
+        path: '.codegraphy/snippets/base-grid.css',
+        enabled: true,
       },
     });
   });

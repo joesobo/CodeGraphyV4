@@ -75,6 +75,7 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_BACKGROUND_EFFECTS'; payload: { backgroundEffects: BackgroundEffectsSettings } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
+  | { type: 'UPDATE_CSS_SNIPPET'; payload: { path: string; enabled: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; packageName?: string; enabled: boolean } }
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }

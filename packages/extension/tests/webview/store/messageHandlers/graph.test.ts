@@ -50,6 +50,7 @@ function createState(
     backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     physicsPaused: false,
     showLabels: true,
+    cssSnippets: {},
     graphMode: '2d',
     graphViewportScale: null,
     nodeSizeMode: 'uniform',

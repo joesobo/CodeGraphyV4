@@ -130,6 +130,7 @@ export function addCallRelation(
   binding: ImportedBinding,
   fromSymbolId?: string,
   toSymbolId?: string,
+  variant?: string,
 ): void {
   addRelation(relations, {
     kind: 'call',
@@ -137,6 +138,7 @@ export function addCallRelation(
     fromFilePath: filePath,
     fromSymbolId,
     toSymbolId,
+    variant,
     specifier: binding.specifier,
     resolvedPath: binding.resolvedPath,
     toFilePath: binding.resolvedPath,
@@ -163,12 +165,14 @@ export function addInheritRelation(
   specifier: string,
   resolvedPath: string | null = null,
   fromSymbolId?: string,
+  toSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'inherit',
     sourceId: TREE_SITTER_SOURCE_IDS.inherit,
     fromFilePath: filePath,
     ...(fromSymbolId ? { fromSymbolId } : {}),
+    ...(toSymbolId ? { toSymbolId } : {}),
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,
@@ -181,12 +185,14 @@ export function addOverrideRelation(
   specifier: string,
   resolvedPath: string | null = null,
   fromSymbolId?: string,
+  toSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'overrides',
     sourceId: TREE_SITTER_SOURCE_IDS.override,
     fromFilePath: filePath,
     ...(fromSymbolId ? { fromSymbolId } : {}),
+    ...(toSymbolId ? { toSymbolId } : {}),
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,

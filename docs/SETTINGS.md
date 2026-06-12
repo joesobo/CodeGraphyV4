@@ -147,13 +147,13 @@ Common hooks:
 | `data-codegraphy-view` | `graph`, `timeline` | Webview body |
 | `data-codegraphy-surface` | `app`, `graph-view`, `graph-stage`, `timeline-view` | Main view surfaces |
 | `data-codegraphy-layer` | `graph-overlay`, `graph-stage-world-overlay`, `graph-stage-viewport-overlay`, `graph-accessibility` | Graph overlay layers |
-| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
-| `data-codegraphy-panel` | `filters`, `graph-scope`, `legend`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
+| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
+| `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
 | `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs`, `timeline-playback`, `timeline-track` | Interactive controls |
-| `data-codegraphy-section` | `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings sections |
+| `data-codegraphy-section` | `background-effects`, `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
 | `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `toolbar`, `timeline-panel` | Plugin contribution slots |
 | `data-codegraphy-state` | `loading`, `empty`, `graph-indexing`, `timeline-indexing`, `timeline-ready-to-index` | View states |
-| `data-codegraphy-row` | `plugin`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
+| `data-codegraphy-row` | `plugin`, `css-snippet`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
 | `data-codegraphy-marker` | `timeline-commit`, `timeline-current-commit` | Timeline markers |
 
 Example:
@@ -168,7 +168,38 @@ Example:
 }
 ```
 
-See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, a faded ocean image background, and a cursor-following graph glow.
+See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
+
+## Graph Background Particle Effects
+
+The Theme popup includes Graph Background toggles when the background particle plugin package is available. These toggles write `backgroundEffects` to `.codegraphy/settings.json`.
+
+```json
+{
+  "backgroundEffects": {
+    "enabled": true,
+    "preset": "constellations",
+    "intensity": 1
+  }
+}
+```
+
+Built-in presets are `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, and `embers`. The Theme popup labels `petals` as Leaves. Use `none` with `enabled: false` to disable the canvas.
+
+Custom particle effects use the `custom` preset with a module path:
+
+```json
+{
+  "backgroundEffects": {
+    "enabled": true,
+    "preset": "custom",
+    "intensity": 1,
+    "customModule": ".codegraphy/particles/my-effect.js"
+  }
+}
+```
+
+Custom modules are JavaScript files that export a `startParticleEffect(canvas, options)` function. The function receives the background canvas and should return either nothing, a cleanup function, or an object with a `stop()` method.
 
 ## Graph Scope settings
 
@@ -294,8 +325,8 @@ use browser APIs.
 
 ### Legends
 
-Legend Entries now live in their own **Legends** popup, not inside the settings panel.
-The popup label and persisted key are both **Legends** / `legend`.
+Legend Entries now live in the **Themes** panel under the **Legends** section, not inside the settings panel.
+The persisted key remains `legend`.
 
 For node styling, the popup is split into these subsections from top to bottom:
 
@@ -390,7 +421,7 @@ To version-control filter patterns, add them to `settings.json`:
 - **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Node / edge colors** now live in the **Legends** popup and are stored under `nodeColors` / `edgeColors`.
+- **Node / edge colors** now live in the **Themes** panel's **Legends** section and are stored under `nodeColors` / `edgeColors`.
 
 Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups. The Graph View no longer switches between separate built-in graph views.
 
@@ -398,7 +429,7 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 
 - **Nodes**: choose Graph Scope for File, Folder, Package, Symbol, Variable, and plugin-added Node Types
 - **Edges**: choose Graph Scope for indexed workspace Edge Type capabilities, including structural `NESTS`, semantic Edge Types, and plugin-added Edge Types
-- **Legends**: edit Legend Entries and their priority
+- **Themes**: edit Legend Entries and their priority in **Legends**, and toggle configured CSS Snippets
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
 
@@ -563,7 +594,7 @@ Do not use `.codegraphy/` if you want to share any files under `.codegraphy/`; i
 
 **Nodes are all grey**
 
-No Legend Entries are configured. Add them in the **Legends** popup or directly in `.codegraphy/settings.json`.
+No Legend Entries are configured. Add them in the **Themes** panel's **Legends** section or directly in `.codegraphy/settings.json`.
 
 **Too many files**
 1. Add exclusion patterns in the Filters section or `filterPatterns`

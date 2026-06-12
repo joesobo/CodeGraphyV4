@@ -278,6 +278,70 @@ describe('extension/graphView/controls/snapshot', () => {
     });
   });
 
+  it('does not add the legacy References row for C++ graph scope capabilities', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(_key: string, defaultValue: T): T => defaultValue,
+      },
+      {
+        nodes: [
+          { id: 'src/app.cpp', label: 'app.cpp', color: '#111111', nodeType: 'file' },
+          { id: 'src/worker.hpp', label: 'worker.hpp', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          { id: 'src/app.cpp->src/worker.hpp#include', from: 'src/app.cpp', to: 'src/worker.hpp', kind: 'include', sources: [] },
+        ],
+      },
+      [],
+      [],
+      { nodeTypes: [], edgeTypes: ['include', 'call', 'contains', 'inherit', 'overrides'] },
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'include',
+      'call',
+      'inherit',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'contains',
+      'overrides',
+    ]);
+  });
+
+  it('does not infer the legacy References row from indexed C++ edges', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(_key: string, defaultValue: T): T => defaultValue,
+      },
+      {
+        nodes: [
+          { id: 'src/app.cpp', label: 'app.cpp', color: '#111111', nodeType: 'file' },
+          { id: 'src/worker.hpp', label: 'worker.hpp', color: '#222222', nodeType: 'file' },
+          { id: 'src/worker.hpp#ConsoleWorker:class', label: 'ConsoleWorker', color: '#333333', nodeType: 'symbol' },
+          { id: 'src/worker.hpp#Worker::execute:method', label: 'Worker::execute', color: '#444444', nodeType: 'symbol' },
+        ],
+        edges: [
+          { id: 'src/app.cpp->src/worker.hpp#include', from: 'src/app.cpp', to: 'src/worker.hpp', kind: 'include', sources: [] },
+          {
+            id: 'src/worker.hpp#ConsoleWorker:class->src/worker.hpp#Worker::execute:method#overrides',
+            from: 'src/worker.hpp#ConsoleWorker:class',
+            to: 'src/worker.hpp#Worker::execute:method',
+            kind: 'overrides',
+            sources: [],
+          },
+        ],
+      },
+      [],
+      [],
+      { nodeTypes: [], edgeTypes: [] },
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'include',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'overrides',
+    ]);
+  });
+
   it('merges core and plugin graph control definitions with stored settings overrides', () => {
     const snapshot = captureGraphControlsSnapshot(
       {

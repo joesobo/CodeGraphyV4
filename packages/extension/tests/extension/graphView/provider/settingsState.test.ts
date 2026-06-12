@@ -252,6 +252,10 @@ describe('graphView/provider/settingsState', () => {
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'CSS_SNIPPETS_UPDATED',
       payload: {
+        snippets: {
+          '.codegraphy/snippets/graph.css': true,
+          '.codegraphy/snippets/disabled.css': false,
+        },
         stylesheets: [
           'webview:' + path.join(workspaceRoot, '.codegraphy', 'snippets', 'graph.css'),
         ],

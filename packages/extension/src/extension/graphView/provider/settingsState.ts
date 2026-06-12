@@ -65,16 +65,17 @@ function sendCssSnippetStylesheets(
 ): void {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
   if (!workspaceRoot) {
-    source._sendMessage({ type: 'CSS_SNIPPETS_UPDATED', payload: { stylesheets: [] } });
+    source._sendMessage({ type: 'CSS_SNIPPETS_UPDATED', payload: { snippets: {}, stylesheets: [] } });
     return;
   }
 
+  const snippets = config.get<Record<string, boolean>>('cssSnippets', {}) ?? {};
   const stylesheets = resolveCssSnippetStylesheets({
-    snippets: config.get<Record<string, boolean>>('cssSnippets', {}) ?? {},
+    snippets,
     webview: getActiveWebview(source),
     workspaceRoot,
   });
-  source._sendMessage({ type: 'CSS_SNIPPETS_UPDATED', payload: { stylesheets } });
+  source._sendMessage({ type: 'CSS_SNIPPETS_UPDATED', payload: { snippets, stylesheets } });
 }
 
 export interface GraphViewProviderSettingsStateMethods {

@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { TREE_SITTER_SOURCE_IDS } from '../../../src/treeSitter/runtime/languages';
 import {
   addCallRelation,
+  addIncludeRelation,
   addImportRelation,
   addInheritRelation,
+  addOverrideRelation,
   addReferenceRelation,
   addTypeImportRelation,
   createRange,
@@ -232,6 +234,71 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         specifier: 'Config',
         resolvedPath: '/workspace/config.ts',
         toFilePath: '/workspace/config.ts',
+      },
+    ]);
+  });
+
+  it('adds include, inherit, override, and reference relations with optional symbol endpoints', () => {
+    const relations: unknown[] = [];
+
+    addIncludeRelation(relations as never, '/workspace/app.cpp', 'widget.hpp', '/workspace/widget.hpp', 'from-include');
+    addInheritRelation(
+      relations as never,
+      '/workspace/app.cpp',
+      'Base',
+      '/workspace/base.hpp',
+      'from-inherit',
+      'to-inherit',
+    );
+    addOverrideRelation(
+      relations as never,
+      '/workspace/app.cpp',
+      'render',
+      '/workspace/base.hpp',
+      'from-override',
+      'to-override',
+    );
+    addReferenceRelation(relations as never, '/workspace/app.cpp', 'Config', null);
+
+    expect(relations).toEqual([
+      {
+        kind: 'include',
+        sourceId: TREE_SITTER_SOURCE_IDS.include,
+        fromFilePath: '/workspace/app.cpp',
+        fromSymbolId: 'from-include',
+        specifier: 'widget.hpp',
+        resolvedPath: '/workspace/widget.hpp',
+        toFilePath: '/workspace/widget.hpp',
+        type: 'include',
+      },
+      {
+        kind: 'inherit',
+        sourceId: TREE_SITTER_SOURCE_IDS.inherit,
+        fromFilePath: '/workspace/app.cpp',
+        fromSymbolId: 'from-inherit',
+        toSymbolId: 'to-inherit',
+        specifier: 'Base',
+        resolvedPath: '/workspace/base.hpp',
+        toFilePath: '/workspace/base.hpp',
+      },
+      {
+        kind: 'overrides',
+        sourceId: TREE_SITTER_SOURCE_IDS.override,
+        fromFilePath: '/workspace/app.cpp',
+        fromSymbolId: 'from-override',
+        toSymbolId: 'to-override',
+        specifier: 'render',
+        resolvedPath: '/workspace/base.hpp',
+        toFilePath: '/workspace/base.hpp',
+      },
+      {
+        kind: 'reference',
+        sourceId: TREE_SITTER_SOURCE_IDS.reference,
+        fromFilePath: '/workspace/app.cpp',
+        fromSymbolId: undefined,
+        specifier: 'Config',
+        resolvedPath: null,
+        toFilePath: null,
       },
     ]);
   });

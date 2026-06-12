@@ -69,7 +69,10 @@ const CORE_NODE_TYPE_LABELS = [
   'Folder',
   'Package',
   'Symbol',
+  'Namespace',
   'Function',
+  'Callable',
+  'Method',
   'Prototype',
   'Class',
   'Interface',
@@ -77,28 +80,58 @@ const CORE_NODE_TYPE_LABELS = [
   'Struct',
   'Union',
   'Enum',
+  'Alias',
+  'Template',
   'Typedef',
   'Variable',
   'Constant',
   'Global',
+  'Field',
+  'Parameter',
+  'Local',
   'Godot class_name',
 ];
 
 const REQUIRED_CORE_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package']);
+const SUPPORT_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package', 'Symbol', 'Variable']);
 
 const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
+  Alias: 'Symbol',
+  Callable: 'Symbol',
   Class: 'Symbol',
   Constant: 'Variable',
   Enum: 'Symbol',
+  Field: 'Variable',
   Function: 'Symbol',
   Global: 'Variable',
   Interface: 'Symbol',
+  Local: 'Variable',
+  Method: 'Symbol',
+  Namespace: 'Symbol',
+  Parameter: 'Variable',
   Prototype: 'Symbol',
   Struct: 'Symbol',
+  Template: 'Symbol',
   Typedef: 'Symbol',
   Type: 'Symbol',
   Union: 'Symbol',
+  Variable: 'Symbol',
   'Godot class_name': 'Variable',
+};
+
+const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
+  Alias: ['alias'],
+  Callable: ['function'],
+  Class: ['class', 'struct', 'union'],
+  Constant: ['constant'],
+  Enum: ['enum'],
+  Field: ['field'],
+  Global: ['global'],
+  Local: ['local'],
+  Method: ['method'],
+  Namespace: ['namespace'],
+  Parameter: ['parameter'],
+  Template: ['template'],
 };
 
 interface PatternAcceptanceStep {
@@ -708,6 +741,70 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     )).toEqual(expectedEdgeTypes);
   }),
 
+  step(/^the available C\+\+ node types are only (.+)$/, async (context, _step, match) => {
+    const expectedNodeTypes = parseScopeTypeList(match[1]);
+    const frame = requireGraphFrame(context);
+
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label))
+        .filter((label) => !(supportLabels as string[]).includes(label)),
+      Array.from(SUPPORT_NODE_TYPE_LABELS),
+    )).toEqual(expect.arrayContaining(expectedNodeTypes));
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label))
+        .filter((label) => !(supportLabels as string[]).includes(label)).length,
+      Array.from(SUPPORT_NODE_TYPE_LABELS),
+    )).toBe(expectedNodeTypes.length);
+  }),
+
+  step(/^the (.+) node type is not available for the C\+\+ example$/, async (context, _step, match) => {
+    const frame = requireGraphFrame(context);
+    expect(await findPanelSwitchIfPresent(frame, match[1])).toBeUndefined();
+  }),
+
+  step(/^the visible graph includes the (.+) node (.+) from (.+)$/, async (context, _step, match) => {
+    const nodeId = await resolveVisibleSymbolNodeId(context, {
+      filePath: match[3],
+      name: match[2],
+      nodeTypeLabel: match[1],
+    });
+    if (!nodeId) {
+      throw new Error(`Expected visible ${match[1]} node ${match[2]} from ${match[3]}`);
+    }
+    await findNodeProbe(context, nodeId);
+  }),
+
+  step(/^the visible graph shows (.+) in (.+) calling (.+) in (.+)$/, async (context, _step, match) => {
+    await expectVisibleGraphRelationship(context, {
+      fromName: match[1],
+      fromFilePath: match[2],
+      targetName: match[3],
+      targetFilePath: match[4],
+    });
+  }),
+
+  step(/^the visible graph shows (.+) in (.+) inheriting from (.+) in (.+)$/, async (context, _step, match) => {
+    await expectVisibleGraphRelationship(context, {
+      fromName: match[1],
+      fromFilePath: match[2],
+      targetName: match[3],
+      targetFilePath: match[4],
+    });
+  }),
+
+  step(/^the visible graph shows (.+) in (.+) overriding (.+) in (.+)$/, async (context, _step, match) => {
+    await expectVisibleGraphRelationship(context, {
+      fromName: match[1],
+      fromFilePath: match[2],
+      targetName: match[3],
+      targetFilePath: match[4],
+    });
+  }),
+
   step(/^I toggle the Imports edge on$/, async (context) => {
     await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
     await setPanelSwitch(context, 'Imports', true);
@@ -1245,10 +1342,9 @@ async function toggleNodeTypes(
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   await openGraphScopeSection(context, 'Node Types');
-  const labelsToToggle = new Set(labels.flatMap(label => [
-    label,
-    ...(enabled && CHILD_NODE_TYPE_PARENTS[label] ? [CHILD_NODE_TYPE_PARENTS[label]] : []),
-  ]));
+  const labelsToToggle = enabled
+    ? collectScopeLabelsWithAncestors(labels)
+    : new Set(labels);
 
   for (const label of labelsToToggle) {
     await setPanelSwitch(context, label, enabled);
@@ -1276,10 +1372,7 @@ async function setOnlyNodeTypes(
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   await openGraphScopeSection(context, 'Node Types');
-  const labelsToEnable = new Set(labels.flatMap(label => [
-    label,
-    ...(CHILD_NODE_TYPE_PARENTS[label] ? [CHILD_NODE_TYPE_PARENTS[label]] : []),
-  ]));
+  const labelsToEnable = collectScopeLabelsWithAncestors(labels);
 
   for (const nodeTypeLabel of CORE_NODE_TYPE_LABELS) {
     if (options.requireCoreNodeTypes && requiresCoreNodeTypeSwitch(nodeTypeLabel)) {
@@ -1420,6 +1513,123 @@ async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
   }
 
   return candidates.at(-1) ?? frame.getByRole('switch', { name: label, exact: true });
+}
+
+function collectScopeLabelsWithAncestors(labels: string[]): Set<string> {
+  const result = new Set<string>();
+
+  for (const label of labels) {
+    let currentLabel: string | undefined = label;
+    while (currentLabel) {
+      result.add(currentLabel);
+      currentLabel = CHILD_NODE_TYPE_PARENTS[currentLabel];
+    }
+  }
+
+  return result;
+}
+
+async function expectVisibleGraphRelationship(
+  context: GraphAcceptanceContext,
+  relationship: {
+    fromFilePath: string;
+    fromName: string;
+    targetFilePath: string;
+    targetName: string;
+  },
+): Promise<void> {
+  const sourceId = await resolveVisibleRelationshipEndpoint(context, {
+    filePath: relationship.fromFilePath,
+    name: relationship.fromName,
+    preferContainingType: true,
+  });
+  const targetId = await resolveVisibleRelationshipEndpoint(context, {
+    filePath: relationship.targetFilePath,
+    name: relationship.targetName,
+  });
+
+  await expectVisibleEdgeBetween(context, sourceId, targetId);
+}
+
+async function resolveVisibleRelationshipEndpoint(
+  context: GraphAcceptanceContext,
+  endpoint: {
+    filePath: string;
+    name: string;
+    preferContainingType?: boolean;
+  },
+): Promise<string> {
+  const directSymbolId = await resolveVisibleSymbolNodeId(context, {
+    filePath: endpoint.filePath,
+    name: endpoint.name,
+  }, { allowMissing: true });
+  if (directSymbolId) {
+    return directSymbolId;
+  }
+
+  if (endpoint.preferContainingType && endpoint.name.includes('::')) {
+    const containingType = endpoint.name.split('::')[0];
+    const containingTypeId = await resolveVisibleSymbolNodeId(context, {
+      filePath: endpoint.filePath,
+      name: containingType,
+      nodeTypeLabel: 'Class',
+    }, { allowMissing: true });
+    if (containingTypeId) {
+      return containingTypeId;
+    }
+  }
+
+  return endpoint.filePath;
+}
+
+async function resolveVisibleSymbolNodeId(
+  context: GraphAcceptanceContext,
+  symbol: {
+    filePath: string;
+    name: string;
+    nodeTypeLabel?: string;
+  },
+  options: { allowMissing?: boolean } = {},
+): Promise<string | undefined> {
+  const frame = requireGraphFrame(context);
+  const symbolKinds = symbol.nodeTypeLabel ? NODE_TYPE_SYMBOL_KIND_BY_LABEL[symbol.nodeTypeLabel] : undefined;
+  const nodeId = await frame.locator('[aria-label^="Graph node "]').evaluateAll((nodes, request) => {
+    const matchingLabel = nodes
+      .map((node) => node.getAttribute('aria-label') ?? '')
+      .find((label) => {
+        const nodeId = label.replace(/^Graph node /, '');
+        const symbolSeparatorIndex = nodeId.indexOf('#');
+        if (symbolSeparatorIndex < 0 || nodeId.slice(0, symbolSeparatorIndex) !== request.filePath) {
+          return false;
+        }
+
+        const symbolSuffix = nodeId.slice(symbolSeparatorIndex + 1);
+        if (!request.symbolKinds) {
+          return symbolSuffix.startsWith(`${request.name}:`);
+        }
+
+        return request.symbolKinds.some((kind) => {
+          const prefix = `${request.name}:${kind}`;
+          return symbolSuffix === prefix || symbolSuffix.startsWith(`${prefix}:`);
+        });
+      });
+
+    return matchingLabel?.replace(/^Graph node /, '');
+  }, {
+    filePath: symbol.filePath,
+    name: symbol.name,
+    symbolKinds,
+  });
+
+  if (nodeId) {
+    return nodeId;
+  }
+
+  if (options.allowMissing) {
+    return undefined;
+  }
+
+  throw new Error(`Expected visible ${symbol.nodeTypeLabel ?? 'symbol'} node ${symbol.name} from ${symbol.filePath}`);
 }
 
 function parseScopeTypeList(value: string): string[] {
