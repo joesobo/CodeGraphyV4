@@ -2,19 +2,20 @@
 
 ## Current State
 
-- State: Draft PR and Trello are aligned, and Specifier is now running a bounded support-audit/acceptance-contract pass in its own role thread.
+- State: Specifier completed the support audit. The loop is paused for human acceptance review before any C# acceptance spec Markdown change or Coder implementation pass.
 - Trello card: https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Card title: C# Upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/271
 - Heavy-check host: not prepared yet; prepare `codegraphy-mini` lazily when a role actually needs VS Code Playwright, mutation, or another long focus-stealing check.
-- Next route: verify the Specifier handoff entry, then choose whether the loop can stay on the default route into Coder or needs a human acceptance gate first.
+- Next route: wait for human decisions on the C# acceptance direction, then route into Coder with the approved contract.
 
 ## Human Gates
 
-- Grill before implementation: active. Current open question is whether this C# upgrade should follow the same `showcase now` / `reasonable Core upgrade` / `out of scope` support-matrix pattern as the C++ pilot.
+- Grill before implementation: complete. The accepted working shape is the same `showcase now` / `reasonable Core upgrade` / `out of scope` support-matrix pattern used in the C++ pilot.
 - Human-owned acceptance spec Markdown remains a hard gate. Any edits to `packages/extension/tests/acceptance/specs/csharp-example.md` may be drafted locally for review, but must not be committed or pushed until the user explicitly approves them.
+- Human review is now required on the Specifier contract before Coder work starts. The open decisions are whether this card should include the small Core `Method` capability fix and whether the upgraded example should stay source-only or include a `.csproj` for realism.
 - If a separate local plan is needed after concept alignment, it should live under `docs/plans/`, with a path like `docs/plans/2026-06-12-trello-201-csharp-upgrade.md`.
 
 ## Setup Verification
@@ -112,3 +113,78 @@
 - Human gates that apply:
   - any acceptance spec Markdown edits must stay local for review and must not be committed or pushed without explicit user approval
   - the loop should pause if the Specifier concludes the contract cannot move forward without a human concept or scope choice
+
+### 2026-06-12T18:11:05Z - Specifier Support Audit And Acceptance Direction
+
+- Source: Specifier.
+- Target: C# support audit and acceptance-contract direction.
+- Result: needs human acceptance for spec Markdown; support direction is ready for Orchestrator review.
+- Files changed: this handoff file only.
+- Evidence reviewed:
+  - `examples/example-csharp/**`
+  - `packages/extension/tests/acceptance/specs/csharp-example.md`
+  - `packages/extension/tests/acceptance/specs/c-example.md`
+  - `packages/extension/tests/acceptance/specs/cpp-example.md`
+  - `packages/core/src/treeSitter/runtime/analyzeCSharp/**`
+  - `packages/core/src/treeSitter/runtime/csharpIndex/**`
+  - `packages/core/src/treeSitter/runtime/capabilities.ts`
+  - `packages/plugin-csharp/src/plugin.ts`
+  - `packages/plugin-csharp/codegraphy.json`
+  - `packages/plugin-csharp/README.md`
+  - Existing C# unit/integration coverage under `packages/core/tests/treeSitter/csharp*` and nearby pipeline tests.
+  - Official C# docs: Microsoft Learn `using` directive, `namespace`, C# classes/specification, structs, interfaces, and namespaces/file-scoped namespace guidance.
+- Support matrix:
+  - Showcase now:
+    - File nodes for a small `.cs` workspace plus structural project files.
+    - Core C# edge capabilities: `Imports`, `References`, `Calls`, and `Inherits`.
+    - `Imports` from local `using` namespaces when a referenced type resolves inside that namespace.
+    - `References` for resolvable uppercase type/member-access and object-creation targets such as `Config`, `ApiService`, `Helpers`, and `Formatter`.
+    - `Calls` for resolvable object creation, static member calls, and single-base inherited method calls.
+    - `Inherits` from base-list entries, including implemented interfaces in file-level graph output.
+    - Type symbols for `Class`, `Interface`, `Struct`, and `Enum`, plus `Contains` edges when symbol scope is enabled.
+  - Reasonable Core upgrade:
+    - Align C# method support with Graph Scope: Core currently emits C# method symbols but advertises `symbol:function`, not `symbol:method`, so a C# Method row/acceptance proof needs a red test and a capability fix.
+    - Add a first-class C# `Namespace` symbol node if we want modern file-scoped namespaces to be visible like the C++ pilot.
+    - Improve using support for `using static`, `using Alias = Type`, global using, and fully qualified or alias-qualified names.
+    - Improve type support for records, delegates, events, properties/fields, nested types, partial declarations, generic type/member names, and nullable/generic normalization beyond the current first-name heuristic.
+    - Add override/interface-implementation semantics only after Core can reliably resolve member declarations across class/interface inheritance.
+  - Out of scope for this card:
+    - Roslyn-grade semantic resolution, MSBuild or `.csproj` compilation context, NuGet/package graph resolution, analyzer diagnostics, generated-source analysis, async/LINQ dataflow, attribute semantics, and complete overload/generic binding.
+    - Marketing or docs claims that C# support is project-aware beyond the audited Core Tree-sitter baseline.
+- Believable C# project concepts:
+  - Job Queue Runner:
+    - `Program` wires a queue, `JobRunner` calls a worker, `ConsoleWorker : Worker, IWorker`, `JobConfig.Load`, `JobFormatter.Format`.
+    - Naturally demonstrates `Imports`, `References`, `Calls`, `Inherits`, `Contains`, `Class`, `Interface`, and optionally `Struct`/`Enum`.
+  - Invoice Console App:
+    - `Program` loads `InvoiceConfig`, constructs `InvoiceService`, formats invoice lines through `MoneyFormatter`, and implements `IInvoiceExporter`.
+    - Naturally demonstrates `Imports`, `References`, `Calls`, `Inherits`, `Contains`, `Class`, `Interface`, `Struct` for `Money`, and `Enum` for invoice status.
+  - Health Check Dashboard:
+    - `Program` composes `HealthCheckRunner`, service checks inherit from `BaseHealthCheck` and implement `IHealthCheck`, output goes through `ReportFormatter`.
+    - Naturally demonstrates `Imports`, `References`, `Calls`, `Inherits`, `Contains`, `Class`, `Interface`, and `Enum`.
+- Recommendation:
+  - Use the Job Queue Runner concept. It is the closest C# analogue to the accepted C++ Task Queue Runner pilot, but smaller and credible as a console-style `.NET` example without needing `.csproj` or NuGet semantics.
+  - Keep the first acceptance-contract direction modest: split the C# spec into the newer C/C++ pattern with one file-level edge scenario and one symbol-scope scenario.
+  - File-level scenario should assert available edge types are only `Imports`, `References`, `Calls`, `Inherits`; keep `Contains` for the symbol scenario, not the edge capability list.
+  - Symbol scenario should prove `Class`, `Interface`, `Struct`, and `Enum` rows plus `Contains` relationships. Do not promise `Method` until the Core capability mismatch is fixed.
+  - If Coder chooses to fix the method capability mismatch in this card, the red test should start at `packages/core/src/treeSitter/runtime/capabilities.ts`/Graph Scope visibility before adding a `Method` acceptance assertion.
+- Acceptance draft / contract direction:
+  - Human-owned Markdown change needed: yes, `packages/extension/tests/acceptance/specs/csharp-example.md` should change after human approval.
+  - Draft direction, not applied:
+    - Scenario 1: `C# example covers Job Queue Runner file graph scope`.
+      - Open `examples/example-csharp`, index, show no edge types, assert file count for the upgraded example.
+      - Assert available edge types are only `Imports`, `References`, `Calls`, `Inherits`.
+      - Toggle each of those edge types one at a time and assert only the representative, locally resolvable relationships.
+    - Scenario 2: `C# example exposes supported type symbols when symbol scope is enabled`.
+      - Show only File plus each supported type node row: `Class`, `Interface`, `Struct`, `Enum`.
+      - Assert one recognizable symbol per row from the Job Queue Runner.
+      - Enable `Contains` and assert file-to-symbol relationships.
+      - Leave `Method`, `Namespace`, `Field`, `Property`, `Parameter`, `Local`, `Overrides`, and generic/partial semantics out of this acceptance contract unless Core work is explicitly approved.
+- Acceptance impact scan:
+  - Directly affected: `packages/extension/tests/acceptance/specs/csharp-example.md`, generated acceptance output, and any step bindings/count fixtures touched by new C# node assertions.
+  - Pattern references reviewed: `c-example.md` and `cpp-example.md`.
+  - No unrelated spec appears to reference current C# file names beyond the generated acceptance file and C# example-specific workspace handling.
+- Human approval status:
+  - Pending. Do not commit or push acceptance spec Markdown changes until the human explicitly approves the C# acceptance draft.
+- Open questions:
+  - Should this card include the small Core capability fix for C# `Method` node visibility, or should the first pass intentionally stop at supported type symbols?
+  - Should the example include a `.csproj` for realism while keeping `.csproj` semantics out of the graph contract, or stay as a source-only workspace like the current example?
