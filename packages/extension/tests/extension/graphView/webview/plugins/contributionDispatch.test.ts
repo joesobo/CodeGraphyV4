@@ -120,6 +120,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
         pluginId: 'plugin.test',
         scripts: ['plugin.test:dist/plugin.js'],
         styles: ['plugin.test:dist/plugin.css'],
+        assets: [],
       },
     });
   });
@@ -205,6 +206,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
         pluginId: 'plugin.enabled',
         scripts: ['plugin.enabled:enabled.js'],
         styles: [],
+        assets: [],
       },
     });
     expect(analyzer.registry.listAvailableGraphViewContributions).toHaveBeenCalledWith({

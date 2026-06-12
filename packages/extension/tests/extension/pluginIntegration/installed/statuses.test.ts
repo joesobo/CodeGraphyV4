@@ -326,6 +326,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       .map((call: unknown[]) => call[0] as {
         type?: string;
         payload?: {
+          assets?: unknown[];
           pluginId?: string;
           scripts?: string[];
           styles?: string[];
@@ -336,6 +337,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(injectionMessages).toContainEqual({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
+        assets: [],
         pluginId: installedPackage!.pluginId,
         scripts: [`${installedPackage!.packageRoot}/webview.js`],
         styles: [`${installedPackage!.packageRoot}/webview.css`],
@@ -446,6 +448,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       .map((call: unknown[]) => call[0] as {
         type?: string;
         payload?: {
+          assets?: unknown[];
           pluginId?: string;
           scripts?: string[];
           styles?: string[];
@@ -456,6 +459,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(injectionMessages).toContainEqual({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
+        assets: [],
         pluginId: installedPackage!.pluginId,
         scripts: [`${installedPackage!.packageRoot}/webview.js`],
         styles: [`${installedPackage!.packageRoot}/webview.css`],
