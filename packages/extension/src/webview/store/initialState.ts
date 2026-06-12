@@ -1,7 +1,6 @@
 import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
-import { DEFAULT_BACKGROUND_EFFECTS } from '../../shared/settings/backgroundEffects';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 
 export const INITIAL_STATE: GraphStateFields = {
@@ -25,7 +24,6 @@ export const INITIAL_STATE: GraphStateFields = {
   directionColor: DEFAULT_DIRECTION_COLOR,
   particleSpeed: 0.005,
   particleSize: 4,
-  backgroundEffects: DEFAULT_BACKGROUND_EFFECTS,
   physicsPaused: false,
   showLabels: true,
   cssSnippets: {},

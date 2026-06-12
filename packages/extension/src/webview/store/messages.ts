@@ -13,7 +13,6 @@ import {
   handleDepthLimitUpdated,
   handleDepthLimitRangeUpdated,
   handleDirectionSettingsUpdated,
-  handleBackgroundEffectsUpdated,
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
   handleVerboseDiagnosticsUpdated,
@@ -93,8 +92,6 @@ export const MESSAGE_HANDLERS: Record<
     ),
   DIRECTION_SETTINGS_UPDATED: (msg) =>
     handleDirectionSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DIRECTION_SETTINGS_UPDATED' }>),
-  BACKGROUND_EFFECTS_UPDATED: (msg) =>
-    handleBackgroundEffectsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'BACKGROUND_EFFECTS_UPDATED' }>),
   SHOW_LABELS_UPDATED: (msg) =>
     handleShowLabelsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SHOW_LABELS_UPDATED' }>),
   PLUGINS_UPDATED: (msg) =>

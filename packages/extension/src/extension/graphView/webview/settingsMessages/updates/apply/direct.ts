@@ -7,8 +7,8 @@ import { applyGraphControlMessage } from '../controls';
 import { applyFilterPatternsUpdate } from '../filterPatterns';
 import { applyShowLabelsUpdate } from '../labels';
 import { applySimpleSettingsUpdate } from '../simple';
-import { applyBackgroundEffectsMessage } from './backgroundEffects';
 import { applyParticleSettingMessage } from './particle';
+import { applyPluginDataMessage } from './pluginData';
 
 export async function applyDirectSettingsUpdateMessage(
   message: WebviewToExtensionMessage,
@@ -37,7 +37,7 @@ export async function applyStatelessSettingsUpdateMessage(
     return true;
   }
 
-  if (await applyBackgroundEffectsMessage(message, handlers)) {
+  if (await applyPluginDataMessage(message, handlers)) {
     return true;
   }
 

@@ -2,7 +2,6 @@ import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { DEFAULT_MAX_FILES } from '../../../shared/settings/defaults';
-import { DEFAULT_BACKGROUND_EFFECTS, normalizeBackgroundEffectsSettings } from '../../../shared/settings/backgroundEffects';
 import { readGraphViewSettings } from './reader';
 
 interface GraphViewSettingsConfig {
@@ -47,9 +46,7 @@ export function captureGraphViewSettingsSnapshot(
     legendOrder: readConfigList(config, 'legendOrder'),
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
-    backgroundEffects: normalizeBackgroundEffectsSettings(
-      config.get('backgroundEffects', DEFAULT_BACKGROUND_EFFECTS),
-    ),
+    pluginData: readConfigRecord<unknown>(config, 'pluginData'),
     showLabels: config.get('showLabels', true),
     maxFiles: config.get('maxFiles', DEFAULT_MAX_FILES),
     verboseDiagnostics: config.get('verboseDiagnostics', false),

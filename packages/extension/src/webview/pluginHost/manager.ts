@@ -73,11 +73,13 @@ export class WebviewPluginHost {
     postMessage: (msg: GraphInteractionMessage) => void,
     postHostMessage: (msg: unknown) => void = () => undefined,
     getHostState: () => Record<string, unknown> = () => ({}),
+    getPluginData: (pluginId: string) => unknown = () => undefined,
   ): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
       pluginId, postMessage,
       postHostMessage,
       getHostState,
+      getPluginData,
       (pid) => getOrCreateContainer(pid, this._containers),
       (pid, slot) => getOrCreateSlotContainer(pid, slot, this._slotContainers, this._slotHosts),
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),

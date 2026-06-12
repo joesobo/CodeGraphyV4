@@ -26,7 +26,6 @@ describe('LegendsPanel', () => {
       legends: [],
       optimisticLegendUpdates: {},
       optimisticUserLegends: null,
-      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
     });
   });
 

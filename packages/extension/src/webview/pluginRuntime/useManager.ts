@@ -8,7 +8,6 @@ import { useRef, useMemo, type MutableRefObject } from 'react';
 import { WebviewPluginHost } from '../pluginHost/manager';
 import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts/webview';
 import { postMessage } from '../vscodeApi';
-import { graphStore } from '../store/state';
 import {
   resolvePluginModuleActivator,
   PluginWebviewModule,
@@ -19,6 +18,7 @@ export interface IPluginManager {
   pluginHost: WebviewPluginHost;
   injectPluginAssets: (payload: PluginInjectPayload) => Promise<void>;
   resetPluginAssets: (pluginId: string) => void;
+  updatePluginData: (pluginId: string, data: unknown) => void;
 }
 
 interface PluginManagerRefs {
@@ -27,17 +27,19 @@ interface PluginManagerRefs {
   loadedStyles: MutableRefObject<Set<string>>;
   pluginApis: MutableRefObject<Map<string, CodeGraphyWebviewAPI>>;
   pluginAssetVersions: MutableRefObject<Map<string, number>>;
+  pluginData: MutableRefObject<Map<string, unknown>>;
   pluginHost: MutableRefObject<WebviewPluginHost>;
 }
 
-function getPluginApi(refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginHost'>, pluginId: string): CodeGraphyWebviewAPI {
+function getPluginApi(refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginData' | 'pluginHost'>, pluginId: string): CodeGraphyWebviewAPI {
   const existing = refs.pluginApis.current.get(pluginId);
   if (existing) return existing;
   const api = refs.pluginHost.current.createAPI(
     pluginId,
     postMessage,
     message => postMessage(message as never),
-    () => ({ backgroundEffects: graphStore.getState().backgroundEffects }),
+    () => ({}),
+    pid => refs.pluginData.current.get(pid),
   );
   refs.pluginApis.current.set(pluginId, api);
   return api;
@@ -56,7 +58,7 @@ function injectPluginStyle(refs: Pick<PluginManagerRefs, 'loadedStyles'>, style:
 }
 
 async function runPluginActivation(
-  refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginAssetVersions' | 'pluginHost'>,
+  refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginAssetVersions' | 'pluginData' | 'pluginHost'>,
   pluginId: string,
   script: string,
   activationKey: string,
@@ -83,6 +85,7 @@ async function activatePluginScript(
   refs: Pick<
     PluginManagerRefs,
     'activatedScriptKeys' | 'activatingScriptPromises' | 'pluginApis' | 'pluginAssetVersions' | 'pluginHost'
+    | 'pluginData'
   >,
   pluginId: string,
   script: string,
@@ -145,6 +148,7 @@ export function usePluginManager(): IPluginManager {
   const activatedScriptKeysRef = useRef<Set<string>>(new Set());
   const activatingScriptPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
   const pluginAssetVersionsRef = useRef<Map<string, number>>(new Map());
+  const pluginDataRef = useRef<Map<string, unknown>>(new Map());
 
   return useMemo(() => {
     const refs: PluginManagerRefs = {
@@ -153,6 +157,7 @@ export function usePluginManager(): IPluginManager {
       loadedStyles: loadedStylesRef,
       pluginApis: pluginApisRef,
       pluginAssetVersions: pluginAssetVersionsRef,
+      pluginData: pluginDataRef,
       pluginHost: pluginHostRef,
     };
 
@@ -179,10 +184,19 @@ export function usePluginManager(): IPluginManager {
       resetPluginScriptState(refs, pluginId);
     }
 
+    function updatePluginData(pluginId: string, data: unknown): void {
+      pluginDataRef.current.set(pluginId, data);
+      pluginHostRef.current.deliverMessage(pluginId, {
+        type: 'PLUGIN_DATA_UPDATED',
+        data,
+      });
+    }
+
     return {
       pluginHost: pluginHostRef.current,
       injectPluginAssets,
       resetPluginAssets,
+      updatePluginData,
     };
   // All state is in refs — no dependencies needed
   }, []);

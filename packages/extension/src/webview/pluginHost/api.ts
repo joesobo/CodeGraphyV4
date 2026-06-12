@@ -34,6 +34,7 @@ export function createPluginWebviewApi(
   postMessage: (msg: GraphInteractionMessage) => void,
   postHostMessage: (msg: unknown) => void,
   getHostState: () => Record<string, unknown>,
+  getPluginData: (pluginId: string) => unknown,
   getOrCreateContainer: (pluginId: string) => HTMLDivElement,
   getOrCreateSlotContainer: (pluginId: string, slot: GraphPluginSlot) => HTMLDivElement,
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
@@ -49,6 +50,13 @@ export function createPluginWebviewApi(
     getContainer: () => getOrCreateContainer(pluginId),
     getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
     getHostState,
+    getPluginData: () => getPluginData(pluginId),
+    setPluginData: (data: unknown) => {
+      postHostMessage({
+        type: 'UPDATE_PLUGIN_DATA',
+        payload: { pluginId, data },
+      });
+    },
     getGraphViewViewportState,
     onGraphViewViewportState,
     registerNodeRenderer: (type: string, fn: NodeRenderFn) => registerNodeRenderer(pluginId, type, fn),

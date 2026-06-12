@@ -224,12 +224,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
       },
     });
     expect(sendMessageSpy).toHaveBeenNthCalledWith(3, {
-      type: 'BACKGROUND_EFFECTS_UPDATED',
-      payload: {
-        backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
-      },
-    });
-    expect(sendMessageSpy).toHaveBeenNthCalledWith(4, {
       type: 'SHOW_LABELS_UPDATED',
       payload: { showLabels: false },
     });

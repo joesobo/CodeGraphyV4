@@ -23,7 +23,7 @@ import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 
 export default function App(): React.ReactElement {
-  const { pluginHost, injectPluginAssets, resetPluginAssets } = usePluginManager();
+  const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
   const {
     graphData,
     isLoading,
@@ -126,8 +126,8 @@ export default function App(): React.ReactElement {
   });
 
   useEffect(() => {
-    return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets);
-  }, [injectPluginAssets, pluginHost, resetPluginAssets]);
+    return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData);
+  }, [injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData]);
 
   const displayGraphData = coloredData || graphData;
   useVisibleGraphStateResponse(displayGraphData);

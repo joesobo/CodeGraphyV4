@@ -41,7 +41,6 @@ describe('graphView/settings/reader', () => {
       particleSpeed: 0.005,
       particleSize: 4,
       directionColor: DEFAULT_DIRECTION_COLOR,
-      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
       showLabels: true,
     });
   });
@@ -69,7 +68,6 @@ describe('graphView/settings/reader', () => {
       particleSpeed: 0.02,
       particleSize: 7,
       directionColor: '#00FF00',
-      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
       showLabels: false,
     });
   });

@@ -17,7 +17,6 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
-import type { BackgroundEffectsSettings } from '../../shared/settings/backgroundEffects';
 import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
@@ -46,7 +45,6 @@ export interface IStoreFields {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
-  backgroundEffects: BackgroundEffectsSettings;
   physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;

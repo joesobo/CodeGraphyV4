@@ -18,11 +18,13 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         '.codegraphy/snippets/invalid.css': 'yes',
         '': true,
       },
-      backgroundEffects: {
-        enabled: true,
-        preset: 'embers',
-        intensity: 0.75,
-        unknown: true,
+      pluginData: {
+        'codegraphy.example': {
+          enabled: true,
+          preset: 'embers',
+          intensity: 0.75,
+          unknown: true,
+        },
       },
       edgeColors: { import: '#123456' },
       plugins: ['codegraphy.typescript'],
@@ -33,60 +35,35 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         '.codegraphy/snippets/graph.css': true,
         '.codegraphy/snippets/focus.css': false,
       },
-      backgroundEffects: {
-        enabled: true,
-        preset: 'embers',
-        intensity: 0.75,
+      pluginData: {
+        'codegraphy.example': {
+          enabled: true,
+          preset: 'embers',
+          intensity: 0.75,
+          unknown: true,
+        },
       },
     });
   });
 
-  it('normalizes graph background effects settings', () => {
+  it('preserves plugin data without knowing plugin-owned settings shape', () => {
     expect(normalizePersistedSettingsShape({
-      backgroundEffects: {
-        enabled: 'yes',
-        preset: 'unknown',
-        intensity: 4,
+      pluginData: {
+        'codegraphy.example': {
+          enabled: 'yes',
+          preset: 'unknown',
+          intensity: 4,
+          customModule: ' .codegraphy/particles/my-effect.js ',
+        },
       },
     })).toEqual({
-      backgroundEffects: {
-        enabled: false,
-        preset: 'none',
-        intensity: 1,
-      },
-    });
-  });
-
-  it('preserves custom graph background effect modules when custom preset is enabled', () => {
-    expect(normalizePersistedSettingsShape({
-      backgroundEffects: {
-        enabled: true,
-        preset: 'custom',
-        intensity: 0.8,
-        customModule: ' .codegraphy/particles/my-effect.js ',
-      },
-    })).toEqual({
-      backgroundEffects: {
-        enabled: true,
-        preset: 'custom',
-        intensity: 0.8,
-        customModule: '.codegraphy/particles/my-effect.js',
-      },
-    });
-  });
-
-  it('disables custom graph background effects without a module', () => {
-    expect(normalizePersistedSettingsShape({
-      backgroundEffects: {
-        enabled: true,
-        preset: 'custom',
-        intensity: 0.8,
-      },
-    })).toEqual({
-      backgroundEffects: {
-        enabled: false,
-        preset: 'custom',
-        intensity: 0.8,
+      pluginData: {
+        'codegraphy.example': {
+          enabled: 'yes',
+          preset: 'unknown',
+          intensity: 4,
+          customModule: ' .codegraphy/particles/my-effect.js ',
+        },
       },
     });
   });
@@ -204,7 +181,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       respectGitignore: false,
       showOrphans: true,
       plugins: [],
-      pluginData: { 'codegraphy.organize': { enabled: true } },
+      pluginData: {
+        'codegraphy.organize': { enabled: true },
+        'codegraphy.example': { enabled: true, mode: 'demo' },
+      },
       nodeColors: { file: '#111111' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
@@ -215,7 +195,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
-      backgroundEffects: { enabled: true, preset: 'petals', intensity: 0.4 },
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,
@@ -249,7 +228,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       respectGitignore: false,
       showOrphans: true,
       plugins: [],
-      pluginData: { 'codegraphy.organize': { enabled: true } },
+      pluginData: {
+        'codegraphy.organize': { enabled: true },
+        'codegraphy.example': { enabled: true, mode: 'demo' },
+      },
       nodeColors: { file: '#111111' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
@@ -260,7 +242,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
       cssSnippets: { '.codegraphy/snippets/graph.css': true },
-      backgroundEffects: { enabled: true, preset: 'petals', intensity: 0.4 },
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,

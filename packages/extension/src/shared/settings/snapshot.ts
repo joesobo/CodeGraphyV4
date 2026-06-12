@@ -1,7 +1,6 @@
 import type { IGroup } from './groups';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from './modes';
 import type { IPhysicsSettings } from './physics';
-import type { BackgroundEffectsSettings } from './backgroundEffects';
 
 export interface ISettingsSnapshot {
   physics: IPhysicsSettings;
@@ -20,7 +19,7 @@ export interface ISettingsSnapshot {
   legendOrder: string[];
   particleSpeed: number;
   particleSize: number;
-  backgroundEffects: BackgroundEffectsSettings;
+  pluginData: Record<string, unknown>;
   showLabels: boolean;
   nodeSizeMode: NodeSizeMode;
   maxFiles: number;

@@ -52,7 +52,7 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: [],
       particleSpeed: 0.005,
       particleSize: 4,
-      backgroundEffects: { enabled: false, preset: 'none', intensity: 1 },
+      pluginData: {},
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
       verboseDiagnostics: false,
@@ -76,7 +76,9 @@ describe('graphView/settings/snapshotMessages', () => {
         legendOrder: ['default:fileExtension:ts'],
         particleSpeed: 0.02,
         particleSize: 6,
-        backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
+        pluginData: {
+          'acme.plugin': { enabled: true },
+        },
         showLabels: false,
         maxFiles: 250,
         verboseDiagnostics: true,
@@ -114,7 +116,9 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: ['default:fileExtension:ts'],
       particleSpeed: 0.02,
       particleSize: 6,
-      backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
+      pluginData: {
+        'acme.plugin': { enabled: true },
+      },
       showLabels: false,
       maxFiles: 250,
       verboseDiagnostics: true,
@@ -131,7 +135,6 @@ describe('graphView/settings/snapshotMessages', () => {
         particleSpeed: 0.02,
         particleSize: 6,
         directionColor: '#00FF00',
-        backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
         showLabels: false,
       }),
     ).toEqual([
@@ -146,12 +149,6 @@ describe('graphView/settings/snapshotMessages', () => {
           particleSpeed: 0.02,
           particleSize: 6,
           directionColor: '#00FF00',
-        },
-      },
-      {
-        type: 'BACKGROUND_EFFECTS_UPDATED',
-        payload: {
-          backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
         },
       },
       {
@@ -187,7 +184,9 @@ describe('graphView/settings/snapshotMessages', () => {
           legendOrder: [],
           particleSpeed: 0.02,
           particleSize: 6,
-          backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
+          pluginData: {
+            'acme.plugin': { enabled: true },
+          },
           showLabels: false,
           maxFiles: 250,
           verboseDiagnostics: true,
@@ -221,12 +220,6 @@ describe('graphView/settings/snapshotMessages', () => {
           },
         },
         {
-          type: 'BACKGROUND_EFFECTS_UPDATED',
-          payload: {
-            backgroundEffects: { enabled: true, preset: 'constellations', intensity: 0.6 },
-          },
-        },
-        {
           type: 'SHOW_LABELS_UPDATED',
           payload: { showLabels: false },
         },
@@ -253,6 +246,10 @@ describe('graphView/settings/snapshotMessages', () => {
         {
           type: 'NODE_SIZE_MODE_UPDATED',
           payload: { nodeSizeMode: 'churn' },
+        },
+        {
+          type: 'PLUGIN_DATA_UPDATED',
+          payload: { pluginId: 'acme.plugin', data: { enabled: true } },
         },
       ],
     });
