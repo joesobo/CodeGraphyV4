@@ -110,7 +110,7 @@ function writeFirefliesParticleEffect(workspacePath: string): void {
   const effectsDir = path.join(workspacePath, '.codegraphy', 'particles');
   fs.mkdirSync(effectsDir, { recursive: true });
   fs.copyFileSync(
-    path.join(repoRoot(), 'examples', 'particles', 'fireflies.ts'),
+    path.join(repoRoot(), 'examples', '.codegraphy', 'particles', 'fireflies.ts'),
     path.join(effectsDir, 'fireflies.ts'),
   );
 }
