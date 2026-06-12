@@ -19,7 +19,7 @@ graph data, **Graph Scope**, **Legend Entries**, or edge animation settings.
 ## Target Experience
 
 Users enable the graph background effects plugin, open the Theme popup, and
-toggle a small set of Odysseus canvas presets such as synapse, rain,
+toggle a small plugin-injected set of Odysseus canvas presets such as synapse, rain,
 constellations, perlin flow, leaves, sparkles, or embers.
 Only one background preset should be active at first unless implementation
 proves that layering is cheap and understandable.
@@ -34,22 +34,23 @@ pseudo-particles.
   bundle risk for this narrow surface.
 - Store effect state as workspace-local settings, likely a simple preset id plus
   enabled map or disabled state that mirrors the CSS snippet toggle simplicity.
-- Keep the Theme popup extension small: one particle effects section with
-  toggles, reduced-motion behavior, and an intensity/performance control if the
-  renderer needs one.
-- Decide whether this is a first-party bundled plugin or an example plugin that
-  exercises a new graph-background contribution point.
+- Keep the extension generic: it exposes plugin data and Graph View slots, while
+  the particles plugin owns the Theme popup section, canvas renderer, presets,
+  and stored particle settings.
+- Ship this as a first-party bundled plugin that exercises plugin-owned Graph
+  View UI instead of adding a particle subsystem to the extension.
 
 ## Planned Slices
 
 1. Write failing webview tests for rendering a background-effect layer behind
    the graph without blocking graph interaction.
-2. Write failing settings/protocol tests for persisting and broadcasting the
-   selected effect state.
-3. Implement the smallest contribution point or first-party plugin path needed
-   to render background effects safely.
-4. Add Odysseus-inspired demo presets and Theme popup toggles for validation.
-5. Add reduced-motion and intensity behavior before broader visual polish.
+2. Write failing plugin-data tests for persisting and broadcasting plugin-owned
+   effect state.
+3. Implement the smallest generic plugin-data and slot plumbing needed to render
+   background effects safely.
+4. Add Odysseus-inspired demo presets and plugin-injected Theme popup toggles
+   for validation.
+5. Add intensity behavior before broader visual polish.
 6. Update docs and add a user-facing changeset once behavior exists.
 7. Verify with focused unit/webview tests, then run the relevant extension
    checks and visual validation.

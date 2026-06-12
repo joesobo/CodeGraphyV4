@@ -66,10 +66,12 @@ Example:
   "cssSnippets": {
     ".codegraphy/snippets/base-grid.css": true
   },
-  "backgroundEffects": {
-    "enabled": true,
-    "preset": "embers",
-    "intensity": 0.6
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "embers",
+      "intensity": 0.6
+    }
   }
 }
 ```
@@ -93,8 +95,8 @@ Example:
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
 | `cssSnippets` | object | `{}` | Workspace-relative CSS snippet paths mapped to `true` to load or `false` to keep disabled |
-| `backgroundEffects` | object | `{ "enabled": false, "preset": "none", "intensity": 1 }` | Graph Stage background effect preset and intensity |
 | `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
+| `pluginData` | object | `{}` | Plugin-owned workspace settings keyed by Plugin ID |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
@@ -172,14 +174,22 @@ See `examples/css-snippets/` for copyable demo snippets, including a static grid
 
 ## Graph Background Particle Effects
 
-The Theme popup includes Graph Background toggles when the background particle plugin package is available. These toggles write `backgroundEffects` to `.codegraphy/settings.json`.
+The `codegraphy.particles` plugin injects Graph Background toggles into the
+Theme popup when that plugin is active. The extension does not own these
+particles directly; the plugin owns the controls, canvas renderer, presets, and
+settings shape.
+
+Particle state is stored in `.codegraphy/settings.json` under
+`pluginData["codegraphy.particles"]`:
 
 ```json
 {
-  "backgroundEffects": {
-    "enabled": true,
-    "preset": "constellations",
-    "intensity": 1
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "constellations",
+      "intensity": 1
+    }
   }
 }
 ```
@@ -190,16 +200,20 @@ Custom particle effects use the `custom` preset with a module path:
 
 ```json
 {
-  "backgroundEffects": {
-    "enabled": true,
-    "preset": "custom",
-    "intensity": 1,
-    "customModule": ".codegraphy/particles/my-effect.js"
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "custom",
+      "intensity": 1,
+      "customModule": ".codegraphy/particles/my-effect.js"
+    }
   }
 }
 ```
 
-Custom modules are JavaScript files that export a `startParticleEffect(canvas, options)` function. The function receives the background canvas and should return either nothing, a cleanup function, or an object with a `stop()` method.
+Custom modules are browser-side JavaScript files that export
+`activateParticleEffect(context)`. The function receives the background canvas,
+intensity, color, and background color, and may return a cleanup function.
 
 ## Graph Scope settings
 
@@ -290,31 +304,40 @@ See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP suppor
 
 ## Graph Background Effects
 
-The Theme popup includes a **Graph Background** section with animated ambience presets such as Synapse, Rain, Constellations, Perlin Flow, Leaves, Sparkles, and Embers. These effects render behind the Relationship Graph on the Graph Stage and do not block graph interaction.
+The `codegraphy.particles` plugin adds a **Graph Background** section to the
+Theme popup when the plugin is active. It includes animated ambience presets
+such as Synapse, Rain, Constellations, Perlin Flow, Leaves, Sparkles, and
+Embers. These effects render behind the Relationship Graph on the Graph Stage
+and do not block graph interaction.
 
-Graph Background state persists in `.codegraphy/settings.json`:
+Graph Background state persists in `.codegraphy/settings.json` as plugin-owned
+data:
 
 ```json
 {
-  "backgroundEffects": {
-    "enabled": true,
-    "preset": "constellations",
-    "intensity": 0.6
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "constellations",
+      "intensity": 0.6
+    }
   }
 }
 ```
 
-`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, `embers`, or `custom`. The `petals` preset is shown as Leaves in the Theme popup. Effects respect the system reduced-motion preference.
+`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, `embers`, or `custom`. The `petals` preset is shown as Leaves in the Theme popup.
 
 Custom effects use browser-side JavaScript modules:
 
 ```json
 {
-  "backgroundEffects": {
-    "enabled": true,
-    "preset": "custom",
-    "intensity": 1,
-    "customModule": ".codegraphy/particles/my-effect.js"
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "custom",
+      "intensity": 1,
+      "customModule": ".codegraphy/particles/my-effect.js"
+    }
   }
 }
 ```

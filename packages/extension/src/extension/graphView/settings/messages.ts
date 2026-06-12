@@ -78,7 +78,7 @@ export function buildGraphViewAllSettingsMessages(
         type: 'NODE_SIZE_MODE_UPDATED',
         payload: { nodeSizeMode: snapshot.nodeSizeMode },
       },
-      ...Object.entries(snapshot.pluginData).map(([pluginId, data]) => ({
+      ...Object.entries(snapshot.pluginData ?? {}).map(([pluginId, data]) => ({
         type: 'PLUGIN_DATA_UPDATED' as const,
         payload: { pluginId, data },
       })),
