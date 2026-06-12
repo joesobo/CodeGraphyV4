@@ -4,14 +4,15 @@ The CodeGraphy Loop is a role-based workflow for taking one Trello card, bug
 report, or explicit user request from informal intent to a PR that is ready for
 human review.
 
-The loop is orchestrated by one main Codex thread. The Orchestrator runs each
-role as a bounded role pass, writes substantive handoff entries at role
-boundaries, and uses those entries as the continuity record when a later pass
-returns to the same role.
+The loop is orchestrated by one main Codex thread. For each role step, the
+Orchestrator dispatches an in-thread Codex subagent with the selected role,
+bounded task, current handoff state, and role contract. The role subagent writes
+the substantive handoff entry for its boundary and returns control to the
+Orchestrator.
 
 ## Roles
 
-CodeGraphy uses one Orchestrator and four role agents:
+CodeGraphy uses one Orchestrator and four role subagents:
 
 - Orchestrator: owns state, routing, human gates, Trello, PR state, and keeping
   the handoff current.
@@ -21,11 +22,12 @@ CodeGraphy uses one Orchestrator and four role agents:
 - Architect: handles mutation, architecture review, release hygiene, and final
   CI readiness.
 
-Each role has its own loop contract under `docs/agents/loops/`.
+Each role has its own loop contract under `docs/agents/loops/`. When a matching
+Codex role setup exists, the Orchestrator uses that role setup when dispatching
+the in-thread subagent.
 
-The Orchestrator is the visible control surface for the loop. Alternative
-execution models need explicit user approval for that loop and should still use
-the same handoff file as the shared state record.
+The Orchestrator is the visible control surface for the loop. The handoff file
+is the shared state record between the Orchestrator and role subagents.
 
 ## Heavy Work
 
@@ -69,8 +71,8 @@ flowchart TD
 
 Default route: Specifier, Coder, Refactorer, Architect, Human review.
 
-The orchestrator may route backward after any handoff. A role keeps looping
-while it is making measurable progress.
+The orchestrator may route backward after any handoff. A role subagent keeps
+looping while it is making measurable progress inside its bounded role task.
 
 When the orchestrator routes backward, downstream approvals are stale. For
 example, routing back to Specifier means the loop must pass through Coder,

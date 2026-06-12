@@ -20,7 +20,7 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - working on exactly one card, bug report, or request
 - creating a dedicated `codex/` branch, isolated worktree, and draft PR
 - keeping one shared PR worktree and one handoff file for the loop
-- running each role as a bounded role pass inside the Orchestrator thread
+- dispatching one in-thread Codex subagent for the selected role step
 - reading each role handoff before choosing the next state
 - preparing the remote Mac mini only when a role needs heavy checks
 - enforcing human gates
@@ -34,9 +34,9 @@ belongs to the Specifier, Coder, Refactorer, or Architect.
 - implementing accepted behavior
 - running role-owned quality or mutation loops
 - bypassing a role because the next step seems obvious
-- changing the loop execution model without explicit user approval
+- taking over the details of role-owned work after dispatch
 - marking work done before human review accepts it
-- writing role evidence that belongs to the active role agent
+- writing role evidence that belongs to the active role subagent
 
 ## Loop
 
@@ -50,7 +50,7 @@ flowchart TD
     Decide --> Human{"Human gate active?"}
     Human -->|Yes| Wait["Move to Review and wait for human input"]
     Wait --> Read
-    Human -->|No| Dispatch["Run one bounded role pass"]
+    Human -->|No| Dispatch["Dispatch one role subagent"]
     Dispatch --> Return["Role returns handoff entry"]
     Return --> Record["Record role boundary state"]
     Record --> Ready{"All role conditions and CI green?"}
@@ -76,10 +76,15 @@ shows a reason to move elsewhere.
 When the Orchestrator routes backward, every downstream role state becomes
 stale. Route forward again from that point before returning to human review.
 
-Run role passes inside the Orchestrator thread. Keep continuity through the
-handoff file: when the loop returns to a role, read the prior handoff entries
-for that role, run the next bounded pass, and append the new result. Alternative
-execution models need explicit user approval for the current loop.
+Dispatch the selected role as an in-thread Codex subagent using the matching
+role setup when one exists. The dispatch includes the role name, bounded task,
+role contract, current handoff state, worktree, PR, branch, and stopping
+condition. After dispatch, the Orchestrator waits for the role handoff and
+continues only orchestration duties.
+
+Keep continuity through the handoff file. When the loop returns to a role, give
+the next role subagent the prior handoff entries for that role, the current
+state, and the reason the Orchestrator routed back.
 
 Before dispatching a role, verify that the shared worktree is clean or that any
 dirty files are intentionally owned by the target role or an active human gate.
@@ -100,7 +105,8 @@ Common routing examples:
   wrong: Coder
 - final human review finds an issue: route to the role that owns the reason
 
-Role agents report facts and evidence. The Orchestrator chooses the next role.
+Role subagents report facts and evidence. The Orchestrator chooses the next
+role.
 
 ## Remote Heavy Checks
 
@@ -148,7 +154,7 @@ Small Orchestrator entries record:
 
 - timestamp
 - state changes
-- role dispatches
+- role subagent dispatches
 - human gates
 - public PR or Trello state changes
 
