@@ -3,21 +3,20 @@
 Trello: https://trello.com/c/qiauqiPA
 PR: https://github.com/joesobo/CodeGraphyV4/pull/270
 
-## Finding
+## Current Decision
 
-Do not remove the Node `<23` engine upper bound as a metadata-only change yet.
+Remove the Node `<23` engine upper bound from package manifests and keep the
+published Node minimum at `>=20`.
 
-The repo minimum should stay `>=20.20.0`. The quality-tooling docs already note
-that `@poleski/quality-tools` uses `path.matchesGlob`, so older Node 20
-versions are outside the supported local quality-tooling path.
+This intentionally leaves a known Node 26 install failure to fix in this PR
+rather than hiding it behind package metadata.
 
 CI should stay pinned to Node `22.22.0`. This card did not find a reason to
 redesign the CI runtime or matrix.
 
 ## Evidence
 
-All current `engines.node` declarations are consistently
-`>=20.20.0 <23` in:
+Updated `engines.node` declarations are consistently `>=20` in:
 
 - `package.json`
 - `apps/web/package.json`
@@ -76,12 +75,21 @@ runtime:
   mutation score.
 
 No focused VS Code Playwright slice was run after the Node 26 install failure
-because the engine metadata change was rejected and no VS Code or Playwright
-runtime behavior changed.
+because the next blocker is dependency installation, before VS Code or
+Playwright runtime behavior can be exercised.
 
-## Recommendation
+## Native Build Fix Options
 
-Keep `engines.node` as `>=20.20.0 <23` until the native tree-sitter install path
-is proven on newer Node runtimes or replaced with a dependency/tooling path that
-supports those runtimes by default. Removing only `<23` would allow installs on
-Node 26 that currently fail during dependency installation.
+`tree-sitter@0.25.0` fails to build against Node 26 because Node 26's V8
+headers require C++20. C++20 is a newer version of the C++ language standard;
+native Node addons compile C++ code during install, and the compiler must be
+told which language standard to use.
+
+Next things to test:
+
+1. Check whether a newer `tree-sitter` runtime release sets C++20-compatible
+   build flags or otherwise supports Node 26.
+2. If the package has no newer compatible release, test a local package patch
+   that adds the C++20 build flag to the `tree-sitter` native binding build.
+3. Only after dependency installation works on Node 26, rerun the Node 26
+   install/typecheck/lint/unit smoke path.

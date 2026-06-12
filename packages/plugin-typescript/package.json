@@ -21,7 +21,7 @@
     "url": "https://github.com/joesobo/CodeGraphyV4/issues"
   },
   "engines": {
-    "node": ">=20.20.0 <23"
+    "node": ">=20"
   },
   "keywords": [
     "codegraphy",
