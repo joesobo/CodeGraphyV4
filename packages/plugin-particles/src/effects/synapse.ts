@@ -17,21 +17,35 @@ export function createSynapseEffect(runtime: EffectRuntime): EffectController {
   let rows = Math.ceil(runtime.height / grid);
   const pulses: Pulse[] = [];
 
-  const spawnPulse = (): void => {
+  const spawnPulse = (prewarmed = false): void => {
     const speed = speedMin + Math.random() * (speedMax - speedMin);
     if (Math.random() > 0.5) {
       const row = Math.floor(Math.random() * (rows + 1));
-      pulses.push({ x: -trailLen, y: row * grid, dx: speed, dy: 0 });
+      const x = prewarmed ? Math.random() * runtime.width : -trailLen;
+      pulses.push({ x, y: row * grid, dx: speed, dy: 0 });
     } else {
       const col = Math.floor(Math.random() * (cols + 1));
-      pulses.push({ x: col * grid, y: -trailLen, dx: 0, dy: speed });
+      const y = prewarmed ? Math.random() * runtime.height : -trailLen;
+      pulses.push({ x: col * grid, y, dx: 0, dy: speed });
     }
   };
+
+  const seedPulses = (): void => {
+    if (pulses.length > 0) {
+      return;
+    }
+
+    for (let index = 0; index < maxPulses; index += 1) {
+      spawnPulse(true);
+    }
+  };
+  seedPulses();
 
   return {
     resize(nextRuntime) {
       cols = Math.ceil(nextRuntime.width / grid);
       rows = Math.ceil(nextRuntime.height / grid);
+      seedPulses();
     },
     draw({ ctx, width, height, color, intensity }) {
       ctx.clearRect(0, 0, width, height);

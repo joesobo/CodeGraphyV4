@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createPetalsEffect } from '../src/effects/petals';
+import { createRainEffect } from '../src/effects/rain';
 import { createSnowEffect } from '../src/effects/snow';
 import { rgba, type EffectRuntime } from '../src/effects/shared';
 
@@ -42,6 +43,26 @@ describe('particle effect drawing', () => {
 
     expect(Math.min(...translatedXs)).toBeLessThan(200);
     expect(Math.max(...translatedXs)).toBeGreaterThan(700);
+  });
+
+  it('prewarms rain down the background instead of only spawning at the top edge', () => {
+    let randomCalls = 0;
+    vi.spyOn(Math, 'random').mockImplementation(() => {
+      randomCalls += 1;
+      return (randomCalls % 10) / 10;
+    });
+    const drawnYs: number[] = [];
+    const runtime = createRuntime({
+      lineTo: (_x: number, y: number) => {
+        drawnYs.push(y);
+      },
+    });
+
+    const effect = createRainEffect(runtime);
+    effect.draw(runtime);
+
+    expect(Math.min(...drawnYs)).toBeLessThan(220);
+    expect(Math.max(...drawnYs)).toBeGreaterThan(460);
   });
 });
 

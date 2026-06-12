@@ -81,15 +81,20 @@ export function startBackgroundParticleEffect({
     color,
     backgroundColor,
   };
-  const effect = createEffectController(preset, runtime);
-
-  const resize = (): void => {
+  const resizeCanvas = (): void => {
     const rect = canvas.getBoundingClientRect();
     runtime.width = Math.max(1, rect.width || canvas.clientWidth || canvas.parentElement?.clientWidth || 1);
     runtime.height = Math.max(1, rect.height || canvas.clientHeight || canvas.parentElement?.clientHeight || 1);
     canvas.width = Math.round(runtime.width * runtime.dpr);
     canvas.height = Math.round(runtime.height * runtime.dpr);
     ctx.setTransform(runtime.dpr, 0, 0, runtime.dpr, 0, 0);
+  };
+
+  resizeCanvas();
+  const effect = createEffectController(preset, runtime);
+
+  const resize = (): void => {
+    resizeCanvas();
     effect.resize?.(runtime);
   };
 
@@ -103,7 +108,6 @@ export function startBackgroundParticleEffect({
     }
   };
 
-  resize();
   const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
   observer?.observe(canvas);
   window.addEventListener('resize', resize);
@@ -208,7 +212,7 @@ function createEffectController(
     case 'synapse':
       return createSynapseEffect(runtime);
     case 'rain':
-      return createRainEffect();
+      return createRainEffect(runtime);
     case 'constellations':
       return createConstellationsEffect(runtime);
     case 'perlin-flow':

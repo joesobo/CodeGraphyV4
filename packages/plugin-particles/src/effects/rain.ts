@@ -1,4 +1,4 @@
-import type { EffectController } from './shared';
+import type { EffectController, EffectRuntime } from './shared';
 
 interface RainDrop {
   x: number;
@@ -8,24 +8,41 @@ interface RainDrop {
   alpha: number;
 }
 
-export function createRainEffect(): EffectController {
+export function createRainEffect(runtime: EffectRuntime): EffectController {
   const drops: RainDrop[] = [];
   const maxDrops = 130;
 
+  const makeDrop = (width: number, height: number, prewarmed = false): RainDrop => {
+    const len = 20 + Math.random() * 40;
+    return {
+      x: Math.random() * width,
+      y: prewarmed ? Math.random() * height : -len,
+      len,
+      speed: 4 + Math.random() * 8,
+      alpha: 0.26 + Math.random() * 0.24,
+    };
+  };
+
+  const seedDrops = ({ width, height, intensity }: EffectRuntime): void => {
+    if (drops.length > 0) {
+      return;
+    }
+
+    const seededDrops = Math.round(maxDrops * Math.max(0.35, intensity));
+    for (let index = 0; index < seededDrops; index += 1) {
+      drops.push(makeDrop(width, height, true));
+    }
+  };
+
+  seedDrops(runtime);
+
   return {
+    resize: seedDrops,
     draw({ ctx, width, height, color, intensity, size }) {
       ctx.clearRect(0, 0, width, height);
       const speedMult = 0.35 + intensity * 0.65;
       if (drops.length < maxDrops * intensity && Math.random() < 0.6 * intensity) {
-        const len = 20 + Math.random() * 40;
-        const speed = 4 + Math.random() * 8;
-        drops.push({
-          x: Math.random() * width,
-          y: -len,
-          len,
-          speed,
-          alpha: 0.32 + Math.random() * 0.28,
-        });
+        drops.push(makeDrop(width, height));
       }
 
       for (let index = drops.length - 1; index >= 0; index -= 1) {

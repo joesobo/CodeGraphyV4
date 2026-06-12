@@ -151,6 +151,24 @@ function createSwitch(checked: boolean, label: string): HTMLButtonElement {
   return button;
 }
 
+function createChevron(open: boolean): SVGSVGElement {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '16');
+  svg.setAttribute('height', '16');
+  svg.classList.add('cg-bg-particles-chevron');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', open ? 'M7 14l5-5 5 5' : 'M7 10l5 5 5-5');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('stroke-width', '2');
+  svg.appendChild(path);
+  return svg;
+}
+
 function sendParticleSettings(api: CodeGraphyWebviewAPI, settings: ParticleSettings): void {
   api.setPluginData(settings);
 }
@@ -209,9 +227,9 @@ function render(
   heading.textContent = 'Particles';
   heading.className = 'cg-bg-particles-heading';
   const chevron = document.createElement('span');
-  chevron.className = 'cg-bg-particles-chevron';
+  chevron.className = 'cg-bg-particles-chevron-shell';
   chevron.setAttribute('aria-hidden', 'true');
-  chevron.textContent = '^';
+  chevron.replaceChildren(createChevron(true));
   header.append(heading, chevron);
   section.appendChild(header);
 
@@ -222,7 +240,7 @@ function render(
     const collapsed = section.dataset.collapsed === 'true';
     section.dataset.collapsed = collapsed ? 'false' : 'true';
     header.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
-    chevron.textContent = collapsed ? '^' : 'v';
+    chevron.replaceChildren(createChevron(collapsed));
   });
 
   for (const preset of PRESETS) {
@@ -324,10 +342,11 @@ function injectStyles(): void {
   style.textContent = `
     .cg-bg-particles-section { display: flex; flex-direction: column; gap: 0.5rem; }
     .cg-bg-particles-canvas { height: 100%; inset: 0; pointer-events: none; position: absolute; width: 100%; }
-    .cg-bg-particles-header { align-items: center; background: transparent; border: 0; border-radius: 0.375rem; color: var(--cg-muted-foreground); cursor: pointer; display: flex; justify-content: space-between; padding: 0.25rem; text-align: left; width: 100%; }
+    .cg-bg-particles-header { align-items: center; background: transparent; border: 0; border-radius: 0.375rem; color: var(--cg-muted-foreground); cursor: pointer; display: flex; justify-content: space-between; padding: 0.25rem; text-align: left; transition: background 120ms ease; width: 100%; }
     .cg-bg-particles-header:hover { background: var(--cg-accent-faint); }
     .cg-bg-particles-heading { color: var(--cg-muted-foreground); font-size: 0.75rem; font-weight: 600; letter-spacing: 0; line-height: 1rem; margin: 0; text-transform: uppercase; }
-    .cg-bg-particles-chevron { color: var(--cg-muted-foreground); font-size: 0.75rem; line-height: 1rem; }
+    .cg-bg-particles-chevron-shell { align-items: center; color: var(--cg-muted-foreground); display: inline-flex; flex: 0 0 auto; height: 1rem; justify-content: center; width: 1rem; }
+    .cg-bg-particles-chevron { display: block; height: 1rem; width: 1rem; }
     .cg-bg-particles-section[data-collapsed='true'] .cg-bg-particles-grid { display: none; }
     .cg-bg-particles-grid { background: var(--cg-surface-subtle); border: 1px solid var(--cg-border-subtle); border-radius: 0.375rem; display: grid; grid-template-columns: 1fr; overflow: hidden; }
     .cg-bg-particles-row { align-items: center; display: flex; gap: 0.75rem; justify-content: space-between; min-width: 0; padding: 0.5rem 0.75rem; transition: background 120ms ease; }
@@ -346,7 +365,7 @@ function injectStyles(): void {
 export function activate(api: CodeGraphyWebviewAPI): () => void {
   injectStyles();
   const controlsContainer = api.getSlotContainer('theme.panel');
-  const canvasContainer = api.getSlotContainer('graph.stage.worldOverlay');
+  const canvasContainer = api.getSlotContainer('graph.stage.worldBackground');
   let canvasCleanup: () => void = () => undefined;
   const refreshTimers: number[] = [];
   let customEffects: ParticleEffectAsset[] = [];

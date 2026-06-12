@@ -750,52 +750,80 @@ const repoFirefliesModule = `
         y,
         previousX: x,
         previousY: y,
-        vx: (fromLeft ? 0.16 : -0.16) + (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.36,
+        vx: (fromLeft ? 0.08 : -0.08) + (Math.random() - 0.5) * 0.34,
+        vy: (Math.random() - 0.5) * 0.26,
         phase: Math.random() * Math.PI * 2,
-        size: 0.8 + depth * 1.55 + Math.random() * 0.45,
+        size: 0.9 + depth * 1.8 + Math.random() * 0.55,
         depth,
         life: Math.random() * 180,
         maxLife: 480 + Math.random() * 560,
         pulseSpeed: 0.018 + Math.random() * 0.045,
         wander: Math.random() * Math.PI * 2,
         hueShift: Math.random(),
-        flash: Math.random() > 0.88 ? Math.random() : 0,
+        flash: Math.random() > 0.9 ? Math.random() : 0,
       };
     };
-    const fireflies = Array.from({ length: 118 }, () => createFirefly(false));
+    const fireflies = Array.from({ length: 92 }, () => createFirefly(false));
     const drawFirefly = (fly) => {
       const lifeIn = Math.min(1, fly.life / 90);
       const lifeOut = Math.min(1, (fly.maxLife - fly.life) / 120);
       const lifeAlpha = Math.max(0, Math.min(lifeIn, lifeOut));
       const pulse = Math.max(0, Math.sin(fly.phase)) ** 2.4;
-      const alpha = (0.14 + pulse * 0.36 + fly.flash * 0.38) * lifeAlpha * (0.5 + intensity * 0.75);
-      const coreRadius = fly.size * (0.8 + pulse * 0.5 + fly.flash * 0.55);
-      const glowRadius = coreRadius * (3.2 + fly.depth * 2.4);
-      const green = 210 + Math.round(fly.hueShift * 38);
-      const blue = 128 + Math.round(fly.hueShift * 42);
+      const alpha = (0.12 + pulse * 0.32 + fly.flash * 0.4) * lifeAlpha * (0.55 + intensity * 0.72);
+      const coreRadius = fly.size * (0.9 + pulse * 0.45 + fly.flash * 0.5);
+      const glowRadius = coreRadius * (3.4 + fly.depth * 2.6);
+      const amber = 145 + Math.round(fly.hueShift * 42);
+      const orange = 84 + Math.round(fly.hueShift * 42);
 
       const trail = ctx.createLinearGradient(fly.previousX, fly.previousY, fly.x, fly.y);
-      trail.addColorStop(0, 'rgba(105, 255, 166, 0)');
-      trail.addColorStop(1, 'rgba(165, ' + green + ', ' + blue + ', ' + (alpha * 0.16) + ')');
+      trail.addColorStop(0, 'rgba(255, 118, 50, 0)');
+      trail.addColorStop(0.5, 'rgba(255, ' + amber + ', ' + orange + ', ' + (alpha * 0.08) + ')');
+      trail.addColorStop(1, 'rgba(255, ' + amber + ', ' + orange + ', ' + (alpha * 0.2) + ')');
       ctx.strokeStyle = trail;
-      ctx.lineWidth = Math.max(0.5, coreRadius * 0.65);
+      ctx.lineWidth = Math.max(0.65, coreRadius * 0.72);
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(fly.previousX, fly.previousY);
       ctx.lineTo(fly.x, fly.y);
       ctx.stroke();
 
       const aura = ctx.createRadialGradient(fly.x, fly.y, 0, fly.x, fly.y, glowRadius);
-      aura.addColorStop(0, 'rgba(238, 255, 198, ' + Math.min(0.85, alpha * 1.2) + ')');
-      aura.addColorStop(0.18, 'rgba(168, ' + green + ', ' + blue + ', ' + (alpha * 0.34) + ')');
-      aura.addColorStop(0.6, 'rgba(76, 210, 130, ' + (alpha * 0.08) + ')');
-      aura.addColorStop(1, 'rgba(76, 210, 130, 0)');
+      aura.addColorStop(0, 'rgba(255, 236, 182, ' + Math.min(0.82, alpha * 1.16) + ')');
+      aura.addColorStop(0.2, 'rgba(255, ' + amber + ', ' + orange + ', ' + (alpha * 0.36) + ')');
+      aura.addColorStop(0.58, 'rgba(198, 76, 25, ' + (alpha * 0.11) + ')');
+      aura.addColorStop(1, 'rgba(198, 76, 25, 0)');
       ctx.fillStyle = aura;
       ctx.beginPath();
       ctx.arc(fly.x, fly.y, glowRadius, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = 'rgba(255, 255, 218, ' + Math.min(1, alpha * 1.8) + ')';
+      ctx.fillStyle = 'rgba(255, 220, 146, ' + Math.min(0.8, alpha * 0.7) + ')';
+      ctx.beginPath();
+      ctx.ellipse(
+        fly.x - coreRadius * 0.36,
+        fly.y + coreRadius * 0.18,
+        coreRadius * 1.15,
+        coreRadius * 0.48,
+        fly.phase * 0.25,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 161, 76, ' + Math.min(0.68, alpha * 0.52) + ')';
+      ctx.beginPath();
+      ctx.ellipse(
+        fly.x + coreRadius * 0.3,
+        fly.y - coreRadius * 0.08,
+        coreRadius * 0.86,
+        coreRadius * 0.38,
+        -fly.phase * 0.18,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 245, 191, ' + Math.min(1, alpha * 1.65) + ')';
       ctx.beginPath();
       ctx.arc(fly.x, fly.y, Math.max(0.7, coreRadius * 0.42), 0, Math.PI * 2);
       ctx.fill();
@@ -806,7 +834,7 @@ const repoFirefliesModule = `
       const height = canvas.height || 180;
       time += 0.016;
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(0,0,0,0.14)';
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
       ctx.fillRect(0, 0, width, height);
       ctx.globalCompositeOperation = 'lighter';
       for (const fly of fireflies) {
@@ -817,12 +845,12 @@ const repoFirefliesModule = `
         fly.life += 1;
         const field = Math.sin((fly.x + time * 70) * 0.004 + fly.wander)
           + Math.cos((fly.y - time * 40) * 0.005 + fly.phase * 0.45);
-        fly.vx += Math.cos(fly.wander + field) * 0.012 * fly.depth;
-        fly.vy += Math.sin(fly.wander * 0.8 - field) * 0.01 * fly.depth;
-        fly.vx *= 0.986;
-        fly.vy *= 0.986;
-        fly.x += fly.vx * (0.8 + fly.depth * 0.7);
-        fly.y += fly.vy * (0.8 + fly.depth * 0.7);
+        fly.vx += Math.cos(fly.wander + field) * 0.009 * fly.depth;
+        fly.vy += Math.sin(fly.wander * 0.8 - field) * 0.008 * fly.depth;
+        fly.vx *= 0.988;
+        fly.vy *= 0.988;
+        fly.x += fly.vx * (0.62 + fly.depth * 0.52);
+        fly.y += fly.vy * (0.62 + fly.depth * 0.52);
         if (Math.random() < 0.0025 * intensity) {
           fly.flash = 1;
         }

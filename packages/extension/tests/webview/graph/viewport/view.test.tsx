@@ -405,7 +405,7 @@ describe('Viewport', () => {
     expect(handleEdgeContextMenu).toHaveBeenCalledWith(edge, expect.any(MouseEvent));
   });
 
-  it('hosts Graph View stage slots separately for world and viewport overlays', () => {
+  it('hosts Graph View stage slots separately for background, world, and viewport overlays', () => {
     const pluginHost = {
       attachSlotHost: vi.fn(),
       detachSlotHost: vi.fn(),
@@ -413,6 +413,10 @@ describe('Viewport', () => {
 
     renderViewport({ pluginHost: pluginHost as never });
 
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith(
+      'graph.stage.worldBackground',
+      expect.any(HTMLDivElement),
+    );
     expect(pluginHost.attachSlotHost).toHaveBeenCalledWith(
       'graph.stage.worldOverlay',
       expect.any(HTMLDivElement),

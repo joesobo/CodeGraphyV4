@@ -26,7 +26,7 @@ describe('createParticlesPlugin', () => {
     const overlay = document.createElement('div');
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     }, {
       enabled: true,
       preset: 'petals',
@@ -55,7 +55,7 @@ describe('createParticlesPlugin', () => {
     const overlay = document.createElement('div');
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     });
 
     activate(api);
@@ -72,7 +72,7 @@ describe('createParticlesPlugin', () => {
     const overlay = document.createElement('div');
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     });
 
     activate(api);
@@ -95,7 +95,7 @@ describe('createParticlesPlugin', () => {
     const pluginDataRef: { current?: unknown } = {};
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     }, () => pluginDataRef.current);
 
     activate(api);
@@ -121,7 +121,7 @@ describe('createParticlesPlugin', () => {
     const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     });
     vi.mocked(api.onMessage).mockImplementation((handler) => {
       handlers.push(handler);
@@ -167,7 +167,7 @@ describe('createParticlesPlugin', () => {
     const overlay = document.createElement('div');
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     }, {
       enabled: true,
       preset: 'custom',
@@ -189,7 +189,7 @@ describe('createParticlesPlugin', () => {
     const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     });
     vi.mocked(api.onMessage).mockImplementation((handler) => {
       handlers.push(handler);
@@ -237,7 +237,7 @@ describe('createParticlesPlugin', () => {
     const messageSubscription = { dispose: vi.fn() };
     const api = createWebviewApi({
       'theme.panel': controls,
-      'graph.stage.worldOverlay': overlay,
+      'graph.stage.worldBackground': overlay,
     }, {
       enabled: true,
       preset: 'petals',
