@@ -30,12 +30,13 @@ describe('createParticlesPlugin', () => {
     }, {
       enabled: true,
       preset: 'petals',
-      intensity: 0.5,
     });
 
     activate(api);
 
-    expect(controls.querySelector('[data-codegraphy-section="background-effects"]')).not.toBeNull();
+    expect(controls.querySelector('[data-codegraphy-section="particles"]')).not.toBeNull();
+    expect(screenText(controls)).toContain('Particles');
+    expect(screenText(controls)).not.toContain('Graph Background');
     expect(
       controls.querySelector('[aria-label="Toggle Leaves background effect"]')?.getAttribute('data-state'),
     ).toBe('checked');
@@ -43,7 +44,7 @@ describe('createParticlesPlugin', () => {
     expect(startBackgroundParticleEffect).toHaveBeenCalledWith(expect.objectContaining({
       canvas: overlay.querySelector('canvas.cg-bg-particles-canvas'),
       color: '#8fcf6b',
-      intensity: 0.5,
+      intensity: 1,
       preset: 'petals',
       prewarmFrames: 180,
     }));
@@ -62,7 +63,6 @@ describe('createParticlesPlugin', () => {
 
     expect(api.setPluginData).toHaveBeenCalledWith({
       enabled: true,
-      intensity: 1,
       preset: 'embers',
     });
   });
@@ -98,7 +98,6 @@ describe('createParticlesPlugin', () => {
 
     expect(api.setPluginData).toHaveBeenCalledWith({
       enabled: true,
-      intensity: 1,
       preset: 'custom',
       customEffectId: 'repo-fireflies',
     });
@@ -106,7 +105,6 @@ describe('createParticlesPlugin', () => {
       type: 'PLUGIN_DATA_UPDATED',
       data: {
         enabled: true,
-        intensity: 1,
         preset: 'custom',
         customEffectId: 'repo-fireflies',
       },
@@ -134,7 +132,6 @@ describe('createParticlesPlugin', () => {
       type: 'PLUGIN_DATA_UPDATED',
       data: {
         enabled: true,
-        intensity: 1,
         preset: 'custom',
         customEffectId: 'repo-fireflies',
       },
@@ -192,6 +189,10 @@ describe('createParticlesPlugin', () => {
     expect(document.getElementById('cg-particles-plugin-style')).toBeNull();
   });
 });
+
+function screenText(container: HTMLElement): string {
+  return container.textContent ?? '';
+}
 
 beforeEach(() => {
   document.head.replaceChildren();

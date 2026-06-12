@@ -69,8 +69,7 @@ Example:
   "pluginData": {
     "codegraphy.particles": {
       "enabled": true,
-      "preset": "embers",
-      "intensity": 0.6
+      "preset": "embers"
     }
   }
 }
@@ -152,8 +151,8 @@ Common hooks:
 | `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
 | `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
 | `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs`, `timeline-playback`, `timeline-track` | Interactive controls |
-| `data-codegraphy-section` | `background-effects`, `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
-| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `toolbar`, `timeline-panel` | Plugin contribution slots |
+| `data-codegraphy-section` | `particles`, `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
+| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `theme-panel`, `toolbar`, `timeline-panel` | Plugin contribution slots |
 | `data-codegraphy-state` | `loading`, `empty`, `graph-indexing`, `timeline-indexing`, `timeline-ready-to-index` | View states |
 | `data-codegraphy-row` | `plugin`, `css-snippet`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
 | `data-codegraphy-marker` | `timeline-commit`, `timeline-current-commit` | Timeline markers |
@@ -172,9 +171,9 @@ Example:
 
 See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
 
-## Graph Background Particle Effects
+## Particles
 
-The `codegraphy.particles` plugin injects Graph Background toggles into the
+The `codegraphy.particles` plugin injects a **Particles** section into the
 Theme popup when that plugin is active. The extension does not own these
 particles directly; the plugin owns the controls, canvas renderer, presets, and
 settings shape.
@@ -187,8 +186,7 @@ Particle state is stored in `.codegraphy/settings.json` under
   "pluginData": {
     "codegraphy.particles": {
       "enabled": true,
-      "preset": "constellations",
-      "intensity": 1
+      "preset": "constellations"
     }
   }
 }
@@ -207,7 +205,6 @@ as custom toggles in the Theme popup. Store the selected effect id in
     "codegraphy.particles": {
       "enabled": true,
       "preset": "custom",
-      "intensity": 1,
       "customEffectId": "repo-fireflies"
     }
   }
@@ -304,30 +301,6 @@ Adjusts the physics simulation in real time.
 
 See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.
 
-## Graph Background Effects
-
-The `codegraphy.particles` plugin adds a **Graph Background** section to the
-Theme popup when the plugin is active. It includes animated ambience presets
-such as Synapse, Rain, Constellations, Perlin Flow, Leaves, Sparkles, and
-Embers. These effects render behind the Relationship Graph on the Graph Stage
-and do not block graph interaction.
-
-Graph Background state persists in `.codegraphy/settings.json` as plugin-owned
-data:
-
-```json
-{
-  "pluginData": {
-    "codegraphy.particles": {
-      "enabled": true,
-      "preset": "constellations",
-      "intensity": 0.6
-    }
-  }
-}
-```
-
-`preset` accepts `none`, `synapse`, `rain`, `constellations`, `perlin-flow`, `petals`, `sparkles`, or `embers`. The `petals` preset is shown as Leaves in the Theme popup.
 
 ### Legends
 
