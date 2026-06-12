@@ -30,30 +30,37 @@ describe('particle effect drawing', () => {
 
   it('prewarms snow across the background', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.9);
-    const arcXs: number[] = [];
+    const translatedXs: number[] = [];
     const runtime = createRuntime({
-      arc: (x: number) => {
-        arcXs.push(x);
+      translate: (x: number) => {
+        translatedXs.push(x);
       },
     });
 
     const effect = createSnowEffect(runtime);
     effect.draw(runtime);
 
-    expect(Math.min(...arcXs)).toBeLessThan(200);
-    expect(Math.max(...arcXs)).toBeGreaterThan(700);
+    expect(Math.min(...translatedXs)).toBeLessThan(200);
+    expect(Math.max(...translatedXs)).toBeGreaterThan(700);
   });
 });
 
 function createRuntime(overrides: Partial<CanvasRenderingContext2D>): EffectRuntime {
   const ctx = {
+    arc: vi.fn(),
     beginPath: vi.fn(),
     clearRect: vi.fn(),
+    createLinearGradient: vi.fn(() => createGradient()),
+    createRadialGradient: vi.fn(() => createGradient()),
+    fillRect: vi.fn(),
     ellipse: vi.fn(),
     fill: vi.fn(),
+    lineTo: vi.fn(),
+    moveTo: vi.fn(),
     restore: vi.fn(),
     rotate: vi.fn(),
     save: vi.fn(),
+    stroke: vi.fn(),
     translate: vi.fn(),
     ...overrides,
   } as unknown as CanvasRenderingContext2D;
@@ -69,4 +76,10 @@ function createRuntime(overrides: Partial<CanvasRenderingContext2D>): EffectRunt
     size: 1,
     width: 1000,
   };
+}
+
+function createGradient(): CanvasGradient {
+  return {
+    addColorStop: vi.fn(),
+  } as unknown as CanvasGradient;
 }

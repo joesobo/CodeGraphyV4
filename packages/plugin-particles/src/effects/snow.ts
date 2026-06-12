@@ -3,26 +3,52 @@ import { rgba, type EffectController, type EffectRuntime } from './shared';
 interface Snowflake {
   x: number;
   y: number;
+  previousX: number;
+  previousY: number;
   vx: number;
   vy: number;
   radius: number;
   alpha: number;
+  depth: number;
   drift: number;
+  driftSpeed: number;
+  swing: number;
+  spin: number;
+  spinSpeed: number;
+  crystalline: boolean;
 }
 
 export function createSnowEffect(runtime: EffectRuntime): EffectController {
   const flakes: Snowflake[] = [];
-  const flakeCount = 120;
+  const flakeCount = 150;
 
-  const makeFlake = (width: number, height: number, index = Math.random() * flakeCount): Snowflake => ({
-    x: ((index + Math.random()) / flakeCount) * width,
-    y: Math.random() * height,
-    vx: -0.18 + Math.random() * 0.36,
-    vy: 0.35 + Math.random() * 0.9,
-    radius: 0.8 + Math.random() * 2.2,
-    alpha: 0.28 + Math.random() * 0.44,
-    drift: Math.random() * Math.PI * 2,
-  });
+  const makeFlake = (
+    width: number,
+    height: number,
+    index = Math.random() * flakeCount,
+    prewarmed = false,
+  ): Snowflake => {
+    const depth = Math.random();
+    const x = ((index + Math.random()) / flakeCount) * width;
+    const y = prewarmed ? Math.random() * height : -18 - Math.random() * 80;
+    return {
+      x,
+      y,
+      previousX: x,
+      previousY: y,
+      vx: -0.08 + Math.random() * 0.16,
+      vy: 0.16 + depth * 0.9 + Math.random() * 0.22,
+      radius: 0.45 + depth * 2.7 + Math.random() * 0.8,
+      alpha: 0.12 + depth * 0.48 + Math.random() * 0.16,
+      depth,
+      drift: Math.random() * Math.PI * 2,
+      driftSpeed: 0.006 + Math.random() * 0.018,
+      swing: 0.12 + Math.random() * 0.72,
+      spin: Math.random() * Math.PI * 2,
+      spinSpeed: -0.012 + Math.random() * 0.024,
+      crystalline: depth > 0.58 && Math.random() > 0.58,
+    };
+  };
 
   const seedFlakes = ({ width, height }: EffectRuntime): void => {
     if (flakes.length > 0) {
@@ -30,7 +56,7 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
     }
 
     for (let index = 0; index < flakeCount; index += 1) {
-      flakes.push(makeFlake(width, height, index));
+      flakes.push(makeFlake(width, height, index, true));
     }
   };
 
@@ -39,31 +65,94 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
   return {
     resize: seedFlakes,
     draw({ ctx, width, height, color, intensity, size }) {
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = rgba(color, 1);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,0.26)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.globalCompositeOperation = 'source-over';
+
+      const wind = Math.sin(Date.now() * 0.00012) * 0.16 * (0.6 + intensity);
 
       for (const flake of flakes) {
-        flake.drift += 0.01 + intensity * 0.012;
-        flake.x += flake.vx + Math.sin(flake.drift) * 0.18;
-        flake.y += flake.vy * (0.45 + intensity * 0.55);
+        flake.previousX = flake.x;
+        flake.previousY = flake.y;
+        flake.drift += flake.driftSpeed * (0.8 + intensity);
+        flake.spin += flake.spinSpeed;
+        flake.x += flake.vx + wind * flake.depth + Math.sin(flake.drift) * flake.swing;
+        flake.y += flake.vy * (0.35 + intensity * 0.65);
 
-        if (flake.y > height + 8) {
-          flake.y = -8;
+        if (flake.y > height + 18) {
+          Object.assign(flake, makeFlake(width, height));
           flake.x = Math.random() * width;
         }
-        if (flake.x < -8) {
-          flake.x = width + 8;
-        } else if (flake.x > width + 8) {
-          flake.x = -8;
+        if (flake.x < -18) {
+          flake.x = width + 18;
+          flake.previousX = flake.x;
+        } else if (flake.x > width + 18) {
+          flake.x = -18;
+          flake.previousX = flake.x;
         }
 
-        ctx.globalAlpha = flake.alpha * Math.max(0.2, intensity);
-        ctx.beginPath();
-        ctx.arc(flake.x, flake.y, flake.radius * size, 0, Math.PI * 2);
-        ctx.fill();
+        drawSnowflake(ctx, flake, color, intensity, size);
       }
 
       ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
     },
   };
+}
+
+function drawSnowflake(
+  ctx: CanvasRenderingContext2D,
+  flake: Snowflake,
+  color: string,
+  intensity: number,
+  size: number,
+): void {
+  const radius = flake.radius * size;
+  const alpha = flake.alpha * Math.max(0.22, intensity);
+  const trailAlpha = alpha * 0.18 * flake.depth;
+
+  if (trailAlpha > 0.02) {
+    const trail = ctx.createLinearGradient(flake.previousX, flake.previousY, flake.x, flake.y);
+    trail.addColorStop(0, rgba(color, 0));
+    trail.addColorStop(1, rgba(color, trailAlpha));
+    ctx.strokeStyle = trail;
+    ctx.lineWidth = Math.max(0.4, radius * 0.45);
+    ctx.beginPath();
+    ctx.moveTo(flake.previousX, flake.previousY);
+    ctx.lineTo(flake.x, flake.y);
+    ctx.stroke();
+  }
+
+  const glow = ctx.createRadialGradient(flake.x, flake.y, 0, flake.x, flake.y, radius * 4);
+  glow.addColorStop(0, rgba('#ffffff', alpha * 0.55));
+  glow.addColorStop(0.45, rgba(color, alpha * 0.18));
+  glow.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(flake.x, flake.y, radius * 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(flake.x, flake.y);
+  ctx.rotate(flake.spin);
+  ctx.strokeStyle = rgba('#ffffff', alpha * 0.72);
+  ctx.fillStyle = rgba(color, alpha);
+  ctx.lineWidth = Math.max(0.35, radius * 0.16);
+
+  if (flake.crystalline) {
+    for (let spoke = 0; spoke < 6; spoke += 1) {
+      ctx.rotate(Math.PI / 3);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -radius * 1.55);
+      ctx.stroke();
+    }
+  } else {
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
 }
