@@ -95,3 +95,11 @@ Definition of done:
   - Whether to add believable struct/enum source files now, or keep current example shape and omit struct/enum acceptance rows if Graph Scope hides irrelevant capabilities.
   - Whether Coder should reuse the older `codex/193-c-upgrade` findings manually, after inspecting them, or ignore that lane to avoid stale assumptions.
 - Recommended next route: Coder.
+
+### 2026-06-12T20:31:11Z - Orchestrator Public Specifier Update
+
+- Pushed Specifier commit `5258170f`.
+- Updated PR #275 body with current route, Specifier plan path, validation status, and human gate.
+- Added PR comment: https://github.com/joesobo/CodeGraphyV4/pull/275#issuecomment-4695135501
+- Added Trello comment `6a2c6c7c90e25905ba5b8f2b`.
+- Current route remains: Coder.
