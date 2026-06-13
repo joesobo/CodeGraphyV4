@@ -212,3 +212,11 @@ Important card requirements:
   4. Human reviews the Specifier acceptance-test modifications.
   5. Only after that review passes does Orchestrator route to Coder.
 - Existing Specifier and Coder commits are downstream artifacts from premature routing. Treat them as stale evidence until the proper alignment and Specifier pass decide whether to keep, revise, or replace them.
+
+### 2026-06-13T00:20:00Z - Alignment Grill: Acceptance Scenario Shape
+
+- Human decision: C# should use one acceptance scenario, matching the C++ acceptance-test style, rather than separate file and symbol scenarios.
+- Acceptance scope should cover everything expected for C# with Tree-sitter in one scenario: all supported symbols, variables, and edges.
+- Example-shape decision: `examples/example-csharp` should be built as a clean demo for every feature the C# Tree-sitter support covers, not a syntax museum.
+- Orchestrator read `packages/extension/tests/acceptance/specs/cpp-example.md` to ground the shape. The C++ pattern is one scenario that checks available edge rows, available node/variable rows, individual row counts, combined symbol graph counts, and representative edge assertions.
+- Current uncertainty for the next grill question: existing C# capability metadata advertises symbols (`Function`, `Class`, `Interface`, `Struct`, `Enum`) and edges (`Imports`, `References`, `Calls`, `Contains`, `Inherits` after the premature Coder pass), but it does not currently advertise variable rows such as `Field`, `Parameter`, `Local`, `Global`, or `Constant`.
