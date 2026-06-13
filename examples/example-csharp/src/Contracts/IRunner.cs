@@ -1,7 +1,6 @@
-namespace MyApp.Contracts
+namespace MyApp.Contracts;
+
+public interface IRunner
 {
-    public interface IRunner
-    {
-        string Run();
-    }
+    MyApp.Models.RunStatus Run(MyApp.Models.RunRequest request);
 }

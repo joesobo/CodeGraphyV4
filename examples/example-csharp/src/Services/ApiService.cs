@@ -1,31 +1,16 @@
 using MyApp.Contracts;
+using MyApp.Models;
 using MyApp.Utils;
 
-namespace MyApp.Services
+namespace MyApp.Services;
+
+public class ApiService : BaseService, IRunner
 {
-    /// <summary>
-    /// API service for fetching data.
-    /// </summary>
-    public class ApiService : BaseService, IRunner
+    public RunStatus Run(RunRequest request)
     {
-        public string Run()
-        {
-            return Status();
-        }
-
-        /// <summary>
-        /// Fetch data from the API.
-        /// This is a mock implementation for testing.
-        /// </summary>
-        public string[] FetchData(string url)
-        {
-            // In real code, this would make HTTP requests
-            return new[] { "apple", "banana", "cherry" };
-        }
-
-        public object PostData(string url, object payload)
-        {
-            return new { Status = "ok", Url = url };
-        }
+        var current = Status();
+        return Helpers.IsRunnable(request, current)
+            ? RunStatus.Succeeded
+            : RunStatus.Skipped;
     }
 }

@@ -1,10 +1,9 @@
-namespace MyApp.Services
+namespace MyApp.Services;
+
+public class BaseService
 {
-    public class BaseService
+    public string Status()
     {
-        public string Status()
-        {
-            return "ready";
-        }
+        return "ready";
     }
 }
