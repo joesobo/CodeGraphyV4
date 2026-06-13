@@ -2,12 +2,12 @@
 
 ## Current State
 
-- State: human review gate for Specifier acceptance contract approval.
+- State: pre-role alignment grill incomplete; downstream role state stale.
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - PR: [#276](https://github.com/joesobo/CodeGraphyV4/pull/276) draft.
-- Next route: Specifier after human approval, to apply the approved acceptance spec Markdown contract.
+- Next route: finish `grill-with-docs` alignment, then dispatch Specifier only after the alignment gate passes.
 
 ## Human Gates
 
@@ -199,3 +199,16 @@ Important card requirements:
 - The acceptance spec Markdown has not been edited yet. The Coder example/Core pass is premature downstream work and should be treated as available evidence, not as permission to skip the Specifier approval gate.
 - No further Coder, Refactorer, or Architect routing should happen until the human approves or revises the Specifier acceptance contract.
 - After approval, route back to Specifier to apply the approved acceptance spec Markdown change, then route forward through Coder again because downstream Coder state is stale relative to the approved acceptance contract.
+
+### 2026-06-13T00:10:00Z - Orchestrator Process Correction 2
+
+- Human correction: the loop requires completing `grill-with-docs` before the first role dispatch.
+- Reread `docs/agents/codegraphy-loop.md`, `docs/agents/loops/orchestrator.md`, `docs/agents/loops/specifier.md`, and `docs/agents/acceptance-specs.md`.
+- Correct current state: the pre-role alignment gate was not completed. The loop is not at Specifier human review yet.
+- Correct sequence from here:
+  1. Orchestrator finishes the docs-backed alignment grill, one question at a time, until scope, acceptance shape, human gates, and first route are clear.
+  2. After the alignment gate passes, Orchestrator dispatches Specifier.
+  3. Specifier owns drafting and applying approved acceptance spec Markdown changes when the human has explicitly approved that exact spec change during/after alignment.
+  4. Human reviews the Specifier acceptance-test modifications.
+  5. Only after that review passes does Orchestrator route to Coder.
+- Existing Specifier and Coder commits are downstream artifacts from premature routing. Treat them as stale evidence until the proper alignment and Specifier pass decide whether to keep, revise, or replace them.
