@@ -220,3 +220,10 @@ Important card requirements:
 - Example-shape decision: `examples/example-csharp` should be built as a clean demo for every feature the C# Tree-sitter support covers, not a syntax museum.
 - Orchestrator read `packages/extension/tests/acceptance/specs/cpp-example.md` to ground the shape. The C++ pattern is one scenario that checks available edge rows, available node/variable rows, individual row counts, combined symbol graph counts, and representative edge assertions.
 - Current uncertainty for the next grill question: existing C# capability metadata advertises symbols (`Function`, `Class`, `Interface`, `Struct`, `Enum`) and edges (`Imports`, `References`, `Calls`, `Contains`, `Inherits` after the premature Coder pass), but it does not currently advertise variable rows such as `Field`, `Parameter`, `Local`, `Global`, or `Constant`.
+
+### 2026-06-13T00:28:00Z - Alignment Grill: C# Variable Scope
+
+- Human decision: this loop should include C# Tree-sitter variable node support so the C# acceptance scenario covers variables as well as symbols and edges, following the C++ acceptance style.
+- Aligned baseline: C# should cover `Field`, `Parameter`, and `Local` if Core can emit them cleanly from Tree-sitter.
+- Orchestrator recommendation pending confirmation: keep `Global` out of C# unless a clean C# top-level/global construct is intentionally supported.
+- Open alignment question: whether C# should include `Constant` in this loop through `const` fields/local constants, or defer constants until the analyzer can model them without ambiguity.
