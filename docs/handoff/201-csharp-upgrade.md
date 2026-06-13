@@ -2,12 +2,12 @@
 
 ## Current State
 
-- State: human gate for C# acceptance spec Markdown approval.
+- State: human review gate for Specifier acceptance contract approval.
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - PR: [#276](https://github.com/joesobo/CodeGraphyV4/pull/276) draft.
-- Next route: Coder for acceptance Markdown/generated acceptance update after approval.
+- Next route: Specifier after human approval, to apply the approved acceptance spec Markdown contract.
 
 ## Human Gates
 
@@ -191,3 +191,11 @@ Important card requirements:
 - Closed completed Coder subagent.
 - Moved Trello card to Review while waiting for human approval to edit human-owned acceptance spec Markdown.
 - Approval needed: edit `packages/extension/tests/acceptance/specs/csharp-example.md` so the C# acceptance spec matches the upgraded `examples/example-csharp` example and the measured counts recorded above, then regenerate generated acceptance output.
+
+### 2026-06-13T00:00:00Z - Orchestrator Process Correction
+
+- Human correction: the Orchestrator routed to Coder too early. The loop contract should be executed as a contract, not treated as guidance.
+- Correct current state: human review is for the Specifier acceptance contract and proposed `packages/extension/tests/acceptance/specs/csharp-example.md` modifications.
+- The acceptance spec Markdown has not been edited yet. The Coder example/Core pass is premature downstream work and should be treated as available evidence, not as permission to skip the Specifier approval gate.
+- No further Coder, Refactorer, or Architect routing should happen until the human approves or revises the Specifier acceptance contract.
+- After approval, route back to Specifier to apply the approved acceptance spec Markdown change, then route forward through Coder again because downstream Coder state is stale relative to the approved acceptance contract.
