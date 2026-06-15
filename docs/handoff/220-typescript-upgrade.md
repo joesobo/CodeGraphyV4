@@ -382,3 +382,59 @@ CI state:
 
 - Before Architect fix, latest-head CI had `VSIX artifacts / darwin-arm64` failed in installed-VSIX activation smoke. Build, release-tests, typecheck, several unit jobs, and macOS/Ubuntu native runtime checks had passed; remaining checks were still pending.
 - After the Architect fix is pushed, CI must rerun on the new head. Readiness is pending until latest-head CI is green.
+
+### 2026-06-15 Main Merge During Architect
+
+Result: `main merged`.
+
+Trigger:
+
+- User reported that another PR had just been merged and asked to update this branch with `main`.
+
+Action:
+
+- Fetched `origin/main`.
+- Merged `origin/main` into `codex/220-typescript-upgrade` from the isolated 220 worktree.
+- Merge commit: `a430ef52c Merge remote-tracking branch 'origin/main' into codex/220-typescript-upgrade`.
+- Pushed the merged branch to `origin/codex/220-typescript-upgrade`.
+- Protected checkout `/Users/poleski/Desktop/Projects/CodeGraphyV4` stayed on `main` and clean.
+- Architect was interrupted and instructed to refresh conclusions from the merged head.
+
+Notes:
+
+- The merge included the Architect commit `77b3351de architect: align typescript smoke scenario`.
+- CI restarted on merged head `a430ef52c`.
+
+### 2026-06-15 Architect Merge Refresh: Main Merged, Local Green
+
+Result: `needs CI verification on latest head`.
+
+Context:
+
+- Orchestrator merged `origin/main` into `codex/220-typescript-upgrade` and pushed merge commit `a430ef52c`.
+- Architect refreshed the worktree to `a430ef52c` and preserved the merge and prior Architect commit `77b3351de`.
+
+Mutation and site-count refresh:
+
+- Re-ran the changed-source filter against the new `origin/main...HEAD`.
+- Touched package `src` files: `packages/extension/src/e2e/scenarios.ts`.
+- Mutation-included touched production source files: `0`, because extension mutation excludes `src/**/e2e/**`.
+- Scoped mutation remains skipped; there is still no changed mutation-included production target.
+
+Post-merge fix:
+
+- The main merge changed the Graph Scope acceptance helper path so the combined Imports unit regression now needs a VS Code shell shape or visible Graph Stage in its test double.
+- Updated `packages/extension/tests/acceptanceGraphViewStepResolution.test.ts` test harness only; behavior assertion still proves the combined Imports step clicks both `Imports` and `Type imports`.
+
+Validation after `a430ef52c`:
+
+- `pnpm --filter @codegraphy-dev/extension exec quality-tools acceptance compile --spec "tests/acceptance/specs/**/*.md" --steps "tests/acceptance/steps.ts" --out "/tmp/codegraphy-220-architect-after-merge.spec.ts"` passed.
+- `pnpm --filter @codegraphy-dev/extension exec tsc -p src/e2e/tsconfig.json` passed.
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/e2e/scenarios.ts` passed.
+- First focused Vitest rerun exposed the post-merge test-double failure: `Expected VS Code to be launched` in `acceptanceGraphViewStepResolution.test.ts`.
+- After test harness fix, `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/acceptanceGraphViewStepResolution.test.ts tests/acceptanceSteps.test.ts tests/extension/pipeline/examplesWorkspace.test.ts --reporter=verbose` passed: 3 files, 6 tests.
+
+CI state:
+
+- GitHub Actions run `27574668188` started for merged head `a430ef52c`; all jobs were pending at refresh time.
+- A new Architect follow-up commit will be pushed for the test harness and this handoff addendum, requiring another latest-head CI run.

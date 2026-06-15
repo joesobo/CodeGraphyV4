@@ -60,7 +60,10 @@ describe('acceptance graph view step resolution', () => {
 
     const implementation = graphViewAcceptanceSteps[text];
 
-    await implementation({ graphFrame: frame } as GraphAcceptanceContext, {
+    await implementation({
+      graphFrame: frame,
+      vscode: { page: {} },
+    } as GraphAcceptanceContext, {
       keyword: 'When',
       line: 1,
       sourcePath: 'test.md',
@@ -89,6 +92,7 @@ function graphScopeFrame(labels: string[]): Frame {
   } as unknown as Locator;
 
   return {
+    getByLabel: vi.fn((label: string) => label === 'Graph Stage' ? visibleLocator() : emptyLocator()),
     getByRole: vi.fn((role: string, options?: { name?: string }) => {
       if (role === 'button') {
         return button;
@@ -139,6 +143,16 @@ function emptyLocator(): Locator {
     }),
     getAttribute: vi.fn(async () => null),
     isVisible: vi.fn(async () => false),
+  } as unknown as Locator;
+}
+
+function visibleLocator(): Locator {
+  return {
+    count: vi.fn(async () => 1),
+    first: vi.fn(function first(this: Locator) {
+      return this;
+    }),
+    isVisible: vi.fn(async () => true),
   } as unknown as Locator;
 }
 
