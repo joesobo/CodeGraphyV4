@@ -6,11 +6,11 @@ namespace MyApp;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
         var settings = Config.LoadConfig();
         var service = new ApiService();
-        var request = new RunRequest("daily-sync", settings.MaxItems);
+        var request = new RunRequest(RunRequest.DefaultName, settings.MaxItems);
         var status = service.Run(request);
         var output = Helpers.FormatStatus(status);
 

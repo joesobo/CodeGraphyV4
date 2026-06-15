@@ -4,7 +4,7 @@ public static class Helpers
 {
     public static bool IsRunnable(MyApp.Models.RunRequest request, string currentStatus)
     {
-        return request.MaxItems > 0 && currentStatus == "ready";
+        return request.MaxItems > 0 && currentStatus.EndsWith(":ready");
     }
 
     public static string FormatStatus(MyApp.Models.RunStatus status)

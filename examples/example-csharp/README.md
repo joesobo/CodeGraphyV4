@@ -1,9 +1,9 @@
 # C# Example
 
-A small C# workspace for manual checks of CodeGraphy's Core Tree-sitter C# support.
-The C# plugin currently contributes ecosystem defaults; Core Tree-sitter owns the
-C# Imports, References, Calls, Inherits, Contains, and symbol-node behavior shown
-by this example.
+A small C# task-runner workspace for manual checks of CodeGraphy's Core
+Tree-sitter C# support. The C# plugin currently contributes ecosystem defaults;
+Core Tree-sitter owns the C# Imports, References, Calls, Inherits, Contains,
+Symbol, and Variable behavior shown by this example.
 
 ## Graph Screenshot
 
@@ -14,18 +14,18 @@ by this example.
 ```
 src/
 ├── Program.cs          # Entry point
-├── Config.cs           # Configuration class and static call target
+├── Config.cs           # Configuration class, static call target, and const field
 ├── Orphan.cs           # No relationships (test showOrphans)
 ├── Contracts/
 │   └── IRunner.cs      # Runner interface
 ├── Models/
-│   ├── RunRequest.cs   # Struct used by Program and ApiService
+│   ├── RunRequest.cs   # Struct with fields, const, and constructor parameters
 │   └── RunStatus.cs    # Enum used by ApiService and formatting helpers
 ├── Utils/
 │   ├── Helpers.cs      # Static helper methods
 │   └── Formatter.cs    # Formatting utilities
 └── Services/
-    ├── ApiService.cs   # Service inheriting a base class and implementing IRunner
+    ├── ApiService.cs   # Service inheriting a base class, implementing IRunner, and declaring a field
     └── BaseService.cs  # Base service with inherited method call target
 ```
 
@@ -56,7 +56,10 @@ Orphan.cs (Orphan Node - only visible with showOrphans=true)
 | Inheritance | `class ApiService : BaseService, IRunner` | ApiService.cs |
 | Inherited method call | `Status()` | ApiService.cs |
 | Enum reference | `RunStatus.Succeeded` | ApiService.cs |
-| System usings | `using System;` | Program.cs |
+| Field | `private readonly string serviceName` | ApiService.cs |
+| Parameter | `Run(RunRequest request)` | ApiService.cs |
+| Local | `var currentStatus = ...` | ApiService.cs |
+| Constant | `const string DefaultName` | RunRequest.cs |
 
 ## Files
 
@@ -81,19 +84,23 @@ Orphan.cs (Orphan Node - only visible with showOrphans=true)
 4. Click the CodeGraphy icon in the activity bar
 5. Compare the graph to the expected structure above
 
-## Symbol Node Demo
+## Symbol And Variable Node Demo
 
 Suggested symbol check:
 
 1. Open `src/Program.cs`.
-2. In Graph Scope, enable **Symbol** and the C# symbol rows.
+2. In Graph Scope, enable **Symbol**, **Variable**, and the C# child rows.
 3. Search for `Program`, `Config`, `ApiService`, `BaseService`, `IRunner`,
-   `RunRequest`, `RunStatus`, `Helpers`, and `Formatter`.
+   `RunRequest`, `RunStatus`, `Helpers`, `Formatter`, `serviceName`,
+   `request`, `currentStatus`, and `DefaultName`.
 
 Expected behavior:
 
 - Class, Interface, Struct, Enum, and Function rows are relevant for this C# workspace.
 - Function includes C# method declarations such as `Main`, `LoadConfig`, `Run`,
   `Status`, `FormatStatus`, and `FormatOutput`.
+- Field, Parameter, Local, and Constant rows are relevant for this C# workspace.
+- Constant is intentionally narrow: explicit C# `const` declarations such as
+  `DefaultMaxItems` and `DefaultName`.
 - Contains edges connect each file to its symbols, and Calls edges can connect
   caller methods to method/type symbols when symbol nodes are enabled.

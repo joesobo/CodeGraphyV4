@@ -241,3 +241,48 @@ Important card requirements:
   - keep `Global` out of C#.
 - Human review gate after Specifier: the human will review and approve the example plus acceptance-test modifications before Orchestrator routes to Coder.
 - Existing premature Specifier/Coder commits may be reused as evidence or revised by the new Specifier pass, but downstream role approval remains stale until this proper Specifier pass completes and receives human review.
+
+### 2026-06-15T16:02:49Z - Specifier Acceptance Contract Applied
+
+- Result: acceptance contract ready for human review.
+- Human approval status: the human explicitly approved this Specifier pass to update `examples/example-csharp` and the human-owned `packages/extension/tests/acceptance/specs/csharp-example.md`; the updated example/spec now need human review before routing to Coder.
+- Official C# docs grounding:
+  - Microsoft Learn documents fields as variables declared directly in a class or struct.
+  - Microsoft Learn documents `const` as the marker for constant fields or local constants.
+  - Microsoft Learn declaration statements document local variable and local constant declarations.
+- Example source changes:
+  - Kept the C# task-runner/service shape from the earlier stale Coder evidence and revised it for the approved variable scope.
+  - Added explicit C# constant targets: `Config.DefaultMaxItems` and `RunRequest.DefaultName`.
+  - Added explicit C# field targets: `RunRequest.Name`, `RunRequest.MaxItems`, and `ApiService.serviceName`.
+  - Kept explicit C# parameter targets: `IRunner.Run(request)`, `RunRequest(name, maxItems)`, `ApiService.Run(request)`, `Helpers.IsRunnable(request, currentStatus)`, `Helpers.FormatStatus(status)`, and `Formatter.FormatOutput(status)`.
+  - Kept explicit C# local targets: `settings`, `service`, `request`, `status`, `output`, `currentStatus`, and `isRunnable`.
+  - Updated `examples/example-csharp/README.md` and `examples/README.md` so the example honestly describes Symbol plus Variable coverage.
+- Approved acceptance spec changes:
+  - Replaced the old C# file-edge-only scenario with one C++-style scenario, `C# example covers Task Runner graph scope`.
+  - File graph baseline: `13 nodes / 0 connections`.
+  - Available edge rows: `Imports`, `References`, `Calls`, `Contains`, `Inherits`.
+  - Available C# node rows: `Function`, `Class`, `Interface`, `Struct`, `Enum`, `Constant`, `Field`, `Parameter`, `Local`.
+  - Explicitly unavailable rows for this C# example: `Method`, `Type`, and `Global`.
+  - File edge counts: Imports `6`, References `7`, Inherits `2`, Calls `7`.
+  - Per-row Contains counts: Class `7`, Interface `1`, Struct `1`, Enum `1`, Function `9`, Constant `2`, Field `3`, Parameter `8`, Local `7`.
+  - Combined File plus supported C# Symbol/Variable rows: `52 nodes / 0 connections`; with Contains enabled: `52 nodes / 39 connections`.
+  - Combined graph edge counts: Calls `7`, Inherits `2`, Imports `6`, References `7`.
+- Acceptance impact scan:
+  - Directly changed human-owned spec: `packages/extension/tests/acceptance/specs/csharp-example.md`.
+  - Regenerated review artifact: `packages/extension/tests/playwright-vscode/generated/acceptance.spec.ts`.
+  - Direct example/docs changes: `examples/example-csharp/src/**/*.cs`, `examples/example-csharp/README.md`, and `examples/README.md`.
+  - Intentionally unaffected human-owned specs: `packages/extension/tests/acceptance/specs/c-example.md`, `packages/extension/tests/acceptance/specs/cpp-example.md`, and `packages/extension/tests/acceptance/specs/graph-scope-node-types.md`.
+  - Coder should update step bindings because current acceptance steps have a C++-specific available-node-types phrase and C++-specific unavailable-node-type phrase; the new C# spec intentionally uses C# variants.
+- Coder requirements after human review:
+  - Add red-first Core tests for C# variable extraction and capability metadata for `symbol:constant`, `symbol:field`, `symbol:parameter`, and `symbol:local`.
+  - Keep C# `Constant` narrow to explicit `const` declarations and do not advertise or emit `Global` for C#.
+  - Ensure properties such as `Config.ApiUrl`, `Config.MaxItems`, and `Config.Debug` do not accidentally inflate the Field count unless the human expands C# Field semantics later.
+  - Preserve the already identified C# `Contains` capability requirement if it remains on the branch.
+  - Add or generalize acceptance step bindings for C# node-row availability and unavailable-row assertions.
+  - Run focused analyzer tests, acceptance generation/checks, and the generated C# VS Code acceptance scenario on `codegraphy-mini` unless the human approves a local focus-stealing run.
+- Commands run:
+  - `pnpm --filter @codegraphy-dev/extension run generate:acceptance`: passed.
+  - `pnpm run check:acceptance-specs`: passed.
+  - `git diff --check`: passed.
+- Open questions:
+  - None for Specifier. Next route should be human review of this Specifier commit, not Coder, until the human approves the example/spec contract.
