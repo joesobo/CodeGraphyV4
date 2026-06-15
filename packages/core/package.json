@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/core",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "CodeGraphy core indexing and graph query engine",
   "license": "MIT",
   "type": "module",
