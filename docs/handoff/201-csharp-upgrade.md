@@ -96,3 +96,10 @@
 - The Specifier researches what CodeGraphy should support for C# from Tree-sitter, then drafts the acceptance contract and tests around that target behavior.
 - Current CodeGraphy behavior is input evidence for the gap audit, not a constraint on the desired C# support contract.
 - Human-owned acceptance spec Markdown still requires explicit human approval before it is committed or treated as accepted.
+
+### 2026-06-15 Human Alignment Decision: Specifier Research Artifact
+
+- Human decision: the Specifier should produce a small support matrix before drafting the C# example and acceptance contract.
+- The matrix should cover Tree-sitter-derived C# `symbols`, `variables`, and `edges`.
+- Each row should be classified as `in acceptance`, `implementation gap`, or `follow-up`.
+- The matrix should cite evidence from Tree-sitter C# grammar or official language docs, plus CodeGraphy current analyzer behavior when relevant.
