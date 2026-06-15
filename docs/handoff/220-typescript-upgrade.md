@@ -161,3 +161,55 @@ Open questions:
 Safety note:
 
 - A patch was initially applied from the protected checkout by mistake. The protected checkout was restored immediately and verified clean on `main`; the intended edits were reapplied using absolute paths in this worktree.
+
+### 2026-06-15 Count Audit: Needs Human Acceptance
+
+Result: `needs human acceptance`.
+
+User follow-up:
+
+- The acceptance examples must include concrete node and connection counts, e.g. `Then I can see there are 14 nodes and 5 connections`.
+- Those counts must be double-checked against the expected graph output for `examples/`.
+
+Audit method:
+
+- Created and deleted a disposable Vitest probe to run the TypeScript example through the real extension pipeline and graph filters.
+- Verified the disposable probe was removed and no `node_modules` artifacts were left in this worktree.
+- Re-ran acceptance Markdown compilation after updating count expectations.
+
+Measured TypeScript example counts:
+
+- File nodes with no edges: 15 nodes, 0 connections.
+- File nodes plus package node with no edges: 17 nodes, 0 connections.
+- Folder context initial TypeScript example view: 15 nodes, 0 connections.
+- Folder context with Imports toggled on: 15 nodes, 15 connections.
+- Folder context with Imports and Folders/nests toggled on: 18 nodes, 32 connections.
+- Imports edge scenario: 15 nodes, 15 connections.
+- Type imports edge scenario: 15 nodes, 8 connections.
+- TypeScript Alias Import edge scenario: 15 nodes, 1 connection.
+- Function nodes scenario: 21 nodes, 0 connections.
+- Class nodes scenario: 17 nodes, 0 connections.
+- Interface nodes scenario: 17 nodes, 0 connections.
+- Type nodes scenario: 17 nodes, 0 connections.
+- Enum nodes scenario: 16 nodes, 0 connections.
+- Constant nodes scenario: 23 nodes, 0 connections.
+- Calls edge scenario: 25 nodes, 3 connections.
+- Inherits edge scenario: 25 nodes, 2 connections.
+
+Verified edge expectations:
+
+- Imports includes `src/evaluator.ts -> src/contract.ts` and totals 15 import/type-import connections.
+- Type imports totals 8 connections, including `src/config.ts -> src/types.ts`, `src/contract.ts -> src/types.ts`, and `src/evaluator.ts -> src/contract.ts`.
+- TypeScript Alias Import has exactly one connection, `src/index.ts -> src/alias/clock.ts`.
+- Calls has exactly three symbol-level connections: `index.ts -> formatDecision`, `index.ts -> evaluateCheckout`, and `evaluateCheckout -> writeAudit`.
+- Inherits has exactly two symbol-level connections: `PercentageEvaluator -> BaseEvaluator` and `PercentageEvaluator -> FlagEvaluator`.
+
+Validation run:
+
+- `pnpm --filter @codegraphy-dev/extension exec quality-tools acceptance compile --spec "tests/acceptance/specs/**/*.md" --steps "tests/acceptance/steps.ts" --out "/tmp/codegraphy-220-acceptance-counts.spec.ts"` passed.
+- `/Users/poleski/Desktop/Projects/CodeGraphyV4/node_modules/.bin/vitest run --config packages/extension/vitest.config.ts packages/extension/tests/extension/pipeline/examplesWorkspace.test.ts --reporter=verbose` passed after temporary local dependency links were cleaned up.
+
+Human approval status:
+
+- Pending. The reviewed local acceptance Markdown now includes concrete counts that were checked against the example graph output.
+- Do not dispatch Coder until the human accepts or revises the Markdown contract.
