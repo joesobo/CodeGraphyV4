@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: Specifier return complete; acceptance spec pending human review
+- State: paused for human acceptance
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `In Progress`
+- Trello: `Review`
 - Human gate: acceptance contract not approved; acceptance spec Markdown may be changed locally for human review, but must not be treated as accepted until the human approves it.
-- Active role: returning to Orchestrator
-- Next route: Orchestrator verifies the local acceptance-spec change and pauses for human review. Do not route to Coder until the human accepts or revises the spec.
+- Active role: none
+- Next route: wait for human acceptance of the local spec/example changes or route back to Specifier for requested changes. Do not route to Coder until the human accepts or revises the spec.
 
 ## Setup Context
 
@@ -241,3 +241,15 @@
 - Open questions:
   - Same product questions from the prior Specifier handoff remain open for human review: record handling, constructor symbol policy, and whether instance member calls through local/field types should be a separate shallow type-flow feature.
   - The current spec includes exact proposed counts. Human may accept those as the Coder target or request count/coverage adjustments before Coder starts.
+
+### 2026-06-15 Orchestrator Receipt Of Specifier Return
+
+- Verified Specifier return commit on branch and remote: `2c9eaca51 specifier: apply csharp acceptance review spec`.
+- Verified worktree status: clean on `codex/201-csharp-upgrade`.
+- Verified protected checkout status: clean on `main`.
+- Verified actual review artifact exists: `packages/extension/tests/acceptance/specs/csharp-example.md` is modified on the PR branch.
+- Verified supporting research was reframed: `docs/plans/201-csharp-upgrade-specifier-contract.md` is supporting rationale, not the primary review artifact.
+- Verification run by Orchestrator:
+  - `pnpm run check:acceptance-specs` passed.
+- Moved Trello card 201 to `Review` and posted verification breadcrumb.
+- Current human gate: human must review the local changes and either accept the C# acceptance spec/example contract or request changes before the Coder lane begins.
