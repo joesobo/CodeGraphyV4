@@ -1,4 +1,9 @@
-# 201 C# Upgrade Specifier Contract Draft
+# 201 C# Upgrade Specifier Support Matrix
+
+This file is supporting research and rationale for the C# acceptance contract.
+The actual review artifact is the local change to
+`packages/extension/tests/acceptance/specs/csharp-example.md`, which remains
+pending human acceptance.
 
 ## Support Matrix
 
@@ -42,9 +47,11 @@ Classification meanings:
 - Domain files cover `DispatchPriority` enum, `DispatchRequest` struct, and `DispatchTicket` class with a constant, field, parameters, and locals.
 - The README explicitly marks current support versus C# upgrade target gaps.
 
-## Proposed Acceptance Spec Content
+## Applied Acceptance Spec Review Artifact
 
-Do not commit this into `packages/extension/tests/acceptance/specs/csharp-example.md` until the human approves it.
+The following content has been applied locally to
+`packages/extension/tests/acceptance/specs/csharp-example.md` for human review.
+It is not accepted until the human explicitly approves it.
 
 ```md
 # Feature: C# Example
@@ -178,11 +185,11 @@ And src/Services/DispatchRunner.cs points to src/Services/DispatchRunner.cs#loca
 And src/Services/DispatchRunner.cs points to src/Services/DispatchRunner.cs#request:local
 ```
 
-The exact counts above are part of the proposed contract. Coder should prove or adjust them through the failing acceptance test and graph output before asking for final acceptance approval.
+The exact counts above are part of the proposed contract. Coder should prove or adjust them through the failing acceptance test and graph output only after the human accepts or revises this spec.
 
 ## Acceptance Impact Scan
 
-- `packages/extension/tests/acceptance/specs/csharp-example.md` is directly affected. It references the old file names, old edge counts, and old limited node/edge capability list. It must be replaced only after human approval.
+- `packages/extension/tests/acceptance/specs/csharp-example.md` is directly affected and has been replaced locally for review. It remains pending human acceptance.
 - `packages/extension/tests/acceptance/specs/c-example.md` is intentionally unaffected. It remains a pattern reference for symbol/variable Graph Scope coverage and `Contains` edges.
 - `packages/extension/tests/acceptance/specs/cpp-example.md` is intentionally unaffected. It remains the closest pattern for class/enum/function/field/parameter/local acceptance wording.
 - Global acceptance specs that use `examples/example-typescript` are unaffected by this example workspace.

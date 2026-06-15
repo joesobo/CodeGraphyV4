@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: routing back to Specifier
+- State: Specifier return complete; acceptance spec pending human review
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
 - Trello: `In Progress`
 - Human gate: acceptance contract not approved; acceptance spec Markdown may be changed locally for human review, but must not be treated as accepted until the human approves it.
-- Active role: Specifier return
-- Next route: Specifier applies local reviewable acceptance-spec modifications/creations, then Orchestrator verifies and pauses for human review again.
+- Active role: returning to Orchestrator
+- Next route: Orchestrator verifies the local acceptance-spec change and pauses for human review. Do not route to Coder until the human accepts or revises the spec.
 
 ## Setup Context
 
@@ -212,3 +212,32 @@
 - Route back to the existing Specifier lane to apply the C# acceptance-spec changes locally.
 - Acceptance spec Markdown remains unaccepted until the human approves it, even though the Specifier may now modify it locally for review.
 - Moved Trello card 201 back to `In Progress` and posted routing breadcrumb.
+
+### 2026-06-15 Specifier Return Handoff: Local Acceptance Spec Review Artifact
+
+- result: needs human acceptance.
+- Human correction applied:
+  - `packages/extension/tests/acceptance/specs/csharp-example.md` now contains the reviewable local C# acceptance spec change.
+  - The spec change is pending human review and is not accepted.
+  - No generated Playwright files, step bindings, fixtures, unit tests, or production implementation were changed.
+- Files changed in this return:
+  - `packages/extension/tests/acceptance/specs/csharp-example.md`
+  - `docs/plans/201-csharp-upgrade-specifier-contract.md`
+  - `docs/handoff/201-csharp-upgrade.md`
+- Acceptance spec status:
+  - Local review artifact exists.
+  - Human approval status: pending.
+  - The Coder lane must not begin until the human explicitly accepts this spec or requests changes and those changes are applied.
+- Supporting research matrix status:
+  - Kept `docs/plans/201-csharp-upgrade-specifier-contract.md` as supporting research and rationale.
+  - Adjusted the plan so it no longer presents itself as the primary review artifact.
+  - The actual review artifact is now `packages/extension/tests/acceptance/specs/csharp-example.md`.
+- Commands run:
+  - `pnpm run check:acceptance-specs` passed.
+  - Temporary `.NET` build of `examples/example-csharp/src` passed with `0 Warning(s)` and `0 Error(s)`.
+  - No generated Playwright or production implementation commands were run.
+- Protected checkout:
+  - Verified `/Users/poleski/Desktop/Projects/CodeGraphyV4` remains clean on `main`.
+- Open questions:
+  - Same product questions from the prior Specifier handoff remain open for human review: record handling, constructor symbol policy, and whether instance member calls through local/field types should be a separate shallow type-flow feature.
+  - The current spec includes exact proposed counts. Human may accept those as the Coder target or request count/coverage adjustments before Coder starts.
