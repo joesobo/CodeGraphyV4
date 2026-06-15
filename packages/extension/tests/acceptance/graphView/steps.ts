@@ -691,9 +691,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the Imports edge on$/, async (context) => {
-    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
+    const frame = requireGraphFrame(context);
+    await openGraphScopeSection(context, 'Edge Types');
     await setPanelSwitch(context, 'Imports', true);
     await setPanelSwitch(context, 'Type imports', true);
+    await closePanelIfOpen(frame);
   }),
 
   step(/^I toggle the (.+) edge on$/, async (context, _step, match) => {
