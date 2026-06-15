@@ -1,4 +1,4 @@
-import type { EffectController, EffectRuntime } from './shared';
+import type { EffectController, EffectRuntime } from '../runtime';
 
 interface RainDrop {
   x: number;

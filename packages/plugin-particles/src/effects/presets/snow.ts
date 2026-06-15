@@ -1,4 +1,4 @@
-import { rgba, type EffectController, type EffectRuntime } from './shared';
+import { rgba, type EffectController, type EffectRuntime } from '../runtime';
 
 interface Snowflake {
   x: number;

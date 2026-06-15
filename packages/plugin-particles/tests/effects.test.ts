@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createLeavesEffect } from '../src/effects/leaves';
-import { createPerlinFlowEffect } from '../src/effects/perlinFlow';
-import { createRainEffect } from '../src/effects/rain';
-import { createSnowEffect } from '../src/effects/snow';
-import { rgba, type EffectRuntime } from '../src/effects/shared';
+import { createLeavesEffect } from '../src/effects/presets/leaves';
+import { createPerlinFlowEffect } from '../src/effects/presets/perlinFlow';
+import { createRainEffect } from '../src/effects/presets/rain';
+import { createSnowEffect } from '../src/effects/presets/snow';
+import { rgba, type EffectRuntime } from '../src/effects/runtime';
 
 const ROOT_PREWARM_SECONDS = 72;
 
