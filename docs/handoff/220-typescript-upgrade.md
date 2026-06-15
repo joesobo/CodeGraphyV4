@@ -213,3 +213,37 @@ Human approval status:
 
 - Pending. The reviewed local acceptance Markdown now includes concrete counts that were checked against the example graph output.
 - Do not dispatch Coder until the human accepts or revises the Markdown contract.
+
+### 2026-06-15 Coding State: TypeScript Acceptance Executed
+
+Result: `focused playwright green`.
+
+Human gate:
+
+- User accepted the local acceptance/example changes by committing and pushing `e86510d12 human review`.
+- Coder state began from that accepted contract.
+
+Implementation:
+
+- Generated executable Playwright acceptance output from the accepted Markdown.
+- Added a unit regression test proving the combined `I toggle the Imports edge on` acceptance step enables both `Imports` and `Type imports`.
+- Fixed the Graph View acceptance step ordering so the special `Imports` step is resolved before the generic `I toggle the (.+) edge on` step.
+- Fixed the special `Imports` step to use `openGraphScopeSection(context, 'Edge Types')` before toggling switches, matching the robust generic helper behavior.
+- No TypeScript production analyzer changes were needed; existing Tree-sitter and TypeScript plugin support already satisfied the accepted TypeScript graph behavior once the acceptance step selected the intended edge filters.
+
+Red/green evidence:
+
+- First Mac mini focused VS Code Playwright run failed `TypeScript example renders feature-flag rollout file relationships without the plugin`: expected 15 connections after `I toggle the Imports edge on`, saw 7.
+- Unit regression failed before the fix with `Imports: 1, Type imports: 0`.
+- After step-ordering and panel-opening fixes, the unit regression passed.
+- Final Mac mini focused VS Code Playwright run passed all five TypeScript example scenarios.
+
+Validation runs:
+
+- Local: `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/acceptanceGraphViewStepResolution.test.ts tests/acceptanceSteps.test.ts --reporter=verbose` passed.
+- Local pre-commit: acceptance spec ownership check, `turbo run typecheck`, and lint-staged ESLint passed.
+- Remote Mac mini: `CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE=interactions CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS=1 pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "TypeScript example"` passed with `5 passed (1.7m)`.
+
+Safety note:
+
+- During remote setup, Orchestrator used `git reset --hard origin/codex/220-typescript-upgrade` in the isolated Mac mini worktree. No protected checkout was touched, and the later remote update used `git merge --ff-only`.
