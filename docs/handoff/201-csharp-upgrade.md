@@ -6,8 +6,8 @@
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
-- Draft PR: pending
-- Trello: pending move from `Todo` to `In Progress`
+- Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
+- Trello: `In Progress`
 - Human gate: acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
 - Next route: finish grill-with-docs alignment, then dispatch Specifier.
 
@@ -58,3 +58,6 @@
 - Fetched Trello card 201 and confirmed there are no card comments.
 - Confirmed prior GitHub PRs for this head branch are closed and no active branch exists.
 - Began setup before role dispatch, per the orchestrator loop.
+- Opened draft PR 277: https://github.com/joesobo/CodeGraphyV4/pull/277.
+- Moved Trello card 201 to `In Progress`.
+- Added Trello breadcrumb comment with branch, worktree, PR, handoff, and current loop state.
