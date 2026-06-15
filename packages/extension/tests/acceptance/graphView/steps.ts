@@ -690,6 +690,12 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await showNoEdgeTypes(context);
   }),
 
+  step(/^I toggle the Imports edge on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
+    await setPanelSwitch(context, 'Imports', true);
+    await setPanelSwitch(context, 'Type imports', true);
+  }),
+
   step(/^I toggle the (.+) edge on$/, async (context, _step, match) => {
     await toggleEdgeTypeOn(context, match[1]);
   }),
@@ -803,12 +809,6 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
       targetName: match[3],
       targetFilePath: match[4],
     });
-  }),
-
-  step(/^I toggle the Imports edge on$/, async (context) => {
-    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
-    await setPanelSwitch(context, 'Imports', true);
-    await setPanelSwitch(context, 'Type imports', true);
   }),
 
   step(/^I toggle the Folder node on$/, async (context) => {
