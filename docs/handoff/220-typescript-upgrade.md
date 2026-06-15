@@ -313,3 +313,23 @@ Safety:
 Blockers:
 
 - None.
+
+### 2026-06-15 Architect Dispatch
+
+Result: `dispatched`.
+
+Inputs:
+
+- Branch: `codex/220-typescript-upgrade`.
+- Worktree: `/Users/poleski/.codex/worktrees/220-typescript-upgrade/CodeGraphyV4`.
+- PR: #278.
+- Coder evidence: focused TypeScript VS Code Playwright passed on `codegraphy-mini` with `5 passed (1.7m)`.
+- Refactorer evidence: organize, boundaries, reachability, scrap, lint, typecheck, and focused Vitest passed; refactorer pushed `5f131149e refactorer: clean generated acceptance lint`.
+
+Task:
+
+- Run the Architect loop from `docs/agents/loops/architect.md`.
+- Review mutation/site risk for touched files and choose a scoped mutation strategy if warranted.
+- Review architecture/release hygiene, docs and changeset needs, PR body, and latest CI state.
+- Preserve accepted TypeScript behavior and human-owned acceptance specs.
+- Return with final readiness evidence, commits pushed, and any blockers or route-back needs.
