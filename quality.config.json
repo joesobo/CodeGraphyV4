@@ -323,7 +323,9 @@
       },
       "boundaries": {
         "entrypoints": [
-          "src/plugin.ts"
+          "src/plugin.ts",
+          "src/effects.ts",
+          "src/webview.tsx"
         ]
       }
     },
