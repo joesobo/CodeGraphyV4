@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
-When I right click the edge going from src/index.ts node to src/types.ts node to open its Graph Context Menu
+When I right click the edge going from src/index.ts node to src/format.ts node to open its Graph Context Menu
 And I see the "Open Source" entry
 And I see the "Open Target" entry
 And I see the "Copy Source Path" entry

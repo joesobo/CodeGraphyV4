@@ -102,7 +102,7 @@ And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Typescript Alias Import edge on
 Then the top right of the graph says "1 connection"
-And src/index.ts points to src/alias/greeting.ts
+And src/index.ts points to src/alias/clock.ts
 
 ## Scenario: Inherits edges work
 

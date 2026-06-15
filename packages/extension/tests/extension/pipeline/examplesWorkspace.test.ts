@@ -173,16 +173,16 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
       'example-javascript/src/index.js->example-javascript/src/utils.js#buildGreeting:function#import',
       'example-javascript/src/index.js->example-javascript/src/user.js#normalizeUserName:function#import',
       'example-javascript/src/utils.js->example-javascript/src/depth.js#getDepthTarget:function#import',
-      'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
-      'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
-      'example-typescript/src/utils.ts->example-typescript/src/depth.ts#getDepthTarget:function#import',
-      'example-typescript/src/index.ts->example-typescript/src/alias/greeting.ts#codegraphy.typescript:alias-import',
+      'example-typescript/src/index.ts->example-typescript/src/format.ts#formatDecision:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/types.ts#RolloutRequest:type#type-import',
+      'example-typescript/src/rollout.ts->example-typescript/src/audit.ts#writeAudit:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/alias/clock.ts#codegraphy.typescript:alias-import',
     ];
 
     const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
     expect(missingEdgeIds).toEqual([]);
     expect(nodeIds.has('example-javascript/src/index.js#currentUser:constant')).toBe(true);
-    expect(nodeIds.has('example-typescript/src/index.ts#currentUser:constant')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/index.ts#demoRequest:constant')).toBe(true);
     expect(graph.nodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'example-javascript/src/index.js#currentUser:constant',
@@ -193,11 +193,11 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
         }),
       }),
       expect.objectContaining({
-        id: 'example-typescript/src/index.ts#currentUser:constant',
+        id: 'example-typescript/src/index.ts#demoRequest:constant',
         nodeType: 'variable',
         symbol: expect.objectContaining({
           kind: 'constant',
-          name: 'currentUser',
+          name: 'demoRequest',
         }),
       }),
     ]));
@@ -240,11 +240,15 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
       expect.arrayContaining([
         'example-typescript/src/index.ts',
         'example-typescript/src/orphan.ts',
-        'example-typescript/src/utils.ts',
-        'example-typescript/src/depth.ts',
-        'example-typescript/src/leaf.ts',
+        'example-typescript/src/format.ts',
+        'example-typescript/src/rollout.ts',
+        'example-typescript/src/audit.ts',
+        'example-typescript/src/config.ts',
+        'example-typescript/src/evaluator.ts',
+        'example-typescript/src/baseEvaluator.ts',
+        'example-typescript/src/contract.ts',
         'example-typescript/src/types.ts',
-        'example-typescript/src/alias/greeting.ts',
+        'example-typescript/src/alias/clock.ts',
       ]),
     );
   });
@@ -267,7 +271,7 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
     const nodeIds = new Set(graph.nodes.map((node) => node.id));
 
     expect(nodeIds.has('example-typescript/src/index.ts')).toBe(true);
-    expect(nodeIds.has('example-typescript/src/utils.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/format.ts')).toBe(true);
     expect(nodeIds.has('example-typescript/src/types.ts')).toBe(true);
   });
 });

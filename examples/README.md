@@ -64,7 +64,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 
 | Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
-| `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser`; `AppRunner` extends `BaseRunner` and implements `RunnableThing` for TypeScript inheritance coverage. |
+| `example-typescript` | `src/index.ts` imports `formatDecision`, calls `evaluateCheckout`, type-imports `RolloutRequest`, and declares `demoRequest`; `PercentageEvaluator` extends `BaseEvaluator` and implements `FlagEvaluator` for TypeScript inheritance coverage. |
 | `example-javascript` | `src/index.js` imports `buildGreeting`, calls through `normalizeUserName`, and declares `currentUser`; `AppRunner` imports `RunnableThing` and extends `BaseRunner` for JavaScript import and inheritance coverage. |
 | `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, interface inheritance, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. `enemy.gd` extends a file-backed base entity while Godot `class_name` declarations appear under Variable. |

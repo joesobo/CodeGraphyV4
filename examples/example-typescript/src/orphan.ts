@@ -1,1 +1,1 @@
-export const ORPHAN_MESSAGE = 'This file is intentionally disconnected.';
+export const archivedMigrationNote = 'Legacy rollout migrations are tracked outside the app entrypoint.';

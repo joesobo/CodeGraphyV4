@@ -7,9 +7,9 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Package node types
-Then I can see there are 16 nodes and 0 connections
+Then I can see there are 17 nodes and 0 connections
 And pkg:workspace:. is an orphan node
-And pkg:@example/greeting is an orphan node
+And pkg:@example/clock is an orphan node
 
 ## Scenario: Symbol node type gates symbol children
 
@@ -68,8 +68,9 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Interface node types
-Then I can see there are 15 nodes and 0 connections
-And src/runnableThing.ts#RunnableThing:interface is an orphan node
+Then I can see there are 17 nodes and 0 connections
+And src/contract.ts#FlagEvaluator:interface is an orphan node
+And src/types.ts#FeatureFlag:interface is an orphan node
 
 ## Scenario: Type node type works
 
@@ -78,8 +79,9 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Type node types
-Then I can see there are 15 nodes and 0 connections
-And src/types.ts#UserName:type is an orphan node
+Then I can see there are 17 nodes and 0 connections
+And src/types.ts#RolloutRequest:type is an orphan node
+And src/types.ts#RolloutDecision:type is an orphan node
 
 ## Scenario: Struct node type works
 

@@ -1,10 +1,13 @@
 # TypeScript Example
 
-This example workspace is used by CodeGraphy's extension-host e2e tests and doubles
-as a small TypeScript project you can open in VS Code to try the Graph View.
+This example workspace is used by CodeGraphy's extension-host e2e tests and
+doubles as a small TypeScript project you can open in VS Code to try the Graph
+View.
 
-It intentionally includes a top-level constant so the Graph Scope **Variable**
-toggle has a concrete node to show when **Symbol** is also enabled.
+The source models a compact feature-flag rollout flow: an app entrypoint builds a
+request, evaluates a checkout flag, writes an audit string, and formats the
+decision. It intentionally keeps one disconnected file so the Graph View still
+has an Orphan Node to show.
 
 Suggested Depth Mode check:
 
@@ -16,9 +19,10 @@ Suggested Depth Mode check:
 
 Expected behavior:
 
-- Depth `1` shows `src/index.ts`, `src/utils.ts`, and `src/types.ts`.
-- Depth `2` adds `src/depth.ts`.
-- Depth `3` adds `src/leaf.ts`.
+- Depth `1` shows `src/index.ts`, `src/format.ts`, `src/rollout.ts`, and
+  `src/types.ts`.
+- Depth `2` adds `src/audit.ts`, `src/config.ts`, and `src/evaluator.ts`.
+- Depth `3` adds `src/baseEvaluator.ts` and `src/contract.ts`.
 - `src/orphan.ts` stays out of the focused depth area because it is an Orphan Node.
 
 ## Graph Screenshot
@@ -31,14 +35,18 @@ Suggested symbol check:
 
 1. Open `src/index.ts`.
 2. In Graph Scope, enable **Symbol** and **Variable**.
-3. Search for `buildGreeting`, `UserName`, `AppRunner`, `BaseRunner`, `RunnableThing`, and `currentUser`.
+3. Search for `evaluateCheckout`, `RolloutDecision`,
+   `PercentageEvaluator`, `BaseEvaluator`, `FlagEvaluator`, `RolloutStage`,
+   and `demoRequest`.
 
 Expected behavior:
 
-- `buildGreeting` appears as a Function symbol imported from `src/utils.ts`.
-- `UserName` appears as a Type symbol reached through a type-only import.
-- `AppRunner` extends `BaseRunner` and implements `RunnableThing`, giving the TypeScript example an inheritance edge pair.
-- `currentUser` appears as a Variable node, giving the tiny app a file/function/type/value story.
+- `evaluateCheckout` appears as a Function symbol imported from `src/rollout.ts`.
+- `RolloutDecision` appears as a Type symbol reached through type-only imports.
+- `PercentageEvaluator` extends `BaseEvaluator` and implements
+  `FlagEvaluator`, giving the TypeScript example an inheritance edge pair.
+- `RolloutStage` appears as an Enum symbol and `demoRequest` appears as a
+  Constant node, giving the tiny app a file/function/type/value story.
 
 ## TypeScript Plugin Alias Demo
 
@@ -60,6 +68,6 @@ Suggested alias check:
 
 Expected behavior:
 
-- `src/index.ts` imports `@example/greeting`.
-- The TypeScript plugin resolves that alias to `src/alias/greeting.ts`.
+- `src/index.ts` imports `@example/clock`.
+- The TypeScript plugin resolves that alias to `src/alias/clock.ts`.
 - The original relative-import graph still works when the TypeScript plugin is not enabled.

@@ -1,9 +1,13 @@
-import { buildAliasGreeting } from '@example/greeting';
-import { formatUser } from './types';
-import type { UserName } from './types';
-import { buildGreeting } from './utils';
+import { readClock } from '@example/clock';
+import { formatDecision } from './format';
+import { evaluateCheckout } from './rollout';
+import type { RolloutRequest } from './types';
 
-export const currentUser: UserName = formatUser('CodeGraphy');
+export const demoRequest: RolloutRequest = {
+  userId: 'pilot-user',
+  requestedAt: readClock(),
+};
 
-console.log(buildGreeting(currentUser));
-console.log(buildAliasGreeting(currentUser));
+const decision = evaluateCheckout(demoRequest);
+
+console.log(formatDecision(decision));
