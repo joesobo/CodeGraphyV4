@@ -505,6 +505,21 @@ Change:
 - Relaxed the dropped-position acceptance helper tolerance from `18` pixels to `24` pixels.
 - This remains tight enough to prove the node stayed near its dropped position while covering CI renderer rounding/settling drift.
 
+### 2026-06-15 Playwright Language Shard Log Streaming
+
+Result: `CI log streaming fix applied`.
+
+Evidence:
+
+- Latest-head CI run `27577611321` passed `Playwright / Graph interactions` after the drag tolerance fix.
+- `Playwright / Language examples` was the only non-green job and was cancelled twice after about 15 minutes.
+- The completed language job log showed Turbo starting `test:playwright` at `21:47:25Z`, then no package/test progress output until GitHub cancelled the operation at `22:01:40Z`.
+
+Change:
+
+- Updated `scripts/run-playwright-turbo.mjs` to pass `--ui=stream` and `--log-order=stream` to Turbo.
+- This keeps long Playwright shards emitting package/test progress instead of waiting for grouped task output.
+
 ### 2026-06-15 Architect CI Follow-up: Generic TypeScript Secondary Node
 
 Result: `needs CI verification on latest head`.

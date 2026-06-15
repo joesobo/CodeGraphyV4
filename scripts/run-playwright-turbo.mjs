@@ -86,6 +86,8 @@ const turboArgs = [
   'turbo',
   'run',
   'test:playwright',
+  '--ui=stream',
+  '--log-order=stream',
   ...packageNames.map((packageName) => `--filter=${packageName}`),
   ...passthroughArgs,
 ];
