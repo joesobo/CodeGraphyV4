@@ -103,3 +103,9 @@
 - The matrix should cover Tree-sitter-derived C# `symbols`, `variables`, and `edges`.
 - Each row should be classified as `in acceptance`, `implementation gap`, or `follow-up`.
 - The matrix should cite evidence from Tree-sitter C# grammar or official language docs, plus CodeGraphy current analyzer behavior when relevant.
+
+### 2026-06-15 Human Alignment Decision: Specifier Example Ownership
+
+- Human decision: the Specifier may update `examples/example-csharp` source and README files during its pass.
+- The example is part of the acceptance contract foundation for this loop, so the Specifier owns shaping it around the researched C# Tree-sitter support surface.
+- Human-owned acceptance spec Markdown remains gated: the Specifier may propose changes but must not commit `packages/extension/tests/acceptance/specs/**/*.md` without explicit human approval.
