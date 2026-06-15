@@ -83,3 +83,9 @@
 - The support target explicitly includes Tree-sitter-derived symbols, variables, and edges.
 - Full C# semantic/project support is out of scope for the built-in baseline unless it is already available through Tree-sitter-backed extraction.
 - Future custom or user-provided C# plugins may add richer language or project semantics later.
+
+### 2026-06-15 Human Alignment Decision: Example Shape
+
+- Human decision: upgrade `examples/example-csharp` into one cohesive, believable C# project.
+- The project should naturally cover all C# features CodeGraphy supports out of the box through Tree-sitter.
+- The example should not become a syntax museum or a collection of isolated feature files; feature coverage should come from a real small project shape.
