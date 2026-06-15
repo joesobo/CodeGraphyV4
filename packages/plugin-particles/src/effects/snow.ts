@@ -20,7 +20,7 @@ interface Snowflake {
 
 export function createSnowEffect(runtime: EffectRuntime): EffectController {
   const flakes: Snowflake[] = [];
-  const flakeCount = 105;
+  const flakeCount = 150;
 
   const makeFlake = (
     width: number,
@@ -37,9 +37,9 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
       previousX: x,
       previousY: y,
       vx: -0.08 + Math.random() * 0.16,
-      vy: 0.12 + depth * 0.62 + Math.random() * 0.18,
+      vy: 0.12 + depth * 0.1 + Math.random() * 0.12,
       radius: 0.35 + depth * 1.85 + Math.random() * 0.5,
-      alpha: 0.06 + depth * 0.26 + Math.random() * 0.08,
+      alpha: 0.06 + depth * 0.2 + Math.random() * 0.08,
       depth,
       drift: Math.random() * Math.PI * 2,
       driftSpeed: 0.006 + Math.random() * 0.018,

@@ -50,7 +50,8 @@
   "pluginData": {
     "codegraphy.particles": {
       "enabled": true,
-      "preset": "rain"
+      "preset": "custom",
+      "customEffectId": "fireflies"
     }
   },
   "nodeColors": {

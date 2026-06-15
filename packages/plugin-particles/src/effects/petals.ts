@@ -15,7 +15,7 @@ interface Petal {
 
 export function createPetalsEffect(runtime: EffectRuntime): EffectController {
   const petals: Petal[] = [];
-  const petalCount = 30;
+  const petalCount = 50;
   const makePetal = (width: number, prewarmed = false): Petal => ({
     x: prewarmed ? Math.random() * width : -30 - Math.random() * Math.min(width * 0.2, 140),
     y: -10 - Math.random() * 40,

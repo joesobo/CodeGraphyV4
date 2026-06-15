@@ -10,7 +10,7 @@ interface Star {
 }
 
 export function createConstellationsEffect(runtime: EffectRuntime): EffectController {
-  const starCount = 50;
+  const starCount = 150;
   const connectDist = 120;
   let stars = makeStars(runtime.width, runtime.height, starCount);
   let time = 0;

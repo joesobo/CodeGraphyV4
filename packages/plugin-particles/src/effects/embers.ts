@@ -18,7 +18,7 @@ export function createEmbersEffect(runtime: EffectRuntime): EffectController {
     x: Math.random() * width,
     y: height + Math.random() * 40,
     vx: (Math.random() - 0.5) * 0.3,
-    vy: -0.3 - Math.random() * 0.8,
+    vy: -0.3 - Math.random() * 0.5,
     r: 0.3 + Math.random() * 0.6,
     life: 0,
     maxLife: 220 + Math.random() * 220,
