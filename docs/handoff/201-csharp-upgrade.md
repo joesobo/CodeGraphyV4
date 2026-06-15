@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: Specifier complete; needs human acceptance
+- State: paused for human acceptance
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `In Progress`
+- Trello: `Review`
 - Human gate: acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
-- Active role: returning to Orchestrator
-- Next route: read Specifier handoff, then pause for human acceptance test commit or route back to Specifier for requested changes.
+- Active role: none
+- Next route: wait for human acceptance of the example/support contract and proposed C# acceptance spec, or route back to Specifier for requested changes.
 
 ## Setup Context
 
@@ -190,3 +190,17 @@
   - Should instance member calls through local/field types become a separate shallow type-flow feature after this Tree-sitter baseline upgrade?
 - Safety note:
   - During the Specifier pass, an initial absolute-path omission caused example edits to land briefly in the protected checkout. The Specifier immediately restored the tracked files with `git restore`, moved the untracked created files to Trash with `trash`, and verified the protected checkout returned to a clean status before continuing in the isolated worktree.
+
+### 2026-06-15 Orchestrator Receipt Of Specifier Handoff
+
+- Verified Specifier commit on branch and remote: `4bdd0f059 specifier: define csharp upgrade contract`.
+- Verified worktree status: clean on `codex/201-csharp-upgrade`.
+- Verified protected checkout status: clean on `main`.
+- Verified no human-owned acceptance spec Markdown changed: `git diff --name-only origin/main...HEAD -- 'packages/extension/tests/acceptance/specs/**/*.md'` returned no paths.
+- Reviewed proposed contract path: `docs/plans/201-csharp-upgrade-specifier-contract.md`.
+- Reviewed changed example source/README shape under `examples/example-csharp`.
+- Verification run by Orchestrator:
+  - `pnpm run check:acceptance-specs` passed.
+  - Temporary `.NET` build of `examples/example-csharp/src` passed with `0 Warning(s)` and `0 Error(s)`.
+- Moved Trello card 201 to `Review` and posted verification breadcrumb.
+- Current human gate: human must approve the example/support contract and proposed C# acceptance spec before the Coder lane may begin.
