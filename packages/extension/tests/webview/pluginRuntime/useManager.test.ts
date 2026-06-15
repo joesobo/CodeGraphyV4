@@ -81,6 +81,64 @@ describe('usePluginManager', () => {
     expect(links).toHaveLength(1);
   });
 
+  it('removes plugin stylesheet links when plugin assets are reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'style-plugin',
+        scripts: [],
+        styles: ['https://example.com/style.css'],
+      });
+    });
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(1);
+
+    result.current.resetPluginAssets('style-plugin');
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(0);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'style-plugin',
+        scripts: [],
+        styles: ['https://example.com/style.css'],
+      });
+    });
+
+    const links = document.head.querySelectorAll('link[rel="stylesheet"]');
+    expect(links).toHaveLength(1);
+    expect((links[0] as HTMLLinkElement).href).toContain('style.css');
+  });
+
+  it('keeps a shared stylesheet while another plugin still owns it', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const sharedStyle = 'https://example.com/shared.css';
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'plugin-a',
+        scripts: [],
+        styles: [sharedStyle],
+      });
+      await result.current.injectPluginAssets({
+        pluginId: 'plugin-b',
+        scripts: [],
+        styles: [sharedStyle],
+      });
+    });
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(1);
+
+    result.current.resetPluginAssets('plugin-a');
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(1);
+
+    result.current.resetPluginAssets('plugin-b');
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(0);
+  });
+
   it('injects multiple styles without duplication', async () => {
     const { result } = renderHook(() => usePluginManager());
 

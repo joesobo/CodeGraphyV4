@@ -25,10 +25,14 @@ export interface IPluginManager {
 interface PluginManagerRefs {
   activatedScriptKeys: MutableRefObject<Set<string>>;
   activatingScriptPromises: MutableRefObject<Map<string, Promise<void>>>;
-  loadedStyles: MutableRefObject<Set<string>>;
+  loadedStyles: MutableRefObject<Map<string, {
+    link: HTMLLinkElement;
+    pluginIds: Set<string>;
+  }>>;
   pluginActivationCleanups: MutableRefObject<Map<string, Set<{ dispose(): void }>>>;
   pluginApis: MutableRefObject<Map<string, CodeGraphyWebviewAPI>>;
   pluginAssetVersions: MutableRefObject<Map<string, number>>;
+  pluginStyles: MutableRefObject<Map<string, Set<string>>>;
   pluginData: MutableRefObject<Map<string, unknown>>;
   pluginHost: MutableRefObject<WebviewPluginHost>;
 }
@@ -47,8 +51,15 @@ function getPluginApi(refs: Pick<PluginManagerRefs, 'pluginApis' | 'pluginData' 
   return api;
 }
 
-function injectPluginStyle(refs: Pick<PluginManagerRefs, 'loadedStyles'>, style: string): void {
-  if (refs.loadedStyles.current.has(style)) {
+function injectPluginStyle(
+  refs: Pick<PluginManagerRefs, 'loadedStyles' | 'pluginStyles'>,
+  pluginId: string,
+  style: string,
+): void {
+  const existing = refs.loadedStyles.current.get(style);
+  if (existing) {
+    existing.pluginIds.add(pluginId);
+    addPluginStyleOwner(refs, pluginId, style);
     return;
   }
 
@@ -56,7 +67,49 @@ function injectPluginStyle(refs: Pick<PluginManagerRefs, 'loadedStyles'>, style:
   link.rel = 'stylesheet';
   link.href = style;
   document.head.appendChild(link);
-  refs.loadedStyles.current.add(style);
+  refs.loadedStyles.current.set(style, {
+    link,
+    pluginIds: new Set([pluginId]),
+  });
+  addPluginStyleOwner(refs, pluginId, style);
+}
+
+function addPluginStyleOwner(
+  refs: Pick<PluginManagerRefs, 'pluginStyles'>,
+  pluginId: string,
+  style: string,
+): void {
+  let styles = refs.pluginStyles.current.get(pluginId);
+  if (!styles) {
+    styles = new Set();
+    refs.pluginStyles.current.set(pluginId, styles);
+  }
+  styles.add(style);
+}
+
+function resetPluginStyles(
+  refs: Pick<PluginManagerRefs, 'loadedStyles' | 'pluginStyles'>,
+  pluginId: string,
+): void {
+  const styles = refs.pluginStyles.current.get(pluginId);
+  if (!styles) {
+    return;
+  }
+
+  for (const style of styles) {
+    const loadedStyle = refs.loadedStyles.current.get(style);
+    if (!loadedStyle) {
+      continue;
+    }
+
+    loadedStyle.pluginIds.delete(pluginId);
+    if (loadedStyle.pluginIds.size === 0) {
+      loadedStyle.link.remove();
+      refs.loadedStyles.current.delete(style);
+    }
+  }
+
+  refs.pluginStyles.current.delete(pluginId);
 }
 
 async function runPluginActivation(
@@ -172,11 +225,15 @@ function resetPluginScriptState(
 export function usePluginManager(): IPluginManager {
   const pluginHostRef = useRef<WebviewPluginHost>(new WebviewPluginHost());
   const pluginApisRef = useRef<Map<string, CodeGraphyWebviewAPI>>(new Map());
-  const loadedStylesRef = useRef<Set<string>>(new Set());
+  const loadedStylesRef = useRef<Map<string, {
+    link: HTMLLinkElement;
+    pluginIds: Set<string>;
+  }>>(new Map());
   const activatedScriptKeysRef = useRef<Set<string>>(new Set());
   const activatingScriptPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
   const pluginActivationCleanupsRef = useRef<Map<string, Set<{ dispose(): void }>>>(new Map());
   const pluginAssetVersionsRef = useRef<Map<string, number>>(new Map());
+  const pluginStylesRef = useRef<Map<string, Set<string>>>(new Map());
   const pluginDataRef = useRef<Map<string, unknown>>(new Map());
 
   return useMemo(() => {
@@ -187,13 +244,14 @@ export function usePluginManager(): IPluginManager {
       pluginActivationCleanups: pluginActivationCleanupsRef,
       pluginApis: pluginApisRef,
       pluginAssetVersions: pluginAssetVersionsRef,
+      pluginStyles: pluginStylesRef,
       pluginData: pluginDataRef,
       pluginHost: pluginHostRef,
     };
 
     async function injectPluginAssets(payload: PluginInjectPayload): Promise<void> {
       for (const style of payload.styles) {
-        injectPluginStyle(refs, style);
+        injectPluginStyle(refs, payload.pluginId, style);
       }
 
       for (const script of payload.scripts) {
@@ -219,6 +277,7 @@ export function usePluginManager(): IPluginManager {
         (pluginAssetVersionsRef.current.get(pluginId) ?? 0) + 1,
       );
       resetPluginScriptState(refs, pluginId);
+      resetPluginStyles(refs, pluginId);
     }
 
     function updatePluginData(pluginId: string, data: unknown): void {
