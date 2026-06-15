@@ -8,7 +8,7 @@
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
 - Trello: `Review`
-- Human gate: grill-with-docs alignment question pending; acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
+- Human gate: grill-with-docs alignment in progress; acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
 - Next route: finish grill-with-docs alignment, then dispatch Specifier.
 
 ## Setup Context
@@ -68,3 +68,11 @@
 - Posted Trello pause breadcrumb.
 - First question: should the C# acceptance contract stay limited to currently declared visible C# capabilities (`Function`, `Class`, `Interface`, `Struct`, `Enum`; `Imports`, `References`, `Calls`, `Inherits`), or should this loop include a planned C# variable-node capability expansion too?
 - Orchestrator recommendation: keep this loop limited to currently declared visible C# capabilities, and create follow-up Plugin/Core cards for variable-node support if the support audit shows C# variable extraction is worth adding.
+
+### 2026-06-15 Human Alignment Decision
+
+- Human decision: start by upgrading `examples/example-csharp` into a strong C# project example, but only after auditing what C# Tree-sitter support can actually provide.
+- The Specifier should frame the example around the supportable C# Tree-sitter surface, then identify whether current CodeGraphy support matches that supportable surface.
+- If there are gaps between supportable Tree-sitter-backed C# constructs and current CodeGraphy capability declarations or extraction, this loop should include the required support upgrade before acceptance coverage is finalized.
+- Acceptance spec Markdown comes after the example/support contract is clear and should be based on the upgraded C# example plus all supported C# capabilities.
+- The Coder later owns implementing the approved acceptance support, generated tests, unit tests, and production changes needed to make the contract pass.
