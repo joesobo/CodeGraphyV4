@@ -20,6 +20,7 @@ const SNAPSHOT: ISettingsSnapshot = {
   filterPatterns: ['dist/**'],
   disabledCustomFilterPatterns: ['build/**'],
   disabledPluginFilterPatterns: ['plugin/**'],
+  pluginData: {},
   showOrphans: false,
   bidirectionalMode: 'combined',
   directionMode: 'particles',

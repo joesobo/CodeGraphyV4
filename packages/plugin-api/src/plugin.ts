@@ -28,6 +28,15 @@ import type { IGraphViewContributions } from './graphView';
 export interface IPluginWebviewContributions {
   scripts?: string[];
   styles?: string[];
+  assets?: IPluginWebviewAsset[];
+}
+
+export interface IPluginWebviewAsset {
+  id: string;
+  label: string;
+  path: string;
+  kind?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IPluginGraphScopeCapabilityContext {

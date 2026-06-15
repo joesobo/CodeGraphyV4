@@ -8,6 +8,7 @@ import { applyFilterPatternsUpdate } from '../filterPatterns';
 import { applyShowLabelsUpdate } from '../labels';
 import { applySimpleSettingsUpdate } from '../simple';
 import { applyParticleSettingMessage } from './particle';
+import { applyPluginDataMessage } from './pluginData';
 
 export async function applyDirectSettingsUpdateMessage(
   message: WebviewToExtensionMessage,
@@ -33,6 +34,10 @@ export async function applyStatelessSettingsUpdateMessage(
   }
 
   if (await applyParticleSettingMessage(message, handlers)) {
+    return true;
+  }
+
+  if (await applyPluginDataMessage(message, handlers)) {
     return true;
   }
 
