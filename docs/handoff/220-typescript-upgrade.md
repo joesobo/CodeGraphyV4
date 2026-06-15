@@ -476,6 +476,20 @@ Gate:
 - Updating `packages/extension/tests/acceptance/specs/graph-navigation.md`, `graph-view.md`, or `graph-scope-edge-types.md` would change human-owned acceptance Markdown.
 - Orchestrator must get human approval or route back through the acceptance-spec gate before changing those count expectations.
 
+### 2026-06-15 Human-Approved Count Corrections
+
+Result: `accepted count corrections applied`.
+
+Approval:
+
+- User explicitly approved updating the exact proposed count changes from the graph-interaction reproduction.
+
+Changes:
+
+- `packages/extension/tests/acceptance/specs/graph-navigation.md`: visible graph nodes changed from `15` to `16` in both zoom-fit assertions.
+- `packages/extension/tests/acceptance/specs/graph-view.md`: initial usable TypeScript graph count changed from `15 nodes` / `8 connections` to `16 nodes` / `9 connections`.
+- `packages/extension/tests/acceptance/specs/graph-scope-edge-types.md`: Imports edge scenario changed from `9 connections` to `13 connections`.
+
 ### 2026-06-15 Architect CI Follow-up: Generic TypeScript Secondary Node
 
 Result: `needs CI verification on latest head`.

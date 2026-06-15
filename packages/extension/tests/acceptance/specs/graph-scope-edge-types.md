@@ -32,7 +32,7 @@ And I show only the File node type
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Imports edge on
-Then the top right of the graph says "9 connections"
+Then the top right of the graph says "13 connections"
 And src/main.ts points to src/App.vue
 And src/App.vue points to src/components/CounterPanel.vue
 And src/App.vue points to src/components/UserCard.vue

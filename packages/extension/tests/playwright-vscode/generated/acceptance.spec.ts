@@ -4665,10 +4665,10 @@ test.describe('Graph Navigation', () => {
       });
 
       // tests/acceptance/specs/graph-navigation.md:12
-      await test.step('Then all 15 graph nodes are visible in the graph viewport', async () => {
-        await runAcceptanceStep(context, 'all 15 graph nodes are visible in the graph viewport', {
+      await test.step('Then all 16 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 16 graph nodes are visible in the graph viewport', {
           keyword: 'Then',
-          text: 'all 15 graph nodes are visible in the graph viewport',
+          text: 'all 16 graph nodes are visible in the graph viewport',
           sourcePath: 'tests/acceptance/specs/graph-navigation.md',
           line: 12
         });
@@ -4725,10 +4725,10 @@ test.describe('Graph Navigation', () => {
       });
 
       // tests/acceptance/specs/graph-navigation.md:20
-      await test.step('Then all 15 graph nodes are visible in the graph viewport', async () => {
-        await runAcceptanceStep(context, 'all 15 graph nodes are visible in the graph viewport', {
+      await test.step('Then all 16 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 16 graph nodes are visible in the graph viewport', {
           keyword: 'Then',
-          text: 'all 15 graph nodes are visible in the graph viewport',
+          text: 'all 16 graph nodes are visible in the graph viewport',
           sourcePath: 'tests/acceptance/specs/graph-navigation.md',
           line: 20
         });
@@ -5207,10 +5207,10 @@ test.describe('Graph Scope Edge Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-edge-types.md:35
-      await test.step('Then the top right of the graph says "9 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "9 connections"', {
+      await test.step('Then the top right of the graph says "13 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "13 connections"', {
           keyword: 'Then',
-          text: 'the top right of the graph says "9 connections"',
+          text: 'the top right of the graph says "13 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-types.md',
           line: 35
         });
@@ -8932,10 +8932,10 @@ test.describe('Graph View', () => {
       });
 
       // tests/acceptance/specs/graph-view.md:16
-      await test.step('And the top right of the graph says "15 nodes" and "8 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "15 nodes" and "8 connections"', {
+      await test.step('And the top right of the graph says "16 nodes" and "9 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "16 nodes" and "9 connections"', {
           keyword: 'And',
-          text: 'the top right of the graph says "15 nodes" and "8 connections"',
+          text: 'the top right of the graph says "16 nodes" and "9 connections"',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 16
         });
