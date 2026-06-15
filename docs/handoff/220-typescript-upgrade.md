@@ -38,14 +38,52 @@ Missing or changed context:
 - Protected branch at setup: `main`
 - No branch switching or destructive operations were run in the protected checkout.
 
-## Research Lanes
+## Research Synthesis
 
-Pending parallel dispatch:
+Current support is split between Core Tree-sitter JS/TS analysis and the TypeScript plugin.
 
-- Current support lane: identify current TypeScript plugin/core support for file/package/symbol/variable nodes and edge types.
-- Tree-sitter potential lane: identify TypeScript grammar constructs that can support believable graph facts without project-wide type checking.
-- Example lane: inspect `examples/example-typescript` and propose a cohesive showcase example.
-- Acceptance lane: inspect existing TypeScript acceptance spec shape and propose human-owned Markdown changes without applying them prematurely.
+Core syntax-only TypeScript/TSX support:
+
+- File relationships: `import`, `type-import`, `call`, `inherit`.
+- Symbol node capabilities for TypeScript/TSX workspaces: `symbol:function`, `symbol:class`, `symbol:interface`, `symbol:type`, `symbol:enum`, `symbol:constant`.
+- Current JS/TS variable extraction labels normal variable declarators as `constant`; it does not distinguish `let`, parameters, fields, or local variables for this language path.
+- Core can parse `.ts`, `.mts`, `.cts`, and `.tsx`; TSX component usage, decorators, package export resolution, rich type-reference resolution, and semantic local call resolution are not safe acceptance targets for this slice without a TypeScript binding/project-analysis story.
+
+TypeScript plugin support:
+
+- The plugin contributes no node types and no symbol/variable nodes.
+- The plugin contributes one project-aware edge type: `codegraphy.typescript:alias-import`, shown as `TypeScript Alias Import`.
+- Alias import analysis is limited to TypeScript/TSX source files and `tsconfig` `compilerOptions.paths` resolution. This ownership matches `docs/adr/0001-typescript-project-resolution-belongs-to-plugin-analysis.md`.
+
+Current acceptance and example gaps:
+
+- Existing TypeScript acceptance covers baseline files, Imports, plugin Alias Import, Inherits, and Calls.
+- It does not separately assert `type-import` edges.
+- It does not assert symbol or variable node types, specific symbol/variable nodes, or file-to-symbol `contains` behavior.
+- The current example demonstrates useful facts but reads like a graph scaffold (`depth`, `leaf`, `runner`) rather than a believable TypeScript project.
+
+Preferred example direction:
+
+- Replace the TypeScript source fixture with a small feature-flag rollout library/app.
+- Keep the example compact and believable: account model, rollout config, evaluator base class/interface, concrete evaluator, formatting helper, optional audit sink, alias clock helper, and one orphan file.
+- Preserve the plugin path alias shape with `@example/*` resolving to `src/alias/*`.
+- Showcase high-confidence facts only: value imports, type imports, imported calls, class/interface inheritance, function/class/interface/type/enum/constant nodes, and the TypeScript Alias Import edge.
+- Avoid TSX/decorator/package-resolution/broad type-reference acceptance in this card.
+
+Acceptance draft shape:
+
+- Scenario: TypeScript example renders file relationships without the plugin.
+- Scenario: TypeScript example exposes type-only imports separately.
+- Scenario: TypeScript plugin resolves tsconfig path aliases.
+- Scenario: TypeScript example exposes symbols for functions, types, classes, interfaces, enums, and constants.
+- Scenario: TypeScript example connects symbol-level calls and inheritance, only where analyzer behavior is verified.
+
+Known binding or implementation risks:
+
+- The current acceptance binding for `Imports` may also enable `Type imports`; the Type imports scenario should use explicit edge toggling.
+- Product casing should be `TypeScript Alias Import`.
+- Symbol-level caller labels need verification before hard-coding a top-level caller assertion.
+- `Constant` is the currently advertised/observed TypeScript variable child, not generic `Variable`.
 
 ## Event Log
 
@@ -58,3 +96,11 @@ Pending parallel dispatch:
 - Started handoff before role dispatch.
 - Pushed setup branch and opened draft PR #278.
 - Added Trello comment linking the branch, PR, and handoff.
+
+### 2026-06-15 Parallel Research Returns
+
+- Current-support lane confirmed broader TypeScript behavior is Core JS/TS Tree-sitter support, while the TypeScript plugin is alias-import only.
+- Tree-sitter capability lane separated high-confidence syntax-only support from project/type-checker-dependent ideas.
+- Example lane proposed a feature-flag rollout app/library to replace the current scaffold-style example.
+- Acceptance lane drafted a scenario split and identified step-binding gaps without editing human-owned acceptance Markdown.
+- Orchestrator synthesized the lanes above and prepared Specifier dispatch.
