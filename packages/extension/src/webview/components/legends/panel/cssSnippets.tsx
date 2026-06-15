@@ -45,9 +45,6 @@ export function CssSnippetsSection({
   });
   const open = !collapsed;
   const entries = Object.entries(snippets);
-  if (entries.length === 0) {
-    return null;
-  }
 
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
@@ -69,7 +66,14 @@ export function CssSnippetsSection({
             className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]"
             data-codegraphy-list="css-snippets"
           >
-            {entries.map(([path, enabled]) => (
+            {entries.length === 0 ? (
+              <div
+                className="px-3 py-2 text-xs text-[var(--cg-text-muted)]"
+                data-codegraphy-row="css-snippet-empty"
+              >
+                No CSS snippets configured
+              </div>
+            ) : entries.map(([path, enabled]) => (
               <div
                 key={path}
                 className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]"
