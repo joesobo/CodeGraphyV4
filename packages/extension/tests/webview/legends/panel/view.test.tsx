@@ -347,6 +347,34 @@ describe('LegendsPanel', () => {
     });
   });
 
+  it('adds a CSS snippet path from the themes panel', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [],
+      cssSnippets: {},
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText('CSS snippet path'), {
+      target: { value: '  .codegraphy/snippets/ocean.css  ' },
+    });
+    fireEvent.click(screen.getByTitle('Add CSS snippet'));
+
+    expect(graphStore.getState().cssSnippets['.codegraphy/snippets/ocean.css']).toBe(true);
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_CSS_SNIPPET',
+      payload: {
+        path: '.codegraphy/snippets/ocean.css',
+        enabled: true,
+      },
+    });
+    expect(screen.getByLabelText('CSS snippet path')).toHaveValue('');
+  });
+
   it('shows plugin default legend rules without exposing delete controls', () => {
     graphStore.setState({
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
