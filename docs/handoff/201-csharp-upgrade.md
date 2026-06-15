@@ -2,12 +2,12 @@
 
 ## Current State
 
-- State: pre-role alignment grill incomplete; downstream role state stale.
+- State: pre-role alignment complete; dispatching Specifier for approved example and acceptance spec updates.
 - Trello: [C# Upgrade](https://trello.com/c/rSYGlC3d), moved to In Progress on 2026-06-12.
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - PR: [#276](https://github.com/joesobo/CodeGraphyV4/pull/276) draft.
-- Next route: finish `grill-with-docs` alignment, then dispatch Specifier only after the alignment gate passes.
+- Next route: Specifier.
 
 ## Human Gates
 
@@ -227,3 +227,17 @@ Important card requirements:
 - Aligned baseline: C# should cover `Field`, `Parameter`, and `Local` if Core can emit them cleanly from Tree-sitter.
 - Human decision: C# should include `Constant` in this loop, but narrowly for explicit C# `const` declarations that Tree-sitter can identify cleanly.
 - Human decision: keep `Global` out of C# for now because C# does not have the same clean global-variable model as C/C++.
+
+### 2026-06-15T00:00:00Z - Alignment Gate Complete
+
+- Human decision: alignment gate is complete.
+- Approved Specifier scope:
+  - update `examples/example-csharp` based on the grill decisions;
+  - update `packages/extension/tests/acceptance/specs/csharp-example.md` to test all agreed C# Tree-sitter features using the example as the base;
+  - shape the acceptance spec as one C++-style scenario;
+  - cover C# symbols `Function`, `Class`, `Interface`, `Struct`, `Enum`;
+  - cover C# variables `Field`, `Parameter`, `Local`, and narrow `Constant`;
+  - cover C# edges `Imports`, `References`, `Calls`, `Contains`, `Inherits`;
+  - keep `Global` out of C#.
+- Human review gate after Specifier: the human will review and approve the example plus acceptance-test modifications before Orchestrator routes to Coder.
+- Existing premature Specifier/Coder commits may be reused as evidence or revised by the new Specifier pass, but downstream role approval remains stale until this proper Specifier pass completes and receives human review.
