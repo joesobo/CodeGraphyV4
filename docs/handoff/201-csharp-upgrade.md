@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: routing back to Specifier after acceptance-boundary correction
+- State: Specifier return complete; acceptance contract needs human acceptance
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
 - Trello: `In Progress`
 - Human gate: acceptance contract not approved; acceptance spec Markdown is human-owned and must not be committed or pushed by agents.
-- Active role: Specifier return pending
-- Next route: revert the pushed acceptance spec change, then return to the existing Specifier lane with the reason for return and the role contract. The Specifier must follow its own loop.
+- Active role: returning to Orchestrator
+- Next route: Orchestrator pauses for human acceptance of the proposed C# contract. Do not route to Coder until the human explicitly accepts or revises the contract.
 
 ## Setup Context
 
@@ -261,3 +261,30 @@
 - Invalid pushed acceptance spec change: `2c9eaca51 specifier: apply csharp acceptance review spec` modified `packages/extension/tests/acceptance/specs/csharp-example.md`.
 - Corrective action in progress: restore `packages/extension/tests/acceptance/specs/csharp-example.md` to `origin/main` content with a forward commit, leaving example/support-matrix work intact.
 - Next Specifier prompt must be minimal: provide the role, current handoff, reason for return, and stopping condition; do not dictate implementation steps that cross the role contract.
+
+### 2026-06-15 Specifier Return Handoff: Acceptance Boundary Restored
+
+- result: needs human acceptance.
+- Specifier decision:
+  - Acceptance contract work is still needed, but the required acceptance spec Markdown path is human-owned.
+  - Per `docs/agents/acceptance-specs.md` and `docs/agents/loops/specifier.md`, the Specifier must not create, edit, rename, delete, commit, or push `packages/extension/tests/acceptance/specs/**/*.md` without the exact explicit spec change being requested by the human.
+  - This return prompt explicitly says not to let the prompt override the role contract, so the Specifier stops at the human gate rather than reapplying local spec Markdown changes.
+- Current acceptance spec status:
+  - `packages/extension/tests/acceptance/specs/csharp-example.md` is restored and is not in the PR diff.
+  - Verification command returned no paths: `git diff --name-only origin/main...HEAD -- 'packages/extension/tests/acceptance/specs/**/*.md'`.
+  - Human approval status: pending.
+- Current review artifact:
+  - Proposed C# acceptance contract and support matrix remain in `docs/plans/201-csharp-upgrade-specifier-contract.md`.
+  - Upgraded example/source files from the earlier valid Specifier pass remain on the branch.
+  - The plan is a proposal and supporting research, not an accepted spec.
+- Files changed by this Specifier return:
+  - `docs/handoff/201-csharp-upgrade.md`
+- Commands run:
+  - `git status --short --branch` in `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`.
+  - `git status --short --branch` in `/Users/poleski/Desktop/Projects/CodeGraphyV4`.
+  - `git diff --name-only origin/main...HEAD -- 'packages/extension/tests/acceptance/specs/**/*.md'`.
+  - `git diff --name-status origin/main...HEAD -- packages/extension/tests/acceptance/specs/csharp-example.md`.
+  - `git show --stat --oneline --name-status dc0cafc24 --`.
+- Open questions:
+  - Does the human accept the proposed C# contract in `docs/plans/201-csharp-upgrade-specifier-contract.md`, or should the contract be revised before the human-owned spec is edited?
+  - Prior product questions remain open: record handling, constructor symbol policy, and whether instance member calls through local/field types should be a separate shallow type-flow feature.
