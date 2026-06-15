@@ -1,5 +1,31 @@
 # @codegraphy-dev/plugin-api
 
+## 5.1.0
+
+### Minor Changes
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`d2b9db1`](https://github.com/joesobo/CodeGraphyV4/commit/d2b9db14f8d2cc805d673152437f6f83aec9f472) Thanks [@joesobo](https://github.com/joesobo)! - Add a Graph View world background slot for plugin-owned graph artwork.
+
+  Plugins can now mount visual webview content behind the graph nodes and edges with `graph.stage.worldBackground`, while existing world and viewport overlay slots remain available for UI that should sit above the graph.
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`6a82b80`](https://github.com/joesobo/CodeGraphyV4/commit/6a82b80d28a1cba4ab9fdcd628c67e3a69de0096) Thanks [@joesobo](https://github.com/joesobo)! - Expose plugin-owned webview data helpers to CodeGraphy plugins.
+
+  Webview plugins can now call `getPluginData()` and `setPluginData(data)` to read and persist their own workspace UI state through the host instead of using ad hoc host messages or extension-owned settings.
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`5bf4d88`](https://github.com/joesobo/CodeGraphyV4/commit/5bf4d886a06b861a4002b128951cb6627937d136) Thanks [@joesobo](https://github.com/joesobo)! - Dispose webview plugin work immediately when a plugin is disabled or its webview assets are reset.
+
+  Webview plugin `activate(api)` functions can now return a cleanup function or `Disposable`. CodeGraphy calls that cleanup during plugin disable/reset so plugin-owned UI can stop timers, animation loops, message subscriptions, and injected DOM without waiting for a webview reload.
+
+  The Particles plugin now uses that cleanup path to stop active background effects, clear its Theme controls, unsubscribe from plugin data updates, and remove its injected styles as soon as the plugin is disabled.
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`d0ec1d8`](https://github.com/joesobo/CodeGraphyV4/commit/d0ec1d8a30b9350775cec75e51ee119f0bc2408f) Thanks [@joesobo](https://github.com/joesobo)! - Add ordered webview slot contributions for plugin-owned UI.
+
+  Webview plugins can now call `api.registerSlotContribution(slot, { id, order, render })` to mount UI into named CodeGraphy slots. The host owns the contribution container, ordering, and cleanup, so plugin UI can use normal component structure without the extension needing to know what each plugin renders.
+
+### Patch Changes
+
+- [#270](https://github.com/joesobo/CodeGraphyV4/pull/270) [`e8ceee7`](https://github.com/joesobo/CodeGraphyV4/commit/e8ceee73f753dd2626f2f86c844a666589e1c68b) Thanks [@joesobo](https://github.com/joesobo)! - Allow current and future Node releases while keeping Node 20 as the minimum supported runtime.
+
 ## 5.0.0
 
 ### Major Changes

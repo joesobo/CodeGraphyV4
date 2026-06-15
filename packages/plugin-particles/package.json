@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-particles",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CodeGraphy graph background particle effects plugin",
   "license": "MIT",
   "type": "module",

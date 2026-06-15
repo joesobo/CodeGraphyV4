@@ -1,5 +1,14 @@
 # @codegraphy-dev/mcp
 
+## 2.2.4
+
+### Patch Changes
+
+- [#270](https://github.com/joesobo/CodeGraphyV4/pull/270) [`e8ceee7`](https://github.com/joesobo/CodeGraphyV4/commit/e8ceee73f753dd2626f2f86c844a666589e1c68b) Thanks [@joesobo](https://github.com/joesobo)! - Allow current and future Node releases while keeping Node 20 as the minimum supported runtime.
+
+- Updated dependencies [[`e8ceee7`](https://github.com/joesobo/CodeGraphyV4/commit/e8ceee73f753dd2626f2f86c844a666589e1c68b)]:
+  - @codegraphy-dev/core@1.6.1
+
 ## 2.2.3
 
 ### Patch Changes
