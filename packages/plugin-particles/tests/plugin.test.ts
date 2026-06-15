@@ -25,17 +25,10 @@ describe('createParticlesPlugin', () => {
   });
 
   it('renders theme controls and starts the selected particle canvas from plugin data', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    }, {
+    const { controls, overlay } = activateParticlesHarness({
       enabled: true,
       preset: 'leaves',
     });
-
-    activate(api);
 
     expect(controls.querySelector('[data-codegraphy-section="particles"]')).not.toBeNull();
     expect(screenText(controls)).toContain('Particles');
@@ -54,14 +47,8 @@ describe('createParticlesPlugin', () => {
   });
 
   it('stores particle settings through plugin-owned data', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    });
+    const { api, controls } = activateParticlesHarness();
 
-    activate(api);
     controls.querySelector<HTMLButtonElement>('[aria-label="Toggle Embers background effect"]')?.click();
 
     expect(api.setPluginData).toHaveBeenCalledWith({
@@ -71,14 +58,8 @@ describe('createParticlesPlugin', () => {
   });
 
   it('renders and stores the Snow preset', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    });
+    const { api, controls } = activateParticlesHarness();
 
-    activate(api);
     controls.querySelector<HTMLButtonElement>('[aria-label="Toggle Snow background effect"]')?.click();
 
     expect(api.setPluginData).toHaveBeenCalledWith({
@@ -93,15 +74,10 @@ describe('createParticlesPlugin', () => {
   });
 
   it('uses a darker default particle color on light graph backgrounds', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    overlay.style.backgroundColor = 'rgb(245, 239, 224)';
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
+    const { controls } = activateParticlesHarness(undefined, {
+      overlayBackground: 'rgb(245, 239, 224)',
     });
 
-    activate(api);
     controls.querySelector<HTMLButtonElement>('[aria-label="Toggle Perlin Flow background effect"]')?.click();
 
     expect(startBackgroundParticleEffect).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -112,15 +88,9 @@ describe('createParticlesPlugin', () => {
 
   it('refreshes persisted plugin data after activation so launch settings start immediately', () => {
     vi.useFakeTimers();
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
     const pluginDataRef: { current?: unknown } = {};
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    }, () => pluginDataRef.current);
+    const { controls } = activateParticlesHarness(() => pluginDataRef.current);
 
-    activate(api);
     pluginDataRef.current = {
       enabled: true,
       preset: 'embers',
@@ -138,20 +108,11 @@ describe('createParticlesPlugin', () => {
   });
 
   it('renders compiled custom particle effects from plugin webview assets', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    });
-    vi.mocked(api.onMessage).mockImplementation((handler) => {
-      handlers.push(handler);
-      return { dispose: vi.fn() };
+    const { api, controls, sendPluginMessage } = activateParticlesHarness(undefined, {
+      captureMessages: true,
     });
 
-    activate(api);
-    handlers[0]?.({
+    sendPluginMessage({
       type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
       data: [
         {
@@ -171,7 +132,7 @@ describe('createParticlesPlugin', () => {
       preset: 'custom',
       customEffectId: 'fireflies',
     });
-    handlers[0]?.({
+    sendPluginMessage({
       type: 'PLUGIN_DATA_UPDATED',
       data: {
         enabled: true,
@@ -185,18 +146,11 @@ describe('createParticlesPlugin', () => {
   });
 
   it('shows a selected custom effect toggle from persisted settings before asset urls arrive', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    }, {
+    const { controls } = activateParticlesHarness({
       enabled: true,
       preset: 'custom',
       customEffectId: 'fireflies',
     });
-
-    activate(api);
 
     expect(
       controls.querySelector('[aria-label="Toggle Fireflies custom background effect"]')
@@ -206,20 +160,11 @@ describe('createParticlesPlugin', () => {
   });
 
   it('starts a custom particle effect when asset urls arrive after plugin data', () => {
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
-    const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    });
-    vi.mocked(api.onMessage).mockImplementation((handler) => {
-      handlers.push(handler);
-      return { dispose: vi.fn() };
+    const { controls, sendPluginMessage } = activateParticlesHarness(undefined, {
+      captureMessages: true,
     });
 
-    activate(api);
-    handlers[0]?.({
+    sendPluginMessage({
       type: 'PLUGIN_DATA_UPDATED',
       data: {
         enabled: true,
@@ -230,7 +175,7 @@ describe('createParticlesPlugin', () => {
 
     expect(startCustomParticleEffect).not.toHaveBeenCalled();
 
-    handlers[0]?.({
+    sendPluginMessage({
       type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
       data: [
         {
@@ -254,20 +199,15 @@ describe('createParticlesPlugin', () => {
   it('cleans up active particle work when the plugin is disposed', () => {
     const cleanup = vi.fn();
     vi.mocked(startBackgroundParticleEffect).mockReturnValueOnce(cleanup);
-    const controls = document.createElement('div');
-    const overlay = document.createElement('div');
     const messageSubscription = { dispose: vi.fn() };
-    const api = createWebviewApi({
-      'theme.panel': controls,
-      'graph.stage.worldBackground': overlay,
-    }, {
+    const { controls, dispose, overlay } = activateParticlesHarness({
       enabled: true,
       preset: 'leaves',
       intensity: 1,
+    }, {
+      messageSubscription,
     });
-    vi.mocked(api.onMessage).mockReturnValueOnce(messageSubscription);
 
-    const dispose = activate(api);
     expect(overlay.querySelector('canvas.cg-bg-particles-canvas')).not.toBeNull();
     expect(document.getElementById('cg-particles-plugin-style')).not.toBeNull();
 
@@ -283,6 +223,55 @@ describe('createParticlesPlugin', () => {
 
 function screenText(container: HTMLElement): string {
   return container.textContent ?? '';
+}
+
+interface ParticlesHarnessOptions {
+  captureMessages?: boolean;
+  messageSubscription?: { dispose(): void };
+  overlayBackground?: string;
+}
+
+function activateParticlesHarness(
+  pluginData: unknown | (() => unknown) = undefined,
+  options: ParticlesHarnessOptions = {},
+): {
+  api: CodeGraphyWebviewAPI;
+  controls: HTMLDivElement;
+  dispose: () => void;
+  overlay: HTMLDivElement;
+  sendPluginMessage(message: { type: string; data: unknown }): void;
+} {
+  const controls = document.createElement('div');
+  const overlay = document.createElement('div');
+  if (options.overlayBackground) {
+    overlay.style.backgroundColor = options.overlayBackground;
+  }
+
+  const handlers: Array<(message: { type: string; data: unknown }) => void> = [];
+  const api = createWebviewApi({
+    'theme.panel': controls,
+    'graph.stage.worldBackground': overlay,
+  }, pluginData);
+  if (options.captureMessages) {
+    vi.mocked(api.onMessage).mockImplementation((handler) => {
+      handlers.push(handler);
+      return { dispose: vi.fn() };
+    });
+  }
+  if (options.messageSubscription) {
+    vi.mocked(api.onMessage).mockReturnValueOnce(options.messageSubscription);
+  }
+
+  const dispose = activate(api);
+  return {
+    api,
+    controls,
+    dispose,
+    overlay,
+    sendPluginMessage(message) {
+      handlers[0]?.(message);
+    },
+  };
 }
 
 beforeEach(() => {
