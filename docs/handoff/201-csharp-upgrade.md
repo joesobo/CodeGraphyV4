@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: paused for human acceptance
+- State: routing back to Specifier for local uncommitted acceptance draft
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `Review`
-- Human gate: acceptance contract not approved; acceptance spec Markdown is human-owned and must not be committed or pushed by agents.
-- Active role: none
-- Next route: wait for human acceptance of the proposed C# contract or route back to Specifier for requested changes. Do not route to Coder until the human explicitly accepts or revises the contract.
+- Trello: `In Progress`
+- Human gate: acceptance contract not approved; acceptance spec Markdown may be modified locally for human review but must not be committed or pushed by agents.
+- Active role: Specifier return pending
+- Next route: return to the existing Specifier lane to create local uncommitted acceptance-spec modifications for human review. Do not route to Coder until the human explicitly accepts or revises the contract.
 
 ## Setup Context
 
@@ -297,3 +297,10 @@
 - Verified human-owned acceptance spec Markdown is not in the PR diff: `git diff --name-only origin/main...HEAD -- 'packages/extension/tests/acceptance/specs/**/*.md'` returned no paths.
 - Moved Trello card 201 to `Review` and posted boundary-reset verification breadcrumb.
 - Current human gate: human must decide whether the proposed C# contract/support matrix and example changes should be accepted, revised by Specifier, or otherwise handled before any acceptance spec Markdown is edited.
+
+### 2026-06-15 Human Correction: Acceptance Draft Must Be Local And Uncommitted
+
+- Human correction: the Specifier should write the acceptance spec modifications locally for review.
+- The Specifier must not commit or push the human-owned acceptance spec Markdown.
+- Correct desired state for the human gate: reviewable local working-tree changes to `packages/extension/tests/acceptance/specs/csharp-example.md`, with no commit and no push.
+- Moved Trello card 201 back to `In Progress` and posted routing breadcrumb.
