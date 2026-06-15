@@ -19,18 +19,20 @@ export function createConstellationsEffect(runtime: EffectRuntime): EffectContro
     resize({ width, height }) {
       stars = makeStars(width, height, starCount);
     },
-    draw({ ctx, width, height, color, intensity }) {
-      time += 0.01;
-      ctx.clearRect(0, 0, width, height);
-
+    step({ width, height }, deltaSeconds) {
+      time += deltaSeconds;
+      const frameScale = deltaSeconds * 60;
       for (const star of stars) {
-        star.x += star.vx;
-        star.y += star.vy;
+        star.x += star.vx * frameScale;
+        star.y += star.vy * frameScale;
         if (star.x < 0) star.x = width;
         if (star.x > width) star.x = 0;
         if (star.y < 0) star.y = height;
         if (star.y > height) star.y = 0;
       }
+    },
+    draw({ ctx, width, height, color, intensity }) {
+      ctx.clearRect(0, 0, width, height);
 
       ctx.strokeStyle = color;
       ctx.lineWidth = 0.5;

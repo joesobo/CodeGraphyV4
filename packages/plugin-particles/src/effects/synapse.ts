@@ -17,53 +17,46 @@ export function createSynapseEffect(runtime: EffectRuntime): EffectController {
   let rows = Math.ceil(runtime.height / grid);
   const pulses: Pulse[] = [];
 
-  const spawnPulse = (prewarmed = false): void => {
+  const spawnPulse = (): void => {
     const speed = speedMin + Math.random() * (speedMax - speedMin);
     if (Math.random() > 0.5) {
       const row = Math.floor(Math.random() * (rows + 1));
-      const x = prewarmed ? Math.random() * runtime.width : -trailLen;
-      pulses.push({ x, y: row * grid, dx: speed, dy: 0 });
+      pulses.push({ x: -trailLen, y: row * grid, dx: speed, dy: 0 });
     } else {
       const col = Math.floor(Math.random() * (cols + 1));
-      const y = prewarmed ? Math.random() * runtime.height : -trailLen;
-      pulses.push({ x: col * grid, y, dx: 0, dy: speed });
+      pulses.push({ x: col * grid, y: -trailLen, dx: 0, dy: speed });
     }
   };
-
-  const seedPulses = (): void => {
-    if (pulses.length > 0) {
-      return;
-    }
-
-    for (let index = 0; index < maxPulses; index += 1) {
-      spawnPulse(true);
-    }
-  };
-  seedPulses();
 
   return {
     resize(nextRuntime) {
       cols = Math.ceil(nextRuntime.width / grid);
       rows = Math.ceil(nextRuntime.height / grid);
-      seedPulses();
     },
-    draw({ ctx, width, height, color, intensity }) {
-      ctx.clearRect(0, 0, width, height);
-      drawSynapseGrid(ctx, width, height, color, intensity);
-      if (pulses.length < maxPulses && Math.random() < 0.12 * intensity) {
+    step({ width, height, intensity }, deltaSeconds) {
+      const frameScale = deltaSeconds * 60;
+      while (pulses.length < maxPulses) {
         spawnPulse();
       }
 
       for (let index = pulses.length - 1; index >= 0; index -= 1) {
         const pulse = pulses[index];
-        pulse.x += pulse.dx;
-        pulse.y += pulse.dy;
+        pulse.x += pulse.dx * frameScale;
+        pulse.y += pulse.dy * frameScale;
 
         if (pulse.x > width + trailLen || pulse.y > height + trailLen) {
           pulses.splice(index, 1);
-          continue;
+          if (pulses.length < maxPulses || Math.random() < 0.12 * intensity * frameScale) {
+            spawnPulse();
+          }
         }
+      }
+    },
+    draw({ ctx, width, height, color, intensity }) {
+      ctx.clearRect(0, 0, width, height);
+      drawSynapseGrid(ctx, width, height, color, intensity);
 
+      for (const pulse of pulses) {
         const tx = pulse.x - (pulse.dx > 0 ? trailLen : 0);
         const ty = pulse.y - (pulse.dy > 0 ? trailLen : 0);
         const gradient = ctx.createLinearGradient(tx, ty, pulse.x, pulse.y);

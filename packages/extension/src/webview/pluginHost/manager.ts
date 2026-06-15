@@ -28,9 +28,11 @@ import {
   detachSlotHost,
   getOrCreateContainer,
   getOrCreateSlotContainer,
+  registerSlotContribution,
   registerNodeRenderer,
   registerOverlay,
   registerTooltipProvider,
+  type SlotContributionMap,
 } from './api/registration';
 import {
   GraphViewContributionRegistry,
@@ -62,6 +64,7 @@ export class WebviewPluginHost {
   private readonly _tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }> = [];
   private readonly _containers = new Map<string, HTMLDivElement>();
   private readonly _slotContainers = new Map<string, Map<GraphPluginSlot, HTMLDivElement>>();
+  private readonly _slotContributions: SlotContributionMap = new Map();
   private readonly _slotHosts = new Map<GraphPluginSlot, HTMLDivElement>();
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
   private readonly _graphViewContributions = new GraphViewContributionRegistry();
@@ -82,6 +85,8 @@ export class WebviewPluginHost {
       getPluginData,
       (pid) => getOrCreateContainer(pid, this._containers),
       (pid, slot) => getOrCreateSlotContainer(pid, slot, this._slotContainers, this._slotHosts),
+      (pid, slot, contribution, context) =>
+        registerSlotContribution(pid, slot, contribution, context, this._slotContributions, this._slotHosts),
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),
       (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
@@ -145,7 +150,7 @@ export class WebviewPluginHost {
   }
 
   attachSlotHost(slot: GraphPluginSlot, host: HTMLDivElement): void {
-    attachSlotHost(slot, host, this._slotContainers, this._slotHosts);
+    attachSlotHost(slot, host, this._slotContainers, this._slotHosts, this._slotContributions);
   }
 
   detachSlotHost(slot: GraphPluginSlot): void {
@@ -162,6 +167,7 @@ export class WebviewPluginHost {
       this._containers,
       this._slotContainers,
       this._slotHosts,
+      this._slotContributions,
     );
     this._graphViewContributions.removePlugin(pluginId);
     removeGraphViewViewportStateListenersForPlugin(this._graphViewViewportStateListeners, pluginId);

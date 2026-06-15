@@ -9,6 +9,7 @@ import type {
   IGraphViewContributions,
   NodeRenderFn,
   OverlayRenderFn,
+  PluginSlotContribution,
   TooltipProviderFn,
   WebviewDisposable,
   CodeGraphyWebviewAPI,
@@ -37,6 +38,12 @@ export function createPluginWebviewApi(
   getPluginData: (pluginId: string) => unknown,
   getOrCreateContainer: (pluginId: string) => HTMLDivElement,
   getOrCreateSlotContainer: (pluginId: string, slot: GraphPluginSlot) => HTMLDivElement,
+  registerSlotContribution: (
+    pluginId: string,
+    slot: GraphPluginSlot,
+    contribution: PluginSlotContribution,
+    context: { api: CodeGraphyWebviewAPI },
+  ) => WebviewDisposable,
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
   registerOverlay: (pluginId: string, id: string, fn: OverlayRenderFn) => WebviewDisposable,
   registerTooltipProvider: (pluginId: string, fn: TooltipProviderFn) => WebviewDisposable,
@@ -46,9 +53,10 @@ export function createPluginWebviewApi(
   messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>,
   drawingHelpers: DrawingHelpers,
 ): CodeGraphyWebviewAPI {
-  return {
+  const api: CodeGraphyWebviewAPI = {
     getContainer: () => getOrCreateContainer(pluginId),
     getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
+    registerSlotContribution: (slot, contribution) => registerSlotContribution(pluginId, slot, contribution, { api }),
     getHostState,
     getPluginData: () => getPluginData(pluginId),
     setPluginData: (data: unknown) => {
@@ -89,4 +97,5 @@ export function createPluginWebviewApi(
       };
     },
   };
+  return api;
 }

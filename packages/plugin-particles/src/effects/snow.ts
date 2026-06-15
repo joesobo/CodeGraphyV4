@@ -18,19 +18,17 @@ interface Snowflake {
   crystalline: boolean;
 }
 
-export function createSnowEffect(runtime: EffectRuntime): EffectController {
+export function createSnowEffect(_runtime: EffectRuntime): EffectController {
   const flakes: Snowflake[] = [];
   const flakeCount = 150;
 
   const makeFlake = (
     width: number,
-    height: number,
     index = Math.random() * flakeCount,
-    prewarmed = false,
   ): Snowflake => {
     const depth = Math.random();
     const x = ((index + Math.random()) / flakeCount) * width;
-    const y = prewarmed ? Math.random() * height : -18 - Math.random() * 80;
+    const y = -18 - Math.random() * 80;
     return {
       x,
       y,
@@ -50,38 +48,24 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
     };
   };
 
-  const seedFlakes = ({ width, height }: EffectRuntime): void => {
-    if (flakes.length > 0) {
-      return;
-    }
-
-    for (let index = 0; index < flakeCount; index += 1) {
-      flakes.push(makeFlake(width, height, index, true));
-    }
-  };
-
-  seedFlakes(runtime);
-
   return {
-    resize: seedFlakes,
-    draw({ ctx, width, height, color, intensity, size }) {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(0,0,0,0.34)';
-      ctx.fillRect(0, 0, width, height);
-      ctx.globalCompositeOperation = 'source-over';
-
+    step({ width, height, intensity }, deltaSeconds) {
+      const frameScale = deltaSeconds * 60;
+      while (flakes.length < flakeCount) {
+        flakes.push(makeFlake(width, flakes.length));
+      }
       const wind = Math.sin(Date.now() * 0.00012) * 0.1 * (0.6 + intensity);
 
       for (const flake of flakes) {
         flake.previousX = flake.x;
         flake.previousY = flake.y;
-        flake.drift += flake.driftSpeed * (0.8 + intensity);
-        flake.spin += flake.spinSpeed;
-        flake.x += flake.vx + wind * flake.depth + Math.sin(flake.drift) * flake.swing;
-        flake.y += flake.vy * (0.28 + intensity * 0.54);
+        flake.drift += flake.driftSpeed * (0.8 + intensity) * frameScale;
+        flake.spin += flake.spinSpeed * frameScale;
+        flake.x += (flake.vx + wind * flake.depth + Math.sin(flake.drift) * flake.swing) * frameScale;
+        flake.y += flake.vy * (0.28 + intensity * 0.54) * frameScale;
 
         if (flake.y > height + 18) {
-          Object.assign(flake, makeFlake(width, height));
+          Object.assign(flake, makeFlake(width));
           flake.x = Math.random() * width;
         }
         if (flake.x < -18) {
@@ -91,7 +75,12 @@ export function createSnowEffect(runtime: EffectRuntime): EffectController {
           flake.x = -18;
           flake.previousX = flake.x;
         }
+      }
+    },
+    draw({ ctx, width, height, color, intensity, size }) {
+      ctx.clearRect(0, 0, width, height);
 
+      for (const flake of flakes) {
         drawSnowflake(ctx, flake, color, intensity, size);
       }
 
