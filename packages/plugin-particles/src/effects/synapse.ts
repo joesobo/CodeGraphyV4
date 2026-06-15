@@ -17,17 +17,6 @@ export function createSynapseEffect(runtime: EffectRuntime): EffectController {
   let rows = Math.ceil(runtime.height / grid);
   const pulses: Pulse[] = [];
 
-  const spawnPulse = (): void => {
-    const speed = speedMin + Math.random() * (speedMax - speedMin);
-    if (Math.random() > 0.5) {
-      const row = Math.floor(Math.random() * (rows + 1));
-      pulses.push({ x: -trailLen, y: row * grid, dx: speed, dy: 0 });
-    } else {
-      const col = Math.floor(Math.random() * (cols + 1));
-      pulses.push({ x: col * grid, y: -trailLen, dx: 0, dy: speed });
-    }
-  };
-
   return {
     resize(nextRuntime) {
       cols = Math.ceil(nextRuntime.width / grid);
@@ -36,18 +25,15 @@ export function createSynapseEffect(runtime: EffectRuntime): EffectController {
     step({ width, height, intensity }, deltaSeconds) {
       const frameScale = deltaSeconds * 60;
       while (pulses.length < maxPulses) {
-        spawnPulse();
+        pulses.push(createPulse(cols, rows, grid, trailLen, speedMin, speedMax));
       }
 
       for (let index = pulses.length - 1; index >= 0; index -= 1) {
-        const pulse = pulses[index];
-        pulse.x += pulse.dx * frameScale;
-        pulse.y += pulse.dy * frameScale;
-
-        if (pulse.x > width + trailLen || pulse.y > height + trailLen) {
+        updatePulse(pulses[index], frameScale);
+        if (isPulseOutOfBounds(pulses[index], width, height, trailLen)) {
           pulses.splice(index, 1);
           if (pulses.length < maxPulses || Math.random() < 0.12 * intensity * frameScale) {
-            spawnPulse();
+            pulses.push(createPulse(cols, rows, grid, trailLen, speedMin, speedMax));
           }
         }
       }
@@ -57,28 +43,64 @@ export function createSynapseEffect(runtime: EffectRuntime): EffectController {
       drawSynapseGrid(ctx, width, height, color, intensity);
 
       for (const pulse of pulses) {
-        const tx = pulse.x - (pulse.dx > 0 ? trailLen : 0);
-        const ty = pulse.y - (pulse.dy > 0 ? trailLen : 0);
-        const gradient = ctx.createLinearGradient(tx, ty, pulse.x, pulse.y);
-        gradient.addColorStop(0, 'transparent');
-        gradient.addColorStop(1, color);
-        ctx.strokeStyle = gradient;
-        ctx.globalAlpha = 0.35 * intensity;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(tx, ty);
-        ctx.lineTo(pulse.x, pulse.y);
-        ctx.stroke();
-
-        ctx.globalAlpha = 0.55 * intensity;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(pulse.x, pulse.y, 1.2, 0, Math.PI * 2);
-        ctx.fill();
+        drawPulse(ctx, pulse, trailLen, color, intensity);
       }
       ctx.globalAlpha = 1;
     },
   };
+}
+
+function createPulse(
+  cols: number,
+  rows: number,
+  grid: number,
+  trailLen: number,
+  speedMin: number,
+  speedMax: number,
+): Pulse {
+  const speed = speedMin + Math.random() * (speedMax - speedMin);
+  if (Math.random() > 0.5) {
+    const row = Math.floor(Math.random() * (rows + 1));
+    return { x: -trailLen, y: row * grid, dx: speed, dy: 0 };
+  }
+  const col = Math.floor(Math.random() * (cols + 1));
+  return { x: col * grid, y: -trailLen, dx: 0, dy: speed };
+}
+
+function updatePulse(pulse: Pulse, frameScale: number): void {
+  pulse.x += pulse.dx * frameScale;
+  pulse.y += pulse.dy * frameScale;
+}
+
+function isPulseOutOfBounds(pulse: Pulse, width: number, height: number, trailLen: number): boolean {
+  return pulse.x > width + trailLen || pulse.y > height + trailLen;
+}
+
+function drawPulse(
+  ctx: CanvasRenderingContext2D,
+  pulse: Pulse,
+  trailLen: number,
+  color: string,
+  intensity: number,
+): void {
+  const tx = pulse.x - (pulse.dx > 0 ? trailLen : 0);
+  const ty = pulse.y - (pulse.dy > 0 ? trailLen : 0);
+  const gradient = ctx.createLinearGradient(tx, ty, pulse.x, pulse.y);
+  gradient.addColorStop(0, 'transparent');
+  gradient.addColorStop(1, color);
+  ctx.strokeStyle = gradient;
+  ctx.globalAlpha = 0.35 * intensity;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(pulse.x, pulse.y);
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.55 * intensity;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(pulse.x, pulse.y, 1.2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawSynapseGrid(

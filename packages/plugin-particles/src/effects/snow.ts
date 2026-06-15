@@ -22,59 +22,16 @@ export function createSnowEffect(_runtime: EffectRuntime): EffectController {
   const flakes: Snowflake[] = [];
   const flakeCount = 150;
 
-  const makeFlake = (
-    width: number,
-    index = Math.random() * flakeCount,
-  ): Snowflake => {
-    const depth = Math.random();
-    const x = ((index + Math.random()) / flakeCount) * width;
-    const y = -18 - Math.random() * 80;
-    return {
-      x,
-      y,
-      previousX: x,
-      previousY: y,
-      vx: -0.08 + Math.random() * 0.16,
-      vy: 0.12 + depth * 0.1 + Math.random() * 0.12,
-      radius: 0.35 + depth * 1.85 + Math.random() * 0.5,
-      alpha: 0.06 + depth * 0.2 + Math.random() * 0.08,
-      depth,
-      drift: Math.random() * Math.PI * 2,
-      driftSpeed: 0.006 + Math.random() * 0.018,
-      swing: 0.08 + Math.random() * 0.44,
-      spin: Math.random() * Math.PI * 2,
-      spinSpeed: -0.012 + Math.random() * 0.024,
-      crystalline: depth > 0.72 && Math.random() > 0.68,
-    };
-  };
-
   return {
     step({ width, height, intensity }, deltaSeconds) {
       const frameScale = deltaSeconds * 60;
       while (flakes.length < flakeCount) {
-        flakes.push(makeFlake(width, flakes.length));
+        flakes.push(makeFlake(width, flakeCount, flakes.length));
       }
       const wind = Math.sin(Date.now() * 0.00012) * 0.1 * (0.6 + intensity);
 
       for (const flake of flakes) {
-        flake.previousX = flake.x;
-        flake.previousY = flake.y;
-        flake.drift += flake.driftSpeed * (0.8 + intensity) * frameScale;
-        flake.spin += flake.spinSpeed * frameScale;
-        flake.x += (flake.vx + wind * flake.depth + Math.sin(flake.drift) * flake.swing) * frameScale;
-        flake.y += flake.vy * (0.28 + intensity * 0.54) * frameScale;
-
-        if (flake.y > height + 18) {
-          Object.assign(flake, makeFlake(width));
-          flake.x = Math.random() * width;
-        }
-        if (flake.x < -18) {
-          flake.x = width + 18;
-          flake.previousX = flake.x;
-        } else if (flake.x > width + 18) {
-          flake.x = -18;
-          flake.previousX = flake.x;
-        }
+        updateFlake(flake, width, height, flakeCount, intensity, wind, frameScale);
       }
     },
     draw({ ctx, width, height, color, intensity, size }) {
@@ -88,6 +45,77 @@ export function createSnowEffect(_runtime: EffectRuntime): EffectController {
       ctx.globalCompositeOperation = 'source-over';
     },
   };
+}
+
+function makeFlake(
+  width: number,
+  flakeCount: number,
+  index = Math.random() * flakeCount,
+): Snowflake {
+  const depth = Math.random();
+  const x = ((index + Math.random()) / flakeCount) * width;
+  const y = -18 - Math.random() * 80;
+  return {
+    x,
+    y,
+    previousX: x,
+    previousY: y,
+    vx: -0.08 + Math.random() * 0.16,
+    vy: 0.12 + depth * 0.1 + Math.random() * 0.12,
+    radius: 0.35 + depth * 1.85 + Math.random() * 0.5,
+    alpha: 0.06 + depth * 0.2 + Math.random() * 0.08,
+    depth,
+    drift: Math.random() * Math.PI * 2,
+    driftSpeed: 0.006 + Math.random() * 0.018,
+    swing: 0.08 + Math.random() * 0.44,
+    spin: Math.random() * Math.PI * 2,
+    spinSpeed: -0.012 + Math.random() * 0.024,
+    crystalline: depth > 0.72 && Math.random() > 0.68,
+  };
+}
+
+function updateFlake(
+  flake: Snowflake,
+  width: number,
+  height: number,
+  flakeCount: number,
+  intensity: number,
+  wind: number,
+  frameScale: number,
+): void {
+  flake.previousX = flake.x;
+  flake.previousY = flake.y;
+  flake.drift += flake.driftSpeed * (0.8 + intensity) * frameScale;
+  flake.spin += flake.spinSpeed * frameScale;
+  flake.x += (flake.vx + wind * flake.depth + Math.sin(flake.drift) * flake.swing) * frameScale;
+  flake.y += flake.vy * (0.28 + intensity * 0.54) * frameScale;
+  resetVerticalBounds(flake, width, height, flakeCount);
+  wrapHorizontalBounds(flake, width);
+}
+
+function resetVerticalBounds(
+  flake: Snowflake,
+  width: number,
+  height: number,
+  flakeCount: number,
+): void {
+  if (flake.y <= height + 18) {
+    return;
+  }
+  Object.assign(flake, makeFlake(width, flakeCount));
+  flake.x = Math.random() * width;
+}
+
+function wrapHorizontalBounds(flake: Snowflake, width: number): void {
+  if (flake.x < -18) {
+    flake.x = width + 18;
+    flake.previousX = flake.x;
+    return;
+  }
+  if (flake.x > width + 18) {
+    flake.x = -18;
+    flake.previousX = flake.x;
+  }
 }
 
 function drawSnowflake(

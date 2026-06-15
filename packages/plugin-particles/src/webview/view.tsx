@@ -41,41 +41,85 @@ export function ParticlesSection({
       </button>
 
       <div className="cg-bg-particles-grid">
-        {PRESETS.map(preset => (
-          <ParticleRow
-            key={preset.id}
-            label={preset.label}
-            checked={settings.enabled && settings.preset === preset.id}
-            onToggle={() => {
-              const nextEnabled = !(settings.enabled && settings.preset === preset.id);
-              onSettingsChange(nextEnabled
-                ? { enabled: true, preset: preset.id }
-                : { ...DEFAULT_PARTICLE_SETTINGS });
-            }}
-          />
-        ))}
-
-        {visibleCustomEffects.map(effect => (
-          <ParticleRow
-            key={effect.id}
-            label={effect.label}
-            custom
-            checked={settings.enabled && settings.preset === 'custom' && settings.customEffectId === effect.id}
-            onToggle={() => {
-              const nextEnabled = !(settings.enabled && settings.preset === 'custom' && settings.customEffectId === effect.id);
-              onSettingsChange(nextEnabled
-                ? {
-                  enabled: true,
-                  preset: 'custom',
-                  customEffectId: effect.id,
-                }
-                : { ...DEFAULT_PARTICLE_SETTINGS });
-            }}
-          />
-        ))}
+        <PresetRows settings={settings} onSettingsChange={onSettingsChange} />
+        <CustomEffectRows
+          settings={settings}
+          customEffects={visibleCustomEffects}
+          onSettingsChange={onSettingsChange}
+        />
       </div>
     </section>
   );
+}
+
+interface PresetRowsProps {
+  settings: ParticleSettings;
+  onSettingsChange(this: void, settings: ParticleSettings): void;
+}
+
+function PresetRows({ settings, onSettingsChange }: PresetRowsProps): ReactElement {
+  return (
+    <>
+      {PRESETS.map(preset => (
+        <ParticleRow
+          key={preset.id}
+          label={preset.label}
+          checked={isPresetChecked(settings, preset.id)}
+          onToggle={() => onSettingsChange(togglePreset(settings, preset.id))}
+        />
+      ))}
+    </>
+  );
+}
+
+interface CustomEffectRowsProps {
+  settings: ParticleSettings;
+  customEffects: readonly ParticleEffectAsset[];
+  onSettingsChange(this: void, settings: ParticleSettings): void;
+}
+
+function CustomEffectRows({
+  settings,
+  customEffects,
+  onSettingsChange,
+}: CustomEffectRowsProps): ReactElement {
+  return (
+    <>
+      {customEffects.map(effect => (
+        <ParticleRow
+          key={effect.id}
+          label={effect.label}
+          custom
+          checked={isCustomEffectChecked(settings, effect.id)}
+          onToggle={() => onSettingsChange(toggleCustomEffect(settings, effect.id))}
+        />
+      ))}
+    </>
+  );
+}
+
+function isPresetChecked(settings: ParticleSettings, presetId: ParticleSettings['preset']): boolean {
+  return settings.enabled && settings.preset === presetId;
+}
+
+function togglePreset(settings: ParticleSettings, presetId: ParticleSettings['preset']): ParticleSettings {
+  return isPresetChecked(settings, presetId)
+    ? { ...DEFAULT_PARTICLE_SETTINGS }
+    : { enabled: true, preset: presetId };
+}
+
+function isCustomEffectChecked(settings: ParticleSettings, effectId: string): boolean {
+  return settings.enabled && settings.preset === 'custom' && settings.customEffectId === effectId;
+}
+
+function toggleCustomEffect(settings: ParticleSettings, effectId: string): ParticleSettings {
+  return isCustomEffectChecked(settings, effectId)
+    ? { ...DEFAULT_PARTICLE_SETTINGS }
+    : {
+      enabled: true,
+      preset: 'custom',
+      customEffectId: effectId,
+    };
 }
 
 interface ParticleRowProps {
