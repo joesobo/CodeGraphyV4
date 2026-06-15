@@ -104,3 +104,60 @@ Known binding or implementation risks:
 - Example lane proposed a feature-flag rollout app/library to replace the current scaffold-style example.
 - Acceptance lane drafted a scenario split and identified step-binding gaps without editing human-owned acceptance Markdown.
 - Orchestrator synthesized the lanes above and prepared Specifier dispatch.
+
+### 2026-06-15 Specifier Return: Needs Human Acceptance
+
+Result: `needs human acceptance`.
+
+Specifier scope completed:
+
+- Replaced the scaffold-style TypeScript fixture with a compact feature-flag rollout example.
+- Preserved TypeScript alias coverage through `@example/* -> src/alias/*`, now demonstrated by `@example/clock` resolving to `src/alias/clock.ts`.
+- Preserved an intentional disconnected source file with `src/orphan.ts`.
+- Drafted the human-owned TypeScript acceptance contract in Markdown and stopped at the acceptance gate.
+
+Example source changes:
+
+- Updated `examples/example-typescript/README.md`.
+- Replaced `src/alias/greeting.ts` with `src/alias/clock.ts`.
+- Replaced scaffold files `src/baseRunner.ts`, `src/depth.ts`, `src/leaf.ts`, `src/runnableThing.ts`, `src/runner.ts`, and `src/utils.ts` with `src/baseEvaluator.ts`, `src/audit.ts`, `src/config.ts`, `src/evaluator.ts`, `src/rollout.ts`, and `src/format.ts`.
+- Updated `src/index.ts`, `src/types.ts`, and `src/orphan.ts` for the rollout flow.
+
+Acceptance contract/draft:
+
+- Updated `packages/extension/tests/acceptance/specs/typescript-example.md` with five reviewable scenarios:
+  - file relationships without the TypeScript plugin
+  - separate `Type imports`
+  - TypeScript plugin `TypeScript Alias Import`
+  - supported TypeScript symbol and constant node types
+  - symbol-level calls and inheritance
+- Updated impacted existing human-owned specs so they reference the new fixture names:
+  - `packages/extension/tests/acceptance/specs/graph-scope-edge-types.md`
+  - `packages/extension/tests/acceptance/specs/graph-scope-node-types.md`
+  - `packages/extension/tests/acceptance/specs/graph-rendering.md`
+  - `packages/extension/tests/acceptance/specs/edge-context-menu.md`
+
+Acceptance impact scan:
+
+- Searched `packages/extension/tests/acceptance/specs`, `packages/extension/tests/acceptance`, generated acceptance output, docs, and `examples/example-typescript` for stale references to the old TypeScript fixture names and alias target.
+- Remaining matches for old terms are in unrelated language examples or generic README wording, not the TypeScript fixture contract.
+
+Validation run:
+
+- `pnpm --filter @codegraphy-dev/extension exec quality-tools acceptance compile --spec "tests/acceptance/specs/**/*.md" --steps "tests/acceptance/steps.ts" --out "/tmp/codegraphy-220-acceptance.spec.ts"` passed.
+- `pnpm exec tsc ...` and `pnpm -w exec tsc --version` could not run because the `tsc` binary is not currently linked in this worktree (`Command "tsc" not found`).
+- No generated Playwright files, step bindings, unit tests, or production code were changed.
+
+Human approval status:
+
+- Pending. Human-owned acceptance Markdown was edited locally for review because the user request explicitly asked for the TypeScript acceptance contract for this card.
+- Stop here until the human accepts or revises the Markdown contract. Do not dispatch Coder until the human gate is satisfied.
+
+Open questions:
+
+- Should the human keep the symbol-level call assertion from top-level `src/index.ts` to `evaluateCheckout`, or narrow the calls scenario to named function-to-function relationships only?
+- Should the broader Graph Scope node type scenarios continue using the TypeScript example for Interface and Type coverage, or should those remain covered only inside `typescript-example.md`?
+
+Safety note:
+
+- A patch was initially applied from the protected checkout by mistake. The protected checkout was restored immediately and verified clean on `main`; the intended edits were reapplied using absolute paths in this worktree.
