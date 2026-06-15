@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: paused for human acceptance
+- State: routing back to Specifier
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `Review`
-- Human gate: acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
-- Active role: none
-- Next route: wait for human acceptance of the example/support contract and proposed C# acceptance spec, or route back to Specifier for requested changes.
+- Trello: `In Progress`
+- Human gate: acceptance contract not approved; acceptance spec Markdown may be changed locally for human review, but must not be treated as accepted until the human approves it.
+- Active role: Specifier return
+- Next route: Specifier applies local reviewable acceptance-spec modifications/creations, then Orchestrator verifies and pauses for human review again.
 
 ## Setup Context
 
@@ -204,3 +204,11 @@
   - Temporary `.NET` build of `examples/example-csharp/src` passed with `0 Warning(s)` and `0 Error(s)`.
 - Moved Trello card 201 to `Review` and posted verification breadcrumb.
 - Current human gate: human must approve the example/support contract and proposed C# acceptance spec before the Coder lane may begin.
+
+### 2026-06-15 Human Correction: Review Artifact Must Be Local Changes
+
+- Human correction: the acceptance gate is not for approving a docs/plans-only proposal.
+- The Specifier is expected to make reviewable local modifications or creations, then the human reviews those file changes.
+- Route back to the existing Specifier lane to apply the C# acceptance-spec changes locally.
+- Acceptance spec Markdown remains unaccepted until the human approves it, even though the Specifier may now modify it locally for review.
+- Moved Trello card 201 back to `In Progress` and posted routing breadcrumb.
