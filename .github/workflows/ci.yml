@@ -183,7 +183,7 @@ jobs:
           - target: darwin-arm64
             os: macos-14
           - target: win32-x64
-            os: windows-latest
+            os: windows-2022
     env:
       CODEGRAPHY_VSIX_TARGETS: ${{ matrix.target }}
 
@@ -351,7 +351,7 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-          - windows-latest
+          - windows-2022
 
     steps:
       - name: Checkout
