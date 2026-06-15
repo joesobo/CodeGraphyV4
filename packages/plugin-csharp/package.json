@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-csharp",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "CodeGraphy C# plugin",
   "license": "MIT",
   "type": "module",

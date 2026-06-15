@@ -18,6 +18,7 @@ export function handlePluginInjectMessage(
       pluginId: payload.pluginId,
       scripts: payload.scripts,
       styles: payload.styles,
+      assets: payload.assets,
     }).finally(() => {
       graphStore.getState().finishPluginAssetLoad();
     });

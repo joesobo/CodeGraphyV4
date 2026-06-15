@@ -37,4 +37,37 @@ describe('graphView/settings/sender', () => {
     });
     expect(viewContext.activePlugins.size).toBe(0);
   });
+
+  it('replays plugin-owned data after core settings so enabled plugins can restore their state', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphViewSettingsMessages({} as IViewContext, {
+      getConfiguration: () => ({
+        get<T>(key: string, defaultValue: T): T {
+          const values: Record<string, unknown> = {
+            pluginData: {
+              'codegraphy.particles': {
+                enabled: true,
+                preset: 'embers',
+              },
+            },
+          };
+
+          return (values[key] as T | undefined) ?? defaultValue;
+        },
+      }),
+      sendMessage,
+    });
+
+    expect(sendMessage).toHaveBeenLastCalledWith({
+      type: 'PLUGIN_DATA_UPDATED',
+      payload: {
+        pluginId: 'codegraphy.particles',
+        data: {
+          enabled: true,
+          preset: 'embers',
+        },
+      },
+    });
+  });
 });

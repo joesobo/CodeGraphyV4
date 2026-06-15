@@ -1,0 +1,10 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.particles",
+  "name": "Particles",
+  "version": "0.1.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [],
+  "defaultFilters": [],
+  "fileColors": {}
+}

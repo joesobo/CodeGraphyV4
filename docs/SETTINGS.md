@@ -65,6 +65,12 @@ Example:
   ],
   "cssSnippets": {
     ".codegraphy/snippets/base-grid.css": true
+  },
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "embers"
+    }
   }
 }
 ```
@@ -89,6 +95,7 @@ Example:
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
 | `cssSnippets` | object | `{}` | Workspace-relative CSS snippet paths mapped to `true` to load or `false` to keep disabled |
 | `plugins` | object[] | `[]` | Workspace Plugin Activity State entries keyed by Plugin ID with explicit `enabled: true/false` intent |
+| `pluginData` | object | `{}` | Plugin-owned workspace settings keyed by Plugin ID |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
@@ -144,8 +151,8 @@ Common hooks:
 | `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
 | `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
 | `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs`, `timeline-playback`, `timeline-track` | Interactive controls |
-| `data-codegraphy-section` | `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
-| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `toolbar`, `timeline-panel` | Plugin contribution slots |
+| `data-codegraphy-section` | `particles`, `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
+| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `theme-panel`, `toolbar`, `timeline-panel` | Plugin contribution slots |
 | `data-codegraphy-state` | `loading`, `empty`, `graph-indexing`, `timeline-indexing`, `timeline-ready-to-index` | View states |
 | `data-codegraphy-row` | `plugin`, `css-snippet`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
 | `data-codegraphy-marker` | `timeline-commit`, `timeline-current-commit` | Timeline markers |
@@ -162,7 +169,52 @@ Example:
 }
 ```
 
-See `examples/css-snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
+See `examples/.codegraphy/snippets/` for copyable demo snippets, including a static grid, static forest and ocean UI themes, and a faded ocean image background.
+
+## Particles
+
+The `codegraphy.particles` plugin injects a **Particles** section into the
+Theme popup when that plugin is active. The extension does not own these
+particles directly; the plugin owns the controls, canvas renderer, presets, and
+settings shape.
+
+Particle state is stored in `.codegraphy/settings.json` under
+`pluginData["codegraphy.particles"]`:
+
+```json
+{
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "constellations"
+    }
+  }
+}
+```
+
+Built-in presets are `synapse`, `rain`, `constellations`, `perlin-flow`, `leaves`, `sparkles`, `embers`, and `snow`. Use `none` with `enabled: false` to disable the canvas.
+
+Custom particle effects are TypeScript files in `.codegraphy/particles/`.
+The Particles plugin compiles them for the Graph View webview and shows them
+as custom toggles in the Theme popup. Store the selected effect id in
+`customEffectId`:
+
+```json
+{
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "custom",
+      "customEffectId": "fireflies"
+    }
+  }
+}
+```
+
+For example, `examples/.codegraphy/particles/fireflies.ts` appears as a
+Fireflies toggle when the `examples/` workspace is open. Custom effect files
+should export `activateParticleEffect(context)` and may return a cleanup
+function.
 
 ## Graph Scope settings
 
@@ -250,6 +302,7 @@ Adjusts the physics simulation in real time.
 - **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
 
 See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.
+
 
 ### Legends
 

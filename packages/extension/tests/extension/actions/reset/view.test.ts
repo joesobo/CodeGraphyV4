@@ -65,6 +65,7 @@ describe('ResetSettingsAction', () => {
     filterPatterns: ['**/*.test.ts'],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
+    pluginData: {},
     showOrphans: false,
     bidirectionalMode: 'combined',
     directionMode: 'particles',
