@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: Specifier return complete; acceptance contract needs human acceptance
+- State: paused for human acceptance
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `In Progress`
+- Trello: `Review`
 - Human gate: acceptance contract not approved; acceptance spec Markdown is human-owned and must not be committed or pushed by agents.
-- Active role: returning to Orchestrator
-- Next route: Orchestrator pauses for human acceptance of the proposed C# contract. Do not route to Coder until the human explicitly accepts or revises the contract.
+- Active role: none
+- Next route: wait for human acceptance of the proposed C# contract or route back to Specifier for requested changes. Do not route to Coder until the human explicitly accepts or revises the contract.
 
 ## Setup Context
 
@@ -288,3 +288,12 @@
 - Open questions:
   - Does the human accept the proposed C# contract in `docs/plans/201-csharp-upgrade-specifier-contract.md`, or should the contract be revised before the human-owned spec is edited?
   - Prior product questions remain open: record handling, constructor symbol policy, and whether instance member calls through local/field types should be a separate shallow type-flow feature.
+
+### 2026-06-15 Orchestrator Receipt Of Acceptance Boundary Reset
+
+- Verified Specifier boundary-reset commit on branch and remote: `c97fc5f5a specifier: record csharp acceptance boundary reset`.
+- Verified worktree status: clean on `codex/201-csharp-upgrade`.
+- Verified protected checkout status: clean on `main`.
+- Verified human-owned acceptance spec Markdown is not in the PR diff: `git diff --name-only origin/main...HEAD -- 'packages/extension/tests/acceptance/specs/**/*.md'` returned no paths.
+- Moved Trello card 201 to `Review` and posted boundary-reset verification breadcrumb.
+- Current human gate: human must decide whether the proposed C# contract/support matrix and example changes should be accepted, revised by Specifier, or otherwise handled before any acceptance spec Markdown is edited.
