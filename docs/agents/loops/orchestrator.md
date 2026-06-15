@@ -1,244 +1,107 @@
 # Orchestrator Loop
 
-The Orchestrator runs one CodeGraphy Loop for one Trello card, bug report, or
-explicit user request. It owns state and routing. It does not do role work that
-belongs to the Specifier, Coder, Refactorer, or Architect.
+The Orchestrator runs one CodeGraphy workflow for a Trello card, bug report, or explicit user request. It owns the loop state, handoff continuity, and routing between role subagents. It does not do Specifier, Coder, Refactorer, or Architect work itself.
 
-## Inputs
+The Orchestrator keeps the shared branch, worktree, draft PR, and handoff file coherent while the roles work. It enforces human gates, preserves the protected main checkout, and sends the work to human review only after the role sequence and CI are complete.
 
-- Trello card, bug report, or explicit user request
-- `AGENTS.md`
-- `CONTEXT.md`
-- `docs/agents/codegraphy-loop.md`
-- `docs/agents/loops/orchestrator.md`
-- `docs/agents/acceptance-specs.md`
-- role contracts under `docs/agents/loops/`
-- the Trello card text and comments
-- relevant example, acceptance spec, plugin, Core, Extension, MCP, docs, or
-  quality-tool files for the specific card
-- relevant ADRs and domain docs
-- prior handoffs, pilot notes, or related PRs when they exist
-- current handoff file, if one exists
-- current branch, worktree, PR, and CI state
+It should not implement accepted behavior, run quality loops that belong to a role, take over a role after dispatch, bypass a role because the next step seems obvious, or mark the work done before human review accepts it.
 
-## Owns
+The roles stay intentionally small. The Specifier turns the request into an acceptance contract. The Coder makes the accepted behavior work. The Refactorer cleans up structure and quality failures. The Architect checks the larger shape, mutation confidence, release hygiene, and final readiness.
 
-- working on exactly one card, bug report, or request
-- creating a dedicated `codex/` branch, isolated worktree, and draft PR
-- keeping one shared PR worktree and one handoff file for the loop
-- recording setup context before alignment
-- running pre-role alignment before dispatching the first role subagent
-- dispatching one in-thread Codex subagent for the selected role step
-- reading each role handoff before choosing the next state
-- preparing the remote Mac mini only when a role needs heavy checks
-- enforcing human gates
-- preserving the protected main checkout
-- keeping Trello and PR state aligned with the loop state
-- moving final work to human review only after each role's conditions pass
+## Setup
 
-## Does Not Own
+Start by grounding the loop in the request, `AGENTS.md`, `CONTEXT.md`, `docs/agents/acceptance-specs.md`, the relevant role docs, the Trello card and comments, related source files, current PR and CI state, and any existing handoff notes.
 
-- dispatching the first role subagent before setup context and alignment are
-  complete
-- editing human-owned acceptance spec Markdown
-- implementing accepted behavior
-- running role-owned quality or mutation loops
-- bypassing a role because the next step seems obvious
-- taking over the details of role-owned work after dispatch
-- marking work done before human review accepts it
-- writing role evidence that belongs to the active role subagent
+Create the dedicated `codex/` branch, isolated worktree, draft PR, handoff file, and Trello breadcrumbs before the first role dispatch. Set up the Mac mini early enough that the loop can offload heavy or focus stealing work when needed. It is mainly for slower checks such as VS Code Playwright, mutation, or long quality commands, so do not use it for routine local work just because it exists.
+
+The handoff is the loop state. Record the setup context there before moving into the grill-with-docs alignment loop.
 
 ## Loop
 
 ```mermaid
 flowchart TD
-    Start["Orchestrator starts"] --> Read["Read request card docs repo and prior loop state"]
-    Read --> Setup{"Branch worktree PR and handoff exist?"}
-    Setup -->|No| Create["Create missing loop setup"]
-    Create --> Read
-    Setup -->|Yes| Context["Record setup context in handoff"]
-    Context --> Align{"Pre-role alignment complete?"}
-    Align -->|No| Grill["Run docs-backed human alignment grill"]
-    Grill --> Read
-    Align -->|Yes| Decide["Choose next state"]
-    Decide --> Human{"Human gate active?"}
-    Human -->|Yes| Wait["Move to Review and wait for human input"]
-    Wait --> Read
-    Human -->|No| Dispatch["Dispatch one role subagent"]
-    Dispatch --> Return["Role returns handoff entry"]
-    Return --> Record["Record role boundary state"]
-    Record --> Ready{"All role conditions and CI green?"}
-    Ready -->|No| Read
-    Ready -->|Yes| Review["Move to human review"]
-    Review --> Final{"Human accepted?"}
-    Final -->|No| Read
-    Final -->|Yes| Done["Ready to merge or Done"]
+    Start["Start"] --> Grill["Grill with docs"]
+    Grill --> DispatchSpecifier["Dispatch Specifier"]
+    DispatchSpecifier --> Specifier["Specifier works"]
+    Specifier --> SpecifierHandoff["Read handoff"]
+    SpecifierHandoff --> AcceptanceGate["Wait for human acceptance test commit"]
+    AcceptanceGate -->|Committed| DispatchCoder["Dispatch Coder"]
+    AcceptanceGate -->|Changes requested| Specifier
+    DispatchCoder --> Coder["Coder works"]
+    Coder --> CoderHandoff["Read handoff"]
+    CoderHandoff --> DispatchRefactorer["Dispatch Refactorer"]
+    DispatchRefactorer --> Refactorer["Refactorer works"]
+    Refactorer --> RefactorerHandoff["Read handoff"]
+    RefactorerHandoff --> DispatchArchitect["Dispatch Architect"]
+    DispatchArchitect --> Architect["Architect works"]
+    Architect --> ArchitectHandoff["Read handoff"]
+    ArchitectHandoff --> CI{"CI passing?"}
+    CI -->|No| Coder
+    CI -->|Yes| Review["Wait for human PR review"]
+    Review -->|Specifier change| Specifier
+    Review -->|Coder change| Coder
+    Review -->|Refactorer change| Refactorer
+    Review -->|Architect change| Architect
+    Review -->|Accepted| Done["Ready to merge or Done"]
 ```
 
-## Routing
-
-Default route:
+The normal route is:
 
 ```text
-Specifier -> Coder -> Refactorer -> Architect -> Human review
+Grill with docs -> Specifier -> human acceptance test commit -> Coder -> Refactorer -> Architect -> CI -> human PR review
 ```
 
-Before the first role dispatch, the Orchestrator must finish setup and pass
-pre-role alignment. Setup creates the dedicated branch, isolated worktree,
-draft PR, handoff file, and Trello/PR breadcrumbs. Alignment then confirms the
-card/request scope, acceptance shape, known human gates, and likely first role.
+Run `grill-with-docs` before the first role dispatch.
 
-Use `grill-with-docs` for pre-role alignment when the card is broad,
-exploratory, language-support related, architecture-sensitive,
-acceptance-spec sensitive, or when the human asks to grill. Ask one question at
-a time and ground questions in `CONTEXT.md`, `AGENTS.md`, current repo docs,
-and code that can answer the question directly.
+After the Specifier returns, pause for the human's acceptance test commit. If the human requests acceptance changes, route back to the existing Specifier lane. Once the human commits the tests, dispatch the Coder.
 
-The human may explicitly skip pre-role alignment for a specific loop. Record
-that decision in the handoff before dispatching the first role subagent.
+After the Architect returns, verify CI before human PR review. If CI fails, route back to the existing Coder lane for fixes. If human PR review asks for changes, route back to the role that owns the reason, then move forward through the remaining roles again before returning to review.
 
-The Orchestrator may route backward after any handoff, but should preserve
-the default route unless the handoff log, repo state, CI state, or human input
-shows a reason to move elsewhere.
+Role subagents report facts and evidence. The Orchestrator reads the handoff, chooses the next state, and keeps the PR state aligned with the loop.
 
-When the Orchestrator routes backward, every downstream role state becomes
-stale. Route forward again from that point before returning to human review.
+## Dispatch
 
-Dispatch the selected role as an in-thread Codex subagent using the matching
-role setup when one exists. The dispatch includes the role name, bounded task,
-role contract, current handoff state, worktree, PR, branch, and stopping
-condition. After dispatch, the Orchestrator waits for the role handoff and
-continues only orchestration duties.
+Dispatch the selected role in the current Codex thread. There can only be one active subagent for each role at a time: one Specifier, one Coder, one Refactorer, and one Architect. If the loop routes back to a role, continue that role lane instead of starting a second copy of it.
 
-Keep continuity through the handoff file. When the loop returns to a role, give
-the next role subagent the prior handoff entries for that role, the current
-state, and the reason the Orchestrator routed back.
+Read both the repo role contract under `docs/agents/loops/` and the matching Codex role setup under `/Users/poleski/.codex/agents/*.toml`. Include the role name, bounded task, role contract, current handoff state, worktree, branch, PR, and stopping condition.
 
-Before dispatching a role, verify that the shared worktree is clean or that any
-dirty files are intentionally owned by the target role or an active human gate.
+Before dispatching a role, make sure the shared worktree is clean or that any dirty files are intentionally owned by the target role or an active human gate. When routing back to a role, give that role the prior handoff entries, current state, and the reason for the return.
 
-Common routing examples:
+Remote work should run from an isolated worktree for the PR branch.
 
-- human-owned acceptance spec needs approval: pause for human review
-- acceptance contract is unclear: Specifier
-- focused behavior tests fail: Coder
-- lint, typecheck, CRAP, organize, boundaries, reachability, or SCRAP fail:
-  Refactorer
-- mutation sites, mutation survivors, architecture review, release docs,
-  changesets, PR body, or final CI fail: Architect
-- post-mutation organization output is dirty: Refactorer, then Architect again
-- significant P1/P2 architecture finding changes the accepted behavior or
-  product contract: Specifier
-- significant P1/P2 architecture finding shows the implementation approach is
-  wrong: Coder
-- final human review finds an issue: route to the role that owns the reason
+Role commits use role prefixes, for example:
 
-Role subagents report facts and evidence. The Orchestrator chooses the next
-role.
+```text
+specifier: draft graph scope acceptance contract
+coder: add graph scope search presets
+refactorer: pass organize for graph scope presets
+architect: cover graph scope preset mutation survivors
+```
 
-## Remote Heavy Checks
+Each role owns its own commit timing. The Orchestrator commits handoff changes at role boundaries, human gates, public PR, and final readiness.
 
-The user should not need to manually set up the Mac mini for each card.
+## Handoff
 
-Prepare the Mac mini lazily. Do not sync or create the remote worktree for every
-role. When a role needs VS Code Playwright, mutation, or another long command,
-the Orchestrator starts or verifies a remote Codex thread on `codegraphy-mini`
-before dispatching that role.
-
-Remote work must:
-
-- fetch the PR branch before running commands
-- run from an isolated remote worktree for that branch
-- verify GitHub auth before mutation commands that depend on seed artifacts or
-  GitHub-hosted reports
-
-If GitHub auth is missing, use direct scoped mutation when possible. Pause only
-when the cached artifact is required, and include the exact auth failure and
-command that needs auth.
-
-If the remote repo, toolchain, or worktree is not ready, fix or delegate that
-setup before the role runs heavy commands.
-
-## Handoff Management
-
-The Orchestrator creates an append-only handoff file under `docs/handoff/`.
-
-Use the Trello card number in the filename when available:
+Create one append only handoff file under `docs/handoff/`, using the Trello card number when available:
 
 ```text
 docs/handoff/214-graph-scope-search-presets.md
 ```
 
-It includes:
+The handoff is the source of truth for loop state. Keep the current state near the top and append concise event history below it. It should show the source request or card, PR number, branch, worktree, context read, human gates, grill-with-docs decisions, role dispatches, role returns, CI state, and public PR or Trello state changes.
 
-- Trello card or source request
-- PR number after one exists
-- branch and worktree
-- docs and code context read for setup alignment, including the required input
-  docs and relevant example/spec/plugin/Core/etc. files
-- known prior handoffs, pilot notes, or related PRs
-- current state
-- human gates
-- pre-role alignment questions and decisions
-- chronological event log
+Most substantive handoff content comes from the role subagents. They record their result, files changed, commands run, host used for heavy checks, blockers, and any human decision needed. The Orchestrator writes shorter entries for setup, routing, human decisions, and public state changes.
 
-Small Orchestrator entries record:
+Commit the handoff when dispatching a role, receiving a role handoff, entering or leaving a human gate, changing public PR or Trello state, or finishing the loop.
 
-- timestamp
-- state changes
-- setup context gathered
-- alignment questions and human decisions
-- role subagent dispatches
-- human gates
-- public PR or Trello state changes
+## Human Review
 
-Role entries carry detailed evidence:
+Pause when the loop needs a human decision: acceptance Markdown or acceptance tests need approval, a role would have to cross its mandate, tooling blocks progress, repeated role passes stop improving, or PR review asks for changes.
 
-- role result
-- files changed
-- evidence
-- host used for heavy checks
-- blockers or human decisions needed
+While paused, move Trello to `Review`. When the human responds, record the decision in the handoff and route back to the correct role or forward to the next state.
 
-Keep the current state near the top and append event history below it. The
-handoff is a role boundary log, not a transcript. Commit it when dispatching a
-role, receiving a role handoff, entering or leaving a human gate, changing
-public PR or Trello state, or finishing the loop.
+In the current Trello model, `In Progress` means the loop is running, `Review` means the loop is waiting for a human gate, and `Done` means the human has accepted the work.
 
-## Human Gates
+Move the card or PR to human review only when acceptance decisions are approved, Specifier, Coder, Refactorer, and Architect conditions are satisfied or explicitly skipped, the handoff and PR body are current, docs and changesets are handled, the branch is pushed, and CI is green.
 
-The Orchestrator pauses the loop when:
-
-- human-owned acceptance spec Markdown needs approval
-- a role reports three consecutive flat or regressing passes
-- a role would need to cross its mandate
-- tool or environment state blocks measurable progress
-- final human review requests changes
-
-While paused, Trello should move to `Review`. When the user responds, the
-Orchestrator records the decision and routes the loop back to the correct role.
-
-The current Trello model is:
-
-- existing `In Progress` state means the loop is running
-- `Review` means the loop is waiting for human acceptance review or final
-  human review
-- existing `Done` means the human has accepted and the work is complete
-
-## Ready For Human Review
-
-The Orchestrator may move the card or PR to human review only when:
-
-- required acceptance decisions are approved
-- Specifier conditions are satisfied or explicitly skipped
-- Coder conditions pass
-- Refactorer conditions pass
-- Architect conditions pass
-- handoff current state is accurate
-- PR body is current
-- docs and changesets are handled
-- branch is pushed
-- CI is green
-
-Human review is a state in the loop. If human review finds an issue, record it
-in the handoff log and route back into the loop.
+Human review is still part of the loop. If review finds an issue, record it in the handoff, route back to the owning role, and continue from there.
