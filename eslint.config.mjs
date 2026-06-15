@@ -104,6 +104,7 @@ export default defineConfig(
     ...playwrightPlugin.configs['flat/recommended'],
     rules: {
       ...playwrightPlugin.configs['flat/recommended'].rules,
+      'playwright/consistent-spacing-between-blocks': 'off',
     },
   },
   globalIgnores([

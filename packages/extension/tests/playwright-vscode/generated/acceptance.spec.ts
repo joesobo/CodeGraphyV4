@@ -421,7 +421,6 @@ test.describe('C Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('C example exposes symbols when symbol scope is enabled', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5129,7 +5128,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Imports edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5312,7 +5310,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('References edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5445,7 +5442,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Calls edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5598,7 +5594,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Type imports edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5731,7 +5726,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('TypeScript Alias Import edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5854,7 +5848,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Inherits edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -5957,7 +5950,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Loads edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6100,7 +6092,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Nests edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6223,7 +6214,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Contains edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6356,7 +6346,6 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Overrides edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6554,7 +6543,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Symbol node type gates symbol children', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6707,7 +6695,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Namespace node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6790,7 +6777,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Function node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6873,7 +6859,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Class node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6986,7 +6971,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Interface node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7079,7 +7063,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Type node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7172,7 +7155,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Struct node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7265,7 +7247,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Union node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7348,7 +7329,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Enum node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7441,7 +7421,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Typedef node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7554,7 +7533,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Callable node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7667,7 +7645,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Method node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7770,7 +7747,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Alias node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7873,7 +7849,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Template node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7956,7 +7931,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Variable node type gates variable children', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8109,7 +8083,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Global node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8192,7 +8165,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Constant node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8285,7 +8257,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Field node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8398,7 +8369,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Parameter node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8501,7 +8471,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Local node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8604,7 +8573,6 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
-
   test('Godot class_name node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -14482,7 +14450,6 @@ test.describe('TypeScript Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('TypeScript example exposes type-only imports separately', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -14645,7 +14612,6 @@ test.describe('TypeScript Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('TypeScript plugin resolves tsconfig path aliases', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -14808,7 +14774,6 @@ test.describe('TypeScript Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('TypeScript example exposes supported symbol and constant node types', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -15091,7 +15056,6 @@ test.describe('TypeScript Example', () => {
       await context.cleanup?.();
     }
   });
-
   test('TypeScript example connects symbol-level calls and inheritance', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
