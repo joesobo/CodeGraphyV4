@@ -1,82 +1,79 @@
 # C# Example
 
-A small C# workspace for manual checks of CodeGraphy's C# support.
-
-## Graph Screenshot
-
-![C# example graph screenshot](../assets/graphs/csharp.png)
+Small C# dispatch runner for checking that CodeGraphy can show a real C#
+workspace shape instead of a one-file syntax sample.
 
 ## Structure
 
-```
+```text
 src/
-├── Program.cs         # Entry point
-├── Config.cs          # Configuration
-├── Orphan.cs          # No relationships (test showOrphans)
+├── Program.cs                         # Entry point
 ├── Contracts/
-│   └── IRunner.cs     # Runner contract
-├── Utils/
-│   ├── Helpers.cs     # Utility functions
-│   └── Formatter.cs   # Formatting utilities
+│   └── IDispatchRunner.cs             # Runner contract
+├── Domain/
+│   ├── DispatchPriority.cs            # Priority enum
+│   ├── DispatchRequest.cs             # Request value struct
+│   └── DispatchTicket.cs              # Ticket domain object
+├── Presentation/
+│   └── DispatchReport.cs              # Report formatter
 └── Services/
-    ├── ApiService.cs  # API service
-    └── BaseService.cs # Base service
+    ├── DispatchQueue.cs               # Queue state
+    ├── DispatchRunner.cs              # Concrete runner
+    └── RunnerBase.cs                  # Shared runner base class
 ```
 
-## Expected Graph Structure
+## Expected Graph Shape
 
+```text
+Program.cs
+  -> Services/DispatchRunner.cs
+  -> Domain/DispatchPriority.cs
+
+Services/DispatchRunner.cs
+  -> Contracts/IDispatchRunner.cs
+  -> Domain/DispatchRequest.cs
+  -> Domain/DispatchTicket.cs
+  -> Presentation/DispatchReport.cs
+  -> Services/DispatchQueue.cs
+  -> Services/RunnerBase.cs
+
+Presentation/DispatchReport.cs
+  -> Domain/DispatchTicket.cs
+
+Services/DispatchQueue.cs
+  -> Domain/DispatchTicket.cs
 ```
-Program.cs ────┬──▶ Config.cs
-               │
-               ├──▶ Services/ApiService.cs ──▶ Utils/Helpers.cs ──▶ Utils/Formatter.cs
-               │
-               └──▶ Utils/Helpers.cs
 
-Services/ApiService.cs ──inherit──▶ Services/BaseService.cs
-Services/ApiService.cs ──inherit──▶ Contracts/IRunner.cs
+The runner hierarchy gives inheritance targets, while the entry point and
+runner methods give import, reference, and call relationships. The domain and
+service files also include fields, constants, parameters, and locals for the
+C# variable-node support target.
 
-Orphan.cs (Orphan Node - only visible with showOrphans=true)
-```
+## C# Graph Targets
 
-## Using Patterns Tested
+- Classes: `Program`, `DispatchTicket`, `DispatchReport`, `DispatchQueue`,
+  `DispatchRunner`, and `RunnerBase`.
+- Interface: `IDispatchRunner`.
+- Struct: `DispatchRequest`.
+- Enum: `DispatchPriority`.
+- Methods: `Main`, `Run`, `CreateDefault`, `Create`, `Format`, `Enqueue`,
+  `Count`, `AssignedCrew`, and `Status`.
+- Variables: fields such as `_queue` and `_tickets`, the constant
+  `ReadyStatus`, parameters such as `location` and `priority`, and locals such
+  as `request`, `ticket`, `status`, and `activeTickets`.
+- Edges: namespace imports, type references, calls, inheritance, and
+  file-to-symbol containment.
 
-| Pattern | Example | File |
-|---------|---------|------|
-| Namespace using | `using MyApp.Utils;` | Program.cs |
-| Relative path | `using MyApp.Services;` | Program.cs |
-| Inheritance | `class ApiService : BaseService, IRunner` | ApiService.cs |
-| System usings | `using System;` | (ignored) |
+## Current Support Notes
 
-## Files
+Core Tree-sitter C# analysis currently resolves local namespace imports, object
+creation and static member references, static and inherited calls, and class,
+interface, struct, enum, and method symbols. The C# upgrade loop targets the
+remaining Tree-sitter-backed gaps in this example: variable nodes, file-to-symbol
+containment edges, and richer type-reference extraction from C# declarations.
 
-| File | Uses | Used By |
-|------|------|---------|
-| `Program.cs` | Config, ApiService, Helpers | — |
-| `Config.cs` | — | Program |
-| `Contracts/IRunner.cs` | — | ApiService |
-| `Orphan.cs` | — | — |
-| `Utils/Helpers.cs` | Formatter | Program, ApiService |
-| `Utils/Formatter.cs` | — | Helpers |
-| `Services/ApiService.cs` | BaseService, IRunner, Helpers | Program |
-| `Services/BaseService.cs` | — | ApiService |
-
-## How to Test
-
-1. Open CodeGraphy repo in VSCode
-2. Press F5 to launch Extension Development Host
-3. In the new window: **File → Open Folder → examples/example-csharp**
-4. Click the CodeGraphy icon in the activity bar
-5. Compare the graph to the expected structure above
-
-## Symbol Node Demo
-
-Suggested symbol check:
-
-1. Open `src/Program.cs`.
-2. In Graph Scope, enable **Symbol**.
-3. Search for `Program`, `Config`, `ApiService`, `BaseService`, `IRunner`, and `Helpers`.
-
-Expected behavior:
-
-- Class, Interface, and Function symbols show the application entry point, configuration object, service class, inherited base, implemented contract, and helper calls.
-- The file graph stays small, while symbol nodes explain why `Program.cs` reaches the service and utility files.
+Follow-up candidates intentionally left out of this example include records,
+delegates, properties, events, operators, indexers, extension declarations,
+namespace nodes, partial type merging, top-level statements, and using aliases.
+Those constructs are parseable, but they are either noisier, less valuable for a
+small example, or need a separate node-type/product decision.

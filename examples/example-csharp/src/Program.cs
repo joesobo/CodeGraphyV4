@@ -1,23 +1,17 @@
 using System;
-using MyApp.Services;
-using MyApp.Utils;
+using BeaconDispatch.Domain;
+using BeaconDispatch.Services;
 
-namespace MyApp
+namespace BeaconDispatch;
+
+public static class Program
 {
-    /// <summary>
-    /// Main entry point for the application.
-    /// </summary>
-    class Program
+    public static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            var settings = Config.LoadConfig();
-            var api = new ApiService();
-            
-            var data = api.FetchData(settings.ApiUrl);
-            var result = Helpers.ProcessData(data);
-            
-            Console.WriteLine(result);
-        }
+        var runner = DispatchRunner.CreateDefault();
+        var location = args.Length > 0 ? args[0] : "north pier";
+        var report = runner.Run(location, DispatchPriority.Normal);
+
+        Console.WriteLine(report);
     }
 }
