@@ -333,3 +333,52 @@ Task:
 - Review architecture/release hygiene, docs and changeset needs, PR body, and latest CI state.
 - Preserve accepted TypeScript behavior and human-owned acceptance specs.
 - Return with final readiness evidence, commits pushed, and any blockers or route-back needs.
+
+### 2026-06-15 Architect Return: Release Smoke Fix, CI Pending
+
+Result: `needs CI verification on latest head`.
+
+Host:
+
+- Local worktree for lightweight review, compile, lint, acceptance compile, and focused Vitest.
+- Heavy/focus-stealing VS Code Playwright and installed-VSIX activation smoke were left to the Mac mini/CI path. No local bare mutation or local installed-VSIX smoke was run.
+
+Mutation and site-count decision:
+
+- Read `docs/quality/mutation.md` and `docs/plans/2026-05-21-mutation-seed-cache.md`.
+- Touched mutation-included production source files: `0`.
+- Filter used: `git diff --name-only origin/main...HEAD | rg '^(packages/[^/]+/src/.*\.(ts|tsx))$'`.
+- The only touched `packages/*/src` file after Architect changes is `packages/extension/src/e2e/scenarios.ts`, which is excluded by the extension mutation config via `src/**/e2e/**`.
+- Scoped mutation run decision: skipped because this branch changes example fixtures, acceptance harness data, generated acceptance output, docs, and tests rather than mutation-included production behavior. Running `pnpm run mutate -- ...` would not exercise an included changed production target.
+- Mutation score/survivors: not applicable for this pass; no mutation-included changed source target.
+
+Architecture and PR review findings:
+
+- P1 fixed: CI `VSIX artifacts / darwin-arm64` failed in `Smoke installed VSIX activation` because `packages/extension/src/e2e/scenarios.ts` still expected the old TypeScript fixture (`src/utils.ts`, `src/types.ts#import`) while the accepted fixture now uses the rollout files. The job log showed the smoke workspace produced old-edge actuals while expected new rollout edges were missing.
+- Fix: updated only the TypeScript e2e scenario expectations to the accepted rollout fixture paths and edge ids.
+- No accepted TypeScript behavior changed.
+- Human-owned acceptance spec Markdown was not edited by Architect.
+- No additional P1/P2 architecture findings found in the acceptance step-routing fix, example test update, or generated acceptance output.
+
+Validation:
+
+- `pnpm --filter @codegraphy-dev/extension exec quality-tools acceptance compile --spec "tests/acceptance/specs/**/*.md" --steps "tests/acceptance/steps.ts" --out "/tmp/codegraphy-220-architect-acceptance.spec.ts"` passed.
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/acceptanceGraphViewStepResolution.test.ts tests/acceptanceSteps.test.ts tests/extension/pipeline/examplesWorkspace.test.ts --reporter=verbose` passed: 3 files, 6 tests.
+- `pnpm --filter @codegraphy-dev/extension exec tsc -p src/e2e/tsconfig.json` passed.
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/e2e/scenarios.ts` passed.
+
+Docs and changeset decision:
+
+- No new user-facing extension or package behavior was added by Architect.
+- Existing branch changes are example/acceptance/test/support changes for the TypeScript upgrade card; no additional changeset was added by Architect.
+- Existing `.changeset/remove-node-upper-bound.md` is unrelated to this card and was left untouched.
+
+PR body and handoff:
+
+- PR body needs refresh from Refactorer-dispatched state to Architect/CI state after the Architect commit is pushed.
+- This handoff entry records mutation/site evidence, release-smoke failure evidence, local validation, changeset decision, and current blocker.
+
+CI state:
+
+- Before Architect fix, latest-head CI had `VSIX artifacts / darwin-arm64` failed in installed-VSIX activation smoke. Build, release-tests, typecheck, several unit jobs, and macOS/Ubuntu native runtime checks had passed; remaining checks were still pending.
+- After the Architect fix is pushed, CI must rerun on the new head. Readiness is pending until latest-head CI is green.
