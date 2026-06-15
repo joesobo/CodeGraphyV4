@@ -50,8 +50,7 @@
   "pluginData": {
     "codegraphy.particles": {
       "enabled": true,
-      "preset": "custom",
-      "customEffectId": "fireflies"
+      "preset": "rain"
     }
   },
   "nodeColors": {
@@ -114,16 +113,24 @@
     "reference": true,
     "call": false,
     "type-import": true,
-    "inherit": false,
+    "inherit": true,
     "load": true,
     "nests": false,
     "contains": false,
-    "overrides": false,
+    "overrides": true,
     "codegraphy.typescript:alias-import": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
-  "legend": [],
+  "legend": [
+    {
+      "pattern": "*.m",
+      "color": "#3B82F6",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    }
+  ],
   "legendVisibility": {},
   "legendOrder": [],
   "filterPatterns": [
