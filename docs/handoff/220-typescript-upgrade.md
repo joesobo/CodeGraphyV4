@@ -247,3 +247,21 @@ Validation runs:
 Safety note:
 
 - During remote setup, Orchestrator used `git reset --hard origin/codex/220-typescript-upgrade` in the isolated Mac mini worktree. No protected checkout was touched, and the later remote update used `git merge --ff-only`.
+
+### 2026-06-15 Refactorer Dispatch
+
+Result: `dispatched`.
+
+Inputs:
+
+- Branch: `codex/220-typescript-upgrade`.
+- Worktree: `/Users/poleski/.codex/worktrees/220-typescript-upgrade/CodeGraphyV4`.
+- PR: #278.
+- Coder evidence: local unit/step checks passed, pre-commit typecheck/lint passed, and focused Mac mini VS Code Playwright for `TypeScript example` passed with `5 passed (1.7m)`.
+
+Task:
+
+- Run the Refactorer loop from `docs/agents/loops/refactorer.md`.
+- Preserve accepted TypeScript behavior and human-owned acceptance specs.
+- Prefer the Mac mini for heavy or focus-stealing quality checks.
+- Return with quality evidence, files changed, commits pushed, and any blockers.
