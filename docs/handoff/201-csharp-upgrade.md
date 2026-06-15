@@ -76,3 +76,10 @@
 - If there are gaps between supportable Tree-sitter-backed C# constructs and current CodeGraphy capability declarations or extraction, this loop should include the required support upgrade before acceptance coverage is finalized.
 - Acceptance spec Markdown comes after the example/support contract is clear and should be based on the upgraded C# example plus all supported C# capabilities.
 - The Coder later owns implementing the approved acceptance support, generated tests, unit tests, and production changes needed to make the contract pass.
+
+### 2026-06-15 Human Alignment Decision: Tree-Sitter Boundary
+
+- Human decision: out-of-box C# support in this loop should cover everything CodeGraphy can reasonably support from Tree-sitter, not everything in the C# language.
+- The support target explicitly includes Tree-sitter-derived symbols, variables, and edges.
+- Full C# semantic/project support is out of scope for the built-in baseline unless it is already available through Tree-sitter-backed extraction.
+- Future custom or user-provided C# plugins may add richer language or project semantics later.
