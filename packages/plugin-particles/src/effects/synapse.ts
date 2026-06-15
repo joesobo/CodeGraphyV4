@@ -8,7 +8,7 @@ interface Pulse {
 }
 
 export function createSynapseEffect(runtime: EffectRuntime): EffectController {
-  const grid = 24;
+  const grid = 16;
   const maxPulses = 20;
   const speedMin = 2;
   const speedMax = 22;

@@ -23,7 +23,7 @@ export function createSparklesEffect(runtime: EffectRuntime): EffectController {
     if (sparkles.length > 0) {
       return;
     }
-    for (let i = 0; i < 35; i += 1) {
+    for (let i = 0; i < 50; i += 1) {
       sparkles.push(makeSpark(nextRuntime));
     }
   };
