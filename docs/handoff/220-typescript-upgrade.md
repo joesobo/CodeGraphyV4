@@ -6,7 +6,7 @@
 - Trello list at setup: `In Progress` (`69af003346ade5ee06fa328c`)
 - Branch: `codex/220-typescript-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/220-typescript-upgrade/CodeGraphyV4`
-- PR: pending setup
+- PR: [#278](https://github.com/joesobo/CodeGraphyV4/pull/278) draft
 - Stage: setup and research dispatch before Specifier acceptance draft
 - Human gate: do not advance to coding state until the user has reviewed and accepted the acceptance test/spec changes or made their own modifications.
 
@@ -56,3 +56,5 @@ Pending parallel dispatch:
 - Created isolated worktree and branch `codex/220-typescript-upgrade`.
 - Read Trello card through REST API; card was already in `In Progress` and had labels `Examples`, `Plugin`, and `TypeScript Plugin`.
 - Started handoff before role dispatch.
+- Pushed setup branch and opened draft PR #278.
+- Added Trello comment linking the branch, PR, and handoff.
