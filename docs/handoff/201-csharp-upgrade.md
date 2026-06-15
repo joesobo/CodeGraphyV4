@@ -89,3 +89,10 @@
 - Human decision: upgrade `examples/example-csharp` into one cohesive, believable C# project.
 - The project should naturally cover all C# features CodeGraphy supports out of the box through Tree-sitter.
 - The example should not become a syntax museum or a collection of isolated feature files; feature coverage should come from a real small project shape.
+
+### 2026-06-15 Human Alignment Decision: Specifier Scope
+
+- Human decision: the Specifier should not treat current CodeGraphy behavior as the support boundary.
+- The Specifier researches what CodeGraphy should support for C# from Tree-sitter, then drafts the acceptance contract and tests around that target behavior.
+- Current CodeGraphy behavior is input evidence for the gap audit, not a constraint on the desired C# support contract.
+- Human-owned acceptance spec Markdown still requires explicit human approval before it is committed or treated as accepted.
