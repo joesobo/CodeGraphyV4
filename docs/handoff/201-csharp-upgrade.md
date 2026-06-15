@@ -225,5 +225,5 @@ Important card requirements:
 
 - Human decision: this loop should include C# Tree-sitter variable node support so the C# acceptance scenario covers variables as well as symbols and edges, following the C++ acceptance style.
 - Aligned baseline: C# should cover `Field`, `Parameter`, and `Local` if Core can emit them cleanly from Tree-sitter.
-- Orchestrator recommendation pending confirmation: keep `Global` out of C# unless a clean C# top-level/global construct is intentionally supported.
-- Open alignment question: whether C# should include `Constant` in this loop through `const` fields/local constants, or defer constants until the analyzer can model them without ambiguity.
+- Human decision: C# should include `Constant` in this loop, but narrowly for explicit C# `const` declarations that Tree-sitter can identify cleanly.
+- Human decision: keep `Global` out of C# for now because C# does not have the same clean global-variable model as C/C++.
