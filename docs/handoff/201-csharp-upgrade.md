@@ -2,13 +2,13 @@
 
 ## Current State
 
-- State: setup and grill-with-docs alignment
+- State: paused for grill-with-docs alignment
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `In Progress`
-- Human gate: acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
+- Trello: `Review`
+- Human gate: grill-with-docs alignment question pending; acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
 - Next route: finish grill-with-docs alignment, then dispatch Specifier.
 
 ## Setup Context
@@ -61,3 +61,10 @@
 - Opened draft PR 277: https://github.com/joesobo/CodeGraphyV4/pull/277.
 - Moved Trello card 201 to `In Progress`.
 - Added Trello breadcrumb comment with branch, worktree, PR, handoff, and current loop state.
+
+### 2026-06-15 Grill-With-Docs Pause
+
+- Moved Trello card 201 to `Review` while waiting on the first human alignment decision.
+- Posted Trello pause breadcrumb.
+- First question: should the C# acceptance contract stay limited to currently declared visible C# capabilities (`Function`, `Class`, `Interface`, `Struct`, `Enum`; `Imports`, `References`, `Calls`, `Inherits`), or should this loop include a planned C# variable-node capability expansion too?
+- Orchestrator recommendation: keep this loop limited to currently declared visible C# capabilities, and create follow-up Plugin/Core cards for variable-node support if the support audit shows C# variable extraction is worth adding.
