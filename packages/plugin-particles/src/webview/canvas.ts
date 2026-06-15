@@ -151,9 +151,7 @@ function parseHexColor(value: string): RgbColor | null {
   if (!/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value)) {
     return null;
   }
-  const hex = value.length === 4
-    ? value.slice(1).split('').map(char => `${char}${char}`).join('')
-    : value.slice(1);
+  const hex = normalizeHexDigits(value.slice(1));
   const numeric = Number.parseInt(hex, 16);
   return {
     red: (numeric >> 16) & 255,
@@ -161,6 +159,12 @@ function parseHexColor(value: string): RgbColor | null {
     blue: numeric & 255,
     alpha: 1,
   };
+}
+
+function normalizeHexDigits(hex: string): string {
+  return hex.length === 3
+    ? hex.split('').map(char => `${char}${char}`).join('')
+    : hex;
 }
 
 function clampColorChannel(value: number): number {

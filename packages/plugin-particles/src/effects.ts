@@ -51,6 +51,19 @@ interface CustomParticleEffectOptions extends CustomParticleEffectContext {
 
 export const BACKGROUND_PARTICLE_PREWARM_SECONDS = 72;
 
+type EffectFactory = (runtime: EffectRuntime) => EffectController;
+
+const EFFECT_FACTORIES: Record<BackgroundParticleEffectPreset, EffectFactory> = {
+  synapse: createSynapseEffect,
+  rain: createRainEffect,
+  constellations: createConstellationsEffect,
+  'perlin-flow': createPerlinFlowEffect,
+  leaves: createLeavesEffect,
+  sparkles: createSparklesEffect,
+  embers: createEmbersEffect,
+  snow: createSnowEffect,
+};
+
 export function startBackgroundParticleEffect({
   canvas,
   preset,
@@ -60,39 +73,17 @@ export function startBackgroundParticleEffect({
   prewarmSeconds = BACKGROUND_PARTICLE_PREWARM_SECONDS,
   reduceMotion = false,
 }: BackgroundParticleEffectOptions): () => void {
-  let ctx: CanvasRenderingContext2D | null = null;
-  try {
-    ctx = canvas.getContext('2d');
-  } catch {
-    ctx = null;
-  }
+  const ctx = getCanvasContext(canvas);
   if (!ctx) {
     return () => undefined;
   }
 
   let active = true;
   let animationFrame: number | null = null;
-  const runtime: EffectRuntime = {
-    ctx,
-    canvas,
-    width: 0,
-    height: 0,
-    dpr: Math.min(window.devicePixelRatio || 1, 2),
-    intensity: Math.max(0, Math.min(1, intensity)),
-    size: 1,
-    color,
-    backgroundColor,
-  };
-  const resizeCanvas = (): void => {
-    const rect = canvas.getBoundingClientRect();
-    runtime.width = Math.max(1, rect.width || canvas.clientWidth || canvas.parentElement?.clientWidth || 1);
-    runtime.height = Math.max(1, rect.height || canvas.clientHeight || canvas.parentElement?.clientHeight || 1);
-    canvas.width = Math.round(runtime.width * runtime.dpr);
-    canvas.height = Math.round(runtime.height * runtime.dpr);
-    ctx.setTransform(runtime.dpr, 0, 0, runtime.dpr, 0, 0);
-  };
+  const runtime = createRuntime(canvas, ctx, intensity, color, backgroundColor);
+  const resizeCanvas = (): void => resizeRuntimeCanvas(runtime);
 
-  resizeCanvas();
+  resizeRuntimeCanvas(runtime);
   const effect = createEffectController(preset, runtime);
 
   const resize = (): void => {
@@ -104,9 +95,8 @@ export function startBackgroundParticleEffect({
     if (!active) {
       return;
     }
-    stepEffect(effect, runtime, 1 / 60);
-    effect.draw(runtime);
-    if (!reduceMotion) {
+    runFrame(effect, runtime);
+    if (shouldScheduleFrame(reduceMotion)) {
       animationFrame = requestAnimationFrame(tick);
     }
   };
@@ -126,6 +116,68 @@ export function startBackgroundParticleEffect({
     observer?.disconnect();
     ctx.clearRect(0, 0, runtime.width, runtime.height);
   };
+}
+
+function getCanvasContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+  try {
+    return canvas.getContext('2d');
+  } catch {
+    return null;
+  }
+}
+
+function createRuntime(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  intensity: number,
+  color: string,
+  backgroundColor: string,
+): EffectRuntime {
+  return {
+    ctx,
+    canvas,
+    width: 0,
+    height: 0,
+    dpr: getDevicePixelRatio(),
+    intensity: Math.max(0, Math.min(1, intensity)),
+    size: 1,
+    color,
+    backgroundColor,
+  };
+}
+
+function resizeRuntimeCanvas(runtime: EffectRuntime): void {
+  const { width, height } = readCanvasDisplaySize(runtime.canvas);
+  runtime.width = width;
+  runtime.height = height;
+  runtime.canvas.width = Math.round(width * runtime.dpr);
+  runtime.canvas.height = Math.round(height * runtime.dpr);
+  runtime.ctx.setTransform(runtime.dpr, 0, 0, runtime.dpr, 0, 0);
+}
+
+function readCanvasDisplaySize(canvas: HTMLCanvasElement): { width: number; height: number } {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    width: readDimension(rect.width, canvas.clientWidth, canvas.parentElement?.clientWidth),
+    height: readDimension(rect.height, canvas.clientHeight, canvas.parentElement?.clientHeight),
+  };
+}
+
+function readDimension(...candidates: Array<number | undefined>): number {
+  return Math.max(1, candidates.find(value => Boolean(value)) ?? 1);
+}
+
+function getDevicePixelRatio(): number {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
+function runFrame(effect: EffectController, runtime: EffectRuntime): void {
+  stepEffect(effect, runtime, 1 / 60);
+  effect.draw(runtime);
+}
+
+function shouldScheduleFrame(reduceMotion: boolean): boolean {
+  return !reduceMotion;
 }
 
 function prewarmEffect(
@@ -198,10 +250,8 @@ export function startCustomParticleEffect({
 
 function bindCanvasToDisplaySize(canvas: HTMLCanvasElement): () => void {
   const resize = (): void => {
-    const rect = canvas.getBoundingClientRect();
-    const width = Math.max(1, rect.width || canvas.clientWidth || canvas.parentElement?.clientWidth || 1);
-    const height = Math.max(1, rect.height || canvas.clientHeight || canvas.parentElement?.clientHeight || 1);
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const { width, height } = readCanvasDisplaySize(canvas);
+    const dpr = getDevicePixelRatio();
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
   };
@@ -233,22 +283,5 @@ function createEffectController(
   preset: BackgroundParticleEffectPreset,
   runtime: EffectRuntime,
 ): EffectController {
-  switch (preset) {
-    case 'synapse':
-      return createSynapseEffect(runtime);
-    case 'rain':
-      return createRainEffect(runtime);
-    case 'constellations':
-      return createConstellationsEffect(runtime);
-    case 'perlin-flow':
-      return createPerlinFlowEffect(runtime);
-    case 'leaves':
-      return createLeavesEffect(runtime);
-    case 'sparkles':
-      return createSparklesEffect(runtime);
-    case 'embers':
-      return createEmbersEffect(runtime);
-    case 'snow':
-      return createSnowEffect(runtime);
-  }
+  return EFFECT_FACTORIES[preset](runtime);
 }
