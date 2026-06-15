@@ -538,3 +538,25 @@ Validation:
 CI state:
 
 - Requires a new push and latest-head CI rerun.
+
+### 2026-06-15 Architect CI Follow-up: Language Examples Timeout
+
+Result: `CI timeout fix applied; needs latest-head CI rerun`.
+
+Evidence:
+
+- Latest-head CI run `27577611321` on `66d330d2b` passed all non-Playwright jobs, all VSIX artifact jobs, native runtime jobs, and `Playwright / Graph interactions`.
+- `Playwright / Graph interactions` passed in `13m14s`, confirming the drag settle tolerance fix on Linux CI.
+- The only remaining failing lane was `Playwright / Language examples`.
+- The Language examples log showed no Playwright assertion failure or test artifact path. It ran `xvfb-run --auto-servernum node scripts/run-playwright-turbo.mjs`, printed `Running test:playwright in 1 packages`, then GitHub canceled the job at the matrix timeout.
+- The rerun job `81532873531` started at `2026-06-15T21:46:27Z` and completed as `cancelled` at `2026-06-15T22:01:44Z`.
+
+Change:
+
+- Increased the `Playwright / Language examples` matrix timeout from `15` minutes to `20` minutes, matching the existing Graph interactions window.
+
+Mutation and release hygiene:
+
+- Changed files are CI workflow and handoff only.
+- No mutation-included production source changed in this follow-up.
+- Changeset remains skipped; this is CI/test harness hygiene, not package-facing behavior.
