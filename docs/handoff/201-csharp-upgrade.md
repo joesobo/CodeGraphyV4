@@ -109,3 +109,9 @@
 - Human decision: the Specifier may update `examples/example-csharp` source and README files during its pass.
 - The example is part of the acceptance contract foundation for this loop, so the Specifier owns shaping it around the researched C# Tree-sitter support surface.
 - Human-owned acceptance spec Markdown remains gated: the Specifier may propose changes but must not commit `packages/extension/tests/acceptance/specs/**/*.md` without explicit human approval.
+
+### 2026-06-15 Human Alignment Decision: Follow-Up Classification
+
+- Human decision: the Specifier should include the Tree-sitter-backed C# constructs it is confident are useful CodeGraphy behavior.
+- If a technically extractable construct is weird, low-value, noisy, or otherwise not worth forcing into the example, the Specifier may leave it out.
+- Left-out constructs should be listed in the support matrix or handoff with the reason so the human can decide during example and acceptance review.
