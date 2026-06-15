@@ -7,9 +7,12 @@ import { activate } from '../src/webview';
 import { startBackgroundParticleEffect, startCustomParticleEffect } from '../src/effects';
 
 vi.mock('../src/effects', () => ({
+  BACKGROUND_PARTICLE_PREWARM_SECONDS: 72,
   startCustomParticleEffect: vi.fn(() => vi.fn()),
   startBackgroundParticleEffect: vi.fn(() => vi.fn()),
 }));
+
+const ROOT_PREWARM_SECONDS = 72;
 
 describe('createParticlesPlugin', () => {
   it('ships a webview script for plugin-owned theme controls', () => {
@@ -29,7 +32,7 @@ describe('createParticlesPlugin', () => {
       'graph.stage.worldBackground': overlay,
     }, {
       enabled: true,
-      preset: 'petals',
+      preset: 'leaves',
     });
 
     activate(api);
@@ -45,8 +48,8 @@ describe('createParticlesPlugin', () => {
       canvas: overlay.querySelector('canvas.cg-bg-particles-canvas'),
       color: '#8fcf6b',
       intensity: 1,
-      preset: 'petals',
-      prewarmFrames: 180,
+      preset: 'leaves',
+      prewarmSeconds: ROOT_PREWARM_SECONDS,
     }));
   });
 
@@ -85,6 +88,25 @@ describe('createParticlesPlugin', () => {
     expect(startBackgroundParticleEffect).toHaveBeenLastCalledWith(expect.objectContaining({
       color: '#f8fafc',
       preset: 'snow',
+      prewarmSeconds: 0,
+    }));
+  });
+
+  it('uses a darker default particle color on light graph backgrounds', () => {
+    const controls = document.createElement('div');
+    const overlay = document.createElement('div');
+    overlay.style.backgroundColor = 'rgb(245, 239, 224)';
+    const api = createWebviewApi({
+      'theme.panel': controls,
+      'graph.stage.worldBackground': overlay,
+    });
+
+    activate(api);
+    controls.querySelector<HTMLButtonElement>('[aria-label="Toggle Perlin Flow background effect"]')?.click();
+
+    expect(startBackgroundParticleEffect).toHaveBeenLastCalledWith(expect.objectContaining({
+      color: '#256f7a',
+      preset: 'perlin-flow',
     }));
   });
 
@@ -240,7 +262,7 @@ describe('createParticlesPlugin', () => {
       'graph.stage.worldBackground': overlay,
     }, {
       enabled: true,
-      preset: 'petals',
+      preset: 'leaves',
       intensity: 1,
     });
     vi.mocked(api.onMessage).mockReturnValueOnce(messageSubscription);
@@ -280,6 +302,22 @@ function createWebviewApi(
   return {
     getContainer: vi.fn(() => document.createElement('div')),
     getSlotContainer: vi.fn((slot: GraphPluginSlot) => slots[slot]),
+    registerSlotContribution: vi.fn((slot, contribution) => {
+      const container = slots[slot] as HTMLDivElement | undefined;
+      if (!container) {
+        return { dispose: vi.fn() };
+      }
+      const cleanup = contribution.render(container, { api: undefined as unknown as CodeGraphyWebviewAPI });
+      const dispose = vi.fn(() => {
+        if (typeof cleanup === 'function') {
+          cleanup();
+        } else {
+          cleanup?.dispose();
+        }
+        container.replaceChildren();
+      });
+      return { dispose };
+    }),
     getHostState: vi.fn(() => ({})),
     getPluginData: vi.fn(() => typeof pluginData === 'function' ? pluginData() : pluginData),
     setPluginData: vi.fn(),

@@ -12,10 +12,12 @@ export interface EffectRuntime {
 
 export type DrawEffect = (runtime: EffectRuntime) => void;
 export type ResizeEffect = (runtime: EffectRuntime) => void;
+export type StepEffect = (runtime: EffectRuntime, deltaSeconds: number) => void;
 
 export interface EffectController {
   draw: DrawEffect;
   resize?: ResizeEffect;
+  step?: StepEffect;
 }
 
 export function rgba(color: string, alpha: number): string {

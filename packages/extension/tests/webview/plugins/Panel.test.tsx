@@ -185,23 +185,23 @@ describe('PluginsPanel', () => {
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
-  it('deduplicates stale particle package status rows in favor of the canonical particles plugin', () => {
+  it('deduplicates stale package status rows in favor of the latest package row', () => {
     renderPanel([
       {
-        id: 'codegraphy.backgroundParticles',
-        name: 'Background Particles',
+        id: 'acme.old-tools',
+        name: 'Old Tools',
         version: '0.1.0',
-        packageName: '@codegraphy-dev/plugin-particles',
+        packageName: '@acme/plugin-tools',
         supportedExtensions: [],
         status: 'installed',
         enabled: true,
         connectionCount: 0,
       },
       {
-        id: 'codegraphy.particles',
-        name: 'Particles',
+        id: 'acme.tools',
+        name: 'Tools',
         version: '0.1.0',
-        packageName: '@codegraphy-dev/plugin-particles',
+        packageName: '@acme/plugin-tools',
         supportedExtensions: [],
         status: 'installed',
         enabled: true,
@@ -209,27 +209,28 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(screen.getByText('Particles')).toBeInTheDocument();
-    expect(screen.queryByText('Background Particles')).not.toBeInTheDocument();
+    expect(screen.getByText('Tools')).toBeInTheDocument();
+    expect(screen.queryByText('Old Tools')).not.toBeInTheDocument();
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
-  it('deduplicates stale particle status rows even when the stale row has no package name', () => {
+  it('keeps an active package row when a later duplicate package row is only installed', () => {
     renderPanel([
       {
-        id: 'codegraphy.backgroundParticles',
-        name: 'Background Particles',
+        id: 'acme.tools',
+        name: 'Tools',
         version: '0.1.0',
+        packageName: '@acme/plugin-tools',
         supportedExtensions: [],
-        status: 'installed',
-        enabled: false,
+        status: 'active',
+        enabled: true,
         connectionCount: 0,
       },
       {
-        id: 'codegraphy.particles',
-        name: 'Particles',
+        id: 'acme.tools-package',
+        name: '@acme/plugin-tools',
         version: '0.1.0',
-        packageName: '@codegraphy-dev/plugin-particles',
+        packageName: '@acme/plugin-tools',
         supportedExtensions: [],
         status: 'installed',
         enabled: true,
@@ -237,8 +238,8 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(screen.getByText('Particles')).toBeInTheDocument();
-    expect(screen.queryByText('Background Particles')).not.toBeInTheDocument();
+    expect(screen.getByText('Tools')).toBeInTheDocument();
+    expect(screen.queryByText('@acme/plugin-tools')).not.toBeInTheDocument();
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 

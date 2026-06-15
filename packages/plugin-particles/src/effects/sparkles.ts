@@ -31,19 +31,24 @@ export function createSparklesEffect(runtime: EffectRuntime): EffectController {
 
   return {
     resize: seedSparkles,
+    step(nextRuntime, deltaSeconds) {
+      const frameScale = deltaSeconds * 60;
+      for (const sparkle of sparkles) {
+        sparkle.phase += sparkle.speed * frameScale;
+        if (sparkle.phase > Math.PI * 6) {
+          Object.assign(sparkle, makeSpark(nextRuntime));
+        }
+      }
+    },
     draw(nextRuntime) {
       const { ctx, width, height, color, intensity, size } = nextRuntime;
       ctx.clearRect(0, 0, width, height);
       for (const sparkle of sparkles) {
-        sparkle.phase += sparkle.speed;
         const twinkle = Math.sin(sparkle.phase);
         const alpha = Math.max(0, twinkle) * 0.25 * sparkle.life * intensity;
         const scale = 0.5 + Math.max(0, twinkle) * 0.5;
         if (alpha > 0.01) {
           drawSparkle(ctx, sparkle.x, sparkle.y, sparkle.size * scale * size, color, alpha);
-        }
-        if (sparkle.phase > Math.PI * 6) {
-          Object.assign(sparkle, makeSpark(nextRuntime));
         }
       }
       ctx.globalAlpha = 1;

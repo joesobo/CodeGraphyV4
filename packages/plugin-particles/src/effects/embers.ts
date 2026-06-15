@@ -12,7 +12,7 @@ interface Ember {
   spark: boolean;
 }
 
-export function createEmbersEffect(runtime: EffectRuntime): EffectController {
+export function createEmbersEffect(_runtime: EffectRuntime): EffectController {
   const embers: Ember[] = [];
   const makeEmber = (width: number, height: number): Ember => ({
     x: Math.random() * width,
@@ -25,21 +25,38 @@ export function createEmbersEffect(runtime: EffectRuntime): EffectController {
     wobble: Math.random() * Math.PI * 2,
     spark: false,
   });
-  const seedEmbers = ({ width, height }: EffectRuntime): void => {
-    if (embers.length > 0) {
-      return;
-    }
-    for (let i = 0; i < 60; i += 1) {
-      const ember = makeEmber(width, height);
-      ember.y = Math.random() * height;
-      ember.life = Math.random() * ember.maxLife;
-      embers.push(ember);
-    }
-  };
-  seedEmbers(runtime);
-
   return {
-    resize: seedEmbers,
+    step({ width, height, intensity }, deltaSeconds) {
+      const frameScale = deltaSeconds * 60;
+      while (embers.length < 60) {
+        embers.push(makeEmber(width, height));
+      }
+
+      for (let index = embers.length - 1; index >= 0; index -= 1) {
+        const ember = embers[index];
+        ember.wobble += 0.03 * frameScale;
+        ember.x += (ember.vx + Math.sin(ember.wobble) * 0.5) * frameScale;
+        ember.y += ember.vy * frameScale;
+        ember.life += frameScale;
+        if (ember.life > ember.maxLife || ember.y < -20) {
+          Object.assign(ember, makeEmber(width, height));
+        }
+        if (!ember.spark && Math.random() < 0.003 * frameScale) {
+          ember.spark = true;
+        }
+      }
+
+      if (Math.random() < 0.015 * intensity * frameScale) {
+        const bx = Math.random() * width;
+        for (let i = 0; i < 5; i += 1) {
+          const ember = makeEmber(width, height);
+          ember.x = bx + (Math.random() - 0.5) * 40;
+          ember.y = height - 10;
+          ember.vy *= 1.5;
+          embers.push(ember);
+        }
+      }
+    },
     draw({ ctx, width, height, color, intensity, size }) {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -48,20 +65,6 @@ export function createEmbersEffect(runtime: EffectRuntime): EffectController {
 
       for (let index = embers.length - 1; index >= 0; index -= 1) {
         const ember = embers[index];
-        ember.wobble += 0.03;
-        ember.x += ember.vx + Math.sin(ember.wobble) * 0.5;
-        ember.y += ember.vy;
-        ember.life += 1;
-        if (ember.life > ember.maxLife || ember.y < -20) {
-          embers.splice(index, 1);
-          if (embers.length < 70) {
-            embers.push(makeEmber(width, height));
-          }
-          continue;
-        }
-        if (!ember.spark && Math.random() < 0.003) {
-          ember.spark = true;
-        }
         const lifeRatio = ember.life / ember.maxLife;
         const fade = Math.min(1, Math.min(lifeRatio * 4, (1 - lifeRatio) * 3));
         const radius = ember.r * (ember.spark ? 2.4 : 1) * size;
@@ -77,17 +80,6 @@ export function createEmbersEffect(runtime: EffectRuntime): EffectController {
         ctx.arc(ember.x, ember.y, radius * 0.5, 0, Math.PI * 2);
         ctx.fill();
         ember.spark = false;
-      }
-
-      if (Math.random() < 0.015 * intensity) {
-        const bx = Math.random() * width;
-        for (let i = 0; i < 5; i += 1) {
-          const ember = makeEmber(width, height);
-          ember.x = bx + (Math.random() - 0.5) * 40;
-          ember.y = height - 10;
-          ember.vy *= 1.5;
-          embers.push(ember);
-        }
       }
       ctx.globalCompositeOperation = 'source-over';
     },

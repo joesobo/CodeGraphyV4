@@ -1,7 +1,7 @@
 import { createConstellationsEffect } from './effects/constellations';
 import { createEmbersEffect } from './effects/embers';
+import { createLeavesEffect } from './effects/leaves';
 import { createPerlinFlowEffect } from './effects/perlinFlow';
-import { createPetalsEffect } from './effects/petals';
 import { createRainEffect } from './effects/rain';
 import type { EffectController, EffectRuntime } from './effects/shared';
 import { createSnowEffect } from './effects/snow';
@@ -13,7 +13,7 @@ export const BACKGROUND_PARTICLE_PRESETS = [
   'rain',
   'constellations',
   'perlin-flow',
-  'petals',
+  'leaves',
   'sparkles',
   'embers',
   'snow',
@@ -41,7 +41,7 @@ interface BackgroundParticleEffectOptions {
   intensity: number;
   color?: string;
   backgroundColor?: string;
-  prewarmFrames?: number;
+  prewarmSeconds?: number;
   reduceMotion?: boolean;
 }
 
@@ -49,13 +49,15 @@ interface CustomParticleEffectOptions extends CustomParticleEffectContext {
   moduleUrl: string;
 }
 
+export const BACKGROUND_PARTICLE_PREWARM_SECONDS = 72;
+
 export function startBackgroundParticleEffect({
   canvas,
   preset,
   intensity,
   color = '#9cdef2',
   backgroundColor = '#0b1020',
-  prewarmFrames = 120,
+  prewarmSeconds = BACKGROUND_PARTICLE_PREWARM_SECONDS,
   reduceMotion = false,
 }: BackgroundParticleEffectOptions): () => void {
   let ctx: CanvasRenderingContext2D | null = null;
@@ -102,6 +104,7 @@ export function startBackgroundParticleEffect({
     if (!active) {
       return;
     }
+    stepEffect(effect, runtime, 1 / 60);
     effect.draw(runtime);
     if (!reduceMotion) {
       animationFrame = requestAnimationFrame(tick);
@@ -111,9 +114,7 @@ export function startBackgroundParticleEffect({
   const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(resize);
   observer?.observe(canvas);
   window.addEventListener('resize', resize);
-  for (let frame = 0; frame < prewarmFrames; frame += 1) {
-    effect.draw(runtime);
-  }
+  prewarmEffect(effect, runtime, prewarmSeconds);
   tick();
 
   return () => {
@@ -125,6 +126,30 @@ export function startBackgroundParticleEffect({
     observer?.disconnect();
     ctx.clearRect(0, 0, runtime.width, runtime.height);
   };
+}
+
+function prewarmEffect(
+  effect: EffectController,
+  runtime: EffectRuntime,
+  seconds: number,
+): void {
+  const steps = Math.max(0, Math.min(360, Math.ceil(seconds * 30)));
+  if (steps === 0) {
+    return;
+  }
+
+  const deltaSeconds = seconds / steps;
+  for (let step = 0; step < steps; step += 1) {
+    stepEffect(effect, runtime, deltaSeconds);
+  }
+}
+
+function stepEffect(
+  effect: EffectController,
+  runtime: EffectRuntime,
+  deltaSeconds: number,
+): void {
+  effect.step?.(runtime, deltaSeconds);
 }
 
 export function startCustomParticleEffect({
@@ -217,8 +242,8 @@ function createEffectController(
       return createConstellationsEffect(runtime);
     case 'perlin-flow':
       return createPerlinFlowEffect(runtime);
-    case 'petals':
-      return createPetalsEffect(runtime);
+    case 'leaves':
+      return createLeavesEffect(runtime);
     case 'sparkles':
       return createSparklesEffect(runtime);
     case 'embers':

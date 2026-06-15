@@ -115,9 +115,25 @@ export interface LabelOpts {
   align?: CanvasTextAlign;
 }
 
+export type PluginSlotRenderCleanup = void | (() => void) | WebviewDisposable;
+
+export interface PluginSlotRenderContext {
+  api: CodeGraphyWebviewAPI;
+}
+
+export interface PluginSlotContribution {
+  id: string;
+  order?: number;
+  render(
+    container: HTMLDivElement,
+    context: PluginSlotRenderContext,
+  ): PluginSlotRenderCleanup;
+}
+
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
+  registerSlotContribution(slot: GraphPluginSlot, contribution: PluginSlotContribution): WebviewDisposable;
   getHostState(): Record<string, unknown>;
   getPluginData(): unknown;
   setPluginData(data: unknown): void;
