@@ -2,15 +2,15 @@
 
 ## Current State
 
-- State: paused for human acceptance
+- State: routing back to Specifier after acceptance-boundary correction
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `Review`
-- Human gate: acceptance contract not approved; acceptance spec Markdown may be changed locally for human review, but must not be treated as accepted until the human approves it.
-- Active role: none
-- Next route: wait for human acceptance of the local spec/example changes or route back to Specifier for requested changes. Do not route to Coder until the human accepts or revises the spec.
+- Trello: `In Progress`
+- Human gate: acceptance contract not approved; acceptance spec Markdown is human-owned and must not be committed or pushed by agents.
+- Active role: Specifier return pending
+- Next route: revert the pushed acceptance spec change, then return to the existing Specifier lane with the reason for return and the role contract. The Specifier must follow its own loop.
 
 ## Setup Context
 
@@ -253,3 +253,11 @@
   - `pnpm run check:acceptance-specs` passed.
 - Moved Trello card 201 to `Review` and posted verification breadcrumb.
 - Current human gate: human must review the local changes and either accept the C# acceptance spec/example contract or request changes before the Coder lane begins.
+
+### 2026-06-15 Orchestrator Correction: Acceptance Spec Push Was Invalid
+
+- Human correction: the Orchestrator should not have instructed the Specifier to edit, commit, and push human-owned acceptance spec Markdown.
+- Root cause: Orchestrator over-instructed the role instead of returning it to its own loop contract with the reason for return.
+- Invalid pushed acceptance spec change: `2c9eaca51 specifier: apply csharp acceptance review spec` modified `packages/extension/tests/acceptance/specs/csharp-example.md`.
+- Corrective action in progress: restore `packages/extension/tests/acceptance/specs/csharp-example.md` to `origin/main` content with a forward commit, leaving example/support-matrix work intact.
+- Next Specifier prompt must be minimal: provide the role, current handoff, reason for return, and stopping condition; do not dictate implementation steps that cross the role contract.
