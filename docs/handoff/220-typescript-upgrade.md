@@ -438,3 +438,74 @@ CI state:
 
 - GitHub Actions run `27574668188` started for merged head `a430ef52c`; all jobs were pending at refresh time.
 - A new Architect follow-up commit will be pushed for the test harness and this handoff addendum, requiring another latest-head CI run.
+
+### 2026-06-15 Graph Interaction CI Follow-up
+
+Result: `support fix ready; count-spec gate remains`.
+
+Trigger:
+
+- Latest-head CI run `27574921495` failed `Playwright / Graph interactions` after the main merge.
+
+Failure evidence:
+
+- CI failures included `Dragging`, `Graph Navigation`, `Graph Rendering`, `Graph Scope Edge Types > Imports edges work`, `Graph View`, and `Multi File Node Context Menu`.
+- CI log showed `src/utils.ts` no longer existed in the TypeScript fixture path used by generic graph interaction helpers.
+- Local focused VS Code Playwright rerun reproduced the failures and showed:
+  - `Dragging` and `Multi File Node Context Menu` were fixed by using an existing TypeScript secondary node.
+  - `Graph Rendering` failed because `the src/index.ts node has an edge that points to the src/format.ts node` was being parsed by the broad `points to` matcher as source `the src/index.ts node has an edge that`.
+  - `Graph Navigation` now observes `16` visible graph nodes where the human-owned spec expects `15`.
+  - `Graph View` now observes `16` nodes and `9` connections where the human-owned spec expects `15` nodes and `8` connections.
+  - `Graph Scope Edge Types > Imports edges work` now observes `13` connections where the human-owned spec expects `9`.
+
+Support fix:
+
+- Updated generic graph interaction helpers to use `src/rollout.ts` as the secondary node for `example-typescript`, preserving `src/utils.ts` for other examples.
+- Added a dedicated pattern for `the X node has an edge that points to the Y node` so rendering assertions pass the intended source and target paths.
+- Added focused unit coverage for both support regressions.
+- No human-owned acceptance spec Markdown was edited.
+
+Validation:
+
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/acceptanceGraphViewStepResolution.test.ts --reporter=verbose` passed: 1 file, 5 tests.
+- `pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "Graph Rendering"` passed: 1 test.
+- Earlier focused local graph-interactions rerun after the secondary-node fix passed `Dragging` and `Multi File Node Context Menu`; remaining failures were count expectations and the now-fixed rendering matcher.
+
+Gate:
+
+- Updating `packages/extension/tests/acceptance/specs/graph-navigation.md`, `graph-view.md`, or `graph-scope-edge-types.md` would change human-owned acceptance Markdown.
+- Orchestrator must get human approval or route back through the acceptance-spec gate before changing those count expectations.
+
+### 2026-06-15 Architect CI Follow-up: Generic TypeScript Secondary Node
+
+Result: `needs CI verification on latest head`.
+
+Context:
+
+- Latest pushed head before this follow-up: `a1701fc68`.
+- CI run `27574921495` passed build, lint, typecheck, unit jobs, release-tests, native runtime jobs, and all VSIX artifact jobs.
+- `Playwright / Graph interactions` failed and `Playwright / Language examples` was cancelled during the VS Code Playwright step.
+- The Graph interactions failure class was stale generic graph-interaction support that still selected `src/utils.ts` in `examples/example-typescript`, after the accepted TypeScript fixture replaced that file with the rollout example.
+
+Fix:
+
+- Updated generic Graph View acceptance helpers to use `src/rollout.ts` as the secondary node only when `context.exampleName === 'example-typescript'`.
+- Kept the existing default secondary node `src/utils.ts` for other examples.
+- Added a focused unit regression proving the multi-select acceptance phrase still uses `src/utils.ts` generally and uses `src/rollout.ts` for the TypeScript example.
+- No human-owned acceptance spec Markdown was edited.
+
+Mutation and site-count refresh:
+
+- Changed package `src` files are still limited to `packages/extension/src/e2e/scenarios.ts`, which is excluded from mutation by `src/**/e2e/**`.
+- The Graph interactions fix changes acceptance step support and tests, not mutation-included production source.
+- Scoped mutation remains skipped; no changed mutation-included production target exists.
+
+Validation:
+
+- `pnpm --filter @codegraphy-dev/extension exec eslint tests/acceptanceGraphViewStepResolution.test.ts tests/acceptance/graphView/steps.ts` passed.
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/acceptanceGraphViewStepResolution.test.ts --reporter=verbose` passed: 1 file, 4 tests.
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/acceptanceGraphViewStepResolution.test.ts tests/acceptanceSteps.test.ts tests/extension/pipeline/examplesWorkspace.test.ts --reporter=verbose` passed: 3 files, 7 tests.
+
+CI state:
+
+- Requires a new push and latest-head CI rerun.

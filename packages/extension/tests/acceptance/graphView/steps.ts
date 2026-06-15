@@ -50,6 +50,8 @@ import {
 } from './vscode';
 
 const TARGET_NODE = 'src/index.ts';
+const DEFAULT_SECONDARY_NODE = 'src/utils.ts';
+const TYPESCRIPT_SECONDARY_NODE = 'src/rollout.ts';
 const CORE_EDGE_TYPE_LABELS = [
   'Include',
   'Imports',
@@ -467,7 +469,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect.poll(async () => (await getGraphCounts(requireGraphFrame(context))).edges).toBe(Number(match[1]));
   }),
 
-  step(/^(?!I see )(.+) points to (.+)$/, async (context, _step, match) => {
+  step(/^the (.+) node has an edge that points to the (.+) node$/, async (context, _step, match) => {
+    await expectVisibleEdgeBetween(context, match[1], match[2]);
+  }),
+
+  step(/^(?!I see )(?!the .+ node has an edge that points to the .+ node$)(.+) points to (.+)$/, async (context, _step, match) => {
     await expectVisibleEdgeBetween(context, match[1], match[2]);
   }),
 
@@ -840,7 +846,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click and drag on the background I can select multiple nodes at once$/, async (context) => {
     await clickNode(context, TARGET_NODE);
-    await modifierClickNode(context, 'src/utils.ts');
+    await modifierClickNode(context, secondaryNodeForCurrentExample(context));
   }),
 
   step(/^I see all the selected nodes outlined in white$/, async (context) => {
@@ -1019,7 +1025,13 @@ async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise
 
 async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
   return await readGraphDebugZoom(requireGraphFrame(context))
-    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/utils.ts');
+    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, secondaryNodeForCurrentExample(context));
+}
+
+function secondaryNodeForCurrentExample(context: GraphAcceptanceContext): string {
+  return context.exampleName === 'example-typescript'
+    ? TYPESCRIPT_SECONDARY_NODE
+    : DEFAULT_SECONDARY_NODE;
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
