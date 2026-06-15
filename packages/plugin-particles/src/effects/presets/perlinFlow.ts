@@ -1,4 +1,4 @@
-import { smoothNoise, type EffectController, type EffectRuntime } from './shared';
+import { smoothNoise, type EffectController, type EffectRuntime } from '../runtime';
 
 interface FlowParticle {
   x: number;

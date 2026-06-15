@@ -1,12 +1,12 @@
-import { createConstellationsEffect } from './effects/constellations';
-import { createEmbersEffect } from './effects/embers';
-import { createLeavesEffect } from './effects/leaves';
-import { createPerlinFlowEffect } from './effects/perlinFlow';
-import { createRainEffect } from './effects/rain';
-import type { EffectController, EffectRuntime } from './effects/shared';
-import { createSnowEffect } from './effects/snow';
-import { createSparklesEffect } from './effects/sparkles';
-import { createSynapseEffect } from './effects/synapse';
+import { createConstellationsEffect } from './effects/presets/constellations';
+import { createEmbersEffect } from './effects/presets/embers';
+import { createLeavesEffect } from './effects/presets/leaves';
+import { createPerlinFlowEffect } from './effects/presets/perlinFlow';
+import { createRainEffect } from './effects/presets/rain';
+import type { EffectController, EffectRuntime } from './effects/runtime';
+import { createSnowEffect } from './effects/presets/snow';
+import { createSparklesEffect } from './effects/presets/sparkles';
+import { createSynapseEffect } from './effects/presets/synapse';
 
 export const BACKGROUND_PARTICLE_PRESETS = [
   'synapse',
