@@ -2,14 +2,15 @@
 
 ## Current State
 
-- State: paused for grill-with-docs alignment
+- State: Specifier dispatched
 - Source: Trello card 201, C# Upgrade, https://trello.com/c/rSYGlC3d/201-c-upgrade
 - Branch: `codex/201-csharp-upgrade`
 - Worktree: `/Users/poleski/.codex/worktrees/201-csharp-upgrade/CodeGraphyV4`
 - Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/277
-- Trello: `Review`
-- Human gate: grill-with-docs alignment in progress; acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
-- Next route: finish grill-with-docs alignment, then dispatch Specifier.
+- Trello: `In Progress`
+- Human gate: acceptance contract not approved; no role may commit human-owned acceptance spec Markdown without explicit human approval.
+- Active role: Specifier
+- Next route: read Specifier handoff, then pause for human acceptance test commit or route back to Specifier for requested changes.
 
 ## Setup Context
 
@@ -115,3 +116,12 @@
 - Human decision: the Specifier should include the Tree-sitter-backed C# constructs it is confident are useful CodeGraphy behavior.
 - If a technically extractable construct is weird, low-value, noisy, or otherwise not worth forcing into the example, the Specifier may leave it out.
 - Left-out constructs should be listed in the support matrix or handoff with the reason so the human can decide during example and acceptance review.
+
+### 2026-06-15 Specifier Dispatch
+
+- Human grill-with-docs alignment resolved.
+- Moved Trello card 201 back to `In Progress` and posted dispatch breadcrumb.
+- Worktree status before dispatch: clean on `codex/201-csharp-upgrade`.
+- Specifier inputs include repo role contract `docs/agents/loops/specifier.md` and Codex role setup `/Users/poleski/.codex/agents/specifier.toml`.
+- Bounded Specifier task: research Tree-sitter-backed C# symbols, variables, and edges; upgrade `examples/example-csharp` into one cohesive real C# project; produce support matrix; propose human-owned acceptance spec Markdown after the example/support contract is clear.
+- Stopping condition: return to Orchestrator with support matrix, example changes, proposed acceptance contract or spec diff, acceptance impact scan, human approval status, and open questions. Do not commit `packages/extension/tests/acceptance/specs/**/*.md`.
