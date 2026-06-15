@@ -1,11 +1,8 @@
 /*
  * Demo CodeGraphy CSS Snippet: static black and grey grid.
  *
- * Try it by copying this file to:
- *   .codegraphy/snippets/base-grid.css
- *
- * Then add "cssSnippets": { ".codegraphy/snippets/base-grid.css": true }
- * to .codegraphy/settings.json.
+ * Try it by setting ".codegraphy/snippets/base-grid.css" to true in
+ * .codegraphy/settings.json.
  */
 
 [data-codegraphy-surface='graph-stage'] {

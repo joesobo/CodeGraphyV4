@@ -9,6 +9,7 @@ import type {
   IGraphViewContributions,
   NodeRenderFn,
   OverlayRenderFn,
+  PluginSlotContribution,
   TooltipProviderFn,
   WebviewDisposable,
   CodeGraphyWebviewAPI,
@@ -32,8 +33,17 @@ type DrawingHelpers = {
 export function createPluginWebviewApi(
   pluginId: string,
   postMessage: (msg: GraphInteractionMessage) => void,
+  postHostMessage: (msg: unknown) => void,
+  getHostState: () => Record<string, unknown>,
+  getPluginData: (pluginId: string) => unknown,
   getOrCreateContainer: (pluginId: string) => HTMLDivElement,
   getOrCreateSlotContainer: (pluginId: string, slot: GraphPluginSlot) => HTMLDivElement,
+  registerSlotContribution: (
+    pluginId: string,
+    slot: GraphPluginSlot,
+    contribution: PluginSlotContribution,
+    context: { api: CodeGraphyWebviewAPI },
+  ) => WebviewDisposable,
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
   registerOverlay: (pluginId: string, id: string, fn: OverlayRenderFn) => WebviewDisposable,
   registerTooltipProvider: (pluginId: string, fn: TooltipProviderFn) => WebviewDisposable,
@@ -43,9 +53,18 @@ export function createPluginWebviewApi(
   messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>,
   drawingHelpers: DrawingHelpers,
 ): CodeGraphyWebviewAPI {
-  return {
+  const api: CodeGraphyWebviewAPI = {
     getContainer: () => getOrCreateContainer(pluginId),
     getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
+    registerSlotContribution: (slot, contribution) => registerSlotContribution(pluginId, slot, contribution, { api }),
+    getHostState,
+    getPluginData: () => getPluginData(pluginId),
+    setPluginData: (data: unknown) => {
+      postHostMessage({
+        type: 'UPDATE_PLUGIN_DATA',
+        payload: { pluginId, data },
+      });
+    },
     getGraphViewViewportState,
     onGraphViewViewportState,
     registerNodeRenderer: (type: string, fn: NodeRenderFn) => registerNodeRenderer(pluginId, type, fn),
@@ -64,6 +83,7 @@ export function createPluginWebviewApi(
         payload: { event: `plugin:${pluginId}:${msg.type}`, data: msg.data },
       });
     },
+    postHostMessage,
     onMessage: (handler: (msg: { type: string; data: unknown }) => void) => {
       let handlers = messageHandlers.get(pluginId);
       if (!handlers) {
@@ -77,4 +97,5 @@ export function createPluginWebviewApi(
       };
     },
   };
+  return api;
 }

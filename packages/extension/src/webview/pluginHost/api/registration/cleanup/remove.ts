@@ -4,6 +4,8 @@
  */
 
 import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../contracts/webview';
+import type { SlotContributionMap } from '../containers';
+import { removePluginSlotContributions } from '../containers';
 import { syncSlotHostVisibility } from '../visibility';
 
 function removePluginMapEntries<T extends { pluginId: string }>(
@@ -86,11 +88,15 @@ export function removePluginRegistrations(
   containers: Map<string, HTMLDivElement>,
   slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>,
   slotHosts: Map<GraphPluginSlot, HTMLDivElement>,
+  slotContributions?: SlotContributionMap,
 ): void {
   removePluginNodeRenderers(pluginId, nodeRenderers);
   removePluginMapEntries(pluginId, overlays);
   removePluginTooltipProviders(pluginId, tooltipProviders);
   messageHandlers.delete(pluginId);
   removePluginContainer(pluginId, containers);
+  if (slotContributions) {
+    removePluginSlotContributions(pluginId, slotContributions, slotHosts);
+  }
   removePluginSlotContainers(pluginId, slotContainers, slotHosts);
 }

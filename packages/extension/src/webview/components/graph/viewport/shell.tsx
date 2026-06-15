@@ -196,7 +196,6 @@ export function GraphViewportShell({
     sharedProps: viewportModel.sharedProps,
     viewState,
   });
-
   return (
     <Viewport
       accessibilityItems={accessibilityItems}

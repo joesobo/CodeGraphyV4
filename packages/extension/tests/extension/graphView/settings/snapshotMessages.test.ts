@@ -52,6 +52,7 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: [],
       particleSpeed: 0.005,
       particleSize: 4,
+      pluginData: {},
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
       verboseDiagnostics: false,
@@ -75,6 +76,9 @@ describe('graphView/settings/snapshotMessages', () => {
         legendOrder: ['default:fileExtension:ts'],
         particleSpeed: 0.02,
         particleSize: 6,
+        pluginData: {
+          'acme.plugin': { enabled: true },
+        },
         showLabels: false,
         maxFiles: 250,
         verboseDiagnostics: true,
@@ -112,6 +116,9 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: ['default:fileExtension:ts'],
       particleSpeed: 0.02,
       particleSize: 6,
+      pluginData: {
+        'acme.plugin': { enabled: true },
+      },
       showLabels: false,
       maxFiles: 250,
       verboseDiagnostics: true,
@@ -177,6 +184,9 @@ describe('graphView/settings/snapshotMessages', () => {
           legendOrder: [],
           particleSpeed: 0.02,
           particleSize: 6,
+          pluginData: {
+            'acme.plugin': { enabled: true },
+          },
           showLabels: false,
           maxFiles: 250,
           verboseDiagnostics: true,
@@ -236,6 +246,10 @@ describe('graphView/settings/snapshotMessages', () => {
         {
           type: 'NODE_SIZE_MODE_UPDATED',
           payload: { nodeSizeMode: 'churn' },
+        },
+        {
+          type: 'PLUGIN_DATA_UPDATED',
+          payload: { pluginId: 'acme.plugin', data: { enabled: true } },
         },
       ],
     });

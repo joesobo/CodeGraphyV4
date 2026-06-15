@@ -1,8 +1,8 @@
 # Plugin Lifecycle
 
-CodeGraphy plugins are headless npm packages loaded by `@codegraphy-dev/core` during explicit workspace indexing. They do not activate as VS Code extensions, do not import `vscode`, and do not receive a VS Code or webview API from `@codegraphy-dev/plugin-api`.
+CodeGraphy plugins are npm packages loaded by `@codegraphy-dev/core` during explicit workspace indexing. They do not activate as VS Code extensions and do not import `vscode`.
 
-The VS Code extension has its own lifecycle and may bridge extension-only visualization surfaces internally, but that bridge is not part of the public npm Plugin API.
+The core analysis lifecycle is headless. Plugins that also declare webview assets can target the host-agnostic `CodeGraphyWebviewAPI` from `@codegraphy-dev/plugin-api`; the VS Code extension still owns VS Code-specific bridge details internally.
 
 ## One-Time Phases
 

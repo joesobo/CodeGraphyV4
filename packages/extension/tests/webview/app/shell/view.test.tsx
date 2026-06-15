@@ -228,6 +228,41 @@ describe('App', () => {
     expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
   });
 
+  it('makes saved plugin data available when a plugin activates during startup', async () => {
+    const pluginData = {
+      enabled: true,
+      preset: 'embers',
+    };
+    const globals = globalThis as typeof globalThis & { __startupPluginData?: unknown };
+    delete globals.__startupPluginData;
+    const scriptUrl = 'data:text/javascript,export function activate(api) { globalThis.__startupPluginData = api.getPluginData(); }';
+
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'PLUGIN_DATA_UPDATED',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          data: pluginData,
+        },
+      });
+      sendMessage({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          scripts: [scriptUrl],
+          styles: [],
+        },
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(globals.__startupPluginData).toEqual(pluginData);
+    });
+  });
+
   it('keeps the graph visible when settings and filters update after startup', async () => {
     render(<App />);
 

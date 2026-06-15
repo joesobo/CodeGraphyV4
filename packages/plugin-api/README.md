@@ -31,9 +31,24 @@ Main surfaces in the current API:
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
 - lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
-Recommended plugins are headless npm packages. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code-specific UI, commands, and editor integration.
+Recommended plugins keep analysis headless and use host-agnostic webview assets only when they need UI. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code-specific commands and editor integration.
 
 The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy-dev/extension`.
+
+Webview plugins can persist their own workspace UI state with
+`api.getPluginData()` and `api.setPluginData(data)`. The host stores that data
+by Plugin ID and replays updates only to the owning plugin, so plugin UI can
+remember settings without adding extension-owned settings keys.
+
+Webview plugins can inject UI into named CodeGraphy slots with
+`api.registerSlotContribution(slot, { id, order, render })`. The host creates
+the slot container, orders contributions, and disposes the returned cleanup when
+the plugin is disabled or reset.
+
+Webview plugin `activate(api)` functions may return a cleanup function or
+`Disposable`. CodeGraphy calls that cleanup when the plugin is disabled or its
+webview assets are reset, so plugins should release animation loops, DOM
+subscriptions, timers, and injected styles from that cleanup.
 
 Package plugins need static metadata before Core can import runtime code. Put package compatibility, default options, and disclosures in `package.json#codegraphy`; put the Plugin ID and display metadata in `codegraphy.json`:
 

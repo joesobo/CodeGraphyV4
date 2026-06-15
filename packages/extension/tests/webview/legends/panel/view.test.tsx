@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import LegendsPanel from '../../../../src/webview/components/legends/panel/view';
 import { graphStore } from '../../../../src/webview/store/state';
+import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
 
 const sentMessages: unknown[] = [];
 let mockWebviewState: unknown;
@@ -285,6 +286,36 @@ describe('LegendsPanel', () => {
     expect(screen.getByDisplayValue('src/**')).toBeInTheDocument();
   });
 
+  it('renders legends, CSS snippets, and plugin-owned theme controls as ordered sections', () => {
+    const pluginHost = {
+      attachSlotHost: vi.fn((_slot: string, host: HTMLDivElement) => {
+        const pluginSection = document.createElement('section');
+        pluginSection.textContent = 'Particles';
+        host.appendChild(pluginSection);
+      }),
+      detachSlotHost: vi.fn(),
+    } as unknown as WebviewPluginHost;
+
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [],
+      cssSnippets: {
+        '.codegraphy/snippets/base-grid.css': false,
+      },
+    });
+
+    const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} pluginHost={pluginHost} />);
+
+    expect(screen.getByTestId('theme-panel-plugin-slot')).toBeInTheDocument();
+    expect(screen.getByText('Particles')).toBeInTheDocument();
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith('theme.panel', expect.any(HTMLDivElement));
+    const sections = Array.from(container.querySelectorAll('[data-codegraphy-section]'))
+      .map(section => section.getAttribute('data-codegraphy-section'));
+    expect(sections).toEqual(['legends', 'css-snippets', 'theme-panel-plugin-slot']);
+  });
+
   it('renders configured CSS snippets and toggles them optimistically', () => {
     sentMessages.length = 0;
     graphStore.setState({
@@ -301,6 +332,7 @@ describe('LegendsPanel', () => {
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('CSS Snippets')).toBeInTheDocument();
+    expect(screen.getByTitle('Toggle CSS Snippets section')).toBeInTheDocument();
     const baseGridToggle = screen.getByLabelText('Toggle .codegraphy/snippets/base-grid.css');
 
     fireEvent.click(baseGridToggle);

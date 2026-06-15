@@ -15,11 +15,18 @@ interface GraphViewPluginRegistry {
     plugin: {
       id: string;
       name?: string;
-      webviewContributions?: {
-        scripts?: string[];
-        styles?: string[];
-      };
-    };
+            webviewContributions?: {
+              scripts?: string[];
+              styles?: string[];
+              assets?: Array<{
+                id: string;
+                label: string;
+                path: string;
+                kind?: string;
+                metadata?: Record<string, unknown>;
+              }>;
+            };
+          };
   }>;
   getPluginAPI(pluginId: string):
     | {

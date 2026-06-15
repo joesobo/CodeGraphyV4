@@ -29,10 +29,17 @@ describe('normalizePluginInjectPayload', () => {
       pluginId: 'plugin.test',
       scripts: ['a.js', 3, 'b.js'],
       styles: ['a.css', false, 'b.css'],
+      assets: [
+        { id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' },
+        { id: 42, label: 'Broken', url: 'webview://broken.js' },
+      ],
     })).toEqual({
       pluginId: 'plugin.test',
       scripts: ['a.js', 'b.js'],
       styles: ['a.css', 'b.css'],
+      assets: [
+        { id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' },
+      ],
     });
   });
 
@@ -45,6 +52,7 @@ describe('normalizePluginInjectPayload', () => {
       pluginId: 'plugin.test',
       scripts: [],
       styles: [],
+      assets: [],
     });
   });
 });

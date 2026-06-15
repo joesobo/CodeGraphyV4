@@ -9,7 +9,7 @@
 [data-codegraphy-surface='graph-stage'] {
   background:
     linear-gradient(rgba(3, 8, 18, 0.7), rgba(3, 8, 18, 0.86)),
-    url('./assets/ocean-surface.jpg')
+    url('../../assets/ocean-surface.jpg')
       center / cover no-repeat !important;
   border: 1px solid rgba(100, 210, 255, 0.18) !important;
 }

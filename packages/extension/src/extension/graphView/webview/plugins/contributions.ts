@@ -45,6 +45,24 @@ interface IPluginApiWithToolbarActions {
 interface IPluginWebviewContributions {
   scripts?: string[];
   styles?: string[];
+  assets?: IPluginWebviewAssetContribution[];
+}
+
+interface IPluginWebviewAssetContribution {
+  id: string;
+  label: string;
+  path: string;
+  kind?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface IGraphViewWebviewAsset {
+  id: string;
+  label: string;
+  path: string;
+  url: string;
+  kind?: string;
+  metadata?: Record<string, unknown>;
 }
 
 interface IGraphViewPluginInfo {
@@ -59,6 +77,7 @@ export interface IGraphViewInjectionPayload {
   pluginId: string;
   scripts: string[];
   styles: string[];
+  assets: IGraphViewWebviewAsset[];
 }
 
 export function collectGraphViewContextMenuItems(
@@ -131,13 +150,18 @@ export function collectGraphViewWebviewInjections(
     const styles = (contributions.styles ?? []).map((assetPath) =>
       resolveAssetPath(assetPath, pluginInfo.plugin.id),
     );
+    const assets = (contributions.assets ?? []).map((asset) => ({
+      ...asset,
+      url: resolveAssetPath(asset.path, pluginInfo.plugin.id),
+    }));
 
-    if (scripts.length === 0 && styles.length === 0) return [];
+    if (scripts.length === 0 && styles.length === 0 && assets.length === 0) return [];
 
     return [{
       pluginId: pluginInfo.plugin.id,
       scripts,
       styles,
+      assets,
     }];
   });
 }

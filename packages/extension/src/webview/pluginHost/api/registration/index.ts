@@ -3,13 +3,23 @@
  * @module webview/pluginHost/api/registration
  */
 
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from '../contracts/webview';
+import type {
+  NodeRenderFn,
+  OverlayRenderFn,
+  PluginSlotContribution,
+  PluginSlotRenderContext,
+  TooltipProviderFn,
+  WebviewDisposable,
+} from '../contracts/webview';
 import type { GraphPluginSlot } from '../contracts/webview';
 import {
   attachSlotHost as attachSlotHostImpl,
   detachSlotHost as detachSlotHostImpl,
   getOrCreateContainer as getOrCreateContainerImpl,
   getOrCreateSlotContainer as getOrCreateSlotContainerImpl,
+  registerSlotContribution as registerSlotContributionImpl,
+  removePluginSlotContributions as removePluginSlotContributionsImpl,
+  type SlotContributionMap,
   type SlotContainerMap,
   type SlotHostMap,
 } from './containers';
@@ -71,8 +81,9 @@ export function attachSlotHost(
   host: HTMLDivElement,
   slotContainers: SlotContainerMap,
   slotHosts: SlotHostMap,
+  slotContributions?: SlotContributionMap,
 ): void {
-  attachSlotHostImpl(slot, host, slotContainers, slotHosts);
+  attachSlotHostImpl(slot, host, slotContainers, slotHosts, slotContributions);
 }
 
 export function detachSlotHost(
@@ -81,3 +92,24 @@ export function detachSlotHost(
 ): void {
   detachSlotHostImpl(slot, slotHosts);
 }
+
+export function registerSlotContribution(
+  pluginId: string,
+  slot: GraphPluginSlot,
+  contribution: PluginSlotContribution,
+  context: PluginSlotRenderContext,
+  slotContributions: SlotContributionMap,
+  slotHosts: SlotHostMap,
+): WebviewDisposable {
+  return registerSlotContributionImpl(pluginId, slot, contribution, context, slotContributions, slotHosts);
+}
+
+export function removePluginSlotContributions(
+  pluginId: string,
+  slotContributions: SlotContributionMap,
+  slotHosts: SlotHostMap,
+): void {
+  removePluginSlotContributionsImpl(pluginId, slotContributions, slotHosts);
+}
+
+export type { SlotContributionMap };

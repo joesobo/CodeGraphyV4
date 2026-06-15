@@ -1,2 +1,8 @@
 .codegraphy/*
 !.codegraphy/settings.json
+!.codegraphy/particles/
+!.codegraphy/particles/**/*.ts
+!.codegraphy/snippets/
+!.codegraphy/snippets/**/*.css
+!.codegraphy/snippets/assets/
+!.codegraphy/snippets/assets/**

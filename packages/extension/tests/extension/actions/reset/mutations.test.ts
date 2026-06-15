@@ -54,6 +54,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
+    pluginData: {},
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',

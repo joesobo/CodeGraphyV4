@@ -14,9 +14,17 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
       cssSnippets: {
         '.codegraphy/snippets/graph.css': true,
-        '  .codegraphy/snippets/ocean.css  ': false,
+        '  .codegraphy/snippets/focus.css  ': false,
         '.codegraphy/snippets/invalid.css': 'yes',
         '': true,
+      },
+      pluginData: {
+        'codegraphy.example': {
+          enabled: true,
+          preset: 'embers',
+          intensity: 0.75,
+          unknown: true,
+        },
       },
       edgeColors: { import: '#123456' },
       plugins: ['codegraphy.typescript'],
@@ -25,7 +33,37 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       filterPatterns: ['**/*.png', '**/*.tmp'],
       cssSnippets: {
         '.codegraphy/snippets/graph.css': true,
-        '.codegraphy/snippets/ocean.css': false,
+        '.codegraphy/snippets/focus.css': false,
+      },
+      pluginData: {
+        'codegraphy.example': {
+          enabled: true,
+          preset: 'embers',
+          intensity: 0.75,
+          unknown: true,
+        },
+      },
+    });
+  });
+
+  it('preserves plugin data without knowing plugin-owned settings shape', () => {
+    expect(normalizePersistedSettingsShape({
+      pluginData: {
+        'codegraphy.example': {
+          enabled: 'yes',
+          preset: 'unknown',
+          intensity: 4,
+          customModule: ' .codegraphy/particles/my-effect.js ',
+        },
+      },
+    })).toEqual({
+      pluginData: {
+        'codegraphy.example': {
+          enabled: 'yes',
+          preset: 'unknown',
+          intensity: 4,
+          customModule: ' .codegraphy/particles/my-effect.js ',
+        },
       },
     });
   });
@@ -143,7 +181,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       respectGitignore: false,
       showOrphans: true,
       plugins: [],
-      pluginData: { 'codegraphy.organize': { enabled: true } },
+      pluginData: {
+        'codegraphy.organize': { enabled: true },
+        'codegraphy.example': { enabled: true, mode: 'demo' },
+      },
       nodeColors: { file: '#111111' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
@@ -187,7 +228,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       respectGitignore: false,
       showOrphans: true,
       plugins: [],
-      pluginData: { 'codegraphy.organize': { enabled: true } },
+      pluginData: {
+        'codegraphy.organize': { enabled: true },
+        'codegraphy.example': { enabled: true, mode: 'demo' },
+      },
       nodeColors: { file: '#111111' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },

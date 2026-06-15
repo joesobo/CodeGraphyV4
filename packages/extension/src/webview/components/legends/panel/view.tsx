@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { mdiClose } from '@mdi/js';
+import { mdiChevronDown, mdiChevronUp, mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { SlotHost } from '../../../pluginHost/slotHost/view';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { ScrollArea } from '../../ui/scroll-area';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../../ui/disclosure/collapsible';
 import {
   replaceCustomEdgeRules,
   upsertEdgeTypeColorRule,
@@ -18,10 +25,12 @@ import {
   writeLegendPanelCollapsedState,
 } from './storage';
 import { CssSnippetsSection } from './cssSnippets';
+import { useCollapsibleEntryState } from './section/collapseState';
 
 interface LegendsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  pluginHost?: WebviewPluginHost;
 }
 
 function useCollapsedLegendEntries(): readonly [
@@ -60,9 +69,53 @@ function useDisplayNodeEntries(
 
 type LegendSectionProps = React.ComponentProps<typeof LegendSection>;
 
+function ThemePanelSection({
+  children,
+  collapsedEntries,
+  onCollapsedChange,
+  sectionId,
+  title,
+}: {
+  children: React.ReactNode;
+  collapsedEntries: Record<string, boolean>;
+  onCollapsedChange: (entryId: string, collapsed: boolean) => void;
+  sectionId: string;
+  title: string;
+}): React.ReactElement {
+  const { collapsed, onOpenChange } = useCollapsibleEntryState({
+    collapsedEntries,
+    onCollapsedChange,
+    storageKey: `section:${sectionId}`,
+  });
+  const open = !collapsed;
+
+  return (
+    <Collapsible open={open} onOpenChange={onOpenChange}>
+      <section className="space-y-2" data-codegraphy-section={sectionId}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-md px-1 py-1 text-left transition-colors hover:bg-[var(--cg-accent-faint)]"
+            title={`Toggle ${title} section`}
+          >
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--cg-text-muted)]">
+              {title}
+            </h3>
+            <MdiIcon path={open ? mdiChevronUp : mdiChevronDown} size={16} />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {children}
+        </CollapsibleContent>
+      </section>
+    </Collapsible>
+  );
+}
+
 export default function LegendsPanel({
   isOpen,
   onClose,
+  pluginHost,
 }: LegendsPanelProps): React.ReactElement | null {
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
@@ -130,10 +183,12 @@ export default function LegendsPanel({
 
       <ScrollArea className="flex-1 min-h-0" data-codegraphy-region="panel-body">
         <div className="space-y-5 px-3 pb-3 pt-2" data-codegraphy-region="theme-sections">
-          <section className="space-y-2" data-codegraphy-section="legends">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--cg-text-muted)]">
-              Legends
-            </h3>
+          <ThemePanelSection
+            collapsedEntries={collapsedEntries}
+            onCollapsedChange={setCollapsedEntry}
+            sectionId="legends"
+            title="Legends"
+          >
             <div className="space-y-4" data-codegraphy-region="legend-sections">
               <LegendSection
                 title="Nodes"
@@ -198,8 +253,22 @@ export default function LegendsPanel({
                 onCollapsedChange={setCollapsedEntry}
               />
             </div>
-          </section>
-          <CssSnippetsSection snippets={cssSnippets} />
+          </ThemePanelSection>
+          <CssSnippetsSection
+            collapsedEntries={collapsedEntries}
+            onCollapsedChange={setCollapsedEntry}
+            snippets={cssSnippets}
+          />
+          {pluginHost ? (
+            <SlotHost
+              pluginHost={pluginHost}
+              slot="theme.panel"
+              data-codegraphy-section="theme-panel-plugin-slot"
+              data-codegraphy-slot="theme-panel"
+              data-testid="theme-panel-plugin-slot"
+              className="space-y-3"
+            />
+          ) : null}
         </div>
       </ScrollArea>
     </section>

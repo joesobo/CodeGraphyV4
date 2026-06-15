@@ -17,6 +17,8 @@ export type GraphPluginSlot =
   | 'toolbar'
   | 'graph.toolbar'
   | 'graph.panelSlot'
+  | 'theme.panel'
+  | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay'
   | 'node-details'
@@ -113,9 +115,28 @@ export interface LabelOpts {
   align?: CanvasTextAlign;
 }
 
+export type PluginSlotRenderCleanup = void | (() => void) | WebviewDisposable;
+
+export interface PluginSlotRenderContext {
+  api: CodeGraphyWebviewAPI;
+}
+
+export interface PluginSlotContribution {
+  id: string;
+  order?: number;
+  render(
+    container: HTMLDivElement,
+    context: PluginSlotRenderContext,
+  ): PluginSlotRenderCleanup;
+}
+
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
+  registerSlotContribution(slot: GraphPluginSlot, contribution: PluginSlotContribution): WebviewDisposable;
+  getHostState(): Record<string, unknown>;
+  getPluginData(): unknown;
+  setPluginData(data: unknown): void;
   getGraphViewViewportState(): GraphViewViewportState | null;
   onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): WebviewDisposable;
   registerNodeRenderer(type: string, fn: NodeRenderFn): WebviewDisposable;
@@ -128,5 +149,6 @@ export interface CodeGraphyWebviewAPI {
     drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void;
   };
   sendMessage(msg: { type: string; data: unknown }): void;
+  postHostMessage(msg: unknown): void;
   onMessage(handler: (msg: { type: string; data: unknown }) => void): WebviewDisposable;
 }

@@ -87,7 +87,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
   const handleMouseMoveCapture = vi.fn();
   const handleMouseUpCapture = vi.fn();
 
-  render(
+  const result = render(
     <Viewport
       canvasBackgroundColor="transparent"
       containerBackgroundColor="var(--cg-popover-translucent)"
@@ -141,7 +141,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
     />,
   );
 
-  return { handleContextMenu, handleMouseLeave, handleMenuAction, handleMouseDownCapture, handleMouseMoveCapture, handleMouseUpCapture };
+  return { ...result, handleContextMenu, handleMouseLeave, handleMenuAction, handleMouseDownCapture, handleMouseMoveCapture, handleMouseUpCapture };
 }
 
 describe('Viewport tooltip count mutations (L111-112)', () => {

@@ -19,6 +19,9 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerWarnings;
     delete (globalThis as Record<string, unknown>).__useManagerContainers;
     delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
+    delete (globalThis as Record<string, unknown>).__useManagerCleanupCount;
+    delete (globalThis as Record<string, unknown>).__useManagerMessages;
+    delete (globalThis as Record<string, unknown>).__useManagerPluginData;
   });
 
   it('returns a stable pluginHost reference across re-renders', () => {
@@ -76,6 +79,64 @@ describe('usePluginManager', () => {
 
     const links = document.head.querySelectorAll('link[rel="stylesheet"]');
     expect(links).toHaveLength(1);
+  });
+
+  it('removes plugin stylesheet links when plugin assets are reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'style-plugin',
+        scripts: [],
+        styles: ['https://example.com/style.css'],
+      });
+    });
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(1);
+
+    result.current.resetPluginAssets('style-plugin');
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(0);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'style-plugin',
+        scripts: [],
+        styles: ['https://example.com/style.css'],
+      });
+    });
+
+    const links = document.head.querySelectorAll('link[rel="stylesheet"]');
+    expect(links).toHaveLength(1);
+    expect((links[0] as HTMLLinkElement).href).toContain('style.css');
+  });
+
+  it('keeps a shared stylesheet while another plugin still owns it', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const sharedStyle = 'https://example.com/shared.css';
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'plugin-a',
+        scripts: [],
+        styles: [sharedStyle],
+      });
+      await result.current.injectPluginAssets({
+        pluginId: 'plugin-b',
+        scripts: [],
+        styles: [sharedStyle],
+      });
+    });
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(1);
+
+    result.current.resetPluginAssets('plugin-a');
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(1);
+
+    result.current.resetPluginAssets('plugin-b');
+
+    expect(document.head.querySelectorAll('link[rel="stylesheet"]')).toHaveLength(0);
   });
 
   it('injects multiple styles without duplication', async () => {
@@ -288,6 +349,84 @@ describe('usePluginManager', () => {
     });
 
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(2);
+  });
+
+  it('delivers resolved webview assets to the activated plugin script', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate(api) {
+        api.onMessage((message) => {
+          const messages = globalThis.__useManagerMessages || (globalThis.__useManagerMessages = []);
+          messages.push(message);
+        });
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'asset-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+        assets: [{ id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' }],
+      });
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerMessages).toEqual([
+      {
+        type: 'PLUGIN_WEBVIEW_ASSETS_UPDATED',
+        data: [{ id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' }],
+      },
+    ]);
+  });
+
+  it('makes plugin data available to a script on first activation', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate(api) {
+        globalThis.__useManagerPluginData = api.getPluginData();
+      }
+    `);
+    const pluginData = {
+      enabled: true,
+      preset: 'embers',
+      intensity: 1,
+    };
+
+    result.current.updatePluginData('particle-plugin', pluginData);
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'particle-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerPluginData).toEqual(pluginData);
+  });
+
+  it('disposes plugin activation cleanup when plugin assets are reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate() {
+        globalThis.__useManagerActivationCount = (globalThis.__useManagerActivationCount || 0) + 1;
+        return () => {
+          globalThis.__useManagerCleanupCount = (globalThis.__useManagerCleanupCount || 0) + 1;
+        };
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'toggle-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    result.current.resetPluginAssets('toggle-plugin');
+
+    expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);
+    expect((globalThis as Record<string, unknown>).__useManagerCleanupCount).toBe(1);
   });
 
   it('warns when a script has no activate export', async () => {

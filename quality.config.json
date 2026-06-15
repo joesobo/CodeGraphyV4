@@ -303,6 +303,32 @@
         ]
       }
     },
+    "plugin-particles": {
+      "crap": {
+        "coverage": {
+          "command": "pnpm",
+          "args": [
+            "exec",
+            "vitest",
+            "run",
+            "--coverage",
+            "--coverage.provider",
+            "istanbul",
+            "--coverage.reportsDirectory",
+            "{repoRoot}/{reportsDir}/crap/{reportKey}"
+          ],
+          "cwd": "{packageRoot}",
+          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+        }
+      },
+      "boundaries": {
+        "entrypoints": [
+          "src/plugin.ts",
+          "src/effects.ts",
+          "src/webview.tsx"
+        ]
+      }
+    },
     "plugin-python": {
       "crap": {
         "coverage": {

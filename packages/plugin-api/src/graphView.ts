@@ -112,6 +112,7 @@ export interface IGraphViewNodeDragEndContribution extends IGraphViewContributio
 export type GraphViewUiSlot =
   | 'graph.toolbar'
   | 'graph.panelSlot'
+  | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay';
 

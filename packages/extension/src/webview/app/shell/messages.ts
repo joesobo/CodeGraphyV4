@@ -5,7 +5,10 @@ export {
   normalizePluginInjectPayload,
   parsePluginScopedMessage,
 } from '../../pluginRuntime/messageValidation';
-export { resolvePluginModuleActivator } from '../../pluginRuntime/moduleResolver';
+export {
+  normalizePluginActivationCleanup,
+  resolvePluginModuleActivator,
+} from '../../pluginRuntime/moduleResolver';
 
 export function getNoDataHint(
   graphData: IGraphData | null,

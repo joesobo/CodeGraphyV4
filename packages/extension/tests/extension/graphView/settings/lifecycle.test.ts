@@ -31,6 +31,7 @@ function createSnapshot(
     legendOrder: [],
     particleSpeed: 0.005,
     particleSize: 4,
+    pluginData: {},
     showLabels: true,
     nodeSizeMode: 'uniform',
     maxFiles: 500,

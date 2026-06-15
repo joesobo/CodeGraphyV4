@@ -144,6 +144,9 @@ describe('graphView/webview/plugins/contributions', () => {
             webviewContributions: {
               scripts: ['dist/plugin.js'],
               styles: ['dist/plugin.css'],
+              assets: [
+                { id: 'fireflies', label: 'Fireflies', path: '.codegraphy/cache/particles/fireflies.js' },
+              ],
             },
           },
         },
@@ -165,9 +168,17 @@ describe('graphView/webview/plugins/contributions', () => {
         pluginId: 'plugin.assets',
         scripts: ['plugin.assets:dist/plugin.js'],
         styles: ['plugin.assets:dist/plugin.css'],
+        assets: [
+          {
+            id: 'fireflies',
+            label: 'Fireflies',
+            path: '.codegraphy/cache/particles/fireflies.js',
+            url: 'plugin.assets:.codegraphy/cache/particles/fireflies.js',
+          },
+        ],
       },
     ]);
-    expect(resolveAssetPath).toHaveBeenCalledTimes(2);
+    expect(resolveAssetPath).toHaveBeenCalledTimes(3);
   });
 
   it('collects style-only and script-only webview injections', () => {
@@ -198,11 +209,13 @@ describe('graphView/webview/plugins/contributions', () => {
         pluginId: 'plugin.styles',
         scripts: [],
         styles: ['plugin.styles:dist/plugin.css'],
+        assets: [],
       },
       {
         pluginId: 'plugin.scripts',
         scripts: ['plugin.scripts:dist/plugin.js'],
         styles: [],
+        assets: [],
       },
     ]);
   });

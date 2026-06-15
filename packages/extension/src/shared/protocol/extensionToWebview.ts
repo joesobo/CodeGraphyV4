@@ -96,6 +96,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
   | { type: 'VERBOSE_DIAGNOSTICS_UPDATED'; payload: { verboseDiagnostics: boolean } }
   | { type: 'CSS_SNIPPETS_UPDATED'; payload: { snippets: Record<string, boolean>; stylesheets: string[] } }
+  | { type: 'PLUGIN_DATA_UPDATED'; payload: { pluginId: string; data: unknown } }
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
   | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'TIMELINE_DATA'; payload: ITimelineData }
@@ -117,7 +118,22 @@ export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED'; payload: { contributions: IGraphViewContributionStatus[] } }
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
   | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
-  | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
+  | {
+    type: 'PLUGIN_WEBVIEW_INJECT';
+    payload: {
+      pluginId: string;
+      scripts: string[];
+      styles: string[];
+      assets?: Array<{
+        id: string;
+        label: string;
+        url: string;
+        path?: string;
+        kind?: string;
+        metadata?: Record<string, unknown>;
+      }>;
+    };
+  }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
   | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
   | { type: 'TOGGLE_DEPTH_MODE' }

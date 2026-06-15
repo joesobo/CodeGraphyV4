@@ -89,10 +89,42 @@ function PluginList({
   );
 }
 
+function getPluginRowKey(plugin: IPluginStatus): string {
+  return plugin.packageName ?? plugin.id;
+}
+
+function shouldReplacePluginRow(current: IPluginStatus, next: IPluginStatus): boolean {
+  if (current.status !== 'active' && next.status === 'active') {
+    return true;
+  }
+  if (current.status === 'active' && next.status !== 'active') {
+    return false;
+  }
+  if (current.name === current.packageName && next.name !== next.packageName) {
+    return true;
+  }
+  if (current.name !== current.packageName && next.name === next.packageName) {
+    return false;
+  }
+  return true;
+}
+
+function dedupePluginStatuses(plugins: readonly IPluginStatus[]): IPluginStatus[] {
+  const rows = new Map<string, IPluginStatus>();
+  for (const plugin of plugins) {
+    const key = getPluginRowKey(plugin);
+    const current = rows.get(key);
+    if (!current || shouldReplacePluginRow(current, plugin)) {
+      rows.set(key, plugin);
+    }
+  }
+  return Array.from(rows.values());
+}
+
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
   const pluginStatuses = useGraphStore(s => s.pluginStatuses);
   const plugins = useMemo(
-    () => pluginStatuses.filter(plugin => plugin.packageName),
+    () => dedupePluginStatuses(pluginStatuses.filter(plugin => plugin.packageName)),
     [pluginStatuses],
   );
 

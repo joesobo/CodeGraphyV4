@@ -45,6 +45,9 @@ describe('app/shell/messageListener/pluginInjection', () => {
         pluginId: 'codegraphy.organize',
         scripts: ['organize.js', 123],
         styles: ['organize.css', null],
+        assets: [
+          { id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' },
+        ],
       },
     }, injectPluginAssets)).toBe(true);
     await Promise.resolve();
@@ -55,6 +58,9 @@ describe('app/shell/messageListener/pluginInjection', () => {
       pluginId: 'codegraphy.organize',
       scripts: ['organize.js'],
       styles: ['organize.css'],
+      assets: [
+        { id: 'fireflies', label: 'Fireflies', url: 'webview://fireflies.js' },
+      ],
     });
     expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
   });
