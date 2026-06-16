@@ -25,6 +25,26 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       },
     },
     {
+      id: 'using',
+      label: 'Using',
+      defaultColor: '#60A5FA',
+      defaultVisible: true,
+      description: {
+        description: 'Shows files that depend on local types or namespaces through language using clauses.',
+        examples: [{ label: 'C#', code: 'using ExampleCSharp.Models;' }],
+      },
+    },
+    {
+      id: 'type',
+      label: 'Type',
+      defaultColor: '#EC4899',
+      defaultVisible: false,
+      description: {
+        description: 'Shows symbols that reference another local type in explicit syntax.',
+        examples: [{ label: 'C#', code: 'private readonly ITaskQueue _queue;' }],
+      },
+    },
+    {
       id: 'reference',
       label: 'References',
       defaultColor: '#F97316',
@@ -52,26 +72,6 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       description: {
         description: 'Shows type-only relationships that do not pull in runtime code.',
         examples: [{ code: 'import type { Thing } from "./types";' }],
-      },
-    },
-    {
-      id: 'using',
-      label: 'Using',
-      defaultColor: '#60A5FA',
-      defaultVisible: true,
-      description: {
-        description: 'Shows files that depend on local types or namespaces through language using clauses.',
-        examples: [{ label: 'C#', code: 'using ExampleCSharp.Models;' }],
-      },
-    },
-    {
-      id: 'type',
-      label: 'Type',
-      defaultColor: '#EC4899',
-      defaultVisible: false,
-      description: {
-        description: 'Shows symbols that reference another local type in explicit syntax.',
-        examples: [{ label: 'C#', code: 'private readonly ITaskQueue _queue;' }],
       },
     },
     {

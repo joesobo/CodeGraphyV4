@@ -10,7 +10,7 @@
   "plugins": [
     {
       "id": "codegraphy.markdown",
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "codegraphy.csharp",

@@ -24,6 +24,18 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultVisible: true,
       },
       {
+        id: 'using',
+        label: 'Using',
+        defaultColor: '#60A5FA',
+        defaultVisible: true,
+      },
+      {
+        id: 'type',
+        label: 'Type',
+        defaultColor: '#EC4899',
+        defaultVisible: false,
+      },
+      {
         id: 'reference',
         label: 'References',
         defaultColor: '#F97316',
@@ -39,18 +51,6 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         id: 'type-import',
         label: 'Type imports',
         defaultColor: '#38BDF8',
-        defaultVisible: false,
-      },
-      {
-        id: 'using',
-        label: 'Using',
-        defaultColor: '#60A5FA',
-        defaultVisible: true,
-      },
-      {
-        id: 'type',
-        label: 'Type',
-        defaultColor: '#EC4899',
         defaultVisible: false,
       },
       {
