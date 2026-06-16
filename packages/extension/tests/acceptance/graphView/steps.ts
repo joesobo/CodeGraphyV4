@@ -1627,7 +1627,7 @@ function collectScopeLabelsWithAncestors(labels: string[]): Set<string> {
   const result = new Set<string>();
 
   for (const label of labels) {
-    let currentLabel: string | undefined = label;
+    let currentLabel: string | undefined = String(label);
     while (currentLabel) {
       result.add(currentLabel);
       currentLabel = CHILD_NODE_TYPE_PARENTS[currentLabel];
