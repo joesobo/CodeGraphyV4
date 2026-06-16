@@ -44,14 +44,26 @@ export function refreshWorkspaceSavedDocument(
     return;
   }
 
-  scheduleWorkspaceRefresh(
+  refreshWorkspaceChangedPath(
     provider,
     '[CodeGraphy] File saved, refreshing graph',
-    [document.uri.fsPath],
-    500,
-    { fullRefresh: isGitignorePath(document.uri.fsPath) },
+    document.uri.fsPath,
   );
-  provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
+}
+
+export function refreshWorkspaceChangedPath(
+  provider: GraphViewProvider,
+  logMessage: string,
+  filePath: string,
+): void {
+  scheduleWorkspaceRefresh(
+    provider,
+    logMessage,
+    [filePath],
+    500,
+    { fullRefresh: isGitignorePath(filePath) },
+  );
+  provider.emitEvent('workspace:fileChanged', { filePath });
 }
 
 export function refreshWorkspaceFileOperation(

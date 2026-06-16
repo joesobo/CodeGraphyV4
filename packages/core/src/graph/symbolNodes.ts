@@ -11,7 +11,7 @@ export function createSymbolNode(
   symbol: IAnalysisSymbol,
   id: string,
   workspaceRoot: string,
-  containingFile: { churn?: number; fileSize?: number } = {},
+  containingFile: { churn?: number; fileSize?: number; gitIgnored?: boolean } = {},
 ): IGraphNode {
   const filePath = toRepoRelativeGraphPath(symbol.filePath, workspaceRoot);
   const kind = normalizeSymbolKind(symbol.kind);
@@ -24,6 +24,9 @@ export function createSymbolNode(
     nodeType,
     fileSize: containingFile.fileSize,
     churn: containingFile.churn,
+    ...(containingFile.gitIgnored
+      ? { metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' } }
+      : {}),
     symbol: {
       id,
       name: symbol.name,

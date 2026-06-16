@@ -114,6 +114,50 @@ describe('core/graph/data', () => {
       ]);
     });
 
+    it('marks symbol nodes whose containing file is gitignored', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {
+          'example-python/app.py': { size: 20 },
+        },
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['/workspace/example-python/app.py', {
+            filePath: '/workspace/example-python/app.py',
+            symbols: [{
+              id: 'main-symbol',
+              filePath: '/workspace/example-python/app.py',
+              kind: 'function',
+              name: 'main',
+              metadata: {
+                language: 'python',
+                source: 'codegraphy.python',
+              },
+            }],
+            relations: [],
+          }],
+        ]),
+        gitIgnoredPaths: ['example-python/app.py'],
+        showOrphans: true,
+        churnCounts: {},
+        nodeVisibility: SYMBOL_NODE_VISIBILITY,
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.python'),
+      });
+
+      expect(graph.nodes).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          id: 'example-python/app.py#main:function',
+          metadata: {
+            gitIgnored: true,
+            gitIgnoredReason: '.gitignore',
+          },
+          symbol: expect.objectContaining({
+            filePath: 'example-python/app.py',
+          }),
+        }),
+      ]));
+    });
+
 
     it('does not project symbol nodes when the symbol graph scope is disabled', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({

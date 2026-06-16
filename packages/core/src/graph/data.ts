@@ -122,6 +122,7 @@ export function buildWorkspaceGraphDataFromAnalysis(
     ? buildSymbolNodesAndEdges(fileAnalysis, options.workspaceRoot, {
         cacheFiles: options.cacheFiles,
         churnCounts: options.churnCounts,
+        gitIgnoredPaths: options.gitIgnoredPaths,
       })
     : { containingFileIds: new Set<string>(), edges: [], nodes: [] };
   const existingNodeIds = new Set(graphData.nodes.map(node => node.id));

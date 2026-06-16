@@ -22,6 +22,7 @@ function makeContext() {
 }
 
 let watcherListeners: {
+  change?: (uri: vscode.Uri) => void;
   create?: (uri: vscode.Uri) => void;
   delete?: (uri: vscode.Uri) => void;
 };
@@ -37,7 +38,10 @@ function installFileSystemWatcher(): void {
       watcherListeners.delete = callback;
       return { dispose: vi.fn() };
     }),
-    onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidChange: vi.fn((callback) => {
+      watcherListeners.change = callback;
+      return { dispose: vi.fn() };
+    }),
     dispose: vi.fn(),
   } as unknown as vscode.FileSystemWatcher);
 }
@@ -152,7 +156,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
     expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/*');
-    expect(context.subscriptions).toHaveLength(6);
+    expect(context.subscriptions).toHaveLength(7);
   });
 
   it('wires saved documents to file-changed refreshes', () => {
@@ -191,6 +195,40 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');
+  });
+
+  it('wires file-system change watchers to file-changed refreshes', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    watcherListeners.change?.(uri('/workspace/src/app.ts'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts']);
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/src/app.ts',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File changed, refreshing graph');
+  });
+
+  it('runs a full graph refresh when gitignore changes on disk', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    watcherListeners.change?.(uri('/workspace/.gitignore'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/.gitignore',
+    });
   });
 
   it('wires workspace explorer create and delete events', () => {

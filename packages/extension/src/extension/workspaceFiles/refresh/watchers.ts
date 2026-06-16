@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
 import {
+  refreshWorkspaceChangedPath,
   refreshWorkspaceFileOperation,
   refreshWorkspaceRenameOperation,
   refreshWorkspaceSavedDocument,
@@ -39,6 +40,15 @@ export function registerFileWatcher(
         '[CodeGraphy] File deleted, refreshing graph',
         [uri],
         'workspace:fileDeleted',
+      );
+    }),
+  );
+  context.subscriptions.push(
+    fileWatcher.onDidChange((uri) => {
+      refreshWorkspaceChangedPath(
+        provider,
+        '[CodeGraphy] File changed, refreshing graph',
+        uri.fsPath,
       );
     }),
   );
