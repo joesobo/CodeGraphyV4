@@ -2,21 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleCSharpMethodDeclaration,
   handleCSharpTypeDeclaration,
-} from '../../../src/treeSitter/runtime/analyzeCSharp/declarations';
-import { getCSharpTypeDeclarationKind, resolveCSharpUsingType } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
-import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { addInheritRelation, addRelation, createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
+} from '../../../../src/treeSitter/runtime/analyzeCSharp/declarations';
+import { getCSharpTypeDeclarationKind, resolveCSharpUsingType } from '../../../../src/treeSitter/runtime/analyzeCSharp/resolution';
+import { getIdentifierText } from '../../../../src/treeSitter/runtime/analyze/nodes';
+import { addInheritRelation, addRelation, createSymbol } from '../../../../src/treeSitter/runtime/analyze/results';
 
-vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeDeclarationKind: vi.fn(),
   resolveCSharpUsingType: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/results', () => ({
   addInheritRelation: vi.fn(),
   addRelation: vi.fn(),
   createSymbol: vi.fn(),

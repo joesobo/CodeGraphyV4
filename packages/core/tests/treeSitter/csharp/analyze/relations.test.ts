@@ -2,8 +2,8 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { analyzeFileWithTreeSitter } from '../../../src/treeSitter/runtime/analyze';
-import { preAnalyzeCSharpTreeSitterFiles } from '../../../src/treeSitter/runtime/csharpIndex';
+import { analyzeFileWithTreeSitter } from '../../../../src/treeSitter/runtime/analyze';
+import { preAnalyzeCSharpTreeSitterFiles } from '../../../../src/treeSitter/runtime/csharpIndex';
 
 const tempRoots: string[] = [];
 

@@ -3,24 +3,24 @@ import type Parser from 'tree-sitter';
 import {
   collectCSharpUsingTargetNode,
   handleCSharpCallNode,
-} from '../../../src/treeSitter/runtime/analyzeCSharp/references';
+} from '../../../../src/treeSitter/runtime/analyzeCSharp/references';
 import {
   getCSharpTypeName,
   resolveCSharpUsingImport,
-} from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
-import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { addRelation } from '../../../src/treeSitter/runtime/analyze/results';
+} from '../../../../src/treeSitter/runtime/analyzeCSharp/resolution';
+import { getIdentifierText } from '../../../../src/treeSitter/runtime/analyze/nodes';
+import { addRelation } from '../../../../src/treeSitter/runtime/analyze/results';
 
-vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeName: vi.fn(),
   resolveCSharpUsingImport: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/results', () => ({
   addRelation: vi.fn(),
 }));
 

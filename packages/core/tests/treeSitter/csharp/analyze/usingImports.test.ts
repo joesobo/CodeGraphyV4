@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { appendCSharpUsingImportRelations } from '../../../src/treeSitter/runtime/analyzeCSharp/usingImports';
-import { resolveCSharpTypePathInNamespace } from '../../../src/treeSitter/runtime/csharpIndex';
-import { normalizeCSharpTypeName } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
-import { addRelation } from '../../../src/treeSitter/runtime/analyze/results';
+import { appendCSharpUsingImportRelations } from '../../../../src/treeSitter/runtime/analyzeCSharp/usingImports';
+import { resolveCSharpTypePathInNamespace } from '../../../../src/treeSitter/runtime/csharpIndex';
+import { normalizeCSharpTypeName } from '../../../../src/treeSitter/runtime/analyzeCSharp/resolution';
+import { addRelation } from '../../../../src/treeSitter/runtime/analyze/results';
 
-vi.mock('../../../src/treeSitter/runtime/csharpIndex', () => ({
+vi.mock('../../../../src/treeSitter/runtime/csharpIndex', () => ({
   resolveCSharpTypePathInNamespace: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   normalizeCSharpTypeName: vi.fn((name: string) => name.toUpperCase()),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/results', () => ({
   addRelation: vi.fn(),
 }));
 

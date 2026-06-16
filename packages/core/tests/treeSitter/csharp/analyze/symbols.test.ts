@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { analyzeFileWithTreeSitter } from '../../../src/treeSitter/runtime/analyze';
+import { analyzeFileWithTreeSitter } from '../../../../src/treeSitter/runtime/analyze';
 
 describe('pipeline/plugins/treesitter/runtime/analyzeCSharp symbols', () => {
   it('extracts C# graph scope symbols from declaration sites', async () => {

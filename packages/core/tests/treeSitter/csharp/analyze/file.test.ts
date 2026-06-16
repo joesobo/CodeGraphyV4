@@ -21,13 +21,13 @@ const csharpHarness = vi.hoisted(() => ({
   walkTree: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/namespace', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyzeCSharp/namespace', () => ({
   handleCSharpNamespaceNode: csharpHarness.handleCSharpNamespaceNode,
   handleCSharpUsingDirective: csharpHarness.handleCSharpUsingDirective,
 }));
 
 vi.mock(
-  '../../../src/treeSitter/runtime/analyzeCSharp/declarations',
+  '../../../../src/treeSitter/runtime/analyzeCSharp/declarations',
   () => ({
     handleCSharpConstructorDeclaration: csharpHarness.handleCSharpConstructorDeclaration,
     handleCSharpEventFieldDeclaration: csharpHarness.handleCSharpEventFieldDeclaration,
@@ -42,7 +42,7 @@ vi.mock(
 );
 
 vi.mock(
-  '../../../src/treeSitter/runtime/analyzeCSharp/references',
+  '../../../../src/treeSitter/runtime/analyzeCSharp/references',
   () => ({
     appendCSharpUsingImportRelations: csharpHarness.appendCSharpUsingImportRelations,
     collectCSharpUsingTargetNode: csharpHarness.collectCSharpUsingTargetNode,
@@ -52,21 +52,21 @@ vi.mock(
 );
 
 vi.mock(
-  '../../../src/treeSitter/runtime/analyzeCSharp/namespaceNames',
+  '../../../../src/treeSitter/runtime/analyzeCSharp/namespaceNames',
   () => ({
     getCSharpFileScopedNamespaceName: csharpHarness.getCSharpFileScopedNamespaceName,
   }),
 );
 
-vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/results', () => ({
   normalizeAnalysisResult: csharpHarness.normalizeAnalysisResult,
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/walk', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyze/walk', () => ({
   walkTree: csharpHarness.walkTree,
 }));
 
-import { analyzeCSharpFile } from '../../../src/treeSitter/runtime/analyzeCSharp/file';
+import { analyzeCSharpFile } from '../../../../src/treeSitter/runtime/analyzeCSharp/file';
 
 describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
   beforeEach(() => {
