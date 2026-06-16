@@ -60,13 +60,13 @@ function getNodeBorderColor(
   isFocused: boolean,
   isFavorite: boolean,
   appearance: Pick<GraphAppearance, 'focusBorder'>,
-  rawColor: string,
+  nodeColor: string,
 ): string {
   if (isFocused) {
     return appearance.focusBorder;
   }
 
-  return isFavorite ? FAVORITE_BORDER_COLOR : rawColor;
+  return isFavorite ? FAVORITE_BORDER_COLOR : nodeColor;
 }
 
 function getNodeBorderWidth(isFocused: boolean, isFavorite: boolean): number {
@@ -124,6 +124,7 @@ function createGraphNodeStyle(
   isLight: boolean,
 ): GraphNodeStyle {
   const rawColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
+  const displayColor = getNodeColor(node, rawColor, options.appearance);
   const isFavorite = options.favorites.has(node.id);
   const isFocused = node.depthLevel === 0;
   const runtimePresentation = node as IGraphNode & RuntimeGraphNodePresentation;
@@ -133,9 +134,9 @@ function createGraphNodeStyle(
 
   return {
     baseOpacity: getNodeBaseOpacity(node),
-    borderColor: getNodeBorderColor(isFocused, isFavorite, options.appearance, rawColor),
+    borderColor: getNodeBorderColor(isFocused, isFavorite, options.appearance, displayColor),
     borderWidth: getNodeBorderWidth(isFocused, isFavorite),
-    color: rawColor,
+    color: displayColor,
     isFavorite,
     size,
   };
@@ -146,6 +147,47 @@ function getNodeBaseOpacity(node: IGraphNode): number {
   return node.metadata?.gitIgnored === true
     ? Math.min(depthOpacity, 0.45)
     : depthOpacity;
+}
+
+function parseHexColor(color: string): [number, number, number] | undefined {
+  const match = /^#([0-9a-f]{6})$/i.exec(color.trim());
+  if (!match) {
+    return undefined;
+  }
+
+  const value = match[1];
+  return [
+    Number.parseInt(value.slice(0, 2), 16),
+    Number.parseInt(value.slice(2, 4), 16),
+    Number.parseInt(value.slice(4, 6), 16),
+  ];
+}
+
+function toHexChannel(value: number): string {
+  return Math.round(value).toString(16).padStart(2, '0');
+}
+
+function mixHexColors(source: string, target: string, amount: number): string {
+  const sourceRgb = parseHexColor(source);
+  const targetRgb = parseHexColor(target) ?? parseHexColor('#6b7280');
+  if (!sourceRgb || !targetRgb) {
+    return source;
+  }
+
+  const mixed = sourceRgb.map((channel, index) =>
+    channel + (targetRgb[index] - channel) * amount
+  );
+  return `#${mixed.map(toHexChannel).join('')}`;
+}
+
+function getNodeColor(
+  node: IGraphNode,
+  nodeColor: string,
+  appearance: Pick<GraphAppearance, 'labelMutedForeground'>,
+): string {
+  return node.metadata?.gitIgnored === true
+    ? mixHexColors(nodeColor, appearance.labelMutedForeground, 0.72)
+    : nodeColor;
 }
 
 function createGraphNodePositionState(
