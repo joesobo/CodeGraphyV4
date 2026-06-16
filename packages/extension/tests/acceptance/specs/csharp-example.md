@@ -18,7 +18,7 @@ Then the available C# node types are only Class, Interface, Struct, Record, Enum
 And I close the Graph Scope
 
 When I toggle the Using edge on
-Then I can see there are 15 nodes and 22 connections
+Then I can see there are 15 nodes and 23 connections
 And src/Program.cs points to src/Config/DispatchSettings.cs
 And src/Program.cs points to src/Models/DispatchTask.cs
 And src/Program.cs points to src/Models/TaskId.cs
@@ -113,10 +113,10 @@ And the visible graph includes the Local node nextTask from src/Services/TaskDis
 
 Then I show no edge types
 Then I show only the File, Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter and Local node types
-Then I can see there are 83 nodes and 0 connections
+Then I can see there are 82 nodes and 0 connections
 
 When I toggle the Contains edge on
-Then I can see there are 83 nodes and 68 connections
+Then I can see there are 82 nodes and 67 connections
 And src/Program.cs points to src/Program.cs#Program:class
 And src/Models/DispatchTask.cs points to src/Models/DispatchTask.cs#DispatchTask:record
 And src/Events/TaskCompleted.cs points to src/Events/TaskCompleted.cs#TaskCompleted:delegate
@@ -127,7 +127,7 @@ And src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#retr
 And src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#nextTask:local
 
 Then I show only the Type edge type
-Then I can see there are 83 nodes and 25 connections
+Then I can see there are 82 nodes and 25 connections
 And the visible graph shows task in src/Events/TaskCompleted.cs referencing type DispatchTask in src/Models/DispatchTask.cs
 And the visible graph shows result in src/Events/TaskCompleted.cs referencing type DispatchResult in src/Models/DispatchResult.cs
 And the visible graph shows TaskId in src/Models/DispatchResult.cs referencing type TaskId in src/Models/TaskId.cs
@@ -140,7 +140,7 @@ And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs referenci
 And the visible graph shows dispatchedTask in src/Services/TaskDispatcher.cs referencing type DispatchTask in src/Models/DispatchTask.cs
 
 Then I show only the Call edge type
-Then I can see there are 83 nodes and 11 connections
+Then I can see there are 82 nodes and 11 connections
 And the visible graph shows Main in src/Program.cs calling TaskDispatcher in src/Services/TaskDispatcher.cs
 And the visible graph shows Main in src/Program.cs calling Dispatch in src/Services/TaskDispatcher.cs
 And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling Enqueue in src/Contracts/ITaskQueue.cs
@@ -148,10 +148,10 @@ And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling C
 And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling BuildMessage in src/Services/TaskDispatcher.cs
 
 Then I show only the Inherits edge type
-Then I can see there are 83 nodes and 1 connection
+Then I can see there are 82 nodes and 1 connection
 And the visible graph shows TaskDispatcher in src/Services/TaskDispatcher.cs inheriting from BaseTaskRunner in src/Services/BaseTaskRunner.cs
 
 Then I show only the Implements edge type
-Then I can see there are 83 nodes and 2 connections
+Then I can see there are 82 nodes and 2 connections
 And the visible graph shows TaskDispatcher in src/Services/TaskDispatcher.cs implementing ITaskRunner in src/Contracts/ITaskRunner.cs
 And the visible graph shows PriorityTaskQueue in src/Services/PriorityTaskQueue.cs implementing ITaskQueue in src/Contracts/ITaskQueue.cs

@@ -421,6 +421,7 @@ test.describe('C Example', () => {
       await context.cleanup?.();
     }
   });
+
   test('C example exposes symbols when symbol scope is enabled', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -2230,10 +2231,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:21
-      await test.step('Then I can see there are 15 nodes and 22 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 22 connections', {
+      await test.step('Then I can see there are 15 nodes and 23 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 23 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 22 connections',
+          text: 'I can see there are 15 nodes and 23 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 21
         });
@@ -3020,10 +3021,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:116
-      await test.step('Then I can see there are 83 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 83 nodes and 0 connections', {
+      await test.step('Then I can see there are 82 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 83 nodes and 0 connections',
+          text: 'I can see there are 82 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 116
         });
@@ -3040,10 +3041,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:119
-      await test.step('Then I can see there are 83 nodes and 68 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 83 nodes and 68 connections', {
+      await test.step('Then I can see there are 82 nodes and 67 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 67 connections', {
           keyword: 'Then',
-          text: 'I can see there are 83 nodes and 68 connections',
+          text: 'I can see there are 82 nodes and 67 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 119
         });
@@ -3140,10 +3141,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:130
-      await test.step('Then I can see there are 83 nodes and 25 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 83 nodes and 25 connections', {
+      await test.step('Then I can see there are 82 nodes and 25 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 25 connections', {
           keyword: 'Then',
-          text: 'I can see there are 83 nodes and 25 connections',
+          text: 'I can see there are 82 nodes and 25 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 130
         });
@@ -3260,10 +3261,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:143
-      await test.step('Then I can see there are 83 nodes and 11 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 83 nodes and 11 connections', {
+      await test.step('Then I can see there are 82 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 11 connections', {
           keyword: 'Then',
-          text: 'I can see there are 83 nodes and 11 connections',
+          text: 'I can see there are 82 nodes and 11 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 143
         });
@@ -3330,10 +3331,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:151
-      await test.step('Then I can see there are 83 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 83 nodes and 1 connection', {
+      await test.step('Then I can see there are 82 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I can see there are 83 nodes and 1 connection',
+          text: 'I can see there are 82 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 151
         });
@@ -3360,10 +3361,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:155
-      await test.step('Then I can see there are 83 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 83 nodes and 2 connections', {
+      await test.step('Then I can see there are 82 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 2 connections', {
           keyword: 'Then',
-          text: 'I can see there are 83 nodes and 2 connections',
+          text: 'I can see there are 82 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 155
         });
@@ -6018,6 +6019,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Imports edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6200,6 +6202,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('References edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6332,6 +6335,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Calls edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6484,6 +6488,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Type imports edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6616,6 +6621,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('TypeScript Alias Import edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6738,6 +6744,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Inherits edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6840,6 +6847,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Loads edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -6982,6 +6990,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Nests edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7104,6 +7113,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Contains edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7236,6 +7246,7 @@ test.describe('Graph Scope Edge Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Overrides edges work', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7433,6 +7444,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Symbol node type gates symbol children', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7585,6 +7597,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Namespace node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7667,6 +7680,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Function node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7749,6 +7763,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Class node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7861,6 +7876,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Interface node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -7943,6 +7959,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Type node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8025,6 +8042,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Struct node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8117,6 +8135,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Union node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8199,6 +8218,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Enum node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8291,6 +8311,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Typedef node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8403,6 +8424,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Callable node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8515,6 +8537,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Method node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8617,6 +8640,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Alias node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8719,6 +8743,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Template node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8801,6 +8826,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Variable node type gates variable children', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -8953,6 +8979,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Global node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -9035,6 +9062,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Constant node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -9127,6 +9155,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Field node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -9239,6 +9268,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Parameter node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -9341,6 +9371,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Local node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
@@ -9443,6 +9474,7 @@ test.describe('Graph Scope Node Types', () => {
       await context.cleanup?.();
     }
   });
+
   test('Godot class_name node type works', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,

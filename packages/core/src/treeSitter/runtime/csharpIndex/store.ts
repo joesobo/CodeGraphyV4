@@ -1,6 +1,6 @@
 export interface CSharpIndexedType {
   filePath: string;
-  kind: 'class' | 'enum' | 'interface' | 'struct';
+  kind: 'class' | 'delegate' | 'enum' | 'interface' | 'record' | 'struct';
   namespaceName: string | null;
   typeName: string;
 }

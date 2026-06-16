@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
 import {
+  collectCSharpUsingTargetNode,
   handleCSharpCallNode,
-  handleCSharpReferenceNode,
 } from '../../../src/treeSitter/runtime/analyzeCSharp/references';
 import {
   getCSharpTypeName,
   resolveCSharpUsingImport,
 } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
 import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { addCallRelation, addReferenceRelation } from '../../../src/treeSitter/runtime/analyze/results';
+import { addRelation } from '../../../src/treeSitter/runtime/analyze/results';
 
 vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeName: vi.fn(),
@@ -21,8 +21,7 @@ vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
-  addCallRelation: vi.fn(),
-  addReferenceRelation: vi.fn(),
+  addRelation: vi.fn(),
 }));
 
 function createNode({
@@ -60,39 +59,37 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
     importTargetsByNamespace.clear();
   });
 
-  it('ignores syntax nodes that are not supported C# reference shapes', () => {
-    handleCSharpReferenceNode(
+  it('ignores syntax nodes that are not C# using target shapes', () => {
+    collectCSharpUsingTargetNode(
       createNode({ type: 'identifier' }) as never,
-      state as never,
       filePath,
       workspaceRoot,
-      relations,
       usingNamespaces,
       importTargetsByNamespace,
+      'CodeGraphy.App',
     );
 
     expect(getIdentifierText).not.toHaveBeenCalled();
     expect(getCSharpTypeName).not.toHaveBeenCalled();
     expect(resolveCSharpUsingImport).not.toHaveBeenCalled();
-    expect(addReferenceRelation).not.toHaveBeenCalled();
+    expect(addRelation).not.toHaveBeenCalled();
   });
 
-  it('reads member access references from the expression field and records resolved uppercase types', () => {
+  it('records uppercase member access expressions as using targets without adding graph relations', () => {
     const expressionNode = createNode({ type: 'identifier' });
-    vi.mocked(getIdentifierText).mockReturnValue('User');
-    vi.mocked(resolveCSharpUsingImport).mockReturnValue('/workspace/src/Models/User.cs');
+    vi.mocked(getIdentifierText).mockReturnValue('DispatchStatus');
+    vi.mocked(resolveCSharpUsingImport).mockReturnValue('/workspace/src/Models/DispatchStatus.cs');
 
-    handleCSharpReferenceNode(
+    collectCSharpUsingTargetNode(
       createNode({
         type: 'member_access_expression',
         fields: { expression: expressionNode },
       }) as never,
-      state as never,
       filePath,
       workspaceRoot,
-      relations,
       usingNamespaces,
       importTargetsByNamespace,
+      'CodeGraphy.App',
     );
 
     expect(getIdentifierText).toHaveBeenCalledWith(expressionNode);
@@ -101,123 +98,34 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
       filePath,
       usingNamespaces,
       importTargetsByNamespace,
-      'User',
+      'DispatchStatus',
       'CodeGraphy.App',
     );
-    expect(addReferenceRelation).toHaveBeenCalledWith(
-      relations,
-      filePath,
-      'User',
-      '/workspace/src/Models/User.cs',
-      '/workspace/src/App.cs:method:Run',
-    );
+    expect(addRelation).not.toHaveBeenCalled();
   });
 
-  it('falls back to the first named child for member access expressions without an expression field', () => {
-    const fallbackExpression = createNode({ type: 'identifier' });
-    vi.mocked(getIdentifierText).mockReturnValue('Worker');
-    vi.mocked(resolveCSharpUsingImport).mockReturnValue('/workspace/src/Services/Worker.cs');
-
-    handleCSharpReferenceNode(
-      createNode({
-        type: 'member_access_expression',
-        namedChildren: [fallbackExpression],
-      }) as never,
-      state as never,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-    );
-
-    expect(getIdentifierText).toHaveBeenCalledWith(fallbackExpression);
-    expect(addReferenceRelation).toHaveBeenCalledWith(
-      relations,
-      filePath,
-      'Worker',
-      '/workspace/src/Services/Worker.cs',
-      '/workspace/src/App.cs:method:Run',
-    );
-  });
-
-  it('reads object creation references from the type field', () => {
-    const typeNode = createNode({ type: 'identifier' });
-    vi.mocked(getCSharpTypeName).mockReturnValue('Repository');
-    vi.mocked(resolveCSharpUsingImport).mockReturnValue('/workspace/src/Data/Repository.cs');
-
-    handleCSharpReferenceNode(
-      createNode({
-        type: 'object_creation_expression',
-        fields: { type: typeNode },
-      }) as never,
-      state as never,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-    );
-
-    expect(getCSharpTypeName).toHaveBeenCalledWith(typeNode);
-    expect(getIdentifierText).not.toHaveBeenCalled();
-    expect(addReferenceRelation).toHaveBeenCalledWith(
-      relations,
-      filePath,
-      'Repository',
-      '/workspace/src/Data/Repository.cs',
-      '/workspace/src/App.cs:method:Run',
-    );
-  });
-
-  it('skips missing, lowercase, and unresolved C# type references', () => {
+  it('skips missing and lowercase member access using targets', () => {
     vi.mocked(getIdentifierText).mockReturnValueOnce(null).mockReturnValueOnce('service');
-    vi.mocked(getCSharpTypeName).mockReturnValueOnce('helper');
-    vi.mocked(resolveCSharpUsingImport).mockReturnValue(null);
 
-    handleCSharpReferenceNode(
+    collectCSharpUsingTargetNode(
       createNode({ type: 'member_access_expression' }) as never,
-      state as never,
       filePath,
       workspaceRoot,
-      relations,
       usingNamespaces,
       importTargetsByNamespace,
+      'CodeGraphy.App',
     );
 
-    handleCSharpReferenceNode(
+    collectCSharpUsingTargetNode(
       createNode({ type: 'member_access_expression' }) as never,
-      state as never,
       filePath,
       workspaceRoot,
-      relations,
       usingNamespaces,
       importTargetsByNamespace,
+      'CodeGraphy.App',
     );
 
-    handleCSharpReferenceNode(
-      createNode({ type: 'object_creation_expression' }) as never,
-      state as never,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-    );
-
-    vi.mocked(getIdentifierText).mockReturnValue('Service');
-    handleCSharpReferenceNode(
-      createNode({ type: 'member_access_expression' }) as never,
-      state as never,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-    );
-
-    expect(resolveCSharpUsingImport).toHaveBeenCalledTimes(1);
-    expect(addReferenceRelation).not.toHaveBeenCalled();
+    expect(resolveCSharpUsingImport).not.toHaveBeenCalled();
   });
 
   it('records C# calls to resolved object creation and static member targets', () => {
@@ -262,30 +170,36 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
       importTargetsByNamespace,
     );
 
-    expect(addCallRelation).toHaveBeenNthCalledWith(
+    expect(addRelation).toHaveBeenNthCalledWith(
       1,
       relations,
-      filePath,
       expect.objectContaining({
-        importedName: 'ApiService',
-        localName: 'ApiService',
+        kind: 'call',
+        fromFilePath: filePath,
+        fromSymbolId: '/workspace/src/App.cs:method:Run',
         resolvedPath: '/workspace/src/Services/ApiService.cs',
         specifier: 'ApiService',
+        metadata: expect.objectContaining({
+          importedName: 'ApiService',
+          localName: 'ApiService',
+        }),
       }),
-      '/workspace/src/App.cs:method:Run',
     );
-    expect(addCallRelation).toHaveBeenNthCalledWith(
+    expect(addRelation).toHaveBeenNthCalledWith(
       2,
       relations,
-      filePath,
       expect.objectContaining({
-        importedName: 'Config',
-        localName: 'Config',
-        memberName: 'LoadConfig',
+        kind: 'call',
+        fromFilePath: filePath,
+        fromSymbolId: '/workspace/src/App.cs:method:Run',
         resolvedPath: '/workspace/src/Config.cs',
         specifier: 'Config',
+        metadata: expect.objectContaining({
+          importedName: 'Config',
+          localName: 'Config',
+          memberName: 'LoadConfig',
+        }),
       }),
-      '/workspace/src/App.cs:method:Run',
     );
   });
 
@@ -310,16 +224,19 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
       importTargetsByNamespace,
     );
 
-    expect(addCallRelation).toHaveBeenCalledWith(
+    expect(addRelation).toHaveBeenCalledWith(
       relations,
-      filePath,
       expect.objectContaining({
-        importedName: 'Status',
-        localName: 'Status',
+        kind: 'call',
+        fromFilePath: filePath,
+        fromSymbolId: '/workspace/src/App.cs:method:Run',
         resolvedPath: '/workspace/src/Services/BaseService.cs',
         specifier: 'Status',
+        metadata: expect.objectContaining({
+          importedName: 'Status',
+          localName: 'Status',
+        }),
       }),
-      '/workspace/src/App.cs:method:Run',
     );
   });
 });

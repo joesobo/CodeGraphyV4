@@ -31,7 +31,7 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
       },
       {
         id: 'call',
-        label: 'Calls',
+        label: 'Call',
         defaultColor: '#22C55E',
         defaultVisible: false,
       },
@@ -42,9 +42,27 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultVisible: false,
       },
       {
+        id: 'using',
+        label: 'Using',
+        defaultColor: '#60A5FA',
+        defaultVisible: true,
+      },
+      {
+        id: 'type',
+        label: 'Type',
+        defaultColor: '#EC4899',
+        defaultVisible: false,
+      },
+      {
         id: 'inherit',
         label: 'Inherits',
         defaultColor: '#F59E0B',
+        defaultVisible: false,
+      },
+      {
+        id: 'implements',
+        label: 'Implements',
+        defaultColor: '#FBBF24',
         defaultVisible: false,
       },
       {
@@ -77,6 +95,8 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
       .toBe('import { thing } from "./module";');
     expect(edgeTypes.find((edgeType) => edgeType.id === 'inherit')?.description?.examples?.[0]?.code)
       .toBe('class Child extends Parent {}');
+    expect(edgeTypes.find((edgeType) => edgeType.id === 'type')?.description?.examples?.[0]?.code)
+      .toBe('private readonly ITaskQueue _queue;');
     expect(CORE_GRAPH_EDGE_TYPES).toEqual(createCoreGraphEdgeTypes());
   });
 });

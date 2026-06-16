@@ -2,11 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const csharpHarness = vi.hoisted(() => ({
   appendCSharpUsingImportRelations: vi.fn(),
+  collectCSharpUsingTargetNode: vi.fn(),
   getCSharpFileScopedNamespaceName: vi.fn(() => 'MyApp'),
   handleCSharpCallNode: vi.fn(),
   handleCSharpMethodDeclaration: vi.fn(),
   handleCSharpNamespaceNode: vi.fn(),
-  handleCSharpReferenceNode: vi.fn(),
+  handleCSharpTypeReferenceNode: vi.fn(),
   handleCSharpTypeDeclaration: vi.fn(),
   handleCSharpUsingDirective: vi.fn(),
   normalizeAnalysisResult: vi.fn(() => ({ filePath: '/workspace/App.cs', relations: [], symbols: [] })),
@@ -30,8 +31,9 @@ vi.mock(
   '../../../src/treeSitter/runtime/analyzeCSharp/references',
   () => ({
     appendCSharpUsingImportRelations: csharpHarness.appendCSharpUsingImportRelations,
+    collectCSharpUsingTargetNode: csharpHarness.collectCSharpUsingTargetNode,
     handleCSharpCallNode: csharpHarness.handleCSharpCallNode,
-    handleCSharpReferenceNode: csharpHarness.handleCSharpReferenceNode,
+    handleCSharpTypeReferenceNode: csharpHarness.handleCSharpTypeReferenceNode,
   }),
 );
 
@@ -55,12 +57,13 @@ import { analyzeCSharpFile } from '../../../src/treeSitter/runtime/analyzeCSharp
 describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
   beforeEach(() => {
     csharpHarness.appendCSharpUsingImportRelations.mockReset();
+    csharpHarness.collectCSharpUsingTargetNode.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReturnValue('MyApp');
     csharpHarness.handleCSharpCallNode.mockReset();
     csharpHarness.handleCSharpMethodDeclaration.mockReset();
     csharpHarness.handleCSharpNamespaceNode.mockReset();
-    csharpHarness.handleCSharpReferenceNode.mockReset();
+    csharpHarness.handleCSharpTypeReferenceNode.mockReset();
     csharpHarness.handleCSharpTypeDeclaration.mockReset();
     csharpHarness.handleCSharpUsingDirective.mockReset();
     csharpHarness.normalizeAnalysisResult.mockReset();
@@ -132,7 +135,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
     });
   });
 
-  it('routes using, type, method, and reference nodes to their matching handlers', () => {
+  it('routes using, type, method, and relation nodes to their matching handlers', () => {
     const tree = { rootNode: { type: 'compilation_unit' } };
     const state = { currentNamespace: 'MyApp' };
     const walk = vi.fn();
@@ -142,7 +145,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
     const structNode = { type: 'struct_declaration' };
     const enumNode = { type: 'enum_declaration' };
     const methodNode = { type: 'method_declaration' };
-    const referenceNode = { type: 'identifier' };
+    const relationNode = { type: 'identifier' };
 
     csharpHarness.walkTree.mockImplementation((_rootNode, _initialState, visit) => {
       visit(usingNode, state, walk);
@@ -151,7 +154,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
       visit(structNode, state, walk);
       visit(enumNode, state, walk);
       visit(methodNode, state, walk);
-      visit(referenceNode, state, walk);
+      visit(relationNode, state, walk);
     });
 
     analyzeCSharpFile('/workspace/App.cs', tree as never, '/workspace');
@@ -189,8 +192,17 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
       expect.any(Array),
       walk,
     );
+    expect(csharpHarness.handleCSharpTypeReferenceNode).toHaveBeenCalledWith(
+      relationNode,
+      '/workspace/App.cs',
+      '/workspace',
+      expect.any(Array),
+      expect.any(Set),
+      expect.any(Map),
+      'MyApp',
+    );
     expect(csharpHarness.handleCSharpCallNode).toHaveBeenCalledWith(
-      referenceNode,
+      relationNode,
       state,
       '/workspace/App.cs',
       '/workspace',
@@ -198,14 +210,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
       expect.any(Set),
       expect.any(Map),
     );
-    expect(csharpHarness.handleCSharpReferenceNode).toHaveBeenCalledWith(
-      referenceNode,
-      state,
+    expect(csharpHarness.collectCSharpUsingTargetNode).toHaveBeenCalledWith(
+      relationNode,
       '/workspace/App.cs',
       '/workspace',
-      expect.any(Array),
       expect.any(Set),
       expect.any(Map),
+      'MyApp',
     );
     expect(normalizedFilePath).toBe('/workspace/App.cs');
     expect(normalizedSymbols).toEqual([]);

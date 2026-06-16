@@ -9,14 +9,22 @@ import {
   handleCSharpUsingDirective,
 } from './namespace';
 import {
+  handleCSharpConstructorDeclaration,
+  handleCSharpEventFieldDeclaration,
+  handleCSharpFieldDeclaration,
+  handleCSharpLocalDeclaration,
+  handleCSharpLocalFunctionDeclaration,
   handleCSharpMethodDeclaration,
+  handleCSharpParameter,
+  handleCSharpPropertyDeclaration,
   handleCSharpTypeDeclaration,
 } from './declarations';
 import type { CSharpWalkState } from './model';
 import {
   appendCSharpUsingImportRelations,
+  collectCSharpUsingTargetNode,
   handleCSharpCallNode,
-  handleCSharpReferenceNode,
+  handleCSharpTypeReferenceNode,
 } from './references';
 import type { TreeWalkAction } from '../analyze/model';
 import { getCSharpFileScopedNamespaceName } from './namespaceNames';
@@ -29,7 +37,9 @@ import {
 
 const CSHARP_TYPE_DECLARATIONS = new Set([
   'class_declaration',
+  'delegate_declaration',
   'interface_declaration',
+  'record_declaration',
   'struct_declaration',
   'enum_declaration',
 ]);
@@ -89,6 +99,16 @@ function visitCSharpNode(
     return;
   }
 
+  handleCSharpTypeReferenceNode(
+    node,
+    filePath,
+    workspaceRoot,
+    relations,
+    usingNamespaces,
+    importTargetsByNamespace,
+    state.currentNamespace,
+  );
+
   const typeAction = handleCSharpTypeNode(
     node,
     state,
@@ -110,6 +130,38 @@ function visitCSharpNode(
       : undefined;
   }
 
+  if (node.type === 'constructor_declaration') {
+    return symbolsEnabled
+      ? handleCSharpConstructorDeclaration(node, state, filePath, symbols, walk)
+      : undefined;
+  }
+
+  if (node.type === 'local_function_statement') {
+    return symbolsEnabled
+      ? handleCSharpLocalFunctionDeclaration(node, state, filePath, symbols, walk)
+      : undefined;
+  }
+
+  if (symbolsEnabled && node.type === 'property_declaration') {
+    handleCSharpPropertyDeclaration(node, filePath, symbols);
+  }
+
+  if (symbolsEnabled && node.type === 'event_field_declaration') {
+    handleCSharpEventFieldDeclaration(node, filePath, symbols);
+  }
+
+  if (symbolsEnabled && node.type === 'field_declaration') {
+    handleCSharpFieldDeclaration(node, filePath, symbols);
+  }
+
+  if (symbolsEnabled && node.type === 'local_declaration_statement') {
+    handleCSharpLocalDeclaration(node, filePath, symbols);
+  }
+
+  if (symbolsEnabled && node.type === 'parameter') {
+    handleCSharpParameter(node, filePath, symbols);
+  }
+
   handleCSharpCallNode(
     node,
     state,
@@ -120,14 +172,13 @@ function visitCSharpNode(
     importTargetsByNamespace,
   );
 
-  handleCSharpReferenceNode(
+  collectCSharpUsingTargetNode(
     node,
-    state,
     filePath,
     workspaceRoot,
-    relations,
     usingNamespaces,
     importTargetsByNamespace,
+    state.currentNamespace,
   );
 }
 
