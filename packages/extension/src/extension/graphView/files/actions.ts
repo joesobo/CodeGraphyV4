@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isSafeGraphViewChildPath } from './validation';
 
 interface GraphViewWorkspaceFolderRef {
   uri: vscode.Uri;
@@ -61,7 +62,11 @@ export async function createGraphViewFile(
     placeHolder: 'newfile.ts',
     ignoreFocusOut: true,
   });
-  if (!fileName) return undefined;
+  if (fileName === undefined) return undefined;
+  if (!isSafeGraphViewChildPath(fileName)) {
+    handlers.showErrorMessage('Enter a relative file path inside this folder.');
+    return undefined;
+  }
 
   const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
 
@@ -85,7 +90,11 @@ export async function createGraphViewFolder(
     placeHolder: 'new-folder',
     ignoreFocusOut: true,
   });
-  if (!folderName) return undefined;
+  if (folderName === undefined) return undefined;
+  if (!isSafeGraphViewChildPath(folderName)) {
+    handlers.showErrorMessage('Enter a relative folder path inside this folder.');
+    return undefined;
+  }
 
   const folderPath = directory === '.' ? folderName : `${directory}/${folderName}`;
 
