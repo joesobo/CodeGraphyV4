@@ -1193,8 +1193,8 @@ async function closeContextMenuIfOpen(context: GraphAcceptanceContext): Promise<
   await expect(visibleMenu).toBeHidden({ timeout: 5_000 });
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeRegExp(value: unknown): string {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function isLocatorVisible(locator: Locator): Promise<boolean> {
