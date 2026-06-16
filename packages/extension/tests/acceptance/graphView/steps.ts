@@ -143,15 +143,27 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Enum: ['enum'],
   Event: ['event'],
   Field: ['field'],
+  Function: ['function', 'method'],
   Global: ['global'],
+  Interface: ['interface'],
   Local: ['local'],
   Method: ['method'],
   Namespace: ['namespace'],
   Parameter: ['parameter'],
   Property: ['property'],
+  Prototype: ['prototype'],
   Record: ['record'],
+  Struct: ['struct'],
   Template: ['template'],
+  Typedef: ['typedef'],
+  Type: ['type'],
+  Union: ['union'],
+  Variable: ['variable'],
 };
+
+export function getSymbolKindsForNodeTypeLabel(label: string): string[] | undefined {
+  return NODE_TYPE_SYMBOL_KIND_BY_LABEL[label];
+}
 
 interface PatternAcceptanceStep {
   pattern: RegExp;
@@ -1700,7 +1712,7 @@ async function resolveVisibleSymbolNodeId(
   options: { allowMissing?: boolean } = {},
 ): Promise<string | undefined> {
   const frame = requireGraphFrame(context);
-  const symbolKinds = symbol.nodeTypeLabel ? NODE_TYPE_SYMBOL_KIND_BY_LABEL[symbol.nodeTypeLabel] : undefined;
+  const symbolKinds = symbol.nodeTypeLabel ? getSymbolKindsForNodeTypeLabel(symbol.nodeTypeLabel) : undefined;
   const nodeId = await frame.locator('[aria-label^="Graph node "]').evaluateAll((nodes, request) => {
     const matchingLabel = nodes
       .map((node) => node.getAttribute('aria-label') ?? '')
