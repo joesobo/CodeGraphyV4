@@ -59,6 +59,47 @@ describe('graphView/files/rename', () => {
     });
   });
 
+  it('allows renaming to a hidden filename', async () => {
+    const executeRenameAction = vi.fn(async () => undefined);
+
+    await renameGraphViewFile('src/config.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => '.env.local'),
+      executeRenameAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeRenameAction).toHaveBeenCalledWith(
+      'src/config.ts',
+      'src/.env.local',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it.each([
+    ['../outside.ts'],
+    ['nested/file.ts'],
+    ['nested\\file.ts'],
+    ['C:/outside.ts'],
+    ['.'],
+    ['..'],
+    [''],
+    ['   '],
+  ])('rejects unsafe names from the rename prompt: %j', async (newName) => {
+    const executeRenameAction = vi.fn(async () => undefined);
+    const showErrorMessage = vi.fn();
+
+    await renameGraphViewFile('src/original.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => newName),
+      executeRenameAction,
+      showErrorMessage,
+    });
+
+    expect(executeRenameAction).not.toHaveBeenCalled();
+    expect(showErrorMessage).toHaveBeenCalledWith('Enter a file name without folder separators.');
+  });
+
   it('does not rename when the user keeps the original name', async () => {
     const executeRenameAction = vi.fn(async () => undefined);
 
