@@ -1,1 +1,3 @@
-abstract class BaseRunner {}
+abstract class BaseRunner {
+  String? lastProfileName;
+}
