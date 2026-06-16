@@ -18,7 +18,7 @@ Then the available C# node types are only Class, Interface, Struct, Record, Enum
 And I close the Graph Scope
 
 When I toggle the Using edge on
-Then I can see there are 15 nodes and 23 connections
+Then I can see there are 15 nodes and 13 connections
 And src/Program.cs points to src/Config/DispatchSettings.cs
 And src/Program.cs points to src/Models/DispatchTask.cs
 And src/Program.cs points to src/Models/TaskId.cs

@@ -2231,10 +2231,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:21
-      await test.step('Then I can see there are 15 nodes and 23 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 23 connections', {
+      await test.step('Then I can see there are 15 nodes and 13 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 13 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 23 connections',
+          text: 'I can see there are 15 nodes and 13 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 21
         });
