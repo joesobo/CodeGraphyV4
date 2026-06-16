@@ -1,5 +1,13 @@
 # @codegraphy-dev/extension
 
+## 5.11.1
+
+### Patch Changes
+
+- [#279](https://github.com/joesobo/CodeGraphyV4/pull/279) [`7b3ad30`](https://github.com/joesobo/CodeGraphyV4/commit/7b3ad30e1ca4f274752c42833dabf4229cace191) Thanks [@joesobo](https://github.com/joesobo)! - Show the CSS Snippets section in the Themes panel even when no snippets are configured.
+
+- [#280](https://github.com/joesobo/CodeGraphyV4/pull/280) [`f27c9dd`](https://github.com/joesobo/CodeGraphyV4/commit/f27c9dd08f114a896056793bfd84c39a7f2b620f) Thanks [@joesobo](https://github.com/joesobo)! - Add a Themes panel input for adding CodeGraphy CSS snippet paths.
+
 ## 5.11.0
 
 ### Minor Changes
