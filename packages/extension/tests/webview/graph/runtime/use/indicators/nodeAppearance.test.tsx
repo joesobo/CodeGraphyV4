@@ -217,16 +217,21 @@ describe('graph/runtime/useNodeAppearance', () => {
 
       expect(graphNodes[0]).toMatchObject({
         baseOpacity: 0.45,
+        borderColor: '#525c6a',
+        color: '#525c6a',
         borderWidth: 2,
         size: DEFAULT_NODE_SIZE,
       });
       expect(graphNodes[1]).toMatchObject({
         baseOpacity: 0.45,
+        borderColor: '#606a79',
+        color: '#606a79',
         borderWidth: 2,
         size: DEFAULT_NODE_SIZE,
       });
       expect(graphNodes[2]).toMatchObject({
         baseOpacity: 1,
+        color: '#778899',
       });
     });
   });
