@@ -109,32 +109,37 @@ export function CssSnippetsSection({
                 <MdiIcon path={mdiPlus} size={14} />
               </Button>
             </div>
-            {entries.length > 0 ? (
-              <div
-                className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]"
-                data-codegraphy-list="css-snippets"
-              >
-                {entries.map(([path, enabled]) => (
-                  <div
-                    key={path}
-                    className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]"
-                    data-codegraphy-row="css-snippet"
-                  >
-                    <span className="min-w-0 flex-1 truncate text-xs font-medium" title={path}>
-                      {path}
-                    </span>
-                    <Switch
-                      aria-label={`Toggle ${path}`}
-                      checked={enabled}
-                      onCheckedChange={(nextEnabled) => {
-                        setCssSnippetEnabled(path, nextEnabled);
-                        postCssSnippetToggle(path, nextEnabled);
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            <div
+              className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]"
+              data-codegraphy-list="css-snippets"
+            >
+              {entries.length === 0 ? (
+                <div
+                  className="px-3 py-2 text-xs text-[var(--cg-text-muted)]"
+                  data-codegraphy-row="css-snippet-empty"
+                >
+                  No CSS snippets configured
+                </div>
+              ) : entries.map(([path, enabled]) => (
+                <div
+                  key={path}
+                  className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]"
+                  data-codegraphy-row="css-snippet"
+                >
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium" title={path}>
+                    {path}
+                  </span>
+                  <Switch
+                    aria-label={`Toggle ${path}`}
+                    checked={enabled}
+                    onCheckedChange={(nextEnabled) => {
+                      setCssSnippetEnabled(path, nextEnabled);
+                      postCssSnippetToggle(path, nextEnabled);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </CollapsibleContent>
       </section>
