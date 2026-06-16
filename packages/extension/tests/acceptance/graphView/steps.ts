@@ -1757,7 +1757,7 @@ function normalizePanelLabel(label: string): string {
     'typescript alias import': 'TypeScript Alias Import',
   };
 
-  return aliases[normalized] ?? label;
+  return Object.prototype.hasOwnProperty.call(aliases, normalized) ? aliases[normalized] : label;
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {
