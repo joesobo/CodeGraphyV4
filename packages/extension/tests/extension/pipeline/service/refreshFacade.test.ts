@@ -65,6 +65,14 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
     super._lastDiscoveredFiles = files;
   }
 
+  public override get _lastGitIgnoredPaths(): string[] {
+    return super._lastGitIgnoredPaths;
+  }
+
+  public override set _lastGitIgnoredPaths(gitIgnoredPaths: string[]) {
+    super._lastGitIgnoredPaths = gitIgnoredPaths;
+  }
+
   public override get _lastFileAnalysis(): never {
     return super._lastFileAnalysis as never;
   }
@@ -114,6 +122,7 @@ describe('pipeline/service/refreshFacade', () => {
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
     vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValue({
       files: [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }],
+      gitIgnoredPaths: ['example-python/app.py'],
     } as never);
     vi.mocked(refreshWorkspacePipelineChangedFiles).mockResolvedValue({
       nodes: [{ id: 'refresh' }],
@@ -149,6 +158,7 @@ describe('pipeline/service/refreshFacade', () => {
     );
 
     expect(result).toEqual({ nodes: [{ id: 'refresh' }], edges: [] });
+    expect(facade._lastGitIgnoredPaths).toEqual(['example-python/app.py']);
     expect(createWorkspacePipelineDiscoveryDependencies).toHaveBeenCalledWith(facade._discovery);
     expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
       'discovery-deps',

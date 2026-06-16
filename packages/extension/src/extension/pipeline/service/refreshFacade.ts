@@ -106,6 +106,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         vscode.window.showWarningMessage(message);
       },
     );
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
 
     return refreshWorkspacePipelineAnalysisScope(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
@@ -150,6 +151,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         vscode.window.showWarningMessage(message);
       },
     );
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
     return refreshWorkspacePipelinePluginFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories ?? [],
@@ -196,6 +198,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       },
     );
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
 
     return refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,

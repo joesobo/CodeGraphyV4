@@ -106,6 +106,7 @@ export function buildWorkspacePipelineGraphData(
   showOrphans: boolean,
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   const effectiveDisabledPlugins = new Set(disabledPlugins);
@@ -119,6 +120,7 @@ export function buildWorkspacePipelineGraphData(
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _lastDiscoveredDirectories: directoryPaths,
+    _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
   const churnCounts = getCachedGitHistoryChurnCounts(
@@ -189,6 +191,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
   graphScope: WorkspacePipelineGraphScopeOptions = {},
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   const visibleFileAnalysis = filterWorkspacePipelineAnalysisByActivePlugins(
@@ -199,6 +202,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _lastDiscoveredDirectories: directoryPaths,
+    _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
   const churnCounts = getCachedGitHistoryChurnCounts(
@@ -210,6 +214,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     cacheFiles: source._cache.files,
     churnCounts,
     directoryPaths: source._lastDiscoveredDirectories ?? [],
+    gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,
     fileAnalysis: visibleFileAnalysis,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),

@@ -79,6 +79,14 @@ export abstract class WorkspacePipelineStateBase {
     this._engineState.discoveredFiles = discoveredFiles;
   }
 
+  protected get _lastGitIgnoredPaths(): string[] {
+    return this._engineState.gitIgnoredPaths;
+  }
+
+  protected set _lastGitIgnoredPaths(gitIgnoredPaths: string[]) {
+    this._engineState.gitIgnoredPaths = gitIgnoredPaths;
+  }
+
   protected get _lastWorkspaceRoot(): string {
     return this._engineState.workspaceRoot;
   }

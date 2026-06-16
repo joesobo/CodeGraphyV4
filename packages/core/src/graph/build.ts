@@ -14,6 +14,7 @@ export interface WorkspacePipelineGraphSource {
     getPluginForFile(absolutePath: string): IPlugin | undefined;
   };
   _lastDiscoveredDirectories?: readonly string[];
+  _lastGitIgnoredPaths?: readonly string[];
 }
 
 export interface WorkspacePipelineGraphDependencies {
@@ -78,6 +79,7 @@ export function buildWorkspacePipelineGraphForSource(
     cacheFiles: source._cache.files,
     churnCounts,
     directoryPaths: source._lastDiscoveredDirectories ?? [],
+    gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,
     fileConnections,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),

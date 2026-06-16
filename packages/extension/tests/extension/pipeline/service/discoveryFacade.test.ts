@@ -118,10 +118,12 @@ describe('pipeline/service/discoveryFacade', () => {
   ): {
     _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
+    _lastGitIgnoredPaths: string[];
     _lastWorkspaceRoot: string;
   } => facade as unknown as {
     _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
+    _lastGitIgnoredPaths: string[];
     _lastWorkspaceRoot: string;
   };
 
@@ -134,6 +136,7 @@ describe('pipeline/service/discoveryFacade', () => {
         { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
         { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
       ],
+      gitIgnoredPaths: ['example-python/app.py'],
     } as never);
     vi.mocked(getWorkspacePipelinePluginFilterPatterns).mockReturnValue(['plugin-filter']);
     vi.mocked(syncWorkspacePipelinePlugins).mockResolvedValue(undefined);
@@ -247,6 +250,7 @@ describe('pipeline/service/discoveryFacade', () => {
       { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
     ]);
     expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src/new-folder']);
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/app.py']);
     expect(discoveryState(facade)._lastWorkspaceRoot).toBe('/workspace');
     expect(buildGraphData).toHaveBeenCalledWith(
       new Map([

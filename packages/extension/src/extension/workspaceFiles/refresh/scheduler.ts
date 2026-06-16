@@ -2,6 +2,7 @@ import type { GraphViewProvider } from '../../graphViewProvider';
 
 interface PendingWorkspaceRefresh {
   filePaths: Set<string>;
+  fullRefresh: boolean;
   logMessage: string;
   timeout: ReturnType<typeof setTimeout>;
 }
@@ -25,8 +26,10 @@ export function scheduleWorkspaceRefresh(
   logMessage: string,
   filePaths: readonly string[] = [],
   delayMs: number = 500,
+  options: { fullRefresh?: boolean } = {},
 ): void {
   const nextFilePaths = new Set(filePaths);
+  let fullRefresh = options.fullRefresh === true;
 
   if (!isGraphOpen(provider)) {
     markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths]);
@@ -36,6 +39,7 @@ export function scheduleWorkspaceRefresh(
   const pending = pendingWorkspaceRefreshes.get(provider);
   if (pending) {
     clearTimeout(pending.timeout);
+    fullRefresh = fullRefresh || pending.fullRefresh;
     for (const filePath of pending.filePaths) {
       nextFilePaths.add(filePath);
     }
@@ -43,6 +47,7 @@ export function scheduleWorkspaceRefresh(
 
   const nextPending: PendingWorkspaceRefresh = {
     filePaths: nextFilePaths,
+    fullRefresh,
     logMessage,
     timeout: setTimeout(() => {
       pendingWorkspaceRefreshes.delete(provider);
@@ -56,6 +61,11 @@ export function scheduleWorkspaceRefresh(
       }
 
       console.log(nextPending.logMessage);
+      if (nextPending.fullRefresh) {
+        void provider.refresh();
+        return;
+      }
+
       if (provider.refreshChangedFiles) {
         void provider.refreshChangedFiles([...nextPending.filePaths]);
         return;

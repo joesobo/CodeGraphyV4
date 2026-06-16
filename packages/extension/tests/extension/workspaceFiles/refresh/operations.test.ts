@@ -44,6 +44,25 @@ describe('workspaceFiles/refresh/operations', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File saved, refreshing graph');
   });
 
+  it('runs a full graph refresh when gitignore is saved', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const provider = makeProvider();
+
+    refreshWorkspaceSavedDocument(
+      provider as never,
+      { uri: uri('/workspace/.gitignore') } as vscode.TextDocument,
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/.gitignore',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File saved, refreshing graph');
+  });
+
   it('ignores saved workspace settings artifacts', () => {
     const provider = makeProvider();
 
@@ -77,6 +96,25 @@ describe('workspaceFiles/refresh/operations', () => {
     });
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
       filePath: '/workspace/src/b.ts',
+    });
+  });
+
+  it('runs a full graph refresh when gitignore is created or deleted', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      [uri('/workspace/.gitignore')],
+      'workspace:fileCreated',
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/.gitignore',
     });
   });
 

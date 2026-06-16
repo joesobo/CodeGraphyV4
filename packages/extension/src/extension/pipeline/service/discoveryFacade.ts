@@ -167,6 +167,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
 
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
     this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
     this._lastFileAnalysis = new Map();
     this._lastFileConnections = fileConnections;
     this._lastWorkspaceRoot = workspaceRoot;
@@ -223,6 +224,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
 
     this._lastDiscoveredFiles = createCachedDiscoveredFiles(workspaceRoot, cachedFilePaths);
     this._lastDiscoveredDirectories = collectCachedDirectoryPaths(cachedFilePaths);
+    this._lastGitIgnoredPaths = [];
     this._lastFileAnalysis = fileAnalysis;
     this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
     this._lastWorkspaceRoot = workspaceRoot;
