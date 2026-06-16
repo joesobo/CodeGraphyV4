@@ -43,41 +43,64 @@ export function handleCSharpTypeDeclaration(
 
   const resolvedBaseTypePaths: string[] = [];
   for (const baseType of node.descendantsOfType(['identifier', 'qualified_name'])) {
-    if (baseType.parent?.type !== 'base_list') {
-      continue;
-    }
-
-    const resolvedType = resolveCSharpUsingType(
-      workspaceRoot,
+    addCSharpBaseTypeRelation(
+      baseType,
+      state,
       filePath,
+      workspaceRoot,
+      relations,
       usingNamespaces,
       importTargetsByNamespace,
-      baseType.text,
-      state.currentNamespace,
+      symbol?.id,
+      resolvedBaseTypePaths,
     );
-    if (resolvedType?.kind === 'class') {
-      resolvedBaseTypePaths.push(resolvedType.filePath);
-    }
-
-    if (resolvedType?.kind === 'interface') {
-      addCSharpImplementsRelation(
-        relations,
-        filePath,
-        baseType.text,
-        resolvedType.filePath,
-        symbol?.id,
-      );
-    } else {
-      addInheritRelation(
-        relations,
-        filePath,
-        baseType.text,
-        resolvedType?.filePath ?? null,
-        symbol?.id,
-      );
-    }
   }
   return resolvedBaseTypePaths;
+}
+
+function addCSharpBaseTypeRelation(
+  baseType: Parser.SyntaxNode,
+  state: CSharpWalkState,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  usingNamespaces: ReadonlySet<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+  fromSymbolId: string | undefined,
+  resolvedBaseTypePaths: string[],
+): void {
+  if (baseType.parent?.type !== 'base_list') {
+    return;
+  }
+
+  const resolvedType = resolveCSharpUsingType(
+    workspaceRoot,
+    filePath,
+    usingNamespaces,
+    importTargetsByNamespace,
+    baseType.text,
+    state.currentNamespace,
+  );
+  if (resolvedType?.kind === 'class') {
+    resolvedBaseTypePaths.push(resolvedType.filePath);
+  }
+
+  addCSharpBaseTypeKindRelation(relations, filePath, baseType.text, resolvedType, fromSymbolId);
+}
+
+function addCSharpBaseTypeKindRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedType: ReturnType<typeof resolveCSharpUsingType>,
+  fromSymbolId: string | undefined,
+): void {
+  if (resolvedType?.kind === 'interface') {
+    addCSharpImplementsRelation(relations, filePath, specifier, resolvedType.filePath, fromSymbolId);
+    return;
+  }
+
+  addInheritRelation(relations, filePath, specifier, resolvedType?.filePath ?? null, fromSymbolId);
 }
 
 export function handleCSharpMethodDeclaration(

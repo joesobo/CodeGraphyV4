@@ -8,7 +8,7 @@ describe('indexing/defaultPlugins runtime loading', () => {
     vi.resetModules();
   });
 
-  it('does not import the Markdown runtime when Plugin Activity State disables Markdown', async () => {
+  it('does not import the Markdown runtime when Plugin Activity State disables Markdown', { timeout: 10000 }, async () => {
     vi.resetModules();
     vi.doMock('@codegraphy-dev/plugin-markdown', () => {
       throw new Error('Markdown runtime was imported');

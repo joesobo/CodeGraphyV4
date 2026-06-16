@@ -19,6 +19,33 @@ const CSHARP_PARAMETER_HOSTS = new Set([
   'record_declaration',
 ]);
 
+type CSharpReferenceContext = {
+  filePath: string;
+  workspaceRoot: string;
+  relations: IAnalysisRelation[];
+  usingNamespaces: ReadonlySet<string>;
+  importTargetsByNamespace: Map<string, Set<string>>;
+  currentNamespace: string | null;
+};
+
+type CSharpTypeReferenceHandler = (
+  node: Parser.SyntaxNode,
+  context: CSharpReferenceContext,
+) => void;
+
+const CSHARP_TYPE_REFERENCE_HANDLERS: Record<string, CSharpTypeReferenceHandler> = {
+  constructor_declaration: addCSharpParameterTypeReferences,
+  event_field_declaration: (node, context) => addCSharpVariableTypeReferences(node, context, 'event'),
+  field_declaration: (node, context) =>
+    addCSharpVariableTypeReferences(node, context, getCSharpFieldReferenceSymbolKind(node)),
+  local_declaration_statement: (node, context) =>
+    addCSharpVariableTypeReferences(node, context, getCSharpLocalReferenceSymbolKind(node)),
+  local_function_statement: (node, context) => addCSharpCallableTypeReferences(node, context, 'method'),
+  method_declaration: (node, context) => addCSharpCallableTypeReferences(node, context, 'method'),
+  parameter: handleCSharpParameterTypeReferenceNode,
+  property_declaration: (node, context) => addCSharpNamedTypeReference(node, context, 'property'),
+};
+
 export function handleCSharpCallNode(
   node: Parser.SyntaxNode,
   state: CSharpWalkState,
@@ -78,109 +105,15 @@ export function handleCSharpTypeReferenceNode(
   importTargetsByNamespace: Map<string, Set<string>>,
   currentNamespace: string | null,
 ): void {
-  if (node.type === 'method_declaration' || node.type === 'local_function_statement') {
-    addCSharpNamedTypeReference(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-      'method',
-    );
-    addCSharpParameterTypeReferences(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-    );
-    return;
-  }
-
-  if (node.type === 'constructor_declaration') {
-    addCSharpParameterTypeReferences(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-    );
-    return;
-  }
-
-  if (node.type === 'property_declaration') {
-    addCSharpNamedTypeReference(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-      'property',
-    );
-    return;
-  }
-
-  if (node.type === 'event_field_declaration') {
-    addCSharpVariableTypeReferences(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-      'event',
-    );
-    return;
-  }
-
-  if (node.type === 'field_declaration') {
-    addCSharpVariableTypeReferences(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-      /\bconst\b/u.test(node.text) ? 'constant' : 'field',
-    );
-    return;
-  }
-
-  if (node.type === 'local_declaration_statement') {
-    addCSharpVariableTypeReferences(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-      /\bconst\b/u.test(node.text) ? 'constant' : 'local',
-    );
-    return;
-  }
-
-  if (node.type === 'parameter' && CSHARP_PARAMETER_HOSTS.has(getCSharpParameterHostType(node))) {
-    addCSharpParameterTypeReference(
-      node,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-    );
-  }
+  const context = {
+    filePath,
+    workspaceRoot,
+    relations,
+    usingNamespaces,
+    importTargetsByNamespace,
+    currentNamespace,
+  };
+  CSHARP_TYPE_REFERENCE_HANDLERS[node.type]?.(node, context);
 }
 
 function getCSharpCallBinding(
@@ -193,14 +126,13 @@ function getCSharpCallBinding(
   currentBaseTypePaths: readonly string[],
 ): ImportedBinding | null {
   if (node.type === 'object_creation_expression') {
-    const typeName = getCSharpTypeName(node.childForFieldName('type') ?? node.namedChildren[0]);
-    return createCSharpCallBinding(
+    return createCSharpObjectCreationCallBinding(
+      node,
       workspaceRoot,
       filePath,
       usingNamespaces,
       importTargetsByNamespace,
       currentNamespace,
-      typeName,
     );
   }
 
@@ -213,27 +145,69 @@ function getCSharpCallBinding(
     return null;
   }
 
-  if (functionNode.type !== 'member_access_expression') {
-    const methodName = getIdentifierText(functionNode);
-    if (!methodName) {
-      return null;
-    }
+  return functionNode.type === 'member_access_expression'
+    ? getCSharpMemberAccessCallBinding(
+      node,
+      functionNode,
+      workspaceRoot,
+      filePath,
+      usingNamespaces,
+      importTargetsByNamespace,
+      currentNamespace,
+    )
+    : getCSharpUnqualifiedCallBinding(node, functionNode, filePath, currentBaseTypePaths);
+}
 
-    if (hasCSharpLocalFunction(node, methodName)) {
-      return createCSharpMethodCallBinding(methodName, filePath);
-    }
+function createCSharpObjectCreationCallBinding(
+  node: Parser.SyntaxNode,
+  workspaceRoot: string,
+  filePath: string,
+  usingNamespaces: ReadonlySet<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+  currentNamespace: string | null,
+): ImportedBinding | null {
+  return createCSharpCallBinding(
+    workspaceRoot,
+    filePath,
+    usingNamespaces,
+    importTargetsByNamespace,
+    currentNamespace,
+    getCSharpTypeName(node.childForFieldName('type') ?? node.namedChildren[0]),
+  );
+}
 
-    return currentBaseTypePaths.length === 1
-      ? createInheritedCSharpCallBinding(methodName, currentBaseTypePaths[0])
-      : null;
+function getCSharpUnqualifiedCallBinding(
+  node: Parser.SyntaxNode,
+  functionNode: Parser.SyntaxNode,
+  filePath: string,
+  currentBaseTypePaths: readonly string[],
+): ImportedBinding | null {
+  const methodName = getIdentifierText(functionNode);
+  if (!methodName) {
+    return null;
   }
 
-  const expressionNode = functionNode.childForFieldName('expression') ?? functionNode.namedChildren[0];
-  const receiverName = getIdentifierText(expressionNode);
+  if (hasCSharpLocalFunction(node, methodName)) {
+    return createCSharpMethodCallBinding(methodName, filePath);
+  }
+
+  return currentBaseTypePaths.length === 1
+    ? createInheritedCSharpCallBinding(methodName, currentBaseTypePaths[0])
+    : null;
+}
+
+function getCSharpMemberAccessCallBinding(
+  node: Parser.SyntaxNode,
+  functionNode: Parser.SyntaxNode,
+  workspaceRoot: string,
+  filePath: string,
+  usingNamespaces: ReadonlySet<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+  currentNamespace: string | null,
+): ImportedBinding | null {
+  const receiverName = getIdentifierText(functionNode.childForFieldName('expression') ?? functionNode.namedChildren[0]);
   const memberName = getIdentifierText(functionNode.childForFieldName('name') ?? functionNode.namedChildren.at(-1));
-  const typeName = receiverName && /^[A-Z]/u.test(receiverName)
-    ? receiverName
-    : getCSharpReceiverTypeName(node, receiverName);
+  const typeName = readCSharpMemberReceiverTypeName(node, receiverName);
   return createCSharpCallBinding(
     workspaceRoot,
     filePath,
@@ -243,6 +217,15 @@ function getCSharpCallBinding(
     typeName,
     memberName ?? undefined,
   );
+}
+
+function readCSharpMemberReceiverTypeName(
+  node: Parser.SyntaxNode,
+  receiverName: string | null,
+): string | null {
+  return receiverName && /^[A-Z]/u.test(receiverName)
+    ? receiverName
+    : getCSharpReceiverTypeName(node, receiverName);
 }
 
 function createCSharpCallBinding(
@@ -298,14 +281,18 @@ function createCSharpMethodCallBinding(methodName: string, resolvedPath: string)
   };
 }
 
+function addCSharpCallableTypeReferences(
+  node: Parser.SyntaxNode,
+  context: CSharpReferenceContext,
+  symbolKind: string,
+): void {
+  addCSharpNamedTypeReference(node, context, symbolKind);
+  addCSharpParameterTypeReferences(node, context);
+}
+
 function addCSharpNamedTypeReference(
   node: Parser.SyntaxNode,
-  filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
-  usingNamespaces: ReadonlySet<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  currentNamespace: string | null,
+  context: CSharpReferenceContext,
   symbolKind: string,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
@@ -314,47 +301,24 @@ function addCSharpNamedTypeReference(
   }
 
   addCSharpResolvedTypeRelations(
-    filePath,
-    workspaceRoot,
-    relations,
-    usingNamespaces,
-    importTargetsByNamespace,
-    currentNamespace,
+    context,
     getCSharpDeclarationTypeNode(node),
-    createSymbolId(filePath, symbolKind, name),
+    createSymbolId(context.filePath, symbolKind, name),
   );
 }
 
 function addCSharpParameterTypeReferences(
   node: Parser.SyntaxNode,
-  filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
-  usingNamespaces: ReadonlySet<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  currentNamespace: string | null,
+  context: CSharpReferenceContext,
 ): void {
   for (const parameter of getCSharpDirectParameters(node)) {
-    addCSharpParameterTypeReference(
-      parameter,
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
-    );
+    addCSharpParameterTypeReference(parameter, context);
   }
 }
 
 function addCSharpParameterTypeReference(
   node: Parser.SyntaxNode,
-  filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
-  usingNamespaces: ReadonlySet<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  currentNamespace: string | null,
+  context: CSharpReferenceContext,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
   if (!name) {
@@ -362,25 +326,32 @@ function addCSharpParameterTypeReference(
   }
 
   addCSharpResolvedTypeRelations(
-    filePath,
-    workspaceRoot,
-    relations,
-    usingNamespaces,
-    importTargetsByNamespace,
-    currentNamespace,
+    context,
     node.childForFieldName('type') ?? node.namedChildren[0],
-    createSymbolId(filePath, 'parameter', name),
+    createSymbolId(context.filePath, 'parameter', name),
   );
+}
+
+function handleCSharpParameterTypeReferenceNode(
+  node: Parser.SyntaxNode,
+  context: CSharpReferenceContext,
+): void {
+  if (CSHARP_PARAMETER_HOSTS.has(getCSharpParameterHostType(node))) {
+    addCSharpParameterTypeReference(node, context);
+  }
+}
+
+function getCSharpFieldReferenceSymbolKind(node: Parser.SyntaxNode): 'constant' | 'field' {
+  return /\bconst\b/u.test(node.text) ? 'constant' : 'field';
+}
+
+function getCSharpLocalReferenceSymbolKind(node: Parser.SyntaxNode): 'constant' | 'local' {
+  return /\bconst\b/u.test(node.text) ? 'constant' : 'local';
 }
 
 function addCSharpVariableTypeReferences(
   node: Parser.SyntaxNode,
-  filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
-  usingNamespaces: ReadonlySet<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  currentNamespace: string | null,
+  context: CSharpReferenceContext,
   symbolKind: string,
 ): void {
   const variableDeclaration = node.namedChildren.find((child) => child.type === 'variable_declaration') ?? node;
@@ -392,14 +363,9 @@ function addCSharpVariableTypeReferences(
     }
 
     addCSharpResolvedTypeRelations(
-      filePath,
-      workspaceRoot,
-      relations,
-      usingNamespaces,
-      importTargetsByNamespace,
-      currentNamespace,
+      context,
       typeNode,
-      createSymbolId(filePath, symbolKind, name),
+      createSymbolId(context.filePath, symbolKind, name),
     );
   }
 }
@@ -439,29 +405,24 @@ function getCSharpParameterHostType(node: Parser.SyntaxNode): string {
 }
 
 function addCSharpResolvedTypeRelations(
-  filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
-  usingNamespaces: ReadonlySet<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  currentNamespace: string | null,
+  context: CSharpReferenceContext,
   typeNode: Parser.SyntaxNode | null | undefined,
   fromSymbolId?: string,
 ): void {
   for (const typeName of getCSharpTypeReferenceNames(typeNode)) {
     const resolvedPath = resolveCSharpUsingImport(
-      workspaceRoot,
-      filePath,
-      usingNamespaces,
-      importTargetsByNamespace,
+      context.workspaceRoot,
+      context.filePath,
+      context.usingNamespaces,
+      context.importTargetsByNamespace,
       typeName,
-      currentNamespace,
+      context.currentNamespace,
     );
     if (!resolvedPath) {
       continue;
     }
 
-    addCSharpTypeRelation(relations, filePath, typeName, resolvedPath, fromSymbolId);
+    addCSharpTypeRelation(context.relations, context.filePath, typeName, resolvedPath, fromSymbolId);
   }
 }
 
@@ -508,34 +469,59 @@ function getCSharpReceiverTypeName(
   }
 
   const root = getCSharpRootNode(node);
+  const parameterType = getCSharpParameterReceiverTypeName(root, receiverName);
+  if (parameterType) {
+    return parameterType;
+  }
+
+  for (const declarator of root.descendantsOfType('variable_declarator')) {
+    const variableType = getCSharpVariableReceiverTypeName(declarator, receiverName);
+    if (variableType) {
+      return variableType;
+    }
+  }
+
+  return null;
+}
+
+function getCSharpParameterReceiverTypeName(
+  root: Parser.SyntaxNode,
+  receiverName: string,
+): string | null {
   for (const parameter of root.descendantsOfType('parameter')) {
     if (getIdentifierText(parameter.childForFieldName('name')) === receiverName) {
       return getCSharpTypeReferenceNames(parameter.childForFieldName('type') ?? parameter.namedChildren[0])[0] ?? null;
     }
   }
 
-  for (const declarator of root.descendantsOfType('variable_declarator')) {
-    if (getIdentifierText(declarator.childForFieldName('name')) !== receiverName) {
-      continue;
-    }
+  return null;
+}
 
-    const variableDeclaration = findCSharpAncestor(declarator, (ancestor) => ancestor.type === 'variable_declaration');
-    const explicitType = getCSharpTypeReferenceNames(
-      variableDeclaration?.childForFieldName('type') ?? variableDeclaration?.namedChildren[0],
-    )[0];
-    if (explicitType && explicitType !== 'Var') {
-      return explicitType;
-    }
-
-    const createdType = declarator.descendantsOfType('object_creation_expression')
-      .map((creation) => getCSharpTypeName(creation.childForFieldName('type') ?? creation.namedChildren[0]))
-      .find((name): name is string => Boolean(name && /^[A-Z]/u.test(name)));
-    if (createdType) {
-      return createdType;
-    }
+function getCSharpVariableReceiverTypeName(
+  declarator: Parser.SyntaxNode,
+  receiverName: string,
+): string | null {
+  if (getIdentifierText(declarator.childForFieldName('name')) !== receiverName) {
+    return null;
   }
 
-  return null;
+  return getCSharpExplicitVariableReceiverTypeName(declarator)
+    ?? getCSharpCreatedVariableReceiverTypeName(declarator);
+}
+
+function getCSharpExplicitVariableReceiverTypeName(declarator: Parser.SyntaxNode): string | null {
+  const variableDeclaration = findCSharpAncestor(declarator, (ancestor) => ancestor.type === 'variable_declaration');
+  const explicitType = getCSharpTypeReferenceNames(
+    variableDeclaration?.childForFieldName('type') ?? variableDeclaration?.namedChildren[0],
+  )[0];
+  return explicitType && explicitType !== 'Var' ? explicitType : null;
+}
+
+function getCSharpCreatedVariableReceiverTypeName(declarator: Parser.SyntaxNode): string | null {
+  return declarator.descendantsOfType('object_creation_expression')
+    .map((creation) => getCSharpTypeName(creation.childForFieldName('type') ?? creation.namedChildren[0]))
+    .find((name): name is string => Boolean(name && /^[A-Z]/u.test(name)))
+    ?? null;
 }
 
 function getCSharpRootNode(node: Parser.SyntaxNode): Parser.SyntaxNode {

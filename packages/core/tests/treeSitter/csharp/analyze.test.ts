@@ -5,8 +5,15 @@ const csharpHarness = vi.hoisted(() => ({
   collectCSharpUsingTargetNode: vi.fn(),
   getCSharpFileScopedNamespaceName: vi.fn(() => 'MyApp'),
   handleCSharpCallNode: vi.fn(),
+  handleCSharpConstructorDeclaration: vi.fn(),
+  handleCSharpEventFieldDeclaration: vi.fn(),
+  handleCSharpFieldDeclaration: vi.fn(),
+  handleCSharpLocalDeclaration: vi.fn(),
+  handleCSharpLocalFunctionDeclaration: vi.fn(),
   handleCSharpMethodDeclaration: vi.fn(),
   handleCSharpNamespaceNode: vi.fn(),
+  handleCSharpParameter: vi.fn(),
+  handleCSharpPropertyDeclaration: vi.fn(),
   handleCSharpTypeReferenceNode: vi.fn(),
   handleCSharpTypeDeclaration: vi.fn(),
   handleCSharpUsingDirective: vi.fn(),
@@ -22,7 +29,14 @@ vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/namespace', () => ({
 vi.mock(
   '../../../src/treeSitter/runtime/analyzeCSharp/declarations',
   () => ({
+    handleCSharpConstructorDeclaration: csharpHarness.handleCSharpConstructorDeclaration,
+    handleCSharpEventFieldDeclaration: csharpHarness.handleCSharpEventFieldDeclaration,
+    handleCSharpFieldDeclaration: csharpHarness.handleCSharpFieldDeclaration,
+    handleCSharpLocalDeclaration: csharpHarness.handleCSharpLocalDeclaration,
+    handleCSharpLocalFunctionDeclaration: csharpHarness.handleCSharpLocalFunctionDeclaration,
     handleCSharpMethodDeclaration: csharpHarness.handleCSharpMethodDeclaration,
+    handleCSharpParameter: csharpHarness.handleCSharpParameter,
+    handleCSharpPropertyDeclaration: csharpHarness.handleCSharpPropertyDeclaration,
     handleCSharpTypeDeclaration: csharpHarness.handleCSharpTypeDeclaration,
   }),
 );
@@ -61,8 +75,15 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
     csharpHarness.getCSharpFileScopedNamespaceName.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReturnValue('MyApp');
     csharpHarness.handleCSharpCallNode.mockReset();
+    csharpHarness.handleCSharpConstructorDeclaration.mockReset();
+    csharpHarness.handleCSharpEventFieldDeclaration.mockReset();
+    csharpHarness.handleCSharpFieldDeclaration.mockReset();
+    csharpHarness.handleCSharpLocalDeclaration.mockReset();
+    csharpHarness.handleCSharpLocalFunctionDeclaration.mockReset();
     csharpHarness.handleCSharpMethodDeclaration.mockReset();
     csharpHarness.handleCSharpNamespaceNode.mockReset();
+    csharpHarness.handleCSharpParameter.mockReset();
+    csharpHarness.handleCSharpPropertyDeclaration.mockReset();
     csharpHarness.handleCSharpTypeReferenceNode.mockReset();
     csharpHarness.handleCSharpTypeDeclaration.mockReset();
     csharpHarness.handleCSharpUsingDirective.mockReset();

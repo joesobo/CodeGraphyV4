@@ -28,16 +28,28 @@ function createNode({
   type = 'identifier',
   fields = {},
   namedChildren = [],
+  parent = null,
+  text = '',
+  descendantsByType = {},
 }: {
   type?: string;
   fields?: Record<string, Parser.SyntaxNode | null | undefined>;
   namedChildren?: Parser.SyntaxNode[];
+  parent?: Parser.SyntaxNode | null;
+  text?: string;
+  descendantsByType?: Record<string, Parser.SyntaxNode[]>;
 } = {}): Parser.SyntaxNode {
   return {
     type,
+    parent,
+    text,
     namedChildren,
     childForFieldName(name: string) {
       return fields[name] ?? null;
+    },
+    descendantsOfType(types: string | string[]) {
+      const requestedTypes = Array.isArray(types) ? types : [types];
+      return requestedTypes.flatMap((requestedType) => descendantsByType[requestedType] ?? []);
     },
   } as unknown as Parser.SyntaxNode;
 }
@@ -235,6 +247,68 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
         metadata: expect.objectContaining({
           importedName: 'Status',
           localName: 'Status',
+        }),
+      }),
+    );
+  });
+
+  it('records C# member calls through variables initialized by object creation', () => {
+    const createdTypeNode = createNode({ type: 'identifier' });
+    const creationNode = createNode({
+      type: 'object_creation_expression',
+      fields: { type: createdTypeNode },
+    });
+    const variableDeclarator = createNode({
+      type: 'variable_declarator',
+      fields: { name: createNode({ type: 'identifier' }) },
+      descendantsByType: { object_creation_expression: [creationNode] },
+    });
+    const rootNode = createNode({
+      type: 'compilation_unit',
+      descendantsByType: { variable_declarator: [variableDeclarator] },
+    });
+    const invocationNode = createNode({
+      type: 'invocation_expression',
+      parent: rootNode,
+      fields: {
+        function: createNode({
+          type: 'member_access_expression',
+          fields: {
+            expression: createNode({ type: 'identifier' }),
+            name: createNode({ type: 'identifier' }),
+          },
+        }),
+      },
+    });
+    vi.mocked(getIdentifierText)
+      .mockReturnValueOnce('queue')
+      .mockReturnValueOnce('Enqueue')
+      .mockReturnValueOnce('queue');
+    vi.mocked(getCSharpTypeName).mockReturnValueOnce('PriorityTaskQueue');
+    vi.mocked(resolveCSharpUsingImport).mockReturnValue('/workspace/src/Services/PriorityTaskQueue.cs');
+
+    handleCSharpCallNode(
+      invocationNode as never,
+      state as never,
+      filePath,
+      workspaceRoot,
+      relations,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+
+    expect(addRelation).toHaveBeenCalledWith(
+      relations,
+      expect.objectContaining({
+        kind: 'call',
+        fromFilePath: filePath,
+        fromSymbolId: '/workspace/src/App.cs:method:Run',
+        resolvedPath: '/workspace/src/Services/PriorityTaskQueue.cs',
+        specifier: 'PriorityTaskQueue',
+        metadata: expect.objectContaining({
+          importedName: 'PriorityTaskQueue',
+          localName: 'PriorityTaskQueue',
+          memberName: 'Enqueue',
         }),
       }),
     );
