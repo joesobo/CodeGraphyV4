@@ -750,7 +750,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the available edge types are (?:only )?(.+)$/, async (context, _step, match) => {
-    const expectedEdgeTypes = match[1].split(',').map((label) => label.trim());
+    const expectedEdgeTypes = match[1].split(',').map((label) => normalizePanelLabel(label.trim()));
     const frame = requireGraphFrame(context);
 
     await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows) =>
@@ -1750,6 +1750,7 @@ function parseScopeTypeList(value: string): string[] {
 function normalizePanelLabel(label: string): string {
   const normalized = label.trim().toLowerCase();
   const aliases: Record<string, string> = {
+    calls: 'Call',
     reference: 'References',
     references: 'References',
     'type imports': 'Type imports',
