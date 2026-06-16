@@ -11,6 +11,7 @@ Project shape:
 - `scenes/player.tscn`, `scenes/enemy.tscn`, and `scenes/ui/game_ui.tscn` make the project feel like a real Godot workspace instead of isolated fixture files
 - `resources/player_loadout.tres` is a real data resource backed by `scripts/data/player_loadout.gd`
 - `scripts/enemy.gd` extends `scripts/base/entity.gd`, giving the Godot plugin a file-backed inheritance edge distinct from built-in engine class inheritance
+- `scripts/game_manager.gd` declares `GameState`, exported state, signals, and spawn methods so the graph can demonstrate GDScript enum, variable, function, and `class_name` symbols in one project
 
 Suggested Depth Mode check:
 
@@ -60,3 +61,21 @@ Expected behavior:
 - The individual Godot `class_name` row keeps its saved on/off state when Variable is toggled.
 - Relationship edges such as `Player -> PlayerLoadout` and scene/resource load edges still tell the story of how the runnable project is assembled.
 - `Enemy -> Entity` appears through the `Inherits` edge when Graph Scope enables that edge type.
+
+## Supported Godot Graph Contract
+
+This example intentionally stays inside the parser-backed Godot plugin surface. The plugin can produce generic CodeGraphy node types for `Function`, `Enum`, `Constant`, `Variable`, and plugin-owned `Godot class_name` declarations from GDScript. It can produce generic edge types for `Loads`, `Inherits`, `References`, and `Calls` from `project.godot`, `.tscn`, `.tres`, and `.gd` files.
+
+Measured parser/plugin output for this example:
+
+- 19 displayed file nodes, including `.gitignore` and `.vscode/settings.json`; `.codegraphy/settings.json` remains workspace settings, not a graph node
+- 15 Godot-supported files: `.gd`, `.godot`, `.tscn`, and `.tres`
+- 22 `Loads` edges from project settings, text-resource `ext_resource` entries, and GDScript `preload`
+- 11 `References` edges from `class_name` type usage
+- 1 `Calls` edge from `MathHelpers.move_toward_angle`
+- 1 `Inherits` edge from `Enemy` to `Entity`
+- 7 `Godot class_name` symbols
+- 25 `Function` symbols
+- 37 parser-emitted `Variable` symbols, which collapse to 36 unique visible `Variable` node ids
+- 2 `Constant` symbols
+- 1 `Enum` symbol

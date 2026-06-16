@@ -1,6 +1,8 @@
 class_name GameManager
 extends Node
 
+enum GameState { BOOTING, PLAYING, COMPLETE }
+
 var player_scene: PackedScene = preload("res://scenes/player.tscn")
 var enemy_scene: PackedScene = preload("res://scenes/enemy.tscn")
 var ui_scene: PackedScene = preload("res://scenes/ui/game_ui.tscn")
@@ -8,12 +10,16 @@ var ui_scene: PackedScene = preload("res://scenes/ui/game_ui.tscn")
 var config: Dictionary = {}
 var current_level: int = 0
 var score: int = 0
+var state: GameState = GameState.BOOTING
 
 signal score_changed(new_score: int)
 signal level_changed(new_level: int)
+signal state_changed(new_state: GameState)
 
 func _ready() -> void:
 	config = load_config()
+	state = GameState.PLAYING
+	state_changed.emit(state)
 
 func load_config() -> Dictionary:
 	var file = FileAccess.open("user://config.json", FileAccess.READ)
