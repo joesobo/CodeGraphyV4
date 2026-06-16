@@ -17,10 +17,10 @@ describe('shouldIncludeFile', () => {
     expect(shouldIncludeFile('src/app.ts', '/ws/src/app.ts', opts())).toBe(true);
   });
 
-  it('returns false when gitignore marks the path as ignored', () => {
+  it('returns true when gitignore marks the path as ignored', () => {
     const gitignore = { ignores: () => true };
 
-    expect(shouldIncludeFile('src/app.ts', '/ws/src/app.ts', opts({ gitignore }))).toBe(false);
+    expect(shouldIncludeFile('src/app.ts', '/ws/src/app.ts', opts({ gitignore }))).toBe(true);
   });
 
   it('returns false when the path matches an exclude pattern', () => {
@@ -73,7 +73,7 @@ describe('shouldIncludeFile', () => {
     ).toBe(true);
   });
 
-  it('gitignore exclusion takes priority over include patterns', () => {
+  it('include and exclude patterns still decide discovery when gitignore matches', () => {
     const gitignore = { ignores: (path: string) => path === 'secret.ts' };
 
     expect(
@@ -82,6 +82,6 @@ describe('shouldIncludeFile', () => {
         '/ws/secret.ts',
         opts({ gitignore }),
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 });

@@ -35,6 +35,8 @@ export interface IDiscoveredFile {
   extension: string;
   /** File name without path */
   name: string;
+  /** Whether this file matches .gitignore. It remains discoverable so the graph can dim it. */
+  gitIgnored?: boolean;
 }
 
 /**
@@ -45,6 +47,8 @@ export interface IDiscoveryResult {
   files: IDiscoveredFile[];
   /** Discovered directory paths relative to the workspace root */
   directories: string[];
+  /** Discovered file and directory paths matched by .gitignore */
+  gitIgnoredPaths?: string[];
   /** Whether the max file limit was hit */
   limitReached: boolean;
   /** Total files found before limit (if limit was reached) */

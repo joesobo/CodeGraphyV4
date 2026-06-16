@@ -23,13 +23,32 @@ function getDiscoveryConfig(options: IDiscoveryOptions) {
   };
 }
 
-function createDiscoveredFile(relativePath: string, absolutePath: string): IDiscoveredFile {
+function createDiscoveredFile(
+  relativePath: string,
+  absolutePath: string,
+  gitIgnored: boolean,
+): IDiscoveredFile {
   return {
     relativePath,
     absolutePath,
     extension: path.extname(absolutePath).toLowerCase(),
     name: path.basename(absolutePath),
+    ...(gitIgnored ? { gitIgnored: true } : {}),
   };
+}
+
+function isGitIgnoredPath(
+  gitignore: ReturnType<typeof loadGitignore>,
+  relativePath: string,
+  kind: 'directory' | 'file',
+): boolean {
+  if (!gitignore) {
+    return false;
+  }
+
+  return kind === 'directory'
+    ? gitignore.ignores(`${relativePath}/`) || gitignore.ignores(relativePath)
+    : gitignore.ignores(relativePath);
 }
 
 export class FileDiscovery {
@@ -50,6 +69,7 @@ export class FileDiscovery {
     const gitignore = respectGitignore ? loadGitignore(rootPath) : null;
     const files: IDiscoveredFile[] = [];
     const directories: string[] = [];
+    const gitIgnoredPaths = new Set<string>();
     let totalFound = 0;
     let limitReached = false;
 
@@ -74,11 +94,20 @@ export class FileDiscovery {
           return true;
         }
 
-        files.push(createDiscoveredFile(relativePath, absolutePath));
+        const gitIgnored = isGitIgnoredPath(gitignore, relativePath, 'file');
+        if (gitIgnored) {
+          gitIgnoredPaths.add(relativePath);
+        }
+
+        files.push(createDiscoveredFile(relativePath, absolutePath, gitIgnored));
         totalFound++;
         return true;
       },
       relativePath => {
+        if (isGitIgnoredPath(gitignore, relativePath, 'directory')) {
+          gitIgnoredPaths.add(relativePath);
+        }
+
         directories.push(relativePath);
       },
       signal,
@@ -88,6 +117,7 @@ export class FileDiscovery {
     return {
       files,
       directories,
+      gitIgnoredPaths: [...gitIgnoredPaths],
       limitReached,
       totalFound: limitReached ? totalFound : undefined,
       durationMs,

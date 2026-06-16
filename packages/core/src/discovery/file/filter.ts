@@ -37,11 +37,7 @@ export function shouldIncludeFile(
   absolutePath: string,
   options: IFileFilterOptions,
 ): boolean {
-  const { includePatterns, excludePatterns, extensions, gitignore } = options;
-
-  if (gitignore && gitignore.ignores(relativePath)) {
-    return false;
-  }
+  const { includePatterns, excludePatterns, extensions } = options;
 
   if (matchesAnyPattern(relativePath, excludePatterns)) {
     return false;

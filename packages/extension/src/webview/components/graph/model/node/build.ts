@@ -132,13 +132,20 @@ function createGraphNodeStyle(
     : (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
 
   return {
-    baseOpacity: getDepthOpacity(node.depthLevel),
+    baseOpacity: getNodeBaseOpacity(node),
     borderColor: getNodeBorderColor(isFocused, isFavorite, options.appearance, rawColor),
     borderWidth: getNodeBorderWidth(isFocused, isFavorite),
     color: rawColor,
     isFavorite,
     size,
   };
+}
+
+function getNodeBaseOpacity(node: IGraphNode): number {
+  const depthOpacity = getDepthOpacity(node.depthLevel);
+  return node.metadata?.gitIgnored === true
+    ? Math.min(depthOpacity, 0.45)
+    : depthOpacity;
 }
 
 function createGraphNodePositionState(

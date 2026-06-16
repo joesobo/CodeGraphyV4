@@ -158,7 +158,7 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.extension)).toEqual(['.ts']);
   });
 
-  it('respects gitignore by default when the option is omitted', async () => {
+  it('marks gitignored files by default when the option is omitted', async () => {
     createFile('.gitignore', '*.log\n');
     createFile('app.ts');
     createFile('debug.log');
@@ -166,10 +166,14 @@ describe('FileDiscovery discover', () => {
     const result = await discovery.discover({ rootPath: tempDir });
 
     expect(result.files.map((file) => file.name)).toContain('app.ts');
-    expect(result.files.map((file) => file.name)).not.toContain('debug.log');
+    expect(result.files.find((file) => file.name === 'debug.log')).toMatchObject({
+      gitIgnored: true,
+      relativePath: 'debug.log',
+    });
+    expect(result.gitIgnoredPaths).toContain('debug.log');
   });
 
-  it('keeps scanning after skipping a gitignored file', async () => {
+  it('keeps scanning after marking a gitignored file', async () => {
     createFile('.gitignore', '*.log\n');
     createFile('a.log');
     createFile('z.ts');
@@ -178,7 +182,9 @@ describe('FileDiscovery discover', () => {
 
     expect(result.files.map((file) => file.name)).toContain('.gitignore');
     expect(result.files.map((file) => file.name)).toContain('z.ts');
-    expect(result.files.map((file) => file.name)).not.toContain('a.log');
+    expect(result.files.find((file) => file.name === 'a.log')).toMatchObject({
+      gitIgnored: true,
+    });
   });
 
   it('ignores gitignore patterns when disabled', async () => {
@@ -194,6 +200,24 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.name)).toEqual(
       expect.arrayContaining(['app.ts', 'debug.log'])
     );
+    expect(result.files.find((file) => file.name === 'debug.log')?.gitIgnored).toBeUndefined();
+    expect(result.gitIgnoredPaths).toEqual([]);
+  });
+
+  it('marks gitignored directories without omitting their files', async () => {
+    createFile('.gitignore', 'generated/\n');
+    createFile('generated/output.ts');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    expect(result.directories).toContain('generated');
+    expect(result.files.find((file) => file.relativePath === path.join('generated', 'output.ts'))).toMatchObject({
+      gitIgnored: true,
+    });
+    expect(result.gitIgnoredPaths).toEqual(expect.arrayContaining([
+      'generated',
+      path.join('generated', 'output.ts'),
+    ]));
   });
 
   it('returns the exact discovery duration', async () => {

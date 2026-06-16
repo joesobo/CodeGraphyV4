@@ -26,6 +26,7 @@ export interface IWorkspaceGraphDataOptions {
   directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+  gitIgnoredPaths?: readonly string[];
   showOrphans: boolean;
   churnCounts: Record<string, number>;
   workspaceRoot: string;
@@ -80,6 +81,7 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     directoryPaths = [],
     disabledPlugins,
     fileConnections,
+    gitIgnoredPaths = [],
     showOrphans,
     workspaceRoot,
     getPluginForFile,
@@ -95,6 +97,7 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     cacheFiles,
     connectedIds,
     directoryPaths,
+    gitIgnoredPaths,
     nodeIds,
     showOrphans,
     churnCounts,

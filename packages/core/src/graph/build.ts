@@ -22,6 +22,7 @@ export interface WorkspacePipelineGraphDependencies {
   directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+  gitIgnoredPaths?: readonly string[];
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   showOrphans: boolean;
   workspaceRoot: string;
@@ -39,6 +40,7 @@ export function buildWorkspacePipelineGraph(
     cacheFiles: dependencies.cacheFiles,
     churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
+    gitIgnoredPaths: dependencies.gitIgnoredPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileConnections: dependencies.fileConnections,
     showOrphans: dependencies.showOrphans,
@@ -54,6 +56,7 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     cacheFiles: dependencies.cacheFiles,
     churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
+    gitIgnoredPaths: dependencies.gitIgnoredPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileAnalysis: dependencies.fileAnalysis,
     nodeVisibility: dependencies.nodeVisibility,

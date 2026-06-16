@@ -60,6 +60,10 @@ function getNodeBorderWidth(options: { isFavorite: boolean; isFocused: boolean }
 	return 2;
 }
 
+function getNodeBaseOpacity(dataNode: IGraphData['nodes'][number]): number {
+	return dataNode.metadata?.gitIgnored === true ? 0.45 : 1;
+}
+
 export function applyNodeAppearance({
 	data,
 	appearance = DEFAULT_GRAPH_APPEARANCE,
@@ -85,6 +89,7 @@ export function applyNodeAppearance({
 
 		graphNode.size = sizes.get(graphNode.id)! * getDepthSizeMultiplier(depthLevel);
 		graphNode.color = nodeColor;
+		graphNode.baseOpacity = getNodeBaseOpacity(dataNode);
 		graphNode.isFavorite = isFavorite;
 		graphNode.borderColor = getNodeBorderColor({
 			appearance,
