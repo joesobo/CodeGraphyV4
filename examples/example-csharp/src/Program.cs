@@ -1,23 +1,31 @@
 using System;
-using MyApp.Services;
-using MyApp.Utils;
+using ExampleCSharp.Config;
+using ExampleCSharp.Models;
+using ExampleCSharp.Services;
 
-namespace MyApp
+namespace ExampleCSharp
 {
-    /// <summary>
-    /// Main entry point for the application.
-    /// </summary>
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var settings = Config.LoadConfig();
-            var api = new ApiService();
-            
-            var data = api.FetchData(settings.ApiUrl);
-            var result = Helpers.ProcessData(data);
-            
-            Console.WriteLine(result);
+            var settings = new DispatchSettings(maxRetries: 3);
+            var queue = new PriorityTaskQueue();
+            var dispatcher = new TaskDispatcher(queue, settings);
+            var task = new DispatchTask(
+                new TaskId("graph-refresh"),
+                "Refresh Graph Cache",
+                DispatchStatus.Pending);
+
+            dispatcher.Completed += ReportCompletion;
+            var result = dispatcher.Dispatch(task);
+
+            Console.WriteLine(result.Message);
+        }
+
+        private static void ReportCompletion(DispatchTask task, DispatchResult result)
+        {
+            Console.WriteLine($"{task.Title}: {result.Status}");
         }
     }
 }
