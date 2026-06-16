@@ -1,13 +1,15 @@
-import React from 'react';
-import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
+import React, { useState } from 'react';
+import { mdiChevronDown, mdiChevronUp, mdiPlus } from '@mdi/js';
 import { graphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
 import { MdiIcon } from '../../icons/MdiIcon';
+import { Button } from '../../ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../../ui/disclosure/collapsible';
+import { Input } from '../../ui/input';
 import { Switch } from '../../ui/switch';
 import { useCollapsibleEntryState } from './section/collapseState';
 
@@ -33,11 +35,17 @@ function postCssSnippetToggle(path: string, enabled: boolean): void {
   });
 }
 
+function addCssSnippet(path: string): void {
+  setCssSnippetEnabled(path, true);
+  postCssSnippetToggle(path, true);
+}
+
 export function CssSnippetsSection({
   collapsedEntries,
   onCollapsedChange,
   snippets,
 }: CssSnippetsSectionProps): React.ReactElement | null {
+  const [draftPath, setDraftPath] = useState('');
   const { collapsed, onOpenChange } = useCollapsibleEntryState({
     collapsedEntries,
     onCollapsedChange,
@@ -45,6 +53,7 @@ export function CssSnippetsSection({
   });
   const open = !collapsed;
   const entries = Object.entries(snippets);
+  const trimmedDraftPath = draftPath.trim();
 
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
@@ -62,36 +71,75 @@ export function CssSnippetsSection({
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div
-            className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]"
-            data-codegraphy-list="css-snippets"
-          >
-            {entries.length === 0 ? (
-              <div
-                className="px-3 py-2 text-xs text-[var(--cg-text-muted)]"
-                data-codegraphy-row="css-snippet-empty"
+          <div className="space-y-2">
+            <div
+              className="flex items-center gap-2 rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] px-3 py-2"
+            >
+              <Input
+                aria-label="CSS snippet path"
+                className="h-7 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+                placeholder=".codegraphy/snippets/custom.css"
+                value={draftPath}
+                onChange={(event) => setDraftPath(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' || !trimmedDraftPath) {
+                    return;
+                  }
+
+                  event.preventDefault();
+                  addCssSnippet(trimmedDraftPath);
+                  setDraftPath('');
+                }}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] p-0 text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
+                disabled={!trimmedDraftPath}
+                onClick={() => {
+                  if (!trimmedDraftPath) {
+                    return;
+                  }
+
+                  addCssSnippet(trimmedDraftPath);
+                  setDraftPath('');
+                }}
+                title="Add CSS snippet"
               >
-                No CSS snippets configured
-              </div>
-            ) : entries.map(([path, enabled]) => (
-              <div
-                key={path}
-                className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]"
-                data-codegraphy-row="css-snippet"
-              >
-                <span className="min-w-0 flex-1 truncate text-xs font-medium" title={path}>
-                  {path}
-                </span>
-                <Switch
-                  aria-label={`Toggle ${path}`}
-                  checked={enabled}
-                  onCheckedChange={(nextEnabled) => {
-                    setCssSnippetEnabled(path, nextEnabled);
-                    postCssSnippetToggle(path, nextEnabled);
-                  }}
-                />
-              </div>
-            ))}
+                <MdiIcon path={mdiPlus} size={14} />
+              </Button>
+            </div>
+            <div
+              className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]"
+              data-codegraphy-list="css-snippets"
+            >
+              {entries.length === 0 ? (
+                <div
+                  className="px-3 py-2 text-xs text-[var(--cg-text-muted)]"
+                  data-codegraphy-row="css-snippet-empty"
+                >
+                  No CSS snippets configured
+                </div>
+              ) : entries.map(([path, enabled]) => (
+                <div
+                  key={path}
+                  className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]"
+                  data-codegraphy-row="css-snippet"
+                >
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium" title={path}>
+                    {path}
+                  </span>
+                  <Switch
+                    aria-label={`Toggle ${path}`}
+                    checked={enabled}
+                    onCheckedChange={(nextEnabled) => {
+                      setCssSnippetEnabled(path, nextEnabled);
+                      postCssSnippetToggle(path, nextEnabled);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </CollapsibleContent>
       </section>
