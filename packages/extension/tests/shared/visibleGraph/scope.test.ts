@@ -522,4 +522,74 @@ describe('shared/visibleGraph/scope', () => {
 			edges: [],
 		});
 	});
+
+
+	it('filters Unity component symbols through plugin scope rows', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					symbolNode('Assets/Scenes/SampleScene.unity#unity:scene', {
+						id: 'Assets/Scenes/SampleScene.unity#unity:scene',
+						name: 'SampleScene',
+						kind: 'scene',
+						filePath: 'Assets/Scenes/SampleScene.unity',
+						pluginKind: 'scene',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+					symbolNode('Assets/Scenes/SampleScene.unity#unity:game-object:1000', {
+						id: 'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+						name: 'Player',
+						kind: 'game-object',
+						filePath: 'Assets/Scenes/SampleScene.unity',
+						pluginKind: 'game-object',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+					symbolNode('Assets/Scenes/SampleScene.unity#unity:component:1001', {
+						id: 'Assets/Scenes/SampleScene.unity#unity:component:1001',
+						name: 'Transform',
+						kind: 'component',
+						filePath: 'Assets/Scenes/SampleScene.unity',
+						pluginKind: 'component',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+				],
+				edges: [
+					edge(
+						'Assets/Scenes/SampleScene.unity#unity:scene',
+						'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+						'contains',
+					),
+					edge(
+						'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+						'Assets/Scenes/SampleScene.unity#unity:component:1001',
+						'contains',
+					),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'symbol', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:scene', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
+				],
+				edges: [{ type: 'contains', enabled: true }],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'Assets/Scenes/SampleScene.unity#unity:scene',
+				'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+			],
+			edges: [
+				'Assets/Scenes/SampleScene.unity#unity:scene->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
+			],
+		});
+	});
+
 });

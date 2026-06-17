@@ -1327,7 +1327,7 @@ function setWorkspaceEdgeVisibility(
   fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
-async function setPluginSwitch(
+export async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
   enabled: boolean,
@@ -1342,7 +1342,13 @@ async function setPluginSwitch(
     });
   }
 
-  await setPanelSwitch(context, label, enabled);
+  const pluginSwitch = await findPanelSwitch(frame, normalizedLabel);
+  const expected = String(enabled);
+  const checked = await pluginSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
+  if (checked !== expected) {
+    await pluginSwitch.click();
+  }
+
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
 }

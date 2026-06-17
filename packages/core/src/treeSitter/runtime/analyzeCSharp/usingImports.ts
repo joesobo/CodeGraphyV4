@@ -59,6 +59,7 @@ function appendNamespaceImportRelations(
   for (const namespaceName of usingNamespaces) {
     const targetPaths = importTargetsByNamespace.get(namespaceName);
     if (!targetPaths || targetPaths.size === 0) {
+      addCSharpUsingRelation(relations, filePath, namespaceName, null);
       continue;
     }
 

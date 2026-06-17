@@ -95,6 +95,7 @@ export function discoverMutationPackageNames(repoRoot: string): string[] {
     'mcp',
     'plugin-csharp',
     'plugin-godot',
+    'plugin-unity',
     'plugin-markdown',
     'plugin-python',
     'plugin-typescript',

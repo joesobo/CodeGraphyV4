@@ -15,6 +15,7 @@ on:
           - python
           - csharp
           - godot
+          - unity
           - markdown
           - vue
           - plugin-api

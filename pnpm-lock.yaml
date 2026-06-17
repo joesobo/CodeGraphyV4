@@ -507,6 +507,12 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  packages/plugin-unity:
+    dependencies:
+      '@codegraphy-dev/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+
   packages/plugin-vue:
     dependencies:
       '@codegraphy-dev/plugin-api':

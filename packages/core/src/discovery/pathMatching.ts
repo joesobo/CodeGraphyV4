@@ -14,6 +14,7 @@ export const DEFAULT_EXCLUDE = [
   '**/.codegraphy/**',
   '**/.turbo/**',
   '**/coverage/**',
+  '**/.DS_Store',
   '**/*.min.js',
   '**/*.bundle.js',
   '**/*.map',

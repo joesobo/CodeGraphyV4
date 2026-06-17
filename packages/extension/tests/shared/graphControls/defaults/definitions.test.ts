@@ -38,6 +38,11 @@ describe('shared/graphControls/defaults/definitions', () => {
       'symbol:parameter',
       'symbol:local',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
+      'plugin:codegraphy.unity:symbol',
+      'plugin:codegraphy.unity:symbol:scene',
+      'plugin:codegraphy.unity:symbol:prefab',
+      'plugin:codegraphy.unity:symbol:game-object',
+      'plugin:codegraphy.unity:symbol:component',
     ]);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'include')).toBe(true);
