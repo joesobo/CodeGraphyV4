@@ -13,6 +13,17 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'variable:plain',
+      label: 'Plain Variable',
+      defaultColor: '#14B8A6',
+      defaultVisible: false,
+      parentId: 'variable',
+      matchSymbolKinds: ['variable'],
+      description: {
+        description: 'Variables that are not already represented by a more specific variable row.',
+      },
+    },
+    {
       id: 'symbol:constant',
       label: 'Constant',
       defaultColor: '#22C55E',

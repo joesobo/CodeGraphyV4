@@ -28,7 +28,7 @@ describe('createGDScriptPlugin lifecycle', () => {
           'symbol:function',
           'symbol:enum',
           'symbol:constant',
-          'variable',
+          'variable:plain',
           'plugin:codegraphy.gdscript:symbol:godot-class-name',
           'plugin:codegraphy.gdscript:symbol:scene',
           'plugin:codegraphy.gdscript:symbol:resource',

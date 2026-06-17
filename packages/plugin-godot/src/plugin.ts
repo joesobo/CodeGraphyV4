@@ -72,7 +72,7 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
         'symbol:function',
         'symbol:enum',
         'symbol:constant',
-        'variable',
+        'variable:plain',
         pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.className),
         pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.scene),
         pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.resource),

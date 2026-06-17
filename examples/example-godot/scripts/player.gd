@@ -21,6 +21,8 @@ var _fire_cooldown_remaining: float = 0.0
 
 func _ready() -> void:
 	super._ready()
+	if not (get_health_component() is HealthComponent):
+		push_warning("Player is missing a HealthComponent child")
 
 func _physics_process(delta: float) -> void:
 	_update_fire_cooldown(delta)

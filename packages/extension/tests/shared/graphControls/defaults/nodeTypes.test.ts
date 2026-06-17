@@ -213,6 +213,14 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         parentId: 'symbol',
       },
       {
+        id: 'variable:plain',
+        label: 'Plain Variable',
+        defaultColor: '#14B8A6',
+        defaultVisible: false,
+        parentId: 'variable',
+        matchSymbolKinds: ['variable'],
+      },
+      {
         id: 'symbol:constant',
         label: 'Constant',
         defaultColor: '#22C55E',

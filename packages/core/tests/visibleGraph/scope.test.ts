@@ -341,12 +341,34 @@ describe('visibleGraph/scope', () => {
     )).toBe(false);
   });
 
-  it('does not treat parent toggles as catch-all symbol definitions', () => {
+  it('matches generic variable symbols through the Plain Variable node type', () => {
     expect(nodeMatchesScope(
       scopeNode({
         symbol: symbol({ kind: 'variable' }),
       }),
       new Set(),
+      new Set(),
+      [],
+    )).toBe(true);
+  });
+
+  it('rejects generic variable symbols when the Variable parent node type is disabled', () => {
+    expect(nodeMatchesScope(
+      scopeNode({
+        symbol: symbol({ kind: 'variable' }),
+      }),
+      new Set(['variable']),
+      new Set(),
+      [],
+    )).toBe(false);
+  });
+
+  it('rejects generic variable symbols when the Plain Variable node type is disabled', () => {
+    expect(nodeMatchesScope(
+      scopeNode({
+        symbol: symbol({ kind: 'variable' }),
+      }),
+      new Set(['variable:plain']),
       new Set(),
       [],
     )).toBe(false);

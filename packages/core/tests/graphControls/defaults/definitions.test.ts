@@ -110,6 +110,7 @@ describe('graphControls/defaults/definitions', () => {
   it('declares concrete core variable node type definitions', () => {
     expect(createCoreVariableNodeTypes()).toEqual([
       { id: 'variable', label: 'Variable', defaultColor: '#14B8A6', defaultVisible: false, parentId: 'symbol' },
+      { id: 'variable:plain', label: 'Plain Variable', defaultColor: '#14B8A6', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['variable'] },
       { id: 'symbol:constant', label: 'Constant', defaultColor: '#22C55E', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['constant'] },
       { id: 'symbol:global', label: 'Global', defaultColor: '#0D9488', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['global'] },
       { id: 'symbol:field', label: 'Field', defaultColor: '#84CC16', defaultVisible: false, parentId: 'variable', matchSymbolKinds: ['field'] },

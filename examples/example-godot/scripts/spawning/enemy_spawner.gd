@@ -10,7 +10,7 @@ signal enemy_spawned(enemy: Enemy)
 @export var spawn_interval: float = 2.5
 @export var max_active_enemies: int = 3
 
-var _active_enemy_refs: Array[WeakRef] = []
+var _active_enemies: Array[WeakRef] = []
 var _player: Player
 @onready var _timer: Timer = %SpawnTimer
 
@@ -27,7 +27,7 @@ func _ready() -> void:
 
 func _spawn_enemy() -> void:
 	_prune_inactive_enemies()
-	if _active_enemy_refs.size() >= max_active_enemies:
+	if _active_enemies.size() >= max_active_enemies:
 		return
 
 	var enemy := enemy_scene.instantiate() as Enemy
@@ -39,7 +39,7 @@ func _spawn_enemy() -> void:
 		parent = get_tree().current_scene
 	parent.add_child(enemy)
 
-	_active_enemy_refs.append(weakref(enemy))
+	_active_enemies.append(weakref(enemy))
 	enemy_spawned.emit(enemy)
 
 func _exit_tree() -> void:
@@ -47,13 +47,13 @@ func _exit_tree() -> void:
 		_timer.timeout.disconnect(_spawn_enemy)
 	if _timer:
 		_timer.stop()
-	_active_enemy_refs.clear()
+	_active_enemies.clear()
 
 func _prune_inactive_enemies() -> void:
 	var live_refs: Array[WeakRef] = []
-	for enemy_ref in _active_enemy_refs:
+	for enemy_ref in _active_enemies:
 		var enemy := enemy_ref.get_ref() as Enemy
 		if enemy != null and enemy.is_inside_tree():
 			live_refs.append(enemy_ref)
 
-	_active_enemy_refs = live_refs
+	_active_enemies = live_refs

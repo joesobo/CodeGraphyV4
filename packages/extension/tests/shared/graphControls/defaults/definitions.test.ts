@@ -32,6 +32,7 @@ describe('shared/graphControls/defaults/definitions', () => {
       'plugin:codegraphy.gdscript:symbol:scene-node',
       'plugin:codegraphy.gdscript:symbol:signal',
       'variable',
+      'variable:plain',
       'symbol:constant',
       'symbol:global',
       'symbol:field',

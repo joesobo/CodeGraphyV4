@@ -178,6 +178,34 @@ describe('Godot GDScript Plugin Integration', () => {
       ]));
     });
 
+    it('emits the accepted example reference edges', async () => {
+      const results = await analyzeExampleProject(plugin);
+      const uniqueReferenceEdges = Array.from(
+        new Map(
+          results
+            .flatMap(result => result.relations ?? [])
+            .filter(relation => relation.kind === 'reference' && relation.toFilePath)
+            .map(relation => {
+              const edge = {
+                from: toWorkspacePath(relation.fromFilePath),
+                to: toWorkspacePath(relation.toFilePath!),
+              };
+
+              return [`${edge.from}->${edge.to}`, edge] as const;
+            }),
+        ).values(),
+      );
+
+      expect(uniqueReferenceEdges).toHaveLength(12);
+      expect(uniqueReferenceEdges).toEqual(expect.arrayContaining([
+        { from: 'scripts/player.gd', to: 'scripts/components/health_component.gd' },
+        { from: 'scripts/player.gd', to: 'scripts/projectile.gd' },
+        { from: 'scripts/base/entity.gd', to: 'scripts/components/health_component.gd' },
+        { from: 'scripts/spawning/enemy_spawner.gd', to: 'scripts/enemy.gd' },
+        { from: 'scripts/spawning/enemy_spawner.gd', to: 'scripts/player.gd' },
+      ]));
+    });
+
 
 
     it('detects preload connections in player.gd', async () => {

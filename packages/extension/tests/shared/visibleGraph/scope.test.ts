@@ -279,7 +279,7 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
-	it('does not treat parent toggles as catch-all symbol node types', () => {
+		it('matches generic variable symbols through the Plain Variable node type', () => {
 		const result = applyGraphScope(
 			{
 				nodes: [
@@ -297,21 +297,22 @@ describe('shared/visibleGraph/scope', () => {
 			},
 			{
 				nodes: [
-					{ type: 'file', enabled: true },
-					{ type: 'symbol', enabled: true },
-					{ type: 'variable', enabled: true },
-				],
+						{ type: 'file', enabled: true },
+						{ type: 'symbol', enabled: true },
+						{ type: 'variable', enabled: true },
+						{ type: 'variable:plain', enabled: true },
+					],
 				edges: [
 					{ type: 'contains', enabled: true },
 				],
 			},
 		);
 
-		expect(ids(result)).toEqual({
-			nodes: ['src/app.ts'],
-			edges: [],
+			expect(ids(result)).toEqual({
+				nodes: ['src/app.ts', 'src/app.ts#counter:variable'],
+				edges: ['src/app.ts->src/app.ts#counter:variable#contains'],
+			});
 		});
-	});
 
 	it('removes duplicate file edges when an equivalent symbol relation edge is visible', () => {
 		const result = applyGraphScope(
@@ -503,18 +504,18 @@ describe('shared/visibleGraph/scope', () => {
 		);
 
 		expect(ids(result)).toEqual({
-			nodes: [
-				'scenes/player.tscn',
-				'scripts/player.gd',
-				'scenes/player.tscn#HealthComponent:scene-node',
-				'scripts/player.gd#projectile_scene:variable',
-			],
-			edges: [
-				'scenes/player.tscn->scenes/player.tscn#HealthComponent:scene-node#contains',
-				'scripts/player.gd->scripts/player.gd#projectile_scene:variable#contains',
-			],
+				nodes: [
+					'scenes/player.tscn',
+					'scripts/player.gd',
+					'scenes/player.tscn#HealthComponent:scene-node',
+					'scripts/player.gd#projectile_scene:variable',
+				],
+				edges: [
+					'scenes/player.tscn->scenes/player.tscn#HealthComponent:scene-node#contains',
+					'scripts/player.gd->scripts/player.gd#projectile_scene:variable#contains',
+				],
+			});
 		});
-	});
 
 	it('requires every plugin-specific symbol field to match', () => {
 		const matching = symbolNode('scripts/player.gd#Player:class', {
