@@ -370,6 +370,10 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await expectVisibleEdgeBetween(context, TARGET_NODE, 'src/types.ts');
   },
 
+  'the src/index.ts node has an edge that points to the src/palette.ts node': async (context) => {
+    await expectVisibleEdgeBetween(context, TARGET_NODE, 'src/palette.ts');
+  },
+
   'the src/index.ts node has an edge that points to the src/utils.ts node': async (context) => {
     await expectVisibleEdgeBetween(context, TARGET_NODE, 'src/utils.ts');
   },

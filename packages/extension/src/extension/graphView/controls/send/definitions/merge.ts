@@ -180,8 +180,8 @@ function shouldAddLegacyReferenceEdgeKind(
   edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
   edgeKinds: ReadonlySet<string>,
 ): boolean {
-  const hasCppEdgeShape = edgeKinds.has('include') && edgeKinds.has('overrides');
-  if (hasCppEdgeShape) {
+  const hasExplicitNonReferenceShape = edgeKinds.has('overrides') || edgeKinds.has('type-import');
+  if (hasExplicitNonReferenceShape) {
     return false;
   }
 

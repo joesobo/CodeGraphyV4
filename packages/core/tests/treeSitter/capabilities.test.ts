@@ -55,6 +55,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'Sources/Feature/UserCardView.h',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
     ]);
@@ -184,6 +185,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'Sources/AppDelegate.h',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
     ]);
@@ -202,6 +204,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'src/task.cpp',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
       'include',
@@ -238,6 +241,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'contains',
       'import',
+      'reference',
       'inherit',
     ]);
     expect(listTreeSitterNodeTypeCapabilities([

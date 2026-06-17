@@ -72,7 +72,31 @@ describe('createMarkdownPlugin', () => {
       expect(plugin.sources).toEqual([
         { id: 'wikilink', name: 'Wikilinks', description: '[[Note Name]], ![[embed]]' },
       ]);
-      expect(plugin.contributeGraphScopeCapabilities?.()).toBeUndefined();
+    });
+
+    it('exposes reference scope capabilities for markdown note workspaces', () => {
+      const plugin = createMarkdownPlugin();
+
+      expect(plugin.contributeGraphScopeCapabilities?.({
+        filePaths: [
+          'README.md',
+          'notes/Home.md',
+          'notes/Architecture.md',
+          'src/commented.ts',
+        ],
+      })).toEqual({ edgeTypes: ['reference'] });
+    });
+
+    it('does not expose reference scope capabilities for a lone README', () => {
+      const plugin = createMarkdownPlugin();
+
+      expect(plugin.contributeGraphScopeCapabilities?.({
+        filePaths: [
+          'README.md',
+          'src/index.ts',
+          'src/palette.ts',
+        ],
+      })).toEqual({});
     });
 
     it('exposes file color mappings for md and mdx', () => {
