@@ -87,6 +87,28 @@ describe('workspaceFiles/refresh/scheduler', () => {
     );
   });
 
+  it('keeps gitignore refresh intent when queueing while the graph is closed', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] .gitignore changed, refreshing graph',
+      ['/workspace/.gitignore'],
+      500,
+      { gitignoreRefresh: true },
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshGitignoreMetadata).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
+      '[CodeGraphy] .gitignore changed, refreshing graph',
+      ['/workspace/.gitignore'],
+      { gitignoreRefresh: true },
+    );
+  });
+
   it('defaults to refreshing when the provider has no graph-open probe', () => {
     vi.useFakeTimers();
     const provider = makeProvider();

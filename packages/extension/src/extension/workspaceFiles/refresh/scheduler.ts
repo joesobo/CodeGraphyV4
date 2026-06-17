@@ -18,8 +18,14 @@ function markWorkspaceRefreshPending(
   provider: GraphViewProvider,
   logMessage: string,
   filePaths: readonly string[],
+  options: { gitignoreRefresh?: boolean } = {},
 ): void {
-  provider.markWorkspaceRefreshPending?.(logMessage, filePaths);
+  if (options.gitignoreRefresh !== true) {
+    provider.markWorkspaceRefreshPending?.(logMessage, filePaths);
+    return;
+  }
+
+  provider.markWorkspaceRefreshPending?.(logMessage, filePaths, options);
 }
 
 export function scheduleWorkspaceRefresh(
@@ -34,7 +40,9 @@ export function scheduleWorkspaceRefresh(
   let gitignoreRefresh = options.gitignoreRefresh === true;
 
   if (!isGraphOpen(provider)) {
-    markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths]);
+    markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths], {
+      gitignoreRefresh,
+    });
     return;
   }
 
@@ -60,6 +68,7 @@ export function scheduleWorkspaceRefresh(
           provider,
           nextPending.logMessage,
           [...nextPending.filePaths],
+          { gitignoreRefresh: nextPending.gitignoreRefresh },
         );
         return;
       }
