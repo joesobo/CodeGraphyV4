@@ -8,7 +8,7 @@
     "fileIssues": [],
     "fileFanOut": 0,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 10,
+    "folderFanOut": 11,
     "folderFanOutVerdict": "WARNING"
   },
   {
@@ -107,18 +107,6 @@
     "depth": 2,
     "depthVerdict": "STABLE",
     "directoryPath": "docs/agents",
-    "fileIssues": [],
-    "fileFanOut": 0,
-    "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 1,
-    "folderFanOutVerdict": "STABLE"
-  },
-  {
-    "averageRedundancy": 0,
-    "clusters": [],
-    "depth": 3,
-    "depthVerdict": "STABLE",
-    "directoryPath": "docs/agents/loops",
     "fileIssues": [],
     "fileFanOut": 0,
     "fileFanOutVerdict": "STABLE",
@@ -431,18 +419,6 @@
     "depth": 3,
     "depthVerdict": "STABLE",
     "directoryPath": "examples/example-cpp/src",
-    "fileIssues": [],
-    "fileFanOut": 0,
-    "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 1,
-    "folderFanOutVerdict": "STABLE"
-  },
-  {
-    "averageRedundancy": 0,
-    "clusters": [],
-    "depth": 4,
-    "depthVerdict": "WARNING",
-    "directoryPath": "examples/example-cpp/src/lib",
     "fileIssues": [],
     "fileFanOut": 0,
     "fileFanOutVerdict": "STABLE",
@@ -1837,7 +1813,7 @@
     "fileIssues": [],
     "fileFanOut": 0,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 11,
+    "folderFanOut": 12,
     "folderFanOutVerdict": "WARNING"
   },
   {
@@ -2104,7 +2080,7 @@
     "depthVerdict": "WARNING",
     "directoryPath": "packages/core/src/discovery",
     "fileIssues": [],
-    "fileFanOut": 4,
+    "fileFanOut": 3,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -3887,7 +3863,7 @@
     "depthVerdict": "WARNING",
     "directoryPath": "packages/core/tests/discovery",
     "fileIssues": [],
-    "fileFanOut": 3,
+    "fileFanOut": 2,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -3938,7 +3914,33 @@
     "fileIssues": [],
     "fileFanOut": 11,
     "fileFanOutVerdict": "SPLIT",
-    "folderFanOut": 2,
+    "folderFanOut": 3,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "fixture",
+        "members": [
+          "fixture.ts",
+          "gitignored.test.ts",
+          "namespaces.test.ts",
+          "normalization.test.ts",
+          "relations.test.ts"
+        ],
+        "memberCount": 5,
+        "suggestedFolder": "fixture",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 5,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/core/tests/graph/data",
+    "fileIssues": [],
+    "fileFanOut": 5,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
   },
   {
@@ -5629,7 +5631,7 @@
     "fileIssues": [],
     "fileFanOut": 5,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 10,
+    "folderFanOut": 11,
     "folderFanOutVerdict": "WARNING"
   },
   {
@@ -5755,9 +5757,33 @@
     "clusters": [],
     "depth": 6,
     "depthVerdict": "DEEP",
+    "directoryPath": "packages/extension/src/extension/graphView/cssSnippets",
+    "fileIssues": [],
+    "fileFanOut": 1,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "actions",
+        "members": [
+          "actions.ts",
+          "rename.ts",
+          "validation.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "actions",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 6,
+    "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/src/extension/graphView/files",
     "fileIssues": [],
-    "fileFanOut": 3,
+    "fileFanOut": 4,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -6650,14 +6676,15 @@
     "averageRedundancy": 0,
     "clusters": [
       {
-        "prefix": "direction",
+        "prefix": "css",
         "members": [
+          "cssSnippets.ts",
           "direction.ts",
           "router.ts",
           "toggle.ts"
         ],
-        "memberCount": 3,
-        "suggestedFolder": "direction",
+        "memberCount": 4,
+        "suggestedFolder": "css",
         "confidence": "imports-only"
       }
     ],
@@ -6665,7 +6692,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/src/extension/graphView/webview/settingsMessages",
     "fileIssues": [],
-    "fileFanOut": 4,
+    "fileFanOut": 5,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -6686,6 +6713,17 @@
     "averageRedundancy": 0,
     "clusters": [
       {
+        "prefix": "direct",
+        "members": [
+          "direct.ts",
+          "particle.ts",
+          "pluginData.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "direct",
+        "confidence": "imports-only"
+      },
+      {
         "prefix": "filter",
         "members": [
           "filterPatternKeys.ts",
@@ -6701,7 +6739,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/src/extension/graphView/webview/settingsMessages/updates/apply",
     "fileIssues": [],
-    "fileFanOut": 6,
+    "fileFanOut": 7,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
@@ -7135,7 +7173,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/src/extension/repoSettings/store/model/persistedShape",
     "fileIssues": [],
-    "fileFanOut": 10,
+    "fileFanOut": 11,
     "fileFanOutVerdict": "SPLIT",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
@@ -7551,7 +7589,7 @@
     ],
     "fileFanOut": 4,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 11,
+    "folderFanOut": 12,
     "folderFanOutVerdict": "WARNING"
   },
   {
@@ -7643,7 +7681,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/src/webview/app/shell/messageListener",
     "fileIssues": [],
-    "fileFanOut": 3,
+    "fileFanOut": 4,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -9262,15 +9300,16 @@
     "averageRedundancy": 0,
     "clusters": [
       {
-        "prefix": "messages",
+        "prefix": "css",
         "members": [
+          "cssSnippets.tsx",
           "messages.ts",
           "state.ts",
           "storage.ts",
           "view.tsx"
         ],
-        "memberCount": 4,
-        "suggestedFolder": "messages",
+        "memberCount": 5,
+        "suggestedFolder": "css",
         "confidence": "imports-only"
       }
     ],
@@ -9278,7 +9317,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/src/webview/components/legends/panel",
     "fileIssues": [],
-    "fileFanOut": 4,
+    "fileFanOut": 5,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 2,
     "folderFanOutVerdict": "STABLE"
@@ -9945,6 +9984,18 @@
     "directoryPath": "packages/extension/src/webview/components/ui/overlay",
     "fileIssues": [],
     "fileFanOut": 2,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 5,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/extension/src/webview/cssSnippets",
+    "fileIssues": [],
+    "fileFanOut": 1,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
@@ -11547,7 +11598,7 @@
     "fileIssues": [],
     "fileFanOut": 5,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 11,
+    "folderFanOut": 12,
     "folderFanOutVerdict": "WARNING"
   },
   {
@@ -11639,9 +11690,21 @@
     "clusters": [],
     "depth": 6,
     "depthVerdict": "DEEP",
+    "directoryPath": "packages/extension/tests/extension/graphView/cssSnippets",
+    "fileIssues": [],
+    "fileFanOut": 1,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 6,
+    "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/tests/extension/graphView/files",
     "fileIssues": [],
-    "fileFanOut": 3,
+    "fileFanOut": 4,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -11841,12 +11904,24 @@
   },
   {
     "averageRedundancy": 0,
-    "clusters": [],
+    "clusters": [
+      {
+        "prefix": "cancellation",
+        "members": [
+          "cancellation.test.ts",
+          "fixture.ts",
+          "targeted.test.ts"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "cancellation",
+        "confidence": "imports-only"
+      }
+    ],
     "depth": 7,
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/tests/extension/graphView/provider/refresh",
     "fileIssues": [],
-    "fileFanOut": 1,
+    "fileFanOut": 4,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
@@ -11858,7 +11933,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/tests/extension/graphView/provider/runtime",
     "fileIssues": [],
-    "fileFanOut": 2,
+    "fileFanOut": 4,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -12220,7 +12295,7 @@
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/tests/extension/graphView/webview/settingsMessages",
     "fileIssues": [],
-    "fileFanOut": 6,
+    "fileFanOut": 7,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -12606,7 +12681,7 @@
     "depthVerdict": "WARNING",
     "directoryPath": "packages/extension/tests/playwright",
     "fileIssues": [],
-    "fileFanOut": 4,
+    "fileFanOut": 5,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
@@ -12618,7 +12693,7 @@
     "depthVerdict": "WARNING",
     "directoryPath": "packages/extension/tests/playwright-vscode",
     "fileIssues": [],
-    "fileFanOut": 0,
+    "fileFanOut": 2,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 1,
     "folderFanOutVerdict": "STABLE"
@@ -12815,7 +12890,19 @@
     "fileIssues": [],
     "fileFanOut": 0,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 4,
+    "folderFanOut": 5,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 6,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/extension/tests/webview/app/cssSnippets",
+    "fileIssues": [],
+    "fileFanOut": 1,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"
   },
   {
@@ -12937,7 +13024,7 @@
     "fileIssues": [],
     "fileFanOut": 2,
     "fileFanOutVerdict": "STABLE",
-    "folderFanOut": 6,
+    "folderFanOut": 7,
     "folderFanOutVerdict": "STABLE"
   },
   {
@@ -12994,6 +13081,30 @@
     "depth": 8,
     "depthVerdict": "DEEP",
     "directoryPath": "packages/extension/tests/webview/components/graph/runtime/physics",
+    "fileIssues": [],
+    "fileFanOut": 1,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 6,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/extension/tests/webview/components/legends",
+    "fileIssues": [],
+    "fileFanOut": 0,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 1,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 7,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/extension/tests/webview/components/legends/panel",
     "fileIssues": [],
     "fileFanOut": 1,
     "fileFanOutVerdict": "STABLE",
@@ -15727,6 +15838,104 @@
     "clusters": [],
     "depth": 2,
     "depthVerdict": "STABLE",
+    "directoryPath": "packages/plugin-particles",
+    "fileIssues": [],
+    "fileFanOut": 0,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 2,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0.25,
+    "clusters": [],
+    "depth": 3,
+    "depthVerdict": "STABLE",
+    "directoryPath": "packages/plugin-particles/src",
+    "fileIssues": [
+      {
+        "fileName": "plugin.ts",
+        "kind": "redundancy",
+        "detail": "filename repeats path context (100% token overlap)",
+        "redundancyScore": 1
+      }
+    ],
+    "fileFanOut": 4,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 2,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 4,
+    "depthVerdict": "WARNING",
+    "directoryPath": "packages/plugin-particles/src/effects",
+    "fileIssues": [],
+    "fileFanOut": 1,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 1,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 5,
+    "depthVerdict": "DEEP",
+    "directoryPath": "packages/plugin-particles/src/effects/presets",
+    "fileIssues": [],
+    "fileFanOut": 8,
+    "fileFanOutVerdict": "WARNING",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [
+      {
+        "prefix": "canvas",
+        "members": [
+          "canvas.ts",
+          "model.ts",
+          "view.tsx"
+        ],
+        "memberCount": 3,
+        "suggestedFolder": "canvas",
+        "confidence": "imports-only"
+      }
+    ],
+    "depth": 4,
+    "depthVerdict": "WARNING",
+    "directoryPath": "packages/plugin-particles/src/webview",
+    "fileIssues": [],
+    "fileFanOut": 4,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0.25,
+    "clusters": [],
+    "depth": 3,
+    "depthVerdict": "STABLE",
+    "directoryPath": "packages/plugin-particles/tests",
+    "fileIssues": [
+      {
+        "fileName": "plugin.test.ts",
+        "kind": "redundancy",
+        "detail": "filename repeats path context (100% token overlap)",
+        "redundancyScore": 1
+      }
+    ],
+    "fileFanOut": 4,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 2,
+    "depthVerdict": "STABLE",
     "directoryPath": "packages/plugin-python",
     "fileIssues": [],
     "fileFanOut": 0,
@@ -16010,6 +16219,18 @@
       }
     ],
     "fileFanOut": 3,
+    "fileFanOutVerdict": "STABLE",
+    "folderFanOut": 0,
+    "folderFanOutVerdict": "STABLE"
+  },
+  {
+    "averageRedundancy": 0,
+    "clusters": [],
+    "depth": 1,
+    "depthVerdict": "STABLE",
+    "directoryPath": "patches",
+    "fileIssues": [],
+    "fileFanOut": 0,
     "fileFanOutVerdict": "STABLE",
     "folderFanOut": 0,
     "folderFanOutVerdict": "STABLE"

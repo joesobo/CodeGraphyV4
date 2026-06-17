@@ -8,6 +8,7 @@ export interface WorkspaceIndexEngineState {
   cache: IWorkspaceAnalysisCache;
   discoveredDirectories: string[];
   discoveredFiles: IDiscoveredFile[];
+  gitIgnoredPaths: string[];
   fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IProjectedConnection[]>;
   graph: IGraphData;
@@ -21,6 +22,7 @@ export function createWorkspaceIndexEngineState(
     cache,
     discoveredDirectories: [],
     discoveredFiles: [],
+    gitIgnoredPaths: [],
     fileAnalysis: new Map(),
     fileConnections: new Map(),
     graph: { nodes: [], edges: [] },

@@ -118,10 +118,12 @@ describe('pipeline/service/discoveryFacade', () => {
   ): {
     _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
+    _lastGitIgnoredPaths: string[];
     _lastWorkspaceRoot: string;
   } => facade as unknown as {
     _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
+    _lastGitIgnoredPaths: string[];
     _lastWorkspaceRoot: string;
   };
 
@@ -134,6 +136,7 @@ describe('pipeline/service/discoveryFacade', () => {
         { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
         { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
       ],
+      gitIgnoredPaths: ['example-python/app.py'],
     } as never);
     vi.mocked(getWorkspacePipelinePluginFilterPatterns).mockReturnValue(['plugin-filter']);
     vi.mocked(syncWorkspacePipelinePlugins).mockResolvedValue(undefined);
@@ -247,6 +250,7 @@ describe('pipeline/service/discoveryFacade', () => {
       { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
     ]);
     expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src/new-folder']);
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/app.py']);
     expect(discoveryState(facade)._lastWorkspaceRoot).toBe('/workspace');
     expect(buildGraphData).toHaveBeenCalledWith(
       new Map([
@@ -395,18 +399,27 @@ describe('pipeline/service/discoveryFacade', () => {
     const facade = new TestDiscoveryFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
     const cachedAnalysis = {
-      filePath: '/workspace/src/cached.ts',
+      filePath: '/workspace/src/nested/cached.ts',
       relations: [],
     };
     facade._cache = {
       version: 'test',
       files: {
-        'src/cached.ts': {
+        'src/nested/cached.ts': {
           mtime: 1,
           analysis: cachedAnalysis,
         },
       },
     } as never;
+    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValueOnce({
+      files: [
+        {
+          absolutePath: '/workspace/src/nested/cached.ts',
+          relativePath: 'src/nested/cached.ts',
+        },
+      ],
+      gitIgnoredPaths: [],
+    } as never);
     const buildGraphDataFromAnalysis = vi
       .spyOn(
         facade as unknown as {
@@ -415,32 +428,82 @@ describe('pipeline/service/discoveryFacade', () => {
         '_buildGraphDataFromAnalysis',
       )
       .mockReturnValue({
-        nodes: [{ id: 'src/cached.ts', label: 'cached.ts', color: '#333333' }],
+        nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
         edges: [],
       });
 
     await expect(
       facade.loadCachedGraph(['dist/**'], disabledPlugins, new AbortController().signal),
     ).resolves.toEqual({
-      nodes: [{ id: 'src/cached.ts', label: 'cached.ts', color: '#333333' }],
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
       edges: [],
     });
 
     expect(facade.clearCache).not.toHaveBeenCalled();
     expect(analyzeWorkspacePipeline).not.toHaveBeenCalled();
     expect(buildGraphDataFromAnalysis).toHaveBeenCalledWith(
-      new Map([['src/cached.ts', cachedAnalysis]]),
+      new Map([['src/nested/cached.ts', cachedAnalysis]]),
       '/workspace',
       true,
       disabledPlugins,
     );
     expect(discoveryState(facade)._lastDiscoveredFiles).toEqual([
       {
-        absolutePath: '/workspace/src/cached.ts',
+        absolutePath: '/workspace/src/nested/cached.ts',
         extension: '.ts',
         name: 'cached.ts',
-        relativePath: 'src/cached.ts',
+        relativePath: 'src/nested/cached.ts',
       },
     ]);
+    expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src', 'src/nested']);
+  });
+
+  it('applies current gitignore metadata when replaying cached graph data', async () => {
+    const facade = new TestDiscoveryFacade();
+    const cachedAnalysis = {
+      filePath: '/workspace/example-python/src/main.py',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'example-python/src/main.py': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValueOnce({
+      directories: ['example-python', 'example-python/src'],
+      files: [
+        {
+          absolutePath: '/workspace/example-python/src/main.py',
+          relativePath: 'example-python/src/main.py',
+        },
+      ],
+      gitIgnoredPaths: ['example-python/src/main.py'],
+    } as never);
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'example-python/src/main.py', label: 'main.py', color: '#333333' }],
+      edges: [],
+    });
+
+    await facade.loadCachedGraph();
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
+      'discovery-deps',
+      '/workspace',
+      { showOrphans: true, respectGitignore: true },
+      [],
+      ['plugin-filter'],
+      undefined,
+      expect.any(Function),
+    );
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
   });
 });
