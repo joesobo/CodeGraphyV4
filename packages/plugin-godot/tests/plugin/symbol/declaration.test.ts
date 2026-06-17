@@ -28,6 +28,7 @@ describe('extractDeclarationSymbols', () => {
         },
         metadata: {
           language: 'gdscript',
+          pluginKind: 'exported-property',
           source: 'codegraphy.gdscript',
         },
       },

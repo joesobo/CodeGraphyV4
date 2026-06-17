@@ -19,6 +19,10 @@ import {
 } from './plugin/metadata';
 import { detectRelations } from './plugin/relations';
 import { extractSymbols } from './plugin/symbol/extract';
+import {
+  GODOT_SYMBOL_PLUGIN_KIND,
+  GODOT_SYMBOL_SOURCE,
+} from './plugin/symbol/godotKinds';
 import type {
   GodotWorkspaceFile,
   IGDScriptAnalyzeFilePlugin,
@@ -59,19 +63,22 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly sources = manifest.sources;
 
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
+    const pluginSymbolNodeType = (pluginKind: string) =>
+      `plugin:${GODOT_SYMBOL_SOURCE}:symbol:${pluginKind}`;
+
     return {
       nodeTypes: [
         'symbol:function',
         'symbol:enum',
         'symbol:constant',
         'variable',
-        'plugin:codegraphy.gdscript:symbol:godot-class-name',
-        'plugin:codegraphy.gdscript:symbol:scene',
-        'plugin:codegraphy.gdscript:symbol:resource',
-        'plugin:codegraphy.gdscript:symbol:autoload',
-        'plugin:codegraphy.gdscript:symbol:scene-node',
-        'plugin:codegraphy.gdscript:symbol:signal',
-        'plugin:codegraphy.gdscript:symbol:exported-property',
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.className),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.scene),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.resource),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.autoload),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.sceneNode),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.signal),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.exportedProperty),
       ],
       edgeTypes: [
         'call',
