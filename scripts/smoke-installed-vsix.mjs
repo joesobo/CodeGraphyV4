@@ -152,7 +152,7 @@ function snapshotInstalledPluginCache(homeDir) {
       }
 
       if (!hadUserDirectory && existsSync(userDirectoryPath) && readdirSync(userDirectoryPath).length === 0) {
-        rmSync(userDirectoryPath, { force: true });
+        rmSync(userDirectoryPath, { recursive: true, force: true });
       }
     } finally {
       rmSync(backupDirectoryPath, { recursive: true, force: true });
