@@ -174,7 +174,8 @@ function shouldAddLegacyReferenceEdgeKind(
   edgeKinds: ReadonlySet<string>,
 ): boolean {
   const hasCppEdgeShape = edgeKinds.has('include') && edgeKinds.has('overrides');
-  if (hasCppEdgeShape) {
+  const hasExplicitTypeReferenceEdge = edgeKinds.has('type');
+  if (hasCppEdgeShape || hasExplicitTypeReferenceEdge) {
     return false;
   }
 

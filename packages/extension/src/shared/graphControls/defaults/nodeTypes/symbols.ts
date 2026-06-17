@@ -60,6 +60,18 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:constructor',
+      label: 'Constructor',
+      defaultColor: '#C084FC',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['constructor'],
+      description: {
+        description: 'Callable members that initialize a class, struct, or record.',
+        examples: [{ label: 'C#', code: 'public TaskDispatcher(ITaskQueue queue) {}' }],
+      },
+    },
+    {
       id: 'symbol:prototype',
       label: 'Prototype',
       defaultColor: '#A78BFA',
@@ -93,6 +105,54 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       description: {
         description: 'Interface declarations that describe a shape or contract.',
         examples: [{ code: 'interface GraphNode { id: string; }' }],
+      },
+    },
+    {
+      id: 'symbol:record',
+      label: 'Record',
+      defaultColor: '#6366F1',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['record'],
+      description: {
+        description: 'Record declarations that define value-oriented types.',
+        examples: [{ label: 'C#', code: 'public record DispatchTask(TaskId Id);' }],
+      },
+    },
+    {
+      id: 'symbol:delegate',
+      label: 'Delegate',
+      defaultColor: '#10B981',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['delegate'],
+      description: {
+        description: 'Named callable signatures that can be assigned or invoked.',
+        examples: [{ label: 'C#', code: 'public delegate void TaskCompleted();' }],
+      },
+    },
+    {
+      id: 'symbol:property',
+      label: 'Property',
+      defaultColor: '#84CC16',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['property'],
+      description: {
+        description: 'Named class, struct, interface, or record accessors.',
+        examples: [{ label: 'C#', code: 'public int Count { get; }' }],
+      },
+    },
+    {
+      id: 'symbol:event',
+      label: 'Event',
+      defaultColor: '#F97316',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['event'],
+      description: {
+        description: 'Named event members that notify subscribers.',
+        examples: [{ label: 'C#', code: 'public event TaskCompleted? Completed;' }],
       },
     },
     {
