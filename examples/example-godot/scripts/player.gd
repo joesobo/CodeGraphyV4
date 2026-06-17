@@ -18,7 +18,6 @@ var _facing_direction: float = 1.0
 var _fire_cooldown_remaining: float = 0.0
 
 @onready var _muzzle: Marker2D = %Muzzle
-@onready var sprite: Sprite2D = %Sprite2D
 
 func _ready() -> void:
 	super._ready()
