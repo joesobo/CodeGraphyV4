@@ -9,10 +9,19 @@ signal died
 
 var current_health: int = 0
 var _invincible: bool = false
+var _invincibility_remaining: float = 0.0
 
 func _ready() -> void:
 	current_health = max_health
 	health_changed.emit(current_health, max_health)
+
+func _process(delta: float) -> void:
+	if not _invincible:
+		return
+
+	_invincibility_remaining -= delta
+	if _invincibility_remaining <= 0.0:
+		_invincible = false
 
 func take_damage(amount: int) -> void:
 	if _invincible or current_health <= 0:
@@ -32,5 +41,4 @@ func heal(amount: int) -> void:
 
 func _start_invincibility() -> void:
 	_invincible = true
-	await get_tree().create_timer(invincibility_time).timeout
-	_invincible = false
+	_invincibility_remaining = invincibility_time

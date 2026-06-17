@@ -1,19 +1,44 @@
-[gd_scene load_steps=4 format=3 uid="uid://player-scene"]
+[gd_scene load_steps=7 format=3 uid="uid://player-scene"]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://textures/player_card.png" id="2_card"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3_health"]
+[ext_resource type="PackedScene" path="res://scenes/projectile.tscn" id="4_projectile"]
+[ext_resource type="Script" path="res://scripts/ui/health_bar.gd" id="5_health_bar"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
+size = Vector2(32, 32)
 
 [node name="Player" type="CharacterBody2D" groups=["actors"]]
 script = ExtResource("1_script")
 health_component = NodePath("HealthComponent")
+health_bar = NodePath("HealthBar")
+projectile_scene = ExtResource("4_projectile")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 unique_name_in_owner = true
-position = Vector2(0, -12)
-scale = Vector2(0.22, 0.22)
+position = Vector2(0, -16)
 texture = ExtResource("2_card")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -16)
+shape = SubResource("RectangleShape2D_player")
+
+[node name="Muzzle" type="Marker2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(24, -16)
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")
 max_health = 125
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+offset_left = -20.0
+offset_top = -48.0
+offset_right = 20.0
+offset_bottom = -42.0
+max_value = 125.0
+value = 125.0
+show_percentage = false
+script = ExtResource("5_health_bar")

@@ -117,8 +117,8 @@ describe('Godot GDScript Plugin Integration', () => {
 
     it('detects ext_resource connections across the example project text resources', async () => {
       const resourceFiles = [
-        'resources/player_loadout.tres',
-        'scenes/ui/loadout_preview.tscn',
+        'resources/enemy_spawn_config.tres',
+        'scenes/main.tscn',
       ].filter(filePath => fs.existsSync(path.join(workspaceRoot, filePath)));
 
       const allConnections: Array<{ from: string; to: string }> = [];
@@ -138,10 +138,10 @@ describe('Godot GDScript Plugin Integration', () => {
 
       expect(allConnections).toEqual(
         expect.arrayContaining([
-          { from: 'resources/player_loadout.tres', to: 'scripts/data/player_loadout.gd' },
-          { from: 'resources/player_loadout.tres', to: 'textures/player_card.png' },
-          { from: 'scenes/ui/loadout_preview.tscn', to: 'resources/player_loadout.tres' },
-          { from: 'scenes/ui/loadout_preview.tscn', to: 'scripts/ui/loadout_preview.gd' },
+          { from: 'resources/enemy_spawn_config.tres', to: 'scripts/data/spawn_config.gd' },
+          { from: 'scenes/main.tscn', to: 'scenes/player.tscn' },
+          { from: 'scenes/main.tscn', to: 'scenes/enemy.tscn' },
+          { from: 'scenes/main.tscn', to: 'scripts/spawning/enemy_spawner.gd' },
         ]),
       );
     });

@@ -44,25 +44,26 @@ The integrated example remains `examples/example-godot`. It demonstrates:
 - `project.godot` project-settings loads for the main scene and autoload singleton.
 - `.tscn` and `.tres` `ext_resource` loads.
 - GDScript `preload(...)` loads.
-- File-backed inheritance from `Enemy` to `Entity`.
-- `class_name` references from typed variables and return types.
+- File-backed inheritance from `Enemy` and `Player` to `Entity`.
+- `class_name` references from typed variables and return types. The autoload singleton is named `GameManager`; its script class is `GameSessionManager` so Godot can compile it without hiding the singleton.
 - A static call from `Enemy` to `MathHelpers`.
-- Composition through `HealthComponent`.
+- Shared `Entity` health plumbing through `HealthComponent`.
+- Player click-shooting through `Projectile`, enemy chase/attack behavior, continuous spawning through `EnemySpawner`, compact UI controls, and player/enemy healthbars.
 - Scene nodes, groups, script attachments, exported properties, onready unique-name references, and signal declarations.
-- Signal wiring through `player.loadout_opened.connect(...)` and `health_component.died.connect(...)`.
+- Signal wiring through `enemy_spawner.enemy_spawned.connect(...)`, `health_component.died.connect(...)`, and projectile hit signals.
 - GDScript `Function`, `Enum`, `Constant`, `Variable`, and `Godot class_name` symbol nodes.
 
 Measured current parser/plugin output after the Godot-developer example update:
 
-- 21 displayed file nodes.
-- 17 Godot-supported files.
-- 24 `Loads` edges.
-- 17 parser-emitted `References` edges, which project to 11 visible file-to-file reference edges.
+- 24 displayed file nodes.
+- 20 Godot-supported files.
+- 27 `Loads` edges.
+- 23 parser-emitted `References` edges, which project to 12 visible file-to-file reference edges.
 - 1 `Calls` edge.
-- 1 `Inherits` edge.
-- 9 `Godot class_name` symbols.
-- 33 `Function` symbols.
-- 44 parser-emitted `Variable` symbols, which collapse to 43 unique visible `Variable` node ids.
+- 2 `Inherits` edges.
+- 12 `Godot class_name` symbols.
+- 48 `Function` symbols.
+- 77 parser-emitted `Variable` symbols, which collapse to 74 unique visible `Variable` node ids.
 - 2 `Constant` symbols.
 - 1 `Enum` symbol.
 
