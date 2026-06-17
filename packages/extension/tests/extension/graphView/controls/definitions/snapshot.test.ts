@@ -243,6 +243,31 @@ describe('extension/graphView/controls/snapshot', () => {
     });
   });
 
+  it('uses the generic reference row for Unity references', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(key: string, defaultValue: T): T => {
+          if (key === 'edgeVisibility') {
+            return { reference: false } as T;
+          }
+          return defaultValue;
+        },
+      },
+      {
+        nodes: [
+          { id: 'Assets/Scenes/SampleScene.unity', label: 'SampleScene', color: '#111111', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      [],
+      [],
+      { nodeTypes: [], edgeTypes: ['reference'] },
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).not.toContain('plugin:codegraphy.unity:reference');
+    expect(snapshot.edgeVisibility.reference).toBe(false);
+  });
+
   it('advertises only edge types available in the current project graph', () => {
     const snapshot = captureGraphControlsSnapshot(
       {

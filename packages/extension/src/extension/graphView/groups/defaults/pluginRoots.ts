@@ -18,6 +18,7 @@ interface PackagePluginRootAnalyzer {
 function getBuiltInGraphViewPluginDirEntries(): Array<readonly [string, string]> {
   return [
     ['codegraphy.godot', 'plugin-godot'],
+    ['codegraphy.unity', 'plugin-unity'],
   ];
 }
 

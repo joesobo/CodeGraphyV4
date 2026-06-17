@@ -483,6 +483,62 @@ describe('visibleGraph/scope', () => {
     ]))).toEqual(new Set());
   });
 
+
+  it('filters Unity component symbols through plugin scope rows', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('Assets/Scenes/SampleScene.unity#unity:scene', 'symbol', symbol({
+          id: 'Assets/Scenes/SampleScene.unity#unity:scene',
+          filePath: 'Assets/Scenes/SampleScene.unity',
+          kind: 'scene',
+          name: 'SampleScene',
+          pluginKind: 'scene',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+        node('Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'symbol', symbol({
+          id: 'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+          filePath: 'Assets/Scenes/SampleScene.unity',
+          kind: 'game-object',
+          name: 'Player',
+          pluginKind: 'game-object',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+        node('Assets/Scenes/SampleScene.unity#unity:component:1001', 'symbol', symbol({
+          id: 'Assets/Scenes/SampleScene.unity#unity:component:1001',
+          filePath: 'Assets/Scenes/SampleScene.unity',
+          kind: 'component',
+          name: 'Transform',
+          pluginKind: 'component',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+      ],
+      edges: [
+        edge('Assets/Scenes/SampleScene.unity#unity:scene', 'Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'contains'),
+        edge('Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'Assets/Scenes/SampleScene.unity#unity:component:1001', 'contains'),
+      ],
+    };
+
+    const result = applyGraphScope(graphData, {
+      nodes: [
+        { type: 'symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
+      ],
+      edges: [{ type: 'contains', enabled: true }],
+    });
+
+    expect(result.nodes.map((item) => item.id)).toEqual([
+      'Assets/Scenes/SampleScene.unity#unity:scene',
+      'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+    ]);
+    expect(result.edges.map((item) => item.id)).toEqual([
+      'Assets/Scenes/SampleScene.unity#unity:scene->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
+    ]);
+  });
+
   it('falls back to the symbol type suffix when no explicit kinds exist', () => {
     expect(getDisabledSymbolKinds(scopeConfig([
       { type: 'symbol:class', enabled: false },

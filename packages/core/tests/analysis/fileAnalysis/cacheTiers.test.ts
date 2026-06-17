@@ -62,4 +62,15 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
       required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
     });
   });
+
+  it('requires symbol enrichment when a Unity symbol row is enabled', () => {
+    expect(createWorkspaceIndexAnalysisCacheTiers({
+      'plugin:codegraphy.unity:symbol': true,
+      'plugin:codegraphy.unity:symbol:scene': true,
+    })).toEqual({
+      active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+      completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+      required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+    });
+  });
 });

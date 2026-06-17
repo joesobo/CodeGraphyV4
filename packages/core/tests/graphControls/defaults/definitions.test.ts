@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CORE_GRAPH_NODE_TYPES } from '../../../src/graphControls/defaults/definitions';
 import { createCoreSymbolNodeTypes } from '../../../src/graphControls/defaults/symbolNodeTypes';
+import { createUnityNodeTypes } from '../../../src/graphControls/defaults/unityNodeTypes';
 import { createCoreVariableNodeTypes } from '../../../src/graphControls/defaults/variableNodeTypes';
 
 describe('graphControls/defaults/definitions', () => {
@@ -25,6 +26,11 @@ describe('graphControls/defaults/definitions', () => {
       variable: false,
       'symbol:constant': false,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
+      'plugin:codegraphy.unity:symbol': false,
+      'plugin:codegraphy.unity:symbol:scene': false,
+      'plugin:codegraphy.unity:symbol:prefab': false,
+      'plugin:codegraphy.unity:symbol:game-object': false,
+      'plugin:codegraphy.unity:symbol:component': false,
     });
 
     expect(CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === 'variable')?.parentId)
@@ -76,6 +82,70 @@ describe('graphControls/defaults/definitions', () => {
         matchSymbolSource: 'codegraphy.gdscript',
         matchSymbolLanguage: 'gdscript',
         matchSymbolFilePath: '**/*.gd',
+      },
+    ]);
+  });
+
+  it('declares concrete Unity node type definitions', () => {
+    expect(createUnityNodeTypes()).toEqual([
+      {
+        id: 'plugin:codegraphy.unity:symbol',
+        label: 'Unity',
+        defaultColor: '#F97316',
+        defaultVisible: false,
+        pluginName: 'Unity',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+      },
+      {
+        id: 'plugin:codegraphy.unity:symbol:scene',
+        label: 'Scene',
+        defaultColor: '#F97316',
+        defaultVisible: false,
+        parentId: 'plugin:codegraphy.unity:symbol',
+        pluginName: 'Unity',
+        matchSymbolKinds: ['scene'],
+        matchSymbolPluginKind: 'scene',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+        matchSymbolFilePath: '**/*.unity',
+      },
+      {
+        id: 'plugin:codegraphy.unity:symbol:prefab',
+        label: 'Prefab',
+        defaultColor: '#8B5CF6',
+        defaultVisible: false,
+        parentId: 'plugin:codegraphy.unity:symbol',
+        pluginName: 'Unity',
+        matchSymbolKinds: ['prefab'],
+        matchSymbolPluginKind: 'prefab',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+        matchSymbolFilePath: '**/*.prefab',
+      },
+      {
+        id: 'plugin:codegraphy.unity:symbol:game-object',
+        label: 'GameObject',
+        defaultColor: '#0EA5E9',
+        defaultVisible: false,
+        parentId: 'plugin:codegraphy.unity:symbol',
+        pluginName: 'Unity',
+        matchSymbolKinds: ['game-object'],
+        matchSymbolPluginKind: 'game-object',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+      },
+      {
+        id: 'plugin:codegraphy.unity:symbol:component',
+        label: 'Component',
+        defaultColor: '#22C55E',
+        defaultVisible: false,
+        parentId: 'plugin:codegraphy.unity:symbol',
+        pluginName: 'Unity',
+        matchSymbolKinds: ['component'],
+        matchSymbolPluginKind: 'component',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
       },
     ]);
   });

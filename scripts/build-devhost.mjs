@@ -14,6 +14,7 @@ const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
 const publicPluginPackageRoots = [
   path.join(repoRoot, 'packages/plugin-typescript'),
+  path.join(repoRoot, 'packages/plugin-unity'),
   path.join(repoRoot, 'packages/plugin-godot'),
   path.join(repoRoot, 'packages/plugin-csharp'),
   path.join(repoRoot, 'packages/plugin-python'),
@@ -25,6 +26,7 @@ const publicPluginPackageRoots = [
 const buildFilters = [
   '@codegraphy-dev/extension...',
   '@codegraphy-dev/plugin-typescript...',
+  '@codegraphy-dev/plugin-unity...',
   '@codegraphy-dev/plugin-godot...',
   '@codegraphy-dev/plugin-csharp...',
   '@codegraphy-dev/plugin-python...',

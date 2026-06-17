@@ -1,0 +1,108 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.unity",
+  "name": "Unity",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [
+    ".unity",
+    ".prefab",
+    ".asset",
+    ".mat",
+    ".meta",
+    ".asmdef",
+    ".inputactions"
+  ],
+  "defaultFilters": [
+    "**/[Ll]ibrary/**",
+    "**/[Tt]emp/**",
+    "**/[Oo]bj/**",
+    "**/[Bb]uild/**",
+    "**/[Bb]uilds/**",
+    "**/[Ll]ogs/**",
+    "**/[Uu]ser[Ss]ettings/**",
+    "**/[Mm]emory[Cc]aptures/**",
+    "**/.vs/**",
+    "**/.gradle/**",
+    "**/.idea/**",
+    "**/Assets/Packages/**",
+    "**/*.meta",
+    "**/*.csproj",
+    "**/*.unityproj",
+    "**/*.sln",
+    "**/*.slnx",
+    "**/*.suo",
+    "**/*.user",
+    "**/*.userprefs",
+    "**/*.pidb",
+    "**/*.booproj",
+    "**/*.tmp",
+    "**/*.opendb",
+    "**/*.VC.db"
+  ],
+  "fileColors": {
+    "*.unity": {
+      "color": "#F97316",
+      "shape2D": "hexagon",
+      "shape3D": "dodecahedron",
+      "imagePath": "assets/scene.svg"
+    },
+    "*.prefab": {
+      "color": "#8B5CF6",
+      "shape2D": "hexagon",
+      "shape3D": "dodecahedron",
+      "imagePath": "assets/prefab.svg"
+    },
+    "*.asset": {
+      "color": "#0EA5E9",
+      "shape2D": "square",
+      "shape3D": "cube",
+      "imagePath": "assets/asset.svg"
+    },
+    "*.mat": {
+      "color": "#14B8A6",
+      "shape2D": "circle",
+      "shape3D": "sphere",
+      "imagePath": "assets/material.svg"
+    },
+    "*.asmdef": {
+      "color": "#64748B",
+      "shape2D": "square",
+      "shape3D": "cube",
+      "imagePath": "assets/asmdef.svg"
+    },
+    "*.inputactions": {
+      "color": "#F59E0B",
+      "shape2D": "diamond",
+      "shape3D": "octahedron",
+      "imagePath": "assets/input-actions.svg"
+    }
+  },
+  "sources": [
+    {
+      "id": "unity-yaml",
+      "name": "Unity YAML",
+      "description": "Unity scene, prefab, and asset declarations in serialized YAML"
+    },
+    {
+      "id": "unity-containment",
+      "name": "Unity Containment",
+      "description": "Scene, prefab, GameObject, and Component ownership declared by Unity YAML file IDs"
+    },
+    {
+      "id": "script-guid",
+      "name": "Script GUID",
+      "description": "MonoBehaviour script references resolved through Unity .meta GUIDs"
+    },
+    {
+      "id": "prefab-guid",
+      "name": "Prefab GUID",
+      "description": "Prefab instance references resolved through Unity .meta GUIDs"
+    },
+    {
+      "id": "serialized-guid",
+      "name": "Serialized GUID",
+      "description": "Serialized Unity asset fields resolved through Unity .meta GUIDs"
+    }
+  ]
+}
