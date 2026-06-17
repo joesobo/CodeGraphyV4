@@ -75,6 +75,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     `--user-data-dir=${userDataDir}`,
     `--extensions-dir=${extensionsDir}`,
   ];
+  const originalCodeGraphyHome = process.env.CODEGRAPHY_HOME;
   const originalHome = process.env.HOME;
 
   try {
@@ -93,6 +94,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       '--force',
     ]);
 
+    process.env.CODEGRAPHY_HOME = homeDir;
     process.env.HOME = homeDir;
     await runTests({
       extensionDevelopmentPath: harnessPath,
@@ -100,6 +102,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       extensionTestsEnv: {
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
         CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
+        CODEGRAPHY_HOME: homeDir,
         HOME: homeDir,
       },
       launchArgs: [
@@ -118,6 +121,11 @@ async function smokeInstalledVsix({ target, vsixPath }) {
 
     console.log(`${path.basename(vsixPath)} installed and activated in VS Code on ${target}`);
   } finally {
+    if (originalCodeGraphyHome === undefined) {
+      delete process.env.CODEGRAPHY_HOME;
+    } else {
+      process.env.CODEGRAPHY_HOME = originalCodeGraphyHome;
+    }
     if (originalHome === undefined) {
       delete process.env.HOME;
     } else {
