@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const requireFromExtension = createRequire(
@@ -58,6 +58,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
   const harnessPath = path.join(profilePath, 'harness');
   const userDataDir = path.join(profilePath, 'user-data');
   const extensionsDir = path.join(profilePath, 'extensions');
+  const homeDir = path.join(profilePath, 'home');
   const workspacePath = path.join(repoRoot, 'examples', 'example-typescript');
   const extensionTestsPath = path.join(
     repoRoot,
@@ -74,8 +75,20 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     `--user-data-dir=${userDataDir}`,
     `--extensions-dir=${extensionsDir}`,
   ];
+  const originalHome = process.env.HOME;
+  const originalUserProfile = process.env.USERPROFILE;
 
   try {
+    const { e2eScenarios, prepareScenarioWorkspacePlugins } = await loadE2ESmokeSetup();
+    const scenario = e2eScenarios.find(entry => entry.name === 'typescript');
+    if (!scenario) {
+      throw new Error('Missing TypeScript E2E smoke scenario.');
+    }
+
+    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir, false);
+    process.env.HOME = homeDir;
+    process.env.USERPROFILE = homeDir;
+
     await writeHarnessExtension(harnessPath);
     await runVSCodeCommand([
       ...profileArgs,
@@ -90,6 +103,8 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       extensionTestsEnv: {
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
         CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
+        HOME: homeDir,
+        USERPROFILE: homeDir,
       },
       launchArgs: [
         workspacePath,
@@ -107,8 +122,46 @@ async function smokeInstalledVsix({ target, vsixPath }) {
 
     console.log(`${path.basename(vsixPath)} installed and activated in VS Code on ${target}`);
   } finally {
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
+    if (originalUserProfile === undefined) {
+      delete process.env.USERPROFILE;
+    } else {
+      process.env.USERPROFILE = originalUserProfile;
+    }
     rmSync(profilePath, { recursive: true, force: true });
   }
+}
+
+async function loadE2ESmokeSetup() {
+  const scenariosModule = await import(pathToFileURL(path.join(
+    repoRoot,
+    'packages',
+    'extension',
+    'dist-e2e',
+    'extension',
+    'src',
+    'e2e',
+    'scenarios.js',
+  )).href);
+  const workspacePluginsModule = await import(pathToFileURL(path.join(
+    repoRoot,
+    'packages',
+    'extension',
+    'dist-e2e',
+    'extension',
+    'src',
+    'e2e',
+    'workspacePlugins.js',
+  )).href);
+
+  return {
+    e2eScenarios: scenariosModule.e2eScenarios,
+    prepareScenarioWorkspacePlugins: workspacePluginsModule.prepareScenarioWorkspacePlugins,
+  };
 }
 
 async function writeHarnessExtension(harnessPath) {
