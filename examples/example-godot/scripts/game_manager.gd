@@ -1,6 +1,10 @@
 class_name GameManager
 extends Node
 
+signal score_changed(new_score: int)
+signal level_changed(new_level: int)
+signal state_changed(new_state: GameState)
+
 enum GameState { BOOTING, PLAYING, COMPLETE }
 
 var player_scene: PackedScene = preload("res://scenes/player.tscn")
@@ -11,10 +15,7 @@ var config: Dictionary = {}
 var current_level: int = 0
 var score: int = 0
 var state: GameState = GameState.BOOTING
-
-signal score_changed(new_score: int)
-signal level_changed(new_level: int)
-signal state_changed(new_state: GameState)
+var ui: GameUI
 
 func _ready() -> void:
 	config = load_config()
@@ -30,6 +31,7 @@ func load_config() -> Dictionary:
 func spawn_player(position: Vector2) -> Player:
 	var player := player_scene.instantiate() as Player
 	player.global_position = position
+	player.loadout_opened.connect(_on_player_loadout_opened)
 	get_tree().current_scene.add_child(player)
 	return player
 
@@ -48,3 +50,7 @@ func next_level() -> void:
 	level_changed.emit(current_level)
 	var level_path = "res://scenes/levels/level_%d.tscn" % current_level
 	get_tree().change_scene_to_file(level_path)
+
+func _on_player_loadout_opened(loadout: PlayerLoadout) -> void:
+	if ui:
+		ui.show_loadout(loadout)

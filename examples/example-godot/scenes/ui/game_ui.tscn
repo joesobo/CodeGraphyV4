@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://game-ui-scene"]
+[gd_scene load_steps=3 format=3 uid="uid://game-ui-scene"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/loadout_preview.tscn" id="1_preview"]
+[ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="2_script"]
 
 [node name="GameUI" type="CanvasLayer"]
+script = ExtResource("2_script")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 anchors_preset = 15
