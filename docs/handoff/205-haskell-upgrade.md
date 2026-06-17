@@ -12,7 +12,9 @@ The current stop point is the acceptance gate. The Haskell example and this hand
 
 ## Source Truth Audit
 
-The current Tree-sitter Haskell analyzer supports local module imports and calls to imported functions or data constructors. Calls are resolved by reading callable names from imported local modules, so explicit helper functions such as `makeUser`, `describeUser`, and `describeProfile` are reliable call targets.
+The current Tree-sitter Haskell analyzer supports local module imports and calls to imported functions or data constructors. Calls are resolved by reading callable names from imported local modules, so explicit helper functions such as `makeUser`, `describeUser`, and `describeProfile` are reliable current call targets.
+
+The AST can also support a broader Haskell contract that is not implemented yet: imported type references in signatures and data fields, top-level function/value declarations, record fields, function parameters, and local bindings. This matches the C# upgrade shape: C# does not stop at using/import edges; it uses Tree-sitter plus local indexing to expose references, calls, inheritance, and generic type symbols when the AST and resolver can support them.
 
 The parser/analyzer currently emits Haskell symbols for:
 
@@ -20,37 +22,46 @@ The parser/analyzer currently emits Haskell symbols for:
 - `data` declarations as `data`.
 - `class` declarations as `class`.
 - Argument-taking function equations as `function`.
+- Top-level `bind` nodes such as `main = ...` and `defaultRunnerId = ...`.
+- Record `field` nodes.
+- Function `patterns` that expose parameters.
+- Local `bind` and pattern nodes under `local_binds`.
 
 The analyzer uses top-level `bind` nodes as call-source context, but it does not currently emit them as Function symbols. That means `main = ...` can be a source for call relationships without being a visible Function node.
 
-Record accessors and typeclass instance relationships are not reliable generic graph concepts today. Type synonyms also did not appear through the expected `type_synonym` path in the grammar version installed here, so the example avoids relying on them.
+Typeclass instance relationships are not a reliable generic graph concept today. Type synonyms also did not appear through the expected `type_synonym` path in the grammar version installed here, so the example avoids relying on them.
 
 ## Supported Contract For This Card
 
 Use generic CodeGraphy concepts:
 
-- Edge types: `Imports`, `Calls`, `Contains`.
-- Node types: `Function`, `Type`, `Class`.
+- Edge types: `Imports`, `References`, `Calls`, `Contains`.
+- Node types: `Function`, `Type`, `Class`, `Constant`, `Field`, `Parameter`, `Local`.
 
-Map Haskell `data` and `newtype` symbols into the generic `Type` node type during the implementation slice. Do not add Haskell-specific Graph Scope rows for data declarations, newtypes, typeclasses, instances, deriving clauses, record fields, locals, or parameters in this card.
+Map Haskell `data` and `newtype` symbols into the generic `Type` node type during the implementation slice. Map Haskell record fields, function parameters, local let bindings, and top-level constant-like binds to the existing generic variable rows. Do not add Haskell-specific Graph Scope rows for data declarations, newtypes, typeclasses, instances, deriving clauses, or type synonyms in this card.
 
 The upgraded example is one integrated scenario:
 
 - `src/Main.hs` imports and calls into `App.Feature.Runner`, `App.Model.User`, and `App.Model.Profile`.
 - `src/App/Feature/Runner.hs` imports and calls into both model modules.
-- `Runner.hs` demonstrates `Greeting`, `RunnerId`, `Runner`, `Runnable`, `greet`, `boot`, and `renderGreeting`.
+- `Runner.hs` demonstrates `Greeting`, `RunnerId`, `Runner`, `Runnable`, `defaultRunnerId`, record fields, `greet`, `boot`, `renderGreeting`, parameters, and local bindings.
 - The model modules demonstrate `User`, `Profile`, `makeUser`, `describeUser`, and `describeProfile`.
 
 Expected file-level counts for the local acceptance draft:
 
 - File-only: 7 nodes, 0 connections.
 - Imports: 7 nodes, 5 connections.
+- References: 7 nodes, 2 connections.
 - Calls: 7 nodes, 5 connections.
-- Function slice: 13 nodes, 0 connections.
+- Function slice: 14 nodes, 0 connections.
 - Type slice: 12 nodes, 0 connections.
 - Class slice: 8 nodes, 0 connections.
-- File + Function + Type + Class: 19 nodes, 0 connections.
-- Contains over that symbol slice: 19 nodes, 12 connections.
+- Constant slice: 8 nodes, 0 connections.
+- Field slice: 12 nodes, 0 connections.
+- Parameter slice: 14 nodes, 0 connections.
+- Local slice: 9 nodes, 0 connections.
+- File + Function + Type + Class + Constant + Field + Parameter + Local: 35 nodes, 0 connections.
+- Contains over that symbol slice: 35 nodes, 28 connections.
 
 ## Verification So Far
 
