@@ -1409,11 +1409,14 @@ async function toggleNodeTypes(
   const frame = requireGraphFrame(context);
   await openGraphScopeSection(context, 'Node Types');
   const labelsToToggle = enabled
-    ? collectScopeLabelsWithAncestors(labels)
-    : new Set(labels);
+    ? collectScopeLabelSelection(labels)
+    : { required: new Set(labels), optional: new Set<string>() };
 
-  for (const label of labelsToToggle) {
+  for (const label of labelsToToggle.required) {
     await setPanelSwitch(context, label, enabled);
+  }
+  for (const label of labelsToToggle.optional) {
+    await setPanelSwitchIfPresent(context, label, enabled);
   }
 
   await closePanelIfOpen(frame);
@@ -1438,18 +1441,21 @@ async function setOnlyNodeTypes(
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   await openGraphScopeSection(context, 'Node Types');
-  const labelsToEnable = collectScopeLabelsWithAncestors(labels);
+  const labelSelection = collectScopeLabelSelection(labels);
 
   for (const nodeTypeLabel of CORE_NODE_TYPE_LABELS) {
     if (options.requireCoreNodeTypes && requiresCoreNodeTypeSwitch(nodeTypeLabel)) {
-      await setPanelSwitch(context, nodeTypeLabel, labelsToEnable.has(nodeTypeLabel));
+      await setPanelSwitch(context, nodeTypeLabel, labelSelection.all.has(nodeTypeLabel));
     } else {
-      await setPanelSwitchIfPresent(context, nodeTypeLabel, labelsToEnable.has(nodeTypeLabel));
+      await setPanelSwitchIfPresent(context, nodeTypeLabel, labelSelection.all.has(nodeTypeLabel));
     }
   }
 
-  for (const nodeTypeLabel of labelsToEnable) {
+  for (const nodeTypeLabel of labelSelection.required) {
     await setPanelSwitch(context, nodeTypeLabel, true);
+  }
+  for (const nodeTypeLabel of labelSelection.optional) {
+    await setPanelSwitchIfPresent(context, nodeTypeLabel, true);
   }
 
   await closePanelIfOpen(frame);
@@ -1555,7 +1561,7 @@ async function setPanelSwitchState(
 
       await expect.poll(async () => {
         const currentSwitch = await findPanelSwitchIfPresent(frame, normalizedLabel);
-        if (!currentSwitch || !(await currentSwitch.isVisible().catch(() => false))) {
+        if (!currentSwitch) {
           return enabled ? 'missing' : expected;
         }
 
@@ -1597,8 +1603,13 @@ async function countPanelSwitchCandidate(candidate: Locator): Promise<number> {
   }
 }
 
-function isFrameDetachedError(error: unknown): boolean {
-  return error instanceof Error && error.message.includes('Frame was detached');
+export function isFrameDetachedError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.message.includes('Frame was detached')
+    || error.message.includes('Cannot find context with specified id');
 }
 
 async function refreshGraphFrameAfterDetach(context: GraphAcceptanceContext): Promise<void> {
@@ -1606,12 +1617,13 @@ async function refreshGraphFrameAfterDetach(context: GraphAcceptanceContext): Pr
 }
 
 function panelSwitchCandidates(frame: Frame, label: string): Locator[] {
-  const row = frame
-    .locator('[data-scope-row]')
-    .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
-    .first();
+  const rowSelector = `[data-scope-row="${escapeCssAttributeValue(label)}"]`;
+  const row = frame.locator(rowSelector).first();
   return [
+    frame.locator(`${rowSelector} [role="switch"]`).first(),
+    frame.locator(`${rowSelector} button`).first(),
     row.getByRole('switch').first(),
+    frame.locator(`[aria-label="Toggle ${escapeCssAttributeValue(label)}"]`).first(),
     frame.getByRole('switch', { name: `Toggle ${label}`, exact: true }),
     frame.getByRole('switch', { name: label, exact: true }),
   ];
@@ -1632,15 +1644,20 @@ async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
   return candidates.at(-1) ?? frame.getByRole('switch', { name: label, exact: true });
 }
 
-function collectScopeLabelsWithAncestors(labels: string[]): Set<string> {
-  const result = new Set<string>();
+function escapeCssAttributeValue(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+export function collectScopeLabelSelection(labels: string[]): { required: Set<string>; optional: Set<string>; all: Set<string> } {
+  const required = new Set<string>();
+  const optional = new Set<string>();
   const requestedLabels = new Set(labels);
   const requestedSymbolKinds = new Set(labels.flatMap(label => NODE_TYPE_SYMBOL_KIND_BY_LABEL[label] ?? []));
 
   for (const label of labels) {
     let currentLabel: string | undefined = label;
     while (currentLabel) {
-      result.add(currentLabel);
+      required.add(currentLabel);
       currentLabel = CHILD_NODE_TYPE_PARENTS[currentLabel];
     }
   }
@@ -1648,11 +1665,15 @@ function collectScopeLabelsWithAncestors(labels: string[]): Set<string> {
   for (const [label, parentLabel] of Object.entries(CHILD_NODE_TYPE_PARENTS)) {
     const childSymbolKinds = NODE_TYPE_SYMBOL_KIND_BY_LABEL[label] ?? [];
     if (requestedLabels.has(parentLabel) && childSymbolKinds.some(kind => requestedSymbolKinds.has(kind))) {
-      result.add(label);
+      optional.add(label);
     }
   }
 
-  return result;
+  return {
+    required,
+    optional,
+    all: new Set([...required, ...optional]),
+  };
 }
 
 async function expectVisibleGraphRelationship(
