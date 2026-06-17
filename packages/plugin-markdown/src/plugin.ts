@@ -7,7 +7,6 @@
 
 import type {
   IFileAnalysisResult,
-  IPluginGraphScopeCapabilityContext,
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import { PathResolver } from './PathResolver';
@@ -53,13 +52,7 @@ export function createMarkdownPlugin(): IPlugin {
     defaultFilters: manifest.defaultFilters,
     sources: manifest.sources,
     fileColors: manifest.fileColors,
-    contributeGraphScopeCapabilities(context?: IPluginGraphScopeCapabilityContext) {
-      const markdownFileCount = context?.filePaths.filter(isMarkdownFilePath).length ?? 0;
-
-      return markdownFileCount > 1
-        ? { edgeTypes: ['reference'] }
-        : {};
-    },
+    contributeGraphScopeCapabilities: () => ({ edgeTypes: ['reference'] }),
 
     async initialize(workspaceRoot: string): Promise<void> {
       resolver.setWorkspaceRoot(workspaceRoot);
@@ -99,7 +92,3 @@ export function createMarkdownPlugin(): IPlugin {
 }
 
 export default createMarkdownPlugin;
-
-function isMarkdownFilePath(filePath: string): boolean {
-  return /\.(?:md|mdx)$/i.test(filePath);
-}
