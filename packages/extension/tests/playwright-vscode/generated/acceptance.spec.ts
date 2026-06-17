@@ -7253,10 +7253,10 @@ test.describe('Graph Scope Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:60
-      await test.step('Then I can see there are 13 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 13 nodes and 0 connections', {
+      await test.step('Then I can see there are 14 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 13 nodes and 0 connections',
+          text: 'I can see there are 14 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 60
         });
@@ -7419,10 +7419,10 @@ test.describe('Graph Scope Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:80
-      await test.step('Then I can see there are 14 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 14 nodes and 0 connections', {
+      await test.step('Then I can see there are 13 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 14 nodes and 0 connections',
+          text: 'I can see there are 13 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 80
         });
@@ -9293,30 +9293,30 @@ test.describe('Graph Scope Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:298
-      await test.step('And scripts/player.gd#Player:class:class_name%20Player is an orphan node', async () => {
-        await runAcceptanceStep(context, 'scripts/player.gd#Player:class:class_name%20Player is an orphan node', {
+      await test.step('And scripts/player.gd points to scripts/player.gd#Player:class:class_name%20Player', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to scripts/player.gd#Player:class:class_name%20Player', {
           keyword: 'And',
-          text: 'scripts/player.gd#Player:class:class_name%20Player is an orphan node',
+          text: 'scripts/player.gd points to scripts/player.gd#Player:class:class_name%20Player',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 298
         });
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:299
-      await test.step('And scripts/enemy.gd#Enemy:class:class_name%20Enemy is an orphan node', async () => {
-        await runAcceptanceStep(context, 'scripts/enemy.gd#Enemy:class:class_name%20Enemy is an orphan node', {
+      await test.step('And scripts/enemy.gd points to scripts/enemy.gd#Enemy:class:class_name%20Enemy', async () => {
+        await runAcceptanceStep(context, 'scripts/enemy.gd points to scripts/enemy.gd#Enemy:class:class_name%20Enemy', {
           keyword: 'And',
-          text: 'scripts/enemy.gd#Enemy:class:class_name%20Enemy is an orphan node',
+          text: 'scripts/enemy.gd points to scripts/enemy.gd#Enemy:class:class_name%20Enemy',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 299
         });
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:300
-      await test.step('And scripts/game_manager.gd#GameManager:class:class_name%20GameManager is an orphan node', async () => {
-        await runAcceptanceStep(context, 'scripts/game_manager.gd#GameManager:class:class_name%20GameManager is an orphan node', {
+      await test.step('And scripts/game_manager.gd points to scripts/game_manager.gd#GameManager:class:class_name%20GameManager', async () => {
+        await runAcceptanceStep(context, 'scripts/game_manager.gd points to scripts/game_manager.gd#GameManager:class:class_name%20GameManager', {
           keyword: 'And',
-          text: 'scripts/game_manager.gd#GameManager:class:class_name%20GameManager is an orphan node',
+          text: 'scripts/game_manager.gd points to scripts/game_manager.gd#GameManager:class:class_name%20GameManager',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 300
         });

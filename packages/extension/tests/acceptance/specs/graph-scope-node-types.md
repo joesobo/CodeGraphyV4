@@ -57,7 +57,7 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Namespace node types
-Then I can see there are 13 nodes and 0 connections
+Then I can see there are 14 nodes and 0 connections
 And the visible graph includes the Namespace node taskrunner from src/task.hpp
 
 ## Scenario: Function node type works
@@ -77,7 +77,7 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Prototype node types
-Then I can see there are 14 nodes and 0 connections
+Then I can see there are 13 nodes and 0 connections
 And src/logger/logger.h#logger_init:prototype is an orphan node
 And src/logger/logger.h#logger_write:prototype is an orphan node
 And src/logger/logger.h#logger_flush:prototype is an orphan node
@@ -295,6 +295,6 @@ And I toggle the GDScript (Godot) plugin on
 And I show no edge types
 When I show only the File and Godot class_name node types
 Then I can see there are 26 nodes and 7 connections
-And scripts/player.gd#Player:class:class_name%20Player is an orphan node
-And scripts/enemy.gd#Enemy:class:class_name%20Enemy is an orphan node
-And scripts/game_manager.gd#GameManager:class:class_name%20GameManager is an orphan node
+And scripts/player.gd points to scripts/player.gd#Player:class:class_name%20Player
+And scripts/enemy.gd points to scripts/enemy.gd#Enemy:class:class_name%20Enemy
+And scripts/game_manager.gd points to scripts/game_manager.gd#GameManager:class:class_name%20GameManager
