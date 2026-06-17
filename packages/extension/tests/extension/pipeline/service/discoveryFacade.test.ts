@@ -447,4 +447,53 @@ describe('pipeline/service/discoveryFacade', () => {
       },
     ]);
   });
+
+  it('applies current gitignore metadata when replaying cached graph data', async () => {
+    const facade = new TestDiscoveryFacade();
+    const cachedAnalysis = {
+      filePath: '/workspace/example-python/src/main.py',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'example-python/src/main.py': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValueOnce({
+      directories: ['example-python', 'example-python/src'],
+      files: [
+        {
+          absolutePath: '/workspace/example-python/src/main.py',
+          relativePath: 'example-python/src/main.py',
+        },
+      ],
+      gitIgnoredPaths: ['example-python/src/main.py'],
+    } as never);
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'example-python/src/main.py', label: 'main.py', color: '#333333' }],
+      edges: [],
+    });
+
+    await facade.loadCachedGraph();
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
+      'discovery-deps',
+      '/workspace',
+      { showOrphans: true, respectGitignore: true },
+      [],
+      ['plugin-filter'],
+      undefined,
+      expect.any(Function),
+    );
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
+  });
 });

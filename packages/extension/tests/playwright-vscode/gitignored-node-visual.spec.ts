@@ -18,6 +18,46 @@ interface RuntimeNodeVisual {
 const PYTHON_FILE_NODE_ID = 'example-python/src/main.py';
 
 test.describe('gitignored node visuals', () => {
+  test('gitignored Python file nodes are muted on warm startup from an existing graph cache', async () => {
+    const workspacePath = createPythonRepoWorkspace();
+    let vscode = await launchVSCodeWithWorkspace(workspacePath, {
+      pluginPackageRelativePaths: ['packages/plugin-python'],
+    });
+
+    try {
+      await openGraphView(vscode.page);
+      let frame = await waitForGraphFrame(vscode.page);
+      await indexWorkspace(frame);
+
+      const before = await waitForRuntimeNodeVisual(frame, PYTHON_FILE_NODE_ID);
+      expect(before.baseOpacity).toBe(1);
+
+      await vscode.app.close().catch(() => {});
+      fs.rmSync(vscode.tempRoot, { recursive: true, force: true });
+      fs.appendFileSync(path.join(workspacePath, '.gitignore'), 'example-python/*\n');
+
+      vscode = await launchVSCodeWithWorkspace(workspacePath, {
+        pluginPackageRelativePaths: ['packages/plugin-python'],
+      });
+      await openGraphView(vscode.page);
+      frame = await waitForGraphFrame(vscode.page);
+      await indexWorkspace(frame);
+
+      const after = await waitForRuntimeNodeVisual(
+        frame,
+        PYTHON_FILE_NODE_ID,
+        (node) => node.color !== before.color && node.baseOpacity === 0.45,
+      );
+
+      expect(after.color).not.toBe(before.color);
+      expect(after.baseOpacity).toBe(0.45);
+    } finally {
+      await vscode.app.close().catch(() => {});
+      fs.rmSync(vscode.tempRoot, { recursive: true, force: true });
+      fs.rmSync(workspacePath, { recursive: true, force: true });
+    }
+  });
+
   test('gitignored Python file nodes stay visible and redraw with muted runtime color', async () => {
     const workspacePath = createPythonRepoWorkspace();
     const vscode = await launchVSCodeWithWorkspace(workspacePath, {

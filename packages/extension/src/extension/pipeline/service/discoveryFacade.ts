@@ -214,6 +214,20 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       return { nodes: [], edges: [] };
     }
 
+    const config = this._config.getAll();
+    const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
+      createWorkspacePipelineDiscoveryDependencies(this._discovery),
+      workspaceRoot,
+      config,
+      this._getEffectiveCustomFilterPatterns(_filterPatterns),
+      this._getEffectivePluginFilterPatterns(disabledPlugins),
+      signal,
+      message => {
+        vscode.window.showWarningMessage(message);
+      },
+    );
+    throwIfWorkspaceAnalysisAborted(signal);
+
     const fileAnalysis = new Map(
       Object.entries(this._cache.files).map(([filePath, entry]) => [
         filePath,
@@ -223,8 +237,9 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     const cachedFilePaths = Object.keys(this._cache.files);
 
     this._lastDiscoveredFiles = createCachedDiscoveredFiles(workspaceRoot, cachedFilePaths);
-    this._lastDiscoveredDirectories = collectCachedDirectoryPaths(cachedFilePaths);
-    this._lastGitIgnoredPaths = [];
+    this._lastDiscoveredDirectories = discoveryResult.directories
+      ?? collectCachedDirectoryPaths(cachedFilePaths);
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
     this._lastFileAnalysis = fileAnalysis;
     this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
     this._lastWorkspaceRoot = workspaceRoot;
@@ -234,7 +249,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return this._buildGraphDataFromAnalysis(
       fileAnalysis,
       workspaceRoot,
-      this._config.getAll().showOrphans,
+      config.showOrphans,
       disabledPlugins,
     );
   }
