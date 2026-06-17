@@ -104,6 +104,16 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
         examples: [{ code: 'override run() {}' }],
       },
     },
+    {
+      id: 'codegraphy.gdscript:signal-connection',
+      label: 'Signal Connections',
+      defaultColor: '#EF4444',
+      defaultVisible: false,
+      description: {
+        description: 'Shows Godot signal declarations connected to receiving scripts.',
+        examples: [{ label: 'GDScript', code: 'health.health_changed.connect(set_health)' }],
+      },
+    },
   ];
 }
 

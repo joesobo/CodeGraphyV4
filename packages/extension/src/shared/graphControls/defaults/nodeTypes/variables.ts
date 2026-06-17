@@ -89,5 +89,22 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
         examples: [{ label: 'GDScript', code: 'class_name PlayerController' }],
       },
     },
+    {
+      id: 'plugin:codegraphy.gdscript:symbol:exported-property',
+      label: 'Exported Property',
+      defaultColor: '#2DD4BF',
+      defaultVisible: false,
+      parentId: 'variable',
+      pluginName: 'Godot',
+      matchSymbolKinds: ['variable'],
+      matchSymbolPluginKind: 'exported-property',
+      matchSymbolSource: 'codegraphy.gdscript',
+      matchSymbolLanguage: 'gdscript',
+      matchSymbolFilePath: '**/*.gd',
+      description: {
+        description: 'GDScript variables exported to the Godot editor inspector.',
+        examples: [{ label: 'GDScript', code: '@export var speed: float = 300.0' }],
+      },
+    },
   ];
 }

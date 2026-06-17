@@ -414,6 +414,19 @@ describe('visibleGraph/scope', () => {
       { type: 'variable', enabled: false },
     ])).map((definition) => definition.id)).toEqual([
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
+      'plugin:codegraphy.gdscript:symbol:exported-property',
+    ]);
+  });
+
+  it('includes Godot scoped symbol definitions under the disabled symbol parent', () => {
+    expect(getDisabledScopedSymbolDefinitions(scopeConfig([
+      { type: 'symbol', enabled: false },
+    ])).map((definition) => definition.id)).toEqual([
+      'plugin:codegraphy.gdscript:symbol:scene',
+      'plugin:codegraphy.gdscript:symbol:resource',
+      'plugin:codegraphy.gdscript:symbol:autoload',
+      'plugin:codegraphy.gdscript:symbol:scene-node',
+      'plugin:codegraphy.gdscript:symbol:signal',
     ]);
   });
 

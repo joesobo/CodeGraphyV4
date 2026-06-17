@@ -62,6 +62,7 @@ const CORE_EDGE_TYPE_LABELS = [
   'Contains',
   'Overrides',
   'TypeScript Alias Import',
+  'Signal Connections',
 ];
 
 const CORE_NODE_TYPE_LABELS = [
@@ -83,6 +84,11 @@ const CORE_NODE_TYPE_LABELS = [
   'Alias',
   'Template',
   'Typedef',
+  'Scene',
+  'Resource',
+  'Autoload',
+  'Scene Node',
+  'Signal',
   'Variable',
   'Constant',
   'Global',
@@ -90,6 +96,7 @@ const CORE_NODE_TYPE_LABELS = [
   'Parameter',
   'Local',
   'Godot class_name',
+  'Exported Property',
 ];
 
 const REQUIRED_CORE_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package']);
@@ -116,7 +123,13 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Type: 'Symbol',
   Union: 'Symbol',
   Variable: 'Symbol',
+  Scene: 'Symbol',
+  Resource: 'Symbol',
+  Autoload: 'Symbol',
+  'Scene Node': 'Symbol',
+  Signal: 'Symbol',
   'Godot class_name': 'Variable',
+  'Exported Property': 'Variable',
 };
 
 const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
@@ -131,6 +144,12 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Method: ['method'],
   Namespace: ['namespace'],
   Parameter: ['parameter'],
+  Scene: ['scene'],
+  Resource: ['resource'],
+  Autoload: ['autoload'],
+  'Scene Node': ['scene-node'],
+  Signal: ['signal'],
+  'Exported Property': ['variable'],
   Template: ['template'],
 };
 
@@ -776,6 +795,40 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
       throw new Error(`Expected visible ${match[1]} node ${match[2]} from ${match[3]}`);
     }
     await findNodeProbe(context, nodeId);
+  }),
+
+  step(/^(.+) owns the (.+) node (.+)$/, async (context, _step, match) => {
+    const ownerFilePath = requireValue(match[1], 'Expected owner file path');
+    const nodeId = requireValue(await resolveVisibleSymbolNodeId(context, {
+      filePath: ownerFilePath,
+      name: requireValue(match[3], 'Expected owned node name'),
+      nodeTypeLabel: requireValue(match[2], 'Expected owned node type label'),
+    }), 'Expected owned node id');
+
+    await expectVisibleEdgeBetween(context, ownerFilePath, nodeId);
+  }),
+
+  step(/^the Signal node (.+) from (.+) connects to (.+)$/, async (context, _step, match) => {
+    const signalNodeId = requireValue(await resolveVisibleSymbolNodeId(context, {
+      filePath: requireValue(match[2], 'Expected signal file path'),
+      name: requireValue(match[1], 'Expected signal name'),
+      nodeTypeLabel: 'Signal',
+    }), 'Expected signal node id');
+
+    await expectVisibleEdgeBetween(context, signalNodeId, requireValue(match[3], 'Expected signal target file path'));
+  }),
+
+  step(/^the available Godot node types are (.+)$/, async (context, _step, match) => {
+    const expectedNodeTypes = parseScopeTypeList(requireValue(match[1], 'Expected Godot node type list'));
+    const frame = requireGraphFrame(context);
+
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label))
+        .filter((label) => !(supportLabels as string[]).includes(label)),
+      Array.from(SUPPORT_NODE_TYPE_LABELS),
+    )).toEqual(expectedNodeTypes);
   }),
 
   step(/^the visible graph shows (.+) in (.+) calling (.+) in (.+)$/, async (context, _step, match) => {

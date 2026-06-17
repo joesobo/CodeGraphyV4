@@ -26,6 +26,11 @@ describe('shared/graphControls/defaults/definitions', () => {
       'symbol:typedef',
       'symbol:alias',
       'symbol:template',
+      'plugin:codegraphy.gdscript:symbol:scene',
+      'plugin:codegraphy.gdscript:symbol:resource',
+      'plugin:codegraphy.gdscript:symbol:autoload',
+      'plugin:codegraphy.gdscript:symbol:scene-node',
+      'plugin:codegraphy.gdscript:symbol:signal',
       'variable',
       'symbol:constant',
       'symbol:global',
@@ -33,9 +38,11 @@ describe('shared/graphControls/defaults/definitions', () => {
       'symbol:parameter',
       'symbol:local',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
+      'plugin:codegraphy.gdscript:symbol:exported-property',
     ]);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'include')).toBe(true);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'import')).toBe(true);
+    expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'codegraphy.gdscript:signal-connection')).toBe(true);
   });
 });

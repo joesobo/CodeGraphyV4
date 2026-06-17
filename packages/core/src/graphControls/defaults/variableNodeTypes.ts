@@ -62,6 +62,19 @@ export function createCoreVariableNodeTypes(): IGraphNodeTypeDefinition[] {
     matchSymbolLanguage: 'gdscript',
     matchSymbolFilePath: '**/*.gd',
   },
+  {
+    id: 'plugin:codegraphy.gdscript:symbol:exported-property',
+    label: 'Exported Property',
+    defaultColor: '#2DD4BF',
+    defaultVisible: false,
+    parentId: 'variable',
+    pluginName: 'Godot',
+    matchSymbolKinds: ['variable'],
+    matchSymbolPluginKind: 'exported-property',
+    matchSymbolSource: 'codegraphy.gdscript',
+    matchSymbolLanguage: 'gdscript',
+    matchSymbolFilePath: '**/*.gd',
+  },
   ];
 }
 

@@ -449,6 +449,73 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('matches Godot scene-node and exported-property scoped rows', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('scenes/player.tscn'),
+					node('scripts/player.gd'),
+					symbolNode('scenes/player.tscn#HealthComponent:scene-node', {
+						id: 'scenes/player.tscn#HealthComponent:scene-node',
+						name: 'HealthComponent',
+						kind: 'scene-node',
+						filePath: 'scenes/player.tscn',
+						pluginKind: 'scene-node',
+						source: 'codegraphy.gdscript',
+						language: 'godot-resource',
+					}),
+					symbolNode('scripts/player.gd#projectile_scene:variable', {
+						id: 'scripts/player.gd#projectile_scene:variable',
+						name: 'projectile_scene',
+						kind: 'variable',
+						filePath: 'scripts/player.gd',
+						pluginKind: 'exported-property',
+						source: 'codegraphy.gdscript',
+						language: 'gdscript',
+					}, 'variable'),
+					symbolNode('scripts/player.gd#_can_fire:variable', {
+						id: 'scripts/player.gd#_can_fire:variable',
+						name: '_can_fire',
+						kind: 'variable',
+						filePath: 'scripts/player.gd',
+						source: 'codegraphy.gdscript',
+						language: 'gdscript',
+					}, 'variable'),
+				],
+				edges: [
+					edge('scenes/player.tscn', 'scenes/player.tscn#HealthComponent:scene-node', 'contains'),
+					edge('scripts/player.gd', 'scripts/player.gd#projectile_scene:variable', 'contains'),
+					edge('scripts/player.gd', 'scripts/player.gd#_can_fire:variable', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'variable', enabled: true },
+					{ type: 'plugin:codegraphy.gdscript:symbol:scene-node', enabled: true },
+					{ type: 'plugin:codegraphy.gdscript:symbol:exported-property', enabled: true },
+				],
+				edges: [
+					{ type: 'contains', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'scenes/player.tscn',
+				'scripts/player.gd',
+				'scenes/player.tscn#HealthComponent:scene-node',
+				'scripts/player.gd#projectile_scene:variable',
+			],
+			edges: [
+				'scenes/player.tscn->scenes/player.tscn#HealthComponent:scene-node#contains',
+				'scripts/player.gd->scripts/player.gd#projectile_scene:variable#contains',
+			],
+		});
+	});
+
 	it('requires every plugin-specific symbol field to match', () => {
 		const matching = symbolNode('scripts/player.gd#Player:class', {
 			id: 'scripts/player.gd#Player:class',
