@@ -1,5 +1,5 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -56,7 +56,9 @@ function findVsixForTarget({ artifactsDir, version, target }) {
 async function smokeInstalledVsix({ target, vsixPath }) {
   const profilePath = mkdtempSync(path.join(tmpdir(), 'cg-vsix-'));
   const harnessPath = path.join(profilePath, 'harness');
-  const homeDir = path.join(profilePath, 'home');
+  const installedPluginHomeDir = homedir();
+  const installedPluginCachePath = path.join(installedPluginHomeDir, '.codegraphy', 'plugins.json');
+  const originalInstalledPluginCache = readOptionalFile(installedPluginCachePath);
   const userDataDir = path.join(profilePath, 'user-data');
   const extensionsDir = path.join(profilePath, 'extensions');
   const workspacePath = path.join(repoRoot, 'examples', 'example-typescript');
@@ -75,8 +77,6 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     `--user-data-dir=${userDataDir}`,
     `--extensions-dir=${extensionsDir}`,
   ];
-  const originalCodeGraphyHome = process.env.CODEGRAPHY_HOME;
-  const originalHome = process.env.HOME;
 
   try {
     await writeHarnessExtension(harnessPath);
@@ -85,7 +85,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     if (!scenario) {
       throw new Error('Missing TypeScript E2E scenario');
     }
-    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir, false);
+    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, installedPluginHomeDir, false);
 
     await runVSCodeCommand([
       ...profileArgs,
@@ -94,16 +94,12 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       '--force',
     ]);
 
-    process.env.CODEGRAPHY_HOME = homeDir;
-    process.env.HOME = homeDir;
     await runTests({
       extensionDevelopmentPath: harnessPath,
       extensionTestsPath,
       extensionTestsEnv: {
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
         CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
-        CODEGRAPHY_HOME: homeDir,
-        HOME: homeDir,
       },
       launchArgs: [
         workspacePath,
@@ -121,18 +117,25 @@ async function smokeInstalledVsix({ target, vsixPath }) {
 
     console.log(`${path.basename(vsixPath)} installed and activated in VS Code on ${target}`);
   } finally {
-    if (originalCodeGraphyHome === undefined) {
-      delete process.env.CODEGRAPHY_HOME;
-    } else {
-      process.env.CODEGRAPHY_HOME = originalCodeGraphyHome;
-    }
-    if (originalHome === undefined) {
-      delete process.env.HOME;
-    } else {
-      process.env.HOME = originalHome;
-    }
+    restoreOptionalFile(installedPluginCachePath, originalInstalledPluginCache);
     rmSync(profilePath, { recursive: true, force: true });
   }
+}
+
+function readOptionalFile(filePath) {
+  return existsSync(filePath)
+    ? readFileSync(filePath)
+    : null;
+}
+
+function restoreOptionalFile(filePath, contents) {
+  if (contents === null) {
+    rmSync(filePath, { force: true });
+    return;
+  }
+
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileSync(filePath, contents);
 }
 
 async function loadE2ESmokeSetup() {

@@ -7,7 +7,6 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
-  getInstalledPluginsCachePath,
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettings,
@@ -42,24 +41,6 @@ async function createPackage(
 }
 
 describe('CodeGraphy Plugin Registry', () => {
-  it('uses CODEGRAPHY_HOME for user-level plugin cache paths when no explicit home is passed', async () => {
-    const previousCodeGraphyHome = process.env.CODEGRAPHY_HOME;
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-env-home-'));
-
-    try {
-      process.env.CODEGRAPHY_HOME = homeDir;
-
-      expect(getInstalledPluginsCachePath()).toBe(path.join(homeDir, '.codegraphy', 'plugins.json'));
-      expect(readCodeGraphyInstalledPluginCache().plugins).toEqual([]);
-    } finally {
-      if (previousCodeGraphyHome === undefined) {
-        delete process.env.CODEGRAPHY_HOME;
-      } else {
-        process.env.CODEGRAPHY_HOME = previousCodeGraphyHome;
-      }
-    }
-  });
-
   it('registers an explicitly named globally installed plugin package to the user-level registry', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
