@@ -1,5 +1,5 @@
-import type { UpgradeMetadata } from './types';
+import type { PaletteRecipe } from './types';
 
-export function createAuditRecord(metadata: UpgradeMetadata): string {
-  return `audit:${metadata.owner}:${metadata.stage}`;
+export function createPaletteRecord(recipe: PaletteRecipe): string {
+  return `palette:${recipe.mood}:${recipe.theme}`;
 }

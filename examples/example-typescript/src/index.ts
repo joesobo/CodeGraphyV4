@@ -1,21 +1,21 @@
-import { buildAliasNotice } from '#example/notification';
-import StageLabels from './stageLabels';
-import { formatUser } from './types';
-import type { ProjectName, UpgradeMetadata } from './types';
-import { buildRolloutSummary } from './utils';
+import { loadThemePack } from '#example/themePack';
+import ThemeLabels from './themeLabels';
+import { normalizeMood } from './types';
+import type { PaletteMood, PaletteRecipe } from './types';
+import { buildPalette } from './palette';
 
-export const currentProject: ProjectName = formatUser('TypeScript Upgrade');
+export const currentMood: PaletteMood = normalizeMood('sunset');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const legacySettings = require('./legacySettings');
+const seedSettings = require('./seedSettings');
 
-export { createAuditRecord } from './registry';
+export { createPaletteRecord } from './registry';
 
-const scheduleFollowUp = async (metadata: UpgradeMetadata): Promise<void> => {
-  const lazyAudit = await import('./lazyAudit');
-  lazyAudit.recordLazyAudit(metadata);
+const schedulePreview = async (recipe: PaletteRecipe): Promise<void> => {
+  const lazyPreview = await import('./lazyPreview');
+  lazyPreview.renderLazyPreview(recipe);
 };
 
-console.log(buildRolloutSummary(currentProject));
-console.log(buildAliasNotice(currentProject));
-console.log(StageLabels.describeStage(legacySettings.stage));
-void scheduleFollowUp({ owner: currentProject, stage: legacySettings.stage });
+console.log(buildPalette(currentMood));
+console.log(loadThemePack(currentMood));
+console.log(ThemeLabels.describeTheme(seedSettings.theme));
+void schedulePreview({ mood: currentMood, theme: seedSettings.theme });

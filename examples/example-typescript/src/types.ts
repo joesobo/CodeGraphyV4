@@ -1,15 +1,15 @@
-export enum UpgradeStage {
-  Audit = 'audit',
-  Acceptance = 'acceptance',
+export enum PaletteTheme {
+  Sunrise = 'sunrise',
+  Neon = 'neon',
 }
 
-export type ProjectName = string;
+export type PaletteMood = string;
 
-export interface UpgradeMetadata {
-  owner: ProjectName;
-  stage: UpgradeStage;
+export interface PaletteRecipe {
+  mood: PaletteMood;
+  theme: PaletteTheme;
 }
 
-export function formatUser(name: string): string {
-  return name.trim();
+export function normalizeMood(name: string): string {
+  return name.trim().toLowerCase();
 }

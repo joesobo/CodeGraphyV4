@@ -8,7 +8,7 @@ alias edges whether you open the full `examples/` workspace or the focused
 keeps JavaScript project metadata visible without asserting TypeScript-only
 alias behavior.
 
-- `example-typescript` — small TypeScript workspace used by extension e2e
+- `example-typescript` — runnable TypeScript palette generator used by extension e2e
 - `example-javascript` — small JavaScript workspace mirroring the TypeScript graph story
 - `example-vue` — Vue 3 SFC workspace used to inspect baseline `.vue` graph support
 - `example-godot` — Godot/GDScript workspace used by plugin e2e
@@ -65,7 +65,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 
 | Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
-| `example-typescript` | `src/index.ts` exercises static imports, type imports, export-from, dynamic import, CommonJS require, and a TypeScript path alias; `UpgradeRunner` extends `BaseRunner` and implements `RunnableThing` while functions, interfaces, types, enums, and constants stay visible as symbol nodes. |
+| `example-typescript` | `src/index.ts` runs a tiny palette generator with static imports, type imports, export-from, dynamic import, CommonJS require, and a TypeScript path alias; `PaletteRunner` extends `BaseGenerator` and implements `PaletteExporter` while functions, interfaces, types, enums, and constants stay visible as symbol nodes. |
 | `example-javascript` | `src/index.js` imports `buildGreeting`, calls through `normalizeUserName`, and declares `currentUser`; `AppRunner` imports `RunnableThing` and extends `BaseRunner` for JavaScript import and inheritance coverage. |
 | `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, interface inheritance, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. `enemy.gd` extends a file-backed base entity while Godot `class_name` declarations appear under Variable. |
@@ -81,10 +81,10 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-kotlin` | `AppRunner` imports a model, extends a base class, and implements an interface, giving a compact import/inheritance/symbol demo. |
 | `example-scala` | `AppRunner` composes a `UserService`, repository, model, and dashboard view while extending a base trait; class/object/trait/enum/type/function symbols show the Scala app path. |
 | `example-php` | `Runner` imports a base class, interface, and model, then exposes class/function symbols for namespace-use checks. |
-| `example-ruby` | `example_ruby.rb` requires the runner, and the runner inherits from `BaseRunner`, with module/class/method symbols for navigation. |
-| `example-pascal` | `Main.pas` starts `SampleApp.pas`, which uses runner support, repository, pricing, receipt, and order model units; `TAppRunner` inherits from `TBaseRunner`. |
+| `example-ruby` | `example_ruby.rb` requires the runner, and the runner inherits from `BaseGenerator`, with module/class/method symbols for navigation. |
+| `example-pascal` | `Main.pas` starts `SampleApp.pas`, which uses runner support, repository, pricing, receipt, and order model units; `TAppRunner` inherits from `TBaseGenerator`. |
 | `example-haskell` | `Main` imports a feature runner and model module; module/data/function symbols show the Haskell path through the graph. |
 | `example-lua` | `main.lua` requires `app.runner`, which requires `app.model.user`; table/function symbols make the require chain less anonymous. |
 | `example-swift` | A small Swift Package imports `RunnerSupport`; `Runner` inherits from `Worker` and conforms to `Runnable` to demonstrate class/protocol/function symbols. |
-| `example-dart` | `sample_app.dart` imports a runner and profile; `Runner` extends `BaseRunner` with `Runnable`, while `User` and `Profile` keep the model side visible. |
+| `example-dart` | `sample_app.dart` imports a runner and profile; `Runner` extends `BaseGenerator` with `Runnable`, while `User` and `Profile` keep the model side visible. |
 | `example-svelte` | `App.svelte` uses module and instance scripts, type imports, interface inheritance, and a dynamic import to show Svelte plugin edges. |
