@@ -7,11 +7,9 @@ import 'package:sample_app/model/profile.dart';
 import 'package:sample_app/model/run_status.dart';
 
 const int defaultRetryCount = 2;
-final String runnerName = 'daily-runner';
-int completedRuns = 0;
 
 extension ProfileAudit on Profile {
-  String get auditLabel => '$runnerName:${name.toLowerCase()}';
+  String get auditLabel => name.toLowerCase();
 }
 
 class Runner extends BaseRunner with Runnable implements Auditable {
@@ -27,7 +25,7 @@ class Runner extends BaseRunner with Runnable implements Auditable {
   void record(Profile profile) {
     lastProfileName = profile.name;
     final auditLabel = profile.auditLabel;
-    completedRuns += auditLabel.length;
+    lastProfileName = auditLabel;
   }
 
   @override

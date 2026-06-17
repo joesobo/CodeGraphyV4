@@ -36,8 +36,8 @@ Open `examples/` in CodeGraphy and look for:
 Suggested symbol check:
 
 1. Open `lib/app/runner.dart`.
-2. In Graph Scope, enable **Function**, **Class**, **Mixin**, **Enum**, **Alias**, **Extension**, **Method**, **Field**, **Parameter**, **Local**, **Constant**, and **Global**.
-3. Search for `main`, `boot`, `formatRun`, `Runner`, `Runnable`, `Profile`, `User`, `RunStatus`, `RunLabel`, `ProfileAudit`, `run`, `lastProfileName`, `profile`, `runner`, `statusPrefix`, and `completedRuns`.
+2. In Graph Scope, enable **Function**, **Class**, **Mixin**, **Enum**, **Alias**, **Extension**, **Method**, **Local**, and **Constant**.
+3. Search for `main`, `boot`, `formatRun`, `Runner`, `Runnable`, `Profile`, `User`, `RunStatus`, `RunLabel`, `ProfileAudit`, `run`, `runner`, `status`, and `statusPrefix`.
 
 Expected behavior:
 
@@ -45,5 +45,5 @@ Expected behavior:
 - Class and Mixin symbols show the runner contract and model declarations.
 - Enum symbols show the run status model.
 - Alias and Extension symbols show Dart-specific syntax that still maps cleanly to generic graph concepts.
-- Method, Field, Parameter, Local, Constant, and Global symbols show ordinary declaration sites a Dart developer expects to inspect.
+- Method, Local, and Constant symbols show ordinary declaration sites a Dart developer expects to inspect without broadening this slice into fields, parameters, or globals.
 - The Dart import chain becomes a small app story instead of a set of anonymous files.
