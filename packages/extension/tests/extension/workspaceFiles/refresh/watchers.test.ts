@@ -8,6 +8,7 @@ import {
 function makeProvider() {
   return {
     emitEvent: vi.fn(),
+    refreshGitignoreMetadata: vi.fn().mockResolvedValue(undefined),
     refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
@@ -158,6 +159,7 @@ describe('workspaceFiles/refresh/watchers', () => {
       '/workspace/src/new.ts',
     ]);
     expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshGitignoreMetadata).not.toHaveBeenCalled();
     expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileRenamed', {
       oldPath: '/workspace/src/old.ts',
@@ -233,7 +235,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File changed, refreshing graph');
   });
 
-  it('runs a full graph refresh when gitignore changes on disk', () => {
+  it('runs a metadata-only graph refresh when gitignore changes on disk', () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
@@ -242,7 +244,8 @@ describe('workspaceFiles/refresh/watchers', () => {
     watcherListeners.change?.(uri('/workspace/.gitignore'));
     vi.advanceTimersByTime(500);
 
-    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
@@ -250,7 +253,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
   });
 
-  it('runs a full graph refresh when the dedicated gitignore watcher sees a change', () => {
+  it('runs a metadata-only graph refresh when the dedicated gitignore watcher sees a change', () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
@@ -259,7 +262,8 @@ describe('workspaceFiles/refresh/watchers', () => {
     gitignoreWatcherListeners.change?.(uri('/workspace/.gitignore'));
     vi.advanceTimersByTime(500);
 
-    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {

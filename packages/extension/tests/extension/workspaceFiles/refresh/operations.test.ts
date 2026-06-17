@@ -9,6 +9,7 @@ import {
 function makeProvider() {
   return {
     emitEvent: vi.fn(),
+    refreshGitignoreMetadata: vi.fn().mockResolvedValue(undefined),
     refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
@@ -45,7 +46,7 @@ describe('workspaceFiles/refresh/operations', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File saved, refreshing graph');
   });
 
-  it('runs a full graph refresh when gitignore is saved', () => {
+  it('runs a metadata-only graph refresh when gitignore is saved', () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const provider = makeProvider();
@@ -56,7 +57,8 @@ describe('workspaceFiles/refresh/operations', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
@@ -101,7 +103,7 @@ describe('workspaceFiles/refresh/operations', () => {
     });
   });
 
-  it('runs a full graph refresh when gitignore is created or deleted', () => {
+  it('runs a metadata-only graph refresh when gitignore is created or deleted', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
 
@@ -113,7 +115,8 @@ describe('workspaceFiles/refresh/operations', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {

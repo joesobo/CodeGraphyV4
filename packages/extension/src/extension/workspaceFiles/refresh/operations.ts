@@ -29,7 +29,7 @@ function refreshWorkspacePaths(
 
   if (refreshPaths.length > 0) {
     scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, 500, {
-      fullRefresh: includesGitignorePath(refreshPaths),
+      gitignoreRefresh: includesGitignorePath(refreshPaths),
     });
   }
 
@@ -65,7 +65,7 @@ export function refreshWorkspaceChangedPath(
     logMessage,
     [filePath],
     500,
-    { fullRefresh: isGitignorePath(filePath) },
+    { gitignoreRefresh: isGitignorePath(filePath) },
   );
   provider.emitEvent('workspace:fileChanged', { filePath });
 }

@@ -9,6 +9,7 @@ function createSource(
   _analyzer: {
     hasIndex: ReturnType<typeof vi.fn>;
     rebuildGraph: ReturnType<typeof vi.fn>;
+    refreshGitignoreMetadata: ReturnType<typeof vi.fn>;
     refreshAnalysisScope: ReturnType<typeof vi.fn>;
     refreshPluginFiles: ReturnType<typeof vi.fn>;
     getPluginStatuses: ReturnType<typeof vi.fn>;
@@ -46,6 +47,7 @@ function createSource(
     _analyzer: {
       hasIndex: vi.fn(() => true),
       rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+      refreshGitignoreMetadata: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       refreshAnalysisScope: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       refreshPluginFiles: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       getPluginStatuses: vi.fn(() => [] satisfies IPluginStatus[]),
@@ -267,6 +269,45 @@ describe('graphView/provider/refresh', () => {
         source._disabledPlugins,
         expect.any(AbortSignal),
         expect.any(Function),
+      );
+      expect(source._loadAndSendData).not.toHaveBeenCalled();
+      expect(rebuildGraphData).not.toHaveBeenCalled();
+      expect(source._rawGraphData).toBe(graphData);
+      expect(source._sendMessage).toHaveBeenCalledWith({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: source._graphData,
+      });
+      expect(source._sendAllSettings).toHaveBeenCalledOnce();
+      expect(source._sendFavorites).not.toHaveBeenCalled();
+    });
+
+    it('refreshGitignoreMetadata publishes metadata-only refresh results without a full index refresh', async () => {
+      const source = createSource();
+      const graphData = {
+        nodes: [{
+          color: '#64748B',
+          id: 'example-python/src/main.py',
+          label: 'main.py',
+          metadata: { gitIgnored: true },
+        }],
+        edges: [],
+      } satisfies IGraphData;
+      source._analyzer.refreshGitignoreMetadata.mockResolvedValueOnce(graphData);
+      const rebuildGraphData = vi.fn();
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => true),
+        rebuildGraphData,
+        smartRebuildGraphData: vi.fn(),
+      });
+
+      await methods.refreshGitignoreMetadata();
+
+      expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+      expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+      expect(source._analyzer.refreshGitignoreMetadata).toHaveBeenCalledWith(
+        ['src/**'],
+        source._disabledPlugins,
+        expect.any(AbortSignal),
       );
       expect(source._loadAndSendData).not.toHaveBeenCalled();
       expect(rebuildGraphData).not.toHaveBeenCalled();

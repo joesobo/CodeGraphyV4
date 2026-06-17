@@ -74,8 +74,6 @@ test.describe('gitignored node visuals', () => {
 
       await appendGitignorePatternInVSCode(vscode.page, 'example-python/*');
       await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
-        .toBeVisible({ timeout: 10_000 });
-      await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
         .toBeHidden({ timeout: 30_000 });
 
       const after = await waitForRuntimeNodeVisual(

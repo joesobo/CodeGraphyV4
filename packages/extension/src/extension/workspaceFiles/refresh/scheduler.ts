@@ -3,6 +3,7 @@ import type { GraphViewProvider } from '../../graphViewProvider';
 interface PendingWorkspaceRefresh {
   filePaths: Set<string>;
   fullRefresh: boolean;
+  gitignoreRefresh: boolean;
   logMessage: string;
   timeout: ReturnType<typeof setTimeout>;
 }
@@ -26,10 +27,11 @@ export function scheduleWorkspaceRefresh(
   logMessage: string,
   filePaths: readonly string[] = [],
   delayMs: number = 500,
-  options: { fullRefresh?: boolean } = {},
+  options: { fullRefresh?: boolean; gitignoreRefresh?: boolean } = {},
 ): void {
   const nextFilePaths = new Set(filePaths);
   let fullRefresh = options.fullRefresh === true;
+  let gitignoreRefresh = options.gitignoreRefresh === true;
 
   if (!isGraphOpen(provider)) {
     markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths]);
@@ -40,6 +42,7 @@ export function scheduleWorkspaceRefresh(
   if (pending) {
     clearTimeout(pending.timeout);
     fullRefresh = fullRefresh || pending.fullRefresh;
+    gitignoreRefresh = gitignoreRefresh || pending.gitignoreRefresh;
     for (const filePath of pending.filePaths) {
       nextFilePaths.add(filePath);
     }
@@ -48,6 +51,7 @@ export function scheduleWorkspaceRefresh(
   const nextPending: PendingWorkspaceRefresh = {
     filePaths: nextFilePaths,
     fullRefresh,
+    gitignoreRefresh,
     logMessage,
     timeout: setTimeout(() => {
       pendingWorkspaceRefreshes.delete(provider);
@@ -61,6 +65,17 @@ export function scheduleWorkspaceRefresh(
       }
 
       console.log(nextPending.logMessage);
+      if (nextPending.gitignoreRefresh) {
+        if (provider.refreshGitignoreMetadata) {
+          void provider.refreshGitignoreMetadata();
+          return;
+        }
+        if (provider.refreshIndex) {
+          void provider.refreshIndex();
+          return;
+        }
+      }
+
       if (nextPending.fullRefresh) {
         if (provider.refreshIndex) {
           void provider.refreshIndex();

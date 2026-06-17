@@ -266,4 +266,53 @@ describe('pipeline/service/refreshFacade', () => {
     refreshSource.invalidateWorkspaceFiles(['/workspace/src/a.ts']);
     expect(facade.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/a.ts']);
   });
+
+  it('refreshes gitignore metadata by rebuilding from cached analysis without analyzing files', async () => {
+    const facade = new TestRefreshFacade();
+    const disabledPlugins = new Set(['plugin.disabled']);
+    facade._lastFileAnalysis = new Map([
+      ['example-python/src/main.py', { filePath: '/workspace/example-python/src/main.py', relations: [] }],
+    ]) as never;
+    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValueOnce({
+      directories: ['example-python', 'example-python/src'],
+      files: [
+        {
+          absolutePath: '/workspace/example-python/src/main.py',
+          relativePath: 'example-python/src/main.py',
+        },
+      ],
+      gitIgnoredPaths: ['example-python/src/main.py'],
+    } as never);
+    facade._buildGraphDataFromAnalysis = vi.fn(() => ({
+      nodes: [{
+        color: '#64748B',
+        id: 'example-python/src/main.py',
+        label: 'main.py',
+        metadata: { gitIgnored: true },
+      }],
+      edges: [],
+    })) as never;
+
+    await expect(
+      facade.refreshGitignoreMetadata(['dist/**'], disabledPlugins),
+    ).resolves.toEqual({
+      nodes: [{
+        color: '#64748B',
+        id: 'example-python/src/main.py',
+        label: 'main.py',
+        metadata: { gitIgnored: true },
+      }],
+      edges: [],
+    });
+
+    expect(facade._analyzeFiles).not.toHaveBeenCalled();
+    expect(facade._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
+    expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      facade._lastFileAnalysis,
+      '/workspace',
+      true,
+      disabledPlugins,
+    );
+    expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
+  });
 });

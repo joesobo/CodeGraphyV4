@@ -33,6 +33,11 @@ interface GraphViewProviderRefreshAnalyzerLike {
     signal?: AbortSignal,
     onProgress?: (progress: GraphViewScopedRefreshProgress) => void,
   ): Promise<IGraphData>;
+  refreshGitignoreMetadata?(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+  ): Promise<IGraphData>;
 }
 
 export interface GraphViewProviderRefreshMethodsSource {
@@ -68,6 +73,7 @@ export interface GraphViewProviderRefreshMethodsSource {
 export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
   refreshIndex(): Promise<void>;
+  refreshGitignoreMetadata(): Promise<void>;
   refreshAnalysisScope(): Promise<void>;
   refreshPluginFiles(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
@@ -257,6 +263,34 @@ export function createGraphViewProviderRefreshMethods(
     sendRefreshState(source);
   };
 
+  const refreshGitignoreMetadata = async (): Promise<void> => {
+    if (indexRefreshPromise) {
+      await indexRefreshPromise;
+    }
+
+    source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
+    if (!source._analyzer?.refreshGitignoreMetadata) {
+      await refreshIndex();
+      return;
+    }
+
+    const graphData = await runScopedRefreshRequest(
+      source,
+      signal => source._analyzer!.refreshGitignoreMetadata!(
+        source._filterPatterns,
+        source._disabledPlugins,
+        signal,
+      ),
+      scopedRefreshLifecycle,
+    );
+    if (!graphData) {
+      return;
+    }
+    publishScopedRefreshGraphData(source, graphData);
+    sendRefreshState(source);
+  };
+
   const refreshPluginFiles = async (pluginIds: readonly string[]): Promise<void> => {
     if (indexRefreshPromise) {
       await indexRefreshPromise;
@@ -332,6 +366,7 @@ export function createGraphViewProviderRefreshMethods(
   const methods: GraphViewProviderRefreshMethods = {
     refresh,
     refreshIndex,
+    refreshGitignoreMetadata,
     refreshAnalysisScope,
     refreshPluginFiles,
     refreshChangedFiles,
