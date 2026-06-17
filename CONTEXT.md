@@ -278,6 +278,26 @@ _Avoid_: Tree-sitter analysis
 Language- or ecosystem-specific relationship evidence that requires reading project configuration, package layout, or framework conventions beyond a single file's syntax.
 _Avoid_: Core Tree-sitter Language Coverage when the behavior needs project-specific configuration
 
+**Unity Project File Analysis**:
+Plugin Analysis for Unity workspaces that derives Relationships from Unity source and project files without launching the Unity Editor or reading generated editor state.
+_Avoid_: Unity Editor integration, C# language coverage when meaning Unity-specific project graphing
+
+**Unity Parser Model**:
+The Unity Plugin-owned read model for source-controlled Unity YAML, `.meta`, package, and assembly-definition files, adapted from Unity parser precedents into CodeGraphy Node and Relationship facts rather than executed as an external parser runtime.
+_Avoid_: Unity AST, Unity Editor API, external parser dependency when meaning the CodeGraphy-owned model
+
+**Unity Concept Node**:
+A Plugin Node that represents a Unity project concept such as a Scene, Prefab, GameObject, Component, or ScriptableObject Asset when that concept can be derived from source-controlled Unity project files.
+_Avoid_: File Node when the graph item represents the Unity concept rather than only the serialized file
+
+**Unity Node Type Scope**:
+A Unity Plugin-owned Graph Scope parent row that appears only when the Unity Plugin is enabled and groups Unity Concept Node rows such as Scene, Prefab, GameObject, and Component.
+_Avoid_: Core Symbol scope, always-on Unity rows
+
+**Unity Example Contract**:
+The `examples/example-unity` workspace is the source-of-truth target for the full Unity support PR, covering the Unity Concept Nodes and Relationships intended for that PR before implementation is shaped to satisfy them.
+_Avoid_: Minimal fixture, partial slice when the PR intends broader Unity support
+
 **Graph Projection**:
 The indexing stage that turns discovered files and analysis results into graph nodes and edges.
 _Avoid_: Rendering
