@@ -13,7 +13,7 @@ alias behavior.
 - `example-vue` — Vue 3 SFC workspace used to inspect baseline `.vue` graph support
 - `example-godot` — Godot/GDScript workspace used by plugin e2e
 - `example-python` — Python import-resolution workspace
-- `example-csharp` — C# namespace and type-usage workspace
+- `example-csharp` — C# task dispatch workspace with type/member/variable coverage
 - `example-markdown` — Markdown/wikilink workspace, including links inside non-markdown files
 - `example-rust` — Rust module/use example with strong core Tree-sitter coverage
 - `example-java` — Java import/inheritance example
@@ -70,7 +70,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, interface inheritance, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. `enemy.gd` extends a file-backed base entity while Godot `class_name` declarations appear under Variable. |
 | `example-python` | `main.py` imports config, service, and helper functions; `ApiUser` inherits from `BaseApiUser`, and member-import files show how imports and function symbols identify the exact code path. |
-| `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`; `ApiService` extends `BaseService` and implements `IRunner` so C# inheritance has file-level targets. |
+| `example-csharp` | `Program` wires a task dispatch app with `TaskDispatcher`, `PriorityTaskQueue`, records, a struct value object, a delegate event, enum status, properties, fields, parameters, constants, locals, inheritance, and interface implementation. |
 | `example-markdown` | Markdown notes link to each other and to code, giving a mixed docs/code graph where symbol search still works on the TypeScript file. |
 | `example-rust` | `main.rs` uses local modules and declares `App`, `Status`, and `Service`, showing module edges plus type/function symbols. |
 | `example-java` | `App` imports `Helper`, extends `BaseService`, implements `RunnableThing`, and exposes class/interface/method symbols for import and inheritance checks. |

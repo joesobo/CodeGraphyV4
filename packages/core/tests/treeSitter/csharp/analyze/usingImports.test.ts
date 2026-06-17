@@ -1,19 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { appendCSharpUsingImportRelations } from '../../../src/treeSitter/runtime/analyzeCSharp/usingImports';
-import { resolveCSharpTypePathInNamespace } from '../../../src/treeSitter/runtime/csharpIndex';
-import { normalizeCSharpTypeName } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
-import { addImportRelation } from '../../../src/treeSitter/runtime/analyze/results';
+import { appendCSharpUsingImportRelations } from '../../../../src/treeSitter/runtime/analyzeCSharp/usingImports';
+import { resolveCSharpTypePathInNamespace } from '../../../../src/treeSitter/runtime/csharpIndex';
+import { normalizeCSharpTypeName } from '../../../../src/treeSitter/runtime/analyzeCSharp/resolution';
+import { addRelation } from '../../../../src/treeSitter/runtime/analyze/results';
 
-vi.mock('../../../src/treeSitter/runtime/csharpIndex', () => ({
+vi.mock('../../../../src/treeSitter/runtime/csharpIndex', () => ({
   resolveCSharpTypePathInNamespace: vi.fn(),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
+vi.mock('../../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   normalizeCSharpTypeName: vi.fn((name: string) => name.toUpperCase()),
 }));
 
-vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
-  addImportRelation: vi.fn(),
+vi.mock('../../../../src/treeSitter/runtime/analyze/results', () => ({
+  addRelation: vi.fn(),
 }));
 
 describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () => {
@@ -21,7 +21,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
     vi.clearAllMocks();
   });
 
-  it('collects matching resolved paths for reference and inherit relations and emits imports per namespace', () => {
+  it('collects matching resolved paths for C# target relations and emits using edges per namespace', () => {
     vi.mocked(resolveCSharpTypePathInNamespace).mockImplementation(
       (_workspaceRoot, _filePath, namespaceName, typeName) => {
         if (namespaceName === 'CodeGraphy.Models' && typeName === 'USER') {
@@ -36,7 +36,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
 
     const relations = [
       {
-        kind: 'reference',
+        kind: 'type',
         resolvedPath: '/workspace/src/Models/User.cs',
         specifier: 'User',
       },
@@ -64,23 +64,33 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
     expect(importTargetsByNamespace.get('CodeGraphy.Base')).toEqual(
       new Set(['/workspace/src/Base/Entity.cs']),
     );
-    expect(addImportRelation).toHaveBeenNthCalledWith(
+    expect(addRelation).toHaveBeenNthCalledWith(
       1,
       relations,
-      '/workspace/src/App.cs',
-      'CodeGraphy.Models',
-      '/workspace/src/Models/User.cs',
+      expect.objectContaining({
+        kind: 'using',
+        sourceId: 'core:treesitter:using',
+        fromFilePath: '/workspace/src/App.cs',
+        specifier: 'CodeGraphy.Models',
+        resolvedPath: '/workspace/src/Models/User.cs',
+        toFilePath: '/workspace/src/Models/User.cs',
+      }),
     );
-    expect(addImportRelation).toHaveBeenNthCalledWith(
+    expect(addRelation).toHaveBeenNthCalledWith(
       2,
       relations,
-      '/workspace/src/App.cs',
-      'CodeGraphy.Base',
-      '/workspace/src/Base/Entity.cs',
+      expect.objectContaining({
+        kind: 'using',
+        sourceId: 'core:treesitter:using',
+        fromFilePath: '/workspace/src/App.cs',
+        specifier: 'CodeGraphy.Base',
+        resolvedPath: '/workspace/src/Base/Entity.cs',
+        toFilePath: '/workspace/src/Base/Entity.cs',
+      }),
     );
   });
 
-  it('ignores unrelated relations and emits null imports for namespaces without targets', () => {
+  it('ignores unrelated relations and does not emit edges for namespaces without targets', () => {
     const relations = [
       { kind: 'import', resolvedPath: '/workspace/src/Models/User.cs', specifier: 'User' },
       { kind: 'reference', resolvedPath: null, specifier: 'User' },
@@ -96,11 +106,6 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
     );
 
     expect(resolveCSharpTypePathInNamespace).not.toHaveBeenCalled();
-    expect(addImportRelation).toHaveBeenCalledWith(
-      relations,
-      '/workspace/src/App.cs',
-      'CodeGraphy.Models',
-      null,
-    );
+    expect(addRelation).not.toHaveBeenCalled();
   });
 });

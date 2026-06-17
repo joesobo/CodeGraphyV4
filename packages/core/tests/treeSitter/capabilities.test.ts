@@ -9,7 +9,6 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   it('advertises calls for languages whose example workspaces expose the Calls edge toggle', () => {
     for (const filePath of [
       'src/main.c',
-      'src/Program.cs',
       'lib/app/runner.dart',
       'src/App/Feature/Runner.hs',
       'src/main/kotlin/com/example/app/Main.kt',
@@ -59,6 +58,17 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     ]);
   });
 
+  it('advertises language-specific C# edge capabilities', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['src/Program.cs'])).toEqual([
+      'using',
+      'type',
+      'call',
+      'inherit',
+      'implements',
+      'contains',
+    ]);
+  });
+
   it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
     expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
       'symbol:function',
@@ -93,7 +103,22 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
         'symbol:parameter',
         'symbol:local',
       ],
-      'src/Program.cs': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
+      'src/Program.cs': [
+        'symbol:class',
+        'symbol:interface',
+        'symbol:struct',
+        'symbol:record',
+        'symbol:enum',
+        'symbol:delegate',
+        'symbol:method',
+        'symbol:constructor',
+        'symbol:property',
+        'symbol:event',
+        'symbol:constant',
+        'symbol:field',
+        'symbol:parameter',
+        'symbol:local',
+      ],
       'lib/app/runner.dart': ['symbol:function', 'symbol:class', 'symbol:enum'],
       'cmd/app/main.go': ['symbol:function', 'symbol:struct', 'symbol:interface', 'symbol:type'],
       'src/App/Feature/Runner.hs': ['symbol:function', 'symbol:type', 'symbol:class'],

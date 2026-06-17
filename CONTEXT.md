@@ -120,6 +120,14 @@ _Avoid_: Installed provider when enablement and workspace applicability have not
 The shared description of an **Edge Type**, including its label, default visibility, visual defaults, and optional user-facing explanation or examples. **Graph Scope**, **Legend**, and plugin contributions consume Edge Type Definitions instead of redefining what an Edge Type means locally.
 _Avoid_: Graph Scope tooltip source, local edge metadata, UI-only edge description
 
+**Language-Specific Edge Type**:
+An **Edge Type** whose meaning is specific to one language or ecosystem and should stay distinct from a broader shared Edge Type when merging would hide important language semantics. A language relationship should merge into an existing Edge Type only when the source and target meaning truly match the existing definition.
+_Avoid_: Generic import edge when the relationship has language-specific semantics, new edge type when the existing Edge Type already means the same relationship
+
+**Acceptance-Visible Language Relationship**:
+A language-specific relationship that CodeGraphy intentionally exposes as an **Edge Type Capability** and validates in language example acceptance coverage. A syntax form can be Tree-sitter-visible without becoming an acceptance-visible relationship when it does not create useful graph structure.
+_Avoid_: Every expression edge, parser-visible edge, syntax-only relationship
+
 **Edge Direction**:
 The source-to-target orientation of an edge, where the source node initiates the relationship and the target node is the thing being used, referenced, tested, or contained.
 _Avoid_: Provider direction, reverse relationship direction
@@ -249,6 +257,18 @@ _Avoid_: Language coverage, analyzer
 **Core Tree-sitter Language Coverage**:
 A language grammar and CodeGraphy analyzer path bundled in the Core Package that produces baseline relationships during Tree-sitter Analysis.
 _Avoid_: Tree-sitter support when only the parser runtime or grammar package is present
+
+**Built-In Language Coverage Target**:
+A language feature that a developer working in that language would reasonably expect CodeGraphy's built-in analysis to represent, when Tree-sitter can expose the feature clearly enough to produce low-noise Nodes or Relationships. Language features that require project-specific semantics beyond Tree-sitter belong in Plugin Analysis instead.
+_Avoid_: Plugin support when the feature belongs to Core Tree-sitter Language Coverage, supported feature when Tree-sitter cannot expose enough evidence
+
+**Acceptance-Visible Language Construct**:
+A **Built-In Language Coverage Target** that CodeGraphy intentionally exposes through Graph Scope and language example acceptance coverage. A construct can be Tree-sitter-visible but still stay out of acceptance-visible coverage when it is too fine-grained for the Relationship Graph.
+_Avoid_: Every AST node, parser-visible construct, implementation detail
+
+**C# Method Construct**:
+The acceptance-visible C# behavior node for named executable code declared as a normal method or local function. C# local functions are grouped with methods for Graph Scope purposes; C# does not use separate Function or Callable rows.
+_Avoid_: Function when describing C# local functions, Callable for C# method-like constructs
 
 **Plugin Analysis**:
 The indexing stage where plugins add or adjust **Nodes**, **Relationships**, and **Edge Types** after the built-in baseline analysis.

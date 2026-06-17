@@ -57,6 +57,10 @@ const CORE_EDGE_TYPE_LABELS = [
   'Calls',
   'Type imports',
   'Inherits',
+  'Using',
+  'Type',
+  'Call',
+  'Implements',
   'Loads',
   'Nests',
   'Contains',
@@ -73,9 +77,14 @@ const CORE_NODE_TYPE_LABELS = [
   'Function',
   'Callable',
   'Method',
+  'Constructor',
   'Prototype',
   'Class',
   'Interface',
+  'Record',
+  'Delegate',
+  'Property',
+  'Event',
   'Type',
   'Struct',
   'Union',
@@ -100,7 +109,10 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Callable: 'Symbol',
   Class: 'Symbol',
   Constant: 'Variable',
+  Constructor: 'Symbol',
+  Delegate: 'Symbol',
   Enum: 'Symbol',
+  Event: 'Symbol',
   Field: 'Variable',
   Function: 'Symbol',
   Global: 'Variable',
@@ -109,7 +121,9 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Method: 'Symbol',
   Namespace: 'Symbol',
   Parameter: 'Variable',
+  Property: 'Symbol',
   Prototype: 'Symbol',
+  Record: 'Symbol',
   Struct: 'Symbol',
   Template: 'Symbol',
   Typedef: 'Symbol',
@@ -122,17 +136,34 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
 const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Alias: ['alias'],
   Callable: ['function'],
-  Class: ['class', 'struct', 'union'],
+  Class: ['class'],
   Constant: ['constant'],
+  Constructor: ['constructor'],
+  Delegate: ['delegate'],
   Enum: ['enum'],
+  Event: ['event'],
   Field: ['field'],
+  Function: ['function', 'method'],
   Global: ['global'],
+  Interface: ['interface'],
   Local: ['local'],
   Method: ['method'],
   Namespace: ['namespace'],
   Parameter: ['parameter'],
+  Property: ['property'],
+  Prototype: ['prototype'],
+  Record: ['record'],
+  Struct: ['struct'],
   Template: ['template'],
+  Typedef: ['typedef'],
+  Type: ['type'],
+  Union: ['union'],
+  Variable: ['variable'],
 };
+
+export function getSymbolKindsForNodeTypeLabel(label: string): string[] | undefined {
+  return NODE_TYPE_SYMBOL_KIND_BY_LABEL[label];
+}
 
 interface PatternAcceptanceStep {
   pattern: RegExp;
@@ -731,7 +762,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the available edge types are (?:only )?(.+)$/, async (context, _step, match) => {
-    const expectedEdgeTypes = match[1].split(',').map((label) => label.trim());
+    const expectedEdgeTypes = match[1].split(',').map((label) => normalizePanelLabel(label.trim()));
     const frame = requireGraphFrame(context);
 
     await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows) =>
@@ -761,7 +792,27 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     )).toBe(expectedNodeTypes.length);
   }),
 
-  step(/^the (.+) node type is not available for the C\+\+ example$/, async (context, _step, match) => {
+  step(/^the available C# node types are only (.+)$/, async (context, _step, match) => {
+    const expectedNodeTypes = parseScopeTypeList(match[1]);
+    const frame = requireGraphFrame(context);
+
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label))
+        .filter((label) => !(supportLabels as string[]).includes(label)),
+      Array.from(SUPPORT_NODE_TYPE_LABELS),
+    )).toEqual(expect.arrayContaining(expectedNodeTypes));
+    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
+      rows
+        .map((row) => row.getAttribute('data-scope-row'))
+        .filter((label): label is string => Boolean(label))
+        .filter((label) => !(supportLabels as string[]).includes(label)).length,
+      Array.from(SUPPORT_NODE_TYPE_LABELS),
+    )).toBe(expectedNodeTypes.length);
+  }),
+
+  step(/^the (.+) node type is not available for the (?:C\+\+|C#) example$/, async (context, _step, match) => {
     const frame = requireGraphFrame(context);
     expect(await findPanelSwitchIfPresent(frame, match[1])).toBeUndefined();
   }),
@@ -787,7 +838,25 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     });
   }),
 
+  step(/^the visible graph shows (.+) in (.+) referencing type (.+) in (.+)$/, async (context, _step, match) => {
+    await expectVisibleGraphRelationship(context, {
+      fromName: match[1],
+      fromFilePath: match[2],
+      targetName: match[3],
+      targetFilePath: match[4],
+    });
+  }),
+
   step(/^the visible graph shows (.+) in (.+) inheriting from (.+) in (.+)$/, async (context, _step, match) => {
+    await expectVisibleGraphRelationship(context, {
+      fromName: match[1],
+      fromFilePath: match[2],
+      targetName: match[3],
+      targetFilePath: match[4],
+    });
+  }),
+
+  step(/^the visible graph shows (.+) in (.+) implementing (.+) in (.+)$/, async (context, _step, match) => {
     await expectVisibleGraphRelationship(context, {
       fromName: match[1],
       fromFilePath: match[2],
@@ -1136,8 +1205,8 @@ async function closeContextMenuIfOpen(context: GraphAcceptanceContext): Promise<
   await expect(visibleMenu).toBeHidden({ timeout: 5_000 });
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeRegExp(value: unknown): string {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function isLocatorVisible(locator: Locator): Promise<boolean> {
@@ -1570,7 +1639,7 @@ function collectScopeLabelsWithAncestors(labels: string[]): Set<string> {
   const result = new Set<string>();
 
   for (const label of labels) {
-    let currentLabel: string | undefined = label;
+    let currentLabel: string | undefined = String(label);
     while (currentLabel) {
       result.add(currentLabel);
       currentLabel = CHILD_NODE_TYPE_PARENTS[currentLabel];
@@ -1643,7 +1712,7 @@ async function resolveVisibleSymbolNodeId(
   options: { allowMissing?: boolean } = {},
 ): Promise<string | undefined> {
   const frame = requireGraphFrame(context);
-  const symbolKinds = symbol.nodeTypeLabel ? NODE_TYPE_SYMBOL_KIND_BY_LABEL[symbol.nodeTypeLabel] : undefined;
+  const symbolKinds = symbol.nodeTypeLabel ? getSymbolKindsForNodeTypeLabel(symbol.nodeTypeLabel) : undefined;
   const nodeId = await frame.locator('[aria-label^="Graph node "]').evaluateAll((nodes, request) => {
     const matchingLabel = nodes
       .map((node) => node.getAttribute('aria-label') ?? '')
@@ -1693,6 +1762,7 @@ function parseScopeTypeList(value: string): string[] {
 function normalizePanelLabel(label: string): string {
   const normalized = label.trim().toLowerCase();
   const aliases: Record<string, string> = {
+    calls: 'Call',
     reference: 'References',
     references: 'References',
     'type imports': 'Type imports',
@@ -1700,7 +1770,7 @@ function normalizePanelLabel(label: string): string {
     'typescript alias import': 'TypeScript Alias Import',
   };
 
-  return aliases[normalized] ?? label;
+  return Object.prototype.hasOwnProperty.call(aliases, normalized) ? aliases[normalized] : label;
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {
