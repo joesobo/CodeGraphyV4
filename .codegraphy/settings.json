@@ -7,6 +7,7 @@
   ],
   "respectGitignore": true,
   "showOrphans": true,
+  "cssSnippets": {},
   "plugins": [
     {
       "id": "codegraphy.markdown",
@@ -28,7 +29,7 @@
   "pluginData": {
     "codegraphy.particles": {
       "enabled": true,
-      "preset": "embers"
+      "preset": "rain"
     }
   },
   "nodeColors": {
@@ -37,6 +38,9 @@
     "package": "#F59E0B",
     "symbol": "#7C3AED",
     "symbol:function": "#8B5CF6",
+    "symbol:namespace": "#64748B",
+    "symbol:callable": "#8B5CF6",
+    "symbol:method": "#A855F7",
     "symbol:prototype": "#A78BFA",
     "symbol:class": "#3B82F6",
     "symbol:interface": "#06B6D4",
@@ -45,9 +49,14 @@
     "symbol:union": "#14B8A6",
     "symbol:enum": "#F59E0B",
     "symbol:typedef": "#F472B6",
+    "symbol:alias": "#F472B6",
+    "symbol:template": "#C084FC",
     "variable": "#14B8A6",
     "symbol:constant": "#22C55E",
     "symbol:global": "#0D9488",
+    "symbol:field": "#84CC16",
+    "symbol:parameter": "#2DD4BF",
+    "symbol:local": "#10B981",
     "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
   },
   "nodeVisibility": {
@@ -56,6 +65,9 @@
     "package": false,
     "symbol": false,
     "symbol:function": false,
+    "symbol:namespace": false,
+    "symbol:callable": false,
+    "symbol:method": false,
     "symbol:prototype": false,
     "symbol:class": false,
     "symbol:interface": false,
@@ -64,9 +76,14 @@
     "symbol:union": false,
     "symbol:enum": false,
     "symbol:typedef": false,
+    "symbol:alias": false,
+    "symbol:template": false,
     "variable": false,
     "symbol:constant": false,
     "symbol:global": false,
+    "symbol:field": false,
+    "symbol:parameter": false,
+    "symbol:local": false,
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
