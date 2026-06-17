@@ -39,8 +39,6 @@ describe('shared/graphControls/defaults/definitions', () => {
       'symbol:local',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
       'plugin:codegraphy.unity:symbol',
-      'plugin:codegraphy.unity:symbol:scene',
-      'plugin:codegraphy.unity:symbol:prefab',
       'plugin:codegraphy.unity:symbol:game-object',
       'plugin:codegraphy.unity:symbol:component',
     ]);

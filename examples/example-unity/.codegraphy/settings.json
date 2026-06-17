@@ -51,8 +51,6 @@
     "symbol:local": "#10B981",
     "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF",
     "plugin:codegraphy.unity:symbol": "#F97316",
-    "plugin:codegraphy.unity:symbol:scene": "#F97316",
-    "plugin:codegraphy.unity:symbol:prefab": "#8B5CF6",
     "plugin:codegraphy.unity:symbol:game-object": "#0EA5E9",
     "plugin:codegraphy.unity:symbol:component": "#22C55E"
   },
@@ -88,8 +86,6 @@
     "symbol:local": false,
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false,
     "plugin:codegraphy.unity:symbol": true,
-    "plugin:codegraphy.unity:symbol:scene": true,
-    "plugin:codegraphy.unity:symbol:prefab": true,
     "plugin:codegraphy.unity:symbol:game-object": true,
     "plugin:codegraphy.unity:symbol:component": true
   },

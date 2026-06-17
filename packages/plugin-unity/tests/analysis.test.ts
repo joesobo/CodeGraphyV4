@@ -32,7 +32,7 @@ function prefabFixture(): string {
 }
 
 describe('analyzeUnitySerializedFile', () => {
-  it('emits prefab, GameObject, and Component symbols from Unity YAML', () => {
+  it('emits GameObject and Component symbols from Unity YAML', () => {
     const analysis = analyzeUnitySerializedFile(
       '/workspace/Assets/Prefabs/Player.prefab',
       prefabFixture(),
@@ -48,11 +48,6 @@ describe('analyzeUnitySerializedFile', () => {
     );
 
     expect(analysis.symbols).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'Assets/Prefabs/Player.prefab#unity:prefab',
-        kind: 'prefab',
-        name: 'Player',
-      }),
       expect.objectContaining({
         id: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
         kind: 'game-object',
@@ -82,7 +77,7 @@ describe('analyzeUnitySerializedFile', () => {
     ]));
   });
 
-  it('connects prefab, GameObjects, Components, and resolved scripts', () => {
+  it('connects files, GameObjects, Components, and resolved scripts', () => {
     const analysis = analyzeUnitySerializedFile(
       '/workspace/Assets/Prefabs/Player.prefab',
       prefabFixture(),
@@ -96,7 +91,8 @@ describe('analyzeUnitySerializedFile', () => {
       expect.objectContaining({
         kind: 'contains',
         sourceId: 'unity-containment',
-        fromSymbolId: 'Assets/Prefabs/Player.prefab#unity:prefab',
+        fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+        toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
         toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
       }),
       expect.objectContaining({
@@ -199,7 +195,7 @@ describe('analyzeUnitySerializedFile', () => {
     ]));
   });
 
-  it('emits scene symbols for .unity files', () => {
+  it('uses .unity files as containers without adding duplicate scene symbols', () => {
     const analysis = analyzeUnitySerializedFile(
       '/workspace/Assets/Scenes/SampleScene.unity',
       ['--- !u!1 &42', 'GameObject:', '  m_Name: Spawner'].join('\n'),
@@ -208,9 +204,14 @@ describe('analyzeUnitySerializedFile', () => {
 
     expect(analysis.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        id: 'Assets/Scenes/SampleScene.unity#unity:scene',
+        id: 'Assets/Scenes/SampleScene.unity#unity:game-object:42',
+        kind: 'game-object',
+        name: 'Spawner',
+      }),
+    ]));
+    expect(analysis.symbols).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
         kind: 'scene',
-        name: 'SampleScene',
       }),
     ]));
   });

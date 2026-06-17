@@ -487,15 +487,7 @@ describe('visibleGraph/scope', () => {
   it('filters Unity component symbols through plugin scope rows', () => {
     const graphData: IGraphData = {
       nodes: [
-        node('Assets/Scenes/SampleScene.unity#unity:scene', 'symbol', symbol({
-          id: 'Assets/Scenes/SampleScene.unity#unity:scene',
-          filePath: 'Assets/Scenes/SampleScene.unity',
-          kind: 'scene',
-          name: 'SampleScene',
-          pluginKind: 'scene',
-          source: 'codegraphy.unity',
-          language: 'unity',
-        })),
+        node('Assets/Scenes/SampleScene.unity', 'file'),
         node('Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'symbol', symbol({
           id: 'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
           filePath: 'Assets/Scenes/SampleScene.unity',
@@ -516,26 +508,28 @@ describe('visibleGraph/scope', () => {
         })),
       ],
       edges: [
-        edge('Assets/Scenes/SampleScene.unity#unity:scene', 'Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'contains'),
+        edge('Assets/Scenes/SampleScene.unity', 'Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'contains'),
         edge('Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'Assets/Scenes/SampleScene.unity#unity:component:1001', 'contains'),
       ],
     };
 
     const result = applyGraphScope(graphData, {
       nodes: [
+        { type: 'file', enabled: true },
         { type: 'symbol', enabled: true },
         { type: 'plugin:codegraphy.unity:symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
         { type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
       ],
       edges: [{ type: 'contains', enabled: true }],
     });
 
     expect(result.nodes.map((item) => item.id)).toEqual([
-      'Assets/Scenes/SampleScene.unity#unity:scene',
+      'Assets/Scenes/SampleScene.unity',
       'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
     ]);
     expect(result.edges.map((item) => item.id)).toEqual([
-      'Assets/Scenes/SampleScene.unity#unity:scene->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
+      'Assets/Scenes/SampleScene.unity->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
     ]);
   });
 

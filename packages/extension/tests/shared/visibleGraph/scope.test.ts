@@ -528,15 +528,7 @@ describe('shared/visibleGraph/scope', () => {
 		const result = applyGraphScope(
 			{
 				nodes: [
-					symbolNode('Assets/Scenes/SampleScene.unity#unity:scene', {
-						id: 'Assets/Scenes/SampleScene.unity#unity:scene',
-						name: 'SampleScene',
-						kind: 'scene',
-						filePath: 'Assets/Scenes/SampleScene.unity',
-						pluginKind: 'scene',
-						source: 'codegraphy.unity',
-						language: 'unity',
-					}),
+					node('Assets/Scenes/SampleScene.unity'),
 					symbolNode('Assets/Scenes/SampleScene.unity#unity:game-object:1000', {
 						id: 'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
 						name: 'Player',
@@ -558,7 +550,7 @@ describe('shared/visibleGraph/scope', () => {
 				],
 				edges: [
 					edge(
-						'Assets/Scenes/SampleScene.unity#unity:scene',
+						'Assets/Scenes/SampleScene.unity',
 						'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
 						'contains',
 					),
@@ -571,9 +563,9 @@ describe('shared/visibleGraph/scope', () => {
 			},
 			{
 				nodes: [
+					{ type: 'file', enabled: true },
 					{ type: 'symbol', enabled: true },
 					{ type: 'plugin:codegraphy.unity:symbol', enabled: true },
-					{ type: 'plugin:codegraphy.unity:symbol:scene', enabled: true },
 					{ type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
 					{ type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
 				],
@@ -583,11 +575,11 @@ describe('shared/visibleGraph/scope', () => {
 
 		expect(ids(result)).toEqual({
 			nodes: [
-				'Assets/Scenes/SampleScene.unity#unity:scene',
+				'Assets/Scenes/SampleScene.unity',
 				'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
 			],
 			edges: [
-				'Assets/Scenes/SampleScene.unity#unity:scene->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
+				'Assets/Scenes/SampleScene.unity->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
 			],
 		});
 	});

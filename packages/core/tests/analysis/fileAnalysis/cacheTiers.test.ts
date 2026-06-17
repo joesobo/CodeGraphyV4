@@ -66,7 +66,7 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
   it('requires symbol enrichment when a Unity symbol row is enabled', () => {
     expect(createWorkspaceIndexAnalysisCacheTiers({
       'plugin:codegraphy.unity:symbol': true,
-      'plugin:codegraphy.unity:symbol:scene': true,
+      'plugin:codegraphy.unity:symbol:game-object': true,
     })).toEqual({
       active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
       completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],

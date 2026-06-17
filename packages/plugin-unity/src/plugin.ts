@@ -9,8 +9,6 @@ import { buildUnityGuidMap, buildUnityGuidMapFromWorkspace, registerUnityGuid } 
 import manifest from '../codegraphy.json';
 
 const UNITY_GRAPH_SCOPE_NODE_TYPES = [
-  'plugin:codegraphy.unity:symbol:scene',
-  'plugin:codegraphy.unity:symbol:prefab',
   'plugin:codegraphy.unity:symbol:game-object',
   'plugin:codegraphy.unity:symbol:component',
 ] as const;

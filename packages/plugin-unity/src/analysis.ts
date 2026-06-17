@@ -58,7 +58,6 @@ export function analyzeUnitySerializedFile(
   }
 
   const relativeFilePath = toWorkspaceRelativePath(filePath, options.workspaceRoot);
-  const containerSymbol = createContainerSymbol(filePath, relativeFilePath);
   const documents = parseUnityDocuments(content);
   const gameObjects = documents
     .filter((document) => document.className === 'GameObject')
@@ -68,7 +67,6 @@ export function analyzeUnitySerializedFile(
     .map((document) => createComponentSymbol(filePath, relativeFilePath, document, options));
 
   const symbols = [
-    ...(containerSymbol ? [containerSymbol.symbol] : []),
     ...gameObjects.map(({ symbol }) => symbol),
     ...componentSymbols.map(({ symbol }) => symbol),
   ];
@@ -78,7 +76,6 @@ export function analyzeUnitySerializedFile(
     relations: createUnityRelations(
       filePath,
       documents,
-      containerSymbol,
       gameObjects,
       componentSymbols,
       options,
@@ -207,33 +204,6 @@ function cleanUnityScalar(value: string): string {
   return trimmed;
 }
 
-function createContainerSymbol(
-  filePath: string,
-  relativeFilePath: string,
-): UnitySymbolRecord | null {
-  const kind = getContainerKind(filePath);
-  if (!kind) {
-    return null;
-  }
-
-  const name = basenameWithoutExtension(relativeFilePath);
-  return {
-    symbol: {
-      id: `${relativeFilePath}#unity:${kind}`,
-      name,
-      kind,
-      filePath,
-      signature: kind === 'scene' ? 'Unity Scene' : 'Unity Prefab',
-      range: { startLine: 1, startColumn: 1, endLine: 1 },
-      metadata: {
-        language: UNITY_LANGUAGE,
-        source: UNITY_PLUGIN_ID,
-        pluginKind: kind,
-      },
-    },
-  };
-}
-
 function createGameObjectSymbol(
   filePath: string,
   relativeFilePath: string,
@@ -295,7 +265,6 @@ function createComponentSymbol(
 function createUnityRelations(
   filePath: string,
   documents: readonly UnityDocument[],
-  containerSymbol: UnitySymbolRecord | null,
   gameObjects: readonly UnitySymbolRecord[],
   componentSymbols: readonly UnitySymbolRecord[],
   options: AnalyzeUnitySerializedFileOptions,
@@ -312,7 +281,7 @@ function createUnityRelations(
   );
 
   return [
-    ...createContainerRelations(filePath, containerSymbol, gameObjects),
+    ...createContainerRelations(filePath, gameObjects),
     ...createComponentRelations(filePath, componentSymbols, gameObjectByFileId, options),
     ...createDocumentReferenceRelations(filePath, documents, componentFileIds, options),
   ];
@@ -320,15 +289,10 @@ function createUnityRelations(
 
 function createContainerRelations(
   filePath: string,
-  containerSymbol: UnitySymbolRecord | null,
   gameObjects: readonly UnitySymbolRecord[],
 ): IAnalysisRelation[] {
-  if (!containerSymbol) {
-    return [];
-  }
-
   return gameObjects.map((gameObject) => (
-    createContainsRelation(filePath, containerSymbol.symbol.id, gameObject.symbol.id)
+    createFileContainsRelation(filePath, gameObject.symbol.id)
   ));
 }
 
@@ -539,15 +503,21 @@ function createContainsRelation(
   };
 }
 
-function getContainerKind(filePath: string): 'scene' | 'prefab' | null {
-  const extension = path.extname(filePath);
-  if (extension === '.unity') {
-    return 'scene';
-  }
-  if (extension === '.prefab') {
-    return 'prefab';
-  }
-  return null;
+function createFileContainsRelation(
+  filePath: string,
+  toSymbolId: string,
+): IAnalysisRelation {
+  return {
+    kind: 'contains',
+    sourceId: CONTAINMENT_SOURCE_ID,
+    fromFilePath: filePath,
+    toFilePath: filePath,
+    toSymbolId,
+    metadata: {
+      language: UNITY_LANGUAGE,
+      source: UNITY_PLUGIN_ID,
+    },
+  };
 }
 
 function isComponentDocument(document: UnityDocument): boolean {
