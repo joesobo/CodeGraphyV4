@@ -3,6 +3,7 @@ import {
   BASELINE_ANALYSIS_CACHE_TIER,
   SYMBOLS_ANALYSIS_CACHE_TIER,
   createWorkspaceIndexAnalysisCacheTiers,
+  projectAnalysisForCacheTiers,
 } from '../../../src/analysis/fileAnalysis/cacheTiers';
 
 describe('analysis/fileAnalysis/cacheTiers', () => {
@@ -71,6 +72,29 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
       active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
       completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
       required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+    });
+  });
+
+  it('does not downgrade same-file symbol containment into a file self-edge', () => {
+    expect(projectAnalysisForCacheTiers({
+      filePath: '/workspace/Assets/Prefabs/Player.prefab',
+      symbols: [{
+        id: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+        filePath: '/workspace/Assets/Prefabs/Player.prefab',
+        kind: 'game-object',
+        name: 'Player',
+      }],
+      relations: [{
+        kind: 'contains',
+        sourceId: 'unity-containment',
+        fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+        toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+        toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+      }],
+    }, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
+      filePath: '/workspace/Assets/Prefabs/Player.prefab',
+      symbols: [],
+      relations: [],
     });
   });
 });
