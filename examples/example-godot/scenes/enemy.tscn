@@ -1,7 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://enemy-scene"]
+[gd_scene load_steps=5 format=3 uid="uid://enemy-scene"]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://textures/player_card.png" id="2_card"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3_health"]
 [ext_resource type="Script" path="res://scripts/ui/health_bar.gd" id="4_health_bar"]
 
@@ -13,10 +12,10 @@ script = ExtResource("1_script")
 health_component = NodePath("HealthComponent")
 health_bar = NodePath("HealthBar")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(1, 0.231373, 0.188235, 1)
+[node name="BodyVisual" type="Polygon2D" parent="."]
 position = Vector2(0, -16)
-texture = ExtResource("2_card")
+color = Color(1, 0.231373, 0.188235, 1)
+polygon = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -16)

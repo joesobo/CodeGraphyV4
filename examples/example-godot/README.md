@@ -71,17 +71,28 @@ This example defines the Godot graph contract the plugin should grow into. Gener
 
 Measured current parser/plugin output for the generic surface:
 
-- 24 displayed file nodes, including `.gitignore` and `.vscode/settings.json`; `.codegraphy/settings.json` remains workspace settings, not a graph node
+- 23 displayed file nodes, including `.gitignore` and `.vscode/settings.json`; `.codegraphy/settings.json` remains workspace settings, not a graph node
 - 20 Godot-supported files: `.gd`, `.godot`, `.tscn`, and `.tres`
-- 27 `Loads` edges from project settings, text-resource `ext_resource` entries, and GDScript `preload`
+- 25 `Loads` edges from project settings, text-resource `ext_resource` entries, and GDScript `preload`
 - 23 parser-emitted `References` edges from `class_name` type usage, which project to 12 visible file-to-file reference edges
 - 1 `Calls` edge from `MathHelpers.move_toward_angle`
 - 2 `Inherits` edges from `Enemy` and `Player` to `Entity`
 - 12 `Godot class_name` symbols
 - 48 `Function` symbols
-- 77 parser-emitted `Variable` symbols, which collapse to 74 unique visible `Variable` node ids
-- 2 `Constant` symbols
+- 76 parser-emitted `Variable` symbols, which collapse to 73 unique visible `Variable` node ids
+- 3 `Constant` symbols
 - 1 `Enum` symbol
+
+Expected upgraded Godot-owned graph surface:
+
+- 5 `Scene` nodes
+- 1 `Resource` node
+- 1 `Autoload` node
+- 30 `Scene Node` nodes
+- 8 `Signal` nodes
+- 23 `Exported Property` nodes
+- 80 `Contains` edges when the Godot-owned node rows plus `Godot class_name` are visible together
+- 5 `Signal Connections` edges from the example's `connect(...)` calls
 
 Expected plugin-owned Godot coverage:
 

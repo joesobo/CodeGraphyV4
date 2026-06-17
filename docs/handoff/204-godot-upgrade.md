@@ -55,17 +55,28 @@ The integrated example remains `examples/example-godot`. It demonstrates:
 
 Measured current parser/plugin output after the Godot-developer example update:
 
-- 24 displayed file nodes.
+- 23 displayed file nodes.
 - 20 Godot-supported files.
-- 27 `Loads` edges.
+- 25 `Loads` edges.
 - 23 parser-emitted `References` edges, which project to 12 visible file-to-file reference edges.
 - 1 `Calls` edge.
 - 2 `Inherits` edges.
 - 12 `Godot class_name` symbols.
 - 48 `Function` symbols.
-- 77 parser-emitted `Variable` symbols, which collapse to 74 unique visible `Variable` node ids.
-- 2 `Constant` symbols.
+- 76 parser-emitted `Variable` symbols, which collapse to 73 unique visible `Variable` node ids.
+- 3 `Constant` symbols.
 - 1 `Enum` symbol.
+
+Acceptance-owned Godot upgrade counts now also require the future plugin surface to expose:
+
+- 5 `Scene` nodes.
+- 1 `Resource` node.
+- 1 `Autoload` node.
+- 30 `Scene Node` nodes.
+- 8 `Signal` nodes.
+- 23 `Exported Property` nodes.
+- 80 `Contains` edges when the Godot-owned node rows plus `Godot class_name` are visible together.
+- 5 `Signal Connections` edges from the example's `connect(...)` calls.
 
 ## Acceptance Gate
 
