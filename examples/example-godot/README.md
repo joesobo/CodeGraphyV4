@@ -11,7 +11,9 @@ Project shape:
 - `scenes/player.tscn`, `scenes/enemy.tscn`, and `scenes/ui/game_ui.tscn` make the project feel like a real Godot workspace instead of isolated fixture files
 - `resources/player_loadout.tres` is a real data resource backed by `scripts/data/player_loadout.gd`
 - `scripts/enemy.gd` extends `scripts/base/entity.gd`, giving the Godot plugin a file-backed inheritance edge distinct from built-in engine class inheritance
-- `scripts/game_manager.gd` declares `GameState`, exported state, signals, and spawn methods so the graph can demonstrate GDScript enum, variable, function, and `class_name` symbols in one project
+- `scripts/player.gd` composes a `HealthComponent`, emits `loadout_opened`, caches `%Sprite2D`, and exposes a typed exported component slot
+- `scripts/game_manager.gd` declares `GameState`, signals, and spawn methods so the graph can demonstrate GDScript enum, variable, function, signal, and `class_name` symbols in one project
+- `scripts/ui/game_ui.gd` backs the UI scene and references the `LoadoutPreview` scene node by unique name
 
 Suggested Depth Mode check:
 
@@ -64,18 +66,28 @@ Expected behavior:
 
 ## Supported Godot Graph Contract
 
-This example intentionally stays inside the parser-backed Godot plugin surface. The plugin can produce generic CodeGraphy node types for `Function`, `Enum`, `Constant`, `Variable`, and plugin-owned `Godot class_name` declarations from GDScript. It can produce generic edge types for `Loads`, `Inherits`, `References`, and `Calls` from `project.godot`, `.tscn`, `.tres`, and `.gd` files.
+This example defines the Godot graph contract the plugin should grow into. Generic CodeGraphy concepts should be used for `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Godot-specific concepts should be plugin-owned rows: `Godot Scene`, `Godot Resource`, `Godot Autoload`, `Godot Scene Node`, `Godot class_name`, `Godot Signal`, `Godot Exported Property`, and `Godot Signal Connections`.
 
-Measured parser/plugin output for this example:
+Measured current parser/plugin output for the generic surface:
 
-- 19 displayed file nodes, including `.gitignore` and `.vscode/settings.json`; `.codegraphy/settings.json` remains workspace settings, not a graph node
-- 15 Godot-supported files: `.gd`, `.godot`, `.tscn`, and `.tres`
-- 22 `Loads` edges from project settings, text-resource `ext_resource` entries, and GDScript `preload`
-- 11 `References` edges from `class_name` type usage
+- 21 displayed file nodes, including `.gitignore` and `.vscode/settings.json`; `.codegraphy/settings.json` remains workspace settings, not a graph node
+- 17 Godot-supported files: `.gd`, `.godot`, `.tscn`, and `.tres`
+- 24 `Loads` edges from project settings, text-resource `ext_resource` entries, and GDScript `preload`
+- 17 parser-emitted `References` edges from `class_name` type usage, which project to 11 visible file-to-file reference edges
 - 1 `Calls` edge from `MathHelpers.move_toward_angle`
 - 1 `Inherits` edge from `Enemy` to `Entity`
-- 7 `Godot class_name` symbols
-- 25 `Function` symbols
-- 37 parser-emitted `Variable` symbols, which collapse to 36 unique visible `Variable` node ids
+- 9 `Godot class_name` symbols
+- 33 `Function` symbols
+- 44 parser-emitted `Variable` symbols, which collapse to 43 unique visible `Variable` node ids
 - 2 `Constant` symbols
 - 1 `Enum` symbol
+
+Expected plugin-owned Godot coverage:
+
+- `.tscn` files produce `Godot Scene` nodes and `Godot Scene Node` children for root and nested scene nodes.
+- `.tres` files produce `Godot Resource` nodes.
+- `project.godot` `[autoload]` entries produce `Godot Autoload` nodes.
+- `signal` declarations produce `Godot Signal` nodes.
+- `@export` declarations produce `Godot Exported Property` nodes.
+- Scene node ownership, script ownership, signal ownership, and exported property ownership use `Contains`.
+- Signal `connect(...)`, scene `[connection]`, and signal emit paths use `Godot Signal Connections`.
