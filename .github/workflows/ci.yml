@@ -214,7 +214,7 @@ jobs:
         run: pnpm run check:vsix-native-artifacts
 
       - name: Compile VS Code smoke tests
-        run: pnpm --filter @codegraphy-dev/extension exec tsc -p src/e2e/tsconfig.json
+        run: pnpm --filter @codegraphy-dev/extension run build:vscode
 
       - name: Smoke installed VSIX activation
         if: runner.os != 'Linux'
