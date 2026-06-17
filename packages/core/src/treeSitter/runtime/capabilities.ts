@@ -10,7 +10,10 @@ type TreeSitterCapabilityLanguageKind = TreeSitterLanguageKind | 'pascal';
 
 interface TreeSitterCapabilityContext {
   hasCSource: boolean;
+  hasMarkdownNotes: boolean;
   hasObjectiveCSource: boolean;
+  hasSvelteSource: boolean;
+  hasVueSource: boolean;
 }
 
 const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
@@ -33,7 +36,7 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   kotlin: ['import', 'reference', 'call', 'inherit'],
   lua: ['import', 'reference', 'call'],
   objectiveC: ['import', 'reference', 'call', 'inherit'],
-  pascal: ['import', 'reference', 'call', 'inherit'],
+  pascal: ['import', 'reference', 'call', 'inherit', 'contains', 'overrides'],
   php: ['import', 'reference', 'call', 'inherit'],
   python: ['import', 'reference', 'call', 'inherit'],
   ruby: ['import', 'reference', 'call', 'inherit'],
@@ -137,9 +140,13 @@ export function listTreeSitterNodeTypeCapabilities(
 
 function createTreeSitterCapabilityContext(filePaths: readonly string[]): TreeSitterCapabilityContext {
   const extensions = new Set(filePaths.map(getFileExtension));
+  const markdownFileCount = filePaths.filter(filePath => /\.(?:md|mdx)$/i.test(filePath)).length;
   return {
     hasCSource: extensions.has('.c'),
+    hasMarkdownNotes: markdownFileCount > 1,
     hasObjectiveCSource: extensions.has('.m') || extensions.has('.mm'),
+    hasSvelteSource: extensions.has('.svelte'),
+    hasVueSource: extensions.has('.vue'),
   };
 }
 
@@ -153,9 +160,17 @@ function readTreeSitterLanguageCapabilities(
   }
 
   const languageKind = getTreeSitterCapabilityLanguageKind(filePath);
+  if ((languageKind === 'typescript' || languageKind === 'tsx') && shouldUseDocumentPluginTypeScriptEdgeCapabilities(context)) {
+    return ['import', 'reference', 'call', 'type-import', 'inherit'];
+  }
+
   return languageKind
     ? TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE[languageKind]
     : [];
+}
+
+function shouldUseDocumentPluginTypeScriptEdgeCapabilities(context: TreeSitterCapabilityContext): boolean {
+  return context.hasMarkdownNotes || context.hasSvelteSource || context.hasVueSource;
 }
 
 function readTreeSitterLanguageNodeTypeCapabilities(

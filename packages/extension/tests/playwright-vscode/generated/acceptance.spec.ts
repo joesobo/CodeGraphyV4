@@ -4666,10 +4666,10 @@ test.describe('Graph Navigation', () => {
       });
 
       // tests/acceptance/specs/graph-navigation.md:12
-      await test.step('Then all 15 graph nodes are visible in the graph viewport', async () => {
-        await runAcceptanceStep(context, 'all 15 graph nodes are visible in the graph viewport', {
+      await test.step('Then all 19 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 19 graph nodes are visible in the graph viewport', {
           keyword: 'Then',
-          text: 'all 15 graph nodes are visible in the graph viewport',
+          text: 'all 19 graph nodes are visible in the graph viewport',
           sourcePath: 'tests/acceptance/specs/graph-navigation.md',
           line: 12
         });
@@ -4726,10 +4726,10 @@ test.describe('Graph Navigation', () => {
       });
 
       // tests/acceptance/specs/graph-navigation.md:20
-      await test.step('Then all 15 graph nodes are visible in the graph viewport', async () => {
-        await runAcceptanceStep(context, 'all 15 graph nodes are visible in the graph viewport', {
+      await test.step('Then all 19 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 19 graph nodes are visible in the graph viewport', {
           keyword: 'Then',
-          text: 'all 15 graph nodes are visible in the graph viewport',
+          text: 'all 19 graph nodes are visible in the graph viewport',
           sourcePath: 'tests/acceptance/specs/graph-navigation.md',
           line: 20
         });
@@ -7253,10 +7253,10 @@ test.describe('Graph Scope Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:60
-      await test.step('Then I can see there are 14 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 14 nodes and 0 connections', {
+      await test.step('Then I can see there are 13 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 14 nodes and 0 connections',
+          text: 'I can see there are 13 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 60
         });
@@ -9283,10 +9283,10 @@ test.describe('Graph Scope Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-node-types.md:297
-      await test.step('Then I can see there are 26 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 26 nodes and 0 connections', {
+      await test.step('Then I can see there are 26 nodes and 7 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 26 nodes and 7 connections', {
           keyword: 'Then',
-          text: 'I can see there are 26 nodes and 0 connections',
+          text: 'I can see there are 26 nodes and 7 connections',
           sourcePath: 'tests/acceptance/specs/graph-scope-node-types.md',
           line: 297
         });
@@ -9563,10 +9563,10 @@ test.describe('Graph View', () => {
       });
 
       // tests/acceptance/specs/graph-view.md:16
-      await test.step('And the top right of the graph says "15 nodes" and "8 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "15 nodes" and "8 connections"', {
+      await test.step('And the top right of the graph says "19 nodes" and "13 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "19 nodes" and "13 connections"', {
           keyword: 'And',
-          text: 'the top right of the graph says "15 nodes" and "8 connections"',
+          text: 'the top right of the graph says "19 nodes" and "13 connections"',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 16
         });
@@ -11953,10 +11953,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are Imports, References, Calls, Inherits, Contains, Overrides', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits, Contains, Overrides', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are Imports, References, Calls, Inherits, Contains, Overrides',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 15
         });

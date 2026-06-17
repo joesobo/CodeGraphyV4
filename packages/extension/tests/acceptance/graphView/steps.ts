@@ -186,7 +186,9 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
         includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? true : undefined,
         includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
           || step.sourcePath.endsWith('/graph-navigation.md'),
-        pluginPackages: ['@codegraphy-dev/plugin-markdown'],
+        pluginPackages: step.sourcePath.endsWith('/graph-scope-edge-types.md')
+          ? ['@codegraphy-dev/plugin-markdown', '@codegraphy-dev/plugin-typescript']
+          : ['@codegraphy-dev/plugin-markdown'],
       });
   },
 
@@ -842,7 +844,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click and drag on the background I can select multiple nodes at once$/, async (context) => {
     await clickNode(context, TARGET_NODE);
-    await modifierClickNode(context, 'src/utils.ts');
+    await modifierClickNode(context, 'src/palette.ts');
   }),
 
   step(/^I see all the selected nodes outlined in white$/, async (context) => {
@@ -1021,7 +1023,7 @@ async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise
 
 async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
   return await readGraphDebugZoom(requireGraphFrame(context))
-    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/utils.ts');
+    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/palette.ts');
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {

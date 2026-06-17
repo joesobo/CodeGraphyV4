@@ -62,6 +62,14 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   });
 
   it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'inherit',
+      'contains',
+      'overrides',
+    ]);
     expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
       'symbol:function',
       'symbol:class',
@@ -118,6 +126,42 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     for (const [filePath, expectedCapabilities] of Object.entries(expectedCapabilitiesByFile)) {
       expect(listTreeSitterNodeTypeCapabilities([filePath]), filePath).toEqual(expectedCapabilities);
     }
+  });
+
+  it('keeps TypeScript document-plugin workspaces on relationship edges without symbol containment', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'README.md',
+      'notes/Home.md',
+      'src/commented.ts',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+    ]);
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.ts',
+      'src/App.vue',
+      'src/components/UserCard.vue',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+    ]);
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.ts',
+      'src/App.svelte',
+      'src/components/UserCard.svelte',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+    ]);
   });
 
   it('advertises C++ includes without advertising imports for C++ source and header workspaces', () => {
