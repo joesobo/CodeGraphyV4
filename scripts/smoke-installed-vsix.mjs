@@ -75,6 +75,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     `--user-data-dir=${userDataDir}`,
     `--extensions-dir=${extensionsDir}`,
   ];
+  const originalHome = process.env.HOME;
 
   try {
     await writeHarnessExtension(harnessPath);
@@ -92,6 +93,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       '--force',
     ]);
 
+    process.env.HOME = homeDir;
     await runTests({
       extensionDevelopmentPath: harnessPath,
       extensionTestsPath,
@@ -116,6 +118,11 @@ async function smokeInstalledVsix({ target, vsixPath }) {
 
     console.log(`${path.basename(vsixPath)} installed and activated in VS Code on ${target}`);
   } finally {
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
     rmSync(profilePath, { recursive: true, force: true });
   }
 }
