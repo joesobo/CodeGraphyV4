@@ -8,6 +8,7 @@ import {
   SYMBOLS_ANALYSIS_CACHE_TIER,
   createPluginAnalysisCacheTier,
 } from '../../../src/extension/pipeline/fileAnalysis';
+import * as bootstrapModule from '../../../src/extension/pipeline/plugins/bootstrap';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -128,6 +129,36 @@ describe('WorkspacePipeline adapters', () => {
     await analyzer.initialize();
 
     expect(initializeAllSpy).not.toHaveBeenCalled();
+  });
+
+  it('passes CODEGRAPHY_HOME to package plugin initialization', async () => {
+    const originalCodeGraphyHome = process.env.CODEGRAPHY_HOME;
+    process.env.CODEGRAPHY_HOME = '/tmp/codegraphy-extension-home';
+    const initializeSpy = vi
+      .spyOn(bootstrapModule, 'initializeWorkspacePipeline')
+      .mockResolvedValue();
+
+    try {
+      const analyzer = new WorkspacePipeline(
+        createContext() as unknown as vscode.ExtensionContext
+      );
+
+      await analyzer.initialize();
+
+      expect(initializeSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          userHomeDir: '/tmp/codegraphy-extension-home',
+        }),
+      );
+    } finally {
+      initializeSpy.mockRestore();
+      if (originalCodeGraphyHome === undefined) {
+        delete process.env.CODEGRAPHY_HOME;
+      } else {
+        process.env.CODEGRAPHY_HOME = originalCodeGraphyHome;
+      }
+    }
   });
 
   it('uses registry file lookup when calculating plugin statuses', () => {

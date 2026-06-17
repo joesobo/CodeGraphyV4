@@ -77,6 +77,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
   ];
   const originalHome = process.env.HOME;
   const originalUserProfile = process.env.USERPROFILE;
+  const originalCodeGraphyHome = process.env.CODEGRAPHY_HOME;
 
   try {
     const { e2eScenarios, prepareScenarioWorkspacePlugins } = await loadE2ESmokeSetup();
@@ -88,6 +89,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir, false);
     process.env.HOME = homeDir;
     process.env.USERPROFILE = homeDir;
+    process.env.CODEGRAPHY_HOME = homeDir;
 
     await writeHarnessExtension(harnessPath);
     await runVSCodeCommand([
@@ -103,6 +105,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       extensionTestsEnv: {
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
         CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
+        CODEGRAPHY_HOME: homeDir,
         HOME: homeDir,
         USERPROFILE: homeDir,
       },
@@ -131,6 +134,11 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       delete process.env.USERPROFILE;
     } else {
       process.env.USERPROFILE = originalUserProfile;
+    }
+    if (originalCodeGraphyHome === undefined) {
+      delete process.env.CODEGRAPHY_HOME;
+    } else {
+      process.env.CODEGRAPHY_HOME = originalCodeGraphyHome;
     }
     rmSync(profilePath, { recursive: true, force: true });
   }
