@@ -71,6 +71,7 @@ function createIndexResult(input: {
     cache: input.cache,
     files: input.discoveryResult.files,
     directories: input.directories,
+    gitIgnoredPaths: input.discoveryResult.gitIgnoredPaths ?? [],
     limitReached: input.discoveryResult.limitReached,
     totalFound: input.discoveryResult.totalFound ?? input.discoveryResult.files.length,
   };
@@ -110,6 +111,7 @@ function buildWorkspaceEngineGraph(
     cacheFiles: state.cache.files,
     churnCounts: {},
     directoryPaths: state.discoveredDirectories,
+    gitIgnoredPaths: state.discoveryResult.gitIgnoredPaths ?? [],
     disabledPlugins,
     fileAnalysis: state.fileAnalysis,
     getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),

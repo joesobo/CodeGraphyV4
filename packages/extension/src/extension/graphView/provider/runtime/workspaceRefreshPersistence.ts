@@ -5,6 +5,7 @@ import {
 
 export interface PendingWorkspaceRefreshState {
   filePaths: Set<string>;
+  gitignoreRefresh: boolean;
   logMessage: string;
 }
 
@@ -37,6 +38,10 @@ export function loadPersistedWorkspaceRefresh(
 
   return {
     filePaths: new Set(meta.pendingChangedFiles),
+    gitignoreRefresh: meta.pendingChangedFiles.some(filePath =>
+      filePath.replace(/\\/g, '/').endsWith('/.gitignore')
+      || filePath.replace(/\\/g, '/') === '.gitignore'
+    ),
     logMessage: '[CodeGraphy] Applying pending workspace changes',
   };
 }

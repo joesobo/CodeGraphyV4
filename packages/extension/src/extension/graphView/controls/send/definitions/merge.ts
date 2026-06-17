@@ -141,10 +141,13 @@ function collectAvailableEdgeKinds(
   edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
 ): Set<string> {
   const edgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
+  const hasCoreEdgeTypeCapabilities = edgeTypeCapabilities?.some(edgeType => CORE_GRAPH_EDGE_TYPE_IDS.has(edgeType)) ?? false;
 
   for (const edge of graphData.edges) {
     if (
       !edgeTypeCapabilities
+      || edgeTypeCapabilities.length === 0
+      || !hasCoreEdgeTypeCapabilities
       || edgeTypeCapabilities.includes(edge.kind)
       || !CORE_GRAPH_EDGE_TYPE_IDS.has(edge.kind)
     ) {
@@ -153,7 +156,7 @@ function collectAvailableEdgeKinds(
   }
 
   if (graphData.nodes.some(isFileNode)) {
-    if (shouldAddLegacyReferenceEdgeKind(edgeTypeCapabilities, edgeKinds)) {
+    if (shouldAddLegacyReferenceEdgeKind(edgeKinds)) {
       edgeKinds.add('reference');
     }
     edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
@@ -177,16 +180,14 @@ function collectCapabilityEdgeKinds(
 }
 
 function shouldAddLegacyReferenceEdgeKind(
-  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
   edgeKinds: ReadonlySet<string>,
 ): boolean {
-  const hasExplicitNonReferenceShape = edgeKinds.has('overrides') || edgeKinds.has('type-import');
+  const hasExplicitNonReferenceShape = edgeKinds.has('overrides')
+    || edgeKinds.has('type')
+    || edgeKinds.has('type-import');
   if (hasExplicitNonReferenceShape) {
     return false;
   }
 
-  return !edgeTypeCapabilities
-    || edgeTypeCapabilities.length === 0
-    || edgeTypeCapabilities.includes('reference')
-    || (edgeTypeCapabilities.includes('include') && !edgeTypeCapabilities.includes('overrides'));
+  return true;
 }

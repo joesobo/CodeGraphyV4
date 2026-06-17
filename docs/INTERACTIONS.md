@@ -15,6 +15,8 @@
 | Hover cursor | Pointer cursor |
 | `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
 
+File and Folder Nodes that Git reports as ignored remain visible in the graph with muted styling, similar to VS Code Explorer. Tracked files and mixed folders are not dimmed just because their path matches text in `.gitignore`; the graph follows Git ignored state rather than raw ignore patterns.
+
 ## Canvas
 
 | Action | Effect |
