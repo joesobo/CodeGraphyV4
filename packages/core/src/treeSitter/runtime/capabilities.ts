@@ -40,8 +40,8 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   rust: ['import', 'call'],
   scala: ['import', 'call', 'inherit'],
   swift: ['import', 'reference', 'call', 'inherit'],
-  tsx: ['import', 'type-import', 'call', 'inherit'],
-  typescript: ['import', 'type-import', 'call', 'inherit'],
+  tsx: ['import', 'type-import', 'call', 'inherit', 'contains'],
+  typescript: ['import', 'type-import', 'call', 'inherit', 'contains'],
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly GraphEdgeKind[]>;
 
 const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {

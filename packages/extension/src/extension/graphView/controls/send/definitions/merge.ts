@@ -21,6 +21,7 @@ import type {
 } from './contracts';
 
 const STRUCTURAL_NODE_TYPE_IDS = new Set(['file', 'folder', 'package']);
+const CORE_GRAPH_EDGE_TYPE_IDS = new Set(CORE_GRAPH_EDGE_TYPES.map(edgeType => edgeType.id));
 
 export function mergeNodeTypes(
   _graphData: IGraphData,
@@ -122,7 +123,7 @@ export function mergeEdgeTypes(
   }
 
   for (const edge of graphData.edges) {
-    if (!definitions.has(edge.kind)) {
+    if (availableEdgeKinds.has(edge.kind) && !definitions.has(edge.kind)) {
       definitions.set(edge.kind, {
         id: edge.kind,
         label: prettifyIdentifier(edge.kind),
@@ -142,7 +143,13 @@ function collectAvailableEdgeKinds(
   const edgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
 
   for (const edge of graphData.edges) {
-    edgeKinds.add(edge.kind);
+    if (
+      !edgeTypeCapabilities
+      || edgeTypeCapabilities.includes(edge.kind)
+      || !CORE_GRAPH_EDGE_TYPE_IDS.has(edge.kind)
+    ) {
+      edgeKinds.add(edge.kind);
+    }
   }
 
   if (graphData.nodes.some(isFileNode)) {
@@ -181,5 +188,5 @@ function shouldAddLegacyReferenceEdgeKind(
   return !edgeTypeCapabilities
     || edgeTypeCapabilities.length === 0
     || edgeTypeCapabilities.includes('reference')
-    || !edgeTypeCapabilities.includes('overrides');
+    || (edgeTypeCapabilities.includes('include') && !edgeTypeCapabilities.includes('overrides'));
 }

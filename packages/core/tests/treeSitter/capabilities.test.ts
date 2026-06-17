@@ -25,12 +25,13 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     }
   });
 
-  it('advertises TypeScript inheritance because the language supports it even without inherit evidence', () => {
+  it('advertises TypeScript graph scope edges supported by the current analyzer', () => {
     expect(listTreeSitterEdgeTypeCapabilities(['src/commented.ts'])).toEqual([
       'import',
       'type-import',
       'call',
       'inherit',
+      'contains',
     ]);
   });
 

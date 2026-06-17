@@ -204,6 +204,29 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     expect(definitions.map((definition) => definition.id)).toEqual(['call']);
   });
 
+  it('does not infer graph edge rows outside declared capabilities', () => {
+    const definitions = mergeEdgeTypes(
+      {
+        nodes: [{ id: 'src/app.ts', nodeType: 'file' }],
+        edges: [
+          { id: 'a-b', kind: 'import' },
+          { id: 'b-c', kind: 'reference' },
+        ],
+      } as never,
+      [],
+      ['import', 'type-import', 'call', 'inherit', 'contains'],
+    );
+
+    expect(definitions.map((definition) => definition.id)).toEqual([
+      'import',
+      'call',
+      'type-import',
+      'inherit',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'contains',
+    ]);
+  });
+
   it('marks inferred overrides edges as requiring inherits visibility', () => {
     const definitions = mergeEdgeTypes(
       {
@@ -260,11 +283,11 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     );
 
     expect(definitions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'import' }),
       expect.objectContaining({ id: 'reference' }),
       expect.objectContaining({ id: STRUCTURAL_NESTS_EDGE_KIND }),
       expect.objectContaining({ id: 'pluginEdge' }),
     ]));
+    expect(definitions.some((definition) => definition.id === 'import')).toBe(false);
   });
 
   it('adds legacy reference when edge capabilities are omitted for file graphs', () => {
