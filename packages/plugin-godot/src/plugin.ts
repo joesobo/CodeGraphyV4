@@ -18,6 +18,7 @@ import {
   registerGodotFileMetadata,
 } from './plugin/metadata';
 import { detectRelations } from './plugin/relations';
+import { GodotSignalConnectionIndex } from './plugin/signalConnections';
 import { extractSymbols } from './plugin/symbol/extract';
 import {
   GODOT_SYMBOL_PLUGIN_KIND,
@@ -93,6 +94,7 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
 
   private projectRoots = new Set<string>();
   private resolver: GDScriptPathResolver | null = null;
+  private signalConnections = new GodotSignalConnectionIndex();
 
   async initialize(workspaceRoot: string): Promise<void> {
     this.resolver = new GDScriptPathResolver(workspaceRoot);
@@ -111,6 +113,8 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
     for (const { relativePath, content } of files) {
       registerGodotFileMetadata(this.resolver, relativePath, content);
     }
+
+    this.signalConnections.replaceWorkspaceFiles(files, workspaceRoot, this.resolver);
 
     console.log(`[CodeGraphy] GDScript class_name map: ${this.resolver.getClassNameMap().size} entries, ${this.resolver.getFileNameMap().size} files indexed`);
   }
@@ -135,6 +139,8 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
       requiresTextResourceReanalysis ||= changes.resourceUidChanged;
     }
 
+    this.signalConnections.replaceFiles(files, workspaceRoot, resolver);
+
     return readChangedAnalysisTargets(
       resolver,
       requiresBroadReanalysis,
@@ -150,7 +156,10 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   ) {
     const resolver = this.getResolver(workspaceRoot);
     const context = buildAnalysisContext(resolver, filePath, workspaceRoot, this.projectRoots);
-    const relations = detectRelations(content, filePath, context);
+    const relations = [
+      ...detectRelations(content, filePath, context),
+      ...this.signalConnections.getRelations(context.relativeFilePath),
+    ];
     const symbols = extractSymbols(content, filePath, context.relativeFilePath);
 
     return {
@@ -162,6 +171,7 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
 
   onUnload(): void {
     this.resolver?.clearClassNames();
+    this.signalConnections.clear();
     this.resolver = null;
     this.projectRoots = new Set();
   }
