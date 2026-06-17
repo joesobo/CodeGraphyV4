@@ -9,6 +9,15 @@ import { scheduleWorkspaceRefresh } from './scheduler';
 type WorkspaceRenameFiles = vscode.FileRenameEvent['files'];
 type WorkspaceFileEventName = 'workspace:fileCreated' | 'workspace:fileDeleted';
 
+function isGitignorePath(filePath: string): boolean {
+  return filePath.replace(/\\/g, '/').endsWith('/.gitignore')
+    || filePath.replace(/\\/g, '/') === '.gitignore';
+}
+
+function includesGitignorePath(filePaths: readonly string[]): boolean {
+  return filePaths.some(isGitignorePath);
+}
+
 function refreshWorkspacePaths(
   provider: GraphViewProvider,
   logMessage: string,
@@ -19,7 +28,9 @@ function refreshWorkspacePaths(
   );
 
   if (refreshPaths.length > 0) {
-    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths);
+    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, 500, {
+      gitignoreRefresh: includesGitignorePath(refreshPaths),
+    });
   }
 
   return refreshPaths;
@@ -33,12 +44,30 @@ export function refreshWorkspaceSavedDocument(
     return;
   }
 
-  scheduleWorkspaceRefresh(
+  refreshWorkspaceChangedPath(
     provider,
     '[CodeGraphy] File saved, refreshing graph',
-    [document.uri.fsPath],
+    document.uri.fsPath,
   );
-  provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
+}
+
+export function refreshWorkspaceChangedPath(
+  provider: GraphViewProvider,
+  logMessage: string,
+  filePath: string,
+): void {
+  if (shouldIgnoreWorkspaceFileWatcherRefresh(filePath)) {
+    return;
+  }
+
+  scheduleWorkspaceRefresh(
+    provider,
+    logMessage,
+    [filePath],
+    500,
+    { gitignoreRefresh: isGitignorePath(filePath) },
+  );
+  provider.emitEvent('workspace:fileChanged', { filePath });
 }
 
 export function refreshWorkspaceFileOperation(
