@@ -33,6 +33,7 @@ describe('shared/graphControls/defaults/maps', () => {
       'plugin:codegraphy.gdscript:symbol:scene-node': false,
       'plugin:codegraphy.gdscript:symbol:signal': false,
       variable: false,
+      'variable:plain': false,
       'symbol:constant': false,
       'symbol:global': false,
       'symbol:field': false,

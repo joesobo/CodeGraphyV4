@@ -90,6 +90,7 @@ const CORE_NODE_TYPE_LABELS = [
   'Scene Node',
   'Signal',
   'Variable',
+  'Plain Variable',
   'Constant',
   'Global',
   'Field',
@@ -101,6 +102,11 @@ const CORE_NODE_TYPE_LABELS = [
 
 const REQUIRED_CORE_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package']);
 const SUPPORT_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package', 'Symbol', 'Variable']);
+const ROOT_SUPPORT_NODE_TYPE_LABELS = new Set(['File', 'Folder', 'Package', 'Symbol']);
+const GODOT_AVAILABLE_NODE_TYPE_SUPPORT_LABELS = new Set([
+  ...ROOT_SUPPORT_NODE_TYPE_LABELS,
+  'Plain Variable',
+]);
 
 const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Alias: 'Symbol',
@@ -116,6 +122,7 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Method: 'Symbol',
   Namespace: 'Symbol',
   Parameter: 'Variable',
+  'Plain Variable': 'Variable',
   Prototype: 'Symbol',
   Struct: 'Symbol',
   Template: 'Symbol',
@@ -149,6 +156,8 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Autoload: ['autoload'],
   'Scene Node': ['scene-node'],
   Signal: ['signal'],
+  Variable: ['variable'],
+  'Plain Variable': ['variable'],
   'Exported Property': ['variable'],
   Template: ['template'],
 };
@@ -820,15 +829,19 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^the available Godot node types are (.+)$/, async (context, _step, match) => {
     const expectedNodeTypes = parseScopeTypeList(requireValue(match[1], 'Expected Godot node type list'));
+    await openGraphScopeSection(context, 'Node Types');
     const frame = requireGraphFrame(context);
 
-    await expect.poll(async () => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
+    const visibleNodeTypes = async (): Promise<string[]> => frame.locator('[data-scope-row]').evaluateAll((rows, supportLabels) =>
       rows
         .map((row) => row.getAttribute('data-scope-row'))
         .filter((label): label is string => Boolean(label))
         .filter((label) => !(supportLabels as string[]).includes(label)),
-      Array.from(SUPPORT_NODE_TYPE_LABELS),
-    )).toEqual(expectedNodeTypes);
+      Array.from(GODOT_AVAILABLE_NODE_TYPE_SUPPORT_LABELS),
+    );
+
+    await expect.poll(visibleNodeTypes).toEqual(expect.arrayContaining(expectedNodeTypes));
+    await expect.poll(async () => (await visibleNodeTypes()).length).toBe(expectedNodeTypes.length);
   }),
 
   step(/^the visible graph shows (.+) in (.+) calling (.+) in (.+)$/, async (context, _step, match) => {
@@ -1621,12 +1634,21 @@ async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
 
 function collectScopeLabelsWithAncestors(labels: string[]): Set<string> {
   const result = new Set<string>();
+  const requestedLabels = new Set(labels);
+  const requestedSymbolKinds = new Set(labels.flatMap(label => NODE_TYPE_SYMBOL_KIND_BY_LABEL[label] ?? []));
 
   for (const label of labels) {
     let currentLabel: string | undefined = label;
     while (currentLabel) {
       result.add(currentLabel);
       currentLabel = CHILD_NODE_TYPE_PARENTS[currentLabel];
+    }
+  }
+
+  for (const [label, parentLabel] of Object.entries(CHILD_NODE_TYPE_PARENTS)) {
+    const childSymbolKinds = NODE_TYPE_SYMBOL_KIND_BY_LABEL[label] ?? [];
+    if (requestedLabels.has(parentLabel) && childSymbolKinds.some(kind => requestedSymbolKinds.has(kind))) {
+      result.add(label);
     }
   }
 
