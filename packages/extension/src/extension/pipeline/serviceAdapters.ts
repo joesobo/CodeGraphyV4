@@ -149,6 +149,38 @@ function readWorkspacePipelineSymbolPluginId(
     ?? readWorkspacePipelineMetadataString(symbol.metadata?.source);
 }
 
+function isWorkspacePipelinePluginActive(
+  pluginId: string | undefined,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): boolean {
+  return !pluginId || (activePluginIds.has(pluginId) && !disabledPlugins.has(pluginId));
+}
+
+function filterWorkspacePipelineRelationsByActivePlugins(
+  relations: NonNullable<IFileAnalysisResult['relations']>,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): NonNullable<IFileAnalysisResult['relations']> {
+  return relations.filter(relation =>
+    isWorkspacePipelinePluginActive(relation.pluginId, activePluginIds, disabledPlugins),
+  );
+}
+
+function filterWorkspacePipelineSymbolsByActivePlugins(
+  symbols: NonNullable<IFileAnalysisResult['symbols']>,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): NonNullable<IFileAnalysisResult['symbols']> {
+  return symbols.filter(symbol =>
+    isWorkspacePipelinePluginActive(
+      readWorkspacePipelineSymbolPluginId(symbol),
+      activePluginIds,
+      disabledPlugins,
+    ),
+  );
+}
+
 function filterWorkspacePipelineAnalysisByActivePlugins(
   fileAnalysis: Map<string, IFileAnalysisResult>,
   activePluginIds: ReadonlySet<string>,
@@ -158,15 +190,17 @@ function filterWorkspacePipelineAnalysisByActivePlugins(
 
   for (const [filePath, analysis] of fileAnalysis.entries()) {
     const relations = analysis.relations ?? [];
-    const activeRelations = relations.filter(relation =>
-      !relation.pluginId
-      || (activePluginIds.has(relation.pluginId) && !disabledPlugins.has(relation.pluginId)),
+    const activeRelations = filterWorkspacePipelineRelationsByActivePlugins(
+      relations,
+      activePluginIds,
+      disabledPlugins,
     );
     const symbols = analysis.symbols ?? [];
-    const activeSymbols = symbols.filter((symbol) => {
-      const pluginId = readWorkspacePipelineSymbolPluginId(symbol);
-      return !pluginId || (activePluginIds.has(pluginId) && !disabledPlugins.has(pluginId));
-    });
+    const activeSymbols = filterWorkspacePipelineSymbolsByActivePlugins(
+      symbols,
+      activePluginIds,
+      disabledPlugins,
+    );
     const unchanged = activeRelations.length === relations.length
       && activeSymbols.length === symbols.length;
 
