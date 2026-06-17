@@ -1,5 +1,13 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -58,7 +66,6 @@ async function smokeInstalledVsix({ target, vsixPath }) {
   const harnessPath = path.join(profilePath, 'harness');
   const userDataDir = path.join(profilePath, 'user-data');
   const extensionsDir = path.join(profilePath, 'extensions');
-  const homeDir = path.join(profilePath, 'home');
   const workspacePath = path.join(repoRoot, 'examples', 'example-typescript');
   const extensionTestsPath = path.join(
     repoRoot,
@@ -75,9 +82,8 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     `--user-data-dir=${userDataDir}`,
     `--extensions-dir=${extensionsDir}`,
   ];
-  const originalHome = process.env.HOME;
-  const originalUserProfile = process.env.USERPROFILE;
-  const originalCodeGraphyHome = process.env.CODEGRAPHY_HOME;
+  const pluginCacheHomeDir = homedir();
+  const restoreInstalledPluginCache = snapshotInstalledPluginCache(pluginCacheHomeDir);
 
   try {
     const { e2eScenarios, prepareScenarioWorkspacePlugins } = await loadE2ESmokeSetup();
@@ -86,10 +92,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       throw new Error('Missing TypeScript E2E smoke scenario.');
     }
 
-    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir, false);
-    process.env.HOME = homeDir;
-    process.env.USERPROFILE = homeDir;
-    process.env.CODEGRAPHY_HOME = homeDir;
+    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, pluginCacheHomeDir, false);
 
     await writeHarnessExtension(harnessPath);
     await runVSCodeCommand([
@@ -105,9 +108,6 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       extensionTestsEnv: {
         CODEGRAPHY_E2E_SCENARIO: 'typescript',
         CODEGRAPHY_E2E_GREP: 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges',
-        CODEGRAPHY_HOME: homeDir,
-        HOME: homeDir,
-        USERPROFILE: homeDir,
       },
       launchArgs: [
         workspacePath,
@@ -125,23 +125,39 @@ async function smokeInstalledVsix({ target, vsixPath }) {
 
     console.log(`${path.basename(vsixPath)} installed and activated in VS Code on ${target}`);
   } finally {
-    if (originalHome === undefined) {
-      delete process.env.HOME;
-    } else {
-      process.env.HOME = originalHome;
-    }
-    if (originalUserProfile === undefined) {
-      delete process.env.USERPROFILE;
-    } else {
-      process.env.USERPROFILE = originalUserProfile;
-    }
-    if (originalCodeGraphyHome === undefined) {
-      delete process.env.CODEGRAPHY_HOME;
-    } else {
-      process.env.CODEGRAPHY_HOME = originalCodeGraphyHome;
-    }
+    restoreInstalledPluginCache();
     rmSync(profilePath, { recursive: true, force: true });
   }
+}
+
+function snapshotInstalledPluginCache(homeDir) {
+  const userDirectoryPath = path.join(homeDir, '.codegraphy');
+  const cachePath = path.join(userDirectoryPath, 'plugins.json');
+  const hadUserDirectory = existsSync(userDirectoryPath);
+  const hadCache = existsSync(cachePath);
+  const backupDirectoryPath = mkdtempSync(path.join(tmpdir(), 'cg-vsix-plugin-cache-'));
+  const backupPath = path.join(backupDirectoryPath, 'plugins.json');
+
+  if (hadCache) {
+    copyFileSync(cachePath, backupPath);
+  }
+
+  return () => {
+    try {
+      if (hadCache) {
+        mkdirSync(userDirectoryPath, { recursive: true });
+        copyFileSync(backupPath, cachePath);
+      } else {
+        rmSync(cachePath, { force: true });
+      }
+
+      if (!hadUserDirectory && existsSync(userDirectoryPath) && readdirSync(userDirectoryPath).length === 0) {
+        rmSync(userDirectoryPath, { force: true });
+      }
+    } finally {
+      rmSync(backupDirectoryPath, { recursive: true, force: true });
+    }
+  };
 }
 
 async function loadE2ESmokeSetup() {

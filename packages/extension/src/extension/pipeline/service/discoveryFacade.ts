@@ -27,7 +27,6 @@ import {
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
 import { createEmptyWorkspaceAnalysisCache } from '../cache';
-import { readWorkspacePipelineUserHomeDir } from './userHome';
 
 function createCachedDiscoveredFiles(
   workspaceRoot: string,
@@ -61,7 +60,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
   async initialize(): Promise<void> {
     await initializeWorkspacePipeline(this._registry, {
       getWorkspaceRoot: () => this._getWorkspaceRoot(),
-      userHomeDir: readWorkspacePipelineUserHomeDir(),
     });
 
     console.log('[CodeGraphy] WorkspacePipeline initialized');
@@ -80,7 +78,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     const sync = this._workspacePluginReloadQueue.then(async () => {
       await syncWorkspacePipelinePlugins(this._registry, {
         getWorkspaceRoot: () => this._getWorkspaceRoot(),
-        userHomeDir: readWorkspacePipelineUserHomeDir(),
       });
     });
     this._workspacePluginReloadQueue = sync.catch(() => undefined);
