@@ -23,14 +23,13 @@ describe('createUnityPlugin', () => {
       '**/[Ll]ibrary/**',
       '**/[Tt]emp/**',
       '**/[Oo]bj/**',
+      '**/[Pp]roject[Ss]ettings/**',
       '**/*.meta',
       '**/*.csproj',
       '**/*.sln',
     ]));
     expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
       nodeTypes: [
-        'plugin:codegraphy.unity:symbol:scene',
-        'plugin:codegraphy.unity:symbol:prefab',
         'plugin:codegraphy.unity:symbol:game-object',
         'plugin:codegraphy.unity:symbol:component',
       ],

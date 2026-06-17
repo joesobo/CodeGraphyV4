@@ -34,6 +34,20 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(fs.readFileSync(copiedSettingsPath, 'utf8')).toBe(fs.readFileSync(sourceSettingsPath, 'utf8'));
   });
 
+  it('omits Unity editor-generated state when copying the Unity example workspace', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-unity');
+
+    expect(fs.existsSync(path.join(workspacePath, 'Assets'))).toBe(true);
+    expect(fs.existsSync(path.join(workspacePath, '.codegraphy/settings.json'))).toBe(true);
+    expect(fs.existsSync(path.join(workspacePath, 'Library'))).toBe(false);
+    expect(fs.existsSync(path.join(workspacePath, 'Temp'))).toBe(false);
+    expect(fs.existsSync(path.join(workspacePath, 'Logs'))).toBe(false);
+    expect(fs.existsSync(path.join(workspacePath, 'UserSettings'))).toBe(false);
+  });
+
   it('can add VS Code settings for scenarios that assert that node without changing CodeGraphy settings', async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
