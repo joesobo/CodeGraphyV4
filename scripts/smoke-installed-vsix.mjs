@@ -7,6 +7,7 @@ import {
   readdirSync,
   rmSync,
 } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -92,6 +93,7 @@ async function smokeInstalledVsix({ target, vsixPath }) {
       throw new Error('Missing TypeScript E2E smoke scenario.');
     }
 
+    buildScenarioWorkspacePluginPackages(scenario);
     prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, pluginCacheHomeDir, false);
 
     await writeHarnessExtension(harnessPath);
@@ -127,6 +129,29 @@ async function smokeInstalledVsix({ target, vsixPath }) {
   } finally {
     restoreInstalledPluginCache();
     rmSync(profilePath, { recursive: true, force: true });
+  }
+}
+
+function buildScenarioWorkspacePluginPackages(scenario) {
+  for (const relativePath of scenario.workspacePluginPackageRelativePaths) {
+    const packageRoot = path.resolve(repoRoot, relativePath);
+    const packageJson = JSON.parse(readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
+    if (!packageJson.scripts?.build) {
+      continue;
+    }
+
+    const result = spawnSync(
+      'pnpm',
+      ['--dir', packageRoot, 'run', 'build'],
+      {
+        cwd: repoRoot,
+        stdio: 'inherit',
+        shell: process.platform === 'win32',
+      },
+    );
+    if (result.status !== 0) {
+      throw new Error(`Unable to build workspace plugin package at ${relativePath}.`);
+    }
   }
 }
 
