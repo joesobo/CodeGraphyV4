@@ -31,6 +31,13 @@ const VARIABLE_NODE_VISIBILITY = {
   'symbol:constant': true,
 };
 
+const UNITY_NODE_VISIBILITY = {
+  symbol: true,
+  'plugin:codegraphy.unity:symbol': true,
+  'plugin:codegraphy.unity:symbol:game-object': true,
+  'plugin:codegraphy.unity:symbol:component': true,
+};
+
 describe('core/graph/data', () => {
 
     it('projects analysis symbols as symbol nodes contained by their files', () => {
@@ -606,6 +613,113 @@ describe('core/graph/data', () => {
           to: 'src/target.ts',
           kind: 'import',
         }),
+      ]);
+    });
+
+    it('does not project same-file symbol containment as a file self-edge when symbols are disabled', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {
+          'Assets/Prefabs/Player.prefab': { size: 20 },
+        },
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['Assets/Prefabs/Player.prefab', {
+            filePath: '/workspace/Assets/Prefabs/Player.prefab',
+            symbols: [{
+              id: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+              filePath: '/workspace/Assets/Prefabs/Player.prefab',
+              kind: 'game-object',
+              name: 'Player',
+              metadata: {
+                source: 'codegraphy.unity',
+                language: 'unity',
+                pluginKind: 'game-object',
+              },
+            }],
+            relations: [{
+              kind: 'contains',
+              pluginId: 'codegraphy.unity',
+              sourceId: 'unity-containment',
+              fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+              toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+              toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+            }],
+          }],
+        ]),
+        showOrphans: true,
+        churnCounts: {},
+        nodeVisibility: { symbol: false },
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.unity'),
+      });
+
+      expect(graph.edges).toEqual([]);
+    });
+
+    it('keeps Unity component containment routed through GameObjects when Components are visible', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {
+          'Assets/Prefabs/Player.prefab': { size: 20 },
+        },
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['Assets/Prefabs/Player.prefab', {
+            filePath: '/workspace/Assets/Prefabs/Player.prefab',
+            symbols: [
+              {
+                id: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+                filePath: '/workspace/Assets/Prefabs/Player.prefab',
+                kind: 'game-object',
+                name: 'Player',
+                metadata: {
+                  source: 'codegraphy.unity',
+                  language: 'unity',
+                  pluginKind: 'game-object',
+                },
+              },
+              {
+                id: 'Assets/Prefabs/Player.prefab#unity:component:1001',
+                filePath: '/workspace/Assets/Prefabs/Player.prefab',
+                kind: 'component',
+                name: 'Transform',
+                metadata: {
+                  source: 'codegraphy.unity',
+                  language: 'unity',
+                  pluginKind: 'component',
+                },
+              },
+            ],
+            relations: [
+              {
+                kind: 'contains',
+                pluginId: 'codegraphy.unity',
+                sourceId: 'unity-containment',
+                fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+                toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+                toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+              },
+              {
+                kind: 'contains',
+                pluginId: 'codegraphy.unity',
+                sourceId: 'unity-containment',
+                fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+                toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+                fromSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+                toSymbolId: 'Assets/Prefabs/Player.prefab#unity:component:1001',
+              },
+            ],
+          }],
+        ]),
+        showOrphans: true,
+        churnCounts: {},
+        nodeVisibility: UNITY_NODE_VISIBILITY,
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.unity'),
+      });
+
+      expect(graph.edges.map((edge) => edge.id)).toEqual([
+        'Assets/Prefabs/Player.prefab->Assets/Prefabs/Player.prefab#Player:game-object#contains',
+        'Assets/Prefabs/Player.prefab#Player:game-object->Assets/Prefabs/Player.prefab#Transform:component#contains',
       ]);
     });
 

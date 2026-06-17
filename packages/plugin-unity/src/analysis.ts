@@ -511,7 +511,6 @@ function createFileContainsRelation(
     kind: 'contains',
     sourceId: CONTAINMENT_SOURCE_ID,
     fromFilePath: filePath,
-    toFilePath: filePath,
     toSymbolId,
     metadata: {
       language: UNITY_LANGUAGE,

@@ -87,14 +87,19 @@ describe('analyzeUnitySerializedFile', () => {
       },
     );
 
+    const fileToGameObject = analysis.relations.find(relation =>
+      relation.kind === 'contains'
+      && relation.toSymbolId === 'Assets/Prefabs/Player.prefab#unity:game-object:1000'
+    );
+    expect(fileToGameObject).toEqual(expect.objectContaining({
+      kind: 'contains',
+      sourceId: 'unity-containment',
+      fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
+      toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
+    }));
+    expect(fileToGameObject).not.toHaveProperty('toFilePath');
+
     expect(analysis.relations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        kind: 'contains',
-        sourceId: 'unity-containment',
-        fromFilePath: '/workspace/Assets/Prefabs/Player.prefab',
-        toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
-        toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
-      }),
       expect.objectContaining({
         kind: 'contains',
         sourceId: 'unity-containment',
