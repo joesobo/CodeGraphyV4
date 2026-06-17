@@ -15808,10 +15808,10 @@ test.describe('TypeScript Example', () => {
       });
 
       // tests/acceptance/specs/typescript-example.md:15
-      await test.step('Then the available edge types are Imports, Calls, Type imports, Inherits, Contains', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, Calls, Type imports, Inherits, Contains', {
+      await test.step('Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Type imports, Inherits, Contains', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, Calls, Type imports, Inherits, Contains',
+          text: 'the available edge types are Imports, References, Calls, Type imports, Inherits, Contains',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 15
         });
@@ -16158,10 +16158,10 @@ test.describe('TypeScript Example', () => {
       });
 
       // tests/acceptance/specs/typescript-example.md:54
-      await test.step('Then the available edge types are Imports, Calls, Type imports, Inherits, Contains, TypeScript Alias Import', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, Calls, Type imports, Inherits, Contains, TypeScript Alias Import', {
+      await test.step('Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains, TypeScript Alias Import', async () => {
+        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Type imports, Inherits, Contains, TypeScript Alias Import', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, Calls, Type imports, Inherits, Contains, TypeScript Alias Import',
+          text: 'the available edge types are Imports, References, Calls, Type imports, Inherits, Contains, TypeScript Alias Import',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 54
         });

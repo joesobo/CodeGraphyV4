@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-typescript 
 
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, Calls, Type imports, Inherits, Contains
+Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
 And I close the Graph Scope
 
 When I show only the Imports edge type
@@ -51,7 +51,7 @@ Then I see a list of plugins with toggles
 And I toggle the TypeScript/JavaScript plugin on
 When I click the Graph Scope button
 And I select edge types
-Then the available edge types are Imports, Calls, Type imports, Inherits, Contains, TypeScript Alias Import
+Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains, TypeScript Alias Import
 And I close the Graph Scope
 
 When I show only the TypeScript Alias Import edge type
