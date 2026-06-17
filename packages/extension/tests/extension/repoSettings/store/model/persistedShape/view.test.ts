@@ -70,16 +70,16 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
 
   it('drops legacy pluginOrder and disabledPlugins settings', () => {
     expect(normalizePersistedSettingsShape({
-      pluginOrder: ['codegraphy.python'],
+      pluginOrder: ['codegraphy.vue'],
       disabledPlugins: ['codegraphy.markdown'],
       plugins: [
         { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@codegraphy-dev/plugin-python' },
+        { package: '@codegraphy-dev/plugin-vue' },
       ],
     })).toEqual({
       plugins: [
         { id: 'codegraphy.markdown', enabled: true },
-        { id: '@codegraphy-dev/plugin-python', enabled: true },
+        { id: '@codegraphy-dev/plugin-vue', enabled: true },
       ],
     });
   });
@@ -327,7 +327,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         { package: 42 },
         null,
         'not a plugin',
-        { package: '@codegraphy-dev/plugin-python', disabledFilterPatterns: [], options: ['invalid'] },
+        { package: '@codegraphy-dev/plugin-vue', disabledFilterPatterns: [], options: ['invalid'] },
       ],
     })).toEqual({
       plugins: [
@@ -337,7 +337,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
           disabledFilterPatterns: ['**/*.md'],
           options: { includeFrontmatter: true },
         },
-        { id: '@codegraphy-dev/plugin-python', enabled: true },
+        { id: '@codegraphy-dev/plugin-vue', enabled: true },
       ],
     });
   });

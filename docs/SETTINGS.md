@@ -53,7 +53,7 @@ Example:
       "enabled": true
     },
     {
-      "id": "codegraphy.python",
+      "id": "codegraphy.vue",
       "enabled": true,
       "options": {
         "includeTests": true

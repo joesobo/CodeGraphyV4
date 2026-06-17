@@ -677,19 +677,19 @@ describe('LegendsPanel', () => {
       nodeColors: {},
       legends: [
         {
-          id: 'plugin:codegraphy.python:*.py',
+          id: 'plugin:codegraphy.vue:*.py',
           pattern: '*.py',
           color: '#3776ab',
           isPluginDefault: true,
-          pluginId: 'codegraphy.python',
+          pluginId: 'codegraphy.vue',
           pluginName: 'Python',
         },
         {
-          id: 'plugin:codegraphy.python:*.pyi',
+          id: 'plugin:codegraphy.vue:*.pyi',
           pattern: '*.pyi',
           color: '#3776ab',
           isPluginDefault: true,
-          pluginId: 'codegraphy.python',
+          pluginId: 'codegraphy.vue',
           pluginName: 'Python',
         },
         {

@@ -14,10 +14,10 @@ describe('graph view provider settings context plugin files', () => {
         invalidatePluginFiles,
         _analyzeAndSendData: vi.fn(() => Promise.resolve()),
       } as never,
-      ['codegraphy.python'],
+      ['codegraphy.vue'],
     );
 
-    expect(refreshPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(refreshPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(invalidatePluginFiles).not.toHaveBeenCalled();
     expect(refreshChangedFiles).not.toHaveBeenCalled();
   });
@@ -33,10 +33,10 @@ describe('graph view provider settings context plugin files', () => {
         invalidatePluginFiles,
         _analyzeAndSendData: analyzeAndSendData,
       } as never,
-      ['codegraphy.python'],
+      ['codegraphy.vue'],
     );
 
-    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(refreshChangedFiles).toHaveBeenCalledWith(['src/a.ts', 'src/b.ts']);
     expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -52,7 +52,7 @@ describe('graph view provider settings context plugin files', () => {
         invalidatePluginFiles,
         _analyzeAndSendData: analyzeAndSendData,
       } as never,
-      ['codegraphy.python'],
+      ['codegraphy.vue'],
     );
 
     expect(refreshChangedFiles).not.toHaveBeenCalled();
@@ -68,7 +68,7 @@ describe('graph view provider settings context plugin files', () => {
         refreshChangedFiles,
         _analyzeAndSendData: analyzeAndSendData,
       } as never,
-      ['codegraphy.python'],
+      ['codegraphy.vue'],
     );
 
     expect(refreshChangedFiles).not.toHaveBeenCalled();

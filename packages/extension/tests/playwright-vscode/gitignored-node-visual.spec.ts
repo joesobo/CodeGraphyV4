@@ -22,7 +22,7 @@ test.describe('gitignored node visuals', () => {
   test('gitignored Python file nodes are muted on warm startup from an existing graph cache', async () => {
     const workspacePath = createPythonRepoWorkspace();
     let vscode = await launchVSCodeWithWorkspace(workspacePath, {
-      pluginPackageRelativePaths: ['packages/plugin-python'],
+      pluginPackageRelativePaths: ['packages/plugin-vue'],
     });
 
     try {
@@ -38,7 +38,7 @@ test.describe('gitignored node visuals', () => {
       fs.appendFileSync(path.join(workspacePath, '.gitignore'), 'example-python/*\n');
 
       vscode = await launchVSCodeWithWorkspace(workspacePath, {
-        pluginPackageRelativePaths: ['packages/plugin-python'],
+        pluginPackageRelativePaths: ['packages/plugin-vue'],
       });
       await openGraphView(vscode.page);
       frame = await waitForGraphFrame(vscode.page);
@@ -62,7 +62,7 @@ test.describe('gitignored node visuals', () => {
   test('gitignored Python file nodes stay visible and redraw with muted runtime color', async () => {
     const workspacePath = createPythonRepoWorkspace();
     const vscode = await launchVSCodeWithWorkspace(workspacePath, {
-      pluginPackageRelativePaths: ['packages/plugin-python'],
+      pluginPackageRelativePaths: ['packages/plugin-vue'],
     });
 
     try {
@@ -122,7 +122,7 @@ function createPythonRepoWorkspace(): string {
       showOrphans: true,
       plugins: [
         { id: 'codegraphy.markdown', enabled: true },
-        { id: 'codegraphy.python', enabled: true },
+        { id: 'codegraphy.vue', enabled: true },
       ],
       nodeColors: {
         file: '#A1A1AA',
