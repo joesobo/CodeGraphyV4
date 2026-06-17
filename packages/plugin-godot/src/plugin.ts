@@ -64,9 +64,23 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
         'symbol:function',
         'symbol:enum',
         'symbol:constant',
+        'variable',
         'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        'plugin:codegraphy.gdscript:symbol:scene',
+        'plugin:codegraphy.gdscript:symbol:resource',
+        'plugin:codegraphy.gdscript:symbol:autoload',
+        'plugin:codegraphy.gdscript:symbol:scene-node',
+        'plugin:codegraphy.gdscript:symbol:signal',
+        'plugin:codegraphy.gdscript:symbol:exported-property',
       ],
-      edgeTypes: ['call', 'load', 'inherit', 'reference'],
+      edgeTypes: [
+        'call',
+        'load',
+        'inherit',
+        'reference',
+        'contains',
+        'codegraphy.gdscript:signal-connection',
+      ],
     };
   }
 
