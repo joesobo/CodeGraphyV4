@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 27
+  productGUID: 0f4b9d3d1c2542af8426e5e2e7f4f238
+  productName: CodeGraphy Unity Example
+  companyName: CodeGraphy
+--- !u!159 &2
+EditorSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 12
+  m_SerializationMode: 2
+  m_LineEndingsForNewScripts: 1
+  m_DefaultBehaviorMode: 0
+  m_SpritePackerMode: 0

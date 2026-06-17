@@ -1,0 +1,10 @@
+.codegraphy/*
+!.codegraphy/settings.json
+Library/
+Temp/
+Logs/
+Obj/
+Build/
+Builds/
+UserSettings/
+MemoryCaptures/
