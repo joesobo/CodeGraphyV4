@@ -27,6 +27,11 @@ describe('shared/graphControls/defaults/maps', () => {
       'symbol:typedef': false,
       'symbol:alias': false,
       'symbol:template': false,
+      'plugin:codegraphy.gdscript:symbol:scene': false,
+      'plugin:codegraphy.gdscript:symbol:resource': false,
+      'plugin:codegraphy.gdscript:symbol:autoload': false,
+      'plugin:codegraphy.gdscript:symbol:scene-node': false,
+      'plugin:codegraphy.gdscript:symbol:signal': false,
       variable: false,
       'symbol:constant': false,
       'symbol:global': false,
@@ -34,6 +39,7 @@ describe('shared/graphControls/defaults/maps', () => {
       'symbol:parameter': false,
       'symbol:local': false,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
+      'plugin:codegraphy.gdscript:symbol:exported-property': false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();

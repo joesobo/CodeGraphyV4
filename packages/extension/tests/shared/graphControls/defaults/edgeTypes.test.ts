@@ -71,6 +71,12 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultColor: '#EC4899',
         defaultVisible: false,
       },
+      {
+        id: 'codegraphy.gdscript:signal-connection',
+        label: 'Signal Connections',
+        defaultColor: '#EF4444',
+        defaultVisible: false,
+      },
     ]);
     expect(edgeTypes.every((edgeType) => edgeType.description?.description)).toBe(true);
     expect(edgeTypes.find((edgeType) => edgeType.id === 'import')?.description?.examples?.[0]?.code)
