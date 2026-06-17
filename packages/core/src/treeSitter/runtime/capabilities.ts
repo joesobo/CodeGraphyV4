@@ -176,7 +176,7 @@ function readTreeSitterLanguageCapabilities(
 
   const languageKind = getTreeSitterCapabilityLanguageKind(filePath);
   if ((languageKind === 'typescript' || languageKind === 'tsx') && shouldUseDocumentPluginTypeScriptEdgeCapabilities(context)) {
-    return ['import', 'reference', 'call', 'type-import', 'inherit'];
+    return ['import', 'reference', 'call', 'type-import', 'inherit', 'contains'];
   }
 
   return languageKind

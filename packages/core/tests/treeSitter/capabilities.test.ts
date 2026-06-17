@@ -153,7 +153,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     }
   });
 
-  it('keeps TypeScript document-plugin workspaces on relationship edges without symbol containment', () => {
+  it('keeps TypeScript document-plugin workspaces on relationship and containment edges', () => {
     expect(listTreeSitterEdgeTypeCapabilities([
       'README.md',
       'notes/Home.md',
@@ -164,6 +164,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'type-import',
       'inherit',
+      'contains',
     ]);
     expect(listTreeSitterEdgeTypeCapabilities([
       'src/main.ts',
@@ -175,6 +176,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'type-import',
       'inherit',
+      'contains',
     ]);
     expect(listTreeSitterEdgeTypeCapabilities([
       'src/main.ts',
@@ -186,6 +188,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'type-import',
       'inherit',
+      'contains',
     ]);
   });
 
