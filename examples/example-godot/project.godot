@@ -1,12 +1,11 @@
 ; Example Godot project for CodeGraphy GDScript plugin demo
-[gd_resource type="ProjectSettings" load_steps=2 format=3]
 
 config_version=5
 
 [application]
 config/name="CodeGraphy GDScript Demo"
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.2")
+config/features=PackedStringArray("4.6")
 
 [autoload]
 GameManager="*res://scripts/game_manager.gd"
@@ -17,9 +16,33 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 
 [input]
-show_loadout={
+move_left={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":76,"physical_keycode":0,"key_label":76,"unicode":108,"location":0,"echo":false,"script":null)]
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":65,"physical_keycode":0,"key_label":65,"unicode":97,"location":0,"echo":false,"script":null)]
+}
+move_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":68,"physical_keycode":0,"key_label":68,"unicode":100,"location":0,"echo":false,"script":null)]
+}
+move_up={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":87,"physical_keycode":0,"key_label":87,"unicode":119,"location":0,"echo":false,"script":null)]
+}
+move_down={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":83,"physical_keycode":0,"key_label":83,"unicode":115,"location":0,"echo":false,"script":null)]
+}
+jump={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":32,"physical_keycode":0,"key_label":32,"unicode":32,"location":0,"echo":false,"script":null)]
+}
+sprint={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194325,"physical_keycode":0,"key_label":4194325,"unicode":0,"location":0,"echo":false,"script":null)]
+}
+shoot={
+"deadzone": 0.5,
+"events": [Object(InputEventMouseButton,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":1,"canceled":false,"pressed":false,"double_click":false,"script":null)]
 }
 
 [rendering]

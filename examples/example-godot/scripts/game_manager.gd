@@ -1,4 +1,4 @@
-class_name GameManager
+class_name GameSessionManager
 extends Node
 
 signal score_changed(new_score: int)
@@ -31,7 +31,6 @@ func load_config() -> Dictionary:
 func spawn_player(position: Vector2) -> Player:
 	var player := player_scene.instantiate() as Player
 	player.global_position = position
-	player.loadout_opened.connect(_on_player_loadout_opened)
 	get_tree().current_scene.add_child(player)
 	return player
 
@@ -50,7 +49,3 @@ func next_level() -> void:
 	level_changed.emit(current_level)
 	var level_path = "res://scenes/levels/level_%d.tscn" % current_level
 	get_tree().change_scene_to_file(level_path)
-
-func _on_player_loadout_opened(loadout: PlayerLoadout) -> void:
-	if ui:
-		ui.show_loadout(loadout)

@@ -1,15 +1,49 @@
-[gd_scene load_steps=4 format=3 uid="uid://main-scene"]
+[gd_scene load_steps=8 format=3 uid="uid://main-scene"]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="2_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_ui.tscn" id="3_ui"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="4_script"]
+[ext_resource type="Script" path="res://scripts/spawning/enemy_spawner.gd" id="5_spawner"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(960, 32)
 
 [node name="Main" type="Node2D"]
+script = ExtResource("4_script")
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
-position = Vector2(160, 208)
+unique_name_in_owner = true
+position = Vector2(160, 264)
 
 [node name="Enemy" parent="." instance=ExtResource("2_enemy")]
-position = Vector2(480, 208)
+unique_name_in_owner = true
+position = Vector2(480, 264)
+
+[node name="EnemySpawner" type="Marker2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(720, 264)
+script = ExtResource("5_spawner")
+enemy_scene = ExtResource("2_enemy")
+spawn_interval = 3.0
+max_active_enemies = 3
+
+[node name="SpawnVisual" type="Polygon2D" parent="EnemySpawner"]
+color = Color(1, 0.231373, 0.188235, 0.35)
+polygon = PackedVector2Array(-12, -12, 12, -12, 12, 12, -12, 12)
+
+[node name="SpawnTimer" type="Timer" parent="EnemySpawner"]
+unique_name_in_owner = true
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(480, 336)
+
+[node name="GroundShape" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="GroundVisual" type="Polygon2D" parent="Ground"]
+color = Color(0.184314, 0.235294, 0.333333, 1)
+polygon = PackedVector2Array(-480, -16, 480, -16, 480, 16, -480, 16)
 
 [node name="GameUI" parent="." instance=ExtResource("3_ui")]
+unique_name_in_owner = true

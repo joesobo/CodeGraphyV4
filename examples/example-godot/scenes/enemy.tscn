@@ -1,13 +1,38 @@
-[gd_scene load_steps=3 format=3 uid="uid://enemy-scene"]
+[gd_scene load_steps=6 format=3 uid="uid://enemy-scene"]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://textures/player_card.png" id="2_card"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/ui/health_bar.gd" id="4_health_bar"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_enemy"]
+size = Vector2(32, 32)
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_script")
+health_component = NodePath("HealthComponent")
+health_bar = NodePath("HealthBar")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(1, 0.5, 0.5, 1)
-position = Vector2(0, -12)
-scale = Vector2(0.18, 0.18)
+modulate = Color(1, 0.231373, 0.188235, 1)
+position = Vector2(0, -16)
 texture = ExtResource("2_card")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -16)
+shape = SubResource("RectangleShape2D_enemy")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 75
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+offset_left = -20.0
+offset_top = -48.0
+offset_right = 20.0
+offset_bottom = -42.0
+max_value = 75.0
+value = 75.0
+show_percentage = false
+script = ExtResource("4_health_bar")
