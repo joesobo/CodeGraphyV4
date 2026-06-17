@@ -39,7 +39,7 @@ describe('webview/legends/sectionGroups', () => {
         pattern: '*.py',
         color: '#333333',
         isPluginDefault: true,
-        pluginId: 'codegraphy.python',
+        pluginId: 'codegraphy.vue',
         pluginName: 'Python',
       },
       {
@@ -62,7 +62,7 @@ describe('webview/legends/sectionGroups', () => {
         ],
       },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         label: 'Python',
         rules: [{ index: 2, rule: rules[2] }],
       },

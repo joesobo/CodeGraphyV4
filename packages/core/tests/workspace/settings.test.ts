@@ -79,7 +79,7 @@ describe('CodeGraphy Workspace settings', () => {
         maxFiles: 50,
         plugins: [
           {
-            id: 'codegraphy.python',
+            id: 'codegraphy.vue',
             enabled: false,
             disabledFilterPatterns: ['**/__pycache__/**', 42],
             options: { includeTests: true },
@@ -95,7 +95,7 @@ describe('CodeGraphy Workspace settings', () => {
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot)).toMatchObject({
       maxFiles: 50,
       plugins: [{
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: false,
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
@@ -111,7 +111,7 @@ describe('CodeGraphy Workspace settings', () => {
       ...settings,
       plugins: [
         { id: 'codegraphy.markdown', enabled: true },
-        { id: 'codegraphy.python', enabled: true },
+        { id: 'codegraphy.vue', enabled: true },
       ],
     });
 
@@ -121,7 +121,7 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { id: 'codegraphy.python', enabled: true },
+        { id: 'codegraphy.vue', enabled: true },
         { id: 'codegraphy.markdown', enabled: true },
       ],
     });
@@ -160,7 +160,7 @@ describe('CodeGraphy Workspace settings', () => {
       disabledCustomFilterPatterns: ['generated/**', 'generated/**'],
       plugins: [
         {
-          package: '  @codegraphy-dev/plugin-python  ',
+          package: '  @codegraphy-dev/plugin-vue  ',
           disabledFilterPatterns: ['**/__pycache__/**', '**/__pycache__/**', false],
           options: { includeTests: true },
         },
@@ -177,7 +177,7 @@ describe('CodeGraphy Workspace settings', () => {
       disabledCustomFilterPatterns: ['generated/**'],
       pluginData: {},
       plugins: [{
-        id: '@codegraphy-dev/plugin-python',
+        id: '@codegraphy-dev/plugin-vue',
         enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },

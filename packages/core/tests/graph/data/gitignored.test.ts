@@ -20,7 +20,7 @@ describe('core/graph/data gitignored metadata', () => {
             name: 'main',
             metadata: {
               language: 'python',
-              source: 'codegraphy.python',
+              source: 'codegraphy.vue',
             },
           }],
           relations: [],
@@ -31,7 +31,7 @@ describe('core/graph/data gitignored metadata', () => {
       churnCounts: {},
       nodeVisibility: SYMBOL_NODE_VISIBILITY,
       workspaceRoot: '/workspace',
-      getPluginForFile: () => createPlugin('codegraphy.python'),
+      getPluginForFile: () => createPlugin('codegraphy.vue'),
     });
 
     expect(graph.nodes).toEqual(expect.arrayContaining([

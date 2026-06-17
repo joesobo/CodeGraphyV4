@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
-import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
-import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createMarkdownPlugin } from '../../../../plugin-markdown/src/plugin';
 
 describe('Plugin Rules', () => {
@@ -28,18 +26,6 @@ describe('Plugin Rules', () => {
     expect(sourceIds).toContain('class-name-usage');
   });
 
-  it('Python plugin relies on the core analyzer and does not declare supplemental sources', () => {
-    const plugin = createPythonPlugin();
-    expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
-  });
-
-  it('C# plugin relies on the core analyzer and does not declare supplemental sources', () => {
-    const plugin = createCSharpPlugin();
-    expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
-  });
-
   it('Markdown plugin declares sources', () => {
     const plugin = createMarkdownPlugin();
     expect(plugin.sources).toBeDefined();
@@ -51,8 +37,6 @@ describe('Plugin Rules', () => {
     const plugins = [
       createTypeScriptPlugin(),
       createGDScriptPlugin(),
-      createPythonPlugin(),
-      createCSharpPlugin(),
       createMarkdownPlugin(),
     ];
     for (const plugin of plugins) {

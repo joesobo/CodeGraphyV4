@@ -208,22 +208,6 @@
       "shape3D": "sphere"
     },
     {
-      "pattern": "packages/plugin-python/**",
-      "displayLabel": "Plugin / Python",
-      "color": "#FDE68A",
-      "target": "node",
-      "shape2D": "circle",
-      "shape3D": "sphere"
-    },
-    {
-      "pattern": "packages/plugin-csharp/**",
-      "displayLabel": "Plugin / C#",
-      "color": "#D8B4FE",
-      "target": "node",
-      "shape2D": "circle",
-      "shape3D": "sphere"
-    },
-    {
       "pattern": "packages/quality-tools/src/*rap/**",
       "displayLabel": "Quality Tools / CRAP + SCRAP",
       "color": "#F9A8D4",

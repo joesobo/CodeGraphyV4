@@ -13,7 +13,7 @@ describe('graphView/mergedGroups', () => {
           color: '#3178C6',
         },
         {
-          id: 'plugin:codegraphy.python:*.py',
+          id: 'plugin:codegraphy.vue:*.py',
           pattern: '*.py',
           color: '#3776AB',
         },
@@ -23,7 +23,7 @@ describe('graphView/mergedGroups', () => {
     expect(groups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#ff0000' },
       { id: 'plugin:codegraphy.typescript:*.ts', pattern: '*.ts', color: '#3178C6' },
-      { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+      { id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB' },
       { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
     ]);
   });
@@ -52,11 +52,11 @@ describe('graphView/mergedGroups', () => {
     const groups = buildGraphViewMergedGroups(
       [],
       [{ id: 'default:*.json', pattern: '*.json', color: '#F9C74F' }],
-      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' }],
+      [{ id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB' }],
     );
 
     expect(groups).toEqual([
-      { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+      { id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB' },
       { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
     ]);
   });
@@ -65,15 +65,15 @@ describe('graphView/mergedGroups', () => {
     const groups = buildGraphViewMergedGroups(
       [],
       [{ id: 'default:*.json', pattern: '*.json', color: '#F9C74F' }],
-      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' }],
+      [{ id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB' }],
       {
         'default:*.json': false,
-        'plugin:codegraphy.python:*.py': true,
+        'plugin:codegraphy.vue:*.py': true,
       },
     );
 
     expect(groups).toEqual([
-      { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB', disabled: false },
+      { id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB', disabled: false },
       { id: 'default:*.json', pattern: '*.json', color: '#F9C74F', disabled: true },
     ]);
   });
@@ -83,17 +83,17 @@ describe('graphView/mergedGroups', () => {
     const groups = buildGraphViewMergedGroups(
       userGroups,
       [{ id: 'default:*.json', pattern: '*.json', color: '#F9C74F' }],
-      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' }],
+      [{ id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB' }],
       {
         'user:src': false as never,
         'default:*.json': 'hidden' as never,
-        'plugin:codegraphy.python:*.py': 1 as never,
+        'plugin:codegraphy.vue:*.py': 1 as never,
       },
     );
 
     expect(groups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#ff0000' },
-      { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+      { id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#3776AB' },
       { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
     ]);
     expect(userGroups).toEqual([{ id: 'user:src', pattern: 'src/**', color: '#ff0000' }]);
