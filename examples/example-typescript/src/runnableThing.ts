@@ -1,3 +1,3 @@
 export interface RunnableThing {
-  run(): string;
+  run(projectName: string): string;
 }

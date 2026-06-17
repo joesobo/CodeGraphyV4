@@ -1,5 +1,5 @@
 export class BaseRunner {
-  start(): string {
-    return 'ready';
+  protected markStarted(projectName: string): string {
+    return `Started ${projectName}`;
   }
 }

@@ -1,6 +1,6 @@
-import { getDepthTarget } from './depth';
-import { formatUser } from './types';
+import { getSummaryTarget } from './summary';
+import { formatUser, UpgradeStage } from './types';
 
-export function buildGreeting(name: string): string {
-  return `Hello ${formatUser(name)} from ${getDepthTarget()}`;
+export function buildRolloutSummary(projectName: string): string {
+  return `${formatUser(projectName)} is in ${UpgradeStage.Acceptance} with ${getSummaryTarget()}`;
 }
