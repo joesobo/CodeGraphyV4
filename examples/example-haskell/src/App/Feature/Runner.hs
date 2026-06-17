@@ -7,6 +7,9 @@ newtype RunnerId = RunnerId Int deriving Show
 
 data Greeting = Greeting String deriving Show
 
+defaultRunnerId :: RunnerId
+defaultRunnerId = RunnerId 1
+
 data Runner = Runner
   { runnerId :: RunnerId
   , runnerUser :: User
@@ -20,9 +23,10 @@ instance Runnable Runner where
   greet runner = Greeting ("Hello, " ++ describeUser (runnerUser runner) ++ " the " ++ describeProfile (runnerProfile runner))
 
 boot :: User -> Profile -> Runner
-boot user profile = Runner (RunnerId 1) user profile
+boot user profile = Runner defaultRunnerId user profile
 
 renderGreeting :: Runnable task => task -> String
 renderGreeting task =
-  case greet task of
-    Greeting message -> message
+  let Greeting message = greet task
+      decorated = message ++ "!"
+  in decorated
