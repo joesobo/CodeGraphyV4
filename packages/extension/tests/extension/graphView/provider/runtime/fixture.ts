@@ -54,10 +54,10 @@ export async function loadSubject(
     },
   };
 
-  vi.doMock('../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
+  vi.doMock('../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
     WorkspacePipeline: class WorkspacePipeline {},
   }));
-  vi.doMock('../../../../src/core/views', () => ({
+  vi.doMock('../../../../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {
       register = vi.fn();
       get = vi.fn(() => undefined);
@@ -65,13 +65,13 @@ export async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../../../src/core/plugins/events/bus', () => ({
+  vi.doMock('../../../../../src/core/plugins/events/bus', () => ({
     EventBus: class EventBus {},
   }));
-  vi.doMock('../../../../src/core/plugins/decoration/manager', () => ({
+  vi.doMock('../../../../../src/core/plugins/decoration/manager', () => ({
     DecorationManager: class DecorationManager {},
   }));
-  vi.doMock('../../../../src/extension/graphView/provider/wiring/methodContainers', () => ({
+  vi.doMock('../../../../../src/extension/graphView/provider/wiring/methodContainers', () => ({
     createGraphViewProviderMethodContainers: vi.fn(() => methodContainers),
   }));
   vi.doMock('vscode', async () => {
@@ -87,18 +87,18 @@ export async function loadSubject(
   });
 
   const vscodeModule = await import('vscode');
-  const { GraphViewProvider } = await import('../../../../src/extension/graphViewProvider');
+  const { GraphViewProvider } = await import('../../../../../src/extension/graphViewProvider');
 
   return { GraphViewProvider, methodContainers, vscodeModule };
 }
 
 export function unmockRuntimeModules() {
   vi.doUnmock('vscode');
-  vi.doUnmock('../../../../src/extension/pipeline/service/lifecycleFacade');
-  vi.doUnmock('../../../../src/extension/repoSettings/meta');
-  vi.doUnmock('../../../../src/core/views');
-  vi.doUnmock('../../../../src/core/plugins/events/bus');
-  vi.doUnmock('../../../../src/core/plugins/decoration/manager');
-  vi.doUnmock('../../../../src/extension/graphView/provider/wiring/methodContainers');
-  vi.doUnmock('../../../../src/extension/graphView/provider/wiring/bootstrap');
+  vi.doUnmock('../../../../../src/extension/pipeline/service/lifecycleFacade');
+  vi.doUnmock('../../../../../src/extension/repoSettings/meta');
+  vi.doUnmock('../../../../../src/core/views');
+  vi.doUnmock('../../../../../src/core/plugins/events/bus');
+  vi.doUnmock('../../../../../src/core/plugins/decoration/manager');
+  vi.doUnmock('../../../../../src/extension/graphView/provider/wiring/methodContainers');
+  vi.doUnmock('../../../../../src/extension/graphView/provider/wiring/bootstrap');
 }

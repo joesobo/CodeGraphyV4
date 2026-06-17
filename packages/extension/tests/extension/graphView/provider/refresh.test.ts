@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
-import { createSource } from './refresh.fixture';
+import { createSource } from './refresh/fixture';
 
 describe('graphView/provider/refresh', () => {
   describe('refresh', () => {

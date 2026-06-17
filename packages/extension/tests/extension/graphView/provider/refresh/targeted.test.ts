@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import { createSource } from './refresh.fixture';
+import { createGraphViewProviderRefreshMethods } from '../../../../../src/extension/graphView/provider/refresh';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import { createSource } from './fixture';
 
 describe('graphView/provider/refresh targeted refreshes', () => {
   it('refreshChangedFiles reloads discovered nodes instead of indexing when no index exists yet', async () => {

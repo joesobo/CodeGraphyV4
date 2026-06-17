@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildWorkspaceGraphDataFromAnalysis } from '../../src/graph/data';
-import { createPlugin, SYMBOL_NODE_VISIBILITY } from './data.fixture';
+import { buildWorkspaceGraphDataFromAnalysis } from '../../../src/graph/data';
+import { createPlugin, SYMBOL_NODE_VISIBILITY } from './fixture';
 
 
 describe('core/graph/data symbol names', () => {

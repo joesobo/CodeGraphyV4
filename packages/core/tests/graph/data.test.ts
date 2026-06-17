@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import { buildWorkspaceGraphDataFromAnalysis } from '../../src/graph/data';
-import { createPlugin, SYMBOL_NODE_VISIBILITY } from './data.fixture';
+import { createPlugin, SYMBOL_NODE_VISIBILITY } from './data/fixture';
 
 
 describe('core/graph/data symbol nodes', () => {

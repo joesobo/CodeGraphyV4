@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import { createSource } from './refresh.fixture';
+import { createGraphViewProviderRefreshMethods } from '../../../../../src/extension/graphView/provider/refresh';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import { createSource } from './fixture';
 
 describe('graphView/provider/refresh cancellation', () => {
   it('refreshPluginFiles aborts superseded scoped requests and ignores stale results', async () => {

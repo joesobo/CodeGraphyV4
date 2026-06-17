@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as VSCode from 'vscode';
 import { getGraphViewProviderInternals } from '../../graphViewProvider/internals';
-import { createContext, createRestoredState, loadSubject, unmockRuntimeModules } from './runtime.fixture';
+import { createContext, createRestoredState, loadSubject, unmockRuntimeModules } from './runtime/fixture';
 
 describe('graphView/provider/runtime', () => {
   beforeEach(() => {

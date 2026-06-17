@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as VSCode from 'vscode';
-import type { PendingWorkspaceRefreshState } from '../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence';
-import { createContext, createRestoredState, loadSubject, unmockRuntimeModules } from './runtime.fixture';
+import type { PendingWorkspaceRefreshState } from '../../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence';
+import { createContext, createRestoredState, loadSubject, unmockRuntimeModules } from './fixture';
 
 describe('graphView/provider/runtime workspace refresh', () => {
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('graphView/provider/runtime workspace refresh', () => {
   });
 
   it('returns no persisted workspace refresh when there is no workspace root', async () => {
-    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+    vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
@@ -33,11 +33,11 @@ describe('graphView/provider/runtime workspace refresh', () => {
   });
 
   it('returns no persisted workspace refresh when repo metadata has no pending files', async () => {
-    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+    vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
-    vi.doMock('../../../../src/extension/repoSettings/meta', () => ({
+    vi.doMock('../../../../../src/extension/repoSettings/meta', () => ({
       readCodeGraphyRepoMeta: vi.fn(() => ({ pendingChangedFiles: [] })),
       writeCodeGraphyRepoMeta: vi.fn(),
     }));
@@ -60,11 +60,11 @@ describe('graphView/provider/runtime workspace refresh', () => {
   });
 
   it('loads persisted workspace refresh state from repo metadata', async () => {
-    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+    vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
-    vi.doMock('../../../../src/extension/repoSettings/meta', () => ({
+    vi.doMock('../../../../../src/extension/repoSettings/meta', () => ({
       readCodeGraphyRepoMeta: vi.fn(() => ({
         pendingChangedFiles: ['src/a.ts', 'src/b.ts'],
       })),
@@ -93,7 +93,7 @@ describe('graphView/provider/runtime workspace refresh', () => {
   });
 
   it('flushes queued workspace changes through the incremental refresh path', async () => {
-    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+    vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
@@ -141,7 +141,7 @@ describe('graphView/provider/runtime workspace refresh', () => {
   });
 
   it('keeps queued workspace changes pending when only the timeline view is visible', async () => {
-    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+    vi.doMock('../../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));

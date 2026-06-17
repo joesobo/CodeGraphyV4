@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { IPluginStatus } from '../../../../src/shared/plugins/status';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import type { IPluginStatus } from '../../../../../src/shared/plugins/status';
 
 export function createSource(
   overrides: Partial<Record<string, unknown>> = {},
