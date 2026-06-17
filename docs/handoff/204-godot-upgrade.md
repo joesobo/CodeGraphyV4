@@ -26,14 +26,14 @@ Current parser/plugin support is enough for these generic CodeGraphy concepts:
 
 The upgraded contract should go beyond the current parser surface. Godot developers expect the graph to expose:
 
-- `Godot Scene` nodes from `.tscn` files.
-- `Godot Resource` nodes from `.tres` files.
-- `Godot Autoload` nodes from `project.godot` `[autoload]` entries.
-- `Godot Scene Node` nodes from `[node ...]` entries in scenes.
-- `Godot Signal` nodes from GDScript `signal` declarations.
-- `Godot Exported Property` nodes from `@export` declarations.
+- `Scene` nodes from `.tscn` files.
+- `Resource` nodes from `.tres` files.
+- `Autoload` nodes from `project.godot` `[autoload]` entries.
+- `Scene Node` nodes from `[node ...]` entries in scenes.
+- `Signal` nodes from GDScript `signal` declarations.
+- `Exported Property` nodes from `@export` declarations.
 - `Contains` edges from files/scenes/scripts to those owned concepts.
-- `Godot Signal Connections` edges from `connect(...)`, scene `[connection]` entries, and signal emit paths when the target can be resolved.
+- `Signal Connections` edges from `connect(...)`, scene `[connection]` entries, and signal emit paths when the target can be resolved.
 
 One implementation gap is known before the acceptance gate: the plugin extracts `variable` symbols, but `contributeGraphScopeCapabilities()` does not currently declare the generic variable node capability. The acceptance contract should require `Variable`; after human acceptance, the implementation slice should add the failing test and minimal capability fix. The Godot-owned node and edge rows above will also need plugin node/edge definitions, capability declarations, extraction, step bindings, and generated Playwright tests after the human commits the spec.
 

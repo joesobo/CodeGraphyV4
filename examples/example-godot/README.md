@@ -66,7 +66,7 @@ Expected behavior:
 
 ## Supported Godot Graph Contract
 
-This example defines the Godot graph contract the plugin should grow into. Generic CodeGraphy concepts should be used for `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Godot-specific concepts should be plugin-owned rows: `Godot Scene`, `Godot Resource`, `Godot Autoload`, `Godot Scene Node`, `Godot class_name`, `Godot Signal`, `Godot Exported Property`, and `Godot Signal Connections`.
+This example defines the Godot graph contract the plugin should grow into. Generic CodeGraphy concepts should be used for `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Godot-specific concepts should be plugin-owned rows: `Scene`, `Resource`, `Autoload`, `Scene Node`, `Godot class_name`, `Signal`, `Exported Property`, and `Signal Connections`.
 
 Measured current parser/plugin output for the generic surface:
 
@@ -84,10 +84,10 @@ Measured current parser/plugin output for the generic surface:
 
 Expected plugin-owned Godot coverage:
 
-- `.tscn` files produce `Godot Scene` nodes and `Godot Scene Node` children for root and nested scene nodes.
-- `.tres` files produce `Godot Resource` nodes.
-- `project.godot` `[autoload]` entries produce `Godot Autoload` nodes.
-- `signal` declarations produce `Godot Signal` nodes.
-- `@export` declarations produce `Godot Exported Property` nodes.
+- `.tscn` files produce `Scene` nodes and `Scene Node` children for root and nested scene nodes.
+- `.tres` files produce `Resource` nodes.
+- `project.godot` `[autoload]` entries produce `Autoload` nodes.
+- `signal` declarations produce `Signal` nodes.
+- `@export` declarations produce `Exported Property` nodes.
 - Scene node ownership, script ownership, signal ownership, and exported property ownership use `Contains`.
-- Signal `connect(...)`, scene `[connection]`, and signal emit paths use `Godot Signal Connections`.
+- Signal `connect(...)`, scene `[connection]`, and signal emit paths use `Signal Connections`.
