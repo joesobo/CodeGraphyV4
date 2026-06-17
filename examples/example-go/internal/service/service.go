@@ -1,19 +1,30 @@
 package service
 
-import "fmt"
+import (
+	"strings"
 
-type Runner struct {
-	name string
+	"example-go/internal/model"
+)
+
+const DefaultStatus Status = "queued"
+
+type Runner interface {
+	Run(task model.Task) model.Result
 }
 
-func NewRunner(name string) Runner {
-	return Runner{name: name}
+type TaskRunner struct {
+	model.Audited
+	name     string
+	notifier model.Notifier
 }
 
-func (runner Runner) Run() {
-	fmt.Println(runner.name + " running")
+type Status string
+
+func NewTaskRunner(name string, notifier model.Notifier) TaskRunner {
+	return TaskRunner{name: name, notifier: notifier}
 }
 
-func Run() {
-	NewRunner("service").Run()
+func (runner TaskRunner) Run(task model.Task) model.Result {
+	normalized := strings.ToUpper(task.Title)
+	return model.Result{Summary: normalized, Status: string(DefaultStatus)}
 }
