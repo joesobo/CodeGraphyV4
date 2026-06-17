@@ -144,6 +144,40 @@ describe('Godot GDScript Plugin Integration', () => {
       );
     });
 
+    it('emits signal connection relations across the example project', async () => {
+      const results = await analyzeExampleProject(plugin);
+      const signalConnections = results
+        .flatMap(result => result.relations ?? [])
+        .filter(relation => relation.kind === 'codegraphy.gdscript:signal-connection');
+
+      expect(signalConnections).toHaveLength(5);
+      expect(signalConnections.map(relation => ({
+        from: toWorkspacePath(relation.fromFilePath),
+        fromSymbolId: relation.fromSymbolId,
+        sourceId: relation.sourceId,
+        to: relation.toFilePath ? toWorkspacePath(relation.toFilePath) : null,
+      }))).toEqual(expect.arrayContaining([
+        {
+          from: 'scripts/components/health_component.gd',
+          fromSymbolId: 'scripts/components/health_component.gd#died:signal',
+          sourceId: 'gdscript-signal-connection',
+          to: 'scripts/base/entity.gd',
+        },
+        {
+          from: 'scripts/spawning/enemy_spawner.gd',
+          fromSymbolId: 'scripts/spawning/enemy_spawner.gd#enemy_spawned:signal',
+          sourceId: 'gdscript-signal-connection',
+          to: 'scripts/main.gd',
+        },
+        {
+          from: 'scripts/components/health_component.gd',
+          fromSymbolId: 'scripts/components/health_component.gd#health_changed:signal',
+          sourceId: 'gdscript-signal-connection',
+          to: 'scripts/ui/health_bar.gd',
+        },
+      ]));
+    });
+
 
 
     it('detects preload connections in player.gd', async () => {
