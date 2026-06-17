@@ -2,4 +2,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Dim graph File and Folder Nodes matched by `.gitignore` while keeping them visible.
+Dim graph File and Folder Nodes that Git reports as ignored while keeping them visible.

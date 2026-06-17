@@ -1,6 +1,7 @@
 import { DEFAULT_DIRECTION_COLOR } from '../../../../../shared/fileColors';
 
 export const FAVORITE_BORDER_COLOR = '#EAB308';
+export const FALLBACK_MUTED_NODE_COLOR = '#6b7280';
 export const DEFAULT_NODE_SIZE = 16;
 
 export function resolveDirectionColor(directionColor: string): string {

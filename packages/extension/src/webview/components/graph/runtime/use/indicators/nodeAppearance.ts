@@ -8,6 +8,7 @@ import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appeara
 import {
 	calculateNodeSizes,
 	FAVORITE_BORDER_COLOR,
+	FALLBACK_MUTED_NODE_COLOR,
 	getDepthSizeMultiplier,
 	type FGLink,
 	type FGNode,
@@ -84,7 +85,7 @@ function toHexChannel(value: number): string {
 
 function mixHexColors(source: string, target: string, amount: number): string {
 	const sourceRgb = parseHexColor(source);
-	const targetRgb = parseHexColor(target) ?? parseHexColor('#6b7280');
+	const targetRgb = parseHexColor(target) ?? parseHexColor(FALLBACK_MUTED_NODE_COLOR);
 	if (!sourceRgb || !targetRgb) {
 		return source;
 	}

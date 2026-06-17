@@ -6,6 +6,7 @@ import type { FGNode } from '../build';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
+  FALLBACK_MUTED_NODE_COLOR,
   getDepthOpacity,
   getDepthSizeMultiplier,
 } from './display';
@@ -169,7 +170,7 @@ function toHexChannel(value: number): string {
 
 function mixHexColors(source: string, target: string, amount: number): string {
   const sourceRgb = parseHexColor(source);
-  const targetRgb = parseHexColor(target) ?? parseHexColor('#6b7280');
+  const targetRgb = parseHexColor(target) ?? parseHexColor(FALLBACK_MUTED_NODE_COLOR);
   if (!sourceRgb || !targetRgb) {
     return source;
   }
