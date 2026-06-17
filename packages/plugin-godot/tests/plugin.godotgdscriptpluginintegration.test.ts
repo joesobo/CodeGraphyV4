@@ -7,11 +7,57 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  createGDScriptPlugin as createGodotPlugin
-} from '../src/plugin';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import { createGDScriptPlugin as createGodotPlugin } from '../src/plugin';
 
 const GDSCRIPT_ROOT = path.join(__dirname, '../../../examples/example-godot');
+const ANALYZED_EXTENSIONS = new Set(['.gd', '.godot', '.tres', '.tscn']);
+
+function toWorkspacePath(filePath: string): string {
+  return path.relative(GDSCRIPT_ROOT, filePath).replace(/\\/g, '/');
+}
+
+function collectExampleProjectFiles(root: string): Array<{ relativePath: string; absolutePath: string; content: string }> {
+  const files: Array<{ relativePath: string; absolutePath: string; content: string }> = [];
+
+  function visit(directory: string): void {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name === '.godot' || entry.name === '.codegraphy') {
+        continue;
+      }
+
+      const absolutePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        visit(absolutePath);
+        continue;
+      }
+
+      if (!ANALYZED_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
+        continue;
+      }
+
+      files.push({
+        relativePath: toWorkspacePath(absolutePath),
+        absolutePath,
+        content: fs.readFileSync(absolutePath, 'utf-8'),
+      });
+    }
+  }
+
+  visit(root);
+  return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+async function analyzeExampleProject(
+  plugin: ReturnType<typeof createGodotPlugin>,
+): Promise<IFileAnalysisResult[]> {
+  const files = collectExampleProjectFiles(GDSCRIPT_ROOT);
+  await plugin.onPreAnalyze?.(files, GDSCRIPT_ROOT);
+
+  return Promise.all(
+    files.map(file => plugin.analyzeFile(file.absolutePath, file.content, GDSCRIPT_ROOT)),
+  );
+}
 
 describe('Godot GDScript Plugin Integration', () => {
 
@@ -24,6 +70,78 @@ describe('Godot GDScript Plugin Integration', () => {
 
     beforeEach(() => {
       plugin = createGodotPlugin();
+    });
+
+    it('emits Godot graph scope symbols across the example project', async () => {
+      const results = await analyzeExampleProject(plugin);
+      const symbols = results.flatMap(result => result.symbols ?? []);
+      const pluginKindCounts = symbols.reduce<Record<string, number>>((counts, symbol) => {
+        const pluginKind = symbol.metadata?.pluginKind;
+        if (typeof pluginKind !== 'string') {
+          return counts;
+        }
+
+        return {
+          ...counts,
+          [pluginKind]: (counts[pluginKind] ?? 0) + 1,
+        };
+      }, {});
+
+      expect(pluginKindCounts).toEqual({
+        'autoload': 1,
+        'exported-property': 23,
+        'godot-class-name': 12,
+        'resource': 1,
+        'scene': 5,
+        'scene-node': 30,
+        'signal': 8,
+      });
+
+      expect(symbols.map(symbol => ({
+        file: toWorkspacePath(symbol.filePath),
+        kind: symbol.kind,
+        name: symbol.name,
+        pluginKind: symbol.metadata?.pluginKind,
+      }))).toEqual(
+        expect.arrayContaining([
+          {
+            file: 'project.godot',
+            kind: 'autoload',
+            name: 'GameManager',
+            pluginKind: 'autoload',
+          },
+          {
+            file: 'resources/enemy_spawn_config.tres',
+            kind: 'resource',
+            name: 'EnemySpawnConfig',
+            pluginKind: 'resource',
+          },
+          {
+            file: 'scenes/main.tscn',
+            kind: 'scene',
+            name: 'Main',
+            pluginKind: 'scene',
+          },
+          {
+            file: 'scenes/player.tscn',
+            kind: 'scene-node',
+            name: 'HealthComponent',
+            pluginKind: 'scene-node',
+          },
+          {
+            file: 'scripts/components/health_component.gd',
+            kind: 'signal',
+            name: 'health_changed',
+            pluginKind: 'signal',
+          },
+          {
+            file: 'scripts/player.gd',
+            kind: 'variable',
+            name: 'projectile_scene',
+            pluginKind: 'exported-property',
+          },
+        ]),
+      );
     });
 
 
