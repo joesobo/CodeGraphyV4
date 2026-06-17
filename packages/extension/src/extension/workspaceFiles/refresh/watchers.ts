@@ -23,6 +23,7 @@ export function registerFileWatcher(
   provider: GraphViewProvider,
 ): void {
   const fileWatcher = vscode.workspace.createFileSystemWatcher('**/*');
+  const gitignoreWatcher = vscode.workspace.createFileSystemWatcher('**/.gitignore');
   context.subscriptions.push(
     fileWatcher.onDidCreate((uri) => {
       refreshWorkspaceFileOperation(
@@ -53,6 +54,35 @@ export function registerFileWatcher(
     }),
   );
   context.subscriptions.push(
+    gitignoreWatcher.onDidCreate((uri) => {
+      refreshWorkspaceFileOperation(
+        provider,
+        '[CodeGraphy] .gitignore created, refreshing graph',
+        [uri],
+        'workspace:fileCreated',
+      );
+    }),
+  );
+  context.subscriptions.push(
+    gitignoreWatcher.onDidDelete((uri) => {
+      refreshWorkspaceFileOperation(
+        provider,
+        '[CodeGraphy] .gitignore deleted, refreshing graph',
+        [uri],
+        'workspace:fileDeleted',
+      );
+    }),
+  );
+  context.subscriptions.push(
+    gitignoreWatcher.onDidChange((uri) => {
+      refreshWorkspaceChangedPath(
+        provider,
+        '[CodeGraphy] .gitignore changed, refreshing graph',
+        uri.fsPath,
+      );
+    }),
+  );
+  context.subscriptions.push(
     vscode.workspace.onDidCreateFiles((event) => {
       refreshWorkspaceFileOperation(
         provider,
@@ -78,4 +108,5 @@ export function registerFileWatcher(
     }),
   );
   context.subscriptions.push(fileWatcher);
+  context.subscriptions.push(gitignoreWatcher);
 }

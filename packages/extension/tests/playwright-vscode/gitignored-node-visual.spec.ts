@@ -1,4 +1,4 @@
-import { expect, test, type Frame } from '@playwright/test';
+import { expect, test, type Frame, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -32,7 +32,11 @@ test.describe('gitignored node visuals', () => {
       const before = await waitForRuntimeNodeVisual(frame, PYTHON_FILE_NODE_ID);
       expect(before.baseOpacity).toBe(1);
 
-      fs.appendFileSync(path.join(workspacePath, '.gitignore'), 'example-python/*\n');
+      await appendGitignorePatternInVSCode(vscode.page, 'example-python/*');
+      await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
+        .toBeVisible({ timeout: 10_000 });
+      await expect(frame.getByRole('progressbar', { name: 'Indexing progress' }))
+        .toBeHidden({ timeout: 30_000 });
 
       const after = await waitForRuntimeNodeVisual(
         frame,
@@ -50,6 +54,16 @@ test.describe('gitignored node visuals', () => {
   });
 });
 
+async function appendGitignorePatternInVSCode(page: Page, pattern: string): Promise<void> {
+  await page.bringToFront();
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+P' : 'Control+P');
+  await page.keyboard.type('.gitignore');
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('.gitignore').first()).toBeVisible({ timeout: 10_000 });
+  await page.keyboard.type(`${pattern}\n`);
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+S' : 'Control+S');
+}
+
 function createPythonRepoWorkspace(): string {
   const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-gitignored-python-'));
 
@@ -62,6 +76,7 @@ function createPythonRepoWorkspace(): string {
     },
   );
   fs.mkdirSync(path.join(workspacePath, '.codegraphy'), { recursive: true });
+  fs.rmSync(path.join(workspacePath, 'example-python', '.gitignore'), { force: true });
   fs.writeFileSync(path.join(workspacePath, '.gitignore'), '');
   fs.writeFileSync(
     path.join(workspacePath, '.codegraphy', 'settings.json'),
@@ -114,7 +129,17 @@ function createPythonRepoWorkspace(): string {
 }
 
 async function indexWorkspace(frame: Frame): Promise<void> {
-  await frame.getByRole('button', { name: 'Index Workspace' }).click();
+  const indexButton = frame.getByRole('button', { name: 'Index Workspace' });
+  if (await indexButton.count() === 0 || !(await indexButton.first().isVisible().catch(() => false))) {
+    await expect.poll(async () => {
+      const statsText = await frame.getByText(/nodes.*connections/i).first().textContent().catch(() => '');
+      const match = /(\d+)\s+connections/i.exec(statsText ?? '');
+      return match ? Number(match[1]) : 0;
+    }, { timeout: 10_000 }).toBeGreaterThan(0);
+    return;
+  }
+
+  await indexButton.click();
   await expect(
     frame.getByRole('progressbar', { name: 'Indexing progress' }),
   ).toBeHidden({ timeout: 30_000 });

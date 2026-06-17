@@ -4,6 +4,7 @@ import { scheduleWorkspaceRefresh } from '../../../../src/extension/workspaceFil
 function makeProvider() {
   return {
     refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
@@ -144,6 +145,47 @@ describe('workspaceFiles/refresh/scheduler', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');
 
     consoleSpy.mockRestore();
+  });
+
+  it('uses index refresh for full refreshes so gitignore state is rediscovered', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] .gitignore changed, refreshing graph',
+      ['/workspace/.gitignore'],
+      500,
+      { fullRefresh: true },
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] .gitignore changed, refreshing graph');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('falls back to regular refresh for full refreshes without an index refresh method', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    delete (provider as Partial<typeof provider>).refreshIndex;
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] .gitignore changed, refreshing graph',
+      ['/workspace/.gitignore'],
+      500,
+      { fullRefresh: true },
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
   });
 
   it('does not throw when fallback invalidation is unavailable', () => {

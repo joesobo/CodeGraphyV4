@@ -9,6 +9,7 @@ import {
 function makeProvider() {
   return {
     emitEvent: vi.fn(),
+    refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
@@ -55,7 +56,8 @@ describe('workspaceFiles/refresh/operations', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
       filePath: '/workspace/.gitignore',
@@ -111,7 +113,8 @@ describe('workspaceFiles/refresh/operations', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
       filePath: '/workspace/.gitignore',

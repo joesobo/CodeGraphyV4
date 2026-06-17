@@ -8,6 +8,7 @@ import {
 function makeProvider() {
   return {
     emitEvent: vi.fn(),
+    refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
@@ -26,24 +27,38 @@ let watcherListeners: {
   create?: (uri: vscode.Uri) => void;
   delete?: (uri: vscode.Uri) => void;
 };
+let gitignoreWatcherListeners: {
+  change?: (uri: vscode.Uri) => void;
+  create?: (uri: vscode.Uri) => void;
+  delete?: (uri: vscode.Uri) => void;
+};
 
-function installFileSystemWatcher(): void {
-  watcherListeners = {};
-  vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+function makeWatcher(listenerTarget: typeof watcherListeners): vscode.FileSystemWatcher {
+  return {
     onDidCreate: vi.fn((callback) => {
-      watcherListeners.create = callback;
+      listenerTarget.create = callback;
       return { dispose: vi.fn() };
     }),
     onDidDelete: vi.fn((callback) => {
-      watcherListeners.delete = callback;
+      listenerTarget.delete = callback;
       return { dispose: vi.fn() };
     }),
     onDidChange: vi.fn((callback) => {
-      watcherListeners.change = callback;
+      listenerTarget.change = callback;
       return { dispose: vi.fn() };
     }),
     dispose: vi.fn(),
-  } as unknown as vscode.FileSystemWatcher);
+  } as unknown as vscode.FileSystemWatcher;
+}
+
+function installFileSystemWatcher(): void {
+  watcherListeners = {};
+  gitignoreWatcherListeners = {};
+  vi.mocked(vscode.workspace.createFileSystemWatcher).mockImplementation((globPattern) =>
+    globPattern === '**/.gitignore'
+      ? makeWatcher(gitignoreWatcherListeners)
+      : makeWatcher(watcherListeners),
+  );
 }
 
 function captureSaveListener(): (document: vscode.TextDocument) => void {
@@ -143,6 +158,7 @@ describe('workspaceFiles/refresh/watchers', () => {
       '/workspace/src/new.ts',
     ]);
     expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileRenamed', {
       oldPath: '/workspace/src/old.ts',
       newPath: '/workspace/src/new.ts',
@@ -156,7 +172,8 @@ describe('workspaceFiles/refresh/watchers', () => {
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
     expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/*');
-    expect(context.subscriptions).toHaveLength(7);
+    expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/.gitignore');
+    expect(context.subscriptions).toHaveLength(11);
   });
 
   it('wires saved documents to file-changed refreshes', () => {
@@ -209,6 +226,7 @@ describe('workspaceFiles/refresh/watchers', () => {
 
     expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts']);
     expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
       filePath: '/workspace/src/app.ts',
     });
@@ -224,11 +242,43 @@ describe('workspaceFiles/refresh/watchers', () => {
     watcherListeners.change?.(uri('/workspace/.gitignore'));
     vi.advanceTimersByTime(500);
 
-    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
       filePath: '/workspace/.gitignore',
     });
+  });
+
+  it('runs a full graph refresh when the dedicated gitignore watcher sees a change', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    gitignoreWatcherListeners.change?.(uri('/workspace/.gitignore'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshIndex).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/.gitignore',
+    });
+  });
+
+  it('ignores file-system change events for graph cache writes', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    watcherListeners.change?.(uri('/workspace/.codegraphy/graph.lbug'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
   it('wires workspace explorer create and delete events', () => {

@@ -62,6 +62,10 @@ export function scheduleWorkspaceRefresh(
 
       console.log(nextPending.logMessage);
       if (nextPending.fullRefresh) {
+        if (provider.refreshIndex) {
+          void provider.refreshIndex();
+          return;
+        }
         void provider.refresh();
         return;
       }

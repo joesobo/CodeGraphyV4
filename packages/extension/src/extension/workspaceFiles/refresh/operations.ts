@@ -56,6 +56,10 @@ export function refreshWorkspaceChangedPath(
   logMessage: string,
   filePath: string,
 ): void {
+  if (shouldIgnoreWorkspaceFileWatcherRefresh(filePath)) {
+    return;
+  }
+
   scheduleWorkspaceRefresh(
     provider,
     logMessage,
