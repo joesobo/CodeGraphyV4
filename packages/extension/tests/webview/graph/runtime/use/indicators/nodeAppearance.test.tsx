@@ -194,14 +194,14 @@ describe('graph/runtime/useNodeAppearance', () => {
             color: '#112233',
             id: 'generated/output.ts',
             label: 'output.ts',
-            metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' },
+            metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
           },
           {
             color: '#445566',
             id: 'generated',
             label: 'generated',
             nodeType: 'folder',
-            metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' },
+            metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
           },
           {
             color: '#778899',

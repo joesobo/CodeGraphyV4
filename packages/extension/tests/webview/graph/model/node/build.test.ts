@@ -185,7 +185,7 @@ describe('graph/model/node/build', () => {
           id: 'generated/output.ts',
           label: 'output.ts',
           color: '#93C5FD',
-          metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' },
+          metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
         },
         {
           id: 'src/app.ts',

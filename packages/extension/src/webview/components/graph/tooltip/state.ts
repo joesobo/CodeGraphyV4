@@ -50,7 +50,7 @@ function getGitIgnoredTooltipSections(
     return [];
   }
 
-  return [{ title: 'Git ignored', content: 'Matched by .gitignore' }];
+  return [{ title: 'Git ignored', content: 'Reported ignored by Git' }];
 }
 
 export function buildGraphTooltipState(options: GraphTooltipStateOptions): GraphTooltipStateResult {

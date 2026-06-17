@@ -149,7 +149,7 @@ describe('core/graph/data', () => {
           id: 'example-python/app.py#main:function',
           metadata: {
             gitIgnored: true,
-            gitIgnoredReason: '.gitignore',
+            gitIgnoredReason: 'Git ignored',
           },
           symbol: expect.objectContaining({
             filePath: 'example-python/app.py',

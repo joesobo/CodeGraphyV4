@@ -15,7 +15,7 @@ export interface IDiscoveryOptions {
   include?: string[];
   /** Glob patterns for files to exclude */
   exclude?: string[];
-  /** Whether to respect .gitignore patterns (default: true) */
+  /** Whether to respect Git ignored state (default: true) */
   respectGitignore?: boolean;
   /** File extensions to include (e.g., ['.ts', '.js']). If empty, all extensions allowed. */
   extensions?: string[];
@@ -35,7 +35,7 @@ export interface IDiscoveredFile {
   extension: string;
   /** File name without path */
   name: string;
-  /** Whether this file matches .gitignore. It remains discoverable so the graph can dim it. */
+  /** Whether Git reports this file as ignored. It remains discoverable so the graph can dim it. */
   gitIgnored?: boolean;
 }
 
@@ -47,7 +47,7 @@ export interface IDiscoveryResult {
   files: IDiscoveredFile[];
   /** Discovered directory paths relative to the workspace root */
   directories: string[];
-  /** Discovered file and directory paths matched by .gitignore */
+  /** Discovered file and directory paths reported by Git as ignored */
   gitIgnoredPaths?: string[];
   /** Whether the max file limit was hit */
   limitReached: boolean;

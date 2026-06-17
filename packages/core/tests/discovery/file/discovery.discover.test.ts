@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -16,6 +17,17 @@ describe('FileDiscovery discover', () => {
 
   function createDir(relativePath: string): void {
     fs.mkdirSync(path.join(tempDir, relativePath), { recursive: true });
+  }
+
+  function initGitRepo(): void {
+    execFileSync('git', ['init', '-q'], { cwd: tempDir });
+    execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
+    execFileSync('git', ['config', 'user.name', 'CodeGraphy Test'], { cwd: tempDir });
+  }
+
+  function commitAll(message = 'initial'): void {
+    execFileSync('git', ['add', '.'], { cwd: tempDir });
+    execFileSync('git', ['commit', '-q', '-m', message], { cwd: tempDir });
   }
 
   beforeEach(() => {
@@ -159,6 +171,7 @@ describe('FileDiscovery discover', () => {
   });
 
   it('marks gitignored files by default when the option is omitted', async () => {
+    initGitRepo();
     createFile('.gitignore', '*.log\n');
     createFile('app.ts');
     createFile('debug.log');
@@ -174,6 +187,7 @@ describe('FileDiscovery discover', () => {
   });
 
   it('keeps scanning after marking a gitignored file', async () => {
+    initGitRepo();
     createFile('.gitignore', '*.log\n');
     createFile('a.log');
     createFile('z.ts');
@@ -185,6 +199,16 @@ describe('FileDiscovery discover', () => {
     expect(result.files.find((file) => file.name === 'a.log')).toMatchObject({
       gitIgnored: true,
     });
+  });
+
+  it('does not infer gitignored state from .gitignore outside a Git repository', async () => {
+    createFile('.gitignore', '*.log\n');
+    createFile('debug.log');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    expect(result.files.find((file) => file.name === 'debug.log')?.gitIgnored).toBeUndefined();
+    expect(result.gitIgnoredPaths).toEqual([]);
   });
 
   it('ignores gitignore patterns when disabled', async () => {
@@ -205,6 +229,7 @@ describe('FileDiscovery discover', () => {
   });
 
   it('marks gitignored directories without omitting their files', async () => {
+    initGitRepo();
     createFile('.gitignore', 'generated/\n');
     createFile('generated/output.ts');
 
@@ -218,6 +243,43 @@ describe('FileDiscovery discover', () => {
       'generated',
       path.join('generated', 'output.ts'),
     ]));
+  });
+
+  it('does not mark tracked files as gitignored even when they match gitignore patterns', async () => {
+    initGitRepo();
+    createFile('tracked-dir/keep.log', 'tracked');
+    commitAll();
+    createFile('.gitignore', '*.log\ntracked-dir/\n');
+    createFile('tracked-dir/keep.log', 'changed');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    const trackedFile = result.files.find(file =>
+      file.relativePath === path.join('tracked-dir', 'keep.log'),
+    );
+    expect(trackedFile?.relativePath).toBe(path.join('tracked-dir', 'keep.log'));
+    expect(trackedFile?.gitIgnored).toBeUndefined();
+    expect(result.gitIgnoredPaths).not.toContain(path.join('tracked-dir', 'keep.log'));
+  });
+
+  it('does not mark mixed tracked folders as gitignored but still marks ignored descendants', async () => {
+    initGitRepo();
+    createFile('mixed-dir/tracked.ts', 'tracked');
+    commitAll();
+    createFile('.gitignore', 'mixed-dir/\n');
+    createFile('mixed-dir/ignored.ts', 'ignored');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    expect(result.directories).toContain('mixed-dir');
+    expect(result.gitIgnoredPaths).not.toContain('mixed-dir');
+    expect(result.files.find(file =>
+      file.relativePath === path.join('mixed-dir', 'tracked.ts'),
+    )?.gitIgnored).toBeUndefined();
+    expect(result.files.find(file =>
+      file.relativePath === path.join('mixed-dir', 'ignored.ts'),
+    )).toMatchObject({ gitIgnored: true });
+    expect(result.gitIgnoredPaths).toContain(path.join('mixed-dir', 'ignored.ts'));
   });
 
   it('returns the exact discovery duration', async () => {

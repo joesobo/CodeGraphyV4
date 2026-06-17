@@ -15,6 +15,8 @@ import {
   isExternalPackageNodeId,
 } from './packageSpecifiers/nodeId';
 
+const GIT_IGNORED_REASON = 'Git ignored';
+
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;
   churnCounts: Record<string, number>;
@@ -73,7 +75,7 @@ function buildDiscoveredDirectoryNodes(
       color: DEFAULT_FOLDER_NODE_COLOR,
       nodeType: 'folder',
       ...(isGitIgnoredDirectory
-        ? { metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' } }
+        ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
         : {}),
     });
   }
@@ -121,7 +123,7 @@ export function buildWorkspaceGraphNodes(
       fileSize: cacheFiles[filePath]?.size,
       churn: churnCounts[filePath] ?? 0,
       ...(gitIgnoredPathSet.has(filePath)
-        ? { metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' } }
+        ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
         : {}),
     });
   }

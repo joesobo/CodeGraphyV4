@@ -73,7 +73,7 @@ describe('core/graph/nodes', () => {
         id: 'generated/output.ts',
         metadata: {
           gitIgnored: true,
-          gitIgnoredReason: '.gitignore',
+          gitIgnoredReason: 'Git ignored',
         },
       }),
       expect.objectContaining({
@@ -81,7 +81,7 @@ describe('core/graph/nodes', () => {
         nodeType: 'folder',
         metadata: {
           gitIgnored: true,
-          gitIgnoredReason: '.gitignore',
+          gitIgnoredReason: 'Git ignored',
         },
       }),
     ]);

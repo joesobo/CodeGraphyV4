@@ -1,4 +1,5 @@
 import { expect, test, type Frame, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -116,6 +117,7 @@ function createPythonRepoWorkspace(): string {
   fs.mkdirSync(path.join(workspacePath, '.codegraphy'), { recursive: true });
   fs.rmSync(path.join(workspacePath, 'example-python', '.gitignore'), { force: true });
   fs.writeFileSync(path.join(workspacePath, '.gitignore'), '');
+  execFileSync('git', ['init', '-q'], { cwd: workspacePath });
   fs.writeFileSync(
     path.join(workspacePath, '.codegraphy', 'settings.json'),
     `${JSON.stringify({

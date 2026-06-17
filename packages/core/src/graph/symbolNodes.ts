@@ -5,6 +5,7 @@ import { normalizeSymbolKind, toRepoRelativeGraphPath } from './symbolPaths';
 
 const SYMBOL_NODE_COLOR = '#8B5CF6';
 const VARIABLE_NODE_COLOR = '#14B8A6';
+const GIT_IGNORED_REASON = 'Git ignored';
 const VARIABLE_SYMBOL_KINDS = new Set(['constant', 'field', 'global', 'variable']);
 
 export function createSymbolNode(
@@ -25,7 +26,7 @@ export function createSymbolNode(
     fileSize: containingFile.fileSize,
     churn: containingFile.churn,
     ...(containingFile.gitIgnored
-      ? { metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' } }
+      ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
       : {}),
     symbol: {
       id,

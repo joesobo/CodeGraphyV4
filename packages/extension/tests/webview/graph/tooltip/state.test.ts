@@ -71,7 +71,7 @@ describe('graph/tooltip/state', () => {
           id: 'generated/output.ts',
           label: 'output.ts',
           color: '#93C5FD',
-          metadata: { gitIgnored: true, gitIgnoredReason: '.gitignore' },
+          metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
         }],
         edges: [],
       },
@@ -81,7 +81,7 @@ describe('graph/tooltip/state', () => {
     });
 
     expect(result.tooltipData.pluginSections).toEqual([
-      { title: 'Git ignored', content: 'Matched by .gitignore' },
+      { title: 'Git ignored', content: 'Reported ignored by Git' },
     ]);
   });
 
