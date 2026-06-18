@@ -62,6 +62,6 @@ describe('acceptance graph view step resolution', () => {
 
     expect(rightClickNode).not.toHaveBeenCalled();
     expect(clickNode).toHaveBeenCalledWith(expect.anything(), 'src/index.ts');
-    expect(modifierClickNode).toHaveBeenCalledWith(expect.anything(), 'src/utils.ts');
+    expect(modifierClickNode).toHaveBeenCalledWith(expect.anything(), 'src/palette.ts');
   });
 });

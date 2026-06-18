@@ -24,12 +24,13 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     }
   });
 
-  it('advertises TypeScript inheritance because the language supports it even without inherit evidence', () => {
+  it('advertises TypeScript graph scope edges supported by the current analyzer', () => {
     expect(listTreeSitterEdgeTypeCapabilities(['src/commented.ts'])).toEqual([
       'import',
       'type-import',
       'call',
       'inherit',
+      'contains',
     ]);
   });
 
@@ -53,6 +54,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'Sources/Feature/UserCardView.h',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
     ]);
@@ -70,6 +72,14 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   });
 
   it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'inherit',
+      'contains',
+      'overrides',
+    ]);
     expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
       'symbol:function',
       'symbol:class',
@@ -143,6 +153,45 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     }
   });
 
+  it('keeps TypeScript document-plugin workspaces on relationship and containment edges', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'README.md',
+      'notes/Home.md',
+      'src/commented.ts',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+      'contains',
+    ]);
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.ts',
+      'src/App.vue',
+      'src/components/UserCard.vue',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+      'contains',
+    ]);
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.ts',
+      'src/App.svelte',
+      'src/components/UserCard.svelte',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+      'contains',
+    ]);
+  });
+
   it('advertises C++ includes without advertising imports for C++ source and header workspaces', () => {
     expect(listTreeSitterEdgeTypeCapabilities([
       'src/app.cpp',
@@ -208,6 +257,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'Sources/AppDelegate.h',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
     ]);
@@ -226,6 +276,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'src/task.cpp',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
       'include',
@@ -262,6 +313,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'contains',
       'import',
+      'reference',
       'inherit',
     ]);
     expect(listTreeSitterNodeTypeCapabilities([

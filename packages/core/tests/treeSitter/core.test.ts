@@ -48,6 +48,7 @@ describe('core tree-sitter baseline analysis', () => {
       'call',
       'inherit',
       'type-import',
+      'contains',
     ]);
   });
 
@@ -73,6 +74,7 @@ describe('core tree-sitter baseline analysis', () => {
         'call',
         'inherit',
         'type-import',
+        'contains',
       ],
     });
   });
