@@ -235,11 +235,14 @@ jobs:
           - label: Language examples
             suite: examples
             timeout-minutes: 15
+            workers: 4
           - label: Graph interactions
             suite: interactions
             timeout-minutes: 20
+            workers: 4
     env:
       CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
+      CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS: ${{ matrix.workers }}
 
     steps:
       - name: Checkout
@@ -285,6 +288,28 @@ jobs:
       - name: Install Playwright browser + system deps
         if: steps.playwright-turbo-cache.outputs.hit != 'true'
         run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
+
+      - name: Restore VS Code test host cache
+        if: steps.playwright-turbo-cache.outputs.hit != 'true'
+        uses: actions/cache@v5
+        with:
+          path: packages/extension/.vscode-test
+          key: ${{ runner.os }}-vscode-test-host-stable-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vscode-test-host-stable-
+
+      - name: Install VS Code test host
+        if: steps.playwright-turbo-cache.outputs.hit != 'true'
+        working-directory: packages/extension
+        run: |
+          node --input-type=module <<'NODE'
+          import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+
+          await downloadAndUnzipVSCode({
+            version: 'stable',
+            cachePath: '.vscode-test',
+          });
+          NODE
 
       - name: VS Code Playwright tests
         run: xvfb-run --auto-servernum node scripts/run-playwright-turbo.mjs
