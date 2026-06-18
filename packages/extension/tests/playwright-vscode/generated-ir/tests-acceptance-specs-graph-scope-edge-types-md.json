@@ -130,7 +130,8 @@
           "line": 24,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Imports edges work",
@@ -238,7 +239,8 @@
           "line": 44,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "References edges work",
@@ -316,7 +318,8 @@
           "line": 59,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Calls edges work",
@@ -406,7 +409,8 @@
           "line": 76,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Type imports edges work",
@@ -484,7 +488,8 @@
           "line": 91,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "TypeScript Alias Import edges work",
@@ -556,7 +561,8 @@
           "line": 105,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Inherits edges work",
@@ -616,7 +622,8 @@
           "line": 117,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Loads edges work",
@@ -814,7 +821,8 @@
           "line": 152,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Nests edges work",
@@ -952,7 +960,8 @@
           "line": 177,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Contains edges work",
@@ -1030,7 +1039,8 @@
           "line": 192,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Overrides edges work",
@@ -1090,7 +1100,8 @@
           "line": 204,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     }
   ]
 }

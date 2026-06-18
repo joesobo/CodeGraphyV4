@@ -10,7 +10,8 @@ specs/*.md
   -> quality-tools acceptance compile
   -> generated JSON IR
   -> generated advisory DRY reports
-  -> generated Playwright entrypoints
+  -> generated thin Playwright entrypoints
+  -> generated shared Playwright runtime
   -> VS Code Playwright
 ```
 
@@ -22,9 +23,11 @@ hand.
 The generated JSON IR lives under
 `packages/extension/tests/playwright-vscode/generated-ir/`. Advisory DRY
 reports are written under `packages/extension/reports/acceptance-dry/`, which is
-ignored by git because the reports can be large. The DRY reports surface
-repeated and similar step text for review; they do not rewrite specs or change
-test behavior.
+ignored by git. The generated Playwright entrypoints load JSON IR through a
+shared generated runtime, so the checked-in spec files stay thin while preserving
+source line metadata and Playwright `test.step` reporting. The DRY reports
+surface repeated step patterns and scenario shapes for review; they do not
+rewrite specs or change test behavior.
 
 ## Ownership
 
@@ -97,6 +100,7 @@ Use these local language sources before inventing new terms:
 
 Helpful external references:
 
+- [Uncle Bob Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification)
 - [Cucumber Gherkin Reference](https://cucumber.io/docs/gherkin/reference/)
 - [Keep your scenarios BRIEF](https://cucumber.io/blog/bdd/keep-your-scenarios-brief/)
 - [Uncle Bob empire-2025 acceptance examples](https://github.com/unclebob/empire-2025/tree/master/acceptanceTests)

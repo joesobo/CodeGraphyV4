@@ -166,7 +166,8 @@
           "line": 34,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "C example exposes symbols when symbol scope is enabled",
@@ -442,7 +443,8 @@
           "line": 93,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     }
   ]
 }

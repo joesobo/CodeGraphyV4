@@ -64,7 +64,8 @@
           "line": 13,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Folder node type works",
@@ -118,7 +119,8 @@
           "line": 24,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Package node type works",
@@ -166,7 +168,8 @@
           "line": 34,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Symbol node type gates symbol children",
@@ -256,7 +259,8 @@
           "line": 51,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Namespace node type works",
@@ -304,7 +308,8 @@
           "line": 61,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Function node type works",
@@ -352,7 +357,8 @@
           "line": 71,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Prototype node type works",
@@ -424,7 +430,8 @@
           "line": 85,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Class node type works",
@@ -490,7 +497,8 @@
           "line": 98,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Interface node type works",
@@ -544,7 +552,8 @@
           "line": 109,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Type node type works",
@@ -592,7 +601,8 @@
           "line": 119,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Struct node type works",
@@ -646,7 +656,8 @@
           "line": 130,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Union node type works",
@@ -694,7 +705,8 @@
           "line": 140,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Enum node type works",
@@ -748,7 +760,8 @@
           "line": 151,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Typedef node type works",
@@ -814,7 +827,8 @@
           "line": 164,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Callable node type works",
@@ -880,7 +894,8 @@
           "line": 177,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Method node type works",
@@ -940,7 +955,8 @@
           "line": 189,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Alias node type works",
@@ -1000,7 +1016,8 @@
           "line": 201,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Template node type works",
@@ -1048,7 +1065,8 @@
           "line": 211,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Variable node type gates variable children",
@@ -1138,7 +1156,8 @@
           "line": 228,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Global node type works",
@@ -1186,7 +1205,8 @@
           "line": 238,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Constant node type works",
@@ -1240,7 +1260,8 @@
           "line": 249,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Field node type works",
@@ -1306,7 +1327,8 @@
           "line": 262,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Parameter node type works",
@@ -1366,7 +1388,8 @@
           "line": 274,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Local node type works",
@@ -1426,7 +1449,8 @@
           "line": 286,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     },
     {
       "name": "Godot class_name node type works",
@@ -1498,7 +1522,8 @@
           "line": 300,
           "parameters": []
         }
-      ]
+      ],
+      "examples": []
     }
   ]
 }
