@@ -28,6 +28,10 @@ function keepMostSpecificUniqueEdges(
   const maxEndpointSpecificityByKey = new Map<string, number>();
 
   for (const edge of edges) {
+    if (edge.kind === 'contains') {
+      continue;
+    }
+
     const fromNode = nodeById.get(edge.from);
     const toNode = nodeById.get(edge.to);
     const key = getEdgeContainingFileKey(edge, nodeById);
@@ -44,7 +48,7 @@ function keepMostSpecificUniqueEdges(
     const toNode = nodeById.get(edge.to);
     const key = getEdgeContainingFileKey(edge, nodeById);
     const specificity = Number(Boolean(fromNode?.symbol)) + Number(Boolean(toNode?.symbol));
-    if (specificity !== (maxEndpointSpecificityByKey.get(key) ?? specificity)) {
+    if (edge.kind !== 'contains' && specificity !== (maxEndpointSpecificityByKey.get(key) ?? specificity)) {
       return false;
     }
 

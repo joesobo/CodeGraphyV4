@@ -284,6 +284,52 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('keeps Unity file to GameObject containment when Component symbols are visible', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('Assets/Prefabs/Enemy1.prefab', 'file'),
+        node('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'symbol', symbol({
+          id: 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object',
+          filePath: 'Assets/Prefabs/Enemy1.prefab',
+          kind: 'game-object',
+          name: 'Enemy1',
+          pluginKind: 'game-object',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+        node('Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', 'symbol', symbol({
+          id: 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component',
+          filePath: 'Assets/Prefabs/Enemy1.prefab',
+          kind: 'component',
+          name: 'EnemyMovement',
+          pluginKind: 'component',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+      ],
+      edges: [
+        edge('Assets/Prefabs/Enemy1.prefab', 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'contains'),
+        edge('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', 'contains'),
+      ],
+    };
+
+    const result = applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
+      ],
+      edges: [{ type: 'contains', enabled: true }],
+    });
+
+    expect(result.edges.map((item) => item.id)).toEqual([
+      'Assets/Prefabs/Enemy1.prefab->Assets/Prefabs/Enemy1.prefab#Enemy1:game-object#contains',
+      'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object->Assets/Prefabs/Enemy1.prefab#EnemyMovement:component#contains',
+    ]);
+  });
+
   it('keeps one visible edge for repeated edges with the same identity', () => {
     const graphData: IGraphData = {
       nodes: [
