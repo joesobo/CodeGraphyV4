@@ -21,6 +21,7 @@ import type {
 } from './contracts';
 
 const STRUCTURAL_NODE_TYPE_IDS = new Set(['file', 'folder', 'package']);
+const CORE_GRAPH_EDGE_TYPE_IDS = new Set(CORE_GRAPH_EDGE_TYPES.map(edgeType => edgeType.id));
 
 export function mergeNodeTypes(
   _graphData: IGraphData,
@@ -122,7 +123,7 @@ export function mergeEdgeTypes(
   }
 
   for (const edge of graphData.edges) {
-    if (!definitions.has(edge.kind)) {
+    if (availableEdgeKinds.has(edge.kind) && !definitions.has(edge.kind)) {
       definitions.set(edge.kind, {
         id: edge.kind,
         label: prettifyIdentifier(edge.kind),
@@ -140,13 +141,22 @@ function collectAvailableEdgeKinds(
   edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
 ): Set<string> {
   const edgeKinds = collectCapabilityEdgeKinds(edgeTypeCapabilities);
+  const hasCoreEdgeTypeCapabilities = edgeTypeCapabilities?.some(edgeType => CORE_GRAPH_EDGE_TYPE_IDS.has(edgeType)) ?? false;
 
   for (const edge of graphData.edges) {
-    edgeKinds.add(edge.kind);
+    if (
+      !edgeTypeCapabilities
+      || edgeTypeCapabilities.length === 0
+      || !hasCoreEdgeTypeCapabilities
+      || edgeTypeCapabilities.includes(edge.kind)
+      || !CORE_GRAPH_EDGE_TYPE_IDS.has(edge.kind)
+    ) {
+      edgeKinds.add(edge.kind);
+    }
   }
 
   if (graphData.nodes.some(isFileNode)) {
-    if (shouldAddLegacyReferenceEdgeKind(edgeTypeCapabilities, edgeKinds)) {
+    if (shouldAddLegacyReferenceEdgeKind(edgeKinds)) {
       edgeKinds.add('reference');
     }
     edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);
@@ -170,17 +180,14 @@ function collectCapabilityEdgeKinds(
 }
 
 function shouldAddLegacyReferenceEdgeKind(
-  edgeTypeCapabilities: readonly GraphEdgeTypeCapabilityLike[] | undefined,
   edgeKinds: ReadonlySet<string>,
 ): boolean {
-  const hasCppEdgeShape = edgeKinds.has('include') && edgeKinds.has('overrides');
-  const hasExplicitTypeReferenceEdge = edgeKinds.has('type');
-  if (hasCppEdgeShape || hasExplicitTypeReferenceEdge) {
+  const hasExplicitNonReferenceShape = edgeKinds.has('overrides')
+    || edgeKinds.has('type')
+    || edgeKinds.has('type-import');
+  if (hasExplicitNonReferenceShape) {
     return false;
   }
 
-  return !edgeTypeCapabilities
-    || edgeTypeCapabilities.length === 0
-    || edgeTypeCapabilities.includes('reference')
-    || !edgeTypeCapabilities.includes('overrides');
+  return true;
 }

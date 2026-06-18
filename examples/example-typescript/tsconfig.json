@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2022",
+    "strict": true,
     "paths": {
-      "@example/*": ["src/alias/*"]
+      "#example/*": ["src/alias/*"]
     }
   },
-  "files": []
+  "include": ["src/**/*.ts"]
 }

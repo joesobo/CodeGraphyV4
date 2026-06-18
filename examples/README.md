@@ -8,7 +8,7 @@ alias edges whether you open the full `examples/` workspace or the focused
 keeps JavaScript project metadata visible without asserting TypeScript-only
 alias behavior.
 
-- `example-typescript` — small TypeScript workspace used by extension e2e
+- `example-typescript` — runnable TypeScript palette generator used by extension e2e
 - `example-javascript` — small JavaScript workspace mirroring the TypeScript graph story
 - `example-vue` — Vue 3 SFC workspace used to inspect baseline `.vue` graph support
 - `example-godot` — Godot/GDScript workspace used by plugin e2e
@@ -65,7 +65,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 
 | Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
-| `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser`; `AppRunner` extends `BaseRunner` and implements `RunnableThing` for TypeScript inheritance coverage. |
+| `example-typescript` | `src/index.ts` runs a tiny palette generator with static imports, type imports, export-from, dynamic import, CommonJS require, and a TypeScript path alias; `PaletteRunner` extends `BaseGenerator` and implements `PaletteExporter` while functions, interfaces, types, enums, and constants stay visible as symbol nodes. |
 | `example-javascript` | `src/index.js` imports `buildGreeting`, calls through `normalizeUserName`, and declares `currentUser`; `AppRunner` imports `RunnableThing` and extends `BaseRunner` for JavaScript import and inheritance coverage. |
 | `example-vue` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` component imports, composables, type-only imports, interface inheritance, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. `enemy.gd` extends a file-backed base entity while Godot `class_name` declarations appear under Variable. |
