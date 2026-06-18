@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public sealed class EnemyMovement : Movement {
+public sealed class EnemyMovement : Movement, IEnemyLifecycle {
 	private Transform target;
 
 	public void Configure(EnemyDefinition definition, Transform playerTarget) {

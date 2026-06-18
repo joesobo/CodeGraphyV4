@@ -9,6 +9,7 @@ Manual alignment notes for Trello card 238.
 - The Unity Parser Model should be CodeGraphy-owned TypeScript code inside the Unity Plugin, using Unity parser precedents as reference material rather than executing an external Python, C#, or Rust parser runtime.
 - Low-level parsing may use general-purpose packages such as `yaml` for UnityYAML documents and `jsonc-parser` for tolerant JSON-like Unity configuration files.
 - Unity-specific meaning belongs in Plugin Analysis. Core C# should continue to own syntax-backed C# facts such as classes, methods, fields, calls, type references, inheritance, and `using` relationships.
+- Turning the Unity Plugin off should remove Unity Graph Scope rows, Unity-sourced nodes and edges, and Unity plugin default filters. Core C# connections for `.cs` files should remain because MonoBehaviour scripts are still C# files.
 - The example should come first. `examples/example-unity` is the source-of-truth target for the full Unity support PR, and implementation should grow to satisfy that example.
 - Human-owned acceptance spec Markdown remains untouched until the example and expected graph are reviewed and approved.
 
@@ -27,12 +28,10 @@ Manual alignment notes for Trello card 238.
 
 - The Unity Plugin owns a Unity parent row in Graph Scope.
 - The Unity parent row appears only when the Unity Plugin is enabled and applicable to the workspace.
-- Planned child Node Type rows include:
-  - `Scene`
-  - `Prefab`
+- Current child Node Type rows are:
   - `GameObject`
   - `Component`
-  - `ScriptableObject Asset`
+- Scenes and prefabs stay visible as their normal file nodes rather than duplicate Unity-specific rows.
 - These are Unity Concept Nodes, not Core Symbol Nodes.
 
 ## Example Contract
@@ -55,8 +54,8 @@ Planned example surfaces:
 
 Planned graph concepts:
 
-- A Scene node for `MainScene`.
-- A Prefab node for `Player`.
+- A scene file node for `MainScene`.
+- A prefab file node for `Player`.
 - GameObject nodes for meaningful scene and prefab objects.
 - Component nodes for MonoBehaviour attachments and important built-in components.
 - A ScriptableObject Asset node for `PlayerStats`.

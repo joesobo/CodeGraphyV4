@@ -7,10 +7,11 @@ import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
 } from './router';
+import { sendFilterPatternsUpdated } from './updates/apply/filterPatternNotification';
 
 export async function applySettingsToggleMessage(
   message: WebviewToExtensionMessage,
-  _state: GraphViewSettingsMessageState,
+  state: GraphViewSettingsMessageState,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
@@ -36,6 +37,7 @@ export async function applySettingsToggleMessage(
       handlers.sendPluginToolbarActions?.();
       handlers.sendGraphViewContributionStatuses?.();
       handlers.sendGraphControls();
+      sendFilterPatternsUpdated(state, handlers);
       if (plan.indexing.kind === 'reprocess-plugin-files') {
         await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
         return true;

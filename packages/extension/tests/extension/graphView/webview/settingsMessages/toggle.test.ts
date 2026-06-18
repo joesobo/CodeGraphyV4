@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applySettingsToggleMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/toggle';
+import type { IPluginFilterPatternGroup } from '../../../../../src/shared/protocol/extensionToWebview';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
@@ -32,6 +33,7 @@ function createHandlers(
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
       smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
+      getPluginFilterGroups: vi.fn(() => []),
       sendGraphControls: vi.fn(),
       reprocessPluginFiles: vi.fn(() => Promise.resolve()),
       sendMessage: vi.fn(),
@@ -295,6 +297,61 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphControls.mock.invocationCallOrder[0]);
     expect(sendGraphControls.mock.invocationCallOrder[0])
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+  });
+
+  it('sends fresh filter patterns after package toggles sync plugin filters', async () => {
+    const state = createState({ filterPatterns: ['dist/**'] });
+    const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const pluginFilterGroups: IPluginFilterPatternGroup[] = [{
+      pluginId: 'codegraphy.unity',
+      pluginName: 'Unity',
+      patterns: ['**/*.meta', 'ProjectSettings/**'],
+    }];
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ id: 'codegraphy.unity', enabled: true }] as T;
+        }
+        if (key === 'disabledCustomFilterPatterns') {
+          return ['dist/**'] as T;
+        }
+        if (key === 'disabledPluginFilterPatterns') {
+          return ['**/*.meta'] as T;
+        }
+        return defaultValue;
+      }),
+      syncWorkspacePlugins,
+      getPluginFilterPatterns: vi.fn(() => ['**/*.meta', 'ProjectSettings/**']),
+      getPluginFilterGroups: vi.fn(() => pluginFilterGroups),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.unity',
+          enabled: false,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'FILTER_PATTERNS_UPDATED',
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['**/*.meta', 'ProjectSettings/**'],
+        pluginPatternGroups: pluginFilterGroups,
+        disabledCustomPatterns: ['dist/**'],
+        disabledPluginPatterns: ['**/*.meta'],
+      },
+    });
+    expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
+      .toBeLessThan(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0]);
+    expect(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
