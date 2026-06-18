@@ -361,6 +361,60 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('keeps Unity file to GameObject containment when Component symbols are visible', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('Assets/Prefabs/Enemy1.prefab'),
+					symbolNode('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', {
+						id: 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object',
+						name: 'Enemy1',
+						kind: 'game-object',
+						filePath: 'Assets/Prefabs/Enemy1.prefab',
+						pluginKind: 'game-object',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+					symbolNode('Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', {
+						id: 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component',
+						name: 'EnemyMovement',
+						kind: 'component',
+						filePath: 'Assets/Prefabs/Enemy1.prefab',
+						pluginKind: 'component',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+				],
+				edges: [
+					edge('Assets/Prefabs/Enemy1.prefab', 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'contains'),
+					edge('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
+				],
+				edges: [{ type: 'contains', enabled: true }],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'Assets/Prefabs/Enemy1.prefab',
+				'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object',
+				'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component',
+			],
+			edges: [
+				'Assets/Prefabs/Enemy1.prefab->Assets/Prefabs/Enemy1.prefab#Enemy1:game-object#contains',
+				'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object->Assets/Prefabs/Enemy1.prefab#EnemyMovement:component#contains',
+			],
+		});
+	});
+
 	it('keeps one visible edge for repeated edges with the same identity', () => {
 		const result = applyGraphScope(
 			{
