@@ -42,7 +42,12 @@ export function handleCSharpTypeDeclaration(
   }
 
   const resolvedBaseTypePaths: string[] = [];
-  for (const baseType of node.descendantsOfType(['identifier', 'qualified_name'])) {
+  for (const baseType of node.descendantsOfType([
+    'identifier',
+    'type_identifier',
+    'qualified_name',
+    'generic_name',
+  ])) {
     addCSharpBaseTypeRelation(
       baseType,
       state,

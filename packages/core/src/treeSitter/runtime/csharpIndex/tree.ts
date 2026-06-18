@@ -43,14 +43,38 @@ function recordIndexedType(
   namespaceName: string | null,
   kind: CSharpIndexedType['kind'],
   typeName: string,
+  methodNames: Set<string>,
 ): void {
   const qualifiedName = namespaceName ? `${namespaceName}.${typeName}` : typeName;
   index.typesByQualifiedName.set(qualifiedName, {
     filePath,
     kind,
+    methodNames,
     namespaceName,
     typeName,
   } satisfies CSharpIndexedType);
+}
+
+function collectCSharpMethodNames(node: Parser.SyntaxNode): Set<string> {
+  const methodNames = new Set<string>();
+  collectCSharpMethodNamesFromNode(node, methodNames);
+  return methodNames;
+}
+
+function collectCSharpMethodNamesFromNode(
+  node: Parser.SyntaxNode,
+  methodNames: Set<string>,
+): void {
+  if (node.type === 'method_declaration') {
+    const methodName = getCSharpIdentifierText(node.childForFieldName('name'));
+    if (methodName) {
+      methodNames.add(methodName);
+    }
+  }
+
+  for (const child of node.namedChildren) {
+    collectCSharpMethodNamesFromNode(child, methodNames);
+  }
 }
 
 function recordCSharpIndexedType(
@@ -65,7 +89,14 @@ function recordCSharpIndexedType(
 
   const typeName = getCSharpIdentifierText(node.childForFieldName('name'));
   if (typeName) {
-    recordIndexedType(index, filePath, currentNamespace, getCSharpIndexedTypeKind(node), typeName);
+    recordIndexedType(
+      index,
+      filePath,
+      currentNamespace,
+      getCSharpIndexedTypeKind(node),
+      typeName,
+      collectCSharpMethodNames(node),
+    );
   }
 }
 

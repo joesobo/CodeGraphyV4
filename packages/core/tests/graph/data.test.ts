@@ -656,6 +656,45 @@ describe('core/graph/data', () => {
       expect(graph.edges).toEqual([]);
     });
 
+    it('does not project Unity file-to-symbol containment without target paths as file self-edges', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {
+          'Assets/Prefabs/Enemy1.prefab': { size: 20 },
+        },
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['Assets/Prefabs/Enemy1.prefab', {
+            filePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+            symbols: [{
+              id: 'Assets/Prefabs/Enemy1.prefab#unity:game-object:1000',
+              filePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+              kind: 'game-object',
+              name: 'Enemy 1',
+              metadata: {
+                source: 'codegraphy.unity',
+                language: 'unity',
+                pluginKind: 'game-object',
+              },
+            }],
+            relations: [{
+              kind: 'contains',
+              pluginId: 'codegraphy.unity',
+              sourceId: 'unity-containment',
+              fromFilePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+              toSymbolId: 'Assets/Prefabs/Enemy1.prefab#unity:game-object:1000',
+            }],
+          }],
+        ]),
+        showOrphans: true,
+        churnCounts: {},
+        nodeVisibility: { symbol: false },
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.unity'),
+      });
+
+      expect(graph.edges).toEqual([]);
+    });
+
     it('keeps Unity component containment routed through GameObjects when Components are visible', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({
         cacheFiles: {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createEmptyCSharpIndex,
+  resolveCSharpInheritedMethodPath,
   resolveCSharpTypePath,
   resolveCSharpTypePathInNamespace,
   setCSharpWorkspaceIndex,
@@ -34,6 +35,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     index.typesByQualifiedName.set('MyApp.Services.ApiService', {
       filePath: '/workspace/src/Services/ApiService.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: 'MyApp.Services',
       typeName: 'ApiService',
     });
@@ -76,18 +78,21 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     index.typesByQualifiedName.set('MyApp.Services.ApiService', {
       filePath: '/workspace-using/src/Program.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: 'MyApp.Services',
       typeName: 'ApiService',
     });
     index.typesByQualifiedName.set('MyApp.Shared.ApiService', {
       filePath: '/workspace-using/src/Shared/ApiService.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: 'MyApp.Shared',
       typeName: 'ApiService',
     });
     index.typesByQualifiedName.set('ApiService', {
       filePath: '/workspace-using/src/Fallback/ApiService.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: '',
       typeName: 'ApiService',
     });
@@ -110,6 +115,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     index.typesByQualifiedName.set('ApiService', {
       filePath: '/workspace-fallback/src/Fallback/ApiService.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: '',
       typeName: 'ApiService',
     });
@@ -132,6 +138,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
     index.typesByQualifiedName.set('MyApp.Services.ApiService', {
       filePath: '/workspace-2/src/Services/ApiService.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: 'MyApp.Services',
       typeName: 'ApiService',
     });
@@ -167,6 +174,41 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/resolve', () => {
         '/workspace-3/src/Program.cs',
         'MyApp.Services',
         'ApiService',
+      ),
+    ).toBeNull();
+  });
+
+  it('resolves inherited method paths only when a base type declares the method', () => {
+    const workspaceRoot = '/workspace-methods';
+    const index = createEmptyCSharpIndex();
+    index.typesByQualifiedName.set('MyApp.BaseRunner', {
+      filePath: '/workspace-methods/src/BaseRunner.cs',
+      kind: 'class',
+      methodNames: new Set(['Complete']),
+      namespaceName: 'MyApp',
+      typeName: 'BaseRunner',
+    });
+    index.typesByQualifiedName.set('UnityEngine.MonoBehaviour', {
+      filePath: '/workspace-methods/packages/UnityEngine/MonoBehaviour.cs',
+      kind: 'class',
+      methodNames: new Set(['Destroy']),
+      namespaceName: 'UnityEngine',
+      typeName: 'MonoBehaviour',
+    });
+    setCSharpWorkspaceIndex(workspaceRoot, index);
+
+    expect(
+      resolveCSharpInheritedMethodPath(
+        workspaceRoot,
+        ['/workspace-methods/src/BaseRunner.cs'],
+        'Complete',
+      ),
+    ).toBe('/workspace-methods/src/BaseRunner.cs');
+    expect(
+      resolveCSharpInheritedMethodPath(
+        workspaceRoot,
+        ['/workspace-methods/src/BaseRunner.cs'],
+        'Destroy',
       ),
     ).toBeNull();
   });

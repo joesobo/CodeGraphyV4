@@ -2,6 +2,7 @@ import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { CSharpWalkState } from './model';
 import { getCSharpTypeName, resolveCSharpUsingImport } from './resolution';
+import { resolveCSharpInheritedMethodPath } from '../csharpIndex';
 import { getIdentifierText } from '../analyze/nodes';
 export { appendCSharpUsingImportRelations } from './usingImports';
 import {
@@ -155,7 +156,13 @@ function getCSharpCallBinding(
       importTargetsByNamespace,
       currentNamespace,
     )
-    : getCSharpUnqualifiedCallBinding(node, functionNode, filePath, currentBaseTypePaths);
+    : getCSharpUnqualifiedCallBinding(
+      node,
+      functionNode,
+      filePath,
+      workspaceRoot,
+      currentBaseTypePaths,
+    );
 }
 
 function createCSharpObjectCreationCallBinding(
@@ -180,6 +187,7 @@ function getCSharpUnqualifiedCallBinding(
   node: Parser.SyntaxNode,
   functionNode: Parser.SyntaxNode,
   filePath: string,
+  workspaceRoot: string,
   currentBaseTypePaths: readonly string[],
 ): ImportedBinding | null {
   const methodName = getIdentifierText(functionNode);
@@ -191,8 +199,13 @@ function getCSharpUnqualifiedCallBinding(
     return createCSharpMethodCallBinding(methodName, filePath);
   }
 
-  return currentBaseTypePaths.length === 1
-    ? createInheritedCSharpCallBinding(methodName, currentBaseTypePaths[0])
+  const inheritedMethodPath = resolveCSharpInheritedMethodPath(
+    workspaceRoot,
+    currentBaseTypePaths,
+    methodName,
+  );
+  return inheritedMethodPath
+    ? createInheritedCSharpCallBinding(methodName, inheritedMethodPath)
     : null;
 }
 

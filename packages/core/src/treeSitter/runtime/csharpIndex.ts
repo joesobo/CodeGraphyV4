@@ -15,6 +15,7 @@ import {
   resolveCSharpTypeInNamespace as resolveTypeInNamespace,
   resolveCSharpTypePath as resolveTypePath,
   resolveCSharpTypePathInNamespace as resolveTypePathInNamespace,
+  resolveCSharpInheritedMethodPath as resolveInheritedMethodPath,
 } from './csharpIndex/resolve';
 import {
   clearCSharpWorkspaceIndex as clearWorkspaceIndex,
@@ -37,6 +38,7 @@ export const resolveCSharpType = resolveType;
 export const resolveCSharpTypeInNamespace = resolveTypeInNamespace;
 export const resolveCSharpTypePath = resolveTypePath;
 export const resolveCSharpTypePathInNamespace = resolveTypePathInNamespace;
+export const resolveCSharpInheritedMethodPath = resolveInheritedMethodPath;
 export const clearCSharpWorkspaceIndex = clearWorkspaceIndex;
 export const createEmptyCSharpIndex = createEmptyIndex;
 export const getCSharpWorkspaceIndex = getWorkspaceIndex;
