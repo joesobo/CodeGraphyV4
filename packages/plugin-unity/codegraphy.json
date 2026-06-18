@@ -117,6 +117,11 @@
       "id": "serialized-guid",
       "name": "Serialized GUID",
       "description": "Serialized Unity asset fields resolved through Unity .meta GUIDs"
+    },
+    {
+      "id": "unity-event",
+      "name": "Unity Event",
+      "description": "Serialized Unity persistent calls from scene and prefab components to C# methods"
     }
   ]
 }

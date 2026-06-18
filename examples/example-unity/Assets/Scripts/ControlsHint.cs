@@ -4,8 +4,17 @@ public sealed class ControlsHint : MonoBehaviour {
 	private const string ControlsText = "A / D or Arrows  Move\nShift  Sprint\nSpace  Jump\nClick  Shoot";
 
 	private GUIStyle style;
+	private bool visible = true;
+
+	public void ToggleControlsHint() {
+		visible = !visible;
+	}
 
 	private void OnGUI() {
+		if (!visible) {
+			return;
+		}
+
 		style ??= new(GUI.skin.label) {
 			fontSize = 14,
 			padding = new(12, 12, 10, 10)

@@ -33,7 +33,7 @@ describe('createUnityPlugin', () => {
         'plugin:codegraphy.unity:symbol:game-object',
         'plugin:codegraphy.unity:symbol:component',
       ],
-      edgeTypes: ['contains', 'reference'],
+      edgeTypes: ['contains', 'reference', 'event'],
     });
     expect(plugin.contributeEdgeTypes?.() ?? []).toEqual([]);
     expect(plugin.fileColors).toEqual(expect.objectContaining({

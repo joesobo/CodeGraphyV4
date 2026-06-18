@@ -10,6 +10,7 @@ Manual alignment notes for Trello card 238.
 - Low-level parsing may use general-purpose packages such as `yaml` for UnityYAML documents and `jsonc-parser` for tolerant JSON-like Unity configuration files.
 - Unity-specific meaning belongs in Plugin Analysis. Core C# should continue to own syntax-backed C# facts such as classes, methods, fields, calls, type references, inheritance, and `using` relationships.
 - Turning the Unity Plugin off should remove Unity Graph Scope rows, Unity-sourced nodes and edges, and Unity plugin default filters. Core C# connections for `.cs` files should remain because MonoBehaviour scripts are still C# files.
+- Unity persistent calls should use the core `event` edge type, not a Unity-specific edge kind, so other engines such as Godot can reuse the same edge row for signals/callbacks later.
 - The example should come first. `examples/example-unity` is the source-of-truth target for the full Unity support PR, and implementation should grow to satisfy that example.
 - Human-owned acceptance spec Markdown remains untouched until the example and expected graph are reviewed and approved.
 
@@ -69,7 +70,7 @@ Planned relationships:
 - GameObjects contain Components.
 - MonoBehaviour Components reference C# script files through `.meta` GUID resolution.
 - Serialized fields reference assets such as `PlayerStats.asset`.
-- UI event handler references connect serialized Unity events to C# methods where feasible.
+- Event edges connect serialized Unity persistent calls to C# methods where feasible.
 - Assembly definition files define or reference script assembly boundaries where useful.
 - Existing CodeGraphy Edge Types such as `contains`, `reference`, `load`, and `type` should be reused when their meanings honestly fit.
 - Add Unity-owned Edge Types only when existing edge vocabulary would hide important Unity semantics.

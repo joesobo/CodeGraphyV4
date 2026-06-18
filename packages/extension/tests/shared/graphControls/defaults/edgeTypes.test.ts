@@ -66,6 +66,12 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultVisible: false,
       },
       {
+        id: 'event',
+        label: 'Events',
+        defaultColor: '#A855F7',
+        defaultVisible: false,
+      },
+      {
         id: 'load',
         label: 'Loads',
         defaultColor: '#06B6D4',

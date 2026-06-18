@@ -28,7 +28,7 @@ class UnityPlugin implements IPlugin {
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
     return {
       nodeTypes: UNITY_GRAPH_SCOPE_NODE_TYPES,
-      edgeTypes: ['contains', 'reference'],
+      edgeTypes: ['contains', 'reference', 'event'],
     };
   }
 
