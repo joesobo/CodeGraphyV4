@@ -232,53 +232,65 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: Language examples 1/8
+          - label: Language examples 1/10
             suite: examples
             timeout-minutes: 15
             grep: '(^|[^-])C Example|C# Example|Dart Example'
-            artifact-suffix: examples-1-of-8
+            artifact-suffix: examples-1-of-10
             workers: 1
-          - label: Language examples 2/8
+          - label: Language examples 2/10
             suite: examples
             timeout-minutes: 15
             grep: 'Go Example|Godot Example|Haskell Example'
-            artifact-suffix: examples-2-of-8
+            artifact-suffix: examples-2-of-10
             workers: 1
-          - label: Language examples 3/8
+          - label: Language examples 3/10
             suite: examples
             timeout-minutes: 15
             grep: 'Java Example|JavaScript Example|Kotlin Example'
-            artifact-suffix: examples-3-of-8
+            artifact-suffix: examples-3-of-10
             workers: 1
-          - label: Language examples 4/8
+          - label: Language examples 4/10
             suite: examples
             timeout-minutes: 15
             grep: 'Lua Example|Markdown Example|Objective-C Example'
-            artifact-suffix: examples-4-of-8
+            artifact-suffix: examples-4-of-10
             workers: 1
-          - label: Language examples 5/8
+          - label: Language examples 5/10
             suite: examples
             timeout-minutes: 15
-            grep: 'Pascal Example|PHP Example|Python Example'
-            artifact-suffix: examples-5-of-8
+            grep: 'Pascal Example'
+            artifact-suffix: examples-5-of-10
             workers: 1
-          - label: Language examples 6/8
+          - label: Language examples 6/10
+            suite: examples
+            timeout-minutes: 15
+            grep: 'PHP Example'
+            artifact-suffix: examples-6-of-10
+            workers: 1
+          - label: Language examples 7/10
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Python Example'
+            artifact-suffix: examples-7-of-10
+            workers: 1
+          - label: Language examples 8/10
             suite: examples
             timeout-minutes: 15
             grep: 'Ruby Example|Rust Example|Scala Example'
-            artifact-suffix: examples-6-of-8
+            artifact-suffix: examples-8-of-10
             workers: 1
-          - label: Language examples 7/8
+          - label: Language examples 9/10
             suite: examples
             timeout-minutes: 15
             grep: 'Svelte Example|Swift Example|TypeScript Example'
-            artifact-suffix: examples-7-of-8
+            artifact-suffix: examples-9-of-10
             workers: 1
-          - label: Language examples 8/8
+          - label: Language examples 10/10
             suite: examples
             timeout-minutes: 15
             grep: 'Vue Example'
-            artifact-suffix: examples-8-of-8
+            artifact-suffix: examples-10-of-10
             workers: 1
           - label: Graph interactions 1/8
             suite: interactions
