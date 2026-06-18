@@ -144,6 +144,51 @@ describe('graph view ready message', () => {
     expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
   });
 
+  it('replays plugin filters that become available while loading graph data', async () => {
+    const handlers = createHandlers();
+    let pluginPatterns: string[] = [];
+    let pluginPatternGroups: Array<{ pluginId: string; pluginName: string; patterns: string[] }> = [];
+    handlers.getPluginFilterPatterns.mockImplementation(() => pluginPatterns);
+    handlers.getPluginFilterGroups = vi.fn(() => pluginPatternGroups);
+    handlers.loadAndSendData.mockImplementation(() => {
+      pluginPatterns = ['**/*.meta'];
+      pluginPatternGroups = [
+        { pluginId: 'codegraphy.unity', pluginName: 'Unity', patterns: ['**/*.meta'] },
+      ];
+    });
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(handlers.sendMessage).toHaveBeenLastCalledWith({
+      type: 'APP_BOOTSTRAP_COMPLETE',
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'FILTER_PATTERNS_UPDATED',
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['**/*.meta'],
+        pluginPatternGroups: [
+          { pluginId: 'codegraphy.unity', pluginName: 'Unity', patterns: ['**/*.meta'] },
+        ],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
+      },
+    });
+  });
+
   it('keeps bootstrap pending until slow graph loading settles', async () => {
     const events: string[] = [];
     const handlers = createHandlers();
