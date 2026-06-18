@@ -60,7 +60,7 @@ export interface AcceptanceBindings {
 }
 
 type PlaywrightTest = {
-  (title: string, callback: (fixtures: unknown, testInfo: TestInfo) => Promise<void>): void;
+  (title: string, callback: (fixtures: object, testInfo: TestInfo) => Promise<void>): void;
   describe(title: string, callback: () => void): void;
   step(title: string, callback: () => Promise<void>): Promise<void>;
 };
@@ -83,7 +83,7 @@ export function runAcceptanceFeature(
 ): void {
   test.describe(feature.feature.name, () => {
     expandScenarioExecutions(feature).forEach((execution) => {
-      test(execution.name, async (_fixtures, testInfo) => {
+      test(execution.name, async ({}, testInfo) => {
         const context = await bindings.createAcceptanceContext({
           testInfo,
           sourcePath: feature.source_path,
