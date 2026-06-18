@@ -27,8 +27,6 @@ const coreExtensionSpec: PackageSpec = {
 
 const pluginSpecs: PackageSpec[] = [
   { label: 'TypeScript plugin', manifestPath: 'packages/plugin-typescript/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
-  { label: 'Python plugin', manifestPath: 'packages/plugin-python/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
-  { label: 'C# plugin', manifestPath: 'packages/plugin-csharp/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
   { label: 'GDScript plugin', manifestPath: 'packages/plugin-godot/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
 ];
 

@@ -33,6 +33,22 @@ interface GraphViewProviderRefreshAnalyzerLike {
     signal?: AbortSignal,
     onProgress?: (progress: GraphViewScopedRefreshProgress) => void,
   ): Promise<IGraphData>;
+  refreshGitignoreMetadata?(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+  ): Promise<IGraphData>;
+}
+
+interface RefreshCoordinatorState {
+  indexRefreshPromise: Promise<void> | undefined;
+  queuedChangedFilePaths: Set<string>;
+}
+
+interface ScopedRefreshLifecycle {
+  setController(controller: AbortController): void;
+  clearController(controller: AbortController): void;
+  abort(): void;
 }
 
 export interface GraphViewProviderRefreshMethodsSource {
@@ -68,6 +84,7 @@ export interface GraphViewProviderRefreshMethodsSource {
 export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
   refreshIndex(): Promise<void>;
+  refreshGitignoreMetadata(): Promise<void>;
   refreshAnalysisScope(): Promise<void>;
   refreshPluginFiles(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
@@ -161,14 +178,10 @@ function publishScopedRefreshGraphData(
   source._analyzer?.registry.notifyGraphRebuild(source._graphData, source._disabledPlugins);
 }
 
-export function createGraphViewProviderRefreshMethods(
-  source: GraphViewProviderRefreshMethodsSource,
-  dependencies: GraphViewProviderRefreshMethodDependencies = DEFAULT_DEPENDENCIES,
-): GraphViewProviderRefreshMethods {
-  const rebuildSenders = createRebuildSenders(source, dependencies);
-  const _rebuildAndSend = (): void => rebuildSenders.rebuildAndSend();
+function createScopedRefreshLifecycle(): ScopedRefreshLifecycle {
   let scopedRefreshController: AbortController | undefined;
-  const scopedRefreshLifecycle = {
+
+  return {
     setController(controller: AbortController): void {
       scopedRefreshController = controller;
     },
@@ -177,64 +190,83 @@ export function createGraphViewProviderRefreshMethods(
         scopedRefreshController = undefined;
       }
     },
+    abort(): void {
+      scopedRefreshController?.abort();
+    },
   };
-  const abortScopedRefresh = (): void => {
-    scopedRefreshController?.abort();
-  };
-  const _smartRebuild = (id: string): void => {
-    abortScopedRefresh();
-    rebuildSenders.smartRebuild(id);
-  };
-  // Full reindex clears the persisted cache first, so competing refreshes
-  // must wait or they can rebuild from an empty intermediate index.
-  let indexRefreshPromise: Promise<void> | undefined;
-  let queuedChangedFilePaths = new Set<string>();
+}
 
-  const refresh = async (): Promise<void> => {
-    if (indexRefreshPromise) {
-      await indexRefreshPromise;
+function createRefreshCoordinatorState(): RefreshCoordinatorState {
+  return {
+    indexRefreshPromise: undefined,
+    queuedChangedFilePaths: new Set<string>(),
+  };
+}
+
+function prepareRefreshInputs(source: GraphViewProviderRefreshMethodsSource): void {
+  source._loadDisabledRulesAndPlugins();
+  source._loadGroupsAndFilterPatterns();
+}
+
+function createRefreshMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+): () => Promise<void> {
+  return async (): Promise<void> => {
+    if (state.indexRefreshPromise) {
+      await state.indexRefreshPromise;
       return;
     }
 
-    source._loadDisabledRulesAndPlugins();
-    source._loadGroupsAndFilterPatterns();
+    prepareRefreshInputs(source);
     await runPrimaryRefresh(source);
     sendRefreshState(source);
   };
+}
 
-  const refreshIndex = async (): Promise<void> => {
-    if (indexRefreshPromise) {
-      await indexRefreshPromise;
+function createRefreshIndexMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>,
+): () => Promise<void> {
+  return async (): Promise<void> => {
+    if (state.indexRefreshPromise) {
+      await state.indexRefreshPromise;
       return;
     }
 
-    indexRefreshPromise = (async (): Promise<void> => {
-      source._loadDisabledRulesAndPlugins();
-      source._loadGroupsAndFilterPatterns();
+    state.indexRefreshPromise = (async (): Promise<void> => {
+      prepareRefreshInputs(source);
       await runIndexRefresh(source);
       sendRefreshState(source);
     })();
 
     try {
-      await indexRefreshPromise;
+      await state.indexRefreshPromise;
     } finally {
-      indexRefreshPromise = undefined;
+      state.indexRefreshPromise = undefined;
     }
 
-    const queuedFilePaths = [...queuedChangedFilePaths];
-    queuedChangedFilePaths = new Set<string>();
+    const queuedFilePaths = [...state.queuedChangedFilePaths];
+    state.queuedChangedFilePaths = new Set<string>();
     if (queuedFilePaths.length > 0) {
       await refreshChangedFiles(queuedFilePaths);
     }
   };
+}
 
-  const refreshAnalysisScope = async (): Promise<void> => {
-    if (indexRefreshPromise) {
-      await indexRefreshPromise;
+function createRefreshAnalysisScopeMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  refresh: () => Promise<void>,
+  scopedRefreshLifecycle: ScopedRefreshLifecycle,
+): () => Promise<void> {
+  return async (): Promise<void> => {
+    if (state.indexRefreshPromise) {
+      await state.indexRefreshPromise;
     }
 
-    source._loadDisabledRulesAndPlugins();
-    source._loadGroupsAndFilterPatterns();
+    prepareRefreshInputs(source);
     if (!source._analyzer?.hasIndex() || !source._analyzer.refreshAnalysisScope) {
       await refresh();
       return;
@@ -250,20 +282,52 @@ export function createGraphViewProviderRefreshMethods(
       ),
       scopedRefreshLifecycle,
     );
-    if (!graphData) {
+    publishGraphDataIfPresent(source, graphData);
+  };
+}
+
+function createRefreshGitignoreMetadataMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  refreshIndex: () => Promise<void>,
+  scopedRefreshLifecycle: ScopedRefreshLifecycle,
+): () => Promise<void> {
+  return async (): Promise<void> => {
+    if (state.indexRefreshPromise) {
+      await state.indexRefreshPromise;
+    }
+
+    prepareRefreshInputs(source);
+    if (!source._analyzer?.refreshGitignoreMetadata) {
+      await refreshIndex();
       return;
     }
-    publishScopedRefreshGraphData(source, graphData);
-    sendRefreshState(source);
-  };
 
-  const refreshPluginFiles = async (pluginIds: readonly string[]): Promise<void> => {
-    if (indexRefreshPromise) {
-      await indexRefreshPromise;
+    const graphData = await runScopedRefreshRequest(
+      source,
+      signal => source._analyzer!.refreshGitignoreMetadata!(
+        source._filterPatterns,
+        source._disabledPlugins,
+        signal,
+      ),
+      scopedRefreshLifecycle,
+    );
+    publishGraphDataIfPresent(source, graphData);
+  };
+}
+
+function createRefreshPluginFilesMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  refresh: () => Promise<void>,
+  scopedRefreshLifecycle: ScopedRefreshLifecycle,
+): (pluginIds: readonly string[]) => Promise<void> {
+  return async (pluginIds: readonly string[]): Promise<void> => {
+    if (state.indexRefreshPromise) {
+      await state.indexRefreshPromise;
     }
 
-    source._loadDisabledRulesAndPlugins();
-    source._loadGroupsAndFilterPatterns();
+    prepareRefreshInputs(source);
     if (!source._analyzer?.refreshPluginFiles) {
       await refresh();
       return;
@@ -280,12 +344,76 @@ export function createGraphViewProviderRefreshMethods(
       ),
       scopedRefreshLifecycle,
     );
-    if (!graphData) {
+    publishGraphDataIfPresent(source, graphData);
+  };
+}
+
+function publishGraphDataIfPresent(
+  source: GraphViewProviderRefreshMethodsSource,
+  graphData: IGraphData | undefined,
+): void {
+  if (!graphData) {
+    return;
+  }
+
+  publishScopedRefreshGraphData(source, graphData);
+  sendRefreshState(source);
+}
+
+function createRefreshChangedFilesMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+): (filePaths: readonly string[]) => Promise<void> {
+  return async (filePaths: readonly string[]): Promise<void> => {
+    if (state.indexRefreshPromise) {
+      state.queuedChangedFilePaths = new Set([
+        ...state.queuedChangedFilePaths,
+        ...filePaths,
+      ]);
       return;
     }
-    publishScopedRefreshGraphData(source, graphData);
+
+    prepareRefreshInputs(source);
+    await runChangedFileRefresh(source, filePaths);
     sendRefreshState(source);
   };
+}
+
+export function createGraphViewProviderRefreshMethods(
+  source: GraphViewProviderRefreshMethodsSource,
+  dependencies: GraphViewProviderRefreshMethodDependencies = DEFAULT_DEPENDENCIES,
+): GraphViewProviderRefreshMethods {
+  const rebuildSenders = createRebuildSenders(source, dependencies);
+  const _rebuildAndSend = (): void => rebuildSenders.rebuildAndSend();
+  const scopedRefreshLifecycle = createScopedRefreshLifecycle();
+  const _smartRebuild = (id: string): void => {
+    scopedRefreshLifecycle.abort();
+    rebuildSenders.smartRebuild(id);
+  };
+  // Full reindex clears the persisted cache first, so competing refreshes
+  // must wait or they can rebuild from an empty intermediate index.
+  const state = createRefreshCoordinatorState();
+  const refresh = createRefreshMethod(source, state);
+  const refreshChangedFiles = createRefreshChangedFilesMethod(source, state);
+  const refreshIndex = createRefreshIndexMethod(source, state, refreshChangedFiles);
+  const refreshAnalysisScope = createRefreshAnalysisScopeMethod(
+    source,
+    state,
+    refresh,
+    scopedRefreshLifecycle,
+  );
+  const refreshGitignoreMetadata = createRefreshGitignoreMetadataMethod(
+    source,
+    state,
+    refreshIndex,
+    scopedRefreshLifecycle,
+  );
+  const refreshPluginFiles = createRefreshPluginFilesMethod(
+    source,
+    state,
+    refresh,
+    scopedRefreshLifecycle,
+  );
 
   const refreshPhysicsSettings = (): void => {
     source._sendPhysicsSettings();
@@ -303,7 +431,7 @@ export function createGraphViewProviderRefreshMethods(
 
   const refreshToggleSettings = (): void => {
     if (!source._loadDisabledRulesAndPlugins()) return;
-    abortScopedRefresh();
+    scopedRefreshLifecycle.abort();
     if (source._rebuildAndSend) {
       source._rebuildAndSend();
       return;
@@ -317,21 +445,10 @@ export function createGraphViewProviderRefreshMethods(
     await refreshIndex();
   };
 
-  const refreshChangedFiles = async (filePaths: readonly string[]): Promise<void> => {
-    if (indexRefreshPromise) {
-      queuedChangedFilePaths = new Set([...queuedChangedFilePaths, ...filePaths]);
-      return;
-    }
-
-    source._loadDisabledRulesAndPlugins();
-    source._loadGroupsAndFilterPatterns();
-    await runChangedFileRefresh(source, filePaths);
-    sendRefreshState(source);
-  };
-
   const methods: GraphViewProviderRefreshMethods = {
     refresh,
     refreshIndex,
+    refreshGitignoreMetadata,
     refreshAnalysisScope,
     refreshPluginFiles,
     refreshChangedFiles,

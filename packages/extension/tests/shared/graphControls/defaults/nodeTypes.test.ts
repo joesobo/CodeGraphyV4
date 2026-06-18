@@ -71,6 +71,14 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['method'],
       },
       {
+        id: 'symbol:constructor',
+        label: 'Constructor',
+        defaultColor: '#C084FC',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['constructor'],
+      },
+      {
         id: 'symbol:prototype',
         label: 'Prototype',
         defaultColor: '#A78BFA',
@@ -93,6 +101,38 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultVisible: false,
         parentId: 'symbol',
         matchSymbolKinds: ['interface'],
+      },
+      {
+        id: 'symbol:record',
+        label: 'Record',
+        defaultColor: '#6366F1',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['record'],
+      },
+      {
+        id: 'symbol:delegate',
+        label: 'Delegate',
+        defaultColor: '#10B981',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['delegate'],
+      },
+      {
+        id: 'symbol:property',
+        label: 'Property',
+        defaultColor: '#84CC16',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['property'],
+      },
+      {
+        id: 'symbol:event',
+        label: 'Event',
+        defaultColor: '#F97316',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['event'],
       },
       {
         id: 'symbol:type',
@@ -296,8 +336,18 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
       .toBe('namespace taskrunner {}');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:method')?.description?.examples?.[0]?.code)
       .toBe('std::size_t TaskRunner::run() {}');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:constructor')?.description?.examples?.[0]?.code)
+      .toBe('public TaskDispatcher(ITaskQueue queue) {}');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:prototype')?.description?.examples?.[0]?.code)
       .toBe('void logger_flush(Logger *logger);');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:record')?.description?.examples?.[0]?.code)
+      .toBe('public record DispatchTask(TaskId Id);');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:delegate')?.description?.examples?.[0]?.code)
+      .toBe('public delegate void TaskCompleted();');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:property')?.description?.examples?.[0]?.code)
+      .toBe('public int Count { get; }');
+    expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:event')?.description?.examples?.[0]?.code)
+      .toBe('public event TaskCompleted? Completed;');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:alias')?.description?.examples?.[0]?.code)
       .toBe('using TaskId = std::uint64_t;');
     expect(nodeTypes.find((nodeType) => nodeType.id === 'symbol:template')?.description?.examples?.[0]?.code)

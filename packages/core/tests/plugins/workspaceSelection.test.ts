@@ -9,17 +9,17 @@ describe('plugins/workspaceSelection', () => {
   it('persists disabled plugin id intent in workspace settings', () => {
     const plugins: CodeGraphyWorkspacePluginSettings[] = [
       { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.python', enabled: true, options: { includeTests: true } },
+      { id: 'codegraphy.vue', enabled: true, options: { includeTests: true } },
     ];
 
     expect(
       updateCodeGraphyWorkspacePluginSelection(plugins, {
-        pluginId: 'codegraphy.python',
+        pluginId: 'codegraphy.vue',
         enabled: false,
       }),
     ).toEqual([
       { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.python', enabled: false, options: { includeTests: true } },
+      { id: 'codegraphy.vue', enabled: false, options: { includeTests: true } },
     ]);
   });
 
@@ -52,17 +52,17 @@ describe('plugins/workspaceSelection', () => {
 
   it('keeps existing enabled plugin options unchanged', () => {
     const plugins: CodeGraphyWorkspacePluginSettings[] = [
-      { id: 'codegraphy.python', enabled: true, options: { includeTests: true } },
+      { id: 'codegraphy.vue', enabled: true, options: { includeTests: true } },
     ];
 
     expect(
       updateCodeGraphyWorkspacePluginSelection(plugins, {
-        pluginId: 'codegraphy.python',
+        pluginId: 'codegraphy.vue',
         enabled: true,
         defaultOptions: { includeTests: false },
       }),
     ).toEqual([
-      { id: 'codegraphy.python', enabled: true, options: { includeTests: true } },
+      { id: 'codegraphy.vue', enabled: true, options: { includeTests: true } },
     ]);
   });
 
@@ -96,16 +96,16 @@ describe('plugins/workspaceSelection', () => {
   it('plans a workspace analysis refresh when disabling a plugin id', () => {
     const plan = createCodeGraphyWorkspacePluginTogglePlan([
       { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.python', enabled: true },
+      { id: 'codegraphy.vue', enabled: true },
     ], {
-      pluginId: 'codegraphy.python',
+      pluginId: 'codegraphy.vue',
       enabled: false,
     });
 
     expect(plan).toEqual({
       plugins: [
         { id: 'codegraphy.markdown', enabled: true },
-        { id: 'codegraphy.python', enabled: false },
+        { id: 'codegraphy.vue', enabled: false },
       ],
       indexing: {
         kind: 'analyze-workspace',

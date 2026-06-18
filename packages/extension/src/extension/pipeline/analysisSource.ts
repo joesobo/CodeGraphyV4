@@ -46,6 +46,7 @@ export interface WorkspacePipelineSourceOwner {
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
+  _lastGitIgnoredPaths: string[];
   _lastWorkspaceRoot: string;
   _cache: IWorkspaceAnalysisCache;
   _discovery: FileDiscovery;
@@ -131,6 +132,12 @@ export function createWorkspacePipelineAnalysisSource(
       get: () => owner._lastFileConnections,
       set: (fileConnections: Map<string, IProjectedConnection[]>) => {
         owner._lastFileConnections = fileConnections;
+      },
+    },
+    _lastGitIgnoredPaths: {
+      get: () => owner._lastGitIgnoredPaths,
+      set: (gitIgnoredPaths: string[]) => {
+        owner._lastGitIgnoredPaths = gitIgnoredPaths;
       },
     },
     _lastFileAnalysis: {

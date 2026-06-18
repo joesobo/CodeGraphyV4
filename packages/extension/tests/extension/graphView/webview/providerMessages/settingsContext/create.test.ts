@@ -180,7 +180,7 @@ describe('graph view provider listener settings context', () => {
       } as never,
     );
 
-    const plugins = [{ package: '@codegraphy-dev/plugin-python' }];
+    const plugins = [{ package: '@codegraphy-dev/plugin-vue' }];
     await context.updateConfig('plugins', plugins);
 
     expect(repoSettings.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith(
@@ -504,9 +504,9 @@ describe('graph view provider listener settings context', () => {
       } as never,
     );
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
-    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(refreshChangedFiles).toHaveBeenCalledWith(['src/a.ts', 'src/b.ts']);
     expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -553,9 +553,9 @@ describe('graph view provider listener settings context', () => {
       } as never,
     );
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
-    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(refreshChangedFiles).not.toHaveBeenCalled();
     expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -600,7 +600,7 @@ describe('graph view provider listener settings context', () => {
       } as never,
     );
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
     expect(refreshChangedFiles).not.toHaveBeenCalled();
     expect(analyzeAndSendData).toHaveBeenCalledOnce();

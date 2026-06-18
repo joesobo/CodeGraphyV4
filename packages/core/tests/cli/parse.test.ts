@@ -40,10 +40,10 @@ describe('cli/parse', () => {
       verbose: true,
       workspacePath: '/workspace/project',
     });
-    expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-python', '--verbose', '/workspace/project'])).toEqual({
+    expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-vue', '--verbose', '/workspace/project'])).toEqual({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
       verbose: true,
       workspacePath: '/workspace/project',
     });
@@ -64,16 +64,16 @@ describe('cli/parse', () => {
       action: 'link',
       packageRoot: '/private/plugin',
     });
-    expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-python', '/workspace/project'])).toEqual({
+    expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-vue', '/workspace/project'])).toEqual({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
       workspacePath: '/workspace/project',
     });
-    expect(parseCliCommand(['plugins', 'disable', '@codegraphy-dev/plugin-python'])).toEqual({
+    expect(parseCliCommand(['plugins', 'disable', '@codegraphy-dev/plugin-vue'])).toEqual({
       name: 'plugins',
       action: 'disable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
     });
     expect(parseCliCommand(['plugins', 'list', '/workspace/project'])).toEqual({
       name: 'plugins',

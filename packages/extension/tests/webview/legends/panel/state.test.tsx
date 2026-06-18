@@ -214,12 +214,12 @@ describe('webview/legends/panelState', () => {
         nodeColors: {},
         legends: [
           {
-            id: 'plugin:codegraphy.python:*.py',
+            id: 'plugin:codegraphy.vue:*.py',
             pattern: '*.py',
             color: '#3776ab',
             target: 'node',
             isPluginDefault: true,
-            pluginId: 'codegraphy.python',
+            pluginId: 'codegraphy.vue',
             pluginName: 'Python',
           },
           {
@@ -233,7 +233,7 @@ describe('webview/legends/panelState', () => {
           },
         ],
         optimisticLegendUpdates: {
-          'plugin:codegraphy.python:*.py': {
+          'plugin:codegraphy.vue:*.py': {
             updates: { disabled: true },
             expiresAt: Date.now() + 5_000,
           },
@@ -247,12 +247,12 @@ describe('webview/legends/panelState', () => {
 
     expect(result.current.displayedNodeLegendRules).toEqual([
       {
-        id: 'plugin:codegraphy.python:*.py',
+        id: 'plugin:codegraphy.vue:*.py',
         pattern: '*.py',
         color: '#3776ab',
         target: 'node',
         isPluginDefault: true,
-        pluginId: 'codegraphy.python',
+        pluginId: 'codegraphy.vue',
         pluginName: 'Python',
         disabled: true,
       },

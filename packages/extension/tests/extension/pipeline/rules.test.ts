@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
-import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
 import { readWorkspacePluginStatusContext } from '../../../src/extension/pipeline/plugins/statusContext';
 
 vi.mock('../../../src/extension/pipeline/plugins/statusContext', () => ({
@@ -60,7 +59,6 @@ describe('WorkspacePipeline sources', () => {
 
   function registerOptionalLanguagePlugins(): void {
     analyzer.registry.register(createTypeScriptPlugin());
-    analyzer.registry.register(createPythonPlugin());
   }
 
   describe('rebuildGraph', () => {
@@ -97,7 +95,6 @@ describe('WorkspacePipeline sources', () => {
         installedPlugins: [],
         workspaceEnabledPluginIds: new Set([
           'codegraphy.markdown',
-          'codegraphy.python',
           'codegraphy.typescript',
         ]),
       });
@@ -111,9 +108,9 @@ describe('WorkspacePipeline sources', () => {
       expect(tsStatus!.enabled).toBe(false);
 
       // Other plugins should still be enabled
-      const pyStatus = statuses.find(s => s.id === 'codegraphy.python');
-      expect(pyStatus).toBeDefined();
-      expect(pyStatus!.enabled).toBe(true);
+      const markdownStatus = statuses.find(s => s.id === 'codegraphy.markdown');
+      expect(markdownStatus).toBeDefined();
+      expect(markdownStatus!.enabled).toBe(true);
     });
 
     it('returns plugin-only statuses for each plugin', async () => {
@@ -256,8 +253,8 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable the metadata-only Python plugin. Core Tree-sitter edges should remain unchanged.
-      const disabledPlugins = new Set(['codegraphy.python']);
+      // Disable an unrelated plugin. Core Tree-sitter edges should remain unchanged.
+      const disabledPlugins = new Set(['codegraphy.vue']);
       const result = analyzer.rebuildGraph(disabledPlugins, true);
 
       expect(result.edges.length).toBe(3);

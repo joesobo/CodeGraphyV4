@@ -15,6 +15,8 @@
 | Hover cursor | Pointer cursor |
 | `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
 
+File and Folder Nodes that Git reports as ignored remain visible in the graph with muted styling, similar to VS Code Explorer. Tracked files and mixed folders are not dimmed just because their path matches text in `.gitignore`; the graph follows Git ignored state rather than raw ignore patterns.
+
 ## Canvas
 
 | Action | Effect |
@@ -38,6 +40,7 @@ Right-click background, nodes, multi-node selections, or edges to access context
 | Delete | Move file(s) to trash | Yes |
 | Rename | Rename file via inline prompt | Yes |
 | Create File | Create a new file in the same directory | Yes |
+| Create Folder | Create a new folder in the selected Folder Node or workspace root | Yes |
 | Toggle Favorite | Mark or unmark with yellow outline | Yes |
 | Add to Filter | Hide from graph via filter pattern | Yes |
 | Copy Source/Target/Both Paths (edge) | Copy connected file paths from an edge | - |
@@ -127,7 +130,7 @@ The timeline bar appears below the graph after indexing. See [Timeline](./TIMELI
 | Click node | Select and focus the node; File Nodes open a temporary preview at the selected commit |
 | Double-click node | Select and focus the node; File Nodes open the file at the selected commit as a persistent editor tab |
 
-During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Filter) are hidden.
+During timeline mode, destructive context menu actions (Delete, Rename, Create File, Create Folder, Add to Filter) are hidden.
 
 ## Export
 

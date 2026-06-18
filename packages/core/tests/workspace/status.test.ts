@@ -56,7 +56,7 @@ describe('CodeGraphy Workspace status', () => {
     const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
-      plugins: [{ id: 'codegraphy.python', enabled: true }],
+      plugins: [{ id: 'codegraphy.vue', enabled: true }],
     });
 
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {

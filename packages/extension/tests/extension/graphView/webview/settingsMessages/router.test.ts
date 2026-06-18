@@ -238,8 +238,8 @@ describe('graph view settings router', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.python',
-          packageName: '@codegraphy-dev/plugin-python',
+          pluginId: 'codegraphy.vue',
+          packageName: '@codegraphy-dev/plugin-vue',
           enabled: true,
         },
       },
@@ -248,10 +248,10 @@ describe('graph view settings router', () => {
     );
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.python', enabled: true },
+      { id: 'codegraphy.vue', enabled: true },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
-    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });

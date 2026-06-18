@@ -10,6 +10,7 @@ describe('pipeline/analysisSource', () => {
       _lastDiscoveredFiles: [],
       _lastFileAnalysis: new Map(),
       _lastFileConnections: new Map(),
+      _lastGitIgnoredPaths: [],
       _lastWorkspaceRoot: '',
       getPluginFilterPatterns: vi.fn(() => ['**/*.ts']),
       _analyzeFiles: vi.fn(async () => new Map([['a.ts', []]])),
@@ -42,6 +43,7 @@ describe('pipeline/analysisSource', () => {
     source._lastDiscoveredDirectories = ['src/new-folder'];
     source._lastFileAnalysis = new Map([['a.ts', { filePath: '/workspace/a.ts', relations: [] }]]);
     source._lastFileConnections = new Map([['b.ts', []]]);
+    source._lastGitIgnoredPaths = ['a.ts'];
     source._lastWorkspaceRoot = '/workspace';
 
     expect(analyzer._lastDiscoveredFiles).toEqual(files);
@@ -50,6 +52,7 @@ describe('pipeline/analysisSource', () => {
       new Map([['a.ts', { filePath: '/workspace/a.ts', relations: [] }]]),
     );
     expect(analyzer._lastFileConnections).toEqual(new Map([['b.ts', []]]));
+    expect(analyzer._lastGitIgnoredPaths).toEqual(['a.ts']);
     expect(analyzer._lastWorkspaceRoot).toBe('/workspace');
   });
 

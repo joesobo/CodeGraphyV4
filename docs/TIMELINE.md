@@ -50,7 +50,7 @@ Double-clicking a File Node opens that file at the selected commit as a persiste
 
 ## Context menu
 
-During timeline mode, destructive file actions (Delete, Rename, Create File, Add to Filter) are hidden from the context menu. Non-destructive actions (Open File, Reveal in Explorer, Copy Path, Toggle Favorite) remain available.
+During timeline mode, destructive file actions (Delete, Rename, Create File, Create Folder, Add to Filter) are hidden from the context menu. Non-destructive actions (Open File, Reveal in Explorer, Copy Path, Toggle Favorite) remain available.
 
 ## Refreshing
 

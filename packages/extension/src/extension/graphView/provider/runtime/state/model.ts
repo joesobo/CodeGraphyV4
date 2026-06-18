@@ -161,11 +161,13 @@ export class GraphViewProviderRuntime {
   public markWorkspaceRefreshPending(
     logMessage: string,
     filePaths: readonly string[] = [],
+    options: { gitignoreRefresh?: boolean } = {},
   ): void {
     this._pendingWorkspaceRefresh = mergePendingWorkspaceRefresh(
       this._pendingWorkspaceRefresh,
       logMessage,
       filePaths,
+      options,
     );
     persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), [
       ...this._pendingWorkspaceRefresh.filePaths,
@@ -185,6 +187,14 @@ export class GraphViewProviderRuntime {
     this._pendingWorkspaceRefresh = undefined;
     persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), []);
     console.log(pending.logMessage);
+    if (
+      pending.gitignoreRefresh
+      && this._methodContainers.refresh.refreshGitignoreMetadata
+    ) {
+      void this._methodContainers.refresh.refreshGitignoreMetadata();
+      return;
+    }
+
     if (this._methodContainers.refresh.refreshChangedFiles) {
       void this._methodContainers.refresh.refreshChangedFiles([...pending.filePaths]);
       return;

@@ -75,18 +75,18 @@ describe('graph view settings plugin default options', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
-            pluginId: 'codegraphy.python',
+            package: '@codegraphy-dev/plugin-vue',
+            pluginId: 'codegraphy.vue',
             version: '2.0.4',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
       },
       { homeDir },
     );
 
-    expect(readInstalledPluginDefaultOptions('codegraphy.python', { homeDir })).toBeUndefined();
+    expect(readInstalledPluginDefaultOptions('codegraphy.vue', { homeDir })).toBeUndefined();
   });
 });
