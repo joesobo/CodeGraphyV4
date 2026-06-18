@@ -10,7 +10,10 @@ type TreeSitterCapabilityLanguageKind = TreeSitterLanguageKind | 'pascal';
 
 interface TreeSitterCapabilityContext {
   hasCSource: boolean;
+  hasMarkdownNotes: boolean;
   hasObjectiveCSource: boolean;
+  hasSvelteSource: boolean;
+  hasVueSource: boolean;
 }
 
 const DEFAULT_TREE_SITTER_EDGE_TYPE_CAPABILITIES = [
@@ -25,23 +28,23 @@ const TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE = {
   'c': ['include', 'call', 'contains'],
   cpp: ['include', 'call', 'contains', 'inherit', 'overrides'],
   csharp: ['using', 'type', 'call', 'inherit', 'implements', 'contains'],
-  dart: ['import', 'call', 'inherit'],
-  go: ['import', 'call'],
-  haskell: ['import', 'call'],
-  java: ['import', 'call', 'inherit'],
+  dart: ['import', 'reference', 'call', 'inherit'],
+  go: ['import', 'reference', 'call'],
+  haskell: ['import', 'reference', 'call'],
+  java: ['import', 'reference', 'call', 'inherit'],
   javascript: ['import', 'call', 'inherit'],
-  kotlin: ['import', 'call', 'inherit'],
-  lua: ['import', 'call'],
-  objectiveC: ['import', 'call', 'inherit'],
-  pascal: ['import', 'call', 'inherit'],
+  kotlin: ['import', 'reference', 'call', 'inherit'],
+  lua: ['import', 'reference', 'call'],
+  objectiveC: ['import', 'reference', 'call', 'inherit'],
+  pascal: ['import', 'reference', 'call', 'inherit', 'contains', 'overrides'],
   php: ['import', 'reference', 'call', 'inherit'],
   python: ['import', 'call', 'inherit'],
-  ruby: ['import', 'call', 'inherit'],
-  rust: ['import', 'call'],
-  scala: ['import', 'call', 'inherit'],
+  ruby: ['import', 'reference', 'call', 'inherit'],
+  rust: ['import', 'reference', 'call'],
+  scala: ['import', 'reference', 'call', 'inherit'],
   swift: ['import', 'reference', 'call', 'inherit'],
-  tsx: ['import', 'type-import', 'call', 'inherit'],
-  typescript: ['import', 'type-import', 'call', 'inherit'],
+  tsx: ['import', 'type-import', 'call', 'inherit', 'contains'],
+  typescript: ['import', 'type-import', 'call', 'inherit', 'contains'],
 } as const satisfies Record<TreeSitterCapabilityLanguageKind, readonly GraphEdgeKind[]>;
 
 const TREE_SITTER_NODE_TYPE_CAPABILITIES_BY_LANGUAGE = {
@@ -152,9 +155,13 @@ export function listTreeSitterNodeTypeCapabilities(
 
 function createTreeSitterCapabilityContext(filePaths: readonly string[]): TreeSitterCapabilityContext {
   const extensions = new Set(filePaths.map(getFileExtension));
+  const markdownFileCount = filePaths.filter(filePath => /\.(?:md|mdx)$/i.test(filePath)).length;
   return {
     hasCSource: extensions.has('.c'),
+    hasMarkdownNotes: markdownFileCount > 1,
     hasObjectiveCSource: extensions.has('.m') || extensions.has('.mm'),
+    hasSvelteSource: extensions.has('.svelte'),
+    hasVueSource: extensions.has('.vue'),
   };
 }
 
@@ -168,9 +175,17 @@ function readTreeSitterLanguageCapabilities(
   }
 
   const languageKind = getTreeSitterCapabilityLanguageKind(filePath);
+  if ((languageKind === 'typescript' || languageKind === 'tsx') && shouldUseDocumentPluginTypeScriptEdgeCapabilities(context)) {
+    return ['import', 'reference', 'call', 'type-import', 'inherit', 'contains'];
+  }
+
   return languageKind
     ? TREE_SITTER_EDGE_TYPE_CAPABILITIES_BY_LANGUAGE[languageKind]
     : [];
+}
+
+function shouldUseDocumentPluginTypeScriptEdgeCapabilities(context: TreeSitterCapabilityContext): boolean {
+  return context.hasMarkdownNotes || context.hasSvelteSource || context.hasVueSource;
 }
 
 function readTreeSitterLanguageNodeTypeCapabilities(

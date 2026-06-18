@@ -13,4 +13,4 @@ Then I see indexing progress
 And I see indexing progress disappear
 And the graph nodes have not changed
 And I see edges
-And the top right of the graph says "15 nodes" and "8 connections"
+And the top right of the graph says "19 nodes" and "13 connections"

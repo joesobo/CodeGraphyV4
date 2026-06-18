@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 
 When I click the "Fit to Screen" button
-Then all 15 graph nodes are visible in the graph viewport
+Then all 19 graph nodes are visible in the graph viewport
 
 When I click the "Zoom In" button
 Then the visible graph scale increases
@@ -17,7 +17,7 @@ When I press and hold the "Zoom In" button
 Then the visible graph scale continues to increase
 
 When I click the "Fit to Screen" button
-Then all 15 graph nodes are visible in the graph viewport
+Then all 19 graph nodes are visible in the graph viewport
 
 When I click the "Zoom Out" button
 Then the visible graph scale decreases

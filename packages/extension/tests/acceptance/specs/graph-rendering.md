@@ -14,4 +14,4 @@ And the src/index.ts node is a blue circle
 And the src/index.ts node has a white TS symbol in the center of the node
 And the src/index.ts node has the file name "index.ts" as a label below the node
 And the src/index.ts node has an edge that points to the src/types.ts node
-And the src/index.ts node has an edge that points to the src/utils.ts node
+And the src/index.ts node has an edge that points to the src/palette.ts node
