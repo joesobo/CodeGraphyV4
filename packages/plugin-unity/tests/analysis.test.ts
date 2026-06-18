@@ -3,6 +3,8 @@ import { analyzeUnitySerializedFile } from '../src/analysis';
 
 const playerControllerGuid = '11111111111111111111111111111111';
 const playerPrefabGuid = '22222222222222222222222222222222';
+const eventDemoButtonGuid = '44444444444444444444444444444444';
+const controlsHintGuid = '55555555555555555555555555555555';
 
 function prefabFixture(): string {
   return [
@@ -196,6 +198,61 @@ describe('analyzeUnitySerializedFile', () => {
         toFilePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
         specifier: 'Assets/Prefabs/Enemy1.prefab',
         resolvedPath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+      }),
+    ]));
+  });
+
+  it('connects Unity persistent calls to target script methods', () => {
+    const analysis = analyzeUnitySerializedFile(
+      '/workspace/Assets/Scenes/SampleScene.unity',
+      [
+        '--- !u!1 &1000',
+        'GameObject:',
+        '  m_Name: Controls UI',
+        '--- !u!114 &1001',
+        'MonoBehaviour:',
+        '  m_GameObject: {fileID: 1000}',
+        `  m_Script: {fileID: 11500000, guid: ${eventDemoButtonGuid}, type: 3}`,
+        '  onClicked:',
+        '    m_PersistentCalls:',
+        '      m_Calls:',
+        '      - m_Target: {fileID: 1002}',
+        '        m_TargetAssemblyTypeName: ControlsHint, Assembly-CSharp',
+        '        m_MethodName: ToggleControlsHint',
+        '        m_Mode: 1',
+        '--- !u!114 &1002',
+        'MonoBehaviour:',
+        '  m_GameObject: {fileID: 1000}',
+        `  m_Script: {fileID: 11500000, guid: ${controlsHintGuid}, type: 3}`,
+      ].join('\n'),
+      {
+        workspaceRoot: '/workspace',
+        resolveGuid: (guid) => {
+          if (guid === eventDemoButtonGuid) {
+            return 'Assets/Scripts/EventDemoButton.cs';
+          }
+          if (guid === controlsHintGuid) {
+            return 'Assets/Scripts/ControlsHint.cs';
+          }
+          return undefined;
+        },
+      },
+    );
+
+    expect(analysis.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'event',
+        sourceId: 'unity-event',
+        fromFilePath: '/workspace/Assets/Scenes/SampleScene.unity',
+        fromSymbolId: 'Assets/Scenes/SampleScene.unity#unity:component:1001',
+        toFilePath: '/workspace/Assets/Scripts/ControlsHint.cs',
+        specifier: 'ToggleControlsHint',
+        resolvedPath: '/workspace/Assets/Scripts/ControlsHint.cs',
+        metadata: expect.objectContaining({
+          eventMethodName: 'ToggleControlsHint',
+          targetFileId: '1002',
+          targetScriptPath: 'Assets/Scripts/ControlsHint.cs',
+        }),
       }),
     ]));
   });

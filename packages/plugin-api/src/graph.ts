@@ -34,6 +34,7 @@ export type CoreEdgeKind =
   | 'call'
   | 'inherit'
   | 'implements'
+  | 'event'
   | 'reference'
   | 'load'
   | 'contains'

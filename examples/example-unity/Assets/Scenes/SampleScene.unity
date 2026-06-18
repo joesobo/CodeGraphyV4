@@ -428,6 +428,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1800000002}
   - component: {fileID: 1800000001}
+  - component: {fileID: 1800000003}
   m_Layer: 0
   m_Name: Controls UI
   m_TagString: Untagged
@@ -447,6 +448,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 327d64959e54490291f323f324f275e0, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+--- !u!114 &1800000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1800000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c74ff253c5a4b6fb7d5a27d2db1fe8f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  onClicked:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1800000001}
+        m_TargetAssemblyTypeName: ControlsHint, Assembly-CSharp
+        m_MethodName: ToggleControlsHint
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &1800000002
 Transform:
   m_ObjectHideFlags: 0

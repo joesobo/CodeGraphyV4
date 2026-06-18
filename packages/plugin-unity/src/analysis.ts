@@ -12,6 +12,7 @@ const CONTAINMENT_SOURCE_ID = 'unity-containment';
 const SCRIPT_GUID_SOURCE_ID = 'script-guid';
 const PREFAB_GUID_SOURCE_ID = 'prefab-guid';
 const SERIALIZED_GUID_SOURCE_ID = 'serialized-guid';
+const EVENT_SOURCE_ID = 'unity-event';
 
 const SERIALIZED_FILE_EXTENSIONS = new Set(['.unity', '.prefab', '.asset', '.mat']);
 
@@ -31,6 +32,8 @@ interface UnityDocument {
   scriptGuid?: string;
   sourcePrefabGuid?: string;
   serializedGuidReferences: UnityGuidReference[];
+  eventCalls: UnityEventCall[];
+  pendingEventCall: Partial<UnityEventCall> | null;
 }
 
 interface UnityDocumentParseState {
@@ -41,6 +44,11 @@ interface UnityDocumentParseState {
 interface UnityGuidReference {
   fieldName: string;
   guid: string;
+}
+
+interface UnityEventCall {
+  targetFileId: string;
+  methodName: string;
 }
 
 interface UnitySymbolRecord {
@@ -128,6 +136,8 @@ function createUnityDocument(header: RegExpExecArray, index: number): UnityDocum
     startLine: index + 1,
     endLine: index + 1,
     serializedGuidReferences: [],
+    eventCalls: [],
+    pendingEventCall: null,
   };
 }
 
@@ -154,6 +164,7 @@ function updateUnityDocumentFromLine(
   document.gameObjectFileId ??= readFileIdField(line, 'm_GameObject') ?? undefined;
   document.scriptGuid ??= readGuidField(line, 'm_Script') ?? undefined;
   document.sourcePrefabGuid ??= readGuidField(line, 'm_SourcePrefab') ?? undefined;
+  updateUnityEventCallFromLine(document, line);
 
   const serializedGuidReference = readSerializedGuidReference(line);
   if (serializedGuidReference) {
@@ -161,12 +172,54 @@ function updateUnityDocumentFromLine(
   }
 }
 
+function updateUnityEventCallFromLine(
+  document: UnityDocument,
+  line: string,
+): void {
+  const targetFileId = readFileIdField(line, 'm_Target');
+  if (targetFileId) {
+    pushPendingUnityEventCall(document);
+    document.pendingEventCall = { targetFileId };
+    return;
+  }
+
+  if (!document.pendingEventCall) {
+    return;
+  }
+
+  const methodName = readField(line, 'm_MethodName');
+  if (methodName) {
+    document.pendingEventCall.methodName = methodName;
+    pushPendingUnityEventCall(document);
+  }
+}
+
+function pushPendingUnityEventCall(document: UnityDocument): void {
+  const eventCall = document.pendingEventCall;
+  if (!eventCall) {
+    return;
+  }
+
+  if (
+    eventCall.targetFileId &&
+    eventCall.targetFileId !== '0' &&
+    eventCall.methodName
+  ) {
+    document.eventCalls.push({
+      targetFileId: eventCall.targetFileId,
+      methodName: eventCall.methodName,
+    });
+  }
+
+  document.pendingEventCall = null;
+}
+
 function readClassName(line: string): string {
   return /^([A-Za-z_][A-Za-z0-9_]*):\s*$/.exec(line.trim())?.[1] ?? '';
 }
 
 function readField(line: string, fieldName: string): string | null {
-  const match = new RegExp(`^\\s*${escapeRegExp(fieldName)}:\\s*(.*)$`).exec(line);
+  const match = new RegExp(`^\\s*(?:-\\s*)?${escapeRegExp(fieldName)}:\\s*(.*)$`).exec(line);
   if (!match) {
     return null;
   }
@@ -274,6 +327,11 @@ function createUnityRelations(
       .filter((record) => record.document?.fileId)
       .map((record) => [record.document!.fileId, record]),
   );
+  const componentByFileId = new Map(
+    componentSymbols
+      .filter((record) => record.document?.fileId)
+      .map((record) => [record.document!.fileId, record]),
+  );
   const componentFileIds = new Set(
     componentSymbols
       .map((record) => record.document?.fileId)
@@ -282,7 +340,7 @@ function createUnityRelations(
 
   return [
     ...createContainerRelations(filePath, gameObjects),
-    ...createComponentRelations(filePath, componentSymbols, gameObjectByFileId, options),
+    ...createComponentRelations(filePath, componentSymbols, gameObjectByFileId, componentByFileId, options),
     ...createDocumentReferenceRelations(filePath, documents, componentFileIds, options),
   ];
 }
@@ -300,11 +358,13 @@ function createComponentRelations(
   filePath: string,
   componentSymbols: readonly UnitySymbolRecord[],
   gameObjectByFileId: ReadonlyMap<string, UnitySymbolRecord>,
+  componentByFileId: ReadonlyMap<string, UnitySymbolRecord>,
   options: AnalyzeUnitySerializedFileOptions,
 ): IAnalysisRelation[] {
   return componentSymbols.flatMap((component) => [
     ...createComponentContainmentRelations(filePath, component, gameObjectByFileId),
     ...createComponentScriptRelations(filePath, component, options),
+    ...createComponentEventRelations(filePath, component, componentByFileId, options),
   ]);
 }
 
@@ -340,6 +400,62 @@ function createComponentScriptRelations(
       { scriptGuid: readStringMetadata(component.symbol.metadata?.scriptGuid) ?? undefined },
     ),
   ];
+}
+
+function createComponentEventRelations(
+  filePath: string,
+  component: UnitySymbolRecord,
+  componentByFileId: ReadonlyMap<string, UnitySymbolRecord>,
+  options: AnalyzeUnitySerializedFileOptions,
+): IAnalysisRelation[] {
+  return (component.document?.eventCalls ?? []).flatMap((eventCall) => {
+    const targetComponent = componentByFileId.get(eventCall.targetFileId);
+    const targetScriptPath = readStringMetadata(targetComponent?.symbol.metadata?.scriptPath);
+    const targetScriptGuid = readStringMetadata(targetComponent?.symbol.metadata?.scriptGuid);
+    if (!targetScriptPath) {
+      return [];
+    }
+
+    return [
+      createEventRelation(
+        filePath,
+        component,
+        targetScriptPath,
+        eventCall,
+        options.workspaceRoot,
+        targetScriptGuid,
+      ),
+    ];
+  });
+}
+
+function createEventRelation(
+  filePath: string,
+  sourceComponent: UnitySymbolRecord,
+  targetScriptPath: string,
+  eventCall: UnityEventCall,
+  workspaceRoot: string | undefined,
+  targetScriptGuid: string | null,
+): IAnalysisRelation {
+  const resolvedPath = resolveWorkspacePath(targetScriptPath, workspaceRoot);
+  return {
+    kind: 'event',
+    sourceId: EVENT_SOURCE_ID,
+    fromFilePath: filePath,
+    fromSymbolId: sourceComponent.symbol.id,
+    toFilePath: resolvedPath,
+    specifier: eventCall.methodName,
+    resolvedPath,
+    metadata: {
+      language: UNITY_LANGUAGE,
+      source: UNITY_PLUGIN_ID,
+      eventMethodName: eventCall.methodName,
+      memberName: eventCall.methodName,
+      targetFileId: eventCall.targetFileId,
+      targetScriptPath,
+      ...(targetScriptGuid ? { targetScriptGuid } : {}),
+    },
+  };
 }
 
 function createScriptReferenceRelation(
