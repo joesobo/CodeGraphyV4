@@ -9,6 +9,7 @@ function createHandlers() {
     })),
     getFilterPatterns: vi.fn(() => ['dist/**']),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
+    getPluginFilterGroups: vi.fn(() => []),
     getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),

@@ -38,7 +38,7 @@ The Unity plugin contributes a `Unity` Graph Scope group with these rows:
 
 These rows are disabled by default and appear when the Unity plugin is applicable to the indexed workspace. Scenes and prefabs use their normal file nodes rather than duplicate Unity-specific symbol rows.
 
-Turning the Unity plugin off removes these Unity-specific rows and filters the plugin's nodes and Unity-sourced edges from the graph.
+Turning the Unity plugin off removes these Unity-specific rows, plugin default filters, plugin nodes, and Unity-sourced edges from the graph. Core C# analysis still runs for `.cs` files, including MonoBehaviour scripts, so normal C# symbols and relationships remain available without the Unity plugin.
 
 ## More
 
