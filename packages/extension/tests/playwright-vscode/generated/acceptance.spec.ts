@@ -2141,10 +2141,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:10
-      await test.step('Then I can see there are 11 nodes and 0 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 0 connections', {
+      await test.step('Then I can see there are 15 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 11 nodes and 0 connections',
+          text: 'I can see there are 15 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 10
         });
@@ -2181,322 +2181,1232 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:15
-      await test.step('Then the available edge types are Imports, References, Calls, Inherits', async () => {
-        await runAcceptanceStep(context, 'the available edge types are Imports, References, Calls, Inherits', {
+      await test.step('Then the available edge types are only Using, Type, Call, Inherits, Implements, Contains', async () => {
+        await runAcceptanceStep(context, 'the available edge types are only Using, Type, Call, Inherits, Implements, Contains', {
           keyword: 'Then',
-          text: 'the available edge types are Imports, References, Calls, Inherits',
+          text: 'the available edge types are only Using, Type, Call, Inherits, Implements, Contains',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:16
-      await test.step('And I close the Graph Scope', async () => {
-        await runAcceptanceStep(context, 'I close the Graph Scope', {
+      await test.step('And I select node types', async () => {
+        await runAcceptanceStep(context, 'I select node types', {
           keyword: 'And',
-          text: 'I close the Graph Scope',
+          text: 'I select node types',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 16
         });
       });
 
+      // tests/acceptance/specs/csharp-example.md:17
+      await test.step('Then the available C# node types are only Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter, Local', async () => {
+        await runAcceptanceStep(context, 'the available C# node types are only Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter, Local', {
+          keyword: 'Then',
+          text: 'the available C# node types are only Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter, Local',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 17
+        });
+      });
+
       // tests/acceptance/specs/csharp-example.md:18
-      await test.step('When I toggle the Imports edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Imports edge on', {
-          keyword: 'When',
-          text: 'I toggle the Imports edge on',
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 18
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:19
-      await test.step('Then I can see there are 11 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 3 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 11 nodes and 3 connections',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 19
-        });
-      });
-
       // tests/acceptance/specs/csharp-example.md:20
-      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Services/ApiService.cs',
+      await test.step('When I toggle the Using edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Using edge on', {
+          keyword: 'When',
+          text: 'I toggle the Using edge on',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 20
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:21
-      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Utils/Helpers.cs',
+      await test.step('Then I can see there are 15 nodes and 13 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 13 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 13 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:22
-      await test.step('And src/Services/ApiService.cs points to src/Contracts/IRunner.cs', async () => {
-        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs', {
+      await test.step('And src/Contracts/ITaskQueue.cs points to src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'src/Contracts/ITaskQueue.cs points to src/Models/DispatchTask.cs', {
           keyword: 'And',
-          text: 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs',
+          text: 'src/Contracts/ITaskQueue.cs points to src/Models/DispatchTask.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 22
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:24
-      await test.step('And src/Orphan.cs is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/Orphan.cs is an orphan node', {
+      // tests/acceptance/specs/csharp-example.md:23
+      await test.step('And src/Contracts/ITaskRunner.cs points to src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'src/Contracts/ITaskRunner.cs points to src/Models/DispatchTask.cs', {
           keyword: 'And',
-          text: 'src/Orphan.cs is an orphan node',
+          text: 'src/Contracts/ITaskRunner.cs points to src/Models/DispatchTask.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:24
+      await test.step('And src/Events/TaskCompleted.cs points to src/Models/DispatchResult.cs', async () => {
+        await runAcceptanceStep(context, 'src/Events/TaskCompleted.cs points to src/Models/DispatchResult.cs', {
+          keyword: 'And',
+          text: 'src/Events/TaskCompleted.cs points to src/Models/DispatchResult.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:25
-      await test.step('And src/Services/BaseService.cs is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/Services/BaseService.cs is an orphan node', {
+      await test.step('And src/Program.cs points to src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Config/DispatchSettings.cs', {
           keyword: 'And',
-          text: 'src/Services/BaseService.cs is an orphan node',
+          text: 'src/Program.cs points to src/Config/DispatchSettings.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 25
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:26
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And src/Program.cs points to src/Models/DispatchResult.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Models/DispatchResult.cs', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: 'src/Program.cs points to src/Models/DispatchResult.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:27
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+      await test.step('And src/Program.cs points to src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/TaskDispatcher.cs', {
           keyword: 'And',
-          text: '.gitignore is an orphan node',
+          text: 'src/Program.cs points to src/Services/TaskDispatcher.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:28
-      await test.step('And .vscode/settings.json is an orphan node', async () => {
-        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
+      await test.step('And src/Services/BaseTaskRunner.cs points to src/Models/DispatchStatus.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/BaseTaskRunner.cs points to src/Models/DispatchStatus.cs', {
           keyword: 'And',
-          text: '.vscode/settings.json is an orphan node',
+          text: 'src/Services/BaseTaskRunner.cs points to src/Models/DispatchStatus.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 28
         });
       });
 
+      // tests/acceptance/specs/csharp-example.md:29
+      await test.step('And src/Services/PriorityTaskQueue.cs points to src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/PriorityTaskQueue.cs points to src/Contracts/ITaskQueue.cs', {
+          keyword: 'And',
+          text: 'src/Services/PriorityTaskQueue.cs points to src/Contracts/ITaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 29
+        });
+      });
+
       // tests/acceptance/specs/csharp-example.md:30
-      await test.step('Then I toggle the Imports edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Imports edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Imports edge off',
+      await test.step('And src/Services/PriorityTaskQueue.cs points to src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/PriorityTaskQueue.cs points to src/Models/DispatchTask.cs', {
+          keyword: 'And',
+          text: 'src/Services/PriorityTaskQueue.cs points to src/Models/DispatchTask.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 30
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:31
-      await test.step('And I toggle the References edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the References edge on', {
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Config/DispatchSettings.cs', {
           keyword: 'And',
-          text: 'I toggle the References edge on',
+          text: 'src/Services/TaskDispatcher.cs points to src/Config/DispatchSettings.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 31
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:32
-      await test.step('Then I can see there are 11 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 4 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 11 nodes and 4 connections',
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Contracts/ITaskQueue.cs', {
+          keyword: 'And',
+          text: 'src/Services/TaskDispatcher.cs points to src/Contracts/ITaskQueue.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 32
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:33
-      await test.step('And src/Program.cs points to src/Config.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Events/TaskCompleted.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Events/TaskCompleted.cs', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Config.cs',
+          text: 'src/Services/TaskDispatcher.cs points to src/Events/TaskCompleted.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 33
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:34
-      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Models/DispatchTask.cs', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Services/ApiService.cs',
+          text: 'src/Services/TaskDispatcher.cs points to src/Models/DispatchTask.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 34
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:35
-      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Utils/Helpers.cs',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 35
-        });
-      });
-
       // tests/acceptance/specs/csharp-example.md:36
-      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
-        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
-          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 36
         });
       });
 
+      // tests/acceptance/specs/csharp-example.md:37
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 37
+        });
+      });
+
       // tests/acceptance/specs/csharp-example.md:38
-      await test.step('Then I toggle the References edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the References edge off', {
-          keyword: 'Then',
-          text: 'I toggle the References edge off',
+      await test.step('And .vscode/settings.json is an orphan node', async () => {
+        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
+          keyword: 'And',
+          text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 38
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:39
-      await test.step('And I toggle the Inherits edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Inherits edge on', {
-          keyword: 'And',
-          text: 'I toggle the Inherits edge on',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 39
-        });
-      });
-
       // tests/acceptance/specs/csharp-example.md:40
-      await test.step('Then I can see there are 11 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 2 connections', {
+      await test.step('Then I show only the Contains edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Contains edge type', {
           keyword: 'Then',
-          text: 'I can see there are 11 nodes and 2 connections',
+          text: 'I show only the Contains edge type',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 40
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:41
-      await test.step('And src/Services/ApiService.cs points to src/Services/BaseService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Services/BaseService.cs', {
-          keyword: 'And',
-          text: 'src/Services/ApiService.cs points to src/Services/BaseService.cs',
+      await test.step('Then I show only the File and Class node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Class node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Class node types',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 41
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:42
-      await test.step('And src/Services/ApiService.cs points to src/Contracts/IRunner.cs', async () => {
-        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs', {
-          keyword: 'And',
-          text: 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs',
+      await test.step('Then I can see there are 20 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 20 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 20 nodes and 5 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 42
         });
       });
 
+      // tests/acceptance/specs/csharp-example.md:43
+      await test.step('And the visible graph includes the Class node Program from src/Program.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node Program from src/Program.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Class node Program from src/Program.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 43
+        });
+      });
+
       // tests/acceptance/specs/csharp-example.md:44
-      await test.step('Then I toggle the Inherits edge off', async () => {
-        await runAcceptanceStep(context, 'I toggle the Inherits edge off', {
-          keyword: 'Then',
-          text: 'I toggle the Inherits edge off',
+      await test.step('And the visible graph includes the Class node DispatchSettings from src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node DispatchSettings from src/Config/DispatchSettings.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Class node DispatchSettings from src/Config/DispatchSettings.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 44
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:45
-      await test.step('And I toggle the Calls edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the Calls edge on', {
+      await test.step('And the visible graph includes the Class node TaskDispatcher from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Class node TaskDispatcher from src/Services/TaskDispatcher.cs', {
           keyword: 'And',
-          text: 'I toggle the Calls edge on',
+          text: 'the visible graph includes the Class node TaskDispatcher from src/Services/TaskDispatcher.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 45
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:46
-      await test.step('Then I can see there are 11 nodes and 5 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 5 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 11 nodes and 5 connections',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 46
-        });
-      });
-
       // tests/acceptance/specs/csharp-example.md:47
-      await test.step('And src/Program.cs points to src/Config.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Config.cs',
+      await test.step('Then I show only the File and Interface node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Interface node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Interface node types',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 47
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:48
-      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Services/ApiService.cs',
+      await test.step('Then I can see there are 17 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 17 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 48
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:49
-      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
+      await test.step('And the visible graph includes the Interface node ITaskQueue from src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Interface node ITaskQueue from src/Contracts/ITaskQueue.cs', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Utils/Helpers.cs',
+          text: 'the visible graph includes the Interface node ITaskQueue from src/Contracts/ITaskQueue.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 49
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:50
-      await test.step('And src/Services/ApiService.cs points to src/Services/BaseService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Services/BaseService.cs', {
+      await test.step('And the visible graph includes the Interface node ITaskRunner from src/Contracts/ITaskRunner.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Interface node ITaskRunner from src/Contracts/ITaskRunner.cs', {
           keyword: 'And',
-          text: 'src/Services/ApiService.cs points to src/Services/BaseService.cs',
+          text: 'the visible graph includes the Interface node ITaskRunner from src/Contracts/ITaskRunner.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 50
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:51
-      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
-        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
-          keyword: 'And',
-          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+      // tests/acceptance/specs/csharp-example.md:52
+      await test.step('Then I show only the File and Struct node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Struct node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Struct node types',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 51
+          line: 52
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:53
+      await test.step('Then I can see there are 16 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 53
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:54
+      await test.step('And the visible graph includes the Struct node TaskId from src/Models/TaskId.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Struct node TaskId from src/Models/TaskId.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Struct node TaskId from src/Models/TaskId.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 54
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:56
+      await test.step('Then I show only the File and Record node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Record node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Record node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 56
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:57
+      await test.step('Then I can see there are 17 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 17 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 57
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:58
+      await test.step('And the visible graph includes the Record node DispatchTask from src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Record node DispatchTask from src/Models/DispatchTask.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Record node DispatchTask from src/Models/DispatchTask.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 58
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:59
+      await test.step('And the visible graph includes the Record node DispatchResult from src/Models/DispatchResult.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Record node DispatchResult from src/Models/DispatchResult.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Record node DispatchResult from src/Models/DispatchResult.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 59
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:61
+      await test.step('Then I show only the File and Enum node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Enum node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Enum node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 61
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:62
+      await test.step('Then I can see there are 16 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 62
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:63
+      await test.step('And the visible graph includes the Enum node DispatchStatus from src/Models/DispatchStatus.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Enum node DispatchStatus from src/Models/DispatchStatus.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Enum node DispatchStatus from src/Models/DispatchStatus.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 63
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:65
+      await test.step('Then I show only the File and Delegate node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Delegate node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Delegate node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 65
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:66
+      await test.step('Then I can see there are 16 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 66
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:67
+      await test.step('And the visible graph includes the Delegate node TaskCompleted from src/Events/TaskCompleted.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Delegate node TaskCompleted from src/Events/TaskCompleted.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Delegate node TaskCompleted from src/Events/TaskCompleted.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 67
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:69
+      await test.step('Then I show only the File and Method node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Method node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Method node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 69
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:70
+      await test.step('Then I can see there are 23 nodes and 8 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 23 nodes and 8 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 23 nodes and 8 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 70
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:71
+      await test.step('And the visible graph includes the Method node Main from src/Program.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node Main from src/Program.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node Main from src/Program.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 71
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:72
+      await test.step('And the visible graph includes the Method node Dispatch from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node Dispatch from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node Dispatch from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 72
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:73
+      await test.step('And the visible graph includes the Method node BuildMessage from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node BuildMessage from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node BuildMessage from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 73
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:74
+      await test.step('And the visible graph includes the Method node Complete from src/Services/BaseTaskRunner.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Method node Complete from src/Services/BaseTaskRunner.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Method node Complete from src/Services/BaseTaskRunner.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 74
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:76
+      await test.step('Then I show only the File and Constructor node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Constructor node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Constructor node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 76
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:77
+      await test.step('Then I can see there are 20 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 20 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 20 nodes and 5 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 77
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:78
+      await test.step('And the visible graph includes the Constructor node DispatchSettings from src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constructor node DispatchSettings from src/Config/DispatchSettings.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constructor node DispatchSettings from src/Config/DispatchSettings.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 78
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:79
+      await test.step('And the visible graph includes the Constructor node TaskDispatcher from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constructor node TaskDispatcher from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constructor node TaskDispatcher from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 79
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:80
+      await test.step('And the visible graph includes the Constructor node TaskId from src/Models/TaskId.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constructor node TaskId from src/Models/TaskId.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constructor node TaskId from src/Models/TaskId.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 80
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:82
+      await test.step('Then I show only the File and Property node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Property node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Property node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 82
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:83
+      await test.step('Then I can see there are 19 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 19 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 19 nodes and 4 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 83
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:84
+      await test.step('And the visible graph includes the Property node MaxRetries from src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Property node MaxRetries from src/Config/DispatchSettings.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Property node MaxRetries from src/Config/DispatchSettings.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 84
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:85
+      await test.step('And the visible graph includes the Property node Count from src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Property node Count from src/Contracts/ITaskQueue.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Property node Count from src/Contracts/ITaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 85
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:86
+      await test.step('And the visible graph includes the Property node Count from src/Services/PriorityTaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Property node Count from src/Services/PriorityTaskQueue.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Property node Count from src/Services/PriorityTaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 86
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:87
+      await test.step('And the visible graph includes the Property node Value from src/Models/TaskId.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Property node Value from src/Models/TaskId.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Property node Value from src/Models/TaskId.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 87
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:89
+      await test.step('Then I show only the File and Event node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Event node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Event node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 89
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:90
+      await test.step('Then I can see there are 16 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 16 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 16 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 90
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:91
+      await test.step('And the visible graph includes the Event node Completed from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Event node Completed from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Event node Completed from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 91
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:93
+      await test.step('Then I show only the File and Constant node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Constant node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Constant node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 93
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:94
+      await test.step('Then I can see there are 17 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 17 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 17 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 94
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:95
+      await test.step('And the visible graph includes the Constant node DefaultMaxRetries from src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constant node DefaultMaxRetries from src/Config/DispatchSettings.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constant node DefaultMaxRetries from src/Config/DispatchSettings.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 95
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:96
+      await test.step('And the visible graph includes the Constant node retryFloor from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Constant node retryFloor from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Constant node retryFloor from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 96
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:98
+      await test.step('Then I show only the File and Field node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Field node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Field node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 98
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:99
+      await test.step('Then I can see there are 20 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 20 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 20 nodes and 5 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 99
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:100
+      await test.step('And the visible graph includes the Field node _maxRetries from src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node _maxRetries from src/Config/DispatchSettings.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node _maxRetries from src/Config/DispatchSettings.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 100
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:101
+      await test.step('And the visible graph includes the Field node _queue from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node _queue from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node _queue from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 101
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:102
+      await test.step('And the visible graph includes the Field node _tasks from src/Services/PriorityTaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Field node _tasks from src/Services/PriorityTaskQueue.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Field node _tasks from src/Services/PriorityTaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 102
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:104
+      await test.step('Then I show only the File and Parameter node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Parameter node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Parameter node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 104
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:105
+      await test.step('Then I can see there are 37 nodes and 22 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 37 nodes and 22 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 37 nodes and 22 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 105
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:106
+      await test.step('And the visible graph includes the Parameter node maxRetries from src/Config/DispatchSettings.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node maxRetries from src/Config/DispatchSettings.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node maxRetries from src/Config/DispatchSettings.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 106
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:107
+      await test.step('And the visible graph includes the Parameter node queue from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node queue from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node queue from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 107
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:108
+      await test.step('And the visible graph includes the Parameter node dispatchedTask from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node dispatchedTask from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node dispatchedTask from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 108
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:109
+      await test.step('And the visible graph includes the Parameter node result from src/Events/TaskCompleted.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Parameter node result from src/Events/TaskCompleted.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Parameter node result from src/Events/TaskCompleted.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 109
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:111
+      await test.step('Then I show only the File and Local node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File and Local node types', {
+          keyword: 'Then',
+          text: 'I show only the File and Local node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 111
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:112
+      await test.step('Then I can see there are 23 nodes and 8 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 23 nodes and 8 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 23 nodes and 8 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 112
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:113
+      await test.step('And the visible graph includes the Local node settings from src/Program.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node settings from src/Program.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node settings from src/Program.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 113
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:114
+      await test.step('And the visible graph includes the Local node dispatcher from src/Program.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node dispatcher from src/Program.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node dispatcher from src/Program.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 114
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:115
+      await test.step('And the visible graph includes the Local node attempts from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node attempts from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node attempts from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 115
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:116
+      await test.step('And the visible graph includes the Local node nextTask from src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph includes the Local node nextTask from src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph includes the Local node nextTask from src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 116
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:118
+      await test.step('Then I show no edge types', async () => {
+        await runAcceptanceStep(context, 'I show no edge types', {
+          keyword: 'Then',
+          text: 'I show no edge types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 118
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:119
+      await test.step('Then I show only the File, Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter and Local node types', async () => {
+        await runAcceptanceStep(context, 'I show only the File, Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter and Local node types', {
+          keyword: 'Then',
+          text: 'I show only the File, Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter and Local node types',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 119
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:120
+      await test.step('Then I can see there are 82 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 0 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 82 nodes and 0 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 120
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:122
+      await test.step('When I toggle the Contains edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Contains edge on', {
+          keyword: 'When',
+          text: 'I toggle the Contains edge on',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 122
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:123
+      await test.step('Then I can see there are 82 nodes and 67 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 67 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 82 nodes and 67 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 123
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:124
+      await test.step('And src/Program.cs points to src/Program.cs#Program:class', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Program.cs#Program:class', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Program.cs#Program:class',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 124
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:125
+      await test.step('And src/Models/DispatchTask.cs points to src/Models/DispatchTask.cs#DispatchTask:record', async () => {
+        await runAcceptanceStep(context, 'src/Models/DispatchTask.cs points to src/Models/DispatchTask.cs#DispatchTask:record', {
+          keyword: 'And',
+          text: 'src/Models/DispatchTask.cs points to src/Models/DispatchTask.cs#DispatchTask:record',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 125
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:126
+      await test.step('And src/Events/TaskCompleted.cs points to src/Events/TaskCompleted.cs#TaskCompleted:delegate', async () => {
+        await runAcceptanceStep(context, 'src/Events/TaskCompleted.cs points to src/Events/TaskCompleted.cs#TaskCompleted:delegate', {
+          keyword: 'And',
+          text: 'src/Events/TaskCompleted.cs points to src/Events/TaskCompleted.cs#TaskCompleted:delegate',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 126
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:127
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#TaskDispatcher:class', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#TaskDispatcher:class', {
+          keyword: 'And',
+          text: 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#TaskDispatcher:class',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 127
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:128
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#_queue:field', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#_queue:field', {
+          keyword: 'And',
+          text: 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#_queue:field',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 128
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:129
+      await test.step('And src/Config/DispatchSettings.cs points to src/Config/DispatchSettings.cs#DefaultMaxRetries:constant', async () => {
+        await runAcceptanceStep(context, 'src/Config/DispatchSettings.cs points to src/Config/DispatchSettings.cs#DefaultMaxRetries:constant', {
+          keyword: 'And',
+          text: 'src/Config/DispatchSettings.cs points to src/Config/DispatchSettings.cs#DefaultMaxRetries:constant',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 129
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:130
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#retryFloor:constant', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#retryFloor:constant', {
+          keyword: 'And',
+          text: 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#retryFloor:constant',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 130
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:131
+      await test.step('And src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#nextTask:local', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#nextTask:local', {
+          keyword: 'And',
+          text: 'src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#nextTask:local',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 131
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:133
+      await test.step('Then I show only the Type edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Type edge type', {
+          keyword: 'Then',
+          text: 'I show only the Type edge type',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 133
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:134
+      await test.step('Then I can see there are 82 nodes and 24 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 24 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 82 nodes and 24 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 134
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:135
+      await test.step('And the visible graph shows task in src/Events/TaskCompleted.cs referencing type DispatchTask in src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows task in src/Events/TaskCompleted.cs referencing type DispatchTask in src/Models/DispatchTask.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows task in src/Events/TaskCompleted.cs referencing type DispatchTask in src/Models/DispatchTask.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 135
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:136
+      await test.step('And the visible graph shows result in src/Events/TaskCompleted.cs referencing type DispatchResult in src/Models/DispatchResult.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows result in src/Events/TaskCompleted.cs referencing type DispatchResult in src/Models/DispatchResult.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows result in src/Events/TaskCompleted.cs referencing type DispatchResult in src/Models/DispatchResult.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 136
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:137
+      await test.step('And the visible graph shows Status in src/Models/DispatchTask.cs referencing type DispatchStatus in src/Models/DispatchStatus.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Status in src/Models/DispatchTask.cs referencing type DispatchStatus in src/Models/DispatchStatus.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Status in src/Models/DispatchTask.cs referencing type DispatchStatus in src/Models/DispatchStatus.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 137
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:138
+      await test.step('And the visible graph shows _tasks in src/Services/PriorityTaskQueue.cs referencing type DispatchTask in src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows _tasks in src/Services/PriorityTaskQueue.cs referencing type DispatchTask in src/Models/DispatchTask.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows _tasks in src/Services/PriorityTaskQueue.cs referencing type DispatchTask in src/Models/DispatchTask.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 138
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:139
+      await test.step('And the visible graph shows _queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows _queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows _queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 139
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:140
+      await test.step('And the visible graph shows queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 140
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:141
+      await test.step('And the visible graph shows Completed in src/Services/TaskDispatcher.cs referencing type TaskCompleted in src/Events/TaskCompleted.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Completed in src/Services/TaskDispatcher.cs referencing type TaskCompleted in src/Events/TaskCompleted.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Completed in src/Services/TaskDispatcher.cs referencing type TaskCompleted in src/Events/TaskCompleted.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 141
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:142
+      await test.step('And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs referencing type DispatchResult in src/Models/DispatchResult.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Dispatch in src/Services/TaskDispatcher.cs referencing type DispatchResult in src/Models/DispatchResult.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Dispatch in src/Services/TaskDispatcher.cs referencing type DispatchResult in src/Models/DispatchResult.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 142
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:143
+      await test.step('And the visible graph shows dispatchedTask in src/Services/TaskDispatcher.cs referencing type DispatchTask in src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows dispatchedTask in src/Services/TaskDispatcher.cs referencing type DispatchTask in src/Models/DispatchTask.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows dispatchedTask in src/Services/TaskDispatcher.cs referencing type DispatchTask in src/Models/DispatchTask.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 143
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:145
+      await test.step('Then I show only the Call edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Call edge type', {
+          keyword: 'Then',
+          text: 'I show only the Call edge type',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 145
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:146
+      await test.step('Then I can see there are 82 nodes and 9 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 9 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 82 nodes and 9 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 146
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:147
+      await test.step('And the visible graph shows Main in src/Program.cs calling DispatchTask in src/Models/DispatchTask.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Main in src/Program.cs calling DispatchTask in src/Models/DispatchTask.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Main in src/Program.cs calling DispatchTask in src/Models/DispatchTask.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 147
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:148
+      await test.step('And the visible graph shows Main in src/Program.cs calling Dispatch in src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Main in src/Program.cs calling Dispatch in src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Main in src/Program.cs calling Dispatch in src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 148
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:149
+      await test.step('And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling Complete in src/Services/BaseTaskRunner.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling Complete in src/Services/BaseTaskRunner.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling Complete in src/Services/BaseTaskRunner.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 149
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:150
+      await test.step('And the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling BuildMessage in src/Services/TaskDispatcher.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling BuildMessage in src/Services/TaskDispatcher.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling BuildMessage in src/Services/TaskDispatcher.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 150
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:152
+      await test.step('Then I show only the Inherits edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Inherits edge type', {
+          keyword: 'Then',
+          text: 'I show only the Inherits edge type',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 152
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:153
+      await test.step('Then I can see there are 82 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 82 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 153
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:154
+      await test.step('And src/Services/TaskDispatcher.cs#TaskDispatcher:class points to src/Services/BaseTaskRunner.cs', async () => {
+        await runAcceptanceStep(context, 'src/Services/TaskDispatcher.cs#TaskDispatcher:class points to src/Services/BaseTaskRunner.cs', {
+          keyword: 'And',
+          text: 'src/Services/TaskDispatcher.cs#TaskDispatcher:class points to src/Services/BaseTaskRunner.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 154
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:156
+      await test.step('Then I show only the Implements edge type', async () => {
+        await runAcceptanceStep(context, 'I show only the Implements edge type', {
+          keyword: 'Then',
+          text: 'I show only the Implements edge type',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 156
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:157
+      await test.step('Then I can see there are 82 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 82 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 82 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 157
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:158
+      await test.step('And the visible graph shows TaskDispatcher in src/Services/TaskDispatcher.cs implementing ITaskRunner in src/Contracts/ITaskRunner.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows TaskDispatcher in src/Services/TaskDispatcher.cs implementing ITaskRunner in src/Contracts/ITaskRunner.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows TaskDispatcher in src/Services/TaskDispatcher.cs implementing ITaskRunner in src/Contracts/ITaskRunner.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 158
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:159
+      await test.step('And the visible graph shows PriorityTaskQueue in src/Services/PriorityTaskQueue.cs implementing ITaskQueue in src/Contracts/ITaskQueue.cs', async () => {
+        await runAcceptanceStep(context, 'the visible graph shows PriorityTaskQueue in src/Services/PriorityTaskQueue.cs implementing ITaskQueue in src/Contracts/ITaskQueue.cs', {
+          keyword: 'And',
+          text: 'the visible graph shows PriorityTaskQueue in src/Services/PriorityTaskQueue.cs implementing ITaskQueue in src/Contracts/ITaskQueue.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 159
         });
       });
 

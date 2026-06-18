@@ -49,4 +49,18 @@ describe('Graph node context menu folder actions', () => {
     });
     expect(findMessage('DELETE_FILES')?.payload.paths).toEqual(['src']);
   });
+
+  it('posts New Folder messages with the folder path', async () => {
+    await openNodeMenu(folderData, 'src');
+    await waitFor(() => {
+      expect(screen.getByText('New Folder')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('New Folder'));
+    });
+
+    expect(findMessage('CREATE_FOLDER')?.payload.directory).toBe('src');
+  });
 });

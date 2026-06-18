@@ -9,14 +9,22 @@ import {
   handleCSharpUsingDirective,
 } from './namespace';
 import {
+  handleCSharpConstructorDeclaration,
+  handleCSharpEventFieldDeclaration,
+  handleCSharpFieldDeclaration,
+  handleCSharpLocalDeclaration,
+  handleCSharpLocalFunctionDeclaration,
   handleCSharpMethodDeclaration,
+  handleCSharpParameter,
+  handleCSharpPropertyDeclaration,
   handleCSharpTypeDeclaration,
 } from './declarations';
 import type { CSharpWalkState } from './model';
 import {
   appendCSharpUsingImportRelations,
+  collectCSharpUsingTargetNode,
   handleCSharpCallNode,
-  handleCSharpReferenceNode,
+  handleCSharpTypeReferenceNode,
 } from './references';
 import type { TreeWalkAction } from '../analyze/model';
 import { getCSharpFileScopedNamespaceName } from './namespaceNames';
@@ -29,21 +37,55 @@ import {
 
 const CSHARP_TYPE_DECLARATIONS = new Set([
   'class_declaration',
+  'delegate_declaration',
   'interface_declaration',
+  'record_declaration',
   'struct_declaration',
   'enum_declaration',
 ]);
 
-function handleCSharpTypeNode(
+type CSharpVisitorContext = {
+  filePath: string;
+  workspaceRoot: string;
+  relations: IAnalysisRelation[];
+  symbols: IAnalysisSymbol[];
+  usingNamespaces: Set<string>;
+  importTargetsByNamespace: Map<string, Set<string>>;
+  symbolsEnabled: boolean;
+};
+
+type CSharpStatefulSymbolHandler = (
   node: Parser.SyntaxNode,
   state: CSharpWalkState,
   filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
-  usingNamespaces: Set<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  symbolsEnabled: boolean,
+  walk: (node: Parser.SyntaxNode, context: CSharpWalkState) => void,
+) => TreeWalkAction<CSharpWalkState> | void;
+
+type CSharpSimpleSymbolHandler = (
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+) => void;
+
+const CSHARP_STATEFUL_SYMBOL_HANDLERS: Record<string, CSharpStatefulSymbolHandler> = {
+  constructor_declaration: handleCSharpConstructorDeclaration,
+  local_function_statement: handleCSharpLocalFunctionDeclaration,
+  method_declaration: handleCSharpMethodDeclaration,
+};
+
+const CSHARP_SIMPLE_SYMBOL_HANDLERS: Record<string, CSharpSimpleSymbolHandler> = {
+  event_field_declaration: handleCSharpEventFieldDeclaration,
+  field_declaration: handleCSharpFieldDeclaration,
+  local_declaration_statement: handleCSharpLocalDeclaration,
+  parameter: handleCSharpParameter,
+  property_declaration: handleCSharpPropertyDeclaration,
+};
+
+function handleCSharpTypeNode(
+  node: Parser.SyntaxNode,
+  state: CSharpWalkState,
+  context: CSharpVisitorContext,
 ): TreeWalkAction<CSharpWalkState> | null {
   if (!CSHARP_TYPE_DECLARATIONS.has(node.type)) {
     return null;
@@ -52,13 +94,13 @@ function handleCSharpTypeNode(
   const currentBaseTypePaths = handleCSharpTypeDeclaration(
     node,
     state,
-    filePath,
-    workspaceRoot,
-    relations,
-    symbols,
-    usingNamespaces,
-    importTargetsByNamespace,
-    symbolsEnabled,
+    context.filePath,
+    context.workspaceRoot,
+    context.relations,
+    context.symbols,
+    context.usingNamespaces,
+    context.importTargetsByNamespace,
+    context.symbolsEnabled,
   );
   return {
     nextContext: {
@@ -72,62 +114,79 @@ function visitCSharpNode(
   node: Parser.SyntaxNode,
   state: CSharpWalkState,
   walk: (node: Parser.SyntaxNode, context: CSharpWalkState) => void,
-  filePath: string,
-  workspaceRoot: string,
-  relations: IAnalysisRelation[],
-  symbols: IAnalysisSymbol[],
-  usingNamespaces: Set<string>,
-  importTargetsByNamespace: Map<string, Set<string>>,
-  symbolsEnabled: boolean,
+  context: CSharpVisitorContext,
 ): TreeWalkAction<CSharpWalkState> | void {
   if (node.type === 'namespace_declaration' || node.type === 'file_scoped_namespace_declaration') {
     return handleCSharpNamespaceNode(node, state, walk);
   }
 
   if (node.type === 'using_directive') {
-    handleCSharpUsingDirective(node, usingNamespaces);
+    handleCSharpUsingDirective(node, context.usingNamespaces);
     return;
   }
 
-  const typeAction = handleCSharpTypeNode(
-    node,
-    state,
-    filePath,
-    workspaceRoot,
-    relations,
-    symbols,
-    usingNamespaces,
-    importTargetsByNamespace,
-    symbolsEnabled,
-  );
+  handleCSharpReferences(node, state, context);
+
+  const typeAction = handleCSharpTypeNode(node, state, context);
   if (typeAction) {
     return typeAction;
   }
 
-  if (node.type === 'method_declaration') {
-    return symbolsEnabled
-      ? handleCSharpMethodDeclaration(node, state, filePath, symbols, walk)
-      : undefined;
+  const symbolAction = handleCSharpSymbolNode(node, state, walk, context);
+  if (symbolAction) {
+    return symbolAction;
   }
 
+  collectCSharpUsingTargetNode(
+    node,
+    context.filePath,
+    context.workspaceRoot,
+    context.usingNamespaces,
+    context.importTargetsByNamespace,
+    state.currentNamespace,
+  );
+}
+
+function handleCSharpSymbolNode(
+  node: Parser.SyntaxNode,
+  state: CSharpWalkState,
+  walk: (node: Parser.SyntaxNode, context: CSharpWalkState) => void,
+  context: CSharpVisitorContext,
+): TreeWalkAction<CSharpWalkState> | void {
+  if (!context.symbolsEnabled) {
+    return;
+  }
+
+  const statefulHandler = CSHARP_STATEFUL_SYMBOL_HANDLERS[node.type];
+  if (statefulHandler) {
+    return statefulHandler(node, state, context.filePath, context.symbols, walk);
+  }
+
+  CSHARP_SIMPLE_SYMBOL_HANDLERS[node.type]?.(node, context.filePath, context.symbols);
+}
+
+function handleCSharpReferences(
+  node: Parser.SyntaxNode,
+  state: CSharpWalkState,
+  context: CSharpVisitorContext,
+): void {
+  handleCSharpTypeReferenceNode(
+    node,
+    context.filePath,
+    context.workspaceRoot,
+    context.relations,
+    context.usingNamespaces,
+    context.importTargetsByNamespace,
+    state.currentNamespace,
+  );
   handleCSharpCallNode(
     node,
     state,
-    filePath,
-    workspaceRoot,
-    relations,
-    usingNamespaces,
-    importTargetsByNamespace,
-  );
-
-  handleCSharpReferenceNode(
-    node,
-    state,
-    filePath,
-    workspaceRoot,
-    relations,
-    usingNamespaces,
-    importTargetsByNamespace,
+    context.filePath,
+    context.workspaceRoot,
+    context.relations,
+    context.usingNamespaces,
+    context.importTargetsByNamespace,
   );
 }
 
@@ -150,13 +209,15 @@ export function analyzeCSharpFile(
         node,
         state,
         walk,
-        filePath,
-        workspaceRoot,
-        relations,
-        symbols,
-        usingNamespaces,
-        importTargetsByNamespace,
-        symbolsEnabled,
+        {
+          filePath,
+          workspaceRoot,
+          relations,
+          symbols,
+          usingNamespaces,
+          importTargetsByNamespace,
+          symbolsEnabled,
+        },
       ),
   );
 

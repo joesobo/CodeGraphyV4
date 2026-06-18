@@ -154,9 +154,6 @@ importers:
       '@tree-sitter-grammars/tree-sitter-lua':
         specifier: 0.4.1
         version: 0.4.1(tree-sitter@0.25.0(patch_hash=581e1c376edeabe3d25b64ea7bac59e14cc731627b17b97acccf0cce1dd051cb))
-      ignore:
-        specifier: ^7.0.5
-        version: 7.0.5
       minimatch:
         specifier: ^10.2.5
         version: 10.2.5
@@ -425,12 +422,6 @@ importers:
 
   packages/plugin-api: {}
 
-  packages/plugin-csharp:
-    dependencies:
-      '@codegraphy-dev/plugin-api':
-        specifier: workspace:*
-        version: link:../plugin-api
-
   packages/plugin-godot:
     dependencies:
       '@codegraphy-dev/plugin-api':
@@ -479,12 +470,6 @@ importers:
       '@types/react-dom':
         specifier: ^18.2.18
         version: 18.3.7(@types/react@18.3.28)
-
-  packages/plugin-python:
-    dependencies:
-      '@codegraphy-dev/plugin-api':
-        specifier: workspace:*
-        version: link:../plugin-api
 
   packages/plugin-svelte:
     dependencies:

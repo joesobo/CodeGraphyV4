@@ -3,7 +3,6 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
@@ -256,7 +255,7 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
     );
   });
 
-  it('does not let plugin default filters hide TypeScript example source folders', async () => {
+  it('does not let optional plugin default filters hide TypeScript example source folders', async () => {
     const workspaceRoot = await copyExamplesWorkspace();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'examples', index: 0 },
@@ -267,8 +266,8 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
     );
 
     await analyzer.initialize();
-    analyzer.registry.unregister('codegraphy.csharp');
-    analyzer.registry.register(createCSharpPlugin());
+    analyzer.registry.unregister('codegraphy.gdscript');
+    analyzer.registry.register(createGDScriptPlugin());
 
     const graph = await analyzer.analyze();
     const nodeIds = new Set(graph.nodes.map((node) => node.id));

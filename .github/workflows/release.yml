@@ -12,8 +12,6 @@ on:
           - core
           - mcp
           - typescript
-          - python
-          - csharp
           - godot
           - markdown
           - vue

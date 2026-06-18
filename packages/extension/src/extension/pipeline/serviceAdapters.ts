@@ -106,6 +106,7 @@ export function buildWorkspacePipelineGraphData(
   showOrphans: boolean,
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   const effectiveDisabledPlugins = new Set(disabledPlugins);
@@ -119,6 +120,7 @@ export function buildWorkspacePipelineGraphData(
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _lastDiscoveredDirectories: directoryPaths,
+    _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
   const churnCounts = getCachedGitHistoryChurnCounts(
@@ -147,6 +149,38 @@ function readWorkspacePipelineSymbolPluginId(
     ?? readWorkspacePipelineMetadataString(symbol.metadata?.source);
 }
 
+function isWorkspacePipelinePluginActive(
+  pluginId: string | undefined,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): boolean {
+  return !pluginId || (activePluginIds.has(pluginId) && !disabledPlugins.has(pluginId));
+}
+
+function filterWorkspacePipelineRelationsByActivePlugins(
+  relations: NonNullable<IFileAnalysisResult['relations']>,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): NonNullable<IFileAnalysisResult['relations']> {
+  return relations.filter(relation =>
+    isWorkspacePipelinePluginActive(relation.pluginId, activePluginIds, disabledPlugins),
+  );
+}
+
+function filterWorkspacePipelineSymbolsByActivePlugins(
+  symbols: NonNullable<IFileAnalysisResult['symbols']>,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): NonNullable<IFileAnalysisResult['symbols']> {
+  return symbols.filter(symbol =>
+    isWorkspacePipelinePluginActive(
+      readWorkspacePipelineSymbolPluginId(symbol),
+      activePluginIds,
+      disabledPlugins,
+    ),
+  );
+}
+
 function filterWorkspacePipelineAnalysisByActivePlugins(
   fileAnalysis: Map<string, IFileAnalysisResult>,
   activePluginIds: ReadonlySet<string>,
@@ -156,15 +190,17 @@ function filterWorkspacePipelineAnalysisByActivePlugins(
 
   for (const [filePath, analysis] of fileAnalysis.entries()) {
     const relations = analysis.relations ?? [];
-    const activeRelations = relations.filter(relation =>
-      !relation.pluginId
-      || (activePluginIds.has(relation.pluginId) && !disabledPlugins.has(relation.pluginId)),
+    const activeRelations = filterWorkspacePipelineRelationsByActivePlugins(
+      relations,
+      activePluginIds,
+      disabledPlugins,
     );
     const symbols = analysis.symbols ?? [];
-    const activeSymbols = symbols.filter((symbol) => {
-      const pluginId = readWorkspacePipelineSymbolPluginId(symbol);
-      return !pluginId || (activePluginIds.has(pluginId) && !disabledPlugins.has(pluginId));
-    });
+    const activeSymbols = filterWorkspacePipelineSymbolsByActivePlugins(
+      symbols,
+      activePluginIds,
+      disabledPlugins,
+    );
     const unchanged = activeRelations.length === relations.length
       && activeSymbols.length === symbols.length;
 
@@ -189,6 +225,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
   graphScope: WorkspacePipelineGraphScopeOptions = {},
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   const visibleFileAnalysis = filterWorkspacePipelineAnalysisByActivePlugins(
@@ -199,6 +236,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _lastDiscoveredDirectories: directoryPaths,
+    _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
   const churnCounts = getCachedGitHistoryChurnCounts(
@@ -210,6 +248,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     cacheFiles: source._cache.files,
     churnCounts,
     directoryPaths: source._lastDiscoveredDirectories ?? [],
+    gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,
     fileAnalysis: visibleFileAnalysis,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),

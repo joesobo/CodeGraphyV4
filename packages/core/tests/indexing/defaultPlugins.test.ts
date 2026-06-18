@@ -74,7 +74,7 @@ describe('indexing/defaultPlugins', () => {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [
           {
-            id: 'codegraphy.python',
+            id: 'codegraphy.vue',
             enabled: true,
             options: { includeTests: true },
           },
@@ -106,7 +106,7 @@ describe('indexing/defaultPlugins', () => {
       { workspaceRoot: '/workspace' },
       {
         ...createDefaultCodeGraphyWorkspaceSettings(),
-        plugins: [{ id: 'codegraphy.python', enabled: true }],
+        plugins: [{ id: 'codegraphy.vue', enabled: true }],
       },
     );
 
