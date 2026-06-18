@@ -232,53 +232,101 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: Language examples
+          - label: Language examples 1/8
             suite: examples
             timeout-minutes: 15
-            shard: 1/4
-            artifact-suffix: examples-1-of-4
+            shard: 1/8
+            artifact-suffix: examples-1-of-8
             workers: 1
-          - label: Language examples
+          - label: Language examples 2/8
             suite: examples
             timeout-minutes: 15
-            shard: 2/4
-            artifact-suffix: examples-2-of-4
+            shard: 2/8
+            artifact-suffix: examples-2-of-8
             workers: 1
-          - label: Language examples
+          - label: Language examples 3/8
             suite: examples
             timeout-minutes: 15
-            shard: 3/4
-            artifact-suffix: examples-3-of-4
+            shard: 3/8
+            artifact-suffix: examples-3-of-8
             workers: 1
-          - label: Language examples
+          - label: Language examples 4/8
             suite: examples
             timeout-minutes: 15
-            shard: 4/4
-            artifact-suffix: examples-4-of-4
+            shard: 4/8
+            artifact-suffix: examples-4-of-8
             workers: 1
-          - label: Graph interactions
+          - label: Language examples 5/8
+            suite: examples
+            timeout-minutes: 15
+            shard: 5/8
+            artifact-suffix: examples-5-of-8
+            workers: 1
+          - label: Language examples 6/8
+            suite: examples
+            timeout-minutes: 15
+            shard: 6/8
+            artifact-suffix: examples-6-of-8
+            workers: 1
+          - label: Language examples 7/8
+            suite: examples
+            timeout-minutes: 15
+            shard: 7/8
+            artifact-suffix: examples-7-of-8
+            workers: 1
+          - label: Language examples 8/8
+            suite: examples
+            timeout-minutes: 15
+            shard: 8/8
+            artifact-suffix: examples-8-of-8
+            workers: 1
+          - label: Graph interactions 1/8
             suite: interactions
             timeout-minutes: 20
-            shard: 1/4
-            artifact-suffix: interactions-1-of-4
+            shard: 1/8
+            artifact-suffix: interactions-1-of-8
             workers: 1
-          - label: Graph interactions
+          - label: Graph interactions 2/8
             suite: interactions
             timeout-minutes: 20
-            shard: 2/4
-            artifact-suffix: interactions-2-of-4
+            shard: 2/8
+            artifact-suffix: interactions-2-of-8
             workers: 1
-          - label: Graph interactions
+          - label: Graph interactions 3/8
             suite: interactions
             timeout-minutes: 20
-            shard: 3/4
-            artifact-suffix: interactions-3-of-4
+            shard: 3/8
+            artifact-suffix: interactions-3-of-8
             workers: 1
-          - label: Graph interactions
+          - label: Graph interactions 4/8
             suite: interactions
             timeout-minutes: 20
-            shard: 4/4
-            artifact-suffix: interactions-4-of-4
+            shard: 4/8
+            artifact-suffix: interactions-4-of-8
+            workers: 1
+          - label: Graph interactions 5/8
+            suite: interactions
+            timeout-minutes: 20
+            shard: 5/8
+            artifact-suffix: interactions-5-of-8
+            workers: 1
+          - label: Graph interactions 6/8
+            suite: interactions
+            timeout-minutes: 20
+            shard: 6/8
+            artifact-suffix: interactions-6-of-8
+            workers: 1
+          - label: Graph interactions 7/8
+            suite: interactions
+            timeout-minutes: 20
+            shard: 7/8
+            artifact-suffix: interactions-7-of-8
+            workers: 1
+          - label: Graph interactions 8/8
+            suite: interactions
+            timeout-minutes: 20
+            shard: 8/8
+            artifact-suffix: interactions-8-of-8
             workers: 1
     env:
       CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
@@ -369,6 +417,7 @@ jobs:
         with:
           name: playwright-test-results-${{ matrix.artifact-suffix }}
           path: test-results/
+          if-no-files-found: ignore
           retention-days: 30
 
   build:
