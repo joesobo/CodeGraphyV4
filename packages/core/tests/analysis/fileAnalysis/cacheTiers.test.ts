@@ -97,4 +97,26 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
       relations: [],
     });
   });
+
+  it('does not downgrade file-to-symbol containment without a target path into a file self-edge', () => {
+    expect(projectAnalysisForCacheTiers({
+      filePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+      symbols: [{
+        id: 'Assets/Prefabs/Enemy1.prefab#unity:game-object:1000',
+        filePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+        kind: 'game-object',
+        name: 'Enemy 1',
+      }],
+      relations: [{
+        kind: 'contains',
+        sourceId: 'unity-containment',
+        fromFilePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+        toSymbolId: 'Assets/Prefabs/Enemy1.prefab#unity:game-object:1000',
+      }],
+    }, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
+      filePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
+      symbols: [],
+      relations: [],
+    });
+  });
 });
