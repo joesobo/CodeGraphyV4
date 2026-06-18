@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/pascal-example.md",
+  "feature": {
+    "name": "Pascal Example",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Pascal example renders expected file nodes and uses relationships",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-pascal workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 0 connections",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-pascal workspace",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I click the Graph Scope button",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Inherits, Contains, Overrides",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 9 connections",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/Main.pas points to src/SampleApp.pas",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/RunnerSupport.pas",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/OrderModel.pas",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/OrderRepository.pas",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/PricingService.pas",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/ReceiptView.pas",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/OrderRepository.pas points to src/OrderModel.pas",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/PricingService.pas points to src/OrderModel.pas",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/ReceiptView.pas points to src/OrderModel.pas",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I toggle the Imports edge off",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Class node on",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I toggle the Contains edge on",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 5 connections",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I toggle the Contains edge off",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Class node off",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Inherits edge on",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 1 connections",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/RunnerSupport.pas",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I toggle the Overrides edge on",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 2 connections",
+          "line": 47,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas has 2 edges pointing to src/RunnerSupport.pas",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I toggle the Inherits edge off",
+          "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Overrides edge off",
+          "line": 51,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 52,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 4 connections",
+          "line": 53,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/Main.pas points to src/SampleApp.pas",
+          "line": 54,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/OrderRepository.pas",
+          "line": 55,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/PricingService.pas",
+          "line": 56,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/ReceiptView.pas",
+          "line": 57,
+          "parameters": []
+        }
+      ]
+    }
+  ]
+}

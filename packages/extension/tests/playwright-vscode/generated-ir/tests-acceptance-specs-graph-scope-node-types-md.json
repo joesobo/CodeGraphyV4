@@ -1,0 +1,1504 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-scope-node-types.md",
+  "feature": {
+    "name": "Graph Scope Node Types",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "File node type works",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File node type",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 0 connections",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts is an orphan node",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/palette.ts is an orphan node",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "tsconfig.json is an orphan node",
+          "line": 13,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Folder node type works",
+      "line": 15,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Folder node types",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 21 nodes and 0 connections",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src is an orphan node",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/alias is an orphan node",
+          "line": 24,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Package node type works",
+      "line": 26,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Package node types",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 19 nodes and 0 connections",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "pkg:workspace:. is an orphan node",
+          "line": 34,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Symbol node type gates symbol children",
+      "line": 36,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 39,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File, Class and Global node types",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 0 connections",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Task from src/task.hpp",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 45,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Symbol node off",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 47,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Symbol node on",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 0 connections",
+          "line": 49,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Task from src/task.hpp",
+          "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 51,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Namespace node type works",
+      "line": 53,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 55,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 56,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 57,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 58,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Namespace node types",
+          "line": 59,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 60,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Namespace node taskrunner from src/task.hpp",
+          "line": 61,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Function node type works",
+      "line": 63,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-c workspace in VS Code",
+          "line": 65,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 66,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 67,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 68,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Function node types",
+          "line": 69,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 70,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.c#main:function is an orphan node",
+          "line": 71,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Prototype node type works",
+      "line": 73,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-c workspace in VS Code",
+          "line": 75,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 76,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 77,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 78,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Prototype node types",
+          "line": 79,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 80,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.h#logger_init:prototype is an orphan node",
+          "line": 81,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.h#logger_write:prototype is an orphan node",
+          "line": 82,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.h#logger_flush:prototype is an orphan node",
+          "line": 83,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h#logger_level_name:prototype is an orphan node",
+          "line": 84,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h#logger_format_line:prototype is an orphan node",
+          "line": 85,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Class node type works",
+      "line": 87,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 89,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 90,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 91,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 92,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Class node types",
+          "line": 93,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 17 nodes and 0 connections",
+          "line": 94,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Task from src/task.hpp",
+          "line": 95,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Worker from src/worker.hpp",
+          "line": 96,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node ConsoleWorker from src/worker.hpp",
+          "line": 97,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node TaskRunner from src/runner.hpp",
+          "line": 98,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Interface node type works",
+      "line": 100,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 102,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 103,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 104,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 105,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Interface node types",
+          "line": 106,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 20 nodes and 0 connections",
+          "line": 107,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/paletteExporter.ts#PaletteExporter:interface is an orphan node",
+          "line": 108,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/types.ts#PaletteRecipe:interface is an orphan node",
+          "line": 109,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Type node type works",
+      "line": 111,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 113,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 114,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 115,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 116,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Type node types",
+          "line": 117,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 19 nodes and 0 connections",
+          "line": 118,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/types.ts#PaletteMood:type is an orphan node",
+          "line": 119,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Struct node type works",
+      "line": 121,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-c workspace in VS Code",
+          "line": 123,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 124,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 125,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 126,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Struct node types",
+          "line": 127,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 10 nodes and 0 connections",
+          "line": 128,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.h#Logger:struct is an orphan node",
+          "line": 129,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h#LogRecord:struct is an orphan node",
+          "line": 130,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Union node type works",
+      "line": 132,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-c workspace in VS Code",
+          "line": 134,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 135,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 136,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 137,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Union node types",
+          "line": 138,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 0 connections",
+          "line": 139,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h#LogMessage:union is an orphan node",
+          "line": 140,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Enum node type works",
+      "line": 142,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 144,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 145,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 146,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 147,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Enum node types",
+          "line": 148,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 149,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Enum node Priority from src/task.hpp",
+          "line": 150,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Enum node TaskStatus from src/task.hpp",
+          "line": 151,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Typedef node type works",
+      "line": 153,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-c workspace in VS Code",
+          "line": 155,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 156,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 157,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 158,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Typedef node types",
+          "line": 159,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 12 nodes and 0 connections",
+          "line": 160,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.h#LogLevel:typedef is an orphan node",
+          "line": 161,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.h#Logger:typedef is an orphan node",
+          "line": 162,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h#LogMessage:typedef is an orphan node",
+          "line": 163,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h#LogRecord:typedef is an orphan node",
+          "line": 164,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Callable node type works",
+      "line": 166,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 168,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 169,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 170,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 171,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Callable node types",
+          "line": 172,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 17 nodes and 0 connections",
+          "line": 173,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node main from src/app.cpp",
+          "line": 174,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node make_task from src/seed.cpp",
+          "line": 175,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node seed_tasks from src/seed.cpp",
+          "line": 176,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node priority_name from src/task.cpp",
+          "line": 177,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Method node type works",
+      "line": 179,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 181,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 182,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 183,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 184,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Method node types",
+          "line": 185,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 30 nodes and 0 connections",
+          "line": 186,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node TaskRunner::run from src/runner.cpp",
+          "line": 187,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node ConsoleWorker::execute from src/worker.cpp",
+          "line": 188,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node Task::mark_completed from src/task.cpp",
+          "line": 189,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Alias node type works",
+      "line": 191,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 193,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 194,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 195,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 196,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Alias node types",
+          "line": 197,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 198,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Alias node TaskId from src/task.hpp",
+          "line": 199,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Alias node TaskList from src/seed.hpp",
+          "line": 200,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Alias node PendingTaskQueue from src/task_queue.hpp",
+          "line": 201,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Template node type works",
+      "line": 203,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 205,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 206,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 207,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 208,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Template node types",
+          "line": 209,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 210,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Template node TaskQueue from src/task_queue.hpp",
+          "line": 211,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Variable node type gates variable children",
+      "line": 213,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 215,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 216,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 217,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 218,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File, Global and Constant node types",
+          "line": 219,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 220,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 221,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kDefaultPriority from src/seed.cpp",
+          "line": 222,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Variable node off",
+          "line": 223,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 224,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Variable node on",
+          "line": 225,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 226,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 227,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kDefaultPriority from src/seed.cpp",
+          "line": 228,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Global node type works",
+      "line": 230,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 232,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 233,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 234,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 235,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Global node types",
+          "line": 236,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 237,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 238,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Constant node type works",
+      "line": 240,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 242,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 243,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 244,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 245,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Constant node types",
+          "line": 246,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 247,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kInitialStatus from src/task.cpp",
+          "line": 248,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kDefaultPriority from src/seed.cpp",
+          "line": 249,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Field node type works",
+      "line": 251,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 253,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 254,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 255,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 256,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Field node types",
+          "line": 257,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 20 nodes and 0 connections",
+          "line": 258,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node queue_ from src/runner.hpp",
+          "line": 259,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node worker_ from src/runner.hpp",
+          "line": 260,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node items_ from src/task_queue.hpp",
+          "line": 261,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node status_ from src/task.hpp",
+          "line": 262,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Parameter node type works",
+      "line": 264,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 266,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 267,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 268,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 269,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Parameter node types",
+          "line": 270,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 24 nodes and 0 connections",
+          "line": 271,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node task from src/runner.cpp",
+          "line": 272,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node worker from src/runner.cpp",
+          "line": 273,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node priority from src/seed.cpp",
+          "line": 274,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Local node type works",
+      "line": 276,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 278,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 279,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 280,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 281,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Local node types",
+          "line": 282,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 24 nodes and 0 connections",
+          "line": 283,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node completed from src/runner.cpp",
+          "line": 284,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node tasks from src/seed.cpp",
+          "line": 285,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node id from src/seed.cpp",
+          "line": 286,
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "Godot class_name node type works",
+      "line": 288,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-godot workspace in VS Code",
+          "line": 290,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 291,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 292,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I click the plugins button",
+          "line": 293,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the GDScript (Godot) plugin on",
+          "line": 294,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 295,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Godot class_name node types",
+          "line": 296,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 26 nodes and 7 connections",
+          "line": 297,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "scripts/player.gd points to scripts/player.gd#Player:class:class_name%20Player",
+          "line": 298,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "scripts/enemy.gd points to scripts/enemy.gd#Enemy:class:class_name%20Enemy",
+          "line": 299,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "scripts/game_manager.gd points to scripts/game_manager.gd#GameManager:class:class_name%20GameManager",
+          "line": 300,
+          "parameters": []
+        }
+      ]
+    }
+  ]
+}

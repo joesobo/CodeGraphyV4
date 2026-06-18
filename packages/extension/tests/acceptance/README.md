@@ -6,13 +6,25 @@ bindings that turn those specs into VS Code Playwright E2E tests.
 ## Pipeline
 
 ```txt
-specs/*.md -> quality-tools acceptance compile -> generated Playwright -> VS Code Playwright
+specs/*.md
+  -> quality-tools acceptance compile
+  -> generated JSON IR
+  -> generated advisory DRY reports
+  -> generated Playwright entrypoints
+  -> VS Code Playwright
 ```
 
 The generated Playwright files live under
 `packages/extension/tests/playwright-vscode/generated/`. They are build
 artifacts checked in for review visibility, but they should not be edited by
 hand.
+
+The generated JSON IR lives under
+`packages/extension/tests/playwright-vscode/generated-ir/`. Advisory DRY
+reports are written under `packages/extension/reports/acceptance-dry/`, which is
+ignored by git because the reports can be large. The DRY reports surface
+repeated and similar step text for review; they do not rewrite specs or change
+test behavior.
 
 ## Ownership
 
@@ -91,7 +103,7 @@ Helpful external references:
 
 ## Commands
 
-Regenerate the Playwright file:
+Regenerate the acceptance pipeline artifacts:
 
 ```bash
 pnpm --filter @codegraphy-dev/extension run generate:acceptance
