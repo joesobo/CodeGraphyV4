@@ -1,5 +1,28 @@
 # Feature: Graph Scope Node Types
 
+## Scenario: File node type works
+
+Given I open the examples/example-typescript workspace in VS Code
+When I open the CodeGraphy extension graph view
+And I have indexed the workspace
+And I show no edge types
+When I show only the File node type
+Then I can see there are 18 nodes and 0 connections
+And src/index.ts is an orphan node
+And src/palette.ts is an orphan node
+And tsconfig.json is an orphan node
+
+## Scenario: Folder node type works
+
+Given I open the examples/example-typescript workspace in VS Code
+When I open the CodeGraphy extension graph view
+And I have indexed the workspace
+And I show no edge types
+When I show only the File and Folder node types
+Then I can see there are 21 nodes and 0 connections
+And src is an orphan node
+And src/alias is an orphan node
+
 ## Scenario: Package node type works
 
 Given I open the examples/example-typescript workspace in VS Code
@@ -7,9 +30,8 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Package node types
-Then I can see there are 16 nodes and 0 connections
+Then I can see there are 19 nodes and 0 connections
 And pkg:workspace:. is an orphan node
-And pkg:@example/greeting is an orphan node
 
 ## Scenario: Symbol node type gates symbol children
 
@@ -48,6 +70,20 @@ When I show only the File and Function node types
 Then I can see there are 15 nodes and 0 connections
 And src/main.c#main:function is an orphan node
 
+## Scenario: Prototype node type works
+
+Given I open the examples/example-c workspace in VS Code
+When I open the CodeGraphy extension graph view
+And I have indexed the workspace
+And I show no edge types
+When I show only the File and Prototype node types
+Then I can see there are 13 nodes and 0 connections
+And src/logger/logger.h#logger_init:prototype is an orphan node
+And src/logger/logger.h#logger_write:prototype is an orphan node
+And src/logger/logger.h#logger_flush:prototype is an orphan node
+And src/logger/format.h#logger_level_name:prototype is an orphan node
+And src/logger/format.h#logger_format_line:prototype is an orphan node
+
 ## Scenario: Class node type works
 
 Given I open the examples/example-cpp workspace in VS Code
@@ -68,8 +104,9 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Interface node types
-Then I can see there are 15 nodes and 0 connections
-And src/runnableThing.ts#RunnableThing:interface is an orphan node
+Then I can see there are 20 nodes and 0 connections
+And src/paletteExporter.ts#PaletteExporter:interface is an orphan node
+And src/types.ts#PaletteRecipe:interface is an orphan node
 
 ## Scenario: Type node type works
 
@@ -78,8 +115,8 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show no edge types
 When I show only the File and Type node types
-Then I can see there are 15 nodes and 0 connections
-And src/types.ts#UserName:type is an orphan node
+Then I can see there are 19 nodes and 0 connections
+And src/types.ts#PaletteMood:type is an orphan node
 
 ## Scenario: Struct node type works
 

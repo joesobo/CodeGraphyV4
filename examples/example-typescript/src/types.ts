@@ -1,5 +1,15 @@
-export type UserName = string;
+export enum PaletteTheme {
+  Sunrise = 'sunrise',
+  Neon = 'neon',
+}
 
-export function formatUser(name: string): string {
-  return name.trim();
+export type PaletteMood = string;
+
+export interface PaletteRecipe {
+  mood: PaletteMood;
+  theme: PaletteTheme;
+}
+
+export function normalizeMood(name: string): string {
+  return name.trim().toLowerCase();
 }

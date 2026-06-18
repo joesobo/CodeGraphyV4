@@ -13,7 +13,7 @@ And the graph nodes match the expected files in the examples/example-vue workspa
 When I click the Graph Scope button
 Then I see to buttons for switching views between node type and edge type toggles
 And I select edge types
-Then the available edge types are Imports, References, Calls, Type imports, Inherits
+Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
 And I close the Graph Scope
 
 When I toggle the Imports edge on
