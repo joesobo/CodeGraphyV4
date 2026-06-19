@@ -159,6 +159,11 @@ function renderStepText(text: string, values: Record<string, string>): string {
 }
 
 function formatExampleName(values: Record<string, string>): string {
+  const explicitName = values.case ?? values.name ?? values.title ?? values.example;
+  if (explicitName) {
+    return explicitName;
+  }
+
   return Object.entries(values)
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
