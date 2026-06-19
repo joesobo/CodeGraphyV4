@@ -1,16 +1,19 @@
 # Feature: TypeScript Example
 
-## Scenario: TypeScript example renders expected file relationships and plugin edges
+## Background:
 
 Given I open the examples/example-typescript workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
+
+## Scenario: TypeScript example renders file and type-import relationships
+
 Then I see graph nodes
 And I show no edge types
 Then I can see there are 18 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
-When I click the Graph Scope button
+When I open the Graph Scope
 And I select edge types
 Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
 And I close the Graph Scope
@@ -46,10 +49,12 @@ And src/registry.ts points to src/types.ts
 And src/paletteRunner.ts points to src/paletteExporter.ts
 And src/themeLabels.ts points to src/types.ts
 
+## Scenario: TypeScript plugin exposes alias imports and semantic edges
+
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the TypeScript/JavaScript plugin on
-When I click the Graph Scope button
+When I open the Graph Scope
 And I select edge types
 Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains, TypeScript Alias Import
 And I close the Graph Scope
@@ -73,6 +78,12 @@ And src/palette.ts points to src/types.ts
 And src/palette.ts points to src/harmony.ts
 And src/harmony.ts points to src/swatches.ts
 
+## Scenario: TypeScript graph scope exposes symbol node types
+
+When I click the plugins button
+Then I see a list of plugins with toggles
+And I toggle the TypeScript/JavaScript plugin on
+And I show no edge types
 When I show only the Contains edge type
 And I show only the File and Function node types
 Then I can see there are 29 nodes and 11 connections

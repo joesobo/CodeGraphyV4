@@ -10,7 +10,7 @@ And I show no edge types
 Then I can see there are 8 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-ruby workspace
 
-When I click the Graph Scope button
+When I open the Graph Scope
 And I select edge types
 Then the available edge types are Imports, References, Calls, Inherits
 And I close the Graph Scope
@@ -26,12 +26,12 @@ And Gemfile is an orphan node
 And example_ruby.gemspec is an orphan node
 And .gitignore is an orphan node
 
-Then I toggle the Imports edge off
+When I toggle the Imports edge off
 And I toggle the Inherits edge on
-Then I can see there are 8 nodes and 1 connections
+Then I can see there are 8 nodes and 1 connection
 And lib/app/runner.rb points to lib/base/base_runner.rb
 
-Then I toggle the Inherits edge off
+When I toggle the Inherits edge off
 And I toggle the Calls edge on
 Then I can see there are 8 nodes and 1 connection
 And lib/app/runner.rb points to lib/model/user.rb

@@ -15,7 +15,7 @@ Then I see a list of plugins with toggles
 And I toggle the GDScript (Godot) plugin on
 When I toggle the References edge on
 Then I see edges
-When I click the Graph Scope button
+When I open the Graph Scope
 And I select edge types
 Then the available edge types are References, Calls, Inherits, Loads
 And I close the Graph Scope
@@ -28,18 +28,18 @@ And README.md is an orphan node
 And .gitignore is an orphan node
 And .vscode/settings.json is an orphan node
 
-Then I toggle the Reference edge off
+When I toggle the Reference edge off
 And I toggle the Calls edge on
-Then I can see there are 19 nodes and 1 connections
+Then I can see there are 19 nodes and 1 connection
 And scripts/enemy.gd points to scripts/utils/math_helpers.gd
 
-Then I toggle the Calls edge off
+When I toggle the Calls edge off
 And I toggle the Loads edge on
 Then I can see there are 19 nodes and 22 connections
 And project.godot points to scenes/main.tscn
 And project.godot points to scripts/game_manager.gd
 
-Then I toggle the Loads edge off
+When I toggle the Loads edge off
 And I toggle the Inherits edge on
-Then I can see there are 19 nodes and 1 connections
+Then I can see there are 19 nodes and 1 connection
 And scripts/enemy.gd points to scripts/base/entity.gd

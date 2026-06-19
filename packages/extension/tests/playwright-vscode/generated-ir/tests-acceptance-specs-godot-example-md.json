@@ -84,7 +84,7 @@
         },
         {
           "keyword": "When",
-          "text": "I click the Graph Scope button",
+          "text": "I open the Graph Scope",
           "line": 18,
           "parameters": []
         },
@@ -143,7 +143,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Reference edge off",
           "line": 31,
           "parameters": []
@@ -156,7 +156,7 @@
         },
         {
           "keyword": "Then",
-          "text": "I can see there are 19 nodes and 1 connections",
+          "text": "I can see there are 19 nodes and 1 connection",
           "line": 33,
           "parameters": []
         },
@@ -167,7 +167,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Calls edge off",
           "line": 36,
           "parameters": []
@@ -197,7 +197,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Loads edge off",
           "line": 42,
           "parameters": []
@@ -210,7 +210,7 @@
         },
         {
           "keyword": "Then",
-          "text": "I can see there are 19 nodes and 1 connections",
+          "text": "I can see there are 19 nodes and 1 connection",
           "line": 44,
           "parameters": []
         },

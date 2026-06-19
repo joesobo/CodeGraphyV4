@@ -3,7 +3,7 @@ import { test } from '@playwright/test';
 import { acceptanceSteps, createAcceptanceContext } from '../../acceptance/steps';
 import { loadAcceptanceIr, runAcceptanceFeature } from './runtime';
 
-const feature = loadAcceptanceIr('tests/playwright-vscode/generated-ir/tests-acceptance-specs-graph-scope-node-types-md.json');
+const feature = loadAcceptanceIr('tests/playwright-vscode/generated-ir/tests-acceptance-specs-graph-scope-node-types-typescript-md.json');
 
 runAcceptanceFeature(test, feature, {
   acceptanceSteps,

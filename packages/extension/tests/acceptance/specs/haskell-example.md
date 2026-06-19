@@ -10,7 +10,7 @@ And I show no edge types
 Then I can see there are 6 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-haskell workspace
 
-When I click the Graph Scope button
+When I open the Graph Scope
 And I select edge types
 Then the available edge types are Imports, References, Calls
 And I close the Graph Scope
@@ -25,7 +25,7 @@ And README.md is an orphan node
 And example-haskell.cabal is an orphan node
 And .gitignore is an orphan node
 
-Then I toggle the Imports edge off
+When I toggle the Imports edge off
 And I toggle the Calls edge on
 Then I can see there are 6 nodes and 2 connections
 And src/Main.hs points to src/App/Feature/Runner.hs

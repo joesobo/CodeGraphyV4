@@ -13,7 +13,7 @@ Then I see the src/index.ts node
 And I right click the src/index.ts node to open its Graph Context Menu
 And I select the "Add to Favorites" entry
 
-Then I click the graph background to unselect the src/index.ts node
+When I click the graph background to unselect the src/index.ts node
 And the src/index.ts node is visibly outlined in orange
 
 When I click the src/index.ts node to select it

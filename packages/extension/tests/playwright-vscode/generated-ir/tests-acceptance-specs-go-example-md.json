@@ -54,7 +54,7 @@
         },
         {
           "keyword": "When",
-          "text": "I click the Graph Scope button",
+          "text": "I open the Graph Scope",
           "line": 13,
           "parameters": []
         },
@@ -113,7 +113,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Imports edge off",
           "line": 26,
           "parameters": []

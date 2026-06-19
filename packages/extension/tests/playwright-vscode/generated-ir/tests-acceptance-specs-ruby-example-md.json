@@ -54,7 +54,7 @@
         },
         {
           "keyword": "When",
-          "text": "I click the Graph Scope button",
+          "text": "I open the Graph Scope",
           "line": 13,
           "parameters": []
         },
@@ -131,7 +131,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Imports edge off",
           "line": 29,
           "parameters": []
@@ -144,7 +144,7 @@
         },
         {
           "keyword": "Then",
-          "text": "I can see there are 8 nodes and 1 connections",
+          "text": "I can see there are 8 nodes and 1 connection",
           "line": 31,
           "parameters": []
         },
@@ -155,7 +155,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Inherits edge off",
           "line": 34,
           "parameters": []

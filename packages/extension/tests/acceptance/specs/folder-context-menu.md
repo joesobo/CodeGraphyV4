@@ -16,10 +16,10 @@ And the graph nodes match the expected files in the examples/example-typescript 
 
 When I open the Graph Scope
 Then the Edge Types button is no longer disabled
-Then I toggle the Imports edge on
+When I toggle the Imports edge on
 And I can see there are 18 nodes and 11 connections displayed
 
-Then I toggle the Folder node on
+When I toggle the Folder node on
 And the Nests edge is toggled on
 And I can see there are 21 nodes and 31 connections displayed
 

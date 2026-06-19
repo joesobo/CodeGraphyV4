@@ -83,7 +83,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Imports edge on",
           "line": 19,
           "parameters": []
@@ -95,7 +95,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I toggle the Folder node on",
           "line": 22,
           "parameters": []

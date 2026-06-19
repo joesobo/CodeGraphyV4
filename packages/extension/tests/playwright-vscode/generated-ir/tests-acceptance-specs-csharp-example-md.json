@@ -5,801 +5,820 @@
     "name": "C# Example",
     "line": 1
   },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-csharp workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "When",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
   "scenarios": [
     {
-      "name": "C# example renders expected file nodes and using relationships",
-      "line": 3,
+      "name": "C# example renders file nodes and using relationships",
+      "line": 9,
       "steps": [
-        {
-          "keyword": "Given",
-          "text": "I open the examples/example-csharp workspace in VS Code",
-          "line": 5,
-          "parameters": []
-        },
-        {
-          "keyword": "When",
-          "text": "I open the CodeGraphy extension graph view",
-          "line": 6,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "I have indexed the workspace",
-          "line": 7,
-          "parameters": []
-        },
         {
           "keyword": "Then",
           "text": "I see graph nodes",
-          "line": 8,
+          "line": 11,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I show no edge types",
-          "line": 9,
+          "line": 12,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 15 nodes and 0 connections",
-          "line": 10,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the graph nodes match the expected files in the examples/example-csharp workspace",
-          "line": 11,
-          "parameters": []
-        },
-        {
-          "keyword": "When",
-          "text": "I click the Graph Scope button",
           "line": 13,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "I select edge types",
+          "text": "the graph nodes match the expected files in the examples/example-csharp workspace",
           "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 17,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "the available edge types are only Using, Type, Call, Inherits, Implements, Contains",
-          "line": 15,
+          "line": 18,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I select node types",
-          "line": 16,
+          "line": 19,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "the available C# node types are only Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter, Local",
-          "line": 17,
+          "line": 20,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I close the Graph Scope",
-          "line": 18,
+          "line": 21,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Using edge on",
-          "line": 20,
+          "line": 23,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 15 nodes and 13 connections",
-          "line": 21,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Contracts/ITaskQueue.cs points to src/Models/DispatchTask.cs",
-          "line": 22,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Contracts/ITaskRunner.cs points to src/Models/DispatchTask.cs",
-          "line": 23,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Events/TaskCompleted.cs points to src/Models/DispatchResult.cs",
           "line": 24,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Program.cs points to src/Config/DispatchSettings.cs",
+          "text": "src/Contracts/ITaskQueue.cs points to src/Models/DispatchTask.cs",
           "line": 25,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Program.cs points to src/Models/DispatchResult.cs",
+          "text": "src/Contracts/ITaskRunner.cs points to src/Models/DispatchTask.cs",
           "line": 26,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Program.cs points to src/Services/TaskDispatcher.cs",
+          "text": "src/Events/TaskCompleted.cs points to src/Models/DispatchResult.cs",
           "line": 27,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/BaseTaskRunner.cs points to src/Models/DispatchStatus.cs",
+          "text": "src/Program.cs points to src/Config/DispatchSettings.cs",
           "line": 28,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/PriorityTaskQueue.cs points to src/Contracts/ITaskQueue.cs",
+          "text": "src/Program.cs points to src/Models/DispatchResult.cs",
           "line": 29,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/PriorityTaskQueue.cs points to src/Models/DispatchTask.cs",
+          "text": "src/Program.cs points to src/Services/TaskDispatcher.cs",
           "line": 30,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Config/DispatchSettings.cs",
+          "text": "src/Services/BaseTaskRunner.cs points to src/Models/DispatchStatus.cs",
           "line": 31,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Contracts/ITaskQueue.cs",
+          "text": "src/Services/PriorityTaskQueue.cs points to src/Contracts/ITaskQueue.cs",
           "line": 32,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Events/TaskCompleted.cs",
+          "text": "src/Services/PriorityTaskQueue.cs points to src/Models/DispatchTask.cs",
           "line": 33,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Models/DispatchTask.cs",
+          "text": "src/Services/TaskDispatcher.cs points to src/Config/DispatchSettings.cs",
           "line": 34,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "README.md is an orphan node",
+          "text": "src/Services/TaskDispatcher.cs points to src/Contracts/ITaskQueue.cs",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/Services/TaskDispatcher.cs points to src/Events/TaskCompleted.cs",
           "line": 36,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": ".gitignore is an orphan node",
+          "text": "src/Services/TaskDispatcher.cs points to src/Models/DispatchTask.cs",
           "line": 37,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": ".vscode/settings.json is an orphan node",
-          "line": 38,
+          "text": "README.md is an orphan node",
+          "line": 39,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the Contains edge type",
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
           "line": 40,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File and Class node types",
+          "keyword": "And",
+          "text": ".vscode/settings.json is an orphan node",
           "line": 41,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "C# graph scope exposes supported node types",
+      "line": 43,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show only the Contains edge type",
+          "line": 45,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Class node types",
+          "line": 46,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 20 nodes and 5 connections",
-          "line": 42,
+          "line": 47,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "the visible graph includes the Class node Program from src/Program.cs",
-          "line": 43,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Class node DispatchSettings from src/Config/DispatchSettings.cs",
-          "line": 44,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Class node TaskDispatcher from src/Services/TaskDispatcher.cs",
-          "line": 45,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I show only the File and Interface node types",
-          "line": 47,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I can see there are 17 nodes and 2 connections",
           "line": 48,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Interface node ITaskQueue from src/Contracts/ITaskQueue.cs",
+          "text": "the visible graph includes the Class node DispatchSettings from src/Config/DispatchSettings.cs",
           "line": 49,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Interface node ITaskRunner from src/Contracts/ITaskRunner.cs",
+          "text": "the visible graph includes the Class node TaskDispatcher from src/Services/TaskDispatcher.cs",
           "line": 50,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File and Struct node types",
+          "keyword": "When",
+          "text": "I show only the File and Interface node types",
           "line": 52,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I can see there are 16 nodes and 1 connection",
+          "text": "I can see there are 17 nodes and 2 connections",
           "line": 53,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Struct node TaskId from src/Models/TaskId.cs",
+          "text": "the visible graph includes the Interface node ITaskQueue from src/Contracts/ITaskQueue.cs",
           "line": 54,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File and Record node types",
-          "line": 56,
+          "keyword": "And",
+          "text": "the visible graph includes the Interface node ITaskRunner from src/Contracts/ITaskRunner.cs",
+          "line": 55,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 17 nodes and 2 connections",
+          "keyword": "When",
+          "text": "I show only the File and Struct node types",
           "line": 57,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Record node DispatchTask from src/Models/DispatchTask.cs",
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 1 connection",
           "line": 58,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Record node DispatchResult from src/Models/DispatchResult.cs",
+          "text": "the visible graph includes the Struct node TaskId from src/Models/TaskId.cs",
           "line": 59,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File and Enum node types",
+          "keyword": "When",
+          "text": "I show only the File and Record node types",
           "line": 61,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I can see there are 16 nodes and 1 connection",
+          "text": "I can see there are 17 nodes and 2 connections",
           "line": 62,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Enum node DispatchStatus from src/Models/DispatchStatus.cs",
+          "text": "the visible graph includes the Record node DispatchTask from src/Models/DispatchTask.cs",
           "line": 63,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File and Delegate node types",
-          "line": 65,
+          "keyword": "And",
+          "text": "the visible graph includes the Record node DispatchResult from src/Models/DispatchResult.cs",
+          "line": 64,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Enum node types",
+          "line": 66,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 16 nodes and 1 connection",
-          "line": 66,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Delegate node TaskCompleted from src/Events/TaskCompleted.cs",
           "line": 67,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File and Method node types",
-          "line": 69,
+          "keyword": "And",
+          "text": "the visible graph includes the Enum node DispatchStatus from src/Models/DispatchStatus.cs",
+          "line": 68,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 23 nodes and 8 connections",
+          "keyword": "When",
+          "text": "I show only the File and Delegate node types",
           "line": 70,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Method node Main from src/Program.cs",
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 1 connection",
           "line": 71,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Method node Dispatch from src/Services/TaskDispatcher.cs",
+          "text": "the visible graph includes the Delegate node TaskCompleted from src/Events/TaskCompleted.cs",
           "line": 72,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Method node BuildMessage from src/Services/TaskDispatcher.cs",
-          "line": 73,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Method node Complete from src/Services/BaseTaskRunner.cs",
+          "keyword": "When",
+          "text": "I show only the File and Method node types",
           "line": 74,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I show only the File and Constructor node types",
+          "text": "I can see there are 23 nodes and 8 connections",
+          "line": 75,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node Main from src/Program.cs",
           "line": 76,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 20 nodes and 5 connections",
+          "keyword": "And",
+          "text": "the visible graph includes the Method node Dispatch from src/Services/TaskDispatcher.cs",
           "line": 77,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Constructor node DispatchSettings from src/Config/DispatchSettings.cs",
+          "text": "the visible graph includes the Method node BuildMessage from src/Services/TaskDispatcher.cs",
           "line": 78,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Constructor node TaskDispatcher from src/Services/TaskDispatcher.cs",
+          "text": "the visible graph includes the Method node Complete from src/Services/BaseTaskRunner.cs",
           "line": 79,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Constructor node TaskId from src/Models/TaskId.cs",
-          "line": 80,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I show only the File and Property node types",
-          "line": 82,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I can see there are 19 nodes and 4 connections",
-          "line": 83,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Property node MaxRetries from src/Config/DispatchSettings.cs",
-          "line": 84,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Property node Count from src/Contracts/ITaskQueue.cs",
-          "line": 85,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Property node Count from src/Services/PriorityTaskQueue.cs",
-          "line": 86,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Property node Value from src/Models/TaskId.cs",
-          "line": 87,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I show only the File and Event node types",
-          "line": 89,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I can see there are 16 nodes and 1 connection",
-          "line": 90,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Event node Completed from src/Services/TaskDispatcher.cs",
-          "line": 91,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I show only the File and Constant node types",
-          "line": 93,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I can see there are 17 nodes and 2 connections",
-          "line": 94,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Constant node DefaultMaxRetries from src/Config/DispatchSettings.cs",
-          "line": 95,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Constant node retryFloor from src/Services/TaskDispatcher.cs",
-          "line": 96,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I show only the File and Field node types",
-          "line": 98,
+          "keyword": "When",
+          "text": "I show only the File and Constructor node types",
+          "line": 81,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 20 nodes and 5 connections",
+          "line": 82,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constructor node DispatchSettings from src/Config/DispatchSettings.cs",
+          "line": 83,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constructor node TaskDispatcher from src/Services/TaskDispatcher.cs",
+          "line": 84,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constructor node TaskId from src/Models/TaskId.cs",
+          "line": 85,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Property node types",
+          "line": 87,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 19 nodes and 4 connections",
+          "line": 88,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Property node MaxRetries from src/Config/DispatchSettings.cs",
+          "line": 89,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Property node Count from src/Contracts/ITaskQueue.cs",
+          "line": 90,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Property node Count from src/Services/PriorityTaskQueue.cs",
+          "line": 91,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Property node Value from src/Models/TaskId.cs",
+          "line": 92,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Event node types",
+          "line": 94,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 1 connection",
+          "line": 95,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Event node Completed from src/Services/TaskDispatcher.cs",
+          "line": 96,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Constant node types",
+          "line": 98,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 17 nodes and 2 connections",
           "line": 99,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Field node _maxRetries from src/Config/DispatchSettings.cs",
+          "text": "the visible graph includes the Constant node DefaultMaxRetries from src/Config/DispatchSettings.cs",
           "line": 100,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Field node _queue from src/Services/TaskDispatcher.cs",
+          "text": "the visible graph includes the Constant node retryFloor from src/Services/TaskDispatcher.cs",
           "line": 101,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Field node _tasks from src/Services/PriorityTaskQueue.cs",
-          "line": 102,
+          "keyword": "When",
+          "text": "I show only the File and Field node types",
+          "line": 103,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I show only the File and Parameter node types",
+          "text": "I can see there are 20 nodes and 5 connections",
           "line": 104,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 37 nodes and 22 connections",
+          "keyword": "And",
+          "text": "the visible graph includes the Field node _maxRetries from src/Config/DispatchSettings.cs",
           "line": 105,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Parameter node maxRetries from src/Config/DispatchSettings.cs",
+          "text": "the visible graph includes the Field node _queue from src/Services/TaskDispatcher.cs",
           "line": 106,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Parameter node queue from src/Services/TaskDispatcher.cs",
+          "text": "the visible graph includes the Field node _tasks from src/Services/PriorityTaskQueue.cs",
           "line": 107,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Parameter node dispatchedTask from src/Services/TaskDispatcher.cs",
-          "line": 108,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Parameter node result from src/Events/TaskCompleted.cs",
+          "keyword": "When",
+          "text": "I show only the File and Parameter node types",
           "line": 109,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I show only the File and Local node types",
+          "text": "I can see there are 37 nodes and 22 connections",
+          "line": 110,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node maxRetries from src/Config/DispatchSettings.cs",
           "line": 111,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 23 nodes and 8 connections",
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node queue from src/Services/TaskDispatcher.cs",
           "line": 112,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Local node settings from src/Program.cs",
+          "text": "the visible graph includes the Parameter node dispatchedTask from src/Services/TaskDispatcher.cs",
           "line": 113,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph includes the Local node dispatcher from src/Program.cs",
+          "text": "the visible graph includes the Parameter node result from src/Events/TaskCompleted.cs",
           "line": 114,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph includes the Local node attempts from src/Services/TaskDispatcher.cs",
-          "line": 115,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph includes the Local node nextTask from src/Services/TaskDispatcher.cs",
+          "keyword": "When",
+          "text": "I show only the File and Local node types",
           "line": 116,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I show no edge types",
+          "text": "I can see there are 23 nodes and 8 connections",
+          "line": 117,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node settings from src/Program.cs",
           "line": 118,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the File, Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter and Local node types",
+          "keyword": "And",
+          "text": "the visible graph includes the Local node dispatcher from src/Program.cs",
           "line": 119,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 82 nodes and 0 connections",
+          "keyword": "And",
+          "text": "the visible graph includes the Local node attempts from src/Services/TaskDispatcher.cs",
           "line": 120,
           "parameters": []
         },
         {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node nextTask from src/Services/TaskDispatcher.cs",
+          "line": 121,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "C# graph scope exposes semantic edge relationships",
+      "line": 123,
+      "steps": [
+        {
           "keyword": "When",
-          "text": "I toggle the Contains edge on",
-          "line": 122,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "I can see there are 82 nodes and 67 connections",
-          "line": 123,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Program.cs points to src/Program.cs#Program:class",
-          "line": 124,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Models/DispatchTask.cs points to src/Models/DispatchTask.cs#DispatchTask:record",
+          "text": "I show no edge types",
           "line": 125,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Events/TaskCompleted.cs points to src/Events/TaskCompleted.cs#TaskCompleted:delegate",
+          "text": "I show only the File, Class, Interface, Struct, Record, Enum, Delegate, Method, Constructor, Property, Event, Constant, Field, Parameter and Local node types",
           "line": 126,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#TaskDispatcher:class",
+          "keyword": "Then",
+          "text": "I can see there are 82 nodes and 0 connections",
           "line": 127,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#_queue:field",
-          "line": 128,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Config/DispatchSettings.cs points to src/Config/DispatchSettings.cs#DefaultMaxRetries:constant",
+          "keyword": "When",
+          "text": "I toggle the Contains edge on",
           "line": 129,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#retryFloor:constant",
+          "keyword": "Then",
+          "text": "I can see there are 82 nodes and 67 connections",
           "line": 130,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#nextTask:local",
+          "text": "src/Program.cs points to src/Program.cs#Program:class",
           "line": 131,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the Type edge type",
+          "keyword": "And",
+          "text": "src/Models/DispatchTask.cs points to src/Models/DispatchTask.cs#DispatchTask:record",
+          "line": 132,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/Events/TaskCompleted.cs points to src/Events/TaskCompleted.cs#TaskCompleted:delegate",
           "line": 133,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 82 nodes and 24 connections",
+          "keyword": "And",
+          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#TaskDispatcher:class",
           "line": 134,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows task in src/Events/TaskCompleted.cs referencing type DispatchTask in src/Models/DispatchTask.cs",
+          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#_queue:field",
           "line": 135,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows result in src/Events/TaskCompleted.cs referencing type DispatchResult in src/Models/DispatchResult.cs",
+          "text": "src/Config/DispatchSettings.cs points to src/Config/DispatchSettings.cs#DefaultMaxRetries:constant",
           "line": 136,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows Status in src/Models/DispatchTask.cs referencing type DispatchStatus in src/Models/DispatchStatus.cs",
+          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#retryFloor:constant",
           "line": 137,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows _tasks in src/Services/PriorityTaskQueue.cs referencing type DispatchTask in src/Models/DispatchTask.cs",
+          "text": "src/Services/TaskDispatcher.cs points to src/Services/TaskDispatcher.cs#nextTask:local",
           "line": 138,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph shows _queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs",
-          "line": 139,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "the visible graph shows queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs",
+          "keyword": "When",
+          "text": "I show only the Type edge type",
           "line": 140,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "the visible graph shows Completed in src/Services/TaskDispatcher.cs referencing type TaskCompleted in src/Events/TaskCompleted.cs",
+          "keyword": "Then",
+          "text": "I can see there are 82 nodes and 24 connections",
           "line": 141,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows Dispatch in src/Services/TaskDispatcher.cs referencing type DispatchResult in src/Models/DispatchResult.cs",
+          "text": "the visible graph shows task in src/Events/TaskCompleted.cs referencing type DispatchTask in src/Models/DispatchTask.cs",
           "line": 142,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows dispatchedTask in src/Services/TaskDispatcher.cs referencing type DispatchTask in src/Models/DispatchTask.cs",
+          "text": "the visible graph shows result in src/Events/TaskCompleted.cs referencing type DispatchResult in src/Models/DispatchResult.cs",
           "line": 143,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the Call edge type",
+          "keyword": "And",
+          "text": "the visible graph shows Status in src/Models/DispatchTask.cs referencing type DispatchStatus in src/Models/DispatchStatus.cs",
+          "line": 144,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows _tasks in src/Services/PriorityTaskQueue.cs referencing type DispatchTask in src/Models/DispatchTask.cs",
           "line": 145,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I can see there are 82 nodes and 9 connections",
+          "keyword": "And",
+          "text": "the visible graph shows _queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs",
           "line": 146,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows Main in src/Program.cs calling DispatchTask in src/Models/DispatchTask.cs",
+          "text": "the visible graph shows queue in src/Services/TaskDispatcher.cs referencing type ITaskQueue in src/Contracts/ITaskQueue.cs",
           "line": 147,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows Main in src/Program.cs calling Dispatch in src/Services/TaskDispatcher.cs",
+          "text": "the visible graph shows Completed in src/Services/TaskDispatcher.cs referencing type TaskCompleted in src/Events/TaskCompleted.cs",
           "line": 148,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling Complete in src/Services/BaseTaskRunner.cs",
+          "text": "the visible graph shows Dispatch in src/Services/TaskDispatcher.cs referencing type DispatchResult in src/Models/DispatchResult.cs",
           "line": 149,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling BuildMessage in src/Services/TaskDispatcher.cs",
+          "text": "the visible graph shows dispatchedTask in src/Services/TaskDispatcher.cs referencing type DispatchTask in src/Models/DispatchTask.cs",
           "line": 150,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the Inherits edge type",
+          "keyword": "When",
+          "text": "I show only the Call edge type",
           "line": 152,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "I can see there are 82 nodes and 1 connection",
+          "text": "I can see there are 82 nodes and 9 connections",
           "line": 153,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/Services/TaskDispatcher.cs#TaskDispatcher:class points to src/Services/BaseTaskRunner.cs",
+          "text": "the visible graph shows Main in src/Program.cs calling DispatchTask in src/Models/DispatchTask.cs",
           "line": 154,
           "parameters": []
         },
         {
-          "keyword": "Then",
-          "text": "I show only the Implements edge type",
+          "keyword": "And",
+          "text": "the visible graph shows Main in src/Program.cs calling Dispatch in src/Services/TaskDispatcher.cs",
+          "line": 155,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling Complete in src/Services/BaseTaskRunner.cs",
           "line": 156,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows Dispatch in src/Services/TaskDispatcher.cs calling BuildMessage in src/Services/TaskDispatcher.cs",
+          "line": 157,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Inherits edge type",
+          "line": 159,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 82 nodes and 1 connection",
+          "line": 160,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/Services/TaskDispatcher.cs#TaskDispatcher:class points to src/Services/BaseTaskRunner.cs",
+          "line": 161,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Implements edge type",
+          "line": 163,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 82 nodes and 2 connections",
-          "line": 157,
+          "line": 164,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "the visible graph shows TaskDispatcher in src/Services/TaskDispatcher.cs implementing ITaskRunner in src/Contracts/ITaskRunner.cs",
-          "line": 158,
+          "line": 165,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "the visible graph shows PriorityTaskQueue in src/Services/PriorityTaskQueue.cs implementing ITaskQueue in src/Contracts/ITaskQueue.cs",
-          "line": 159,
+          "line": 166,
           "parameters": []
         }
       ],

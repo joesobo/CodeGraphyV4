@@ -10,7 +10,7 @@ And I show no edge types
 Then I can see there are 7 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-markdown workspace
 
-When I click the Graph Scope button
+When I open the Graph Scope
 And I select edge types
 Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
 And I close the Graph Scope
@@ -26,6 +26,6 @@ And README.md is an orphan node
 And notes/guides/Setup.md is an orphan node
 And .gitignore is an orphan node
 
-Then I toggle the References edge off
+When I toggle the References edge off
 And I toggle the Calls edge on
 Then I can see there are 7 nodes and 0 connections

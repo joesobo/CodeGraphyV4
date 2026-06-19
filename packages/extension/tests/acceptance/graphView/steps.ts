@@ -298,7 +298,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await requireGraphFrame(context).getByRole('button', { name: 'Graph Scope' }).click();
   },
 
-  'I see to buttons for switching views between node type and edge type toggles': async (context) => {
+  'I see two buttons for switching views between node type and edge type toggles': async (context) => {
     const frame = requireGraphFrame(context);
     await expect(frame.getByRole('button', { name: 'Node Types' })).toBeVisible();
     await expect(frame.getByRole('button', { name: 'Edge Types' })).toBeVisible();
@@ -706,7 +706,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
   }),
 
-  step(/^I see to buttons for switching views between node type and edge type toggles$/, async (context) => {
+  step(/^I see two buttons for switching views between node type and edge type toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Node Types' })).toBeVisible();
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeVisible();
   }),

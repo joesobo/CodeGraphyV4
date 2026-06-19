@@ -65,7 +65,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "When",
           "text": "I click the graph background to unselect the src/index.ts node",
           "line": 16,
           "parameters": []
