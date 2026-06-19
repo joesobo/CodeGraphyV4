@@ -6,7 +6,7 @@ bindings that turn those specs into VS Code Playwright E2E tests.
 ## Pipeline
 
 ```txt
-specs/*.md
+specs/*.feature
   -> quality-tools acceptance compile
   -> generated JSON IR
   -> generated advisory DRY reports
@@ -31,10 +31,10 @@ rewrite specs or change test behavior.
 
 ## Ownership
 
-- Humans own `specs/**/*.md`.
+- Humans own `specs/**/*.feature`.
 - Agents own step bindings, fixtures, helpers, generated Playwright files, and
   tooling.
-- Agents must not create, edit, rename, or delete spec Markdown unless the user
+- Agents must not create, edit, rename, or delete spec Gherkin unless the user
   explicitly asks for that exact spec change.
 
 The guardrail is documented in `docs/agents/acceptance-specs.md` and enforced by
@@ -48,7 +48,7 @@ workflows the human writes down.
 Each step phrase in a spec maps to a TypeScript binding in `steps.ts` or a
 feature-owned step module. For example:
 
-```md
+```gherkin
 When I open the CodeGraphy graph view
 Then I see file nodes before indexing
 ```
@@ -61,8 +61,8 @@ As the suite grows, organize specs and bindings by product feature:
 ```txt
 tests/acceptance/
   specs/
-    graph-view.md
-    settings.md
+    graph-view.feature
+    settings.feature
   graphView/
     steps.ts
     fixture.ts
@@ -119,7 +119,7 @@ Run the full VS Code acceptance E2E path:
 pnpm --filter @codegraphy-dev/extension run test:playwright
 ```
 
-The full path compiles Markdown, builds the extension, launches a VS Code
+The full path compiles Gherkin, builds the extension, launches a VS Code
 Extension Development Host, opens the Graph View, and runs the generated
 Playwright test.
 

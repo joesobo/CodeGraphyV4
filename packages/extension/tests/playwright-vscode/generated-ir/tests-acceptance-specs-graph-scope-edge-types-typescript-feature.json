@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-scope-edge-types-typescript.feature",
+  "feature": {
+    "name": "Graph Scope Edge Types - TypeScript",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-typescript workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "When",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "TypeScript alias import edge type shows path alias imports",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show only the File node type",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Typescript Alias Import edge on",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"1 connection\"",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/alias/themePack.ts",
+          "line": 16,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

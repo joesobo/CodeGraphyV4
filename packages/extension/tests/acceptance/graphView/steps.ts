@@ -210,14 +210,14 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = 'example-typescript';
-    context.workspacePath = step.sourcePath.endsWith('/typescript-example.md')
+    context.workspacePath = step.sourcePath.endsWith('/typescript-example.feature')
       ? copyExampleTypescriptWorkspace(context.workspaceTempRoot)
       : copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
-        includeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? false : undefined,
-        includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? true : undefined,
-        includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
-          || step.sourcePath.endsWith('/graph-navigation.md'),
-        pluginPackages: step.sourcePath.endsWith('/graph-scope-edge-types.md')
+        includeImportEdges: step.sourcePath.endsWith('/folder-context-menu.feature') ? false : undefined,
+        includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.feature') ? true : undefined,
+        includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.feature')
+          || step.sourcePath.endsWith('/graph-navigation.feature'),
+        pluginPackages: step.sourcePath.endsWith('/graph-scope-edge-types-typescript.feature')
           ? ['@codegraphy-dev/plugin-markdown', '@codegraphy-dev/plugin-typescript']
           : ['@codegraphy-dev/plugin-markdown'],
       });
@@ -462,7 +462,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
-    if (step.sourcePath.endsWith('/svelte-example.md')) {
+    if (step.sourcePath.endsWith('/svelte-example.feature')) {
       setWorkspaceEdgeVisibility(context.workspacePath, 'type-import', false);
     }
   }),
@@ -1048,21 +1048,21 @@ async function applyExampleScenarioStartingUiState(
   sourcePath: string,
   options: { requireCoreNodeTypes?: boolean } = {},
 ): Promise<void> {
-  if (path.basename(sourcePath).endsWith('-example.md')) {
+  if (path.basename(sourcePath).endsWith('-example.feature')) {
     await showOnlyNodeTypes(context, ['File'], {
       requireCoreNodeTypes: options.requireCoreNodeTypes,
     });
   }
 
   switch (path.basename(sourcePath)) {
-    case 'godot-example.md':
+    case 'godot-example.feature':
       await setPluginSwitch(context, 'GDScript (Godot)', false);
       return;
-    case 'svelte-example.md':
+    case 'svelte-example.feature':
       await setPluginSwitch(context, 'Svelte', false);
       return;
-    case 'javascript-example.md':
-    case 'typescript-example.md':
+    case 'javascript-example.feature':
+    case 'typescript-example.feature':
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
   }
@@ -1072,7 +1072,7 @@ async function applyPostIndexScenarioStartingUiState(
   context: GraphAcceptanceContext,
   sourcePath: string,
 ): Promise<void> {
-  if (path.basename(sourcePath) === 'folder-context-menu.md') {
+  if (path.basename(sourcePath) === 'folder-context-menu.feature') {
     await showNoEdgeTypes(context);
   }
 }
