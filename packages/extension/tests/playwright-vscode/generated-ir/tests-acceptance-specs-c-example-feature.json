@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/c-example.feature",
+  "feature": {
+    "name": "C Example",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-c workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "C example renders expected file nodes and include relationships",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 8 nodes and 0 connections",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-c workspace",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are only Include, References, Calls, Contains",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Include edge on",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 8 nodes and 5 connections",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.c points to src/logger/logger.h",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.c points to src/logger/logger.h",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.c points to src/logger/format.h",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.h points to src/logger/logger.h",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.c points to src/logger/format.h",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Makefile is an orphan node",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Calls edge type",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 8 nodes and 4 connections",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.c points to src/logger/logger.h",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.c points to src/logger/format.h",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.c points to src/logger/format.h",
+          "line": 37,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "C example exposes symbols when symbol scope is enabled",
+      "line": 39,
+      "steps": [
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 8 nodes and 0 connections",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-c workspace",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Function node on",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 47,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Contains edge on",
+          "line": 49,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 7 connections",
+          "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.c points to src/main.c#main:function",
+          "line": 51,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Calls edge on",
+          "line": 53,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 11 connections",
+          "line": 54,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.c#logger_write:function points to src/logger/logger.c#logger_accepts:function",
+          "line": 55,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Prototype node on",
+          "line": 57,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 20 nodes and 18 connections",
+          "line": 58,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/logger.c#logger_write:function points to src/logger/format.h#logger_format_line:prototype",
+          "line": 59,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.c#main:function points to src/logger/logger.h#logger_init:prototype",
+          "line": 60,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/logger/format.c#logger_format_line:function points to src/logger/format.h#logger_level_name:prototype",
+          "line": 61,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Include edge type",
+          "line": 63,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 20 nodes and 5 connections",
+          "line": 64,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.c points to src/logger/logger.h",
+          "line": 65,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Contains edge type",
+          "line": 67,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Struct node types",
+          "line": 68,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 10 nodes and 2 connections",
+          "line": 69,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Union node types",
+          "line": 71,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 1 connection",
+          "line": 72,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Enum node types",
+          "line": 74,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 1 connection",
+          "line": 75,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Typedef node types",
+          "line": 77,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 12 nodes and 4 connections",
+          "line": 78,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File and Global node types",
+          "line": 80,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 9 nodes and 1 connection",
+          "line": 81,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File, Function, Prototype, Struct, Union, Enum, Typedef and Global node types",
+          "line": 83,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Include edge on",
+          "line": 84,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 85,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 29 nodes and 32 connections",
+          "line": 86,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Contains edge off",
+          "line": 87,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 29 nodes and 11 connections",
+          "line": 88,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Include edge off",
+          "line": 89,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 29 nodes and 6 connections",
+          "line": 90,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Calls edge off",
+          "line": 91,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 29 nodes and 0 connections",
+          "line": 92,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

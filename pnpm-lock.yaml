@@ -33,8 +33,8 @@ importers:
         specifier: ^9.0.0
         version: 9.39.4
       '@poleski/quality-tools':
-        specifier: ^0.2.0
-        version: 0.2.0(@types/node@20.19.37)(vitest@3.2.4(@types/node@20.19.37)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.21.0)(yaml@2.8.3))
+        specifier: github:joesobo/quality-tools#codex/acceptance-pipeline-upgrade
+        version: https://codeload.github.com/joesobo/quality-tools/tar.gz/fc6dded6a6d2c56a88d0178f9b4c17db3b9ff817(@types/node@20.19.37)(vitest@3.2.4(@types/node@20.19.37)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.21.0)(yaml@2.8.3))
       '@types/node':
         specifier: ^20.11.0
         version: 20.19.37
@@ -1511,8 +1511,9 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@poleski/quality-tools@0.2.0':
-    resolution: {integrity: sha512-hbrMSlGktxwbKIkPtwvclMPlh7sydQzqgNdWUVc9GM5qOC7GmJuqC8C/Ml5PXP8hksbesmICBY5nNx13zgDxhg==}
+  '@poleski/quality-tools@https://codeload.github.com/joesobo/quality-tools/tar.gz/fc6dded6a6d2c56a88d0178f9b4c17db3b9ff817':
+    resolution: {tarball: https://codeload.github.com/joesobo/quality-tools/tar.gz/fc6dded6a6d2c56a88d0178f9b4c17db3b9ff817}
+    version: 0.2.0
     engines: {node: '>=22.22.0'}
     hasBin: true
 
@@ -7260,7 +7261,7 @@ snapshots:
     dependencies:
       playwright: 1.58.2
 
-  '@poleski/quality-tools@0.2.0(@types/node@20.19.37)(vitest@3.2.4(@types/node@20.19.37)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.21.0)(yaml@2.8.3))':
+  '@poleski/quality-tools@https://codeload.github.com/joesobo/quality-tools/tar.gz/fc6dded6a6d2c56a88d0178f9b4c17db3b9ff817(@types/node@20.19.37)(vitest@3.2.4(@types/node@20.19.37)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
       '@stryker-mutator/api': 9.6.1
       '@stryker-mutator/core': 9.6.1(@types/node@20.19.37)

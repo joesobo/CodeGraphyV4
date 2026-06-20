@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/vue-example.feature",
+  "feature": {
+    "name": "Vue Example",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-vue workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Vue example renders file nodes and import relationships",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-vue workspace",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see two buttons for switching views between node type and edge type toggles",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the available edge types are Imports, References, Calls, Type imports, Inherits, Contains",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 9 connections",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.ts points to src/App.vue",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/components/CounterPanel.vue",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/components/UserCard.vue",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/components/LazyProfilePanel.vue",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/data/users.ts",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/composables/useCounter.ts",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/LazyProfilePanel.vue points to src/data/users.ts",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/CounterPanel.vue points to src/components/StatusBadge.vue",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/CounterPanel.vue points to src/composables/useCounter.ts",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "package.json is an orphan node",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "tsconfig.json is an orphan node",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "vite.config.ts is an orphan node",
+          "line": 39,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Vue example exposes type, inheritance, and call relationships",
+      "line": 41,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I toggle the Type Imports edge on",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 4 connections",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Type Imports edge off",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Inherits edge on",
+          "line": 47,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 1 connection",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/types.ts points to src/inheritance.ts",
+          "line": 49,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge off",
+          "line": 51,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 52,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 2 connections",
+          "line": 53,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/composables/useCounter.ts",
+          "line": 54,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/CounterPanel.vue points to src/composables/useCounter.ts",
+          "line": 55,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

@@ -1,0 +1,641 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-scope-node-types-cpp.feature",
+  "feature": {
+    "name": "Graph Scope Node Types - C++",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-cpp workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Symbol node type controls class and global children",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File, Class and Global node types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 0 connections",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Task from src/task.hpp",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Symbol node off",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Symbol node on",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 0 connections",
+          "line": 19,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Namespace node type shows C++ namespaces",
+      "line": 21,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Namespace node types",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Namespace node taskrunner from src/task.hpp",
+          "line": 26,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Class node type shows C++ classes",
+      "line": 28,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Class node types",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 17 nodes and 0 connections",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Task from src/task.hpp",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node Worker from src/worker.hpp",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node ConsoleWorker from src/worker.hpp",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Class node TaskRunner from src/runner.hpp",
+          "line": 36,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Enum node type shows C++ enums",
+      "line": 38,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Enum node types",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Enum node Priority from src/task.hpp",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Enum node TaskStatus from src/task.hpp",
+          "line": 44,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Callable node type shows C++ free functions",
+      "line": 46,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Callable node types",
+          "line": 49,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 17 nodes and 0 connections",
+          "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node main from src/app.cpp",
+          "line": 51,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node make_task from src/seed.cpp",
+          "line": 52,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node seed_tasks from src/seed.cpp",
+          "line": 53,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Callable node priority_name from src/task.cpp",
+          "line": 54,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Method node type shows C++ methods",
+      "line": 56,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 58,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Method node types",
+          "line": 59,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 30 nodes and 0 connections",
+          "line": 60,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node TaskRunner::run from src/runner.cpp",
+          "line": 61,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node ConsoleWorker::execute from src/worker.cpp",
+          "line": 62,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Method node Task::mark_completed from src/task.cpp",
+          "line": 63,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Alias node type shows C++ using aliases",
+      "line": 65,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 67,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Alias node types",
+          "line": 68,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 69,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Alias node TaskId from src/task.hpp",
+          "line": 70,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Alias node TaskList from src/seed.hpp",
+          "line": 71,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Alias node PendingTaskQueue from src/task_queue.hpp",
+          "line": 72,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Template node type shows C++ templates",
+      "line": 74,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 76,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Template node types",
+          "line": 77,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 78,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Template node TaskQueue from src/task_queue.hpp",
+          "line": 79,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Variable node type controls global and constant children",
+      "line": 81,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 83,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File, Global and Constant node types",
+          "line": 84,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 85,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 86,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kDefaultPriority from src/seed.cpp",
+          "line": 87,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Variable node off",
+          "line": 88,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 89,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Variable node on",
+          "line": 90,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 91,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Global node type shows C++ global variables",
+      "line": 93,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 95,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Global node types",
+          "line": 96,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 14 nodes and 0 connections",
+          "line": 97,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Global node next_task_id from src/seed.cpp",
+          "line": 98,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Constant node type shows C++ constants",
+      "line": 100,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 102,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Constant node types",
+          "line": 103,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 104,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kInitialStatus from src/task.cpp",
+          "line": 105,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Constant node kDefaultPriority from src/seed.cpp",
+          "line": 106,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Field node type shows C++ fields",
+      "line": 108,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 110,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Field node types",
+          "line": 111,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 20 nodes and 0 connections",
+          "line": 112,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node queue_ from src/runner.hpp",
+          "line": 113,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node worker_ from src/runner.hpp",
+          "line": 114,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node items_ from src/task_queue.hpp",
+          "line": 115,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Field node status_ from src/task.hpp",
+          "line": 116,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Parameter node type shows C++ parameters",
+      "line": 118,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 120,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Parameter node types",
+          "line": 121,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 24 nodes and 0 connections",
+          "line": 122,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node task from src/runner.cpp",
+          "line": 123,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node worker from src/runner.cpp",
+          "line": 124,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Parameter node priority from src/seed.cpp",
+          "line": 125,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Local node type shows C++ local variables",
+      "line": 127,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show no edge types",
+          "line": 129,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show only the File and Local node types",
+          "line": 130,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 24 nodes and 0 connections",
+          "line": 131,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node completed from src/runner.cpp",
+          "line": 132,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node tasks from src/seed.cpp",
+          "line": 133,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph includes the Local node id from src/seed.cpp",
+          "line": 134,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

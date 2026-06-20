@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/dragging.feature",
+  "feature": {
+    "name": "Dragging",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Dragging a node moves it and keeps its dropped position",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see edges",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-typescript workspace",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I click and drag the src/index.ts node",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the src/index.ts node moves",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I stop dragging the src/index.ts node",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the src/index.ts node stays where I drop it",
+          "line": 16,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}
