@@ -38,6 +38,7 @@ Scenario: Svelte example exposes type, inheritance, and call relationships
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the Svelte plugin on
+And I show no edge types
 When I toggle the Type Imports edge on
 Then I can see there are 13 nodes and 3 connections
 And src/App.svelte points to src/types.ts

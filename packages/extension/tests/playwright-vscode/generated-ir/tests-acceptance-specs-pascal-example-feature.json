@@ -162,134 +162,140 @@
       "steps": [
         {
           "keyword": "When",
-          "text": "I toggle the Class node on",
+          "text": "I show no edge types",
           "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Class node on",
+          "line": 38,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 14 nodes and 0 connections",
-          "line": 38,
+          "line": 39,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Contains edge on",
-          "line": 39,
+          "line": 40,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 14 nodes and 5 connections",
-          "line": 40,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class",
           "line": 41,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class",
+          "text": "src/SampleApp.pas points to src/SampleApp.pas#TAppRunner:class",
           "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/RunnerSupport.pas points to src/RunnerSupport.pas#TBaseRunner:class",
+          "line": 43,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Contains edge off",
-          "line": 44,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "I toggle the Class node off",
           "line": 45,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "I toggle the Inherits edge on",
+          "text": "I toggle the Class node off",
           "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Inherits edge on",
+          "line": 47,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 9 nodes and 1 connection",
-          "line": 47,
+          "line": 48,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/SampleApp.pas points to src/RunnerSupport.pas",
-          "line": 48,
+          "line": 49,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Overrides edge on",
-          "line": 50,
+          "line": 51,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 9 nodes and 2 connections",
-          "line": 51,
+          "line": 52,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/SampleApp.pas has 2 edges pointing to src/RunnerSupport.pas",
-          "line": 52,
+          "line": 53,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Inherits edge off",
-          "line": 54,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "I toggle the Overrides edge off",
           "line": 55,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "I toggle the Calls edge on",
+          "text": "I toggle the Overrides edge off",
           "line": 56,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 57,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 9 nodes and 4 connections",
-          "line": 57,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/Main.pas points to src/SampleApp.pas",
           "line": 58,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/SampleApp.pas points to src/OrderRepository.pas",
+          "text": "src/Main.pas points to src/SampleApp.pas",
           "line": 59,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/SampleApp.pas points to src/PricingService.pas",
+          "text": "src/SampleApp.pas points to src/OrderRepository.pas",
           "line": 60,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/SampleApp.pas points to src/ReceiptView.pas",
+          "text": "src/SampleApp.pas points to src/PricingService.pas",
           "line": 61,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/SampleApp.pas points to src/ReceiptView.pas",
+          "line": 62,
           "parameters": []
         }
       ],

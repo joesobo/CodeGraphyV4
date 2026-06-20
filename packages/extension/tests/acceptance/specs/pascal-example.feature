@@ -34,7 +34,8 @@ And README.md is an orphan node
 
 Scenario: Pascal example exposes type and semantic edge relationships
 
-When I toggle the Class node on
+When I show no edge types
+And I toggle the Class node on
 Then I can see there are 14 nodes and 0 connections
 When I toggle the Contains edge on
 Then I can see there are 14 nodes and 5 connections

@@ -41,7 +41,8 @@ And .vscode/settings.json is an orphan node
 
 Scenario: Python example exposes inheritance and call relationships
 
-When I toggle the Inherits edge on
+When I show no edge types
+And I toggle the Inherits edge on
 Then I can see there are 16 nodes and 1 connection
 And src/services/api.py points to src/services/base.py
 

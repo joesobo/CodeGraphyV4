@@ -37,7 +37,8 @@ And project/build.properties is an orphan node
 
 Scenario: Scala example exposes inheritance and call relationships
 
-When I toggle the Inherits edge on
+When I show no edge types
+And I toggle the Inherits edge on
 Then I can see there are 11 nodes and 1 connection
 And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala
 

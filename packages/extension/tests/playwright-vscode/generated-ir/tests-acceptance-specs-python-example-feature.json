@@ -204,74 +204,80 @@
       "steps": [
         {
           "keyword": "When",
-          "text": "I toggle the Inherits edge on",
+          "text": "I show no edge types",
           "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Inherits edge on",
+          "line": 45,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 16 nodes and 1 connection",
-          "line": 45,
+          "line": 46,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/services/api.py points to src/services/base.py",
-          "line": 46,
+          "line": 47,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Inherits edge off",
-          "line": 48,
+          "line": 49,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I toggle the Calls edge on",
-          "line": 49,
+          "line": 50,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 16 nodes and 6 connections",
-          "line": 50,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/main.py points to src/config.py",
           "line": 51,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/main.py points to src/services/api.py",
+          "text": "src/main.py points to src/config.py",
           "line": 52,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/main.py points to src/utils/helpers.py",
+          "text": "src/main.py points to src/services/api.py",
           "line": 53,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/services/api.py points to src/utils/helpers.py",
+          "text": "src/main.py points to src/utils/helpers.py",
           "line": 54,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/utils/helpers.py points to src/utils/format.py",
+          "text": "src/services/api.py points to src/utils/helpers.py",
           "line": 55,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/namespace_consumer.py points to src/ns_pkg/member.py",
+          "text": "src/utils/helpers.py points to src/utils/format.py",
           "line": 56,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/namespace_consumer.py points to src/ns_pkg/member.py",
+          "line": 57,
           "parameters": []
         }
       ],

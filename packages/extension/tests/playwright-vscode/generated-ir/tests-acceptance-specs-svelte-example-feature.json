@@ -179,105 +179,111 @@
           "parameters": []
         },
         {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 41,
+          "parameters": []
+        },
+        {
           "keyword": "When",
           "text": "I toggle the Type Imports edge on",
-          "line": 41,
+          "line": 42,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 13 nodes and 3 connections",
-          "line": 42,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src/App.svelte points to src/types.ts",
           "line": 43,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/components/UserCard.svelte points to src/types.ts",
+          "text": "src/App.svelte points to src/types.ts",
           "line": 44,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/types.ts points to src/inheritance.ts",
+          "text": "src/components/UserCard.svelte points to src/types.ts",
           "line": 45,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "README.md is an orphan node",
-          "line": 47,
+          "text": "src/types.ts points to src/inheritance.ts",
+          "line": 46,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "index.html is an orphan node",
+          "text": "README.md is an orphan node",
           "line": 48,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "package.json is an orphan node",
+          "text": "index.html is an orphan node",
           "line": 49,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "tsconfig.json is an orphan node",
+          "text": "package.json is an orphan node",
           "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "tsconfig.json is an orphan node",
+          "line": 51,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Type Imports edge off",
-          "line": 52,
+          "line": 53,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I toggle the Inherits edge on",
-          "line": 53,
+          "line": 54,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 13 nodes and 1 connection",
-          "line": 54,
+          "line": 55,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/types.ts points to src/inheritance.ts",
-          "line": 55,
+          "line": 56,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Inherits edge off",
-          "line": 57,
+          "line": 58,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I toggle the Calls edge on",
-          "line": 58,
+          "line": 59,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "I can see there are 13 nodes and 1 connection",
-          "line": 59,
+          "line": 60,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/App.svelte points to src/loadFeature.ts",
-          "line": 60,
+          "line": 61,
           "parameters": []
         }
       ],

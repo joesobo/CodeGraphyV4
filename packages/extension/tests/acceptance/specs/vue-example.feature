@@ -40,7 +40,8 @@ And vite.config.ts is an orphan node
 
 Scenario: Vue example exposes type, inheritance, and call relationships
 
-When I toggle the Type Imports edge on
+When I show no edge types
+And I toggle the Type Imports edge on
 Then I can see there are 16 nodes and 4 connections
 
 When I toggle the Type Imports edge off
