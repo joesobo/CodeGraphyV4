@@ -71,14 +71,37 @@ describe('VS Code Playwright config', () => {
   it('keeps Turbo cache namespaces unique for each CI Playwright slice', () => {
     const matrix = readPlaywrightMatrixSlices();
     const artifactSuffixes = matrix.map((slice) => slice.artifactSuffix);
+    const workflow = readCiWorkflow();
 
     expect(new Set(artifactSuffixes).size).toBe(matrix.length);
-    expect(readCiWorkflow()).toContain(
-      'key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ github.sha }}',
+    expect(workflow).toContain(
+      'key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}',
     );
-    expect(readCiWorkflow()).toContain(
+    expect(workflow).toContain(
       '${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-',
     );
+    expect(workflow).toContain(
+      '${{ runner.os }}-turbo-build-',
+    );
+    expect(workflow).not.toContain(
+      'turbo-playwright-${{ matrix.artifact-suffix }}-${{ github.sha }}',
+    );
+    expect(workflow).not.toContain(
+      '            ${{ runner.os }}-turbo-playwright-\n',
+    );
+  });
+
+  it('pins the CI VS Code host version into the Playwright Turbo hash', () => {
+    const workflow = readCiWorkflow();
+    const turboConfig = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '../../../turbo.json'), 'utf8'),
+    ) as { tasks: { 'test:playwright': { env: string[] } } };
+
+    expect(workflow).toContain('CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1');
+    expect(workflow).toContain(
+      'key: ${{ runner.os }}-vscode-test-host-${{ env.CODEGRAPHY_VSCODE_TEST_VERSION }}',
+    );
+    expect(turboConfig.tasks['test:playwright'].env).toContain('CODEGRAPHY_VSCODE_TEST_VERSION');
   });
 });
 

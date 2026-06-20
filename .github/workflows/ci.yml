@@ -356,6 +356,7 @@ jobs:
       CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
       CODEGRAPHY_VSCODE_PLAYWRIGHT_GREP: ${{ matrix.grep }}
       CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS: ${{ matrix.workers }}
+      CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1
 
     steps:
       - name: Checkout
@@ -377,36 +378,35 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Compute Playwright Turbo cache key
+        id: playwright-turbo-key
+        run: |
+          node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-dry-run.json
+          node scripts/playwright-turbo-cache.mjs key turbo-playwright-dry-run.json
+
       - name: Restore Turbo cache
         uses: actions/cache@v5
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}
           restore-keys: |
             ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-
-            ${{ runner.os }}-turbo-playwright-
-            ${{ runner.os }}-turbo-
+            ${{ runner.os }}-turbo-build-
 
       - name: Check Playwright Turbo cache
         id: playwright-turbo-cache
         run: |
           node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-dry-run.json
-          node <<'NODE' >> "$GITHUB_OUTPUT"
-          const fs = require('node:fs');
-          const dryRun = JSON.parse(fs.readFileSync('turbo-playwright-dry-run.json', 'utf8'));
-          const tasks = dryRun.tasks.filter((entry) => entry.task === 'test:playwright');
-          const isHit = tasks.length > 0 && tasks.every((entry) => entry.cache?.status === 'HIT');
-          console.log(`hit=${isHit ? 'true' : 'false'}`);
-          NODE
+          node scripts/playwright-turbo-cache.mjs hit turbo-playwright-dry-run.json
 
       - name: Restore VS Code test host cache
         if: steps.playwright-turbo-cache.outputs.hit != 'true'
         uses: actions/cache@v5
         with:
           path: packages/extension/.vscode-test
-          key: ${{ runner.os }}-vscode-test-host-stable-${{ github.sha }}
+          key: ${{ runner.os }}-vscode-test-host-${{ env.CODEGRAPHY_VSCODE_TEST_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-vscode-test-host-stable-
+            ${{ runner.os }}-vscode-test-host-
 
       - name: Install VS Code test host
         if: steps.playwright-turbo-cache.outputs.hit != 'true'
@@ -416,7 +416,7 @@ jobs:
           import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 
           await downloadAndUnzipVSCode({
-            version: 'stable',
+            version: process.env.CODEGRAPHY_VSCODE_TEST_VERSION,
             cachePath: '.vscode-test',
           });
           NODE
