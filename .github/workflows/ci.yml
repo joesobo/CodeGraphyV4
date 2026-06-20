@@ -235,7 +235,7 @@ jobs:
           - label: Language examples - C family and Dart
             suite: examples
             timeout-minutes: 15
-            grep: '(^|[^-])C Example|C# Example|Dart Example'
+            grep: 'C\+\+ Example|(^|[^-])C Example|C# Example|Dart Example'
             artifact-suffix: examples-c-family-dart
             workers: 1
           - label: Language examples - Go, Godot, and Haskell
@@ -307,7 +307,7 @@ jobs:
           - label: Graph interactions - canvas basics and favorites
             suite: interactions
             timeout-minutes: 20
-            grep: 'Background Context Menu|C Example|C\+\+ Example|Dragging|Edge Context Menu|Favorite'
+            grep: 'Background Context Menu|Dragging|Edge Context Menu|Favorite'
             artifact-suffix: interactions-canvas-basics-favorites
             workers: 1
           - label: Graph interactions - files, folders, and rendering
@@ -325,19 +325,19 @@ jobs:
           - label: Graph scope - core node types
             suite: interactions
             timeout-minutes: 20
-            grep: 'Graph Scope Node Types.*(File|Folder|Package|Symbol|Namespace|Function|Prototype|Class)'
+            grep: 'Graph Scope Node Types.*\b(File|Folder|Package|Symbol|Namespace|Function|Prototype|Class)\b node type|Graph Scope Node Types - TypeScript TypeScript plugin node types show symbols'
             artifact-suffix: scope-core-node-types
             workers: 1
           - label: Graph scope - contract node types
             suite: interactions
             timeout-minutes: 20
-            grep: 'Graph Scope Node Types.*(Interface|Type|Struct|Union|Enum|Typedef|Callable|Method|Alias)'
+            grep: 'Graph Scope Node Types.*\b(Interface|Type|Struct|Union|Enum|Typedef|Callable|Method|Alias)\b node type|Graph Scope Node Types - C# C# graph scope exposes supported node types'
             artifact-suffix: scope-contract-node-types
             workers: 1
           - label: Graph scope - value nodes and view modes
             suite: interactions
             timeout-minutes: 20
-            grep: 'Graph Scope Node Types.*(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name)|Graph Theme'
+            grep: 'Graph Scope Node Types.*\b(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name)\b node type|Graph Theme'
             artifact-suffix: scope-value-nodes-view-modes
             workers: 1
           - label: Graph interactions - hover and selection
