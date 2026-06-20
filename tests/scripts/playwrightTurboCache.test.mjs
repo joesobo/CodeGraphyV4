@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  arePlaywrightTasksCached,
   computePlaywrightTurboCacheHash,
 } from '../../scripts/playwright-turbo-cache.mjs';
 
@@ -40,5 +41,55 @@ test('combines multiple Playwright task hashes into a stable cache hash', () => 
   assert.equal(
     computePlaywrightTurboCacheHash(dryRun),
     computePlaywrightTurboCacheHash({ tasks: [...dryRun.tasks].reverse() }),
+  );
+});
+
+test('reports Playwright tasks as cached only when every task can replay', () => {
+  assert.equal(
+    arePlaywrightTasksCached({
+      tasks: [
+        {
+          task: 'test:playwright',
+          taskId: '@codegraphy-dev/first#test:playwright',
+          cache: {
+            local: true,
+            status: 'HIT',
+          },
+        },
+        {
+          task: 'test:playwright',
+          taskId: '@codegraphy-dev/second#test:playwright',
+          cache: {
+            remote: true,
+            status: 'HIT',
+          },
+        },
+      ],
+    }),
+    true,
+  );
+
+  assert.equal(
+    arePlaywrightTasksCached({
+      tasks: [
+        {
+          task: 'test:playwright',
+          taskId: '@codegraphy-dev/first#test:playwright',
+          cache: {
+            local: true,
+            status: 'HIT',
+          },
+        },
+        {
+          task: 'test:playwright',
+          taskId: '@codegraphy-dev/second#test:playwright',
+          cache: {
+            local: false,
+            status: 'MISS',
+          },
+        },
+      ],
+    }),
+    false,
   );
 });

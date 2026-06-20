@@ -389,13 +389,20 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}
+          key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}-
             ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-
             ${{ runner.os }}-turbo-build-
 
+      - name: Check Playwright Turbo cache
+        id: playwright-turbo-status
+        run: |
+          node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-restored-dry-run.json
+          node scripts/playwright-turbo-cache.mjs status turbo-playwright-restored-dry-run.json
+
       - name: Restore VS Code test host cache
-        if: steps.playwright-turbo-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-turbo-status.outputs.cached != 'true'
         uses: actions/cache@v5
         with:
           path: packages/extension/.vscode-test
@@ -404,7 +411,7 @@ jobs:
             ${{ runner.os }}-vscode-test-host-
 
       - name: Install VS Code test host
-        if: steps.playwright-turbo-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-turbo-status.outputs.cached != 'true'
         working-directory: packages/extension
         run: |
           node --input-type=module <<'NODE'

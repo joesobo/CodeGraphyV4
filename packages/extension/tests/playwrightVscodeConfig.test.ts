@@ -75,9 +75,13 @@ describe('VS Code Playwright config', () => {
 
     expect(new Set(artifactSuffixes).size).toBe(matrix.length);
     expect(workflow).toContain(
-      'key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}',
+      'key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}-${{ github.run_id }}-${{ github.run_attempt }}',
     );
     expect(workflow).toContain('id: playwright-turbo-cache');
+    expect(workflow).toContain('id: playwright-turbo-status');
+    expect(workflow).toContain(
+      '${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}-',
+    );
     expect(workflow).toContain(
       '${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-',
     );
@@ -90,22 +94,27 @@ describe('VS Code Playwright config', () => {
     expect(workflow).not.toContain(
       '            ${{ runner.os }}-turbo-playwright-\n',
     );
-    expect(workflow).not.toContain('Check Playwright Turbo cache');
   });
 
   it('pins the CI VS Code host version into the Playwright Turbo hash', () => {
     const workflow = readCiWorkflow();
     const turboConfig = JSON.parse(
       fs.readFileSync(path.resolve(__dirname, '../../../turbo.json'), 'utf8'),
-    ) as { tasks: { 'test:playwright': { env: string[] } } };
+    ) as {
+      globalDependencies: string[];
+      tasks: { 'test:playwright': { env: string[] } };
+    };
 
     expect(workflow).toContain('CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1');
     expect(workflow).toContain(
       'key: ${{ runner.os }}-vscode-test-host-${{ env.CODEGRAPHY_VSCODE_TEST_VERSION }}',
     );
     expect(workflow).toContain(
-      "if: steps.playwright-turbo-cache.outputs.cache-hit != 'true'",
+      "if: steps.playwright-turbo-status.outputs.cached != 'true'",
     );
+    expect(turboConfig.globalDependencies).toContain('packages/*/src/**/tsconfig*.json');
+    expect(turboConfig.globalDependencies).toContain('packages/*/tests/**/tsconfig*.json');
+    expect(turboConfig.globalDependencies).not.toContain('packages/**/tsconfig*.json');
     expect(turboConfig.tasks['test:playwright'].env).toContain('CODEGRAPHY_VSCODE_TEST_VERSION');
   });
 });

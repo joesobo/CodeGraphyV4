@@ -37,6 +37,19 @@ export function computePlaywrightTurboCacheHash(dryRun) {
     .slice(0, 32);
 }
 
+export function arePlaywrightTasksCached(dryRun) {
+  const tasks = findPlaywrightTasks(dryRun);
+
+  if (tasks.length === 0) {
+    throw new Error('No test:playwright task found in Turbo dry run output.');
+  }
+
+  return tasks.every((task) => {
+    const cache = task.cache ?? {};
+    return cache.local === true || cache.remote === true || cache.status === 'HIT';
+  });
+}
+
 function writeGithubOutput(values) {
   const output = Object.entries(values)
     .map(([key, value]) => `${key}=${value}`)
@@ -59,7 +72,12 @@ function main() {
     return;
   }
 
-  console.error('Usage: node scripts/playwright-turbo-cache.mjs key [dry-run-json]');
+  if (command === 'status') {
+    writeGithubOutput({ cached: String(arePlaywrightTasksCached(dryRun)) });
+    return;
+  }
+
+  console.error('Usage: node scripts/playwright-turbo-cache.mjs <key|status> [dry-run-json]');
   process.exit(1);
 }
 
