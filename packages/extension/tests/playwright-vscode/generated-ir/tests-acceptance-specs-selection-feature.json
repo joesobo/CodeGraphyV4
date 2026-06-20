@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/selection.feature",
+  "feature": {
+    "name": "Selection",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Clicking and double-clicking a node select it and open its file in VS Code",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I click the src/index.ts node to select it",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the src/index.ts node is visibly outlined in white",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the src/index.ts file opens in VS Code as a preview editor tab",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I click the graph background to unselect the src/index.ts node",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the src/index.ts node is no longer outlined",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I double click the src/index.ts node",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the src/index.ts node is visibly outlined in white",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the src/index.ts file opens in VS Code as a pinned editor tab",
+          "line": 18,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/javascript-example.feature",
+  "feature": {
+    "name": "JavaScript Example",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "JavaScript example renders expected file relationships",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-javascript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-javascript workspace",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Inherits",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 7 connections",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.js points to src/user.js",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.js points to src/utils.js",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/runner.js points to src/baseRunner.js",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/runner.js points to src/runnableThing.js",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils.js points to src/depth.js",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/depth.js points to src/leaf.js",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/orphan.js is an orphan node",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "package.json is an orphan node",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "jsconfig.json is an orphan node",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge off",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Inherits edge on",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 1 connection",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/runner.js points to src/baseRunner.js",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge off",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 39,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 5 connections",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.js points to src/user.js",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.js points to src/utils.js",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils.js points to src/user.js",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils.js points to src/depth.js",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/depth.js points to src/leaf.js",
+          "line": 45,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

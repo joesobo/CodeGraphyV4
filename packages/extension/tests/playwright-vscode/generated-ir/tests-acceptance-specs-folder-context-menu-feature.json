@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/folder-context-menu.feature",
+  "feature": {
+    "name": "Folder Context Menu",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Folder node context menus expose their primary actions",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have not yet indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I open the Graph Scope",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the Edge Types button is disabled",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I have indexed the workspace",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I do not see edges",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 18 nodes and 0 connections displayed",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-typescript workspace",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the Edge Types button is no longer disabled",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 18 nodes and 11 connections displayed",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Folder node on",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the Nests edge is toggled on",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 21 nodes and 31 connections displayed",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I right click one of the folder nodes to open its Graph Context Menu",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"New File\" entry",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"New Folder\" entry",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Reveal in explorer\" entry",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Copy Relative Path\" entry",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Copy Absolute Path\" entry",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Add to Favorites\" entry",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Focus Node\" entry",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Add Filter Pattern\" entry",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Add Legend Group\" entry",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Rename Folder\" entry",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see the \"Delete Folder\" entry",
+          "line": 37,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

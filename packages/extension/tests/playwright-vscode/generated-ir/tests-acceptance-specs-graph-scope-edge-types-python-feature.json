@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-scope-edge-types-python.feature",
+  "feature": {
+    "name": "Graph Scope Edge Types - Python",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Calls edge type shows Python call relationships",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-python workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the File node type",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Calls edge on",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"6 connections\"",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/config.py",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/services/api.py",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/utils/helpers.py",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/services/api.py points to src/utils/helpers.py",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils/helpers.py points to src/utils/format.py",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/namespace_consumer.py points to src/ns_pkg/member.py",
+          "line": 19,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

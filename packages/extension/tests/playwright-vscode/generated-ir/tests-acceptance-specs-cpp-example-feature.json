@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/cpp-example.feature",
+  "feature": {
+    "name": "C++ Example",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "C++ example renders file nodes and include relationships",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-cpp workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 13 nodes and 0 connections",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-cpp workspace",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are only Include, Calls, Inherits, Contains, Overrides",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select node types",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the available C++ node types are only Namespace, Class, Enum, Callable, Method, Alias, Template, Global, Constant, Field, Parameter, Local",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the Type node type is not available for the C++ example",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Include edge on",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 13 nodes and 12 connections",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/app.cpp points to src/runner.hpp",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/app.cpp points to src/seed.hpp",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/app.cpp points to src/worker.hpp",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/runner.cpp points to src/runner.hpp",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/runner.hpp points to src/task_queue.hpp",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/runner.hpp points to src/worker.hpp",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/seed.cpp points to src/seed.hpp",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/seed.hpp points to src/task.hpp",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/task.cpp points to src/task.hpp",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/task_queue.hpp points to src/task.hpp",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/worker.cpp points to src/worker.hpp",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/worker.hpp points to src/task.hpp",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "CMakeLists.txt is an orphan node",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
+          "line": 38,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

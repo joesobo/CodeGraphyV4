@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/scala-example.feature",
+  "feature": {
+    "name": "Scala Example",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-scala workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Scala example renders file nodes and import relationships",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 11 nodes and 0 connections",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-scala workspace",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Inherits",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 11 nodes and 10 connections",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "build.sbt is an orphan node",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "project/build.properties is an orphan node",
+          "line": 36,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Scala example exposes inheritance and call relationships",
+      "line": 38,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge on",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 11 nodes and 1 connection",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge off",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 45,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 11 nodes and 8 connections",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala",
+          "line": 47,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/app/AppRunner.scala",
+          "line": 49,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala",
+          "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala",
+          "line": 51,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala",
+          "line": 52,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala",
+          "line": 53,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala",
+          "line": 54,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

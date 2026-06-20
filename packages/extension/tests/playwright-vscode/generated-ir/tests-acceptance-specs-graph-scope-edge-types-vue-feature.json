@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-scope-edge-types-vue.feature",
+  "feature": {
+    "name": "Graph Scope Edge Types - Vue",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-vue workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Imports edge type shows Vue import relationships",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show only the File node type",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"9 connections\"",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.ts points to src/App.vue",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/components/CounterPanel.vue",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/components/UserCard.vue",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/components/LazyProfilePanel.vue",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/data/users.ts",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/App.vue points to src/composables/useCounter.ts",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/LazyProfilePanel.vue points to src/data/users.ts",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/CounterPanel.vue points to src/components/StatusBadge.vue",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/CounterPanel.vue points to src/composables/useCounter.ts",
+          "line": 24,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Type imports edge type shows Vue type-only dependencies",
+      "line": 26,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show only the File node type",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Type imports edge on",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"4 connections\"",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/data/users.ts points to src/types.ts",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/UserCard.vue points to src/types.ts",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/components/CounterPanel.vue points to src/types.ts",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/types.ts points to src/inheritance.ts",
+          "line": 36,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

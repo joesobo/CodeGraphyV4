@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/python-example.feature",
+  "feature": {
+    "name": "Python Example",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-python workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Python example renders file nodes and import relationships",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 16 nodes and 0 connections",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-python workspace",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 17,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Inherits",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 12 connections",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/utils/helpers.py",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/config.py",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/services/api.py",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils/__init__.py points to src/utils/helpers.py",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils/__init__.py points to src/utils/format.py",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils/helpers.py points to src/utils/format.py",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/services/api.py points to src/utils/helpers.py",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/services/api.py points to src/services/base.py",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/member_imports.py points to src/services/api.py",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/member_imports.py points to src/utils/helpers.py",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/services/__init__.py points to src/services/api.py",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/namespace_consumer.py points to src/ns_pkg/member.py",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/orphan.py is an orphan node",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "pyproject.toml is an orphan node",
+          "line": 39,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".vscode/settings.json is an orphan node",
+          "line": 40,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Python example exposes inheritance and call relationships",
+      "line": 42,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge on",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 1 connection",
+          "line": 45,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/services/api.py points to src/services/base.py",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge off",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 49,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 16 nodes and 6 connections",
+          "line": 50,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/config.py",
+          "line": 51,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/services/api.py",
+          "line": 52,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/main.py points to src/utils/helpers.py",
+          "line": 53,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/services/api.py points to src/utils/helpers.py",
+          "line": 54,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/utils/helpers.py points to src/utils/format.py",
+          "line": 55,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/namespace_consumer.py points to src/ns_pkg/member.py",
+          "line": 56,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

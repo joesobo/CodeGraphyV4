@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-scope-edge-types-typescript.feature",
+  "feature": {
+    "name": "Graph Scope Edge Types - TypeScript",
+    "line": 1
+  },
+  "background": {
+    "line": 3,
+    "steps": [
+      {
+        "keyword": "Given",
+        "text": "I open the examples/example-typescript workspace in VS Code",
+        "line": 5,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I open the CodeGraphy extension graph view",
+        "line": 6,
+        "parameters": []
+      },
+      {
+        "keyword": "And",
+        "text": "I have indexed the workspace",
+        "line": 7,
+        "parameters": []
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "TypeScript alias import edge type shows path alias imports",
+      "line": 9,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show only the File node type",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Typescript Alias Import edge on",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"1 connection\"",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/alias/themePack.ts",
+          "line": 16,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "TypeScript plugin exposes alias imports and semantic edges",
+      "line": 18,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I click the plugins button",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see a list of plugins with toggles",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the TypeScript/JavaScript plugin on",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Type imports, Inherits, Contains, TypeScript Alias Import",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the TypeScript Alias Import edge type",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 1 connection",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see src/index.ts points to src/alias/themePack.ts",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/alias/themePack.ts is no longer an orphan node",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Inherits edge type",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 2 connections",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/paletteRunner.ts points to src/baseGenerator.ts",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/paletteRunner.ts points to src/paletteExporter.ts",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Calls edge type",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 6 connections",
+          "line": 39,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/themeLabels.ts",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/types.ts",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/palette.ts",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/palette.ts points to src/types.ts",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/palette.ts points to src/harmony.ts",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/harmony.ts points to src/swatches.ts",
+          "line": 45,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

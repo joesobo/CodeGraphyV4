@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/typescript-example.feature",
+  "feature": {
+    "name": "TypeScript Example",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "TypeScript example renders file and type-import relationships",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 18 nodes and 0 connections",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-typescript workspace",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Type imports, Inherits, Contains",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Imports edge type",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 11 connections",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/lazyPreview.ts",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/seedSettings.ts",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/registry.ts",
+          "line": 22,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/themeLabels.ts",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/types.ts",
+          "line": 24,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/palette.ts",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/seedSettings.ts points to src/types.ts",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/paletteRunner.ts points to src/baseGenerator.ts",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/harmony.ts points to src/swatches.ts",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/palette.ts points to src/harmony.ts",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/palette.ts points to src/types.ts",
+          "line": 30,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/scratchpad.ts is an orphan node",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/paletteExporter.ts is an orphan node",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "package.json is an orphan node",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": ".gitignore is an orphan node",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "tsconfig.json is an orphan node",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/alias/themePack.ts is an orphan node",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I show only the Type imports edge type",
+          "line": 40,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 18 nodes and 6 connections",
+          "line": 41,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/alias/themePack.ts points to src/types.ts",
+          "line": 42,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/index.ts points to src/types.ts",
+          "line": 43,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/lazyPreview.ts points to src/types.ts",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/registry.ts points to src/types.ts",
+          "line": 45,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/paletteRunner.ts points to src/paletteExporter.ts",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/themeLabels.ts points to src/types.ts",
+          "line": 47,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/graph-theme.feature",
+  "feature": {
+    "name": "Graph Theme",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Graph colors follow the active VS Code color theme",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-typescript workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I see edges",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I turn the VS Code setting \"Preferences: Color Theme\" to \"Light 2026\"",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see that the background of the graph is \"#FAFAFD\"",
+          "line": 12,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see that the arrowheads of the edges are \"#0069CC\"",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I turn the VS Code setting \"Preferences: Color Theme\" to \"Dark 2026\"",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see that the background of the graph is \"#1F2122\"",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see that the arrowheads of the edges are \"#297AA0\"",
+          "line": 17,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}

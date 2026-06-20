@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "source_path": "tests/acceptance/specs/objective-c-example.feature",
+  "feature": {
+    "name": "Objective-C Example",
+    "line": 1
+  },
+  "scenarios": [
+    {
+      "name": "Objective-C example renders expected file nodes and import relationships",
+      "line": 3,
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I open the examples/example-objective-c workspace in VS Code",
+          "line": 5,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the CodeGraphy extension graph view",
+          "line": 6,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I have indexed the workspace",
+          "line": 7,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I see graph nodes",
+          "line": 8,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 9,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I can see there are 15 nodes and 0 connections",
+          "line": 10,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the graph nodes match the expected files in the examples/example-objective-c workspace",
+          "line": 11,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I open the Graph Scope",
+          "line": 13,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I select edge types",
+          "line": 14,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the available edge types are Imports, References, Calls, Inherits",
+          "line": 15,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I close the Graph Scope",
+          "line": 16,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge on",
+          "line": 18,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 15 connections",
+          "line": 19,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/main.m points to Sources/AppDelegate.h",
+          "line": 20,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/AppDelegate.m points to Sources/AppDelegate.h",
+          "line": 21,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "README.md is an orphan node",
+          "line": 23,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Imports edge off",
+          "line": 25,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Inherits edge on",
+          "line": 26,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 2 connections",
+          "line": 27,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/Feature/UserCardView.h points to Sources/Feature/AppView.h",
+          "line": 28,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/Feature/UserCardView.h points to Sources/Feature/ProfileRenderable.h",
+          "line": 29,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge off",
+          "line": 31,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I toggle the Calls edge on",
+          "line": 32,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "I can see there are 15 nodes and 6 connections",
+          "line": 33,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/main.m points to Sources/AppDelegate.h",
+          "line": 34,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/AppDelegate.m points to Sources/Data/SessionStore.h",
+          "line": 35,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h",
+          "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h",
+          "line": 39,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    }
+  ]
+}
