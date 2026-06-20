@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -138,6 +139,8 @@ function readCiWorkflow(): string {
 }
 
 function readGeneratedAcceptanceTitles(): string[] {
+  ensureAcceptanceArtifactsGenerated();
+
   const generatedIrRoot = path.resolve(__dirname, 'playwright-vscode/generated-ir');
   return fs.readdirSync(generatedIrRoot)
     .filter((fileName) => fileName.endsWith('.json'))
@@ -164,6 +167,13 @@ function readGeneratedAcceptanceTitles(): string[] {
         });
       });
     });
+}
+
+function ensureAcceptanceArtifactsGenerated(): void {
+  execFileSync('pnpm', ['run', 'generate:acceptance'], {
+    cwd: path.resolve(__dirname, '..'),
+    stdio: 'pipe',
+  });
 }
 
 function isTitleIncludedInSlice(title: string, slice: PlaywrightMatrixSlice): boolean {
