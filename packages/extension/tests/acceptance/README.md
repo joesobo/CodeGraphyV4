@@ -77,6 +77,11 @@ tests/acceptance/
 Keep `steps.ts` as a small registry that combines feature step modules. Move
 real work into feature folders before a file becomes a mutation-site magnet.
 
+`cucumber/steps.ts` is an editor-only generated shim for Cucumber autocomplete.
+Do not edit it by hand. The executable registry remains the source of truth, and
+the generated shim is checked by a unit test so editor declarations cannot drift
+from real step bindings.
+
 ## Writing Good Specs
 
 Good acceptance specs describe observable product behavior in CodeGraphy's
@@ -110,6 +115,13 @@ Regenerate the acceptance pipeline artifacts:
 
 ```bash
 pnpm --filter @codegraphy-dev/extension run generate:acceptance
+```
+
+Regenerate the editor-only Cucumber step declarations after adding or renaming a
+step binding:
+
+```bash
+pnpm --filter @codegraphy-dev/extension run generate:cucumber-steps
 ```
 
 Run the full VS Code acceptance E2E path:

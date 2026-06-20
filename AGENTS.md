@@ -161,7 +161,7 @@ A reader should be able to guess what a file does from its path alone, before op
 
 Files under `packages/extension/tests/acceptance/specs/**/*.feature` are the
 human-written acceptance contract. Agents may update step bindings, fixtures,
-generated Playwright files, and tooling, but must not create, edit, rename, or
+generated artifacts, and tooling, but must not create, edit, rename, or
 delete acceptance spec Gherkin unless the user explicitly asks for that exact
 spec change. See `docs/agents/acceptance-specs.md`.
 

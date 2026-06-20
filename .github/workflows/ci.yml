@@ -328,11 +328,11 @@ jobs:
             grep: 'Graph Scope Node Types.*\b(File|Folder|Package|Symbol|Namespace|Function|Prototype|Class)\b node type|Graph Scope Node Types - TypeScript TypeScript plugin node types show symbols'
             artifact-suffix: scope-core-node-types
             workers: 1
-          - label: Graph scope - contract node types
+          - label: Graph scope - contract and member node types
             suite: interactions
             timeout-minutes: 20
-            grep: 'Graph Scope Node Types.*\b(Interface|Type|Struct|Union|Enum|Typedef|Callable|Method|Alias)\b node type|Graph Scope Node Types - C# C# graph scope exposes supported node types'
-            artifact-suffix: scope-contract-node-types
+            grep: 'Graph Scope Node Types.*\b(Interface|Type|Struct|Union|Enum|Typedef|Callable|Method|Alias|Record|Delegate|Constructor|Property|Event)\b node type'
+            artifact-suffix: scope-contract-member-node-types
             workers: 1
           - label: Graph scope - value nodes and view modes
             suite: interactions

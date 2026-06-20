@@ -170,6 +170,8 @@ interface PatternAcceptanceStep {
   run: (context: GraphAcceptanceContext, step: AcceptanceRuntimeStep, match: RegExpMatchArray) => Promise<void>;
 }
 
+export type AcceptanceStepExpression = string | RegExp;
+
 async function expectGraphCounts(
   context: Parameters<AcceptanceStepImplementation>[0],
   nodes: number,
@@ -1003,6 +1005,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
       throw nextError;
     }
   }),
+];
+
+export const graphViewAcceptanceStepExpressions: AcceptanceStepExpression[] = [
+  ...Object.keys(exactGraphViewAcceptanceSteps),
+  ...patternGraphViewAcceptanceSteps.map(({ pattern }) => pattern),
 ];
 
 export const graphViewAcceptanceSteps = createStepRegistry(
