@@ -6,13 +6,7 @@ bindings that turn those specs into VS Code Playwright E2E tests.
 ## Pipeline
 
 ```txt
-specs/*.feature
-  -> quality-tools acceptance compile
-  -> generated JSON IR
-  -> generated advisory DRY reports
-  -> generated thin Playwright entrypoints
-  -> generated shared Playwright runtime
-  -> VS Code Playwright
+specs/*.md -> quality-tools acceptance compile -> generated Playwright -> VS Code Playwright
 ```
 
 The generated Playwright files live under
@@ -20,21 +14,12 @@ The generated Playwright files live under
 artifacts checked in for review visibility, but they should not be edited by
 hand.
 
-The generated JSON IR lives under
-`packages/extension/tests/playwright-vscode/generated-ir/`. Advisory DRY
-reports are written under `packages/extension/reports/acceptance-dry/`, which is
-ignored by git. The generated Playwright entrypoints load JSON IR through a
-shared generated runtime, so the checked-in spec files stay thin while preserving
-source line metadata and Playwright `test.step` reporting. The DRY reports
-surface repeated step patterns and scenario shapes for review; they do not
-rewrite specs or change test behavior.
-
 ## Ownership
 
-- Humans own `specs/**/*.feature`.
+- Humans own `specs/**/*.md`.
 - Agents own step bindings, fixtures, helpers, generated Playwright files, and
   tooling.
-- Agents must not create, edit, rename, or delete spec Gherkin unless the user
+- Agents must not create, edit, rename, or delete spec Markdown unless the user
   explicitly asks for that exact spec change.
 
 The guardrail is documented in `docs/agents/acceptance-specs.md` and enforced by
@@ -48,7 +33,7 @@ workflows the human writes down.
 Each step phrase in a spec maps to a TypeScript binding in `steps.ts` or a
 feature-owned step module. For example:
 
-```gherkin
+```md
 When I open the CodeGraphy graph view
 Then I see file nodes before indexing
 ```
@@ -61,8 +46,8 @@ As the suite grows, organize specs and bindings by product feature:
 ```txt
 tests/acceptance/
   specs/
-    graph-view.feature
-    settings.feature
+    graph-view.md
+    settings.md
   graphView/
     steps.ts
     fixture.ts
@@ -100,14 +85,13 @@ Use these local language sources before inventing new terms:
 
 Helpful external references:
 
-- [Uncle Bob Acceptance Pipeline Specification](https://github.com/unclebob/Acceptance-Pipeline-Specification)
 - [Cucumber Gherkin Reference](https://cucumber.io/docs/gherkin/reference/)
 - [Keep your scenarios BRIEF](https://cucumber.io/blog/bdd/keep-your-scenarios-brief/)
 - [Uncle Bob empire-2025 acceptance examples](https://github.com/unclebob/empire-2025/tree/master/acceptanceTests)
 
 ## Commands
 
-Regenerate the acceptance pipeline artifacts:
+Regenerate the Playwright file:
 
 ```bash
 pnpm --filter @codegraphy-dev/extension run generate:acceptance
@@ -119,7 +103,7 @@ Run the full VS Code acceptance E2E path:
 pnpm --filter @codegraphy-dev/extension run test:playwright
 ```
 
-The full path compiles Gherkin, builds the extension, launches a VS Code
+The full path compiles Markdown, builds the extension, launches a VS Code
 Extension Development Host, opens the Graph View, and runs the generated
 Playwright test.
 

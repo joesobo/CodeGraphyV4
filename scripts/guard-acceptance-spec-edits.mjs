@@ -2,8 +2,8 @@
 
 import { execFileSync } from 'node:child_process';
 
-const SPEC_PATHSPEC = 'packages/extension/tests/acceptance/specs/**/*.feature';
-const SPEC_PATH_PATTERN = /^packages\/extension\/tests\/acceptance\/specs\/.+\.feature$/;
+const SPEC_PATHSPEC = 'packages/extension/tests/acceptance/specs/**/*.md';
+const SPEC_PATH_PATTERN = /^packages\/extension\/tests\/acceptance\/specs\/.+\.md$/;
 
 if (!isCodexSession() || process.env.ALLOW_ACCEPTANCE_SPEC_EDITS === '1') {
   process.exit(0);
@@ -19,7 +19,7 @@ if (changedSpecs.length === 0) {
 }
 
 console.error([
-  'Acceptance spec Gherkin is human-owned.',
+  'Acceptance spec Markdown is human-owned.',
   'Agents must not create, edit, rename, or delete files under:',
   `  ${SPEC_PATHSPEC}`,
   '',
