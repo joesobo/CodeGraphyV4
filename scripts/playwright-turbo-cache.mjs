@@ -37,11 +37,6 @@ export function computePlaywrightTurboCacheHash(dryRun) {
     .slice(0, 32);
 }
 
-export function isPlaywrightTurboCacheHit(dryRun) {
-  const tasks = findPlaywrightTasks(dryRun);
-  return tasks.length > 0 && tasks.every((entry) => entry.cache?.status === 'HIT');
-}
-
 function writeGithubOutput(values) {
   const output = Object.entries(values)
     .map(([key, value]) => `${key}=${value}`)
@@ -64,12 +59,7 @@ function main() {
     return;
   }
 
-  if (command === 'hit') {
-    writeGithubOutput({ hit: isPlaywrightTurboCacheHit(dryRun) ? 'true' : 'false' });
-    return;
-  }
-
-  console.error('Usage: node scripts/playwright-turbo-cache.mjs <key|hit> [dry-run-json]');
+  console.error('Usage: node scripts/playwright-turbo-cache.mjs key [dry-run-json]');
   process.exit(1);
 }
 

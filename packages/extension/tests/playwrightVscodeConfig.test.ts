@@ -77,6 +77,7 @@ describe('VS Code Playwright config', () => {
     expect(workflow).toContain(
       'key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}',
     );
+    expect(workflow).toContain('id: playwright-turbo-cache');
     expect(workflow).toContain(
       '${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-',
     );
@@ -89,6 +90,7 @@ describe('VS Code Playwright config', () => {
     expect(workflow).not.toContain(
       '            ${{ runner.os }}-turbo-playwright-\n',
     );
+    expect(workflow).not.toContain('Check Playwright Turbo cache');
   });
 
   it('pins the CI VS Code host version into the Playwright Turbo hash', () => {
@@ -100,6 +102,9 @@ describe('VS Code Playwright config', () => {
     expect(workflow).toContain('CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1');
     expect(workflow).toContain(
       'key: ${{ runner.os }}-vscode-test-host-${{ env.CODEGRAPHY_VSCODE_TEST_VERSION }}',
+    );
+    expect(workflow).toContain(
+      "if: steps.playwright-turbo-cache.outputs.cache-hit != 'true'",
     );
     expect(turboConfig.tasks['test:playwright'].env).toContain('CODEGRAPHY_VSCODE_TEST_VERSION');
   });
