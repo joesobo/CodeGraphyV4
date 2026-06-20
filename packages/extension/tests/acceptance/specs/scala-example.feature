@@ -3,14 +3,14 @@ Feature: Scala Example
 Background:
 
 Given I open the examples/example-scala workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: Scala example renders file nodes and import relationships
 
 Then I see graph nodes
 And I show no edge types
-Then I can see there are 11 nodes and 0 connections
+And I can see there are 11 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-scala workspace
 
 When I open the Graph Scope

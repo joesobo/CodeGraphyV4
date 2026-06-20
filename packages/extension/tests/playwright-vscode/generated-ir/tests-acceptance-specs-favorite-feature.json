@@ -47,7 +47,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "I see the src/index.ts node",
           "line": 12,
           "parameters": []
@@ -77,7 +77,7 @@
           "parameters": []
         },
         {
-          "keyword": "When",
+          "keyword": "And",
           "text": "I click the src/index.ts node to select it",
           "line": 19,
           "parameters": []
@@ -89,7 +89,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "I right click the src/index.ts node to open its Graph Context Menu",
           "line": 22,
           "parameters": []
@@ -107,7 +107,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "the src/index.ts node is no longer outlined",
           "line": 25,
           "parameters": []

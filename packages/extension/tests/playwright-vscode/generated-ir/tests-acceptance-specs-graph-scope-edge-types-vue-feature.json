@@ -15,7 +15,7 @@
         "parameters": []
       },
       {
-        "keyword": "When",
+        "keyword": "And",
         "text": "I open the CodeGraphy extension graph view",
         "line": 6,
         "parameters": []

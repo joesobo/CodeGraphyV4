@@ -337,7 +337,7 @@ jobs:
           - label: Graph scope - value nodes and view modes
             suite: interactions
             timeout-minutes: 20
-            grep: 'Graph Scope Node Types.*(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name)|Graph Theme|Graph View'
+            grep: 'Graph Scope Node Types.*(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name)|Graph Theme'
             artifact-suffix: scope-value-nodes-view-modes
             workers: 1
           - label: Graph interactions - hover and selection
@@ -349,7 +349,7 @@ jobs:
           - label: Graph interactions - startup and ignored files
             suite: interactions
             timeout-minutes: 20
-            grep: 'plugin data startup|gitignored node visuals'
+            grep: 'Graph View'
             artifact-suffix: interactions-startup-ignored-files
             workers: 1
     env:

@@ -3,7 +3,7 @@ Feature: Graph Scope Edge Types - Vue
 Background:
 
 Given I open the examples/example-vue workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: Imports edge type shows Vue import relationships

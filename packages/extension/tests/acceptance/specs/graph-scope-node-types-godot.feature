@@ -1,14 +1,12 @@
 Feature: Graph Scope Node Types - Godot
 
-Background:
+Scenario: Godot class_name node type shows plugin-owned classes
 
 Given I open the examples/example-godot workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I click the plugins button
 And I toggle the GDScript (Godot) plugin on
-
-Scenario: Godot class_name node type shows plugin-owned classes
 
 When I show no edge types
 And I show only the File and Godot class_name node types

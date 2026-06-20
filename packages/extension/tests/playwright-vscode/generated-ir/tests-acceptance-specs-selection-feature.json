@@ -29,7 +29,7 @@
           "parameters": []
         },
         {
-          "keyword": "When",
+          "keyword": "And",
           "text": "I click the src/index.ts node to select it",
           "line": 9,
           "parameters": []

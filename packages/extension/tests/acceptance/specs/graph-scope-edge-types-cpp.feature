@@ -3,7 +3,7 @@ Feature: Graph Scope Edge Types - C++
 Background:
 
 Given I open the examples/example-cpp workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: Include edge type shows C++ include relationships
@@ -25,6 +25,19 @@ And src/task.cpp points to src/task.hpp
 And src/task_queue.hpp points to src/task.hpp
 And src/worker.cpp points to src/worker.hpp
 And src/worker.hpp points to src/task.hpp
+
+Scenario: Calls edge type shows C++ call relationships
+
+When I show only the File, Callable and Method node types
+And I show no edge types
+Then the top right of the graph says "0 connections"
+When I toggle the Calls edge on
+Then the top right of the graph says "15 connections"
+And the visible graph shows main in src/app.cpp calling seed_tasks in src/seed.hpp
+And the visible graph shows main in src/app.cpp calling TaskRunner::enqueue in src/runner.hpp
+And the visible graph shows TaskRunner::run in src/runner.cpp calling Worker::execute in src/worker.hpp
+And the visible graph shows ConsoleWorker::execute in src/worker.cpp calling priority_name in src/task.hpp
+And the visible graph shows seed_tasks in src/seed.cpp calling make_task in src/seed.cpp
 
 Scenario: Inherits edge type shows C++ class inheritance
 

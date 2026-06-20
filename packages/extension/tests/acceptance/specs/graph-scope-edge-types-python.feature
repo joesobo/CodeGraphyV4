@@ -1,12 +1,10 @@
 Feature: Graph Scope Edge Types - Python
 
-Background:
+Scenario: Calls edge type shows Python call relationships
 
 Given I open the examples/example-python workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
-
-Scenario: Calls edge type shows Python call relationships
 
 When I show only the File node type
 And I show no edge types

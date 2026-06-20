@@ -6,7 +6,7 @@ Given I open the examples/example-typescript workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
-When I click the src/index.ts node to select it
+And I click the src/index.ts node to select it
 Then the src/index.ts node is visibly outlined in white
 And the src/index.ts file opens in VS Code as a preview editor tab
 

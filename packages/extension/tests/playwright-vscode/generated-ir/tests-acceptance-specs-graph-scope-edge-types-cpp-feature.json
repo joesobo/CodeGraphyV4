@@ -15,7 +15,7 @@
         "parameters": []
       },
       {
-        "keyword": "When",
+        "keyword": "And",
         "text": "I open the CodeGraphy extension graph view",
         "line": 6,
         "parameters": []
@@ -139,12 +139,12 @@
       "examples": []
     },
     {
-      "name": "Inherits edge type shows C++ class inheritance",
+      "name": "Calls edge type shows C++ call relationships",
       "line": 29,
       "steps": [
         {
           "keyword": "When",
-          "text": "I show only the File and Class node types",
+          "text": "I show only the File, Callable and Method node types",
           "line": 31,
           "parameters": []
         },
@@ -162,20 +162,87 @@
         },
         {
           "keyword": "When",
-          "text": "I toggle the Inherits edge on",
+          "text": "I toggle the Calls edge on",
           "line": 34,
           "parameters": []
         },
         {
           "keyword": "Then",
-          "text": "the top right of the graph says \"1 connection\"",
+          "text": "the top right of the graph says \"15 connections\"",
           "line": 35,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src/worker.hpp#ConsoleWorker:class points to src/worker.hpp#Worker:class",
+          "text": "the visible graph shows main in src/app.cpp calling seed_tasks in src/seed.hpp",
           "line": 36,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows main in src/app.cpp calling TaskRunner::enqueue in src/runner.hpp",
+          "line": 37,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows TaskRunner::run in src/runner.cpp calling Worker::execute in src/worker.hpp",
+          "line": 38,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows ConsoleWorker::execute in src/worker.cpp calling priority_name in src/task.hpp",
+          "line": 39,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "the visible graph shows seed_tasks in src/seed.cpp calling make_task in src/seed.cpp",
+          "line": 40,
+          "parameters": []
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "Inherits edge type shows C++ class inheritance",
+      "line": 42,
+      "steps": [
+        {
+          "keyword": "When",
+          "text": "I show only the File and Class node types",
+          "line": 44,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "I show no edge types",
+          "line": 45,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
+          "line": 46,
+          "parameters": []
+        },
+        {
+          "keyword": "When",
+          "text": "I toggle the Inherits edge on",
+          "line": 47,
+          "parameters": []
+        },
+        {
+          "keyword": "Then",
+          "text": "the top right of the graph says \"1 connection\"",
+          "line": 48,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src/worker.hpp#ConsoleWorker:class points to src/worker.hpp#Worker:class",
+          "line": 49,
           "parameters": []
         }
       ],
@@ -183,120 +250,120 @@
     },
     {
       "name": "Nests edge type shows folder containment",
-      "line": 38,
+      "line": 51,
       "steps": [
         {
           "keyword": "When",
           "text": "I show only the Folder and File node types",
-          "line": 40,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "I show no edge types",
-          "line": 41,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "the top right of the graph says \"0 connections\"",
-          "line": 42,
-          "parameters": []
-        },
-        {
-          "keyword": "When",
-          "text": "I toggle the Nests edge on",
-          "line": 43,
-          "parameters": []
-        },
-        {
-          "keyword": "Then",
-          "text": "the top right of the graph says \"14 connections\"",
-          "line": 44,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "(root) points to .gitignore",
-          "line": 45,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "(root) points to CMakeLists.txt",
-          "line": 46,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "(root) points to README.md",
-          "line": 47,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "(root) points to src",
-          "line": 48,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src points to src/app.cpp",
-          "line": 49,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src points to src/runner.cpp",
-          "line": 50,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src points to src/runner.hpp",
-          "line": 51,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src points to src/seed.cpp",
-          "line": 52,
-          "parameters": []
-        },
-        {
-          "keyword": "And",
-          "text": "src points to src/seed.hpp",
           "line": 53,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src points to src/task.cpp",
+          "text": "I show no edge types",
           "line": 54,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "src points to src/task.hpp",
+          "keyword": "Then",
+          "text": "the top right of the graph says \"0 connections\"",
           "line": 55,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "src points to src/task_queue.hpp",
+          "keyword": "When",
+          "text": "I toggle the Nests edge on",
           "line": 56,
           "parameters": []
         },
         {
-          "keyword": "And",
-          "text": "src points to src/worker.cpp",
+          "keyword": "Then",
+          "text": "the top right of the graph says \"14 connections\"",
           "line": 57,
           "parameters": []
         },
         {
           "keyword": "And",
-          "text": "src points to src/worker.hpp",
+          "text": "(root) points to .gitignore",
           "line": 58,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "(root) points to CMakeLists.txt",
+          "line": 59,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "(root) points to README.md",
+          "line": 60,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "(root) points to src",
+          "line": 61,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/app.cpp",
+          "line": 62,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/runner.cpp",
+          "line": 63,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/runner.hpp",
+          "line": 64,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/seed.cpp",
+          "line": 65,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/seed.hpp",
+          "line": 66,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/task.cpp",
+          "line": 67,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/task.hpp",
+          "line": 68,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/task_queue.hpp",
+          "line": 69,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/worker.cpp",
+          "line": 70,
+          "parameters": []
+        },
+        {
+          "keyword": "And",
+          "text": "src points to src/worker.hpp",
+          "line": 71,
           "parameters": []
         }
       ],
@@ -304,60 +371,60 @@
     },
     {
       "name": "Contains edge type shows file-to-symbol ownership",
-      "line": 60,
+      "line": 73,
       "steps": [
         {
           "keyword": "When",
           "text": "I show only the File and Class node types",
-          "line": 62,
+          "line": 75,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I show no edge types",
-          "line": 63,
+          "line": 76,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "the top right of the graph says \"0 connections\"",
-          "line": 64,
+          "line": 77,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Contains edge on",
-          "line": 65,
+          "line": 78,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "the top right of the graph says \"4 connections\"",
-          "line": 66,
+          "line": 79,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/task.hpp points to src/task.hpp#Task:class",
-          "line": 67,
+          "line": 80,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/worker.hpp points to src/worker.hpp#Worker:class",
-          "line": 68,
+          "line": 81,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/worker.hpp points to src/worker.hpp#ConsoleWorker:class",
-          "line": 69,
+          "line": 82,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/runner.hpp points to src/runner.hpp#TaskRunner:class",
-          "line": 70,
+          "line": 83,
           "parameters": []
         }
       ],
@@ -365,42 +432,42 @@
     },
     {
       "name": "Overrides edge type shows C++ method overrides",
-      "line": 72,
+      "line": 85,
       "steps": [
         {
           "keyword": "When",
           "text": "I show only the File, Class and Method node types",
-          "line": 74,
+          "line": 87,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "I show no edge types",
-          "line": 75,
+          "line": 88,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "the top right of the graph says \"0 connections\"",
-          "line": 76,
+          "line": 89,
           "parameters": []
         },
         {
           "keyword": "When",
           "text": "I toggle the Overrides edge on",
-          "line": 77,
+          "line": 90,
           "parameters": []
         },
         {
           "keyword": "Then",
           "text": "the top right of the graph says \"1 connection\"",
-          "line": 78,
+          "line": 91,
           "parameters": []
         },
         {
           "keyword": "And",
           "text": "src/worker.hpp#ConsoleWorker:class points to src/worker.hpp#Worker::execute:method",
-          "line": 79,
+          "line": 92,
           "parameters": []
         }
       ],

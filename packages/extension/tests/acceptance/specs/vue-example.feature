@@ -3,20 +3,20 @@ Feature: Vue Example
 Background:
 
 Given I open the examples/example-vue workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: Vue example renders file nodes and import relationships
 
 Then I see graph nodes
 And I show no edge types
-Then I can see there are 16 nodes and 0 connections
+And I can see there are 16 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-vue workspace
 
 When I open the Graph Scope
 Then I see two buttons for switching views between node type and edge type toggles
 And I select edge types
-Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
+And the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
 And I close the Graph Scope
 
 When I toggle the Imports edge on

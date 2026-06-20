@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-typescript workspace
 
-Then I see the src/index.ts node
+And I see the src/index.ts node
 And the src/index.ts node is a blue circle
 And the src/index.ts node has a white TS symbol in the center of the node
 And the src/index.ts node has the file name "index.ts" as a label below the node

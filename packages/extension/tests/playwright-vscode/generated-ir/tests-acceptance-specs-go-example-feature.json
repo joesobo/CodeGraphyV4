@@ -41,7 +41,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "I can see there are 5 nodes and 0 connections",
           "line": 10,
           "parameters": []

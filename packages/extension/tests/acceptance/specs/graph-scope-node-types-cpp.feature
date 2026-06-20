@@ -3,7 +3,7 @@ Feature: Graph Scope Node Types - C++
 Background:
 
 Given I open the examples/example-cpp workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: Symbol node type controls class and global children

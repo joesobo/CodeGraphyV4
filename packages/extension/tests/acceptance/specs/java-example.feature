@@ -7,7 +7,7 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 Then I see graph nodes
 And I show no edge types
-Then I can see there are 6 nodes and 0 connections
+And I can see there are 6 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-java workspace
 
 When I open the Graph Scope

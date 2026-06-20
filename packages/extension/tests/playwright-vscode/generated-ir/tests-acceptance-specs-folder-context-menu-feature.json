@@ -95,7 +95,7 @@
           "parameters": []
         },
         {
-          "keyword": "When",
+          "keyword": "And",
           "text": "I toggle the Folder node on",
           "line": 22,
           "parameters": []
@@ -113,7 +113,7 @@
           "parameters": []
         },
         {
-          "keyword": "When",
+          "keyword": "And",
           "text": "I right click one of the folder nodes to open its Graph Context Menu",
           "line": 26,
           "parameters": []

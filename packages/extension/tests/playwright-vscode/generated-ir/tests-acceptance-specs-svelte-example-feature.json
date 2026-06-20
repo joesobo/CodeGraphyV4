@@ -15,7 +15,7 @@
         "parameters": []
       },
       {
-        "keyword": "When",
+        "keyword": "And",
         "text": "I open the CodeGraphy extension graph view",
         "line": 6,
         "parameters": []
@@ -46,7 +46,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "I can see there are 13 nodes and 0 connections",
           "line": 13,
           "parameters": []
@@ -88,7 +88,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "I see edges",
           "line": 22,
           "parameters": []
@@ -142,7 +142,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "the available edge types are Imports, References, Calls, Type imports, Inherits, Contains",
           "line": 33,
           "parameters": []

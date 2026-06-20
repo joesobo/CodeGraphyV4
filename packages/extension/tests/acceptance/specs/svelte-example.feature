@@ -3,14 +3,14 @@ Feature: Svelte Example
 Background:
 
 Given I open the examples/example-svelte workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: Svelte example renders file nodes and plugin import relationships
 
 Then I see graph nodes
 And I show no edge types
-Then I can see there are 13 nodes and 0 connections
+And I can see there are 13 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-svelte workspace
 
 When I toggle the Imports edge on
@@ -19,7 +19,7 @@ Then I can see there are 13 nodes and 1 connection
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the Svelte plugin on
-Then I see edges
+And I see edges
 And I can see there are 13 nodes and 4 connections
 
 And src/main.ts points to src/App.svelte
@@ -30,7 +30,7 @@ And src/App.svelte points to src/components/LazyPanel.svelte
 When I open the Graph Scope
 Then I see two buttons for switching views between node type and edge type toggles
 And I select edge types
-Then the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
+And the available edge types are Imports, References, Calls, Type imports, Inherits, Contains
 And I close the Graph Scope
 
 Scenario: Svelte example exposes type, inheritance, and call relationships

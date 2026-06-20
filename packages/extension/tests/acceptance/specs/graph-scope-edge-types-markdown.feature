@@ -1,12 +1,10 @@
 Feature: Graph Scope Edge Types - Markdown
 
-Background:
+Scenario: References edge type shows Markdown references
 
 Given I open the examples/example-markdown workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
-
-Scenario: References edge type shows Markdown references
 
 When I show only the File node type
 And I show no edge types

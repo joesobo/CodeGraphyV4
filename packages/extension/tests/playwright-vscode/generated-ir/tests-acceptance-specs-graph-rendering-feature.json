@@ -47,7 +47,7 @@
           "parameters": []
         },
         {
-          "keyword": "Then",
+          "keyword": "And",
           "text": "I see the src/index.ts node",
           "line": 12,
           "parameters": []

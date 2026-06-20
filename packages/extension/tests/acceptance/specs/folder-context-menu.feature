@@ -19,11 +19,11 @@ Then the Edge Types button is no longer disabled
 When I toggle the Imports edge on
 And I can see there are 18 nodes and 11 connections displayed
 
-When I toggle the Folder node on
+And I toggle the Folder node on
 And the Nests edge is toggled on
 And I can see there are 21 nodes and 31 connections displayed
 
-When I right click one of the folder nodes to open its Graph Context Menu
+And I right click one of the folder nodes to open its Graph Context Menu
 And I see the "New File" entry
 And I see the "New Folder" entry
 And I see the "Reveal in explorer" entry

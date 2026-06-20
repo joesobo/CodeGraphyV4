@@ -113,7 +113,7 @@
           "parameters": []
         },
         {
-          "keyword": "When",
+          "keyword": "And",
           "text": "I click the \"Open File\" entry",
           "line": 24,
           "parameters": []

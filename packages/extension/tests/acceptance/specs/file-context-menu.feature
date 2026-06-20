@@ -21,7 +21,7 @@ And I see the "Add Legend Group" entry
 And I see the "Rename" entry
 And I see the "Delete File" entry
 
-When I click the "Open File" entry
+And I click the "Open File" entry
 Then the index.ts file opens in VS Code as a pinned editor tab
 When I click the "Reveal in Explorer" entry
 Then VS Code should navigate to the Explorer sidebar tab

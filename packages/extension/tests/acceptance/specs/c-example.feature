@@ -3,14 +3,14 @@ Feature: C Example
 Background:
 
 Given I open the examples/example-c workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 
 Scenario: C example renders expected file nodes and include relationships
 
 Then I see graph nodes
 And I show no edge types
-Then I can see there are 8 nodes and 0 connections
+And I can see there are 8 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-c workspace
 
 When I open the Graph Scope
@@ -40,7 +40,7 @@ Scenario: C example exposes symbols when symbol scope is enabled
 
 Then I see graph nodes
 And I show no edge types
-Then I can see there are 8 nodes and 0 connections
+And I can see there are 8 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-c workspace
 
 When I toggle the Function node on

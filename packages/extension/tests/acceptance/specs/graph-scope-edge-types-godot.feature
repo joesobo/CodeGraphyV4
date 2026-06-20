@@ -1,14 +1,12 @@
 Feature: Graph Scope Edge Types - Godot
 
-Background:
+Scenario: Loads edge type shows Godot resource loads
 
 Given I open the examples/example-godot workspace in VS Code
-When I open the CodeGraphy extension graph view
+And I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I click the plugins button
 And I toggle the GDScript (Godot) plugin on
-
-Scenario: Loads edge type shows Godot resource loads
 
 When I show only the File node type
 And I show no edge types
