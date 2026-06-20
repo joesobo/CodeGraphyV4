@@ -10,6 +10,7 @@ interface PlaywrightMatrixSlice {
   label: string;
   suite: string;
   grep: string;
+  artifactSuffix: string;
 }
 
 describe('VS Code Playwright config', () => {
@@ -66,19 +67,37 @@ describe('VS Code Playwright config', () => {
     expect(unmappedTitles).toEqual([]);
     expect(duplicatedTitles).toEqual([]);
   });
+
+  it('keeps Turbo cache namespaces unique for each CI Playwright slice', () => {
+    const matrix = readPlaywrightMatrixSlices();
+    const artifactSuffixes = matrix.map((slice) => slice.artifactSuffix);
+
+    expect(new Set(artifactSuffixes).size).toBe(matrix.length);
+    expect(readCiWorkflow()).toContain(
+      'key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ github.sha }}',
+    );
+    expect(readCiWorkflow()).toContain(
+      '${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-',
+    );
+  });
 });
 
 function readPlaywrightMatrixSlices(): PlaywrightMatrixSlice[] {
-  const workflowPath = path.resolve(__dirname, '../../../.github/workflows/ci.yml');
-  const workflow = fs.readFileSync(workflowPath, 'utf8');
+  const workflow = readCiWorkflow();
 
   return [...workflow.matchAll(
-    /- label: (.+)\n\s+suite: (.+)\n\s+timeout-minutes: \d+\n\s+grep: '(.+)'/g,
-  )].map(([, label, suite, grep]) => ({
+    /- label: (.+)\n\s+suite: (.+)\n\s+timeout-minutes: \d+\n\s+grep: '(.+)'\n\s+artifact-suffix: (.+)/g,
+  )].map(([, label, suite, grep, artifactSuffix]) => ({
     label: label.trim(),
     suite: suite.trim(),
     grep,
+    artifactSuffix: artifactSuffix.trim(),
   }));
+}
+
+function readCiWorkflow(): string {
+  const workflowPath = path.resolve(__dirname, '../../../.github/workflows/ci.yml');
+  return fs.readFileSync(workflowPath, 'utf8');
 }
 
 function readGeneratedAcceptanceTitles(): string[] {
