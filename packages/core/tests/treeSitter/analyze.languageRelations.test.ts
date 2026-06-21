@@ -289,7 +289,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
 
 
 
-    it('extracts C# imports, type symbols, and inheritance', async () => {
+    it('extracts C# type symbols and inheritance', async () => {
       const workspaceRoot = await createWorkspace({});
       const appPath = path.join(workspaceRoot, 'App.cs');
       const appSource = [
@@ -316,14 +316,6 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
       );
       expect(result?.relations).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({
-            kind: 'import',
-            specifier: 'System.Text',
-            resolvedPath: null,
-            fromFilePath: appPath,
-            toFilePath: null,
-            sourceId: 'core:treesitter:import',
-          }),
           expect.objectContaining({
             kind: 'inherit',
             specifier: 'BaseApp',
@@ -402,34 +394,34 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
       expect(result?.relations).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            kind: 'import',
+            kind: 'using',
             specifier: 'MyApp.Services',
             resolvedPath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
-            sourceId: 'core:treesitter:import',
+            sourceId: 'core:treesitter:using',
           }),
           expect.objectContaining({
-            kind: 'import',
+            kind: 'using',
             specifier: 'MyApp.Utils',
             resolvedPath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
-            sourceId: 'core:treesitter:import',
+            sourceId: 'core:treesitter:using',
           }),
           expect.objectContaining({
-            kind: 'reference',
+            kind: 'call',
             specifier: 'Config',
             resolvedPath: path.join(workspaceRoot, 'src/Config.cs'),
-            sourceId: 'core:treesitter:reference',
+            sourceId: 'core:treesitter:call',
           }),
           expect.objectContaining({
-            kind: 'reference',
+            kind: 'call',
             specifier: 'ApiService',
             resolvedPath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
-            sourceId: 'core:treesitter:reference',
+            sourceId: 'core:treesitter:call',
           }),
           expect.objectContaining({
-            kind: 'reference',
+            kind: 'call',
             specifier: 'Helpers',
             resolvedPath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
-            sourceId: 'core:treesitter:reference',
+            sourceId: 'core:treesitter:call',
           }),
         ]),
       );

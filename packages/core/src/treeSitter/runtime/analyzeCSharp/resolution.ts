@@ -76,13 +76,21 @@ export function resolveCSharpUsingType(
 
 export function getCSharpTypeDeclarationKind(
   node: Parser.SyntaxNode,
-): 'interface' | 'struct' | 'enum' | 'class' {
+): 'interface' | 'struct' | 'record' | 'enum' | 'delegate' | 'class' {
+  if (node.type === 'delegate_declaration') {
+    return 'delegate';
+  }
+
   if (node.type === 'interface_declaration') {
     return 'interface';
   }
 
   if (node.type === 'struct_declaration') {
     return 'struct';
+  }
+
+  if (node.type === 'record_declaration') {
+    return 'record';
   }
 
   if (node.type === 'enum_declaration') {

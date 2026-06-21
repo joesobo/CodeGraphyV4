@@ -15,6 +15,19 @@ vi.mock('./acceptance/graphView/canvas', async (importOriginal) => {
 });
 
 describe('acceptance graph view step resolution', () => {
+  it('maps visible symbol node type labels to exact symbol kinds', async () => {
+    const { getSymbolKindsForNodeTypeLabel } = await import('./acceptance/graphView/steps');
+
+    expect(getSymbolKindsForNodeTypeLabel('Function')).toEqual(['function', 'method']);
+    expect(getSymbolKindsForNodeTypeLabel('Interface')).toEqual(['interface']);
+    expect(getSymbolKindsForNodeTypeLabel('Prototype')).toEqual(['prototype']);
+    expect(getSymbolKindsForNodeTypeLabel('Struct')).toEqual(['struct']);
+    expect(getSymbolKindsForNodeTypeLabel('Type')).toEqual(['type']);
+    expect(getSymbolKindsForNodeTypeLabel('Union')).toEqual(['union']);
+    expect(getSymbolKindsForNodeTypeLabel('Typedef')).toEqual(['typedef']);
+    expect(getSymbolKindsForNodeTypeLabel('Variable')).toEqual(['variable']);
+  });
+
   it('routes edge context menu phrases to edge interactions before node interactions', async () => {
     const { graphViewAcceptanceSteps } = await import('./acceptance/graphView/steps');
     const { rightClickEdge, rightClickNode } = await import('./acceptance/graphView/canvas');
@@ -49,6 +62,6 @@ describe('acceptance graph view step resolution', () => {
 
     expect(rightClickNode).not.toHaveBeenCalled();
     expect(clickNode).toHaveBeenCalledWith(expect.anything(), 'src/index.ts');
-    expect(modifierClickNode).toHaveBeenCalledWith(expect.anything(), 'src/utils.ts');
+    expect(modifierClickNode).toHaveBeenCalledWith(expect.anything(), 'src/palette.ts');
   });
 });

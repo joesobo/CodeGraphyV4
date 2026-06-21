@@ -7,7 +7,10 @@ import type {
 import { DEFAULT_EXCLUDE } from '../../src/discovery/pathMatching';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../src/analysis/workspaceDiscovery';
 import type { IGraphData } from '../../src/graph/contracts';
-import { analyzeWorkspaceWithAnalyzer } from '../../src/analysis/workspaceAnalyze';
+import {
+  analyzeWorkspaceWithAnalyzer,
+  type WorkspacePipelineAnalysisDependencies,
+} from '../../src/analysis/workspaceAnalyze';
 
 function createSource() {
   const emit = vi.fn();
@@ -34,6 +37,7 @@ function createSource() {
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
     _lastFileAnalysis: new Map(),
     _lastFileConnections: new Map<string, IProjectedConnection[]>(),
+    _lastGitIgnoredPaths: [] as string[],
     _lastWorkspaceRoot: '',
     _preAnalyzePlugins: vi.fn(async () => undefined),
     getPluginFilterPatterns: vi.fn(() => ['**/*.generated.ts']),
@@ -42,10 +46,11 @@ function createSource() {
 
 function createDependencies() {
   return {
-    discover: vi.fn(async () => ({
+    discover: vi.fn<WorkspacePipelineAnalysisDependencies['discover']>(async () => ({
       directories: [] as string[],
       durationMs: 3,
       files: [] as IDiscoveredFile[],
+      gitIgnoredPaths: [] as string[],
       limitReached: false,
       totalFound: 0,
     })),
@@ -115,6 +120,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: ['src/new-folder'],
       durationMs: 4,
       files,
+      gitIgnoredPaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
     });
@@ -165,6 +171,7 @@ describe('pipeline/analysis/analyze', () => {
     );
     expect(source._lastDiscoveredFiles).toEqual(files);
     expect(source._lastDiscoveredDirectories).toEqual(['src/new-folder']);
+    expect(source._lastGitIgnoredPaths).toEqual(['src/index.ts']);
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');

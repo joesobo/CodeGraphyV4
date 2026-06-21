@@ -116,8 +116,8 @@ describe('GraphViewProvider settings persistence', () => {
     await messageHandler!({
       type: 'TOGGLE_PLUGIN',
       payload: {
-        pluginId: 'codegraphy.python',
-        packageName: '@codegraphy-dev/plugin-python',
+        pluginId: 'codegraphy.vue',
+        packageName: '@codegraphy-dev/plugin-vue',
         enabled: false,
       },
     });
@@ -128,7 +128,7 @@ describe('GraphViewProvider settings persistence', () => {
     expect(edgeVisibilityUpdateCall).toBeDefined();
     expect(edgeVisibilityUpdateCall?.[1]).toEqual({ IMPORTS: false });
     expect(pluginsUpdateCall).toBeDefined();
-    expect(pluginsUpdateCall?.[1]).toEqual([{ id: 'codegraphy.python', enabled: false }]);
+    expect(pluginsUpdateCall?.[1]).toEqual([{ id: 'codegraphy.vue', enabled: false }]);
 
     expect(
       workspaceStateUpdate.mock.calls.some(

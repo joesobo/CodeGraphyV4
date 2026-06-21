@@ -10,6 +10,7 @@ export interface WorkspacePipelineDiscoveryResult<TFile> {
   directories?: string[];
   durationMs: number;
   files: TFile[];
+  gitIgnoredPaths?: string[];
   limitReached: boolean;
   totalFound: number;
 }

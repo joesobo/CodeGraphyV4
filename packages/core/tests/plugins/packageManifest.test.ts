@@ -20,7 +20,7 @@ function plugin(apiVersion: unknown): IPlugin {
 describe('CodeGraphy plugin package manifest', () => {
   it('accepts plugin metadata from package.json without importing runtime code', () => {
     expect(parseCodeGraphyPluginPackageManifest({
-      name: '@codegraphy-dev/plugin-python',
+      name: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
       codegraphy: {
         type: 'plugin',
@@ -31,7 +31,7 @@ describe('CodeGraphy plugin package manifest', () => {
         disclosures: ['network'],
       },
     })).toEqual({
-      package: '@codegraphy-dev/plugin-python',
+      package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
       apiVersion: '^2.0.0',
       defaultOptions: {
@@ -84,7 +84,7 @@ describe('CodeGraphy plugin package manifest', () => {
       },
     })).toBeNull();
     expect(parseCodeGraphyPluginPackageManifest({
-      name: '@codegraphy-dev/plugin-python',
+      name: '@codegraphy-dev/plugin-vue',
       version: '',
       codegraphy: {
         type: 'plugin',
@@ -92,7 +92,7 @@ describe('CodeGraphy plugin package manifest', () => {
       },
     })).toBeNull();
     expect(parseCodeGraphyPluginPackageManifest({
-      name: '@codegraphy-dev/plugin-python',
+      name: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
       codegraphy: {
         type: 'theme',
@@ -100,7 +100,7 @@ describe('CodeGraphy plugin package manifest', () => {
       },
     })).toBeNull();
     expect(parseCodeGraphyPluginPackageManifest({
-      name: '@codegraphy-dev/plugin-python',
+      name: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
       codegraphy: {
         type: 'plugin',
