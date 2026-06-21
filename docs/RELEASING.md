@@ -69,8 +69,6 @@ pnpm run release:publish plugin-markdown
 pnpm run release:publish mcp
 pnpm run release:publish core
 pnpm run release:publish plugin-typescript
-pnpm run release:publish plugin-python
-pnpm run release:publish plugin-csharp
 pnpm run release:publish plugin-godot
 pnpm run release:publish plugin-vue
 pnpm run release:publish plugin-svelte
@@ -103,8 +101,6 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish plugin-api`
    - `pnpm run release:publish plugin-markdown`
    - `pnpm run release:publish plugin-typescript`
-   - `pnpm run release:publish plugin-python`
-   - `pnpm run release:publish plugin-csharp`
    - `pnpm run release:publish plugin-godot`
    - `pnpm run release:publish plugin-vue`
    - `pnpm run release:publish plugin-svelte`
@@ -119,7 +115,7 @@ vsce verify-pat codegraphy
 
 Use the `Release` workflow with `workflow_dispatch`.
 
-- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-python`, `plugin-csharp`, `plugin-godot`, `plugin-vue`, or `plugin-svelte`.
+- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-godot`, `plugin-vue`, or `plugin-svelte`.
 - The workflow publishes the selected Marketplace targets and npm packages.
 
 Required secrets:
@@ -144,8 +140,6 @@ If you ever move the core to a different publisher later, that would require a n
 - Core: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>
 - Plugin API: <https://www.npmjs.com/package/@codegraphy-dev/plugin-api>
 - TypeScript/JavaScript plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript>
-- Python plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-python>
-- C# plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp>
 - Godot plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-godot>
 - Markdown plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown>
 - Vue plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-vue>

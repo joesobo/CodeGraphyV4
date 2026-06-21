@@ -43,9 +43,20 @@ export interface GraphTooltipStateResult {
 
 const EMPTY_TOOLTIP_RECT: GraphTooltipRect = { x: 0, y: 0, radius: 0 };
 
+function getGitIgnoredTooltipSections(
+  node: IGraphData['nodes'][number] | undefined,
+): Array<{ title: string; content: string }> {
+  if (node?.metadata?.gitIgnored !== true) {
+    return [];
+  }
+
+  return [{ title: 'Git ignored', content: 'Reported ignored by Git' }];
+}
+
 export function buildGraphTooltipState(options: GraphTooltipStateOptions): GraphTooltipStateResult {
   const edgeCounts = countTooltipEdges(options.nodeId, options.snapshot);
   const symbol = readTooltipSymbol(options.nodeId, options.snapshot);
+  const node = options.snapshot.nodes.find(candidate => candidate.id === options.nodeId);
   return {
     tooltipData: {
       visible: true,
@@ -54,7 +65,10 @@ export function buildGraphTooltipState(options: GraphTooltipStateOptions): Graph
       info: options.cachedInfo,
       ...edgeCounts,
       pluginActions: options.pluginActions ?? [],
-      pluginSections: options.pluginSections,
+      pluginSections: [
+        ...getGitIgnoredTooltipSections(node),
+        ...options.pluginSections,
+      ],
       ...(symbol ? { symbol } : {}),
     },
     shouldRequestFileInfo: options.cachedInfo === null && !symbol,

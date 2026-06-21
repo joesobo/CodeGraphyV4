@@ -10,7 +10,7 @@ human-readable acceptance spec that compiles into the Playwright test.
 - Human-owned specs live under `packages/extension/tests/acceptance/specs/`.
 - Agent-owned bindings and fixtures live under
   `packages/extension/tests/acceptance/`.
-- `@poleski/quality-tools acceptance compile` parses the Markdown spec and
+- `@poleski/quality-tools acceptance compile` parses the Gherkin feature and
   generates the Playwright spec under `packages/extension/tests/playwright-vscode/`.
 - VS Code-window Playwright remains the product E2E runner.
 - Lower-level package behavior stays in unit and integration tests.
@@ -31,7 +31,7 @@ The first spec should cover the current Graph View smoke flow:
 
 ## Ownership Rule
 
-The Markdown specs are the human contract. Agents may add or edit step bindings,
+The Gherkin feature files are the human contract. Agents may add or edit step bindings,
 fixtures, generated tests, and tooling, but must not create, edit, or delete
-acceptance spec Markdown unless the user explicitly asks for that exact spec
+acceptance spec Gherkin unless the user explicitly asks for that exact spec
 change.

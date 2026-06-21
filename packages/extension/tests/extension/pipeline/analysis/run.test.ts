@@ -45,6 +45,7 @@ describe('pipeline/analysis/run', () => {
       discover: vi.fn(async () => ({
         durationMs: 1,
         files: [] as IDiscoveredFile[],
+        gitIgnoredPaths: ['example-python/src/main.py'],
         limitReached: false,
         totalFound: 0,
       })),
@@ -78,6 +79,7 @@ describe('pipeline/analysis/run', () => {
     })).resolves.toEqual({
       durationMs: 1,
       files: [],
+      gitIgnoredPaths: ['example-python/src/main.py'],
       limitReached: false,
       totalFound: 0,
     });

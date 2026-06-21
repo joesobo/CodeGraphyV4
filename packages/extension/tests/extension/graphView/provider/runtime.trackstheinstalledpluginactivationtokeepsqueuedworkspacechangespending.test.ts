@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as VSCode from 'vscode';
+import type { PendingWorkspaceRefreshState } from '../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence';
 
 function createContext(vscodeModule: typeof import('vscode')) {
   return {
@@ -217,11 +218,12 @@ describe('graphView/provider/runtime', () => {
         vscodeModule.Uri.file('/test/extension'),
         createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
       ) as unknown as {
-        _loadPersistedWorkspaceRefresh(): { filePaths: Set<string>; logMessage: string } | undefined;
+        _loadPersistedWorkspaceRefresh(): PendingWorkspaceRefreshState | undefined;
       };
 
       expect(provider._loadPersistedWorkspaceRefresh()).toEqual({
         filePaths: new Set(['src/a.ts', 'src/b.ts']),
+        gitignoreRefresh: false,
         logMessage: '[CodeGraphy] Applying pending workspace changes',
       });
     });

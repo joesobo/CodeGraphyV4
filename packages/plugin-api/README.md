@@ -162,7 +162,5 @@ export default createPlugin;
 The published CodeGraphy plugin packages use the same API surface:
 
 - [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
-- [`@codegraphy-dev/plugin-python`](https://www.npmjs.com/package/@codegraphy-dev/plugin-python)
-- [`@codegraphy-dev/plugin-csharp`](https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp)
 - [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
 - [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)

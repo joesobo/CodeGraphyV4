@@ -37,7 +37,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     settings.plugins = [
       { id: 'codegraphy.markdown', enabled: true },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: false,
         options: { includeTests: true },
       },
@@ -48,7 +48,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(parsed.plugins).toEqual([
       { id: 'codegraphy.markdown', enabled: true },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: false,
         options: { includeTests: true },
       },

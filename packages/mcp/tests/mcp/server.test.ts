@@ -142,7 +142,7 @@ describe('mcp/server', () => {
 
     await client.callTool({
       name: 'codegraphy_plugins_register',
-      arguments: { packageName: '@codegraphy-dev/plugin-python' },
+      arguments: { packageName: '@codegraphy-dev/plugin-vue' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_list',
@@ -150,11 +150,11 @@ describe('mcp/server', () => {
     });
     const enableResult = await client.callTool({
       name: 'codegraphy_plugins_enable',
-      arguments: { pluginId: 'codegraphy.python', path: '/workspace/project' },
+      arguments: { pluginId: 'codegraphy.vue', path: '/workspace/project' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_disable',
-      arguments: { pluginId: 'codegraphy.python', path: '/workspace/project' },
+      arguments: { pluginId: 'codegraphy.vue', path: '/workspace/project' },
     });
 
     expect(enableResult.structuredContent).toEqual({
@@ -169,18 +169,18 @@ describe('mcp/server', () => {
       }, null, 2),
     }]);
     expect(calls).toEqual([
-      { name: 'plugins', action: 'register', packageName: '@codegraphy-dev/plugin-python' },
+      { name: 'plugins', action: 'register', packageName: '@codegraphy-dev/plugin-vue' },
       { name: 'plugins', action: 'list', workspacePath: '/workspace/project' },
       {
         name: 'plugins',
         action: 'enable',
-        packageName: 'codegraphy.python',
+        packageName: 'codegraphy.vue',
         workspacePath: '/workspace/project',
       },
       {
         name: 'plugins',
         action: 'disable',
-        packageName: 'codegraphy.python',
+        packageName: 'codegraphy.vue',
         workspacePath: '/workspace/project',
       },
     ]);

@@ -2,6 +2,8 @@ import type { RefObject } from 'react';
 import type { GraphDebugControls, GraphDebugSnapshot } from './contracts/protocol';
 
 export interface DebugNode {
+  baseOpacity?: number;
+  color?: string;
   id: string;
   shapeSize2D?: {
     height: number;
@@ -35,6 +37,8 @@ function buildDebugNodeSnapshot(
   const screen = graph?.graph2ScreenCoords?.(x, y, z) ?? { x, y };
 
   return {
+    ...(typeof node.baseOpacity === 'number' ? { baseOpacity: node.baseOpacity } : {}),
+    ...(typeof node.color === 'string' ? { color: node.color } : {}),
     id: node.id,
     screenX: screen.x,
     ...(node.shapeSize2D ? { shapeSize2D: node.shapeSize2D } : {}),

@@ -54,6 +54,17 @@ describe('graphView/provider/runtime/workspaceRefreshPersistence', () => {
 
     expect(loadPersistedWorkspaceRefresh('/test/workspace')).toEqual({
       filePaths: new Set(['src/a.ts', 'src/b.ts']),
+      gitignoreRefresh: false,
+      logMessage: '[CodeGraphy] Applying pending workspace changes',
+    });
+  });
+
+  it('marks persisted gitignore changes as metadata refreshes', () => {
+    metaState.pendingChangedFiles = ['src/a.ts', '/test/workspace/.gitignore'];
+
+    expect(loadPersistedWorkspaceRefresh('/test/workspace')).toEqual({
+      filePaths: new Set(['src/a.ts', '/test/workspace/.gitignore']),
+      gitignoreRefresh: true,
       logMessage: '[CodeGraphy] Applying pending workspace changes',
     });
   });

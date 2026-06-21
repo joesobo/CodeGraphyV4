@@ -7,19 +7,19 @@ describe('graphView/groupMessage', () => {
     const resolvePluginAssetPath = vi.fn(() => 'webview://plugin/python.svg');
 
     const message = buildGraphViewLegendsUpdatedMessage(
-      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#112233', imagePath: 'icons/python.svg' }],
+      [{ id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#112233', imagePath: 'icons/python.svg' }],
       {
         resolvePluginAssetPath,
       },
     );
 
-    expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.python');
+    expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.vue');
     expect(message).toEqual({
       type: 'LEGENDS_UPDATED',
       payload: {
         legends: [
           {
-            id: 'plugin:codegraphy.python:*.py',
+            id: 'plugin:codegraphy.vue:*.py',
             pattern: '*.py',
             color: '#112233',
             imagePath: 'icons/python.svg',
@@ -39,7 +39,7 @@ describe('graphView/groupMessage', () => {
           id: 'user-group',
           pattern: '*.py',
           color: '#112233',
-          imagePath: 'plugin:codegraphy.python:icons/python.svg',
+          imagePath: 'plugin:codegraphy.vue:icons/python.svg',
         },
       ],
       {
@@ -47,7 +47,7 @@ describe('graphView/groupMessage', () => {
       },
     );
 
-    expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.python');
+    expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.vue');
     expect(message.payload.legends[0]?.imageUrl).toBe('webview://plugin/python.svg');
   });
 
@@ -104,15 +104,15 @@ describe('graphView/groupMessage', () => {
     const resolvePluginAssetPath = vi.fn(() => undefined);
 
     const message = buildGraphViewLegendsUpdatedMessage(
-      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#112233', imagePath: 'icons/python.svg' }],
+      [{ id: 'plugin:codegraphy.vue:*.py', pattern: '*.py', color: '#112233', imagePath: 'icons/python.svg' }],
       {
         resolvePluginAssetPath,
       },
     );
 
-    expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.python');
+    expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.vue');
     expect(message.payload.legends[0]).toEqual({
-      id: 'plugin:codegraphy.python:*.py',
+      id: 'plugin:codegraphy.vue:*.py',
       pattern: '*.py',
       color: '#112233',
       imagePath: 'icons/python.svg',
@@ -128,7 +128,7 @@ describe('graphView/groupMessage', () => {
     const message = buildGraphViewLegendsUpdatedMessage(
       [
         {
-          id: 'user-plugin:codegraphy.python:*.py',
+          id: 'user-plugin:codegraphy.vue:*.py',
           pattern: '*.py',
           color: '#112233',
           imagePath: '.codegraphy/assets/icon.png',
@@ -162,7 +162,7 @@ describe('graphView/groupMessage', () => {
           id: 'user-group',
           pattern: '*.py',
           color: '#112233',
-          imagePath: 'icons/plugin:codegraphy.python:python.svg',
+          imagePath: 'icons/plugin:codegraphy.vue:python.svg',
         },
       ],
       {
@@ -174,10 +174,10 @@ describe('graphView/groupMessage', () => {
 
     expect(resolvePluginAssetPath).not.toHaveBeenCalled();
     expect(asWebviewUri).toHaveBeenCalledWith(
-      vscode.Uri.file('/test/workspace/icons/plugin:codegraphy.python:python.svg'),
+      vscode.Uri.file('/test/workspace/icons/plugin:codegraphy.vue:python.svg'),
     );
     expect(message.payload.legends[0]?.imageUrl).toBe(
-      'webview:/test/workspace/icons/plugin:codegraphy.python:python.svg',
+      'webview:/test/workspace/icons/plugin:codegraphy.vue:python.svg',
     );
   });
 });

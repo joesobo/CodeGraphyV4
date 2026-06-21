@@ -18,6 +18,7 @@ export function buildWorkspacePipelineGraph(
   showOrphans: boolean,
   disabledPlugins: Set<string>,
   directoryPaths: readonly string[] = [],
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   return buildWorkspacePipelineGraphData(
     cache,
@@ -28,6 +29,7 @@ export function buildWorkspacePipelineGraph(
     showOrphans,
     disabledPlugins,
     directoryPaths,
+    gitIgnoredPaths,
   );
 }
 
@@ -41,6 +43,7 @@ export function buildWorkspacePipelineGraphFromAnalysis(
   disabledPlugins: Set<string>,
   directoryPaths: readonly string[] = [],
   graphScope: WorkspacePipelineGraphScopeOptions = {},
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   return buildWorkspacePipelineGraphDataFromAnalysis(
     cache,
@@ -52,5 +55,6 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     disabledPlugins,
     directoryPaths,
     graphScope,
+    gitIgnoredPaths,
   );
 }

@@ -38,7 +38,7 @@ This also causes user-facing friction: MCP can focus or open a VS Code window ju
 - `docs/PLUGINS.md` currently says third-party plugins should ship as VS Code extensions, while plugin implementations may live in shared library packages.
 - `packages/codegraphy-mcp` is already a public npm package with the `codegraphy` binary.
 - `packages/plugin-api` is already a public npm package.
-- `packages/plugin-typescript`, `packages/plugin-python`, `packages/plugin-godot`, and `packages/plugin-csharp` are currently VS Code extension packages.
+- `packages/plugin-typescript` and `packages/plugin-godot` are currently VS Code extension packages.
 - `packages/plugin-markdown` is currently a private workspace package.
 - The VS Code extension already vendors native/runtime packages into the VSIX through `packages/extension/scripts/runtimePackages.ts`.
 
@@ -216,9 +216,7 @@ Target names:
 - `@codegraphy-dev/mcp`
 - `@codegraphy-dev/plugin-api`
 - `@codegraphy-dev/plugin-typescript`
-- `@codegraphy-dev/plugin-python`
 - `@codegraphy-dev/plugin-godot`
-- `@codegraphy-dev/plugin-csharp`
 - `@codegraphy-dev/plugin-markdown`
 
 Keep the Marketplace extension id as `codegraphy.codegraphy`.
@@ -313,7 +311,7 @@ Target shape:
       "package": "@codegraphy-dev/plugin-markdown"
     },
     {
-      "package": "@codegraphy-dev/plugin-python",
+      "package": "@codegraphy-dev/plugin-typescript",
       "disabledFilterPatterns": [],
       "options": {}
     }
@@ -354,7 +352,7 @@ CLI command model:
 
 - plain npm global install should also be supported:
   - `npm i -g @codegraphy-dev/core`
-  - `npm i -g @codegraphy-dev/plugin-python`
+  - `npm i -g @codegraphy-dev/plugin-typescript`
 - `codegraphy plugins register <package>` resolves one named globally installed plugin package, validates its CodeGraphy plugin metadata, and writes it to the user-level Plugin Registry at `~/.codegraphy/plugins.json`
 - `codegraphy plugins link <package-root>` records a local package checkout directly in the Plugin Registry, which is the preferred local-development path for private plugins
 - all plugin packages use the same `plugins register` validation path; CodeGraphy plugin metadata is the boundary
@@ -386,9 +384,9 @@ Primary plugin install path:
 
 ```bash
 npm i -g @codegraphy-dev/core
-npm i -g @codegraphy-dev/plugin-python
-codegraphy plugins register @codegraphy-dev/plugin-python
-codegraphy plugins enable @codegraphy-dev/plugin-python
+npm i -g @codegraphy-dev/plugin-typescript
+codegraphy plugins register @codegraphy-dev/plugin-typescript
+codegraphy plugins enable @codegraphy-dev/plugin-typescript
 ```
 
 Do not add a first-pass `codegraphy plugins install <package>` wrapper. Keeping npm install visible makes the package model honest and avoids making CodeGraphy responsible for package-manager behavior.
@@ -405,7 +403,7 @@ Add a `codegraphy` field to plugin `package.json` files. The npm package's norma
 
 ```json
 {
-  "name": "@codegraphy-dev/plugin-python",
+  "name": "@codegraphy-dev/plugin-typescript",
   "version": "1.0.0",
   "type": "module",
   "exports": {
@@ -1318,7 +1316,7 @@ Done when:
 
 Implementation progress:
 
-- Renamed the TypeScript, Python, C#, and Godot package manifests to `@codegraphy-dev/plugin-typescript`, `@codegraphy-dev/plugin-python`, `@codegraphy-dev/plugin-csharp`, and `@codegraphy-dev/plugin-godot`.
+- Renamed the TypeScript, Python, C#, and Godot package manifests to `@codegraphy-dev/plugin-typescript` and `@codegraphy-dev/plugin-godot`.
 - Converted those language plugins from VS Code companion extensions to headless npm plugin packages with `type: "module"`, `dist/plugin.js` exports, declaration output, public publish metadata, and `package.json#codegraphy` metadata.
 - Removed the language-plugin VS Code activation entrypoints, VSCE publish/package scripts, and `extensionDependencies`.
 - Kept plugin runtime behavior in the existing `src/plugin.ts` entrypoints and preserved plugin unit coverage, including Godot relationship/symbol analysis tests.
@@ -1328,17 +1326,11 @@ Implementation progress:
 Validation:
 
 - `pnpm --filter @codegraphy-dev/plugin-typescript test`
-- `pnpm --filter @codegraphy-dev/plugin-python test`
-- `pnpm --filter @codegraphy-dev/plugin-csharp test`
 - `pnpm --filter @codegraphy-dev/plugin-godot test`
 - `pnpm run typecheck:plugins`
 - `pnpm --filter @codegraphy-dev/plugin-typescript lint`
-- `pnpm --filter @codegraphy-dev/plugin-python lint`
-- `pnpm --filter @codegraphy-dev/plugin-csharp lint`
 - `pnpm --filter @codegraphy-dev/plugin-godot lint`
 - `pnpm --filter @codegraphy-dev/plugin-typescript build`
-- `pnpm --filter @codegraphy-dev/plugin-python build`
-- `pnpm --filter @codegraphy-dev/plugin-csharp build`
 - `pnpm --filter @codegraphy-dev/plugin-godot build`
 - `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`
 - `pnpm --filter @codegraphy-dev/mcp exec vitest run --config vitest.config.ts tests/plugins/command.test.ts tests/run/parse.test.ts`
@@ -1346,8 +1338,6 @@ Validation:
 - `pnpm --filter @codegraphy-dev/extension typecheck`
 - `pnpm run test:release`
 - `pnpm run release:package plugin-typescript`
-- `pnpm run release:package plugin-python`
-- `pnpm run release:package plugin-csharp`
 - `pnpm run release:package plugin-godot`
 - `git diff --check`
 

@@ -13,6 +13,7 @@ describe('indexing/discovery', () => {
       durationMs: 12,
       limitReached: true,
       totalFound: 101,
+      gitIgnoredPaths: ['generated/cache.ts'],
     }));
     const warn = vi.fn();
     const logInfo = vi.fn();
@@ -39,6 +40,7 @@ describe('indexing/discovery', () => {
       workspaceRoot: '/workspace',
     })).resolves.toMatchObject({
       directories: ['src'],
+      gitIgnoredPaths: ['generated/cache.ts'],
       limitReached: true,
       totalFound: 101,
     });
