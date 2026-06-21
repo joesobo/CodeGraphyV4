@@ -109,7 +109,7 @@ describe('Configuration', () => {
       mockConfig.maxFiles = 200;
       mockConfig.showOrphans = false;
       mockConfig.filterPatterns = ['dist/**'];
-      mockConfig.plugins = [{ package: '@codegraphy-dev/plugin-python' }];
+      mockConfig.plugins = [{ package: '@codegraphy-dev/plugin-vue' }];
 
       const config = new Configuration();
       const all = config.getAll();
@@ -117,7 +117,7 @@ describe('Configuration', () => {
       expect(all.maxFiles).toBe(200);
       expect(all.showOrphans).toBe(false);
       expect(all.filterPatterns).toEqual(['dist/**']);
-      expect(all.plugins).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
+      expect(all.plugins).toEqual([{ package: '@codegraphy-dev/plugin-vue' }]);
     });
   });
 

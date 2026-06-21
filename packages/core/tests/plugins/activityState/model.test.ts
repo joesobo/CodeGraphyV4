@@ -48,7 +48,7 @@ describe('plugins/activityState/model', () => {
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
-          id: 'codegraphy.python',
+          id: 'codegraphy.vue',
           enabled: true,
         }],
       },
@@ -56,10 +56,10 @@ describe('plugins/activityState/model', () => {
     });
 
     expect([...state.activePluginIds]).toEqual([]);
-    expect([...state.inactivePluginIds]).toEqual(['codegraphy.python']);
+    expect([...state.inactivePluginIds]).toEqual(['codegraphy.vue']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([
-      "CodeGraphy plugin 'codegraphy.python' is enabled but not installed. No runtime was loaded.",
+      "CodeGraphy plugin 'codegraphy.vue' is enabled but not installed. No runtime was loaded.",
     ]);
   });
 
@@ -68,22 +68,22 @@ describe('plugins/activityState/model', () => {
       settings: {
         ...createDefaultCodeGraphyWorkspaceSettings(),
         plugins: [{
-          id: 'codegraphy.python',
+          id: 'codegraphy.vue',
           enabled: false,
         }],
       },
       installedPlugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        package: '@codegraphy-dev/plugin-vue',
         version: '1.0.0',
         apiVersion: '^2.0.0',
         disclosures: [],
-        packageRoot: '/global/@codegraphy-dev/plugin-python',
-        pluginId: 'codegraphy.python',
+        packageRoot: '/global/@codegraphy-dev/plugin-vue',
+        pluginId: 'codegraphy.vue',
       }],
     });
 
     expect([...state.activePluginIds]).toEqual([]);
-    expect([...state.disabledPluginIds]).toEqual(['codegraphy.python']);
+    expect([...state.disabledPluginIds]).toEqual(['codegraphy.vue']);
     expect(state.packagePlugins).toEqual([]);
     expect(state.warnings).toEqual([]);
   });
@@ -92,11 +92,11 @@ describe('plugins/activityState/model', () => {
     const disabledPlugins = createDisabledPluginSet({
       ...createDefaultCodeGraphyWorkspaceSettings(),
       plugins: [
-        { id: 'codegraphy.python', enabled: false },
+        { id: 'codegraphy.vue', enabled: false },
         { id: 'codegraphy.vue', enabled: true },
       ],
     }, ['codegraphy.markdown']);
 
-    expect([...disabledPlugins]).toEqual(['codegraphy.markdown', 'codegraphy.python']);
+    expect([...disabledPlugins]).toEqual(['codegraphy.markdown', 'codegraphy.vue']);
   });
 });

@@ -5,9 +5,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 import { IDiscoveryOptions, IDiscoveredFile, IDiscoveryResult } from '../contracts';
 import { throwIfAborted } from '../abort';
-import { loadGitignore } from '../gitignore';
 import { DEFAULT_EXCLUDE } from '../pathMatching';
 import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
@@ -23,13 +23,67 @@ function getDiscoveryConfig(options: IDiscoveryOptions) {
   };
 }
 
-function createDiscoveredFile(relativePath: string, absolutePath: string): IDiscoveredFile {
+function createDiscoveredFile(
+  relativePath: string,
+  absolutePath: string,
+  gitIgnored: boolean,
+): IDiscoveredFile {
   return {
     relativePath,
     absolutePath,
     extension: path.extname(absolutePath).toLowerCase(),
     name: path.basename(absolutePath),
+    ...(gitIgnored ? { gitIgnored: true } : {}),
   };
+}
+
+function toGitPath(relativePath: string): string {
+  return relativePath.split(path.sep).join('/');
+}
+
+function collectGitIgnoredPathsFromGit(
+  rootPath: string,
+  relativePaths: readonly string[],
+): Set<string> | undefined {
+  if (relativePaths.length === 0) {
+    return new Set();
+  }
+
+  const pathsByGitPath = new Map<string, string>();
+  for (const relativePath of relativePaths) {
+    pathsByGitPath.set(toGitPath(relativePath), relativePath);
+  }
+
+  const result = spawnSync(
+    'git',
+    ['-C', rootPath, 'check-ignore', '--stdin'],
+    {
+      encoding: 'utf8',
+      input: `${[...pathsByGitPath.keys()].join('\n')}\n`,
+    },
+  );
+
+  if (result.error || (result.status !== 0 && result.status !== 1)) {
+    return undefined;
+  }
+
+  return new Set(
+    result.stdout
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map(gitPath => pathsByGitPath.get(gitPath) ?? gitPath),
+  );
+}
+
+function collectGitIgnoredPaths(
+  rootPath: string,
+  filePaths: readonly string[],
+  directoryPaths: readonly string[],
+): Set<string> {
+  return collectGitIgnoredPathsFromGit(
+    rootPath,
+    [...directoryPaths, ...filePaths],
+  ) ?? new Set();
 }
 
 export class FileDiscovery {
@@ -47,8 +101,7 @@ export class FileDiscovery {
     throwIfAborted(signal);
 
     const allExclude = [...DEFAULT_EXCLUDE, ...excludePatterns];
-    const gitignore = respectGitignore ? loadGitignore(rootPath) : null;
-    const files: IDiscoveredFile[] = [];
+    const discoveredFiles: Array<{ absolutePath: string; relativePath: string }> = [];
     const directories: string[] = [];
     let totalFound = 0;
     let limitReached = false;
@@ -59,7 +112,7 @@ export class FileDiscovery {
       (relativePath, absolutePath) => {
         throwIfAborted(signal);
 
-        if (files.length >= maxFiles) {
+        if (discoveredFiles.length >= maxFiles) {
           limitReached = true;
           totalFound++;
           return false;
@@ -69,12 +122,12 @@ export class FileDiscovery {
           includePatterns,
           excludePatterns: allExclude,
           extensions,
-          gitignore,
+          gitignore: null,
         })) {
           return true;
         }
 
-        files.push(createDiscoveredFile(relativePath, absolutePath));
+        discoveredFiles.push({ absolutePath, relativePath });
         totalFound++;
         return true;
       },
@@ -84,10 +137,26 @@ export class FileDiscovery {
       signal,
     );
 
+    const gitIgnoredPaths = respectGitignore
+      ? collectGitIgnoredPaths(
+        rootPath,
+        discoveredFiles.map(file => file.relativePath),
+        directories,
+      )
+      : new Set<string>();
+    const files = discoveredFiles.map(file =>
+      createDiscoveredFile(
+        file.relativePath,
+        file.absolutePath,
+        gitIgnoredPaths.has(file.relativePath),
+      ),
+    );
+
     const durationMs = Date.now() - startTime;
     return {
       files,
       directories,
+      gitIgnoredPaths: [...gitIgnoredPaths],
       limitReached,
       totalFound: limitReached ? totalFound : undefined,
       durationMs,

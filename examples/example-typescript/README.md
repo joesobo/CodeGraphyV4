@@ -1,29 +1,51 @@
-# TypeScript Example
+# TypeScript Palette Generator
 
-This example workspace is used by CodeGraphy's extension-host e2e tests and doubles
-as a small TypeScript project you can open in VS Code to try the Graph View.
+This example is a tiny TypeScript palette generator you can actually run while inspecting CodeGraphy's TypeScript graph support. It prints a named palette, loads a theme pack through a TypeScript path alias, reads a legacy CommonJS settings module, and lazily renders a preview.
 
-It intentionally includes a top-level constant so the Graph Scope **Variable**
-toggle has a concrete node to show when **Symbol** is also enabled.
+```bash
+pnpm install
+pnpm --dir examples/example-typescript start
+pnpm --dir examples/example-typescript build
+```
 
-Suggested Depth Mode check:
+Expected output:
 
-1. Open this folder in VS Code.
-2. Open `src/index.ts`.
-3. Run `CodeGraphy: Open`.
-4. Turn on Depth Mode.
-5. Move the depth slider from `1` to `3`.
+```text
+Palette: sunset neon
+seed:        #ba6da8
+complement:  #6dba7f
+analogous A: #a66dba
+analogous B: #ba6d82
+triadic A:   #a8ba6d
+triadic B:   #6da8ba
+Loaded theme pack for sunset
+theme:sunrise
+```
 
-Expected behavior:
+The code is intentionally small, but it behaves like a real project:
 
-- Depth `1` shows `src/index.ts`, `src/utils.ts`, and `src/types.ts`.
-- Depth `2` adds `src/depth.ts`.
-- Depth `3` adds `src/leaf.ts`.
-- `src/orphan.ts` stays out of the focused depth area because it is an Orphan Node.
+- `src/index.ts` is the CLI-style entrypoint.
+- `src/palette.ts`, `src/harmony.ts`, and `src/swatches.ts` build hex colors from a seed mood, complementary harmony, analogous neighbors, and triadic accents.
+- `src/types.ts` owns the enum, type alias, interface, and mood normalization helper.
+- `src/paletteRunner.ts` extends `BaseGenerator` and implements `PaletteExporter`.
+- `src/seedSettings.ts` is loaded with `require()` to keep a CommonJS compatibility edge visible.
+- `src/lazyPreview.ts` is loaded with dynamic `import()` to show lazy module relationships.
+- `src/alias/themePack.ts` is resolved through the `#example/*` TypeScript path alias.
+- `src/scratchpad.ts` is intentionally disconnected so Orphan Node behavior stays obvious.
 
 ## Graph Screenshot
 
 ![TypeScript example graph screenshot](../assets/graphs/typescript.png)
+
+## Relationship Demo
+
+Core Tree-sitter Analysis supports this example with 18 file nodes and these rendered edge counts when each edge type is shown by itself:
+
+- **Imports**: 11 connections covering static imports, export-from imports, dynamic imports, and CommonJS `require()`.
+- **Type imports**: 6 connections covering top-level type imports and inline type specifiers.
+- **Calls**: 6 connections through named imports, a default import, and the palette generation chain.
+- **Inherits**: 2 connections from `PaletteRunner` to `BaseGenerator` and `PaletteExporter`.
+- **TypeScript Alias Import**: 1 plugin-owned connection from `src/index.ts` to `src/alias/themePack.ts`.
 
 ## Symbol Node Demo
 
@@ -31,23 +53,24 @@ Suggested symbol check:
 
 1. Open `src/index.ts`.
 2. In Graph Scope, enable **Symbol** and **Variable**.
-3. Search for `buildGreeting`, `UserName`, `AppRunner`, `BaseRunner`, `RunnableThing`, and `currentUser`.
+3. Search for `buildPalette`, `schedulePreview`, `PaletteRunner`, `BaseGenerator`, `PaletteExporter`, `PaletteMood`, `PaletteTheme`, `currentMood`, and `ThemeLabels`.
 
 Expected behavior:
 
-- `buildGreeting` appears as a Function symbol imported from `src/utils.ts`.
-- `UserName` appears as a Type symbol reached through a type-only import.
-- `AppRunner` extends `BaseRunner` and implements `RunnableThing`, giving the TypeScript example an inheritance edge pair.
-- `currentUser` appears as a Variable node, giving the tiny app a file/function/type/value story.
+- `buildPalette` appears as a Function symbol imported from `src/palette.ts`.
+- `schedulePreview` appears as a Function symbol from an arrow function assigned to a `const`.
+- `PaletteRunner` appears as a Class symbol and inherits from `BaseGenerator` and `PaletteExporter`.
+- `PaletteExporter` appears as an Interface symbol reached through a type-only import.
+- `PaletteMood` appears as a Type symbol and `PaletteTheme` appears as an Enum symbol in `src/types.ts`.
+- `currentMood` and `ThemeLabels` appear as Variable nodes, giving the tiny app a file/function/type/value story.
 
 ## TypeScript Plugin Alias Demo
 
-The example still has relative imports for the built-in TypeScript graph behavior,
-and now also includes a `compilerOptions.paths` alias for the TypeScript plugin:
+The example keeps relative imports for the built-in TypeScript graph behavior and includes a `compilerOptions.paths` alias for the TypeScript plugin:
 
 ```json
 "paths": {
-  "@example/*": ["src/alias/*"]
+  "#example/*": ["src/alias/*"]
 }
 ```
 
@@ -60,6 +83,6 @@ Suggested alias check:
 
 Expected behavior:
 
-- `src/index.ts` imports `@example/greeting`.
-- The TypeScript plugin resolves that alias to `src/alias/greeting.ts`.
+- `src/index.ts` imports `#example/themePack`.
+- The TypeScript plugin resolves that alias to `src/alias/themePack.ts`.
 - The original relative-import graph still works when the TypeScript plugin is not enabled.

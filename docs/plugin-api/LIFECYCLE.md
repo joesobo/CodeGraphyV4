@@ -12,7 +12,7 @@ Registration reads global package metadata without importing plugin runtime code
 
 ```json
 {
-  "name": "@codegraphy-dev/plugin-python",
+  "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "type": "module",
   "exports": {

@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 function readJson(path) {
@@ -73,25 +74,49 @@ function findPlaywrightPackages() {
     .sort();
 }
 
-const packageNames = findPlaywrightPackages();
-const passthroughArgs = process.argv.slice(2).filter((arg) => arg !== '--');
+export function splitScriptArgs(args) {
+  const delimiterIndex = args.indexOf('--');
+  if (delimiterIndex === -1) {
+    return {
+      turboArgs: args,
+      passthroughArgs: [],
+    };
+  }
 
-if (packageNames.length === 0) {
-  console.error('No workspace packages declare a test:playwright script.');
-  process.exit(1);
+  return {
+    turboArgs: args.slice(0, delimiterIndex),
+    passthroughArgs: args.slice(delimiterIndex + 1),
+  };
 }
 
-const turboArgs = [
-  'exec',
-  'turbo',
-  'run',
-  'test:playwright',
-  ...packageNames.map((packageName) => `--filter=${packageName}`),
-  ...passthroughArgs,
-];
+export function buildTurboArgs({ packageNames, turboArgs, passthroughArgs }) {
+  return [
+    'exec',
+    'turbo',
+    'run',
+    'test:playwright',
+    ...packageNames.map((packageName) => `--filter=${packageName}`),
+    ...turboArgs,
+    ...(passthroughArgs.length > 0 ? ['--', ...passthroughArgs] : []),
+  ];
+}
 
-const result = spawnSync('pnpm', turboArgs, {
-  stdio: 'inherit',
-});
+function main() {
+  const packageNames = findPlaywrightPackages();
+  const { turboArgs, passthroughArgs } = splitScriptArgs(process.argv.slice(2));
 
-process.exit(result.status ?? 1);
+  if (packageNames.length === 0) {
+    console.error('No workspace packages declare a test:playwright script.');
+    process.exit(1);
+  }
+
+  const result = spawnSync('pnpm', buildTurboArgs({ packageNames, turboArgs, passthroughArgs }), {
+    stdio: 'inherit',
+  });
+
+  process.exit(result.status ?? 1);
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

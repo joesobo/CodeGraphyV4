@@ -1,9 +1,21 @@
-import { buildAliasGreeting } from '@example/greeting';
-import { formatUser } from './types';
-import type { UserName } from './types';
-import { buildGreeting } from './utils';
+import { loadThemePack } from '#example/themePack';
+import ThemeLabels from './themeLabels';
+import { normalizeMood } from './types';
+import type { PaletteMood, PaletteRecipe } from './types';
+import { buildPalette } from './palette';
 
-export const currentUser: UserName = formatUser('CodeGraphy');
+export const currentMood: PaletteMood = normalizeMood('sunset');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const seedSettings = require('./seedSettings');
 
-console.log(buildGreeting(currentUser));
-console.log(buildAliasGreeting(currentUser));
+export { createPaletteRecord } from './registry';
+
+const schedulePreview = async (recipe: PaletteRecipe): Promise<void> => {
+  const lazyPreview = await import('./lazyPreview');
+  lazyPreview.renderLazyPreview(recipe);
+};
+
+console.log(buildPalette(currentMood));
+console.log(loadThemePack(currentMood));
+console.log(ThemeLabels.describeTheme(seedSettings.theme));
+void schedulePreview({ mood: currentMood, theme: seedSettings.theme });

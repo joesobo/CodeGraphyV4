@@ -90,14 +90,6 @@ CodeGraphyV4/
 │   │   ├── package.json
 │   │   ├── codegraphy.json
 │   │   └── src/
-│   ├── plugin-python/
-│   │   ├── package.json
-│   │   ├── codegraphy.json
-│   │   └── src/
-│   ├── plugin-csharp/
-│   │   ├── package.json
-│   │   ├── codegraphy.json
-│   │   └── src/
 │   ├── plugin-godot/
 │   │   ├── package.json
 │   │   ├── codegraphy.json

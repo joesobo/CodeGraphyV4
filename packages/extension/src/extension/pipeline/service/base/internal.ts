@@ -118,6 +118,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       showOrphans,
       disabledPlugins,
       this._lastDiscoveredDirectories,
+      this._lastGitIgnoredPaths,
     );
   }
 
@@ -138,6 +139,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       disabledPlugins,
       this._lastDiscoveredDirectories,
       { nodeVisibility },
+      this._lastGitIgnoredPaths,
     );
   }
 

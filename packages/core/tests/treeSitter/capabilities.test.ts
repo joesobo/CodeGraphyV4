@@ -9,7 +9,6 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
   it('advertises calls for languages whose example workspaces expose the Calls edge toggle', () => {
     for (const filePath of [
       'src/main.c',
-      'src/Program.cs',
       'lib/app/runner.dart',
       'src/App/Feature/Runner.hs',
       'src/main/kotlin/com/example/app/Main.kt',
@@ -25,12 +24,13 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     }
   });
 
-  it('advertises TypeScript inheritance because the language supports it even without inherit evidence', () => {
+  it('advertises TypeScript graph scope edges supported by the current analyzer', () => {
     expect(listTreeSitterEdgeTypeCapabilities(['src/commented.ts'])).toEqual([
       'import',
       'type-import',
       'call',
       'inherit',
+      'contains',
     ]);
   });
 
@@ -54,12 +54,32 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'Sources/Feature/UserCardView.h',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
     ]);
   });
 
+  it('advertises language-specific C# edge capabilities', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['src/Program.cs'])).toEqual([
+      'using',
+      'type',
+      'call',
+      'inherit',
+      'implements',
+      'contains',
+    ]);
+  });
+
   it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'inherit',
+      'contains',
+      'overrides',
+    ]);
     expect(listTreeSitterNodeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
       'symbol:function',
       'symbol:class',
@@ -93,7 +113,22 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
         'symbol:parameter',
         'symbol:local',
       ],
-      'src/Program.cs': ['symbol:function', 'symbol:class', 'symbol:interface', 'symbol:struct', 'symbol:enum'],
+      'src/Program.cs': [
+        'symbol:class',
+        'symbol:interface',
+        'symbol:struct',
+        'symbol:record',
+        'symbol:enum',
+        'symbol:delegate',
+        'symbol:method',
+        'symbol:constructor',
+        'symbol:property',
+        'symbol:event',
+        'symbol:constant',
+        'symbol:field',
+        'symbol:parameter',
+        'symbol:local',
+      ],
       'lib/app/runner.dart': ['symbol:function', 'symbol:class', 'symbol:enum'],
       'cmd/app/main.go': ['symbol:function', 'symbol:struct', 'symbol:interface', 'symbol:type'],
       'src/App/Feature/Runner.hs': ['symbol:function', 'symbol:type', 'symbol:class'],
@@ -116,6 +151,45 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     for (const [filePath, expectedCapabilities] of Object.entries(expectedCapabilitiesByFile)) {
       expect(listTreeSitterNodeTypeCapabilities([filePath]), filePath).toEqual(expectedCapabilities);
     }
+  });
+
+  it('keeps TypeScript document-plugin workspaces on relationship and containment edges', () => {
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'README.md',
+      'notes/Home.md',
+      'src/commented.ts',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+      'contains',
+    ]);
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.ts',
+      'src/App.vue',
+      'src/components/UserCard.vue',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+      'contains',
+    ]);
+    expect(listTreeSitterEdgeTypeCapabilities([
+      'src/main.ts',
+      'src/App.svelte',
+      'src/components/UserCard.svelte',
+    ])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'type-import',
+      'inherit',
+      'contains',
+    ]);
   });
 
   it('advertises C++ includes without advertising imports for C++ source and header workspaces', () => {
@@ -183,6 +257,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'Sources/AppDelegate.h',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
     ]);
@@ -201,6 +276,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'src/task.cpp',
     ])).toEqual([
       'import',
+      'reference',
       'call',
       'inherit',
       'include',
@@ -237,6 +313,7 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
       'call',
       'contains',
       'import',
+      'reference',
       'inherit',
     ]);
     expect(listTreeSitterNodeTypeCapabilities([

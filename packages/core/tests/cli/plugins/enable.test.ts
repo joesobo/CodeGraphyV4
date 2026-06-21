@@ -32,28 +32,28 @@ describe('cli/plugins/enable', () => {
     expect(runEnableCommand({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
     }, dependencies())).toEqual({
       exitCode: 1,
-      output: "Plugin '@codegraphy-dev/plugin-python' is not in ~/.codegraphy/plugins.json. Run `codegraphy plugins register @codegraphy-dev/plugin-python`, then retry.",
+      output: "Plugin '@codegraphy-dev/plugin-vue' is not in ~/.codegraphy/plugins.json. Run `codegraphy plugins register @codegraphy-dev/plugin-vue`, then retry.",
     });
   });
 
   it('enables a registered package in the resolved workspace', () => {
     const enableWorkspacePlugin = vi.fn();
     const plugin = {
-      package: '@codegraphy-dev/plugin-python',
-      pluginId: 'codegraphy.python',
+      package: '@codegraphy-dev/plugin-vue',
+      pluginId: 'codegraphy.vue',
       version: '1.0.0',
       apiVersion: '^2.0.0',
       disclosures: [],
-      packageRoot: '/global/plugin-python',
+      packageRoot: '/global/plugin-vue',
     };
 
     expect(runEnableCommand({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
       workspacePath: '../repo',
     }, dependencies({
       cwd: () => '/workspace/current',
@@ -61,7 +61,7 @@ describe('cli/plugins/enable', () => {
       readInstalledPluginCache: () => ({ version: 1, plugins: [plugin] }),
     }))).toEqual({
       exitCode: 0,
-      output: 'Enabled codegraphy.python for /workspace/repo. Run `codegraphy index /workspace/repo` to refresh the Graph Cache.',
+      output: 'Enabled codegraphy.vue for /workspace/repo. Run `codegraphy index /workspace/repo` to refresh the Graph Cache.',
     });
     expect(enableWorkspacePlugin).toHaveBeenCalledWith('/workspace/repo', plugin);
   });

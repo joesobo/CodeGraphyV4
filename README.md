@@ -21,10 +21,6 @@
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript">TypeScript/JavaScript Plugin</a>
   ·
-  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-python">Python Plugin</a>
-  ·
-  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp">C# Plugin</a>
-  ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-godot">Godot Plugin</a>
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-vue">Vue Plugin</a>
@@ -125,9 +121,9 @@ Plugin management starts from the global Core CLI:
 
 ```bash
 npm install -g @codegraphy-dev/core
-npm install -g @codegraphy-dev/plugin-python
-codegraphy plugins register @codegraphy-dev/plugin-python
-codegraphy plugins enable @codegraphy-dev/plugin-python
+npm install -g @codegraphy-dev/plugin-vue
+codegraphy plugins register @codegraphy-dev/plugin-vue
+codegraphy plugins enable @codegraphy-dev/plugin-vue
 codegraphy index
 ```
 
@@ -183,8 +179,6 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 | `@codegraphy-dev/mcp` | `packages/mcp` | `npm install -g @codegraphy-dev/mcp` | Optional agent-agnostic MCP server backed by and dependent on `@codegraphy-dev/core`. |
 | `@codegraphy-dev/plugin-api` | `packages/plugin-api` | `npm install @codegraphy-dev/plugin-api` | Typed contracts for external CodeGraphy plugins. |
 | `@codegraphy-dev/plugin-typescript` | `packages/plugin-typescript` | `npm install -g @codegraphy-dev/plugin-typescript` | TypeScript and JavaScript ecosystem defaults and enrichment. |
-| `@codegraphy-dev/plugin-python` | `packages/plugin-python` | `npm install -g @codegraphy-dev/plugin-python` | Python ecosystem defaults and enrichment. |
-| `@codegraphy-dev/plugin-csharp` | `packages/plugin-csharp` | `npm install -g @codegraphy-dev/plugin-csharp` | C# ecosystem defaults and enrichment. |
 | `@codegraphy-dev/plugin-godot` | `packages/plugin-godot` | `npm install -g @codegraphy-dev/plugin-godot` | Godot project, scene, resource, and script enrichment. |
 | `@codegraphy-dev/plugin-markdown` | `packages/plugin-markdown` | installed through `@codegraphy-dev/core` | Markdown wikilink and note relationship enrichment enabled by default for new CodeGraphy Workspaces. |
 | `@codegraphy-dev/plugin-vue` | `packages/plugin-vue` | `npm install -g @codegraphy-dev/plugin-vue` | Vue Single-File Component script, type-import, and lazy import enrichment. |
