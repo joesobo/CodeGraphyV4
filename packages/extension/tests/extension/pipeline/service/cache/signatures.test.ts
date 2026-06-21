@@ -29,23 +29,23 @@ describe('pipeline/service/cache/signatures', () => {
       },
       {
         builtIn: false,
-        sourcePackage: '@codegraphy-dev/plugin-python',
-        plugin: { id: 'codegraphy.python', version: 'runtime-version', extra: 'ignored' },
+        sourcePackage: '@codegraphy-dev/plugin-vue',
+        plugin: { id: 'codegraphy.vue', version: 'runtime-version', extra: 'ignored' },
       },
     ] as never, {
       installedPlugins: [
-        { package: '@codegraphy-dev/plugin-python', version: '2.0.4', pluginId: 'codegraphy.python' },
+        { package: '@codegraphy-dev/plugin-vue', version: '2.0.4', pluginId: 'codegraphy.vue' },
       ],
       settings: {
         plugins: [
           { id: 'codegraphy.markdown', enabled: true },
-          { id: 'codegraphy.python', enabled: true },
+          { id: 'codegraphy.vue', enabled: true },
         ],
       },
     });
 
     expect(signature).toBe(
-      'codegraphy.markdown@1.0.4|npm:@codegraphy-dev/plugin-python@2.0.4',
+      'codegraphy.markdown@1.0.4|npm:@codegraphy-dev/plugin-vue@2.0.4',
     );
   });
 
@@ -54,10 +54,10 @@ describe('pipeline/service/cache/signatures', () => {
       installedPlugins: [],
       settings: {
         plugins: [
-          { id: 'codegraphy.python', enabled: true },
+          { id: 'codegraphy.vue', enabled: true },
         ],
       },
-    })).toBe('npm:codegraphy.python@missing');
+    })).toBe('npm:codegraphy.vue@missing');
   });
 
   it('includes workspace plugin settings and filter patterns in the settings signature', () => {
@@ -71,7 +71,7 @@ describe('pipeline/service/cache/signatures', () => {
         filterPatterns: ['dist/**'],
         disabledCustomFilterPatterns: [],
         disabledPluginFilterPatterns: [],
-        plugins: [{ id: 'codegraphy.python', enabled: true, options: { includeTests: true } }],
+        plugins: [{ id: 'codegraphy.vue', enabled: true, options: { includeTests: true } }],
       })),
     };
 
@@ -88,7 +88,7 @@ describe('pipeline/service/cache/signatures', () => {
         filterPatterns: [],
         disabledCustomFilterPatterns: [],
         disabledPluginFilterPatterns: [],
-        plugins: [{ id: 'codegraphy.python', enabled: true, options: { includeTests: true } }],
+        plugins: [{ id: 'codegraphy.vue', enabled: true, options: { includeTests: true } }],
       }),
     } as never));
     expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({

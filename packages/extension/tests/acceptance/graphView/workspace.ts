@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import ignore, { type Ignore } from 'ignore';
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../../../../core/src/discovery/file/defaults';
-import { loadGitignore } from '../../../../core/src/discovery/gitignore';
 import {
   DEFAULT_EXCLUDE,
   matchesAnyPattern,
@@ -80,7 +80,7 @@ export function copyExampleWorkspace(
 }
 
 export function createAcceptanceWorkspaceCopyFilter(workspaceRoot: string): (sourcePath: string) => boolean {
-  const gitignore = loadGitignore(workspaceRoot, () => undefined);
+  const gitignore = loadGitignore(workspaceRoot);
 
   return (sourcePath: string): boolean => {
     const relativePath = normalizeCopyPath(path.relative(workspaceRoot, sourcePath));
@@ -443,6 +443,18 @@ async function discoverAcceptanceWorkspaceFiles(
   });
 
   return files.sort();
+}
+
+function loadGitignore(rootPath: string): Ignore | null {
+  const gitignorePath = path.join(rootPath, '.gitignore');
+
+  if (!fs.existsSync(gitignorePath)) {
+    return null;
+  }
+
+  const gitignore = ignore();
+  gitignore.add(fs.readFileSync(gitignorePath, 'utf-8'));
+  return gitignore;
 }
 
 async function walkAcceptanceDirectory(

@@ -13,8 +13,6 @@ interface ExtensionManifest {
 
 const pluginPackages = [
   'plugin-typescript',
-  'plugin-python',
-  'plugin-csharp',
   'plugin-godot',
 ] as const;
 

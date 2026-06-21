@@ -7,7 +7,6 @@ import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { createGraphViewProviderTestHarness } from '../testHarness';
 import { getGraphViewProviderInternals } from '../internals';
 import { createTypeScriptPlugin } from '../../../../../plugin-typescript/src/plugin';
-import { createPythonPlugin } from '../../../../../plugin-python/src/plugin';
 
 type GroupSummary = Pick<IGroup, 'id'> & Partial<Pick<IGroup, 'pattern' | 'color' | 'disabled' | 'isPluginDefault' | 'pluginName'>>;
 
@@ -30,7 +29,6 @@ function getProvider(harness: { provider: unknown }) {
 
 function registerOptionalPlugins(provider: PluginDefaultsProvider): void {
   provider._analyzer.registry.register(createTypeScriptPlugin());
-  provider._analyzer.registry.register(createPythonPlugin());
 }
 
 describe('GraphViewProvider plugin defaults and toggles', () => {
@@ -64,7 +62,6 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     const groups = provider._groups as GroupSummary[];
     expect(groups.some(g => g.id === 'user-group-1')).toBe(true);
     expect(groups.some(g => g.id.startsWith('plugin:codegraphy.typescript:'))).toBe(false);
-    expect(groups.some(g => g.id.startsWith('plugin:codegraphy.python:'))).toBe(false);
   });
 
   it('computeMergedGroups includes built-in default groups', async () => {

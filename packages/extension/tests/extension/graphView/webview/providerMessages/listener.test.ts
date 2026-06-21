@@ -257,9 +257,9 @@ describe('graph view provider listener bridge', () => {
       invalidatePluginFiles: vi.fn(() => ['src/plugin.py']),
     });
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
-    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(source.refreshChangedFiles).toHaveBeenCalledWith(['src/plugin.py']);
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -269,9 +269,9 @@ describe('graph view provider listener bridge', () => {
       invalidatePluginFiles: vi.fn(() => []),
     });
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
-    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(source.refreshChangedFiles).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });

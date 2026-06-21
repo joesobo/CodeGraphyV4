@@ -177,6 +177,10 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
     this._lastDiscoveredDirectories = directoryPaths;
   }
 
+  public setLastGitIgnoredPaths(gitIgnoredPaths: string[]): void {
+    this._lastGitIgnoredPaths = gitIgnoredPaths;
+  }
+
   public getFileStat(filePath: string) {
     return this._getFileStat(filePath);
   }
@@ -333,7 +337,9 @@ describe('extension/pipeline/service/internalBase', () => {
     const fileAnalysis = new Map([['src/a.ts', { filePath: 'src/a.ts' }]]);
     const disabledPlugins = new Set(['plugin.disabled']);
     const discoveredDirectories = ['src/generated'];
+    const gitIgnoredPaths = ['src/generated/cache.py'];
     source.setLastDiscoveredDirectories(discoveredDirectories);
+    source.setLastGitIgnoredPaths(gitIgnoredPaths);
 
     expect(
       source.buildGraphData(fileConnections, '/workspace', true, disabledPlugins),
@@ -350,6 +356,7 @@ describe('extension/pipeline/service/internalBase', () => {
       true,
       disabledPlugins,
       discoveredDirectories,
+      gitIgnoredPaths,
     );
 
     expect(
@@ -373,6 +380,7 @@ describe('extension/pipeline/service/internalBase', () => {
       disabledPlugins,
       discoveredDirectories,
       { nodeVisibility: { file: true, symbol: false } },
+      gitIgnoredPaths,
     );
   });
 

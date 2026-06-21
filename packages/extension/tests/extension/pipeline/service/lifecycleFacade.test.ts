@@ -159,14 +159,14 @@ describe('pipeline/service/lifecycleFacade', () => {
     vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
       installedPlugins: [
         {
-          package: '@codegraphy-dev/plugin-python',
+          package: '@codegraphy-dev/plugin-vue',
           version: '2.0.0',
           apiVersion: '^2.0.0',
           disclosures: [],
-          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
         },
       ],
-      workspaceEnabledPluginIds: new Set(['codegraphy.python']),
+      workspaceEnabledPluginIds: new Set(['codegraphy.vue']),
     });
     vi.mocked(invalidateWorkspacePipelineFiles).mockReturnValue(['src/a.ts']);
     vi.mocked(resolveWorkspacePipelinePluginFilePaths).mockReturnValue(['/workspace/src/a.ts']);
@@ -186,14 +186,14 @@ describe('pipeline/service/lifecycleFacade', () => {
       {
         installedPlugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
-        workspaceEnabledPluginIds: new Set(['codegraphy.python']),
+        workspaceEnabledPluginIds: new Set(['codegraphy.vue']),
       },
     );
   });
@@ -215,7 +215,6 @@ describe('pipeline/service/lifecycleFacade', () => {
     lifecycleState(facade)._registry.list.mockReturnValue([
       { plugin: { id: 'codegraphy.markdown', name: 'Markdown' } },
       { plugin: { id: 'codegraphy.vue', name: 'Vue' } },
-      { plugin: { id: 'codegraphy.python', name: 'Python' } },
     ]);
 
     expect(facade.getPluginNamesForIds([

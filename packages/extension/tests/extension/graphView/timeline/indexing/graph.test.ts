@@ -21,7 +21,7 @@ const rawGraphData: IGraphData = {
       from: 'src/c.ts',
       to: 'src/b.ts',
       kind: 'import',
-      sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+      sources: [{ id: 'codegraphy.vue:import', pluginId: 'codegraphy.vue', sourceId: 'import', label: 'Import' }],
     },
   ],
 };
@@ -39,7 +39,7 @@ describe('graphView/timeline/indexing/filtering', () => {
         from: 'src/c.ts',
         to: 'src/b.ts',
         kind: 'import',
-        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+        sources: [{ id: 'codegraphy.vue:import', pluginId: 'codegraphy.vue', sourceId: 'import', label: 'Import' }],
       },
     ]);
   });
@@ -73,7 +73,7 @@ describe('graphView/timeline/indexing/filtering', () => {
         from: 'src/c.ts',
         to: 'src/b.ts',
         kind: 'import',
-        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+        sources: [{ id: 'codegraphy.vue:import', pluginId: 'codegraphy.vue', sourceId: 'import', label: 'Import' }],
       },
     ]);
   });
@@ -108,7 +108,7 @@ describe('graphView/timeline/indexing/filtering', () => {
         from: 'src/c.ts',
         to: 'src/b.ts',
         kind: 'import',
-        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+        sources: [{ id: 'codegraphy.vue:import', pluginId: 'codegraphy.vue', sourceId: 'import', label: 'Import' }],
       },
     ]);
   });
@@ -137,7 +137,7 @@ describe('graphView/timeline/indexing/filtering', () => {
         from: 'src/c.ts',
         to: 'src/b.ts',
         kind: 'import',
-        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+        sources: [{ id: 'codegraphy.vue:import', pluginId: 'codegraphy.vue', sourceId: 'import', label: 'Import' }],
       },
       {
         id: 'src/a.ts->src/c.ts#reference',

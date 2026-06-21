@@ -93,11 +93,9 @@ export function discoverMutationPackageNames(repoRoot: string): string[] {
     'core',
     'extension',
     'mcp',
-    'plugin-csharp',
     'plugin-godot',
     'plugin-unity',
     'plugin-markdown',
-    'plugin-python',
     'plugin-typescript',
   ].filter((packageName) => (
     resolveCodeGraphyQualityTarget(repoRoot, packageName).kind === 'package'

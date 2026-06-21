@@ -21,6 +21,48 @@ function makeContext() {
   };
 }
 
+function makeWatcher(listeners: {
+  change?: (uri: { fsPath: string }) => void;
+  create?: (uri: { fsPath: string }) => void;
+  delete?: (uri: { fsPath: string }) => void;
+}) {
+  return {
+    onDidCreate: vi.fn((cb) => {
+      listeners.create = cb;
+      return { dispose: vi.fn() };
+    }),
+    onDidDelete: vi.fn((cb) => {
+      listeners.delete = cb;
+      return { dispose: vi.fn() };
+    }),
+    onDidChange: vi.fn((cb) => {
+      listeners.change = cb;
+      return { dispose: vi.fn() };
+    }),
+    dispose: vi.fn(),
+  } as unknown as vscode.FileSystemWatcher;
+}
+
+function installWatcherMocks() {
+  const fileListeners: {
+    change?: (uri: { fsPath: string }) => void;
+    create?: (uri: { fsPath: string }) => void;
+    delete?: (uri: { fsPath: string }) => void;
+  } = {};
+  const gitignoreListeners: {
+    change?: (uri: { fsPath: string }) => void;
+    create?: (uri: { fsPath: string }) => void;
+    delete?: (uri: { fsPath: string }) => void;
+  } = {};
+  vi.mocked(vscode.workspace.createFileSystemWatcher).mockImplementation((globPattern) =>
+    globPattern === '**/.gitignore'
+      ? makeWatcher(gitignoreListeners)
+      : makeWatcher(fileListeners),
+  );
+
+  return { fileListeners, gitignoreListeners };
+}
+
 describe('registerFileWatcher', () => {
 
     beforeEach(() => {
@@ -41,7 +83,7 @@ describe('registerFileWatcher', () => {
 
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-      expect(context.subscriptions.length).toBe(6);
+      expect(context.subscriptions.length).toBe(11);
     });
 
 
@@ -51,22 +93,11 @@ describe('registerFileWatcher', () => {
       const context = makeContext();
       const provider = makeProvider();
 
-      // Capture the watcher mock's onDidCreate listener
-      let createListener: ((uri: { fsPath: string }) => void) | undefined;
-      const mockOnDidCreate = vi.fn((cb) => {
-        createListener = cb;
-        return { dispose: vi.fn() };
-      });
-      vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-        onDidCreate: mockOnDidCreate,
-        onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
-        onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-        dispose: vi.fn(),
-      } as unknown as vscode.FileSystemWatcher);
+      const { fileListeners } = installWatcherMocks();
 
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-      createListener!({ fsPath: '/workspace/new-file.ts' });
+      fileListeners.create!({ fsPath: '/workspace/new-file.ts' });
       vi.advanceTimersByTime(500);
 
       expect(provider.refresh).toHaveBeenCalledOnce();
@@ -82,21 +113,11 @@ describe('registerFileWatcher', () => {
       const context = makeContext();
       const provider = makeProvider();
 
-      let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
-      const mockOnDidDelete = vi.fn((cb) => {
-        deleteListener = cb;
-        return { dispose: vi.fn() };
-      });
-      vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-        onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
-        onDidDelete: mockOnDidDelete,
-        onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-        dispose: vi.fn(),
-      } as unknown as vscode.FileSystemWatcher);
+      const { fileListeners } = installWatcherMocks();
 
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-      deleteListener!({ fsPath: '/workspace/deleted-file.ts' });
+      fileListeners.delete!({ fsPath: '/workspace/deleted-file.ts' });
       vi.advanceTimersByTime(500);
 
       expect(provider.refresh).toHaveBeenCalledOnce();
@@ -136,20 +157,11 @@ describe('registerFileWatcher', () => {
       const context = makeContext();
       const provider = makeProvider();
 
-      let createListener: ((uri: { fsPath: string }) => void) | undefined;
-      vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-        onDidCreate: vi.fn((cb) => {
-          createListener = cb;
-          return { dispose: vi.fn() };
-        }),
-        onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
-        onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-        dispose: vi.fn(),
-      } as unknown as vscode.FileSystemWatcher);
+      const { fileListeners } = installWatcherMocks();
 
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-      createListener!({ fsPath: '/workspace/node_modules/react/index.js' });
+      fileListeners.create!({ fsPath: '/workspace/node_modules/react/index.js' });
 
       expect(provider.refresh).not.toHaveBeenCalled();
       expect(provider.emitEvent).not.toHaveBeenCalled();
@@ -161,20 +173,11 @@ describe('registerFileWatcher', () => {
       const context = makeContext();
       const provider = makeProvider();
 
-      let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
-      vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-        onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
-        onDidDelete: vi.fn((cb) => {
-          deleteListener = cb;
-          return { dispose: vi.fn() };
-        }),
-        onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-        dispose: vi.fn(),
-      } as unknown as vscode.FileSystemWatcher);
+      const { fileListeners } = installWatcherMocks();
 
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-      deleteListener!({ fsPath: '/workspace/.vscode/settings.json' });
+      fileListeners.delete!({ fsPath: '/workspace/.vscode/settings.json' });
 
       expect(provider.refresh).not.toHaveBeenCalled();
       expect(provider.emitEvent).not.toHaveBeenCalled();
@@ -188,20 +191,11 @@ describe('registerFileWatcher', () => {
       const provider = makeProvider();
       provider.isGraphOpen.mockReturnValue(false);
 
-      let createListener: ((uri: { fsPath: string }) => void) | undefined;
-      vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-        onDidCreate: vi.fn((cb) => {
-          createListener = cb;
-          return { dispose: vi.fn() };
-        }),
-        onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
-        onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-        dispose: vi.fn(),
-      } as unknown as vscode.FileSystemWatcher);
+      const { fileListeners } = installWatcherMocks();
 
       registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-      createListener!({ fsPath: '/workspace/new-file.ts' });
+      fileListeners.create!({ fsPath: '/workspace/new-file.ts' });
       vi.advanceTimersByTime(600);
 
       expect(provider.refresh).not.toHaveBeenCalled();

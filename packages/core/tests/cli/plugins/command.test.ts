@@ -171,9 +171,9 @@ describe('plugins/command', () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
     const record = createPluginRecord(
-      '@codegraphy-dev/plugin-python',
-      '/global/@codegraphy-dev/plugin-python',
-      'codegraphy.python',
+      '@codegraphy-dev/plugin-vue',
+      '/global/@codegraphy-dev/plugin-vue',
+      'codegraphy.vue',
     );
     writeCodeGraphyInstalledPluginCache({
       version: 1,
@@ -183,18 +183,18 @@ describe('plugins/command', () => {
     const enableResult = await runPluginsCommand({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
       workspacePath: workspaceRoot,
     }, { homeDir });
 
     expect(enableResult).toEqual({
       exitCode: 0,
-      output: `Enabled codegraphy.python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Enabled codegraphy.vue for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
       { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: true,
         options: { includeTests: true },
       },
@@ -203,18 +203,18 @@ describe('plugins/command', () => {
     const disableResult = await runPluginsCommand({
       name: 'plugins',
       action: 'disable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
       workspacePath: workspaceRoot,
     }, { homeDir });
 
     expect(disableResult).toEqual({
       exitCode: 0,
-      output: `Disabled codegraphy.python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Disabled codegraphy.vue for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
       { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: false,
         options: { includeTests: true },
       },
@@ -288,16 +288,16 @@ describe('plugins/command', () => {
           CODEGRAPHY_MARKDOWN_PLUGIN_ID,
         ),
         createPluginRecord(
-          '@codegraphy-dev/plugin-python',
-          '/global/@codegraphy-dev/plugin-python',
-          'codegraphy.python',
+          '@codegraphy-dev/plugin-vue',
+          '/global/@codegraphy-dev/plugin-vue',
+          'codegraphy.vue',
         ),
       ],
     }, { homeDir });
     await runPluginsCommand({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy-dev/plugin-python',
+      packageName: '@codegraphy-dev/plugin-vue',
       workspacePath: workspaceRoot,
     }, { homeDir });
 
@@ -310,7 +310,7 @@ describe('plugins/command', () => {
     expect(result.output).toContain(`CodeGraphy plugins for ${workspaceRoot}`);
     expect(result.output).toContain('Enabled in workspace:');
     expect(result.output).toContain(`1. ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
-    expect(result.output).toContain('2. codegraphy.python');
+    expect(result.output).toContain('2. codegraphy.vue');
     expect(result.output).toContain('Registered but disabled:');
     expect(result.output).not.toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_ID}`);
   });

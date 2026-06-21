@@ -132,7 +132,7 @@ describe('webview/graph/debug/install', () => {
           graph2ScreenCoords,
         },
       },
-      graphDataRef: { current: { nodes: [{ id: 'mesh', size: 6, x: 1, y: 2, z: 3 }] } },
+      graphDataRef: { current: { nodes: [{ baseOpacity: 0.45, color: '#525c6a', id: 'mesh', size: 6, x: 1, y: 2, z: 3 }] } },
       graphMode: '3d',
       win,
     });
@@ -146,6 +146,8 @@ describe('webview/graph/debug/install', () => {
       containerWidth: 200,
       graphMode: '3d',
       nodes: [{
+        baseOpacity: 0.45,
+        color: '#525c6a',
         id: 'mesh',
         screenX: 4,
         screenY: 5,
@@ -195,6 +197,8 @@ describe('webview/graph/debug/install', () => {
       graphDataRef: {
         current: {
           nodes: [{
+            baseOpacity: 0.8,
+            color: '#123456',
             id: 'flat',
             shapeSize2D: {
               height: 20,
@@ -223,6 +227,8 @@ describe('webview/graph/debug/install', () => {
       containerWidth: 80,
       graphMode: '2d',
       nodes: [{
+        baseOpacity: 0.8,
+        color: '#123456',
         id: 'flat',
         screenX: 3,
         shapeSize2D: {
