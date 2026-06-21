@@ -3,6 +3,8 @@ interface GraphDebugSnapshot {
   containerWidth: number;
   graphMode: '2d' | '3d';
   nodes: Array<{
+    baseOpacity?: number;
+    color?: string;
     id: string;
     screenX: number;
     screenY: number;

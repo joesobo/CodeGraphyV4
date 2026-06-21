@@ -24,6 +24,7 @@ describe('pipeline/service/discovery', () => {
         directories: ['src/new-folder'],
         durationMs: 12,
         files: [{ relativePath: 'src/a.ts' }],
+        gitIgnoredPaths: ['example-python/app.py'],
         limitReached: false,
         totalFound: undefined,
       })),
@@ -37,6 +38,7 @@ describe('pipeline/service/discovery', () => {
       directories: ['src/new-folder'],
       durationMs: 12,
       files: [{ relativePath: 'src/a.ts' }],
+      gitIgnoredPaths: ['example-python/app.py'],
       limitReached: false,
       totalFound: 1,
     });

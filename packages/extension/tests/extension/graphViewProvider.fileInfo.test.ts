@@ -85,8 +85,8 @@ describe('GraphViewProvider file info', () => {
           kind: 'import',
           sources: [
             {
-              id: 'codegraphy.python:import',
-              pluginId: 'codegraphy.python',
+              id: 'codegraphy.vue:import',
+              pluginId: 'codegraphy.vue',
               sourceId: 'import',
               label: 'Python import',
             },

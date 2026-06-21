@@ -122,6 +122,44 @@ describe('extension/graphView/controls/send', () => {
     ]));
   });
 
+  it('does not expose unsupported core edge rows from graph data when capabilities are declared', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphControlsUpdated(
+      {
+        nodes: [
+          { id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' },
+          { id: 'src/lib.ts', label: 'Lib', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          { id: 'src/app.ts->src/lib.ts#import', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import', sources: [] },
+          { id: 'src/app.ts->src/lib.ts#reference', from: 'src/app.ts', to: 'src/lib.ts', kind: 'reference', sources: [] },
+        ],
+      },
+      {
+        registry: {
+          listEdgeTypes: () => [],
+          listGraphScopeCapabilities: () => ({
+            nodeTypes: [],
+            edgeTypes: ['import', 'type-import', 'call', 'inherit', 'contains'],
+          }),
+        },
+      },
+      sendMessage,
+      { get: <T>(_key: string, defaultValue: T): T => defaultValue },
+    );
+
+    const payload = sendMessage.mock.calls[0][0].payload as IGraphControlsSnapshot;
+    expect(payload.edgeTypes.map(edgeType => edgeType.id)).toEqual([
+      'import',
+      'call',
+      'type-import',
+      'inherit',
+      'nests',
+      'contains',
+    ]);
+  });
+
   it('passes disabled plugins through graph control definition and capability reads', () => {
     const sendMessage = vi.fn();
     const disabledPlugins = new Set(['codegraphy.godot']);

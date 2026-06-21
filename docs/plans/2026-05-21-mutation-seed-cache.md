@@ -298,10 +298,8 @@ Results from the repeat validation after fixing the quality-tools dry-run failur
 | --- | --- |
 | `core` | reached 5-minute cap after successful package dry run |
 | `mcp` | completed, reused `492` of `516` mutants |
-| `plugin-csharp` | completed, reused `2` of `2` mutants |
 | `plugin-godot` | reached 5-minute cap after successful package dry run |
 | `plugin-markdown` | completed, reused `109` of `117` mutants |
-| `plugin-python` | completed, reused `2` of `2` mutants |
 | `plugin-typescript` | completed, reused `2` of `2` mutants |
 | `quality-tools` | reached 5-minute cap after successful `1,560` test dry run |
 | `extension` | reached 5-minute cap after successful `5,436` test dry run |

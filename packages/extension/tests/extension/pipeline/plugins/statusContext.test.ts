@@ -33,12 +33,12 @@ describe('pipeline/plugins/statusContext', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
-            pluginId: 'codegraphy.python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
+            pluginId: 'codegraphy.vue',
           },
           {
             package: '@codegraphy-dev/plugin-godot',
@@ -60,17 +60,17 @@ describe('pipeline/plugins/statusContext', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      plugins: [{ id: 'codegraphy.python', enabled: true }],
+      plugins: [{ id: 'codegraphy.vue', enabled: true }],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-vue',
       '@codegraphy-dev/plugin-godot',
     ]);
-    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.python')).toBe(true);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.vue')).toBe(true);
     expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.godot')).toBe(false);
   });
 
@@ -80,11 +80,11 @@ describe('pipeline/plugins/statusContext', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
       },
@@ -95,10 +95,10 @@ describe('pipeline/plugins/statusContext', () => {
 
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-vue',
     ]);
     expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(true);
-    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.python')).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.vue')).toBe(false);
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 

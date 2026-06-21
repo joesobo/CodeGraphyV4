@@ -63,6 +63,28 @@ describe('graph/tooltip/state', () => {
     expect(result.shouldRequestFileInfo).toBe(false);
   });
 
+  it('adds a gitignore tooltip section for gitignored filesystem nodes', () => {
+    const result = buildGraphTooltipState({
+      nodeId: 'generated/output.ts',
+      snapshot: {
+        nodes: [{
+          id: 'generated/output.ts',
+          label: 'output.ts',
+          color: '#93C5FD',
+          metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
+        }],
+        edges: [],
+      },
+      rect: null,
+      cachedInfo: null,
+      pluginSections: [],
+    });
+
+    expect(result.tooltipData.pluginSections).toEqual([
+      { title: 'Git ignored', content: 'Reported ignored by Git' },
+    ]);
+  });
+
   it('hides tooltip state and clears plugin-owned UI affordances', () => {
     const previousState: GraphTooltipState = {
       visible: true,

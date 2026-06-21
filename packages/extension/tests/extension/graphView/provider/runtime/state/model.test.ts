@@ -28,11 +28,13 @@ const stateHarness = vi.hoisted(() => {
     isGraphViewVisible: vi.fn(() => false),
     mergePendingWorkspaceRefresh: vi.fn(
       (
-        previous: { filePaths: Set<string>; logMessage: string } | undefined,
+        previous: { filePaths: Set<string>; gitignoreRefresh?: boolean; logMessage: string } | undefined,
         logMessage: string,
         filePaths: readonly string[],
+        options?: { gitignoreRefresh?: boolean },
       ) => ({
         filePaths: new Set([...(previous?.filePaths ?? []), ...filePaths]),
+        gitignoreRefresh: previous?.gitignoreRefresh === true || options?.gitignoreRefresh === true,
         logMessage,
       }),
     ),
@@ -58,6 +60,7 @@ const stateHarness = vi.hoisted(() => {
       physicsSettings: {},
       refresh: {
         refresh: vi.fn(async () => undefined),
+        refreshGitignoreMetadata: vi.fn(async () => undefined),
         refreshChangedFiles: undefined as undefined | ((filePaths: readonly string[]) => Promise<void>),
       },
       settingsState: {
@@ -217,10 +220,11 @@ vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/refres
   invalidateWorkspaceFiles: (analyzer: unknown, filePaths: readonly string[]) =>
     stateHarness.invalidateWorkspaceFiles(analyzer, filePaths),
   mergePendingWorkspaceRefresh: (
-    previous: { filePaths: Set<string>; logMessage: string } | undefined,
+    previous: { filePaths: Set<string>; gitignoreRefresh?: boolean; logMessage: string } | undefined,
     logMessage: string,
     filePaths: readonly string[],
-  ) => stateHarness.mergePendingWorkspaceRefresh(previous, logMessage, filePaths),
+    options?: { gitignoreRefresh?: boolean },
+  ) => stateHarness.mergePendingWorkspaceRefresh(previous, logMessage, filePaths, options),
 }));
 
 vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/visibility', () => ({
@@ -385,6 +389,32 @@ describe('graphView/provider/runtime/state/model', () => {
     ]);
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created');
     expect(runtime._pendingWorkspaceRefresh).toBeUndefined();
+
+    consoleSpy.mockRestore();
+  });
+
+  it('flushes pending gitignore refreshes through metadata refresh when available', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const refreshChangedFiles = vi.fn(async () => undefined);
+    const refreshGitignoreMetadata = vi.fn(async () => undefined);
+    stateHarness.methodContainers.refresh.refreshChangedFiles = refreshChangedFiles;
+    stateHarness.methodContainers.refresh.refreshGitignoreMetadata = refreshGitignoreMetadata;
+    stateHarness.isGraphViewVisible.mockReturnValue(true);
+    const runtime = new TestRuntimeState(
+      vscode.Uri.file('/extension'),
+      createContext() as never,
+    );
+
+    runtime.markWorkspaceRefreshPending(
+      '[CodeGraphy] .gitignore changed',
+      ['/workspace/.gitignore'],
+      { gitignoreRefresh: true },
+    );
+    runtime.flushPendingWorkspaceRefresh();
+
+    expect(refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(refreshChangedFiles).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] .gitignore changed');
 
     consoleSpy.mockRestore();
   });
