@@ -232,14 +232,131 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: Language examples
+          - label: Language examples - C family and Dart
             suite: examples
             timeout-minutes: 15
-          - label: Graph interactions
+            grep: 'C\+\+ Example|(^|[^-])C Example|C# Example|Dart Example'
+            artifact-suffix: examples-c-family-dart
+            workers: 1
+          - label: Language examples - Go, Godot, and Haskell
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Go Example|Godot Example|Haskell Example'
+            artifact-suffix: examples-go-godot-haskell
+            workers: 1
+          - label: Language examples - Java
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Java Example'
+            artifact-suffix: examples-java
+            workers: 1
+          - label: Language examples - JavaScript
+            suite: examples
+            timeout-minutes: 15
+            grep: 'JavaScript Example'
+            artifact-suffix: examples-javascript
+            workers: 1
+          - label: Language examples - Kotlin
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Kotlin Example'
+            artifact-suffix: examples-kotlin
+            workers: 1
+          - label: Language examples - Lua, Markdown, and Objective-C
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Lua Example|Markdown Example|Objective-C Example'
+            artifact-suffix: examples-lua-markdown-objective-c
+            workers: 1
+          - label: Language examples - Pascal
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Pascal Example'
+            artifact-suffix: examples-pascal
+            workers: 1
+          - label: Language examples - PHP
+            suite: examples
+            timeout-minutes: 15
+            grep: 'PHP Example'
+            artifact-suffix: examples-php
+            workers: 1
+          - label: Language examples - Python
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Python Example'
+            artifact-suffix: examples-python
+            workers: 1
+          - label: Language examples - Ruby, Rust, and Scala
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Ruby Example|Rust Example|Scala Example'
+            artifact-suffix: examples-ruby-rust-scala
+            workers: 1
+          - label: Language examples - Svelte, Swift, and TypeScript
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Svelte Example|Swift Example|TypeScript Example'
+            artifact-suffix: examples-svelte-swift-typescript
+            workers: 1
+          - label: Language examples - Vue
+            suite: examples
+            timeout-minutes: 15
+            grep: 'Vue Example'
+            artifact-suffix: examples-vue
+            workers: 1
+          - label: Graph interactions - canvas basics and favorites
             suite: interactions
             timeout-minutes: 20
+            grep: 'Background Context Menu|Dragging|Edge Context Menu|Favorite'
+            artifact-suffix: interactions-canvas-basics-favorites
+            workers: 1
+          - label: Graph interactions - files, folders, and rendering
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'File Context Menu|Folder Context Menu|Graph Navigation|Graph Rendering'
+            artifact-suffix: interactions-files-folders-rendering
+            workers: 1
+          - label: Graph scope - edge types
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'Graph Scope Edge Types'
+            artifact-suffix: scope-edge-types
+            workers: 1
+          - label: Graph scope - core node types
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'Graph Scope Node Types.*\b(File|Folder|Package|Symbol|Namespace|Function|Prototype|Class)\b node type|Graph Scope Node Types - TypeScript TypeScript plugin node types show symbols'
+            artifact-suffix: scope-core-node-types
+            workers: 1
+          - label: Graph scope - contract and member node types
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'Graph Scope Node Types.*\b(Interface|Type|Struct|Union|Enum|Typedef|Callable|Method|Alias|Record|Delegate|Constructor|Property|Event)\b node type'
+            artifact-suffix: scope-contract-member-node-types
+            workers: 1
+          - label: Graph scope - value nodes and view modes
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'Graph Scope Node Types.*\b(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name)\b node type|Graph Theme'
+            artifact-suffix: scope-value-nodes-view-modes
+            workers: 1
+          - label: Graph interactions - hover and selection
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'Hover|Multi File Node Context Menu|Selection'
+            artifact-suffix: interactions-hover-selection
+            workers: 1
+          - label: Graph interactions - startup and ignored files
+            suite: interactions
+            timeout-minutes: 20
+            grep: 'Graph View'
+            artifact-suffix: interactions-startup-ignored-files
+            workers: 1
     env:
       CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
+      CODEGRAPHY_VSCODE_PLAYWRIGHT_GREP: ${{ matrix.grep }}
+      CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS: ${{ matrix.workers }}
+      CODEGRAPHY_VSCODE_TEST_VERSION: 1.125.1
 
     steps:
       - name: Checkout
@@ -261,30 +378,50 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Compute Playwright Turbo cache key
+        id: playwright-turbo-key
+        run: |
+          node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-dry-run.json
+          node scripts/playwright-turbo-cache.mjs key turbo-playwright-dry-run.json
+
       - name: Restore Turbo cache
+        id: playwright-turbo-cache
         uses: actions/cache@v5
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-playwright-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            ${{ runner.os }}-turbo-playwright-
-            ${{ runner.os }}-turbo-
+            ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-${{ steps.playwright-turbo-key.outputs.hash }}-
+            ${{ runner.os }}-turbo-playwright-${{ matrix.artifact-suffix }}-
+            ${{ runner.os }}-turbo-build-
 
       - name: Check Playwright Turbo cache
-        id: playwright-turbo-cache
+        id: playwright-turbo-status
         run: |
-          node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-dry-run.json
-          node <<'NODE' >> "$GITHUB_OUTPUT"
-          const fs = require('node:fs');
-          const dryRun = JSON.parse(fs.readFileSync('turbo-playwright-dry-run.json', 'utf8'));
-          const tasks = dryRun.tasks.filter((entry) => entry.task === 'test:playwright');
-          const isHit = tasks.length > 0 && tasks.every((entry) => entry.cache?.status === 'HIT');
-          console.log(`hit=${isHit ? 'true' : 'false'}`);
-          NODE
+          node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-restored-dry-run.json
+          node scripts/playwright-turbo-cache.mjs status turbo-playwright-restored-dry-run.json
 
-      - name: Install Playwright browser + system deps
-        if: steps.playwright-turbo-cache.outputs.hit != 'true'
-        run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
+      - name: Restore VS Code test host cache
+        if: steps.playwright-turbo-status.outputs.cached != 'true'
+        uses: actions/cache@v5
+        with:
+          path: packages/extension/.vscode-test
+          key: ${{ runner.os }}-vscode-test-host-${{ env.CODEGRAPHY_VSCODE_TEST_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-vscode-test-host-
+
+      - name: Install VS Code test host
+        if: steps.playwright-turbo-status.outputs.cached != 'true'
+        working-directory: packages/extension
+        run: |
+          node --input-type=module <<'NODE'
+          import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+
+          await downloadAndUnzipVSCode({
+            version: process.env.CODEGRAPHY_VSCODE_TEST_VERSION,
+            cachePath: '.vscode-test',
+          });
+          NODE
 
       - name: VS Code Playwright tests
         run: xvfb-run --auto-servernum node scripts/run-playwright-turbo.mjs
@@ -293,7 +430,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report-${{ matrix.suite }}
+          name: playwright-report-${{ matrix.artifact-suffix }}
           path: playwright-report/
           retention-days: 30
 
@@ -301,8 +438,9 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-test-results-${{ matrix.suite }}
+          name: playwright-test-results-${{ matrix.artifact-suffix }}
           path: test-results/
+          if-no-files-found: ignore
           retention-days: 30
 
   build:
