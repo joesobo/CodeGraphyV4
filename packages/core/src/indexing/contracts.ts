@@ -38,6 +38,7 @@ export interface IndexCodeGraphyWorkspaceResult {
   cache: IWorkspaceAnalysisCache;
   files: IDiscoveredFile[];
   directories: string[];
+  gitIgnoredPaths?: string[];
   limitReached: boolean;
   totalFound: number;
 }

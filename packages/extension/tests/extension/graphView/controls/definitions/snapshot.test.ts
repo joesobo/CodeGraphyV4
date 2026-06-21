@@ -307,6 +307,42 @@ describe('extension/graphView/controls/snapshot', () => {
     ]);
   });
 
+  it('does not add the legacy References row when type edges are explicitly supported', () => {
+    const snapshot = captureGraphControlsSnapshot(
+      {
+        get: <T>(_key: string, defaultValue: T): T => defaultValue,
+      },
+      {
+        nodes: [
+          { id: 'src/Program.cs', label: 'Program.cs', color: '#111111', nodeType: 'file' },
+          { id: 'src/Models/TaskItem.cs', label: 'TaskItem.cs', color: '#222222', nodeType: 'file' },
+        ],
+        edges: [
+          {
+            id: 'src/Program.cs->src/Models/TaskItem.cs#type',
+            from: 'src/Program.cs',
+            to: 'src/Models/TaskItem.cs',
+            kind: 'type',
+            sources: [],
+          },
+        ],
+      },
+      [],
+      [],
+      { nodeTypes: [], edgeTypes: ['using', 'type', 'call', 'inherit', 'implements', 'contains'] },
+    );
+
+    expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toEqual([
+      'using',
+      'type',
+      'call',
+      'inherit',
+      'implements',
+      STRUCTURAL_NESTS_EDGE_KIND,
+      'contains',
+    ]);
+  });
+
   it('does not infer the legacy References row from indexed C++ edges', () => {
     const snapshot = captureGraphControlsSnapshot(
       {

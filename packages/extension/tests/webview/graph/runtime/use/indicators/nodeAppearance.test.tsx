@@ -180,6 +180,60 @@ describe('graph/runtime/useNodeAppearance', () => {
         size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(undefined),
       });
     });
+
+    it('dims gitignored file and folder nodes without changing visible size or border width', () => {
+      const graphNodes = [
+        createGraphNode('generated/output.ts'),
+        createGraphNode('generated'),
+        createGraphNode('src/app.ts'),
+      ];
+
+      applyNodeAppearance({
+        data: createData([
+          {
+            color: '#112233',
+            id: 'generated/output.ts',
+            label: 'output.ts',
+            metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
+          },
+          {
+            color: '#445566',
+            id: 'generated',
+            label: 'generated',
+            nodeType: 'folder',
+            metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
+          },
+          {
+            color: '#778899',
+            id: 'src/app.ts',
+            label: 'app.ts',
+          },
+        ]),
+        favorites: new Set<string>(),
+        graphNodes,
+        nodeSizeMode: 'uniform',
+        theme: 'dark',
+      });
+
+      expect(graphNodes[0]).toMatchObject({
+        baseOpacity: 0.45,
+        borderColor: '#525c6a',
+        color: '#525c6a',
+        borderWidth: 2,
+        size: DEFAULT_NODE_SIZE,
+      });
+      expect(graphNodes[1]).toMatchObject({
+        baseOpacity: 0.45,
+        borderColor: '#606a79',
+        color: '#606a79',
+        borderWidth: 2,
+        size: DEFAULT_NODE_SIZE,
+      });
+      expect(graphNodes[2]).toMatchObject({
+        baseOpacity: 1,
+        color: '#778899',
+      });
+    });
   });
 
   describe('useNodeAppearance', () => {

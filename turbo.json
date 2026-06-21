@@ -3,7 +3,9 @@
   "globalDependencies": [
     "pnpm-lock.yaml",
     "tsconfig*.json",
-    "packages/**/tsconfig*.json",
+    "packages/*/tsconfig*.json",
+    "packages/*/src/**/tsconfig*.json",
+    "packages/*/tests/**/tsconfig*.json",
     "packages/extension/postcss.config.cjs",
     "packages/extension/tailwind.config.cjs",
     "packages/extension/vite.config.ts"
@@ -34,8 +36,10 @@
     "test:playwright": {
       "env": [
         "CI",
+        "CODEGRAPHY_VSCODE_PLAYWRIGHT_GREP",
         "CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE",
-        "CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS"
+        "CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS",
+        "CODEGRAPHY_VSCODE_TEST_VERSION"
       ],
       "outputs": [
         "$TURBO_ROOT$/playwright-report/**",

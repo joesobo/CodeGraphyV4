@@ -94,11 +94,11 @@ describe('extension/repoSettings/store', () => {
       changes.push(event.changedKeys);
     });
 
-    await store.updateSilently('plugins', [{ id: 'codegraphy.python', enabled: true }]);
+    await store.updateSilently('plugins', [{ id: 'codegraphy.vue', enabled: true }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('plugins', [])).toEqual([{ id: 'codegraphy.python', enabled: true }]);
-    expect(persisted.plugins).toEqual([{ id: 'codegraphy.python', enabled: true }]);
+    expect(store.get('plugins', [])).toEqual([{ id: 'codegraphy.vue', enabled: true }]);
+    expect(persisted.plugins).toEqual([{ id: 'codegraphy.vue', enabled: true }]);
     expect(changes).toEqual([]);
   });
 

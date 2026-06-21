@@ -151,7 +151,18 @@ describe('graphView/builtInDefaultGroups', () => {
         color: '#8B5CF6',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
         matchNodeType: 'symbol',
-        matchSymbolKinds: ['function', 'method'],
+        matchSymbolKind: 'function',
+        isPluginDefault: true,
+        pluginName: 'CodeGraphy',
+      }),
+      expect.objectContaining({
+        id: 'default:symbol-kind:method',
+        displayLabel: 'Method',
+        pattern: '**',
+        color: '#A855F7',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'method',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
       }),
@@ -194,7 +205,6 @@ describe('graphView/builtInDefaultGroups', () => {
     ]));
 
     expect(groups.map((group) => group.id)).not.toEqual(expect.arrayContaining([
-      'default:symbol-kind:method',
       'default:symbol-kind:struct',
       'default:symbol-kind:enum',
       'default:symbol-kind:plugin',

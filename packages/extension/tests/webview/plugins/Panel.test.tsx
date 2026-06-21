@@ -246,10 +246,10 @@ describe('PluginsPanel', () => {
   it('does not render runtime availability subtext for plugin rows', () => {
     renderPanel([
       {
-        id: '@codegraphy-dev/plugin-python',
-        name: '@codegraphy-dev/plugin-python',
+        id: '@codegraphy-dev/plugin-vue',
+        name: '@codegraphy-dev/plugin-vue',
         version: '2.0.0',
-        packageName: '@codegraphy-dev/plugin-python',
+        packageName: '@codegraphy-dev/plugin-vue',
         supportedExtensions: [],
         status: 'unavailable',
         enabled: true,
@@ -257,7 +257,7 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(screen.getByTestId('plugin-row')).toHaveTextContent('@codegraphy-dev/plugin-python');
+    expect(screen.getByTestId('plugin-row')).toHaveTextContent('@codegraphy-dev/plugin-vue');
     expect(screen.getByTestId('plugin-row').querySelector('.text-\\[10px\\]')).toBeNull();
   });
 

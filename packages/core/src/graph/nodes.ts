@@ -15,11 +15,14 @@ import {
   isExternalPackageNodeId,
 } from './packageSpecifiers/nodeId';
 
+const GIT_IGNORED_REASON = 'Git ignored';
+
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;
   churnCounts: Record<string, number>;
   connectedIds: ReadonlySet<string>;
   directoryPaths?: readonly string[];
+  gitIgnoredPaths?: readonly string[];
   nodeIds: ReadonlySet<string>;
   showOrphans: boolean;
 }
@@ -47,6 +50,7 @@ function collectFolderPathsFromFileNodes(nodeIds: ReadonlySet<string>): Set<stri
 
 function buildDiscoveredDirectoryNodes(
   directoryPaths: readonly string[],
+  gitIgnoredPathSet: ReadonlySet<string>,
   nodeIds: ReadonlySet<string>,
 ): IGraphNode[] {
   const fileFolderPaths = collectFolderPathsFromFileNodes(nodeIds);
@@ -55,7 +59,12 @@ function buildDiscoveredDirectoryNodes(
 
   for (const directoryPath of directoryPaths) {
     const normalizedPath = normalizeDirectoryPath(directoryPath);
-    if (!normalizedPath || fileFolderPaths.has(normalizedPath) || seen.has(normalizedPath)) {
+    const isGitIgnoredDirectory = gitIgnoredPathSet.has(normalizedPath);
+    if (
+      !normalizedPath
+      || (!isGitIgnoredDirectory && fileFolderPaths.has(normalizedPath))
+      || seen.has(normalizedPath)
+    ) {
       continue;
     }
 
@@ -65,6 +74,9 @@ function buildDiscoveredDirectoryNodes(
       label: normalizedPath.split('/').pop() ?? normalizedPath,
       color: DEFAULT_FOLDER_NODE_COLOR,
       nodeType: 'folder',
+      ...(isGitIgnoredDirectory
+        ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
+        : {}),
     });
   }
 
@@ -79,11 +91,13 @@ export function buildWorkspaceGraphNodes(
     churnCounts,
     connectedIds,
     directoryPaths = [],
+    gitIgnoredPaths = [],
     nodeIds,
     showOrphans,
   } = options;
 
   const nodes: IGraphNode[] = [];
+  const gitIgnoredPathSet = new Set(gitIgnoredPaths.map(normalizeDirectoryPath));
 
   for (const filePath of nodeIds) {
     if (!showOrphans && !connectedIds.has(filePath)) {
@@ -108,11 +122,14 @@ export function buildWorkspaceGraphNodes(
       color: DEFAULT_NODE_COLOR,
       fileSize: cacheFiles[filePath]?.size,
       churn: churnCounts[filePath] ?? 0,
+      ...(gitIgnoredPathSet.has(filePath)
+        ? { metadata: { gitIgnored: true, gitIgnoredReason: GIT_IGNORED_REASON } }
+        : {}),
     });
   }
 
   return [
     ...nodes,
-    ...buildDiscoveredDirectoryNodes(directoryPaths, nodeIds),
+    ...buildDiscoveredDirectoryNodes(directoryPaths, gitIgnoredPathSet, nodeIds),
   ];
 }

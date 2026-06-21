@@ -254,9 +254,9 @@ describe('graphView/pluginDefaultGroups', () => {
             },
             {
               plugin: {
-                id: 'codegraphy.python',
-                name: 'Python',
-                fileColors: { '*.py': '#3776AB' },
+                id: 'codegraphy.vue',
+                name: 'Vue',
+                fileColors: { '*.vue': '#41B883' },
               },
             },
           ],
@@ -269,12 +269,12 @@ describe('graphView/pluginDefaultGroups', () => {
 
     expect(groups).toEqual([
       {
-        id: 'plugin:codegraphy.python:*.py',
-        pattern: '*.py',
-        color: '#3776AB',
+        id: 'plugin:codegraphy.vue:*.vue',
+        pattern: '*.vue',
+        color: '#41B883',
         isPluginDefault: true,
-        pluginId: 'codegraphy.python',
-        pluginName: 'Python',
+        pluginId: 'codegraphy.vue',
+        pluginName: 'Vue',
       },
     ]);
   });

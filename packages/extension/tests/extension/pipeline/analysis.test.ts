@@ -190,9 +190,12 @@ describe('WorkspacePipeline analysis', () => {
 
     expect(graph.edges.map(edge => edge.id)).toEqual(
       expect.arrayContaining([
-        'src/Program.cs->src/Services/ApiService.cs#import',
-        'src/Program.cs->src/Utils/Helpers.cs#import',
-        'src/Services/ApiService.cs->src/Contracts/IRunner.cs#import',
+        'src/Program.cs->src/Services/ApiService.cs#call',
+        'src/Program.cs->src/Services/ApiService.cs#using',
+        'src/Program.cs->src/Utils/Helpers.cs#call',
+        'src/Program.cs->src/Utils/Helpers.cs#using',
+        'src/Services/ApiService.cs->src/Contracts/IRunner.cs#implements',
+        'src/Services/ApiService.cs->src/Contracts/IRunner.cs#using',
       ]),
     );
   });

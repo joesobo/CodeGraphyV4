@@ -1,7 +1,8 @@
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { resolveCSharpTypePathInNamespace } from '../csharpIndex';
 import { normalizeCSharpTypeName } from './resolution';
-import { addImportRelation } from '../analyze/results';
+import { addRelation } from '../analyze/results';
+import { TREE_SITTER_SOURCE_IDS } from '../languages';
 
 type CSharpUsingTargetRelation = IAnalysisRelation & {
   resolvedPath: string;
@@ -10,7 +11,12 @@ type CSharpUsingTargetRelation = IAnalysisRelation & {
 
 function isCSharpUsingTargetRelation(relation: IAnalysisRelation): relation is CSharpUsingTargetRelation {
   return (
-    (relation.kind === 'reference' || relation.kind === 'inherit')
+    (
+      relation.kind === 'type'
+      || relation.kind === 'call'
+      || relation.kind === 'implements'
+      || relation.kind === 'inherit'
+    )
     && Boolean(relation.resolvedPath)
     && Boolean(relation.specifier)
   );
@@ -53,12 +59,11 @@ function appendNamespaceImportRelations(
   for (const namespaceName of usingNamespaces) {
     const targetPaths = importTargetsByNamespace.get(namespaceName);
     if (!targetPaths || targetPaths.size === 0) {
-      addImportRelation(relations, filePath, namespaceName, null);
       continue;
     }
 
     for (const targetPath of targetPaths) {
-      addImportRelation(relations, filePath, namespaceName, targetPath);
+      addCSharpUsingRelation(relations, filePath, namespaceName, targetPath);
     }
   }
 }
@@ -83,4 +88,20 @@ export function appendCSharpUsingImportRelations(
     usingNamespaces,
     importTargetsByNamespace,
   );
+}
+
+function addCSharpUsingRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null,
+): void {
+  addRelation(relations, {
+    kind: 'using',
+    sourceId: TREE_SITTER_SOURCE_IDS.using,
+    fromFilePath: filePath,
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+  });
 }

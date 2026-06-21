@@ -308,18 +308,18 @@ describe('WorkspacePipeline adapters', () => {
       '/test/workspace',
       undefined,
       undefined,
-      ['codegraphy.python'],
+      ['codegraphy.vue'],
     );
 
     expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
       BASELINE_ANALYSIS_CACHE_TIER,
-      createPluginAnalysisCacheTier('codegraphy.python'),
+      createPluginAnalysisCacheTier('codegraphy.vue'),
     ]);
     expect(analyzePluginFileSpy).toHaveBeenCalledWith(
       file.absolutePath,
       'print("hi")',
       '/test/workspace',
-      ['codegraphy.python'],
+      ['codegraphy.vue'],
       expectWorkspaceAnalysisContext(false),
       { disabledPlugins: new Set() },
     );

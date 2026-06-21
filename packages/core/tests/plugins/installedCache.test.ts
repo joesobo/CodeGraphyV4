@@ -120,13 +120,13 @@ describe('CodeGraphy Plugin Registry', () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
 
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {
-      package: '@codegraphy-dev/plugin-python',
+      package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
       apiVersion: '^2.0.0',
       defaultOptions: { includeTests: true },
       disclosures: [],
-      packageRoot: '/global/@codegraphy-dev/plugin-python',
-      pluginId: 'codegraphy.python',
+      packageRoot: '/global/@codegraphy-dev/plugin-vue',
+      pluginId: 'codegraphy.vue',
     });
 
     expect(readCodeGraphyInstalledPluginCache({
@@ -137,7 +137,7 @@ describe('CodeGraphy Plugin Registry', () => {
     ).plugins).toEqual([
       { id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: true,
         options: { includeTests: true },
       },
@@ -149,32 +149,32 @@ describe('CodeGraphy Plugin Registry', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: true,
         options: { includeTests: false },
       }],
     });
 
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {
-      package: '@codegraphy-dev/plugin-python',
+      package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
       apiVersion: '^2.0.0',
       defaultOptions: { includeTests: true, pythonVersion: '3.12' },
       disclosures: [],
-      packageRoot: '/global/@codegraphy-dev/plugin-python',
-      pluginId: 'codegraphy.python',
+      packageRoot: '/global/@codegraphy-dev/plugin-vue',
+      pluginId: 'codegraphy.vue',
     });
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
-      id: 'codegraphy.python',
+      id: 'codegraphy.vue',
       enabled: true,
       options: { includeTests: false, pythonVersion: '3.12' },
     }]);
 
-    disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.python');
+    disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.vue');
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
-      id: 'codegraphy.python',
+      id: 'codegraphy.vue',
       enabled: false,
       options: { includeTests: false, pythonVersion: '3.12' },
     }]);
@@ -182,30 +182,30 @@ describe('CodeGraphy Plugin Registry', () => {
 
   it('reads optional package manifests and returns null for missing or non-plugin packages', async () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
-    await createPackage(packageRoot, '@codegraphy-dev/plugin-python', {
+    await createPackage(packageRoot, '@codegraphy-dev/plugin-vue', {
       version: '1.2.3',
       codegraphy: {
         type: 'plugin',
         apiVersion: '^2.0.0',
       },
     }, {
-      id: 'codegraphy.python',
-      name: 'Python',
-      supportedExtensions: ['.py'],
+      id: 'codegraphy.vue',
+      name: 'Vue',
+      supportedExtensions: ['.vue'],
     });
     await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
       version: '1.0.0',
     });
-    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-python');
+    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-vue');
     const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
 
     await expect(readPackageManifest(pluginRoot)).resolves.toEqual({
-      package: '@codegraphy-dev/plugin-python',
+      package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
       apiVersion: '^2.0.0',
-      pluginId: 'codegraphy.python',
-      pluginName: 'Python',
-      supportedExtensions: ['.py'],
+      pluginId: 'codegraphy.vue',
+      pluginName: 'Vue',
+      supportedExtensions: ['.vue'],
       disclosures: [],
       packageRoot: pluginRoot,
     });
@@ -231,7 +231,7 @@ describe('CodeGraphy Plugin Registry', () => {
 
   it('requires a matching CodeGraphy plugin package manifest', async () => {
     const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
-    await createPackage(packageRoot, '@codegraphy-dev/plugin-python', {
+    await createPackage(packageRoot, '@codegraphy-dev/plugin-vue', {
       version: '1.2.3',
       codegraphy: {
         type: 'plugin',
@@ -239,7 +239,7 @@ describe('CodeGraphy Plugin Registry', () => {
         disclosures: ['network'],
       },
     }, {
-      id: 'codegraphy.python',
+      id: 'codegraphy.vue',
     });
     await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
       version: '1.0.0',
@@ -253,24 +253,24 @@ describe('CodeGraphy Plugin Registry', () => {
     }, {
       id: 'codegraphy.ruby',
     });
-    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-python');
+    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-vue');
     const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
     const mismatchedRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-ruby');
 
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-python', pluginRoot)).resolves.toEqual({
-      package: '@codegraphy-dev/plugin-python',
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', pluginRoot)).resolves.toEqual({
+      package: '@codegraphy-dev/plugin-vue',
       version: '1.2.3',
       apiVersion: '^2.0.0',
-      pluginId: 'codegraphy.python',
+      pluginId: 'codegraphy.vue',
       disclosures: ['network'],
       packageRoot: pluginRoot,
     });
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-python', path.join(pluginRoot, 'missing')))
-      .rejects.toThrow("Run `npm i -g @codegraphy-dev/plugin-python` first.");
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', path.join(pluginRoot, 'missing')))
+      .rejects.toThrow("Run `npm i -g @codegraphy-dev/plugin-vue` first.");
     await expect(readRequiredPackageManifest('@codegraphy-dev/not-a-plugin', nonPluginRoot))
       .rejects.toThrow("Package '@codegraphy-dev/not-a-plugin' is not a CodeGraphy plugin.");
-    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-python', mismatchedRoot))
-      .rejects.toThrow("Package '@codegraphy-dev/plugin-python' resolved to CodeGraphy plugin '@codegraphy-dev/plugin-ruby'.");
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-vue', mismatchedRoot))
+      .rejects.toThrow("Package '@codegraphy-dev/plugin-vue' resolved to CodeGraphy plugin '@codegraphy-dev/plugin-ruby'.");
   });
 
   it('omits empty option objects and persists disabled plugin intent', async () => {
@@ -325,15 +325,15 @@ describe('CodeGraphy Plugin Registry', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [
-        { id: 'codegraphy.python', enabled: true },
+        { id: 'codegraphy.vue', enabled: true },
         { id: 'codegraphy.ruby', enabled: true },
       ],
     });
 
-    disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.python');
+    disableCodeGraphyWorkspacePlugin(workspaceRoot, 'codegraphy.vue');
 
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
-      { id: 'codegraphy.python', enabled: false },
+      { id: 'codegraphy.vue', enabled: false },
       { id: 'codegraphy.ruby', enabled: true },
     ]);
   });

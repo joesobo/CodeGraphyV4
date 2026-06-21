@@ -52,7 +52,7 @@ describe('graph view settings toggle message', () => {
     const handled = await applySettingsToggleMessage(
       {
         type: 'TOGGLE_PLUGIN',
-        payload: { pluginId: 'codegraphy.python', enabled: false },
+        payload: { pluginId: 'codegraphy.vue', enabled: false },
       },
       state,
       handlers,
@@ -60,9 +60,9 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { id: 'codegraphy.python', enabled: false },
+      { id: 'codegraphy.vue', enabled: false },
     ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -74,7 +74,7 @@ describe('graph view settings toggle message', () => {
           return [
             { id: 'codegraphy.markdown', enabled: true },
             {
-              id: 'codegraphy.python',
+              id: 'codegraphy.vue',
               enabled: true,
               options: { includeTests: true },
             },
@@ -88,7 +88,7 @@ describe('graph view settings toggle message', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.python',
+          pluginId: 'codegraphy.vue',
           enabled: false,
         },
       },
@@ -100,7 +100,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.markdown', enabled: true },
       {
-        id: 'codegraphy.python',
+        id: 'codegraphy.vue',
         enabled: false,
         options: { includeTests: true },
       },
@@ -109,7 +109,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -132,7 +132,7 @@ describe('graph view settings toggle message', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.python',
+          pluginId: 'codegraphy.vue',
           enabled: true,
         },
       },
@@ -143,11 +143,11 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.python', enabled: true },
+      { id: 'codegraphy.vue', enabled: true },
     ]);
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
-    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
@@ -280,7 +280,7 @@ describe('graph view settings toggle message', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.python',
+          pluginId: 'codegraphy.vue',
           enabled: false,
         },
       },

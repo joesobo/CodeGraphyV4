@@ -15,8 +15,6 @@ allowBuilds:
   tree-sitter-rust: true
   tree-sitter-scala: true
   tree-sitter-typescript: true
-onlyBuiltDependencies:
-  - "@poleski/quality-tools"
 overrides:
   "ajv>fast-uri": "3.1.2"
   "hono@<4.12.21": "4.12.25"

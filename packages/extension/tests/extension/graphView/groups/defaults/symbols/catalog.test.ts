@@ -15,7 +15,21 @@ describe('graphView/default symbol group catalog', () => {
         displayLabel: 'Function',
         color: '#8B5CF6',
         matchNodeType: 'symbol',
-        matchSymbolKinds: ['function', 'method'],
+        matchSymbolKind: 'function',
+      },
+      {
+        id: 'default:symbol-kind:method',
+        displayLabel: 'Method',
+        color: '#A855F7',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'method',
+      },
+      {
+        id: 'default:symbol-kind:constructor',
+        displayLabel: 'Constructor',
+        color: '#C084FC',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'constructor',
       },
     ]);
     expect(TYPE_LIKE_SYMBOL_GROUPS.map(withoutImageUrl)).toEqual([
@@ -39,6 +53,20 @@ describe('graphView/default symbol group catalog', () => {
         color: '#06B6D4',
         matchNodeType: 'symbol',
         matchSymbolKind: 'interface',
+      },
+      {
+        id: 'default:symbol-kind:record',
+        displayLabel: 'Record',
+        color: '#6366F1',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'record',
+      },
+      {
+        id: 'default:symbol-kind:delegate',
+        displayLabel: 'Delegate',
+        color: '#10B981',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'delegate',
       },
       {
         id: 'default:symbol-kind:type',
@@ -75,6 +103,34 @@ describe('graphView/default symbol group catalog', () => {
         matchNodeType: 'symbol',
         matchSymbolKind: 'typedef',
       },
+      {
+        id: 'default:symbol-kind:alias',
+        displayLabel: 'Alias',
+        color: '#F472B6',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'alias',
+      },
+      {
+        id: 'default:symbol-kind:template',
+        displayLabel: 'Template',
+        color: '#C084FC',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'template',
+      },
+      {
+        id: 'default:symbol-kind:property',
+        displayLabel: 'Property',
+        color: '#84CC16',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'property',
+      },
+      {
+        id: 'default:symbol-kind:event',
+        displayLabel: 'Event',
+        color: '#F97316',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'event',
+      },
     ]);
     expect(VARIABLE_SYMBOL_GROUPS.map(withoutImageUrl)).toEqual([
       {
@@ -90,6 +146,27 @@ describe('graphView/default symbol group catalog', () => {
         color: '#22C55E',
         matchNodeType: 'variable',
         matchSymbolKind: 'constant',
+      },
+      {
+        id: 'default:symbol-kind:field',
+        displayLabel: 'Field',
+        color: '#84CC16',
+        matchNodeType: 'variable',
+        matchSymbolKind: 'field',
+      },
+      {
+        id: 'default:symbol-kind:parameter',
+        displayLabel: 'Parameter',
+        color: '#2DD4BF',
+        matchNodeType: 'variable',
+        matchSymbolKind: 'parameter',
+      },
+      {
+        id: 'default:symbol-kind:local',
+        displayLabel: 'Local',
+        color: '#10B981',
+        matchNodeType: 'variable',
+        matchSymbolKind: 'local',
       },
       {
         id: 'default:symbol-kind:global',
