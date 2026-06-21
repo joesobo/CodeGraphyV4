@@ -18,7 +18,7 @@ function readAcceptanceSteps(): Array<{ keyword: string; text: string; sourcePat
   const specsRoot = path.resolve(__dirname, 'acceptance/specs');
 
   return fs.readdirSync(specsRoot)
-    .filter(fileName => fileName.endsWith('.md'))
+    .filter(fileName => fileName.endsWith('.feature'))
     .flatMap((fileName) => readSpecSteps(path.join(specsRoot, fileName)));
 }
 
