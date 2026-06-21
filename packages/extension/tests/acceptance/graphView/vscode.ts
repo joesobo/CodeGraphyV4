@@ -10,6 +10,7 @@ import type { VSCodeFixture } from './types';
 
 export const VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS = 20_000;
 export const OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS = 3;
+export const VSCODE_TEST_VERSION = process.env.CODEGRAPHY_VSCODE_TEST_VERSION ?? 'stable';
 
 interface LaunchVSCodeWithWorkspaceOptions {
   readonly pluginPackageRelativePaths?: readonly string[];
@@ -27,7 +28,7 @@ export async function launchVSCodeWithWorkspace(
   writeAcceptanceInstalledPluginCache(homePath, repoRoot(), options.pluginPackageRelativePaths ?? []);
 
   const vscodeExecutablePath = await downloadAndUnzipVSCode({
-    version: 'stable',
+    version: VSCODE_TEST_VERSION,
     cachePath: path.join(extensionRoot(), '.vscode-test'),
   });
 

@@ -3,6 +3,7 @@ export const extensionMutationIncludes = [
 ];
 
 export const extensionNodeTestIncludes = [
+  'packages/extension/tests/acceptance/**/*.test.ts',
   'packages/extension/tests/core/**/*.test.{ts,tsx}',
   'packages/extension/tests/extension/**/*.test.{ts,tsx}',
   '!packages/extension/tests/extension/pluginIntegration/typescript.test.ts',
