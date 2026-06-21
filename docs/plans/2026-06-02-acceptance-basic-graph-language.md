@@ -9,18 +9,19 @@ This PR starts with an alignment phase before implementation.
 1. Human writes informal rough specifications.
 2. Agent converts rough specifications into harder, subdivided tasks.
 3. Human reviews the tasks.
-4. Agent converts reviewed tasks into Gherkin-ish Markdown.
+4. Agent converts reviewed tasks into Gherkin feature files.
 5. Human spot-checks the Gherkin.
 6. Agent implements step bindings, support code, tests, and production changes needed to make the accepted specs pass.
 
-Human-owned acceptance spec Markdown under
-`packages/extension/tests/acceptance/specs/` should not be created or edited by
-agents until the human explicitly asks for that exact spec change.
+Human-owned acceptance spec Gherkin under
+`packages/extension/tests/acceptance/specs/` should not be created, edited,
+renamed, or deleted by agents until the human explicitly asks for that exact
+spec change.
 
 ## Implemented Scope
 
 This branch is the first acceptance-test split for basic Graph View behavior and
-language examples. The accepted Markdown specs now cover:
+language examples. The accepted Gherkin specs now cover:
 
 - Basic Graph View smoke behavior.
 - Graph rendering basics.
@@ -32,7 +33,7 @@ language examples. The accepted Markdown specs now cover:
   Haskell, Java, Kotlin, Lua, Markdown, PHP, Python, Ruby, Rust, Swift, and
   TypeScript.
 
-The generated Playwright suite is produced from the accepted Markdown specs by:
+The generated Playwright suite is produced from the accepted Gherkin specs by:
 
 ```bash
 pnpm --filter @codegraphy-dev/extension run generate:acceptance

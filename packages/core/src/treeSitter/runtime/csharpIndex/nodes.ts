@@ -16,8 +16,10 @@ export {
 export function isCSharpTypeDeclarationNode(node: Parser.SyntaxNode): boolean {
   return (
     node.type === 'class_declaration'
+    || node.type === 'delegate_declaration'
     || node.type === 'enum_declaration'
     || node.type === 'interface_declaration'
+    || node.type === 'record_declaration'
     || node.type === 'struct_declaration'
   );
 }

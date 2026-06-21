@@ -53,7 +53,7 @@ Plugin npm packages identify themselves with package metadata:
 
 ```json
 {
-  "name": "@codegraphy-dev/plugin-python",
+  "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "codegraphy": {
     "type": "plugin",

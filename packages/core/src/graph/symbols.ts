@@ -32,26 +32,35 @@ export function buildSymbolNodesAndEdges(
   options: {
     cacheFiles?: Record<string, { size?: number }>;
     churnCounts?: Record<string, number>;
+    gitIgnoredPaths?: readonly string[];
   } = {},
 ): { containingFileIds: Set<string>; edges: IGraphEdge[]; nodes: IGraphNode[] } {
   const symbolIds = createCanonicalSymbolIds(fileAnalysis, workspaceRoot);
   const projectableNamespaceSymbolIds = collectProjectableNamespaceSymbolIds(fileAnalysis);
+  const gitIgnoredPathSet = new Set(options.gitIgnoredPaths ?? []);
   const containingFileIds = new Set<string>();
   const nodes: IGraphNode[] = [];
   const edges: IGraphEdge[] = [];
 
   for (const [filePath, analysis] of fileAnalysis) {
     const relativeFilePath = toRepoRelativeGraphPath(filePath, workspaceRoot);
+    const containingFile = createContainingFileMetadata(relativeFilePath, {
+      cacheFiles: options.cacheFiles,
+      churnCounts: options.churnCounts,
+      gitIgnoredPathSet,
+    });
 
     for (const symbol of analysis.symbols ?? []) {
       if (symbol.kind === 'namespace' && !projectableNamespaceSymbolIds.has(symbol.id)) {
         continue;
       }
 
-      const node = createSymbolNode(symbol, symbolIds.get(symbol.id) ?? symbol.id, workspaceRoot, {
-        fileSize: options.cacheFiles?.[relativeFilePath]?.size,
-        churn: options.churnCounts?.[relativeFilePath] ?? 0,
-      });
+      const node = createSymbolNode(
+        symbol,
+        symbolIds.get(symbol.id) ?? symbol.id,
+        workspaceRoot,
+        containingFile,
+      );
       nodes.push(node);
       edges.push(createContainsEdge(relativeFilePath, node.id));
       containingFileIds.add(relativeFilePath);
@@ -62,6 +71,21 @@ export function buildSymbolNodesAndEdges(
     containingFileIds,
     edges: [...edges, ...createSymbolRelationEdges(fileAnalysis, workspaceRoot)],
     nodes,
+  };
+}
+
+function createContainingFileMetadata(
+  relativeFilePath: string,
+  options: {
+    cacheFiles: Record<string, { size?: number }> | undefined;
+    churnCounts: Record<string, number> | undefined;
+    gitIgnoredPathSet: ReadonlySet<string>;
+  },
+): { churn: number; fileSize?: number; gitIgnored: boolean } {
+  return {
+    fileSize: options.cacheFiles?.[relativeFilePath]?.size,
+    churn: options.churnCounts?.[relativeFilePath] ?? 0,
+    gitIgnored: options.gitIgnoredPathSet.has(relativeFilePath),
   };
 }
 

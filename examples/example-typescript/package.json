@@ -1,4 +1,8 @@
 {
   "name": "codegraphy-typescript-example",
-  "private": true
+  "private": true,
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc --noEmit"
+  }
 }

@@ -1,8 +1,17 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  copyFileSync,
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const requireFromExtension = createRequire(
@@ -74,8 +83,19 @@ async function smokeInstalledVsix({ target, vsixPath }) {
     `--user-data-dir=${userDataDir}`,
     `--extensions-dir=${extensionsDir}`,
   ];
+  const pluginCacheHomeDir = homedir();
+  const restoreInstalledPluginCache = snapshotInstalledPluginCache(pluginCacheHomeDir);
 
   try {
+    const { e2eScenarios, prepareScenarioWorkspacePlugins } = await loadE2ESmokeSetup();
+    const scenario = e2eScenarios.find(entry => entry.name === 'typescript');
+    if (!scenario) {
+      throw new Error('Missing TypeScript E2E smoke scenario.');
+    }
+
+    buildScenarioWorkspacePluginPackages(scenario);
+    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, pluginCacheHomeDir, false);
+
     await writeHarnessExtension(harnessPath);
     await runVSCodeCommand([
       ...profileArgs,
@@ -107,8 +127,90 @@ async function smokeInstalledVsix({ target, vsixPath }) {
 
     console.log(`${path.basename(vsixPath)} installed and activated in VS Code on ${target}`);
   } finally {
+    restoreInstalledPluginCache();
     rmSync(profilePath, { recursive: true, force: true });
   }
+}
+
+function buildScenarioWorkspacePluginPackages(scenario) {
+  for (const relativePath of scenario.workspacePluginPackageRelativePaths) {
+    const packageRoot = path.resolve(repoRoot, relativePath);
+    const packageJson = JSON.parse(readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
+    if (!packageJson.scripts?.build) {
+      continue;
+    }
+
+    const result = spawnSync(
+      'pnpm',
+      ['--dir', packageRoot, 'run', 'build'],
+      {
+        cwd: repoRoot,
+        stdio: 'inherit',
+        shell: process.platform === 'win32',
+      },
+    );
+    if (result.status !== 0) {
+      throw new Error(`Unable to build workspace plugin package at ${relativePath}.`);
+    }
+  }
+}
+
+function snapshotInstalledPluginCache(homeDir) {
+  const userDirectoryPath = path.join(homeDir, '.codegraphy');
+  const cachePath = path.join(userDirectoryPath, 'plugins.json');
+  const hadUserDirectory = existsSync(userDirectoryPath);
+  const hadCache = existsSync(cachePath);
+  const backupDirectoryPath = mkdtempSync(path.join(tmpdir(), 'cg-vsix-plugin-cache-'));
+  const backupPath = path.join(backupDirectoryPath, 'plugins.json');
+
+  if (hadCache) {
+    copyFileSync(cachePath, backupPath);
+  }
+
+  return () => {
+    try {
+      if (hadCache) {
+        mkdirSync(userDirectoryPath, { recursive: true });
+        copyFileSync(backupPath, cachePath);
+      } else {
+        rmSync(cachePath, { force: true });
+      }
+
+      if (!hadUserDirectory && existsSync(userDirectoryPath) && readdirSync(userDirectoryPath).length === 0) {
+        rmSync(userDirectoryPath, { recursive: true, force: true });
+      }
+    } finally {
+      rmSync(backupDirectoryPath, { recursive: true, force: true });
+    }
+  };
+}
+
+async function loadE2ESmokeSetup() {
+  const scenariosModule = await import(pathToFileURL(path.join(
+    repoRoot,
+    'packages',
+    'extension',
+    'dist-e2e',
+    'extension',
+    'src',
+    'e2e',
+    'scenarios.js',
+  )).href);
+  const workspacePluginsModule = await import(pathToFileURL(path.join(
+    repoRoot,
+    'packages',
+    'extension',
+    'dist-e2e',
+    'extension',
+    'src',
+    'e2e',
+    'workspacePlugins.js',
+  )).href);
+
+  return {
+    e2eScenarios: scenariosModule.e2eScenarios,
+    prepareScenarioWorkspacePlugins: workspacePluginsModule.prepareScenarioWorkspacePlugins,
+  };
 }
 
 async function writeHarnessExtension(harnessPath) {
