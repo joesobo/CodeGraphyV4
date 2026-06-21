@@ -1,7 +1,7 @@
 # Docs
 
 Use the root [README](../README.md) for the release overview, marketplace links, package map, and the V2 to V4 migration story.
-The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
+Published packages support Node 20 and newer. The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
 
 The rest of the docs are split by purpose:
 
@@ -25,7 +25,7 @@ If a doc describes old refactor intent instead of current behavior, it belongs i
 | CodeGraphy VS Code extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, VS Code lifecycle integration, commands, webviews, context menus, and editor integration |
 | `@codegraphy-dev/mcp` | `packages/mcp` | [MCP setup](./MCP.md) and [package README](../packages/mcp/README.md) | Optional agent-agnostic local MCP server backed by core |
 | `@codegraphy-dev/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
-| language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional headless npm plugins for language-specific graph enrichment on top of core Tree-sitter Analysis |
+| language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional headless npm plugins for language- and framework-specific graph enrichment on top of core analysis |
 | quality tools | external `@poleski/quality-tools` package | [quality docs](./quality/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
 
 `@codegraphy-dev/core`, the VS Code extension, and `@codegraphy-dev/mcp` all read and write the same workspace-local Graph Cache. MCP can index/query a CodeGraphy Workspace without opening or focusing VS Code.

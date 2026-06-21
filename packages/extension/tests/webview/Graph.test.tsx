@@ -34,6 +34,7 @@ describe('Graph', () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('div');
     expect(graphContainer).toBeInTheDocument();
+    expect(graphContainer).toHaveAttribute('aria-label', 'Graph Stage');
   });
 
   it('should apply correct container styles', () => {
@@ -76,7 +77,7 @@ describe('Graph', () => {
     expect(container.querySelector('div')).toBeInTheDocument();
   });
 
-  it('fits a newly rendered graph once after physics stabilizes', () => {
+  it('does not fit a newly rendered graph after physics stabilizes', () => {
     const methods = ForceGraph2D.getMockMethods();
     methods.zoomToFit.mockClear();
 
@@ -88,14 +89,13 @@ describe('Graph', () => {
       ForceGraph2D.simulateEngineStop();
     });
 
-    expect(methods.zoomToFit).toHaveBeenCalledTimes(1);
-    expect(methods.zoomToFit.mock.calls[0]?.[0]).toBe(300);
+    expect(methods.zoomToFit).not.toHaveBeenCalled();
 
     act(() => {
       ForceGraph2D.simulateEngineStop();
     });
 
-    expect(methods.zoomToFit).toHaveBeenCalledTimes(1);
+    expect(methods.zoomToFit).not.toHaveBeenCalled();
 
     rerender(<Graph data={{
       nodes: [
@@ -112,8 +112,7 @@ describe('Graph', () => {
       ForceGraph2D.simulateEngineStop();
     });
 
-    expect(methods.zoomToFit).toHaveBeenCalledTimes(2);
-    expect(methods.zoomToFit.mock.calls[1]?.[0]).toBe(300);
+    expect(methods.zoomToFit).not.toHaveBeenCalled();
   });
 });
 

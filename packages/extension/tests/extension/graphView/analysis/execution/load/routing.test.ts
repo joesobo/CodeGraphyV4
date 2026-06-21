@@ -10,7 +10,7 @@ describe('graph view analysis execution load routing', () => {
     ['load', 'stale', 'refresh', false],
     ['index', 'fresh', 'refresh', false],
     ['refresh', 'missing', 'refresh', false],
-    ['analyze', 'stale', 'refresh', false],
+    ['analyze', 'stale', 'analyze', false],
     ['analyze', 'missing', 'analyze', false],
     ['incremental', 'stale', 'incremental', false],
   ] as const)(
@@ -22,6 +22,13 @@ describe('graph view analysis execution load routing', () => {
       });
     },
   );
+
+  it('replays a cached graph when loading with a fresh index and cached replay support', () => {
+    expect(selectGraphViewRawDataLoadDecision('load', 'fresh', true)).toEqual({
+      route: 'cached',
+      shouldDiscover: false,
+    });
+  });
 
   it('uses explicit index status freshness before falling back to hasIndex', () => {
     expect(getGraphIndexFreshness(createExecutionAnalyzer({

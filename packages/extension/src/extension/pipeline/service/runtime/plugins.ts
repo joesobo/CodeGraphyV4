@@ -11,7 +11,7 @@ import { readWorkspacePipelineRoot } from '../../serviceAdapters';
 
 export interface WorkspacePipelineStatusListOptions {
   installedPlugins?: readonly CodeGraphyInstalledPluginRecord[];
-  workspaceEnabledPackageNames?: ReadonlySet<string>;
+  workspaceEnabledPluginIds?: ReadonlySet<string>;
 }
 
 export function getWorkspacePipelineStatusList(
@@ -27,7 +27,7 @@ export function getWorkspacePipelineStatusList(
     fileConnections,
     installedPlugins: options.installedPlugins,
     registry,
-    workspaceEnabledPackageNames: options.workspaceEnabledPackageNames,
+    workspaceEnabledPluginIds: options.workspaceEnabledPluginIds,
   });
 }
 

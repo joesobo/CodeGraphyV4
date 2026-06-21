@@ -77,8 +77,9 @@ describe('graphView/provider/plugin/broadcasts', () => {
 
   it('sends Graph View contribution statuses with the active workspace root', () => {
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
-    const sendGraphViewContributionStatuses = vi.fn(async (_analyzer, context, callback) => {
+    const sendGraphViewContributionStatuses = vi.fn(async (_analyzer, context, callback, disabledPlugins) => {
       expect(context).toEqual({ workspaceRoot: '/workspace' });
+      expect(disabledPlugins).toBe(source._disabledPlugins);
       callback({
         type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
         payload: {
@@ -107,6 +108,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
       source._analyzer,
       { workspaceRoot: '/workspace' },
       expect.any(Function),
+      source._disabledPlugins,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
@@ -167,8 +169,19 @@ describe('graphView/provider/plugin/broadcasts', () => {
     );
   });
 
-  it('sends graph controls and plugin exporters through the provider bridge', () => {
-    const source = createPluginSource();
+  it('sends graph controls from the raw workspace graph before view narrowing', () => {
+    const rawGraphData = {
+      nodes: [{ id: 'src/app.ts', label: 'App', color: '#111111', nodeType: 'file' }],
+      edges: [],
+    };
+    const visibleGraphData = {
+      nodes: [{ id: 'src/focused.ts', label: 'Focused', color: '#222222', nodeType: 'file' }],
+      edges: [],
+    };
+    const source = createPluginSource({
+      _rawGraphData: rawGraphData,
+      _graphData: visibleGraphData,
+    });
     const sendGraphControlsUpdatedSpy = vi
       .spyOn(controlsSendModule, 'sendGraphControlsUpdated')
       .mockImplementation((_graphData, _analyzer, sendMessage) => {
@@ -198,12 +211,17 @@ describe('graphView/provider/plugin/broadcasts', () => {
     methods._sendPluginExporters();
 
     expect(sendGraphControlsUpdatedSpy).toHaveBeenCalledWith(
-      source._graphData,
+      source._rawGraphData,
       source._analyzer,
       expect.any(Function),
       expect.any(Object),
+      source._disabledPlugins,
     );
-    expect(sendPluginExporters).toHaveBeenCalledWith(source._analyzer, expect.any(Function));
+    expect(sendPluginExporters).toHaveBeenCalledWith(
+      source._analyzer,
+      expect.any(Function),
+      source._disabledPlugins,
+    );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_CONTROLS_UPDATED',
       payload: {

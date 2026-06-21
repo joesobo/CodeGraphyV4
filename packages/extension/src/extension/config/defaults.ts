@@ -3,26 +3,17 @@
  * @module extension/config/defaults
  */
 
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
+import {
+  DEFAULT_EXCLUDE,
+  type CodeGraphyWorkspacePluginSettings,
+} from '@codegraphy-dev/core';
 
 /**
  * Default exclude patterns for file discovery.
- * These patterns are excluded by default to avoid analyzing
- * build artifacts, dependencies, and non-source files.
+ * Aliased from core discovery so extension settings and indexing use the same
+ * build artifact, dependency, and non-source file defaults.
  */
-export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
-  '**/node_modules/**',
-  '**/dist/**',
-  '**/build/**',
-  '**/out/**',
-  '**/.git/**',
-  '**/.codegraphy/**',
-  '**/.turbo/**',
-  '**/coverage/**',
-  '**/*.min.js',
-  '**/*.bundle.js',
-  '**/*.map',
-];
+export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = DEFAULT_EXCLUDE;
 
 /**
  * Configuration interface matching the settings persisted under `.codegraphy/settings.json`.

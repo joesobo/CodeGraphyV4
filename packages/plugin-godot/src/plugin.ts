@@ -5,7 +5,10 @@
  * @module plugins/godot
  */
 
-import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
+import type {
+  IPluginGraphScopeCapabilities,
+  IPluginAnalysisContext,
+} from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { collectGodotProjectRoots } from './projectRoot';
 import manifest from '../codegraphy.json';
@@ -54,6 +57,18 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly supportedExtensions = manifest.supportedExtensions;
   readonly defaultFilters = manifest.defaultFilters;
   readonly sources = manifest.sources;
+
+  contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
+    return {
+      nodeTypes: [
+        'symbol:function',
+        'symbol:enum',
+        'symbol:constant',
+        'plugin:codegraphy.gdscript:symbol:godot-class-name',
+      ],
+      edgeTypes: ['call', 'load', 'inherit', 'reference'],
+    };
+  }
 
   private projectRoots = new Set<string>();
   private resolver: GDScriptPathResolver | null = null;

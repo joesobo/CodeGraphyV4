@@ -8,6 +8,7 @@ import { useGraphStore } from '../../store/state';
 export function useAppState() {
   const graphData = useGraphStore(s => s.graphData);
   const isLoading = useGraphStore(s => s.isLoading);
+  const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const graphIndexProgress = useGraphStore(s => s.graphIndexProgress);
   const searchQuery = useGraphStore(s => s.searchQuery);
@@ -25,6 +26,7 @@ export function useAppState() {
   const nodeColors = useGraphStore(s => s.nodeColors);
   const nodeVisibility = useGraphStore(s => s.nodeVisibility);
   const edgeVisibility = useGraphStore(s => s.edgeVisibility);
+  const graphNodeTypes = useGraphStore(s => s.graphNodeTypes);
   const graphEdgeTypes = useGraphStore(s => s.graphEdgeTypes);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
@@ -32,6 +34,7 @@ export function useAppState() {
   return {
     graphData,
     isLoading,
+    graphHasIndex,
     graphIsIndexing,
     graphIndexProgress,
     searchQuery,
@@ -49,6 +52,7 @@ export function useAppState() {
     nodeColors,
     nodeVisibility,
     edgeVisibility,
+    graphNodeTypes,
     graphEdgeTypes,
     nodeDecorations,
     edgeDecorations,

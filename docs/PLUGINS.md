@@ -9,10 +9,10 @@ The VS Code extension visualizes CodeGraphy data and renders plugin controls, bu
 - [CodeGraphy VS Code extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
 - [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
-- [`@codegraphy-dev/plugin-python`](https://www.npmjs.com/package/@codegraphy-dev/plugin-python)
-- [`@codegraphy-dev/plugin-csharp`](https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp)
 - [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
 - [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)
+- [`@codegraphy-dev/plugin-vue`](https://www.npmjs.com/package/@codegraphy-dev/plugin-vue)
+- [`@codegraphy-dev/plugin-svelte`](https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte)
 
 ## Start here
 
@@ -30,7 +30,7 @@ The current plugin API supports more than file analysis:
 
 Plugins should stay headless. They communicate with `@codegraphy-dev/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
 
-Core now owns the default explorer-style file and folder theming through Material Icon Theme. The built-in TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
+Core now owns the default explorer-style file and folder theming through Material Icon Theme. First-party plugins contribute package-owned defaults, filters, and optional semantic enrichment instead of baseline file coloring.
 
 For timeline compatibility, third-party plugins should avoid reading the live workspace directly during analysis. Use the plugin hook `context` instead so the same plugin can resolve files from either the current workspace or a historical commit snapshot.
 
@@ -42,20 +42,20 @@ Installation and enablement are separate:
 
 - The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, but terminal plugin management starts by installing the Core Package globally.
 - `npm i -g @codegraphy-dev/core` installs the terminal `codegraphy` command.
-- `npm i -g @codegraphy-dev/plugin-python` installs a plugin package for the developer's toolchain.
+- `npm i -g @codegraphy-dev/plugin-vue` installs a plugin package for the developer's toolchain.
 - `codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata.
 - `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins.
-- `codegraphy plugins enable <package> [workspace]` writes a registered plugin into the workspace-local `plugins` array.
-- `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
+- `codegraphy plugins enable <plugin-id-or-package> [workspace]` writes `enabled: true` Plugin ID activity into the workspace-local `plugins` array.
+- `codegraphy plugins disable <plugin-id-or-package> [workspace]` writes `enabled: false` Plugin ID activity into the workspace-local `plugins` array.
 - `[workspace]` is an optional trailing positional argument. When it is omitted, plugin enablement commands target the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 - Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index [workspace]` once to refresh the Graph Cache.
-- `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes it as the first enabled plugin when a new CodeGraphy Workspace is indexed for the first time.
+- `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes `codegraphy.markdown` as the first `enabled: true` plugin when a new CodeGraphy Workspace is indexed for the first time.
 
-Plugin packages declare CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
+Plugin packages declare package-level CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
 
 ```json
 {
-  "name": "@codegraphy-dev/plugin-python",
+  "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "type": "module",
   "main": "./dist/plugin.js",
@@ -77,13 +77,29 @@ Plugin packages declare CodeGraphy metadata in `package.json` so registration ca
 }
 ```
 
-The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, register, link, list, enable, or disable commands.
+The same package must also include a static `codegraphy.json` descriptor. Core reads this file before runtime import; its `id` is the Plugin ID written into workspace settings and used for enablement, conflicts, provenance, Plugin Data, and Graph View contribution ownership.
+
+```json
+{
+  "$schema": "./codegraphy.schema.json",
+  "id": "codegraphy.vue",
+  "name": "Vue",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [".vue"],
+  "defaultFilters": []
+}
+```
+
+`codegraphy.json#id` is required for `codegraphy plugins register` and `codegraphy plugins link`. `name` and `supportedExtensions` let CodeGraphy Interfaces render installed-but-disabled plugins from static metadata without importing or factory-creating the runtime. The runtime plugin object's `id` must match `codegraphy.json#id`.
+
+The npm package's normal `exports` field owns runtime import behavior. The `package.json#codegraphy` block is for package compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing or targeted plugin refresh, not during install, register, link, list, enable, or disable commands.
 
 For local private plugin development, keep the private source outside this public monorepo and link its package root:
 
 ```bash
 codegraphy plugins link ~/src/acme-graph-tools
-codegraphy plugins enable @acme/graph-tools /path/to/indexed-folder
+codegraphy plugins enable acme.graph-tools /path/to/indexed-folder
 codegraphy index /path/to/indexed-folder
 ```
 
@@ -91,9 +107,9 @@ When testing through F5, launch only the public CodeGraphy VS Code extension. Do
 
 The `Run Extension` launch config runs `pnpm run build:devhost` before opening the Extension Development Host. That command builds the public extension, builds the local public language plugin packages, links those packages into `~/.codegraphy/plugins.json`, and best-effort links a local `@codegraphy-pro/organize` package when `CODEGRAPHY_ORGANIZE_PLUGIN_ROOT`, `CODEGRAPHY_PRO_PLUGINS_REPO`, or the standard sibling/private checkout path is present. It only upserts plugin registry entries; package enablement still belongs to the opened workspace and the Plugins panel.
 
-The Plugins panel is a package toggle surface. It shows package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
+The Plugins panel is a workspace Plugin ID toggle surface backed by static package metadata. It shows installed package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
 
-Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that package is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a package toggle, before the follow-up graph analysis finishes.
+Disabling a plugin writes `enabled: false` for that Plugin ID in the workspace `plugins` array and unloads its runtime immediately. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that Plugin ID is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a toggle. Disabling a plugin rebuilds the Graph View from cached analysis instead of rerunning full Indexing; enabling a plugin refreshes only the plugin-owned analysis tier for supported files, then keeps that tier in Graph Cache so future toggles can reuse it.
 
 When Indexing loads an enabled package, `@codegraphy-dev/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 
@@ -116,7 +132,7 @@ const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
 export default createPlugin;
 ```
 
-The data host persists under the plugin id returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
+The data host persists under the Plugin ID declared in `codegraphy.json` and returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
 
 Default options are copied into workspace settings when the plugin is enabled so the user can see and edit the starting values for that workspace. For example, enabling a Godot plugin whose package manifest contains:
 
@@ -140,7 +156,8 @@ writes a workspace entry like:
 {
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-godot",
+      "id": "codegraphy.gdscript",
+      "enabled": true,
       "options": {
         "includeSceneResources": true,
         "includeAutoloads": true,
@@ -182,7 +199,7 @@ Use `import type` because the package is type-only.
 The public npm scope is `@codegraphy-dev/*`.
 
 - Replace old vscode-specific or unavailable CodeGraphy npm scope references with `@codegraphy-dev/*`.
-- Install first-party language plugins as npm packages such as `@codegraphy-dev/plugin-python`, not as VS Code Marketplace companion extensions.
+- Install first-party language plugins as npm packages such as `@codegraphy-dev/plugin-vue`, not as VS Code Marketplace companion extensions.
 
 The VS Code Marketplace extension id remains `codegraphy.codegraphy`.
 
@@ -207,7 +224,7 @@ For node styling, the host resolves layers in this order:
 In practice, deterministic duplicate handling means:
 
 - `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` override by matching `id`
-- imports/reexports/loads/inherits override when they describe the same source relationship
+- imports/loads/inherits override when they describe the same source relationship
 - distinct call/reference targets stay separate so symbol-aware routing is preserved
 
 Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.
@@ -217,3 +234,5 @@ Markdown-style wikilink scanning is implemented as a wildcard plugin so it can i
 Plugins can combine core parser results, plugin-owned parsers, and text fallbacks inside one package. They do not need to declare a separate analysis tier.
 
 `@codegraphy-dev/plugin-godot` is the first structured-analysis showcase. It keeps one npm package, but routes GDScript through `@gdquest/lezer-gdscript` and Godot `.tscn` / `.tres` files through `@fernforestgames/godot-resource-parser` before emitting the same relationship and Symbol Node output. The plugin still keeps text-analysis fallbacks for parser gaps and `project.godot` settings, which shows how a plugin can lean on external ecosystem packages without introducing a Godot LSP process or VS Code-specific dependency.
+
+`@codegraphy-dev/plugin-vue` and `@codegraphy-dev/plugin-svelte` follow the same principle for Single-File Components. Vue SFCs are parsed with `@vue/compiler-sfc`, and Svelte components are parsed with `svelte/compiler`, so each plugin can reuse framework-owned block parsing before emitting ordinary CodeGraphy import, type-import, and lazy import relationships.

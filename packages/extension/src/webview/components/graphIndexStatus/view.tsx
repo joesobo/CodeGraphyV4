@@ -25,7 +25,8 @@ export function GraphIndexStatus({
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-20 border-t border-border bg-[var(--cg-popover-translucent)] px-3 py-2 backdrop-blur-sm"
+      className="pointer-events-none absolute left-2 right-12 bottom-2 z-20 rounded-md border border-border bg-[var(--cg-popover-translucent)] px-2 py-1.5 shadow-sm backdrop-blur-sm"
+      data-codegraphy-state="graph-indexing"
       data-testid="graph-index-status"
     >
       <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
@@ -34,10 +35,18 @@ export function GraphIndexStatus({
       </div>
       <div
         className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+        data-codegraphy-region="graph-index-progress-track"
         data-testid="graph-index-status-track"
+        role="progressbar"
+        aria-label="Indexing progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        aria-valuetext={`${progress.phase} ${percent}%`}
       >
         <div
           className="h-full rounded-full bg-primary transition-all duration-200"
+          data-codegraphy-region="graph-index-progress-fill"
           data-testid="graph-index-status-fill"
           style={{ width: `${percent}%` }}
         />

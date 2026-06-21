@@ -38,6 +38,7 @@ export interface IStoreFields {
   searchQuery: string;
   searchOptions: SearchOptions;
   favorites: Set<string>;
+  pendingFavoriteSnapshot: Set<string> | null;
   bidirectionalMode: BidirectionalEdgeMode;
   showOrphans: boolean;
   directionMode: DirectionMode;
@@ -46,6 +47,7 @@ export interface IStoreFields {
   particleSize: number;
   physicsPaused: boolean;
   showLabels: boolean;
+  cssSnippets: Record<string, boolean>;
   graphMode: '2d' | '3d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
@@ -76,6 +78,7 @@ export interface IStoreFields {
   graphViewContributionStatuses: IGraphViewContributionStatus[];
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  verboseDiagnostics: boolean;
   activeFilePath: string | null;
   timelineActive: boolean;
   timelineCommits: ICommitInfo[];

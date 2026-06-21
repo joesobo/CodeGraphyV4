@@ -45,7 +45,7 @@ export interface GraphViewExternalPluginRegistrationHandlers {
   sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   invalidateTimelineCache?(): Promise<void>;
-  analyzeAndSendData(): Promise<void>;
+  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
 }
 
 export function registerGraphViewExternalPlugin(
@@ -53,19 +53,17 @@ export function registerGraphViewExternalPlugin(
   options: GraphViewExternalPluginRegistrationOptions | undefined,
   state: GraphViewExternalPluginRegistrationState,
   handlers: GraphViewExternalPluginRegistrationHandlers,
-): void {
+): Promise<void> {
   const pluginId = getExternalPluginId(plugin);
   if (!state.analyzer || !pluginId) {
-    return;
+    return Promise.resolve();
   }
 
-  const analyzer = state.analyzer;
   storeExternalPluginExtensionUri(pluginId, options, state, handlers);
   const shouldDeferReadinessReplay = shouldDeferExternalPluginReadinessReplay(state);
   registerExternalPlugin(plugin as IPlugin, shouldDeferReadinessReplay, state);
-  analyzer.clearCache?.();
   sendExternalPluginRegistrationUpdates(handlers);
-  void (async () => {
+  return (async () => {
     try {
       await runExternalPluginRegistrationFollowUp(
         pluginId,

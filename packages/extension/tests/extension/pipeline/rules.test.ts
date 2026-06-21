@@ -7,10 +7,10 @@ import * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
-import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
+import { readWorkspacePluginStatusContext } from '../../../src/extension/pipeline/plugins/statusContext';
 
 vi.mock('../../../src/extension/pipeline/plugins/statusContext', () => ({
-  readWorkspacePluginStatusContext: vi.fn(() => ({ installedPlugins: [] })),
+  readWorkspacePluginStatusContext: vi.fn(),
 }));
 
 // Set up workspace folders before tests
@@ -38,6 +38,10 @@ describe('WorkspacePipeline sources', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
+      installedPlugins: [],
+      workspaceEnabledPluginIds: new Set(['codegraphy.markdown']),
+    });
 
     mockContext = {
       subscriptions: [],
@@ -55,7 +59,6 @@ describe('WorkspacePipeline sources', () => {
 
   function registerOptionalLanguagePlugins(): void {
     analyzer.registry.register(createTypeScriptPlugin());
-    analyzer.registry.register(createPythonPlugin());
   }
 
   describe('rebuildGraph', () => {
@@ -76,8 +79,9 @@ describe('WorkspacePipeline sources', () => {
       expect(names).not.toContain('Tree-sitter');
     });
 
-    it('marks registered runtime plugins as enabled when no disabled set', async () => {
+    it('marks registered provided runtime plugins as enabled when no disabled set', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set());
       const registeredRuntimeStatuses = statuses.filter(status => status.id.startsWith('codegraphy.'));
 
@@ -87,6 +91,13 @@ describe('WorkspacePipeline sources', () => {
     });
 
     it('marks a plugin as disabled when in disabled set', async () => {
+      vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
+        installedPlugins: [],
+        workspaceEnabledPluginIds: new Set([
+          'codegraphy.markdown',
+          'codegraphy.typescript',
+        ]),
+      });
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
       const disabledPlugins = new Set(['codegraphy.typescript']);
@@ -97,9 +108,9 @@ describe('WorkspacePipeline sources', () => {
       expect(tsStatus!.enabled).toBe(false);
 
       // Other plugins should still be enabled
-      const pyStatus = statuses.find(s => s.id === 'codegraphy.python');
-      expect(pyStatus).toBeDefined();
-      expect(pyStatus!.enabled).toBe(true);
+      const markdownStatus = statuses.find(s => s.id === 'codegraphy.markdown');
+      expect(markdownStatus).toBeDefined();
+      expect(markdownStatus!.enabled).toBe(true);
     });
 
     it('returns plugin-only statuses for each plugin', async () => {
@@ -207,10 +218,10 @@ describe('WorkspacePipeline sources', () => {
       const fullResult = analyzer.rebuildGraph(new Set(), true);
       expect(fullResult.edges.length).toBe(2);
 
-      // Disable the built-in Tree-sitter plugin: both language edges disappear
-      const disabledPlugins = new Set(['codegraphy.treesitter']);
+      // Core Tree-sitter analysis is not a plugin, so plugin activity cannot disable it.
+      const disabledPlugins = new Set(['core:treesitter']);
       const filteredResult = analyzer.rebuildGraph(disabledPlugins, true);
-      expect(filteredResult.edges.length).toBe(0);
+      expect(filteredResult.edges.length).toBe(2);
     });
 
     it('ignores source ids and still respects disabled plugins', async () => {
@@ -242,8 +253,8 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable the metadata-only Python plugin. Tree-sitter-owned edges should remain unchanged.
-      const disabledPlugins = new Set(['codegraphy.python']);
+      // Disable an unrelated plugin. Core Tree-sitter edges should remain unchanged.
+      const disabledPlugins = new Set(['codegraphy.vue']);
       const result = analyzer.rebuildGraph(disabledPlugins, true);
 
       expect(result.edges.length).toBe(3);
@@ -280,32 +291,14 @@ describe('WorkspacePipeline sources', () => {
           from: 'src/index.ts',
           to: 'src/utils.ts',
           kind: 'import',
-          sources: [
-            {
-              id: 'codegraphy.treesitter:dynamic-import',
-              pluginId: 'codegraphy.treesitter',
-              sourceId: 'dynamic-import',
-              label: 'dynamic-import',
-              metadata: undefined,
-              variant: undefined,
-            },
-          ],
+          sources: [],
         },
         {
           id: 'src/index.ts->src/utils.ts#import:require',
           from: 'src/index.ts',
           to: 'src/utils.ts',
           kind: 'import',
-          sources: [
-            {
-              id: 'codegraphy.treesitter:commonjs-require',
-              pluginId: 'codegraphy.treesitter',
-              sourceId: 'commonjs-require',
-              label: 'commonjs-require',
-              metadata: undefined,
-              variant: undefined,
-            },
-          ],
+          sources: [],
         },
       ]);
     });

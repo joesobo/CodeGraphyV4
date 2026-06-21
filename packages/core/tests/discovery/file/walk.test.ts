@@ -101,6 +101,23 @@ describe('walkDirectory', () => {
     expect(mockReaddir).toHaveBeenCalledTimes(1);
   });
 
+  it('skips .codegraphy directory', async () => {
+    mockReaddir.mockResolvedValueOnce([
+      makeDirent('.codegraphy', true),
+      makeDirent('app.ts', false),
+    ] as fs.Dirent<NonSharedBuffer>[]);
+
+    const onFile = vi.fn().mockReturnValue(true);
+    const onDirectory = vi.fn();
+
+    await walkDirectory('/root', '/root', onFile, onDirectory);
+
+    expect(onFile).toHaveBeenCalledTimes(1);
+    expect(onFile).toHaveBeenCalledWith('app.ts', '/root/app.ts');
+    expect(onDirectory).not.toHaveBeenCalledWith('.codegraphy', '/root/.codegraphy');
+    expect(mockReaddir).toHaveBeenCalledTimes(1);
+  });
+
   it('stops walking when onFile returns false', async () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('first.ts', false),

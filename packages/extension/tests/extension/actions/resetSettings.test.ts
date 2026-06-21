@@ -20,6 +20,7 @@ const SNAPSHOT: ISettingsSnapshot = {
   filterPatterns: ['dist/**'],
   disabledCustomFilterPatterns: ['build/**'],
   disabledPluginFilterPatterns: ['plugin/**'],
+  pluginData: {},
   showOrphans: false,
   bidirectionalMode: 'combined',
   directionMode: 'particles',
@@ -33,6 +34,7 @@ const SNAPSHOT: ISettingsSnapshot = {
   particleSize: 6,
   showLabels: false,
   maxFiles: 321,
+  verboseDiagnostics: true,
   nodeSizeMode: 'churn',
 };
 
@@ -70,6 +72,7 @@ describe('extension/actions/resetSettings', () => {
       ['particleSize', undefined],
       ['showLabels', undefined],
       ['maxFiles', undefined],
+      ['verboseDiagnostics', undefined],
       ['nodeSizeMode', 'connections'],
     ]);
   });
@@ -102,6 +105,7 @@ describe('extension/actions/resetSettings', () => {
       ['particleSize', 6],
       ['showLabels', false],
       ['maxFiles', 321],
+      ['verboseDiagnostics', true],
       ['nodeSizeMode', 'churn'],
     ]);
   });

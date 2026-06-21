@@ -11,6 +11,9 @@ import {
   type GraphViewProviderAnalysisRequestHandlers,
   type GraphViewProviderAnalysisState,
 } from '../../analysis/lifecycle';
+import type { DiagnosticEventInput } from '@codegraphy-dev/core';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
 import { createGraphViewProviderAnalysisDelegates } from './delegates';
 import {
   createGraphViewProviderWorkspaceReadyState,
@@ -20,7 +23,10 @@ import { createGraphViewProviderDoAnalyzeAndSendData } from './execution';
 import { createGraphViewProviderAnalyzeAndSendData } from './request';
 
 interface GraphViewProviderWorkspaceReadyRegistryLike {
-  notifyWorkspaceReady(graphData: IGraphData): void;
+  notifyWorkspaceReady(
+    graphData: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void;
 }
 
 interface GraphViewProviderAnalysisAnalyzerLike {
@@ -56,7 +62,11 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendPluginWebviewInjections?(): void;
   _loadAndSendData?(this: void): Promise<void>;
   _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
-  _markWorkspaceReady?(this: void, graph: IGraphData): void;
+  _markWorkspaceReady?(
+    this: void,
+    graph: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void;
   _isAnalysisStale?(this: void, signal: AbortSignal, requestId: number): boolean;
   _isAbortError?(this: void, error: unknown): boolean;
 }
@@ -68,7 +78,7 @@ export interface GraphViewProviderAnalysisMethods {
   _refreshAndSendData(): Promise<void>;
   _incrementalAnalyzeAndSendData(filePaths: readonly string[]): Promise<void>;
   _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
-  _markWorkspaceReady(graph: IGraphData): void;
+  _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   _isAbortError(error: unknown): boolean;
 }
@@ -91,6 +101,7 @@ export interface GraphViewProviderAnalysisMethodDependencies {
     },
     registry: GraphViewProviderWorkspaceReadyRegistryLike | undefined,
     graphData: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
   ) => void;
   isAnalysisStale: (
     signal: AbortSignal,
@@ -100,9 +111,14 @@ export interface GraphViewProviderAnalysisMethodDependencies {
   isAbortError(error: unknown): boolean;
   hasWorkspace(): boolean;
   logError(message: string, error: unknown): void;
+  emitDiagnostic?(input: DiagnosticEventInput): void;
 }
 
 export function createDefaultGraphViewProviderAnalysisMethodDependencies(): GraphViewProviderAnalysisMethodDependencies {
+  const diagnostics = createExtensionDiagnosticLogger({
+    isEnabled: () => getCodeGraphyConfiguration().get('verboseDiagnostics', false),
+  });
+
   return {
     runAnalysisRequest: runGraphViewProviderAnalysisRequest,
     executeAnalysis: executeGraphViewProviderAnalysis,
@@ -113,14 +129,20 @@ export function createDefaultGraphViewProviderAnalysisMethodDependencies(): Grap
     logError: (message, error) => {
       console.error(message, error);
     },
+    emitDiagnostic: input => diagnostics.emit(input),
   };
 }
 
-export function createGraphViewProviderAnalysisMethods(
-  source: GraphViewProviderAnalysisMethodsSource,
-  dependencies: GraphViewProviderAnalysisMethodDependencies =
-    createDefaultGraphViewProviderAnalysisMethodDependencies(),
-): GraphViewProviderAnalysisMethods {
+interface FullIndexAnalysisCoordinator {
+  runAfterFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
+  runFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
+  runFullIndexAnalysisInBackground(runAnalysis: () => Promise<void>): void;
+  waitForFullIndexAnalysis(): Promise<boolean>;
+}
+
+function createFullIndexAnalysisCoordinator(
+  dependencies: Pick<GraphViewProviderAnalysisMethodDependencies, 'logError'>,
+): FullIndexAnalysisCoordinator {
   let fullIndexAnalysisPromise: Promise<void> | undefined;
 
   const waitForFullIndexAnalysis = async (): Promise<boolean> => {
@@ -156,6 +178,14 @@ export function createGraphViewProviderAnalysisMethods(
     }
   };
 
+  const runFullIndexAnalysisInBackground = (
+    runAnalysis: () => Promise<void>,
+  ): void => {
+    void runFullIndexAnalysis(runAnalysis).catch(error => {
+      dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
+    });
+  };
+
   const runAfterFullIndexAnalysis = async (
     runAnalysis: () => Promise<void>,
   ): Promise<void> => {
@@ -163,10 +193,38 @@ export function createGraphViewProviderAnalysisMethods(
     await runAnalysis();
   };
 
-  const _markWorkspaceReady = (graph: IGraphData): void => {
+  return {
+    runAfterFullIndexAnalysis,
+    runFullIndexAnalysis,
+    runFullIndexAnalysisInBackground,
+    waitForFullIndexAnalysis,
+  };
+}
+
+function canReplayStaleCache(source: GraphViewProviderAnalysisMethodsSource): boolean {
+  return source._analyzer?.getIndexStatus?.().freshness === 'stale'
+    && typeof source._analyzer.loadCachedGraph === 'function';
+}
+
+export function createGraphViewProviderAnalysisMethods(
+  source: GraphViewProviderAnalysisMethodsSource,
+  dependencies: GraphViewProviderAnalysisMethodDependencies =
+    createDefaultGraphViewProviderAnalysisMethodDependencies(),
+): GraphViewProviderAnalysisMethods {
+  const fullIndexAnalysis = createFullIndexAnalysisCoordinator(dependencies);
+
+  const _markWorkspaceReady = (
+    graph: IGraphData,
+    disabledPlugins: ReadonlySet<string> = source._disabledPlugins,
+  ): void => {
     const state = createGraphViewProviderWorkspaceReadyState(source);
 
-    dependencies.markWorkspaceReady(state, source._analyzer?.registry, graph);
+    dependencies.markWorkspaceReady(
+      state,
+      source._analyzer?.registry,
+      graph,
+      disabledPlugins,
+    );
 
     syncGraphViewProviderWorkspaceReadyState(source, state);
   };
@@ -177,7 +235,7 @@ export function createGraphViewProviderAnalysisMethods(
   const _isAbortError = (error: unknown): boolean => dependencies.isAbortError(error);
 
   const delegates = createGraphViewProviderAnalysisDelegates(source, {
-    markWorkspaceReady: graph => _markWorkspaceReady(graph),
+    markWorkspaceReady: (graph, disabledPlugins) => _markWorkspaceReady(graph, disabledPlugins),
     isAnalysisStale: (signal, requestId) => _isAnalysisStale(signal, requestId),
     isAbortError: error => _isAbortError(error),
   });
@@ -234,7 +292,7 @@ export function createGraphViewProviderAnalysisMethods(
     'refresh',
   );
   const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
-    await waitForFullIndexAnalysis();
+    await fullIndexAnalysis.waitForFullIndexAnalysis();
     source._changedFilePaths = [...filePaths];
     const doIncrementalAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
       source,
@@ -255,15 +313,18 @@ export function createGraphViewProviderAnalysisMethods(
 
   const methods: GraphViewProviderAnalysisMethods = {
     _loadAndSendData: async () => {
-      if (await waitForFullIndexAnalysis()) {
+      if (await fullIndexAnalysis.waitForFullIndexAnalysis()) {
         return;
       }
 
       await _loadAndSendData();
+      if (canReplayStaleCache(source)) {
+        fullIndexAnalysis.runFullIndexAnalysisInBackground(_analyzeAndSendData);
+      }
     },
-    _indexAndSendData: () => runFullIndexAnalysis(_indexAndSendData),
-    _analyzeAndSendData: () => runAfterFullIndexAnalysis(_analyzeAndSendData),
-    _refreshAndSendData: () => runFullIndexAnalysis(_refreshAndSendData),
+    _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
+    _analyzeAndSendData: () => fullIndexAnalysis.runAfterFullIndexAnalysis(_analyzeAndSendData),
+    _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
     _incrementalAnalyzeAndSendData,
     _doAnalyzeAndSendData,
     _markWorkspaceReady,

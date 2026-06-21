@@ -77,8 +77,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'Foundation',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -86,8 +85,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'LocalKit',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'Sources/LocalKit/Worker.swift'),
@@ -95,8 +93,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -104,8 +101,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'Runnable',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -119,6 +115,49 @@ describe('pipeline/plugins/treesitter/runtime/analyzeSwift', () => {
       expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'Runner' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'method', name: 'run' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'boot' }),
+    ]));
+  });
+
+  it('resolves inherited Swift types from a nested package inside a larger workspace', async () => {
+    const workspaceRoot = await createWorkspace({
+      'examples/example-swift/Package.swift': [
+        '// swift-tools-version: 5.9',
+        'import PackageDescription',
+        'let package = Package(',
+        '  name: "SwiftExample",',
+        '  targets: [',
+        '    .executableTarget(name: "SwiftExample", dependencies: ["RunnerSupport"]),',
+        '    .target(name: "RunnerSupport")',
+        '  ]',
+        ')',
+        '',
+      ].join('\n'),
+      'examples/example-swift/Sources/RunnerSupport/Runnable.swift': 'public protocol Runnable {}\n',
+      'examples/example-swift/Sources/RunnerSupport/Worker.swift': 'open class Worker {}\n',
+    });
+    const runnerPath = path.join(workspaceRoot, 'examples/example-swift/Sources/SwiftExample/main.swift');
+    const source = [
+      'import RunnerSupport',
+      '',
+      'class Runner: Worker, Runnable {}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(runnerPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Worker',
+        resolvedPath: path.join(workspaceRoot, 'examples/example-swift/Sources/RunnerSupport/Worker.swift'),
+        toFilePath: path.join(workspaceRoot, 'examples/example-swift/Sources/RunnerSupport/Worker.swift'),
+      }),
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Runnable',
+        resolvedPath: path.join(workspaceRoot, 'examples/example-swift/Sources/RunnerSupport/Runnable.swift'),
+        toFilePath: path.join(workspaceRoot, 'examples/example-swift/Sources/RunnerSupport/Runnable.swift'),
+      }),
     ]));
   });
 });

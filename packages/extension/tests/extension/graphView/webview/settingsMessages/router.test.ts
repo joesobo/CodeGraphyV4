@@ -230,7 +230,7 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('enables package-backed plugins and reloads workspace plugins before analysis', async () => {
+  it('enables package-backed plugins and reloads workspace plugins before reprocessing plugin files', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -238,8 +238,8 @@ describe('graph view settings router', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.python',
-          packageName: '@codegraphy-dev/plugin-python',
+          pluginId: 'codegraphy.vue',
+          packageName: '@codegraphy-dev/plugin-vue',
           enabled: true,
         },
       },
@@ -248,12 +248,12 @@ describe('graph view settings router', () => {
     );
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy-dev/plugin-python' },
+      { id: 'codegraphy.vue', enabled: true },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages', async () => {

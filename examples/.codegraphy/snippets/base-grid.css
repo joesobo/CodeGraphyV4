@@ -1,0 +1,32 @@
+/*
+ * Demo CodeGraphy CSS Snippet: static black and grey grid.
+ *
+ * Try it by setting ".codegraphy/snippets/base-grid.css" to true in
+ * .codegraphy/settings.json.
+ */
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 24% 18%, rgba(148, 163, 184, 0.1), transparent 28%),
+    radial-gradient(circle at 78% 84%, rgba(71, 85, 105, 0.12), transparent 30%),
+    linear-gradient(135deg, #050505, #111827 48%, #080808);
+}
+
+[data-codegraphy-surface='graph-stage']::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-image:
+    linear-gradient(rgba(226, 232, 240, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 232, 240, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+  opacity: 0.42;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}

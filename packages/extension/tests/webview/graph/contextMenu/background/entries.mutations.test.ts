@@ -10,17 +10,17 @@ function getItems(entries: GraphContextMenuEntry[]): ItemEntry[] {
 
 describe('buildBackgroundEntries (mutation kill tests)', () => {
   /**
-   * Kill L7:30 StringLiteral: "" — mutant replaces 'New File...' with ''
+   * Kill L7:30 StringLiteral: "" — mutant replaces 'New File' with ''
    * Kill L8:28 StringLiteral: "" — mutant replaces 'createFile' action with ''
-   * Verify exact label AND action strings for the "New File..." entry.
+   * Verify exact label AND action strings for the "New File" entry.
    */
-  it('produces exact label "New File..." with action "createFile" when mutation is enabled', () => {
+  it('produces exact label "New File" with action "createFile" when mutation is enabled', () => {
     const entries = buildBackgroundEntries('enabled');
     const items = getItems(entries);
     const newFileItem = items.find(item => item.id === 'background-create-file');
 
     expect(newFileItem).toBeDefined();
-    expect(newFileItem!.label).toBe('New File...');
+    expect(newFileItem!.label).toBe('New File');
     expect(newFileItem!.action).toEqual({ kind: 'builtin', action: 'createFile' });
   });
 
@@ -54,10 +54,10 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
     const items = getItems(entries);
 
     expect(items).toHaveLength(4);
-    expect(items[0].label).toBe('New File...');
+    expect(items[0].label).toBe('New File');
     expect(items[0].action).toEqual({ kind: 'builtin', action: 'createFile' });
     expect(items[0].disabled).toBe(true);
-    expect(items[1].label).toBe('New Folder...');
+    expect(items[1].label).toBe('New Folder');
     expect(items[1].action).toEqual({ kind: 'builtin', action: 'createFolder' });
     expect(items[1].disabled).toBe(true);
     expect(items[2].label).toBe('Refresh');

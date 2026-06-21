@@ -4,6 +4,7 @@ import { preAnalyzeWorkspacePipelineFiles } from '../analysis/workspacePreAnalyz
 import type { IDiscoveryResult } from '../discovery/contracts';
 import type { FileDiscovery } from '../discovery/file/service';
 import type { CorePluginRegistry } from '../plugins/registry';
+import { preAnalyzeCoreTreeSitterFiles } from '../treeSitter/core';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { getFileStat } from './fileStat';
 
@@ -11,23 +12,20 @@ export async function analyzeWorkspaceIndexFiles(input: {
   cache: IWorkspaceAnalysisCache;
   discovery: FileDiscovery;
   discoveryResult: IDiscoveryResult;
+  disabledPlugins: Set<string>;
   options: IndexCodeGraphyWorkspaceOptions;
   registry: CorePluginRegistry;
   workspaceRoot: string;
 }) {
-  await preAnalyzeWorkspacePipelineFiles(
-    input.discoveryResult.files,
-    input.workspaceRoot,
-    {
-      notifyPreAnalyze: (files, rootPath) => input.registry.notifyPreAnalyze(files, rootPath),
-      readContent: file => input.discovery.readContent(file),
-    },
-    input.options.signal,
-  );
-
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
-      input.registry.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
+      input.registry.analyzeFileResult(
+        absolutePath,
+        content,
+        rootPath,
+        undefined,
+        { disabledPlugins: input.disabledPlugins },
+      ).then(result => result ?? ({
         filePath: absolutePath,
         relations: [],
       })),
@@ -40,6 +38,24 @@ export async function analyzeWorkspaceIndexFiles(input: {
       current: progress.current,
       total: progress.total,
     }),
+    preAnalyzeFiles: (files, rootPath, signal) =>
+      preAnalyzeWorkspacePipelineFiles(
+        files,
+        rootPath,
+        {
+          notifyPreAnalyze: async (preAnalyzeFiles, preAnalyzeRootPath) => {
+            await preAnalyzeCoreTreeSitterFiles(preAnalyzeFiles, preAnalyzeRootPath);
+            await input.registry.notifyPreAnalyze(
+              preAnalyzeFiles,
+              preAnalyzeRootPath,
+              undefined,
+              input.disabledPlugins,
+            );
+          },
+          readContent: file => input.discovery.readContent(file),
+        },
+        signal,
+      ),
     readContent: file => input.discovery.readContent(file),
     signal: input.options.signal,
     workspaceRoot: input.workspaceRoot,

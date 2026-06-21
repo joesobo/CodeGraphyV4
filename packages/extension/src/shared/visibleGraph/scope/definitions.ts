@@ -23,13 +23,19 @@ export function getDefinitionSymbolKinds(
 }
 
 function getDefinitionSpecificity(definition: IGraphNodeTypeDefinition): number {
+	const symbolKinds = getDefinitionSymbolKinds(definition);
+	const symbolKindSpecificity = symbolKinds ? 1 / symbolKinds.length : 0;
+
 	return [
-		getDefinitionSymbolKinds(definition),
 		definition.matchSymbolPluginKind,
 		definition.matchSymbolSource,
 		definition.matchSymbolLanguage,
 		definition.matchSymbolFilePath,
-	].filter(Boolean).length;
+	].filter(Boolean).length + symbolKindSpecificity;
+}
+
+function hasSymbolMatcher(definition: IGraphNodeTypeDefinition): boolean {
+	return getDefinitionSpecificity(definition) > 0;
 }
 
 export function getScopedSymbolDefinitions(
@@ -38,7 +44,7 @@ export function getScopedSymbolDefinitions(
 	const nodeVisibility = new Map(scope.nodes.map((item) => [item.type, item.enabled]));
 
 	return CORE_GRAPH_NODE_TYPES
-		.filter((definition) => definition.parentId && nodeVisibility.has(definition.id))
+		.filter((definition) => definition.parentId && hasSymbolMatcher(definition) && nodeVisibility.has(definition.id))
 		.map((definition) => ({
 			definition,
 			enabled: nodeVisibility.get(definition.id) ?? definition.defaultVisible,

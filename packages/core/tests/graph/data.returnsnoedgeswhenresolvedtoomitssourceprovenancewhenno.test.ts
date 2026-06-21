@@ -16,7 +16,6 @@ function createPlugin(id: string): IPlugin {
     sources: [
       { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
       { id: 'dynamic-import', name: 'Dynamic import', description: 'Dynamic import()' },
-      { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
     ],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
@@ -30,7 +29,7 @@ describe('core/graph/data', () => {
         cacheFiles: {},
         disabledPlugins: new Set(),
         fileConnections: new Map<string, IProjectedConnection[]>([
-          ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' }]],
+          ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' }]],
         ]),
         showOrphans: true,
         churnCounts: {},
@@ -49,8 +48,8 @@ describe('core/graph/data', () => {
         disabledPlugins: new Set(),
         fileConnections: new Map<string, IProjectedConnection[]>([
           ['src/index.ts', [
-            { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
-            { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
+            { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
+            { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' },
           ]],
           ['src/utils.ts', []],
         ]),

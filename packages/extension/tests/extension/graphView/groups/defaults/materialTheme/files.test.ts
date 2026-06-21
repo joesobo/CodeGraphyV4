@@ -22,6 +22,7 @@ function createTheme(): MaterialThemeCacheEntry {
   return {
     iconDataByName: new Map(),
     manifestPath,
+    pathMatchers: {},
     manifest: {
       fileExtensions: { ts: 'typescript' },
       fileNames: { 'readme.md': 'readme' },

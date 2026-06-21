@@ -43,6 +43,7 @@ export interface GraphViewPrimaryMessageContext {
   indexAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  refreshAnalysisScope(): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
@@ -84,14 +85,16 @@ export interface GraphViewPrimaryMessageContext {
   ): Thenable<void>;
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
-  getInstalledPluginDefaultOptions?(packageName: string): Record<string, unknown> | undefined;
+  getInstalledPluginDefaultOptions?(pluginId: string): Record<string, unknown> | undefined;
   reloadWorkspacePlugins(): Promise<void>;
+  syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
   sendContextMenuItems(): void;
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendGraphControls(): void;
+  reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];

@@ -1,0 +1,76 @@
+/*
+ * Demo CodeGraphy CSS Snippet: ocean theme.
+ *
+ * This snippet is intentionally static. It demonstrates workspace-local UI
+ * theming without pretending CSS can produce real randomized particles.
+ */
+
+:root {
+  --cg-background: #0b1a2c;
+  --cg-foreground: #64d2ff;
+  --cg-panel-background: #091422;
+  --cg-panel-foreground: #b8eaff;
+  --cg-popover: #091422;
+  --cg-popover-foreground: #b8eaff;
+  --cg-primary: #4facfe;
+  --cg-primary-foreground: #04101d;
+  --cg-primary-hover: #64d2ff;
+  --cg-secondary: #0f2741;
+  --cg-secondary-foreground: #b8eaff;
+  --cg-secondary-hover: #153456;
+  --cg-muted: #102a46;
+  --cg-muted-foreground: #77a9c6;
+  --cg-accent: #123a5a;
+  --cg-accent-foreground: #d7f4ff;
+  --cg-border: #1e5074;
+  --cg-input: #071221;
+  --cg-input-foreground: #d7f4ff;
+  --cg-input-border: #1e5074;
+  --cg-input-placeholder: #5e8ba8;
+  --cg-focus-border: #64d2ff;
+  --cg-link: #9ee4ff;
+  --cg-graph-background: transparent;
+  --cg-graph-border: rgba(100, 210, 255, 0.22);
+  --cg-graph-label-foreground: #d7f4ff;
+  --cg-graph-label-muted-foreground: #7eb3d1;
+  --cg-graph-link-highlight: #64d2ff;
+  --cg-graph-link-muted: rgba(100, 210, 255, 0.38);
+  --cg-menu-background: rgba(9, 20, 34, 0.96);
+  --cg-menu-border: #1e5074;
+}
+
+body,
+[data-codegraphy-surface='app'] {
+  background: #0b1a2c;
+  color: #64d2ff;
+}
+
+[data-codegraphy-panel],
+[data-codegraphy-control='search'],
+[data-codegraphy-state='graph-indexing'],
+[data-codegraphy-region='graph-tool-rail'] button,
+[data-codegraphy-region='graph-corner-controls'] button {
+  border-color: rgba(100, 210, 255, 0.28) !important;
+  background-color: rgba(9, 20, 34, 0.86) !important;
+  box-shadow: 0 0 0 1px rgba(100, 210, 255, 0.05), 0 16px 42px rgba(0, 4, 12, 0.42);
+}
+
+[data-codegraphy-control='search'] input,
+[data-codegraphy-panel] input,
+[data-codegraphy-panel] button {
+  border-color: rgba(100, 210, 255, 0.28) !important;
+}
+
+[data-codegraphy-surface='graph-stage'] {
+  background:
+    radial-gradient(circle at 50% -8%, rgba(100, 210, 255, 0.22), transparent 38%),
+    radial-gradient(circle at 12% 92%, rgba(30, 80, 116, 0.26), transparent 34%),
+    linear-gradient(180deg, #06101c 0%, #071a2c 52%, #030812 100%) !important;
+  border: 1px solid rgba(100, 210, 255, 0.18) !important;
+}
+
+[data-codegraphy-layer='graph-overlay'],
+[data-codegraphy-layer='graph-stage-viewport-overlay'],
+[data-codegraphy-layer='graph-stage-world-overlay'] {
+  z-index: 2;
+}

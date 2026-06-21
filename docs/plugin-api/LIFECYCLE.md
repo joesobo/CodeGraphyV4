@@ -1,18 +1,18 @@
 # Plugin Lifecycle
 
-CodeGraphy plugins are headless npm packages loaded by `@codegraphy-dev/core` during explicit workspace indexing. They do not activate as VS Code extensions, do not import `vscode`, and do not receive a VS Code or webview API from `@codegraphy-dev/plugin-api`.
+CodeGraphy plugins are npm packages loaded by `@codegraphy-dev/core` during explicit workspace indexing. They do not activate as VS Code extensions and do not import `vscode`.
 
-The VS Code extension has its own lifecycle and may bridge extension-only visualization surfaces internally, but that bridge is not part of the public npm Plugin API.
+The core analysis lifecycle is headless. Plugins that also declare webview assets can target the host-agnostic `CodeGraphyWebviewAPI` from `@codegraphy-dev/plugin-api`; the VS Code extension still owns VS Code-specific bridge details internally.
 
 ## One-Time Phases
 
 ### 1. Registration
 
-Registration reads global package metadata without importing plugin runtime code. A CodeGraphy plugin package declares itself in `package.json`:
+Registration reads global package metadata without importing plugin runtime code. A CodeGraphy plugin package declares package compatibility and defaults in `package.json`:
 
 ```json
 {
-  "name": "@codegraphy-dev/plugin-python",
+  "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "type": "module",
   "exports": {
@@ -32,7 +32,20 @@ Registration reads global package metadata without importing plugin runtime code
 }
 ```
 
-`codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating that metadata. A plugin becomes active only when it is present in the workspace-local `plugins` array.
+The same package declares its static Plugin ID and display metadata in `codegraphy.json`:
+
+```json
+{
+  "$schema": "./codegraphy.schema.json",
+  "id": "acme.plugin",
+  "name": "Acme Plugin",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [".ts"]
+}
+```
+
+`codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating both files. A plugin becomes active only when its `codegraphy.json#id` is enabled in the workspace-local `plugins` array.
 
 ### 2. Runtime Load
 
@@ -50,7 +63,7 @@ const plugin: IPlugin = {
 };
 ```
 
-Core rejects plugins with incompatible `apiVersion` ranges before analysis runs.
+Core rejects plugins with incompatible `apiVersion` ranges or a runtime `plugin.id` that does not match `codegraphy.json#id` before analysis runs.
 
 ### 3. Initialize
 

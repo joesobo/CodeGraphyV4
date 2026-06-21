@@ -6,7 +6,7 @@ import type {
 } from 'react';
 import type { GraphContextActionContext } from '../contextActions/context';
 import type {
-  GraphContextMenuAction,
+  GraphContextMenuActionInvocation,
   GraphContextSelection,
 } from '../contextMenu/contracts';
 import {
@@ -15,18 +15,28 @@ import {
 } from '../contextMenuRuntime/controller';
 import type { createGraphInteractionHandlers } from '../interactionRuntime/handlers';
 import type { FGLink, FGNode } from '../model/build';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import { postMessage } from '../../../vscodeApi';
+import { graphStore } from '../../../store/state';
 
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
+
+function cloneGraphContextSelection(selection: GraphContextSelection): GraphContextSelection {
+  return {
+    kind: selection.kind,
+    targets: [...selection.targets],
+    ...(selection.edgeId ? { edgeId: selection.edgeId } : {}),
+    ...(selection.graphPosition ? { graphPosition: { ...selection.graphPosition } } : {}),
+  };
+}
 
 export interface GraphContextMenuOpeningRuntime {
   contextMenuRuntime: GraphContextMenuRuntime;
   handleBackgroundRightClick(this: void, event: MouseEvent): void;
   handleContextMenu(this: void, event?: ReactMouseEvent<HTMLDivElement>): void;
   handleLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
-  handleMenuAction(this: void, action: GraphContextMenuAction): void;
+  handleMenuAction(this: void, invocation: GraphContextMenuActionInvocation): void;
   handleMouseDownCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseMoveCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
@@ -35,16 +45,16 @@ export interface GraphContextMenuOpeningRuntime {
 }
 
 export interface GraphContextMenuOpeningOptions {
-  fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
-  getActionContext(): GraphContextActionContext;
+  fileInfoCacheRef: GraphRuntime['renderCaches']['fileInfoCacheRef'];
+  getActionContext(selection: GraphContextSelection): GraphContextActionContext;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
-  lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
-  lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
+  lastContainerContextMenuEventRef: GraphRuntime['context']['lastContainerContextMenuEventRef'];
+  lastGraphContextEventRef: GraphRuntime['context']['lastGraphContextEventRef'];
   openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   refs: Pick<
-    UseGraphStateResult,
+    GraphRuntime['context'],
     | 'rightClickFallbackTimerRef'
     | 'rightMouseDownRef'
   >;
@@ -84,9 +94,14 @@ function createGraphContextMenuOpeningDependencies({
     openLegendRulePrompt: openLegendRulePrompt ?? (() => {}),
     openBackgroundContextMenu: interactionHandlers.openBackgroundContextMenu,
     postMessage,
+    refreshContextSelection: () => {
+      setContextSelection(previous => cloneGraphContextSelection(previous));
+    },
     setContextSelection,
     setTooltipData,
     stopTooltipTracking,
+    toggleFavoritesOptimistically: paths =>
+      graphStore.getState().toggleFavoritesOptimistically(paths),
   };
 }
 
@@ -113,8 +128,11 @@ function createGraphContextMenuOpeningHandlers(
     handleLinkRightClick: (link, event) => {
       interactionHandlers.openEdgeContextMenu(link, event);
     },
-    handleMenuAction: action => {
-      contextMenuRuntime.handleMenuAction(action, getActionContext());
+    handleMenuAction: invocation => {
+      contextMenuRuntime.handleMenuAction(
+        invocation.action,
+        getActionContext(invocation.contextSelection),
+      );
     },
     handleMouseDownCapture: event => {
       contextMenuRuntime.handleMouseDownCapture({
@@ -156,7 +174,7 @@ export function createGraphContextMenuOpeningRuntime(
     ...createGraphContextMenuOpeningHandlers(
       contextMenuRuntime,
       options.interactionHandlers,
-      () => options.getActionContext(),
+      selection => options.getActionContext(selection),
       options.refs,
     ),
   };

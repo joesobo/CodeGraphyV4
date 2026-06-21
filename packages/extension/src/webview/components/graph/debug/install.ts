@@ -3,6 +3,68 @@ import './window';
 import type { GraphDebugControls } from './contracts/protocol';
 import { buildGraphDebugSnapshot, type DebugNode } from './snapshot';
 
+type GraphDebugApiOptions = {
+  containerRef: RefObject<HTMLElement | null>;
+  fitView(this: void): void;
+  fg2dRef: MutableRefObject<GraphDebugControls | undefined>;
+  fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
+  graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
+  graphMode: '2d' | '3d';
+  openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
+  win: Window;
+};
+
+function getActiveGraphDebugControls(
+  options: Pick<GraphDebugApiOptions, 'fg2dRef' | 'fg3dRef' | 'graphMode'>,
+): GraphDebugControls | undefined {
+  return options.graphMode === '2d' ? options.fg2dRef.current : options.fg3dRef.current;
+}
+
+function getGraphDebugNodeScreenPosition(
+  node: DebugNode,
+  graph: GraphDebugControls | undefined,
+): { x: number; y: number } {
+  return graph?.graph2ScreenCoords?.(
+    node.x ?? 0,
+    node.y ?? 0,
+    typeof node.z === 'number' ? node.z : 0,
+  ) ?? {
+    x: node.x ?? 0,
+    y: node.y ?? 0,
+  };
+}
+
+function createGraphDebugContextMenuEvent(
+  screen: { x: number; y: number },
+  container: HTMLElement | null,
+): MouseEvent {
+  const rect = container?.getBoundingClientRect();
+  return new MouseEvent('contextmenu', {
+    bubbles: true,
+    button: 2,
+    buttons: 2,
+    cancelable: true,
+    clientX: (rect?.left ?? 0) + screen.x,
+    clientY: (rect?.top ?? 0) + screen.y,
+  });
+}
+
+function openGraphDebugNodeContextMenu(
+  nodeId: string,
+  options: GraphDebugApiOptions,
+): void {
+  const node = options.graphDataRef.current.nodes.find(entry => entry.id === nodeId);
+  if (!node || !options.openNodeContextMenu) {
+    return;
+  }
+
+  const graph = getActiveGraphDebugControls(options);
+  const screen = getGraphDebugNodeScreenPosition(node, graph);
+  const event = createGraphDebugContextMenuEvent(screen, options.containerRef.current);
+
+  options.openNodeContextMenu(nodeId, event);
+}
+
 export function installGraphDebugApi({
   containerRef,
   fitView,
@@ -12,59 +74,33 @@ export function installGraphDebugApi({
   graphMode,
   openNodeContextMenu,
   win,
-}: {
-  containerRef: RefObject<HTMLElement | null>;
-  fitView(this: void): void;
-  fg2dRef: MutableRefObject<GraphDebugControls | undefined>;
-  fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
-  graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
-  graphMode: '2d' | '3d';
-  openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
-  win: Window;
-}): (() => void) | undefined {
-  if (win.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true) {
+}: GraphDebugApiOptions): (() => void) | undefined {
+  if (win.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true && win.document?.body?.dataset.codegraphyDebug !== 'true') {
     return undefined;
   }
+  const options = {
+    containerRef,
+    fitView,
+    fg2dRef,
+    fg3dRef,
+    graphDataRef,
+    graphMode,
+    openNodeContextMenu,
+    win,
+  };
 
   win.__CODEGRAPHY_GRAPH_DEBUG__ = {
     fitView,
     fitViewWithPadding: (padding: number) => {
-      const graph = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
-      graph?.zoomToFit?.(300, padding);
+      getActiveGraphDebugControls(options)?.zoomToFit?.(300, padding);
     },
     getSnapshot: () => buildGraphDebugSnapshot({
       containerRef,
-      graph: graphMode === '2d' ? fg2dRef.current : fg3dRef.current,
+      graph: getActiveGraphDebugControls(options),
       graphMode,
       nodes: graphDataRef.current.nodes,
     }),
-    openNodeContextMenu: (nodeId: string) => {
-      const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
-      if (!node || !openNodeContextMenu) {
-        return;
-      }
-
-      const graph = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
-      const screen = graph?.graph2ScreenCoords?.(
-        node.x ?? 0,
-        node.y ?? 0,
-        typeof node.z === 'number' ? node.z : 0,
-      ) ?? {
-        x: node.x ?? 0,
-        y: node.y ?? 0,
-      };
-      const rect = containerRef.current?.getBoundingClientRect();
-      const event = new MouseEvent('contextmenu', {
-        bubbles: true,
-        button: 2,
-        buttons: 2,
-        cancelable: true,
-        clientX: (rect?.left ?? 0) + screen.x,
-        clientY: (rect?.top ?? 0) + screen.y,
-      });
-
-      openNodeContextMenu(nodeId, event);
-    },
+    openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
   };
 
   return () => {

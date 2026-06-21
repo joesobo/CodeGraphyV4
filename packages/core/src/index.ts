@@ -3,10 +3,28 @@ export type { CommandExecutionResult } from './cli/command';
 export { runCliCommand } from './cli/command';
 export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
 export { parseCliCommand } from './cli/parse';
+export type {
+  DiagnosticContextValue,
+  DiagnosticEvent,
+  DiagnosticEventInput,
+  DiagnosticEventSink,
+} from './diagnostics/events';
+export {
+  collectDiagnosticEvents,
+  createDiagnosticEvent,
+  formatDiagnosticEventLine,
+} from './diagnostics/events';
 export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';
 export { runSetupCommand } from './cli/setup/command';
 export { runStatusCommand } from './cli/status/command';
+export {
+  createWorkspaceIndexEngineState,
+  getWorkspaceIndexEngineRelativePath,
+  invalidateWorkspaceIndexEngineFiles,
+  removeInvalidatedWorkspaceIndexDirectories,
+} from './indexing/state';
+export type { WorkspaceIndexEngineState } from './indexing/state';
 export type {
   ICachedWorkspaceFile,
   IWorkspaceAnalysisCache,
@@ -31,8 +49,21 @@ export type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
+  AnalysisCacheTier,
+  AnalysisCacheTierOptions,
 } from './analysis/fileAnalysis';
-export { analyzeWorkspaceFiles } from './analysis/fileAnalysis';
+export {
+  analyzeWorkspaceFiles,
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  createWorkspaceIndexAnalysisCacheTiers,
+  createPluginAnalysisCacheTier,
+  hasRequiredAnalysisCacheTiers,
+  markAnalysisCacheTiers,
+  projectAnalysisForCacheTiers,
+  readAnalysisCacheTiers,
+  requiresSymbolAnalysisCacheTier,
+} from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,
   analyzeWorkspacePipelineSourceFiles,
@@ -98,8 +129,10 @@ export {
   clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
+  loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
 } from './graphCache/database/storage';
 export type {
   CoreEdgeKind,
@@ -169,17 +202,46 @@ export type {
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
 export {
+  createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  refreshWorkspaceIndexAnalysisScope,
+  refreshWorkspaceIndexChangedFiles,
+  refreshWorkspaceIndexPluginFiles,
 } from './indexing/workspace';
 export type {
+  CodeGraphyWorkspaceEngine,
   IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexPluginRefreshDependencies,
+  WorkspaceIndexRefreshDependencies,
+  WorkspaceIndexRefreshSource,
 } from './indexing/workspace';
 export {
   CORE_PLUGIN_API_VERSION,
   CorePluginRegistry,
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
+export {
+  buildWorkspaceIndexPluginStatuses,
+  countWorkspaceIndexPluginConnections,
+  buildRegisteredWorkspaceIndexPluginStatus,
+  buildUnregisteredInstalledWorkspaceIndexPluginStatus,
+  getRegisteredWorkspaceIndexPluginPackageNames,
+  getWorkspaceIndexPluginMatchingFiles,
+  getWorkspaceIndexPluginNameForFile,
+  getWorkspaceIndexPluginStatuses,
+  isUserFacingWorkspaceIndexPlugin,
+  resolveWorkspaceIndexPluginNameForFile,
+  supportsWorkspaceIndexPluginExtension,
+} from './plugins/status';
+export type {
+  WorkspaceIndexPluginStatus,
+  WorkspaceIndexPluginStatusDependencies,
+  WorkspaceIndexPluginStatusOptions,
+} from './plugins/status';
 export type {
   CoreGraphViewContributionEntry,
   CoreGraphViewContributionSet,
@@ -190,6 +252,14 @@ export {
   createEmptyGraphViewContributionSet,
   resolvePluginAccess,
 } from './plugins/access/checks';
+export {
+  createDisabledPluginSet,
+  createPluginActivityState,
+} from './plugins/activityState/model';
+export type {
+  CreatePluginActivityStateOptions,
+  PluginActivityState,
+} from './plugins/activityState/model';
 export { createWorkspacePluginDataHost } from './plugins/data/host';
 export type {
   LoadedCodeGraphyWorkspacePluginPackage,
@@ -202,6 +272,9 @@ export type {
 } from './plugins/packageManifest';
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
+  CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginToggleOptions,
+  CodeGraphyWorkspacePluginTogglePlan,
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
   CodeGraphyUserStateOptions,
@@ -209,6 +282,7 @@ export type {
   RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
+  createCodeGraphyWorkspacePluginTogglePlan,
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
@@ -218,8 +292,10 @@ export {
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
+  updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
+export { loadBundledMarkdownPlugin } from './plugins/markdown/runtime';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
 export { withWorkspacePluginAnalysisOptions } from './plugins/context/workspace';
 export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
@@ -229,7 +305,10 @@ export { notifyFilesChanged } from './plugins/lifecycle/notify/filesChanged';
 export type { IPluginFilesChangedResult } from './plugins/lifecycle/notify/filesChanged';
 export { getFileExtension, normalizePluginExtension } from './plugins/routing/fileExtensions';
 export { analyzeFile, analyzeFileResult } from './plugins/routing/router/analyze';
-export type { CoreFileAnalysisResultProvider } from './plugins/routing/router/analyze';
+export type {
+  AnalyzeFileResultOptions,
+  CoreFileAnalysisResultProvider,
+} from './plugins/routing/router/analyze';
 export {
   getPluginForFile,
   getPluginsForExtension,
@@ -249,7 +328,12 @@ export {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
 } from './plugins/routing/router/results/project';
-export { createTreeSitterPlugin } from './treeSitter/plugin';
+export {
+  analyzeFileWithCoreTreeSitter,
+  listCoreTreeSitterEdgeTypeCapabilities,
+  listCoreTreeSitterGraphScopeCapabilities,
+  preAnalyzeCoreTreeSitterFiles,
+} from './treeSitter/core';
 export { analyzeFileWithTreeSitter } from './treeSitter/runtime/analyze';
 export { preAnalyzeCSharpTreeSitterFiles } from './treeSitter/runtime/csharpIndex';
 export {
@@ -278,6 +362,7 @@ export type {
   CodeGraphyWorkspaceSettings,
 } from './workspace/settings';
 export {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createDefaultCodeGraphyWorkspaceSettings,
   createInitialCodeGraphyWorkspaceSettings,

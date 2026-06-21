@@ -8,6 +8,34 @@ The package uses several layers of tests:
 - VS Code Electron tests for local validation of the real extension host
 - mutation-focused tests for old survivor hot spots
 
+## VS Code Playwright acceptance
+
+Use the repository's VS Code Playwright path for Graph View acceptance work:
+
+```bash
+pnpm --filter @codegraphy-dev/extension run test:vscode
+```
+
+For a focused scenario, rebuild first and then run the generated Playwright
+spec with `--grep`:
+
+```bash
+pnpm --filter @codegraphy-dev/extension run build:vscode
+pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "Vue example"
+```
+
+Do not debug Graph View acceptance behavior from a raw Playwright command
+against stale output. `test:vscode` regenerates acceptance specs and rebuilds
+the extension first; a direct `playwright test --config playwright.vscode.config.ts`
+does not. If you need to use the direct command while iterating, run
+`build:vscode` immediately before it.
+
+On macOS, the acceptance launcher must use the mock keychain path. The launcher
+in `tests/acceptance/graphView/vscode.ts` owns the VS Code arguments, including
+`--use-inmemory-secretstorage`, `--use-mock-keychain`, and a short `/tmp` temp
+base for VS Code IPC sockets. If a "Keychain Not Found" / "Code Key" modal
+appears, fix the launcher path instead of continuing through the modal.
+
 ## Current expectations
 
 - Keep package source and package tests linted and typechecked together.
@@ -32,6 +60,8 @@ pnpm --filter @codegraphy-dev/extension typecheck
 ```
 
 CI runs extension unit tests as separate `node` and grouped `webview` Vitest lanes. The webview groups are defined in `vitest.includes.ts` because the check names should describe the behavior under test, not an arbitrary shard number.
+
+`test:playwright` generates acceptance tests, builds the VS Code extension/webview artifacts, and runs the VS Code Playwright suite. `test:vscode` is kept as a compatibility alias for the same package-owned command.
 
 ```bash
 pnpm exec turbo run test:node --filter=@codegraphy-dev/extension

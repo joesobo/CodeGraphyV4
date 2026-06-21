@@ -1,31 +1,12 @@
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
+import {
+  createCodeGraphyWorkspacePluginTogglePlan,
+  type CodeGraphyWorkspacePluginSettings,
+} from '@codegraphy-dev/core';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
 } from './router';
-
-function updateWorkspacePluginSettings(
-  plugins: CodeGraphyWorkspacePluginSettings[],
-  packageName: string,
-  enabled: boolean,
-  defaultOptions?: Record<string, unknown>,
-): CodeGraphyWorkspacePluginSettings[] {
-  if (!enabled) {
-    return plugins.filter(plugin => plugin.package !== packageName);
-  }
-
-  if (plugins.some(plugin => plugin.package === packageName)) {
-    return plugins;
-  }
-
-  const nextPlugin: CodeGraphyWorkspacePluginSettings = { package: packageName };
-  if (defaultOptions && Object.keys(defaultOptions).length > 0) {
-    nextPlugin.options = { ...defaultOptions };
-  }
-
-  return [...plugins, nextPlugin];
-}
 
 export async function applySettingsToggleMessage(
   message: WebviewToExtensionMessage,
@@ -33,31 +14,56 @@ export async function applySettingsToggleMessage(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
-    case 'TOGGLE_PLUGIN':
-      if (message.payload.packageName) {
-        await handlers.updateConfig(
-          'plugins',
-          updateWorkspacePluginSettings(
-            handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
-            message.payload.packageName,
-            message.payload.enabled,
-            message.payload.enabled
-              ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
+    case 'TOGGLE_PLUGIN': {
+      const plan = createCodeGraphyWorkspacePluginTogglePlan(
+        handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
+        {
+          pluginId: message.payload.pluginId,
+          enabled: message.payload.enabled,
+          defaultOptions: message.payload.enabled
+            ? handlers.getInstalledPluginDefaultOptions?.(message.payload.pluginId)
             : undefined,
-          ),
-        );
-        await handlers.reloadWorkspacePlugins();
-        handlers.sendPluginStatuses?.();
-        handlers.sendContextMenuItems?.();
-        handlers.sendPluginToolbarActions?.();
-        handlers.sendGraphViewContributionStatuses?.();
-        await handlers.analyzeAndSendData();
+        },
+      );
+      await handlers.updateConfig('plugins', plan.plugins);
+      await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
+      if (message.payload.enabled) {
+        replaySavedPluginData(message.payload.pluginId, handlers);
+        handlers.sendPluginWebviewInjections?.();
+      }
+      handlers.sendPluginStatuses?.();
+      handlers.sendContextMenuItems?.();
+      handlers.sendPluginToolbarActions?.();
+      handlers.sendGraphViewContributionStatuses?.();
+      handlers.sendGraphControls();
+      if (plan.indexing.kind === 'reprocess-plugin-files') {
+        await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
         return true;
       }
 
-      return false;
+      handlers.smartRebuild(message.payload.pluginId);
+      return true;
+    }
 
     default:
       return false;
   }
+}
+
+function replaySavedPluginData(
+  pluginId: string,
+  handlers: GraphViewSettingsMessageHandlers,
+): void {
+  const pluginData = handlers.getConfig<Record<string, unknown>>('pluginData', {});
+  if (!pluginData || typeof pluginData !== 'object' || Array.isArray(pluginData) || !(pluginId in pluginData)) {
+    return;
+  }
+
+  handlers.sendMessage({
+    type: 'PLUGIN_DATA_UPDATED',
+    payload: {
+      pluginId,
+      data: pluginData[pluginId],
+    },
+  });
 }

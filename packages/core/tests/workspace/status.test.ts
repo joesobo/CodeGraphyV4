@@ -43,7 +43,6 @@ describe('CodeGraphy Workspace status', () => {
       workspaceRoot,
       includeCorePlugins: false,
       plugins: [textPlugin],
-      showOrphans: true,
     });
 
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
@@ -57,7 +56,7 @@ describe('CodeGraphy Workspace status', () => {
     const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
-      plugins: [{ package: '@codegraphy-dev/plugin-python' }],
+      plugins: [{ id: 'codegraphy.vue', enabled: true }],
     });
 
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
@@ -75,7 +74,6 @@ describe('CodeGraphy Workspace status', () => {
       workspaceRoot,
       includeCorePlugins: false,
       plugins: [textPlugin],
-      showOrphans: true,
     });
     const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
 

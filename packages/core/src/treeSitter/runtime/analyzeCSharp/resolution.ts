@@ -1,5 +1,9 @@
 import type Parser from 'tree-sitter';
-import { resolveCSharpTypePath, resolveCSharpTypePathInNamespace } from '../csharpIndex';
+import {
+  resolveCSharpType,
+  resolveCSharpTypeInNamespace,
+  type CSharpIndexedType,
+} from '../csharpIndex';
 import { getIdentifierText, getNodeText } from '../analyze/nodes';
 
 export function normalizeCSharpTypeName(typeName: string): string {
@@ -25,25 +29,43 @@ export function resolveCSharpUsingImport(
   typeName: string,
   currentNamespace: string | null,
 ): string | null {
+  return resolveCSharpUsingType(
+    workspaceRoot,
+    filePath,
+    usingNamespaces,
+    importTargetsByNamespace,
+    typeName,
+    currentNamespace,
+  )?.filePath ?? null;
+}
+
+export function resolveCSharpUsingType(
+  workspaceRoot: string,
+  filePath: string,
+  usingNamespaces: ReadonlySet<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+  typeName: string,
+  currentNamespace: string | null,
+): CSharpIndexedType | null {
   const normalizedTypeName = normalizeCSharpTypeName(typeName);
   for (const namespaceName of usingNamespaces) {
-    const resolvedPath = resolveCSharpTypePathInNamespace(
+    const resolvedType = resolveCSharpTypeInNamespace(
       workspaceRoot,
       filePath,
       namespaceName,
       normalizedTypeName,
     );
-    if (!resolvedPath) {
+    if (!resolvedType) {
       continue;
     }
 
     const paths = importTargetsByNamespace.get(namespaceName) ?? new Set<string>();
-    paths.add(resolvedPath);
+    paths.add(resolvedType.filePath);
     importTargetsByNamespace.set(namespaceName, paths);
-    return resolvedPath;
+    return resolvedType;
   }
 
-  return resolveCSharpTypePath(
+  return resolveCSharpType(
     workspaceRoot,
     filePath,
     normalizedTypeName,
@@ -54,13 +76,21 @@ export function resolveCSharpUsingImport(
 
 export function getCSharpTypeDeclarationKind(
   node: Parser.SyntaxNode,
-): 'interface' | 'struct' | 'enum' | 'class' {
+): 'interface' | 'struct' | 'record' | 'enum' | 'delegate' | 'class' {
+  if (node.type === 'delegate_declaration') {
+    return 'delegate';
+  }
+
   if (node.type === 'interface_declaration') {
     return 'interface';
   }
 
   if (node.type === 'struct_declaration') {
     return 'struct';
+  }
+
+  if (node.type === 'record_declaration') {
+    return 'record';
   }
 
   if (node.type === 'enum_declaration') {

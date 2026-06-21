@@ -1,4 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import * as vscode from 'vscode';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
@@ -28,6 +32,7 @@ function createSource(
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
     _analyzer: undefined,
@@ -43,6 +48,7 @@ function createSource(
   }
 
   source._graphData ??= { nodes: [], edges: [] } satisfies IGraphData;
+  source._rawGraphData ??= { nodes: [], edges: [] } satisfies IGraphData;
   source._disabledPlugins ??= new Set<string>();
 
   return source;
@@ -84,6 +90,14 @@ function createDependencies(
 }
 
 describe('graphView/provider/settingsState', () => {
+  const tempRoots: string[] = [];
+
+  afterEach(() => {
+    for (const root of tempRoots.splice(0)) {
+      fs.rmSync(root, { force: true, recursive: true });
+    }
+  });
+
   it('loads groups and filter patterns from persisted state and seeds the sync state', () => {
     const source = createSource();
     const groupState = {
@@ -205,6 +219,48 @@ describe('graphView/provider/settingsState', () => {
     expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(dependencies.sendProviderSettings).toHaveBeenCalledWith(source._viewContext, expect.any(Object));
     expect(source._sendMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('sends resolved css snippet stylesheets with settings updates', () => {
+    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-settings-css-'));
+    tempRoots.push(workspaceRoot);
+    fs.mkdirSync(path.join(workspaceRoot, '.codegraphy', 'snippets'), { recursive: true });
+    fs.writeFileSync(path.join(workspaceRoot, '.codegraphy', 'snippets', 'graph.css'), 'body {}');
+    const webview = {
+      asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
+    };
+    const source = createSource({
+      _view: { webview } as never,
+      _panels: [],
+    });
+    const { configuration, dependencies } = createDependencies({
+      getWorkspaceFolders: vi.fn(() => [{ uri: vscode.Uri.file(workspaceRoot) }] as never),
+    });
+    configuration.get.mockImplementation((key, fallback) => (
+      key === 'cssSnippets'
+        ? {
+          '.codegraphy/snippets/graph.css': true,
+          '.codegraphy/snippets/disabled.css': false,
+        }
+        : fallback
+    ));
+
+    const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
+
+    methods._sendSettings();
+
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'CSS_SNIPPETS_UPDATED',
+      payload: {
+        snippets: {
+          '.codegraphy/snippets/graph.css': true,
+          '.codegraphy/snippets/disabled.css': false,
+        },
+        stylesheets: [
+          'webview:' + path.join(workspaceRoot, '.codegraphy', 'snippets', 'graph.css'),
+        ],
+      },
+    });
   });
 
   it('sends all settings with the current state, analyzer filters, and side-effect callbacks', () => {

@@ -52,7 +52,7 @@ describe('extension/repoSettings/store', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('creates .gitignore when missing and adds .codegraphy/ once', () => {
+  it('creates .gitignore when missing and adds the CodeGraphy contents ignore once', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
 
@@ -60,7 +60,7 @@ describe('extension/repoSettings/store', () => {
     new CodeGraphyRepoSettingsStore(workspaceRoot);
 
     const gitIgnorePath = path.join(workspaceRoot, '.gitignore');
-    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/\n');
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/*\n');
   });
 
   it('updates nested settings keys and persists the result', async () => {
@@ -94,11 +94,11 @@ describe('extension/repoSettings/store', () => {
       changes.push(event.changedKeys);
     });
 
-    await store.updateSilently('plugins', [{ package: '@codegraphy-dev/plugin-python' }]);
+    await store.updateSilently('plugins', [{ id: 'codegraphy.vue', enabled: true }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('plugins', [])).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
-    expect(persisted.plugins).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
+    expect(store.get('plugins', [])).toEqual([{ id: 'codegraphy.vue', enabled: true }]);
+    expect(persisted.plugins).toEqual([{ id: 'codegraphy.vue', enabled: true }]);
     expect(changes).toEqual([]);
   });
 
@@ -112,8 +112,8 @@ describe('extension/repoSettings/store', () => {
       JSON.stringify({
         ...createSettingsWithOverrides({}),
         plugins: [
-          { package: '@codegraphy-dev/plugin-markdown' },
-          { package: '@codegraphy-pro/organize' },
+          { id: 'codegraphy.markdown', enabled: true },
+          { id: 'codegraphy.organize', enabled: true },
         ],
         pluginData: {
           'codegraphy.organize': {
@@ -127,7 +127,7 @@ describe('extension/repoSettings/store', () => {
     );
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
-    await store.updateSilently('plugins', [{ package: '@codegraphy-dev/plugin-markdown' }]);
+    await store.updateSilently('plugins', [{ id: 'codegraphy.markdown', enabled: true }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
     expect(persisted.pluginData).toEqual({

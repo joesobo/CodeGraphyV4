@@ -44,6 +44,10 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
       '    def run(user)',
       '      user.name',
       '    end',
+      '',
+      '    def call(user = User.new)',
+      '      run(user)',
+      '    end',
       '  end',
       'end',
       '',
@@ -59,8 +63,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: '../base/base_runner',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
@@ -68,8 +71,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'json',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -77,12 +79,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
         toFilePath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        specifier: '../model/user',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:method:call`,
+        resolvedPath: path.join(workspaceRoot, 'lib/model/user.rb'),
+        toFilePath: path.join(workspaceRoot, 'lib/model/user.rb'),
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

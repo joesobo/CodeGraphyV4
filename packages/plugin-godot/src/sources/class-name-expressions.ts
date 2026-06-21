@@ -13,6 +13,15 @@ export function matchStaticAccess(line: string): string[] {
 	return results;
 }
 
+/** Match static method calls: `ClassName.method(...)` */
+export function matchStaticCall(line: string): string[] {
+	const results: string[] = [];
+	const regex = /\b([A-Z]\w*)\s*\.\s*[A-Za-z_]\w*\s*\(/g;
+	let mt;
+	while ((mt = regex.exec(line)) !== null) results.push(mt[1]);
+	return results;
+}
+
 /** Match type checks and casts: `x is ClassName`, `x as ClassName` */
 export function matchIsAs(line: string): string[] {
 	const results: string[] = [];

@@ -6,6 +6,7 @@ import type { IWorkspaceAnalysisCache } from '../../cache';
 import {
   buildWorkspacePipelineGraphData,
   buildWorkspacePipelineGraphDataFromAnalysis,
+  type WorkspacePipelineGraphScopeOptions,
 } from '../../serviceAdapters';
 
 export function buildWorkspacePipelineGraph(
@@ -17,6 +18,7 @@ export function buildWorkspacePipelineGraph(
   showOrphans: boolean,
   disabledPlugins: Set<string>,
   directoryPaths: readonly string[] = [],
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   return buildWorkspacePipelineGraphData(
     cache,
@@ -27,6 +29,7 @@ export function buildWorkspacePipelineGraph(
     showOrphans,
     disabledPlugins,
     directoryPaths,
+    gitIgnoredPaths,
   );
 }
 
@@ -39,6 +42,8 @@ export function buildWorkspacePipelineGraphFromAnalysis(
   showOrphans: boolean,
   disabledPlugins: Set<string>,
   directoryPaths: readonly string[] = [],
+  graphScope: WorkspacePipelineGraphScopeOptions = {},
+  gitIgnoredPaths: readonly string[] = [],
 ): IGraphData {
   return buildWorkspacePipelineGraphDataFromAnalysis(
     cache,
@@ -49,5 +54,7 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     showOrphans,
     disabledPlugins,
     directoryPaths,
+    graphScope,
+    gitIgnoredPaths,
   );
 }

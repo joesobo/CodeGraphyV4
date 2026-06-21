@@ -12,7 +12,7 @@ describe('status/command', () => {
         state: 'missing',
         hasGraphCache: false,
         staleReasons: ['never-indexed'],
-        enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
+        enabledPlugins: ['codegraphy.markdown'],
         message: 'CodeGraphy Workspace Graph Cache is missing. Run `codegraphy index` to build it.',
       }),
     });
@@ -20,7 +20,36 @@ describe('status/command', () => {
     expect(JSON.parse(result.output)).toMatchObject({
       workspaceRoot: '/workspace/project',
       state: 'missing',
-      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
+      enabledPlugins: ['codegraphy.markdown'],
     });
+  });
+
+  it('passes verbose diagnostics to the workspace status request', () => {
+    const diagnostics: string[] = [];
+
+    runStatusCommand('/workspace/project', {
+      cwd: () => '/workspace',
+      readStatus: ({ diagnostics: sink }) => {
+        sink?.emit({
+          area: 'workspace',
+          event: 'status-read',
+          context: { workspaceRoot: '/workspace/project', state: 'missing' },
+        });
+        return {
+          workspaceRoot: '/workspace/project',
+          graphCache: '.codegraphy/graph.lbug',
+          state: 'missing',
+          hasGraphCache: false,
+          staleReasons: ['never-indexed'],
+          enabledPlugins: ['codegraphy.markdown'],
+          message: 'missing',
+        };
+      },
+      writeDiagnostic: line => diagnostics.push(line),
+    }, { verbose: true });
+
+    expect(diagnostics).toEqual([
+      '[CodeGraphy] Workspace status read: missing Graph Cache, workspace=/workspace/project',
+    ]);
   });
 });

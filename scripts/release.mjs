@@ -53,6 +53,18 @@ function packageAlias(packageName) {
   return packageName;
 }
 
+function packageAliases(packageName) {
+  const alias = packageAlias(packageName);
+  const aliases = [alias];
+
+  if (alias.startsWith('plugin-')) {
+    aliases.push(alias.slice('plugin-'.length));
+  }
+
+  aliases.push(packageName);
+  return aliases;
+}
+
 function collectWorkspacePackages(baseDir) {
   const rootManifest = readJson(path.join(baseDir, 'package.json'));
   const packages = [];
@@ -134,7 +146,7 @@ function toWorkspaceReleaseTarget(workspacePackage) {
 
   return {
     id: packageAlias(manifest.name),
-    aliases: [packageAlias(manifest.name), manifest.name],
+    aliases: packageAliases(manifest.name),
     kind: hasVsceRelease ? 'vsce' : 'npm',
     packageName: manifest.name,
     version: manifest.version,
@@ -216,17 +228,17 @@ function runCoreRelease(mode, baseDir, runCommand) {
 }
 
 function runNpmRelease(mode, target, baseDir, runCommand) {
-  if (mode === 'publish' && npmVersionExists(target, baseDir, runCommand)) {
-    console.log(`${target.packageName}@${target.version} already exists on npm; skipping.`);
-    return { status: 0 };
-  }
-
   const buildResult = target.hasBuildScript
     ? runCommand('pnpm', ['--filter', target.packageName, 'run', 'build'], { cwd: baseDir })
     : { status: 0 };
 
   if (buildResult.status !== 0) {
     return buildResult;
+  }
+
+  if (mode === 'publish' && npmVersionExists(target, baseDir, runCommand)) {
+    console.log(`${target.packageName}@${target.version} already exists on npm; skipping.`);
+    return { status: 0 };
   }
 
   if (mode === 'package') {

@@ -27,6 +27,30 @@ The repo-root [`package.json`](../package.json) is workspace metadata for the mo
 
 `all` discovers the publishable workspace packages from package metadata, publishes npm packages before Marketplace packages, and skips npm versions that already exist.
 
+The core VS Code extension release publishes platform-specific VSIX targets for
+the native LadybugDB runtime:
+
+- `linux-x64`
+- `darwin-arm64`
+- `win32-x64`
+
+The release script stages the matching `@ladybugdb/core-*` native package before
+each `vsce --target` publish. It can fetch missing target-native packages with
+`npm pack`, so the release host does not need to be the same OS as every VSIX
+target.
+
+To dry-run extension packaging before publishing, run:
+
+```bash
+pnpm run package:vsix
+pnpm run check:vsix-native-artifacts
+```
+
+This writes target-specific VSIX artifacts under `artifacts/vsix/`. If you
+inspect `extension/dist/node_modules/@ladybugdb/core/lbugjs.node` inside each
+VSIX, Linux should be ELF x86-64, macOS should be Mach-O arm64, and Windows
+should be PE32+ x86-64.
+
 Use split publishing only when you want a manual checkpoint between npm and Marketplace:
 
 ```bash
@@ -45,9 +69,9 @@ pnpm run release:publish plugin-markdown
 pnpm run release:publish mcp
 pnpm run release:publish core
 pnpm run release:publish plugin-typescript
-pnpm run release:publish plugin-python
-pnpm run release:publish plugin-csharp
 pnpm run release:publish plugin-godot
+pnpm run release:publish plugin-vue
+pnpm run release:publish plugin-svelte
 ```
 
 `pnpm run release:publish core` publishes the `@codegraphy-dev/core` npm package. Use `pnpm run release:publish extension` for the VS Code Marketplace extension.
@@ -66,7 +90,7 @@ vsce verify-pat codegraphy
 3. Confirm `vsce ls-publishers` shows `codegraphy`.
 4. Confirm `vsce verify-pat codegraphy` succeeds.
 5. Run `pnpm install`.
-   - Use Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc) / [`.node-version`](../.node-version).
+   - Use the repo-pinned Node runtime from [`.nvmrc`](../.nvmrc) / [`.node-version`](../.node-version).
 6. Add changesets only for unreleased user-facing workspace packages. Archive shipped changesets under [`docs/archive/changesets/`](./archive/changesets/).
 7. Run `pnpm run version-packages`.
 8. If the VS Code Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.
@@ -77,9 +101,9 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish plugin-api`
    - `pnpm run release:publish plugin-markdown`
    - `pnpm run release:publish plugin-typescript`
-   - `pnpm run release:publish plugin-python`
-   - `pnpm run release:publish plugin-csharp`
    - `pnpm run release:publish plugin-godot`
+   - `pnpm run release:publish plugin-vue`
+   - `pnpm run release:publish plugin-svelte`
    - `pnpm run release:publish core`
    - `pnpm run release:publish mcp`
 13. Publish the VS Code extension with `pnpm run release:publish extension`.
@@ -91,7 +115,7 @@ vsce verify-pat codegraphy
 
 Use the `Release` workflow with `workflow_dispatch`.
 
-- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-python`, `plugin-csharp`, or `plugin-godot`.
+- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-godot`, `plugin-vue`, or `plugin-svelte`.
 - The workflow publishes the selected Marketplace targets and npm packages.
 
 Required secrets:
@@ -116,8 +140,8 @@ If you ever move the core to a different publisher later, that would require a n
 - Core: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>
 - Plugin API: <https://www.npmjs.com/package/@codegraphy-dev/plugin-api>
 - TypeScript/JavaScript plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript>
-- Python plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-python>
-- C# plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp>
 - Godot plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-godot>
 - Markdown plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown>
+- Vue plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-vue>
+- Svelte plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte>
 - MCP: <https://www.npmjs.com/package/@codegraphy-dev/mcp>

@@ -9,7 +9,10 @@ import type { SearchOptions } from '../components/searchBar/field/model';
 import { applyLegendRules } from './filtering/rules';
 import { deriveVisibleGraph } from '../../shared/visibleGraph';
 import type { IGraphData } from '../../shared/graph/contracts';
-import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
+import type {
+  IGraphEdgeTypeDefinition,
+  IGraphNodeTypeDefinition,
+} from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import {
@@ -49,12 +52,14 @@ export function useFilteredGraph(
   edgeDecorations?: Record<string, EdgeDecorationPayload>,
   filterPatterns: readonly string[] = [],
   showOrphans = true,
+  nodeTypes: IGraphNodeTypeDefinition[] = [],
 ): IFilteredGraph {
   const visibleGraph = useMemo(() => {
     return deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes,
       edgeVisibility,
       filterPatterns,
+      nodeTypes,
       nodeVisibility,
       searchOptions,
       searchQuery,
@@ -66,6 +71,7 @@ export function useFilteredGraph(
     filterPatterns,
     graphData,
     nodeVisibility,
+    nodeTypes,
     searchOptions,
     searchQuery,
     showOrphans,

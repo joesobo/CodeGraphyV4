@@ -1,13 +1,11 @@
 """API service for fetching data."""
 
+from services.base import BaseApiUser
 from utils.helpers import process_data
 
 
-class ApiUser:
+class ApiUser(BaseApiUser):
     """A tiny API user record returned by the service."""
-
-    def __init__(self, name):
-        self.name = name
 
 
 def fetch_data(url):

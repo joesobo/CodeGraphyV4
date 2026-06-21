@@ -15,7 +15,7 @@ describe('pipeline/serviceAdapters', () => {
     const readContent = vi.fn(async () => 'content');
 
     await preAnalyzeWorkspacePipelinePlugins(
-      [{ relativePath: 'src/app.ts', fsPath: '/workspace/src/app.ts' } as never],
+      [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' } as never],
       '/workspace',
       { notifyPreAnalyze } as never,
       { readContent } as never,
@@ -23,8 +23,8 @@ describe('pipeline/serviceAdapters', () => {
 
     expect(notifyPreAnalyze).toHaveBeenCalledOnce();
     expect(readContent).toHaveBeenCalledWith({
+      absolutePath: '/workspace/src/app.ts',
       relativePath: 'src/app.ts',
-      fsPath: '/workspace/src/app.ts',
     });
   });
 
@@ -38,6 +38,7 @@ describe('pipeline/serviceAdapters', () => {
       readAsBytes: vi.fn(async () => new Uint8Array()),
     };
     const registry = {
+      notifyPreAnalyze: vi.fn(async () => undefined),
       analyzeFileResult: vi.fn(async () => ({
         filePath: '/workspace/src/app.ts',
         relations: [
@@ -59,7 +60,7 @@ describe('pipeline/serviceAdapters', () => {
       undefined,
       registry as never,
       vi.fn(async () => stat),
-      [{ relativePath: 'src/app.ts', fsPath: '/workspace/src/app.ts' } as never],
+      [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' } as never],
       '/workspace',
     );
 
@@ -84,6 +85,7 @@ describe('pipeline/serviceAdapters', () => {
         },
       ],
     });
+    expect(registry.notifyPreAnalyze).toHaveBeenCalledOnce();
 
     const graphData = buildWorkspacePipelineGraphData(
       cache as never,
@@ -181,6 +183,9 @@ describe('pipeline/serviceAdapters', () => {
       ]),
       '/workspace',
       true,
+      new Set(),
+      [],
+      { nodeVisibility: { symbol: true, 'symbol:function': true } },
     );
 
     expect(graphData.nodes).toEqual(expect.arrayContaining([
@@ -192,6 +197,138 @@ describe('pipeline/serviceAdapters', () => {
         kind: 'contains',
         to: 'src/player.gd#_ready:method',
       }),
+    ]));
+  });
+
+  it('keeps cached symbols out of the Graph View payload when symbols are scoped off', () => {
+    const cache = {
+      files: {
+        'src/player.gd': { size: 20 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [{
+            id: '/workspace/src/player.gd:method:_ready',
+            filePath: '/workspace/src/player.gd',
+            kind: 'method',
+            name: '_ready',
+          }],
+          relations: [],
+        }],
+      ]),
+      '/workspace',
+      true,
+      new Set(),
+      [],
+      { nodeVisibility: { symbol: false } },
+    );
+
+    expect(graphData.nodes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'src/player.gd#_ready:method' }),
+    ]));
+    expect(graphData.edges).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'contains' }),
+    ]));
+  });
+
+  it('hides cached relations owned by plugins that are no longer registered', () => {
+    const cache = {
+      files: {
+        'src/app.ts': { size: 12 },
+        'src/organize.ts': { size: 8 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphData(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/app.ts', [
+          {
+            kind: 'import',
+            pluginId: 'codegraphy.organize',
+            sourceId: 'organize-edge',
+            specifier: './organize',
+            resolvedPath: '/workspace/src/organize.ts',
+          },
+        ]],
+        ['src/organize.ts', []],
+      ]),
+      '/workspace',
+      true,
+    );
+
+    expect(graphData.edges).toEqual([]);
+  });
+
+  it('hides cached symbols owned by plugins that are no longer registered', () => {
+    const cache = {
+      files: {
+        'src/app.ts': { size: 12 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/app.ts', {
+          filePath: '/workspace/src/app.ts',
+          symbols: [{
+            id: '/workspace/src/app.ts:function:run',
+            filePath: '/workspace/src/app.ts',
+            kind: 'function',
+            name: 'run',
+            metadata: {
+              pluginId: 'codegraphy.organize',
+              source: 'codegraphy.organize',
+            },
+          }],
+          relations: [],
+        }],
+      ]),
+      '/workspace',
+      true,
+      new Set(),
+      [],
+      { nodeVisibility: { symbol: true, 'symbol:function': true } },
+    );
+
+    expect(graphData.nodes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'src/app.ts#run:function' }),
     ]));
   });
 });

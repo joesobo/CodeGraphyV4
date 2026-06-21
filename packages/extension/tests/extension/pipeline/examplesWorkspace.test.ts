@@ -1,15 +1,21 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
+import {
+  getCodeGraphyConfiguration,
+  initializeCurrentCodeGraphyConfiguration,
+  resetCurrentCodeGraphyConfigurationForTest,
+} from '../../../src/extension/repoSettings/current';
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];
+const EXAMPLES_WORKSPACE_TEST_TIMEOUT_MS = 60_000;
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -47,9 +53,14 @@ afterAll(async () => {
   );
 });
 
-describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
+describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_TEST_TIMEOUT_MS }, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    resetCurrentCodeGraphyConfigurationForTest();
+  });
+
+  afterEach(() => {
+    resetCurrentCodeGraphyConfigurationForTest();
   });
 
   it('connects nested example projects when the repo-root examples folder is opened', async () => {
@@ -57,12 +68,22 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'examples', index: 0 },
     ];
+    const context = createContext();
+    initializeCurrentCodeGraphyConfiguration(context as unknown as vscode.ExtensionContext);
+    await getCodeGraphyConfiguration().update('nodeVisibility', {
+      symbol: true,
+      variable: true,
+      'symbol:constant': true,
+    });
 
     const analyzer = new WorkspacePipeline(
-      createContext() as unknown as vscode.ExtensionContext,
+      context as unknown as vscode.ExtensionContext,
     );
 
     await analyzer.initialize();
+    analyzer.registry.unregister('codegraphy.typescript');
+    analyzer.registry.unregister('codegraphy.gdscript');
+    analyzer.registry.register(createTypeScriptPlugin());
     analyzer.registry.register(createGDScriptPlugin());
 
     const graph = await analyzer.analyze();
@@ -94,13 +115,23 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-python/src/main.py->example-python/src/services/api.py#import',
       'example-go/main.go->example-go/internal/service/service.go#import',
       'example-java/src/com/example/app/App.java->example-java/src/com/example/app/Helper.java#import',
-      'example-java/src/com/example/app/App.java->example-java/src/com/example/app/BaseService.java#inherit',
       'example-rust/src/main.rs->example-rust/src/util.rs#import',
       'example-rust/src/main.rs->example-rust/src/inner.rs#import',
-      'example-c/src/main.c->example-c/src/math/add.h#import:include',
-      'example-c/src/math/add.c->example-c/src/math/add.h#import:include',
-      'example-cpp/src/app.cpp->example-cpp/src/lib/widget.hpp#import:include',
-      'example-cpp/src/lib/widget.cpp->example-cpp/src/lib/widget.hpp#import:include',
+      'example-c/src/main.c->example-c/src/logger/logger.h#include:include',
+      'example-c/src/main.c#main:function->example-c/src/logger/logger.h#logger_init:prototype#call',
+      'example-c/src/main.c#main:function->example-c/src/logger/logger.h#logger_write:prototype#call',
+      'example-c/src/main.c#main:function->example-c/src/logger/logger.h#logger_flush:prototype#call',
+      'example-c/src/logger/logger.c->example-c/src/logger/logger.h#include:include',
+      'example-c/src/logger/logger.c->example-c/src/logger/format.h#include:include',
+      'example-c/src/logger/logger.c#logger_write:function->example-c/src/logger/format.h#logger_format_line:prototype#call',
+      'example-c/src/logger/logger.c#logger_write:function->example-c/src/logger/logger.c#logger_accepts:function#call',
+      'example-c/src/logger/format.c->example-c/src/logger/format.h#include:include',
+      'example-c/src/logger/format.c#logger_format_line:function->example-c/src/logger/format.h#logger_level_name:prototype#call',
+      'example-c/src/logger/format.h->example-c/src/logger/logger.h#include:include',
+      'example-cpp/src/app.cpp->example-cpp/src/runner.hpp#include:include',
+      'example-cpp/src/runner.cpp->example-cpp/src/runner.hpp#include:include',
+      'example-cpp/src/runner.hpp->example-cpp/src/task_queue.hpp#include:include',
+      'example-cpp/src/runner.hpp->example-cpp/src/worker.hpp#include:include',
       'example-kotlin/src/main/kotlin/com/example/app/AppRunner.kt->example-kotlin/src/main/kotlin/com/example/base/BaseRunner.kt#import',
       'example-kotlin/src/main/kotlin/com/example/app/AppRunner.kt->example-kotlin/src/main/kotlin/com/example/base/BaseRunner.kt#inherit',
       'example-kotlin/src/main/kotlin/com/example/app/AppRunner.kt->example-kotlin/src/main/kotlin/com/example/base/RunnableThing.kt#import',
@@ -119,7 +150,9 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-haskell/src/App/Feature/Runner.hs->example-haskell/src/App/Model/User.hs#import',
       'example-lua/main.lua->example-lua/app/runner.lua#import',
       'example-lua/app/runner.lua->example-lua/app/model/user.lua#import',
-      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Worker.swift#import',
+      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Runnable.swift#import',
+      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Worker.swift#inherit',
+      'example-swift/Sources/SwiftExample/main.swift->example-swift/Sources/RunnerSupport/Runnable.swift#inherit',
       'example-dart/bin/sample_app.dart->example-dart/lib/app/runner.dart#import',
       'example-dart/lib/app/runner.dart->example-dart/lib/model/profile.dart#import',
       'example-dart/lib/app/runner.dart->example-dart/lib/model/user.dart#import',
@@ -136,21 +169,34 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference:static',
       'example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference:static',
       'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
-      'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
-      'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
-      'example-typescript/src/utils.ts->example-typescript/src/depth.ts#getDepthTarget:function#import',
+      'example-javascript/src/index.js->example-javascript/src/utils.js#buildGreeting:function#import',
+      'example-javascript/src/index.js->example-javascript/src/user.js#normalizeUserName:function#import',
+      'example-javascript/src/utils.js->example-javascript/src/depth.js#getDepthTarget:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/palette.ts#buildPalette:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/types.ts#PaletteRecipe:interface#type-import',
+      'example-typescript/src/palette.ts->example-typescript/src/harmony.ts#getAccentSwatch:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/alias/themePack.ts#codegraphy.typescript:alias-import',
     ];
 
     const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
     expect(missingEdgeIds).toEqual([]);
-    expect(nodeIds.has('example-typescript/src/index.ts#currentUser:constant')).toBe(true);
+    expect(nodeIds.has('example-javascript/src/index.js#currentUser:constant')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/index.ts#currentMood:constant')).toBe(true);
     expect(graph.nodes).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        id: 'example-typescript/src/index.ts#currentUser:constant',
+        id: 'example-javascript/src/index.js#currentUser:constant',
         nodeType: 'variable',
         symbol: expect.objectContaining({
           kind: 'constant',
           name: 'currentUser',
+        }),
+      }),
+      expect.objectContaining({
+        id: 'example-typescript/src/index.ts#currentMood:constant',
+        nodeType: 'variable',
+        symbol: expect.objectContaining({
+          kind: 'constant',
+          name: 'currentMood',
         }),
       }),
     ]));
@@ -159,8 +205,11 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-python/src/utils/format.py#format_name:function',
       'example-markdown/src/commented.ts#parseCommentedLink:function',
       'example-go/internal/service/service.go#NewRunner:function',
-      'example-c/src/math/add.h#AddInput:struct',
-      'example-cpp/src/lib/widget.hpp#make_widget:function',
+      'example-c/src/logger/logger.h#Logger:struct',
+      'example-c/src/logger/format.h#LogMessage:union',
+      'example-c/src/logger/format.h#LogRecord:typedef',
+      'example-c/src/logger/logger.c#logger_output_enabled:global',
+      'example-cpp/src/runner.cpp#TaskRunner::run:method',
       'example-ruby/lib/app/runner.rb#call:method',
       'example-haskell/src/App/Feature/Runner.hs#Greeting:data',
       'example-lua/app/runner.lua#Runner.greet:function',
@@ -169,23 +218,41 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     expect(missingStorySymbolIds).toEqual([]);
 
     const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    const persistedJavaScriptFiles = persistedSnapshot.files
+      .map(file => file.filePath)
+      .filter(filePath => filePath.startsWith('example-javascript/'));
     const persistedTypeScriptFiles = persistedSnapshot.files
       .map(file => file.filePath)
       .filter(filePath => filePath.startsWith('example-typescript/'));
 
+    expect(persistedJavaScriptFiles).toEqual(
+      expect.arrayContaining([
+        'example-javascript/src/index.js',
+        'example-javascript/src/orphan.js',
+        'example-javascript/src/utils.js',
+        'example-javascript/src/depth.js',
+        'example-javascript/src/leaf.js',
+        'example-javascript/src/user.js',
+      ]),
+    );
     expect(persistedTypeScriptFiles).toEqual(
       expect.arrayContaining([
         'example-typescript/src/index.ts',
-        'example-typescript/src/orphan.ts',
-        'example-typescript/src/utils.ts',
-        'example-typescript/src/depth.ts',
-        'example-typescript/src/leaf.ts',
+        'example-typescript/src/scratchpad.ts',
+        'example-typescript/src/palette.ts',
+        'example-typescript/src/swatches.ts',
+        'example-typescript/src/lazyPreview.ts',
+        'example-typescript/src/seedSettings.ts',
+        'example-typescript/src/registry.ts',
+        'example-typescript/src/themeLabels.ts',
+        'example-typescript/src/harmony.ts',
         'example-typescript/src/types.ts',
+        'example-typescript/src/alias/themePack.ts',
       ]),
     );
   });
 
-  it('does not let plugin default filters hide TypeScript example source folders', async () => {
+  it('does not let optional plugin default filters hide TypeScript example source folders', async () => {
     const workspaceRoot = await copyExamplesWorkspace();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'examples', index: 0 },
@@ -196,13 +263,14 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     );
 
     await analyzer.initialize();
-    analyzer.registry.register(createCSharpPlugin());
+    analyzer.registry.unregister('codegraphy.gdscript');
+    analyzer.registry.register(createGDScriptPlugin());
 
     const graph = await analyzer.analyze();
     const nodeIds = new Set(graph.nodes.map((node) => node.id));
 
     expect(nodeIds.has('example-typescript/src/index.ts')).toBe(true);
-    expect(nodeIds.has('example-typescript/src/utils.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/palette.ts')).toBe(true);
     expect(nodeIds.has('example-typescript/src/types.ts')).toBe(true);
   });
 });

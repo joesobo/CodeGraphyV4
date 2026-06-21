@@ -14,6 +14,10 @@ import {
   handlePhpMethodDeclaration,
   handlePhpTypeDeclaration,
 } from './symbols';
+import {
+  shouldIncludeTreeSitterSymbols,
+  type TreeSitterAnalysisOptions,
+} from '../options';
 
 const PHP_TYPE_DECLARATION_NODE_TYPES = new Set([
   'class_declaration',
@@ -30,6 +34,7 @@ function visitPhpNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'namespace_use_declaration') {
     handlePhpNamespaceUseDeclaration(node, filePath, sourceRoot, relations, importedBindings);
@@ -45,16 +50,21 @@ function visitPhpNode(
       relations,
       symbols,
       importedBindings,
+      symbolsEnabled,
     );
     return;
   }
 
   if (node.type === 'function_definition') {
-    return handlePhpFunctionDefinition(node, filePath, symbols);
+    return symbolsEnabled
+      ? handlePhpFunctionDefinition(node, filePath, symbols)
+      : undefined;
   }
 
   if (node.type === 'method_declaration') {
-    return handlePhpMethodDeclaration(node, filePath, symbols);
+    return symbolsEnabled
+      ? handlePhpMethodDeclaration(node, filePath, symbols)
+      : undefined;
   }
 
   return;
@@ -63,10 +73,13 @@ function visitPhpNode(
 export function analyzePhpFile(
   filePath: string,
   tree: Parser.Tree,
+  _workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   const { namespaceName, sourceRoot } = resolvePhpSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node) =>
     visitPhpNode(
@@ -77,6 +90,7 @@ export function analyzePhpFile(
       relations,
       symbols,
       importedBindings,
+      symbolsEnabled,
     ),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);

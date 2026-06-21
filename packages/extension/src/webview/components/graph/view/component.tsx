@@ -20,8 +20,7 @@ import { detectMacPlatform } from '../environment/platform';
 import { useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
 import { useGraphInteractionRuntime } from '../runtime/use/interaction';
-import { useGraphState } from '../runtime/use/state';
-import { isPhysicsGraphReady, selectActivePhysicsGraph } from '../runtime/physicsLifecycle/readiness';
+import { useGraphRuntime } from '../runtime/use/state';
 import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
@@ -98,7 +97,7 @@ export default function Graph({
     pluginHost,
   );
 
-  const graphState = useGraphState({
+  const graphRuntime = useGraphRuntime({
     appearance,
     bidirectionalMode: viewState.bidirectionalMode,
     data,
@@ -114,70 +113,60 @@ export default function Graph({
     theme,
     timelineActive: viewState.timelineActive,
   });
-  const graphDataLayoutKey = buildGraphDataLayoutKey(graphState.graphData, viewState.nodeSizeMode);
+  const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
   const interactions = useGraphInteractionRuntime({
-    dataRef: graphState.dataRef,
+    dataRef: graphRuntime.dataRef,
     depthMode: viewState.depthMode,
-    fileInfoCacheRef: graphState.fileInfoCacheRef,
-    graphContextSelection: graphState.contextSelection,
-    graphCursorRef: graphState.graphCursorRef,
-    graphDataRef: graphState.graphDataRef,
+    fileInfoCacheRef: graphRuntime.renderCaches.fileInfoCacheRef,
+    graphContextSelection: graphRuntime.context.selection,
+    graphCursorRef: graphRuntime.graphCursorRef,
+    graphDataRef: graphRuntime.renderer.graphDataRef,
     graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
-    highlightedNeighborsRef: graphState.highlightedNeighborsRef,
-    highlightedNodeRef: graphState.highlightedNodeRef,
+    highlightedNeighborsRef: graphRuntime.highlightedNeighborsRef,
+    highlightedNodeRef: graphRuntime.highlightedNodeRef,
     isMacPlatform,
-    lastClickRef: graphState.lastClickRef,
-    lastContainerContextMenuEventRef: graphState.lastContainerContextMenuEventRef,
-    lastGraphContextEventRef: graphState.lastGraphContextEventRef,
+    lastClickRef: graphRuntime.lastClickRef,
+    lastContainerContextMenuEventRef: graphRuntime.context.lastContainerContextMenuEventRef,
+    lastGraphContextEventRef: graphRuntime.context.lastGraphContextEventRef,
     openFilterPatternPrompt: onAddFilterRequested,
     openLegendRulePrompt: onAddLegendRequested,
     pluginHost,
     refs: {
-      containerRef: graphState.containerRef,
-      fg2dRef: graphState.fg2dRef,
-      fg3dRef: graphState.fg3dRef,
-      rightClickFallbackTimerRef: graphState.rightClickFallbackTimerRef,
-      rightMouseDownRef: graphState.rightMouseDownRef,
-      selectedNodesSetRef: graphState.selectedNodesSetRef,
+      containerRef: graphRuntime.renderer.containerRef,
+      fg2dRef: graphRuntime.renderer.fg2dRef,
+      fg3dRef: graphRuntime.renderer.fg3dRef,
+      rightClickFallbackTimerRef: graphRuntime.context.rightClickFallbackTimerRef,
+      rightMouseDownRef: graphRuntime.context.rightMouseDownRef,
+      selectedNodesSetRef: graphRuntime.selection.selectedNodeIdsRef,
     },
-    setContextSelection: graphState.setContextSelection,
-    setHighlightVersion: graphState.setHighlightVersion,
-    setSelectedNodes: graphState.setSelectedNodes,
+    setContextSelection: graphRuntime.context.setSelection,
+    setHighlightVersion: graphRuntime.setHighlightVersion,
+    setSelectedNodes: graphRuntime.selection.setSelectedNodeIds,
     timelineActive: viewState.timelineActive,
   });
 
-  const activeGraph = selectActivePhysicsGraph(
-    viewState.graphMode,
-    graphState.fg2dRef.current,
-    graphState.fg3dRef.current,
-  );
-
   const handleEngineStop = useGraphAutoFit({
-    fitView: interactions.interactionHandlers.fitView,
-    graphData: graphState.graphData,
-    graphMode: viewState.graphMode,
-    graphReady: isPhysicsGraphReady(viewState.graphMode, activeGraph),
     handleEngineStop: interactions.handleEngineStop,
   });
 
   useGraphDebugApi(buildGraphDebugOptions({
     graphMode: viewState.graphMode,
-    graphState,
+    graphState: graphRuntime,
     interactions,
     win: getGraphWindow(),
   }));
 
-  const callbacks = useGraphCallbacks(buildGraphCallbackOptions({ graphState, pluginHost }));
+  const callbacks = useGraphCallbacks(buildGraphCallbackOptions({ graphState: graphRuntime, pluginHost }));
 
   return (
     <GraphViewportShell
       appearance={appearance}
       callbacks={callbacks}
       graphDataLayoutKey={graphDataLayoutKey}
-      graphState={graphState}
+      graphState={graphRuntime}
       graphViewContributions={resolvedGraphViewContributions}
       handleEngineStop={handleEngineStop}
       interactions={interactions}

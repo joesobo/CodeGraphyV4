@@ -28,6 +28,7 @@ function createTheme(): MaterialThemeCacheEntry {
   return {
     iconDataByName: new Map(),
     manifestPath,
+    pathMatchers: {},
     manifest: {
       folder: 'folder',
       rootFolder: 'folder-root',

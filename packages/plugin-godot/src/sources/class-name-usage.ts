@@ -30,11 +30,13 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
       if (resolved) {
         const resolvedPath = normalizePath(path.join(ctx.workspaceRoot, resolved));
         relations.push({
-          kind: 'reference',
+          kind: ref.referenceType === 'class_name_static_call' ? 'call' : 'reference',
           specifier: ref.resPath,
           resolvedPath,
           type: 'static',
-          sourceId: SOURCE_ID,
+          sourceId: ref.referenceType === 'class_name_static_call'
+            ? 'class-name-static-call'
+            : SOURCE_ID,
           fromFilePath: filePath,
           toFilePath: resolvedPath,
         });

@@ -16,12 +16,39 @@ import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
 import type { IPluginDataHost } from './data';
 import type { Disposable } from './disposable';
-import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
+import type {
+  GraphEdgeKind,
+  GraphNodeShape2D,
+  GraphNodeShape3D,
+  IGraphData,
+  NodeType,
+} from './graph';
 import type { IGraphViewContributions } from './graphView';
 
 export interface IPluginWebviewContributions {
   scripts?: string[];
   styles?: string[];
+  assets?: IPluginWebviewAsset[];
+}
+
+export interface IPluginWebviewAsset {
+  id: string;
+  label: string;
+  path: string;
+  kind?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface IPluginGraphScopeCapabilityContext {
+  /**
+   * File paths from the indexed workspace graph that made the plugin applicable.
+   */
+  filePaths: readonly string[];
+}
+
+export interface IPluginGraphScopeCapabilities {
+  nodeTypes?: readonly NodeType[];
+  edgeTypes?: readonly GraphEdgeKind[];
 }
 
 export interface IPluginWebviewMessage {
@@ -95,6 +122,9 @@ export interface IPluginAnalysisContext {
   mode: 'workspace' | 'timeline';
   commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
+  features?: {
+    symbols?: boolean;
+  };
   options?: Record<string, unknown>;
 }
 
@@ -217,6 +247,19 @@ export interface IPlugin {
    * Optional edge-type contributions shown in graph controls and legends.
    */
   contributeEdgeTypes?(): IPluginEdgeType[];
+
+  /**
+   * Optional Graph Scope capabilities this plugin can make relevant when it is
+   * applicable to the indexed workspace.
+   *
+   * These declarations are independent from emitted graph output, so graph
+   * controls can show relevant toggles even before the current graph contains
+   * matching nodes or edges. Plugins may declare core and plugin-owned node
+   * types and edge kinds.
+   */
+  contributeGraphScopeCapabilities?(
+    context?: IPluginGraphScopeCapabilityContext,
+  ): IPluginGraphScopeCapabilities;
 
   // ---------------------------------------------------------------------------
   // Optional analysis hooks

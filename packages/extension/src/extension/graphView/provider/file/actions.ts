@@ -18,10 +18,19 @@ import {
 
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
 
+function getCurrentWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
+  return vscode.workspace.workspaceFolders?.[0]
+    ?? (
+      vscode.window.activeTextEditor
+        ? vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri)
+        : undefined
+    );
+}
+
 export interface GraphViewProviderFileActionMethodsSource {
   _getFocusedFile(): string | undefined;
   _analyzeAndSendData(): Promise<void>;
-  _sendFavorites(): void;
+  _sendFavorites(favorites?: string[]): void;
   _setFocusedFile(filePath: string | undefined): void;
 }
 
@@ -74,7 +83,7 @@ export interface GraphViewProviderFileActionMethodDependencies {
     workspaceFolderUri: vscode.Uri,
     analyzeAndSendData: () => Promise<void>,
   ): IUndoableAction;
-  createToggleFavoriteAction(paths: string[], sendFavorites: () => void): IUndoableAction;
+  createToggleFavoriteAction(paths: string[], sendFavorites: (favorites: string[]) => void): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
 }
 
@@ -87,11 +96,16 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
   createFile: createGraphViewFile,
   createFolder: createGraphViewFolder,
   toggleFavorites: toggleGraphViewFavorites,
-  getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
+  getWorkspaceFolder: getCurrentWorkspaceFolder,
   showWarningMessage: (message, options, deleteAction) =>
-    vscode.window.showWarningMessage(message, options, deleteAction) as Thenable<
-      'Delete' | undefined
-    >,
+    options.modal
+      ? vscode.window.showQuickPick([deleteAction], {
+        title: message,
+        ignoreFocusOut: true,
+      }) as Thenable<'Delete' | undefined>
+      : vscode.window.showWarningMessage(message, options, deleteAction) as Thenable<
+        'Delete' | undefined
+      >,
   showInputBox: options => vscode.window.showInputBox(options),
   showErrorMessage: message => {
     vscode.window.showErrorMessage(message);
@@ -133,8 +147,9 @@ export function createGraphViewProviderFileActionMethods(
   };
 
   const _deleteFiles = async (paths: string[]): Promise<void> => {
+    const workspaceFolder = dependencies.getWorkspaceFolder();
     await dependencies.deleteFiles(paths, {
-      workspaceFolder: dependencies.getWorkspaceFolder(),
+      workspaceFolder,
       showWarningMessage: (message, options, deleteAction) =>
         dependencies.showWarningMessage(message, options, deleteAction) as PromiseLike<
           typeof deleteAction | undefined
@@ -208,8 +223,8 @@ export function createGraphViewProviderFileActionMethods(
   const _toggleFavorites = async (paths: string[]): Promise<void> => {
     await dependencies.toggleFavorites(paths, {
       executeToggleFavoritesAction: async nextPaths => {
-        const action = dependencies.createToggleFavoriteAction(nextPaths, () =>
-          source._sendFavorites(),
+        const action = dependencies.createToggleFavoriteAction(nextPaths, favorites =>
+          source._sendFavorites(favorites),
         );
         await dependencies.executeUndoAction(action);
       },

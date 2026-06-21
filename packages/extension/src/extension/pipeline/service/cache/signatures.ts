@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
   normalizeCodeGraphyWorkspaceSettings,
@@ -18,7 +18,7 @@ export function createWorkspacePipelinePluginSignature(
     sourcePackage?: string;
   }>,
   options: {
-    installedPlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version'>>;
+    installedPlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version' | 'pluginId'>>;
     settings?: { plugins?: readonly CodeGraphyWorkspacePluginSettings[] };
   } = {},
 ): string | null {
@@ -35,11 +35,11 @@ export function createWorkspacePipelinePluginSignature(
         version: pluginInfo.plugin.version,
       };
     });
-  const loadedPackageNames = new Set(packagePlugins.map(plugin => plugin.package));
+  const loadedPluginIds = new Set(packagePlugins.map(plugin => plugin.pluginId ?? plugin.package));
   const missingPackagePlugins = (options.settings?.plugins ?? [])
-    .map(plugin => plugin.package)
-    .filter(packageName => packageName !== CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)
-    .filter(packageName => !loadedPackageNames.has(packageName));
+    .filter(plugin => plugin.enabled && plugin.id !== CODEGRAPHY_MARKDOWN_PLUGIN_ID)
+    .map(plugin => plugin.id)
+    .filter(pluginId => !loadedPluginIds.has(pluginId));
 
   return createCodeGraphyWorkspacePackageAwarePluginSignature({
     runtimePlugins: plugins

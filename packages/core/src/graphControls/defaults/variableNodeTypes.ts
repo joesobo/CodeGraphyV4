@@ -1,11 +1,13 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
 
-export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
+export function createCoreVariableNodeTypes(): IGraphNodeTypeDefinition[] {
+  return [
   {
     id: 'variable',
     label: 'Variable',
     defaultColor: '#14B8A6',
     defaultVisible: false,
+    parentId: 'symbol',
   },
   {
     id: 'symbol:constant',
@@ -13,6 +15,39 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#22C55E',
     defaultVisible: false,
     parentId: 'variable',
+    matchSymbolKinds: ['constant'],
+  },
+  {
+    id: 'symbol:global',
+    label: 'Global',
+    defaultColor: '#0D9488',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['global'],
+  },
+  {
+    id: 'symbol:field',
+    label: 'Field',
+    defaultColor: '#84CC16',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['field'],
+  },
+  {
+    id: 'symbol:parameter',
+    label: 'Parameter',
+    defaultColor: '#2DD4BF',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['parameter'],
+  },
+  {
+    id: 'symbol:local',
+    label: 'Local',
+    defaultColor: '#10B981',
+    defaultVisible: false,
+    parentId: 'variable',
+    matchSymbolKinds: ['local'],
   },
   {
     id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
@@ -27,4 +62,7 @@ export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     matchSymbolLanguage: 'gdscript',
     matchSymbolFilePath: '**/*.gd',
   },
-];
+  ];
+}
+
+export const CORE_VARIABLE_NODE_TYPES: IGraphNodeTypeDefinition[] = createCoreVariableNodeTypes();

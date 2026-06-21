@@ -63,6 +63,7 @@ function createDependencies(
     isAbortError: vi.fn(() => false),
     hasWorkspace: vi.fn(() => true),
     logError: vi.fn(),
+    emitDiagnostic: vi.fn(),
     ...overrides,
   };
 }
@@ -115,9 +116,11 @@ describe('graphView/provider/analysis/handlers', () => {
       payload: graphData,
     });
     expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
-      graphData,
+      source._rawGraphData,
       source._analyzer,
       expect.any(Function),
+      undefined,
+      source._disabledPlugins,
     );
     expect(source._sendDepthState).toHaveBeenCalledOnce();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
@@ -127,7 +130,7 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(callbacks.markWorkspaceReady).toHaveBeenCalledWith(graphData);
+    expect(callbacks.markWorkspaceReady).toHaveBeenCalledWith(graphData, undefined);
     expect(callbacks.isAbortError).toHaveBeenCalledOnce();
     expect(dependencies.logError).toHaveBeenCalledOnce();
   });
@@ -184,6 +187,8 @@ describe('graphView/provider/analysis/handlers', () => {
       graphData,
       source._analyzer,
       expect.any(Function),
+      undefined,
+      source._disabledPlugins,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_CONTROLS_UPDATED',
@@ -258,10 +263,20 @@ describe('graphView/provider/analysis/handlers', () => {
     handlers.updateAnalysisRequestId?.(6);
     expect(handlers.isAbortError(new Error('boom'))).toBe(false);
     handlers.logError('label', new Error('boom'));
+    handlers.emitDiagnostic?.({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: { requestId: 6 },
+    });
 
     expect(callbacks.executeAnalysis).toHaveBeenCalledWith(controller.signal, 6);
     expect(source._analysisController).toBe(controller);
     expect(source._analysisRequestId).toBe(6);
     expect(dependencies.logError).toHaveBeenCalledOnce();
+    expect(dependencies.emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: { requestId: 6 },
+    });
   });
 });

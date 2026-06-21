@@ -32,12 +32,13 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(settings.legacyPlugins).toEqual(['codegraphy.typescript']);
   });
 
-  it('serializes package-backed plugin entries', () => {
+  it('serializes plugin activity intent entries', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.plugins = [
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
       {
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: false,
         options: { includeTests: true },
       },
     ];
@@ -45,9 +46,10 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
 
     expect(parsed.plugins).toEqual([
-      { package: '@codegraphy-dev/plugin-markdown' },
+      { id: 'codegraphy.markdown', enabled: true },
       {
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: false,
         options: { includeTests: true },
       },
     ]);
@@ -89,14 +91,14 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
 
     expect(parsed.nodeColors.symbol).toBe('#8B5CF6');
     expect(parsed.nodeColors['symbol:function']).toBe('#8B5CF6');
-    expect(parsed.nodeColors['symbol:method']).toBeUndefined();
-    expect(parsed.nodeColors['symbol:namespace']).toBeUndefined();
+    expect(parsed.nodeColors['symbol:method']).toBe('#A855F7');
+    expect(parsed.nodeColors['symbol:namespace']).toBe('#64748B');
     expect(parsed.nodeColors['symbol:variable']).toBeUndefined();
     expect(parsed.nodeColorEnabled).toBeUndefined();
     expect(parsed.nodeVisibility.symbol).toBe(true);
     expect(parsed.nodeVisibility['symbol:function']).toBe(true);
-    expect(parsed.nodeVisibility['symbol:method']).toBeUndefined();
-    expect(parsed.nodeVisibility['symbol:namespace']).toBeUndefined();
+    expect(parsed.nodeVisibility['symbol:method']).toBe(true);
+    expect(parsed.nodeVisibility['symbol:namespace']).toBe(true);
     expect(parsed.nodeVisibility['symbol:variable']).toBeUndefined();
   });
 

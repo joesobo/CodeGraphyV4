@@ -10,24 +10,71 @@ interface PathMatchContext {
   subjectPath: string;
 }
 
+interface MaterialPathRuleEntry {
+  iconName: string;
+  lowerRule: string;
+  normalizedRule: string;
+}
+
+export interface MaterialPathRuleMatcher {
+  baseNameRules: Map<string, MaterialPathRuleEntry>;
+  pathRules: MaterialPathRuleEntry[];
+}
+
+export function createMaterialPathRuleMatcher(
+  rules: Record<string, string>,
+): MaterialPathRuleMatcher {
+  const baseNameRules = new Map<string, MaterialPathRuleEntry>();
+  const pathRules: MaterialPathRuleEntry[] = [];
+
+  for (const [ruleKey, iconName] of Object.entries(rules)) {
+    const normalizedRule = normalizePathSeparators(ruleKey);
+    const lowerRule = normalizedRule.toLowerCase();
+    const entry = { iconName, lowerRule, normalizedRule };
+
+    if (normalizedRule.includes('/')) {
+      pathRules.push(entry);
+      continue;
+    }
+
+    baseNameRules.set(lowerRule, entry);
+  }
+
+  pathRules.sort((left, right) => right.normalizedRule.length - left.normalizedRule.length);
+
+  return { baseNameRules, pathRules };
+}
+
 export function findLongestPathMatch(
   subjectPath: string,
   rules: Record<string, string>,
   kind: PathMatchKind,
 ): MaterialMatch | undefined {
-  const context = getPathMatchContext(subjectPath);
-  let bestMatch: MaterialMatch | undefined;
+  return findLongestPathMatchWithMatcher(
+    subjectPath,
+    createMaterialPathRuleMatcher(rules),
+    kind,
+  );
+}
 
-  for (const [ruleKey, iconName] of Object.entries(rules)) {
-    const match = createPathMatch(context, ruleKey, iconName, kind);
-    if (!match || (bestMatch && bestMatch.key.length >= match.key.length)) {
+export function findLongestPathMatchWithMatcher(
+  subjectPath: string,
+  matcher: MaterialPathRuleMatcher,
+  kind: PathMatchKind,
+): MaterialMatch | undefined {
+  const context = getPathMatchContext(subjectPath);
+  for (const rule of matcher.pathRules) {
+    if (!matchesPathRule(context, rule.normalizedRule, rule.lowerRule)) {
       continue;
     }
 
-    bestMatch = match;
+    return createMaterialMatch(context, rule, kind);
   }
 
-  return bestMatch;
+  const baseNameRule = matcher.baseNameRules.get(context.lowerBaseName);
+  return baseNameRule
+    ? createMaterialMatch(context, baseNameRule, kind)
+    : undefined;
 }
 
 function getPathMatchContext(subjectPath: string): PathMatchContext {
@@ -40,21 +87,14 @@ function getPathMatchContext(subjectPath: string): PathMatchContext {
   };
 }
 
-function createPathMatch(
+function createMaterialMatch(
   context: PathMatchContext,
-  ruleKey: string,
-  iconName: string,
+  rule: MaterialPathRuleEntry,
   kind: PathMatchKind,
 ): MaterialMatch | undefined {
-  const normalizedRule = normalizePathSeparators(ruleKey);
-  const lowerRule = normalizedRule.toLowerCase();
-  if (!matchesPathRule(context, normalizedRule, lowerRule)) {
-    return undefined;
-  }
-
   return {
-    iconName,
-    key: resolveMatchedPathKey(context, normalizedRule, lowerRule),
+    iconName: rule.iconName,
+    key: resolveMatchedPathKey(context, rule.normalizedRule, rule.lowerRule),
     kind,
   };
 }

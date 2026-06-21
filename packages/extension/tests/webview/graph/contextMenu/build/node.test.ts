@@ -24,23 +24,23 @@ function disabledLabels(entries: readonly GraphContextMenuEntry[]): string[] {
 }
 
 const immutableFolderLabels = [
-  'New File...',
-  'New Folder...',
+  'New File',
+  'New Folder',
   'Reveal in Explorer',
   'Copy Relative Path',
   'Copy Absolute Path',
   'Add to Favorites',
   'Focus Node',
-  'Add Filter Pattern...',
-  'Add Legend Group...',
-  'Rename Folder...',
+  'Add Filter Pattern',
+  'Add Legend Group',
+  'Rename Folder',
   'Delete Folder',
 ];
 
 const immutableFolderDisabledLabels = [
-  'New File...',
-  'New Folder...',
-  'Rename Folder...',
+  'New File',
+  'New Folder',
+  'Rename Folder',
   'Delete Folder',
 ];
 
@@ -80,8 +80,8 @@ describe('graph/contextMenu/build/node', () => {
       nodes: [{ id: 'src', nodeType: 'folder' }],
     });
 
-    expect(itemLabels(entries)).toContain('New File...');
-    expect(itemLabels(entries)).toContain('New Folder...');
+    expect(itemLabels(entries)).toContain('New File');
+    expect(itemLabels(entries)).toContain('New Folder');
   });
 
   it('builds multi-file node actions from the selected targets', () => {
@@ -97,7 +97,7 @@ describe('graph/contextMenu/build/node', () => {
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Add Filter Patterns...',
+      'Add Filter Patterns',
       'Delete 2 Files',
     ]);
   });
@@ -119,7 +119,7 @@ describe('graph/contextMenu/build/node', () => {
       'Open 3 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Add Filter Patterns...',
+      'Add Filter Patterns',
       'Delete 3 Files',
     ]);
   });

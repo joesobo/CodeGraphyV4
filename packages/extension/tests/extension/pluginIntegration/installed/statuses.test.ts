@@ -1,6 +1,10 @@
 import * as fs from 'node:fs/promises';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import {
+  readCodeGraphyWorkspaceSettings,
+  writeCodeGraphyWorkspaceSettings,
+} from '@codegraphy-dev/core';
 import { activate } from '../../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../../graphViewProvider/internals';
@@ -15,8 +19,9 @@ const mockState = vi.hoisted(() => ({
     clearWorkspaceAnalysisDatabaseCache: vi.fn(),
     getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.lbug`),
     loadWorkspaceAnalysisDatabaseCache: vi.fn(() => ({ files: {}, version: '2.0.0' })),
+    loadWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => ({ files: {}, version: '2.0.0' })),
     readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], symbols: [], relations: [] })),
-    saveWorkspaceAnalysisDatabaseCache: vi.fn(),
+    saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
   },
 }));
 
@@ -43,8 +48,9 @@ vi.mock('../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
   clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  loadWorkspaceAnalysisDatabaseCacheAsync: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
-  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync,
 }));
 
 function createContext() {
@@ -105,12 +111,11 @@ async function waitForPluginStatuses(
   getMessages: () => Array<{
     type?: string;
     payload?: {
-      plugins?: Array<{ id: string }>;
+      plugins?: Array<{ enabled?: boolean; id: string; packageName?: string }>;
     };
   }>,
-): Promise<Array<{ id: string }>> {
-  const requiredPluginIds = ['codegraphy.markdown', 'acme.integration'];
-
+  requiredPluginIds = ['codegraphy.markdown', installedPackage!.pluginId],
+): Promise<Array<{ enabled?: boolean; id: string; packageName?: string }>> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const pluginMessage = getMessages()
       .filter(message => message.type === 'PLUGINS_UPDATED')
@@ -209,6 +214,10 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       files: {},
       version: '2.0.0',
     });
+    mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync.mockResolvedValue({
+      files: {},
+      version: '2.0.0',
+    });
     mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot.mockReturnValue({
       files: [],
       symbols: [],
@@ -261,10 +270,8 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       ]),
     );
     await internals._analysisMethods._analyzeAndSendData();
-    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
-      workspaceFixture!.workspacePath,
-    );
-    expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+    expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalled();
   }, 15000);
 
   it('sends package-enabled graph view contributions to the webview after startup', async () => {
@@ -319,6 +326,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       .map((call: unknown[]) => call[0] as {
         type?: string;
         payload?: {
+          assets?: unknown[];
           pluginId?: string;
           scripts?: string[];
           styles?: string[];
@@ -329,11 +337,98 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(injectionMessages).toContainEqual({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
+        assets: [],
         pluginId: installedPackage!.pluginId,
         scripts: [`${installedPackage!.packageRoot}/webview.js`],
         styles: [`${installedPackage!.packageRoot}/webview.css`],
       },
     });
+  }, 15000);
+
+  it('renders disabled installed package plugins from static metadata without importing runtime code', async () => {
+    const disabledWorkspace = await createPluginIntegrationWorkspace();
+    const importMarkerPath = `${disabledWorkspace.scratchPath}/disabled-runtime-imported.txt`;
+    const disabledPackage = await installPluginIntegrationPackage(
+      disabledWorkspace.workspacePath,
+      disabledWorkspace.scratchPath,
+      {
+        graphViewContributions: true,
+        importMarkerPath,
+        packageName: '@acme/disabled-graph-tools',
+        pluginId: 'acme.disabled-graph-tools',
+        webviewContributions: true,
+      },
+    );
+    writeCodeGraphyWorkspaceSettings(disabledWorkspace.workspacePath, {
+      ...readCodeGraphyWorkspaceSettings(disabledWorkspace.workspacePath),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        {
+          id: disabledPackage.pluginId,
+          enabled: false,
+          options: {
+            targetFile: 'src/utils.ts',
+          },
+        },
+      ],
+    });
+
+    try {
+      process.env.HOME = disabledPackage.homeDir;
+      workspaceFoldersValue = [
+        { uri: vscode.Uri.file(disabledWorkspace.workspacePath), name: 'workspace', index: 0 },
+      ];
+      currentContext = createContext();
+      activate(currentContext as unknown as vscode.ExtensionContext);
+
+      const provider = getRegisteredProvider();
+      const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
+
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+
+      const getMessages = () =>
+        mockWebview.postMessage.mock.calls.map((call: unknown[]) => call[0] as {
+          type?: string;
+          payload?: {
+            contributions?: Array<{ pluginId?: string }>;
+            plugins?: Array<{ enabled: boolean; id: string; packageName?: string }>;
+            pluginId?: string;
+          };
+        });
+      const plugins = await waitForPluginStatuses(
+        getMessages,
+        ['codegraphy.markdown', disabledPackage.pluginId],
+      );
+
+      expect(plugins).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            enabled: false,
+            id: disabledPackage.pluginId,
+            packageName: disabledPackage.packageName,
+          }),
+        ]),
+      );
+      await expect(fs.stat(importMarkerPath)).rejects.toMatchObject({ code: 'ENOENT' });
+      expect(getMessages()).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'PLUGIN_WEBVIEW_INJECT',
+            payload: expect.objectContaining({ pluginId: disabledPackage.pluginId }),
+          }),
+        ]),
+      );
+      const contributionMessages = getMessages().filter(message => message.type === 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED');
+      for (const message of contributionMessages) {
+        expect(message.payload?.contributions ?? []).not.toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ pluginId: disabledPackage.pluginId }),
+          ]),
+        );
+      }
+    } finally {
+      await disabledWorkspace.cleanup();
+    }
   }, 15000);
 
   it('re-sends package plugin webview assets after analysis initializes package plugins', async () => {
@@ -353,6 +448,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       .map((call: unknown[]) => call[0] as {
         type?: string;
         payload?: {
+          assets?: unknown[];
           pluginId?: string;
           scripts?: string[];
           styles?: string[];
@@ -363,6 +459,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(injectionMessages).toContainEqual({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
+        assets: [],
         pluginId: installedPackage!.pluginId,
         scripts: [`${installedPackage!.packageRoot}/webview.js`],
         styles: [`${installedPackage!.packageRoot}/webview.css`],

@@ -1,4 +1,5 @@
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   getWorkspaceSettingsPath,
   writeCodeGraphyInstalledPluginCache,
@@ -26,17 +27,18 @@ describe('pipeline/plugins/statusContext', () => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
-  it('reads the user installed plugin cache and workspace enabled plugin packages', () => {
+  it('reads the user installed plugin cache and workspace enabled plugin IDs', () => {
     writeCodeGraphyInstalledPluginCache(
       {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
+            pluginId: 'codegraphy.vue',
           },
           {
             package: '@codegraphy-dev/plugin-godot',
@@ -44,6 +46,7 @@ describe('pipeline/plugins/statusContext', () => {
             apiVersion: '^2.0.0',
             disclosures: [],
             packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
+            pluginId: 'codegraphy.godot',
           },
         ],
       },
@@ -57,31 +60,31 @@ describe('pipeline/plugins/statusContext', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      plugins: [{ package: '@codegraphy-dev/plugin-python' }],
+      plugins: [{ id: 'codegraphy.vue', enabled: true }],
     });
 
     const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-vue',
       '@codegraphy-dev/plugin-godot',
     ]);
-    expect(statusContext.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-python')).toBe(true);
-    expect(statusContext.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-godot')).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.vue')).toBe(true);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.godot')).toBe(false);
   });
 
-  it('does not materialize workspace settings when the workspace has no settings file yet', () => {
+  it('uses initial Markdown activity state without materializing workspace settings', () => {
     writeCodeGraphyInstalledPluginCache(
       {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
       },
@@ -92,9 +95,10 @@ describe('pipeline/plugins/statusContext', () => {
 
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-vue',
     ]);
-    expect(statusContext.workspaceEnabledPackageNames).toBeUndefined();
+    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(true);
+    expect(statusContext.workspaceEnabledPluginIds?.has('codegraphy.vue')).toBe(false);
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 
@@ -115,6 +119,6 @@ describe('pipeline/plugins/statusContext', () => {
     expect(statusContext.installedPlugins.map(plugin => plugin.package)).toContain(
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     );
-    expect(statusContext.workspaceEnabledPackageNames?.has(CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)).toBe(false);
+    expect(statusContext.workspaceEnabledPluginIds?.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)).toBe(false);
   });
 });

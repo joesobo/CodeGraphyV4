@@ -56,7 +56,7 @@ function createDependencies(
       state: 'fresh',
       hasGraphCache: true,
       staleReasons: [],
-      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
+      enabledPlugins: ['codegraphy.markdown'],
       message: 'CodeGraphy Workspace Graph Cache is fresh.',
     }),
     indexWorkspace: async ({ workspacePath }: { workspacePath?: string }) => ({
@@ -142,7 +142,7 @@ describe('mcp/server', () => {
 
     await client.callTool({
       name: 'codegraphy_plugins_register',
-      arguments: { packageName: '@codegraphy-dev/plugin-python' },
+      arguments: { packageName: '@codegraphy-dev/plugin-vue' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_list',
@@ -150,11 +150,11 @@ describe('mcp/server', () => {
     });
     const enableResult = await client.callTool({
       name: 'codegraphy_plugins_enable',
-      arguments: { packageName: '@codegraphy-dev/plugin-python', path: '/workspace/project' },
+      arguments: { pluginId: 'codegraphy.vue', path: '/workspace/project' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_disable',
-      arguments: { packageName: '@codegraphy-dev/plugin-python', path: '/workspace/project' },
+      arguments: { pluginId: 'codegraphy.vue', path: '/workspace/project' },
     });
 
     expect(enableResult.structuredContent).toEqual({
@@ -169,24 +169,24 @@ describe('mcp/server', () => {
       }, null, 2),
     }]);
     expect(calls).toEqual([
-      { name: 'plugins', action: 'register', packageName: '@codegraphy-dev/plugin-python' },
+      { name: 'plugins', action: 'register', packageName: '@codegraphy-dev/plugin-vue' },
       { name: 'plugins', action: 'list', workspacePath: '/workspace/project' },
       {
         name: 'plugins',
         action: 'enable',
-        packageName: '@codegraphy-dev/plugin-python',
+        packageName: 'codegraphy.vue',
         workspacePath: '/workspace/project',
       },
       {
         name: 'plugins',
         action: 'disable',
-        packageName: '@codegraphy-dev/plugin-python',
+        packageName: 'codegraphy.vue',
         workspacePath: '/workspace/project',
       },
     ]);
   });
 
-  it('describes plugin tool scope and package inputs explicitly', async () => {
+  it('describes plugin tool scope, package registration, and plugin activity inputs explicitly', async () => {
     const client = await connectServer(createDependencies());
     const tools = await client.listTools();
 
@@ -202,22 +202,33 @@ describe('mcp/server', () => {
       'List registered plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
     );
     expect(enableTool.description).toBe(
-      'Enable a registered plugin package for the current or explicit CodeGraphy Workspace.',
+      'Enable a registered Plugin ID for the current or explicit CodeGraphy Workspace.',
     );
     expect(disableTool.description).toBe(
-      'Disable a registered plugin package for the current or explicit CodeGraphy Workspace.',
+      'Disable a Plugin ID for the current or explicit CodeGraphy Workspace.',
     );
     expect(registerTool.inputSchema.required).toEqual(['packageName']);
     expect(propertiesFor(registerTool).packageName).toMatchObject({
       type: 'string',
       minLength: 1,
     });
-    expect(enableTool.inputSchema.required).toEqual(['packageName']);
-    expect(disableTool.inputSchema.required).toEqual(['packageName']);
-    expect(propertiesFor(enableTool).packageName).toMatchObject({
+    expect(enableTool.inputSchema.required).toEqual(['pluginId']);
+    expect(disableTool.inputSchema.required).toEqual(['pluginId']);
+    expect(propertiesFor(enableTool).pluginId).toMatchObject({
       type: 'string',
       minLength: 1,
     });
+  });
+
+  it('accepts verbose diagnostics on every MCP tool schema', async () => {
+    const client = await connectServer(createDependencies());
+    const tools = await client.listTools();
+
+    for (const tool of tools.tools) {
+      expect(propertiesFor(tool).verboseDiagnostics).toMatchObject({
+        type: 'boolean',
+      });
+    }
   });
 
   it('falls back to the core plugin command runner with the dependency cwd', async () => {
@@ -431,6 +442,62 @@ describe('mcp/server', () => {
       'index:/workspace/other',
       'query:/workspace/other:relationships',
     ]);
+  });
+
+  it('returns verbose diagnostics when MCP tools request them', async () => {
+    const client = await connectServer({
+      ...createDependencies(),
+      statusWorkspace: async ({ diagnostics, workspacePath }) => {
+        diagnostics?.emit({
+          area: 'workspace',
+          event: 'status-read',
+          context: { workspaceRoot: workspacePath ?? '/workspace/project', state: 'fresh' },
+        });
+        return {
+          workspaceRoot: workspacePath ?? '/workspace/project',
+          graphCache: '.codegraphy/graph.lbug',
+          state: 'fresh',
+          hasGraphCache: true,
+          staleReasons: [],
+          enabledPlugins: [],
+          message: 'fresh',
+        };
+      },
+      runGraphQuery: async ({ diagnostics, report }) => {
+        diagnostics?.emit({
+          area: 'graph-query',
+          event: 'completed',
+          context: { report, nodeCount: 0 },
+        });
+        return { nodes: [] };
+      },
+    });
+
+    const statusResult = await client.callTool({
+      name: 'codegraphy_status',
+      arguments: { verboseDiagnostics: true },
+    });
+    const queryResult = await client.callTool({
+      name: 'codegraphy_list_nodes',
+      arguments: { verboseDiagnostics: true },
+    });
+
+    expect(statusResult.structuredContent).toMatchObject({
+      workspaceRoot: '/workspace/project',
+      diagnostics: [{
+        area: 'workspace',
+        event: 'status-read',
+        context: { workspaceRoot: '/workspace/project', state: 'fresh' },
+      }],
+    });
+    expect(queryResult.structuredContent).toMatchObject({
+      nodes: [],
+      diagnostics: [{
+        area: 'graph-query',
+        event: 'completed',
+        context: { report: 'nodes', nodeCount: 0 },
+      }],
+    });
   });
 
   it('returns missing Graph Cache guidance from query tools without focusing VS Code', async () => {

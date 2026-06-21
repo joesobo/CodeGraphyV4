@@ -1,21 +1,30 @@
 # C++ Example
 
-Tiny C++ project for checking that CodeGraphy connects local includes.
+Small C++ task queue runner for checking that CodeGraphy can show a real
+project shape instead of a one-file syntax sample.
 
-Open `examples/` in CodeGraphy and look for:
+Build and run it with CMake:
 
-- `example-cpp/src/app.cpp -> example-cpp/src/lib/widget.hpp#import:include`
-- `example-cpp/src/lib/widget.cpp -> example-cpp/src/lib/widget.hpp#import:include`
+```bash
+mkdir -p build
+cd build
+cmake ..
+cmake --build .
+./example-cpp
+```
 
-## Symbol Node Demo
+The example contains these C++ graph targets for the C++ upgrade work:
 
-Suggested symbol check:
+- Namespace: `taskrunner`.
+- Classes: `Task`, `TaskQueue`, `Worker`, `ConsoleWorker`, and `TaskRunner`.
+- Enums: `Priority` and `TaskStatus`.
+- Callables: `main`, `make_task`, `seed_tasks`, and `priority_name`.
+- Methods: `TaskRunner::run`, `TaskQueue::pop`, `ConsoleWorker::execute`, and the `Task` accessors.
+- Aliases: `TaskId`, `TaskList`, and `PendingTaskQueue`.
+- Template: `TaskQueue<Item>`.
+- Variables: namespace-scope `next_task_id`, constants such as `kDefaultPriority`, class fields such as `queue_`, parameters such as `task`, and locals such as `completed`.
 
-1. Open `src/app.cpp`.
-2. In Graph Scope, enable **Symbol**.
-3. Search for `Widget`, `render`, and `make_widget`.
-
-Expected behavior:
-
-- Class and Function symbols show the split between declarations in `widget.hpp` and implementation files.
-- Include edges remain the coarse relationship, while symbols make the C++ API surface visible.
+Local includes connect the project across headers and source files. The worker
+hierarchy gives inheritance and override edges, while the runner, worker, and
+seed functions give obvious calls and type references for later Graph Scope
+acceptance coverage.

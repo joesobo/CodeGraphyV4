@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  listCoreTreeSitterGraphScopeCapabilities,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -11,12 +12,19 @@ import {
   getWorkspacePipelinePluginFilterGroups,
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
+  syncWorkspacePipelinePlugins,
 } from '../../../../src/extension/pipeline/plugins/bootstrap';
 
 function createRegistry() {
   return {
+    get: vi.fn(() => undefined),
+    list: vi.fn(() => []),
     initializeAll: vi.fn(async () => undefined),
+    initializePlugin: vi.fn(async () => undefined),
     register: vi.fn(),
+    setCoreAnalyzeFileResult: vi.fn(),
+    setCoreGraphScopeCapabilitiesProvider: vi.fn(),
+    unregister: vi.fn(() => true),
   };
 }
 
@@ -58,6 +66,52 @@ export default function createPlugin() {
 `,
     'utf-8',
   );
+}
+
+async function createPluginPackageWithRuntimeMarkers(packageRoot: string): Promise<{
+  factoryMarkerPath: string;
+  importMarkerPath: string;
+}> {
+  const importMarkerPath = path.join(packageRoot, 'runtime-imported.txt');
+  const factoryMarkerPath = path.join(packageRoot, 'factory-called.txt');
+
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-plugin-extension-bootstrap',
+      version: '1.0.0',
+      type: 'module',
+      exports: './plugin.js',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+import { writeFileSync } from 'node:fs';
+
+writeFileSync(${JSON.stringify(importMarkerPath)}, 'imported');
+
+export default function createPlugin() {
+  writeFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory called');
+  return {
+    id: 'acme.extension-bootstrap',
+    name: 'Extension Bootstrap',
+    version: '1.0.0',
+    apiVersion: '^2.0.0',
+    supportedExtensions: ['.txt']
+  };
+}
+`,
+    'utf-8',
+  );
+
+  return { factoryMarkerPath, importMarkerPath };
 }
 
 async function createDataHostPluginPackage(packageRoot: string): Promise<void> {
@@ -198,14 +252,17 @@ describe('pipeline/plugins/bootstrap', () => {
       getWorkspaceRoot: () => workspaceRoot,
     });
 
-    expect(registry.register).toHaveBeenCalledTimes(2);
+    expect(registry.setCoreAnalyzeFileResult).toHaveBeenCalledOnce();
+    expect(registry.setCoreGraphScopeCapabilitiesProvider).toHaveBeenCalledWith(
+      listCoreTreeSitterGraphScopeCapabilities,
+    );
+    expect(registry.register).toHaveBeenCalledTimes(1);
     expect(registry.register.mock.calls.map(([, options]) => options)).toEqual([
-      { builtIn: true },
       { builtIn: true, sourcePackage: '@codegraphy-dev/plugin-markdown' },
     ]);
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.treesitter', 'codegraphy.markdown']);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -229,17 +286,20 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        id: 'acme.extension-bootstrap',
+        enabled: true,
         options: {
           includeFrontmatter: false,
         },
       }, {
-        package: '@codegraphy-dev/plugin-markdown',
+        id: 'codegraphy.markdown',
+        enabled: true,
         options: {
           includeFrontmatter: true,
         },
@@ -251,7 +311,11 @@ describe('pipeline/plugins/bootstrap', () => {
       userHomeDir: homeDir,
     });
 
-    expect(registry.register.mock.calls[1][1]).toEqual({
+    const markdownRegistration = registry.register.mock.calls.find(
+      ([plugin]) => plugin.id === 'codegraphy.markdown',
+    );
+
+    expect(markdownRegistration?.[1]).toEqual({
       builtIn: true,
       sourcePackage: '@codegraphy-dev/plugin-markdown',
       options: {
@@ -280,6 +344,7 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
         defaultOptions: {
           mode: 'strict',
         },
@@ -288,9 +353,11 @@ describe('pipeline/plugins/bootstrap', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@codegraphy-dev/plugin-markdown',
+        id: 'codegraphy.markdown',
+        enabled: true,
       }, {
-        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        id: 'acme.extension-bootstrap',
+        enabled: true,
         options: {
           mode: 'strict',
         },
@@ -312,7 +379,7 @@ describe('pipeline/plugins/bootstrap', () => {
         },
       }),
     );
-    expect(registry.register).toHaveBeenCalledTimes(3);
+    expect(registry.register).toHaveBeenCalledTimes(2);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -336,11 +403,12 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: [],
         packageRoot,
+        pluginId: 'acme.extension-bootstrap',
       }],
     }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
-      plugins: [{ package: '@codegraphy-dev/plugin-markdown' }],
+      plugins: [{ id: 'codegraphy.markdown', enabled: true }],
     });
 
     await initializeWorkspacePipeline(registry as never, {
@@ -350,7 +418,7 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.treesitter', 'codegraphy.markdown']);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
@@ -374,6 +442,7 @@ describe('pipeline/plugins/bootstrap', () => {
         apiVersion: '^2.0.0',
         disclosures: ['workspaceWrites'],
         packageRoot,
+        pluginId: 'acme.extension-data-host',
         defaultOptions: {
           mode: 'default',
         },
@@ -382,7 +451,8 @@ describe('pipeline/plugins/bootstrap', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@acme/codegraphy-plugin-extension-data-host',
+        id: 'acme.extension-data-host',
+        enabled: true,
         options: {
           mode: 'workspace',
         },
@@ -400,7 +470,6 @@ describe('pipeline/plugins/bootstrap', () => {
     await plugin?.initialize?.(workspaceRoot);
 
     expect(registry.register.mock.calls.map(([registeredPlugin]) => registeredPlugin.id)).toEqual([
-      'codegraphy.treesitter',
       'acme.extension-data-host',
     ]);
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).pluginData).toEqual({
@@ -424,8 +493,174 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.treesitter']);
+    ).toEqual([]);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+  });
+
+  it('does not register disabled Markdown or package runtimes during extension pipeline initialization', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-extension-bootstrap',
+    );
+    const { factoryMarkerPath, importMarkerPath } = await createPluginPackageWithRuntimeMarkers(packageRoot);
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.extension-bootstrap',
+        pluginName: 'Extension Bootstrap',
+        supportedExtensions: ['.txt'],
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'acme.extension-bootstrap', enabled: true },
+      ],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      disabledPlugins: new Set(['codegraphy.markdown', 'acme.extension-bootstrap']),
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual([]);
+    expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+    await expect(fs.access(importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
+  });
+
+  it('syncs workspace plugin selection without unregistering core Tree-sitter analysis', async () => {
+    const workspaceRoot = await createWorkspace();
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [],
+    });
+    const registeredPlugins = new Map<string, {
+      plugin: { id: string };
+      builtIn: boolean;
+      sourcePackage?: string;
+      sourcePackageRoot?: string;
+      options?: Record<string, unknown>;
+    }>([
+      [
+        'codegraphy.markdown',
+        {
+          plugin: { id: 'codegraphy.markdown' },
+          builtIn: true,
+          sourcePackage: '@codegraphy-dev/plugin-markdown',
+        },
+      ],
+    ]);
+    const registry = {
+      get: vi.fn((pluginId: string) => registeredPlugins.get(pluginId)),
+      list: vi.fn(() => [...registeredPlugins.values()]),
+      register: vi.fn(),
+      unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
+      initializePlugin: vi.fn(async () => undefined),
+    };
+
+    await syncWorkspacePipelinePlugins(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+    });
+
+    expect(registry.unregister).toHaveBeenCalledTimes(1);
+    expect(registry.unregister).toHaveBeenCalledWith('codegraphy.markdown');
+    expect(registry.register).not.toHaveBeenCalled();
+    expect(registry.initializePlugin).not.toHaveBeenCalled();
+  });
+
+  it('syncs newly enabled package plugins without re-registering existing plugins', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-extension-bootstrap',
+    );
+
+    await createPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.extension-bootstrap',
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: 'acme.extension-bootstrap', enabled: true },
+      ],
+    });
+    const registeredPlugins = new Map<string, {
+      plugin: { id: string };
+      builtIn: boolean;
+      sourcePackage?: string;
+      sourcePackageRoot?: string;
+      options?: Record<string, unknown>;
+    }>([
+      [
+        'codegraphy.markdown',
+        {
+          plugin: { id: 'codegraphy.markdown' },
+          builtIn: true,
+          sourcePackage: '@codegraphy-dev/plugin-markdown',
+        },
+      ],
+    ]);
+    const registry = {
+      get: vi.fn((pluginId: string) => registeredPlugins.get(pluginId)),
+      list: vi.fn(() => [...registeredPlugins.values()]),
+      register: vi.fn((plugin, options) => {
+        registeredPlugins.set(plugin.id, {
+          plugin,
+          builtIn: Boolean(options.builtIn),
+          sourcePackage: options.sourcePackage,
+          sourcePackageRoot: options.sourcePackageRoot,
+          options: options.options,
+        });
+      }),
+      unregister: vi.fn((pluginId: string) => registeredPlugins.delete(pluginId)),
+      initializePlugin: vi.fn(async () => undefined),
+    };
+
+    await syncWorkspacePipelinePlugins(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    expect(registry.unregister).not.toHaveBeenCalled();
+    expect(registry.register).toHaveBeenCalledTimes(1);
+    expect(registry.register).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'acme.extension-bootstrap' }),
+      expect.objectContaining({
+        sourcePackage: '@acme/codegraphy-plugin-extension-bootstrap',
+      }),
+    );
+    expect(registry.initializePlugin).toHaveBeenCalledWith(
+      'acme.extension-bootstrap',
+      workspaceRoot,
+    );
+    expect(registry.initializePlugin).toHaveBeenCalledTimes(1);
   });
 
   it('skips plugin initialization when no workspace root is available', async () => {
@@ -435,7 +670,7 @@ describe('pipeline/plugins/bootstrap', () => {
       getWorkspaceRoot: () => undefined,
     });
 
-    expect(registry.register).toHaveBeenCalledTimes(2);
+    expect(registry.register).toHaveBeenCalledTimes(1);
     expect(registry.initializeAll).not.toHaveBeenCalled();
   });
 });

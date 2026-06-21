@@ -19,7 +19,9 @@ export interface ISettingsSnapshot {
   legendOrder: string[];
   particleSpeed: number;
   particleSize: number;
+  pluginData: Record<string, unknown>;
   showLabels: boolean;
   nodeSizeMode: NodeSizeMode;
   maxFiles: number;
+  verboseDiagnostics: boolean;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   handleActiveFileUpdated,
+  handleAppBootstrapComplete,
   handleDepthLimitRangeUpdated,
   handleDepthLimitUpdated,
   handleDepthModeUpdated,
@@ -16,6 +17,7 @@ import {
   handlePhysicsSettingsUpdated,
   handleSettingsUpdated,
   handleShowLabelsUpdated,
+  handleVerboseDiagnosticsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
 import type { IStoreFields } from '../../../../src/webview/store/messageTypes';
 import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
@@ -37,6 +39,7 @@ function createState(
     searchQuery: '',
     searchOptions: { matchCase: false, wholeWord: false, regex: false },
     favorites: new Set<string>(),
+    pendingFavoriteSnapshot: null,
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'none',
@@ -45,6 +48,7 @@ function createState(
     particleSize: 1,
     physicsPaused: false,
     showLabels: true,
+    cssSnippets: {},
     graphMode: '2d',
     graphViewportScale: null,
     nodeSizeMode: 'uniform',
@@ -75,6 +79,7 @@ function createState(
     graphViewContributionStatuses: [],
     activePanel: 'none',
     maxFiles: 500,
+    verboseDiagnostics: false,
     activeFilePath: null,
     timelineActive: false,
     timelineCommits: [],
@@ -99,6 +104,62 @@ describe('webview/store/messageHandlers/graph', () => {
     });
   });
 
+  it('settles initial bootstrap when graph data arrives after bootstrap and plugin assets are ready', () => {
+    const payload = { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] };
+    const state = createState({
+      awaitingInitialBootstrap: true,
+      bootstrapComplete: true,
+      pendingPluginAssetLoads: 0,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toEqual({
+      graphData: payload,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
+  });
+
+  it('settles initial bootstrap when app bootstrap completes after graph data and plugin assets are ready', () => {
+    const state = createState({
+      graphData: { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] },
+      awaitingInitialBootstrap: true,
+      pendingPluginAssetLoads: 0,
+      isLoading: true,
+    });
+
+    expect(handleAppBootstrapComplete(
+      { type: 'APP_BOOTSTRAP_COMPLETE' },
+      { getState: () => state },
+    )).toEqual({
+      bootstrapComplete: true,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
+    });
+  });
+
+  it('settles initial bootstrap when graph data and app bootstrap are ready while plugin assets continue loading', () => {
+    const state = createState({
+      graphData: { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] },
+      awaitingInitialBootstrap: true,
+      pendingPluginAssetLoads: 1,
+      isLoading: true,
+    });
+
+    expect(handleAppBootstrapComplete(
+      { type: 'APP_BOOTSTRAP_COMPLETE' },
+      { getState: () => state },
+    )).toEqual({
+      bootstrapComplete: true,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
+    });
+  });
+
   it('maps graph index status and progress payloads', () => {
     expect(handleGraphIndexStatusUpdated({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
@@ -111,6 +172,8 @@ describe('webview/store/messageHandlers/graph', () => {
       graphHasIndex: true,
       graphIndexFreshness: 'fresh',
       graphIndexDetail: 'CodeGraphy index is fresh.',
+      graphIsIndexing: false,
+      graphIndexProgress: null,
     });
 
     expect(handleGraphIndexProgress({
@@ -224,6 +287,11 @@ describe('webview/store/messageHandlers/graph', () => {
       type: 'MAX_FILES_UPDATED',
       payload: { maxFiles: 250 },
     })).toEqual({ maxFiles: 250 });
+
+    expect(handleVerboseDiagnosticsUpdated({
+      type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+      payload: { verboseDiagnostics: true },
+    })).toEqual({ verboseDiagnostics: true });
 
     expect(handleActiveFileUpdated({
       type: 'ACTIVE_FILE_UPDATED',

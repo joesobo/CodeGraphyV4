@@ -1,7 +1,7 @@
 /**
  * @fileoverview Pure file inclusion predicate extracted from FileDiscovery.
  * Determines whether a discovered file should be included based on patterns,
- * extensions, and gitignore.
+ * extensions, and explicit include/exclude patterns.
  * @module core/discovery/file/filter
  */
 
@@ -21,7 +21,7 @@ export interface IFileFilterOptions {
   excludePatterns: string[];
   /** Extensions to allow; empty means all. */
   extensions: string[];
-  /** Optional gitignore checker — when present, ignored files are excluded. */
+  /** Legacy gitignore checker slot. Ignored files stay included and are dimmed later. */
   gitignore: IGitignoreChecker | null;
 }
 
@@ -37,11 +37,7 @@ export function shouldIncludeFile(
   absolutePath: string,
   options: IFileFilterOptions,
 ): boolean {
-  const { includePatterns, excludePatterns, extensions, gitignore } = options;
-
-  if (gitignore && gitignore.ignores(relativePath)) {
-    return false;
-  }
+  const { includePatterns, excludePatterns, extensions } = options;
 
   if (matchesAnyPattern(relativePath, excludePatterns)) {
     return false;

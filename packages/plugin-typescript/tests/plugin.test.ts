@@ -21,11 +21,31 @@ describe('createTypeScriptPlugin', () => {
     expect(plugin.fileColors).toEqual({});
   });
 
-  it('does not provide supplemental analysis once Tree-sitter owns the base JS/TS parsing', () => {
+  it('contributes a default-visible TypeScript Alias Import edge type', () => {
+    const plugin = createTypeScriptPlugin();
+
+    expect(plugin.contributeEdgeTypes?.()).toEqual([
+      {
+        id: 'codegraphy.typescript:alias-import',
+        label: 'TypeScript Alias Import',
+        defaultColor: '#38BDF8',
+        defaultVisible: true,
+        description: {
+          description: 'Shows imports resolved through TypeScript path aliases instead of relative paths.',
+          examples: [{ code: 'import { thing } from "@/module";' }],
+        },
+      },
+    ]);
+    expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
+      edgeTypes: ['codegraphy.typescript:alias-import'],
+    });
+  });
+
+  it('keeps plugin analysis focused on TypeScript alias imports', () => {
     const plugin = createTypeScriptPlugin();
 
     expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
+    expect(plugin.analyzeFile).toEqual(expect.any(Function));
     expect(plugin.initialize).toBeUndefined();
     expect(plugin.onLoad).toBeUndefined();
     expect(plugin.onUnload).toBeUndefined();

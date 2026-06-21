@@ -39,6 +39,8 @@ export type {
   IAnalysisSymbol,
   IFileAnalysisResult,
   IPluginEdgeType,
+  IPluginGraphTypeDescription,
+  IPluginGraphTypeExample,
   IPluginNodeType,
 } from './analysis';
 
@@ -140,6 +142,8 @@ export type {
 // Plugin interface
 export type {
   IPlugin,
+  IPluginGraphScopeCapabilities,
+  IPluginGraphScopeCapabilityContext,
   IPluginExportRequest,
   IPluginExporter,
   IPluginFactory,
@@ -147,6 +151,7 @@ export type {
   IPluginHostApi,
   IPluginToolbarAction,
   IPluginToolbarActionItem,
+  IPluginWebviewAsset,
   IPluginWebviewContributions,
   IPluginWebviewMessage,
   IAnalysisFile,
@@ -168,9 +173,14 @@ export type {
   NodeRenderFn,
   OverlayRenderContext,
   OverlayRenderFn,
+  PluginSlotContribution,
+  PluginSlotRenderCleanup,
+  PluginSlotRenderContext,
   RingOptions,
   TooltipAction,
   TooltipContent,
   TooltipContext,
   TooltipProviderFn,
+  WebviewPluginActivate,
+  WebviewPluginActivationCleanup,
 } from './webview';

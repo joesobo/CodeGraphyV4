@@ -63,25 +63,65 @@ class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
         update: vi.fn(),
       },
     } as never);
+    this._cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
+    this._lastDiscoveredFiles = [
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts', extension: '.ts', name: 'a.ts' },
+    ] as unknown as IDiscoveredFile[];
+    this._lastFileAnalysis = new Map([['src/a.ts', { id: 'analysis' }]]) as unknown as Map<
+      string,
+      IFileAnalysisResult
+    >;
+    this._lastFileConnections = new Map([['src/a.ts', [{ id: 'edge' }]]]) as unknown as Map<
+      string,
+      IProjectedConnection[]
+    >;
+    this._lastWorkspaceRoot = '/workspace';
   }
 
   _registry = {
     list: vi.fn(() => []),
     disposeAll: vi.fn(),
   } as unknown as PluginRegistry;
-  _cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
-  _lastDiscoveredFiles = [
-    { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts', extension: '.ts', name: 'a.ts' },
-  ] as unknown as IDiscoveredFile[];
-  _lastFileAnalysis = new Map([['src/a.ts', { id: 'analysis' }]]) as unknown as Map<
-    string,
-    IFileAnalysisResult
-  >;
-  _lastFileConnections = new Map([['src/a.ts', [{ id: 'edge' }]]]) as unknown as Map<
-    string,
-    IProjectedConnection[]
-  >;
-  _lastWorkspaceRoot = '/workspace';
+
+  public override get _cache(): IWorkspaceAnalysisCache {
+    return super._cache;
+  }
+
+  public override set _cache(cache: IWorkspaceAnalysisCache) {
+    super._cache = cache;
+  }
+
+  public override get _lastDiscoveredFiles(): IDiscoveredFile[] {
+    return super._lastDiscoveredFiles;
+  }
+
+  public override set _lastDiscoveredFiles(files: IDiscoveredFile[]) {
+    super._lastDiscoveredFiles = files;
+  }
+
+  public override get _lastFileAnalysis(): Map<string, IFileAnalysisResult> {
+    return super._lastFileAnalysis;
+  }
+
+  public override set _lastFileAnalysis(fileAnalysis: Map<string, IFileAnalysisResult>) {
+    super._lastFileAnalysis = fileAnalysis;
+  }
+
+  public override get _lastFileConnections(): Map<string, IProjectedConnection[]> {
+    return super._lastFileConnections;
+  }
+
+  public override set _lastFileConnections(fileConnections: Map<string, IProjectedConnection[]>) {
+    super._lastFileConnections = fileConnections;
+  }
+
+  public override get _lastWorkspaceRoot(): string {
+    return super._lastWorkspaceRoot;
+  }
+
+  public override set _lastWorkspaceRoot(workspaceRoot: string) {
+    super._lastWorkspaceRoot = workspaceRoot;
+  }
 
   protected override _getWorkspaceRoot(): string | undefined {
     return this.getWorkspaceRoot();
@@ -119,14 +159,14 @@ describe('pipeline/service/lifecycleFacade', () => {
     vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
       installedPlugins: [
         {
-          package: '@codegraphy-dev/plugin-python',
+          package: '@codegraphy-dev/plugin-vue',
           version: '2.0.0',
           apiVersion: '^2.0.0',
           disclosures: [],
-          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
         },
       ],
-      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
+      workspaceEnabledPluginIds: new Set(['codegraphy.vue']),
     });
     vi.mocked(invalidateWorkspacePipelineFiles).mockReturnValue(['src/a.ts']);
     vi.mocked(resolveWorkspacePipelinePluginFilePaths).mockReturnValue(['/workspace/src/a.ts']);
@@ -146,14 +186,14 @@ describe('pipeline/service/lifecycleFacade', () => {
       {
         installedPlugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
-        workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
+        workspaceEnabledPluginIds: new Set(['codegraphy.vue']),
       },
     );
   });
@@ -168,6 +208,20 @@ describe('pipeline/service/lifecycleFacade', () => {
       facade._registry,
       vscode.workspace.workspaceFolders,
     );
+  });
+
+  it('resolves plugin names for contributed graph source plugin ids', () => {
+    const facade = new TestLifecycleFacade();
+    lifecycleState(facade)._registry.list.mockReturnValue([
+      { plugin: { id: 'codegraphy.markdown', name: 'Markdown' } },
+      { plugin: { id: 'codegraphy.vue', name: 'Vue' } },
+    ]);
+
+    expect(facade.getPluginNamesForIds([
+      'codegraphy.markdown',
+      'codegraphy.unknown',
+      'codegraphy.vue',
+    ])).toEqual(['Markdown', 'Vue']);
   });
 
   it('replaces the cache through the stored-cache helper and logs its messages', () => {

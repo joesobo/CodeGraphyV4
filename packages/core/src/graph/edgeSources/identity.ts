@@ -1,8 +1,6 @@
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../../analysis/projectedConnection';
 
 export function createQualifiedSourceId(
-  plugin: IPlugin | undefined,
   connection: Pick<IProjectedConnection, 'pluginId' | 'sourceId'>,
 ): string | undefined {
   if (!connection.sourceId) {
@@ -13,14 +11,13 @@ export function createQualifiedSourceId(
     return `${connection.pluginId}:${connection.sourceId}`;
   }
 
-  return plugin ? `${plugin.id}:${connection.sourceId}` : undefined;
+  return undefined;
 }
 
 export function resolveEdgeSourceIdentity(
-  plugin: IPlugin | undefined,
   connection: IProjectedConnection,
 ): { pluginId: string; qualifiedSourceId: string; sourceId: string } | undefined {
-  const pluginId = connection.pluginId ?? plugin?.id;
+  const pluginId = connection.pluginId;
   const sourceId = connection.sourceId;
   if (!pluginId || !sourceId) {
     return undefined;

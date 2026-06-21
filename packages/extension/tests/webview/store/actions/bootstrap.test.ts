@@ -42,8 +42,9 @@ describe('webview/store/actions/bootstrap', () => {
     });
   });
 
-  it('keeps loading until bootstrap, graph data, and plugin assets are complete', () => {
+  it('does not keep initial loading blocked on plugin assets once bootstrap and graph data are complete', () => {
     const { actions, getState } = createHarness({
+      awaitingInitialBootstrap: true,
       bootstrapComplete: true,
       graphData,
       isLoading: true,
@@ -58,12 +59,14 @@ describe('webview/store/actions/bootstrap', () => {
 
     actions.finishPluginAssetLoad();
     expect(getState()).toMatchObject({
-      isLoading: true,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
       pendingPluginAssetLoads: 1,
     });
 
     actions.finishPluginAssetLoad();
     expect(getState()).toMatchObject({
+      awaitingInitialBootstrap: false,
       isLoading: false,
       pendingPluginAssetLoads: 0,
     });

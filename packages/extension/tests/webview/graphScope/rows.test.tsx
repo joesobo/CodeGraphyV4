@@ -1,11 +1,16 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   EdgeTypeRows,
   NodeTypeRows,
   resolveScopeRowClassName,
 } from '../../../src/webview/components/graphScope/rows';
+import {
+  flushGraphScopeVisibilityMessages,
+  resetGraphScopeVisibilityMessageQueueForTests,
+} from '../../../src/webview/components/graphScope/messages';
+import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 
 const sentMessages: unknown[] = [];
 
@@ -24,6 +29,11 @@ function scopeSwatch(container: HTMLElement, label: string): HTMLElement {
 describe('graph scope rows', () => {
   beforeEach(() => {
     sentMessages.length = 0;
+    resetGraphScopeVisibilityMessageQueueForTests();
+  });
+
+  afterEach(() => {
+    resetGraphScopeVisibilityMessageQueueForTests();
   });
 
   it('keeps disabled scope rows visibly muted without muting enabled rows', () => {
@@ -50,10 +60,11 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'Folder')).not.toHaveClass('opacity-65');
 
     fireEvent.click(screen.getByLabelText('Toggle File'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'file', visible: false },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { nodeVisibility: { file: false } },
     });
   });
 
@@ -81,7 +92,13 @@ describe('graph scope rows', () => {
         defaultVisible: true,
         parentId: 'symbol',
       },
-      { id: 'variable', label: 'Variable', defaultColor: '#222222', defaultVisible: false },
+      {
+        id: 'variable',
+        label: 'Variable',
+        defaultColor: '#222222',
+        defaultVisible: false,
+        parentId: 'symbol',
+      },
       {
         id: 'symbol:constant',
         label: 'Constant',
@@ -102,8 +119,16 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'Function')).toBeInTheDocument();
     expect(scopeRow(container, 'Variable')).toBeInTheDocument();
     expect(scopeRow(container, 'Constant')).toBeInTheDocument();
+    expect(scopeRow(container, 'Symbol')).toHaveAttribute('data-scope-depth', '0');
+    expect(scopeRow(container, 'Function')).toHaveAttribute('data-scope-depth', '1');
+    expect(scopeRow(container, 'Variable')).toHaveAttribute('data-scope-depth', '1');
+    expect(scopeRow(container, 'Constant')).toHaveAttribute('data-scope-depth', '2');
     expect(scopeRow(container, 'Function')).not.toHaveClass('opacity-65');
     expect(scopeRow(container, 'Constant')).not.toHaveClass('opacity-65');
+    expect(container.querySelector('[data-scope-swatch="Symbol"]')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-scope-swatch="Variable"]')).not.toBeInTheDocument();
+    expect(scopeSwatch(container, 'Function')).toHaveStyle('background-color: #333333');
+    expect(scopeSwatch(container, 'Constant')).toHaveStyle('background-color: #444444');
   });
 
   it('renders edge rows from resolved colors and posts edge visibility changes', () => {
@@ -115,6 +140,7 @@ describe('graph scope rows', () => {
           { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
         ]}
         edgeVisibility={{ reference: false }}
+        nodeVisibility={{ folder: true }}
       />,
     );
 
@@ -124,10 +150,150 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'References')).toHaveClass('opacity-65');
 
     fireEvent.click(screen.getByLabelText('Toggle References'));
+    flushGraphScopeVisibilityMessages();
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_EDGE_VISIBILITY',
-      payload: { edgeKind: 'reference', visible: true },
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { edgeVisibility: { reference: true } },
     });
+  });
+
+  it('hides edge rows until their prerequisite edge type is enabled', () => {
+    const { container, rerender } = render(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'inherit', label: 'Inherits', defaultColor: '#111111', defaultVisible: false },
+          {
+            id: 'overrides',
+            label: 'Overrides',
+            defaultColor: '#222222',
+            defaultVisible: false,
+            requiresEdgeType: 'inherit',
+          },
+        ]}
+        edgeVisibility={{ inherit: false }}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Inherits')).toBeInTheDocument();
+    expect(scopeRow(container, 'Overrides')).not.toBeInTheDocument();
+
+    rerender(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'inherit', label: 'Inherits', defaultColor: '#111111', defaultVisible: false },
+          {
+            id: 'overrides',
+            label: 'Overrides',
+            defaultColor: '#222222',
+            defaultVisible: false,
+            requiresEdgeType: 'inherit',
+          },
+        ]}
+        edgeVisibility={{ inherit: true }}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Overrides')).toBeInTheDocument();
+
+    rerender(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'inherit', label: 'Inherits', defaultColor: '#111111', defaultVisible: false },
+          {
+            id: 'overrides',
+            label: 'Overrides',
+            defaultColor: '#222222',
+            defaultVisible: false,
+            requiresEdgeType: 'inherit',
+          },
+        ]}
+        edgeVisibility={{ inherit: false, overrides: true }}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Overrides')).toBeInTheDocument();
+  });
+
+  it('shows example tooltip text for edge rows that define examples', async () => {
+    const { container } = render(
+      <TooltipProvider delayDuration={0}>
+        <EdgeTypeRows
+          edgeColors={{}}
+          edgeTypes={[
+            {
+              id: 'import',
+              label: 'Imports',
+              defaultColor: '#333333',
+              defaultVisible: true,
+              description: {
+                description: 'Files imported by another file.',
+                examples: [{ code: 'import { thing } from "./module";' }],
+              },
+            },
+          ]}
+          edgeVisibility={{}}
+          nodeVisibility={{ folder: true }}
+        />
+      </TooltipProvider>,
+    );
+
+    const row = scopeRow(container, 'Imports');
+    fireEvent.pointerMove(row, { pointerType: 'mouse' });
+
+    const tooltip = await screen.findByRole('tooltip');
+    const visibleTooltip = document.querySelector('[data-side="left"][data-align="start"]') as HTMLElement;
+    const tooltipBody = tooltip.querySelector('[data-scope-tooltip-body="Imports"]') as HTMLElement;
+    const tooltipSwatch = tooltipBody.querySelector('[data-scope-tooltip-swatch="Imports"]') as HTMLElement;
+
+    expect(tooltip).toHaveTextContent('Files imported by another file.');
+    expect(row).toHaveClass('cursor-pointer');
+    expect(visibleTooltip).toHaveClass('max-w-80');
+    expect(tooltipBody).toHaveClass('max-w-80');
+    expect(tooltipSwatch).toHaveStyle('background-color: #333333');
+    expect(tooltip).not.toHaveTextContent('Example');
+    expect(screen.getByRole('tooltip')).toHaveTextContent('import { thing } from "./module";');
+
+    const example = tooltipBody.querySelector('[data-scope-tooltip-example="Imports"]') as HTMLElement;
+    expect(example).toHaveClass('whitespace-pre');
+    expect(example).toHaveClass('overflow-x-auto');
+  });
+
+  it('shows description-only tooltip text for node rows without examples', async () => {
+    const { container } = render(
+      <TooltipProvider delayDuration={0}>
+        <NodeTypeRows
+          nodeColors={{}}
+          nodeTypes={[
+            {
+              id: 'folder',
+              label: 'Folder',
+              defaultColor: '#222222',
+              defaultVisible: false,
+              description: {
+                description: 'Directories that group files and other folders.',
+              },
+            },
+          ]}
+          nodeVisibility={{ folder: false }}
+        />
+      </TooltipProvider>,
+    );
+
+    const row = scopeRow(container, 'Folder');
+    fireEvent.pointerMove(row, { pointerType: 'mouse' });
+
+    const tooltip = await screen.findByRole('tooltip');
+
+    expect(row).toHaveClass('cursor-pointer');
+    expect(tooltip).toHaveTextContent('Folder');
+    expect(tooltip).toHaveTextContent('Directories that group files and other folders.');
+    expect(tooltip).not.toHaveTextContent('Example');
   });
 });

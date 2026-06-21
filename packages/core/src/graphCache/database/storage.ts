@@ -1,4 +1,7 @@
-import { loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl } from './io/load';
+import {
+  loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl,
+  loadWorkspaceAnalysisDatabaseCacheAsync as loadWorkspaceAnalysisDatabaseCacheAsyncImpl,
+} from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
 import {
   readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
@@ -7,6 +10,8 @@ import {
 import {
   clearWorkspaceAnalysisDatabaseCache as clearWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCache as saveWorkspaceAnalysisDatabaseCacheImpl,
+  saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncImpl,
+  type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
@@ -21,6 +26,12 @@ export function loadWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
 ) {
   return loadWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot);
+}
+
+export function loadWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+) {
+  return loadWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot);
 }
 
 export function readWorkspaceAnalysisDatabaseSnapshot(
@@ -40,4 +51,12 @@ export function saveWorkspaceAnalysisDatabaseCache(
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
 ): void {
   saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache);
+}
+
+export function saveWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
+  options?: WorkspaceAnalysisDatabaseSaveOptions,
+): Promise<void> {
+  return saveWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot, cache, options);
 }

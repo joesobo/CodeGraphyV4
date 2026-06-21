@@ -36,8 +36,12 @@ export default function Summary({
   const commitKindLabel = getCommitKindLabel(currentCommit);
 
   return (
-    <section className="flex-shrink-0 border-t border-border px-3 py-2" data-testid="timeline-summary">
-      <div className="flex items-center justify-between gap-2">
+    <section
+      className="flex-shrink-0 border-t border-border px-3 py-2"
+      data-codegraphy-panel="timeline-summary"
+      data-testid="timeline-summary"
+    >
+      <header className="flex items-center justify-between gap-2" data-codegraphy-region="panel-header">
         <button
           type="button"
           aria-expanded={!collapsed}
@@ -53,10 +57,10 @@ export default function Summary({
         <span className="text-[11px] text-muted-foreground">
           {currentIndex + 1} of {totalCommits}
         </span>
-      </div>
+      </header>
 
       {!collapsed && (
-        <div className="mt-2">
+        <div className="mt-2" data-codegraphy-region="panel-body">
           <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
               {currentCommit.sha.slice(0, 7)}

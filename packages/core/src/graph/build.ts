@@ -14,6 +14,7 @@ export interface WorkspacePipelineGraphSource {
     getPluginForFile(absolutePath: string): IPlugin | undefined;
   };
   _lastDiscoveredDirectories?: readonly string[];
+  _lastGitIgnoredPaths?: readonly string[];
 }
 
 export interface WorkspacePipelineGraphDependencies {
@@ -22,6 +23,7 @@ export interface WorkspacePipelineGraphDependencies {
   directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+  gitIgnoredPaths?: readonly string[];
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   showOrphans: boolean;
   workspaceRoot: string;
@@ -29,6 +31,7 @@ export interface WorkspacePipelineGraphDependencies {
 
 export interface WorkspacePipelineGraphAnalysisDependencies extends Omit<WorkspacePipelineGraphDependencies, 'fileConnections'> {
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+  nodeVisibility?: Readonly<Record<string, boolean>>;
 }
 
 export function buildWorkspacePipelineGraph(
@@ -38,6 +41,7 @@ export function buildWorkspacePipelineGraph(
     cacheFiles: dependencies.cacheFiles,
     churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
+    gitIgnoredPaths: dependencies.gitIgnoredPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileConnections: dependencies.fileConnections,
     showOrphans: dependencies.showOrphans,
@@ -53,8 +57,10 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     cacheFiles: dependencies.cacheFiles,
     churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
+    gitIgnoredPaths: dependencies.gitIgnoredPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileAnalysis: dependencies.fileAnalysis,
+    nodeVisibility: dependencies.nodeVisibility,
     showOrphans: dependencies.showOrphans,
     workspaceRoot: dependencies.workspaceRoot,
     getPluginForFile: dependencies.getPluginForFile,
@@ -73,6 +79,7 @@ export function buildWorkspacePipelineGraphForSource(
     cacheFiles: source._cache.files,
     churnCounts,
     directoryPaths: source._lastDiscoveredDirectories ?? [],
+    gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,
     fileConnections,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),

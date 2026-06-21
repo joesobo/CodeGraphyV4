@@ -1,8 +1,12 @@
+import type { GraphEdgeKind } from '../../../../../shared/graph/contracts';
+
 export interface GraphNodeTypeLike {
   id: string;
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: GraphTypeDescriptionLike;
+  parentId?: string;
 }
 
 export interface GraphEdgeTypeLike {
@@ -10,6 +14,17 @@ export interface GraphEdgeTypeLike {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: GraphTypeDescriptionLike;
+}
+
+export interface GraphTypeExampleLike {
+  label?: string;
+  code: string;
+}
+
+export interface GraphTypeDescriptionLike {
+  description: string;
+  examples?: GraphTypeExampleLike[];
 }
 
 export interface GraphControlsAnalyzerLike {
@@ -21,3 +36,11 @@ export interface GraphControlsConfigurationLike {
 }
 
 export type GraphDefinitionReader<TDefinition> = (definition: unknown) => definition is TDefinition;
+
+export type GraphNodeTypeCapabilityLike = string;
+export type GraphEdgeTypeCapabilityLike = GraphEdgeKind;
+
+export interface GraphScopeCapabilitiesLike {
+  nodeTypes: GraphNodeTypeCapabilityLike[];
+  edgeTypes: GraphEdgeTypeCapabilityLike[];
+}

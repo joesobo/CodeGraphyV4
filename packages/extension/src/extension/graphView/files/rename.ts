@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isSafeGraphViewBasename } from './validation';
 
 interface GraphViewWorkspaceFolderRef {
   uri: vscode.Uri;
@@ -31,7 +32,11 @@ export async function renameGraphViewFile(
     ignoreFocusOut: true,
   });
 
-  if (!newName || newName === oldName) return;
+  if (newName === undefined || newName === oldName) return;
+  if (!isSafeGraphViewBasename(newName)) {
+    handlers.showErrorMessage('Enter a file name without folder separators.');
+    return;
+  }
 
   const newPath = filePath.replace(/[^/]+$/, newName);
 

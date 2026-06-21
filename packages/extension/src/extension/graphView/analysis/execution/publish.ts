@@ -24,6 +24,12 @@ function resolveGraphIndexStatus(
   };
 }
 
+function shouldReportGraphViewUpdateProgress(
+  state: GraphViewAnalysisExecutionState,
+): boolean {
+  return state.mode === 'index' || state.mode === 'refresh' || state.mode === 'incremental';
+}
+
 export function publishEmptyGraph(
   handlers: GraphViewAnalysisExecutionHandlers,
   hasIndex: boolean = false,
@@ -43,9 +49,16 @@ export function publishAnalyzedGraph(
   rawGraphData: IGraphData,
   hasIndex: boolean,
 ): void {
-  const status = resolveGraphIndexStatus(state, hasIndex);
+  const actualHasIndex = state.analyzer?.hasIndex() ?? hasIndex;
+  const status = resolveGraphIndexStatus(state, actualHasIndex);
+  if (shouldReportGraphViewUpdateProgress(state)) {
+    handlers.sendIndexProgress?.({
+      phase: 'Updating Graph View',
+      current: 0,
+      total: 1,
+    });
+  }
   handlers.setRawGraphData(rawGraphData);
-  handlers.sendGraphIndexStatusUpdated(hasIndex, status.freshness, status.detail);
   handlers.updateViewContext();
   handlers.applyViewTransform();
   handlers.computeMergedGroups();
@@ -61,8 +74,9 @@ export function publishAnalyzedGraph(
 
   const graphData = handlers.getGraphData();
   handlers.sendGraphDataUpdated(graphData);
-  state.analyzer?.registry.notifyPostAnalyze(graphData);
-  handlers.markWorkspaceReady(graphData);
+  handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
+  state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
+  handlers.markWorkspaceReady(graphData, state.disabledPlugins);
 }
 
 export function publishAnalysisFailure(

@@ -1,5 +1,11 @@
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { readCodeGraphyWorkspaceStatus } from '@codegraphy-dev/core';
+import {
+  type IDiscoveredFile,
+  projectFileAnalysisConnections,
+  readCodeGraphyWorkspaceStatus,
+  throwIfWorkspaceAnalysisAborted,
+} from '@codegraphy-dev/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
@@ -7,6 +13,7 @@ import {
   getWorkspacePipelinePluginFilterGroups,
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
+  syncWorkspacePipelinePlugins,
 } from '../plugins/bootstrap';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
 import { WorkspacePipelineInternalBase } from './base/internal';
@@ -19,6 +26,33 @@ import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
+import { createEmptyWorkspaceAnalysisCache } from '../cache';
+
+function createCachedDiscoveredFiles(
+  workspaceRoot: string,
+  filePaths: readonly string[],
+): IDiscoveredFile[] {
+  return filePaths.map(relativePath => ({
+    absolutePath: path.join(workspaceRoot, relativePath),
+    extension: path.extname(relativePath),
+    name: path.basename(relativePath),
+    relativePath,
+  }));
+}
+
+function collectCachedDirectoryPaths(filePaths: readonly string[]): string[] {
+  const directories = new Set<string>();
+
+  for (const filePath of filePaths) {
+    let directory = path.posix.dirname(filePath.replace(/\\/g, '/'));
+    while (directory && directory !== '.') {
+      directories.add(directory);
+      directory = path.posix.dirname(directory);
+    }
+  }
+
+  return [...directories].sort();
+}
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
@@ -38,6 +72,16 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     });
     this._workspacePluginReloadQueue = reload.catch(() => undefined);
     return reload;
+  }
+
+  async syncWorkspacePlugins(): Promise<void> {
+    const sync = this._workspacePluginReloadQueue.then(async () => {
+      await syncWorkspacePipelinePlugins(this._registry, {
+        getWorkspaceRoot: () => this._getWorkspaceRoot(),
+      });
+    });
+    this._workspacePluginReloadQueue = sync.catch(() => undefined);
+    return sync;
   }
 
   getPluginFilterPatterns(
@@ -123,6 +167,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
 
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
     this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
     this._lastFileAnalysis = new Map();
     this._lastFileConnections = fileConnections;
     this._lastWorkspaceRoot = workspaceRoot;
@@ -130,7 +175,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return this._buildGraphData(
       fileConnections,
       workspaceRoot,
-      config.showOrphans,
+      true,
       disabledPlugins,
     );
   }
@@ -155,6 +200,60 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     );
   }
 
+  async loadCachedGraph(
+    _filterPatterns: string[] = [],
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+  ): Promise<IGraphData> {
+    throwIfWorkspaceAnalysisAborted(signal);
+    await this._hydrateCacheFromGraphCache();
+    throwIfWorkspaceAnalysisAborted(signal);
+
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return { nodes: [], edges: [] };
+    }
+
+    const config = this._config.getAll();
+    const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
+      createWorkspacePipelineDiscoveryDependencies(this._discovery),
+      workspaceRoot,
+      config,
+      this._getEffectiveCustomFilterPatterns(_filterPatterns),
+      this._getEffectivePluginFilterPatterns(disabledPlugins),
+      signal,
+      message => {
+        vscode.window.showWarningMessage(message);
+      },
+    );
+    throwIfWorkspaceAnalysisAborted(signal);
+
+    const fileAnalysis = new Map(
+      Object.entries(this._cache.files).map(([filePath, entry]) => [
+        filePath,
+        entry.analysis,
+      ]),
+    );
+    const cachedFilePaths = Object.keys(this._cache.files);
+
+    this._lastDiscoveredFiles = createCachedDiscoveredFiles(workspaceRoot, cachedFilePaths);
+    this._lastDiscoveredDirectories = discoveryResult.directories
+      ?? collectCachedDirectoryPaths(cachedFilePaths);
+    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
+    this._lastFileAnalysis = fileAnalysis;
+    this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
+    this._lastWorkspaceRoot = workspaceRoot;
+
+    throwIfWorkspaceAnalysisAborted(signal);
+
+    return this._buildGraphDataFromAnalysis(
+      fileAnalysis,
+      workspaceRoot,
+      config.showOrphans,
+      disabledPlugins,
+    );
+  }
+
   rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
     return rebuildWorkspacePipelineGraph(
       this as unknown as WorkspacePipelineSourceOwner,
@@ -163,17 +262,22 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     );
   }
 
+  protected resetCacheForIndexRefresh(): void {
+    this._cache = createEmptyWorkspaceAnalysisCache();
+    console.log('[CodeGraphy] Cache cleared');
+  }
+
   async refreshIndex(
     filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this.clearCache();
+    this.resetCacheForIndexRefresh();
     return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
       onProgress?.({
         ...progress,
-        phase: 'Refreshing Index',
+        phase: progress.phase || 'Refreshing Index',
       });
     });
   }

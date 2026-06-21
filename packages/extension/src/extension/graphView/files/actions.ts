@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isSafeGraphViewChildPath } from './validation';
 
 interface GraphViewWorkspaceFolderRef {
   uri: vscode.Uri;
@@ -36,8 +37,6 @@ export async function deleteGraphViewFiles(
   paths: string[],
   handlers: GraphViewFileDeleteHandlers,
 ): Promise<void> {
-  if (!handlers.workspaceFolder) return;
-
   const count = paths.length;
   const message =
     count === 1
@@ -45,6 +44,8 @@ export async function deleteGraphViewFiles(
       : `Are you sure you want to delete ${count} files?`;
 
   const confirm = await handlers.showWarningMessage(message, { modal: true }, 'Delete');
+  if (!handlers.workspaceFolder) return;
+
   if (confirm === 'Delete') {
     await handlers.executeDeleteAction(paths, handlers.workspaceFolder.uri);
   }
@@ -61,7 +62,11 @@ export async function createGraphViewFile(
     placeHolder: 'newfile.ts',
     ignoreFocusOut: true,
   });
-  if (!fileName) return undefined;
+  if (fileName === undefined) return undefined;
+  if (!isSafeGraphViewChildPath(fileName)) {
+    handlers.showErrorMessage('Enter a relative file path inside this folder.');
+    return undefined;
+  }
 
   const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
 
@@ -85,7 +90,11 @@ export async function createGraphViewFolder(
     placeHolder: 'new-folder',
     ignoreFocusOut: true,
   });
-  if (!folderName) return undefined;
+  if (folderName === undefined) return undefined;
+  if (!isSafeGraphViewChildPath(folderName)) {
+    handlers.showErrorMessage('Enter a relative folder path inside this folder.');
+    return undefined;
+  }
 
   const folderPath = directory === '.' ? folderName : `${directory}/${folderName}`;
 

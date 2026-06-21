@@ -21,11 +21,11 @@
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript">TypeScript/JavaScript Plugin</a>
   ·
-  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-python">Python Plugin</a>
-  ·
-  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp">C# Plugin</a>
-  ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-godot">Godot Plugin</a>
+  ·
+  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-vue">Vue Plugin</a>
+  ·
+  <a href="https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte">Svelte Plugin</a>
   ·
   <a href="https://www.npmjs.com/package/@codegraphy-dev/mcp">MCP</a>
   ·
@@ -48,6 +48,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Graph Scope | Turn Node Types and Edge Types on or off so the graph matches the question you are asking. |
 | Material Icon Theme nodes | File and folder nodes use Material Icon Theme shapes and colors instead of generic dots. |
 | VS Code theme integration | Graph surfaces, panels, buttons, text, and directional arrows follow the active VS Code color theme. |
+| CSS Snippets | Load workspace-local CSS files from `.codegraphy/settings.json`, then toggle configured snippets from the Themes panel. |
 | 2D and 3D renderers | Use the fast 2D canvas for everyday work or switch to 3D WebGL when the shape of the repo matters. |
 | Timeline | Index Git history and scrub through how the Relationship Graph changes over commits. |
 | Context actions | Preview, open, reveal, rename, delete, favorite, filter, and export directly from the graph. |
@@ -102,15 +103,27 @@ The editable Excalidraw source for this diagram lives at [docs/media/readme/code
 4. Open the graph, then run **Index Workspace** when you want semantic relationships beyond discovered files.
 5. When you want terminal or plugin management workflows, install the Core Package globally and then install plugin packages.
 
-The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, which already ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, and C++. It does not install the global terminal `codegraphy` command. Markdown is a real plugin package and is enabled by default for new CodeGraphy Workspaces.
+The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, which already ships built-in coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, C++, Objective-C, Scala, and Pascal. Objective-C and Scala use native Tree-sitter grammars; Pascal uses a core text-baseline analyzer because the available Tree-sitter package does not ship a usable native binding. It does not install the global terminal `codegraphy` command. Markdown is a real plugin package and is enabled by default for new CodeGraphy Workspaces.
+
+Supported VS Code Marketplace platforms:
+
+| Platform | VSIX target | Support status |
+|---|---|---|
+| Linux x64 | `linux-x64` | Supported |
+| macOS Apple Silicon | `darwin-arm64` | Supported |
+| Windows x64 | `win32-x64` | Supported |
+
+Intel macOS (`darwin-x64`), Linux arm64, Windows arm64, and Alpine Linux are
+not published targets yet. They should be added only after CodeGraphy has a
+matching native runtime package and a platform validation lane for that target.
 
 Plugin management starts from the global Core CLI:
 
 ```bash
 npm install -g @codegraphy-dev/core
-npm install -g @codegraphy-dev/plugin-python
-codegraphy plugins register @codegraphy-dev/plugin-python
-codegraphy plugins enable @codegraphy-dev/plugin-python
+npm install -g @codegraphy-dev/plugin-vue
+codegraphy plugins register @codegraphy-dev/plugin-vue
+codegraphy plugins enable @codegraphy-dev/plugin-vue
 codegraphy index
 ```
 
@@ -166,10 +179,10 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 | `@codegraphy-dev/mcp` | `packages/mcp` | `npm install -g @codegraphy-dev/mcp` | Optional agent-agnostic MCP server backed by and dependent on `@codegraphy-dev/core`. |
 | `@codegraphy-dev/plugin-api` | `packages/plugin-api` | `npm install @codegraphy-dev/plugin-api` | Typed contracts for external CodeGraphy plugins. |
 | `@codegraphy-dev/plugin-typescript` | `packages/plugin-typescript` | `npm install -g @codegraphy-dev/plugin-typescript` | TypeScript and JavaScript ecosystem defaults and enrichment. |
-| `@codegraphy-dev/plugin-python` | `packages/plugin-python` | `npm install -g @codegraphy-dev/plugin-python` | Python ecosystem defaults and enrichment. |
-| `@codegraphy-dev/plugin-csharp` | `packages/plugin-csharp` | `npm install -g @codegraphy-dev/plugin-csharp` | C# ecosystem defaults and enrichment. |
 | `@codegraphy-dev/plugin-godot` | `packages/plugin-godot` | `npm install -g @codegraphy-dev/plugin-godot` | Godot project, scene, resource, and script enrichment. |
 | `@codegraphy-dev/plugin-markdown` | `packages/plugin-markdown` | installed through `@codegraphy-dev/core` | Markdown wikilink and note relationship enrichment enabled by default for new CodeGraphy Workspaces. |
+| `@codegraphy-dev/plugin-vue` | `packages/plugin-vue` | `npm install -g @codegraphy-dev/plugin-vue` | Vue Single-File Component script, type-import, and lazy import enrichment. |
+| `@codegraphy-dev/plugin-svelte` | `packages/plugin-svelte` | `npm install -g @codegraphy-dev/plugin-svelte` | Svelte component script, type-import, and lazy import enrichment. |
 | `@poleski/quality-tools` | external package | local link until publish | Architecture, coverage-risk, mutation, reachability, and test-shape checks used by this repo through root scripts. |
 
 ## Tech Stack

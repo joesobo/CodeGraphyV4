@@ -12,7 +12,9 @@ import type {
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
+  IPluginGraphScopeCapabilities,
   IPluginNodeType,
+  GraphEdgeKind,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { CORE_PLUGIN_API_VERSION } from './api';
@@ -30,7 +32,12 @@ import {
 import { assertPluginApiCompatibility } from './compatibility';
 import { listPluginContributions } from './contributions';
 import { addPluginToExtensionMap } from './extensionMap';
-import { analyzeFile, analyzeFileResult, type CoreFileAnalysisResultProvider } from './routing/router/analyze';
+import {
+  analyzeFile,
+  analyzeFileResult,
+  type AnalyzeFileResultOptions,
+  type CoreFileAnalysisResultProvider,
+} from './routing/router/analyze';
 import {
   createCorePluginInfo,
   getPluginFilterPatterns,
@@ -39,6 +46,7 @@ import {
 import {
   getPluginForFile,
   getPluginsForExtension,
+  getPluginsForFile,
   getSupportedExtensions,
   supportsFile,
 } from './routing/router/lookups';
@@ -112,20 +120,59 @@ export class CorePluginRegistry {
     return [...this.plugins.values()];
   }
 
-  listNodeTypes(): IPluginNodeType[] {
+  listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
     return listPluginContributions(
       this.plugins,
       plugin => plugin.contributeNodeTypes?.() ?? [],
       definition => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypes(): IPluginEdgeType[] {
+  listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
     return listPluginContributions(
       this.plugins,
       plugin => plugin.contributeEdgeTypes?.() ?? [],
       definition => definition.id,
+      disabledPlugins,
     );
+  }
+
+  listGraphScopeCapabilities(
+    filePaths: readonly string[] = [],
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): Required<IPluginGraphScopeCapabilities> {
+    const applicableFilePathsByPluginId = new Map<string, string[]>();
+
+    for (const filePath of filePaths) {
+      for (const plugin of getPluginsForFile(filePath, this.plugins, this.extensionMap)) {
+        if (disabledPlugins.has(plugin.id)) {
+          continue;
+        }
+
+        const pluginFilePaths = applicableFilePathsByPluginId.get(plugin.id) ?? [];
+        pluginFilePaths.push(filePath);
+        applicableFilePathsByPluginId.set(plugin.id, pluginFilePaths);
+      }
+    }
+
+    const nodeTypes = new Set<string>();
+    const edgeTypes = new Set<GraphEdgeKind>();
+    for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
+      const plugin = this.plugins.get(pluginId)?.plugin;
+      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
+      for (const nodeType of capabilities?.nodeTypes ?? []) {
+        nodeTypes.add(nodeType);
+      }
+      for (const edgeType of capabilities?.edgeTypes ?? []) {
+        edgeTypes.add(edgeType);
+      }
+    }
+
+    return {
+      nodeTypes: [...nodeTypes],
+      edgeTypes: [...edgeTypes],
+    };
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
@@ -178,6 +225,10 @@ export class CorePluginRegistry {
     const contributions = createEmptyGraphViewContributionSet();
 
     for (const info of this.plugins.values()) {
+      if (context.disabledPlugins?.has(info.plugin.id)) {
+        continue;
+      }
+
       const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
       if (!pluginAccess.available) {
         continue;
@@ -235,6 +286,7 @@ export class CorePluginRegistry {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -244,6 +296,7 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -252,6 +305,7 @@ export class CorePluginRegistry {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -261,6 +315,30 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+      options,
+    );
+  }
+
+  async analyzeFileResultForPlugins(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+    pluginIds: readonly string[],
+    analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
+  ): Promise<IFileAnalysisResult | null> {
+    return analyzeFileResult(
+      filePath,
+      content,
+      workspaceRoot,
+      this.plugins,
+      this.extensionMap,
+      this.coreAnalyzeFileResult,
+      analysisContext,
+      {
+        ...options,
+        pluginIds: new Set(pluginIds),
+      },
     );
   }
 
@@ -272,27 +350,29 @@ export class CorePluginRegistry {
     files: AnalyzeFile[],
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<void> {
-    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext);
+    await notifyPreAnalyze(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
   }
 
   async notifyFilesChanged(
     files: AnalyzeFile[],
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    disabledPlugins: ReadonlySet<string> = new Set(),
   ): Promise<IPluginFilesChangedResult> {
-    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext);
+    return notifyFilesChanged(this.plugins, files, workspaceRoot, analysisContext, disabledPlugins);
   }
 
-  notifyPostAnalyze(graph: IGraphData): void {
-    notifyPostAnalyze(this.plugins, graph);
+  notifyPostAnalyze(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyPostAnalyze(this.plugins, graph, disabledPlugins);
   }
 
-  notifyWorkspaceReady(graph: IGraphData): void {
-    notifyWorkspaceReady(this.plugins, graph);
+  notifyWorkspaceReady(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyWorkspaceReady(this.plugins, graph, disabledPlugins);
   }
 
-  notifyGraphRebuild(graph: IGraphData): void {
-    notifyGraphRebuild(this.plugins, graph);
+  notifyGraphRebuild(graph: IGraphData, disabledPlugins: ReadonlySet<string> = new Set()): void {
+    notifyGraphRebuild(this.plugins, graph, disabledPlugins);
   }
 }

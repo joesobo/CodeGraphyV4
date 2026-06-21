@@ -8,6 +8,10 @@ What to look for:
 - extracted function and type symbols
 - call edges tied to imported package bindings
 
+## Graph Screenshot
+
+![Go example graph screenshot](../assets/graphs/go.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

@@ -1,32 +1,83 @@
 {
   "version": 1,
   "maxFiles": 500,
+  "verboseDiagnostics": false,
   "include": [
     "**/*"
   ],
   "respectGitignore": true,
   "showOrphans": true,
+  "cssSnippets": {
+    ".codegraphy/snippets/base-grid.css": false,
+    ".codegraphy/snippets/forest.css": false,
+    ".codegraphy/snippets/ocean.css": false,
+    ".codegraphy/snippets/ocean-image.css": false
+  },
   "plugins": [
     {
-      "package": "@codegraphy-dev/plugin-markdown"
+      "id": "codegraphy.markdown",
+      "enabled": true
     },
     {
-      "package": "@codegraphy-pro/organize"
+      "id": "@codegraphy-pro/organize",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.gdscript",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.vue",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.typescript",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.python",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.csharp",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.particles",
+      "enabled": true
     }
   ],
+  "pluginData": {
+    "codegraphy.particles": {
+      "enabled": true,
+      "preset": "snow"
+    }
+  },
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",
     "package": "#F59E0B",
     "symbol": "#7C3AED",
     "symbol:function": "#8B5CF6",
+    "symbol:namespace": "#64748B",
+    "symbol:callable": "#8B5CF6",
+    "symbol:method": "#A855F7",
+    "symbol:prototype": "#A78BFA",
     "symbol:class": "#3B82F6",
     "symbol:interface": "#06B6D4",
     "symbol:type": "#EC4899",
     "symbol:struct": "#0EA5E9",
+    "symbol:union": "#14B8A6",
     "symbol:enum": "#F59E0B",
+    "symbol:typedef": "#F472B6",
+    "symbol:alias": "#F472B6",
+    "symbol:template": "#C084FC",
     "variable": "#14B8A6",
     "symbol:constant": "#22C55E",
+    "symbol:global": "#0D9488",
+    "symbol:field": "#84CC16",
+    "symbol:parameter": "#2DD4BF",
+    "symbol:local": "#10B981",
     "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
   },
   "nodeVisibility": {
@@ -35,37 +86,61 @@
     "package": false,
     "symbol": false,
     "symbol:function": false,
+    "symbol:namespace": false,
+    "symbol:callable": false,
+    "symbol:method": false,
+    "symbol:prototype": false,
     "symbol:class": false,
     "symbol:interface": false,
     "symbol:type": false,
     "symbol:struct": false,
+    "symbol:union": false,
     "symbol:enum": false,
+    "symbol:typedef": false,
+    "symbol:alias": false,
+    "symbol:template": false,
     "variable": false,
     "symbol:constant": false,
+    "symbol:global": false,
+    "symbol:field": false,
+    "symbol:parameter": false,
+    "symbol:local": false,
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "nests": true,
+    "include": true,
     "import": true,
-    "type-import": false,
-    "reexport": true,
-    "call": true,
-    "inherit": true,
     "reference": true,
-    "test": true,
+    "call": false,
+    "type-import": true,
+    "inherit": true,
     "load": true,
-    "contains": true,
-    "overrides": true
+    "nests": false,
+    "contains": false,
+    "overrides": true,
+    "codegraphy.typescript:alias-import": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
-  "legend": [],
+  "legend": [
+    {
+      "pattern": "*.m",
+      "color": "#3B82F6",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    }
+  ],
   "legendVisibility": {},
   "legendOrder": [],
-  "filterPatterns": [],
+  "filterPatterns": [
+    "**/.gitignore",
+    "*.png",
+    "README.md"
+  ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
-  "showLabels": true,
+  "showLabels": false,
   "directionMode": "arrows",
   "directionColor": "#475569",
   "particleSpeed": 0.005,
@@ -75,21 +150,15 @@
   "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
-    "repelForce": 13,
-    "linkDistance": 80,
-    "linkForce": 0.95,
+    "repelForce": 18,
+    "linkDistance": 50,
+    "linkForce": 1,
     "damping": 0.7,
-    "centerForce": 0.16,
+    "centerForce": 0.2,
     "chargeRange": 200
   },
   "timeline": {
     "maxCommits": 500,
     "playbackSpeed": 1
-  },
-  "graphLayout": {
-    "collapsedNodes": {},
-    "pinnedNodes": {},
-    "sections": {},
-    "ownership": {}
   }
 }

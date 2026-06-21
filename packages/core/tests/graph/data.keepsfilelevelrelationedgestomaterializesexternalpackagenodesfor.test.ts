@@ -17,7 +17,6 @@ function createPlugin(id: string): IPlugin {
     sources: [
       { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
       { id: 'dynamic-import', name: 'Dynamic import', description: 'Dynamic import()' },
-      { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
     ],
     analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
@@ -26,7 +25,7 @@ function createPlugin(id: string): IPlugin {
 describe('core/graph/data', () => {
 
 
-    it('keeps file-level relation edges while adding symbol relation edges without plugin sources', () => {
+    it('uses symbol edges instead of duplicate file-level edges for symbol endpoint relations', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({
         cacheFiles: {
           'src/source.ts': { size: 10 },
@@ -66,6 +65,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
+        nodeVisibility: { symbol: true, 'symbol:function': true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
       });
@@ -78,15 +78,6 @@ describe('core/graph/data', () => {
             expect.objectContaining({
               label: 'ES6 import',
               sourceId: 'es6-import',
-            }),
-          ],
-        }),
-        expect.objectContaining({
-          kind: 'reference',
-          sources: [
-            expect.objectContaining({
-              label: 'reference',
-              sourceId: 'reference',
             }),
           ],
         }),
@@ -107,7 +98,7 @@ describe('core/graph/data', () => {
     it('builds connected nodes and edges with cached size and churn counts', () => {
       const typescriptPlugin = createPlugin('plugin.typescript');
       const fileConnections = new Map<string, IProjectedConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],
       ]);
 
@@ -167,12 +158,12 @@ describe('core/graph/data', () => {
       const pythonPlugin = createPlugin('plugin.python');
       const fileConnections = new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
-          { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' },
+          { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
         ['src/lazy.ts', []],
-        ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', kind: 'import', sourceId: 'import-module' }]],
+        ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', kind: 'import', pluginId: 'plugin.python', sourceId: 'import-module' }]],
         ['config.py', []],
       ]);
 
@@ -229,9 +220,9 @@ describe('core/graph/data', () => {
       const typescriptPlugin = createPlugin('plugin.typescript');
       const fileConnections = new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'dynamic-import' },
         ]],
         ['src/utils.ts', []],
       ]);
@@ -259,19 +250,11 @@ describe('core/graph/data', () => {
               sourceId: 'es6-import',
               label: 'ES6 import',
             },
-          ],
-        },
-        {
-          id: 'src/index.ts->src/utils.ts#reexport',
-          from: 'src/index.ts',
-          to: 'src/utils.ts',
-          kind: 'reexport',
-          sources: [
             {
-              id: 'plugin.typescript:reexport',
+              id: 'plugin.typescript:dynamic-import',
               pluginId: 'plugin.typescript',
-              sourceId: 'reexport',
-              label: 'Re-export',
+              sourceId: 'dynamic-import',
+              label: 'Dynamic import',
             },
           ],
         },
@@ -284,8 +267,8 @@ describe('core/graph/data', () => {
       const typescriptPlugin = createPlugin('plugin.typescript');
       const fileConnections = new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
-          { specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' },
+          { specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' },
         ]],
         ['src/utils.ts', []],
         ['src/orphan.ts', []],
@@ -327,7 +310,7 @@ describe('core/graph/data', () => {
         cacheFiles: {},
         disabledPlugins: new Set(),
         fileConnections: new Map<string, IProjectedConnection[]>([
-          ['src/index.ts', [{ specifier: './utils', resolvedPath: null, kind: 'import', sourceId: 'es6-import' }]],
+          ['src/index.ts', [{ specifier: './utils', resolvedPath: null, kind: 'import', pluginId: 'plugin.typescript', sourceId: 'es6-import' }]],
           ['src/utils.ts', []],
         ]),
         showOrphans: true,
@@ -349,7 +332,7 @@ describe('core/graph/data', () => {
         disabledPlugins: new Set(),
         fileConnections: new Map<string, IProjectedConnection[]>([
           ['src/index.ts', [
-            { specifier: 'node:fs/promises', resolvedPath: null, kind: 'import', sourceId: 'es6-import' },
+            { specifier: 'node:fs/promises', resolvedPath: null, kind: 'import', pluginId: 'codegraphy.typescript', sourceId: 'es6-import' },
           ]],
         ]),
         showOrphans: true,

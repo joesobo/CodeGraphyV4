@@ -32,6 +32,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
     const workspaceRoot = await createWorkspace({
       'lib/model/profile.dart': 'class Profile { final String name; Profile(this.name); }\n',
       'lib/model/user.dart': 'class User { final String name; User(this.name); }\n',
+      'lib/app/runner.dart': 'String boot(Profile profile) => profile.name;\n',
     });
     const runnerPath = path.join(workspaceRoot, 'lib/app/runner.dart');
     const source = [
@@ -61,8 +62,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: '../model/user.dart',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/model/user.dart'),
@@ -70,8 +70,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'package:sample_app/model/profile.dart',
         fromFilePath: runnerPath,
         resolvedPath: path.join(workspaceRoot, 'lib/model/profile.dart'),
@@ -79,8 +78,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'dart:convert',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -88,8 +86,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
         resolvedPath: null,
@@ -97,12 +94,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'Runnable',
         fromFilePath: runnerPath,
         resolvedPath: null,
         toFilePath: null,
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        specifier: 'User',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:function:boot`,
+        resolvedPath: path.join(workspaceRoot, 'lib/model/user.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/model/user.dart'),
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
@@ -112,6 +117,35 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'Runner' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'method', name: 'run' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'boot' }),
+    ]));
+  });
+
+  it('extracts Dart calls to top-level functions from imported files', async () => {
+    const workspaceRoot = await createWorkspace({
+      'lib/app/runner.dart': 'String boot() => "ready";\n',
+    });
+    const mainPath = path.join(workspaceRoot, 'bin/sample_app.dart');
+    const source = [
+      "import 'package:sample_app/app/runner.dart';",
+      '',
+      'void main() {',
+      '  boot();',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        specifier: 'boot',
+        fromFilePath: mainPath,
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'lib/app/runner.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/app/runner.dart'),
+      }),
     ]));
   });
 });

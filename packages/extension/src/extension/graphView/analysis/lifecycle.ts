@@ -8,9 +8,13 @@ import {
   runGraphViewAnalysisRequest,
   type GraphViewAnalysisRequestState,
 } from './request';
+import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 
 interface GraphViewWorkspaceReadyRegistryLike {
-  notifyWorkspaceReady(graphData: IGraphData): void;
+  notifyWorkspaceReady(
+    graphData: IGraphData,
+    disabledPlugins?: ReadonlySet<string>,
+  ): void;
 }
 
 export interface GraphViewProviderAnalysisState
@@ -21,6 +25,7 @@ export interface GraphViewProviderAnalysisRequestHandlers {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
+  emitDiagnostic?(input: DiagnosticEventInput): void;
   updateAnalysisController?(controller: AbortController | undefined): void;
   updateAnalysisRequestId?(requestId: number): void;
 }
@@ -50,6 +55,7 @@ export async function runGraphViewProviderAnalysisRequest(
     logError: (message, error) => {
       handlers.logError(message, error);
     },
+    emitDiagnostic: input => handlers.emitDiagnostic?.(input),
     updateAnalysisController: controller => {
       state.analysisController = controller;
       handlers.updateAnalysisController?.(controller);
@@ -82,11 +88,12 @@ export function markGraphViewWorkspaceReady(
   state: GraphViewWorkspaceReadyState,
   registry: GraphViewWorkspaceReadyRegistryLike | undefined,
   graphData: IGraphData,
+  disabledPlugins: ReadonlySet<string> = new Set(),
 ): void {
   if (!state.firstAnalysis) return;
 
   state.firstAnalysis = false;
-  registry?.notifyWorkspaceReady(graphData);
+  registry?.notifyWorkspaceReady(graphData, disabledPlugins);
   state.resolveFirstWorkspaceReady?.();
   state.resolveFirstWorkspaceReady = undefined;
 }

@@ -3,9 +3,11 @@ import type {
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
+  IPluginGraphScopeCapabilities,
   IPluginInfo,
   IPluginNodeType,
   IProjectedConnection,
+  GraphEdgeKind,
 } from '../../../types/contracts';
 import {
   resolvePluginAccess,
@@ -16,9 +18,11 @@ import {
 import {
   analyzeFile,
   analyzeFileResult,
+  type AnalyzeFileResultOptions,
 } from '../../../routing/router/analyze';
 import {
   getPluginForFile,
+  getPluginsForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
@@ -70,6 +74,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -79,6 +84,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
+      options,
     );
   }
 
@@ -87,6 +93,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     content: string,
     workspaceRoot: string,
     analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -96,6 +103,30 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
+      options,
+    );
+  }
+
+  async analyzeFileResultForPlugins(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+    pluginIds: readonly string[],
+    analysisContext?: IPluginAnalysisContext,
+    options: AnalyzeFileResultOptions = {},
+  ): Promise<IFileAnalysisResult | null> {
+    return analyzeFileResult(
+      filePath,
+      content,
+      workspaceRoot,
+      this._plugins,
+      this._extensionMap,
+      this._coreAnalyzeFileResult,
+      analysisContext,
+      {
+        ...options,
+        pluginIds: new Set(pluginIds),
+      },
     );
   }
 
@@ -103,20 +134,61 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     return Array.from(this._plugins.values());
   }
 
-  listNodeTypes(): IPluginNodeType[] {
+  listNodeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginNodeType[] {
     return listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeNodeTypes?.() ?? [],
       (definition) => definition.id,
+      disabledPlugins,
     );
   }
 
-  listEdgeTypes(): IPluginEdgeType[] {
+  listEdgeTypes(disabledPlugins: ReadonlySet<string> = new Set()): IPluginEdgeType[] {
     return listPluginContributions(
       this._plugins,
       (plugin) => plugin.contributeEdgeTypes?.() ?? [],
       (definition) => definition.id,
+      disabledPlugins,
     );
+  }
+
+  listGraphScopeCapabilities(
+    filePaths: readonly string[] = [],
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): Required<IPluginGraphScopeCapabilities> {
+    const applicableFilePathsByPluginId = new Map<string, string[]>();
+
+    for (const filePath of filePaths) {
+      for (const plugin of getPluginsForFile(filePath, this._plugins, this._extensionMap)) {
+        if (disabledPlugins.has(plugin.id)) {
+          continue;
+        }
+
+        const pluginFilePaths = applicableFilePathsByPluginId.get(plugin.id) ?? [];
+        pluginFilePaths.push(filePath);
+        applicableFilePathsByPluginId.set(plugin.id, pluginFilePaths);
+      }
+    }
+
+    const coreCapabilities = this._coreGraphScopeCapabilitiesProvider?.(filePaths);
+    const nodeTypes = new Set<string>(coreCapabilities?.nodeTypes ?? []);
+    const edgeTypes = new Set<GraphEdgeKind>(coreCapabilities?.edgeTypes ?? []);
+
+    for (const [pluginId, pluginFilePaths] of applicableFilePathsByPluginId) {
+      const plugin = this._plugins.get(pluginId)?.plugin;
+      const capabilities = plugin?.contributeGraphScopeCapabilities?.({ filePaths: pluginFilePaths });
+      for (const nodeType of capabilities?.nodeTypes ?? []) {
+        nodeTypes.add(nodeType);
+      }
+      for (const edgeType of capabilities?.edgeTypes ?? []) {
+        edgeTypes.add(edgeType);
+      }
+    }
+
+    return {
+      nodeTypes: [...nodeTypes],
+      edgeTypes: [...edgeTypes],
+    };
   }
 
   get size(): number {
@@ -135,6 +207,12 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analyzeFileResultProvider: typeof this._coreAnalyzeFileResult,
   ): void {
     this._coreAnalyzeFileResult = analyzeFileResultProvider;
+  }
+
+  setCoreGraphScopeCapabilitiesProvider(
+    provider: typeof this._coreGraphScopeCapabilitiesProvider,
+  ): void {
+    this._coreGraphScopeCapabilitiesProvider = provider;
   }
 
   disposeAll(): void {

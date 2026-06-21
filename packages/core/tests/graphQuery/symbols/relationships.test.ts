@@ -50,7 +50,6 @@ const symbols: IAnalysisSymbol[] = [
 const relations: IAnalysisRelation[] = [
   {
     kind: 'type-import',
-    pluginId: 'codegraphy.treesitter',
     sourceId: 'type-import',
     fromFilePath: 'src/source.ts',
     toFilePath: 'src/target.ts',

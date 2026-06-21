@@ -83,6 +83,11 @@ describe('classifyConfigChange', () => {
       const event = makeEvent('codegraphy.edgeVisibility');
       expect(classifyConfigChange(event)).toBe('display');
     });
+
+    it('returns display when codegraphy.cssSnippets is affected', () => {
+      const event = makeEvent('codegraphy.cssSnippets');
+      expect(classifyConfigChange(event)).toBe('display');
+    });
   });
 
   describe('legend category', () => {

@@ -3,6 +3,60 @@ import * as vscode from 'vscode';
 import { resolveGraphViewProviderWebviewView } from '../../../../../src/extension/graphView/provider/webview/resolve';
 
 describe('graphView/provider/webview/resolve', () => {
+  it('titles the graph view with the current workspace name', () => {
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<graph html />'),
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      getWorkspaceTitle: vi.fn(() => 'CodeGraphyV4'),
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    expect(webviewView.title).toBe('CodeGraphyV4');
+  });
+
+  it('keeps the graph view fallback title when no workspace is open', () => {
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<graph html />'),
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      getWorkspaceTitle: vi.fn(() => undefined),
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    expect(webviewView.title).toBe('Graph');
+  });
+
   it('resolves the graph view and clears it on dispose', () => {
     let disposeListener: (() => void) | undefined;
     const resourceRoots = [vscode.Uri.file('/test/root')];

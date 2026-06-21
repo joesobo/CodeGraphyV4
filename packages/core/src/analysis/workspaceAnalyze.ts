@@ -21,6 +21,8 @@ export interface WorkspacePipelineAnalysisSource {
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
+    pluginIds?: readonly string[],
+    disabledPlugins?: Set<string>,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -39,11 +41,13 @@ export interface WorkspacePipelineAnalysisSource {
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
+  _lastGitIgnoredPaths?: string[];
   _lastWorkspaceRoot: string;
   _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ): Promise<void>;
   getPluginFilterPatterns(disabledPlugins?: ReadonlySet<string>): string[];
 }
@@ -57,7 +61,9 @@ export interface WorkspacePipelineAnalysisDependencies
   };
   getWorkspaceRoot(): string | undefined;
   logInfo(message: string): void;
-  saveCache(): void;
+  saveCache(
+    onProgress?: (progress: { current: number; total: number }) => void,
+  ): void | Promise<void>;
   showWarningMessage(message: string): void;
   sendProgress?(progress: { phase: string; current: number; total: number }): void;
 }
@@ -80,6 +86,11 @@ export async function analyzeWorkspaceWithAnalyzer(
   const config = dependencies.getConfig();
   const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns ?? []);
   const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns ?? []);
+  dependencies.sendProgress?.({
+    phase: 'Discovering Files',
+    current: 0,
+    total: 1,
+  });
   const discoveryResult = await discoverWorkspacePipelineFiles(
     dependencies,
     workspaceRoot,
@@ -89,6 +100,11 @@ export async function analyzeWorkspaceWithAnalyzer(
       .filter(pattern => !disabledPluginPatterns.has(pattern)),
     signal,
   );
+  dependencies.sendProgress?.({
+    phase: 'Discovering Files',
+    current: 1,
+    total: 1,
+  });
 
   throwIfWorkspaceAnalysisAborted(signal);
 
@@ -108,11 +124,10 @@ export async function analyzeWorkspaceWithAnalyzer(
     fileCount: discoveryResult.files.length,
   });
 
-  await source._preAnalyzePlugins(discoveryResult.files, workspaceRoot, signal);
   dependencies.sendProgress?.({
-    phase: 'Analyzing Files',
+    phase: 'Preparing Analysis',
     current: 0,
-    total: discoveryResult.files.length,
+    total: 1,
   });
   const analysisResult = await source._analyzeFiles(
     discoveryResult.files,
@@ -125,6 +140,8 @@ export async function analyzeWorkspaceWithAnalyzer(
       });
     },
     signal,
+    undefined,
+    disabledPlugins,
   );
 
   throwIfWorkspaceAnalysisAborted(signal);
@@ -133,16 +150,43 @@ export async function analyzeWorkspaceWithAnalyzer(
   source._lastFileConnections = analysisResult.fileConnections;
   source._lastDiscoveredDirectories = discoveryResult.directories ?? [];
   source._lastDiscoveredFiles = discoveryResult.files;
+  source._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
   source._lastWorkspaceRoot = workspaceRoot;
 
+  dependencies.sendProgress?.({
+    phase: 'Building Graph',
+    current: 0,
+    total: 1,
+  });
   const graphData = source._buildGraphDataFromAnalysis(
     analysisResult.fileAnalysis,
     workspaceRoot,
     config.showOrphans,
     disabledPlugins,
   );
+  dependencies.sendProgress?.({
+    phase: 'Building Graph',
+    current: 1,
+    total: 1,
+  });
 
-  dependencies.saveCache();
+  dependencies.sendProgress?.({
+    phase: 'Saving Graph Cache',
+    current: 0,
+    total: 1,
+  });
+  await dependencies.saveCache(progress => {
+    dependencies.sendProgress?.({
+      phase: 'Saving Graph Cache',
+      current: progress.current,
+      total: progress.total,
+    });
+  });
+  dependencies.sendProgress?.({
+    phase: 'Saving Graph Cache',
+    current: 1,
+    total: 1,
+  });
   dependencies.logInfo(
     `[CodeGraphy] Graph built: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`,
   );

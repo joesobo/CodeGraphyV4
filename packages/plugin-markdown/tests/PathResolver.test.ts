@@ -51,6 +51,18 @@ describe('Markdown PathResolver', () => {
     expect(result).toBe(filePath);
   });
 
+  it('resolves paths relative to the source top-level folder when the workspace root is the parent folder', () => {
+    const resolver = new PathResolver(workspaceRoot);
+    const filePath = path.join(workspaceRoot, 'example-markdown', 'notes', 'Guide.md');
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, '# Guide');
+    resolver.buildIndex([{ absolutePath: filePath }]);
+
+    const result = resolver.resolve('notes/Guide.md', path.join(workspaceRoot, 'example-markdown', 'Home.md'));
+
+    expect(result).toBe(filePath);
+  });
+
   it('returns null for whitespace-only targets', () => {
     const resolver = new PathResolver(workspaceRoot);
     resolver.buildIndex([]);

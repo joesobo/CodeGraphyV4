@@ -88,12 +88,12 @@ describe('ToggleFavoriteAction', () => {
       expect(updateArg).toContain('src/new.ts');
     });
 
-    it('calls sendFavorites after updating config', async () => {
+    it('sends the updated favorites after updating config', async () => {
       const action = new ToggleFavoriteAction(['src/app.ts'], mockSendFavorites);
 
       await action.execute();
 
-      expect(mockSendFavorites).toHaveBeenCalledOnce();
+      expect(mockSendFavorites).toHaveBeenCalledWith(['src/app.ts']);
     });
 
     it('captures before state only on first execution', async () => {
@@ -137,14 +137,15 @@ describe('ToggleFavoriteAction', () => {
       expect(lastCall[1]).toEqual([]);
     });
 
-    it('calls sendFavorites after restoring', async () => {
+    it('sends the restored favorites after restoring', async () => {
+      currentFavorites = ['src/existing.ts'];
       const action = new ToggleFavoriteAction(['src/app.ts'], mockSendFavorites);
 
       await action.execute();
       mockSendFavorites.mockClear();
       await action.undo();
 
-      expect(mockSendFavorites).toHaveBeenCalledOnce();
+      expect(mockSendFavorites).toHaveBeenCalledWith(['src/existing.ts']);
     });
   });
 

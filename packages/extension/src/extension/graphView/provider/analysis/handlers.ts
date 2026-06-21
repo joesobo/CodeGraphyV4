@@ -17,7 +17,7 @@ interface GraphViewProviderAnalysisHandlerCallbacks {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
   isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   isAbortError(error: unknown): boolean;
-  markWorkspaceReady(graph: IGraphData): void;
+  markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
 }
 
 export function createGraphViewProviderAnalysisHandlers(
@@ -37,9 +37,11 @@ export function createGraphViewProviderAnalysisHandlers(
     getGraphData: () => source._graphData,
     sendGraphDataUpdated: graphData => {
       sendGraphControlsUpdated(
-        graphData,
+        source._rawGraphData,
         source._analyzer,
         message => source._sendMessage(message),
+        undefined,
+        source._disabledPlugins,
       );
       source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
     },
@@ -64,11 +66,13 @@ export function createGraphViewProviderAnalysisHandlers(
     sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
     sendGraphViewContributionStatuses: () => source._sendGraphViewContributionStatuses?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections?.(),
-    markWorkspaceReady: graphData => callbacks.markWorkspaceReady(graphData),
+    markWorkspaceReady: (graphData, disabledPlugins) =>
+      callbacks.markWorkspaceReady(graphData, disabledPlugins),
     isAbortError: error => callbacks.isAbortError(error),
     logError: (message, error) => {
       dependencies.logError(message, error);
     },
+    emitDiagnostic: input => dependencies.emitDiagnostic?.(input),
   };
 }
 
@@ -83,6 +87,7 @@ export function createGraphViewProviderAnalysisRequestHandlers(
     logError: (message, error) => {
       dependencies.logError(message, error);
     },
+    emitDiagnostic: input => dependencies.emitDiagnostic?.(input),
     updateAnalysisController: controller => {
       source._analysisController = controller;
     },

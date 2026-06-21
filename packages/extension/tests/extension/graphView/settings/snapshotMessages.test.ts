@@ -52,8 +52,10 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: [],
       particleSpeed: 0.005,
       particleSize: 4,
+      pluginData: {},
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
+      verboseDiagnostics: false,
       nodeSizeMode: 'uniform',
     });
   });
@@ -74,8 +76,12 @@ describe('graphView/settings/snapshotMessages', () => {
         legendOrder: ['default:fileExtension:ts'],
         particleSpeed: 0.02,
         particleSize: 6,
+        pluginData: {
+          'acme.plugin': { enabled: true },
+        },
         showLabels: false,
         maxFiles: 250,
+        verboseDiagnostics: true,
       }),
       {
         repelForce: 10,
@@ -110,8 +116,12 @@ describe('graphView/settings/snapshotMessages', () => {
       legendOrder: ['default:fileExtension:ts'],
       particleSpeed: 0.02,
       particleSize: 6,
+      pluginData: {
+        'acme.plugin': { enabled: true },
+      },
       showLabels: false,
       maxFiles: 250,
+      verboseDiagnostics: true,
       nodeSizeMode: 'churn',
     });
   });
@@ -174,8 +184,12 @@ describe('graphView/settings/snapshotMessages', () => {
           legendOrder: [],
           particleSpeed: 0.02,
           particleSize: 6,
+          pluginData: {
+            'acme.plugin': { enabled: true },
+          },
           showLabels: false,
           maxFiles: 250,
+          verboseDiagnostics: true,
           nodeSizeMode: 'churn',
         },
         ['venv/**'],
@@ -226,8 +240,16 @@ describe('graphView/settings/snapshotMessages', () => {
           payload: { maxFiles: 250 },
         },
         {
+          type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+          payload: { verboseDiagnostics: true },
+        },
+        {
           type: 'NODE_SIZE_MODE_UPDATED',
           payload: { nodeSizeMode: 'churn' },
+        },
+        {
+          type: 'PLUGIN_DATA_UPDATED',
+          payload: { pluginId: 'acme.plugin', data: { enabled: true } },
         },
       ],
     });

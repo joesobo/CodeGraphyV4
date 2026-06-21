@@ -10,26 +10,76 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
 
   it('deduplicates filter patterns and drops unknown top-level settings', () => {
     expect(normalizePersistedSettingsShape({
+      verboseDiagnostics: true,
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
+      cssSnippets: {
+        '.codegraphy/snippets/graph.css': true,
+        '  .codegraphy/snippets/focus.css  ': false,
+        '.codegraphy/snippets/invalid.css': 'yes',
+        '': true,
+      },
+      pluginData: {
+        'codegraphy.example': {
+          enabled: true,
+          preset: 'embers',
+          intensity: 0.75,
+          unknown: true,
+        },
+      },
       edgeColors: { import: '#123456' },
       plugins: ['codegraphy.typescript'],
     })).toEqual({
+      verboseDiagnostics: true,
       filterPatterns: ['**/*.png', '**/*.tmp'],
+      cssSnippets: {
+        '.codegraphy/snippets/graph.css': true,
+        '.codegraphy/snippets/focus.css': false,
+      },
+      pluginData: {
+        'codegraphy.example': {
+          enabled: true,
+          preset: 'embers',
+          intensity: 0.75,
+          unknown: true,
+        },
+      },
+    });
+  });
+
+  it('preserves plugin data without knowing plugin-owned settings shape', () => {
+    expect(normalizePersistedSettingsShape({
+      pluginData: {
+        'codegraphy.example': {
+          enabled: 'yes',
+          preset: 'unknown',
+          intensity: 4,
+          customModule: ' .codegraphy/particles/my-effect.js ',
+        },
+      },
+    })).toEqual({
+      pluginData: {
+        'codegraphy.example': {
+          enabled: 'yes',
+          preset: 'unknown',
+          intensity: 4,
+          customModule: ' .codegraphy/particles/my-effect.js ',
+        },
+      },
     });
   });
 
   it('drops legacy pluginOrder and disabledPlugins settings', () => {
     expect(normalizePersistedSettingsShape({
-      pluginOrder: ['codegraphy.python'],
+      pluginOrder: ['codegraphy.vue'],
       disabledPlugins: ['codegraphy.markdown'],
       plugins: [
         { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@codegraphy-dev/plugin-python' },
+        { package: '@codegraphy-dev/plugin-vue' },
       ],
     })).toEqual({
       plugins: [
-        { package: '@codegraphy-dev/plugin-markdown' },
-        { package: '@codegraphy-dev/plugin-python' },
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: '@codegraphy-dev/plugin-vue', enabled: true },
       ],
     });
   });
@@ -67,11 +117,15 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       nodeColors: {
         symbol: '#8B5CF6',
         'symbol:function': '#8B5CF6',
+        'symbol:method': '#A855F7',
+        'symbol:namespace': '#64748B',
         file: '#111111',
       },
       nodeVisibility: {
         symbol: true,
         'symbol:function': true,
+        'symbol:method': true,
+        'symbol:namespace': true,
         file: true,
       },
     });
@@ -127,7 +181,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       respectGitignore: false,
       showOrphans: true,
       plugins: [],
-      pluginData: { 'codegraphy.organize': { enabled: true } },
+      pluginData: {
+        'codegraphy.organize': { enabled: true },
+        'codegraphy.example': { enabled: true, mode: 'demo' },
+      },
       nodeColors: { file: '#111111' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
@@ -137,6 +194,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendVisibility: { 'legend-1': true },
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,
@@ -170,7 +228,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       respectGitignore: false,
       showOrphans: true,
       plugins: [],
-      pluginData: { 'codegraphy.organize': { enabled: true } },
+      pluginData: {
+        'codegraphy.organize': { enabled: true },
+        'codegraphy.example': { enabled: true, mode: 'demo' },
+      },
       nodeColors: { file: '#111111' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
@@ -180,6 +241,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       legendVisibility: { 'legend-1': true },
       legendOrder: ['legend-1'],
       filterPatterns: ['dist/**'],
+      cssSnippets: { '.codegraphy/snippets/graph.css': true },
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: { 'codegraphy.typescript': ['**/*.spec.ts'] },
       showLabels: false,
@@ -265,16 +327,17 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         { package: 42 },
         null,
         'not a plugin',
-        { package: '@codegraphy-dev/plugin-python', disabledFilterPatterns: [], options: ['invalid'] },
+        { package: '@codegraphy-dev/plugin-vue', disabledFilterPatterns: [], options: ['invalid'] },
       ],
     })).toEqual({
       plugins: [
         {
-          package: '@codegraphy-dev/plugin-markdown',
+          id: 'codegraphy.markdown',
+          enabled: true,
           disabledFilterPatterns: ['**/*.md'],
           options: { includeFrontmatter: true },
         },
-        { package: '@codegraphy-dev/plugin-python' },
+        { id: '@codegraphy-dev/plugin-vue', enabled: true },
       ],
     });
   });

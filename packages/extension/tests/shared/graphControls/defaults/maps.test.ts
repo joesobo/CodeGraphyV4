@@ -14,18 +14,38 @@ describe('shared/graphControls/defaults/maps', () => {
       package: false,
       symbol: false,
       'symbol:function': false,
+      'symbol:namespace': false,
+      'symbol:callable': false,
+      'symbol:method': false,
+      'symbol:constructor': false,
+      'symbol:prototype': false,
       'symbol:class': false,
       'symbol:interface': false,
+      'symbol:record': false,
+      'symbol:delegate': false,
+      'symbol:property': false,
+      'symbol:event': false,
       'symbol:type': false,
       'symbol:struct': false,
+      'symbol:union': false,
       'symbol:enum': false,
+      'symbol:typedef': false,
+      'symbol:alias': false,
+      'symbol:template': false,
       variable: false,
       'symbol:constant': false,
+      'symbol:global': false,
+      'symbol:field': false,
+      'symbol:parameter': false,
+      'symbol:local': false,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
+    expect(createDefaultEdgeVisibility()['using']).toBe(true);
+    expect(createDefaultEdgeVisibility()['type']).toBe(false);
     expect(createDefaultNodeColors().file).toBeTruthy();
     expect(createDefaultNodeColors().symbol).toBe('#7C3AED');
     expect(createDefaultEdgeColors().call).toBeTruthy();
+    expect(createDefaultEdgeColors()['call']).toBe('#22C55E');
   });
 });

@@ -11,6 +11,8 @@ import {
   isCSharpTypeDeclarationNode as isTypeDeclarationNode,
 } from './csharpIndex/nodes';
 import {
+  resolveCSharpType as resolveType,
+  resolveCSharpTypeInNamespace as resolveTypeInNamespace,
   resolveCSharpTypePath as resolveTypePath,
   resolveCSharpTypePathInNamespace as resolveTypePathInNamespace,
 } from './csharpIndex/resolve';
@@ -31,6 +33,8 @@ export const getCSharpIdentifierText = getIdentifierText;
 export const getCSharpNamespaceName = getNamespaceName;
 export const getCSharpNodeText = getNodeText;
 export const isCSharpTypeDeclarationNode = isTypeDeclarationNode;
+export const resolveCSharpType = resolveType;
+export const resolveCSharpTypeInNamespace = resolveTypeInNamespace;
 export const resolveCSharpTypePath = resolveTypePath;
 export const resolveCSharpTypePathInNamespace = resolveTypePathInNamespace;
 export const clearCSharpWorkspaceIndex = clearWorkspaceIndex;

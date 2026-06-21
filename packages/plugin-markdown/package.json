@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-markdown",
-  "version": "1.1.1",
+  "version": "1.1.6",
   "description": "CodeGraphy markdown plugin",
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,7 @@
     }
   },
   "engines": {
-    "node": ">=22.22.0 <23"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public"

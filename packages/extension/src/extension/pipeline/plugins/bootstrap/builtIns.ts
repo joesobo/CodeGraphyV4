@@ -1,23 +1,57 @@
-import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME, type CodeGraphyWorkspaceSettings } from '@codegraphy-dev/core';
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_ID,
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  loadBundledMarkdownPlugin,
+  type CodeGraphyWorkspaceSettings,
+} from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import { createMarkdownPlugin } from '../../../../../../plugin-markdown/src/plugin';
-import { createTreeSitterPlugin } from '../treesitter/plugin';
+import type { IPlugin } from '../../../../core/plugins/types/contracts';
 import { getDefaultMarkdownPluginOptions, shouldRegisterMarkdownPlugin } from './markdown';
 
-export function registerBuiltInWorkspacePipelinePlugins(
-  registry: PluginRegistry,
+export interface WorkspacePipelinePluginRegistration {
+  plugin: IPlugin;
+  options: {
+    builtIn?: boolean;
+    sourcePackage?: string;
+    sourcePackageRoot?: string;
+    options?: Record<string, unknown>;
+  };
+}
+
+export async function getBuiltInWorkspacePipelinePluginRegistrations(
   settings: CodeGraphyWorkspaceSettings | undefined,
-): void {
-  registry.register(createTreeSitterPlugin(), { builtIn: true });
+  disabledPluginsInput: Iterable<string> = [],
+): Promise<WorkspacePipelinePluginRegistration[]> {
+  const disabledPlugins = new Set(disabledPluginsInput);
+  const registrations: WorkspacePipelinePluginRegistration[] = [];
 
   if (!shouldRegisterMarkdownPlugin(settings)) {
-    return;
+    return registrations;
+  }
+
+  if (disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
+    return registrations;
   }
 
   const markdownOptions = getDefaultMarkdownPluginOptions(settings);
-  registry.register(createMarkdownPlugin(), {
-    builtIn: true,
-    sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-    ...(markdownOptions ? { options: markdownOptions } : {}),
+  registrations.push({
+    plugin: await loadBundledMarkdownPlugin() as IPlugin,
+    options: {
+      builtIn: true,
+      sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      ...(markdownOptions ? { options: markdownOptions } : {}),
+    },
   });
+
+  return registrations;
+}
+
+export async function registerBuiltInWorkspacePipelinePlugins(
+  registry: PluginRegistry,
+  settings: CodeGraphyWorkspaceSettings | undefined,
+  disabledPlugins?: Iterable<string>,
+): Promise<void> {
+  for (const registration of await getBuiltInWorkspacePipelinePluginRegistrations(settings, disabledPlugins)) {
+    registry.register(registration.plugin, registration.options);
+  }
 }

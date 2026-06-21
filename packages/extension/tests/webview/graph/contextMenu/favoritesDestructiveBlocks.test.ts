@@ -83,12 +83,12 @@ describe('buildDestructiveBlock', () => {
 
   it('includes Rename for single target', () => {
     const labels = itemLabels(buildDestructiveBlock(['a.ts']));
-    expect(labels).toContain('Rename...');
+    expect(labels).toContain('Rename');
   });
 
   it('omits Rename for multi-select', () => {
     const labels = itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']));
-    expect(labels).not.toContain('Rename...');
+    expect(labels).not.toContain('Rename');
   });
 
   it('includes Delete File for single target', () => {
@@ -115,14 +115,14 @@ describe('buildFilterBlock', () => {
     expect(entries[0].id).toBe('node-separator-filter');
   });
 
-  it('includes Add Filter Pattern... for single target', () => {
+  it('includes Add Filter Pattern for single target', () => {
     const labels = itemLabels(buildFilterBlock(['a.ts']));
-    expect(labels).toContain('Add Filter Pattern...');
+    expect(labels).toContain('Add Filter Pattern');
   });
 
-  it('includes Add Filter Patterns... for multi-select', () => {
+  it('includes Add Filter Patterns for multi-select', () => {
     const labels = itemLabels(buildFilterBlock(['a.ts', 'b.ts']));
-    expect(labels).toContain('Add Filter Patterns...');
+    expect(labels).toContain('Add Filter Patterns');
   });
 
   it('separates filter and legend actions', () => {

@@ -21,10 +21,10 @@ describe('workspace/signatures', () => {
     })).toBeNull();
     expect(createCodeGraphyWorkspacePackageAwarePluginSignature({
       runtimePlugins: [{ id: 'markdown', version: '1.0.0' }],
-      packagePlugins: [{ package: '@codegraphy-dev/plugin-python', version: '2.0.0' }],
+      packagePlugins: [{ package: '@codegraphy-dev/plugin-vue', version: '2.0.0' }],
       missingPackagePlugins: ['@codegraphy-dev/plugin-ruby'],
     })).toBe(
-      'markdown@1.0.0|npm:@codegraphy-dev/plugin-python@2.0.0|npm:@codegraphy-dev/plugin-ruby@missing',
+      'markdown@1.0.0|npm:@codegraphy-dev/plugin-vue@2.0.0|npm:@codegraphy-dev/plugin-ruby@missing',
     );
   });
 
@@ -33,20 +33,23 @@ describe('workspace/signatures', () => {
     const withoutOptions = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
       }],
     });
     const first = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
         options: { includeTests: true, pythonVersion: '3.12' },
       }],
     });
     const second = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
         options: { pythonVersion: '3.12', includeTests: true },
       }],
     });
@@ -66,7 +69,8 @@ describe('workspace/signatures', () => {
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
     })).not.toBe(first);
@@ -77,27 +81,31 @@ describe('workspace/signatures', () => {
     const pythonPlugin = createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
       }],
     });
 
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-ruby',
+        id: 'codegraphy.ruby',
+        enabled: true,
       }],
     })).not.toBe(pythonPlugin);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
         disabledFilterPatterns: [],
       }],
     })).toBe(pythonPlugin);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
       plugins: [{
-        package: '@codegraphy-dev/plugin-python',
+        id: 'codegraphy.vue',
+        enabled: true,
         disabledFilterPatterns: ['**/__pycache__/**'],
       }],
     })).not.toBe(pythonPlugin);

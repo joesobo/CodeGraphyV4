@@ -33,9 +33,12 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): 
   }
 
   return (
-    <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
+    <section
+      className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden"
+      data-codegraphy-panel="settings"
+    >
       <TooltipProvider delayDuration={300}>
-        <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
+        <header className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0" data-codegraphy-region="panel-header">
           <span className="text-sm font-medium">Settings</span>
           <div className="flex items-center gap-0.5">
             <Tooltip>
@@ -61,11 +64,11 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): 
               <TooltipContent side="bottom">Close</TooltipContent>
             </Tooltip>
           </div>
-        </div>
+        </header>
       </TooltipProvider>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="px-3 pb-3">
+      <ScrollArea className="flex-1 min-h-0" data-codegraphy-region="panel-body">
+        <div className="px-3 pb-3" data-codegraphy-region="settings-sections">
           <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen((open) => !open)} />
           {displayOpen && <DisplaySection />}
 
@@ -79,6 +82,6 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): 
           {exportOpen && <SettingsExportSection />}
         </div>
       </ScrollArea>
-    </div>
+    </section>
   );
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   readEdgeTypes,
+  readGraphScopeCapabilities,
   readNodeTypes,
   readRegistryDefinitions,
 } from '../../../../../src/extension/graphView/controls/send/definitions/registry';
@@ -39,13 +40,20 @@ describe('extension/graphView/controls/registry', () => {
         listEdgeTypes: () => 'not-an-array',
       }),
     ).toEqual([]);
+
+    expect(
+      readGraphScopeCapabilities({
+        listGraphScopeCapabilities: () => 'not-an-object',
+      }, ['src/app.ts']),
+    ).toEqual({ nodeTypes: [], edgeTypes: [] });
   });
 
-  it('calls registry reader methods with the registry as this and without arguments', () => {
+  it('calls registry reader methods with the registry as this and a disabled plugin set', () => {
     const registry = {
       listNodeTypes(this: unknown, ...args: unknown[]) {
         expect(this).toBe(registry);
-        expect(args).toEqual([]);
+        expect(args).toEqual([expect.any(Set)]);
+        expect((args[0] as Set<unknown>).size).toBe(0);
         return [{ id: 'route', label: 'Route', defaultColor: '#22C55E', defaultVisible: true }];
       },
     };
@@ -53,6 +61,36 @@ describe('extension/graphView/controls/registry', () => {
     expect(readNodeTypes(registry)).toEqual([
       { id: 'route', label: 'Route', defaultColor: '#22C55E', defaultVisible: true },
     ]);
+  });
+
+  it('reads graph scope capabilities with workspace file paths', () => {
+    const registry = {
+      listGraphScopeCapabilities(this: unknown, filePaths: readonly string[], disabledPlugins: ReadonlySet<string>) {
+        expect(this).toBe(registry);
+        expect(filePaths).toEqual(['src/app.ts', 'src/routes.ts']);
+        expect(disabledPlugins.size).toBe(0);
+        return {
+          nodeTypes: ['symbol:function', 'route', null],
+          edgeTypes: ['import', 'plugin:route', null],
+        };
+      },
+    };
+
+    expect(readGraphScopeCapabilities(registry, ['src/app.ts', 'src/routes.ts'])).toEqual({
+      nodeTypes: [],
+      edgeTypes: [],
+    });
+
+    const validRegistry = {
+      listGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function', 'route'],
+        edgeTypes: ['import', 'plugin:route'],
+      }),
+    };
+    expect(readGraphScopeCapabilities(validRegistry, ['src/app.ts', 'src/routes.ts'])).toEqual({
+      nodeTypes: ['symbol:function', 'route'],
+      edgeTypes: ['import', 'plugin:route'],
+    });
   });
 
   it('reads node and edge definitions from their matching registry methods', () => {

@@ -12,6 +12,8 @@ function createDependencies(
 ): Pick<
   GraphContextMenuRuntimeDependencies,
   'clearCachedFile' | 'fitView' | 'focusNode' | 'openFilterPatternPrompt' | 'openLegendRulePrompt' | 'postMessage'
+  | 'refreshContextSelection'
+  | 'toggleFavoritesOptimistically'
 > {
   return {
     clearCachedFile: vi.fn(),
@@ -20,6 +22,8 @@ function createDependencies(
     openFilterPatternPrompt: vi.fn(),
     openLegendRulePrompt: vi.fn(),
     postMessage: vi.fn(),
+    refreshContextSelection: vi.fn(),
+    toggleFavoritesOptimistically: vi.fn(),
     ...overrides,
   };
 }
@@ -77,6 +81,52 @@ describe('graph/contextMenuRuntime/effects', () => {
     );
 
     expect(dependencies.openFilterPatternPrompt).toHaveBeenCalledWith(['README.md']);
+    expect(dependencies.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('refreshes the context selection after posting the extension favorite toggle message', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'toggleFavorite' },
+      nodeContext(['src/app.ts']),
+    );
+
+    expect(dependencies.postMessage).toHaveBeenCalledWith({
+      type: 'TOGGLE_FAVORITE',
+      payload: { paths: ['src/app.ts'] },
+    });
+    expect(dependencies.refreshContextSelection).toHaveBeenCalledOnce();
+  });
+
+  it('skips built-in menu actions that are invalid for the execution selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'createFile' },
+      nodeContext(['src/app.ts']),
+    );
+
+    expect(dependencies.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('skips plugin menu actions that are invalid for the execution selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      {
+        kind: 'plugin',
+        pluginId: 'plugin.test',
+        index: 2,
+        targetId: 'src/app.ts->src/util.ts',
+        targetType: 'edge',
+      },
+      nodeContext(['src/app.ts']),
+    );
+
     expect(dependencies.postMessage).not.toHaveBeenCalled();
   });
 

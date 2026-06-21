@@ -78,7 +78,20 @@ describe('GraphViewProvider file info', () => {
         { id: 'src/other.py', label: 'other.py', color: '#ffffff' },
       ],
       edges: [
-        { id: 'src/main.py->src/config.py', from: 'src/main.py', to: 'src/config.py' , kind: 'import', sources: [] },
+        {
+          id: 'src/main.py->src/config.py',
+          from: 'src/main.py',
+          to: 'src/config.py',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.vue:import',
+              pluginId: 'codegraphy.vue',
+              sourceId: 'import',
+              label: 'Python import',
+            },
+          ],
+        },
         { id: 'src/input.py->src/main.py', from: 'src/input.py', to: 'src/main.py' , kind: 'import', sources: [] },
         { id: 'src/main.py->src/other.py', from: 'src/main.py', to: 'src/other.py' , kind: 'import', sources: [] },
         { id: 'src/other.py->src/config.py', from: 'src/other.py', to: 'src/config.py' , kind: 'import', sources: [] },
@@ -91,16 +104,19 @@ describe('GraphViewProvider file info', () => {
       _analyzer: {
         initialize: () => Promise<void>;
         getPluginNameForFile: (filePath: string) => string;
+        getPluginNamesForIds: (pluginIds: readonly string[]) => string[];
       };
     })._analyzerInitialized = false;
     (provider as unknown as {
       _analyzer: {
         initialize: () => Promise<void>;
         getPluginNameForFile: (filePath: string) => string;
+        getPluginNamesForIds: (pluginIds: readonly string[]) => string[];
       };
     })._analyzer = {
       initialize,
       getPluginNameForFile: vi.fn(() => 'Python'),
+      getPluginNamesForIds: vi.fn(() => ['Python']),
     };
 
     const mutableWorkspaceFs = vscode.workspace.fs as unknown as Record<string, unknown>;

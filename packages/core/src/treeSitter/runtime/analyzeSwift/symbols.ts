@@ -12,10 +12,12 @@ export function handleSwiftTypeDeclaration(
   filePath: string,
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
+  symbolsEnabled: boolean,
+  resolveInheritedTypePath: (typeName: string) => string | null,
 ): void {
   const kind = node.type === 'protocol_declaration' ? 'protocol' : getSwiftTypeKind(node);
   const name = getSwiftDeclarationName(node);
-  if (name) {
+  if (name && symbolsEnabled) {
     symbols.push(createSymbol(filePath, kind, name, node));
   }
 
@@ -23,7 +25,7 @@ export function handleSwiftTypeDeclaration(
     const specifier = inheritance.childForFieldName('inherits_from')?.text
       ?? inheritance.namedChildren[0]?.text;
     if (specifier) {
-      addInheritRelation(relations, filePath, specifier, null);
+      addInheritRelation(relations, filePath, specifier, resolveInheritedTypePath(specifier));
     }
   }
 }

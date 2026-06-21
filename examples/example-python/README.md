@@ -2,6 +2,10 @@
 
 A small Python workspace for manual checks of CodeGraphy's Python support.
 
+## Graph Screenshot
+
+![Python example graph screenshot](../assets/graphs/python.png)
+
 ## Structure
 
 ```
@@ -19,6 +23,7 @@ src/
 │   └── format.py     # Formatting utilities
 └── services/
     ├── __init__.py
+    ├── base.py       # Base API user
     └── api.py        # API service
 ```
 
@@ -26,7 +31,9 @@ src/
 
 ```
 main.py ──────────────▶ config.py
-main.py ──────────────▶ services/api.py ──▶ utils/helpers.py ──▶ utils/format.py
+main.py ──────────────▶ services/api.py ──▶ services/base.py
+                         │
+                         └──────────────▶ utils/helpers.py ──▶ utils/format.py
 main.py ──────────────▶ utils/helpers.py
 member_imports.py ───▶ services/api.py
 member_imports.py ───▶ utils/helpers.py
@@ -45,6 +52,7 @@ orphan.py (Orphan Node - only visible with showOrphans=true)
 | From import | `from utils.format import ...` | helpers.py |
 | Namespace package | `from ns_pkg import member` | namespace_consumer.py |
 | External unresolved | `from requests import Session` | member_imports.py |
+| Inheritance | `class ApiUser(BaseApiUser)` | api.py |
 
 ## Files
 
@@ -58,7 +66,8 @@ orphan.py (Orphan Node - only visible with showOrphans=true)
 | `ns_pkg/member.py` | — | namespace_consumer |
 | `utils/helpers.py` | format | main, api |
 | `utils/format.py` | — | helpers |
-| `services/api.py` | helpers | main |
+| `services/api.py` | base, helpers | main |
+| `services/base.py` | — | api |
 
 ## How to Test
 
@@ -74,9 +83,9 @@ Suggested symbol check:
 
 1. Open `src/main.py`.
 2. In Graph Scope, enable **Symbol**.
-3. Search for `main`, `load_config`, `fetch_user`, and `format_name`.
+3. Search for `main`, `load_config`, `fetch_user`, `ApiUser`, `BaseApiUser`, and `format_name`.
 
 Expected behavior:
 
 - Function symbols make the import chain readable without opening every file.
-- `main.py` points to the service/config/helper files, while the symbols show which declarations are actually involved.
+- `ApiUser` inherits from `BaseApiUser`, while `main.py` points to the service/config/helper files that make up the runnable path.

@@ -23,6 +23,20 @@ describe('createGDScriptPlugin lifecycle', () => {
       expect(plugin.supportedExtensions).toContain('.godot');
       expect(plugin.supportedExtensions).toContain('.tscn');
       expect(plugin.supportedExtensions).toContain('.tres');
+      expect(plugin.contributeGraphScopeCapabilities?.()).toEqual({
+        nodeTypes: [
+          'symbol:function',
+          'symbol:enum',
+          'symbol:constant',
+          'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        ],
+        edgeTypes: [
+          'call',
+          'load',
+          'inherit',
+          'reference',
+        ],
+      });
     });
 
 
@@ -182,5 +196,42 @@ describe('createGDScriptPlugin lifecycle', () => {
       const analysis = await plugin.analyzeFile('/workspace/scripts/test.gd', content, '/workspace');
       expect(analysis.relations.some(relation => relation.specifier === 'Player')).toBe(true);
       expect(analysis.relations.some(relation => relation.kind === 'reference')).toBe(true);
+    });
+
+    it('analyzeFile should emit call relations for class_name static method calls', async () => {
+      const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+      await plugin.onPreAnalyze?.([
+        {
+          absolutePath: '/workspace/scripts/utils/math_helpers.gd',
+          relativePath: 'scripts/utils/math_helpers.gd',
+          content: 'class_name MathHelpers\nstatic func random_point_in_circle(radius: float) -> Vector2:\n\treturn Vector2.ZERO\n',
+        },
+        {
+          absolutePath: '/workspace/scripts/player.gd',
+          relativePath: 'scripts/player.gd',
+          content: 'class_name Player\n',
+        },
+      ], '/workspace');
+
+      const analysis = await plugin.analyzeFile(
+        '/workspace/scripts/player.gd',
+        [
+          'class_name Player',
+          'func spawn() -> void:',
+          '\tvar point = MathHelpers.random_point_in_circle(16.0)',
+        ].join('\n'),
+        '/workspace',
+      );
+
+      expect(analysis.relations).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'call',
+          sourceId: 'class-name-static-call',
+          specifier: 'MathHelpers',
+          fromFilePath: '/workspace/scripts/player.gd',
+          resolvedPath: '/workspace/scripts/utils/math_helpers.gd',
+          toFilePath: '/workspace/scripts/utils/math_helpers.gd',
+        }),
+      ]));
     });
 });

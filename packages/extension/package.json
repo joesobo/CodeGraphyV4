@@ -1,28 +1,31 @@
 {
   "name": "@codegraphy-dev/extension",
-  "version": "5.6.0",
+  "version": "5.11.1",
   "private": true,
   "description": "CodeGraphy VS Code extension core",
   "license": "MIT",
   "engines": {
-    "node": ">=22.22.0 <23"
+    "node": ">=20"
   },
   "scripts": {
     "build": "pnpm run build:extension && pnpm run build:webview",
     "build:extension": "tsx scripts/buildExtension.ts",
     "build:webview": "vite build --config vite.config.ts",
-    "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy-dev/extension... --filter=@codegraphy-dev/plugin-typescript --filter=@codegraphy-dev/plugin-godot && tsc -p src/e2e/tsconfig.json",
+    "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy-dev/extension... --filter=@codegraphy-dev/plugin-typescript --filter=@codegraphy-dev/plugin-godot --filter=@codegraphy-dev/plugin-vue --filter=@codegraphy-dev/plugin-svelte --filter=@codegraphy-dev/plugin-particles && tsc -p src/e2e/tsconfig.json",
+    "check:native-runtime": "node scripts/validateNativeRuntime.mjs",
     "watch": "concurrently \"pnpm run watch:extension\" \"pnpm run watch:webview\"",
     "watch:extension": "tsx scripts/buildExtension.ts --watch",
     "watch:webview": "vite build --config vite.config.ts --watch",
     "dev": "pnpm run watch",
+    "generate:acceptance": "quality-tools acceptance compile \"tests/acceptance/specs/**/*.feature\" \"tests/playwright-vscode/generated\" --steps \"tests/acceptance/steps.ts\" --ir \"tests/playwright-vscode/generated-ir\" --dry \"reports/acceptance-dry\"",
+    "generate:cucumber-steps": "tsx tests/acceptance/cucumber/generator.ts",
     "test": "vitest run --config vitest.config.ts",
     "test:node": "vitest run --config vitest.config.ts --project node",
     "test:webview": "vitest run --config vitest.config.ts --project webview",
-    "test:playwright": "playwright test --config playwright.config.ts",
-    "test:vscode": "pnpm run build:vscode && node dist-e2e/extension/src/e2e/runTest.js",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
+    "test:playwright": "pnpm run generate:acceptance && pnpm run build:vscode && playwright test --config playwright.vscode.config.ts",
+    "test:vscode": "pnpm run test:playwright",
+    "lint": "pnpm run generate:acceptance && eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",
+    "typecheck": "pnpm run generate:acceptance && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
   },
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
@@ -49,7 +52,7 @@
     "graphology": "^0.26.0",
     "ignore": "^7.0.5",
     "material-icon-theme": "5.33.1",
-    "minimatch": "^10.1.1",
+    "minimatch": "^10.2.5",
     "node-gyp-build": "4.8.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -66,10 +69,12 @@
     "tree-sitter-haskell": "0.23.1",
     "tree-sitter-java": "0.23.5",
     "tree-sitter-javascript": "^0.25.0",
+    "tree-sitter-objc": "3.0.2",
     "tree-sitter-php": "0.24.2",
     "tree-sitter-python": "0.25.0",
     "tree-sitter-ruby": "0.23.1",
     "tree-sitter-rust": "0.24.0",
+    "tree-sitter-scala": "0.24.0",
     "tree-sitter-swift": "0.7.1",
     "tree-sitter-typescript": "^0.23.2",
     "zustand": "^5.0.11"
@@ -88,7 +93,7 @@
     "concurrently": "^8.2.2",
     "jsdom": "^25.0.0",
     "mocha": "^11.7.5",
-    "postcss": "^8.4.33",
+    "postcss": "^8.5.15",
     "tailwindcss": "^3.4.1",
     "vite": "^6.2.0"
   }

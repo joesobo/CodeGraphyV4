@@ -73,6 +73,7 @@ describe('app message listener', () => {
       pluginId: 'codegraphy.typescript',
       scripts: ['one.js', 'two.js'],
       styles: ['one.css', 'two.css'],
+      assets: [],
     });
     expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
     expect(pluginHost.deliverMessage).not.toHaveBeenCalled();
@@ -123,6 +124,48 @@ describe('app message listener', () => {
       data: { enabled: true },
     });
     expect(injectPluginAssets).not.toHaveBeenCalled();
+    expect(handleExtensionMessage).not.toHaveBeenCalled();
+  });
+
+  it('replaces css snippet stylesheets and stores the toggle map without forwarding to the graph store', () => {
+    document.head.innerHTML = '';
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
+    const handleExtensionMessage = vi.fn();
+    const setCssSnippets = vi.fn();
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+      setCssSnippets,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+
+    const handler = createMessageHandler(injectPluginAssets, pluginHost);
+
+    handler({
+      data: {
+        type: 'CSS_SNIPPETS_UPDATED',
+        payload: {
+          snippets: {
+            '.codegraphy/snippets/base.css': true,
+            '.codegraphy/snippets/ocean.css': false,
+            invalid: 'yes',
+          },
+          stylesheets: ['webview://base.css', 123, 'webview://override.css'],
+        },
+      },
+    } as MessageEvent<unknown>);
+
+    expect(Array.from(
+      document.head.querySelectorAll('link[data-codegraphy-css-snippet="true"]'),
+    ).map(link => (link as HTMLLinkElement).href)).toEqual([
+      'webview://base.css',
+      'webview://override.css',
+    ]);
+    expect(setCssSnippets).toHaveBeenCalledWith({
+      '.codegraphy/snippets/base.css': true,
+      '.codegraphy/snippets/ocean.css': false,
+    });
+    expect(injectPluginAssets).not.toHaveBeenCalled();
+    expect(pluginHost.deliverMessage).not.toHaveBeenCalled();
     expect(handleExtensionMessage).not.toHaveBeenCalled();
   });
 
@@ -241,6 +284,21 @@ describe('app message listener', () => {
     expect(postMessage).toHaveBeenCalledWith({ type: 'WEBVIEW_READY', payload: null });
 
     firstCleanup();
+    secondCleanup();
+  });
+
+  it('posts WEBVIEW_READY again after the previous listener is cleaned up', () => {
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
+
+    const firstCleanup = setupMessageListener(injectPluginAssets, pluginHost);
+    firstCleanup();
+    const secondCleanup = setupMessageListener(injectPluginAssets, pluginHost);
+
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    expect(postMessage).toHaveBeenNthCalledWith(1, { type: 'WEBVIEW_READY', payload: null });
+    expect(postMessage).toHaveBeenNthCalledWith(2, { type: 'WEBVIEW_READY', payload: null });
+
     secondCleanup();
   });
 });

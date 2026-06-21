@@ -14,6 +14,10 @@ import {
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import {
+  shouldIncludeTreeSitterSymbols,
+  type TreeSitterAnalysisOptions,
+} from '../options';
 
 function visitJavaNode(
   node: Parser.SyntaxNode,
@@ -25,6 +29,7 @@ function visitJavaNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
     case 'import_declaration': {
@@ -42,11 +47,14 @@ function visitJavaNode(
         relations,
         symbols,
         importedBindings,
+        symbolsEnabled,
       );
       return;
     }
     case 'method_declaration': {
-      return handleJavaMethodDeclaration(node, filePath, symbols, walk);
+      return symbolsEnabled
+        ? handleJavaMethodDeclaration(node, filePath, symbols, walk)
+        : undefined;
     }
     case 'method_invocation': {
       handleJavaMethodInvocation(node, filePath, relations, importedBindings, state.currentSymbolId);
@@ -60,10 +68,13 @@ function visitJavaNode(
 export function analyzeJavaFile(
   filePath: string,
   tree: Parser.Tree,
+  _workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   const { packageName, sourceRoot } = resolveJavaSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node, state, walk) =>
     visitJavaNode(
@@ -76,6 +87,7 @@ export function analyzeJavaFile(
       relations,
       symbols,
       importedBindings,
+      symbolsEnabled,
     ),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);

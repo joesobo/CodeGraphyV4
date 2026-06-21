@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME } from '@codegraphy-dev/core';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_ID } from '@codegraphy-dev/core';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
@@ -14,10 +14,12 @@ describe('extension/repoSettings/defaults', () => {
     expect(createDefaultCodeGraphyRepoSettings()).toEqual({
       version: 1,
       maxFiles: DEFAULT_MAX_FILES,
+      verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+      cssSnippets: {},
+      plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],
       pluginData: {},
       nodeColors: createDefaultNodeColors(),
       nodeVisibility: createDefaultNodeVisibility(),
@@ -64,6 +66,7 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.plugins).not.toBe(first.plugins);
     expect(second.plugins[0]).not.toBe(first.plugins[0]);
     expect(second.pluginData).not.toBe(first.pluginData);
+    expect(second.cssSnippets).not.toBe(first.cssSnippets);
     expect(second.nodeColors).not.toBe(first.nodeColors);
     expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
     expect(second.edgeVisibility).not.toBe(first.edgeVisibility);

@@ -22,19 +22,15 @@ function createPlugin(id: string, sources: IPlugin['sources'] = [
 
 describe('core/graph/edgeSources', () => {
   it('qualifies source ids with the plugin id', () => {
-    expect(createQualifiedSourceId(createPlugin('plugin.typescript'), { sourceId: 'import' })).toBe(
-      'plugin.typescript:import',
-    );
+    expect(createQualifiedSourceId({ sourceId: 'import' })).toBeUndefined();
     expect(
       createQualifiedSourceId(
-        createPlugin('plugin.typescript'),
         { pluginId: 'plugin.markdown', sourceId: 'wikilink' },
       ),
     ).toBe('plugin.markdown:wikilink');
-    expect(createQualifiedSourceId(undefined, { sourceId: 'import' })).toBeUndefined();
+    expect(createQualifiedSourceId({ sourceId: 'import' })).toBeUndefined();
     expect(
       createQualifiedSourceId(
-        createPlugin('plugin.typescript'),
         { sourceId: '' },
       ),
     ).toBeUndefined();
@@ -95,7 +91,7 @@ describe('core/graph/edgeSources', () => {
       kind: 'import',
       pluginId: 'plugin.typescript',
       resolvedPath: null,
-      sourceId: 'reexport',
+      sourceId: 'barrel-export',
       specifier: 'react',
     };
 
@@ -106,7 +102,7 @@ describe('core/graph/edgeSources', () => {
     expect(createEdgeSource({
       ...createPlugin('plugin.typescript'),
       sources: undefined,
-    }, connection)?.label).toBe('reexport');
-    expect(createEdgeSource(createPlugin('plugin.typescript', []), connection)?.label).toBe('reexport');
+    }, connection)?.label).toBe('barrel-export');
+    expect(createEdgeSource(createPlugin('plugin.typescript', []), connection)?.label).toBe('barrel-export');
   });
 });

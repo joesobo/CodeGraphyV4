@@ -17,6 +17,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
   | 'reloadWorkspacePlugins'
+  | 'syncWorkspacePlugins'
   | 'sendPluginStatuses'
   | 'sendContextMenuItems'
   | 'sendPluginToolbarActions'
@@ -24,6 +25,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
+  | 'reprocessGraphScope'
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
   | 'getMaxFiles'
@@ -40,6 +42,21 @@ export function createGraphViewProviderMessageSettingsContext(
   const config = settingsPersistence.config;
   const persistConfig = async (key: string, value: unknown): Promise<void> =>
     settingsPersistence.persistConfig(key, value);
+  const runWorkspacePluginUpdate = (update: () => Promise<void>): Promise<void> => {
+    source._analyzerInitialized = false;
+    const updatePromise = Promise.resolve()
+      .then(update)
+      .then(() => {
+        source._analyzerInitialized = true;
+      })
+      .finally(() => {
+        if (source._analyzerInitPromise === updatePromise) {
+          source._analyzerInitPromise = undefined;
+        }
+      });
+    source._analyzerInitPromise = updatePromise;
+    return updatePromise;
+  };
 
   return {
     updateDagMode: async dagMode => {
@@ -57,27 +74,23 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue) ?? defaultValue,
     updateConfig: async (key, value) => persistConfig(key, value),
-    getInstalledPluginDefaultOptions: (packageName: string) =>
-      readInstalledPluginDefaultOptions(packageName),
+    getInstalledPluginDefaultOptions: (pluginId: string) =>
+      readInstalledPluginDefaultOptions(pluginId),
     reloadWorkspacePlugins: () => {
       const analyzer = source._analyzer;
       if (!analyzer?.reloadWorkspacePlugins) {
         return Promise.resolve();
       }
 
-      source._analyzerInitialized = false;
-      const reloadPromise = Promise.resolve()
-        .then(() => analyzer.reloadWorkspacePlugins!())
-        .then(() => {
-          source._analyzerInitialized = true;
-        })
-        .finally(() => {
-          if (source._analyzerInitPromise === reloadPromise) {
-            source._analyzerInitPromise = undefined;
-          }
-        });
-      source._analyzerInitPromise = reloadPromise;
-      return reloadPromise;
+      return runWorkspacePluginUpdate(() => analyzer.reloadWorkspacePlugins!());
+    },
+    syncWorkspacePlugins: () => {
+      const analyzer = source._analyzer;
+      if (!analyzer?.syncWorkspacePlugins) {
+        return Promise.resolve();
+      }
+
+      return runWorkspacePluginUpdate(() => analyzer.syncWorkspacePlugins!());
     },
     sendPluginStatuses: () => {
       source._sendPluginStatuses();
@@ -98,6 +111,7 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    reprocessGraphScope: () => source.refreshAnalysisScope(),
     reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(

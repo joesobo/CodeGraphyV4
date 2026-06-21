@@ -13,11 +13,16 @@ export function handleGraphDataUpdated(
   const state = ctx?.getState();
   const waitingForInitialBootstrap = Boolean(
     state?.awaitingInitialBootstrap
-    && (!state.bootstrapComplete || state.pendingPluginAssetLoads > 0),
+    && !state.bootstrapComplete,
+  );
+  const initialBootstrapFinished = Boolean(
+    state?.awaitingInitialBootstrap
+    && state.bootstrapComplete
   );
 
   return {
     graphData: message.payload,
+    ...(initialBootstrapFinished ? { awaitingInitialBootstrap: false } : {}),
     isLoading: waitingForInitialBootstrap,
     graphIsIndexing: false,
     graphIndexProgress: null,
@@ -29,10 +34,11 @@ export function handleAppBootstrapComplete(
   ctx: Pick<IHandlerContext, 'getState'>,
 ): PartialState {
   const state = ctx.getState();
-  const graphReady = state.graphData !== null && state.pendingPluginAssetLoads === 0;
+  const graphReady = state.graphData !== null;
 
   return {
     bootstrapComplete: true,
+    awaitingInitialBootstrap: graphReady ? false : state.awaitingInitialBootstrap,
     isLoading: graphReady ? false : state.isLoading,
   };
 }
@@ -40,10 +46,16 @@ export function handleAppBootstrapComplete(
 export function handleGraphIndexStatusUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
 ): PartialState {
+  const indexIsReady = message.payload.hasIndex && message.payload.freshness === 'fresh';
+
   return {
     graphHasIndex: message.payload.hasIndex,
     graphIndexFreshness: message.payload.freshness,
     graphIndexDetail: message.payload.detail,
+    ...(indexIsReady ? {
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    } : {}),
   };
 }
 
@@ -70,8 +82,33 @@ export function handleGraphControlsUpdated(
 
 export function handleFavoritesUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>,
+  ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState {
-  return { favorites: new Set(message.payload.favorites) };
+  const favorites = new Set(message.payload.favorites);
+  const pendingFavoriteSnapshot = ctx?.getState().pendingFavoriteSnapshot;
+
+  if (pendingFavoriteSnapshot && !areSetsEqual(favorites, pendingFavoriteSnapshot)) {
+    return {};
+  }
+
+  return {
+    favorites,
+    ...(pendingFavoriteSnapshot ? { pendingFavoriteSnapshot: null } : {}),
+  };
+}
+
+function areSetsEqual(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
+  if (left.size !== right.size) {
+    return false;
+  }
+
+  for (const value of left) {
+    if (!right.has(value)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function handleSettingsUpdated(
@@ -169,6 +206,12 @@ export function handleMaxFilesUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'MAX_FILES_UPDATED' }>,
 ): PartialState {
   return { maxFiles: message.payload.maxFiles };
+}
+
+export function handleVerboseDiagnosticsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'VERBOSE_DIAGNOSTICS_UPDATED' }>,
+): PartialState {
+  return { verboseDiagnostics: message.payload.verboseDiagnostics };
 }
 
 export function handleActiveFileUpdated(

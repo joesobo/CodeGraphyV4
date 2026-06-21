@@ -4,17 +4,21 @@
  */
 
 import type { IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
-import type { Disposable } from '../../../../core/plugins/disposable';
-import type { IGraphViewContributions, IGraphViewNodeDragState } from '../../../../core/plugins/types/contracts';
+import type {
+  IGraphViewContributions,
+  IGraphViewNodeDragState,
+} from '../../../../../../plugin-api/src';
+import type { WebviewDisposable } from '../../disposable';
 
 export type { IGraphViewContributions };
-
-export type WebviewDisposable = Disposable;
+export type { WebviewDisposable };
 
 export type GraphPluginSlot =
   | 'toolbar'
   | 'graph.toolbar'
   | 'graph.panelSlot'
+  | 'theme.panel'
+  | 'graph.stage.worldBackground'
   | 'graph.stage.worldOverlay'
   | 'graph.stage.viewportOverlay'
   | 'node-details'
@@ -111,20 +115,40 @@ export interface LabelOpts {
   align?: CanvasTextAlign;
 }
 
+export type PluginSlotRenderCleanup = void | (() => void) | WebviewDisposable;
+
+export interface PluginSlotRenderContext {
+  api: CodeGraphyWebviewAPI;
+}
+
+export interface PluginSlotContribution {
+  id: string;
+  order?: number;
+  render(
+    container: HTMLDivElement,
+    context: PluginSlotRenderContext,
+  ): PluginSlotRenderCleanup;
+}
+
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
+  registerSlotContribution(slot: GraphPluginSlot, contribution: PluginSlotContribution): WebviewDisposable;
+  getHostState(): Record<string, unknown>;
+  getPluginData(): unknown;
+  setPluginData(data: unknown): void;
   getGraphViewViewportState(): GraphViewViewportState | null;
-  onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): Disposable;
-  registerNodeRenderer(type: string, fn: NodeRenderFn): Disposable;
-  registerOverlay(id: string, fn: OverlayRenderFn): Disposable;
-  registerTooltipProvider(fn: TooltipProviderFn): Disposable;
-  registerGraphViewContributions(contributions: IGraphViewContributions): Disposable;
+  onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): WebviewDisposable;
+  registerNodeRenderer(type: string, fn: NodeRenderFn): WebviewDisposable;
+  registerOverlay(id: string, fn: OverlayRenderFn): WebviewDisposable;
+  registerTooltipProvider(fn: TooltipProviderFn): WebviewDisposable;
+  registerGraphViewContributions(contributions: IGraphViewContributions): WebviewDisposable;
   helpers: {
     drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void;
     drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void;
     drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void;
   };
   sendMessage(msg: { type: string; data: unknown }): void;
-  onMessage(handler: (msg: { type: string; data: unknown }) => void): Disposable;
+  postHostMessage(msg: unknown): void;
+  onMessage(handler: (msg: { type: string; data: unknown }) => void): WebviewDisposable;
 }

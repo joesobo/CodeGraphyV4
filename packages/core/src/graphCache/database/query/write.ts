@@ -1,7 +1,7 @@
 import type * as lb from '@ladybugdb/core';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync } from '../io/connection';
+import { runStatementAsync, runStatementSync } from '../io/connection';
 import { createRelationStatement } from '../relation/statement';
 
 function escapeCypherString(value: string): string {
@@ -42,5 +42,35 @@ export function persistAnalysisEntry(
 
   for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
     runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
+  }
+}
+
+async function runStatementAndYield(
+  connection: lb.Connection,
+  statement: string,
+  afterStatement: () => Promise<void>,
+): Promise<void> {
+  await runStatementAsync(connection, statement);
+  await afterStatement();
+}
+
+export async function persistAnalysisEntryAsync(
+  connection: lb.Connection,
+  filePath: string,
+  entry: IWorkspaceAnalysisCache['files'][string],
+  afterStatement: () => Promise<void>,
+): Promise<void> {
+  await runStatementAndYield(connection, createFileAnalysisStatement(filePath, entry), afterStatement);
+
+  for (const symbol of entry.analysis.symbols ?? []) {
+    await runStatementAndYield(connection, createSymbolStatement(symbol), afterStatement);
+  }
+
+  for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
+    await runStatementAndYield(
+      connection,
+      createRelationStatement(filePath, relation, relationIndex),
+      afterStatement,
+    );
   }
 }

@@ -1,5 +1,236 @@
 # @codegraphy-dev/extension
 
+## 5.11.1
+
+### Patch Changes
+
+- [#279](https://github.com/joesobo/CodeGraphyV4/pull/279) [`7b3ad30`](https://github.com/joesobo/CodeGraphyV4/commit/7b3ad30e1ca4f274752c42833dabf4229cace191) Thanks [@joesobo](https://github.com/joesobo)! - Show the CSS Snippets section in the Themes panel even when no snippets are configured.
+
+- [#280](https://github.com/joesobo/CodeGraphyV4/pull/280) [`f27c9dd`](https://github.com/joesobo/CodeGraphyV4/commit/f27c9dd08f114a896056793bfd84c39a7f2b620f) Thanks [@joesobo](https://github.com/joesobo)! - Add a Themes panel input for adding CodeGraphy CSS snippet paths.
+
+## 5.11.0
+
+### Minor Changes
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`6a82b80`](https://github.com/joesobo/CodeGraphyV4/commit/6a82b80d28a1cba4ab9fdcd628c67e3a69de0096) Thanks [@joesobo](https://github.com/joesobo)! - Let active webview plugins own their own Graph View UI state.
+
+  The extension now persists plugin-owned webview data under `pluginData` and replays it back to the matching plugin during Graph View startup and when a plugin is enabled. Plugin UI can restore workspace settings without becoming a first-class extension setting, and plugin-injected controls remain available only while their owning plugin is active.
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`d2b9db1`](https://github.com/joesobo/CodeGraphyV4/commit/d2b9db14f8d2cc805d673152437f6f83aec9f472) Thanks [@joesobo](https://github.com/joesobo)! - Add a Graph View world background slot for plugin-owned graph artwork.
+
+  Plugins can now mount visual webview content behind the graph nodes and edges with `graph.stage.worldBackground`, while existing world and viewport overlay slots remain available for UI that should sit above the graph.
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`d0ec1d8`](https://github.com/joesobo/CodeGraphyV4/commit/d0ec1d8a30b9350775cec75e51ee119f0bc2408f) Thanks [@joesobo](https://github.com/joesobo)! - Add ordered webview slot contributions for plugin-owned UI.
+
+  Webview plugins can now call `api.registerSlotContribution(slot, { id, order, render })` to mount UI into named CodeGraphy slots. The host owns the contribution container, ordering, and cleanup, so plugin UI can use normal component structure without the extension needing to know what each plugin renders.
+
+### Patch Changes
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`efa1d92`](https://github.com/joesobo/CodeGraphyV4/commit/efa1d92025aca06ea13efcbb11f98591d99abff3) Thanks [@joesobo](https://github.com/joesobo)! - Keep Theme and Plugins popup controls tidy for plugin-owned UI.
+
+  The Theme popup now shows Legends, CSS Snippets, and plugin-injected sections as their own collapsible sections, with plugin-owned Theme controls ordered below CSS Snippets. The Plugins popup also collapses stale duplicate package rows so the Particles plugin appears as a single toggle.
+
+- [#267](https://github.com/joesobo/CodeGraphyV4/pull/267) [`5bf4d88`](https://github.com/joesobo/CodeGraphyV4/commit/5bf4d886a06b861a4002b128951cb6627937d136) Thanks [@joesobo](https://github.com/joesobo)! - Dispose webview plugin work immediately when a plugin is disabled or its webview assets are reset.
+
+  Webview plugin `activate(api)` functions can now return a cleanup function or `Disposable`. CodeGraphy calls that cleanup during plugin disable/reset so plugin-owned UI can stop timers, animation loops, message subscriptions, and injected DOM without waiting for a webview reload.
+
+  The Particles plugin now uses that cleanup path to stop active background effects, clear its Theme controls, unsubscribe from plugin data updates, and remove its injected styles as soon as the plugin is disabled.
+
+- Updated dependencies [[`e8ceee7`](https://github.com/joesobo/CodeGraphyV4/commit/e8ceee73f753dd2626f2f86c844a666589e1c68b)]:
+  - @codegraphy-dev/core@1.6.1
+
+## 5.10.0
+
+### Minor Changes
+
+- [#263](https://github.com/joesobo/CodeGraphyV4/pull/263) [`e7237bf`](https://github.com/joesobo/CodeGraphyV4/commit/e7237bf5e676bf20a0b5ca3445f5a597f072b64b) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade C++ graph scope support with dedicated C++ symbol and variable node controls, include/call/inheritance/contains/override edges, and C++ example acceptance coverage.
+
+- [#266](https://github.com/joesobo/CodeGraphyV4/pull/266) [`d3dfdea`](https://github.com/joesobo/CodeGraphyV4/commit/d3dfdea7193d15fa53009d1885b3d70ad6aff57d) Thanks [@joesobo](https://github.com/joesobo)! - Add CodeGraphy CSS Snippets for workspace-local UI customization.
+
+  Create CSS files inside a CodeGraphy Workspace, such as `.codegraphy/snippets/base-grid.css`, then map them in `.codegraphy/settings.json` under `cssSnippets`. CodeGraphy loads paths set to `true`, keeps paths set to `false` disabled, removes stylesheets when paths are disabled or removed from settings, and keeps the paths workspace-local: absolute paths, parent traversal, non-CSS files, and missing files are skipped with `[CodeGraphy]` developer-console warnings when enabled.
+
+  The extension UI now exposes stable `data-codegraphy-*` Styling Hooks across the graph view, graph stage, search, toolbar, panels, settings sections, timeline, indexing states, and plugin slots so snippets can target CodeGraphy surfaces without depending on generated classes or rebuilding a full VS Code theme. See `docs/SETTINGS.md` and `examples/css-snippets/` for usage plus static grid, forest, ocean, and faded image background demo snippets.
+
+### Patch Changes
+
+- [#264](https://github.com/joesobo/CodeGraphyV4/pull/264) [`b966fe4`](https://github.com/joesobo/CodeGraphyV4/commit/b966fe4ea4972e5c8061b69cfc47b74e8beec84c) Thanks [@joesobo](https://github.com/joesobo)! - Resolve production dependency advisories in shipped package dependency graphs.
+
+- Updated dependencies [[`e7237bf`](https://github.com/joesobo/CodeGraphyV4/commit/e7237bf5e676bf20a0b5ca3445f5a597f072b64b)]:
+  - @codegraphy-dev/core@1.6.0
+
+## 5.9.0
+
+### Minor Changes
+
+- [#259](https://github.com/joesobo/CodeGraphyV4/pull/259) [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12) Thanks [@joesobo](https://github.com/joesobo)! - Hide impossible Graph Scope Node Type toggles for the current workspace.
+
+  Graph Scope now uses active analyzer and plugin capabilities to decide which Symbol and Variable child toggles are relevant across every indexed file in the workspace. File, Folder, and Package stay visible as structural Node Types. Symbol and Variable are shown only when they have at least one relevant child toggle.
+
+- [#254](https://github.com/joesobo/CodeGraphyV4/pull/254) [`b436e82`](https://github.com/joesobo/CodeGraphyV4/commit/b436e82fd64f3bb5bf425257a91ff9cece80f57b) Thanks [@joesobo](https://github.com/joesobo)! - Show the current workspace name as the Graph view title.
+
+  The Graph view now shows the current workspace name in VS Code's view title, falling back to Graph when no workspace is open.
+
+### Patch Changes
+
+- [#257](https://github.com/joesobo/CodeGraphyV4/pull/257) [`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316) Thanks [@joesobo](https://github.com/joesobo)! - Refresh the C example workspace as a tiny logger with C-native include edges plus prototype, struct, union, enum, typedef, function, and global graph coverage. Include relationships now stay edge-only for C-family analysis, enabled symbols can remain visible as orphans until Contains is shown, variable child toggles now activate the Variable parent without also activating Symbol, and graph scope node toggle bursts now coalesce settings updates and graph redraws instead of lagging through every intermediate state.
+
+- [#256](https://github.com/joesobo/CodeGraphyV4/pull/256) [`9e4e999`](https://github.com/joesobo/CodeGraphyV4/commit/9e4e999162886c990f2e1aeea49c3057dabd09a0) Thanks [@joesobo](https://github.com/joesobo)! - Add a JavaScript example workspace with acceptance coverage for imports, calls, and inheritance.
+
+- [#258](https://github.com/joesobo/CodeGraphyV4/pull/258) [`20b9b40`](https://github.com/joesobo/CodeGraphyV4/commit/20b9b40e970f1fc15e3c0bdd7a72531ce8ca0844) Thanks [@joesobo](https://github.com/joesobo)! - Model Tree-sitter as core analysis instead of a plugin so hover and plugin UI metadata only show real plugin contributions.
+
+- [#260](https://github.com/joesobo/CodeGraphyV4/pull/260) [`16be6af`](https://github.com/joesobo/CodeGraphyV4/commit/16be6afb9dc4d9ad6fe77c1ae992233c2e93537f) Thanks [@joesobo](https://github.com/joesobo)! - Fix Linux VSIX packaging so native Tree-sitter bindings are built and validated for the target platform instead of copying the release host's binary.
+
+- Updated dependencies [[`9e6b82e`](https://github.com/joesobo/CodeGraphyV4/commit/9e6b82efb9c0f6f4bfc98f199fc26262a6d6d316), [`e67468e`](https://github.com/joesobo/CodeGraphyV4/commit/e67468ecd1f13039eb930ba14344cafd25379f12), [`20b9b40`](https://github.com/joesobo/CodeGraphyV4/commit/20b9b40e970f1fc15e3c0bdd7a72531ce8ca0844)]:
+  - @codegraphy-dev/core@1.5.0
+
+## 5.8.0
+
+### Minor Changes
+
+- [#247](https://github.com/joesobo/CodeGraphyV4/pull/247) [`91e33a2`](https://github.com/joesobo/CodeGraphyV4/commit/91e33a219ab1c1db2069391525de0786921581fb) Thanks [@joesobo](https://github.com/joesobo)! - Bundle the new Objective-C and Scala native Tree-sitter runtimes with the VS Code extension.
+
+  Users can open Objective-C, Scala, and Pascal workspaces in the extension and index them without installing separate language plugins. The extension package now vendors the Objective-C and Scala native grammar packages during build/VSIX packaging so language analysis works consistently across supported desktop platforms.
+
+- [#251](https://github.com/joesobo/CodeGraphyV4/pull/251) [`1d9180c`](https://github.com/joesobo/CodeGraphyV4/commit/1d9180c29554c163e660a7c899c59755c4b0bdff) Thanks [@joesobo](https://github.com/joesobo)! - Add Graph Scope tooltips for Node Types and Edge Types, with optional plugin-provided descriptions and compact examples.
+
+### Patch Changes
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886) Thanks [@joesobo](https://github.com/joesobo)! - Graph Scope now shows Edge Type controls from indexed workspace capabilities instead of every theoretical toggle or only currently observed edges. Relevant Edge Types can appear even when the latest graph has zero matching relationships, and CodeGraphy decides the relevant Edge Type list before Depth Mode, filters, search, or other view narrowing changes what is displayed. Edge Type controls stay visible but disabled until the workspace has a Graph Cache, and Graph Scope returns to Node Types if an unindexed workspace is opened while Edge Types was selected. Any existing Graph Cache enables Edge Type controls, even while Graph Cache Sync catches up.
+
+  Source-language workspaces now surface Calls as a relevant Edge Type when their analyzer can emit imported-call relationships. C++ now emits Calls edges for calls to declarations in included headers, and the Godot plugin now emits Calls edges for `class_name` static method calls while keeping `load()` and `preload()` on the Loads edge.
+
+  Plugins can declare core or plugin-owned Edge Type capabilities with `contributeEdgeTypeCapabilities(context)`. Plugin authors should use `context.filePaths` when a plugin supports multiple languages or file families with different Edge Types, so Graph Scope only shows toggles that are relevant to the indexed workspace.
+
+- [#245](https://github.com/joesobo/CodeGraphyV4/pull/245) [`70096e8`](https://github.com/joesobo/CodeGraphyV4/commit/70096e81c526486781794be00c46ad7590a27922) Thanks [@joesobo](https://github.com/joesobo)! - Curve different edge types between the same nodes so every visible edge can be seen.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2) Thanks [@joesobo](https://github.com/joesobo)! - Keep disabled plugins fully inactive across Graph View surfaces.
+
+  When a workspace disables a plugin, CodeGraphy now excludes that plugin's graph analysis contributions, default filter groups, Graph Scope Node Type and Edge Type definitions, Edge Type capabilities, Graph View contribution statuses, toolbar/context/export actions, and webview assets. This keeps disabled plugins from leaving behind toggles or UI actions for features that are no longer active.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`4907fa2`](https://github.com/joesobo/CodeGraphyV4/commit/4907fa2b31c417f19045690526deb39877a82755) Thanks [@joesobo](https://github.com/joesobo)! - Keep disabled plugins unloaded during Core and VS Code extension indexing so disabled package, bundled Markdown, and provided plugin runtimes are not registered or run.
+
+- [#252](https://github.com/joesobo/CodeGraphyV4/pull/252) [`c66210c`](https://github.com/joesobo/CodeGraphyV4/commit/c66210cae9cdf4ad6bb08e7c747b1a8116b134b0) Thanks [@joesobo](https://github.com/joesobo)! - Disable Graph Scope edge type controls until the workspace graph has been indexed.
+
+- [#246](https://github.com/joesobo/CodeGraphyV4/pull/246) [`1d115c9`](https://github.com/joesobo/CodeGraphyV4/commit/1d115c9e95b85c169900d9059fb72e7c77780c63) Thanks [@joesobo](https://github.com/joesobo)! - Show hover popup connection counts for the currently visible edge types.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`f8787fa`](https://github.com/joesobo/CodeGraphyV4/commit/f8787fae1b40739301dfd784b2a6a1177acebfb7) Thanks [@joesobo](https://github.com/joesobo)! - Persist workspace plugin activity by Plugin ID with an explicit enabled state.
+
+  New workspaces now write Markdown as an enabled plugin intent entry, and plugin toggles keep `enabled: false` entries when users disable a plugin. CodeGraphy uses the Plugin ID from static plugin metadata to resolve installed package runtimes, so disabled plugins keep their user intent and plugin-owned data without loading runtime code.
+
+- [#253](https://github.com/joesobo/CodeGraphyV4/pull/253) [`6917391`](https://github.com/joesobo/CodeGraphyV4/commit/69173916c7bd341296f23dcb11732746d273f805) Thanks [@joesobo](https://github.com/joesobo)! - Make plugin toggles use Plugin IDs as the workspace activity identity.
+
+  The Plugins panel and Graph View settings now enable and disable plugins by the static Plugin ID, while package names stay as install metadata. Disabled plugins are written as explicit `enabled: false` workspace entries, enabled plugins are written as `enabled: true`, and default plugin options are looked up by Plugin ID with a package-name fallback for older installed-plugin records.
+
+- [#252](https://github.com/joesobo/CodeGraphyV4/pull/252) [`24f2148`](https://github.com/joesobo/CodeGraphyV4/commit/24f2148f8744617f1f66307b467b4e4ae1df2dcb) Thanks [@joesobo](https://github.com/joesobo)! - Hide the Nests edge scope control until Folder Nodes are enabled, default Nests edges on for fresh workspaces, and stop drawing Nests edges from Package Nodes to files.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561) Thanks [@joesobo](https://github.com/joesobo)! - Remove the unused Tests and Re-exports edge types from Graph Scope.
+
+  Export-from relationships now appear as Imports instead of a separate Re-exports edge, so users have fewer duplicate-looking edge toggles to reason about.
+
+- [#250](https://github.com/joesobo/CodeGraphyV4/pull/250) [`77503ee`](https://github.com/joesobo/CodeGraphyV4/commit/77503ee7b437924386fb86b4381847a6a16deb1c) Thanks [@joesobo](https://github.com/joesobo)! - Fix symbol-level graph scope behavior for inheritance, containment, overrides, and language example graphs.
+
+- Updated dependencies [[`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2), [`404b2c4`](https://github.com/joesobo/CodeGraphyV4/commit/404b2c40135152ff77dd8b0112a193f231c3f886), [`91e33a2`](https://github.com/joesobo/CodeGraphyV4/commit/91e33a219ab1c1db2069391525de0786921581fb), [`1ee64a3`](https://github.com/joesobo/CodeGraphyV4/commit/1ee64a30c4f6a5b9588a29ae499c2c1a23ef79b2), [`4907fa2`](https://github.com/joesobo/CodeGraphyV4/commit/4907fa2b31c417f19045690526deb39877a82755), [`0d558f0`](https://github.com/joesobo/CodeGraphyV4/commit/0d558f02e64760e9800fe40ab608eea6a73631fb), [`ac1cff8`](https://github.com/joesobo/CodeGraphyV4/commit/ac1cff8ded4ff8aed45ca3af5fa6028f3872e9c4), [`f8787fa`](https://github.com/joesobo/CodeGraphyV4/commit/f8787fae1b40739301dfd784b2a6a1177acebfb7), [`bc3e9c2`](https://github.com/joesobo/CodeGraphyV4/commit/bc3e9c2e6ef028832aa66458a29b4c54d02fe037), [`6917391`](https://github.com/joesobo/CodeGraphyV4/commit/69173916c7bd341296f23dcb11732746d273f805), [`712b287`](https://github.com/joesobo/CodeGraphyV4/commit/712b287b03b5a199767cf00b31f9fbf6ad302561), [`77503ee`](https://github.com/joesobo/CodeGraphyV4/commit/77503ee7b437924386fb86b4381847a6a16deb1c)]:
+  - @codegraphy-dev/core@1.4.0
+
+## 5.7.0
+
+### Minor Changes
+
+- [#236](https://github.com/joesobo/CodeGraphyV4/pull/236) [`7ff7ef3`](https://github.com/joesobo/CodeGraphyV4/commit/7ff7ef3aaea18770ada9f6262c1dd7800ce0c151) Thanks [@joesobo](https://github.com/joesobo)! - Add Verbose Diagnostics for support and agent debugging.
+
+  In the VS Code extension, Settings > Performance now includes a **Verbose Diagnostics** toggle. It is off by default and persists to `.codegraphy/settings.json` as `verboseDiagnostics`. When enabled, CodeGraphy writes factual `[CodeGraphy]` event lines to the VS Code Developer Tools console for extension activation, webview bootstrap, analysis requests, and Graph Cache load decisions.
+
+  The Core CLI now accepts a global `--verbose` flag on every command. Verbose command diagnostics are written outside JSON stdout so status and query-style output remains parseable.
+
+  Every MCP tool now accepts `verboseDiagnostics?: boolean`. When enabled, tool results include a `diagnostics` array with factual Core Package events such as workspace status reads, indexing phases, Graph Cache state, Graph Query execution, counts, and durations. Default MCP responses stay unchanged when diagnostics are disabled.
+
+### Patch Changes
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Fix Java graph relationships in the basic file view. The Java graph now counts the import and call from App.java to Helper.java as two connections collapsed into one visible edge, while superclass declarations no longer add an extra BaseService.java file connection.
+
+- [#229](https://github.com/joesobo/CodeGraphyV4/pull/229) [`24312f0`](https://github.com/joesobo/CodeGraphyV4/commit/24312f0552cf59bbb0ba35f69a5628d22c776942) Thanks [@joesobo](https://github.com/joesobo)! - Add accessible Graph View labels for the stage, toolbar buttons, and indexing progress.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Restore Graph View context menus for background, file, folder, multi-file, symbol, edge, and canvas selections. Users can reliably right-click graph elements and see the expected actions with clear labels such as New File, Rename, Delete, Copy Path, Reveal in Explorer, and Fit All Nodes.
+
+- [#240](https://github.com/joesobo/CodeGraphyV4/pull/240) [`40e80f2`](https://github.com/joesobo/CodeGraphyV4/commit/40e80f28e02efef479a12d3faa5916b2632deec2) Thanks [@joesobo](https://github.com/joesobo)! - Update CodeGraphy's generated `.gitignore` entry from `.codegraphy/` to `.codegraphy/*`.
+
+  CodeGraphy still keeps generated workspace artifacts ignored by default, including Graph Cache files and imported assets, but the new contents-only ignore rule lets teams intentionally commit selected files under `.codegraphy/`. This matters for example projects and shared workspaces that want to version `.codegraphy/settings.json` so collaborators see the same plugin enablement, filters, Graph Scope, and Legend settings.
+
+  Existing exact `.codegraphy` or `.codegraphy/` entries are migrated to `.codegraphy/*` the next time CodeGraphy initializes workspace settings, avoiding the Git behavior where ignoring a parent directory prevents later `!` exceptions from re-including files inside it.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Fix Graph View file actions opened from context menus. Create, rename, delete, reveal, copy path, filter, and legend actions now target the active workspace and show the expected prompts from the graph.
+
+- [#242](https://github.com/joesobo/CodeGraphyV4/pull/242) [`90be7a4`](https://github.com/joesobo/CodeGraphyV4/commit/90be7a4f5bc144b1be0abe78c17dc13514514774) Thanks [@joesobo](https://github.com/joesobo)! - Add baseline Vue SFC plugin support so `.vue` script imports are indexed in workspace graphs.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Keep favorite toggles in sync in the Graph View. Favoriting or unfavoriting one or more nodes now updates immediately and stale refresh messages no longer undo the user's latest favorite selection.
+
+- [#241](https://github.com/joesobo/CodeGraphyV4/pull/241) [`734e7a2`](https://github.com/joesobo/CodeGraphyV4/commit/734e7a258a5be1c2ef3dad8c710880ccaf87722a) Thanks [@joesobo](https://github.com/joesobo)! - Default fresh Graph Scope Edge Types to Imports on and other built-in edges off.
+
+- [#243](https://github.com/joesobo/CodeGraphyV4/pull/243) [`9274dd2`](https://github.com/joesobo/CodeGraphyV4/commit/9274dd24ca42f3b2da7f696829145cc315adc372) Thanks [@joesobo](https://github.com/joesobo)! - Publish platform-specific VSIX artifacts for Linux x64, macOS Apple Silicon, and Windows x64 so installs load the matching LadybugDB native runtime.
+
+- [#229](https://github.com/joesobo/CodeGraphyV4/pull/229) [`541538d`](https://github.com/joesobo/CodeGraphyV4/commit/541538de90645b4bf3f1d814e7c3889ed1391071) Thanks [@joesobo](https://github.com/joesobo)! - Keep graph nodes fixed where users drop them and improve graph accessibility labels for nodes and edges.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Improve Graph View accessibility targets for toolbar buttons, plugin toggles, nodes, and edges. These controls now expose stable labels so keyboard, screen-reader, and VS Code automation users can discover and operate graph controls more reliably.
+
+- Updated dependencies [[`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288), [`7ff7ef3`](https://github.com/joesobo/CodeGraphyV4/commit/7ff7ef3aaea18770ada9f6262c1dd7800ce0c151)]:
+  - @codegraphy-dev/core@1.3.0
+
+## 5.6.5
+
+### Patch Changes
+
+- [#235](https://github.com/joesobo/CodeGraphyV4/pull/235) [`ad8f8af`](https://github.com/joesobo/CodeGraphyV4/commit/ad8f8af9c1bcd6cd950c7f248ef3d662ab0c019f) Thanks [@joesobo](https://github.com/joesobo)! - Make Indexing progress clearer by separating preparation from file analysis, replacing final cache-save progress with graph-view update progress, and hiding old graph stats until the indexed graph is published.
+
+- [#235](https://github.com/joesobo/CodeGraphyV4/pull/235) [`f673e1f`](https://github.com/joesobo/CodeGraphyV4/commit/f673e1f83e28480da83337d15473bb7d143083cb) Thanks [@joesobo](https://github.com/joesobo)! - Keep discovered file nodes visible during cold-cache startup and label relationship counts as not indexed until a Graph Cache exists.
+
+- [#235](https://github.com/joesobo/CodeGraphyV4/pull/235) [`c82e598`](https://github.com/joesobo/CodeGraphyV4/commit/c82e598a59349d9d3ff936627216baf518636800) Thanks [@joesobo](https://github.com/joesobo)! - Improve Graph Cache load and save responsiveness during startup and warm-cache graph replay.
+
+- [#235](https://github.com/joesobo/CodeGraphyV4/pull/235) [`d99137e`](https://github.com/joesobo/CodeGraphyV4/commit/d99137ef968e158566e39d88f58c3012130232fd) Thanks [@joesobo](https://github.com/joesobo)! - Keep the graph view from staying on the startup loading screen while settings, filters, graph data, and plugin assets hydrate.
+
+- Updated dependencies [[`ad8f8af`](https://github.com/joesobo/CodeGraphyV4/commit/ad8f8af9c1bcd6cd950c7f248ef3d662ab0c019f), [`c82e598`](https://github.com/joesobo/CodeGraphyV4/commit/c82e598a59349d9d3ff936627216baf518636800)]:
+  - @codegraphy-dev/core@1.2.1
+
+## 5.6.4
+
+### Patch Changes
+
+- [#222](https://github.com/joesobo/CodeGraphyV4/pull/222) [`da9c309`](https://github.com/joesobo/CodeGraphyV4/commit/da9c3096afcf962490c1d271c52e85c09ae2f6de) Thanks [@joesobo](https://github.com/joesobo)! - Deepen the Graph View runtime boundary so graph selection, renderer state, context-menu state, and render caches are exposed through named runtime facets.
+
+- [#226](https://github.com/joesobo/CodeGraphyV4/pull/226) [`23c10c2`](https://github.com/joesobo/CodeGraphyV4/commit/23c10c24fc224b7d23036f08b84e0a617d1a80fe) Thanks [@joesobo](https://github.com/joesobo)! - Run Graph Context Menu actions against the selection that opened the menu and skip stale actions that no longer match that selection.
+
+- [#224](https://github.com/joesobo/CodeGraphyV4/pull/224) [`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c) Thanks [@joesobo](https://github.com/joesobo)! - Keep Symbol-scoped Graph View payloads small by caching baseline file relationships first, lazily enriching Symbols and plugin analysis when those scopes are enabled, and reusing enriched cache tiers when they are toggled back on.
+
+- [#224](https://github.com/joesobo/CodeGraphyV4/pull/224) [`8a95dc6`](https://github.com/joesobo/CodeGraphyV4/commit/8a95dc69ac170effc6ecb55dc64f1544555e4c13) Thanks [@joesobo](https://github.com/joesobo)! - Keep graph settings synced after webview reloads, keep registered package plugins visible in the plugin panel, and avoid reloading every plugin when toggling a package plugin.
+
+- Updated dependencies [[`a2625ba`](https://github.com/joesobo/CodeGraphyV4/commit/a2625ba942287b43f939abfe5a5ca68f8e730680), [`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c)]:
+  - @codegraphy-dev/core@1.2.0
+
+## 5.6.3
+
+### Patch Changes
+
+- [#220](https://github.com/joesobo/CodeGraphyV4/pull/220) [`f67a8b0`](https://github.com/joesobo/CodeGraphyV4/commit/f67a8b0bf4ce20ba9e69699610ad05042caae7a5) Thanks [@joesobo](https://github.com/joesobo)! - Allow current Node 20 releases without workspace engine warnings.
+
+- [#221](https://github.com/joesobo/CodeGraphyV4/pull/221) [`e8ba411`](https://github.com/joesobo/CodeGraphyV4/commit/e8ba411a45c5ec881a920f1787022d8e4b70ea52) Thanks [@joesobo](https://github.com/joesobo)! - Keep the cached graph visible during startup and plugin changes while Graph Cache sync runs in the background.
+
+- Updated dependencies [[`f67a8b0`](https://github.com/joesobo/CodeGraphyV4/commit/f67a8b0bf4ce20ba9e69699610ad05042caae7a5)]:
+  - @codegraphy-dev/core@1.1.2
+
+## 5.6.2
+
+### Patch Changes
+
+- [#219](https://github.com/joesobo/CodeGraphyV4/pull/219) [`f531820`](https://github.com/joesobo/CodeGraphyV4/commit/f5318208b380a04b5e0f6ddcf3ebab7cd3641769) Thanks [@joesobo](https://github.com/joesobo)! - Keep workspace indexing responsive while rebuilding the Graph Cache from a missing or stale cache.
+
+- Updated dependencies [[`f531820`](https://github.com/joesobo/CodeGraphyV4/commit/f5318208b380a04b5e0f6ddcf3ebab7cd3641769)]:
+  - @codegraphy-dev/core@1.1.1
+
+## 5.6.1
+
+### Patch Changes
+
+- [#218](https://github.com/joesobo/CodeGraphyV4/pull/218) [`9879f62`](https://github.com/joesobo/CodeGraphyV4/commit/9879f62e3bdef2f4dc18545d33acad72efdc9f61) Thanks [@joesobo](https://github.com/joesobo)! - Preserve the last good Graph Cache when a full index refresh is aborted and report the actual Graph Cache status after indexing so graph edges do not disappear after interrupted refreshes.
+
 ## 5.6.0
 
 ### Minor Changes

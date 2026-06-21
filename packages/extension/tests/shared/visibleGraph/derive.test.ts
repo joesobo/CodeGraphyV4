@@ -65,7 +65,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
 
 
 
-    it('keeps generic symbol groups hidden while showing enabled symbol-kind children', () => {
+    it('keeps enabled child symbol rows hidden when their parent rows are disabled', () => {
       const result = deriveVisibleGraph(
         {
           nodes: [
@@ -121,13 +121,8 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
       expect(ids(result.graphData)).toEqual({
         nodes: [
           'src/app.ts',
-          'src/app.ts#build:function',
-          'src/app.ts#VERSION:constant',
         ],
-        edges: [
-          'src/app.ts->src/app.ts#build:function#contains',
-          'src/app.ts->src/app.ts#VERSION:constant#contains',
-        ],
+        edges: [],
       });
     });
 
@@ -261,7 +256,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
 
 
 
-    it('shows enabled plugin-specific variable children when Variables is disabled', () => {
+    it('keeps enabled plugin-specific variable children hidden when Variables is disabled', () => {
       const result = deriveVisibleGraph(
         {
           nodes: [
@@ -299,17 +294,54 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
       expect(ids(result.graphData)).toEqual({
         nodes: [
           'scripts/player.gd',
-          'scripts/player.gd#Player:godot-class-name',
         ],
-        edges: [
-          'scripts/player.gd->scripts/player.gd#Player:godot-class-name#contains',
-        ],
+        edges: [],
       });
     });
 
 
 
-    it('projects visible folder and workspace package structure with core nests edges', () => {
+    it('keeps enabled variable children hidden when Symbols is disabled', () => {
+      const result = deriveVisibleGraph(
+        {
+          nodes: [
+            node('src/logger.c'),
+            {
+              ...node('src/logger.c#logger_output_enabled:global', 'variable'),
+              symbol: {
+                id: 'src/logger.c#logger_output_enabled:global',
+                name: 'logger_output_enabled',
+                kind: 'global',
+                filePath: 'src/logger.c',
+              },
+            },
+          ],
+          edges: [
+            edge('src/logger.c', 'src/logger.c#logger_output_enabled:global', 'contains'),
+          ],
+        },
+        {
+          scope: {
+            nodes: [
+              { type: 'file', enabled: true },
+              { type: 'symbol', enabled: false },
+              { type: 'variable', enabled: true },
+              { type: 'symbol:global', enabled: true },
+            ],
+            edges: [{ type: 'contains', enabled: true }],
+          },
+        },
+      );
+
+      expect(ids(result.graphData)).toEqual({
+        nodes: ['src/logger.c'],
+        edges: [],
+      });
+    });
+
+
+
+    it('projects folder nests edges and workspace package nodes without package nests edges', () => {
       const result = deriveVisibleGraph(
         {
           nodes: [
@@ -349,15 +381,9 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
             kind: STRUCTURAL_NESTS_EDGE_KIND,
             sources: [],
           },
-          {
-            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/src/index.ts#nests`,
-            from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
-            to: 'packages/extension/src/index.ts',
-            kind: STRUCTURAL_NESTS_EDGE_KIND,
-            sources: [],
-          },
         ]),
       );
+      expect(result.graphData.edges.some((item) => item.from.startsWith(WORKSPACE_PACKAGE_NODE_ID_PREFIX))).toBe(false);
       expect(result.graphData.edges.every((item) => !item.id.includes('codegraphy:nests'))).toBe(true);
     });
 

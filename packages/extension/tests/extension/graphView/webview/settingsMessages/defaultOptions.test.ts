@@ -16,13 +16,14 @@ describe('graph view settings plugin default options', () => {
     fs.rmSync(homeDir, { recursive: true, force: true });
   });
 
-  it('reads package default options from the installed plugin cache', () => {
+  it('reads plugin default options from the installed plugin cache by Plugin ID', () => {
     writeCodeGraphyInstalledPluginCache(
       {
         version: 1,
         plugins: [
           {
             package: '@codegraphy-dev/plugin-godot',
+            pluginId: 'codegraphy.godot',
             version: '2.1.2',
             apiVersion: '^2.0.0',
             disclosures: [],
@@ -37,9 +38,34 @@ describe('graph view settings plugin default options', () => {
       { homeDir },
     );
 
-    expect(readInstalledPluginDefaultOptions('@codegraphy-dev/plugin-godot', { homeDir })).toEqual({
+    expect(readInstalledPluginDefaultOptions('codegraphy.godot', { homeDir })).toEqual({
       includeSceneResources: true,
       includeAutoloads: true,
+    });
+  });
+
+  it('falls back to package name for legacy installed plugin records', () => {
+    writeCodeGraphyInstalledPluginCache(
+      {
+        version: 1,
+        plugins: [
+          {
+            package: '@codegraphy-dev/plugin-godot',
+            version: '2.1.2',
+            apiVersion: '^2.0.0',
+            disclosures: [],
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
+            defaultOptions: {
+              includeSceneResources: true,
+            },
+          },
+        ],
+      },
+      { homeDir },
+    );
+
+    expect(readInstalledPluginDefaultOptions('@codegraphy-dev/plugin-godot', { homeDir })).toEqual({
+      includeSceneResources: true,
     });
   });
 
@@ -49,17 +75,18 @@ describe('graph view settings plugin default options', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy-dev/plugin-python',
+            package: '@codegraphy-dev/plugin-vue',
+            pluginId: 'codegraphy.vue',
             version: '2.0.4',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-vue',
           },
         ],
       },
       { homeDir },
     );
 
-    expect(readInstalledPluginDefaultOptions('@codegraphy-dev/plugin-python', { homeDir })).toBeUndefined();
+    expect(readInstalledPluginDefaultOptions('codegraphy.vue', { homeDir })).toBeUndefined();
   });
 });

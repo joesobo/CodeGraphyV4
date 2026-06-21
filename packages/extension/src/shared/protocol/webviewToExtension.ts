@@ -72,13 +72,23 @@ export type WebviewToExtensionMessage =
       type: 'UPDATE_PARTICLE_SETTING';
       payload: { key: 'particleSpeed' | 'particleSize'; value: number };
     }
+  | { type: 'UPDATE_PLUGIN_DATA'; payload: { pluginId: string; data: unknown } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
+  | { type: 'UPDATE_CSS_SNIPPET'; payload: { path: string; enabled: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; packageName?: string; enabled: boolean } }
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }
+  | {
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH';
+      payload: {
+        nodeVisibility?: Record<string, boolean>;
+        edgeVisibility?: Record<string, boolean>;
+      };
+    }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
+  | { type: 'UPDATE_VERBOSE_DIAGNOSTICS'; payload: { verboseDiagnostics: boolean } }
   | { type: 'INDEX_REPO' }
   | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
   | { type: 'RESET_TIMELINE' }
@@ -100,6 +110,7 @@ export type WebviewToExtensionMessage =
       type: 'VISIBLE_GRAPH_STATE_RESPONSE';
       payload: {
         nodeCount: number;
+        nodes: Array<{ id: string; nodeType?: string; color: string }>;
         edgeCount: number;
         edgeIds: string[];
       };

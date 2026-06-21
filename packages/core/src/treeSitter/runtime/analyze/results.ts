@@ -52,10 +52,7 @@ export function normalizeAnalysisResult(
 ): IFileAnalysisResult {
   return {
     filePath,
-    relations: relations.map((relation) => ({
-      ...relation,
-      pluginId: 'codegraphy.treesitter',
-    })),
+    relations,
     symbols,
   };
 }
@@ -75,16 +72,37 @@ export function addImportRelation(
   type?: string,
   sourceId: string = TREE_SITTER_SOURCE_IDS.import,
   binding?: ImportedBinding,
+  fromSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'import',
     sourceId,
     fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,
     type,
     metadata: createBindingMetadata(binding),
+  });
+}
+
+export function addIncludeRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null,
+  fromSymbolId?: string,
+): void {
+  addRelation(relations, {
+    kind: 'include',
+    sourceId: TREE_SITTER_SOURCE_IDS.include,
+    fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+    type: 'include',
   });
 }
 
@@ -111,12 +129,16 @@ export function addCallRelation(
   filePath: string,
   binding: ImportedBinding,
   fromSymbolId?: string,
+  toSymbolId?: string,
+  variant?: string,
 ): void {
   addRelation(relations, {
     kind: 'call',
     sourceId: TREE_SITTER_SOURCE_IDS.call,
     fromFilePath: filePath,
     fromSymbolId,
+    toSymbolId,
+    variant,
     specifier: binding.specifier,
     resolvedPath: binding.resolvedPath,
     toFilePath: binding.resolvedPath,
@@ -142,11 +164,35 @@ export function addInheritRelation(
   filePath: string,
   specifier: string,
   resolvedPath: string | null = null,
+  fromSymbolId?: string,
+  toSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'inherit',
     sourceId: TREE_SITTER_SOURCE_IDS.inherit,
     fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
+    ...(toSymbolId ? { toSymbolId } : {}),
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+  });
+}
+
+export function addOverrideRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null = null,
+  fromSymbolId?: string,
+  toSymbolId?: string,
+): void {
+  addRelation(relations, {
+    kind: 'overrides',
+    sourceId: TREE_SITTER_SOURCE_IDS.override,
+    fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
+    ...(toSymbolId ? { toSymbolId } : {}),
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,

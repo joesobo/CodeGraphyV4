@@ -31,13 +31,5 @@ export function releaseNodeDrag(
 ): void {
   node.isDragging = false;
 
-  if (shouldKeepFixedPosition(node, { ...options, graphMode })) {
-    return;
-  }
-
-  node.fx = undefined;
-  node.fy = undefined;
-  if (graphMode === '3d') {
-    node.fz = undefined;
-  }
+  shouldKeepFixedPosition(node, { ...options, graphMode });
 }

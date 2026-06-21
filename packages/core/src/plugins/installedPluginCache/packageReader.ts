@@ -9,37 +9,57 @@ type PluginPackageDisplayFields = Pick<
   'pluginId' | 'pluginName' | 'supportedExtensions'
 >;
 
+interface PluginPackageStaticDescriptor extends PluginPackageDisplayFields {
+  pluginId: string;
+}
+
 function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
+function readSupportedExtensions(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((extension): extension is string => typeof extension === 'string' && extension.length > 0)
+    : [];
+}
+
+function buildPluginPackageDisplayFields(
+  descriptor: Record<string, unknown>,
+): PluginPackageStaticDescriptor | null {
+  const pluginId = readString(descriptor.id);
+  if (!pluginId) {
+    return null;
+  }
+
+  const pluginName = readString(descriptor.name);
+  const supportedExtensions = readSupportedExtensions(descriptor.supportedExtensions);
+
+  return {
+    pluginId,
+    ...(pluginName ? { pluginName } : {}),
+    ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+  };
+}
+
 async function readPluginPackageDisplayFields(
   packageRoot: string,
-): Promise<PluginPackageDisplayFields> {
+): Promise<PluginPackageStaticDescriptor | null> {
   try {
     const descriptor = JSON.parse(
       await fsPromises.readFile(path.join(packageRoot, 'codegraphy.json'), 'utf-8'),
     ) as unknown;
     if (!isRecord(descriptor)) {
-      return {};
+      return null;
     }
 
-    const supportedExtensions = Array.isArray(descriptor.supportedExtensions)
-      ? descriptor.supportedExtensions
-        .filter((extension): extension is string => typeof extension === 'string' && extension.length > 0)
-      : [];
-
-    const pluginId = readString(descriptor.id);
-    const pluginName = readString(descriptor.name);
-
-    return {
-      ...(pluginId ? { pluginId } : {}),
-      ...(pluginName ? { pluginName } : {}),
-      ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
-    };
+    return buildPluginPackageDisplayFields(descriptor);
   } catch {
-    return {};
+    return null;
   }
+}
+
+function createMissingStaticPluginIdError(packageName: string): Error {
+  return new Error(`Package '${packageName}' is missing codegraphy.json with a static plugin id.`);
 }
 
 export async function readPackageManifest(packageRoot: string): Promise<CodeGraphyInstalledPluginRecord | null> {
@@ -48,8 +68,10 @@ export async function readPackageManifest(packageRoot: string): Promise<CodeGrap
       await fsPromises.readFile(path.join(packageRoot, 'package.json'), 'utf-8'),
     ) as unknown;
     const manifest = parseCodeGraphyPluginPackageManifest(packageJson);
+    const descriptor = manifest ? await readPluginPackageDisplayFields(packageRoot) : null;
     return manifest
-      ? { ...manifest, ...(await readPluginPackageDisplayFields(packageRoot)), packageRoot }
+      && descriptor
+      ? { ...manifest, ...descriptor, packageRoot }
       : null;
   } catch {
     return null;
@@ -83,5 +105,10 @@ export async function readRequiredPackageManifest(
     );
   }
 
-  return { ...manifest, ...(await readPluginPackageDisplayFields(packageRoot)), packageRoot };
+  const descriptor = await readPluginPackageDisplayFields(packageRoot);
+  if (!descriptor) {
+    throw createMissingStaticPluginIdError(packageName);
+  }
+
+  return { ...manifest, ...descriptor, packageRoot };
 }

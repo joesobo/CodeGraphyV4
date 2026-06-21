@@ -3,6 +3,7 @@ import {
   DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY,
   type BuildGraphContextMenuOptions,
   type GraphContextMenuEntry,
+  type GraphContextSelection,
 } from '../contracts';
 import { decideGraphContextMenu } from '../decision/model';
 import { buildEdgeEntries } from '../edge/entries';
@@ -53,6 +54,60 @@ function insertCreateMenuEntries(
   ];
 }
 
+function captureContextSelection(
+  entries: GraphContextMenuEntry[],
+  selection: GraphContextSelection,
+): GraphContextMenuEntry[] {
+  const contextSelection = cloneContextSelection(selection);
+  return entries.map(entry =>
+    entry.kind === 'item' ? { ...entry, contextSelection } : entry
+  );
+}
+
+function cloneContextSelection(selection: GraphContextSelection): GraphContextSelection {
+  return {
+    kind: selection.kind,
+    targets: [...selection.targets],
+    ...(selection.edgeId ? { edgeId: selection.edgeId } : {}),
+    ...(selection.graphPosition ? { graphPosition: { ...selection.graphPosition } } : {}),
+  };
+}
+
+function buildBaseGraphContextMenuEntries(
+  decision: GraphContextMenuDecision,
+  options: Pick<
+    BuildGraphContextMenuOptions,
+    'favorites' | 'mutationAvailability' | 'timelineActive'
+  >,
+): GraphContextMenuEntry[] {
+  const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
+  if (decision.kind === 'background') {
+    return buildBackgroundEntries(mutationAvailability);
+  }
+  if (decision.kind === 'singleFolderNode') {
+    return buildSingleFolderNodeEntries(decision.target, mutationAvailability, options.favorites);
+  }
+  if (decision.kind === 'singleSymbolNode') {
+    return buildSingleSymbolNodeEntries(decision.target.id, options.favorites);
+  }
+  if (decision.kind === 'singlePluginNode') {
+    return buildSinglePluginNodeEntries();
+  }
+  if (decision.kind === 'edge') {
+    return buildEdgeEntries(decision.targets);
+  }
+  if (decision.kind === 'emptyNodeSelection') {
+    return [];
+  }
+
+  return buildNodeEntries(
+    getNodeTargetIds(decision),
+    options.timelineActive,
+    mutationAvailability,
+    options.favorites,
+  );
+}
+
 export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
 ): GraphContextMenuEntry[] {
@@ -66,30 +121,12 @@ export function buildGraphContextMenuEntries(
     nodes,
     edges,
   } = options;
-  const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   const decision = decideGraphContextMenu(selection, nodes);
-  const baseEntries = decision.kind === 'background'
-    ? buildBackgroundEntries(mutationAvailability)
-    : decision.kind === 'singleFolderNode'
-      ? buildSingleFolderNodeEntries(
-        decision.target,
-        mutationAvailability,
-        favorites,
-      )
-      : decision.kind === 'singleSymbolNode'
-          ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
-          : decision.kind === 'singlePluginNode'
-            ? buildSinglePluginNodeEntries()
-          : decision.kind === 'edge'
-            ? buildEdgeEntries(decision.targets)
-            : decision.kind === 'emptyNodeSelection'
-              ? []
-              : buildNodeEntries(
-                getNodeTargetIds(decision),
-                timelineActive,
-                mutationAvailability,
-                favorites,
-              );
+  const baseEntries = buildBaseGraphContextMenuEntries(decision, {
+    favorites,
+    mutationAvailability: options.mutationAvailability,
+    timelineActive,
+  });
   const graphViewCreateEntries = decision.kind === 'background'
     ? buildGraphViewContextMenuEntries({
       decision,
@@ -104,7 +141,7 @@ export function buildGraphContextMenuEntries(
     })
     : [];
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
-  return [
+  return captureContextSelection([
     ...positionedBaseEntries,
     ...buildPluginEntriesForDecision(decision, pluginItems),
     ...buildGraphViewContextMenuEntries({
@@ -116,5 +153,5 @@ export function buildGraphContextMenuEntries(
       selection,
       timelineActive,
     }),
-  ];
+  ], selection);
 }

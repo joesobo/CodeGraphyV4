@@ -7,6 +7,7 @@ type PipelineActions = Pick<
   | 'indexAndSendData'
   | 'analyzeAndSendData'
   | 'refreshIndex'
+  | 'refreshAnalysisScope'
   | 'clearCacheAndRefresh'
 >;
 
@@ -18,6 +19,7 @@ export function createPipelineActions(
     indexAndSendData: () => source._indexAndSendData(),
     analyzeAndSendData: () => source._analyzeAndSendData(),
     refreshIndex: () => source.refreshIndex(),
+    refreshAnalysisScope: () => source.refreshAnalysisScope(),
     clearCacheAndRefresh: () => source.clearCacheAndRefresh(),
   };
 }

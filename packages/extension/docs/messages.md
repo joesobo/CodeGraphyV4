@@ -18,6 +18,8 @@ Typical path:
 
 The graph-view provider now composes its host bridge through explicit typed method-source adapters instead of mutating the class surface with `Object.assign`.
 
+Startup loading is a special case. The webview may show `Loading graph...` only before the first graph payload and bootstrap completion for that page. After the first graph render, later Indexing, Graph Cache Sync, plugin changes, and file updates should keep the current graph rendered and use graph-local progress messages such as `GRAPH_INDEX_PROGRESS`.
+
 ## Webview to extension
 
 The webview sends user interaction and UI state messages back to the host.
@@ -40,12 +42,13 @@ Plugin-facing messaging is layered on top of the core bridge.
 
 - The extension tracks readiness and plugin lifecycle state.
 - Webview plugin APIs send plugin-scoped actions through the provider bridge.
+- Plugin enablement and late external registration reprocess plugin-owned files instead of clearing the Graph Cache.
 - Shared payload ownership is explicit:
-- `src/shared/graph/types.ts` for graph data
-- `src/shared/files/info.ts` for file info
-- `src/shared/settings/` for settings snapshots and display/runtime modes
-- `src/shared/plugins/` for plugin status, decorations, and context menu payloads
-- `src/shared/view/types.ts` and `src/shared/timeline/types.ts` for view and timeline payloads
+  - `src/shared/graph/types.ts` for graph data
+  - `src/shared/files/info.ts` for file info
+  - `src/shared/settings/` for settings snapshots and display/runtime modes
+  - `src/shared/plugins/` for plugin status, decorations, and context menu payloads
+  - `src/shared/view/types.ts` and `src/shared/timeline/types.ts` for view and timeline payloads
 
 ## Practical rule
 

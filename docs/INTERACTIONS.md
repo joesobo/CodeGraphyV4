@@ -15,6 +15,8 @@
 | Hover cursor | Pointer cursor |
 | `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
 
+File and Folder Nodes that Git reports as ignored remain visible in the graph with muted styling, similar to VS Code Explorer. Tracked files and mixed folders are not dimmed just because their path matches text in `.gitignore`; the graph follows Git ignored state rather than raw ignore patterns.
+
 ## Canvas
 
 | Action | Effect |
@@ -38,6 +40,7 @@ Right-click background, nodes, multi-node selections, or edges to access context
 | Delete | Move file(s) to trash | Yes |
 | Rename | Rename file via inline prompt | Yes |
 | Create File | Create a new file in the same directory | Yes |
+| Create Folder | Create a new folder in the selected Folder Node or workspace root | Yes |
 | Toggle Favorite | Mark or unmark with yellow outline | Yes |
 | Add to Filter | Hide from graph via filter pattern | Yes |
 | Copy Source/Target/Both Paths (edge) | Copy connected file paths from an edge | - |
@@ -78,7 +81,7 @@ The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in 
 | Index Workspace / Re-index Workspace | Before indexing: runs Indexing and saves the Graph Cache. After indexing: rebuilds graph data and then refreshes layout. |
 | Refresh Graph | Reruns the force graph physics/layout without rebuilding graph data. |
 | Export | Dropdown for Graph Export as PNG, SVG, JPEG, JSON, or Markdown, plus Index Export symbol JSON. |
-| Legends | Opens Legend Entry editing and Legend Layer priority controls. |
+| Themes | Opens Legend Entry editing, Legend Layer priority controls, and CSS Snippet toggles. |
 | Plugins | Opens the plugins panel. |
 | Settings | Opens the settings panel. |
 
@@ -94,15 +97,15 @@ Physics and general graph behavior. See [Settings](./SETTINGS.md) for details.
 
 ### Nodes (shape icon)
 
-Choose Graph Scope for Node Types such as files, folders, packages, and plugin-added Node Types. Each row also shows the current color for that Node Type.
+Choose Graph Scope for Node Types such as files, folders, packages, and plugin-added Node Types. Each row shows the current color for that Node Type. Hover a row to see a brief description and, when available, a compact example.
 
 ### Edges (line icon)
 
-Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, and plugin-added Edge Types. Each row also shows the current color for that Edge Type.
+Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, and plugin-added Edge Types. Each row shows the current color for that Edge Type. Hover a row to see what the relationship means and, when available, a source-style example.
 
-### Legends (paint icon)
+### Themes (paint icon)
 
-Manage glob-based Legend styling. Legend Entries are grouped as `Custom`, `Plugins`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items.
+Manage visual styling. The **Legends** section controls glob-based Legend styling: Legend Entries are grouped as `Custom`, `Plugins`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items. The **CSS Snippets** section lists configured `cssSnippets` paths from `.codegraphy/settings.json` and toggles them on or off.
 
 ### Plugins (puzzle icon)
 
@@ -127,7 +130,7 @@ The timeline bar appears below the graph after indexing. See [Timeline](./TIMELI
 | Click node | Select and focus the node; File Nodes open a temporary preview at the selected commit |
 | Double-click node | Select and focus the node; File Nodes open the file at the selected commit as a persistent editor tab |
 
-During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Filter) are hidden.
+During timeline mode, destructive context menu actions (Delete, Rename, Create File, Create Folder, Add to Filter) are hidden.
 
 ## Export
 

@@ -9,6 +9,8 @@ import {
 function makeProvider() {
   return {
     emitEvent: vi.fn(),
+    refreshGitignoreMetadata: vi.fn().mockResolvedValue(undefined),
+    refreshIndex: vi.fn().mockResolvedValue(undefined),
     refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
@@ -40,6 +42,27 @@ describe('workspaceFiles/refresh/operations', () => {
     expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts']);
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
       filePath: '/workspace/src/app.ts',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File saved, refreshing graph');
+  });
+
+  it('runs a metadata-only graph refresh when gitignore is saved', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const provider = makeProvider();
+
+    refreshWorkspaceSavedDocument(
+      provider as never,
+      { uri: uri('/workspace/.gitignore') } as vscode.TextDocument,
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/.gitignore',
     });
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File saved, refreshing graph');
   });
@@ -77,6 +100,27 @@ describe('workspaceFiles/refresh/operations', () => {
     });
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
       filePath: '/workspace/src/b.ts',
+    });
+  });
+
+  it('runs a metadata-only graph refresh when gitignore is created or deleted', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      [uri('/workspace/.gitignore')],
+      'workspace:fileCreated',
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.refreshIndex).not.toHaveBeenCalled();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/.gitignore',
     });
   });
 

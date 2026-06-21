@@ -101,7 +101,7 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
         relativePath: 'src/a.ts',
         content: 'content:src/a.ts',
       },
-    ], '/workspace');
+    ], '/workspace', undefined, new Set());
     expect(analyzerPrivate._analyzeFiles).toHaveBeenCalledWith(
       [
         { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
@@ -110,6 +110,8 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
+      new Set(),
     );
   });
 
@@ -188,6 +190,8 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
+      new Set(),
     );
   });
 

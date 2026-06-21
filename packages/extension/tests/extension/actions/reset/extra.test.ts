@@ -57,6 +57,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
+    pluginData: {},
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
@@ -70,6 +71,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     particleSize: 4,
     showLabels: true,
     maxFiles: 500,
+    verboseDiagnostics: false,
     nodeSizeMode: 'connections',
   };
 
@@ -96,6 +98,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
+      verboseDiagnostics: false,
       nodeSizeMode: 'file-size',
     };
   });

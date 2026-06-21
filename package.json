@@ -14,8 +14,10 @@
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
 		"test": "pnpm run test:unit && pnpm run test:playwright",
 		"test:unit": "turbo run test",
-		"test:playwright": "turbo run test:playwright --filter=@codegraphy-dev/extension",
+		"test:release": "node --test tests/release/*.test.mjs tests/scripts/*.test.mjs",
+		"test:playwright": "node scripts/run-playwright-turbo.mjs",
 		"test:vscode": "pnpm -r --if-present run test:vscode",
+		"check:acceptance-specs": "node scripts/guard-acceptance-spec-edits.mjs",
 		"lint": "turbo run lint",
 		"crap": "quality-tools crap",
 		"boundaries": "quality-tools boundaries",
@@ -25,6 +27,9 @@
 		"organize": "node scripts/run-organize.mjs",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
+		"package:vsix": "node scripts/release-core.mjs package",
+		"check:vsix-native-artifacts": "node scripts/validate-vsix-native-artifacts.mjs",
+		"check:vsix-activation": "node scripts/smoke-installed-vsix.mjs",
 		"publish:vsce": "node scripts/release-core.mjs publish",
 		"release:publish": "node scripts/release.mjs publish",
 		"typecheck": "turbo run typecheck",
@@ -48,7 +53,7 @@
 		"url": "https://github.com/joesobo/CodeGraphyV4/issues"
 	},
 	"engines": {
-		"node": ">=22.22.0 <23",
+		"node": ">=20",
 		"vscode": "^1.85.0"
 	},
 	"files": [
@@ -227,7 +232,7 @@
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",
-		"@poleski/quality-tools": "^0.1.3",
+		"@poleski/quality-tools": "0.2.1",
 		"@types/node": "^20.11.0",
 		"@types/vscode": "^1.85.0",
 		"@vitest/coverage-istanbul": "^3.2.4",

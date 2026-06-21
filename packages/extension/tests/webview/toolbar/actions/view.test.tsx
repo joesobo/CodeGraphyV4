@@ -67,7 +67,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Themes', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders(props: Partial<React.ComponentProps<typeof ToolbarActions>> = {}) {
   return render(
@@ -202,7 +202,7 @@ describe('ToolbarActions', () => {
     clickAction('Graph Scope');
     expect(graphStore.getState().activePanel).toBe('none');
 
-    clickAction('Legends');
+    clickAction('Themes');
     expect(graphStore.getState().activePanel).toBe('legends');
 
     clickAction('Plugins');
@@ -219,7 +219,7 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Themes', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
@@ -228,7 +228,7 @@ describe('ToolbarActions', () => {
       'Node Size',
       'New...',
       'Graph Scope',
-      'Legends',
+      'Themes',
       'Plugins',
       'Settings',
     ]);

@@ -138,7 +138,7 @@ describe('App', () => {
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
   });
 
-  it('waits for startup plugin asset injection before showing the first graph', async () => {
+  it('keeps the first graph visible while startup plugin assets finish loading', async () => {
     let resolveInjection: (() => void) | undefined;
     const pendingImport = new Promise<void>((resolve) => {
       resolveInjection = resolve;
@@ -168,16 +168,227 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
 
     await act(async () => {
       resolveInjection?.();
       await pendingImport;
     });
 
-    await waitFor(() => {
-      expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+  });
+
+  it('keeps the graph visible when plugin assets are injected after startup', async () => {
+    let resolveInjection: (() => void) | undefined;
+    const pendingImport = new Promise<void>((resolve) => {
+      resolveInjection = resolve;
     });
+    vi.doMock('/plugin/late-registration.js', () => pendingImport.then(() => ({
+      activate: vi.fn(),
+    })));
+
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'codegraphy.late',
+          scripts: ['/plugin/late-registration.js'],
+          styles: [],
+        },
+      });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveInjection?.();
+      await pendingImport;
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+  });
+
+  it('makes saved plugin data available when a plugin activates during startup', async () => {
+    const pluginData = {
+      enabled: true,
+      preset: 'embers',
+    };
+    const globals = globalThis as typeof globalThis & { __startupPluginData?: unknown };
+    delete globals.__startupPluginData;
+    const scriptUrl = 'data:text/javascript,export function activate(api) { globalThis.__startupPluginData = api.getPluginData(); }';
+
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'PLUGIN_DATA_UPDATED',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          data: pluginData,
+        },
+      });
+      sendMessage({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'codegraphy.particles',
+          scripts: [scriptUrl],
+          styles: [],
+        },
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(globals.__startupPluginData).toEqual(pluginData);
+    });
+  });
+
+  it('keeps the graph visible when settings and filters update after startup', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'SETTINGS_UPDATED',
+        payload: {
+          bidirectionalEdges: 'combined',
+          showOrphans: true,
+        },
+      });
+      sendMessage({
+        type: 'FILTER_PATTERNS_UPDATED',
+        payload: {
+          patterns: ['dist/**'],
+          pluginPatterns: ['plugin/**'],
+          pluginPatternGroups: [],
+          disabledCustomPatterns: [],
+          disabledPluginPatterns: [],
+        },
+      });
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [
+            { id: 'test.ts', label: 'test.ts', color: '#3B82F6' },
+            { id: 'src/app.ts', label: 'app.ts', color: '#10B981' },
+          ],
+          edges: [],
+        },
+      });
+    });
+
+    expect(graphStore.getState().bidirectionalMode).toBe('combined');
+    expect(graphStore.getState().filterPatterns).toEqual(['dist/**']);
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 0 connections')).toBeInTheDocument();
+  });
+
+  it('keeps the graph visible while indexing after startup', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_INDEX_PROGRESS',
+        payload: { phase: 'Indexing Workspace', current: 1, total: 4 },
+      });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+    expect(screen.getByTestId('graph-index-status')).toBeInTheDocument();
+    expect(screen.getByText('Indexing Workspace')).toBeInTheDocument();
+  });
+
+  it('keeps current graph stats visible while explicit indexing progress is active', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_INDEX_PROGRESS',
+        payload: { phase: 'Preparing Analysis', current: 0, total: 1 },
+      });
+    });
+
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
+    expect(screen.getByText('Preparing Analysis')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [
+            { id: 'test.ts', label: 'test.ts', color: '#3B82F6' },
+            { id: 'used.ts', label: 'used.ts', color: '#3B82F6' },
+          ],
+          edges: [
+            { id: 'test.ts->used.ts#import', from: 'test.ts', to: 'used.ts', kind: 'import', sources: [] },
+          ],
+        },
+      });
+    });
+
+    expect(screen.queryByText('Preparing Analysis')).not.toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
   });
 
   it('should send WEBVIEW_READY only once across initial graph load', async () => {
@@ -236,7 +447,7 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
-    expect(screen.getByTitle('Legends')).toBeInTheDocument();
+    expect(screen.getByTitle('Themes')).toBeInTheDocument();
     expect(screen.getByTitle('Plugins')).toBeInTheDocument();
     expect(screen.getByTitle('Settings')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
@@ -283,7 +494,35 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
+  });
+
+  it('keeps cold-cache file nodes visible after scope, filter, search, and Show Orphans', async () => {
+    graphStore.setState({
+      showOrphans: false,
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+      filterPatterns: ['src'],
+      searchQuery: 'a',
+      nodeVisibility: { file: true },
+    });
+
+    render(<App />);
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [
+            { id: 'src/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+            { id: 'docs/b.ts', label: 'b.ts', color: '#10B981', nodeType: 'file' },
+          ],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
   });
 
   it('counts filters against the scoped visible graph instead of raw graph data', () => {
@@ -356,7 +595,7 @@ describe('App', () => {
       isLoading: false,
       nodeVisibility: {
         file: true,
-        symbol: false,
+        symbol: true,
         'symbol:function': true,
       },
       edgeVisibility: {
@@ -374,6 +613,10 @@ describe('App', () => {
       type: 'VISIBLE_GRAPH_STATE_RESPONSE',
       payload: {
         nodeCount: 2,
+        nodes: [
+          { id: 'src/app.ts', nodeType: 'file', color: '#3B82F6' },
+          { id: 'src/app.ts#run:function', nodeType: 'symbol', color: '#8B5CF6' },
+        ],
         edgeCount: 1,
         edgeIds: ['src/app.ts->src/app.ts#run:function#contains'],
       },

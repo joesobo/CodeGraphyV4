@@ -41,6 +41,25 @@ describe('graph view primary stateful dispatch', () => {
     });
   });
 
+  it('persists verbose diagnostics updates from settings messages', async () => {
+    const context = createPrimaryMessageContext();
+
+    await expect(
+      dispatchGraphViewPrimaryStateMessage(
+        {
+          type: 'UPDATE_VERBOSE_DIAGNOSTICS',
+          payload: { verboseDiagnostics: true },
+        },
+        context,
+      ),
+    ).resolves.toEqual({
+      handled: true,
+      filterPatterns: undefined,
+    });
+
+    expect(context.updateConfig).toHaveBeenCalledWith('verboseDiagnostics', true);
+  });
+
   it('returns false when neither stateful family handles the input', async () => {
     await expect(
       dispatchGraphViewPrimaryStateMessage({ type: 'GET_PHYSICS_SETTINGS' }, createPrimaryMessageContext()),

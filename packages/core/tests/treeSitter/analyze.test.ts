@@ -57,7 +57,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
 
 
 
-    it('extracts symbols plus import, reexport, require, dynamic-import, and imported-call relations for TypeScript files', async () => {
+    it('extracts symbols plus import, export-from import, require, dynamic-import, and imported-call relations for TypeScript files', async () => {
       const workspaceRoot = await createWorkspace({
         'src/lib.ts': 'export function boot() { return true; }\n',
         'src/helper.ts': 'export const helper = true;\n',
@@ -107,73 +107,177 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
         expect.arrayContaining([
           expect.objectContaining({
             kind: 'import',
-            pluginId: 'codegraphy.treesitter',
             specifier: './lib',
             resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/lib.ts'),
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',
-            pluginId: 'codegraphy.treesitter',
             specifier: 'node:fs',
             resolvedPath: null,
             fromFilePath: appPath,
             toFilePath: null,
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
-            kind: 'reexport',
-            pluginId: 'codegraphy.treesitter',
+            kind: 'import',
             specifier: './helper',
             resolvedPath: path.join(workspaceRoot, 'src/helper.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/helper.ts'),
-            sourceId: 'codegraphy.treesitter:reexport',
+            sourceId: 'core:treesitter:import',
           }),
           expect.objectContaining({
             kind: 'import',
-            pluginId: 'codegraphy.treesitter',
             specifier: './helper',
             resolvedPath: path.join(workspaceRoot, 'src/helper.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/helper.ts'),
             type: 'dynamic',
-            sourceId: 'codegraphy.treesitter:dynamic-import',
+            sourceId: 'core:treesitter:dynamic-import',
           }),
           expect.objectContaining({
             kind: 'import',
-            pluginId: 'codegraphy.treesitter',
             specifier: './lib',
             resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/lib.ts'),
             type: 'require',
-            sourceId: 'codegraphy.treesitter:commonjs-require',
+            sourceId: 'core:treesitter:commonjs-require',
           }),
           expect.objectContaining({
             kind: 'call',
-            pluginId: 'codegraphy.treesitter',
             specifier: './lib',
             resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/lib.ts'),
             fromSymbolId: expect.stringContaining(`${appPath}:function:run`),
-            sourceId: 'codegraphy.treesitter:call',
+            sourceId: 'core:treesitter:call',
           }),
           expect.objectContaining({
             kind: 'call',
-            pluginId: 'codegraphy.treesitter',
             specifier: './lib',
             resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/lib.ts'),
             fromSymbolId: expect.stringContaining(`${appPath}:method:start`),
-            sourceId: 'codegraphy.treesitter:call',
+            sourceId: 'core:treesitter:call',
           }),
         ]),
       );
+    });
+
+    it('skips TypeScript symbols when relation-only analysis is requested', async () => {
+      const workspaceRoot = await createWorkspace({
+        'src/lib.ts': 'export function boot() { return true; }\n',
+      });
+      const appPath = path.join(workspaceRoot, 'src/app.ts');
+      const appSource = [
+        "import { boot } from './lib';",
+        'function run() {',
+        '  boot();',
+        '}',
+        '',
+      ].join('\n');
+
+      const result = await analyzeFileWithTreeSitter(
+        appPath,
+        appSource,
+        workspaceRoot,
+        { includeSymbols: false },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.symbols).toEqual([]);
+      expect(result?.relations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'import',
+            specifier: './lib',
+            resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
+          }),
+          expect.objectContaining({
+            kind: 'call',
+            sourceId: 'core:treesitter:call',
+            resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
+          }),
+        ]),
+      );
+      expect(result?.relations?.some(relation =>
+        Boolean(relation.fromSymbolId || relation.toSymbolId),
+      )).toBe(false);
+    });
+
+    it('keeps Java file-view relations to imports, calls, and inheritance without symbol endpoints', async () => {
+      const workspaceRoot = await createWorkspace({
+        'src/com/example/app/BaseService.java': [
+          'package com.example.app;',
+          '',
+          'public class BaseService {',
+          '  public void start() {}',
+          '}',
+          '',
+        ].join('\n'),
+        'src/com/example/app/Helper.java': [
+          'package com.example.app;',
+          '',
+          'public class Helper {',
+          '  public static void ping() {}',
+          '}',
+          '',
+        ].join('\n'),
+      });
+      const appPath = path.join(workspaceRoot, 'src/com/example/app/App.java');
+      const helperPath = path.join(workspaceRoot, 'src/com/example/app/Helper.java');
+      const baseServicePath = path.join(workspaceRoot, 'src/com/example/app/BaseService.java');
+      const appSource = [
+        'package com.example.app;',
+        '',
+        'import com.example.app.Helper;',
+        '',
+        'public class App extends BaseService {',
+        '  public void run() {',
+        '    Helper.ping();',
+        '  }',
+        '}',
+        '',
+      ].join('\n');
+
+      const result = await analyzeFileWithTreeSitter(
+        appPath,
+        appSource,
+        workspaceRoot,
+        { includeSymbols: false },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.symbols).toEqual([]);
+      expect(result?.relations).toHaveLength(3);
+      expect(result?.relations).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          specifier: 'com.example.app.Helper',
+          resolvedPath: helperPath,
+          toFilePath: helperPath,
+        }),
+        expect.objectContaining({
+          kind: 'call',
+          specifier: 'com.example.app.Helper',
+          resolvedPath: helperPath,
+          toFilePath: helperPath,
+        }),
+        expect.objectContaining({
+          kind: 'inherit',
+          specifier: 'BaseService',
+          resolvedPath: baseServicePath,
+          toFilePath: baseServicePath,
+        }),
+      ]));
+      expect(result?.relations?.some(relation =>
+        Boolean(relation.fromSymbolId || relation.toSymbolId),
+      )).toBe(false);
     });
 
 
@@ -204,30 +308,27 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
         expect.arrayContaining([
           expect.objectContaining({
             kind: 'type-import',
-            pluginId: 'codegraphy.treesitter',
             specifier: './types',
             resolvedPath: path.join(workspaceRoot, 'src/types.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/types.ts'),
-            sourceId: 'codegraphy.treesitter:type-import',
+            sourceId: 'core:treesitter:type-import',
           }),
           expect.objectContaining({
             kind: 'type-import',
-            pluginId: 'codegraphy.treesitter',
             specifier: './runtime',
             resolvedPath: path.join(workspaceRoot, 'src/runtime.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/runtime.ts'),
-            sourceId: 'codegraphy.treesitter:type-import',
+            sourceId: 'core:treesitter:type-import',
           }),
           expect.objectContaining({
             kind: 'import',
-            pluginId: 'codegraphy.treesitter',
             specifier: './runtime',
             resolvedPath: path.join(workspaceRoot, 'src/runtime.ts'),
             fromFilePath: appPath,
             toFilePath: path.join(workspaceRoot, 'src/runtime.ts'),
-            sourceId: 'codegraphy.treesitter:import',
+            sourceId: 'core:treesitter:import',
           }),
         ]),
       );

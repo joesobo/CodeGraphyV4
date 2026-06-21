@@ -103,6 +103,39 @@ describe('graph/model/node/build', () => {
     expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
   });
 
+  it('leaves newly visible connected nodes unpositioned outside timeline mode', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/logger/logger.c', label: 'logger.c', color: '#93C5FD' },
+        { id: 'src/logger/logger.c#logger_write:function', label: 'logger_write', color: '#8B5CF6' },
+      ],
+      edges: [{
+        id: 'src/logger/logger.c->src/logger/logger.c#logger_write:function#contains',
+        from: 'src/logger/logger.c',
+        to: 'src/logger/logger.c#logger_write:function',
+        kind: 'contains',
+        sources: [],
+      }],
+      nodeSizes: new Map([
+        ['src/logger/logger.c', 16],
+        ['src/logger/logger.c#logger_write:function', 16],
+      ]),
+      theme: 'dark',
+      favorites: new Set(),
+      timelineActive: false,
+      previousNodes: [
+        { id: 'src/logger/logger.c', x: 100, y: 200 } satisfies Pick<FGNode, 'id' | 'x' | 'y'>,
+      ],
+      random: () => 0.75,
+    });
+
+    expect(nodes.find(node => node.id === 'src/logger/logger.c')).toMatchObject({ x: 100, y: 200 });
+    expect(nodes.find(node => node.id === 'src/logger/logger.c#logger_write:function')).toMatchObject({
+      x: undefined,
+      y: undefined,
+    });
+  });
+
   it('preserves previous physics state outside timeline mode', () => {
     const nodes = buildGraphNodes({
       nodes: [
@@ -142,6 +175,42 @@ describe('graph/model/node/build', () => {
       x: undefined,
       y: undefined,
       z: undefined,
+    });
+  });
+
+  it('starts gitignored filesystem nodes with subdued opacity and muted color', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        {
+          id: 'generated/output.ts',
+          label: 'output.ts',
+          color: '#93C5FD',
+          metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
+        },
+        {
+          id: 'src/app.ts',
+          label: 'app.ts',
+          color: '#67E8F9',
+        },
+      ],
+      edges: [],
+      nodeSizes: new Map([
+        ['generated/output.ts', 16],
+        ['src/app.ts', 16],
+      ]),
+      theme: 'dark',
+      favorites: new Set(),
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'generated/output.ts')).toMatchObject({
+      baseOpacity: 0.45,
+      borderColor: '#7689a3',
+      color: '#7689a3',
+    });
+    expect(nodes.find(node => node.id === 'src/app.ts')).toMatchObject({
+      baseOpacity: 1,
+      color: '#67E8F9',
     });
   });
 

@@ -7,14 +7,14 @@ import {
   resolveCSharpUsingImport,
 } from '../../../src/treeSitter/runtime/analyzeCSharp/resolution';
 import {
-  resolveCSharpTypePath,
-  resolveCSharpTypePathInNamespace,
+  resolveCSharpType,
+  resolveCSharpTypeInNamespace,
 } from '../../../src/treeSitter/runtime/csharpIndex';
 import { getIdentifierText, getNodeText } from '../../../src/treeSitter/runtime/analyze/nodes';
 
 vi.mock('../../../src/treeSitter/runtime/csharpIndex', () => ({
-  resolveCSharpTypePath: vi.fn(),
-  resolveCSharpTypePathInNamespace: vi.fn(),
+  resolveCSharpType: vi.fn(),
+  resolveCSharpTypeInNamespace: vi.fn(),
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
@@ -70,9 +70,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => {
   });
 
   it('resolves using imports in matching namespaces and records the resolved path', () => {
-    vi.mocked(resolveCSharpTypePathInNamespace).mockImplementation(
+    vi.mocked(resolveCSharpTypeInNamespace).mockImplementation(
       (_workspaceRoot, _filePath, namespaceName) =>
-        namespaceName === 'CodeGraphy.Models' ? '/workspace/src/Models/User.cs' : null,
+        namespaceName === 'CodeGraphy.Models'
+          ? {
+            filePath: '/workspace/src/Models/User.cs',
+            kind: 'class',
+            namespaceName: 'CodeGraphy.Models',
+            typeName: 'User',
+          }
+          : null,
     );
 
     const importTargetsByNamespace = new Map<string, Set<string>>([
@@ -90,13 +97,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => {
       ),
     ).toBe('/workspace/src/Models/User.cs');
 
-    expect(resolveCSharpTypePathInNamespace).toHaveBeenCalledWith(
+    expect(resolveCSharpTypeInNamespace).toHaveBeenCalledWith(
       '/workspace',
       '/workspace/src/App.cs',
       'CodeGraphy.Models',
       'User',
     );
-    expect(resolveCSharpTypePath).not.toHaveBeenCalled();
+    expect(resolveCSharpType).not.toHaveBeenCalled();
     expect(importTargetsByNamespace.get('CodeGraphy.Models')).toEqual(
       new Set([
         '/workspace/src/Models/Existing.cs',
@@ -106,8 +113,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => {
   });
 
   it('falls back to project-wide C# resolution when no using namespace matches', () => {
-    vi.mocked(resolveCSharpTypePathInNamespace).mockReturnValue(null);
-    vi.mocked(resolveCSharpTypePath).mockReturnValue('/workspace/src/Services/Worker.cs');
+    vi.mocked(resolveCSharpTypeInNamespace).mockReturnValue(null);
+    vi.mocked(resolveCSharpType).mockReturnValue({
+      filePath: '/workspace/src/Services/Worker.cs',
+      kind: 'class',
+      namespaceName: 'CodeGraphy.Services',
+      typeName: 'Worker',
+    });
 
     const importTargetsByNamespace = new Map<string, Set<string>>();
 
@@ -122,7 +134,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => {
       ),
     ).toBe('/workspace/src/Services/Worker.cs');
 
-    expect(resolveCSharpTypePath).toHaveBeenCalledWith(
+    expect(resolveCSharpType).toHaveBeenCalledWith(
       '/workspace',
       '/workspace/src/App.cs',
       'Worker',

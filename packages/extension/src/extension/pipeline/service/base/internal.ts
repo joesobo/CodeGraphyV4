@@ -5,6 +5,7 @@ import type {
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
+import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
@@ -16,6 +17,7 @@ import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
 } from '../cache/paths';
+import { createWorkspacePipelineAnalysisCacheTiers } from '../cache/tiers';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
@@ -34,17 +36,25 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
+    disabledPlugins: Set<string> = new Set(),
   ): Promise<void> {
     await preAnalyzeWorkspacePipelinePlugins(
       files,
       workspaceRoot,
       {
         notifyPreAnalyze: async (v2Files, rootPath) => {
-          await this._registry.notifyPreAnalyze(v2Files, rootPath);
+          await preAnalyzeCoreTreeSitterFiles(v2Files, rootPath);
+          await this._registry.notifyPreAnalyze(
+            v2Files,
+            rootPath,
+            undefined,
+            disabledPlugins,
+          );
         },
         readContent: file => this._discovery.readContent(file),
       },
       signal,
+      disabledPlugins,
     );
   }
 
@@ -53,7 +63,14 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
+    pluginCacheTierIds?: readonly string[],
+    disabledPlugins: Set<string> = new Set(),
   ): Promise<IWorkspaceFileAnalysisResult> {
+    const analysisPluginIds = this._getActiveAnalysisPluginIds(
+      pluginCacheTierIds,
+      disabledPlugins,
+    );
+
     return analyzeWorkspacePipelineDiscoveredFiles(
       this._cache,
       this._discovery,
@@ -64,7 +81,26 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       workspaceRoot,
       onProgress,
       signal,
+      createWorkspacePipelineAnalysisCacheTiers(
+        this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+        analysisPluginIds,
+      ),
+      analysisPluginIds,
+      disabledPlugins,
     );
+  }
+
+  private _getActiveAnalysisPluginIds(
+    pluginIds: readonly string[] | undefined,
+    disabledPlugins: ReadonlySet<string>,
+  ): string[] {
+    const candidateIds = pluginIds ?? this._registry.list()
+      .map(({ plugin }) => plugin.id)
+      .filter((pluginId): pluginId is string =>
+        typeof pluginId === 'string' && pluginId.length > 0,
+      );
+
+    return candidateIds.filter(pluginId => !disabledPlugins.has(pluginId));
   }
 
   protected _buildGraphData(
@@ -82,6 +118,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       showOrphans,
       disabledPlugins,
       this._lastDiscoveredDirectories,
+      this._lastGitIgnoredPaths,
     );
   }
 
@@ -91,6 +128,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
+    const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
     return buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
       this._context,
@@ -100,6 +138,8 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       showOrphans,
       disabledPlugins,
       this._lastDiscoveredDirectories,
+      { nodeVisibility },
+      this._lastGitIgnoredPaths,
     );
   }
 

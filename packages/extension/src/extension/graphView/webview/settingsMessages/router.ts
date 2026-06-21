@@ -1,19 +1,24 @@
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type * as vscode from 'vscode';
 import { applySettingsUpdateMessage } from './updates/apply';
+import { applyCssSnippetMessage } from './cssSnippets';
 import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';
 
 export interface GraphViewSettingsMessageState {
   filterPatterns: string[];
+  workspaceRoot?: string;
+  asWebviewUri?(uri: vscode.Uri): { toString(): string };
 }
 
 export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
-  getInstalledPluginDefaultOptions?(packageName: string): Record<string, unknown> | undefined;
+  getInstalledPluginDefaultOptions?(pluginId: string): Record<string, unknown> | undefined;
   reloadWorkspacePlugins(): Promise<void>;
+  syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
   sendContextMenuItems?(): void;
   sendPluginToolbarActions?(): void;
@@ -23,6 +28,7 @@ export interface GraphViewSettingsMessageHandlers {
   sendGroupsUpdated(): void;
   smartRebuild(id: string): void;
   sendGraphControls(): void;
+  reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];
@@ -41,6 +47,10 @@ export async function applySettingsMessage(
   }
 
   if (await applySettingsDirectionMessage(message, state, handlers)) {
+    return true;
+  }
+
+  if (await applyCssSnippetMessage(message, state, handlers)) {
     return true;
   }
 

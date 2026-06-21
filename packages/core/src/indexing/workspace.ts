@@ -4,13 +4,32 @@ import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { analyzeWorkspaceIndexFiles } from './analysis';
+import { createDisabledPluginSet } from '../plugins/activityState/model';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
+export {
+  createCodeGraphyWorkspaceEngine,
+  type CodeGraphyWorkspaceEngine,
+} from './engine';
+export {
+  refreshWorkspaceIndexAnalysisScope,
+  refreshWorkspaceIndexChangedFiles,
+  refreshWorkspaceIndexPluginFiles,
+  type WorkspaceIndexRefreshDependencies,
+  type WorkspaceIndexRefreshSource,
+  type WorkspaceIndexAnalysisScopeRefreshDependencies,
+  type WorkspaceIndexPluginRefreshDependencies,
+} from './refresh';
 
-export type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult };
+export type {
+  IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
+  IndexCodeGraphyWorkspaceResult,
+} from './contracts';
 
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,
@@ -19,8 +38,13 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(options, settings, workspaceRoot);
-  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  const disabledPlugins = createDisabledPluginSet(settings, options.disabledPlugins);
+  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(
+    options,
+    settings,
+    workspaceRoot,
+    disabledPlugins,
+  );
 
   await registry.initializeAll(workspaceRoot);
 
@@ -38,6 +62,7 @@ export async function indexCodeGraphyWorkspace(
     discoveryResult,
     options,
     registry,
+    disabledPlugins,
     workspaceRoot,
   });
 
@@ -45,15 +70,16 @@ export async function indexCodeGraphyWorkspace(
     cacheFiles: cache.files,
     churnCounts: {},
     directoryPaths: discoveryResult.directories ?? [],
+    gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
     disabledPlugins,
     fileAnalysis: analysisResult.fileAnalysis,
     getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
-    showOrphans: settings.showOrphans,
+    showOrphans: true,
     workspaceRoot,
   });
 
-  registry.notifyPostAnalyze(graph);
-  registry.notifyWorkspaceReady(graph);
+  registry.notifyPostAnalyze(graph, disabledPlugins);
+  registry.notifyWorkspaceReady(graph, disabledPlugins);
   saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
   persistWorkspaceIndexMetadata({
     loadedPackagePlugins,
@@ -70,6 +96,7 @@ export async function indexCodeGraphyWorkspace(
     cache,
     files: discoveryResult.files,
     directories: discoveryResult.directories ?? [],
+    gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
     limitReached: discoveryResult.limitReached,
     totalFound: discoveryResult.totalFound ?? discoveryResult.files.length,
   };

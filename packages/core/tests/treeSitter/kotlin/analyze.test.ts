@@ -59,8 +59,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'com.example.base.BaseRunner',
         fromFilePath: appPath,
         resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/base/BaseRunner.kt'),
@@ -68,8 +67,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       }),
       expect.objectContaining({
         kind: 'import',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:import',
+        sourceId: 'core:treesitter:import',
         specifier: 'kotlin.collections.List',
         fromFilePath: appPath,
         resolvedPath: null,
@@ -77,8 +75,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: appPath,
         resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/base/BaseRunner.kt'),
@@ -86,8 +83,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       }),
       expect.objectContaining({
         kind: 'inherit',
-        pluginId: 'codegraphy.treesitter',
-        sourceId: 'codegraphy.treesitter:inherit',
+        sourceId: 'core:treesitter:inherit',
         specifier: 'RunnableThing',
         fromFilePath: appPath,
         resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/base/RunnableThing.kt'),
@@ -99,6 +95,39 @@ describe('pipeline/plugins/treesitter/runtime/analyzeKotlin', () => {
       expect.objectContaining({ filePath: appPath, kind: 'method', name: 'run' }),
       expect.objectContaining({ filePath: appPath, kind: 'object', name: 'AppConfig' }),
       expect.objectContaining({ filePath: appPath, kind: 'function', name: 'boot' }),
+    ]));
+  });
+
+  it('extracts Kotlin calls to top-level functions in the same package', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/main/kotlin/com/example/app/AppRunner.kt': [
+        'package com.example.app',
+        'fun boot(): String = "ready"',
+        '',
+      ].join('\n'),
+    });
+    const mainPath = path.join(workspaceRoot, 'src/main/kotlin/com/example/app/Main.kt');
+    const source = [
+      'package com.example.app',
+      '',
+      'fun main() {',
+      '  boot()',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        specifier: 'boot',
+        fromFilePath: mainPath,
+        fromSymbolId: `${mainPath}:function:main`,
+        resolvedPath: path.join(workspaceRoot, 'src/main/kotlin/com/example/app/AppRunner.kt'),
+        toFilePath: path.join(workspaceRoot, 'src/main/kotlin/com/example/app/AppRunner.kt'),
+      }),
     ]));
   });
 });

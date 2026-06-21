@@ -27,7 +27,8 @@ export function createGraphViewProviderDoAnalyzeAndSendData(
         isAnalysisStale: (nextSignal, nextRequestId) =>
           delegates.callIsAnalysisStale(nextSignal, nextRequestId),
         isAbortError: error => delegates.callIsAbortError(error),
-        markWorkspaceReady: graphData => delegates.callMarkWorkspaceReady(graphData),
+        markWorkspaceReady: (graphData, disabledPlugins) =>
+          delegates.callMarkWorkspaceReady(graphData, disabledPlugins),
       }),
     );
 

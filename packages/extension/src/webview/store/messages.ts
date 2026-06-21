@@ -15,6 +15,7 @@ import {
   handleDirectionSettingsUpdated,
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
+  handleVerboseDiagnosticsUpdated,
   handleActiveFileUpdated,
   handleAppBootstrapComplete,
 } from './messageHandlers/graph';
@@ -66,8 +67,8 @@ export const MESSAGE_HANDLERS: Record<
     handleGraphControlsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>
     ),
-  FAVORITES_UPDATED: (msg) =>
-    handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
+  FAVORITES_UPDATED: (msg, ctx) =>
+    handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>, ctx),
   SETTINGS_UPDATED: (msg) =>
     handleSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>),
   DEPTH_MODE_UPDATED: (msg) =>
@@ -97,6 +98,10 @@ export const MESSAGE_HANDLERS: Record<
     handlePluginsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>),
   MAX_FILES_UPDATED: (msg) =>
     handleMaxFilesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'MAX_FILES_UPDATED' }>),
+  VERBOSE_DIAGNOSTICS_UPDATED: (msg) =>
+    handleVerboseDiagnosticsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'VERBOSE_DIAGNOSTICS_UPDATED' }>
+    ),
   ACTIVE_FILE_UPDATED: (msg) =>
     handleActiveFileUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'ACTIVE_FILE_UPDATED' }>),
   INDEX_PROGRESS: (msg) =>

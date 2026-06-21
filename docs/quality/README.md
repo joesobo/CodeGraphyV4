@@ -21,7 +21,7 @@ pnpm run scrap -- .
 
 pnpm run boundaries -- extension/
 pnpm run reachability -- extension/ --strict
-pnpm run organize -- --raw extension/
+pnpm run organize -- extension/
 pnpm run crap -- extension/
 pnpm run mutate -- extension/
 pnpm run scrap -- extension/
@@ -36,8 +36,7 @@ Targets can be:
 
 Current command expectations:
 
-- root `organize` is an enforceable baseline-regression gate backed by `quality-baselines/organize/repo.json`
-- raw `organize` can inspect the repo root, a package root, or a narrower directory with `pnpm run organize -- --raw <target>`
+- `organize` can inspect the repo root, a package root, or a narrower directory with `pnpm run organize -- <target>`
 - `boundaries` can inspect the repo root, a package root, or a specific file or directory
 - `reachability` can inspect the repo root, a package root, or a specific file or directory
 - `crap` can inspect the repo root, a package root, or a specific file or directory
@@ -47,10 +46,9 @@ Current command expectations:
 Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
 
 CRAP coverage and tool reports live under `reports/quality-tools/`.
-The organize baseline is tracked in git so root runs fail only on new or regressed structure findings.
 
 Implementation now lives in the external `@poleski/quality-tools` package.
 
 Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
 
-These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `@poleski/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.
+These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `@poleski/quality-tools` uses `path.matchesGlob`, so Node 20 or newer is required.

@@ -17,6 +17,7 @@ func _physics_process(delta: float) -> void:
 			_chase_player(delta)
 
 func _patrol(_delta: float) -> void:
+	patrol_direction = MathHelpers.move_toward_angle(patrol_direction, patrol_direction, 0.0)
 	velocity.x = patrol_speed * patrol_direction
 	move_and_slide()
 

@@ -5,8 +5,16 @@ Tiny Dart package for checking that CodeGraphy connects relative and package imp
 Open `examples/` in CodeGraphy and look for:
 
 - `example-dart/bin/sample_app.dart -> example-dart/lib/app/runner.dart#import`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/base_runner.dart#import`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/runnable.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/user.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/profile.dart#import`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/base_runner.dart#inherit`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/runnable.dart#inherit`
+
+## Graph Screenshot
+
+![Dart example graph screenshot](../assets/graphs/dart.png)
 
 ## Symbol Node Demo
 

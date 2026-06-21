@@ -52,7 +52,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
       visit = callback;
     });
 
-    analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never);
+    analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never, '/workspace');
 
     const walk = vi.fn();
     const state = { currentSymbolId: 'symbol-id' };
@@ -70,6 +70,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
     visit?.({ type: 'interface_declaration' }, state, walk);
     visit?.({ type: 'enum_declaration' }, state, walk);
     expect(handleJavaTypeDeclaration).toHaveBeenCalledTimes(3);
+    expect(handleJavaTypeDeclaration).toHaveBeenCalledWith(
+      { type: 'class_declaration' },
+      '/workspace/src/App.java',
+      '/workspace/src',
+      'pkg',
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Map),
+      true,
+    );
 
     visit?.({ type: 'method_declaration' }, state, walk);
     expect(handleJavaMethodDeclaration).toHaveBeenCalledWith(
@@ -94,13 +104,50 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
       expect(callback({ type: 'comment' }, {}, vi.fn())).toBeUndefined();
     });
 
-    const result = analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never);
+    const result = analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never, '/workspace');
 
     expect(handleJavaImportDeclaration).not.toHaveBeenCalled();
     expect(handleJavaMethodDeclaration).not.toHaveBeenCalled();
     expect(handleJavaMethodInvocation).not.toHaveBeenCalled();
     expect(handleJavaTypeDeclaration).not.toHaveBeenCalled();
     expect(resolveJavaSourceInfo).toHaveBeenCalledWith('/workspace/src/App.java', { rootNode: {} });
+    expect(result).toEqual({
+      filePath: '/workspace/src/App.java',
+      symbols: [],
+      relations: [],
+    });
+  });
+
+  it('skips Java type declarations when symbol extraction is disabled', () => {
+    let visit: ((node: unknown, state: unknown, walk: unknown) => unknown) | undefined;
+    walkTree.mockImplementation((_root, _state, callback) => {
+      visit = callback;
+    });
+
+    const result = analyzeJavaFile(
+      '/workspace/src/App.java',
+      { rootNode: {} } as never,
+      '/workspace',
+      { includeSymbols: false },
+    );
+
+    visit?.({ type: 'class_declaration' }, {}, vi.fn());
+
+    expect(handleJavaTypeDeclaration).toHaveBeenCalledWith(
+      { type: 'class_declaration' },
+      '/workspace/src/App.java',
+      '/workspace/src',
+      'pkg',
+      expect.any(Array),
+      expect.any(Array),
+      expect.any(Map),
+      false,
+    );
+    expect(normalizeAnalysisResult).toHaveBeenLastCalledWith(
+      '/workspace/src/App.java',
+      [],
+      [],
+    );
     expect(result).toEqual({
       filePath: '/workspace/src/App.java',
       symbols: [],

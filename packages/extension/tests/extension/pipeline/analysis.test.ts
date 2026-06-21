@@ -5,6 +5,10 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import {
+  getWorkspaceAnalysisDatabasePath,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../../src/extension/pipeline/database/cache/storage';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
@@ -46,6 +50,15 @@ async function createWorkspace(files: Record<string, string>): Promise<string> {
   return workspaceRoot;
 }
 
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 afterAll(async () => {
   await Promise.all(
     tempWorkspaceRoots.splice(0).map((workspaceRoot) =>
@@ -62,16 +75,15 @@ describe('WorkspacePipeline analysis', () => {
     vi.restoreAllMocks();
   });
 
-  it('registers all built-in plugins as built-in entries during initialize', async () => {
+  it('registers built-in plugin entries during initialize', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
     );
 
     await analyzer.initialize();
 
-    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true, true]);
+    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true]);
     expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
-      'codegraphy.treesitter',
       'codegraphy.markdown',
     ]);
   });
@@ -92,7 +104,7 @@ describe('WorkspacePipeline analysis', () => {
     expect(analyzer.getPluginFilterPatterns()).toEqual(expectedPatterns);
   });
 
-  it('wires the built-in Tree-sitter plugin into the registry during initialize', async () => {
+  it('wires core Tree-sitter analysis into the registry during initialize', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
     );
@@ -111,14 +123,14 @@ describe('WorkspacePipeline analysis', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
-          sourceId: 'codegraphy.treesitter:import',
+          sourceId: 'core:treesitter:import',
           specifier: './utils',
         }),
       ]),
     );
   });
 
-  it('wires the built-in Tree-sitter plugin into the registry for Python files without a marketplace plugin', async () => {
+  it('wires core Tree-sitter analysis for Python files without a marketplace plugin', async () => {
     const workspaceRoot = await createWorkspace({
       'pkg/thing.py': 'def run():\n    return True\n',
       'app.py': 'from .pkg import thing\nclass App:\n    def run(self):\n        thing.run()\n',
@@ -144,18 +156,168 @@ describe('WorkspacePipeline analysis', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
-          sourceId: 'codegraphy.treesitter:import',
+          sourceId: 'core:treesitter:import',
           specifier: '.pkg.thing',
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
         expect.objectContaining({
           kind: 'call',
-          sourceId: 'codegraphy.treesitter:call',
+          sourceId: 'core:treesitter:call',
           specifier: '.pkg.thing',
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
       ]),
     );
+  });
+
+  it('pre-analyzes core Tree-sitter files before C# workspace analysis', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/Contracts/IRunner.cs': 'namespace MyApp.Contracts;\npublic interface IRunner {}\n',
+      'src/Program.cs': 'using MyApp.Services;\nusing MyApp.Utils;\nApiService.Run();\nHelpers.Format();\n',
+      'src/Services/ApiService.cs': 'using MyApp.Contracts;\nnamespace MyApp.Services;\npublic class ApiService : IRunner { public static void Run() {} }\n',
+      'src/Utils/Helpers.cs': 'namespace MyApp.Utils;\npublic static class Helpers { public static string Format() => "ok"; }\n',
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const graph = await analyzer.analyze();
+
+    expect(graph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/Program.cs->src/Services/ApiService.cs#call',
+        'src/Program.cs->src/Services/ApiService.cs#using',
+        'src/Program.cs->src/Utils/Helpers.cs#call',
+        'src/Program.cs->src/Utils/Helpers.cs#using',
+        'src/Services/ApiService.cs->src/Contracts/IRunner.cs#implements',
+        'src/Services/ApiService.cs->src/Contracts/IRunner.cs#using',
+      ]),
+    );
+  });
+
+  it('keeps Tree-sitter relations after workspace plugin reload and index refresh', async () => {
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const initialGraph = await analyzer.analyze();
+    expect(initialGraph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/index.ts->src/utils.ts#import',
+      ]),
+    );
+
+    await analyzer.reloadWorkspacePlugins();
+    const refreshedGraph = await analyzer.refreshIndex();
+
+    expect(analyzer.registry.get('codegraphy.markdown')).toBeDefined();
+    expect(refreshedGraph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/index.ts->src/utils.ts#import',
+      ]),
+    );
+  });
+
+  it('preserves the previous Tree-sitter index when a full refresh is aborted', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const graph = await analyzer.analyze();
+    expect(graph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    const snapshotBefore = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshotBefore.relations.length).toBeGreaterThan(0);
+
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      analyzer.refreshIndex([], new Set<string>(), controller.signal),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBe(
+      snapshotBefore.relations.length,
+    );
+  });
+
+  it('recreates a deleted Graph Cache when indexing the workspace', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const initialGraph = await analyzer.analyze();
+    expect(initialGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    expect(await pathExists(databasePath)).toBe(true);
+
+    await fs.unlink(databasePath);
+    expect(analyzer.hasIndex()).toBe(false);
+
+    const indexedGraph = await analyzer.refreshIndex();
+
+    expect(indexedGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    expect(await pathExists(databasePath)).toBe(true);
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
+  });
+
+  it('replays warm Graph Cache nodes and edges after a cold index', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const coldAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await coldAnalyzer.initialize();
+
+    const coldGraph = await coldAnalyzer.analyze();
+    expect(coldGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+
+    const warmAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    await warmAnalyzer.initialize();
+
+    const warmGraph = await warmAnalyzer.loadCachedGraph();
+
+    expect(warmGraph.nodes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'src/index.ts', color: expect.stringMatching(/^#[0-9a-f]{6}$/i) }),
+        expect.objectContaining({ id: 'src/utils.ts', color: expect.stringMatching(/^#[0-9a-f]{6}$/i) }),
+      ]),
+    );
+    expect(warmGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
   });
 
   it('returns an empty graph when no workspace folder is open', async () => {

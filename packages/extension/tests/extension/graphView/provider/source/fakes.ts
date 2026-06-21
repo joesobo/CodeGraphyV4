@@ -69,6 +69,15 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
   const refreshMethods = {
     _rebuildAndSend: vi.fn(async () => undefined),
     _smartRebuild: vi.fn(async () => undefined),
+    refreshIndex: vi.fn(async () => undefined),
+    refreshGitignoreMetadata: vi.fn(async () => undefined),
+    refreshChangedFiles: vi.fn(async () => undefined),
+    clearCacheAndRefresh: vi.fn(async () => undefined),
+    refresh: vi.fn(async () => undefined),
+    refreshGroupSettings: vi.fn(),
+    refreshPhysicsSettings: vi.fn(),
+    refreshSettings: vi.fn(),
+    refreshToggleSettings: vi.fn(),
   };
   const settingsStateMethods = {
     _loadDisabledRulesAndPlugins: vi.fn(() => false),
@@ -166,6 +175,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
       viewSelection: viewSelectionMethods,
       webview: webviewMethods,
     },
+    invalidatePluginFiles: vi.fn(() => ['src/app.ts']),
     _analysisMethods: analysisMethods,
     _commandMethods: commandMethods,
     _fileActionMethods: fileActionMethods,

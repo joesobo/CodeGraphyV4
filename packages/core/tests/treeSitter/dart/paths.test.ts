@@ -34,6 +34,7 @@ describe('treeSitter/analyzeDart/paths', () => {
     await fs.writeFile(malformedPackagePath, 'class Malformed {}\n', 'utf-8');
 
     expect(resolveDartImportPath(sourcePath, workspaceRoot, 'package:sample_app/model/user')).toBe(targetPath);
+    expect(resolveDartImportPath('packages/app/lib/src/app.dart', workspaceRoot, 'package:sample_app/model/user')).toBe(targetPath);
     expect(resolveDartImportPath(sourcePath, workspaceRoot, 'package:sample_app')).toBeNull();
     expect(resolveDartImportPath(sourcePath, workspaceRoot, 'package:/model/malformed')).toBeNull();
   });

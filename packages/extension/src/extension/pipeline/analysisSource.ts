@@ -18,6 +18,8 @@ export interface WorkspacePipelineSourceOwner {
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     nextSignal?: AbortSignal,
+    pluginIds?: readonly string[],
+    disabledPlugins?: Set<string>,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -37,12 +39,14 @@ export interface WorkspacePipelineSourceOwner {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     nextSignal?: AbortSignal,
+    disabledPlugins?: Set<string>,
   ): Promise<void>;
   _eventBus?: EventBus;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
+  _lastGitIgnoredPaths: string[];
   _lastWorkspaceRoot: string;
   _cache: IWorkspaceAnalysisCache;
   _discovery: FileDiscovery;
@@ -60,7 +64,16 @@ export function createWorkspacePipelineAnalysisSource(
       workspaceRoot: string,
       onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
       nextSignal?: AbortSignal,
-    ) => owner._analyzeFiles(files, workspaceRoot, onProgress, nextSignal),
+      pluginIds?: readonly string[],
+      disabledPlugins?: Set<string>,
+    ) => owner._analyzeFiles(
+      files,
+      workspaceRoot,
+      onProgress,
+      nextSignal,
+      pluginIds,
+      disabledPlugins,
+    ),
     _buildGraphData: (
       fileConnections: Map<string, IProjectedConnection[]>,
       workspaceRoot: string,
@@ -93,7 +106,8 @@ export function createWorkspacePipelineAnalysisSource(
       files: IDiscoveredFile[],
       workspaceRoot: string,
       nextSignal?: AbortSignal,
-    ) => owner._preAnalyzePlugins(files, workspaceRoot, nextSignal),
+      disabledPlugins?: Set<string>,
+    ) => owner._preAnalyzePlugins(files, workspaceRoot, nextSignal, disabledPlugins),
     getPluginFilterPatterns: (disabledPlugins?: ReadonlySet<string>) =>
       owner.getPluginFilterPatterns(disabledPlugins),
   } as WorkspacePipelineAnalysisSource;
@@ -118,6 +132,12 @@ export function createWorkspacePipelineAnalysisSource(
       get: () => owner._lastFileConnections,
       set: (fileConnections: Map<string, IProjectedConnection[]>) => {
         owner._lastFileConnections = fileConnections;
+      },
+    },
+    _lastGitIgnoredPaths: {
+      get: () => owner._lastGitIgnoredPaths,
+      set: (gitIgnoredPaths: string[]) => {
+        owner._lastGitIgnoredPaths = gitIgnoredPaths;
       },
     },
     _lastFileAnalysis: {

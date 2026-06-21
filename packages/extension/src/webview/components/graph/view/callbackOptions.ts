@@ -1,12 +1,12 @@
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { UseGraphCallbacksOptions } from '../rendering/useGraphCallbacks';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 
 export function buildGraphCallbackOptions({
   graphState,
   pluginHost,
 }: {
-  graphState: UseGraphStateResult;
+  graphState: GraphRuntime;
   pluginHost?: WebviewPluginHost;
 }): UseGraphCallbacksOptions {
   return {
@@ -18,13 +18,13 @@ export function buildGraphCallbackOptions({
       graphAppearanceRef: graphState.graphAppearanceRef,
       highlightedNeighborsRef: graphState.highlightedNeighborsRef,
       highlightedNodeRef: graphState.highlightedNodeRef,
-      meshesRef: graphState.meshesRef,
+      meshesRef: graphState.renderCaches.meshesRef,
       nodeDecorationsRef: graphState.nodeDecorationsRef,
-      selectedNodesSetRef: graphState.selectedNodesSetRef,
+      selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
       showLabelsRef: graphState.showLabelsRef,
-      spritesRef: graphState.spritesRef,
+      spritesRef: graphState.renderCaches.spritesRef,
       themeRef: graphState.themeRef,
     },
-    triggerImageRerender: graphState.triggerImageRerender,
+    triggerImageRerender: graphState.renderCaches.invalidateImages,
   };
 }

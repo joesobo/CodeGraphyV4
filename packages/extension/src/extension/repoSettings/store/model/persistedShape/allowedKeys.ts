@@ -1,9 +1,11 @@
 export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'version',
   'maxFiles',
+  'verboseDiagnostics',
   'include',
   'respectGitignore',
   'showOrphans',
+  'cssSnippets',
   'plugins',
   'pluginData',
   'nodeColors',

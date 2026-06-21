@@ -1,15 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
-import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
-import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createMarkdownPlugin } from '../../../../plugin-markdown/src/plugin';
 
 describe('Plugin Rules', () => {
-  it('TypeScript plugin relies on the core analyzer and does not declare supplemental sources', () => {
+  it('TypeScript plugin adds project-aware analysis without declaring legacy supplemental sources', () => {
     const plugin = createTypeScriptPlugin();
     expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
+    expect(plugin.analyzeFile).toBeDefined();
+    expect(plugin.contributeEdgeTypes?.()).toEqual([
+      expect.objectContaining({
+        id: 'codegraphy.typescript:alias-import',
+        label: 'TypeScript Alias Import',
+      }),
+    ]);
   });
 
   it('GDScript plugin declares sources', () => {
@@ -20,18 +24,6 @@ describe('Plugin Rules', () => {
     expect(sourceIds).toContain('load');
     expect(sourceIds).toContain('extends');
     expect(sourceIds).toContain('class-name-usage');
-  });
-
-  it('Python plugin relies on the core analyzer and does not declare supplemental sources', () => {
-    const plugin = createPythonPlugin();
-    expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
-  });
-
-  it('C# plugin relies on the core analyzer and does not declare supplemental sources', () => {
-    const plugin = createCSharpPlugin();
-    expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
   });
 
   it('Markdown plugin declares sources', () => {
@@ -45,8 +37,6 @@ describe('Plugin Rules', () => {
     const plugins = [
       createTypeScriptPlugin(),
       createGDScriptPlugin(),
-      createPythonPlugin(),
-      createCSharpPlugin(),
       createMarkdownPlugin(),
     ];
     for (const plugin of plugins) {

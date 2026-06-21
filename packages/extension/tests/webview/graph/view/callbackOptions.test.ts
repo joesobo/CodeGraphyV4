@@ -2,19 +2,27 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildGraphCallbackOptions } from '../../../../src/webview/components/graph/view/callbackOptions';
 
 function createGraphState() {
+  const invalidateImages = vi.fn();
+  const meshesRef = { current: new Map() };
+  const selectedNodeIdsRef = { current: new Set<string>() };
+  const spritesRef = { current: new Map() };
   return {
     directionColorRef: { current: '#f00' },
     directionModeRef: { current: 'arrows' },
     edgeDecorationsRef: { current: {} },
     highlightedNeighborsRef: { current: new Set<string>() },
     highlightedNodeRef: { current: null },
-    meshesRef: { current: new Map() },
     nodeDecorationsRef: { current: {} },
-    selectedNodesSetRef: { current: new Set<string>() },
+    renderCaches: {
+      invalidateImages,
+      meshesRef,
+      spritesRef,
+    },
+    selection: {
+      selectedNodeIdsRef,
+    },
     showLabelsRef: { current: true },
-    spritesRef: { current: new Map() },
     themeRef: { current: 'dark' },
-    triggerImageRerender: vi.fn(),
   };
 }
 
@@ -33,14 +41,14 @@ describe('graph/callbackOptions', () => {
         edgeDecorationsRef: graphState.edgeDecorationsRef,
         highlightedNeighborsRef: graphState.highlightedNeighborsRef,
         highlightedNodeRef: graphState.highlightedNodeRef,
-        meshesRef: graphState.meshesRef,
+        meshesRef: graphState.renderCaches.meshesRef,
         nodeDecorationsRef: graphState.nodeDecorationsRef,
-        selectedNodesSetRef: graphState.selectedNodesSetRef,
+        selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
         showLabelsRef: graphState.showLabelsRef,
-        spritesRef: graphState.spritesRef,
+        spritesRef: graphState.renderCaches.spritesRef,
         themeRef: graphState.themeRef,
       },
-      triggerImageRerender: graphState.triggerImageRerender,
+      triggerImageRerender: graphState.renderCaches.invalidateImages,
     });
   });
 });

@@ -132,6 +132,71 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('particleSpeed', 0.2);
   });
 
+  it('persists plugin-owned data and publishes it immediately', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+    const data = {
+      enabled: true,
+      preset: 'constellations',
+      intensity: 0.6,
+    };
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_PLUGIN_DATA',
+          payload: { pluginId: 'acme.plugin', data },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('pluginData', {
+      'acme.plugin': data,
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'PLUGIN_DATA_UPDATED',
+      payload: { pluginId: 'acme.plugin', data },
+    });
+  });
+
+  it('merges plugin-owned data with existing plugin data', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'pluginData') {
+          return {
+            'other.plugin': { enabled: false },
+          } as T;
+        }
+        return defaultValue;
+      }),
+    });
+    const data = {
+      enabled: true,
+      preset: 'custom',
+      intensity: 0.7,
+      customModule: '.codegraphy/particles/ribbons.js',
+    };
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_PLUGIN_DATA',
+          payload: { pluginId: 'acme.plugin', data },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('pluginData', {
+      'other.plugin': { enabled: false },
+      'acme.plugin': data,
+    });
+  });
+
   it('persists update-max-files through config updates', async () => {
     const state = createState();
     const handlers = createHandlers();

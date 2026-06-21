@@ -96,6 +96,52 @@ describe('graph view provider listener plugin context', () => {
     expect(source._webviewReadyNotified).toBe(true);
   });
 
+  it('does not expose disabled plugin APIs to webview actions', () => {
+    const source = {
+      _analyzer: {
+        getPluginFilterPatterns: vi.fn(() => []),
+        registry: {
+          notifyWebviewReady: vi.fn(),
+          getPluginAPI: vi.fn((pluginId: string) => ({ id: pluginId })),
+        },
+      },
+      _disabledPlugins: new Set(['plugin.disabled']),
+      _firstAnalysis: false,
+      _webviewReadyNotified: false,
+      _sendFavorites: vi.fn(),
+      _sendSettings: vi.fn(),
+      _sendCachedTimeline: vi.fn(),
+      _sendDecorations: vi.fn(),
+      _sendContextMenuItems: vi.fn(),
+      _sendPluginWebviewInjections: vi.fn(),
+      _firstWorkspaceReadyPromise: Promise.resolve(),
+      _eventBus: {
+        emit: vi.fn(),
+      },
+      _userGroups: [],
+      _filterPatterns: [],
+      _loadGroupsAndFilterPatterns: vi.fn(),
+      _loadDisabledRulesAndPlugins: vi.fn(() => false),
+      _sendDepthState: vi.fn(),
+    };
+    const context = createGraphViewProviderMessagePluginContext(
+      source as never,
+      {
+        workspace: {
+          workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
+          getConfiguration: vi.fn(),
+        },
+        getConfigTarget: vi.fn(() => 'workspace'),
+      } as never,
+    );
+
+    expect(context.getInteractionPluginApi('plugin.disabled')).toBeUndefined();
+    expect(context.getContextMenuPluginApi('plugin.disabled')).toBeUndefined();
+    expect(context.getExporterPluginApi?.('plugin.disabled')).toBeUndefined();
+    expect(context.getToolbarActionPluginApi?.('plugin.disabled')).toBeUndefined();
+    expect(context.getInteractionPluginApi('plugin.enabled')).toEqual({ id: 'plugin.enabled' });
+  });
+
   it('delegates provider broadcasts, ready state, and active-file messaging', async () => {
     const readyPromise = Promise.resolve('ready');
     const source = {

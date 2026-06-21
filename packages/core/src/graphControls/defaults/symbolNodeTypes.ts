@@ -1,6 +1,7 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
 
-export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
+export function createCoreSymbolNodeTypes(): IGraphNodeTypeDefinition[] {
+  return [
   {
     id: 'symbol',
     label: 'Symbol',
@@ -16,11 +17,52 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     matchSymbolKinds: ['function', 'method'],
   },
   {
+    id: 'symbol:namespace',
+    label: 'Namespace',
+    defaultColor: '#64748B',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['namespace'],
+  },
+  {
+    id: 'symbol:callable',
+    label: 'Callable',
+    defaultColor: '#8B5CF6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['function'],
+  },
+  {
+    id: 'symbol:method',
+    label: 'Method',
+    defaultColor: '#A855F7',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['method'],
+  },
+  {
+    id: 'symbol:constructor',
+    label: 'Constructor',
+    defaultColor: '#C084FC',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['constructor'],
+  },
+  {
+    id: 'symbol:prototype',
+    label: 'Prototype',
+    defaultColor: '#A78BFA',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['prototype'],
+  },
+  {
     id: 'symbol:class',
     label: 'Class',
     defaultColor: '#3B82F6',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['class'],
   },
   {
     id: 'symbol:interface',
@@ -28,6 +70,39 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#06B6D4',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['interface'],
+  },
+  {
+    id: 'symbol:record',
+    label: 'Record',
+    defaultColor: '#6366F1',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['record'],
+  },
+  {
+    id: 'symbol:delegate',
+    label: 'Delegate',
+    defaultColor: '#10B981',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['delegate'],
+  },
+  {
+    id: 'symbol:property',
+    label: 'Property',
+    defaultColor: '#84CC16',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['property'],
+  },
+  {
+    id: 'symbol:event',
+    label: 'Event',
+    defaultColor: '#F97316',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['event'],
   },
   {
     id: 'symbol:type',
@@ -35,6 +110,7 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#EC4899',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['type'],
   },
   {
     id: 'symbol:struct',
@@ -42,6 +118,15 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#0EA5E9',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['struct'],
+  },
+  {
+    id: 'symbol:union',
+    label: 'Union',
+    defaultColor: '#14B8A6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['union'],
   },
   {
     id: 'symbol:enum',
@@ -49,5 +134,33 @@ export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = [
     defaultColor: '#F59E0B',
     defaultVisible: false,
     parentId: 'symbol',
+    matchSymbolKinds: ['enum'],
   },
-];
+  {
+    id: 'symbol:typedef',
+    label: 'Typedef',
+    defaultColor: '#F472B6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['typedef'],
+  },
+  {
+    id: 'symbol:alias',
+    label: 'Alias',
+    defaultColor: '#F472B6',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['alias'],
+  },
+  {
+    id: 'symbol:template',
+    label: 'Template',
+    defaultColor: '#C084FC',
+    defaultVisible: false,
+    parentId: 'symbol',
+    matchSymbolKinds: ['template'],
+  },
+  ];
+}
+
+export const CORE_SYMBOL_NODE_TYPES: IGraphNodeTypeDefinition[] = createCoreSymbolNodeTypes();

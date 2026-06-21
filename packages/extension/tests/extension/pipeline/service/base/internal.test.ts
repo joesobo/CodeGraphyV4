@@ -26,6 +26,7 @@ import {
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../../../../src/extension/pipeline/service/cache/signatures';
+import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 
 vi.mock('../../../../../src/extension/pipeline/serviceAdapters', () => ({
   readWorkspacePipelineFileStat: vi.fn(),
@@ -64,6 +65,11 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/signatures', () => 
   readWorkspacePipelineCurrentCommitShaSync: vi.fn(),
 }));
 
+vi.mock('@codegraphy-dev/core', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@codegraphy-dev/core')>()),
+  preAnalyzeCoreTreeSitterFiles: vi.fn(),
+}));
+
 vi.mock('vscode', () => ({
   workspace: {
     workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
@@ -88,9 +94,15 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
         update: vi.fn(),
       },
     } as never);
+    this._cache = { files: { 'src/a.ts': { cached: true } } } as unknown as IWorkspaceAnalysisCache;
   }
 
   _config = {
+    get: vi.fn(<T>(key: string, defaultValue: T): T => (
+      key === 'nodeVisibility'
+        ? { file: true, symbol: false } as T
+        : defaultValue
+    )),
     getAll: vi.fn(() => ({
       version: 1,
       showOrphans: true,
@@ -108,21 +120,29 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
     readContent: vi.fn(async file => `contents:${file.absolutePath}`),
   } as unknown as FileDiscovery;
 
-  _cache = { files: { 'src/a.ts': { cached: true } } } as unknown as IWorkspaceAnalysisCache;
+  public override get _cache(): IWorkspaceAnalysisCache {
+    return super._cache;
+  }
+
+  public override set _cache(cache: IWorkspaceAnalysisCache) {
+    super._cache = cache;
+  }
 
   public preAnalyzePlugins(
     files: Array<{ absolutePath: string; relativePath: string }>,
     workspaceRoot: string,
+    disabledPlugins?: Set<string>,
   ): Promise<void> {
-    return this._preAnalyzePlugins(files as never, workspaceRoot);
+    return this._preAnalyzePlugins(files as never, workspaceRoot, undefined, disabledPlugins);
   }
 
   public analyzeFiles(
     files: Array<{ absolutePath: string; relativePath: string }>,
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+    disabledPlugins?: Set<string>,
   ) {
-    return this._analyzeFiles(files as never, workspaceRoot, onProgress);
+    return this._analyzeFiles(files as never, workspaceRoot, onProgress, undefined, undefined, disabledPlugins);
   }
 
   public buildGraphData(
@@ -155,6 +175,10 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
 
   public setLastDiscoveredDirectories(directoryPaths: string[]): void {
     this._lastDiscoveredDirectories = directoryPaths;
+  }
+
+  public setLastGitIgnoredPaths(gitIgnoredPaths: string[]): void {
+    this._lastGitIgnoredPaths = gitIgnoredPaths;
   }
 
   public getFileStat(filePath: string) {
@@ -207,6 +231,7 @@ describe('extension/pipeline/service/internalBase', () => {
       mtime: 123,
       size: 456,
     });
+    vi.mocked(preAnalyzeCoreTreeSitterFiles).mockResolvedValue(undefined);
     vi.mocked(preAnalyzeWorkspacePipelinePlugins).mockResolvedValue(undefined);
     vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mockResolvedValue({
       fileAnalysis: new Map(),
@@ -233,18 +258,20 @@ describe('extension/pipeline/service/internalBase', () => {
   it('delegates pre-analysis through the shared helper with registry and discovery callbacks', async () => {
     const source = new TestInternalBase();
     const files = [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }];
+    const disabledPlugins = new Set(['plugin.disabled']);
     source._registry = {
       ...source._registry,
       notifyPreAnalyze: vi.fn(async () => undefined),
     } as never;
 
-    await source.preAnalyzePlugins(files, '/workspace');
+    await source.preAnalyzePlugins(files, '/workspace', disabledPlugins);
 
     expect(preAnalyzeWorkspacePipelinePlugins).toHaveBeenCalledWith(
       files,
       '/workspace',
       expect.any(Object),
       undefined,
+      disabledPlugins,
     );
     const dependencies = vi.mocked(preAnalyzeWorkspacePipelinePlugins).mock.calls[0][2];
     await dependencies.notifyPreAnalyze(
@@ -254,6 +281,8 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(source._registry.notifyPreAnalyze).toHaveBeenCalledWith(
       [{ relativePath: 'src/a.ts' }],
       '/workspace',
+      undefined,
+      disabledPlugins,
     );
     await expect(dependencies.readContent(files[0] as never)).resolves.toBe(
       'contents:/workspace/src/a.ts',
@@ -264,6 +293,7 @@ describe('extension/pipeline/service/internalBase', () => {
   it('delegates file analysis through the shared helper with the current collaborators', async () => {
     const source = new TestInternalBase();
     const progress = vi.fn();
+    const disabledPlugins = new Set(['plugin.disabled']);
     source.setEventBus({ emit: vi.fn() } as never);
     const state = source as unknown as { _eventBus: unknown };
     const getFileStat = vi
@@ -274,6 +304,7 @@ describe('extension/pipeline/service/internalBase', () => {
       [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }],
       '/workspace',
       progress,
+      disabledPlugins,
     );
 
     expect(analyzeWorkspacePipelineDiscoveredFiles).toHaveBeenCalledWith(
@@ -286,6 +317,13 @@ describe('extension/pipeline/service/internalBase', () => {
       '/workspace',
       progress,
       undefined,
+      {
+        active: ['baseline', 'plugin:plugin.a'],
+        completed: ['baseline', 'plugin:plugin.a'],
+        required: ['baseline', 'plugin:plugin.a'],
+      },
+      ['plugin.a'],
+      disabledPlugins,
     );
     await expect(
       vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mock.calls[0][4]('/workspace/src/a.ts'),
@@ -299,7 +337,9 @@ describe('extension/pipeline/service/internalBase', () => {
     const fileAnalysis = new Map([['src/a.ts', { filePath: 'src/a.ts' }]]);
     const disabledPlugins = new Set(['plugin.disabled']);
     const discoveredDirectories = ['src/generated'];
+    const gitIgnoredPaths = ['src/generated/cache.py'];
     source.setLastDiscoveredDirectories(discoveredDirectories);
+    source.setLastGitIgnoredPaths(gitIgnoredPaths);
 
     expect(
       source.buildGraphData(fileConnections, '/workspace', true, disabledPlugins),
@@ -316,6 +356,7 @@ describe('extension/pipeline/service/internalBase', () => {
       true,
       disabledPlugins,
       discoveredDirectories,
+      gitIgnoredPaths,
     );
 
     expect(
@@ -338,6 +379,8 @@ describe('extension/pipeline/service/internalBase', () => {
       false,
       disabledPlugins,
       discoveredDirectories,
+      { nodeVisibility: { file: true, symbol: false } },
+      gitIgnoredPaths,
     );
   });
 

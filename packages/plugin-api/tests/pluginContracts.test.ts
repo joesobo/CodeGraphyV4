@@ -11,6 +11,7 @@ import type {
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
   IPlugin,
+  IPluginGraphScopeCapabilityContext,
   CodeGraphyWebviewAPI,
   IPluginDataHost,
   IPluginFactory,
@@ -18,6 +19,31 @@ import type {
 } from '../src';
 
 describe('plugin API contracts', () => {
+  it('lets plugins declare graph scope capabilities separately from emitted graph output', () => {
+    const plugin = {
+      id: 'acme.routes',
+      name: 'Acme Routes',
+      version: '0.1.0',
+      apiVersion: '^2.0.0',
+      supportedExtensions: ['.route'],
+      contributeEdgeTypes: () => [{
+        id: 'acme.routes:route',
+        label: 'Routes',
+        defaultColor: '#22C55E',
+        defaultVisible: true,
+      }],
+      contributeGraphScopeCapabilities: (context?: IPluginGraphScopeCapabilityContext) => {
+        expectTypeOf(context?.filePaths).toMatchTypeOf<readonly string[] | undefined>();
+        return {
+          nodeTypes: ['acme.routes:route'],
+          edgeTypes: ['import', 'acme.routes:route'],
+        };
+      },
+    } satisfies IPlugin;
+
+    expectTypeOf(plugin.contributeGraphScopeCapabilities).toMatchTypeOf<IPlugin['contributeGraphScopeCapabilities']>();
+  });
+
   it('lets packages register access plumbing and contribute account UI without owning feature behavior', () => {
     const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 

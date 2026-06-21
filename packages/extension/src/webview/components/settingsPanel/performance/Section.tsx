@@ -2,6 +2,8 @@ import React from 'react';
 import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store/state';
 import { MaxFilesControl } from '../display/MaxFilesControl';
+import { Label } from '../../ui/form/label';
+import { Switch } from '../../ui/switch';
 import {
   clampMaxFiles,
   decreaseMaxFiles,
@@ -11,7 +13,9 @@ import {
 
 export function PerformanceSection(): React.ReactElement {
   const maxFiles = useGraphStore((state) => state.maxFiles);
+  const verboseDiagnostics = useGraphStore((state) => state.verboseDiagnostics);
   const setMaxFiles = useGraphStore((state) => state.setMaxFiles);
+  const setVerboseDiagnostics = useGraphStore((state) => state.setVerboseDiagnostics);
 
   const commitMaxFiles = (value: number): void => {
     const clamped = clampMaxFiles(value);
@@ -20,7 +24,7 @@ export function PerformanceSection(): React.ReactElement {
   };
 
   return (
-    <div className="mb-2 space-y-3">
+    <section className="mb-2 space-y-3" data-codegraphy-section="settings-performance">
       <MaxFilesControl
         maxFiles={maxFiles}
         onBlur={(value) => commitMaxFiles(parseMaxFilesInput(value) ?? 1)}
@@ -38,6 +42,22 @@ export function PerformanceSection(): React.ReactElement {
           }
         }}
       />
-    </div>
+      <div className="flex items-center justify-between py-0.5">
+        <Label htmlFor="verbose-diagnostics" className="text-xs">
+          Verbose Diagnostics
+        </Label>
+        <Switch
+          id="verbose-diagnostics"
+          checked={verboseDiagnostics}
+          onCheckedChange={(checked) => {
+            setVerboseDiagnostics(checked);
+            postMessage({
+              type: 'UPDATE_VERBOSE_DIAGNOSTICS',
+              payload: { verboseDiagnostics: checked },
+            });
+          }}
+        />
+      </div>
+    </section>
   );
 }

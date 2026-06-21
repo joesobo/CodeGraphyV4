@@ -18,7 +18,7 @@ Every `codegraphy ...` terminal subcommand lives in `@codegraphy-dev/core`. `@co
 
 ## Prerequisites
 
-- Node `22.22.0` or newer within the supported Node 22 range.
+- Node 20 or newer.
 - Codex, Claude, Cursor, or another MCP-capable agent.
 
 ## Quick Start
@@ -95,8 +95,8 @@ These are core-owned CLI commands that MCP tools can ask users or agents to run 
 | `codegraphy index [workspace]` | Runs Indexing for the current or explicit CodeGraphy Workspace | create or overwrite the Graph Cache |
 | `codegraphy plugins register <package>` | Registers one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata | make a global package available to workspaces |
 | `codegraphy plugins list [workspace]` | Shows registered plugins and workspace enablement | inspect available and enabled plugins |
-| `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin package for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
-| `codegraphy plugins disable <package> [workspace]` | Removes a plugin from the workspace-local enabled plugin array | turn off plugin analysis without uninstalling the package |
+| `codegraphy plugins enable <plugin-id-or-package> [workspace]` | Writes `enabled: true` Plugin ID activity for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
+| `codegraphy plugins disable <plugin-id-or-package> [workspace]` | Writes `enabled: false` Plugin ID activity for the current or explicit CodeGraphy Workspace | turn off plugin analysis without uninstalling the package |
 
 For commands with `[workspace]`, the workspace is an optional trailing positional argument. Omitting the path targets the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
 
@@ -104,14 +104,16 @@ For commands with `[workspace]`, the workspace is an optional trailing positiona
 
 MCP tools should mirror the core CLI command semantics. They call Core APIs directly instead of shelling out to `codegraphy`.
 
+Every MCP tool accepts optional `verboseDiagnostics: true`. When enabled, the tool result includes factual CodeGraphy diagnostic events in a `diagnostics` array. Default tool responses are unchanged when it is omitted. See [Verbose Diagnostics](./DIAGNOSTICS.md).
+
 | Tool | What It Does | Typical Use |
 |---|---|---|
 | `codegraphy_status` | Reports CodeGraphy Workspace status for the MCP server working directory or an explicit `path` | decide whether to index before querying |
 | `codegraphy_index` | Runs Indexing for the MCP server working directory or an explicit `path` without focusing VS Code | initialize or overwrite the Graph Cache |
 | `codegraphy_plugins_register` | Registers one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata | make a global package available to workspaces |
 | `codegraphy_plugins_list` | Shows registered plugins and workspace enablement | inspect available and enabled plugins |
-| `codegraphy_plugins_enable` | Enables a registered plugin package for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
-| `codegraphy_plugins_disable` | Removes a plugin from the workspace-local enabled plugin array | turn off plugin analysis without uninstalling the package |
+| `codegraphy_plugins_enable` | Enables a registered Plugin ID for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
+| `codegraphy_plugins_disable` | Disables a Plugin ID for the current or explicit CodeGraphy Workspace | turn off plugin analysis without uninstalling the package |
 | `codegraphy_list_nodes` | Lists graph nodes, defaulting to File Nodes; accepts optional `path` | discover exact node paths |
 | `codegraphy_list_edges` | Lists high-level `from` / `to` connections with grouped Edge Types; accepts optional `path` | see immediate file/folder/package connections |
 | `codegraphy_list_relationships` | Lists detailed relationships grouped by node pair and Edge Type; accepts optional `path` | inspect symbol-backed connection evidence |

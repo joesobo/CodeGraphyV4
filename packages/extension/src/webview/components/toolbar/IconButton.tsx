@@ -35,6 +35,7 @@ export function ToolbarIconButton({
           )}
           onClick={onClick}
           title={title}
+          aria-label={title}
           disabled={disabled}
         >
           <MdiIcon path={iconPath} size={16} />

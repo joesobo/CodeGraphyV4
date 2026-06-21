@@ -17,6 +17,12 @@ import type {
   EventName,
   EventPayloads,
   IConnectionSource,
+  IPluginWebviewAsset,
+  IPluginWebviewContributions,
+  CodeGraphyWebviewAPI,
+  GraphPluginSlot,
+  PluginSlotContribution,
+  WebviewPluginActivate,
   IGraphNode,
   IGraphEdge,
   IGraphData,
@@ -24,7 +30,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 ```
 
-The public package is headless. Extension-owned bridge types for webviews, commands, decorations, toolbar actions, and graph-view injections live in `@codegraphy-dev/extension`.
+The public package is host-agnostic. VS Code-specific bridge types, decorations, and raw extension integration types live in `@codegraphy-dev/extension`; package plugin contracts, Graph View contribution contracts, plugin-owned data contracts, and webview asset/runtime contracts live in `@codegraphy-dev/plugin-api`.
 
 ## Core Plugin Contract
 
@@ -38,7 +44,8 @@ Key points:
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
-- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, and defaults.
+- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, defaults, and optional user-facing descriptions for Graph Scope.
+- `contributeGraphScopeCapabilities(context)` lets plugins declare core or plugin-owned Node Types and Edge Types that are relevant when the plugin is enabled and applies to the indexed workspace, even if the current graph has no matching nodes or relationships yet. Use `context.filePaths` when one plugin supports several languages or file families with different capabilities.
 - Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IPluginAnalysisContext`
@@ -60,6 +67,8 @@ Higher-priority plugins only override data when both sides hit the same merge ke
 
 - `nodeTypes`, `edgeTypes`, `nodes`, and `symbols` merge by `id`
 - `relations` merge by relationship identity
+
+Node Type and Edge Type definitions can include an optional `description` object. The description should explain what the type means in product language, not how the analyzer detects it. Use `examples` for compact, real-looking snippets or paths that help users recognize the type in Graph Scope.
 
 Current relationship identity:
 
@@ -141,7 +150,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 - additive D3 force adapters
 - node drag-end policies for plugin-owned fixed-position behavior
 - context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
-- named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
+- named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldBackground`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
 
 The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw force-graph instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
 
@@ -215,6 +224,16 @@ Plugin id implies storage ownership. Hosts persist plugin data under the plugin 
 Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
 
 Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+
+### Webview (`webview.ts`)
+
+- `CodeGraphyWebviewAPI`
+- `GraphPluginSlot`
+- `PluginSlotContribution`
+- `WebviewPluginActivate`
+- `WebviewPluginActivationCleanup`
+
+Webview assets are package-owned scripts/styles declared through `IPlugin.webviewContributions`. They can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })`, exchange plugin-scoped messages, read and write plugin-owned webview state through `getPluginData()` and `setPluginData(data)`, and return cleanup work that the host runs when the plugin is disabled or reset.
 
 Runtime node contributions may supply D3 coordinate state (`x`/`y`/`z`), fixed coordinate state (`fx`/`fy`/`fz`), and velocity state (`vx`/`vy`/`vz`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
 

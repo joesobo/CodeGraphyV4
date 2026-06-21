@@ -41,6 +41,7 @@ export interface GraphState {
   searchQuery: string;
   searchOptions: SearchOptions;
   favorites: Set<string>;
+  pendingFavoriteSnapshot: Set<string> | null;
   bidirectionalMode: BidirectionalEdgeMode;
   showOrphans: boolean;
   directionMode: DirectionMode;
@@ -49,6 +50,7 @@ export interface GraphState {
   particleSize: number;
   physicsPaused: boolean;
   showLabels: boolean;
+  cssSnippets: Record<string, boolean>;
   graphMode: '2d' | '3d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
@@ -79,6 +81,7 @@ export interface GraphState {
   edgeVisibility: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  verboseDiagnostics: boolean;
   activeFilePath: string | null;
   timelineActive: boolean;
   timelineCommits: ICommitInfo[];
@@ -102,6 +105,7 @@ export interface GraphState {
   clearOptimisticLegendUpdate: (legendId: string) => void;
   setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;
+  toggleFavoritesOptimistically: (paths: readonly string[]) => void;
   setDisabledCustomFilterPatterns: (patterns: string[]) => void;
   setDisabledPluginFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;
@@ -112,9 +116,11 @@ export interface GraphState {
   setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
+  setCssSnippets: (snippets: Record<string, boolean>) => void;
   setDepthMode: (depthMode: boolean) => void;
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
+  setVerboseDiagnostics: (enabled: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
   beginInitialBootstrap: () => void;

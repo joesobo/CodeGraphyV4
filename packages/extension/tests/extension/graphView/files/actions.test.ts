@@ -47,7 +47,7 @@ describe('graphView/files/actions', () => {
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });
 
-  it('returns before prompting when no workspace folder is available for delete', async () => {
+  it('prompts but skips execution when no workspace folder is available for delete', async () => {
     const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
     const executeDeleteAction = vi.fn(async () => undefined);
 
@@ -56,7 +56,11 @@ describe('graphView/files/actions', () => {
       executeDeleteAction,
     });
 
-    expect(showWarningMessage).not.toHaveBeenCalled();
+    expect(showWarningMessage).toHaveBeenCalledWith(
+      'Are you sure you want to delete "src/app.ts"?',
+      { modal: true },
+      'Delete',
+    );
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });
 
@@ -113,6 +117,49 @@ describe('graphView/files/actions', () => {
     );
   });
 
+  it('creates nested files below the selected directory', async () => {
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile('test', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => 'a/b/c/d.ts'),
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateAction).toHaveBeenCalledWith(
+      'test/a/b/c/d.ts',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it.each([
+    ['../outside.ts'],
+    ['components/../outside.ts'],
+    ['/absolute.ts'],
+    ['C:/outside.ts'],
+    ['nested//file.ts'],
+    ['nested/'],
+    ['nested\\file.ts'],
+    ['.'],
+    ['..'],
+    [''],
+    ['   '],
+  ])('rejects unsafe file names from the create prompt: %j', async (fileName) => {
+    const executeCreateAction = vi.fn(async () => undefined);
+    const showErrorMessage = vi.fn();
+
+    await createGraphViewFile('src', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => fileName),
+      executeCreateAction,
+      showErrorMessage,
+    });
+
+    expect(executeCreateAction).not.toHaveBeenCalled();
+    expect(showErrorMessage).toHaveBeenCalledWith('Enter a relative file path inside this folder.');
+  });
+
   it('creates the folder selected in the input box', async () => {
     const executeCreateFolderAction = vi.fn(async () => undefined);
     const showInputBox = vi.fn(async () => 'components');
@@ -133,6 +180,49 @@ describe('graphView/files/actions', () => {
       'src/components',
       vscode.Uri.file('/workspace'),
     );
+  });
+
+  it('creates nested folders below the selected directory', async () => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+
+    await createGraphViewFolder('src', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => 'components/forms'),
+      executeCreateFolderAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateFolderAction).toHaveBeenCalledWith(
+      'src/components/forms',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it.each([
+    ['../outside'],
+    ['components/../outside'],
+    ['/absolute'],
+    ['C:/outside'],
+    ['nested//folder'],
+    ['nested/'],
+    ['nested\\folder'],
+    ['.'],
+    ['..'],
+    [''],
+    ['   '],
+  ])('rejects unsafe folder names from the create prompt: %j', async (folderName) => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+    const showErrorMessage = vi.fn();
+
+    await createGraphViewFolder('src', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => folderName),
+      executeCreateFolderAction,
+      showErrorMessage,
+    });
+
+    expect(executeCreateFolderAction).not.toHaveBeenCalled();
+    expect(showErrorMessage).toHaveBeenCalledWith('Enter a relative folder path inside this folder.');
   });
 
   it('returns before prompting when no workspace folder is available for create', async () => {

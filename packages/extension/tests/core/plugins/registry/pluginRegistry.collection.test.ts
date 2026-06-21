@@ -99,6 +99,149 @@ describe('PluginRegistry collection', () => {
     ]);
   });
 
+  it('excludes disabled plugins from graph type and capability contributions', () => {
+    const registry = createConfiguredRegistry();
+    const disabledPlugins = new Set(['godot']);
+    registry.register(createMockPlugin({
+      id: 'godot',
+      supportedExtensions: ['.gd'],
+      contributeNodeTypes: () => [
+        {
+          id: 'godot-scene',
+          label: 'Godot Scene',
+          defaultColor: '#478CBF',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypes: () => [
+        {
+          id: 'load',
+          label: 'Loads',
+          defaultColor: '#478CBF',
+          defaultVisible: true,
+        },
+      ],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['plugin:codegraphy.gdscript:symbol:godot-class-name'],
+        edgeTypes: ['load'],
+      }),
+    }));
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeNodeTypes: () => [
+        {
+          id: 'route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+      contributeEdgeTypes: () => [
+        {
+          id: 'plugin:route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['route'],
+        edgeTypes: ['plugin:route'],
+      }),
+    }));
+
+    expect(registry.listNodeTypes(disabledPlugins)).toEqual([
+      {
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+    ]);
+    expect(registry.listEdgeTypes(disabledPlugins)).toEqual([
+      {
+        id: 'plugin:route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+    ]);
+    expect(registry.listGraphScopeCapabilities(['game/player.gd', 'src/app.ts'], disabledPlugins)).toEqual({
+      nodeTypes: ['route'],
+      edgeTypes: ['plugin:route'],
+    });
+  });
+
+  it('includes core graph scope capabilities without treating core analysis as a plugin', () => {
+    const registry = createConfiguredRegistry();
+    registry.setCoreGraphScopeCapabilitiesProvider((filePaths) => {
+      expect(filePaths).toEqual(['src/app.cpp']);
+      return {
+        nodeTypes: ['symbol:function', 'symbol:class'],
+        edgeTypes: ['import', 'call', 'contains', 'inherit', 'overrides'],
+      };
+    });
+
+    expect(registry.list()).toEqual([]);
+    expect(registry.listGraphScopeCapabilities(['src/app.cpp'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:class'],
+      edgeTypes: ['import', 'call', 'contains', 'inherit', 'overrides'],
+    });
+  });
+
+  it('excludes disabled plugins from file analysis', async () => {
+    const registry = createConfiguredRegistry();
+    const analyzeFile = vi.fn(async (filePath: string) => ({
+      filePath,
+      relations: [],
+    }));
+    registry.register(createMockPlugin({
+      id: 'plugin.disabled',
+      supportedExtensions: ['.ts'],
+      analyzeFile,
+    }));
+
+    await expect(
+      registry.analyzeFileResult(
+        '/workspace/src/app.ts',
+        "import './target'",
+        '/workspace',
+        undefined,
+        { disabledPlugins: new Set(['plugin.disabled']) },
+      ),
+    ).resolves.toBeNull();
+
+    expect(analyzeFile).not.toHaveBeenCalled();
+  });
+
+  it('excludes disabled plugins from targeted file analysis', async () => {
+    const registry = createConfiguredRegistry();
+    const analyzeFile = vi.fn(async (filePath: string) => ({
+      filePath,
+      relations: [],
+    }));
+    registry.register(createMockPlugin({
+      id: 'plugin.disabled',
+      supportedExtensions: ['.ts'],
+      analyzeFile,
+    }));
+
+    await expect(
+      registry.analyzeFileResultForPlugins(
+        '/workspace/src/app.ts',
+        "import './target'",
+        '/workspace',
+        ['plugin.disabled'],
+        undefined,
+        { disabledPlugins: new Set(['plugin.disabled']) },
+      ),
+    ).resolves.toBeNull();
+
+    expect(analyzeFile).not.toHaveBeenCalled();
+  });
+
+
   it('ignores plugins without node-type contributions when listing node types', () => {
     const registry = createConfiguredRegistry();
     registry.register(createMockPlugin({ id: 'noop' }));
@@ -147,8 +290,8 @@ describe('PluginRegistry collection', () => {
           defaultVisible: false,
         },
         {
-          id: 'test',
-          label: 'Tests',
+          id: 'plugin:verify',
+          label: 'Verifies',
           defaultColor: '#00aaff',
           defaultVisible: true,
         },
@@ -163,8 +306,8 @@ describe('PluginRegistry collection', () => {
         defaultVisible: false,
       },
       {
-        id: 'test',
-        label: 'Tests',
+        id: 'plugin:verify',
+        label: 'Verifies',
         defaultColor: '#00aaff',
         defaultVisible: true,
       },
@@ -194,6 +337,91 @@ describe('PluginRegistry collection', () => {
         defaultVisible: true,
       },
     ]);
+  });
+
+  it('returns graph scope capabilities from plugins that support workspace files', () => {
+    const registry = createConfiguredRegistry();
+    const readTypeScriptCapabilities = vi.fn(() =>
+      ({
+        nodeTypes: ['symbol:function', 'symbol:interface'],
+        edgeTypes: ['import', 'plugin:route'],
+      }) as const
+    );
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: readTypeScriptCapabilities,
+    }));
+    registry.register(createMockPlugin({
+      id: 'python',
+      supportedExtensions: ['.py'],
+      contributeGraphScopeCapabilities: () => ({ edgeTypes: ['reference'] }),
+    }));
+    registry.register(createMockPlugin({
+      id: 'wildcard',
+      supportedExtensions: ['*'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['plugin:test-node'],
+        edgeTypes: ['plugin:test'],
+      }),
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:interface', 'plugin:test-node'],
+      edgeTypes: ['import', 'plugin:route', 'plugin:test'],
+    });
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({
+      filePaths: ['src/app.ts'],
+    });
+  });
+
+  it('passes only each plugin applicable workspace files into graph scope capabilities', () => {
+    const registry = createConfiguredRegistry();
+    const readTypeScriptCapabilities = vi.fn(() => ({ edgeTypes: ['import'] }) as const);
+    const readSvelteCapabilities = vi.fn(() => ({ edgeTypes: ['call'] }) as const);
+
+    registry.register(createMockPlugin({
+      id: 'typescript',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: readTypeScriptCapabilities,
+    }));
+    registry.register(createMockPlugin({
+      id: 'svelte',
+      supportedExtensions: ['.svelte'],
+      contributeGraphScopeCapabilities: readSvelteCapabilities,
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts', 'src/App.svelte'])).toEqual({
+      nodeTypes: [],
+      edgeTypes: ['import', 'call'],
+    });
+    expect(readTypeScriptCapabilities).toHaveBeenCalledWith({ filePaths: ['src/app.ts'] });
+    expect(readSvelteCapabilities).toHaveBeenCalledWith({ filePaths: ['src/App.svelte'] });
+  });
+
+  it('deduplicates graph scope capabilities when multiple applicable plugins declare the same kind', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      supportedExtensions: ['.ts'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function', 'symbol:interface'],
+        edgeTypes: ['import', 'reference'],
+      }),
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      supportedExtensions: ['.tsx'],
+      contributeGraphScopeCapabilities: () => ({
+        nodeTypes: ['symbol:function', 'symbol:class'],
+        edgeTypes: ['import', 'call'],
+      }),
+    }));
+
+    expect(registry.listGraphScopeCapabilities(['src/app.ts', 'src/view.tsx'])).toEqual({
+      nodeTypes: ['symbol:function', 'symbol:interface', 'symbol:class'],
+      edgeTypes: ['import', 'reference', 'call'],
+    });
   });
 
   it('disposes every registered plugin through unregister', () => {

@@ -1,3 +1,7 @@
+import {
+  analyzeFileWithCoreTreeSitter,
+  listCoreTreeSitterGraphScopeCapabilities,
+} from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import { registerBuiltInWorkspacePipelinePlugins } from './builtIns';
 import {
@@ -17,7 +21,9 @@ export async function initializeWorkspacePipeline(
 ): Promise<void> {
   const { settings, workspaceRoot } = readWorkspacePipelineSettings(() => dependencies.getWorkspaceRoot());
 
-  registerBuiltInWorkspacePipelinePlugins(registry, settings);
+  registry.setCoreAnalyzeFileResult(analyzeFileWithCoreTreeSitter);
+  registry.setCoreGraphScopeCapabilitiesProvider(listCoreTreeSitterGraphScopeCapabilities);
+  await registerBuiltInWorkspacePipelinePlugins(registry, settings, dependencies.disabledPlugins);
 
   if (workspaceRoot && settings) {
     await registerWorkspacePackagePlugins(registry, settings, workspaceRoot, dependencies);

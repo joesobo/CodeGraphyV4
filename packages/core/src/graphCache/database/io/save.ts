@@ -1,9 +1,38 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync, withConnection } from './connection';
+import { runStatementAsync, runStatementSync, withConnection, withConnectionAsync } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
-import { persistAnalysisEntry, sortedCacheEntries } from '../query/write';
+import {
+  persistAnalysisEntry,
+  persistAnalysisEntryAsync,
+  sortedCacheEntries,
+} from '../query/write';
+
+export interface WorkspaceAnalysisDatabaseSaveProgress {
+  current: number;
+  total: number;
+}
+
+export interface WorkspaceAnalysisDatabaseSaveOptions {
+  onProgress?: (progress: WorkspaceAnalysisDatabaseSaveProgress) => void;
+  yieldEvery?: number;
+}
+
+function createTemporaryDatabasePath(databasePath: string): string {
+  return `${databasePath}.${process.pid}.${Date.now()}.tmp`;
+}
+
+function replaceDatabaseCache(tempDatabasePath: string, databasePath: string): void {
+  fs.renameSync(tempDatabasePath, databasePath);
+}
+
+function cleanupTemporaryDatabase(tempDatabasePath: string): void {
+  if (fs.existsSync(tempDatabasePath)) {
+    fs.rmSync(tempDatabasePath, { force: true });
+  }
+}
 
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
@@ -14,16 +43,69 @@ export function saveWorkspaceAnalysisDatabaseCache(
   if (!fs.existsSync(path.dirname(databasePath))) {
     return;
   }
+  const tempDatabasePath = createTemporaryDatabasePath(databasePath);
 
-  withConnection(databasePath, (connection) => {
-    runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-    runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-    runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
+  try {
+    withConnection(tempDatabasePath, (connection) => {
+      runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
+      runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
+      runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
 
-    for (const [filePath, entry] of sortedCacheEntries(cache)) {
-      persistAnalysisEntry(connection, filePath, entry);
-    }
-  });
+      for (const [filePath, entry] of sortedCacheEntries(cache)) {
+        persistAnalysisEntry(connection, filePath, entry);
+      }
+    });
+    replaceDatabaseCache(tempDatabasePath, databasePath);
+  } catch (error) {
+    cleanupTemporaryDatabase(tempDatabasePath);
+    throw error;
+  }
+}
+
+export async function saveWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  cache: IWorkspaceAnalysisCache,
+  options: WorkspaceAnalysisDatabaseSaveOptions = {},
+): Promise<void> {
+  ensureDatabaseDirectory(workspaceRoot);
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  if (!fs.existsSync(path.dirname(databasePath))) {
+    return;
+  }
+
+  const entries = sortedCacheEntries(cache);
+  const total = entries.length;
+  const yieldEvery = options.yieldEvery ?? 100;
+  const tempDatabasePath = createTemporaryDatabasePath(databasePath);
+  options.onProgress?.({ current: 0, total });
+
+  try {
+    await withConnectionAsync(tempDatabasePath, async (connection) => {
+      await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
+      await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
+      await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
+
+      let current = 0;
+      let statementsSinceYield = 0;
+      const yieldAfterStatement = async (): Promise<void> => {
+        statementsSinceYield += 1;
+        if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
+          statementsSinceYield = 0;
+          await waitForImmediate();
+        }
+      };
+
+      for (const [filePath, entry] of entries) {
+        await persistAnalysisEntryAsync(connection, filePath, entry, yieldAfterStatement);
+        current += 1;
+        options.onProgress?.({ current, total });
+      }
+    });
+    replaceDatabaseCache(tempDatabasePath, databasePath);
+  } catch (error) {
+    cleanupTemporaryDatabase(tempDatabasePath);
+    throw error;
+  }
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void {

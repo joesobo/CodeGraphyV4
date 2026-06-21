@@ -42,8 +42,10 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     legendOrder: [],
     particleSpeed: 0.005,
     particleSize: 4,
+    pluginData: {},
     showLabels: true,
     maxFiles: DEFAULT_MAX_FILES,
+    verboseDiagnostics: false,
     nodeSizeMode: 'connections',
     physics: {
       repelForce: 1,
@@ -176,6 +178,7 @@ function createSource(
     _sendCachedTimeline: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
+    _sendPluginStatuses: vi.fn(),
     _sendGraphControls: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     invalidatePluginFiles: vi.fn(() => []),
@@ -254,9 +257,9 @@ describe('graph view provider listener bridge', () => {
       invalidatePluginFiles: vi.fn(() => ['src/plugin.py']),
     });
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
-    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(source.refreshChangedFiles).toHaveBeenCalledWith(['src/plugin.py']);
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -266,9 +269,9 @@ describe('graph view provider listener bridge', () => {
       invalidatePluginFiles: vi.fn(() => []),
     });
 
-    await context.reprocessPluginFiles(['codegraphy.python']);
+    await context.reprocessPluginFiles(['codegraphy.vue']);
 
-    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(source.refreshChangedFiles).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -295,6 +298,7 @@ describe('graph view provider listener bridge', () => {
     expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({

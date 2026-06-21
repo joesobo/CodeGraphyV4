@@ -2,6 +2,7 @@ import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
+import { findRegisteredPlugin, getRegisteredPluginId } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runDisableCommand(
@@ -13,9 +14,14 @@ export function runDisableCommand(
   }
 
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
-  dependencies.disableWorkspacePlugin(workspaceRoot, command.packageName);
+  const plugin = findRegisteredPlugin(
+    dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
+    command.packageName,
+  );
+  const pluginId = plugin ? getRegisteredPluginId(plugin) : command.packageName;
+  dependencies.disableWorkspacePlugin(workspaceRoot, pluginId);
   return {
     exitCode: 0,
-    output: `Disabled ${command.packageName} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+    output: `Disabled ${pluginId} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
   };
 }

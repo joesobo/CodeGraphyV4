@@ -7,7 +7,10 @@ import type {
 import { DEFAULT_EXCLUDE } from '../../src/discovery/pathMatching';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../src/analysis/workspaceDiscovery';
 import type { IGraphData } from '../../src/graph/contracts';
-import { analyzeWorkspaceWithAnalyzer } from '../../src/analysis/workspaceAnalyze';
+import {
+  analyzeWorkspaceWithAnalyzer,
+  type WorkspacePipelineAnalysisDependencies,
+} from '../../src/analysis/workspaceAnalyze';
 
 function createSource() {
   const emit = vi.fn();
@@ -34,6 +37,7 @@ function createSource() {
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
     _lastFileAnalysis: new Map(),
     _lastFileConnections: new Map<string, IProjectedConnection[]>(),
+    _lastGitIgnoredPaths: [] as string[],
     _lastWorkspaceRoot: '',
     _preAnalyzePlugins: vi.fn(async () => undefined),
     getPluginFilterPatterns: vi.fn(() => ['**/*.generated.ts']),
@@ -42,10 +46,11 @@ function createSource() {
 
 function createDependencies() {
   return {
-    discover: vi.fn(async () => ({
+    discover: vi.fn<WorkspacePipelineAnalysisDependencies['discover']>(async () => ({
       directories: [] as string[],
       durationMs: 3,
       files: [] as IDiscoveredFile[],
+      gitIgnoredPaths: [] as string[],
       limitReached: false,
       totalFound: 0,
     })),
@@ -115,6 +120,7 @@ describe('pipeline/analysis/analyze', () => {
       directories: ['src/new-folder'],
       durationMs: 4,
       files,
+      gitIgnoredPaths: ['src/index.ts'],
       limitReached: false,
       totalFound: 1,
     });
@@ -148,12 +154,14 @@ describe('pipeline/analysis/analyze', () => {
     ).resolves.toEqual(graphData);
 
     expect(dependencies.discover).toHaveBeenCalledOnce();
-    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(files, '/workspace', undefined);
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
     expect(source._analyzeFiles).toHaveBeenCalledWith(
       files,
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
+      new Set<string>(['plugin.python']),
     );
     expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
       fileAnalysis,
@@ -163,19 +171,50 @@ describe('pipeline/analysis/analyze', () => {
     );
     expect(source._lastDiscoveredFiles).toEqual(files);
     expect(source._lastDiscoveredDirectories).toEqual(['src/new-folder']);
+    expect(source._lastGitIgnoredPaths).toEqual(['src/index.ts']);
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
-    expect(dependencies.saveCache).toHaveBeenCalledOnce();
+    expect(dependencies.saveCache).toHaveBeenCalledWith(expect.any(Function));
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Discovered 1 files in 4ms');
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Graph built: 1 nodes, 1 edges');
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(1, {
-      phase: 'Analyzing Files',
+      phase: 'Discovering Files',
       current: 0,
       total: 1,
     });
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Discovering Files',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(3, {
+      phase: 'Preparing Analysis',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(4, {
       phase: 'Analyzing Files',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(5, {
+      phase: 'Building Graph',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(6, {
+      phase: 'Building Graph',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(7, {
+      phase: 'Saving Graph Cache',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(8, {
+      phase: 'Saving Graph Cache',
       current: 1,
       total: 1,
     });
@@ -209,6 +248,53 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
       formatWorkspacePipelineLimitReachedMessage(27, 25),
     );
+  });
+
+  it('reports preparation before file-level analysis progress starts', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    const files = [
+      { absolutePath: '/workspace/src/index.ts', relativePath: 'src/index.ts' },
+    ] as IDiscoveredFile[];
+
+    dependencies.discover.mockResolvedValue({
+      directories: [],
+      durationMs: 4,
+      files,
+      limitReached: false,
+      totalFound: 1,
+    });
+    source._analyzeFiles.mockImplementation(
+      async (
+        _files: IDiscoveredFile[],
+        _workspaceRoot: string,
+        onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+      ) => {
+        onProgress?.({
+          current: 1,
+          total: 1,
+          filePath: '/workspace/src/index.ts',
+        });
+
+        return {
+          fileAnalysis: new Map(),
+          fileConnections: new Map(),
+        };
+      },
+    );
+
+    await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
+
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(3, {
+      phase: 'Preparing Analysis',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(4, {
+      phase: 'Analyzing Files',
+      current: 1,
+      total: 1,
+    });
   });
 
   it('keeps analyzing when progress reporting and the event bus are unavailable', async () => {

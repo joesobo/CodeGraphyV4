@@ -51,6 +51,7 @@ describe('graph view analysis execution publish', () => {
       edges: [],
     };
     const state = createExecutionState({
+      disabledPlugins: new Set(['plugin.disabled']),
       analyzer: createExecutionAnalyzer({
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
       }),
@@ -73,8 +74,76 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(getGraphData());
-    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
+    expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+  });
+
+  it('reports graph view update progress before publishing an explicit index result', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const transformedGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const state = createExecutionState({
+      mode: 'index',
+      analyzer: createExecutionAnalyzer(),
+    });
+    const { handlers } = createExecutionHandlers({
+      applyViewTransform: vi.fn(() => {
+        handlers.setGraphData(transformedGraphData);
+      }),
+    });
+    const sendIndexProgress = vi.mocked(handlers.sendIndexProgress!);
+    const sendGraphDataUpdated = vi.mocked(handlers.sendGraphDataUpdated);
+    const sendGraphIndexStatusUpdated = vi.mocked(handlers.sendGraphIndexStatusUpdated);
+
+    publishAnalyzedGraph(state, handlers, rawGraphData, true);
+
+    expect(sendIndexProgress).toHaveBeenCalledWith({
+      phase: 'Updating Graph View',
+      current: 0,
+      total: 1,
+    });
+    expect(sendIndexProgress.mock.invocationCallOrder[0]).toBeLessThan(
+      sendGraphDataUpdated.mock.invocationCallOrder[0]!,
+    );
+    expect(sendGraphIndexStatusUpdated.mock.invocationCallOrder[0]).toBeGreaterThan(
+      sendGraphDataUpdated.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it('publishes the actual missing index state when indexing does not create a Graph Cache', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const state = createExecutionState({
+      analyzer: createExecutionAnalyzer({
+        hasIndex: vi.fn(() => false),
+        getIndexStatus: vi.fn(() => ({
+          freshness: 'missing' as const,
+          detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
+        })),
+      }),
+    });
+    const { handlers } = createExecutionHandlers();
+
+    publishAnalyzedGraph(state, handlers, rawGraphData, true);
+
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      false,
+      'missing',
+      'CodeGraphy index is missing. Index the workspace to build the graph.',
+    );
   });
 
   it('recomputes and publishes legends after the transformed graph is available', () => {
@@ -130,7 +199,10 @@ describe('graph view analysis execution publish', () => {
       'CodeGraphy index is missing. Index the workspace to build the graph.',
     );
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(getGraphData());
-    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
   });
 
   it('publishes an empty graph fallback with plugin state updates after failures', () => {

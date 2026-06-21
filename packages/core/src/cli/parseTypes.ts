@@ -6,5 +6,6 @@ export interface CliCommand {
   action?: PluginsCommandAction;
   packageName?: string;
   packageRoot?: string;
+  verbose?: boolean;
   workspacePath?: string;
 }

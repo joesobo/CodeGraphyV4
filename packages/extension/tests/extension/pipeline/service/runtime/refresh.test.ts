@@ -5,7 +5,9 @@ import { refreshWorkspacePipelineChangedFiles } from '../../../../../src/extensi
 function createSource() {
   return {
     _analyzeFiles: vi.fn(),
+    _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
     _buildGraphDataFromAnalysis: vi.fn(() => ({ nodes: [{ id: 'node' }], edges: [] })),
+    _lastDiscoveredDirectories: [] as string[],
     _lastDiscoveredFiles: [] as Array<{ absolutePath: string; relativePath: string }>,
     _lastFileAnalysis: new Map<string, IFileAnalysisResult>(),
     _lastFileConnections: new Map<string, unknown[]>(),
@@ -18,7 +20,6 @@ function createSource() {
 
 function createDependencies() {
   return {
-    config: { showOrphans: true },
     disabledPlugins: new Set<string>(['plugin.disabled']),
     discoveredFiles: [
       { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
@@ -32,13 +33,6 @@ function createDependencies() {
     persistCache: vi.fn(),
     persistIndexMetadata: vi.fn(async () => undefined),
     signal: new AbortController().signal,
-    toWorkspaceRelativePath: vi.fn((workspaceRoot: string, filePath: string) => {
-      if (!filePath.startsWith(`${workspaceRoot}/`)) {
-        return undefined;
-      }
-
-      return filePath.slice(workspaceRoot.length + 1);
-    }),
     workspaceRoot: '/workspace',
   };
 }
@@ -63,9 +57,11 @@ describe('pipeline/service/refresh', () => {
     const graph = await refreshWorkspacePipelineChangedFiles(source as never, dependencies as never);
     const forwardedProgress = source.analyze.mock.calls[0][3];
 
-    forwardedProgress({ phase: 'Ignored', current: 2, total: 5 });
+    forwardedProgress({ phase: 'Analyzing Files', current: 2, total: 5 });
 
-    expect(dependencies.toWorkspaceRelativePath).toHaveBeenCalledWith('/workspace', '/workspace/src/a.ts');
+    expect(source._readAnalysisFiles).toHaveBeenCalledWith([
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+    ]);
     expect(source.analyze).toHaveBeenCalledWith(
       ['**/*.ts'],
       dependencies.disabledPlugins,
@@ -73,7 +69,7 @@ describe('pipeline/service/refresh', () => {
       expect.any(Function),
     );
     expect(dependencies.onProgress).toHaveBeenCalledWith({
-      phase: 'Applying Changes',
+      phase: 'Analyzing Files',
       current: 2,
       total: 5,
     });
@@ -165,6 +161,16 @@ describe('pipeline/service/refresh', () => {
     expect(source._lastFileConnections.get('src/b.ts')).toEqual([{ kind: 'call' }]);
     expect(dependencies.persistCache).toHaveBeenCalledOnce();
     expect(dependencies.persistIndexMetadata).toHaveBeenCalledOnce();
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      source._lastFileAnalysis,
+      '/workspace',
+      dependencies.disabledPlugins,
+    );
+    expect(source._buildGraphData).toHaveBeenCalledWith(
+      source._lastFileConnections,
+      '/workspace',
+      dependencies.disabledPlugins,
+    );
     expect(graph).toEqual({ nodes: [{ id: 'node' }], edges: [] });
   });
 
