@@ -70,6 +70,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _rebuildAndSend: vi.fn(async () => undefined),
     _smartRebuild: vi.fn(async () => undefined),
     refreshIndex: vi.fn(async () => undefined),
+    refreshGitignoreMetadata: vi.fn(async () => undefined),
     refreshChangedFiles: vi.fn(async () => undefined),
     clearCacheAndRefresh: vi.fn(async () => undefined),
     refresh: vi.fn(async () => undefined),

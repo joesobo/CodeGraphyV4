@@ -13,7 +13,15 @@ import {
 } from './runtimeContributions';
 export { processEdges } from './edgeProcessing';
 import { calculateNodeSizes } from './node/sizing';
-export { DEFAULT_NODE_SIZE, FAVORITE_BORDER_COLOR, getDepthOpacity, getDepthSizeMultiplier, getNodeType, resolveDirectionColor } from './node/display';
+export {
+  DEFAULT_NODE_SIZE,
+  FALLBACK_MUTED_NODE_COLOR,
+  FAVORITE_BORDER_COLOR,
+  getDepthOpacity,
+  getDepthSizeMultiplier,
+  getNodeType,
+  resolveDirectionColor,
+} from './node/display';
 export { calculateNodeSizes, toD3Repel } from './node/sizing';
 
 export type FGNode = NodeObject & Record<string, unknown> & {

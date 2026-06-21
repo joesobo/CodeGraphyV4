@@ -231,12 +231,12 @@ describe('webview/legends/section', () => {
             pluginName: 'TypeScript',
           },
           {
-            id: 'plugin:codegraphy.python:*.py',
+            id: 'plugin:codegraphy.vue:*.py',
             pattern: '*.py',
             color: '#3776ab',
             target: 'node',
             isPluginDefault: true,
-            pluginId: 'codegraphy.python',
+            pluginId: 'codegraphy.vue',
             pluginName: 'Python',
           },
           {
@@ -304,21 +304,21 @@ describe('webview/legends/section', () => {
         {...baseProps}
         displayRules={[
           {
-            id: 'plugin:codegraphy.python:*.py',
+            id: 'plugin:codegraphy.vue:*.py',
             pattern: '*.py',
             color: '#3776ab',
             target: 'node',
             isPluginDefault: true,
-            pluginId: 'codegraphy.python',
+            pluginId: 'codegraphy.vue',
             pluginName: 'Python',
           },
           {
-            id: 'plugin:codegraphy.python:*.pyi',
+            id: 'plugin:codegraphy.vue:*.pyi',
             pattern: '*.pyi',
             color: '#3776ab',
             target: 'node',
             isPluginDefault: true,
-            pluginId: 'codegraphy.python',
+            pluginId: 'codegraphy.vue',
             pluginName: 'Python',
             disabled: true,
           },
@@ -329,12 +329,12 @@ describe('webview/legends/section', () => {
 
     fireEvent.click(screen.getByTitle('Toggle Python legend entries'));
     expect(baseProps.onToggleDefaultVisibilityBatch).toHaveBeenCalledWith(
-      ['plugin:codegraphy.python:*.py', 'plugin:codegraphy.python:*.pyi'],
+      ['plugin:codegraphy.vue:*.py', 'plugin:codegraphy.vue:*.pyi'],
       true,
     );
 
     fireEvent.click(screen.getByTitle('Collapse Python legend entries'));
-    expect(onCollapsedChange).toHaveBeenCalledWith('plugin:codegraphy.python', true);
+    expect(onCollapsedChange).toHaveBeenCalledWith('plugin:codegraphy.vue', true);
   });
 
   it('toggles all custom rules in a section', () => {

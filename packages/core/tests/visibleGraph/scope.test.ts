@@ -330,6 +330,44 @@ describe('visibleGraph/scope', () => {
     ]);
   });
 
+  it('keeps file-level type imports when imported type symbols are visible', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/alias/themePack.ts'),
+        node('src/types.ts'),
+        node('src/types.ts#PaletteMood:type', 'symbol', symbol({
+          id: 'src/types.ts:type:PaletteMood',
+          filePath: 'src/types.ts',
+          kind: 'type',
+          name: 'PaletteMood',
+        })),
+      ],
+      edges: [
+        edge('src/alias/themePack.ts', 'src/types.ts', 'type-import'),
+        edge('src/alias/themePack.ts', 'src/types.ts#PaletteMood:type', 'type-import'),
+        edge('src/types.ts', 'src/types.ts#PaletteMood:type', 'contains'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:type', enabled: true },
+      ],
+      edges: [
+        { type: 'type-import', enabled: true },
+        { type: 'contains', enabled: true },
+      ],
+    })).toEqual({
+      nodes: graphData.nodes,
+      edges: [
+        edge('src/alias/themePack.ts', 'src/types.ts', 'type-import'),
+        edge('src/types.ts', 'src/types.ts#PaletteMood:type', 'contains'),
+      ],
+    });
+  });
+
   it('keeps one visible edge for repeated edges with the same identity', () => {
     const graphData: IGraphData = {
       nodes: [

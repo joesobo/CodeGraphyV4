@@ -178,6 +178,42 @@ describe('graph/model/node/build', () => {
     });
   });
 
+  it('starts gitignored filesystem nodes with subdued opacity and muted color', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        {
+          id: 'generated/output.ts',
+          label: 'output.ts',
+          color: '#93C5FD',
+          metadata: { gitIgnored: true, gitIgnoredReason: 'Git ignored' },
+        },
+        {
+          id: 'src/app.ts',
+          label: 'app.ts',
+          color: '#67E8F9',
+        },
+      ],
+      edges: [],
+      nodeSizes: new Map([
+        ['generated/output.ts', 16],
+        ['src/app.ts', 16],
+      ]),
+      theme: 'dark',
+      favorites: new Set(),
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'generated/output.ts')).toMatchObject({
+      baseOpacity: 0.45,
+      borderColor: '#7689a3',
+      color: '#7689a3',
+    });
+    expect(nodes.find(node => node.id === 'src/app.ts')).toMatchObject({
+      baseOpacity: 1,
+      color: '#67E8F9',
+    });
+  });
+
   it('honors runtime node supplied fixed coordinates over previous physics state', () => {
     const nodes = buildGraphNodes({
       nodes: [

@@ -170,6 +170,8 @@ interface PatternAcceptanceStep {
   run: (context: GraphAcceptanceContext, step: AcceptanceRuntimeStep, match: RegExpMatchArray) => Promise<void>;
 }
 
+export type AcceptanceStepExpression = string | RegExp;
+
 async function expectGraphCounts(
   context: Parameters<AcceptanceStepImplementation>[0],
   nodes: number,
@@ -210,14 +212,16 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = 'example-typescript';
-    context.workspacePath = step.sourcePath.endsWith('/typescript-example.md')
+    context.workspacePath = step.sourcePath.endsWith('/typescript-example.feature')
       ? copyExampleTypescriptWorkspace(context.workspaceTempRoot)
       : copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
-        includeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? false : undefined,
-        includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? true : undefined,
-        includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
-          || step.sourcePath.endsWith('/graph-navigation.md'),
-        pluginPackages: ['@codegraphy-dev/plugin-markdown'],
+        includeImportEdges: step.sourcePath.endsWith('/folder-context-menu.feature') ? false : undefined,
+        includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.feature') ? true : undefined,
+        includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.feature')
+          || step.sourcePath.endsWith('/graph-navigation.feature'),
+        pluginPackages: step.sourcePath.endsWith('/graph-scope-edge-types-typescript.feature')
+          ? ['@codegraphy-dev/plugin-markdown', '@codegraphy-dev/plugin-typescript']
+          : ['@codegraphy-dev/plugin-markdown'],
       });
   },
 
@@ -296,7 +300,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await requireGraphFrame(context).getByRole('button', { name: 'Graph Scope' }).click();
   },
 
-  'I see to buttons for switching views between node type and edge type toggles': async (context) => {
+  'I see two buttons for switching views between node type and edge type toggles': async (context) => {
     const frame = requireGraphFrame(context);
     await expect(frame.getByRole('button', { name: 'Node Types' })).toBeVisible();
     await expect(frame.getByRole('button', { name: 'Edge Types' })).toBeVisible();
@@ -401,6 +405,10 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     await expectVisibleEdgeBetween(context, TARGET_NODE, 'src/types.ts');
   },
 
+  'the src/index.ts node has an edge that points to the src/palette.ts node': async (context) => {
+    await expectVisibleEdgeBetween(context, TARGET_NODE, 'src/palette.ts');
+  },
+
   'the src/index.ts node has an edge that points to the src/utils.ts node': async (context) => {
     await expectVisibleEdgeBetween(context, TARGET_NODE, 'src/utils.ts');
   },
@@ -456,7 +464,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
-    if (step.sourcePath.endsWith('/svelte-example.md')) {
+    if (step.sourcePath.endsWith('/svelte-example.feature')) {
       setWorkspaceEdgeVisibility(context.workspacePath, 'type-import', false);
     }
   }),
@@ -700,7 +708,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
   }),
 
-  step(/^I see to buttons for switching views between node type and edge type toggles$/, async (context) => {
+  step(/^I see two buttons for switching views between node type and edge type toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Node Types' })).toBeVisible();
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeVisible();
   }),
@@ -907,7 +915,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click and drag on the background I can select multiple nodes at once$/, async (context) => {
     await clickNode(context, TARGET_NODE);
-    await modifierClickNode(context, 'src/utils.ts');
+    await modifierClickNode(context, 'src/palette.ts');
   }),
 
   step(/^I see all the selected nodes outlined in white$/, async (context) => {
@@ -999,6 +1007,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 ];
 
+export const graphViewAcceptanceStepExpressions: AcceptanceStepExpression[] = [
+  ...Object.keys(exactGraphViewAcceptanceSteps),
+  ...patternGraphViewAcceptanceSteps.map(({ pattern }) => pattern),
+];
+
 export const graphViewAcceptanceSteps = createStepRegistry(
   exactGraphViewAcceptanceSteps,
   patternGraphViewAcceptanceSteps
@@ -1042,21 +1055,21 @@ async function applyExampleScenarioStartingUiState(
   sourcePath: string,
   options: { requireCoreNodeTypes?: boolean } = {},
 ): Promise<void> {
-  if (path.basename(sourcePath).endsWith('-example.md')) {
+  if (path.basename(sourcePath).endsWith('-example.feature')) {
     await showOnlyNodeTypes(context, ['File'], {
       requireCoreNodeTypes: options.requireCoreNodeTypes,
     });
   }
 
   switch (path.basename(sourcePath)) {
-    case 'godot-example.md':
+    case 'godot-example.feature':
       await setPluginSwitch(context, 'GDScript (Godot)', false);
       return;
-    case 'svelte-example.md':
+    case 'svelte-example.feature':
       await setPluginSwitch(context, 'Svelte', false);
       return;
-    case 'javascript-example.md':
-    case 'typescript-example.md':
+    case 'javascript-example.feature':
+    case 'typescript-example.feature':
       await setPluginSwitch(context, 'TypeScript/JavaScript', false);
       return;
   }
@@ -1066,7 +1079,7 @@ async function applyPostIndexScenarioStartingUiState(
   context: GraphAcceptanceContext,
   sourcePath: string,
 ): Promise<void> {
-  if (path.basename(sourcePath) === 'folder-context-menu.md') {
+  if (path.basename(sourcePath) === 'folder-context-menu.feature') {
     await showNoEdgeTypes(context);
   }
 }
@@ -1086,7 +1099,7 @@ async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise
 
 async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
   return await readGraphDebugZoom(requireGraphFrame(context))
-    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/utils.ts');
+    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/palette.ts');
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {

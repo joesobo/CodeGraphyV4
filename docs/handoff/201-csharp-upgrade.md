@@ -5,7 +5,7 @@ Manual alignment notes for Trello card 201.
 ## Settled Boundaries
 
 - This upgrade targets C# Core Tree-sitter Language Coverage.
-- `@codegraphy-dev/plugin-csharp` stays metadata/default-filter oriented unless future work needs C# Project-Aware Analysis Semantics.
+- C# stays core-analyzer oriented unless future work needs C# Project-Aware Analysis Semantics.
 - Built-in C# support should cover what a C# developer would expect when Tree-sitter exposes enough syntax evidence for low-noise graph Nodes or Relationships.
 - C# features that need `.csproj`, NuGet, MSBuild, generated-code, or Roslyn-style semantic analysis are out of scope for Core Tree-sitter Language Coverage and belong in future Plugin Analysis.
 - Feature selection comes before example design.

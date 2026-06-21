@@ -60,6 +60,16 @@ function makeContext() {
   };
 }
 
+function makeWatcher(overrides: Partial<vscode.FileSystemWatcher> = {}): vscode.FileSystemWatcher {
+  return {
+    onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+    dispose: vi.fn(),
+    ...overrides,
+  } as unknown as vscode.FileSystemWatcher;
+}
+
 describe('fileWatcherSetup backslash normalization (L21 mutant)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -220,24 +230,23 @@ describe('fileWatcherSetup console.log messages', () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    let createListener: ((uri: { fsPath: string }) => void) | undefined;
-    const mockOnDidCreate = vi.fn((cb: (uri: { fsPath: string }) => void) => {
+    let createListener: ((uri: vscode.Uri) => void) | undefined;
+    const mockOnDidCreate = vi.fn((cb: (uri: vscode.Uri) => void) => {
       createListener = cb;
       return { dispose: vi.fn() };
     });
-    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-      onDidCreate: mockOnDidCreate,
-      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-      dispose: vi.fn(),
-    } as unknown as vscode.FileSystemWatcher);
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockImplementation((globPattern) =>
+      globPattern === '**/*'
+        ? makeWatcher({ onDidCreate: mockOnDidCreate })
+        : makeWatcher()
+    );
 
     const context = makeContext();
     const provider = makeProvider();
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-    createListener!({ fsPath: '/workspace/new-file.ts' });
+    createListener!(vscode.Uri.file('/workspace/new-file.ts'));
     vi.advanceTimersByTime(500);
 
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
@@ -249,24 +258,23 @@ describe('fileWatcherSetup console.log messages', () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
-    const mockOnDidDelete = vi.fn((cb: (uri: { fsPath: string }) => void) => {
+    let deleteListener: ((uri: vscode.Uri) => void) | undefined;
+    const mockOnDidDelete = vi.fn((cb: (uri: vscode.Uri) => void) => {
       deleteListener = cb;
       return { dispose: vi.fn() };
     });
-    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-      onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidDelete: mockOnDidDelete,
-      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-      dispose: vi.fn(),
-    } as unknown as vscode.FileSystemWatcher);
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockImplementation((globPattern) =>
+      globPattern === '**/*'
+        ? makeWatcher({ onDidDelete: mockOnDidDelete })
+        : makeWatcher()
+    );
 
     const context = makeContext();
     const provider = makeProvider();
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-    deleteListener!({ fsPath: '/workspace/deleted-file.ts' });
+    deleteListener!(vscode.Uri.file('/workspace/deleted-file.ts'));
     vi.advanceTimersByTime(500);
 
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');

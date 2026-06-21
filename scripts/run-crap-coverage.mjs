@@ -16,12 +16,10 @@ const packages = [
     extraArgs: ['--testTimeout', '60000', '--silent'],
   },
   { name: 'mcp', directory: 'packages/mcp', config: 'vitest.config.ts' },
-  { name: 'plugin-csharp', directory: 'packages/plugin-csharp' },
   { name: 'plugin-godot', directory: 'packages/plugin-godot' },
   { name: 'plugin-unity', directory: 'packages/plugin-unity' },
   { name: 'plugin-markdown', directory: 'packages/plugin-markdown' },
   { name: 'plugin-particles', directory: 'packages/plugin-particles' },
-  { name: 'plugin-python', directory: 'packages/plugin-python' },
   { name: 'plugin-svelte', directory: 'packages/plugin-svelte' },
   { name: 'plugin-typescript', directory: 'packages/plugin-typescript' },
 ];

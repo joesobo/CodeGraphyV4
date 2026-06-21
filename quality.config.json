@@ -1,405 +1,366 @@
 {
-  "reportsDir": "reports/quality-tools",
-  "defaults": {
-    "mutation": {
-      "include": [
-        "src/**/*.ts",
-        "src/**/*.tsx"
-      ],
-      "exclude": []
-    },
-    "crap": {
-      "coverage": {
-        "command": "node",
-        "args": [
-          "scripts/run-crap-coverage.mjs",
-          "{repoRoot}/{reportsDir}/crap/{reportKey}"
-        ],
-        "cwd": "{repoRoot}",
-        "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-      },
-      "exclude": [
-        "**/e2e/**",
-        "**/__tests__/**",
-        "**/*.test.ts",
-        "**/*.test.tsx"
-      ]
-    },
-    "scrap": {
-      "include": [
-        "tests/**/*.test.ts",
-        "tests/**/*.test.tsx",
-        "__tests__/**/*.test.ts",
-        "__tests__/**/*.test.tsx"
-      ],
-      "exclude": []
-    },
-    "organize": {
-      "lowInfoNames": {
-        "banned": ["utils", "helpers", "misc", "common", "shared", "_shared", "lib", "index"],
-        "discouraged": ["types", "constants", "config", "base", "core"]
-      },
-      "fileFanOut": { "warning": 8, "split": 10 },
-      "folderFanOut": { "warning": 10, "split": 13 },
-      "depth": { "warning": 4, "deep": 5 },
-      "redundancyThreshold": 0.3,
-      "cohesionClusterMinSize": 3
-    },
-    "boundaries": {
-      "include": [
-        "src/**/*.ts",
-        "src/**/*.tsx"
-      ],
-      "exclude": [
-        "src/**/*.d.ts",
-        "**/index.ts",
-        "**/index.tsx",
-        "src/e2e/**",
-        "src/shared/mockData.ts",
-        "src/shared/mock/**",
-        "**/*.test.ts",
-        "**/*.test.tsx"
-      ]
-    }
-  },
-  "packages": {
-    "core": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--config",
-            "vitest.config.ts",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/analysis/workspaceState.ts",
-          "src/cli/main.ts",
-          "src/graphCache/status.ts",
-          "src/graphQuery/execute.ts",
-          "src/packageIdentity.ts",
-          "src/visibleGraph/derive.ts",
-          "src/workspace/requestQuery.ts"
-        ]
-      }
-    },
-    "extension": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--config",
-            "vitest.config.ts",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--testTimeout",
-            "60000",
-            "--silent",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "organize": {
-        "fileFanOut": { "warning": 9, "split": 11 },
-        "folderFanOut": { "warning": 14, "split": 16 },
-        "depth": { "warning": 7, "deep": 8 }
-      },
-      "mutation": {
-        "strykerConfig": "stryker.extension.config.cjs",
-        "exclude": [
-          "src/**/e2e/**",
-          "src/**/core/plugins/versioning/apiVersions.ts",
-          "src/**/*.d.ts",
-          "src/**/extension/config/defaults.ts",
-          "src/**/extension/gitHistory/cache/stateKeys.ts",
-          "src/**/shared/fileColorConstants.ts",
-          "src/**/shared/mockData*.ts",
-          "src/**/webview/components/icons/**",
-          "src/**/webview/store/defaults.ts"
-        ]
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/extension/activate.ts",
-          "src/extension/graphViewProvider.ts",
-          "src/core/graphQuery/index.ts",
-          "src/core/plugins/api/instance/index.ts",
-          "src/extension/repoSettings/freshness/index.ts",
-          "src/extension/repoSettings/store/index.ts",
-          "src/shared/visibleGraph/index.ts",
-          "src/webview/pluginHost/api/registration/index.ts",
-          "src/webview/main.tsx"
-        ],
-        "layers": [
-          {
-            "allow": [
-              "shared",
-              "core"
-            ],
-            "include": [
-              "src/extension/**"
-            ],
-            "name": "extension"
-          },
-          {
-            "allow": [
-              "shared"
-            ],
-            "include": [
-              "src/core/**"
-            ],
-            "name": "core"
-          },
-          {
-            "allow": [
-              "shared",
-              "webview"
-            ],
-            "include": [
-              "src/webview/**"
-            ],
-            "name": "webview"
-          },
-          {
-            "allow": [
-              "shared"
-            ],
-            "include": [
-              "src/shared/**"
-            ],
-            "name": "shared"
-          }
-        ]
-      }
-    },
-    "mcp": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--config",
-            "vitest.config.ts",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/cli/main.ts"
-        ]
-      }
-    },
-    "plugin-api": {
-      "mutation": {
-        "exclude": [
-          "src/**/index.ts"
-        ]
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/index.ts",
-          "src/plugin.ts",
-          "src/events.ts"
-        ]
-      }
-    },
-    "plugin-csharp": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts"
-        ]
-      }
-    },
-    "plugin-godot": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts"
-        ]
-      }
-    },
-    "plugin-unity": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts"
-        ]
-      }
-    },
-    "plugin-markdown": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts"
-        ]
-      }
-    },
-    "plugin-particles": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts",
-          "src/effects.ts",
-          "src/webview.tsx"
-        ]
-      }
-    },
-    "plugin-python": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts"
-        ]
-      }
-    },
-    "plugin-typescript": {
-      "crap": {
-        "coverage": {
-          "command": "pnpm",
-          "args": [
-            "exec",
-            "vitest",
-            "run",
-            "--coverage",
-            "--coverage.provider",
-            "istanbul",
-            "--coverage.reportsDirectory",
-            "{repoRoot}/{reportsDir}/crap/{reportKey}"
-          ],
-          "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
-        }
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/plugin.ts"
-        ]
-      }
-    }
-  }
+	"reportsDir": "reports/quality-tools",
+	"defaults": {
+		"mutation": {
+			"include": [
+				"src/**/*.ts",
+				"src/**/*.tsx"
+			],
+			"exclude": []
+		},
+		"crap": {
+			"coverage": {
+				"command": "node",
+				"args": [
+					"scripts/run-crap-coverage.mjs",
+					"{repoRoot}/{reportsDir}/crap/{reportKey}"
+				],
+				"cwd": "{repoRoot}",
+				"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+			},
+			"exclude": [
+				"**/e2e/**",
+				"**/__tests__/**",
+				"**/*.test.ts",
+				"**/*.test.tsx"
+			]
+		},
+		"scrap": {
+			"include": [
+				"tests/**/*.test.ts",
+				"tests/**/*.test.tsx",
+				"__tests__/**/*.test.ts",
+				"__tests__/**/*.test.tsx"
+			],
+			"exclude": []
+		},
+		"organize": {
+			"lowInfoNames": {
+				"banned": [
+					"utils",
+					"helpers",
+					"misc",
+					"common",
+					"shared",
+					"_shared",
+					"lib",
+					"index"
+				],
+				"discouraged": [
+					"types",
+					"constants",
+					"config",
+					"base",
+					"core"
+				]
+			},
+			"fileFanOut": {
+				"warning": 8,
+				"split": 10
+			},
+			"folderFanOut": {
+				"warning": 10,
+				"split": 13
+			},
+			"depth": {
+				"warning": 4,
+				"deep": 5
+			},
+			"redundancyThreshold": 0.3,
+			"cohesionClusterMinSize": 3
+		},
+		"boundaries": {
+			"include": [
+				"src/**/*.ts",
+				"src/**/*.tsx"
+			],
+			"exclude": [
+				"src/**/*.d.ts",
+				"**/index.ts",
+				"**/index.tsx",
+				"src/e2e/**",
+				"src/shared/mockData.ts",
+				"src/shared/mock/**",
+				"**/*.test.ts",
+				"**/*.test.tsx"
+			]
+		}
+	},
+	"packages": {
+		"core": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--config",
+						"vitest.config.ts",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/analysis/workspaceState.ts",
+					"src/cli/main.ts",
+					"src/graphCache/status.ts",
+					"src/graphQuery/execute.ts",
+					"src/packageIdentity.ts",
+					"src/visibleGraph/derive.ts",
+					"src/workspace/requestQuery.ts"
+				]
+			}
+		},
+		"extension": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--config",
+						"vitest.config.ts",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--testTimeout",
+						"60000",
+						"--silent",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"organize": {
+				"fileFanOut": {
+					"warning": 9,
+					"split": 11
+				},
+				"folderFanOut": {
+					"warning": 14,
+					"split": 16
+				},
+				"depth": {
+					"warning": 7,
+					"deep": 8
+				}
+			},
+			"mutation": {
+				"strykerConfig": "stryker.extension.config.cjs",
+				"exclude": [
+					"src/**/e2e/**",
+					"src/**/core/plugins/versioning/apiVersions.ts",
+					"src/**/*.d.ts",
+					"src/**/extension/config/defaults.ts",
+					"src/**/extension/gitHistory/cache/stateKeys.ts",
+					"src/**/shared/fileColorConstants.ts",
+					"src/**/shared/mockData*.ts",
+					"src/**/webview/components/icons/**",
+					"src/**/webview/store/defaults.ts"
+				]
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/extension/activate.ts",
+					"src/extension/graphViewProvider.ts",
+					"src/core/graphQuery/index.ts",
+					"src/core/plugins/api/instance/index.ts",
+					"src/extension/repoSettings/freshness/index.ts",
+					"src/extension/repoSettings/store/index.ts",
+					"src/shared/visibleGraph/index.ts",
+					"src/webview/pluginHost/api/registration/index.ts",
+					"src/webview/main.tsx"
+				],
+				"layers": [
+					{
+						"allow": [
+							"shared",
+							"core"
+						],
+						"include": [
+							"src/extension/**"
+						],
+						"name": "extension"
+					},
+					{
+						"allow": [
+							"shared"
+						],
+						"include": [
+							"src/core/**"
+						],
+						"name": "core"
+					},
+					{
+						"allow": [
+							"shared",
+							"webview"
+						],
+						"include": [
+							"src/webview/**"
+						],
+						"name": "webview"
+					},
+					{
+						"allow": [
+							"shared"
+						],
+						"include": [
+							"src/shared/**"
+						],
+						"name": "shared"
+					}
+				]
+			}
+		},
+		"mcp": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--config",
+						"vitest.config.ts",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/cli/main.ts"
+				]
+			}
+		},
+		"plugin-api": {
+			"mutation": {
+				"exclude": [
+					"src/**/index.ts"
+				]
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/index.ts",
+					"src/plugin.ts",
+					"src/events.ts"
+				]
+			}
+		},
+		"plugin-godot": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/plugin.ts"
+				]
+			}
+		},
+		"plugin-markdown": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/plugin.ts"
+				]
+			}
+		},
+		"plugin-particles": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/plugin.ts",
+					"src/effects.ts",
+					"src/webview.tsx"
+				]
+			}
+		},
+		"plugin-typescript": {
+			"crap": {
+				"coverage": {
+					"command": "pnpm",
+					"args": [
+						"exec",
+						"vitest",
+						"run",
+						"--coverage",
+						"--coverage.provider",
+						"istanbul",
+						"--coverage.reportsDirectory",
+						"{repoRoot}/{reportsDir}/crap/{reportKey}"
+					],
+					"cwd": "{packageRoot}",
+					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
+				}
+			},
+			"boundaries": {
+				"entrypoints": [
+					"src/plugin.ts"
+				]
+			}
+		}
+	}
 }

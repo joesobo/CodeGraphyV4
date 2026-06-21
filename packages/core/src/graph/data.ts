@@ -27,6 +27,7 @@ export interface IWorkspaceGraphDataOptions {
   directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+  gitIgnoredPaths?: readonly string[];
   showOrphans: boolean;
   churnCounts: Record<string, number>;
   workspaceRoot: string;
@@ -103,6 +104,7 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     directoryPaths = [],
     disabledPlugins,
     fileConnections,
+    gitIgnoredPaths = [],
     showOrphans,
     workspaceRoot,
     getPluginForFile,
@@ -118,6 +120,7 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     cacheFiles,
     connectedIds,
     directoryPaths,
+    gitIgnoredPaths,
     nodeIds,
     showOrphans,
     churnCounts,
@@ -142,6 +145,7 @@ export function buildWorkspaceGraphDataFromAnalysis(
     ? buildSymbolNodesAndEdges(fileAnalysis, options.workspaceRoot, {
         cacheFiles: options.cacheFiles,
         churnCounts: options.churnCounts,
+        gitIgnoredPaths: options.gitIgnoredPaths,
       })
     : { containingFileIds: new Set<string>(), edges: [], nodes: [] };
   const existingNodeIds = new Set(graphData.nodes.map(node => node.id));

@@ -25,30 +25,29 @@ function keepMostSpecificUniqueEdges(
   edges: IGraphData['edges'],
 ): IGraphData['edges'] {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const maxEndpointSpecificityByKey = new Map<string, number>();
+  const bestEndpointPreferenceByKey = new Map<string, number>();
 
   for (const edge of edges) {
     if (edge.kind === 'contains') {
       continue;
     }
-
-    const fromNode = nodeById.get(edge.from);
-    const toNode = nodeById.get(edge.to);
     const key = getEdgeContainingFileKey(edge, nodeById);
-    const specificity = Number(Boolean(fromNode?.symbol)) + Number(Boolean(toNode?.symbol));
-    maxEndpointSpecificityByKey.set(
+    const endpointPreference = getEndpointPreference(edge, nodeById);
+    const currentEndpointPreference = bestEndpointPreferenceByKey.get(key);
+    bestEndpointPreferenceByKey.set(
       key,
-      Math.max(maxEndpointSpecificityByKey.get(key) ?? 0, specificity),
+      currentEndpointPreference === undefined
+        ? endpointPreference
+        : Math.max(currentEndpointPreference, endpointPreference),
     );
   }
 
   const seenEdgeIds = new Set<string>();
   return edges.filter((edge) => {
-    const fromNode = nodeById.get(edge.from);
-    const toNode = nodeById.get(edge.to);
     const key = getEdgeContainingFileKey(edge, nodeById);
-    const specificity = Number(Boolean(fromNode?.symbol)) + Number(Boolean(toNode?.symbol));
-    if (edge.kind !== 'contains' && specificity !== (maxEndpointSpecificityByKey.get(key) ?? specificity)) {
+    const endpointPreference = getEndpointPreference(edge, nodeById);
+    if (edge.kind !== 'contains'
+      && endpointPreference !== (bestEndpointPreferenceByKey.get(key) ?? endpointPreference)) {
       return false;
     }
 
@@ -59,6 +58,20 @@ function keepMostSpecificUniqueEdges(
     seenEdgeIds.add(edge.id);
     return true;
   });
+}
+
+function getEndpointPreference(
+  edge: IGraphData['edges'][number],
+  nodeById: ReadonlyMap<string, IGraphData['nodes'][number]>,
+): number {
+  const fromNode = nodeById.get(edge.from);
+  const toNode = nodeById.get(edge.to);
+  const endpointSpecificity = Number(Boolean(fromNode?.symbol)) + Number(Boolean(toNode?.symbol));
+  if (edge.kind === 'type-import') {
+    return -endpointSpecificity;
+  }
+
+  return endpointSpecificity;
 }
 
 export function applyGraphScope(

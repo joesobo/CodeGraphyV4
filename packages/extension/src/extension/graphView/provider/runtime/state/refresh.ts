@@ -19,13 +19,17 @@ export function mergePendingWorkspaceRefresh(
   currentPending: PendingWorkspaceRefreshState | undefined,
   logMessage: string,
   filePaths: readonly string[] = [],
+  options: { gitignoreRefresh?: boolean } = {},
 ): PendingWorkspaceRefreshState {
   const pending = currentPending ?? {
     filePaths: new Set<string>(),
+    gitignoreRefresh: false,
     logMessage,
   };
 
   pending.logMessage = logMessage;
+  pending.gitignoreRefresh =
+    pending.gitignoreRefresh || options.gitignoreRefresh === true;
   for (const filePath of filePaths) {
     pending.filePaths.add(filePath);
   }

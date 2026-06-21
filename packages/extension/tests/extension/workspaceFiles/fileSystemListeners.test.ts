@@ -186,6 +186,6 @@ describe('registerFileWatcher', () => {
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-    expect(context.subscriptions.length).toBe(6);
+    expect(context.subscriptions.length).toBe(11);
   });
 });

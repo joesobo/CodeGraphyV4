@@ -9,8 +9,6 @@ The VS Code extension visualizes CodeGraphy data and renders plugin controls, bu
 - [CodeGraphy VS Code extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
 - [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
-- [`@codegraphy-dev/plugin-python`](https://www.npmjs.com/package/@codegraphy-dev/plugin-python)
-- [`@codegraphy-dev/plugin-csharp`](https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp)
 - [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
 - [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)
 - [`@codegraphy-dev/plugin-vue`](https://www.npmjs.com/package/@codegraphy-dev/plugin-vue)
@@ -32,7 +30,7 @@ The current plugin API supports more than file analysis:
 
 Plugins should stay headless. They communicate with `@codegraphy-dev/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
 
-Core now owns the default explorer-style file and folder theming through Material Icon Theme. The first-party TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
+Core now owns the default explorer-style file and folder theming through Material Icon Theme. First-party plugins contribute package-owned defaults, filters, and optional semantic enrichment instead of baseline file coloring.
 
 For timeline compatibility, third-party plugins should avoid reading the live workspace directly during analysis. Use the plugin hook `context` instead so the same plugin can resolve files from either the current workspace or a historical commit snapshot.
 
@@ -44,7 +42,7 @@ Installation and enablement are separate:
 
 - The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, but terminal plugin management starts by installing the Core Package globally.
 - `npm i -g @codegraphy-dev/core` installs the terminal `codegraphy` command.
-- `npm i -g @codegraphy-dev/plugin-python` installs a plugin package for the developer's toolchain.
+- `npm i -g @codegraphy-dev/plugin-vue` installs a plugin package for the developer's toolchain.
 - `codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata.
 - `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins.
 - `codegraphy plugins enable <plugin-id-or-package> [workspace]` writes `enabled: true` Plugin ID activity into the workspace-local `plugins` array.
@@ -57,7 +55,7 @@ Plugin packages declare package-level CodeGraphy metadata in `package.json` so r
 
 ```json
 {
-  "name": "@codegraphy-dev/plugin-python",
+  "name": "@codegraphy-dev/plugin-vue",
   "version": "1.2.3",
   "type": "module",
   "main": "./dist/plugin.js",
@@ -84,11 +82,11 @@ The same package must also include a static `codegraphy.json` descriptor. Core r
 ```json
 {
   "$schema": "./codegraphy.schema.json",
-  "id": "codegraphy.python",
-  "name": "Python",
+  "id": "codegraphy.vue",
+  "name": "Vue",
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
-  "supportedExtensions": [".py", ".pyi"],
+  "supportedExtensions": [".vue"],
   "defaultFilters": []
 }
 ```
@@ -201,7 +199,7 @@ Use `import type` because the package is type-only.
 The public npm scope is `@codegraphy-dev/*`.
 
 - Replace old vscode-specific or unavailable CodeGraphy npm scope references with `@codegraphy-dev/*`.
-- Install first-party language plugins as npm packages such as `@codegraphy-dev/plugin-python`, not as VS Code Marketplace companion extensions.
+- Install first-party language plugins as npm packages such as `@codegraphy-dev/plugin-vue`, not as VS Code Marketplace companion extensions.
 
 The VS Code Marketplace extension id remains `codegraphy.codegraphy`.
 

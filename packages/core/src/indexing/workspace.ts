@@ -70,6 +70,7 @@ export async function indexCodeGraphyWorkspace(
     cacheFiles: cache.files,
     churnCounts: {},
     directoryPaths: discoveryResult.directories ?? [],
+    gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
     disabledPlugins,
     fileAnalysis: analysisResult.fileAnalysis,
     getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
@@ -95,6 +96,7 @@ export async function indexCodeGraphyWorkspace(
     cache,
     files: discoveryResult.files,
     directories: discoveryResult.directories ?? [],
+    gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
     limitReached: discoveryResult.limitReached,
     totalFound: discoveryResult.totalFound ?? discoveryResult.files.length,
   };

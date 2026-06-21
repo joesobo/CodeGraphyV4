@@ -449,11 +449,11 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     ];
     vi.spyOn(analyzerPrivate._registry, 'list').mockReturnValue([
       { plugin: { id: 'codegraphy.typescript', supportedExtensions: ['.ts', '.tsx'] } },
-      { plugin: { id: 'codegraphy.python', supportedExtensions: ['.py'] } },
+      { plugin: { id: 'codegraphy.vue', supportedExtensions: ['.py'] } },
       { plugin: { id: 'codegraphy.markdown', supportedExtensions: ['*'] } },
     ]);
 
-    expect(analyzer.invalidatePluginFiles(['codegraphy.typescript', 'codegraphy.python'])).toEqual([
+    expect(analyzer.invalidatePluginFiles(['codegraphy.typescript', 'codegraphy.vue'])).toEqual([
       'src/app.ts',
       'src/util.py',
     ]);
