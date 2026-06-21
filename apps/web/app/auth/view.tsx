@@ -3,6 +3,7 @@ import { Button } from '../_ui/button';
 import { Card } from '../_ui/card';
 import { GitHubIcon, GoogleIcon } from '../_ui/icons';
 import { Brand } from '../_site/brand';
+import { AuthGraphField } from './graph';
 
 export function AuthView({
   mode,
@@ -14,10 +15,12 @@ export function AuthView({
   const passwordInputId = `${mode}-password`;
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-5 py-12">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-8">
+      <AuthGraphField />
+      <div className="relative z-10 flex w-full flex-col items-center">
       <Brand />
       <Card className="mt-7 w-full max-w-md p-6">
-        <h1 className="text-3xl font-black tracking-tight">
+        <h1 className="text-3xl font-black">
           {isLogin ? 'Sign in' : 'Create a free account'}
         </h1>
 
@@ -40,7 +43,7 @@ export function AuthView({
                 Password
               </label>
               {isLogin ? (
-                <a className="text-sm font-semibold text-teal-700" href="#forgot-password">
+                <a className="text-sm font-semibold text-[hsl(var(--brand-blue))]" href="#forgot-password">
                   Forgot password?
                 </a>
               ) : null}
@@ -82,10 +85,11 @@ export function AuthView({
 
       <p className="mt-6 text-muted-foreground">
         {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-        <Link className="font-semibold text-teal-700" href={isLogin ? '/signup' : '/login'}>
+        <Link className="font-semibold text-[hsl(var(--brand-blue))]" href={isLogin ? '/signup' : '/login'}>
           {isLogin ? 'Sign up' : 'Log in'}
         </Link>
       </p>
+      </div>
     </main>
   );
 }

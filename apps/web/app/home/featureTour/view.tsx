@@ -119,10 +119,7 @@ export function FeatureTour(): React.ReactElement {
       </div>
 
       <div className="feature-tour-panel">
-        <div className="flex items-center justify-between gap-3">
-          <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Feature focus</p>
-          <p className="text-xs font-bold text-muted-foreground">Select a view</p>
-        </div>
+        <p className="section-kicker-blue text-xs font-black uppercase">Select a view</p>
         <div className="mt-3 grid gap-2">
           {galleryItems.map((item, index) => {
             const Icon = item.icon;

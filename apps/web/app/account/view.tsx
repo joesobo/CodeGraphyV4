@@ -9,10 +9,10 @@ export function AccountView(): React.ReactElement {
       <SiteHeader isSignedIn />
       <main className="mx-auto max-w-5xl px-5 py-10 md:px-8 md:py-12">
         <div className="mb-8">
-          <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">
+          <p className="section-kicker-blue mb-3 text-xs font-black uppercase">
             CodeGraphy account
           </p>
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Account</h1>
+          <h1 className="text-4xl font-black sm:text-5xl">Account</h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
             Manage your account and private plugin subscriptions.
           </p>
@@ -32,7 +32,7 @@ export function AccountView(): React.ReactElement {
               </div>
             </div>
             <dl className="grid gap-2">
-              <dt className="text-xs font-black uppercase tracking-[0.08em] text-muted-foreground">
+              <dt className="text-xs font-black uppercase text-muted-foreground">
                 Email
               </dt>
               <dd className="break-words text-lg font-black">maya@codegraphy.dev</dd>

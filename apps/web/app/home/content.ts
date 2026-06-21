@@ -156,41 +156,47 @@ export const socialProofItems = [
 
 export const galleryItems = [
   {
-    icon: Braces,
-    image: '/product-media/large-repo-graph.png',
-    text: 'Core ships with Tree-sitter analysis and Material Icons. Most languages start with useful connections, themes, and file icons out of the box.',
-    title: 'Analysis and Themes',
-  },
-  {
     icon: FolderTree,
     image: '/product-media/relationship-graph-2d.png',
-    text: 'Folder context stays visible so you can return to a familiar view.',
+    text: 'Keep folder context visible while exploring the graph.',
     title: 'Folder view',
   },
   {
-    icon: Cuboid,
-    image: '/product-media/relationship-graph-3d.png',
-    text: 'View the graph in 2D or 3D.',
-    title: '3D view',
+    icon: Braces,
+    image: '/product-media/large-repo-graph.png',
+    text: 'Tree-sitter finds real code relationships to map.',
+    title: 'Analysis',
+  },
+  {
+    icon: Palette,
+    image: '/product-media/symbol-nodes-graph.png',
+    text: 'Use icons, colors, and legends to read the map faster.',
+    title: 'Themes',
   },
   {
     icon: SlidersHorizontal,
     image: '/product-media/search-filter-panel.png',
-    text: 'Search and filter out any of the noise from the graph to focus on what you care about.',
+    text: 'Narrow the graph to the files and symbols that matter.',
     title: 'Search and filters',
   },
   {
     icon: Plug,
     image: '/product-media/plugins-panel.png',
-    text: 'Plugin ecosystem to modify and extend the CodeGraphy to support your specific needs.',
+    text: 'Turn on plugins to add language and workflow support.',
     title: 'Plugin system',
+  },
+  {
+    icon: Cuboid,
+    image: '/product-media/relationship-graph-3d.png',
+    text: 'Switch between flat maps and depth views.',
+    title: '3D view',
   },
   {
     icon: FolderOpen,
     href: examplesHref,
     image: '/product-media/codegraphy-architecture.png',
     linkLabel: 'Open examples on GitHub',
-    text: 'Internal examples folder showing CodeGraphy working across many small projects and language fixtures at once.',
+    text: 'Browse small example projects and language fixtures.',
     title: 'Examples',
   },
 ];

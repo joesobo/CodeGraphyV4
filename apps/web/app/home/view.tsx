@@ -133,7 +133,7 @@ function SupportedLanguageMarquee(): React.ReactElement {
 
   return (
     <div className="mt-8 border-t border-border pt-6">
-      <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Supported languages</p>
+      <p className="section-kicker-blue text-xs font-black uppercase">Supported languages</p>
       <div aria-label="Supported language examples" className="language-marquee mt-4">
         <div className="language-marquee-track">
           {languageRows.map((languages, rowIndex) => (
@@ -201,10 +201,41 @@ export function HomeView(): React.ReactElement {
         </section>
 
         <section data-force-field-section="true">
+          <div className="force-field-content mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.8fr_1fr] md:px-8">
+            <div>
+              <p className="section-kicker-blue mb-3 text-xs font-black uppercase">Problem</p>
+              <h2 className="site-heading text-4xl sm:text-5xl">
+                Codebases drift faster than folders can explain them.
+              </h2>
+            </div>
+            <div className="grid gap-5 text-lg leading-8 text-muted-foreground">
+              <p>
+                Renaming, splitting, and reorganizing code gets risky when the real dependencies are buried across imports, symbols, packages, and plugin conventions.
+              </p>
+              <p>
+                CodeGraphy shows the shape that already exists, so you can change structure with more confidence.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="section-plain border-y border-border/70" id="gallery">
+          <div className="mx-auto max-w-7xl px-5 py-14 md:px-8">
+            <div className="border-b border-border pb-4">
+              <h2 className="site-heading max-w-3xl text-4xl sm:text-[3rem]">
+                Features.
+              </h2>
+            </div>
+            <FeatureTour />
+            <SupportedLanguageMarquee />
+          </div>
+        </section>
+
+        <section data-force-field-section="true">
           <div className="force-field-content mx-auto max-w-7xl px-5 py-20 md:px-8">
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
-                <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Example graphs</p>
+                <p className="section-kicker-blue mb-3 text-xs font-black uppercase">Example graphs</p>
                 <h2 className="site-heading text-4xl sm:text-5xl">
                   Open repos from above.
                 </h2>
@@ -245,29 +276,10 @@ export function HomeView(): React.ReactElement {
         </section>
 
         <section className="section-plain border-y border-border/70">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.8fr_1fr] md:px-8">
-            <div>
-              <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Problem</p>
-              <h2 className="site-heading text-4xl sm:text-5xl">
-                Organization can be hard, folders are just one opinion.
-              </h2>
-            </div>
-            <div className="grid gap-5 text-lg leading-8 text-muted-foreground">
-              <p>
-                Renaming, reorganizing, and splitting code can feel impossible when the actual dependencies are hidden behind folder names.
-              </p>
-              <p>
-                CodeGraphy shows the true way your code connects, so you can see how your code wants to be organized.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section data-force-field-section="true">
-          <div className="force-field-content mx-auto max-w-7xl px-5 py-16 md:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
-                <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">How it works</p>
+                <p className="section-kicker-blue mb-3 text-xs font-black uppercase">How it works</p>
                 <h2 className="site-heading text-4xl sm:text-5xl">
                   Code wants to form its own connections.
                 </h2>
@@ -280,7 +292,7 @@ export function HomeView(): React.ReactElement {
               <div className="overflow-hidden rounded-md border border-border bg-background">
                 <img alt="" className="aspect-[16/8] w-full object-cover" src="/product-media/codegraphy-architecture.png" />
                 <div className="border-t border-border p-4">
-                  <p className="section-kicker-blue mb-2 text-xs font-black uppercase tracking-[0.08em]">Local relationship map</p>
+                  <p className="section-kicker-blue mb-2 text-xs font-black uppercase">Local relationship map</p>
                   <p className="leading-6 text-muted-foreground">
                     CodeGraphy can show you only the code relevant to your current work, and the relationships between them, without needing to understand the whole codebase at once.
                   </p>
@@ -307,31 +319,9 @@ export function HomeView(): React.ReactElement {
           </div>
         </section>
 
-        <section className="section-plain border-y border-border/70" id="gallery">
-          <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
-            <Card className="notebook-card p-4 md:p-5">
-              <div className="border-b border-border pb-4">
-                <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Core</p>
-                <div className="mt-2">
-                  <div>
-                    <h2 className="site-heading max-w-3xl text-4xl sm:text-[3rem]">
-                      Features.
-                    </h2>
-                    <p className="mt-1 max-w-3xl leading-7 text-muted-foreground">
-                      Index a project and start moving through the connection map.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <FeatureTour />
-              <SupportedLanguageMarquee />
-            </Card>
-          </div>
-        </section>
-
         <section data-force-field-section="true">
           <div className="force-field-content mx-auto max-w-7xl px-5 py-20 md:px-8">
-            <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Private plugins</p>
+            <p className="section-kicker-blue mb-3 text-xs font-black uppercase">Private plugins</p>
             <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
               Paid plugins for focused workflows.
             </h2>
@@ -380,7 +370,7 @@ export function HomeView(): React.ReactElement {
 
         <section className="section-plain border-y border-border/70" id="faq">
           <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
-            <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">FAQ</p>
+            <p className="section-kicker-blue mb-3 text-xs font-black uppercase">FAQ</p>
             <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
               Questions worth answering.
             </h2>
@@ -407,7 +397,7 @@ export function HomeView(): React.ReactElement {
           <div className="force-field-background home-hero-overlay section-cta-overlay absolute inset-0" />
           <div className="force-field-content mx-auto grid max-w-7xl gap-8 px-5 py-14 md:grid-cols-[1fr_0.72fr] md:items-center md:px-8 md:py-16">
             <div className="max-w-3xl">
-              <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Start graphing</p>
+              <p className="section-kicker-blue mb-3 text-xs font-black uppercase">Start graphing</p>
               <h2 className="site-heading max-w-2xl text-3xl sm:text-4xl">
                 Map the repo in front of you.
               </h2>

@@ -46,7 +46,7 @@ export function ForceNodeControls(): React.ReactElement {
     <aside className="hero-studio-panel force-control-panel">
       <div className="force-control-header">
         <div>
-          <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Force graph</p>
+          <p className="section-kicker-blue text-xs font-black uppercase">Force graph</p>
           <h2 className="site-heading mt-1 text-2xl leading-none text-foreground">Play with the graph.</h2>
         </div>
         <button className="force-control-reset" onClick={resetSettings} type="button">
