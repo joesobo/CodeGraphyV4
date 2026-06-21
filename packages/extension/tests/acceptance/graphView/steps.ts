@@ -66,6 +66,7 @@ const CORE_EDGE_TYPE_LABELS = [
   'Contains',
   'Overrides',
   'TypeScript Alias Import',
+  'Events',
 ];
 
 const CORE_NODE_TYPE_LABELS = [
@@ -98,6 +99,9 @@ const CORE_NODE_TYPE_LABELS = [
   'Field',
   'Parameter',
   'Local',
+  'Unity',
+  'GameObject',
+  'Component',
   'Godot class_name',
 ];
 
@@ -130,6 +134,9 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Type: 'Symbol',
   Union: 'Symbol',
   Variable: 'Symbol',
+  Unity: 'Symbol',
+  GameObject: 'Unity',
+  Component: 'Unity',
   'Godot class_name': 'Variable',
 };
 
@@ -159,6 +166,9 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Type: ['type'],
   Union: ['union'],
   Variable: ['variable'],
+  Unity: ['game-object', 'component'],
+  GameObject: ['game-object'],
+  Component: ['component'],
 };
 
 export function getSymbolKindsForNodeTypeLabel(label: string): string[] | undefined {
