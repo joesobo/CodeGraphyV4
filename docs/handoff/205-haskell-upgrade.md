@@ -6,9 +6,11 @@ Draft PR: https://github.com/joesobo/CodeGraphyV4/pull/287
 
 ## Manual Workstream State
 
-This lane was started manually from `origin/main` on branch `codex/haskell-upgrade`. The setup commit is intentionally empty so the draft PR exists without changing product code or human-owned acceptance Markdown.
+This lane was started manually from `origin/main` on branch `codex/haskell-upgrade`. The setup commit is intentionally empty so the draft PR exists without changing product code or human-owned acceptance specs.
 
-The current stop point is the acceptance gate. The Haskell example and this handoff document are agent-owned. The local acceptance spec at `packages/extension/tests/acceptance/specs/haskell-example.md` has been drafted but must remain uncommitted until human review.
+The branch was merged with `origin/main` after PR #291 landed. Acceptance specs now live as Gherkin `.feature` files under `packages/extension/tests/acceptance/specs/**/*.feature`. Generated Playwright entrypoints, generated JSON IR, and DRY reports are ignored build artifacts and must not be committed.
+
+The current stop point is the acceptance gate. The Haskell example and this handoff document are agent-owned. The local acceptance spec at `packages/extension/tests/acceptance/specs/haskell-example.feature` has been drafted but must remain uncommitted until human review.
 
 ## Source Truth Audit
 
@@ -68,5 +70,7 @@ Expected file-level counts for the local acceptance draft:
 - `pnpm install`
 - `pnpm --filter @codegraphy-dev/core exec vitest run tests/treeSitter/haskell/analyze.test.ts tests/treeSitter/haskell/symbols.test.ts`
 - Parser probe from `packages/core` against the upgraded example source.
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/examplesWorkspace.test.ts`
+- Branch merged with `origin/main` at merge commit `946d65e4b692b67bd746d34b30d4c6d1c060f555` from PR #291.
 
-Do not continue into generated Playwright tests, focused failing unit tests, or implementation until the human has reviewed and committed the acceptance spec Markdown.
+Do not continue into generated Playwright tests, focused failing unit tests, or implementation until the human has reviewed and committed the acceptance spec feature file. After the human commits it, run `pnpm --filter @codegraphy-dev/extension run generate:acceptance` to regenerate ignored local artifacts as needed, but do not commit generated output.
