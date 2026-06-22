@@ -121,6 +121,54 @@ describe('graphView/pluginDefaultGroups', () => {
     expect(pluginExtensionUris.get('codegraphy.typescript')).toBe(existingUri);
   });
 
+  it('registers Unity built-in asset roots and copies icon metadata', () => {
+    const pluginExtensionUris = new Map<string, vscode.Uri>();
+
+    const groups = getGraphViewPluginDefaultGroups(
+      {
+        registry: {
+          list: () => [
+            {
+              builtIn: true,
+              plugin: {
+                id: 'codegraphy.unity',
+                name: 'Unity',
+                fileColors: {
+                  '*.unity': {
+                    color: '#F97316',
+                    shape2D: 'hexagon',
+                    shape3D: 'dodecahedron',
+                    imagePath: 'assets/scene.svg',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+      new Set<string>(),
+      pluginExtensionUris,
+      vscode.Uri.file('/test/extension'),
+    );
+
+    expect(groups).toEqual([
+      {
+        id: 'plugin:codegraphy.unity:*.unity',
+        pattern: '*.unity',
+        color: '#F97316',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.unity',
+        pluginName: 'Unity',
+        shape2D: 'hexagon',
+        shape3D: 'dodecahedron',
+        imagePath: 'assets/scene.svg',
+      },
+    ]);
+    expect(pluginExtensionUris.get('codegraphy.unity')?.fsPath).toBe(
+      '/test/extension/packages/plugin-unity',
+    );
+  });
+
   it('keeps unknown built-in plugins unregistered while still returning their groups', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>();
 

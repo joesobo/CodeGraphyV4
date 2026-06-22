@@ -95,6 +95,16 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       },
     },
     {
+      id: 'event',
+      label: 'Events',
+      defaultColor: '#A855F7',
+      defaultVisible: false,
+      description: {
+        description: 'Shows callbacks, signals, or serialized event bindings that invoke another method.',
+        examples: [{ label: 'Unity', code: 'Button.onClick -> MenuController.StartGame()' }],
+      },
+    },
+    {
       id: 'load',
       label: 'Loads',
       defaultColor: '#06B6D4',

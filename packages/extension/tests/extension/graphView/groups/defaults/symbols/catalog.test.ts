@@ -266,6 +266,30 @@ describe('graphView/default symbol group catalog', () => {
         pluginId: 'codegraphy.gdscript',
         pluginName: 'Godot',
       },
+      {
+        id: 'plugin:codegraphy.unity:symbol:game-object',
+        displayLabel: 'GameObject',
+        color: '#0EA5E9',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'game-object',
+        matchSymbolPluginKind: 'game-object',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+        pluginId: 'codegraphy.unity',
+        pluginName: 'Unity',
+      },
+      {
+        id: 'plugin:codegraphy.unity:symbol:component',
+        displayLabel: 'Component',
+        color: '#22C55E',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'component',
+        matchSymbolPluginKind: 'component',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+        pluginId: 'codegraphy.unity',
+        pluginName: 'Unity',
+      },
     ]);
   });
 

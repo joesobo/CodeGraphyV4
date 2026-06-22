@@ -52,9 +52,7 @@ export function createCodeGraphyWorkspacePluginTogglePlan(
 ): CodeGraphyWorkspacePluginTogglePlan {
   return {
     plugins: updateCodeGraphyWorkspacePluginSelection(plugins, options),
-    indexing: options.enabled
-      ? { kind: 'reprocess-plugin-files', pluginIds: [options.pluginId] }
-      : { kind: 'analyze-workspace' },
+    indexing: { kind: 'analyze-workspace' },
   };
 }
 

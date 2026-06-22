@@ -55,12 +55,14 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
       .mockReturnValueOnce({
         filePath: '/workspace/src/BaseController.cs',
         kind: 'class',
+        methodNames: new Set(),
         namespaceName: 'CodeGraphy.App',
         typeName: 'BaseController',
       })
       .mockReturnValueOnce({
         filePath: '/workspace/src/Contracts/ITracked.cs',
         kind: 'interface',
+        methodNames: new Set(),
         namespaceName: 'CodeGraphy.Contracts',
         typeName: 'ITracked',
       });
@@ -73,7 +75,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations', () =>
           return createNode({ type: 'identifier' });
         },
         descendantsOfType: (types: string[]) => {
-          expect(types).toEqual(['identifier', 'qualified_name']);
+          expect(types).toEqual(['identifier', 'type_identifier', 'qualified_name', 'generic_name']);
           return [
             { text: 'BaseController', parent: { type: 'base_list' } },
             { text: 'Ignored', parent: { type: 'argument_list' } },

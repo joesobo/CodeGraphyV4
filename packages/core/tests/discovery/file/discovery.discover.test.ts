@@ -157,6 +157,16 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
   });
 
+  it('excludes Finder metadata by default', async () => {
+    createFile('src/app.ts');
+    createFile('.DS_Store');
+    createFile('Assets/.DS_Store');
+
+    const result = await discovery.discover({ rootPath: tempDir });
+
+    expect(result.files.map((file) => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+  });
+
   it('filters by extensions', async () => {
     createFile('app.ts');
     createFile('app.js');

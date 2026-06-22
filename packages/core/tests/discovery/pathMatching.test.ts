@@ -17,6 +17,7 @@ describe('pathMatching', () => {
       '**/.codegraphy/**',
       '**/.turbo/**',
       '**/coverage/**',
+      '**/.DS_Store',
       '**/*.min.js',
       '**/*.bundle.js',
       '**/*.map',

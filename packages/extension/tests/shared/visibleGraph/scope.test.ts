@@ -362,10 +362,64 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
-	it('projects hidden symbol endpoints back to visible containing files', () => {
-		const result = applyGraphScope(
-			{
+		it('keeps Unity file to GameObject containment when Component symbols are visible', () => {
+			const result = applyGraphScope(
+				{
+					nodes: [
+					node('Assets/Prefabs/Enemy1.prefab'),
+					symbolNode('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', {
+						id: 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object',
+						name: 'Enemy1',
+						kind: 'game-object',
+						filePath: 'Assets/Prefabs/Enemy1.prefab',
+						pluginKind: 'game-object',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+					symbolNode('Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', {
+						id: 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component',
+						name: 'EnemyMovement',
+						kind: 'component',
+						filePath: 'Assets/Prefabs/Enemy1.prefab',
+						pluginKind: 'component',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+				],
+				edges: [
+						edge('Assets/Prefabs/Enemy1.prefab', 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'contains'),
+						edge('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', 'contains'),
+					],
+				},
+				{
+					nodes: [
+						{ type: 'file', enabled: true },
+						{ type: 'symbol', enabled: true },
+						{ type: 'plugin:codegraphy.unity:symbol', enabled: true },
+						{ type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+						{ type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
+					],
+					edges: [{ type: 'contains', enabled: true }],
+				},
+			);
+
+			expect(ids(result)).toEqual({
 				nodes: [
+					'Assets/Prefabs/Enemy1.prefab',
+					'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object',
+					'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component',
+				],
+				edges: [
+					'Assets/Prefabs/Enemy1.prefab->Assets/Prefabs/Enemy1.prefab#Enemy1:game-object#contains',
+					'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object->Assets/Prefabs/Enemy1.prefab#EnemyMovement:component#contains',
+				],
+			});
+		});
+
+		it('projects hidden symbol endpoints back to visible containing files', () => {
+			const result = applyGraphScope(
+				{
+					nodes: [
 					node('scripts/spawning/enemy_spawner.gd'),
 					node('resources/enemy_spawn_config.tres'),
 					symbolNode('resources/enemy_spawn_config.tres#EnemySpawnConfig:resource', {
@@ -381,32 +435,32 @@ describe('shared/visibleGraph/scope', () => {
 					id: 'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#EnemySpawnConfig:resource#load:static',
 					from: 'scripts/spawning/enemy_spawner.gd',
 					to: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
-					kind: 'load',
-					sources: [],
-				}],
-			},
-			{
+						kind: 'load',
+						sources: [],
+					}],
+				},
+				{
+					nodes: [
+						{ type: 'file', enabled: true },
+						{ type: 'symbol', enabled: false },
+						{ type: 'plugin:codegraphy.gdscript:symbol:resource', enabled: false },
+					],
+					edges: [
+						{ type: 'load', enabled: true },
+					],
+				},
+			);
+
+			expect(ids(result)).toEqual({
 				nodes: [
-					{ type: 'file', enabled: true },
-					{ type: 'symbol', enabled: false },
-					{ type: 'plugin:codegraphy.gdscript:symbol:resource', enabled: false },
+					'scripts/spawning/enemy_spawner.gd',
+					'resources/enemy_spawn_config.tres',
 				],
 				edges: [
-					{ type: 'load', enabled: true },
+					'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#load:static',
 				],
-			},
-		);
-
-		expect(ids(result)).toEqual({
-			nodes: [
-				'scripts/spawning/enemy_spawner.gd',
-				'resources/enemy_spawn_config.tres',
-			],
-			edges: [
-				'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#load:static',
-			],
+			});
 		});
-	});
 
 	it('keeps file-level type imports when imported type symbols are visible', () => {
 		const result = applyGraphScope(
@@ -681,4 +735,66 @@ describe('shared/visibleGraph/scope', () => {
 			edges: [],
 		});
 	});
+
+
+	it('filters Unity component symbols through plugin scope rows', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('Assets/Scenes/SampleScene.unity'),
+					symbolNode('Assets/Scenes/SampleScene.unity#unity:game-object:1000', {
+						id: 'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+						name: 'Player',
+						kind: 'game-object',
+						filePath: 'Assets/Scenes/SampleScene.unity',
+						pluginKind: 'game-object',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+					symbolNode('Assets/Scenes/SampleScene.unity#unity:component:1001', {
+						id: 'Assets/Scenes/SampleScene.unity#unity:component:1001',
+						name: 'Transform',
+						kind: 'component',
+						filePath: 'Assets/Scenes/SampleScene.unity',
+						pluginKind: 'component',
+						source: 'codegraphy.unity',
+						language: 'unity',
+					}),
+				],
+				edges: [
+					edge(
+						'Assets/Scenes/SampleScene.unity',
+						'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+						'contains',
+					),
+					edge(
+						'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+						'Assets/Scenes/SampleScene.unity#unity:component:1001',
+						'contains',
+					),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+					{ type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
+				],
+				edges: [{ type: 'contains', enabled: true }],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'Assets/Scenes/SampleScene.unity',
+				'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+			],
+			edges: [
+				'Assets/Scenes/SampleScene.unity->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
+			],
+		});
+	});
+
 });

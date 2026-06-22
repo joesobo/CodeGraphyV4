@@ -47,6 +47,9 @@ describe('shared/graphControls/defaults/maps', () => {
       'symbol:parameter': false,
       'symbol:local': false,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
+      'plugin:codegraphy.unity:symbol': false,
+      'plugin:codegraphy.unity:symbol:game-object': false,
+      'plugin:codegraphy.unity:symbol:component': false,
       'plugin:codegraphy.gdscript:symbol:exported-property': false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
@@ -54,6 +57,7 @@ describe('shared/graphControls/defaults/maps', () => {
     expect(createDefaultEdgeVisibility()['type']).toBe(false);
     expect(createDefaultNodeColors().file).toBeTruthy();
     expect(createDefaultNodeColors().symbol).toBe('#7C3AED');
+    expect(createDefaultNodeColors()['plugin:codegraphy.unity:symbol:game-object']).toBe('#0EA5E9');
     expect(createDefaultEdgeColors().call).toBeTruthy();
     expect(createDefaultEdgeColors()['call']).toBe('#22C55E');
   });

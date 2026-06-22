@@ -392,4 +392,22 @@ describe('plugins/routing', () => {
       toFilePath: 'src/user.ts',
     }))).toBe('reference|reference-user|src/source.ts||||||src/user.ts|||');
   });
+
+  it('includes resolved destinations for event relations', () => {
+    expect(getRelationKey(relation({
+      kind: 'event',
+      sourceId: 'unity-event',
+      fromSymbolId: 'button-component',
+      specifier: 'Toggle',
+      toFilePath: 'src/controls-hint.ts',
+      resolvedPath: 'src/controls-hint.ts',
+    }))).not.toBe(getRelationKey(relation({
+      kind: 'event',
+      sourceId: 'unity-event',
+      fromSymbolId: 'button-component',
+      specifier: 'Toggle',
+      toFilePath: 'src/menu-controller.ts',
+      resolvedPath: 'src/menu-controller.ts',
+    })));
+  });
 });

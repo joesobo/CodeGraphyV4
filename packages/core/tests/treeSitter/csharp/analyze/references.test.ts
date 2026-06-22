@@ -4,6 +4,7 @@ import {
   collectCSharpUsingTargetNode,
   handleCSharpCallNode,
 } from '../../../../src/treeSitter/runtime/analyzeCSharp/references';
+import { resolveCSharpInheritedMethodPath } from '../../../../src/treeSitter/runtime/csharpIndex';
 import {
   getCSharpTypeName,
   resolveCSharpUsingImport,
@@ -14,6 +15,10 @@ import { addRelation } from '../../../../src/treeSitter/runtime/analyze/results'
 vi.mock('../../../../src/treeSitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeName: vi.fn(),
   resolveCSharpUsingImport: vi.fn(),
+}));
+
+vi.mock('../../../../src/treeSitter/runtime/csharpIndex', () => ({
+  resolveCSharpInheritedMethodPath: vi.fn(),
 }));
 
 vi.mock('../../../../src/treeSitter/runtime/analyze/nodes', () => ({
@@ -217,6 +222,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
 
   it('records C# calls to inherited methods when the containing type has one resolved base type', () => {
     vi.mocked(getIdentifierText).mockReturnValueOnce('Status');
+    vi.mocked(resolveCSharpInheritedMethodPath).mockReturnValue('/workspace/src/Services/BaseService.cs');
 
     handleCSharpCallNode(
       createNode({
@@ -249,6 +255,11 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/references', () => {
           localName: 'Status',
         }),
       }),
+    );
+    expect(resolveCSharpInheritedMethodPath).toHaveBeenCalledWith(
+      workspaceRoot,
+      ['/workspace/src/Services/BaseService.cs'],
+      'Status',
     );
   });
 

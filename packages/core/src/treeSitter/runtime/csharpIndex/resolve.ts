@@ -81,3 +81,18 @@ export function resolveCSharpTypePathInNamespace(
     typeName,
   )?.filePath ?? null;
 }
+
+export function resolveCSharpInheritedMethodPath(
+  workspaceRoot: string,
+  baseTypePaths: readonly string[],
+  methodName: string,
+): string | null {
+  const index = getCSharpWorkspaceIndex(workspaceRoot);
+  if (!index) {
+    return null;
+  }
+
+  return [...index.typesByQualifiedName.values()]
+    .find((type) => baseTypePaths.includes(type.filePath) && type.methodNames.has(methodName))
+    ?.filePath ?? null;
+}

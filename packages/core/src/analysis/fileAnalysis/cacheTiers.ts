@@ -85,6 +85,10 @@ function stripSymbolRelationEndpoints(relation: IAnalysisRelation): IAnalysisRel
     return relation;
   }
 
+  if (isSameFileSymbolContainmentRelation(relation)) {
+    return undefined;
+  }
+
   if (!relation.toFilePath && !relation.resolvedPath && !relation.toNodeId) {
     return undefined;
   }
@@ -93,6 +97,13 @@ function stripSymbolRelationEndpoints(relation: IAnalysisRelation): IAnalysisRel
   delete fileLevelRelation.fromSymbolId;
   delete fileLevelRelation.toSymbolId;
   return fileLevelRelation;
+}
+
+function isSameFileSymbolContainmentRelation(relation: IAnalysisRelation): boolean {
+  const targetPath = relation.resolvedPath ?? relation.toFilePath ?? null;
+  return relation.kind === 'contains'
+    && Boolean(targetPath)
+    && targetPath === relation.fromFilePath;
 }
 
 export function projectAnalysisForCacheTiers(

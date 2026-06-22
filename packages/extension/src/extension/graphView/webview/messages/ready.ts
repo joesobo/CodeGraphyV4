@@ -45,6 +45,19 @@ export interface GraphViewReadyHandlers {
   notifyWebviewReady(): void;
 }
 
+function sendWebviewReadyFilterPatterns(handlers: GraphViewReadyHandlers): void {
+  handlers.sendMessage({
+    type: 'FILTER_PATTERNS_UPDATED',
+    payload: {
+      patterns: handlers.getFilterPatterns(),
+      pluginPatterns: handlers.getPluginFilterPatterns(),
+      pluginPatternGroups: handlers.getPluginFilterGroups?.() ?? [],
+      disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
+      disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
+    },
+  });
+}
+
 export function replayWebviewReadySettings(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
@@ -69,16 +82,7 @@ export function replayWebviewReadySettings(
   handlers.sendSettings();
   handlers.sendPhysicsSettings();
   handlers.sendGroupsUpdated();
-  handlers.sendMessage({
-    type: 'FILTER_PATTERNS_UPDATED',
-    payload: {
-      patterns: handlers.getFilterPatterns(),
-      pluginPatterns: handlers.getPluginFilterPatterns(),
-      pluginPatternGroups: handlers.getPluginFilterGroups?.() ?? [],
-      disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
-      disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
-    },
-  });
+  sendWebviewReadyFilterPatterns(handlers);
   handlers.sendMessage({
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
@@ -152,6 +156,7 @@ export async function applyWebviewReady(
 
   await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
+  sendWebviewReadyFilterPatterns(handlers);
   handlers.sendPluginStatuses?.();
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });

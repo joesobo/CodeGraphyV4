@@ -70,6 +70,7 @@ pnpm run release:publish mcp
 pnpm run release:publish core
 pnpm run release:publish plugin-typescript
 pnpm run release:publish plugin-godot
+pnpm run release:publish plugin-unity
 pnpm run release:publish plugin-vue
 pnpm run release:publish plugin-svelte
 ```
@@ -102,6 +103,7 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish plugin-markdown`
    - `pnpm run release:publish plugin-typescript`
    - `pnpm run release:publish plugin-godot`
+   - `pnpm run release:publish plugin-unity`
    - `pnpm run release:publish plugin-vue`
    - `pnpm run release:publish plugin-svelte`
    - `pnpm run release:publish core`
@@ -141,6 +143,7 @@ If you ever move the core to a different publisher later, that would require a n
 - Plugin API: <https://www.npmjs.com/package/@codegraphy-dev/plugin-api>
 - TypeScript/JavaScript plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript>
 - Godot plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-godot>
+- Unity plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-unity>
 - Markdown plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown>
 - Vue plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-vue>
 - Svelte plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-svelte>

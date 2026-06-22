@@ -12,6 +12,7 @@ import {
   initializeCurrentCodeGraphyConfiguration,
   resetCurrentCodeGraphyConfigurationForTest,
 } from '../../../src/extension/repoSettings/current';
+import { createAcceptanceWorkspaceCopyFilter } from '../../acceptance/graphView/workspace';
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];
@@ -40,9 +41,38 @@ function createContext() {
 async function copyExamplesWorkspace(): Promise<string> {
   const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-examples-workspace-'));
   const targetPath = path.join(workspaceRoot, 'examples');
-  await fs.cp(sourceExamplesRoot, targetPath, { recursive: true });
+  const copyFilter = createExamplesWorkspaceCopyFilter();
+
+  await fs.cp(sourceExamplesRoot, targetPath, {
+    recursive: true,
+    filter: copyFilter,
+  });
   tempWorkspaceRoots.push(targetPath);
   return targetPath;
+}
+
+function createExamplesWorkspaceCopyFilter(): (sourcePath: string) => boolean {
+  const filtersByExampleName = new Map<string, (sourcePath: string) => boolean>();
+
+  return (sourcePath: string): boolean => {
+    const relativePath = path.relative(sourceExamplesRoot, sourcePath).split(path.sep).join('/');
+    if (relativePath.length === 0) {
+      return true;
+    }
+
+    const [exampleName] = relativePath.split('/');
+    if (!exampleName) {
+      return true;
+    }
+
+    let filter = filtersByExampleName.get(exampleName);
+    if (!filter) {
+      filter = createAcceptanceWorkspaceCopyFilter(path.join(sourceExamplesRoot, exampleName));
+      filtersByExampleName.set(exampleName, filter);
+    }
+
+    return filter(sourcePath);
+  };
 }
 
 afterAll(async () => {

@@ -64,15 +64,11 @@ export function copyExampleWorkspace(
 ): string {
   const sourcePath = path.join(repoRoot(), 'examples', exampleName);
   const workspacePath = path.join(tempRoot, exampleName);
+  const copyFilter = createAcceptanceWorkspaceCopyFilter(sourcePath);
 
   fs.cpSync(sourcePath, workspacePath, {
     recursive: true,
-    filter: (source) => {
-      const relativePath = path.relative(sourcePath, source).split(path.sep).join('/');
-      return !isAcceptanceGeneratedArtifact(relativePath)
-        && relativePath !== '.codegraphy/graph.lbug'
-        && relativePath !== '.codegraphy/meta.json';
-    },
+    filter: copyFilter,
   });
   rewriteMarkdownAcceptanceLinks(workspacePath, exampleName);
   writeAcceptanceVSCodeSettings(workspacePath, exampleName, options);
@@ -81,6 +77,35 @@ export function copyExampleWorkspace(
   }
 
   return workspacePath;
+}
+
+export function createAcceptanceWorkspaceCopyFilter(workspaceRoot: string): (sourcePath: string) => boolean {
+  const gitignore = loadGitignore(workspaceRoot);
+
+  return (sourcePath: string): boolean => {
+    const relativePath = normalizeCopyPath(path.relative(workspaceRoot, sourcePath));
+    if (relativePath.length === 0) {
+      return true;
+    }
+
+    if (relativePath === '.codegraphy/settings.json') {
+      return true;
+    }
+
+    if (isAcceptanceGeneratedArtifact(relativePath)
+      || relativePath === '.codegraphy/graph.lbug'
+      || relativePath === '.codegraphy/meta.json') {
+      return false;
+    }
+
+    if (!gitignore) {
+      return true;
+    }
+
+    const isDirectory = fs.statSync(sourcePath).isDirectory();
+    return !gitignore.ignores(relativePath)
+      && !(isDirectory && gitignore.ignores(`${relativePath}/`));
+  };
 }
 
 function hasAcceptanceSettingsOverrides(options: CopyExampleWorkspaceOptions): boolean {
@@ -368,6 +393,10 @@ function readMaxFiles(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value)
     ? value
     : DEFAULT_MAX_FILES;
+}
+
+function normalizeCopyPath(relativePath: string): string {
+  return relativePath.split(path.sep).join('/');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
