@@ -127,6 +127,118 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
     ]));
   });
 
+  it('limits Haskell call and reference resolution to explicit import lists', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/App/Model/User.hs': [
+        'module App.Model.User where',
+        'data User = User String',
+        'data Hidden = Hidden String',
+        '',
+        'makeUser name = User name',
+        'hiddenUser name = Hidden name',
+        '',
+      ].join('\n'),
+    });
+    const mainPath = path.join(workspaceRoot, 'src/Main.hs');
+    const userPath = path.join(workspaceRoot, 'src/App/Model/User.hs');
+    const source = [
+      'module Main where',
+      '',
+      'import App.Model.User (User, makeUser)',
+      '',
+      'main :: IO ()',
+      'main = print (makeUser "Ada")',
+      '',
+      'visible :: User -> User',
+      'visible value = value',
+      '',
+      'hidden :: Hidden -> Hidden',
+      'hidden value = hiddenUser value',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+    expect(result).not.toBeNull();
+    const userRelations = result?.relations?.filter(relation => relation.resolvedPath === userPath) ?? [];
+
+    expect(userRelations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'call', specifier: 'makeUser' }),
+      expect.objectContaining({ kind: 'reference', specifier: 'User' }),
+    ]));
+    expect(userRelations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'call', specifier: 'hiddenUser' }),
+    ]));
+    expect(userRelations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'reference', specifier: 'Hidden' }),
+    ]));
+  });
+
+  it('extracts Haskell calls to imported data constructors with names that differ from their type', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/App/Model/Result.hs': [
+        'module App.Model.Result where',
+        'data Result = Success String | Failure String',
+        '',
+      ].join('\n'),
+    });
+    const mainPath = path.join(workspaceRoot, 'src/Main.hs');
+    const resultPath = path.join(workspaceRoot, 'src/App/Model/Result.hs');
+    const source = [
+      'module Main where',
+      '',
+      'import App.Model.Result (Result(..))',
+      '',
+      'main :: IO ()',
+      'main = print (Success "ok")',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+    expect(result).not.toBeNull();
+    const resultRelations = result?.relations?.filter(relation => relation.resolvedPath === resultPath) ?? [];
+
+    expect(resultRelations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'call', specifier: 'Success' }),
+    ]));
+    expect(resultRelations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'call', specifier: 'Result' }),
+    ]));
+  });
+
+  it('extracts Haskell calls to explicitly imported data constructors', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/App/Model/Result.hs': [
+        'module App.Model.Result where',
+        'data Result = Success String | Failure String',
+        '',
+      ].join('\n'),
+    });
+    const mainPath = path.join(workspaceRoot, 'src/Main.hs');
+    const resultPath = path.join(workspaceRoot, 'src/App/Model/Result.hs');
+    const source = [
+      'module Main where',
+      '',
+      'import App.Model.Result (Result(Success))',
+      '',
+      'main :: IO ()',
+      'main = print (Success "ok")',
+      '',
+      'hidden = Failure "nope"',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(mainPath, source, workspaceRoot);
+    expect(result).not.toBeNull();
+    const resultRelations = result?.relations?.filter(relation => relation.resolvedPath === resultPath) ?? [];
+
+    expect(resultRelations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'call', specifier: 'Success' }),
+    ]));
+    expect(resultRelations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'call', specifier: 'Failure' }),
+    ]));
+  });
+
   it('extracts generic Haskell symbols and imported type references used by the example contract', async () => {
     const workspaceRoot = await createWorkspace({
       'src/App/Model/Profile.hs': [

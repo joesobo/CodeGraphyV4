@@ -29,6 +29,19 @@ import {
   type TreeSitterAnalysisOptions,
 } from '../options';
 
+interface HaskellImportList {
+  callableNames: Set<string>;
+  constructorNames: Set<string>;
+  typeNames: Set<string>;
+  typesWithConstructors: Set<string>;
+}
+
+interface HaskellModuleNames {
+  callableNames: Set<string>;
+  constructorNamesByType: Map<string, Set<string>>;
+  typeNames: Set<string>;
+}
+
 function visitHaskellNode(
   node: Parser.SyntaxNode,
   filePath: string,
@@ -51,10 +64,12 @@ function visitHaskellNode(
     handleHaskellImport(node, filePath, sourceRoot, relations);
     const importRelation = relations.at(-1);
     if (importRelation?.kind === 'import' && importRelation.resolvedPath) {
-      for (const callableName of readImportedHaskellCallableNames(importRelation.resolvedPath)) {
+      const importedNames = readImportedHaskellModuleNames(importRelation.resolvedPath);
+      const importList = readHaskellImportList(node);
+      for (const callableName of filterImportedHaskellCallableNames(importedNames, importList)) {
         importedCallablePaths.set(callableName, importRelation.resolvedPath);
       }
-      for (const typeName of readImportedHaskellTypeNames(importRelation.resolvedPath)) {
+      for (const typeName of filterImportedHaskellTypeNames(importedNames, importList)) {
         importedTypePaths.set(typeName, importRelation.resolvedPath);
       }
     }
@@ -185,38 +200,120 @@ function handleHaskellImportedTypeReference(
   addReferenceRelation(relations, filePath, name, resolvedPath, currentSymbolId);
 }
 
-function readImportedHaskellCallableNames(filePath: string): string[] {
+function readHaskellImportList(node: Parser.SyntaxNode): HaskellImportList | undefined {
+  const importListNode = node.childForFieldName('names');
+  if (!importListNode) {
+    return undefined;
+  }
+
+  const importList: HaskellImportList = {
+    callableNames: new Set(),
+    constructorNames: new Set(),
+    typeNames: new Set(),
+    typesWithConstructors: new Set(),
+  };
+
+  for (const importName of importListNode.namedChildren.filter(child => child.type === 'import_name')) {
+    const variableName = importName.childForFieldName('variable')?.text;
+    if (variableName) {
+      importList.callableNames.add(variableName);
+    }
+
+    const childrenNode = importName.childForFieldName('children');
+    const typeName = importName.childForFieldName('type')?.text ?? importName.childForFieldName('name')?.text;
+    if (typeName) {
+      importList.typeNames.add(typeName);
+      if (childrenNode?.text.includes('..')) {
+        importList.typesWithConstructors.add(typeName);
+      }
+      for (const constructorName of childrenNode?.descendantsOfType('constructor') ?? []) {
+        importList.constructorNames.add(constructorName.text);
+      }
+    }
+  }
+
+  return importList;
+}
+
+function filterImportedHaskellCallableNames(
+  importedNames: HaskellModuleNames,
+  importList: HaskellImportList | undefined,
+): string[] {
+  if (!importList) {
+    return [...importedNames.callableNames];
+  }
+
+  const names = new Set<string>();
+  for (const name of importList.callableNames) {
+    if (importedNames.callableNames.has(name)) {
+      names.add(name);
+    }
+  }
+  for (const name of importList.constructorNames) {
+    if (importedNames.callableNames.has(name)) {
+      names.add(name);
+    }
+  }
+  for (const typeName of importList.typesWithConstructors) {
+    for (const constructorName of importedNames.constructorNamesByType.get(typeName) ?? []) {
+      names.add(constructorName);
+    }
+  }
+
+  return [...names];
+}
+
+function filterImportedHaskellTypeNames(
+  importedNames: HaskellModuleNames,
+  importList: HaskellImportList | undefined,
+): string[] {
+  if (!importList) {
+    return [...importedNames.typeNames];
+  }
+
+  return [...importList.typeNames].filter(typeName => importedNames.typeNames.has(typeName));
+}
+
+function readImportedHaskellModuleNames(filePath: string): HaskellModuleNames {
   try {
     const parser = new Parser();
     parser.setLanguage(HaskellLanguage as unknown as Parser.Language);
     const rootNode = parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
-    const names = new Set<string>();
-    for (const node of rootNode.descendantsOfType(['data_type', 'newtype', 'function'])) {
-      const name = node.childForFieldName('name')?.text ?? node.namedChildren[0]?.text;
-      if (name) {
-        names.add(name);
+    const callableNames = new Set<string>();
+    const constructorNamesByType = new Map<string, Set<string>>();
+    const typeNames = new Set<string>();
+
+    for (const node of rootNode.descendantsOfType(['data_type', 'newtype', 'type_synonym', 'class'])) {
+      const typeName = node.childForFieldName('name')?.text ?? node.namedChildren[0]?.text;
+      if (!typeName) {
+        continue;
+      }
+
+      typeNames.add(typeName);
+      for (const constructorName of readHaskellConstructorNames(node)) {
+        callableNames.add(constructorName);
+        constructorNamesByType.set(typeName, new Set([
+          ...(constructorNamesByType.get(typeName) ?? []),
+          constructorName,
+        ]));
       }
     }
-    return [...names];
+
+    for (const node of rootNode.descendantsOfType('function')) {
+      const name = node.childForFieldName('name')?.text ?? node.namedChildren[0]?.text;
+      if (name) {
+        callableNames.add(name);
+      }
+    }
+
+    return { callableNames, constructorNamesByType, typeNames };
   } catch {
-    return [];
+    return { callableNames: new Set(), constructorNamesByType: new Map(), typeNames: new Set() };
   }
 }
 
-function readImportedHaskellTypeNames(filePath: string): string[] {
-  try {
-    const parser = new Parser();
-    parser.setLanguage(HaskellLanguage as unknown as Parser.Language);
-    const rootNode = parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
-    const names = new Set<string>();
-    for (const node of rootNode.descendantsOfType(['data_type', 'newtype', 'type_synonym', 'class'])) {
-      const name = node.childForFieldName('name')?.text ?? node.namedChildren[0]?.text;
-      if (name) {
-        names.add(name);
-      }
-    }
-    return [...names];
-  } catch {
-    return [];
-  }
+function readHaskellConstructorNames(node: Parser.SyntaxNode): string[] {
+  return node.descendantsOfType('constructor')
+    .map(constructorNode => constructorNode.text)
+    .filter((name, index, names) => names.indexOf(name) === index);
 }

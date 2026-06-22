@@ -32,7 +32,7 @@ This example intentionally sticks to the Haskell relationships and symbols that 
 
 - Imports: module imports between local `.hs` files.
 - References: imported type mentions in signatures and data declarations.
-- Calls: calls to imported functions and constructors, plus local calls when symbol nodes are visible.
+- Calls: calls to imported functions and data constructors.
 - Functions: `main`, `greet`, `boot`, `renderGreeting`, `makeUser`, `describeUser`, and `describeProfile`.
 - Types: `Greeting`, `Runner`, `RunnerId`, `User`, and `Profile`.
 - Class: `Runnable`.
