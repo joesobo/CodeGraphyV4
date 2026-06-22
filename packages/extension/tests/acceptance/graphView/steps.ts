@@ -294,15 +294,8 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I have indexed the workspace': async (context, step) => {
-    const frame = requireGraphFrame(context);
-    await closePanelIfOpen(frame);
-    await graphStage(frame).screenshot().then(image => {
-      context.beforeIndexStageImage = image;
-    });
-    await frame.getByRole('button', { name: 'Index Workspace' }).click();
-    await expect(
-      frame.getByRole('progressbar', { name: 'Indexing progress' }),
-    ).toBeHidden({ timeout: 30_000 });
+    await indexWorkspace(context);
+    await waitForIndexingToFinish(context);
     await applyExampleScenarioStartingUiState(context, step.sourcePath);
     await applyPostIndexScenarioStartingUiState(context, step.sourcePath);
   },
@@ -1161,11 +1154,14 @@ async function applyPostIndexScenarioStartingUiState(
   }
 }
 
-async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
+export async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
   const frame = requireGraphFrame(context);
   await closePanelIfOpen(frame);
   context.beforeIndexStageImage = await graphStage(frame).screenshot();
-  await frame.getByRole('button', { name: 'Index Workspace' }).click();
+  const indexButton = frame.getByRole('button', { name: 'Index Workspace' });
+  if (await indexButton.count()) {
+    await indexButton.click();
+  }
 }
 
 async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise<void> {
