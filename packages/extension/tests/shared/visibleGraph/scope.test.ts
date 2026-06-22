@@ -362,6 +362,52 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('projects hidden symbol endpoints back to visible containing files', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('scripts/spawning/enemy_spawner.gd'),
+					node('resources/enemy_spawn_config.tres'),
+					symbolNode('resources/enemy_spawn_config.tres#EnemySpawnConfig:resource', {
+						id: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
+						name: 'EnemySpawnConfig',
+						kind: 'resource',
+						filePath: 'resources/enemy_spawn_config.tres',
+						pluginKind: 'resource',
+						source: 'codegraphy.gdscript',
+					}),
+				],
+				edges: [{
+					id: 'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#EnemySpawnConfig:resource#load:static',
+					from: 'scripts/spawning/enemy_spawner.gd',
+					to: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
+					kind: 'load',
+					sources: [],
+				}],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: false },
+					{ type: 'plugin:codegraphy.gdscript:symbol:resource', enabled: false },
+				],
+				edges: [
+					{ type: 'load', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'scripts/spawning/enemy_spawner.gd',
+				'resources/enemy_spawn_config.tres',
+			],
+			edges: [
+				'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#load:static',
+			],
+		});
+	});
+
 	it('keeps file-level type imports when imported type symbols are visible', () => {
 		const result = applyGraphScope(
 			{
