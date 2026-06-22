@@ -90,7 +90,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     );
   }
 
-  private _getActiveAnalysisPluginIds(
+  protected _getActiveAnalysisPluginIds(
     pluginIds: readonly string[] | undefined,
     disabledPlugins: ReadonlySet<string>,
   ): string[] {

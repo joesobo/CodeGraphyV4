@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
+import {
+  hasRequiredAnalysisCacheTiers,
+  type IDiscoveredFile,
+} from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
+import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
@@ -80,6 +85,62 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     return source;
   }
 
+  private _canReuseCurrentAnalysisForScope(
+    discoveredFiles: readonly IDiscoveredFile[],
+    disabledPlugins: Set<string>,
+  ): boolean {
+    if (discoveredFiles.length === 0) {
+      return false;
+    }
+
+    const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
+    const activePluginIds = this._getActiveAnalysisPluginIds(undefined, disabledPlugins);
+    const requiredTiers = createWorkspacePipelineAnalysisCacheTiers(
+      nodeVisibility,
+      activePluginIds,
+    ).required;
+
+    return discoveredFiles.every((file) => {
+      const analysis = this._lastFileAnalysis.get(file.relativePath);
+      return Boolean(analysis && hasRequiredAnalysisCacheTiers(analysis, requiredTiers));
+    });
+  }
+
+  private async _rebuildAnalysisScopeFromCurrentAnalysis(input: {
+    discoveredDirectories: readonly string[];
+    discoveredFiles: IDiscoveredFile[];
+    disabledPlugins: Set<string>;
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void;
+    showOrphans: boolean;
+    workspaceRoot: string;
+  }): Promise<IGraphData> {
+    input.onProgress?.({
+      phase: 'Applying Scope',
+      current: 0,
+      total: input.discoveredFiles.length,
+    });
+
+    this._lastDiscoveredDirectories = [...input.discoveredDirectories];
+    this._lastDiscoveredFiles = input.discoveredFiles;
+    this._lastWorkspaceRoot = input.workspaceRoot;
+
+    const graphData = this._buildGraphDataFromAnalysis(
+      this._lastFileAnalysis,
+      input.workspaceRoot,
+      input.showOrphans,
+      input.disabledPlugins,
+    );
+
+    await this._persistIndexMetadata();
+    input.onProgress?.({
+      phase: 'Applying Scope',
+      current: input.discoveredFiles.length,
+      total: input.discoveredFiles.length,
+    });
+
+    return graphData;
+  }
+
   async refreshAnalysisScope(
     filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
@@ -107,6 +168,17 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       },
     );
     this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
+
+    if (this._canReuseCurrentAnalysisForScope(discoveryResult.files, disabledPlugins)) {
+      return this._rebuildAnalysisScopeFromCurrentAnalysis({
+        disabledPlugins,
+        discoveredDirectories: discoveryResult.directories ?? [],
+        discoveredFiles: discoveryResult.files,
+        onProgress,
+        showOrphans: config.showOrphans ?? true,
+        workspaceRoot,
+      });
+    }
 
     return refreshWorkspacePipelineAnalysisScope(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
