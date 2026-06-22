@@ -434,7 +434,9 @@ export async function expectVisibleEdgeBetween(
   const target = await findNodeProbe(context, targetPath);
 
   await expect(graphEdge(frame, sourcePath, targetPath)).toBeAttached();
-  expect(distanceBetween(source.center, target.center)).toBeGreaterThan(0);
+  if (sourcePath !== targetPath) {
+    expect(distanceBetween(source.center, target.center)).toBeGreaterThan(0);
+  }
 }
 
 export async function waitForFileOpened(page: Page, fileName: string): Promise<void> {

@@ -5,6 +5,10 @@ const {
   handleGoImportDeclaration,
   handleGoCallableDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
+  handleGoConstSpec,
+  handleGoShortVarDeclaration,
+  handleGoQualifiedTypeReference,
   handleGoCallExpression,
   normalizeAnalysisResult,
   walkTree,
@@ -12,6 +16,10 @@ const {
   handleGoImportDeclaration: vi.fn(),
   handleGoCallableDeclaration: vi.fn(),
   handleGoTypeSpec: vi.fn(),
+  handleGoTypeSpecRelations: vi.fn(),
+  handleGoConstSpec: vi.fn(),
+  handleGoShortVarDeclaration: vi.fn(),
+  handleGoQualifiedTypeReference: vi.fn(),
   handleGoCallExpression: vi.fn(),
   normalizeAnalysisResult: vi.fn(),
   walkTree: vi.fn(),
@@ -24,7 +32,11 @@ vi.mock('../../../src/treeSitter/runtime/analyzeGo/imports', () => ({
 vi.mock('../../../src/treeSitter/runtime/analyzeGo/handlers', () => ({
   handleGoCallableDeclaration,
   handleGoCallExpression,
+  handleGoConstSpec,
+  handleGoQualifiedTypeReference,
+  handleGoShortVarDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
@@ -45,7 +57,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
     }));
   });
 
-  it('routes import, callable, type, and call nodes to the matching handlers', () => {
+  it('routes Go node types to the matching handlers', () => {
     const rootNode = { type: 'source_file' };
     const filePath = '/workspace/main.go';
     const workspaceRoot = '/workspace';
@@ -90,6 +102,35 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       { type: 'type_spec' },
       filePath,
       expect.any(Array),
+      expect.any(Array),
+      expect.any(Map),
+      { includeSymbolEndpoint: true },
+    );
+
+    expect(visit?.({ type: 'const_spec' }, state, walk)).toBeUndefined();
+    expect(handleGoConstSpec).toHaveBeenCalledWith(
+      { type: 'const_spec' },
+      filePath,
+      expect.any(Array),
+    );
+
+    expect(visit?.({ type: 'short_var_declaration' }, state, walk)).toBeUndefined();
+    expect(handleGoShortVarDeclaration).toHaveBeenCalledWith(
+      { type: 'short_var_declaration' },
+      filePath,
+      expect.any(Array),
+      expect.any(Map),
+      expect.any(Map),
+      { includeSymbols: true },
+    );
+
+    expect(visit?.({ type: 'qualified_type' }, state, walk)).toBeUndefined();
+    expect(handleGoQualifiedTypeReference).toHaveBeenCalledWith(
+      { type: 'qualified_type' },
+      filePath,
+      expect.any(Array),
+      expect.any(Map),
+      'symbol-id',
     );
 
     expect(visit?.({ type: 'call_expression' }, state, walk)).toBeUndefined();
@@ -97,6 +138,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       { type: 'call_expression' },
       filePath,
       expect.any(Array),
+      expect.any(Map),
       expect.any(Map),
       'symbol-id',
     );
@@ -113,6 +155,9 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
     expect(handleGoImportDeclaration).not.toHaveBeenCalled();
     expect(handleGoCallableDeclaration).not.toHaveBeenCalled();
     expect(handleGoTypeSpec).not.toHaveBeenCalled();
+    expect(handleGoConstSpec).not.toHaveBeenCalled();
+    expect(handleGoShortVarDeclaration).not.toHaveBeenCalled();
+    expect(handleGoQualifiedTypeReference).not.toHaveBeenCalled();
     expect(handleGoCallExpression).not.toHaveBeenCalled();
     expect(normalizeAnalysisResult).toHaveBeenCalledWith(
       '/workspace/main.go',
@@ -124,5 +169,26 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       symbols: [],
       relations: [],
     });
+  });
+
+  it('extracts type-spec relations without symbols when symbol analysis is disabled', () => {
+    const rootNode = { type: 'source_file' };
+    const filePath = '/workspace/main.go';
+    const workspaceRoot = '/workspace';
+    let visit: ((node: unknown, state: unknown, walk: unknown) => unknown) | undefined;
+    walkTree.mockImplementation((_root, _state, callback) => {
+      visit = callback;
+    });
+
+    analyzeGoFile(filePath, { rootNode } as never, workspaceRoot, { includeSymbols: false });
+
+    expect(visit?.({ type: 'type_spec' }, {}, vi.fn())).toBeUndefined();
+    expect(handleGoTypeSpec).not.toHaveBeenCalled();
+    expect(handleGoTypeSpecRelations).toHaveBeenCalledWith(
+      { type: 'type_spec' },
+      filePath,
+      expect.any(Array),
+      expect.any(Map),
+    );
   });
 });

@@ -1,16 +1,31 @@
 # Dart Example
 
-Tiny Dart package for checking that CodeGraphy connects relative and package imports.
+Small Dart package for checking that CodeGraphy connects a runner entrypoint, app contracts, model types, formatter helpers, and ordinary Dart declarations using syntax-level relationships available from Tree-sitter.
 
 Open `examples/` in CodeGraphy and look for:
 
 - `example-dart/bin/sample_app.dart -> example-dart/lib/app/runner.dart#import`
+- `example-dart/bin/sample_app.dart -> example-dart/lib/model/profile.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/app/base_runner.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/app/runnable.dart#import`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/auditable.dart#import`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/format_run.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/user.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/profile.dart#import`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/model/run_status.dart#import`
+- `example-dart/lib/app/auditable.dart -> example-dart/lib/model/profile.dart#import`
+- `example-dart/lib/app/format_run.dart -> example-dart/lib/model/profile.dart#import`
+- `example-dart/lib/app/format_run.dart -> example-dart/lib/model/run_status.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/app/base_runner.dart#inherit`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/app/runnable.dart#inherit`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/auditable.dart#inherit`
+- `example-dart/bin/sample_app.dart -> example-dart/lib/app/runner.dart#call`
+- `example-dart/bin/sample_app.dart -> example-dart/lib/model/profile.dart#call`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/format_run.dart#call`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/model/user.dart#call`
+- `example-dart/lib/app/runner.dart -> example-dart/lib/app/runner.dart#contains`
+- `example-dart/lib/model/user.dart -> example-dart/lib/model/user.dart#contains`
+- `example-dart/lib/app/format_run.dart -> example-dart/lib/app/format_run.dart#contains`
 
 ## Graph Screenshot
 
@@ -21,10 +36,14 @@ Open `examples/` in CodeGraphy and look for:
 Suggested symbol check:
 
 1. Open `lib/app/runner.dart`.
-2. In Graph Scope, enable **Symbol**.
-3. Search for `Runner`, `BaseRunner`, `Runnable`, `User`, and `Profile`.
+2. In Graph Scope, enable **Function**, **Class**, **Mixin**, **Enum**, **Alias**, **Extension**, **Method**, **Local**, and **Constant**.
+3. Search for `main`, `boot`, `formatRun`, `Runner`, `Runnable`, `Profile`, `User`, `RunStatus`, `RunLabel`, `ProfileAudit`, `run`, `runner`, `status`, and `statusPrefix`.
 
 Expected behavior:
 
-- Class and Interface symbols show the runner contract and model declarations.
+- Function symbols show the entrypoint, runner boot helper, and formatter helper.
+- Class and Mixin symbols show the runner contract and model declarations.
+- Enum symbols show the run status model.
+- Alias and Extension symbols show Dart-specific syntax that still maps cleanly to generic graph concepts.
+- Method, Local, and Constant symbols show ordinary declaration sites a Dart developer expects to inspect without broadening this slice into fields, parameters, or globals.
 - The Dart import chain becomes a small app story instead of a set of anonymous files.
