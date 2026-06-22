@@ -1,0 +1,4 @@
+enum RunStatus {
+  ready,
+  archived,
+}

@@ -20,6 +20,8 @@ describe('shared/graphControls/defaults/maps', () => {
       'symbol:constructor': false,
       'symbol:prototype': false,
       'symbol:class': false,
+      'symbol:mixin': false,
+      'symbol:extension': false,
       'symbol:interface': false,
       'symbol:record': false,
       'symbol:delegate': false,

@@ -71,6 +71,27 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
     ]);
   });
 
+  it('advertises language-specific Dart graph scope capabilities', () => {
+    expect(listTreeSitterEdgeTypeCapabilities(['lib/app/runner.dart'])).toEqual([
+      'import',
+      'reference',
+      'call',
+      'inherit',
+      'contains',
+    ]);
+    expect(listTreeSitterNodeTypeCapabilities(['lib/app/runner.dart'])).toEqual([
+      'symbol:function',
+      'symbol:class',
+      'symbol:mixin',
+      'symbol:enum',
+      'symbol:alias',
+      'symbol:extension',
+      'symbol:method',
+      'symbol:local',
+      'symbol:constant',
+    ]);
+  });
+
   it('advertises Pascal symbol capabilities emitted by the text analyzer', () => {
     expect(listTreeSitterEdgeTypeCapabilities(['src/SampleApp.pas'])).toEqual([
       'import',
@@ -129,7 +150,17 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
         'symbol:parameter',
         'symbol:local',
       ],
-      'lib/app/runner.dart': ['symbol:function', 'symbol:class', 'symbol:enum'],
+      'lib/app/runner.dart': [
+        'symbol:function',
+        'symbol:class',
+        'symbol:mixin',
+        'symbol:enum',
+        'symbol:alias',
+        'symbol:extension',
+        'symbol:method',
+        'symbol:local',
+        'symbol:constant',
+      ],
       'cmd/app/main.go': [
         'symbol:function',
         'symbol:method',

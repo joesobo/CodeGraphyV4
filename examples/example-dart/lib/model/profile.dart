@@ -1,5 +1,8 @@
+import 'run_status.dart';
+
 class Profile {
   final String name;
+  final RunStatus status;
 
-  Profile(this.name);
+  const Profile(this.name, {required this.status});
 }

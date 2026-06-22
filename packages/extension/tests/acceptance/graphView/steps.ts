@@ -132,6 +132,7 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Interface: 'Symbol',
   Local: 'Variable',
   Method: 'Symbol',
+  Mixin: 'Symbol',
   Namespace: 'Symbol',
   Parameter: 'Variable',
   'Plain Variable': 'Variable',
@@ -144,6 +145,7 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Type: 'Symbol',
   Union: 'Symbol',
   Variable: 'Symbol',
+  Extension: 'Symbol',
   Scene: 'Symbol',
   Resource: 'Symbol',
   Autoload: 'Symbol',
@@ -168,6 +170,7 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Interface: ['interface'],
   Local: ['local'],
   Method: ['method'],
+  Mixin: ['mixin'],
   Namespace: ['namespace'],
   Parameter: ['parameter'],
   Property: ['property'],
@@ -186,6 +189,7 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Type: ['type'],
   Union: ['union'],
   Variable: ['variable'],
+  Extension: ['extension'],
 };
 
 export function getSymbolKindsForNodeTypeLabel(label: string): string[] | undefined {
