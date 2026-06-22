@@ -49,21 +49,22 @@ The upgraded example is one integrated scenario:
 - `Runner.hs` demonstrates `Greeting`, `RunnerId`, `Runner`, `Runnable`, `defaultRunnerId`, record fields, `greet`, `boot`, `renderGreeting`, parameters, and local bindings.
 - The model modules demonstrate `User`, `Profile`, `makeUser`, `describeUser`, and `describeProfile`.
 
-Expected file-level counts for the local acceptance draft:
+Expected counts for the local acceptance draft:
 
 - File-only: 7 nodes, 0 connections.
 - Imports: 7 nodes, 5 connections.
 - References: 7 nodes, 2 connections.
 - Calls: 7 nodes, 5 connections.
-- Function slice: 14 nodes, 0 connections.
-- Type slice: 12 nodes, 0 connections.
-- Class slice: 8 nodes, 0 connections.
-- Constant slice: 8 nodes, 0 connections.
-- Field slice: 12 nodes, 0 connections.
-- Parameter slice: 14 nodes, 0 connections.
-- Local slice: 9 nodes, 0 connections.
-- File + Function + Type + Class + Constant + Field + Parameter + Local: 35 nodes, 0 connections.
-- Contains over that symbol slice: 35 nodes, 28 connections.
+- Function slice with `Contains`: 14 nodes, 7 connections.
+- Type slice with `Contains`: 12 nodes, 5 connections.
+- Class slice with `Contains`: 8 nodes, 1 connection.
+- Constant slice with `Contains`: 8 nodes, 1 connection.
+- Field slice with `Contains`: 12 nodes, 5 connections.
+- Parameter slice with `Contains`: 14 nodes, 7 connections.
+- Local slice with `Contains`: 9 nodes, 2 connections.
+- File + Function + Type + Class + Constant + Field + Parameter + Local with `Contains`: 35 nodes, 28 connections.
+
+The acceptance draft should assert the concrete `points to` relationships for each supported edge type, not only node presence. `Imports`, `References`, and `Calls` use file-level source-to-target assertions. `Contains` stays enabled through each node-type slice so every shown Haskell symbol category has visible ownership edges, followed by a full 28-edge symbol ownership check.
 
 ## Verification So Far
 
