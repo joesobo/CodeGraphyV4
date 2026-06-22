@@ -161,7 +161,15 @@ describe('pipeline/plugins/treesitter/runtime/capabilities', () => {
         'symbol:local',
         'symbol:constant',
       ],
-      'cmd/app/main.go': ['symbol:function', 'symbol:struct', 'symbol:interface', 'symbol:type'],
+      'cmd/app/main.go': [
+        'symbol:function',
+        'symbol:method',
+        'symbol:struct',
+        'symbol:interface',
+        'symbol:type',
+        'symbol:constant',
+        'symbol:local',
+      ],
       'src/App/Feature/Runner.hs': [
         'symbol:function',
         'symbol:type',
