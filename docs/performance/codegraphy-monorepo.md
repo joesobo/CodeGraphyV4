@@ -76,6 +76,34 @@ Result:
 - File analysis improved from `92850ms` to `87297ms` by reusing file content
   read during pre-analysis.
 
+Godot class name metadata fast path:
+
+- Command shape: direct Core API cold index with `userHomeDir` pointing at an
+  isolated plugin cache whose package roots point at this worktree's local
+  plugin packages.
+- The isolated plugin cache matters because the user's real
+  `~/.codegraphy/plugins.json` can point at older worktrees or globally
+  installed plugin packages.
+- Before command: old `extractGDScriptClassNameDeclarations` path using the
+  GDScript syntax parser.
+- After command: line-based class name extraction for metadata pre-analysis.
+- Files: `2367`
+- Nodes: `5079`
+- Edges: `9110` before, `9108` after. The persisted relationship diff is only
+  the changed CodeGraphy source imports/calls in `className.ts`; no workspace
+  Godot facts disappeared.
+- Wall time: `104.67s` before, `37.27s` after.
+- File analysis: `87918ms` before, `23352ms` after.
+- Graph Cache save: `14058ms` before, `11233ms` after.
+- Max resident set: `2901016576` bytes before, `465518592` bytes after.
+- Peak memory footprint: `4232806784` bytes before, `332065728` bytes after.
+
+Result:
+
+- Cold index wall time improved from `104.67s` to `37.27s`.
+- File analysis improved from `87918ms` to `23352ms` by avoiding Lezer recovery
+  during Godot `class_name` metadata pre-analysis.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time
