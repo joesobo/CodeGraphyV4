@@ -6,6 +6,7 @@ import type {
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { addInheritRelation, createSymbol } from '../analyze/results';
 import {
+  addDartIdentifierSymbol,
   addDartNamedSymbol,
   getDartDeclarationName,
   getDartFunctionSignature,
@@ -57,12 +58,16 @@ export function handleDartTypeDeclaration(
   filePath: string,
   symbols: IAnalysisSymbol[],
 ): void {
-  if (node.type === 'mixin_declaration') {
-    addDartNamedSymbol(symbols, filePath, 'mixin', node);
-    return;
+  const kindByNodeType: Record<string, string> = {
+    enum_declaration: 'enum',
+    extension_declaration: 'extension',
+    mixin_declaration: 'mixin',
+    type_alias: 'alias',
+  };
+  const kind = kindByNodeType[node.type];
+  if (kind) {
+    addDartNamedSymbol(symbols, filePath, kind, node);
   }
-
-  addDartNamedSymbol(symbols, filePath, 'enum', node);
 }
 
 export function handleDartFunctionSignature(
@@ -72,14 +77,67 @@ export function handleDartFunctionSignature(
 ): TreeWalkAction<SymbolWalkState> {
   const signature = getDartFunctionSignature(node);
   const name = signature ? getDartDeclarationName(signature) : null;
-  if (name) {
+  if (signature && name && !isDartGetterSignature(signature)) {
     symbols.push(createSymbol(
       filePath,
-      node.type === 'method_signature' ? 'method' : 'function',
+      isDartMethodSignatureNode(node) ? 'method' : 'function',
       name,
       node,
     ));
   }
 
   return { skipChildren: true };
+}
+
+export function handleDartLocalDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  for (const declaration of node.descendantsOfType('initialized_variable_definition')) {
+    const identifier = declaration.namedChildren.find((child) => child.type === 'identifier');
+    if (identifier) {
+      addDartIdentifierSymbol(symbols, filePath, 'local', identifier);
+    }
+  }
+}
+
+export function handleDartConstantDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  for (const declaration of node.descendantsOfType('static_final_declaration')) {
+    const identifier = declaration.namedChildren.find((child) => child.type === 'identifier');
+    if (identifier && isConstDeclarationList(node)) {
+      addDartIdentifierSymbol(symbols, filePath, 'constant', identifier);
+    }
+  }
+}
+
+function isDartGetterSignature(node: Parser.SyntaxNode): boolean {
+  return /\bget\s+[A-Za-z_]\w*/u.test(node.text);
+}
+
+function isDartMethodSignatureNode(node: Parser.SyntaxNode): boolean {
+  if (node.type === 'method_signature') {
+    return true;
+  }
+
+  for (let current: Parser.SyntaxNode | null = node.parent; current; current = current.parent) {
+    if (
+      current.type === 'class_definition'
+      || current.type === 'extension_declaration'
+      || current.type === 'mixin_declaration'
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isConstDeclarationList(node: Parser.SyntaxNode): boolean {
+  const declarationText = node.parent?.text ?? node.text;
+  return /\bconst\b/u.test(declarationText);
 }

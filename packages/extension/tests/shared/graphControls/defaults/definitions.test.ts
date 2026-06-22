@@ -19,6 +19,8 @@ describe('shared/graphControls/defaults/definitions', () => {
       'symbol:constructor',
       'symbol:prototype',
       'symbol:class',
+      'symbol:mixin',
+      'symbol:extension',
       'symbol:interface',
       'symbol:record',
       'symbol:delegate',
