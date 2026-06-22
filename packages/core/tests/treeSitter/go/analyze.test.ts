@@ -5,6 +5,7 @@ const {
   handleGoImportDeclaration,
   handleGoCallableDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
   handleGoConstSpec,
   handleGoShortVarDeclaration,
   handleGoQualifiedTypeReference,
@@ -15,6 +16,7 @@ const {
   handleGoImportDeclaration: vi.fn(),
   handleGoCallableDeclaration: vi.fn(),
   handleGoTypeSpec: vi.fn(),
+  handleGoTypeSpecRelations: vi.fn(),
   handleGoConstSpec: vi.fn(),
   handleGoShortVarDeclaration: vi.fn(),
   handleGoQualifiedTypeReference: vi.fn(),
@@ -34,6 +36,7 @@ vi.mock('../../../src/treeSitter/runtime/analyzeGo/handlers', () => ({
   handleGoQualifiedTypeReference,
   handleGoShortVarDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
@@ -101,6 +104,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       expect.any(Array),
       expect.any(Array),
       expect.any(Map),
+      { includeSymbolEndpoint: true },
     );
 
     expect(visit?.({ type: 'const_spec' }, state, walk)).toBeUndefined();
@@ -161,5 +165,26 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       symbols: [],
       relations: [],
     });
+  });
+
+  it('extracts type-spec relations without symbols when symbol analysis is disabled', () => {
+    const rootNode = { type: 'source_file' };
+    const filePath = '/workspace/main.go';
+    const workspaceRoot = '/workspace';
+    let visit: ((node: unknown, state: unknown, walk: unknown) => unknown) | undefined;
+    walkTree.mockImplementation((_root, _state, callback) => {
+      visit = callback;
+    });
+
+    analyzeGoFile(filePath, { rootNode } as never, workspaceRoot, { includeSymbols: false });
+
+    expect(visit?.({ type: 'type_spec' }, {}, vi.fn())).toBeUndefined();
+    expect(handleGoTypeSpec).not.toHaveBeenCalled();
+    expect(handleGoTypeSpecRelations).toHaveBeenCalledWith(
+      { type: 'type_spec' },
+      filePath,
+      expect.any(Array),
+      expect.any(Map),
+    );
   });
 });

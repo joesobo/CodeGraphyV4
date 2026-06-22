@@ -136,5 +136,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo integration', () => {
         toFilePath: modelPath,
       }),
     ]));
+
+    const baselineResult = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot, {
+      includeSymbols: false,
+    });
+    expect(baselineResult?.symbols).toEqual([]);
+    expect(baselineResult?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        sourceId: 'core:treesitter:inherit',
+        specifier: 'model.Audited',
+        fromFilePath: filePath,
+        resolvedPath: modelPath,
+        toFilePath: modelPath,
+      }),
+    ]));
   });
 });
