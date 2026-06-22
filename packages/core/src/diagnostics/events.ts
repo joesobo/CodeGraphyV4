@@ -174,6 +174,24 @@ function formatIndexingComplete(context: Record<string, DiagnosticContextValue> 
   return details ? `Indexing complete: ${details}` : 'Indexing complete';
 }
 
+function formatIndexingPhaseCompleted(context: Record<string, DiagnosticContextValue> | undefined): string {
+  const details = joinDetails([
+    formatContextDetail(context, 'phase'),
+    formatContextDetail(context, 'durationMs', 'durationMs'),
+    formatContextDetail(context, 'files'),
+    formatContextDetail(context, 'directories'),
+    formatContextDetail(context, 'totalFound', 'totalFound'),
+    formatContextDetail(context, 'limitReached', 'limitReached'),
+    formatContextDetail(context, 'cacheHits', 'cacheHits'),
+    formatContextDetail(context, 'cacheMisses', 'cacheMisses'),
+    formatContextDetail(context, 'nodes'),
+    formatContextDetail(context, 'edges'),
+    formatContextDetail(context, 'loadedPackagePlugins', 'loadedPackagePlugins'),
+    formatContextDetail(context, 'registeredPlugins', 'registeredPlugins'),
+  ]);
+  return details ? `Indexing phase complete: ${details}` : 'Indexing phase complete';
+}
+
 function formatCommandEvent(
   event: string,
   context: Record<string, DiagnosticContextValue> | undefined,
@@ -262,6 +280,10 @@ function formatKnownEvent(event: DiagnosticEvent): string | undefined {
 
   if (event.area === 'indexing' && event.event === 'completed') {
     return formatIndexingComplete(context);
+  }
+
+  if (event.area === 'indexing' && event.event === 'phase-completed') {
+    return formatIndexingPhaseCompleted(context);
   }
 
   if (event.area === 'graph-query' && event.event === 'started') {

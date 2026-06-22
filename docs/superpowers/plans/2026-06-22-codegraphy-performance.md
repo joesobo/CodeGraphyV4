@@ -25,6 +25,9 @@
 - Playwright baseline: `119 passed (22.3m)`, `22m42.903s` task wall time; slow file `tests/playwright-vscode/generated/runtime.ts (21.5m)`.
 - Cold monorepo CLI indexing baseline: local `node packages/core/bin/codegraphy.js --verbose index .` from no Graph Cache took `214.04s` wall time for 2365 files, 5075 nodes, and 9097 edges.
 - Cold index output: `.codegraphy/graph.lbug` is 62MB, `/usr/bin/time -l` reported `2708193280` maximum resident set size and `4201907648` peak memory footprint.
+- Phase-instrumented cold monorepo CLI indexing took `213.93s` wall time for 2367 files, 5078 nodes, and 9114 edges.
+- Phase split: plugin load `542ms`, plugin initialization `1ms`, file discovery `1900ms`, file analysis `88321ms`, graph build `62ms`, Graph Cache save `122757ms`, metadata persistence `4ms`.
+- Measured hot spots: Graph Cache persistence and file/plugin analysis. Graph construction is not a cold-load bottleneck on this workspace.
 - Raw logs are ignored under `reports/performance/`; commit only scripts and bounded summaries under `docs/performance/`.
 
 ## Success Metrics
@@ -87,7 +90,7 @@ rg -n "Test Files|Tests |Duration|Time:|real|WorkspacePipeline examples workspac
 
 Expected: baseline notes include unit time, Playwright time, and the slow examples workspace test timings.
 
-- [ ] **Step 5: Commit the setup**
+- [x] **Step 5: Commit the setup**
 
 Run:
 
@@ -107,7 +110,7 @@ Expected: setup commit is pushed before implementation edits.
 - Modify: `package.json`
 - Test: `tests/scripts/measure-codegraphy-monorepo.test.mjs`
 
-- [ ] **Step 1: Write the failing script test**
+- [x] **Step 1: Write the failing script test**
 
 Create `tests/scripts/measure-codegraphy-monorepo.test.mjs` with checks that the runner:
 
@@ -161,11 +164,11 @@ node --test tests/scripts/measure-codegraphy-monorepo.test.mjs
 
 Expected: FAIL because `scripts/performance/measure-codegraphy-monorepo.mjs` does not exist.
 
-- [ ] **Step 2: Implement minimal metrics writing**
+- [x] **Step 2: Implement minimal metrics writing**
 
 Create `scripts/performance/measure-codegraphy-monorepo.mjs` with exported `writeMetrics` and a CLI entry point that writes raw JSON to `reports/performance/monorepo-latest.json`. Durable reviewed summaries belong in `docs/performance/`.
 
-- [ ] **Step 3: Run the test to green**
+- [x] **Step 3: Run the test to green**
 
 Run:
 
@@ -175,15 +178,15 @@ node --test tests/scripts/measure-codegraphy-monorepo.test.mjs
 
 Expected: PASS.
 
-- [ ] **Step 4: Wire the package script**
+- [x] **Step 4: Wire the package script**
 
 Add this root script:
 
 ```json
-"perf:codegraphy-monorepo": "node scripts/performance/measure-codegraphy-monorepo.mjs"
+"perf:codegraphy-monorepo": "node scripts/performance/measure-codegraphy-monorepo.mjs --workspace ."
 ```
 
-- [ ] **Step 5: Commit the harness**
+- [x] **Step 5: Commit the harness**
 
 Run:
 
@@ -199,9 +202,16 @@ git push
 - Modify: `scripts/performance/measure-codegraphy-monorepo.mjs`
 - Create: `docs/performance/codegraphy-monorepo.md`
 
-- [ ] **Step 1: Measure headless Core Package timings**
+- [x] **Step 1: Measure headless Core Package timings**
 
 Run the performance script against `/Users/poleski/Desktop/Projects/CodeGraphyV4/.worktrees/speed-up-codegraphy` using the branch settings. Record cold Indexing, warm Graph Cache query, node count, edge count, and payload bytes.
+
+Current cold-index command:
+
+```bash
+PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /usr/bin/time -l node packages/core/bin/codegraphy.js --verbose index . 2>&1 | tee reports/performance/codegraphy-index-cold-phases-local-node22-2026-06-22.log
+PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /opt/homebrew/bin/pnpm run perf:codegraphy-monorepo -- --index-log reports/performance/codegraphy-index-cold-phases-local-node22-2026-06-22.log
+```
 
 - [ ] **Step 2: Measure VS Code user-facing timings**
 
@@ -227,6 +237,8 @@ Commit the bounded summary and keep raw logs ignored under `reports/performance/
 Start with these falsifiable hypotheses:
 
 ```text
+If Graph Cache persistence spends over half of cold load writing cache records, then reducing cache payload size or batching/storage strategy will cut cold Indexing wall time without changing graph counts.
+If file/plugin analysis spends most of the remaining cold load, then per-plugin phase diagnostics and cacheable analysis reuse will identify the plugin/file classes worth optimizing first.
 If Graph Scope toggles rebuild graph data unnecessarily, then separating Display Setting updates from Graph Query updates will reduce toggle latency without changing node or edge counts.
 If warm startup waits for full Graph Cache Sync before showing cached data, then rendering cached Visible Graph first will reduce time-to-first-graph while Graph Cache Sync continues in the background.
 If large Visible Graph messages dominate interaction latency, then avoiding unchanged payload resend or using smaller incremental messages will reduce webview apply latency and message bytes.

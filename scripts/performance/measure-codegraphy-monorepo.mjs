@@ -61,6 +61,53 @@ function parseMemorySummary(logText) {
   };
 }
 
+function parseLogScalar(value) {
+  if (/^-?\d+(?:\.\d+)?$/.test(value)) {
+    return Number(value);
+  }
+
+  if (value === 'true') {
+    return true;
+  }
+
+  if (value === 'false') {
+    return false;
+  }
+
+  return value;
+}
+
+function parsePhaseDetail(detail) {
+  const separatorIndex = detail.indexOf('=');
+  if (separatorIndex < 0) {
+    return {};
+  }
+
+  const key = detail.slice(0, separatorIndex).trim();
+  const value = detail.slice(separatorIndex + 1).trim();
+  if (!key) {
+    return {};
+  }
+
+  return { [key]: parseLogScalar(value) };
+}
+
+function parseIndexPhaseSummaries(logText) {
+  const indexPhases = {};
+  const phaseLinePattern = /^\[CodeGraphy\] Indexing phase complete: (.+)$/gm;
+  for (const match of logText.matchAll(phaseLinePattern)) {
+    const phaseMetrics = match[1]
+      .split(',')
+      .map(detail => parsePhaseDetail(detail))
+      .reduce((merged, detail) => ({ ...merged, ...detail }), {});
+    if (typeof phaseMetrics.phase === 'string') {
+      indexPhases[phaseMetrics.phase] = phaseMetrics;
+    }
+  }
+
+  return Object.keys(indexPhases).length > 0 ? { indexPhases } : {};
+}
+
 async function readGraphCacheBytes(workspacePath, graphCache) {
   if (typeof graphCache !== 'string' || graphCache.length === 0) {
     return {};
@@ -82,6 +129,7 @@ export async function readColdIndexLogMetrics({ logPath, workspacePath }) {
   return {
     ...parseTimeSummary(logText),
     ...parseMemorySummary(logText),
+    ...parseIndexPhaseSummaries(logText),
     ...(typeof result.files === 'number' ? { fileCount: result.files } : {}),
     ...(typeof result.nodes === 'number' ? { nodeCount: result.nodes } : {}),
     ...(typeof result.edges === 'number' ? { edgeCount: result.edges } : {}),
