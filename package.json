@@ -18,6 +18,7 @@
 		"test:vscode": "pnpm -r --if-present run test:vscode",
 		"perf:codegraphy-monorepo": "node scripts/performance/measure-codegraphy-monorepo.mjs --workspace .",
 		"perf:visible-graph-monorepo": "tsx scripts/performance/measure-visible-graph-monorepo.mjs --workspace .",
+		"perf:vscode-graph-view": "tsx scripts/performance/measure-vscode-graph-view.mjs --workspace .",
 		"check:acceptance-specs": "node scripts/guard-acceptance-spec-edits.mjs",
 		"lint": "turbo run lint",
 		"crap": "quality-tools crap",
