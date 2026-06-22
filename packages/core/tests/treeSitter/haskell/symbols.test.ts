@@ -61,7 +61,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols', () => {
     ]);
   });
 
-  it('adds skipping symbols for Haskell data, newtype, type, and function declarations', () => {
+  it('adds generic symbols for Haskell data, newtype, type, and function declarations', () => {
     const symbols: IAnalysisSymbol[] = [];
 
     const dataAction = handleHaskellDeclaration(
@@ -85,13 +85,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols', () => {
       symbols,
     );
 
-    expect(dataAction).toEqual({ skipChildren: true });
+    expect(dataAction).toBeUndefined();
     expect(newtypeAction).toEqual({ skipChildren: true });
     expect(typeAction).toEqual({ skipChildren: true });
-    expect(functionAction).toEqual({ skipChildren: true });
+    expect(functionAction).toBeUndefined();
     expect(symbols).toEqual([
-      expect.objectContaining({ kind: 'data', name: 'Runner' }),
-      expect.objectContaining({ kind: 'newtype', name: 'RunnerId' }),
+      expect.objectContaining({ kind: 'type', name: 'Runner' }),
+      expect.objectContaining({ kind: 'type', name: 'RunnerId' }),
       expect.objectContaining({ kind: 'type', name: 'RunnerName' }),
       expect.objectContaining({ kind: 'function', name: 'boot' }),
     ]);
@@ -116,9 +116,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols', () => {
     const symbols: IAnalysisSymbol[] = [];
 
     expect(handleHaskellDeclaration(createNode({ type: 'signature' }), '/workspace/App.hs', symbols)).toBeUndefined();
-    expect(handleHaskellDeclaration(createNode({ type: 'data_type' }), '/workspace/App.hs', symbols)).toEqual({
-      skipChildren: true,
-    });
+    expect(handleHaskellDeclaration(createNode({ type: 'data_type' }), '/workspace/App.hs', symbols)).toBeUndefined();
     expect(handleHaskellDeclaration(createNode({ type: 'class' }), '/workspace/App.hs', symbols)).toBeUndefined();
 
     expect(symbols).toEqual([]);

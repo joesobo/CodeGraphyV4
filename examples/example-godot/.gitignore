@@ -1,2 +1,5 @@
 .codegraphy/*
 !.codegraphy/settings.json
+.godot/
+*.uid
+*.import

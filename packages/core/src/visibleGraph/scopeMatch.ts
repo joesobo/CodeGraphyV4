@@ -21,6 +21,21 @@ function hasDisabledAncestor(
   return false;
 }
 
+function hasDisabledDefinitionOrAncestor(
+  definition: IGraphNodeTypeDefinition | undefined,
+  disabledNodeTypes: ReadonlySet<string>,
+): boolean {
+  let current = definition;
+  while (current) {
+    if (disabledNodeTypes.has(current.id)) {
+      return true;
+    }
+    current = current.parentId ? CORE_NODE_TYPE_BY_ID.get(current.parentId) : undefined;
+  }
+
+  return false;
+}
+
 function nodeTypeHasDisabledAncestor(
   nodeType: string,
   disabledNodeTypes: ReadonlySet<string>,
@@ -28,15 +43,40 @@ function nodeTypeHasDisabledAncestor(
   return hasDisabledAncestor(CORE_NODE_TYPE_BY_ID.get(nodeType), disabledNodeTypes);
 }
 
+function getDefinitionSymbolKinds(definition: IGraphNodeTypeDefinition): readonly string[] | undefined {
+  if (definition.matchSymbolKinds) {
+    return definition.matchSymbolKinds;
+  }
+
+  if (definition.id.startsWith('symbol:')) {
+    return [definition.id.slice('symbol:'.length)];
+  }
+
+  return undefined;
+}
+
+function getDefinitionSpecificity(definition: IGraphNodeTypeDefinition): number {
+  const symbolKinds = getDefinitionSymbolKinds(definition);
+  const symbolKindSpecificity = symbolKinds ? 1 / symbolKinds.length : 0;
+
+  return [
+    definition.matchSymbolPluginKind,
+    definition.matchSymbolSource,
+    definition.matchSymbolLanguage,
+    definition.matchSymbolFilePath,
+  ].filter(Boolean).length + symbolKindSpecificity;
+}
+
 function hasSymbolMatcher(definition: IGraphNodeTypeDefinition): boolean {
-  return Boolean(
-    definition.matchSymbolKinds
-    || definition.matchSymbolPluginKind
-    || definition.matchSymbolSource
-    || definition.matchSymbolLanguage
-    || definition.matchSymbolFilePath
-    || definition.id.startsWith('symbol:'),
-  );
+  return getDefinitionSpecificity(definition) > 0;
+}
+
+function findMatchingSymbolDefinition(node: IGraphData['nodes'][number]): IGraphNodeTypeDefinition | undefined {
+  return CORE_GRAPH_NODE_TYPES
+    .filter((definition) =>
+      definition.parentId && hasSymbolMatcher(definition) && symbolMatchesScopedDefinition(node, definition)
+    )
+    .sort((left, right) => getDefinitionSpecificity(right) - getDefinitionSpecificity(left))[0];
 }
 
 export function nodeMatchesScope(
@@ -51,11 +91,9 @@ export function nodeMatchesScope(
   }
 
   const symbolKind = node.symbol?.kind;
-  const matchingSymbolDefinition = CORE_GRAPH_NODE_TYPES.find((definition) =>
-    definition.parentId && hasSymbolMatcher(definition) && symbolMatchesScopedDefinition(node, definition)
-  );
+  const matchingSymbolDefinition = findMatchingSymbolDefinition(node);
   return (!symbolKind || !disabledSymbolKinds.has(symbolKind))
-    && !hasDisabledAncestor(matchingSymbolDefinition, disabledNodeTypes)
+    && !hasDisabledDefinitionOrAncestor(matchingSymbolDefinition, disabledNodeTypes)
     && (!symbolKind || Boolean(matchingSymbolDefinition))
     && disabledScopedSymbolDefinitions.every((definition) => !symbolMatchesScopedDefinition(node, definition));
 }
