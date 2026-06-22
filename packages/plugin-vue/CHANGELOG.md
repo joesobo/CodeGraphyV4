@@ -1,5 +1,12 @@
 # @codegraphy-dev/plugin-vue
 
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`17bda07`](https://github.com/joesobo/CodeGraphyV4/commit/17bda07e5f1211a0ba9345eb4765058a1c4e77b6), [`b8db94a`](https://github.com/joesobo/CodeGraphyV4/commit/b8db94af4083885db787feb9b4ac43d04bbff9dc)]:
+  - @codegraphy-dev/plugin-api@5.2.0
+
 ## 0.3.2
 
 ### Patch Changes

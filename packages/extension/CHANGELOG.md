@@ -1,5 +1,36 @@
 # @codegraphy-dev/extension
 
+## 5.12.0
+
+### Minor Changes
+
+- [#290](https://github.com/joesobo/CodeGraphyV4/pull/290) [`17bda07`](https://github.com/joesobo/CodeGraphyV4/commit/17bda07e5f1211a0ba9345eb4765058a1c4e77b6) Thanks [@joesobo](https://github.com/joesobo)! - Add a reusable Events edge type and emit Unity persistent-call event edges from serialized scenes and prefabs.
+
+- [#281](https://github.com/joesobo/CodeGraphyV4/pull/281) [`b8db94a`](https://github.com/joesobo/CodeGraphyV4/commit/b8db94af4083885db787feb9b4ac43d04bbff9dc) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade C# Tree-sitter graph support with richer symbol nodes and reusable edge kinds for using, type, call, inheritance, implementation, and containment relationships.
+
+- [#285](https://github.com/joesobo/CodeGraphyV4/pull/285) [`2e11809`](https://github.com/joesobo/CodeGraphyV4/commit/2e11809bd5d3983436b25c0916a01499f025aa7e) Thanks [@joesobo](https://github.com/joesobo)! - Expand Dart graph support with mixin, alias, extension, method, local, constant, reference, and contains graph scope coverage.
+
+- [#288](https://github.com/joesobo/CodeGraphyV4/pull/288) [`b435b28`](https://github.com/joesobo/CodeGraphyV4/commit/b435b28121c3f0202999dd99dc074ec146ea2006) Thanks [@joesobo](https://github.com/joesobo)! - Expand Godot graph support with Scene, Resource, Autoload, Scene Node, Signal, Exported Property, Signal Connections, and plain variable Graph Scope coverage backed by the runnable Godot example. Signal Connections now link declared GDScript signals without showing false self-connections for built-in engine signals, and incremental indexing refreshes those links when receiver scripts change. Exported Property nodes now cover both inline and standalone `@export` declarations.
+
+  File-only Graph Scope views now keep relationships whose hidden symbol endpoints live in visible files, so Godot Loads edges remain complete when Resource nodes are hidden.
+
+- [#287](https://github.com/joesobo/CodeGraphyV4/pull/287) [`83da5b6`](https://github.com/joesobo/CodeGraphyV4/commit/83da5b6b609535061c236b6b25869f3be985fc58) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade Haskell Tree-sitter graph support with generic type, class, function, constant, field, parameter, local, reference, call, import, and containment coverage.
+
+- [#289](https://github.com/joesobo/CodeGraphyV4/pull/289) [`b63fe4f`](https://github.com/joesobo/CodeGraphyV4/commit/b63fe4f685e0d64deeadd838d730035926f9803a) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade TypeScript graph support with containment scope, a runnable palette-generator example, and consistent file-level type-import relationships when imported type symbols are visible.
+
+- [#290](https://github.com/joesobo/CodeGraphyV4/pull/290) [`3924f42`](https://github.com/joesobo/CodeGraphyV4/commit/3924f4210b1915dea5c203d4d07bb4d0e485e41b) Thanks [@joesobo](https://github.com/joesobo)! - Add initial Unity plugin support for parsing scenes and prefabs into GameObject and Component graph symbols with Unity Graph Scope defaults, file-to-GameObject-to-Component containment, icon-backed Unity file theming, default Unity generated-file filters, and Unity-sourced reference edges for scripts and prefab instances.
+
+### Patch Changes
+
+- [#283](https://github.com/joesobo/CodeGraphyV4/pull/283) [`4bd75ce`](https://github.com/joesobo/CodeGraphyV4/commit/4bd75ce7ea2e752ef2748a782f5f56fdb52eb7a9) Thanks [@joesobo](https://github.com/joesobo)! - Dim graph File and Folder Nodes that Git reports as ignored while keeping them visible.
+
+- [#282](https://github.com/joesobo/CodeGraphyV4/pull/282) [`f2eac74`](https://github.com/joesobo/CodeGraphyV4/commit/f2eac74555f337726364f5f44fd6f0bc9f8e4089) Thanks [@joesobo](https://github.com/joesobo)! - Graph View file and folder creation now supports safe nested relative paths, such as `a/b/c/d.ts`, while create and rename prompts reject names that could escape or move outside the selected folder.
+
+- [#290](https://github.com/joesobo/CodeGraphyV4/pull/290) [`aa83b0d`](https://github.com/joesobo/CodeGraphyV4/commit/aa83b0de006735040ff279f178c6408e6c0e9bc7) Thanks [@joesobo](https://github.com/joesobo)! - Refresh plugin default filters immediately when a plugin is toggled on or off.
+
+- Updated dependencies [[`b8db94a`](https://github.com/joesobo/CodeGraphyV4/commit/b8db94af4083885db787feb9b4ac43d04bbff9dc), [`7a62728`](https://github.com/joesobo/CodeGraphyV4/commit/7a627280ab37ad4a1152b6e681c5cb8fcf1a928e), [`2e11809`](https://github.com/joesobo/CodeGraphyV4/commit/2e11809bd5d3983436b25c0916a01499f025aa7e), [`b435b28`](https://github.com/joesobo/CodeGraphyV4/commit/b435b28121c3f0202999dd99dc074ec146ea2006), [`83da5b6`](https://github.com/joesobo/CodeGraphyV4/commit/83da5b6b609535061c236b6b25869f3be985fc58), [`b63fe4f`](https://github.com/joesobo/CodeGraphyV4/commit/b63fe4f685e0d64deeadd838d730035926f9803a), [`3924f42`](https://github.com/joesobo/CodeGraphyV4/commit/3924f4210b1915dea5c203d4d07bb4d0e485e41b), [`2e33507`](https://github.com/joesobo/CodeGraphyV4/commit/2e33507c086487bf92a44cf24e787cd9a8158910)]:
+  - @codegraphy-dev/core@1.7.0
+
 ## 5.11.1
 
 ### Patch Changes

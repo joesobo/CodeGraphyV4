@@ -1,5 +1,12 @@
 # @codegraphy-dev/mcp
 
+## 2.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`b8db94a`](https://github.com/joesobo/CodeGraphyV4/commit/b8db94af4083885db787feb9b4ac43d04bbff9dc), [`7a62728`](https://github.com/joesobo/CodeGraphyV4/commit/7a627280ab37ad4a1152b6e681c5cb8fcf1a928e), [`2e11809`](https://github.com/joesobo/CodeGraphyV4/commit/2e11809bd5d3983436b25c0916a01499f025aa7e), [`b435b28`](https://github.com/joesobo/CodeGraphyV4/commit/b435b28121c3f0202999dd99dc074ec146ea2006), [`83da5b6`](https://github.com/joesobo/CodeGraphyV4/commit/83da5b6b609535061c236b6b25869f3be985fc58), [`b63fe4f`](https://github.com/joesobo/CodeGraphyV4/commit/b63fe4f685e0d64deeadd838d730035926f9803a), [`3924f42`](https://github.com/joesobo/CodeGraphyV4/commit/3924f4210b1915dea5c203d4d07bb4d0e485e41b), [`2e33507`](https://github.com/joesobo/CodeGraphyV4/commit/2e33507c086487bf92a44cf24e787cd9a8158910)]:
+  - @codegraphy-dev/core@1.7.0
+
 ## 2.2.4
 
 ### Patch Changes

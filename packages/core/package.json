@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/core",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "CodeGraphy core indexing and graph query engine",
   "license": "MIT",
   "type": "module",
@@ -41,7 +41,7 @@
     "@ladybugdb/core": "^0.15.3",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
     "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
-		"minimatch": "^10.2.5",
+    "minimatch": "^10.2.5",
     "tree-sitter": "^0.25.0",
     "tree-sitter-c": "0.24.1",
     "tree-sitter-c-sharp": "0.23.1",

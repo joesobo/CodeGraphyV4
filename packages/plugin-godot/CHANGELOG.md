@@ -1,5 +1,18 @@
 # @codegraphy-dev/plugin-godot
 
+## 2.3.0
+
+### Minor Changes
+
+- [#288](https://github.com/joesobo/CodeGraphyV4/pull/288) [`b435b28`](https://github.com/joesobo/CodeGraphyV4/commit/b435b28121c3f0202999dd99dc074ec146ea2006) Thanks [@joesobo](https://github.com/joesobo)! - Expand Godot graph support with Scene, Resource, Autoload, Scene Node, Signal, Exported Property, Signal Connections, and plain variable Graph Scope coverage backed by the runnable Godot example. Signal Connections now link declared GDScript signals without showing false self-connections for built-in engine signals, and incremental indexing refreshes those links when receiver scripts change. Exported Property nodes now cover both inline and standalone `@export` declarations.
+
+  File-only Graph Scope views now keep relationships whose hidden symbol endpoints live in visible files, so Godot Loads edges remain complete when Resource nodes are hidden.
+
+### Patch Changes
+
+- Updated dependencies [[`17bda07`](https://github.com/joesobo/CodeGraphyV4/commit/17bda07e5f1211a0ba9345eb4765058a1c4e77b6), [`b8db94a`](https://github.com/joesobo/CodeGraphyV4/commit/b8db94af4083885db787feb9b4ac43d04bbff9dc)]:
+  - @codegraphy-dev/plugin-api@5.2.0
+
 ## 2.2.6
 
 ### Patch Changes
