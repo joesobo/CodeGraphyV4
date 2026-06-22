@@ -73,7 +73,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
       expect.objectContaining({ filePath: runnerPath, kind: 'module', name: 'App.Feature.Runner' }),
-      expect.objectContaining({ filePath: runnerPath, kind: 'data', name: 'Runner' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'type', name: 'Runner' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'boot' }),
     ]));
   });
@@ -123,6 +123,109 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
         fromSymbolId: `${mainPath}:function:main`,
         resolvedPath: path.join(workspaceRoot, 'src/App/Model/User.hs'),
         toFilePath: path.join(workspaceRoot, 'src/App/Model/User.hs'),
+      }),
+    ]));
+  });
+
+  it('extracts generic Haskell symbols and imported type references used by the example contract', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/App/Model/Profile.hs': [
+        'module App.Model.Profile where',
+        'data Profile = Profile',
+        '  { profileName :: String',
+        '  } deriving Show',
+        '',
+        'describeProfile :: Profile -> String',
+        'describeProfile profile = profileName profile',
+        '',
+      ].join('\n'),
+      'src/App/Model/User.hs': [
+        'module App.Model.User where',
+        'data User = User',
+        '  { userName :: String',
+        '  } deriving Show',
+        '',
+        'describeUser :: User -> String',
+        'describeUser user = userName user',
+        '',
+      ].join('\n'),
+    });
+    const runnerPath = path.join(workspaceRoot, 'src/App/Feature/Runner.hs');
+    const profilePath = path.join(workspaceRoot, 'src/App/Model/Profile.hs');
+    const userPath = path.join(workspaceRoot, 'src/App/Model/User.hs');
+    const source = [
+      'module App.Feature.Runner (Greeting, Runnable(..), Runner(..), RunnerId(..), boot, renderGreeting) where',
+      '',
+      'import App.Model.Profile (Profile, describeProfile)',
+      'import App.Model.User (User, describeUser)',
+      '',
+      'newtype RunnerId = RunnerId Int deriving Show',
+      '',
+      'data Greeting = Greeting String deriving Show',
+      '',
+      'defaultRunnerId :: RunnerId',
+      'defaultRunnerId = RunnerId 1',
+      '',
+      'data Runner = Runner',
+      '  { runnerId :: RunnerId',
+      '  , runnerUser :: User',
+      '  , runnerProfile :: Profile',
+      '  } deriving Show',
+      '',
+      'class Runnable task where',
+      '  greet :: task -> Greeting',
+      '',
+      'instance Runnable Runner where',
+      '  greet runner = Greeting ("Hello, " ++ describeUser (runnerUser runner) ++ " the " ++ describeProfile (runnerProfile runner))',
+      '',
+      'boot :: User -> Profile -> Runner',
+      'boot user profile = Runner defaultRunnerId user profile',
+      '',
+      'renderGreeting :: Runnable task => task -> String',
+      'renderGreeting task =',
+      '  let Greeting message = greet task',
+      '      decorated = message ++ "!"',
+      '  in decorated',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(runnerPath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: runnerPath, kind: 'type', name: 'RunnerId' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'type', name: 'Greeting' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'type', name: 'Runner' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'Runnable' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'constant', name: 'defaultRunnerId' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'field', name: 'runnerId' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'field', name: 'runnerUser' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'field', name: 'runnerProfile' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'greet' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'boot' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'renderGreeting' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'parameter', name: 'runner' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'parameter', name: 'user' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'parameter', name: 'profile' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'parameter', name: 'task' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'local', name: 'message' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'local', name: 'decorated' }),
+    ]));
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'reference',
+        sourceId: 'core:treesitter:reference',
+        specifier: 'Profile',
+        fromFilePath: runnerPath,
+        resolvedPath: profilePath,
+        toFilePath: profilePath,
+      }),
+      expect.objectContaining({
+        kind: 'reference',
+        sourceId: 'core:treesitter:reference',
+        specifier: 'User',
+        fromFilePath: runnerPath,
+        resolvedPath: userPath,
+        toFilePath: userPath,
       }),
     ]));
   });
