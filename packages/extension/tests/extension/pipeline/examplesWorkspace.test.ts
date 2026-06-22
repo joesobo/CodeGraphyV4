@@ -143,7 +143,7 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
     const expectedEdgeIds = [
       'example-python/src/main.py->example-python/src/config.py#import',
       'example-python/src/main.py->example-python/src/services/api.py#import',
-      'example-go/main.go->example-go/internal/service/service.go#import',
+      'example-go/main.go->example-go/internal/app/app.go#import',
       'example-java/src/com/example/app/App.java->example-java/src/com/example/app/Helper.java#import',
       'example-rust/src/main.rs->example-rust/src/util.rs#import',
       'example-rust/src/main.rs->example-rust/src/inner.rs#import',
@@ -241,7 +241,7 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
       'example-python/src/services/api.py#fetch_user:function',
       'example-python/src/utils/format.py#format_name:function',
       'example-markdown/src/commented.ts#parseCommentedLink:function',
-      'example-go/internal/service/service.go#NewRunner:function',
+      'example-go/internal/service/service.go#NewTaskRunner:function',
       'example-c/src/logger/logger.h#Logger:struct',
       'example-c/src/logger/format.h#LogMessage:union',
       'example-c/src/logger/format.h#LogRecord:typedef',

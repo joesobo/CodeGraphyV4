@@ -1,5 +1,12 @@
-class User {
-  final String name;
+typedef UserId = String;
 
-  User(this.name);
+class User {
+  final UserId id;
+  final String name;
+  final bool isActive;
+
+  const User(this.name, {
+    this.id = 'anonymous',
+    required this.isActive,
+  });
 }

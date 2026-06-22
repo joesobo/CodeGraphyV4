@@ -136,6 +136,7 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Interface: 'Symbol',
   Local: 'Variable',
   Method: 'Symbol',
+  Mixin: 'Symbol',
   Namespace: 'Symbol',
   Parameter: 'Variable',
   'Plain Variable': 'Variable',
@@ -148,6 +149,7 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Type: 'Symbol',
   Union: 'Symbol',
   Variable: 'Symbol',
+  Extension: 'Symbol',
   Unity: 'Symbol',
   GameObject: 'Unity',
   Component: 'Unity',
@@ -175,6 +177,7 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Interface: ['interface'],
   Local: ['local'],
   Method: ['method'],
+  Mixin: ['mixin'],
   Namespace: ['namespace'],
   Parameter: ['parameter'],
   Property: ['property'],
@@ -193,6 +196,7 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Type: ['type'],
   Union: ['union'],
   Variable: ['variable'],
+  Extension: ['extension'],
   Unity: ['game-object', 'component'],
   GameObject: ['game-object'],
   Component: ['component'],
@@ -812,7 +816,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     )).toEqual(expectedEdgeTypes);
   }),
 
-  step(/^the available C\+\+ node types are only (.+)$/, async (context, _step, match) => {
+  step(/^the available (?:C\+\+|Go) node types are only (.+)$/, async (context, _step, match) => {
     const expectedNodeTypes = parseScopeTypeList(match[1]);
     const frame = requireGraphFrame(context);
 
