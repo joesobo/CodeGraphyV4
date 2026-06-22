@@ -16,6 +16,7 @@
 		"test:release": "node --test tests/release/*.test.mjs tests/scripts/*.test.mjs",
 		"test:playwright": "node scripts/run-playwright-turbo.mjs",
 		"test:vscode": "pnpm -r --if-present run test:vscode",
+		"perf:codegraphy-monorepo": "node scripts/performance/measure-codegraphy-monorepo.mjs --workspace . --index-log reports/performance/codegraphy-index-cold-local-node22-2026-06-22.log",
 		"check:acceptance-specs": "node scripts/guard-acceptance-spec-edits.mjs",
 		"lint": "turbo run lint",
 		"crap": "quality-tools crap",
