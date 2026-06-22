@@ -53,11 +53,18 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
   }
 
   _config = {
+    get: vi.fn((key: string, defaultValue: unknown) => {
+      if (key === 'nodeVisibility') {
+        return {};
+      }
+      return defaultValue;
+    }),
     getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
   } as never;
 
   _discovery = { kind: 'discovery' } as never;
   _registry = {
+    list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
     notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
   } as never;
 
@@ -324,6 +331,71 @@ describe('pipeline/service/refreshFacade', () => {
       undefined,
       disabledPlugins,
     );
+  });
+
+  it('rebuilds analysis scope from tier-complete cached analysis without reanalyzing files', async () => {
+    const facade = new TestRefreshFacade();
+    const disabledPlugins = new Set(['plugin.disabled']);
+    const signal = new AbortController().signal;
+    const onProgress = vi.fn();
+    const graphData = {
+      nodes: [{ id: 'src/a.ts#run:function' }],
+      edges: [],
+    };
+    facade._config = {
+      get: vi.fn((key: string, defaultValue: unknown) => {
+        if (key === 'nodeVisibility') {
+          return { symbol: true, 'symbol:function': true };
+        }
+        return defaultValue;
+      }),
+      getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
+    } as never;
+    facade._lastFileAnalysis = new Map([
+      ['src/a.ts', {
+        filePath: '/workspace/src/a.ts',
+        relations: [],
+        symbols: [{
+          filePath: '/workspace/src/a.ts',
+          id: '/workspace/src/a.ts:function:run',
+          kind: 'function',
+          name: 'run',
+        }],
+        cache: {
+          tiers: ['baseline', 'symbols', 'plugin:plugin.a'],
+        },
+      }],
+    ]) as never;
+    facade._buildGraphDataFromAnalysis = vi.fn(() => graphData) as never;
+
+    await expect(
+      facade.refreshAnalysisScope(['dist/**'], disabledPlugins, signal, onProgress),
+    ).resolves.toBe(graphData);
+
+    expect(refreshWorkspacePipelineAnalysisScope).not.toHaveBeenCalled();
+    expect(facade._lastDiscoveredFiles).toEqual([
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+    ]);
+    expect(facade._lastGitIgnoredPaths).toEqual(['example-python/app.py']);
+    expect(facade._lastWorkspaceRoot).toBe('/workspace');
+    expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      facade._lastFileAnalysis,
+      '/workspace',
+      true,
+      disabledPlugins,
+    );
+    expect(facade._persistCache).not.toHaveBeenCalled();
+    expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
+    expect(onProgress).toHaveBeenNthCalledWith(1, {
+      phase: 'Applying Scope',
+      current: 0,
+      total: 1,
+    });
+    expect(onProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Applying Scope',
+      current: 1,
+      total: 1,
+    });
   });
 
   it('refreshes gitignore metadata by rebuilding from cached analysis without analyzing files', async () => {
