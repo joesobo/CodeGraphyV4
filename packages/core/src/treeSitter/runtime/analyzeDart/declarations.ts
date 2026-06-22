@@ -5,6 +5,7 @@ import { createSymbol } from '../analyze/results';
 export function getDartDeclarationName(node: Parser.SyntaxNode): string | null {
   return node.childForFieldName('name')?.text
     ?? node.namedChildren.find((child) => child.type === 'identifier')?.text
+    ?? node.namedChildren.find((child) => child.type === 'type_identifier')?.text
     ?? null;
 }
 
@@ -26,4 +27,13 @@ export function addDartNamedSymbol(
   if (name) {
     symbols.push(createSymbol(filePath, kind, name, node));
   }
+}
+
+export function addDartIdentifierSymbol(
+  symbols: IAnalysisSymbol[],
+  filePath: string,
+  kind: string,
+  node: Parser.SyntaxNode,
+): void {
+  symbols.push(createSymbol(filePath, kind, node.text, node));
 }
