@@ -51,11 +51,23 @@ function readCompilerOptions(tsconfigPath: string): ts.ParsedCommandLine | null 
 
   return ts.parseJsonConfigFileContent(
     readResult.config,
-    ts.sys,
+    createCompilerOptionsParseHost(),
     path.dirname(tsconfigPath),
     undefined,
     tsconfigPath,
   );
+}
+
+function createCompilerOptionsParseHost(): ts.ParseConfigHost {
+  return {
+    directoryExists: directoryName => ts.sys.directoryExists?.(directoryName) ?? false,
+    fileExists: fileName => ts.sys.fileExists(fileName),
+    getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
+    readDirectory: () => [],
+    readFile: fileName => ts.sys.readFile(fileName),
+    realpath: pathName => ts.sys.realpath?.(pathName) ?? pathName,
+    useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+  };
 }
 
 function createPathMappings(

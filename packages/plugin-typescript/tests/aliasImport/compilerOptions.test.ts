@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import ts from 'typescript';
+import { describe, expect, it, vi } from 'vitest';
 import { createTypeScriptPlugin } from '../../src/plugin';
 import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from '../workspace';
 
@@ -229,6 +230,61 @@ describe('TypeScript Alias Import compiler options support', () => {
         },
       );
     } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('reads path aliases without scanning project files', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const readDirectory = vi.spyOn(ts.sys, 'readDirectory')
+      .mockImplementation(() => {
+        throw new Error('project file scanning should not run for alias config');
+      });
+
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '@/token';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '@/token',
+        },
+      ]);
+      expect(readDirectory).not.toHaveBeenCalled();
+    } finally {
+      readDirectory.mockRestore();
       removeWorkspaceRoot(workspaceRoot);
     }
   });
