@@ -155,26 +155,56 @@ describe('Godot GDScript Plugin Integration', () => {
         from: toWorkspacePath(relation.fromFilePath),
         fromSymbolId: relation.fromSymbolId,
         sourceId: relation.sourceId,
+        specifier: relation.specifier,
         to: relation.toFilePath ? toWorkspacePath(relation.toFilePath) : null,
       }))).toEqual(expect.arrayContaining([
         {
           from: 'scripts/components/health_component.gd',
           fromSymbolId: 'scripts/components/health_component.gd#died:signal',
           sourceId: 'gdscript-signal-connection',
+          specifier: '_health_component.died.connect',
           to: 'scripts/base/entity.gd',
         },
         {
           from: 'scripts/spawning/enemy_spawner.gd',
           fromSymbolId: 'scripts/spawning/enemy_spawner.gd#enemy_spawned:signal',
           sourceId: 'gdscript-signal-connection',
+          specifier: '_enemy_spawner.enemy_spawned.connect',
           to: 'scripts/main.gd',
         },
         {
           from: 'scripts/components/health_component.gd',
           fromSymbolId: 'scripts/components/health_component.gd#health_changed:signal',
           sourceId: 'gdscript-signal-connection',
+          specifier: 'health.health_changed.connect',
           to: 'scripts/ui/health_bar.gd',
         },
+        {
+          from: 'scripts/player.gd',
+          fromSymbolId: 'scripts/player.gd#fired:signal',
+          sourceId: 'gdscript-signal-connection',
+          specifier: '_player.fired.connect',
+          to: 'scripts/main.gd',
+        },
+        {
+          from: 'scripts/projectile.gd',
+          fromSymbolId: 'scripts/projectile.gd#hit_target:signal',
+          sourceId: 'gdscript-signal-connection',
+          specifier: 'projectile.hit_target.connect',
+          to: 'scripts/main.gd',
+        },
+      ]));
+      expect(signalConnections).not.toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          fromFilePath: path.join(GDSCRIPT_ROOT, 'scripts/projectile.gd'),
+          toFilePath: path.join(GDSCRIPT_ROOT, 'scripts/projectile.gd'),
+          specifier: 'body_entered.connect',
+        }),
+        expect.objectContaining({
+          fromFilePath: path.join(GDSCRIPT_ROOT, 'scripts/spawning/enemy_spawner.gd'),
+          toFilePath: path.join(GDSCRIPT_ROOT, 'scripts/spawning/enemy_spawner.gd'),
+          specifier: '_timer.timeout.connect',
+        }),
       ]));
     });
 

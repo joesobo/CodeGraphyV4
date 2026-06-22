@@ -189,9 +189,13 @@ export class GodotSignalConnectionIndex {
       for (const usage of readSignalConnectUsages(content, relativeFilePath)) {
         const sourceRelativeFilePath = resolveReceiverFile(usage, typedIdentifiers, resolver) ?? relativeFilePath;
         const declaration = declarationsByFileAndName.get(`${sourceRelativeFilePath}:${usage.signalName}`);
+        if (!declaration) {
+          continue;
+        }
+
         const source = {
-          relativeFilePath: declaration?.relativeFilePath ?? sourceRelativeFilePath,
-          ...(declaration ? { declaration } : {}),
+          relativeFilePath: declaration.relativeFilePath,
+          declaration,
         };
         const relations = nextRelationsBySourceFile.get(source.relativeFilePath) ?? [];
         relations.push(createSignalConnectionRelation(usage, source, workspaceRoot));

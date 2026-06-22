@@ -7,6 +7,11 @@ extends Node2D
 
 func _ready() -> void:
 	_enemy_spawner.enemy_spawned.connect(_wire_enemy)
+	_player.fired.connect(func(projectile):
+		projectile.hit_target.connect(func(target):
+			print("Projectile hit %s" % target.name)
+		)
+	)
 	_wire_enemy(_enemy)
 
 func _wire_enemy(enemy: Enemy) -> void:

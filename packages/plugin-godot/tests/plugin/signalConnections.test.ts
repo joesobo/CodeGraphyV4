@@ -25,7 +25,7 @@ function createResolver(files: readonly GodotWorkspaceFile[]): GDScriptPathResol
 }
 
 describe('GodotSignalConnectionIndex', () => {
-  it('indexes typed, inferred, and local signal connections by source file', () => {
+  it('indexes typed, inferred, and local declared signal connections by source file', () => {
     const files = [
       workspaceFile('scripts/components/health_component.gd', [
         'class_name HealthComponent',
@@ -49,8 +49,9 @@ describe('GodotSignalConnectionIndex', () => {
       ].join('\n')),
       workspaceFile('scripts/projectile.gd', [
         'class_name Projectile',
+        'signal hit_target(target: Node)',
         'func _ready() -> void:',
-        '\tbody_entered.connect(_on_body_entered)',
+        '\thit_target.connect(_on_hit_target)',
       ].join('\n')),
     ];
     const resolver = createResolver(files);
@@ -87,9 +88,33 @@ describe('GodotSignalConnectionIndex', () => {
     }))).toEqual([
       {
         fromFilePath: 'scripts/projectile.gd',
-        fromSymbolId: undefined,
+        fromSymbolId: 'scripts/projectile.gd#hit_target:signal',
         toFilePath: 'scripts/projectile.gd',
       },
     ]);
+  });
+
+  it('ignores built-in signal connections without matching GDScript declarations', () => {
+    const files = [
+      workspaceFile('scripts/projectile.gd', [
+        'class_name Projectile',
+        'extends Area2D',
+        'func _ready() -> void:',
+        '\tbody_entered.connect(_on_body_entered)',
+      ].join('\n')),
+      workspaceFile('scripts/spawning/enemy_spawner.gd', [
+        'class_name EnemySpawner',
+        '@onready var _timer: Timer = %SpawnTimer',
+        'func _ready() -> void:',
+        '\t_timer.timeout.connect(_spawn_enemy)',
+      ].join('\n')),
+    ];
+    const resolver = createResolver(files);
+    const index = new GodotSignalConnectionIndex();
+
+    index.replaceWorkspaceFiles(files, WORKSPACE_ROOT, resolver);
+
+    expect(index.getRelations('scripts/projectile.gd')).toEqual([]);
+    expect(index.getRelations('scripts/spawning/enemy_spawner.gd')).toEqual([]);
   });
 });
