@@ -120,6 +120,14 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       expect.objectContaining({
         kind: 'reference',
         sourceId: 'core:treesitter:reference',
+        specifier: 'RunLabel',
+        fromFilePath: runnerPath,
+        resolvedPath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+      }),
+      expect.objectContaining({
+        kind: 'reference',
+        sourceId: 'core:treesitter:reference',
         specifier: 'Profile',
         fromFilePath: runnerPath,
         fromSymbolId: `${runnerPath}:function:boot`,
