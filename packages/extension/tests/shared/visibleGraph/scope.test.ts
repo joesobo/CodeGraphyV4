@@ -279,7 +279,7 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
-	it('does not treat parent toggles as catch-all symbol node types', () => {
+		it('matches generic variable symbols through the Plain Variable node type', () => {
 		const result = applyGraphScope(
 			{
 				nodes: [
@@ -297,21 +297,22 @@ describe('shared/visibleGraph/scope', () => {
 			},
 			{
 				nodes: [
-					{ type: 'file', enabled: true },
-					{ type: 'symbol', enabled: true },
-					{ type: 'variable', enabled: true },
-				],
+						{ type: 'file', enabled: true },
+						{ type: 'symbol', enabled: true },
+						{ type: 'variable', enabled: true },
+						{ type: 'variable:plain', enabled: true },
+					],
 				edges: [
 					{ type: 'contains', enabled: true },
 				],
 			},
 		);
 
-		expect(ids(result)).toEqual({
-			nodes: ['src/app.ts'],
-			edges: [],
+			expect(ids(result)).toEqual({
+				nodes: ['src/app.ts', 'src/app.ts#counter:variable'],
+				edges: ['src/app.ts->src/app.ts#counter:variable#contains'],
+			});
 		});
-	});
 
 	it('removes duplicate file edges when an equivalent symbol relation edge is visible', () => {
 		const result = applyGraphScope(
@@ -358,6 +359,52 @@ describe('shared/visibleGraph/scope', () => {
 				'src/base.hpp#Base:class',
 			],
 			edges: ['src/runner.cpp#Runner:class->src/base.hpp#Base:class#inherit'],
+		});
+	});
+
+	it('projects hidden symbol endpoints back to visible containing files', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('scripts/spawning/enemy_spawner.gd'),
+					node('resources/enemy_spawn_config.tres'),
+					symbolNode('resources/enemy_spawn_config.tres#EnemySpawnConfig:resource', {
+						id: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
+						name: 'EnemySpawnConfig',
+						kind: 'resource',
+						filePath: 'resources/enemy_spawn_config.tres',
+						pluginKind: 'resource',
+						source: 'codegraphy.gdscript',
+					}),
+				],
+				edges: [{
+					id: 'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#EnemySpawnConfig:resource#load:static',
+					from: 'scripts/spawning/enemy_spawner.gd',
+					to: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
+					kind: 'load',
+					sources: [],
+				}],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: false },
+					{ type: 'plugin:codegraphy.gdscript:symbol:resource', enabled: false },
+				],
+				edges: [
+					{ type: 'load', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: [
+				'scripts/spawning/enemy_spawner.gd',
+				'resources/enemy_spawn_config.tres',
+			],
+			edges: [
+				'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#load:static',
+			],
 		});
 	});
 
@@ -493,6 +540,73 @@ describe('shared/visibleGraph/scope', () => {
 			edges: ['src/user.ts->src/user.ts#User:class#contains'],
 		});
 	});
+
+	it('matches Godot scene-node and exported-property scoped rows', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('scenes/player.tscn'),
+					node('scripts/player.gd'),
+					symbolNode('scenes/player.tscn#HealthComponent:scene-node', {
+						id: 'scenes/player.tscn#HealthComponent:scene-node',
+						name: 'HealthComponent',
+						kind: 'scene-node',
+						filePath: 'scenes/player.tscn',
+						pluginKind: 'scene-node',
+						source: 'codegraphy.gdscript',
+						language: 'godot-resource',
+					}),
+					symbolNode('scripts/player.gd#projectile_scene:variable', {
+						id: 'scripts/player.gd#projectile_scene:variable',
+						name: 'projectile_scene',
+						kind: 'variable',
+						filePath: 'scripts/player.gd',
+						pluginKind: 'exported-property',
+						source: 'codegraphy.gdscript',
+						language: 'gdscript',
+					}, 'variable'),
+					symbolNode('scripts/player.gd#_can_fire:variable', {
+						id: 'scripts/player.gd#_can_fire:variable',
+						name: '_can_fire',
+						kind: 'variable',
+						filePath: 'scripts/player.gd',
+						source: 'codegraphy.gdscript',
+						language: 'gdscript',
+					}, 'variable'),
+				],
+				edges: [
+					edge('scenes/player.tscn', 'scenes/player.tscn#HealthComponent:scene-node', 'contains'),
+					edge('scripts/player.gd', 'scripts/player.gd#projectile_scene:variable', 'contains'),
+					edge('scripts/player.gd', 'scripts/player.gd#_can_fire:variable', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'variable', enabled: true },
+					{ type: 'plugin:codegraphy.gdscript:symbol:scene-node', enabled: true },
+					{ type: 'plugin:codegraphy.gdscript:symbol:exported-property', enabled: true },
+				],
+				edges: [
+					{ type: 'contains', enabled: true },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+				nodes: [
+					'scenes/player.tscn',
+					'scripts/player.gd',
+					'scenes/player.tscn#HealthComponent:scene-node',
+					'scripts/player.gd#projectile_scene:variable',
+				],
+				edges: [
+					'scenes/player.tscn->scenes/player.tscn#HealthComponent:scene-node#contains',
+					'scripts/player.gd->scripts/player.gd#projectile_scene:variable#contains',
+				],
+			});
+		});
 
 	it('requires every plugin-specific symbol field to match', () => {
 		const matching = symbolNode('scripts/player.gd#Player:class', {

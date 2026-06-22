@@ -13,6 +13,17 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'variable:plain',
+      label: 'Plain Variable',
+      defaultColor: '#14B8A6',
+      defaultVisible: false,
+      parentId: 'variable',
+      matchSymbolKinds: ['variable'],
+      description: {
+        description: 'Variables that are not already represented by a more specific variable row.',
+      },
+    },
+    {
       id: 'symbol:constant',
       label: 'Constant',
       defaultColor: '#22C55E',
@@ -87,6 +98,23 @@ export function createVariableGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       description: {
         description: 'Godot script class names registered for use elsewhere in a project.',
         examples: [{ label: 'GDScript', code: 'class_name PlayerController' }],
+      },
+    },
+    {
+      id: 'plugin:codegraphy.gdscript:symbol:exported-property',
+      label: 'Exported Property',
+      defaultColor: '#2DD4BF',
+      defaultVisible: false,
+      parentId: 'variable',
+      pluginName: 'Godot',
+      matchSymbolKinds: ['variable'],
+      matchSymbolPluginKind: 'exported-property',
+      matchSymbolSource: 'codegraphy.gdscript',
+      matchSymbolLanguage: 'gdscript',
+      matchSymbolFilePath: '**/*.gd',
+      description: {
+        description: 'GDScript variables exported to the Godot editor inspector.',
+        examples: [{ label: 'GDScript', code: '@export var speed: float = 300.0' }],
       },
     },
   ];

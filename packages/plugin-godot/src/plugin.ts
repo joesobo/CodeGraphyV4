@@ -18,7 +18,12 @@ import {
   registerGodotFileMetadata,
 } from './plugin/metadata';
 import { detectRelations } from './plugin/relations';
+import { GodotSignalConnectionIndex } from './plugin/signalConnections';
 import { extractSymbols } from './plugin/symbol/extract';
+import {
+  GODOT_SYMBOL_PLUGIN_KIND,
+  GODOT_SYMBOL_SOURCE,
+} from './plugin/symbol/godotKinds';
 import type {
   GodotWorkspaceFile,
   IGDScriptAnalyzeFilePlugin,
@@ -59,19 +64,37 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   readonly sources = manifest.sources;
 
   contributeGraphScopeCapabilities(): IPluginGraphScopeCapabilities {
+    const pluginSymbolNodeType = (pluginKind: string) =>
+      `plugin:${GODOT_SYMBOL_SOURCE}:symbol:${pluginKind}`;
+
     return {
       nodeTypes: [
         'symbol:function',
         'symbol:enum',
         'symbol:constant',
-        'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        'variable:plain',
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.className),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.scene),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.resource),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.autoload),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.sceneNode),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.signal),
+        pluginSymbolNodeType(GODOT_SYMBOL_PLUGIN_KIND.exportedProperty),
       ],
-      edgeTypes: ['call', 'load', 'inherit', 'reference'],
+      edgeTypes: [
+        'call',
+        'load',
+        'inherit',
+        'reference',
+        'contains',
+        'codegraphy.gdscript:signal-connection',
+      ],
     };
   }
 
   private projectRoots = new Set<string>();
   private resolver: GDScriptPathResolver | null = null;
+  private signalConnections = new GodotSignalConnectionIndex();
 
   async initialize(workspaceRoot: string): Promise<void> {
     this.resolver = new GDScriptPathResolver(workspaceRoot);
@@ -90,6 +113,8 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
     for (const { relativePath, content } of files) {
       registerGodotFileMetadata(this.resolver, relativePath, content);
     }
+
+    this.signalConnections.replaceWorkspaceFiles(files, workspaceRoot, this.resolver);
 
     console.log(`[CodeGraphy] GDScript class_name map: ${this.resolver.getClassNameMap().size} entries, ${this.resolver.getFileNameMap().size} files indexed`);
   }
@@ -114,11 +139,20 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
       requiresTextResourceReanalysis ||= changes.resourceUidChanged;
     }
 
-    return readChangedAnalysisTargets(
+    const signalConnectionAnalysisTargets = this.signalConnections.replaceFiles(
+      files,
+      workspaceRoot,
       resolver,
-      requiresBroadReanalysis,
-      requiresTextResourceReanalysis,
     );
+
+    return [...new Set([
+      ...readChangedAnalysisTargets(
+        resolver,
+        requiresBroadReanalysis,
+        requiresTextResourceReanalysis,
+      ),
+      ...signalConnectionAnalysisTargets,
+    ])];
   }
 
   async analyzeFile(
@@ -129,7 +163,10 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
   ) {
     const resolver = this.getResolver(workspaceRoot);
     const context = buildAnalysisContext(resolver, filePath, workspaceRoot, this.projectRoots);
-    const relations = detectRelations(content, filePath, context);
+    const relations = [
+      ...detectRelations(content, filePath, context),
+      ...this.signalConnections.getRelations(context.relativeFilePath),
+    ];
     const symbols = extractSymbols(content, filePath, context.relativeFilePath);
 
     return {
@@ -141,6 +178,7 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
 
   onUnload(): void {
     this.resolver?.clearClassNames();
+    this.signalConnections.clear();
     this.resolver = null;
     this.projectRoots = new Set();
   }
