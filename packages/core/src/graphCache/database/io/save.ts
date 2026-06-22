@@ -5,6 +5,8 @@ import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import { runStatementAsync, runStatementSync, withConnection, withConnectionAsync } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
+  createWorkspaceAnalysisCacheWriter,
+  createWorkspaceAnalysisCacheWriterAsync,
   persistAnalysisEntry,
   persistAnalysisEntryAsync,
   sortedCacheEntries,
@@ -51,8 +53,9 @@ export function saveWorkspaceAnalysisDatabaseCache(
       runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
       runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
 
+      const writer = createWorkspaceAnalysisCacheWriter(connection);
       for (const [filePath, entry] of sortedCacheEntries(cache)) {
-        persistAnalysisEntry(connection, filePath, entry);
+        persistAnalysisEntry(writer, filePath, entry);
       }
     });
     replaceDatabaseCache(tempDatabasePath, databasePath);
@@ -84,6 +87,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
       await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
       await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
+      const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
       let current = 0;
       let statementsSinceYield = 0;
@@ -96,7 +100,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       };
 
       for (const [filePath, entry] of entries) {
-        await persistAnalysisEntryAsync(connection, filePath, entry, yieldAfterStatement);
+        await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
         current += 1;
         options.onProgress?.({ current, total });
       }

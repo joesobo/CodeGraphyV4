@@ -30,6 +30,46 @@ export async function runStatementAsync(connection: lb.Connection, statement: st
   closeQueryResults(result);
 }
 
+export function prepareStatementSync(
+  connection: lb.Connection,
+  statement: string,
+): lb.PreparedStatement {
+  const preparedStatement = connection.prepareSync(statement);
+  if (!preparedStatement.isSuccess()) {
+    throw new Error(preparedStatement.getErrorMessage());
+  }
+  return preparedStatement;
+}
+
+export async function prepareStatementAsync(
+  connection: lb.Connection,
+  statement: string,
+): Promise<lb.PreparedStatement> {
+  const preparedStatement = await connection.prepare(statement);
+  if (!preparedStatement.isSuccess()) {
+    throw new Error(preparedStatement.getErrorMessage());
+  }
+  return preparedStatement;
+}
+
+export function executeStatementSync(
+  connection: lb.Connection,
+  preparedStatement: lb.PreparedStatement,
+  params: Record<string, lb.LbugValue>,
+): void {
+  const result = connection.executeSync(preparedStatement, params);
+  closeQueryResults(result);
+}
+
+export async function executeStatementAsync(
+  connection: lb.Connection,
+  preparedStatement: lb.PreparedStatement,
+  params: Record<string, lb.LbugValue>,
+): Promise<void> {
+  const result = await connection.execute(preparedStatement, params);
+  closeQueryResults(result);
+}
+
 export function readRowsSync(connection: lb.Connection, statement: string): FileAnalysisRow[] {
   const result = connection.querySync(statement);
 
