@@ -84,6 +84,17 @@ function visitDartNode(
     handleDartAliasTypeReference(node, filePath, relations, importedSymbolPaths, importedSymbolKinds, state.currentSymbolId);
   }
 
+  if (node.type === 'type_identifier') {
+    handleDartAliasTypeIdentifierReference(
+      node,
+      filePath,
+      relations,
+      importedSymbolPaths,
+      importedSymbolKinds,
+      state.currentSymbolId,
+    );
+  }
+
   if (node.type === 'method_signature') {
     if (!symbolsEnabled) {
       return;
@@ -328,6 +339,32 @@ function handleDartAliasTypeReference(
     }
     handleDartTypeReference(typeIdentifier, filePath, relations, symbolPaths, currentSymbolId);
   }
+}
+
+function handleDartAliasTypeIdentifierReference(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  symbolPaths: ReadonlyMap<string, string | null>,
+  symbolKinds: ReadonlyMap<string, string>,
+  currentSymbolId?: string,
+): void {
+  if (symbolKinds.get(node.text) !== 'alias') {
+    return;
+  }
+
+  const resolvedPath = symbolPaths.get(node.text);
+  if (relations.some((relation) =>
+    relation.kind === 'reference'
+    && relation.fromFilePath === filePath
+    && relation.specifier === node.text
+    && relation.resolvedPath === resolvedPath
+    && relation.fromSymbolId === currentSymbolId
+  )) {
+    return;
+  }
+
+  handleDartTypeReference(node, filePath, relations, symbolPaths, currentSymbolId);
 }
 
 function addDartSignatureReferenceRelations(
