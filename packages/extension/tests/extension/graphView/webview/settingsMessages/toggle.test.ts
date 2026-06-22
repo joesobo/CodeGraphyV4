@@ -64,7 +64,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.vue', enabled: false },
     ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -110,8 +111,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -151,6 +152,36 @@ describe('graph view settings toggle message', () => {
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
     expect(reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('reanalyzes the workspace when disabling a package-backed plugin', async () => {
+    const state = createState();
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ id: 'codegraphy.unity', enabled: true }] as T;
+        }
+        return defaultValue;
+      }),
+      analyzeAndSendData,
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.unity',
+          enabled: false,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -251,12 +282,12 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('acme.graph-tools');
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphViewContributionStatuses.mock.invocationCallOrder[0]);
     expect(sendGraphViewContributionStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
   });
 
   it('sends graph controls after package toggles sync plugin contributions', async () => {
@@ -297,7 +328,7 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphControls.mock.invocationCallOrder[0]);
     expect(sendGraphControls.mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
   });
 
   it('sends fresh filter patterns after package toggles sync plugin filters', async () => {
@@ -352,7 +383,7 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0]);
     expect(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.analyzeAndSendData).mock.invocationCallOrder[0]);
   });
 
   it('broadcasts package plugin cleanup before re-analysis when a package is toggled off', async () => {
@@ -406,8 +437,8 @@ describe('graph view settings toggle message', () => {
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeGreaterThan(syncWorkspacePlugins.mock.invocationCallOrder[0]);
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('sends plugin webview injections before workspace analysis after package toggles', async () => {

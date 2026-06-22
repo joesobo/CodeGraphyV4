@@ -43,7 +43,7 @@ export async function applySettingsToggleMessage(
         return true;
       }
 
-      if (message.payload.enabled) {
+      if (plan.indexing.kind === 'analyze-workspace') {
         await handlers.analyzeAndSendData();
         return true;
       }
