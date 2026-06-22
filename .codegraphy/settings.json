@@ -24,6 +24,26 @@
     {
       "id": "codegraphy.particles",
       "enabled": true
+    },
+    {
+      "id": "codegraphy.unity",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.vue",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.typescript",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.svelte",
+      "enabled": true
+    },
+    {
+      "id": "codegraphy.gdscript",
+      "enabled": true
     }
   ],
   "pluginData": {
@@ -41,9 +61,16 @@
     "symbol:namespace": "#64748B",
     "symbol:callable": "#8B5CF6",
     "symbol:method": "#A855F7",
+    "symbol:constructor": "#C084FC",
     "symbol:prototype": "#A78BFA",
     "symbol:class": "#3B82F6",
+    "symbol:mixin": "#2563EB",
+    "symbol:extension": "#4F46E5",
     "symbol:interface": "#06B6D4",
+    "symbol:record": "#6366F1",
+    "symbol:delegate": "#10B981",
+    "symbol:property": "#84CC16",
+    "symbol:event": "#F97316",
     "symbol:type": "#EC4899",
     "symbol:struct": "#0EA5E9",
     "symbol:union": "#14B8A6",
@@ -51,13 +78,23 @@
     "symbol:typedef": "#F472B6",
     "symbol:alias": "#F472B6",
     "symbol:template": "#C084FC",
+    "plugin:codegraphy.gdscript:symbol:scene": "#478CBF",
+    "plugin:codegraphy.gdscript:symbol:resource": "#F59E0B",
+    "plugin:codegraphy.gdscript:symbol:autoload": "#10B981",
+    "plugin:codegraphy.gdscript:symbol:scene-node": "#A855F7",
+    "plugin:codegraphy.gdscript:symbol:signal": "#EF4444",
     "variable": "#14B8A6",
+    "variable:plain": "#14B8A6",
     "symbol:constant": "#22C55E",
     "symbol:global": "#0D9488",
     "symbol:field": "#84CC16",
     "symbol:parameter": "#2DD4BF",
     "symbol:local": "#10B981",
-    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF",
+    "plugin:codegraphy.gdscript:symbol:exported-property": "#2DD4BF",
+    "plugin:codegraphy.unity:symbol": "#F97316",
+    "plugin:codegraphy.unity:symbol:game-object": "#0EA5E9",
+    "plugin:codegraphy.unity:symbol:component": "#22C55E"
   },
   "nodeVisibility": {
     "file": true,
@@ -68,9 +105,16 @@
     "symbol:namespace": false,
     "symbol:callable": false,
     "symbol:method": false,
+    "symbol:constructor": false,
     "symbol:prototype": false,
     "symbol:class": false,
+    "symbol:mixin": false,
+    "symbol:extension": false,
     "symbol:interface": false,
+    "symbol:record": false,
+    "symbol:delegate": false,
+    "symbol:property": false,
+    "symbol:event": false,
     "symbol:type": false,
     "symbol:struct": false,
     "symbol:union": false,
@@ -78,27 +122,43 @@
     "symbol:typedef": false,
     "symbol:alias": false,
     "symbol:template": false,
+    "plugin:codegraphy.gdscript:symbol:scene": false,
+    "plugin:codegraphy.gdscript:symbol:resource": false,
+    "plugin:codegraphy.gdscript:symbol:autoload": false,
+    "plugin:codegraphy.gdscript:symbol:scene-node": false,
+    "plugin:codegraphy.gdscript:symbol:signal": false,
     "variable": false,
+    "variable:plain": false,
     "symbol:constant": false,
     "symbol:global": false,
     "symbol:field": false,
     "symbol:parameter": false,
     "symbol:local": false,
-    "plugin:codegraphy.gdscript:symbol:godot-class-name": false
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": false,
+    "plugin:codegraphy.gdscript:symbol:exported-property": false,
+    "plugin:codegraphy.unity:symbol": false,
+    "plugin:codegraphy.unity:symbol:game-object": false,
+    "plugin:codegraphy.unity:symbol:component": false
   },
   "edgeVisibility": {
     "include": true,
     "import": true,
+    "using": true,
+    "type": true,
     "reference": true,
     "call": false,
     "type-import": true,
     "inherit": true,
+    "implements": true,
+    "event": true,
     "load": true,
     "nests": true,
     "contains": false,
     "overrides": true,
+    "codegraphy.gdscript:signal-connection": true,
     "test": true,
-    "reexport": true
+    "reexport": true,
+    "codegraphy.typescript:alias-import": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
@@ -291,7 +351,26 @@
   "legendVisibility": {},
   "legendOrder": [],
   "filterPatterns": [
-    "**/tests/**"
+    "**/tests/**",
+    ".stryker-tmp/**",
+    ".husky/**",
+    "**/.vscode-test/**",
+    "**/.vscode/settings.json",
+    "**/*.vsix",
+    "**/*.log",
+    "dist-e2e/**",
+    "artifacts/**",
+    ".worktrees/**",
+    ".playwright-mcp/**",
+    ".playwright-cli/**",
+    "playwright-report/**",
+    "test-results/**",
+    "blob-report/**",
+    "packages/extension/tests/playwright-vscode/generated/**",
+    "packages/extension/tests/playwright-vscode/generated-ir/**",
+    ".superpowers/**",
+    "reports/**",
+    ".pnpm-store/**"
   ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
@@ -306,10 +385,10 @@
   "nodeSizeMode": "connections",
   "physics": {
     "repelForce": 17,
-    "linkDistance": 110,
+    "linkDistance": 70,
     "linkForce": 1,
     "damping": 0.7,
-    "centerForce": 0.1,
+    "centerForce": 0.17,
     "chargeRange": 200
   },
   "timeline": {
