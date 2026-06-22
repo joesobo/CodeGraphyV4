@@ -110,10 +110,12 @@ describe('dev launch config', () => {
     expect(plan.buildFilters).toEqual(expect.arrayContaining([
       '@codegraphy-dev/extension...',
       '@codegraphy-dev/plugin-typescript...',
+      '@codegraphy-dev/plugin-unity...',
       '@codegraphy-dev/plugin-godot...',
     ]));
     expect(plan.linkPackageRoots).toEqual(expect.arrayContaining([
       path.join(repoRoot, 'packages/plugin-typescript'),
+      path.join(repoRoot, 'packages/plugin-unity'),
       path.join(repoRoot, 'packages/plugin-godot'),
       privatePackageRoot,
     ]));

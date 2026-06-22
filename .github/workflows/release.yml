@@ -13,6 +13,7 @@ on:
           - mcp
           - typescript
           - godot
+          - unity
           - markdown
           - vue
           - plugin-api

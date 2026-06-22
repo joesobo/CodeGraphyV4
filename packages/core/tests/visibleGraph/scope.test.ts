@@ -284,6 +284,52 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('keeps Unity file to GameObject containment when Component symbols are visible', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('Assets/Prefabs/Enemy1.prefab', 'file'),
+        node('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'symbol', symbol({
+          id: 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object',
+          filePath: 'Assets/Prefabs/Enemy1.prefab',
+          kind: 'game-object',
+          name: 'Enemy1',
+          pluginKind: 'game-object',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+        node('Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', 'symbol', symbol({
+          id: 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component',
+          filePath: 'Assets/Prefabs/Enemy1.prefab',
+          kind: 'component',
+          name: 'EnemyMovement',
+          pluginKind: 'component',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+      ],
+      edges: [
+        edge('Assets/Prefabs/Enemy1.prefab', 'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'contains'),
+        edge('Assets/Prefabs/Enemy1.prefab#Enemy1:game-object', 'Assets/Prefabs/Enemy1.prefab#EnemyMovement:component', 'contains'),
+      ],
+    };
+
+    const result = applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:component', enabled: true },
+      ],
+      edges: [{ type: 'contains', enabled: true }],
+    });
+
+    expect(result.edges.map((item) => item.id)).toEqual([
+      'Assets/Prefabs/Enemy1.prefab->Assets/Prefabs/Enemy1.prefab#Enemy1:game-object#contains',
+      'Assets/Prefabs/Enemy1.prefab#Enemy1:game-object->Assets/Prefabs/Enemy1.prefab#EnemyMovement:component#contains',
+    ]);
+  });
+
   it('projects hidden symbol endpoints back to visible containing files', () => {
     const graphData: IGraphData = {
       nodes: [
@@ -601,6 +647,56 @@ describe('visibleGraph/scope', () => {
       { type: 'symbol:class', enabled: false },
       { type: 'symbol:class', enabled: true },
     ]))).toEqual(new Set());
+  });
+
+
+  it('filters Unity component symbols through plugin scope rows', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('Assets/Scenes/SampleScene.unity', 'file'),
+        node('Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'symbol', symbol({
+          id: 'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+          filePath: 'Assets/Scenes/SampleScene.unity',
+          kind: 'game-object',
+          name: 'Player',
+          pluginKind: 'game-object',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+        node('Assets/Scenes/SampleScene.unity#unity:component:1001', 'symbol', symbol({
+          id: 'Assets/Scenes/SampleScene.unity#unity:component:1001',
+          filePath: 'Assets/Scenes/SampleScene.unity',
+          kind: 'component',
+          name: 'Transform',
+          pluginKind: 'component',
+          source: 'codegraphy.unity',
+          language: 'unity',
+        })),
+      ],
+      edges: [
+        edge('Assets/Scenes/SampleScene.unity', 'Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'contains'),
+        edge('Assets/Scenes/SampleScene.unity#unity:game-object:1000', 'Assets/Scenes/SampleScene.unity#unity:component:1001', 'contains'),
+      ],
+    };
+
+    const result = applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:game-object', enabled: true },
+        { type: 'plugin:codegraphy.unity:symbol:component', enabled: false },
+      ],
+      edges: [{ type: 'contains', enabled: true }],
+    });
+
+    expect(result.nodes.map((item) => item.id)).toEqual([
+      'Assets/Scenes/SampleScene.unity',
+      'Assets/Scenes/SampleScene.unity#unity:game-object:1000',
+    ]);
+    expect(result.edges.map((item) => item.id)).toEqual([
+      'Assets/Scenes/SampleScene.unity->Assets/Scenes/SampleScene.unity#unity:game-object:1000#contains',
+    ]);
   });
 
   it('falls back to the symbol type suffix when no explicit kinds exist', () => {

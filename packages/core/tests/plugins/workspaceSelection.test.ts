@@ -66,7 +66,7 @@ describe('plugins/workspaceSelection', () => {
     ]);
   });
 
-  it('plans plugin file reprocessing when enabling a plugin id', () => {
+  it('plans a workspace analysis refresh when enabling a plugin id', () => {
     const plan = createCodeGraphyWorkspacePluginTogglePlan([
       { id: 'codegraphy.markdown', enabled: true },
     ], {
@@ -87,8 +87,7 @@ describe('plugins/workspaceSelection', () => {
         },
       ],
       indexing: {
-        kind: 'reprocess-plugin-files',
-        pluginIds: ['codegraphy.godot'],
+        kind: 'analyze-workspace',
       },
     });
   });

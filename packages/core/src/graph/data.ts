@@ -11,6 +11,7 @@ import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { enrichWorkspaceFileAnalysis } from '../analysis/fileAnalysis/enrichment';
 import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis/cacheTiers';
 import { DEFAULT_NODE_COLOR } from '../fileColors';
+import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import { filterDisabledPluginFileAnalysis } from '../plugins/activityState/analysisFacts';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphEdges } from './edges';
@@ -74,6 +75,28 @@ function shouldProjectSymbolGraph(
   return requiresSymbolAnalysisCacheTier(nodeVisibility ?? {});
 }
 
+const CORE_SYMBOL_LEAF_NODE_TYPE_IDS = new Set(
+  CORE_GRAPH_NODE_TYPES
+    .filter((definition) =>
+      definition.parentId === 'symbol'
+      || definition.parentId === 'variable')
+    .map((definition) => definition.id),
+);
+
+function hasVisibleCoreSymbolLeaf(
+  nodeVisibility: IWorkspaceGraphAnalysisDataOptions['nodeVisibility'],
+): boolean {
+  return Object.entries(nodeVisibility ?? {}).some(([nodeType, visible]) =>
+    visible === true && CORE_SYMBOL_LEAF_NODE_TYPE_IDS.has(nodeType),
+  );
+}
+
+function shouldIncludeSymbolEndpointRelations(
+  nodeVisibility: IWorkspaceGraphAnalysisDataOptions['nodeVisibility'],
+): boolean {
+  return !shouldProjectSymbolGraph(nodeVisibility) || !hasVisibleCoreSymbolLeaf(nodeVisibility);
+}
+
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {
   const {
     cacheFiles,
@@ -115,7 +138,7 @@ export function buildWorkspaceGraphDataFromAnalysis(
   const graphData = buildWorkspaceGraphData({
     ...options,
     fileConnections: projectFileAnalysisConnections(fileAnalysis, options.workspaceRoot, {
-      includeSymbolEndpointRelations: !projectSymbolGraph,
+      includeSymbolEndpointRelations: shouldIncludeSymbolEndpointRelations(options.nodeVisibility),
     }),
   });
   const symbolGraph = projectSymbolGraph

@@ -161,4 +161,78 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp relations', () => {
       }),
     ]));
   });
+
+  it('emits Unity-style inherit and implements edges without false inherited calls', async () => {
+    const workspaceRoot = await createWorkspace({
+      'Assets/Scripts/Health.cs': [
+        'using UnityEngine;',
+        '',
+        'public abstract class Health : MonoBehaviour',
+        '{',
+        '    protected abstract void Die();',
+        '}',
+        '',
+      ].join('\n'),
+      'Assets/Scripts/Enemy/IEnemyLifecycle.cs': [
+        'public interface IEnemyLifecycle',
+        '{',
+        '    void Configure();',
+        '}',
+        '',
+      ].join('\n'),
+    });
+    const enemyHealthPath = path.join(workspaceRoot, 'Assets/Scripts/Enemy/EnemyHealth.cs');
+    const healthPath = path.join(workspaceRoot, 'Assets/Scripts/Health.cs');
+    const lifecyclePath = path.join(workspaceRoot, 'Assets/Scripts/Enemy/IEnemyLifecycle.cs');
+    const enemyHealthSource = [
+      'public sealed class EnemyHealth : Health, IEnemyLifecycle',
+      '{',
+      '    public void Configure() {}',
+      '    protected override void Die()',
+      '    {',
+      '        Destroy(gameObject);',
+      '    }',
+      '}',
+      '',
+    ].join('\n');
+
+    await fs.writeFile(enemyHealthPath, enemyHealthSource, 'utf8');
+    const files = await Promise.all(
+      [
+        healthPath,
+        lifecyclePath,
+        enemyHealthPath,
+      ].map(async (absolutePath) => ({
+        absolutePath,
+        content: await fs.readFile(absolutePath, 'utf8'),
+      })),
+    );
+    await preAnalyzeCSharpTreeSitterFiles(files, workspaceRoot);
+
+    const result = await analyzeFileWithTreeSitter(enemyHealthPath, enemyHealthSource, workspaceRoot);
+
+    expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'inherit',
+        specifier: 'Health',
+        fromSymbolId: `${enemyHealthPath}:class:EnemyHealth`,
+        resolvedPath: healthPath,
+        toFilePath: healthPath,
+      }),
+      expect.objectContaining({
+        kind: 'implements',
+        specifier: 'IEnemyLifecycle',
+        fromSymbolId: `${enemyHealthPath}:class:EnemyHealth`,
+        resolvedPath: lifecyclePath,
+        toFilePath: lifecyclePath,
+      }),
+    ]));
+    expect(result?.relations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'call',
+        specifier: 'Destroy',
+        resolvedPath: healthPath,
+      }),
+    ]));
+  });
 });

@@ -3,6 +3,12 @@ import type { Frame, Locator } from '@playwright/test';
 
 vi.mock('@playwright/test', () => {
   const expectLocator = vi.fn((locator: Locator) => ({
+    async toBeHidden(): Promise<void> {
+      const visible = await locator.isVisible?.();
+      if (visible) {
+        throw new Error('Expected locator to be hidden');
+      }
+    },
     async toHaveAttribute(name: string, expected: string): Promise<void> {
       const actual = await locator.getAttribute(name);
       if (actual !== expected) {
@@ -63,6 +69,28 @@ describe('acceptance graph view panel switches', () => {
     await expect(findPanelSwitchIfPresent(frame, 'Calls')).resolves.toBeUndefined();
 
     expect(frame.waitForTimeout).not.toHaveBeenCalled();
+  });
+
+  it('does not require plugin switches to remain visible after toggling', async () => {
+    const { setPluginSwitch } = await import('./acceptance/graphView/steps');
+    const pluginSwitch = switchLocator({ checked: false, visible: true });
+    const frame = panelFrameForSwitch(pluginSwitch);
+
+    await setPluginSwitch({ graphFrame: frame } as never, 'TypeScript/JavaScript', true);
+
+    expect(pluginSwitch.click).toHaveBeenCalledOnce();
+  });
+
+  it('can force an already-enabled plugin switch through an off-on transition', async () => {
+    const { setPluginSwitch } = await import('./acceptance/graphView/steps');
+    const pluginSwitch = togglingSwitchLocator({ initiallyChecked: true });
+    const frame = panelFrameForSwitch(pluginSwitch);
+
+    await setPluginSwitch({ graphFrame: frame } as never, 'Unity', true, {
+      forceTransition: true,
+    });
+
+    expect(pluginSwitch.click).toHaveBeenCalledTimes(2);
   });
 
   it('finds visible switch rows by their exact data scope label', async () => {
@@ -174,6 +202,52 @@ function settlingSwitchLocator({
   } as unknown as Locator;
 }
 
+function togglingSwitchLocator({ initiallyChecked }: { initiallyChecked: boolean }): Locator {
+  let checked = initiallyChecked;
+
+  return {
+    click: vi.fn(async () => {
+      checked = !checked;
+    }),
+    count: vi.fn(async () => 1),
+    first: vi.fn(function first(this: Locator) {
+      return this;
+    }),
+    getAttribute: vi.fn(async (name: string) => {
+      if (name !== 'aria-checked') {
+        return null;
+      }
+
+      return String(checked);
+    }),
+    isVisible: vi.fn(async () => true),
+  } as unknown as Locator;
+}
+
+function switchLocator({
+  checked,
+  visible,
+}: {
+  checked: boolean;
+  visible: boolean;
+}): Locator {
+  return {
+    click: vi.fn(),
+    count: vi.fn(async () => 1),
+    first: vi.fn(function first(this: Locator) {
+      return this;
+    }),
+    getAttribute: vi.fn(async (name: string) => {
+      if (name !== 'aria-checked') {
+        return null;
+      }
+
+      return String(checked);
+    }),
+    isVisible: vi.fn(async () => visible),
+  } as unknown as Locator;
+}
+
 function panelFrameForSwitch(switchInRow: Locator): Frame {
   const row = panelRowForSwitch(switchInRow);
 
@@ -181,9 +255,21 @@ function panelFrameForSwitch(switchInRow: Locator): Frame {
     locator: vi.fn((selector: string) => (
       isSwitchSelector(selector) ? switchInRow : row
     )),
-    getByRole: vi.fn(() => locatorWithCount(0)),
+    getByRole: vi.fn((_role: string, options?: { name?: string }) =>
+      options?.name === 'Indexing progress' ? hiddenLocator() : locatorWithCount(0)
+    ),
     waitForTimeout: vi.fn(),
   } as unknown as Frame;
+}
+
+function hiddenLocator(): Locator {
+  return {
+    count: vi.fn(async () => 0),
+    first: vi.fn(function first(this: Locator) {
+      return this;
+    }),
+    isVisible: vi.fn(async () => false),
+  } as unknown as Locator;
 }
 
 function panelRowForSwitch(switchInRow: Locator) {

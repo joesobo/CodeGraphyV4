@@ -26,3 +26,10 @@ export const VARIABLE_NODE_VISIBILITY = {
   variable: true,
   'symbol:constant': true,
 };
+
+export const UNITY_NODE_VISIBILITY = {
+  symbol: true,
+  'plugin:codegraphy.unity:symbol': true,
+  'plugin:codegraphy.unity:symbol:game-object': true,
+  'plugin:codegraphy.unity:symbol:component': true,
+};

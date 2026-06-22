@@ -90,7 +90,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
     );
   });
 
-  it('ignores unrelated relations and does not emit edges for namespaces without targets', () => {
+  it('ignores unrelated relations and emits unresolved using edges for namespaces without targets', () => {
     const relations = [
       { kind: 'import', resolvedPath: '/workspace/src/Models/User.cs', specifier: 'User' },
       { kind: 'reference', resolvedPath: null, specifier: 'User' },
@@ -106,6 +106,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
     );
 
     expect(resolveCSharpTypePathInNamespace).not.toHaveBeenCalled();
-    expect(addRelation).not.toHaveBeenCalled();
+    expect(addRelation).toHaveBeenCalledWith(
+      relations,
+      expect.objectContaining({
+        kind: 'using',
+        sourceId: 'core:treesitter:using',
+        fromFilePath: '/workspace/src/App.cs',
+        specifier: 'CodeGraphy.Models',
+        resolvedPath: null,
+        toFilePath: null,
+      }),
+    );
   });
 });

@@ -37,6 +37,7 @@ export function buildSymbolNodesAndEdges(
 ): { containingFileIds: Set<string>; edges: IGraphEdge[]; nodes: IGraphNode[] } {
   const symbolIds = createCanonicalSymbolIds(fileAnalysis, workspaceRoot);
   const projectableNamespaceSymbolIds = collectProjectableNamespaceSymbolIds(fileAnalysis);
+  const explicitlyContainedSymbolIds = collectExplicitlyContainedSymbolIds(fileAnalysis);
   const gitIgnoredPathSet = new Set(options.gitIgnoredPaths ?? []);
   const containingFileIds = new Set<string>();
   const nodes: IGraphNode[] = [];
@@ -62,7 +63,9 @@ export function buildSymbolNodesAndEdges(
         containingFile,
       );
       nodes.push(node);
-      edges.push(createContainsEdge(relativeFilePath, node.id));
+      if (!explicitlyContainedSymbolIds.has(symbol.id) && !explicitlyContainedSymbolIds.has(node.id)) {
+        edges.push(createContainsEdge(relativeFilePath, node.id));
+      }
       containingFileIds.add(relativeFilePath);
     }
   }
@@ -72,6 +75,20 @@ export function buildSymbolNodesAndEdges(
     edges: [...edges, ...createSymbolRelationEdges(fileAnalysis, workspaceRoot)],
     nodes,
   };
+}
+
+function collectExplicitlyContainedSymbolIds(
+  fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
+): Set<string> {
+  const symbolIds = new Set<string>();
+  for (const analysis of fileAnalysis.values()) {
+    for (const relation of analysis.relations ?? []) {
+      if (relation.kind === 'contains' && relation.toSymbolId) {
+        symbolIds.add(relation.toSymbolId);
+      }
+    }
+  }
+  return symbolIds;
 }
 
 function createContainingFileMetadata(

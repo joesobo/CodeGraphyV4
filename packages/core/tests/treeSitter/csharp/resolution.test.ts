@@ -76,6 +76,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => {
           ? {
             filePath: '/workspace/src/Models/User.cs',
             kind: 'class',
+            methodNames: new Set(),
             namespaceName: 'CodeGraphy.Models',
             typeName: 'User',
           }
@@ -117,6 +118,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => {
     vi.mocked(resolveCSharpType).mockReturnValue({
       filePath: '/workspace/src/Services/Worker.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: 'CodeGraphy.Services',
       typeName: 'Worker',
     });

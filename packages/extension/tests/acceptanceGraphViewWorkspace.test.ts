@@ -34,6 +34,54 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(fs.readFileSync(copiedSettingsPath, 'utf8')).toBe(fs.readFileSync(sourceSettingsPath, 'utf8'));
   });
 
+  it('omits Unity editor-generated state when copying the Unity example workspace', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-unity');
+
+    expect(fs.existsSync(path.join(workspacePath, 'Assets'))).toBe(true);
+    expect(fs.existsSync(path.join(workspacePath, '.codegraphy/settings.json'))).toBe(true);
+    expect(fs.existsSync(path.join(workspacePath, 'Library'))).toBe(false);
+    expect(fs.existsSync(path.join(workspacePath, 'Temp'))).toBe(false);
+    expect(fs.existsSync(path.join(workspacePath, 'Logs'))).toBe(false);
+    expect(fs.existsSync(path.join(workspacePath, 'UserSettings'))).toBe(false);
+  });
+
+  it('starts Unity acceptance fixtures with Unity default filters active for the file-only baseline', () => {
+    const sourceSettingsPath = path.join(examplesRoot, 'example-unity/.codegraphy/settings.json');
+    const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+      nodeVisibility?: Record<string, boolean>;
+      plugins?: Array<{ enabled?: boolean; id?: string }>;
+    };
+
+    expect(sourceSettings.plugins).toEqual([
+      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.unity', enabled: true },
+    ]);
+    expect(sourceSettings.edgeVisibility).toEqual(expect.objectContaining({
+      using: true,
+      type: false,
+      reference: false,
+      call: false,
+      event: false,
+      contains: false,
+    }));
+  });
+
+  it('shows Unity using edges in the example default graph state', () => {
+    const sourceSettingsPath = path.join(examplesRoot, 'example-unity/.codegraphy/settings.json');
+    const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+      nodeVisibility?: Record<string, boolean>;
+    };
+
+    expect(sourceSettings.edgeVisibility?.using).toBe(true);
+    expect(sourceSettings.nodeVisibility?.file).toBe(true);
+    expect(sourceSettings.nodeVisibility?.package).toBe(true);
+  });
+
   it('can add VS Code settings for scenarios that assert that node without changing CodeGraphy settings', async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);

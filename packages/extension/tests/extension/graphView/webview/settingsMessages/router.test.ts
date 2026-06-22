@@ -230,7 +230,7 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('enables package-backed plugins and reloads workspace plugins before reprocessing plugin files', async () => {
+  it('enables package-backed plugins and reloads workspace plugins before analyzing the workspace', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -251,8 +251,8 @@ describe('graph view settings router', () => {
       { id: 'codegraphy.vue', enabled: true },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
-    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 

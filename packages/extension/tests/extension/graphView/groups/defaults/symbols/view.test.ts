@@ -288,6 +288,58 @@ describe('graphView/default symbol groups', () => {
     });
   });
 
+  it('adds Unity icon groups for GameObject and Component symbols', () => {
+    const groups = getSymbolDefaultGroups({
+      nodes: [
+        symbolNode('unity-game-object', 'game-object', {
+          pluginKind: 'game-object',
+          source: 'codegraphy.unity',
+          language: 'unity',
+          filePath: 'Assets/Prefabs/Player.prefab',
+        }),
+        symbolNode('unity-component', 'component', {
+          pluginKind: 'component',
+          source: 'codegraphy.unity',
+          language: 'unity',
+          filePath: 'Assets/Prefabs/Player.prefab',
+        }),
+      ],
+      edges: [],
+    });
+
+    expect(groups.map(selectStableGroupFields)).toEqual([
+      {
+        id: 'plugin:codegraphy.unity:symbol:game-object',
+        displayLabel: 'GameObject',
+        color: '#0EA5E9',
+        pattern: '**',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.unity',
+        pluginName: 'Unity',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'game-object',
+        matchSymbolPluginKind: 'game-object',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+      },
+      {
+        id: 'plugin:codegraphy.unity:symbol:component',
+        displayLabel: 'Component',
+        color: '#22C55E',
+        pattern: '**',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.unity',
+        pluginName: 'Unity',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'component',
+        matchSymbolPluginKind: 'component',
+        matchSymbolSource: 'codegraphy.unity',
+        matchSymbolLanguage: 'unity',
+      },
+    ]);
+    expect(groups.every((group) => group.imageUrl && decodesToMaterialIcon(group.imageUrl))).toBe(true);
+  });
+
   it('adds Godot scene-node and exported-property groups when those symbols are present', () => {
     const groups = getSymbolDefaultGroups({
       nodes: [

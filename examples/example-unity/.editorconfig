@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = tab
+indent_size = 2
+tab_width = 2
+trim_trailing_whitespace = true
+
+[*.cs]
+csharp_new_line_before_open_brace = none
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+csharp_new_line_before_members_in_object_initializers = false
+csharp_new_line_before_members_in_anonymous_types = false
+csharp_new_line_between_query_expression_clauses = false
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents_when_block = true
+csharp_using_directive_placement = outside_namespace:suggestion
+
+# Unity owns serialized field values through scenes, prefabs, and assets.
+dotnet_diagnostic.IDE0044.severity = none
+dotnet_diagnostic.CA1050.severity = none
+dotnet_diagnostic.IDE0130.severity = none

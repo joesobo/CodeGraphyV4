@@ -28,6 +28,9 @@ function keepMostSpecificUniqueEdges(
   const bestEndpointPreferenceByKey = new Map<string, number>();
 
   for (const edge of edges) {
+    if (edge.kind === 'contains') {
+      continue;
+    }
     const key = getEdgeContainingFileKey(edge, nodeById);
     const endpointPreference = getEndpointPreference(edge, nodeById);
     const currentEndpointPreference = bestEndpointPreferenceByKey.get(key);
@@ -43,7 +46,8 @@ function keepMostSpecificUniqueEdges(
   return edges.filter((edge) => {
     const key = getEdgeContainingFileKey(edge, nodeById);
     const endpointPreference = getEndpointPreference(edge, nodeById);
-    if (endpointPreference !== (bestEndpointPreferenceByKey.get(key) ?? endpointPreference)) {
+    if (edge.kind !== 'contains'
+      && endpointPreference !== (bestEndpointPreferenceByKey.get(key) ?? endpointPreference)) {
       return false;
     }
 

@@ -76,6 +76,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
     expect(index.typesByQualifiedName.get('Point')).toEqual({
       filePath: '/workspace/src/Point.cs',
       kind: 'struct',
+      methodNames: new Set(),
       namespaceName: null,
       typeName: 'Point',
     });
@@ -115,6 +116,7 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
     expect(index.typesByQualifiedName.get('MyApp.Runnable')).toEqual({
       filePath: '/workspace/src/Program.cs',
       kind: 'interface',
+      methodNames: new Set(),
       namespaceName: 'MyApp',
       typeName: 'Runnable',
     });
@@ -157,12 +159,14 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
     expect(index.typesByQualifiedName.get('MyApp.Container')).toEqual({
       filePath: '/workspace/src/Program.cs',
       kind: 'class',
+      methodNames: new Set(),
       namespaceName: 'MyApp',
       typeName: 'Container',
     });
     expect(index.typesByQualifiedName.get('MyApp.Nested')).toEqual({
       filePath: '/workspace/src/Program.cs',
       kind: 'struct',
+      methodNames: new Set(),
       namespaceName: 'MyApp',
       typeName: 'Nested',
     });
@@ -191,5 +195,42 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
     indexCSharpTree(tree, '/workspace/src/Program.cs', index);
 
     expect(index.typesByQualifiedName.size).toBe(0);
+  });
+
+  it('indexes method names declared by each type', () => {
+    const index = createEmptyCSharpIndex();
+    const tree = {
+      rootNode: createCSharpNode({
+        type: 'compilation_unit',
+        children: [
+          createCSharpNode({
+            type: 'class_declaration',
+            fields: {
+              name: createCSharpNode({ type: 'identifier', text: 'Health' }),
+            },
+            children: [
+              createCSharpNode({
+                type: 'method_declaration',
+                fields: {
+                  name: createCSharpNode({ type: 'identifier', text: 'TakeDamage' }),
+                },
+              }),
+              createCSharpNode({
+                type: 'method_declaration',
+                fields: {
+                  name: createCSharpNode({ type: 'identifier', text: 'Die' }),
+                },
+              }),
+            ],
+          }),
+        ],
+      }),
+    } as Parser.Tree;
+
+    indexCSharpTree(tree, '/workspace/src/Health.cs', index);
+
+    expect(index.typesByQualifiedName.get('Health')?.methodNames).toEqual(
+      new Set(['TakeDamage', 'Die']),
+    );
   });
 });

@@ -66,6 +66,7 @@ const CORE_EDGE_TYPE_LABELS = [
   'Contains',
   'Overrides',
   'TypeScript Alias Import',
+  'Events',
   'Signal Connections',
 ];
 
@@ -105,6 +106,9 @@ const CORE_NODE_TYPE_LABELS = [
   'Field',
   'Parameter',
   'Local',
+  'Unity',
+  'GameObject',
+  'Component',
   'Godot class_name',
   'Exported Property',
 ];
@@ -146,6 +150,9 @@ const CHILD_NODE_TYPE_PARENTS: Record<string, string> = {
   Union: 'Symbol',
   Variable: 'Symbol',
   Extension: 'Symbol',
+  Unity: 'Symbol',
+  GameObject: 'Unity',
+  Component: 'Unity',
   Scene: 'Symbol',
   Resource: 'Symbol',
   Autoload: 'Symbol',
@@ -190,6 +197,9 @@ const NODE_TYPE_SYMBOL_KIND_BY_LABEL: Record<string, string[]> = {
   Union: ['union'],
   Variable: ['variable'],
   Extension: ['extension'],
+  Unity: ['game-object', 'component'],
+  GameObject: ['game-object'],
+  Component: ['component'],
 };
 
 export function getSymbolKindsForNodeTypeLabel(label: string): string[] | undefined {
@@ -288,15 +298,8 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I have indexed the workspace': async (context, step) => {
-    const frame = requireGraphFrame(context);
-    await closePanelIfOpen(frame);
-    await graphStage(frame).screenshot().then(image => {
-      context.beforeIndexStageImage = image;
-    });
-    await frame.getByRole('button', { name: 'Index Workspace' }).click();
-    await expect(
-      frame.getByRole('progressbar', { name: 'Indexing progress' }),
-    ).toBeHidden({ timeout: 30_000 });
+    await indexWorkspace(context);
+    await waitForIndexingToFinish(context);
     await applyExampleScenarioStartingUiState(context, step.sourcePath);
     await applyPostIndexScenarioStartingUiState(context, step.sourcePath);
   },
@@ -575,8 +578,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByRole('switch').first()).toBeVisible();
   }),
 
-  step(/^I toggle the (.+) plugin on$/, async (context, _step, match) => {
-    await setPluginSwitch(context, match[1], true);
+  step(/^I toggle the (.+) plugin on$/, async (context, stepDefinition, match) => {
+    await setPluginSwitch(context, match[1], true, {
+      forceTransition: shouldForcePluginToggleTransition(stepDefinition.sourcePath, match[1]),
+    });
   }),
 
   step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
@@ -1153,11 +1158,14 @@ async function applyPostIndexScenarioStartingUiState(
   }
 }
 
-async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
+export async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
   const frame = requireGraphFrame(context);
   await closePanelIfOpen(frame);
   context.beforeIndexStageImage = await graphStage(frame).screenshot();
-  await frame.getByRole('button', { name: 'Index Workspace' }).click();
+  const indexButton = frame.getByRole('button', { name: 'Index Workspace' });
+  if (await indexButton.count()) {
+    await indexButton.click();
+  }
 }
 
 async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise<void> {
@@ -1409,10 +1417,11 @@ function setWorkspaceEdgeVisibility(
   fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 }
 
-async function setPluginSwitch(
+export async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
   enabled: boolean,
+  options: { forceTransition?: boolean } = {},
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   const normalizedLabel = normalizePanelLabel(label);
@@ -1424,9 +1433,32 @@ async function setPluginSwitch(
     });
   }
 
-  await setPanelSwitch(context, label, enabled);
+  const pluginSwitch = await findPanelSwitch(frame, normalizedLabel);
+  const expected = String(enabled);
+  const checked = await pluginSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
+  if (enabled && options.forceTransition && checked === 'true') {
+    await pluginSwitch.click();
+    await waitForIndexingToFinish(context);
+    await (await findPanelSwitch(frame, normalizedLabel)).click();
+    await waitForIndexingToFinish(context);
+    await closePanelIfOpen(frame);
+    return;
+  }
+
+  if (checked !== expected) {
+    await pluginSwitch.click();
+  }
+
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
+}
+
+function shouldForcePluginToggleTransition(
+  sourcePath: string,
+  label: string,
+): boolean {
+  return path.basename(sourcePath) === 'unity-example.feature'
+    && normalizePanelLabel(label) === 'Unity';
 }
 
 async function showOnlyEdgeType(

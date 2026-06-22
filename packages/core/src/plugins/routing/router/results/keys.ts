@@ -29,7 +29,7 @@ function getResolvedRelationKeyParts(
 export function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
   const key = getBaseRelationKeyParts(relation);
 
-  if (relation.kind === 'call' || relation.kind === 'reference') {
+  if (relation.kind === 'call' || relation.kind === 'reference' || relation.kind === 'event') {
     key.push(...getResolvedRelationKeyParts(relation));
   } else if (relation.toNodeId || relation.toSymbolId) {
     key.push(relation.toNodeId ?? '', relation.toSymbolId ?? '');
