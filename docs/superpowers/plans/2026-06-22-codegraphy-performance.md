@@ -37,6 +37,9 @@
 - Visible Graph projection benchmark before filter optimization: current settings `775ms` median / `933ms` p95, folders-on Graph Scope `1369ms` median / `1445ms` p95, import-edge-hidden `153ms` median.
 - Visible Graph projection after reusable glob matchers and skipping direct edge matching for path-only filters: current settings `22ms` median / `26ms` p95, folders-on Graph Scope `31ms` median / `32ms` p95, import-edge-hidden `17ms` median / `18ms` p95.
 - Visible Graph scenario node and edge counts stayed unchanged across the filter optimization.
+- VS Code graph view benchmark first run: first rendered graph stats took `57209ms`; Imports Graph Scope toggle was `3127ms` median / `3143ms` p95.
+- VS Code graph view benchmark repeat run: first rendered graph stats took `9917ms`; Imports Graph Scope toggle was `2983ms` median / `3079ms` p95.
+- Current user-facing bottleneck moved to graph surface/runtime/render work after visible graph derivation.
 - Raw logs are ignored under `reports/performance/`; commit only scripts and bounded summaries under `docs/performance/`.
 
 ## Success Metrics
@@ -222,7 +225,7 @@ PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /usr/bin/time -l node
 PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /opt/homebrew/bin/pnpm run perf:codegraphy-monorepo -- --index-log reports/performance/codegraphy-index-cold-phases-local-node22-2026-06-22.log
 ```
 
-- [ ] **Step 2: Measure VS Code user-facing timings**
+- [x] **Step 2: Measure VS Code user-facing timings**
 
 Use the Playwright VS Code lane or the Mac mini to open the same workspace and capture:
 
@@ -233,7 +236,7 @@ Display Setting toggle -> updated view state
 single file save -> Live Update complete
 ```
 
-- [ ] **Step 3: Commit the baseline metrics**
+- [x] **Step 3: Commit the baseline metrics**
 
 Commit the bounded summary and keep raw logs ignored under `reports/performance/`.
 

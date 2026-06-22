@@ -165,6 +165,31 @@ Visible Graph projection benchmark:
   - Scenario node and edge counts stayed unchanged after the filter
     optimization.
 
+VS Code graph view benchmark:
+
+- Command shape: `pnpm run perf:vscode-graph-view` against this worktree,
+  launching Extension Development Host with local built-in plugin packages.
+- Measurement target: open CodeGraphy on the monorepo, wait for the rendered
+  graph stats badge, then toggle the Graph Scope `Imports` edge type through
+  the real webview controls.
+- First run:
+  - VS Code launch: `1518ms`.
+  - Open Graph View to first rendered graph stats: `57209ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `3127ms` median, `3143ms` p95 across 5 samples.
+- Repeat run:
+  - VS Code launch: `850ms`.
+  - Open Graph View to first rendered graph stats: `9917ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `2983ms` median, `3079ms` p95 across 2 samples.
+
+Interpretation:
+
+- Headless visible graph derivation is now in the `22ms` median range, but the
+  real webview still takes about `3s` to reflect a Graph Scope edge toggle.
+- The next user-facing bottleneck is in the graph surface/runtime/render path,
+  not in filter pattern derivation.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time
