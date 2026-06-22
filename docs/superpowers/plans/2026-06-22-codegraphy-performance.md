@@ -1,0 +1,285 @@
+# CodeGraphy Performance Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Make CodeGraphy feel snappy on the CodeGraphy monorepo by measuring load and interaction latency, then landing small deterministic optimizations that improve those numbers.
+
+**Architecture:** Treat performance as a product contract across the Core Package and VS Code Extension. Measure Indexing, Graph Cache reads, Graph Projection, Graph Query, Graph Scope toggles, and Visible Graph updates separately so each optimization has a clear before/after number.
+
+**Tech Stack:** pnpm, Turbo, Vitest, Playwright VS Code acceptance tests, CodeGraphy Core Package, CodeGraphy VS Code Extension, Graph Cache, and optional Mac mini validation for heavy browser runs.
+
+---
+
+## Baseline Evidence
+
+- Branch: `codex/speed-up-codegraphy`
+- Worktree: `/Users/poleski/Desktop/Projects/CodeGraphyV4/.worktrees/speed-up-codegraphy`
+- Trello card: `https://trello.com/c/TKoE7wEI`
+- User settings baseline: branch starts from local `main` commit `5108cc320 settings`, which updates `.codegraphy/settings.json`.
+- First full test attempt: `pnpm run test` failed because the timing wrapper launched `/usr/local/bin/pnpm` under Node `v19.5.0`; `@poleski/quality-tools` needs `path.matchesGlob`.
+- Environment correction: use `PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /opt/homebrew/bin/pnpm ...`.
+- Verification of correction: `PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /opt/homebrew/bin/pnpm --filter @codegraphy-dev/extension exec vitest run tests/playwrightVscodeConfig.test.ts --config vitest.config.ts --project node` passed 6 tests in 2.15s.
+- Corrected full test baseline: `PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /usr/bin/time -l /opt/homebrew/bin/pnpm run test` passed in 1523.98s wall time.
+- Unit baseline: `1009 passed` test files, `6039 passed` tests, `158.33s` extension-package Vitest duration, `2m39.381s` Turbo unit task wall time.
+- Slow unit canary: `packages/extension/tests/extension/pipeline/examplesWorkspace.test.ts` took `56006ms` and `45842ms` for the two examples-workspace tests.
+- Playwright baseline: `119 passed (22.3m)`, `22m42.903s` task wall time; slow file `tests/playwright-vscode/generated/runtime.ts (21.5m)`.
+- Cold monorepo CLI indexing baseline: local `node packages/core/bin/codegraphy.js --verbose index .` from no Graph Cache took `214.04s` wall time for 2365 files, 5075 nodes, and 9097 edges.
+- Cold index output: `.codegraphy/graph.lbug` is 62MB, `/usr/bin/time -l` reported `2708193280` maximum resident set size and `4201907648` peak memory footprint.
+- Raw logs are ignored under `reports/performance/`; commit only scripts and bounded summaries under `docs/performance/`.
+
+## Success Metrics
+
+- Cold monorepo Indexing wall time from no Graph Cache.
+- Warm monorepo Graph Cache load to first Visible Graph payload.
+- Graph Cache Sync time when the cache is readable but settings, plugin state, or changed files need reconciliation.
+- Graph Scope toggle latency from UI action to updated Visible Graph payload.
+- Display Setting toggle latency for controls that should not rebuild graph data.
+- File save Live Update latency for one changed source file.
+- Visible Graph payload size: node count, edge count, serialized message bytes.
+- Webview apply/render latency after `GRAPH_DATA_UPDATED`.
+
+## Task 1: Stabilize The Baseline Harness
+
+**Files:**
+- Create: `docs/superpowers/plans/2026-06-22-codegraphy-performance.md`
+- Read: `package.json`
+- Read: `packages/extension/package.json`
+- Read: `packages/extension/playwright.vscode.config.ts`
+- Read: `packages/extension/tests/extension/pipeline/examplesWorkspace.test.ts`
+
+- [x] **Step 1: Create an isolated branch and Trello card**
+
+Run:
+
+```bash
+git worktree add .worktrees/speed-up-codegraphy -b codex/speed-up-codegraphy main
+```
+
+Expected: worktree created on `codex/speed-up-codegraphy`.
+
+- [x] **Step 2: Install dependencies in the worktree**
+
+Run:
+
+```bash
+pnpm install
+```
+
+Expected: lockfile unchanged and packages installed.
+
+- [x] **Step 3: Run the baseline full test command**
+
+Run:
+
+```bash
+PATH=/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:$PATH /usr/bin/time -l /opt/homebrew/bin/pnpm run test 2>&1 | tee reports/performance/baseline-test-node22-2026-06-22.log
+```
+
+Expected: test output is captured. If Playwright is too slow locally, record the partial result and move future Playwright repeats to the Mac mini.
+
+- [x] **Step 4: Summarize baseline timings**
+
+Run:
+
+```bash
+rg -n "Test Files|Tests |Duration|Time:|real|WorkspacePipeline examples workspace|Graph built|Discovered|Analysis:" reports/performance/baseline-test-node22-2026-06-22.log
+```
+
+Expected: baseline notes include unit time, Playwright time, and the slow examples workspace test timings.
+
+- [ ] **Step 5: Commit the setup**
+
+Run:
+
+```bash
+git add docs/superpowers/plans/2026-06-22-codegraphy-performance.md
+git commit -m "docs: plan CodeGraphy performance investigation"
+git push -u origin codex/speed-up-codegraphy
+```
+
+Expected: setup commit is pushed before implementation edits.
+
+## Task 2: Add A Deterministic Monorepo Performance Runner
+
+**Files:**
+- Create: `scripts/performance/measure-codegraphy-monorepo.mjs`
+- Create: `docs/performance/codegraphy-monorepo.md`
+- Modify: `package.json`
+- Test: `tests/scripts/measure-codegraphy-monorepo.test.mjs`
+
+- [ ] **Step 1: Write the failing script test**
+
+Create `tests/scripts/measure-codegraphy-monorepo.test.mjs` with checks that the runner:
+
+```js
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import test from "node:test";
+import { pathToFileURL } from "node:url";
+
+test("performance runner writes bounded JSON metrics", async () => {
+  const tempDir = await mkdtemp(path.join(tmpdir(), "codegraphy-perf-"));
+  const outputPath = path.join(tempDir, "metrics.json");
+
+  try {
+    const moduleUrl = pathToFileURL(path.resolve("scripts/performance/measure-codegraphy-monorepo.mjs")).href;
+    const { writeMetrics } = await import(moduleUrl);
+
+    await writeMetrics({
+      outputPath,
+      workspacePath: tempDir,
+      measurements: {
+        coldIndexMs: 100,
+        warmQueryMs: 20,
+        nodeCount: 2,
+        edgeCount: 1,
+        payloadBytes: 512
+      }
+    });
+
+    const metrics = JSON.parse(await readFile(outputPath, "utf8"));
+    assert.equal(metrics.workspacePath, tempDir);
+    assert.equal(metrics.measurements.coldIndexMs, 100);
+    assert.equal(metrics.measurements.warmQueryMs, 20);
+    assert.equal(metrics.measurements.nodeCount, 2);
+    assert.equal(metrics.measurements.edgeCount, 1);
+    assert.equal(metrics.measurements.payloadBytes, 512);
+    assert.match(metrics.recordedAt, /^\d{4}-\d{2}-\d{2}T/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+```
+
+Run:
+
+```bash
+node --test tests/scripts/measure-codegraphy-monorepo.test.mjs
+```
+
+Expected: FAIL because `scripts/performance/measure-codegraphy-monorepo.mjs` does not exist.
+
+- [ ] **Step 2: Implement minimal metrics writing**
+
+Create `scripts/performance/measure-codegraphy-monorepo.mjs` with exported `writeMetrics` and a CLI entry point that writes raw JSON to `reports/performance/monorepo-latest.json`. Durable reviewed summaries belong in `docs/performance/`.
+
+- [ ] **Step 3: Run the test to green**
+
+Run:
+
+```bash
+node --test tests/scripts/measure-codegraphy-monorepo.test.mjs
+```
+
+Expected: PASS.
+
+- [ ] **Step 4: Wire the package script**
+
+Add this root script:
+
+```json
+"perf:codegraphy-monorepo": "node scripts/performance/measure-codegraphy-monorepo.mjs"
+```
+
+- [ ] **Step 5: Commit the harness**
+
+Run:
+
+```bash
+git add package.json scripts/performance/measure-codegraphy-monorepo.mjs tests/scripts/measure-codegraphy-monorepo.test.mjs docs/performance/codegraphy-monorepo.md
+git commit -m "test: add CodeGraphy monorepo performance harness"
+git push
+```
+
+## Task 3: Capture Current Monorepo Load And Interaction Numbers
+
+**Files:**
+- Modify: `scripts/performance/measure-codegraphy-monorepo.mjs`
+- Create: `docs/performance/codegraphy-monorepo.md`
+
+- [ ] **Step 1: Measure headless Core Package timings**
+
+Run the performance script against `/Users/poleski/Desktop/Projects/CodeGraphyV4/.worktrees/speed-up-codegraphy` using the branch settings. Record cold Indexing, warm Graph Cache query, node count, edge count, and payload bytes.
+
+- [ ] **Step 2: Measure VS Code user-facing timings**
+
+Use the Playwright VS Code lane or the Mac mini to open the same workspace and capture:
+
+```text
+open workspace -> first graph payload
+Graph Scope toggle -> updated graph payload
+Display Setting toggle -> updated view state
+single file save -> Live Update complete
+```
+
+- [ ] **Step 3: Commit the baseline metrics**
+
+Commit the bounded summary and keep raw logs ignored under `reports/performance/`.
+
+## Task 4: Optimize One Bottleneck At A Time
+
+**Files:** To be decided by measured bottleneck.
+
+- [ ] **Step 1: Rank hypotheses after baseline**
+
+Start with these falsifiable hypotheses:
+
+```text
+If Graph Scope toggles rebuild graph data unnecessarily, then separating Display Setting updates from Graph Query updates will reduce toggle latency without changing node or edge counts.
+If warm startup waits for full Graph Cache Sync before showing cached data, then rendering cached Visible Graph first will reduce time-to-first-graph while Graph Cache Sync continues in the background.
+If large Visible Graph messages dominate interaction latency, then avoiding unchanged payload resend or using smaller incremental messages will reduce webview apply latency and message bytes.
+If plugin analysis runs on files that cannot be affected by a changed setting, then narrowing reprocessing to affected providers/files will reduce Live Update and Graph Cache Sync time.
+```
+
+- [ ] **Step 2: Add or extend a failing test for the selected bottleneck**
+
+Use the closest seam: Core Package Graph Query tests for headless data work, Extension provider tests for message routing and refresh decisions, or Playwright for UI latency.
+
+- [ ] **Step 3: Implement the smallest behavior change**
+
+Keep each commit scoped to one measured path.
+
+- [ ] **Step 4: Re-run the targeted test and performance harness**
+
+Compare the metric before committing.
+
+- [ ] **Step 5: Commit and push**
+
+Commit each improvement separately with the metric delta in the commit body or PR comment.
+
+## Task 5: Keep The PR Reviewable
+
+**Files:**
+- Modify: PR body and Trello card comments through GitHub/Trello.
+
+- [ ] **Step 1: Open a draft PR after the setup commit**
+
+Include the Trello link, settings baseline note, and first test evidence.
+
+- [ ] **Step 2: After each optimization, update the PR**
+
+Add a short comment:
+
+```text
+Iteration N:
+- Changed:
+- Test:
+- Metric before:
+- Metric after:
+- Next:
+```
+
+- [ ] **Step 3: Before final review**
+
+Run:
+
+```bash
+pnpm run lint
+pnpm run typecheck
+pnpm run test
+pnpm run perf:codegraphy-monorepo
+```
+
+Expected: required checks pass, and the performance report shows user-visible improvement over baseline.
