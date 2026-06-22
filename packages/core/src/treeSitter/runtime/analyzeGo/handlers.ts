@@ -91,6 +91,7 @@ export function handleGoTypeSpec(
   symbols: IAnalysisSymbol[],
   relations?: IAnalysisRelation[],
   importedBindings?: ReadonlyMap<string, ImportedBinding>,
+  options: { includeSymbolEndpoint?: boolean } = {},
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
   if (name) {
@@ -101,18 +102,41 @@ export function handleGoTypeSpec(
       return;
     }
 
-    const typeNode = node.childForFieldName('type') ?? node.namedChildren.at(-1);
-    for (const qualifiedType of getGoEmbeddedQualifiedTypes(typeNode)) {
-      const binding = getGoQualifiedTypeBinding(qualifiedType, importedBindings);
-      if (binding) {
-        addInheritRelation(
-          relations,
-          filePath,
-          qualifiedType.text,
-          binding.resolvedPath,
-          createSymbolId(filePath, kind, name),
-        );
-      }
+    handleGoEmbeddedStructInheritance(node, filePath, name, relations, importedBindings, options);
+  }
+}
+
+export function handleGoTypeSpecRelations(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+): void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (name && getGoTypeKind(node) === 'struct') {
+    handleGoEmbeddedStructInheritance(node, filePath, name, relations, importedBindings);
+  }
+}
+
+function handleGoEmbeddedStructInheritance(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  name: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  options: { includeSymbolEndpoint?: boolean } = {},
+): void {
+  const typeNode = node.childForFieldName('type') ?? node.namedChildren.at(-1);
+  for (const qualifiedType of getGoEmbeddedQualifiedTypes(typeNode)) {
+    const binding = getGoQualifiedTypeBinding(qualifiedType, importedBindings);
+    if (binding) {
+      addInheritRelation(
+        relations,
+        filePath,
+        qualifiedType.text,
+        binding.resolvedPath,
+        options.includeSymbolEndpoint ? createSymbolId(filePath, 'struct', name) : undefined,
+      );
     }
   }
 }

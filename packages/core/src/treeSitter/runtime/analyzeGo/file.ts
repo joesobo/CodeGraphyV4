@@ -12,6 +12,7 @@ import {
   handleGoQualifiedTypeReference,
   handleGoShortVarDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
 } from './handlers';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
@@ -43,10 +44,14 @@ function visitGoNode(
         : undefined;
     }
     case 'type_spec': {
-      if (!symbolsEnabled) {
+      if (symbolsEnabled) {
+        handleGoTypeSpec(node, filePath, symbols, relations, importedBindings, {
+          includeSymbolEndpoint: true,
+        });
         return;
       }
-      handleGoTypeSpec(node, filePath, symbols, relations, importedBindings);
+
+      handleGoTypeSpecRelations(node, filePath, relations, importedBindings);
       return;
     }
     case 'const_spec': {

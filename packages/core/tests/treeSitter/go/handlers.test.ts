@@ -3,13 +3,19 @@ import {
   handleGoCallExpression,
   handleGoCallableDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
 } from '../../../src/treeSitter/runtime/analyzeGo/handlers';
 import {
   getImportedBindingByIdentifier,
   getImportedBindingByPropertyAccess,
 } from '../../../src/treeSitter/runtime/analyze/imports';
 import { getIdentifierText } from '../../../src/treeSitter/runtime/analyze/nodes';
-import { addCallRelation, createSymbol } from '../../../src/treeSitter/runtime/analyze/results';
+import {
+  addCallRelation,
+  addInheritRelation,
+  createSymbol,
+  createSymbolId,
+} from '../../../src/treeSitter/runtime/analyze/results';
 import { walkSymbolBody } from '../../../src/treeSitter/runtime/analyze/walk';
 
 vi.mock('../../../src/treeSitter/runtime/analyze/imports', () => ({
@@ -23,7 +29,9 @@ vi.mock('../../../src/treeSitter/runtime/analyze/nodes', () => ({
 
 vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
   addCallRelation: vi.fn(),
+  addInheritRelation: vi.fn(),
   createSymbol: vi.fn(),
+  createSymbolId: vi.fn(),
 }));
 
 vi.mock('../../../src/treeSitter/runtime/analyze/walk', () => ({
@@ -177,6 +185,70 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/handlers', () => {
       expect.objectContaining({ kind: 'type', name: 'Alias' }),
       expect.objectContaining({ kind: 'type', name: 'Untyped' }),
     ]);
+  });
+
+  it('adds embedded struct inheritance relations with optional symbol endpoints', () => {
+    const relations: unknown[] = [];
+    const qualifiedTypeNode = createNode({ type: 'qualified_type' });
+    const fieldDeclarationNode = createNode({
+      type: 'field_declaration',
+      namedChildren: [qualifiedTypeNode],
+    });
+    const structNode = createNode({
+      type: 'struct_type',
+      descendantsOfType: (type: string) => {
+        expect(type).toBe('field_declaration');
+        return [fieldDeclarationNode];
+      },
+    } as never);
+    const binding = { importedName: 'model', resolvedPath: '/workspace/internal/model/model.go' };
+
+    Object.defineProperty(qualifiedTypeNode, 'text', { value: 'model.Audited' });
+    vi.mocked(getIdentifierText)
+      .mockReturnValueOnce('TaskRunner')
+      .mockReturnValueOnce('model')
+      .mockReturnValueOnce('TaskRunner')
+      .mockReturnValueOnce('model');
+    vi.mocked(createSymbol).mockReturnValue({ id: 'task-runner-symbol' } as never);
+    vi.mocked(createSymbolId).mockReturnValue('/workspace/service.go:struct:TaskRunner');
+
+    handleGoTypeSpec(
+      createNode({
+        childForFieldName: (name: string) =>
+          name === 'name' ? createNode({ type: 'identifier' }) : structNode,
+      }) as never,
+      '/workspace/service.go',
+      [] as never[],
+      relations as never[],
+      new Map([['model', binding as never]]),
+      { includeSymbolEndpoint: true },
+    );
+    handleGoTypeSpecRelations(
+      createNode({
+        childForFieldName: (name: string) =>
+          name === 'name' ? createNode({ type: 'identifier' }) : structNode,
+      }) as never,
+      '/workspace/service.go',
+      relations as never[],
+      new Map([['model', binding as never]]),
+    );
+
+    expect(addInheritRelation).toHaveBeenNthCalledWith(
+      1,
+      relations,
+      '/workspace/service.go',
+      'model.Audited',
+      '/workspace/internal/model/model.go',
+      '/workspace/service.go:struct:TaskRunner',
+    );
+    expect(addInheritRelation).toHaveBeenNthCalledWith(
+      2,
+      relations,
+      '/workspace/service.go',
+      'model.Audited',
+      '/workspace/internal/model/model.go',
+      undefined,
+    );
   });
 
   it('adds call relations for function-field identifiers, named-child selector fallbacks, and missing bindings', () => {
