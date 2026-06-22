@@ -47,14 +47,15 @@ describe('acceptance graph view panel switches', () => {
     const { findPanelSwitchIfPresent } = await import('./acceptance/graphView/steps');
     const missingSwitch = locatorWithCount(0);
     const missingRow = {
+      first: vi.fn(function first(this: unknown) {
+        return this;
+      }),
       getByRole: vi.fn(() => missingSwitch),
     };
     const frame = {
-      locator: vi.fn(() => ({
-        filter: vi.fn(() => ({
-          first: vi.fn(() => missingRow),
-        })),
-      })),
+      locator: vi.fn((selector: string) => (
+        isSwitchSelector(selector) ? missingSwitch : missingRow
+      )),
       getByRole: vi.fn(() => missingSwitch),
       waitForTimeout: vi.fn(),
     } as unknown as Frame;
@@ -62,6 +63,47 @@ describe('acceptance graph view panel switches', () => {
     await expect(findPanelSwitchIfPresent(frame, 'Calls')).resolves.toBeUndefined();
 
     expect(frame.waitForTimeout).not.toHaveBeenCalled();
+  });
+
+  it('finds visible switch rows by their exact data scope label', async () => {
+    const { findPanelSwitchIfPresent } = await import('./acceptance/graphView/steps');
+    const variableSwitch = locatorWithCount(1);
+    const missingSwitch = locatorWithCount(0);
+    const variableRow = panelRowForSwitch(variableSwitch);
+    const missingRow = panelRowForSwitch(missingSwitch);
+    const frame = {
+      locator: vi.fn((selector: string) => (
+        isSwitchSelector(selector)
+          ? (selector.startsWith('[data-scope-row="Variable"]') ? variableSwitch : missingSwitch)
+          : (selector === '[data-scope-row="Variable"]' ? variableRow : missingRow)
+      )),
+      getByRole: vi.fn(() => missingSwitch),
+      waitForTimeout: vi.fn(),
+    } as unknown as Frame;
+
+    await expect(findPanelSwitchIfPresent(frame, 'Variable')).resolves.toBe(variableSwitch);
+
+    expect(frame.locator).toHaveBeenCalledWith('[data-scope-row="Variable"]');
+  });
+
+  it('treats lost Playwright execution contexts as frame detachments', async () => {
+    const { isFrameDetachedError } = await import('./acceptance/graphView/steps');
+
+    expect(isFrameDetachedError(new Error('Frame was detached'))).toBe(true);
+    expect(isFrameDetachedError(new Error('Protocol error (DOM.scrollIntoViewIfNeeded): Cannot find context with specified id'))).toBe(true);
+    expect(isFrameDetachedError(new Error('ordinary assertion failure'))).toBe(false);
+  });
+
+  it('treats same-kind variable children as optional when selecting a parent row', async () => {
+    const { collectScopeLabelSelection } = await import('./acceptance/graphView/steps');
+
+    const selection = collectScopeLabelSelection(['Variable']);
+
+    expect([...selection.required]).toEqual(['Variable', 'Symbol']);
+    expect(selection.optional.has('Plain Variable')).toBe(true);
+    expect(selection.optional.has('Exported Property')).toBe(true);
+    expect(selection.required.has('Plain Variable')).toBe(false);
+    expect(selection.required.has('Exported Property')).toBe(false);
   });
 
   it('retries enabling a present switch until the checked state settles', async () => {
@@ -83,6 +125,16 @@ describe('acceptance graph view panel switches', () => {
 
     expect(switchInRow.click).toHaveBeenCalledTimes(2);
   });
+
+  it('reads the final checked state from a present switch even during transient visibility misses', async () => {
+    const { setPanelSwitch } = await import('./acceptance/graphView/steps');
+    const switchInRow = settlingSwitchLocator({ checkedAfterClicks: 0, visible: false });
+    const frame = panelFrameForSwitch(switchInRow);
+
+    await setPanelSwitch({ graphFrame: frame } as never, 'Variable', true);
+
+    expect(switchInRow.click).not.toHaveBeenCalled();
+  });
 });
 
 function locatorWithCount(count: number): Locator {
@@ -94,7 +146,13 @@ function locatorWithCount(count: number): Locator {
   } as unknown as Locator;
 }
 
-function settlingSwitchLocator({ checkedAfterClicks }: { checkedAfterClicks: number }): Locator {
+function settlingSwitchLocator({
+  checkedAfterClicks,
+  visible = true,
+}: {
+  checkedAfterClicks: number;
+  visible?: boolean;
+}): Locator {
   let clicks = 0;
 
   return {
@@ -112,22 +170,33 @@ function settlingSwitchLocator({ checkedAfterClicks }: { checkedAfterClicks: num
 
       return String(clicks >= checkedAfterClicks);
     }),
-    isVisible: vi.fn(async () => true),
+    isVisible: vi.fn(async () => visible),
   } as unknown as Locator;
 }
 
 function panelFrameForSwitch(switchInRow: Locator): Frame {
-  const row = {
-    getByRole: vi.fn(() => switchInRow),
-  };
+  const row = panelRowForSwitch(switchInRow);
 
   return {
-    locator: vi.fn(() => ({
-      filter: vi.fn(() => ({
-        first: vi.fn(() => row),
-      })),
-    })),
+    locator: vi.fn((selector: string) => (
+      isSwitchSelector(selector) ? switchInRow : row
+    )),
     getByRole: vi.fn(() => locatorWithCount(0)),
     waitForTimeout: vi.fn(),
   } as unknown as Frame;
+}
+
+function panelRowForSwitch(switchInRow: Locator) {
+  const row = {
+    first: vi.fn(() => row),
+    getByRole: vi.fn(() => switchInRow),
+  };
+
+  return row;
+}
+
+function isSwitchSelector(selector: string): boolean {
+  return selector.includes('[role="switch"]')
+    || selector.includes(' button')
+    || selector.startsWith('[aria-label=');
 }
