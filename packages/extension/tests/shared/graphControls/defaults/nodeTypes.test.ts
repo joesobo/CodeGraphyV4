@@ -95,6 +95,22 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         matchSymbolKinds: ['class'],
       },
       {
+        id: 'symbol:mixin',
+        label: 'Mixin',
+        defaultColor: '#2563EB',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['mixin'],
+      },
+      {
+        id: 'symbol:extension',
+        label: 'Extension',
+        defaultColor: '#4F46E5',
+        defaultVisible: false,
+        parentId: 'symbol',
+        matchSymbolKinds: ['extension'],
+      },
+      {
         id: 'symbol:interface',
         label: 'Interface',
         defaultColor: '#06B6D4',

@@ -28,24 +28,33 @@ afterEach(async () => {
 });
 
 describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
-  it('extracts Dart import relationships, simple inheritance, and useful symbols', async () => {
+  it('extracts Dart import relationships, simple inheritance, references, and supported symbols', async () => {
     const workspaceRoot = await createWorkspace({
       'lib/model/profile.dart': 'class Profile { final String name; Profile(this.name); }\n',
       'lib/model/user.dart': 'class User { final String name; User(this.name); }\n',
+      'lib/app/labels.dart': 'typedef RunLabel = String Function(Profile profile);\n',
       'lib/app/runner.dart': 'String boot(Profile profile) => profile.name;\n',
     });
     const runnerPath = path.join(workspaceRoot, 'lib/app/runner.dart');
     const source = [
+      "import './labels.dart';",
       "import '../model/user.dart';",
       "import 'package:sample_app/model/profile.dart';",
       "import 'dart:convert';",
       '',
+      'const int defaultRetries = 2;',
       'abstract class BaseRunner {}',
       'mixin Runnable {}',
       'enum RunMode { fast }',
+      'extension ProfileAudit on Profile {',
+      '  String get auditLabel => name.toLowerCase();',
+      '}',
       '',
       'class Runner extends BaseRunner with Runnable {',
+      '  final RunLabel labelFormatter;',
+      '',
       '  String run(User user) {',
+      '    final encoded = jsonEncode(user.name);',
       '    return jsonEncode(user.name);',
       '  }',
       '}',
@@ -60,6 +69,14 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
 
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'import',
+        sourceId: 'core:treesitter:import',
+        specifier: './labels.dart',
+        fromFilePath: runnerPath,
+        resolvedPath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+      }),
       expect.objectContaining({
         kind: 'import',
         sourceId: 'core:treesitter:import',
@@ -89,16 +106,33 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
         sourceId: 'core:treesitter:inherit',
         specifier: 'BaseRunner',
         fromFilePath: runnerPath,
-        resolvedPath: null,
-        toFilePath: null,
+        resolvedPath: runnerPath,
+        toFilePath: runnerPath,
       }),
       expect.objectContaining({
         kind: 'inherit',
         sourceId: 'core:treesitter:inherit',
         specifier: 'Runnable',
         fromFilePath: runnerPath,
-        resolvedPath: null,
-        toFilePath: null,
+        resolvedPath: runnerPath,
+        toFilePath: runnerPath,
+      }),
+      expect.objectContaining({
+        kind: 'reference',
+        sourceId: 'core:treesitter:reference',
+        specifier: 'RunLabel',
+        fromFilePath: runnerPath,
+        resolvedPath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+      }),
+      expect.objectContaining({
+        kind: 'reference',
+        sourceId: 'core:treesitter:reference',
+        specifier: 'User',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:method:run`,
+        resolvedPath: path.join(workspaceRoot, 'lib/model/user.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/model/user.dart'),
       }),
       expect.objectContaining({
         kind: 'call',
@@ -114,9 +148,17 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'BaseRunner' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'mixin', name: 'Runnable' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'enum', name: 'RunMode' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'extension', name: 'ProfileAudit' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'constant', name: 'defaultRetries' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'class', name: 'Runner' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'method', name: 'run' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'local', name: 'encoded' }),
       expect.objectContaining({ filePath: runnerPath, kind: 'function', name: 'boot' }),
+    ]));
+    expect(result?.symbols).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ filePath: runnerPath, kind: 'method', name: 'auditLabel' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'field', name: 'labelFormatter' }),
+      expect.objectContaining({ filePath: runnerPath, kind: 'parameter', name: 'user' }),
     ]));
   });
 

@@ -96,6 +96,30 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       },
     },
     {
+      id: 'symbol:mixin',
+      label: 'Mixin',
+      defaultColor: '#2563EB',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['mixin'],
+      description: {
+        description: 'Named behavior fragments that can be composed into classes.',
+        examples: [{ label: 'Dart', code: 'mixin Runnable {}' }],
+      },
+    },
+    {
+      id: 'symbol:extension',
+      label: 'Extension',
+      defaultColor: '#4F46E5',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['extension'],
+      description: {
+        description: 'Named declarations that add behavior to an existing type.',
+        examples: [{ label: 'Dart', code: 'extension ProfileAudit on Profile {}' }],
+      },
+    },
+    {
       id: 'symbol:interface',
       label: 'Interface',
       defaultColor: '#06B6D4',
