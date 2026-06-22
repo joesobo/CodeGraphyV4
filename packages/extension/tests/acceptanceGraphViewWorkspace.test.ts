@@ -52,6 +52,7 @@ describe('acceptance graph view workspace fixtures', () => {
     const sourceSettingsPath = path.join(examplesRoot, 'example-unity/.codegraphy/settings.json');
     const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
       edgeVisibility?: Record<string, boolean>;
+      nodeVisibility?: Record<string, boolean>;
       plugins?: Array<{ enabled?: boolean; id?: string }>;
     };
 
@@ -67,6 +68,18 @@ describe('acceptance graph view workspace fixtures', () => {
       event: false,
       contains: false,
     }));
+  });
+
+  it('shows Unity using edges in the example default graph state', () => {
+    const sourceSettingsPath = path.join(examplesRoot, 'example-unity/.codegraphy/settings.json');
+    const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+      nodeVisibility?: Record<string, boolean>;
+    };
+
+    expect(sourceSettings.edgeVisibility?.using).toBe(true);
+    expect(sourceSettings.nodeVisibility?.file).toBe(true);
+    expect(sourceSettings.nodeVisibility?.package).toBe(true);
   });
 
   it('can add VS Code settings for scenarios that assert that node without changing CodeGraphy settings', async () => {
