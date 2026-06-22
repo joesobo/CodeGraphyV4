@@ -339,6 +339,58 @@ describe('graphView/default symbol groups', () => {
     ]);
     expect(groups.every((group) => group.imageUrl && decodesToMaterialIcon(group.imageUrl))).toBe(true);
   });
+
+  it('adds Godot scene-node and exported-property groups when those symbols are present', () => {
+    const groups = getSymbolDefaultGroups({
+      nodes: [
+        symbolNode('scene-node', 'scene-node', {
+          pluginKind: 'scene-node',
+          source: 'codegraphy.gdscript',
+          language: 'godot-resource',
+          filePath: 'scenes/player.tscn',
+        }),
+        symbolNode('exported-property', 'variable', {
+          nodeType: 'variable',
+          pluginKind: 'exported-property',
+          source: 'codegraphy.gdscript',
+          language: 'gdscript',
+          filePath: 'scripts/player.gd',
+        }),
+      ],
+      edges: [],
+    });
+
+    expect(groups.map(selectStableGroupFields)).toEqual(expect.arrayContaining([
+      {
+        id: 'plugin:codegraphy.gdscript:symbol:scene-node',
+        displayLabel: 'Scene Node',
+        color: '#A855F7',
+        pattern: '**',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.gdscript',
+        pluginName: 'Godot',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'scene-node',
+        matchSymbolPluginKind: 'scene-node',
+        matchSymbolSource: 'codegraphy.gdscript',
+      },
+      {
+        id: 'plugin:codegraphy.gdscript:symbol:exported-property',
+        displayLabel: 'Exported Property',
+        color: '#2DD4BF',
+        pattern: '**',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.gdscript',
+        pluginName: 'Godot',
+        matchNodeType: 'variable',
+        matchSymbolKind: 'variable',
+        matchSymbolPluginKind: 'exported-property',
+        matchSymbolSource: 'codegraphy.gdscript',
+        matchSymbolLanguage: 'gdscript',
+        matchSymbolFilePath: '**/*.gd',
+      },
+    ]));
+  });
 });
 
 function symbolNode(

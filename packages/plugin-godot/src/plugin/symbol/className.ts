@@ -2,7 +2,11 @@ import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import {
   extractGDScriptClassNameDeclarations,
 } from '../../parser';
-import manifest from '../../../codegraphy.json';
+import {
+  GODOT_SCRIPT_LANGUAGE,
+  GODOT_SYMBOL_PLUGIN_KIND,
+  GODOT_SYMBOL_SOURCE,
+} from './godotKinds';
 
 export function extractClassNameSymbols(
   content: string,
@@ -26,9 +30,9 @@ export function extractClassNameSymbols(
         endColumn: signature.length + 1,
       },
       metadata: {
-        language: 'gdscript',
-        source: manifest.id,
-        pluginKind: 'godot-class-name',
+        language: GODOT_SCRIPT_LANGUAGE,
+        source: GODOT_SYMBOL_SOURCE,
+        pluginKind: GODOT_SYMBOL_PLUGIN_KIND.className,
       },
     });
   }

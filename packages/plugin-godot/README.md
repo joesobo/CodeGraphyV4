@@ -25,6 +25,9 @@ codegraphy index
   - `class_name` references
   - `class_name` declarations as Symbol Nodes
   - function, constant, variable, and enum declarations as Symbol Nodes
+  - `signal` declarations as Symbol Nodes
+  - inline and standalone `@export` declarations as Exported Property Symbol Nodes
+  - `connect(...)` calls as Signal Connections
 - Structured parsing:
   - `@gdquest/lezer-gdscript` parses GDScript before `preload()`, `load()`, `ResourceLoader.load()`, and `class_name` extraction, with text fallbacks for parser gaps.
   - `@fernforestgames/godot-resource-parser` parses Godot 4 `.tscn` and `.tres` files before external-resource dependency extraction, with text fallbacks for unsupported syntax.
@@ -34,6 +37,8 @@ codegraphy index
   - `[autoload]`
 - `.tscn` and `.tres` text resources:
   - `[ext_resource ... path="res://..."]`
+  - scene and resource headers as Scene or Resource Symbol Nodes
+  - scene node entries as Scene Node Symbol Nodes
 
 ## Edge semantics
 
@@ -44,6 +49,9 @@ codegraphy index
 - This means they participate in the existing `load` Edge Type Graph Scope settings while still being attributable to Godot text-resource parsing.
 - GDScript `class_name` declarations are emitted as class symbols with `pluginKind: godot-class-name`. When Symbol, Variable, and `contains` are enabled in Graph Scope, the Relationship Graph shows the declaration as a Symbol Node contained by its `.gd` file. The Godot `class_name` Graph Scope row lives under Variable so the Variable parent toggle can hide these plugin-owned declaration symbols without erasing their own saved state.
 - GDScript function, constant, variable, and enum declarations are emitted as normal Symbol Nodes, so they use the shared Function, Constant, Variable, and Enum Graph Scope and Legend defaults.
+- Godot Scene, Resource, Autoload, Scene Node, Signal, and Exported Property rows are plugin-owned Symbol Node filters that still use the shared `contains` edge when ownership is visible.
+- Signal `connect(...)` relationships are emitted as `codegraphy.gdscript:signal-connection` edges and appear under the Signal Connections Graph Scope row.
+- Incremental indexing reanalyzes signal declaration files when receiver-side `connect(...)` calls are added, removed, or retargeted.
 - The Legend includes `Plugins` / `Godot` / `class_name` so these symbols can be styled separately from generic class symbols.
 
 ## Example workspace
@@ -51,13 +59,14 @@ codegraphy index
 The repo fixture at [`examples/example-godot`](https://github.com/joesobo/CodeGraphyV4/tree/main/examples/example-godot) now includes:
 
 - `project.godot` → `scenes/main.tscn`, `scripts/game_manager.gd`
-- `scripts/player.gd` → `scenes/ui/loadout_preview.tscn`, `resources/player_loadout.tres`
-- `resources/player_loadout.tres` → `scripts/data/player_loadout.gd`, `textures/player_card.png`
-- `scenes/ui/loadout_preview.tscn` → `resources/player_loadout.tres`, `scripts/ui/loadout_preview.gd`, `textures/player_card.png`
+- `scenes/main.tscn` → player, enemy, projectile, UI, and enemy spawner scene/script resources
+- `scripts/player.gd` → `scripts/base/entity.gd`, `scenes/projectile.tscn`, `scripts/projectile.gd`, and `scripts/components/health_component.gd`
+- `scripts/spawning/enemy_spawner.gd` → `scenes/enemy.tscn`, `resources/enemy_spawn_config.tres`, `scripts/enemy.gd`, `scripts/player.gd`, and `scripts/data/spawn_config.gd`
+- `resources/enemy_spawn_config.tres` → `scripts/data/spawn_config.gd`
 
-That example also now looks like a small real Godot project: it has a valid `project.godot`, a `main.tscn` entry scene, an autoloaded `GameManager`, and concrete player/enemy/UI scenes around the `.tscn`/`.tres` fixtures.
+That example also now looks like a small real Godot project: it has a valid `project.godot`, a `main.tscn` entry scene, an autoloaded `GameManager`, player/enemy/projectile scenes with colliders and health bars, a compact controls UI, and an enemy spawner that continuously creates enemies.
 
-Those `.tscn`/`.tres` fixtures intentionally use relative `path=` values, and the scene's resource reference also carries a `uid=` so the plugin exercises both Godot-style resolution paths.
+Those `.tscn`/`.tres` fixtures intentionally use relative `path=` values, and the resource reference also carries a `uid=` so the plugin exercises both Godot-style resolution paths.
 
 ## More
 
