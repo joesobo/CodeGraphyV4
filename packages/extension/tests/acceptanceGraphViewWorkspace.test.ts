@@ -192,6 +192,25 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(settings.edgeVisibility?.['type-import']).toBe(false);
   });
 
+  it('keeps Godot edge families disabled until the specs toggle them on', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-godot');
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+    };
+
+    expect(settings.edgeVisibility).toEqual(expect.objectContaining({
+      call: false,
+      inherit: false,
+      contains: false,
+      'codegraphy.gdscript:signal-connection': false,
+    }));
+  });
+
   it('copies Vue active plugins and filters from the example settings', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);

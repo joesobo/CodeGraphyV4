@@ -32,7 +32,13 @@ describe('shared/graphControls/defaults/maps', () => {
       'symbol:typedef': false,
       'symbol:alias': false,
       'symbol:template': false,
+      'plugin:codegraphy.gdscript:symbol:scene': false,
+      'plugin:codegraphy.gdscript:symbol:resource': false,
+      'plugin:codegraphy.gdscript:symbol:autoload': false,
+      'plugin:codegraphy.gdscript:symbol:scene-node': false,
+      'plugin:codegraphy.gdscript:symbol:signal': false,
       variable: false,
+      'variable:plain': false,
       'symbol:constant': false,
       'symbol:global': false,
       'symbol:field': false,
@@ -42,6 +48,7 @@ describe('shared/graphControls/defaults/maps', () => {
       'plugin:codegraphy.unity:symbol': false,
       'plugin:codegraphy.unity:symbol:game-object': false,
       'plugin:codegraphy.unity:symbol:component': false,
+      'plugin:codegraphy.gdscript:symbol:exported-property': false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultEdgeVisibility()['using']).toBe(true);

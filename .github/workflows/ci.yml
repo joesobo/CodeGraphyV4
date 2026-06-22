@@ -337,7 +337,7 @@ jobs:
           - label: Graph scope - value nodes and view modes
             suite: interactions
             timeout-minutes: 20
-            grep: 'Graph Scope Node Types.*\b(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name)\b node type|Graph Theme'
+            grep: 'Graph Scope Node Types.*\b(Template|Variable|Global|Constant|Field|Parameter|Local|Godot class_name|Scene|Resource|Autoload|Scene Node|Signal)\b node type|Graph Theme'
             artifact-suffix: scope-value-nodes-view-modes
             workers: 1
           - label: Graph interactions - hover and selection
