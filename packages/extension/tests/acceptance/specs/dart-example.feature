@@ -218,9 +218,13 @@ When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 And I show only the Contains edge type
 And I show only the File, Function, Class, Mixin, Enum, Alias, Extension, Method, Local and Constant node types
-Then I can see there are 54 nodes and 42 connections
+Then I can see there are 37 nodes and 25 connections
 And lib/app/runner.dart points to lib/app/runner.dart#Runner:class
 And lib/app/runner.dart points to lib/app/runner.dart#ProfileAudit:extension
 And lib/app/runner.dart points to lib/app/runner.dart#defaultRetryCount:constant
+And lib/app/runner.dart points to lib/app/runner.dart#record:method
+And lib/app/runner.dart points to lib/app/runner.dart#status:local
 And lib/app/format_run.dart points to lib/app/format_run.dart#RunLabel:alias
+And lib/app/format_run.dart points to lib/app/format_run.dart#formatRun:function
+And lib/app/runnable.dart points to lib/app/runnable.dart#Runnable:mixin
 And lib/model/run_status.dart points to lib/model/run_status.dart#RunStatus:enum
