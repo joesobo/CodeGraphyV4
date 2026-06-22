@@ -284,6 +284,53 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('projects hidden symbol endpoints back to visible containing files', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('scripts/spawning/enemy_spawner.gd'),
+        node('resources/enemy_spawn_config.tres'),
+        node('resources/enemy_spawn_config.tres#EnemySpawnConfig:resource', 'symbol', symbol({
+          id: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
+          name: 'EnemySpawnConfig',
+          kind: 'resource',
+          filePath: 'resources/enemy_spawn_config.tres',
+          pluginKind: 'resource',
+          source: 'codegraphy.gdscript',
+        })),
+      ],
+      edges: [{
+        id: 'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#EnemySpawnConfig:resource#load:static',
+        from: 'scripts/spawning/enemy_spawner.gd',
+        to: 'resources/enemy_spawn_config.tres#EnemySpawnConfig:resource',
+        kind: 'load',
+        sources: [],
+      }],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: false },
+        { type: 'plugin:codegraphy.gdscript:symbol:resource', enabled: false },
+      ],
+      edges: [
+        { type: 'load', enabled: true },
+      ],
+    })).toEqual({
+      nodes: [
+        node('scripts/spawning/enemy_spawner.gd'),
+        node('resources/enemy_spawn_config.tres'),
+      ],
+      edges: [{
+        id: 'scripts/spawning/enemy_spawner.gd->resources/enemy_spawn_config.tres#load:static',
+        from: 'scripts/spawning/enemy_spawner.gd',
+        to: 'resources/enemy_spawn_config.tres',
+        kind: 'load',
+        sources: [],
+      }],
+    });
+  });
+
   it('keeps file-level type imports when imported type symbols are visible', () => {
     const graphData: IGraphData = {
       nodes: [
@@ -379,12 +426,34 @@ describe('visibleGraph/scope', () => {
     )).toBe(false);
   });
 
-  it('does not treat parent toggles as catch-all symbol definitions', () => {
+  it('matches generic variable symbols through the Plain Variable node type', () => {
     expect(nodeMatchesScope(
       scopeNode({
         symbol: symbol({ kind: 'variable' }),
       }),
       new Set(),
+      new Set(),
+      [],
+    )).toBe(true);
+  });
+
+  it('rejects generic variable symbols when the Variable parent node type is disabled', () => {
+    expect(nodeMatchesScope(
+      scopeNode({
+        symbol: symbol({ kind: 'variable' }),
+      }),
+      new Set(['variable']),
+      new Set(),
+      [],
+    )).toBe(false);
+  });
+
+  it('rejects generic variable symbols when the Plain Variable node type is disabled', () => {
+    expect(nodeMatchesScope(
+      scopeNode({
+        symbol: symbol({ kind: 'variable' }),
+      }),
+      new Set(['variable:plain']),
       new Set(),
       [],
     )).toBe(false);
@@ -452,6 +521,19 @@ describe('visibleGraph/scope', () => {
       { type: 'variable', enabled: false },
     ])).map((definition) => definition.id)).toEqual([
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
+      'plugin:codegraphy.gdscript:symbol:exported-property',
+    ]);
+  });
+
+  it('includes Godot scoped symbol definitions under the disabled symbol parent', () => {
+    expect(getDisabledScopedSymbolDefinitions(scopeConfig([
+      { type: 'symbol', enabled: false },
+    ])).map((definition) => definition.id)).toEqual([
+      'plugin:codegraphy.gdscript:symbol:scene',
+      'plugin:codegraphy.gdscript:symbol:resource',
+      'plugin:codegraphy.gdscript:symbol:autoload',
+      'plugin:codegraphy.gdscript:symbol:scene-node',
+      'plugin:codegraphy.gdscript:symbol:signal',
     ]);
   });
 
