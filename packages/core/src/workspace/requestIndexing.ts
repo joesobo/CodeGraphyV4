@@ -33,7 +33,10 @@ export async function requestCodeGraphyIndexWorkspace(
       workspaceRoot,
     },
   }));
-  const result = await indexCodeGraphyWorkspace({ workspaceRoot });
+  const result = await indexCodeGraphyWorkspace({
+    workspaceRoot,
+    ...(input.diagnostics ? { diagnostics: input.diagnostics } : {}),
+  });
   const graphCache = path.relative(result.workspaceRoot, result.graphCachePath);
 
   input.diagnostics?.emit(createDiagnosticEvent({

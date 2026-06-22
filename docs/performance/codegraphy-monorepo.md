@@ -20,6 +20,27 @@ Cold index from no Graph Cache:
 - Max resident set: `2708193280` bytes
 - Peak memory footprint: `4201907648` bytes
 
+Phase-instrumented cold index:
+
+- Command: `node packages/core/bin/codegraphy.js --verbose index .`
+- Wall time: `213.93s`
+- Files: `2367`
+- Nodes: `5078`
+- Edges: `9114`
+- Plugin load: `542ms`
+- Plugin initialization: `1ms`
+- File discovery: `1900ms`
+- File analysis: `88321ms`
+- Graph build: `62ms`
+- Graph Cache save: `122757ms`
+- Metadata persistence: `4ms`
+- Max resident set: `3071688704` bytes
+- Peak memory footprint: `4200348736` bytes
+
+The first measured bottlenecks are Graph Cache persistence and file/plugin
+analysis. Graph construction is not currently a cold-load bottleneck for this
+workspace.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time

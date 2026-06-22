@@ -77,6 +77,35 @@ describe('core-backed CodeGraphy Workspace commands', () => {
         }),
       }),
     ]));
+    expect(diagnostics.events).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        area: 'indexing',
+        event: 'phase-completed',
+        context: expect.objectContaining({
+          phase: 'discover-files',
+          durationMs: expect.any(Number),
+          files: 2,
+        }),
+      }),
+      expect.objectContaining({
+        area: 'indexing',
+        event: 'phase-completed',
+        context: expect.objectContaining({
+          phase: 'analyze-files',
+          durationMs: expect.any(Number),
+          files: 2,
+        }),
+      }),
+      expect.objectContaining({
+        area: 'indexing',
+        event: 'phase-completed',
+        context: expect.objectContaining({
+          phase: 'build-graph',
+          durationMs: expect.any(Number),
+          nodes: 2,
+        }),
+      }),
+    ]));
   });
 
   it('emits factual verbose diagnostics for status requests', async () => {
