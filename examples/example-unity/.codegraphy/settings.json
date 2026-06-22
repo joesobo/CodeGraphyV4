@@ -15,7 +15,7 @@
     },
     {
       "id": "codegraphy.unity",
-      "enabled": true
+      "enabled": false
     }
   ],
   "pluginData": {},
