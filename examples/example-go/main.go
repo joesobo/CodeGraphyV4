@@ -1,7 +1,7 @@
 package main
 
-import "example-go/internal/service"
+import "example-go/internal/app"
 
 func main() {
-	service.Run()
+	app.Start()
 }
