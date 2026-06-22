@@ -104,6 +104,30 @@ Result:
 - File analysis improved from `87918ms` to `23352ms` by avoiding Lezer recovery
   during Godot `class_name` metadata pre-analysis.
 
+TypeScript alias config no-scan parse:
+
+- Command shape: same isolated plugin cache as the Godot fast path benchmark.
+- Before command: TypeScript alias config parsing used
+  `ts.parseJsonConfigFileContent` with `ts.sys`, which enumerates project files
+  even though alias import analysis only needs `compilerOptions`.
+- After command: TypeScript alias config parsing uses a parse host that can read
+  config files and extended config files but returns no project file list.
+- Files: `2369`; the count is higher than the Godot fast-path run because this
+  iteration adds TypeScript plugin regression coverage and changeset/docs files.
+- Nodes: `5081`
+- Edges: `9108`
+- Wall time: `37.27s` before, `17.28s` after.
+- File analysis: `23352ms` before, `3697ms` after.
+- Graph Cache save: `11233ms` before, `10904ms` after.
+- Max resident set: `465518592` bytes before, `476708864` bytes after.
+- Peak memory footprint: `332065728` bytes before, `328051904` bytes after.
+
+Result:
+
+- Cold index wall time improved from `37.27s` to `17.28s`.
+- File analysis improved from `23352ms` to `3697ms` by skipping TypeScript
+  project file enumeration during alias config parsing.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time
