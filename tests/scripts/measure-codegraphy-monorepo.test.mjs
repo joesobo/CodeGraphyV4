@@ -93,3 +93,18 @@ test('performance runner parses verbose indexing phase timings', async () => {
     await rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test('performance runner summarizes repeated timing samples deterministically', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-codegraphy-monorepo.mjs'),
+  ).href;
+  const { summarizeDurations } = await import(moduleUrl);
+
+  assert.deepEqual(summarizeDurations([50.4, 10.2, 30.6, 20.1, 40.5]), {
+    iterations: 5,
+    minMs: 10,
+    medianMs: 31,
+    p95Ms: 50,
+    maxMs: 50,
+  });
+});

@@ -13,6 +13,35 @@ function createMetricsRecord({ workspacePath, measurements }) {
   };
 }
 
+function roundMs(value) {
+  return Math.round(value);
+}
+
+function readPercentile(sortedSamples, percentile) {
+  if (sortedSamples.length === 0) {
+    return 0;
+  }
+
+  const rank = Math.ceil((percentile / 100) * sortedSamples.length);
+  return sortedSamples[Math.max(0, Math.min(sortedSamples.length - 1, rank - 1))];
+}
+
+export function summarizeDurations(samples) {
+  const sortedSamples = [...samples].sort((left, right) => left - right);
+  const midpoint = Math.floor(sortedSamples.length / 2);
+  const median = sortedSamples.length % 2 === 0
+    ? (sortedSamples[midpoint - 1] + sortedSamples[midpoint]) / 2
+    : sortedSamples[midpoint];
+
+  return {
+    iterations: sortedSamples.length,
+    minMs: roundMs(sortedSamples[0] ?? 0),
+    medianMs: roundMs(median ?? 0),
+    p95Ms: roundMs(readPercentile(sortedSamples, 95)),
+    maxMs: roundMs(sortedSamples.at(-1) ?? 0),
+  };
+}
+
 export async function writeMetrics({ outputPath, workspacePath, measurements }) {
   const metrics = createMetricsRecord({ workspacePath, measurements });
   await mkdir(path.dirname(outputPath), { recursive: true });

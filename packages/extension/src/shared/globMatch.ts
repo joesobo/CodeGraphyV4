@@ -39,6 +39,11 @@ export function globToRegex(pattern: string): RegExp {
   return new RegExp(`(?:^|/)${body}$`);
 }
 
+export function createGlobMatcher(pattern: string): (filePath: string) => boolean {
+  const regex = globToRegex(pattern);
+  return (filePath: string): boolean => regex.test(filePath);
+}
+
 export function globMatch(filePath: string, pattern: string): boolean {
-  return globToRegex(pattern).test(filePath);
+  return createGlobMatcher(pattern)(filePath);
 }
