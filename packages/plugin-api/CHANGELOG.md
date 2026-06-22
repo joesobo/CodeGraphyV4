@@ -1,5 +1,13 @@
 # @codegraphy-dev/plugin-api
 
+## 5.2.0
+
+### Minor Changes
+
+- [#290](https://github.com/joesobo/CodeGraphyV4/pull/290) [`17bda07`](https://github.com/joesobo/CodeGraphyV4/commit/17bda07e5f1211a0ba9345eb4765058a1c4e77b6) Thanks [@joesobo](https://github.com/joesobo)! - Add a reusable Events edge type and emit Unity persistent-call event edges from serialized scenes and prefabs.
+
+- [#281](https://github.com/joesobo/CodeGraphyV4/pull/281) [`b8db94a`](https://github.com/joesobo/CodeGraphyV4/commit/b8db94af4083885db787feb9b4ac43d04bbff9dc) Thanks [@joesobo](https://github.com/joesobo)! - Upgrade C# Tree-sitter graph support with richer symbol nodes and reusable edge kinds for using, type, call, inheritance, implementation, and containment relationships.
+
 ## 5.1.0
 
 ### Minor Changes
