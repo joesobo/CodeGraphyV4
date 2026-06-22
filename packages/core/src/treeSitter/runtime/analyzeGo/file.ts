@@ -8,7 +8,11 @@ import { handleGoImportDeclaration } from './imports';
 import {
   handleGoCallableDeclaration,
   handleGoCallExpression,
+  handleGoConstSpec,
+  handleGoQualifiedTypeReference,
+  handleGoShortVarDeclaration,
   handleGoTypeSpec,
+  handleGoTypeSpecRelations,
 } from './handlers';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
@@ -27,6 +31,7 @@ function visitGoNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  receiverBindings: Map<string, ImportedBinding>,
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
@@ -40,14 +45,48 @@ function visitGoNode(
         : undefined;
     }
     case 'type_spec': {
+      if (symbolsEnabled) {
+        handleGoTypeSpec(node, filePath, symbols, relations, importedBindings, {
+          includeSymbolEndpoint: true,
+        });
+        return;
+      }
+
+      handleGoTypeSpecRelations(node, filePath, relations, importedBindings);
+      return;
+    }
+    case 'const_spec': {
       if (!symbolsEnabled) {
         return;
       }
-      handleGoTypeSpec(node, filePath, symbols);
+      handleGoConstSpec(node, filePath, symbols);
+      return;
+    }
+    case 'short_var_declaration': {
+      handleGoShortVarDeclaration(node, filePath, symbols, importedBindings, receiverBindings, {
+        includeSymbols: symbolsEnabled,
+      });
+      return;
+    }
+    case 'qualified_type': {
+      handleGoQualifiedTypeReference(
+        node,
+        filePath,
+        relations,
+        importedBindings,
+        state.currentSymbolId,
+      );
       return;
     }
     case 'call_expression': {
-      handleGoCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
+      handleGoCallExpression(
+        node,
+        filePath,
+        relations,
+        importedBindings,
+        receiverBindings,
+        state.currentSymbolId,
+      );
       return;
     }
     default:
@@ -62,6 +101,7 @@ export function analyzeGoFile(
   options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
+  const receiverBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
@@ -75,6 +115,7 @@ export function analyzeGoFile(
       relations,
       symbols,
       importedBindings,
+      receiverBindings,
       symbolsEnabled,
     ),
   );

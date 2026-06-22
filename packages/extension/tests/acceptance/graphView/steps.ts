@@ -807,7 +807,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     )).toEqual(expectedEdgeTypes);
   }),
 
-  step(/^the available C\+\+ node types are only (.+)$/, async (context, _step, match) => {
+  step(/^the available (?:C\+\+|Go) node types are only (.+)$/, async (context, _step, match) => {
     const expectedNodeTypes = parseScopeTypeList(match[1]);
     const frame = requireGraphFrame(context);
 
