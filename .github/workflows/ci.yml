@@ -238,10 +238,10 @@ jobs:
             grep: 'C\+\+ Example|(^|[^-])C Example|C# Example|Dart Example'
             artifact-suffix: examples-c-family-dart
             workers: 1
-          - label: Language examples - Go, Godot, and Haskell
+          - label: Language examples - Go, Godot, Haskell, and Unity
             suite: examples
             timeout-minutes: 15
-            grep: 'Go Example|Godot Example|Haskell Example'
+            grep: 'Go Example|Godot Example|Haskell Example|Unity Example'
             artifact-suffix: examples-go-godot-haskell
             workers: 1
           - label: Language examples - Java
