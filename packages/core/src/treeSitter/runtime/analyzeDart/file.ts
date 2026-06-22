@@ -30,6 +30,8 @@ function visitDartNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedSymbolPaths: Map<string, string | null>,
+  importedSymbolKinds: Map<string, string>,
+  localValueReturningMethods: Set<string>,
   pendingSymbolId: { value: string | undefined },
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
@@ -42,8 +44,9 @@ function visitDartNode(
         importedSymbolPaths.set(typeName, importRelation.resolvedPath ?? null);
       }
       if (importRelation.resolvedPath) {
-        for (const symbolName of readDartSymbolNames(importRelation.resolvedPath)) {
-          importedSymbolPaths.set(symbolName, importRelation.resolvedPath);
+        for (const symbol of readDartSymbols(importRelation.resolvedPath)) {
+          importedSymbolPaths.set(symbol.name, importRelation.resolvedPath);
+          importedSymbolKinds.set(symbol.name, symbol.kind);
         }
       }
     }
@@ -51,7 +54,7 @@ function visitDartNode(
   }
 
   if (node.type === 'class_definition') {
-    registerDartLocalType(node, filePath, importedSymbolPaths);
+    registerDartLocalType(node, filePath, 'class', importedSymbolPaths, importedSymbolKinds);
     handleDartClassDefinition(node, filePath, relations, symbols, symbolsEnabled, importedSymbolPaths);
     return;
   }
@@ -62,7 +65,8 @@ function visitDartNode(
     || node.type === 'type_alias'
     || node.type === 'extension_declaration'
   ) {
-    registerDartLocalType(node, filePath, importedSymbolPaths);
+    registerDartLocalType(node, filePath, getDartTypeDeclarationKind(node), importedSymbolPaths, importedSymbolKinds);
+    addDartTypeDeclarationReferenceRelations(node, filePath, relations, importedSymbolPaths, state.currentSymbolId);
     if (!symbolsEnabled) {
       return;
     }
@@ -76,6 +80,10 @@ function visitDartNode(
     }
   }
 
+  if (node.type === 'declaration' || node.type === 'initialized_identifier') {
+    handleDartAliasTypeReference(node, filePath, relations, importedSymbolPaths, importedSymbolKinds, state.currentSymbolId);
+  }
+
   if (node.type === 'method_signature') {
     if (!symbolsEnabled) {
       return;
@@ -83,6 +91,7 @@ function visitDartNode(
     const previousSymbolCount = symbols.length;
     const action = handleDartFunctionSignature(node, filePath, symbols);
     const symbolId = symbols.length > previousSymbolCount ? symbols.at(-1)?.id : undefined;
+    registerDartValueReturningMethod(node, filePath, importedSymbolPaths, importedSymbolKinds, localValueReturningMethods);
     pendingSymbolId.value = symbolId;
     addDartSignatureReferenceRelations(node, filePath, relations, importedSymbolPaths, symbolId);
     return action;
@@ -112,12 +121,17 @@ function visitDartNode(
     return { nextContext: { currentSymbolId } };
   }
 
-  if (node.type === 'type_identifier') {
-    handleDartTypeReference(node, filePath, relations, importedSymbolPaths, state.currentSymbolId);
-  }
-
   if (node.type === 'identifier') {
-    handleDartImportedTypeCall(node, filePath, relations, importedSymbolPaths, state.currentSymbolId);
+    handleDartImportedTypeCall(
+      node,
+      filePath,
+      relations,
+      importedSymbolPaths,
+      importedSymbolKinds,
+      localValueReturningMethods,
+      state.currentSymbolId,
+    );
+    handleDartIdentifierReference(node, filePath, relations, importedSymbolPaths, state.currentSymbolId);
   }
 
   return;
@@ -132,6 +146,8 @@ export function analyzeDartFile(
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const importedSymbolPaths = new Map<string, string | null>();
+  const importedSymbolKinds = new Map<string, string>();
+  const localValueReturningMethods = new Set<string>();
   const pendingSymbolId = { value: undefined as string | undefined };
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   walkTree(tree.rootNode, {}, (node, state) =>
@@ -143,6 +159,8 @@ export function analyzeDartFile(
       relations,
       symbols,
       importedSymbolPaths,
+      importedSymbolKinds,
+      localValueReturningMethods,
       pendingSymbolId,
       symbolsEnabled,
     ),
@@ -150,12 +168,12 @@ export function analyzeDartFile(
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
-function readDartSymbolNames(filePath: string): string[] {
+function readDartSymbols(filePath: string): Array<{ kind: string; name: string }> {
   try {
     const parser = new Parser();
     parser.setLanguage(DartLanguage as unknown as Parser.Language);
     const rootNode = parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
-    const names = new Set<string>();
+    const symbols = new Map<string, string>();
     for (const node of rootNode.descendantsOfType([
       'class_definition',
       'enum_declaration',
@@ -164,22 +182,17 @@ function readDartSymbolNames(filePath: string): string[] {
       'mixin_declaration',
       'type_alias',
     ])) {
-      if (node.type === 'class_definition') {
-        const name = node.childForFieldName('name')?.text
-          ?? node.namedChildren.find((child) => child.type === 'type_identifier')?.text;
-        if (name) {
-          names.add(name);
-        }
+      if (node.type === 'function_signature' && node.parent?.type !== 'program') {
         continue;
       }
 
       const name = node.childForFieldName('name')?.text
         ?? node.namedChildren.find((child) => child.type === 'identifier' || child.type === 'type_identifier')?.text;
       if (name) {
-        names.add(name);
+        symbols.set(name, getDartImportedSymbolKind(node));
       }
     }
-    return [...names];
+    return [...symbols].map(([name, kind]) => ({ kind, name }));
   } catch {
     return [];
   }
@@ -188,13 +201,39 @@ function readDartSymbolNames(filePath: string): string[] {
 function registerDartLocalType(
   node: Parser.SyntaxNode,
   filePath: string,
+  kind: string,
   symbolPaths: Map<string, string | null>,
+  symbolKinds: Map<string, string>,
 ): void {
   const name = node.childForFieldName('name')?.text
     ?? node.namedChildren.find((child) => child.type === 'identifier' || child.type === 'type_identifier')?.text;
   if (name) {
     symbolPaths.set(name, filePath);
+    symbolKinds.set(name, kind);
   }
+}
+
+function getDartImportedSymbolKind(node: Parser.SyntaxNode): string {
+  if (node.type === 'type_alias') {
+    return 'alias';
+  }
+  if (node.type === 'mixin_declaration') {
+    return 'mixin';
+  }
+  if (node.type === 'enum_declaration') {
+    return 'enum';
+  }
+  if (node.type === 'extension_declaration') {
+    return 'extension';
+  }
+  if (node.type === 'function_signature') {
+    return 'function';
+  }
+  return 'class';
+}
+
+function getDartTypeDeclarationKind(node: Parser.SyntaxNode): string {
+  return getDartImportedSymbolKind(node);
 }
 
 function handleDartImportedTypeCall(
@@ -202,10 +241,18 @@ function handleDartImportedTypeCall(
   filePath: string,
   relations: IAnalysisRelation[],
   importedTypePaths: ReadonlyMap<string, string | null>,
+  importedSymbolKinds: ReadonlyMap<string, string>,
+  localValueReturningMethods: ReadonlySet<string>,
   currentSymbolId?: string,
 ): void {
-  const resolvedPath = importedTypePaths.get(node.text);
-  if (!resolvedPath || !isFollowedByDartArgumentSelector(node)) {
+  const isSelectorCall = isDartSelectorCall(node);
+  const resolvedPath = importedTypePaths.get(node.text)
+    ?? (isSelectorCall && localValueReturningMethods.has(node.text) ? filePath : undefined);
+  if (
+    !resolvedPath
+    || importedSymbolKinds.get(node.text) === 'enum'
+    || !isFollowedByDartArgumentSelector(node)
+  ) {
     return;
   }
 
@@ -219,6 +266,8 @@ function handleDartImportedTypeCall(
       specifier: node.text,
     },
     currentSymbolId,
+    undefined,
+    isSelectorCall ? node.text : undefined,
   );
 }
 
@@ -237,6 +286,50 @@ function handleDartTypeReference(
   addReferenceRelation(relations, filePath, node.text, resolvedPath, currentSymbolId);
 }
 
+function handleDartIdentifierReference(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  symbolPaths: ReadonlyMap<string, string | null>,
+  currentSymbolId?: string,
+): void {
+  const resolvedPath = symbolPaths.get(node.text);
+  if (
+    !resolvedPath
+    || resolvedPath === filePath
+    || !isDartTypeLikeExpressionReference(node)
+    || isDartConcreteMethodBodyTypeReference(node, currentSymbolId)
+  ) {
+    return;
+  }
+
+  addReferenceRelation(relations, filePath, node.text, resolvedPath, currentSymbolId);
+}
+
+function isDartConcreteMethodBodyTypeReference(
+  node: Parser.SyntaxNode,
+  currentSymbolId?: string,
+): boolean {
+  return Boolean(currentSymbolId?.includes(':method:'))
+    && (node.parent?.type.includes('selector') || Boolean(findDartAncestor(node, 'function_body')));
+}
+
+function handleDartAliasTypeReference(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  symbolPaths: ReadonlyMap<string, string | null>,
+  symbolKinds: ReadonlyMap<string, string>,
+  currentSymbolId?: string,
+): void {
+  for (const typeIdentifier of node.descendantsOfType('type_identifier')) {
+    if (symbolKinds.get(typeIdentifier.text) !== 'alias') {
+      continue;
+    }
+    handleDartTypeReference(typeIdentifier, filePath, relations, symbolPaths, currentSymbolId);
+  }
+}
+
 function addDartSignatureReferenceRelations(
   node: Parser.SyntaxNode,
   filePath: string,
@@ -244,17 +337,118 @@ function addDartSignatureReferenceRelations(
   symbolPaths: ReadonlyMap<string, string | null>,
   currentSymbolId?: string,
 ): void {
+  if (isDartAbstractInterfaceMemberSignature(node)) {
+    return;
+  }
+
   for (const typeIdentifier of node.descendantsOfType('type_identifier')) {
-    if (shouldSkipDartSignatureTypeReference(typeIdentifier)) {
+    if (shouldSkipDartConcreteMethodReturnType(node, typeIdentifier)) {
       continue;
     }
     handleDartTypeReference(typeIdentifier, filePath, relations, symbolPaths, currentSymbolId);
   }
 }
 
-function shouldSkipDartSignatureTypeReference(node: Parser.SyntaxNode): boolean {
-  return node.parent?.type === 'function_signature'
-    && node.previousNamedSibling === null;
+function addDartTypeDeclarationReferenceRelations(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  symbolPaths: ReadonlyMap<string, string | null>,
+  currentSymbolId?: string,
+): void {
+  if (node.type !== 'type_alias' && node.type !== 'extension_declaration') {
+    return;
+  }
+
+  for (const typeIdentifier of node.descendantsOfType('type_identifier')) {
+    if (typeIdentifier === node.namedChildren.find((child) => child.type === 'type_identifier')) {
+      continue;
+    }
+    handleDartTypeReference(typeIdentifier, filePath, relations, symbolPaths, currentSymbolId);
+  }
+}
+
+function isDartTypeLikeExpressionReference(node: Parser.SyntaxNode): boolean {
+  if (!/^[A-Z]/u.test(node.text)) {
+    return false;
+  }
+
+  const parent = node.parent;
+  if (!parent) {
+    return false;
+  }
+
+  if (parent.type === 'selector') {
+    return true;
+  }
+
+  if (isFollowedByDartArgumentSelector(node)) {
+    return true;
+  }
+
+  if (parent.type === 'initialized_formal_parameter') {
+    return false;
+  }
+
+  return parent.type !== 'class_definition'
+    && parent.type !== 'mixin_declaration'
+    && parent.type !== 'extension_declaration'
+    && parent.type !== 'function_signature'
+    && parent.type !== 'method_signature'
+    && parent.type !== 'type_alias'
+    && parent.type !== 'typed_identifier'
+    && parent.type !== 'static_final_declaration'
+    && parent.type !== 'initialized_variable_definition'
+    && parent.type !== 'local_variable_declaration';
+}
+
+function shouldSkipDartConcreteMethodReturnType(
+  signature: Parser.SyntaxNode,
+  typeIdentifier: Parser.SyntaxNode,
+): boolean {
+  if (typeIdentifier.previousNamedSibling !== null || !isDartSignatureReturnType(signature, typeIdentifier)) {
+    return false;
+  }
+
+  for (let current: Parser.SyntaxNode | null = signature; current; current = current.parent) {
+    if (current.type === 'method_signature') {
+      return current.nextNamedSibling?.type === 'function_body';
+    }
+
+    if (current.type === 'declaration') {
+      return current.namedChildren.some((child) => child.type === 'function_body');
+    }
+  }
+
+  return false;
+}
+
+function findDartAncestor(node: Parser.SyntaxNode, type: string): Parser.SyntaxNode | null {
+  for (let current: Parser.SyntaxNode | null = node.parent; current; current = current.parent) {
+    if (current.type === type) {
+      return current;
+    }
+  }
+
+  return null;
+}
+
+function isDartSignatureReturnType(
+  signature: Parser.SyntaxNode,
+  typeIdentifier: Parser.SyntaxNode,
+): boolean {
+  return typeIdentifier.parent === signature
+    || typeIdentifier.parent?.parent === signature;
+}
+
+function isDartAbstractInterfaceMemberSignature(node: Parser.SyntaxNode): boolean {
+  for (let current: Parser.SyntaxNode | null = node.parent; current; current = current.parent) {
+    if (current.type === 'class_definition') {
+      return /\babstract\s+interface\s+class\b/u.test(current.text);
+    }
+  }
+
+  return false;
 }
 
 function isDartInheritedTypeReference(node: Parser.SyntaxNode): boolean {
@@ -272,9 +466,56 @@ function isDartInheritedTypeReference(node: Parser.SyntaxNode): boolean {
 }
 
 function isFollowedByDartArgumentSelector(node: Parser.SyntaxNode): boolean {
+  const selector = findDartSelectorAncestor(node);
+  if (
+    selector
+    && (node.nextNamedSibling?.type === 'argument_part'
+      || selector.namedChildren.some((child) => child.type === 'argument_part')
+      || selector.nextNamedSibling?.namedChildren.some((child) => child.type === 'argument_part'))
+  ) {
+    return true;
+  }
+
   const nextNode = node.nextNamedSibling;
   return nextNode?.type === 'selector'
     && nextNode.namedChildren.some((child) => child.type === 'argument_part');
+}
+
+function isDartSelectorCall(node: Parser.SyntaxNode): boolean {
+  return Boolean(findDartSelectorAncestor(node)?.text.startsWith('.'));
+}
+
+function findDartSelectorAncestor(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
+  for (let current: Parser.SyntaxNode | null = node.parent; current; current = current.parent) {
+    if (current.type === 'selector') {
+      return current;
+    }
+  }
+
+  return null;
+}
+
+function registerDartValueReturningMethod(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbolPaths: Map<string, string | null>,
+  symbolKinds: Map<string, string>,
+  localValueReturningMethods: Set<string>,
+): void {
+  const signature = node.namedChildren.find((child) => child.type === 'function_signature');
+  const returnType = signature?.namedChildren.find((child) =>
+    child.type === 'type_identifier' || child.type === 'void_type'
+  )?.text;
+  const name = signature?.childForFieldName('name')?.text
+    ?? signature?.namedChildren.find((child) => child.type === 'identifier')?.text;
+
+  if (!name || returnType === 'void') {
+    return;
+  }
+
+  symbolPaths.set(name, filePath);
+  symbolKinds.set(name, 'method');
+  localValueReturningMethods.add(name);
 }
 
 function toDartTypeName(specifier: string): string | null {
