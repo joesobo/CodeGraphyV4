@@ -152,7 +152,9 @@ export class GodotSignalConnectionIndex {
     files: readonly GodotWorkspaceFile[],
     workspaceRoot: string,
     resolver: GDScriptPathResolver,
-  ): void {
+  ): string[] {
+    const previousRelationsBySourceFile = this.relationsBySourceFile;
+
     for (const file of files) {
       if (file.relativePath.endsWith('.gd')) {
         this.fileContents.set(file.relativePath, file.content);
@@ -160,6 +162,7 @@ export class GodotSignalConnectionIndex {
     }
 
     this.rebuild(workspaceRoot, resolver);
+    return readChangedRelationSourceFiles(previousRelationsBySourceFile, this.relationsBySourceFile);
   }
 
   getRelations(relativeFilePath: string): IAnalysisRelation[] {
@@ -205,4 +208,31 @@ export class GodotSignalConnectionIndex {
 
     this.relationsBySourceFile = nextRelationsBySourceFile;
   }
+}
+
+function readChangedRelationSourceFiles(
+  previousRelationsBySourceFile: ReadonlyMap<string, readonly IAnalysisRelation[]>,
+  nextRelationsBySourceFile: ReadonlyMap<string, readonly IAnalysisRelation[]>,
+): string[] {
+  const sourceFiles = new Set([
+    ...previousRelationsBySourceFile.keys(),
+    ...nextRelationsBySourceFile.keys(),
+  ]);
+
+  return [...sourceFiles].filter((sourceFile) => (
+    readRelationSignatures(previousRelationsBySourceFile.get(sourceFile) ?? [])
+      !== readRelationSignatures(nextRelationsBySourceFile.get(sourceFile) ?? [])
+  ));
+}
+
+function readRelationSignatures(relations: readonly IAnalysisRelation[]): string {
+  return relations
+    .map((relation) => [
+      relation.kind,
+      relation.fromSymbolId ?? '',
+      relation.toFilePath ?? '',
+      relation.specifier,
+    ].join('\0'))
+    .sort()
+    .join('\n');
 }

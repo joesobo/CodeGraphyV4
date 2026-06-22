@@ -26,7 +26,7 @@ codegraphy index
   - `class_name` declarations as Symbol Nodes
   - function, constant, variable, and enum declarations as Symbol Nodes
   - `signal` declarations as Symbol Nodes
-  - `@export var` declarations as Exported Property Symbol Nodes
+  - inline and standalone `@export` declarations as Exported Property Symbol Nodes
   - `connect(...)` calls as Signal Connections
 - Structured parsing:
   - `@gdquest/lezer-gdscript` parses GDScript before `preload()`, `load()`, `ResourceLoader.load()`, and `class_name` extraction, with text fallbacks for parser gaps.
@@ -51,6 +51,7 @@ codegraphy index
 - GDScript function, constant, variable, and enum declarations are emitted as normal Symbol Nodes, so they use the shared Function, Constant, Variable, and Enum Graph Scope and Legend defaults.
 - Godot Scene, Resource, Autoload, Scene Node, Signal, and Exported Property rows are plugin-owned Symbol Node filters that still use the shared `contains` edge when ownership is visible.
 - Signal `connect(...)` relationships are emitted as `codegraphy.gdscript:signal-connection` edges and appear under the Signal Connections Graph Scope row.
+- Incremental indexing reanalyzes signal declaration files when receiver-side `connect(...)` calls are added, removed, or retargeted.
 - The Legend includes `Plugins` / `Godot` / `class_name` so these symbols can be styled separately from generic class symbols.
 
 ## Example workspace
