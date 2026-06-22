@@ -52,20 +52,22 @@ function getGoQualifiedTypeBinding(
 }
 
 function getGoEmbeddedQualifiedTypes(typeNode: Parser.SyntaxNode | null | undefined): Parser.SyntaxNode[] {
-  if (typeNode?.type !== 'struct_type') {
+  if (typeNode?.type !== 'struct_type' && typeNode?.type !== 'interface_type') {
     return [];
   }
 
-  return typeNode
-    .descendantsOfType('field_declaration')
-    .flatMap((fieldDeclaration) => {
-      const namedChildren = fieldDeclaration.namedChildren;
-      if (namedChildren.length !== 1 || namedChildren[0]?.type !== 'qualified_type') {
-        return [];
-      }
+  const embeddedTypeNodes = typeNode.type === 'struct_type'
+    ? typeNode.descendantsOfType('field_declaration')
+    : typeNode.descendantsOfType('type_elem');
 
-      return [namedChildren[0]];
-    });
+  return embeddedTypeNodes.flatMap((embeddedTypeNode) => {
+    const namedChildren = embeddedTypeNode.namedChildren;
+    if (namedChildren.length !== 1 || namedChildren[0]?.type !== 'qualified_type') {
+      return [];
+    }
+
+    return [namedChildren[0]];
+  });
 }
 
 export function handleGoCallableDeclaration(
@@ -98,11 +100,11 @@ export function handleGoTypeSpec(
     const kind = getGoTypeKind(node);
     symbols.push(createSymbol(filePath, kind, name, node));
 
-    if (kind !== 'struct' || !relations || !importedBindings) {
+    if ((kind !== 'struct' && kind !== 'interface') || !relations || !importedBindings) {
       return;
     }
 
-    handleGoEmbeddedStructInheritance(node, filePath, name, relations, importedBindings, options);
+    handleGoEmbeddedTypeInheritance(node, filePath, kind, name, relations, importedBindings, options);
   }
 }
 
@@ -113,14 +115,16 @@ export function handleGoTypeSpecRelations(
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
-  if (name && getGoTypeKind(node) === 'struct') {
-    handleGoEmbeddedStructInheritance(node, filePath, name, relations, importedBindings);
+  const kind = getGoTypeKind(node);
+  if (name && (kind === 'struct' || kind === 'interface')) {
+    handleGoEmbeddedTypeInheritance(node, filePath, kind, name, relations, importedBindings);
   }
 }
 
-function handleGoEmbeddedStructInheritance(
+function handleGoEmbeddedTypeInheritance(
   node: Parser.SyntaxNode,
   filePath: string,
+  kind: 'interface' | 'struct',
   name: string,
   relations: IAnalysisRelation[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
@@ -135,7 +139,7 @@ function handleGoEmbeddedStructInheritance(
         filePath,
         qualifiedType.text,
         binding.resolvedPath,
-        options.includeSymbolEndpoint ? createSymbolId(filePath, 'struct', name) : undefined,
+        options.includeSymbolEndpoint ? createSymbolId(filePath, kind, name) : undefined,
       );
     }
   }
@@ -146,9 +150,11 @@ export function handleGoConstSpec(
   filePath: string,
   symbols: IAnalysisSymbol[],
 ): void {
-  const nameNode = node.childForFieldName('name') ?? node.namedChildren.find(child => child.type === 'identifier');
-  const name = getIdentifierText(nameNode);
-  if (name) {
+  for (const nameNode of getGoDeclarationIdentifierNodes(node)) {
+    const name = getIdentifierText(nameNode);
+    if (!name) {
+      continue;
+    }
     symbols.push(createSymbol(filePath, 'constant', name, node));
   }
 }
@@ -157,16 +163,30 @@ export function handleGoShortVarDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
+  importedBindings: ReadonlyMap<string, ImportedBinding> = new Map(),
+  receiverBindings: Map<string, ImportedBinding> = new Map(),
+  options: { includeSymbols?: boolean } = {},
 ): void {
   const leftExpressionList = node.namedChildren[0];
   if (!leftExpressionList) {
     return;
   }
 
-  for (const child of leftExpressionList.namedChildren) {
+  const valueExpressionList = node.namedChildren[1];
+  for (const [index, child] of leftExpressionList.namedChildren.entries()) {
     const name = getIdentifierText(child);
-    if (name) {
+    if (!name) {
+      continue;
+    }
+
+    if (options.includeSymbols !== false) {
       symbols.push(createSymbol(filePath, 'local', name, child));
+    }
+
+    const valueNode = valueExpressionList?.namedChildren[index];
+    const binding = getGoCallBinding(valueNode, importedBindings);
+    if (binding) {
+      receiverBindings.set(name, binding);
     }
   }
 }
@@ -189,10 +209,21 @@ export function handleGoCallExpression(
   filePath: string,
   relations: IAnalysisRelation[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  receiverBindings: ReadonlyMap<string, ImportedBinding> = new Map(),
   currentSymbolId?: string,
 ): void {
-  const binding = getGoCallBinding(node, importedBindings);
+  const binding = getGoCallBinding(node, importedBindings) ?? getGoCallBinding(node, receiverBindings);
   if (binding) {
     addCallRelation(relations, filePath, binding, currentSymbolId);
   }
+}
+
+function getGoDeclarationIdentifierNodes(node: Parser.SyntaxNode): Parser.SyntaxNode[] {
+  const nameNodes = node.namedChildren.filter(child => child.type === 'identifier');
+  if (nameNodes.length > 0) {
+    return nameNodes;
+  }
+
+  const nameNode = node.childForFieldName('name');
+  return nameNode ? [nameNode] : [];
 }

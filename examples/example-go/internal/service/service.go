@@ -6,14 +6,18 @@ import (
 	"example-go/internal/model"
 )
 
-const DefaultStatus Status = "queued"
+const DefaultStatus, RetryStatus Status = "queued", "retry"
 
 type Runner interface {
 	Run(task model.Task) model.Result
 }
 
+type AuditingNotifier interface {
+	model.Notifier
+}
+
 type TaskRunner struct {
-	model.Audited
+	*model.Audited
 	name     string
 	notifier model.Notifier
 }

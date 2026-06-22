@@ -31,6 +31,7 @@ function visitGoNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  receiverBindings: Map<string, ImportedBinding>,
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
@@ -62,10 +63,9 @@ function visitGoNode(
       return;
     }
     case 'short_var_declaration': {
-      if (!symbolsEnabled) {
-        return;
-      }
-      handleGoShortVarDeclaration(node, filePath, symbols);
+      handleGoShortVarDeclaration(node, filePath, symbols, importedBindings, receiverBindings, {
+        includeSymbols: symbolsEnabled,
+      });
       return;
     }
     case 'qualified_type': {
@@ -79,7 +79,14 @@ function visitGoNode(
       return;
     }
     case 'call_expression': {
-      handleGoCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
+      handleGoCallExpression(
+        node,
+        filePath,
+        relations,
+        importedBindings,
+        receiverBindings,
+        state.currentSymbolId,
+      );
       return;
     }
     default:
@@ -94,6 +101,7 @@ export function analyzeGoFile(
   options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
+  const receiverBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
@@ -107,6 +115,7 @@ export function analyzeGoFile(
       relations,
       symbols,
       importedBindings,
+      receiverBindings,
       symbolsEnabled,
     ),
   );
