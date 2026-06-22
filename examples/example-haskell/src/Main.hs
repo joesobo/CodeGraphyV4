@@ -1,7 +1,8 @@
 module Main where
 
-import App.Feature.Runner
-import App.Model.User
+import App.Feature.Runner (boot, renderGreeting)
+import App.Model.Profile (Profile(..))
+import App.Model.User (makeUser)
 
 main :: IO ()
-main = print (boot (User "Ada"))
+main = putStrLn (renderGreeting (boot (makeUser "Ada") (Profile "graph explorer")))

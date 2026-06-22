@@ -211,7 +211,7 @@ describe('WorkspacePipeline examples workspace', { timeout: EXAMPLES_WORKSPACE_T
       'example-c/src/logger/logger.c#logger_output_enabled:global',
       'example-cpp/src/runner.cpp#TaskRunner::run:method',
       'example-ruby/lib/app/runner.rb#call:method',
-      'example-haskell/src/App/Feature/Runner.hs#Greeting:data',
+      'example-haskell/src/App/Feature/Runner.hs#Greeting:type',
       'example-lua/app/runner.lua#Runner.greet:function',
     ];
     const missingStorySymbolIds = expectedStorySymbolIds.filter((nodeId) => !nodeIds.has(nodeId));
