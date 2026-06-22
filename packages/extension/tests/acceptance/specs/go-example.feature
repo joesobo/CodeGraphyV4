@@ -12,7 +12,7 @@ And the graph nodes match the expected files in the examples/example-go workspac
 
 When I open the Graph Scope
 And I select edge types
-Then the available edge types are only Imports, References, Calls, Contains, Inherits
+Then the available edge types are only Imports, References, Calls, Inherits, Contains
 And I select node types
 Then the available Go node types are only Function, Method, Struct, Interface, Type, Constant, Local
 And I close the Graph Scope
