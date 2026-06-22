@@ -47,12 +47,13 @@ And lib/app/runner.dart points to lib/app/auditable.dart
 
 When I toggle the Inherits edge off
 And I toggle the Calls edge on
-Then I can see there are 12 nodes and 6 connections
+Then I can see there are 12 nodes and 7 connections
 And bin/sample_app.dart points to lib/app/runner.dart
 And bin/sample_app.dart points to lib/model/profile.dart
 And lib/app/runner.dart points to lib/app/format_run.dart
 And lib/app/runner.dart points to lib/model/user.dart
 And lib/app/runner.dart points to lib/app/runner.dart
+And lib/app/runner.dart points to lib/model/profile.dart
 
 When I toggle the Calls edge off
 And I toggle the References edge on
