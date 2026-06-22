@@ -71,7 +71,7 @@ And internal/notify/notify.go points to pkg:fmt
 
 When I show no edge types
 And I show only the File, Function, Method, Struct, Interface, Type, Constant and Local node types
-Then I can see there are 31 nodes and 0 connections
+Then I can see there are 33 nodes and 0 connections
 And the visible graph includes the Function node main from main.go
 And the visible graph includes the Function node Start from internal/app/app.go
 And the visible graph includes the Function node NewTaskRunner from internal/service/service.go
@@ -85,10 +85,12 @@ And the visible graph includes the Struct node Audited from internal/model/model
 And the visible graph includes the Struct node Task from internal/model/model.go
 And the visible graph includes the Struct node Result from internal/model/model.go
 And the visible graph includes the Interface node Runner from internal/service/service.go
+And the visible graph includes the Interface node AuditingNotifier from internal/service/service.go
 And the visible graph includes the Interface node Notifier from internal/model/model.go
 And the visible graph includes the Type node Status from internal/service/service.go
 And the visible graph includes the Constant node startupMessage from internal/app/app.go
 And the visible graph includes the Constant node DefaultStatus from internal/service/service.go
+And the visible graph includes the Constant node RetryStatus from internal/service/service.go
 And the visible graph includes the Local node config from internal/app/app.go
 And the visible graph includes the Local node notifier from internal/app/app.go
 And the visible graph includes the Local node runner from internal/app/app.go
@@ -97,7 +99,7 @@ And the visible graph includes the Local node result from internal/app/app.go
 And the visible graph includes the Local node normalized from internal/service/service.go
 
 When I toggle the Contains edge on
-Then I can see there are 31 nodes and 23 connections
+Then I can see there are 33 nodes and 25 connections
 And main.go points to main.go#main:function
 And internal/app/app.go points to internal/app/app.go#Config:struct
 And internal/app/app.go points to internal/app/app.go#Start:function
@@ -108,11 +110,13 @@ And internal/app/app.go points to internal/app/app.go#runner:local
 And internal/app/app.go points to internal/app/app.go#task:local
 And internal/app/app.go points to internal/app/app.go#result:local
 And internal/service/service.go points to internal/service/service.go#Runner:interface
+And internal/service/service.go points to internal/service/service.go#AuditingNotifier:interface
 And internal/service/service.go points to internal/service/service.go#TaskRunner:struct
 And internal/service/service.go points to internal/service/service.go#Status:type
 And internal/service/service.go points to internal/service/service.go#NewTaskRunner:function
 And internal/service/service.go points to internal/service/service.go#Run:method
 And internal/service/service.go points to internal/service/service.go#DefaultStatus:constant
+And internal/service/service.go points to internal/service/service.go#RetryStatus:constant
 And internal/service/service.go points to internal/service/service.go#normalized:local
 And internal/notify/notify.go points to internal/notify/notify.go#ConsoleNotifier:struct
 And internal/notify/notify.go points to internal/notify/notify.go#NewConsoleNotifier:function

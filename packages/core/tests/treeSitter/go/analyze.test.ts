@@ -119,6 +119,9 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       { type: 'short_var_declaration' },
       filePath,
       expect.any(Array),
+      expect.any(Map),
+      expect.any(Map),
+      { includeSymbols: true },
     );
 
     expect(visit?.({ type: 'qualified_type' }, state, walk)).toBeUndefined();
@@ -135,6 +138,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
       { type: 'call_expression' },
       filePath,
       expect.any(Array),
+      expect.any(Map),
       expect.any(Map),
       'symbol-id',
     );
