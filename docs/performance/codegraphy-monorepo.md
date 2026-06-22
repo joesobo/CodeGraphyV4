@@ -62,6 +62,20 @@ Result:
 - Graph Cache save improved from `122757ms` to `15139ms`.
 - Graph Cache size improved from `64638976` bytes to `18153472` bytes.
 
+Shared content read cache:
+
+- Command: `node packages/core/bin/codegraphy.js --verbose index .`
+- Wall time: `104.81s`
+- File analysis: `87297ms`
+- Graph Cache save: `14632ms`
+- Graph Cache size: `18157568` bytes
+
+Result:
+
+- Cold index wall time improved from `111.03s` to `104.81s`.
+- File analysis improved from `92850ms` to `87297ms` by reusing file content
+  read during pre-analysis.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time
