@@ -36,5 +36,5 @@ String boot(Profile profile) {
   final runner = Runner();
   runner.record(profile);
   final status = runner.run(User(profile.name, isActive: true));
-  return formatRun(profile, status);
+  return formatRun(Profile(profile.name, status: status), status);
 }
