@@ -48,7 +48,7 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(fs.existsSync(path.join(workspacePath, 'UserSettings'))).toBe(false);
   });
 
-  it('starts Unity acceptance fixtures with the Unity plugin disabled before the scenario toggles it on', () => {
+  it('starts Unity acceptance fixtures with Unity default filters active for the file-only baseline', () => {
     const sourceSettingsPath = path.join(examplesRoot, 'example-unity/.codegraphy/settings.json');
     const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
       edgeVisibility?: Record<string, boolean>;
@@ -57,7 +57,7 @@ describe('acceptance graph view workspace fixtures', () => {
 
     expect(sourceSettings.plugins).toEqual([
       { id: 'codegraphy.markdown', enabled: true },
-      { id: 'codegraphy.unity', enabled: false },
+      { id: 'codegraphy.unity', enabled: true },
     ]);
     expect(sourceSettings.edgeVisibility).toEqual(expect.objectContaining({
       using: true,

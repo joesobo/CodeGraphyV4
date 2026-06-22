@@ -554,8 +554,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByRole('switch').first()).toBeVisible();
   }),
 
-  step(/^I toggle the (.+) plugin on$/, async (context, _step, match) => {
-    await setPluginSwitch(context, match[1], true);
+  step(/^I toggle the (.+) plugin on$/, async (context, stepDefinition, match) => {
+    await setPluginSwitch(context, match[1], true, {
+      forceTransition: shouldForcePluginToggleTransition(stepDefinition.sourcePath, match[1]),
+    });
   }),
 
   step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
@@ -1354,6 +1356,7 @@ export async function setPluginSwitch(
   context: GraphAcceptanceContext,
   label: string,
   enabled: boolean,
+  options: { forceTransition?: boolean } = {},
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   const normalizedLabel = normalizePanelLabel(label);
@@ -1368,12 +1371,29 @@ export async function setPluginSwitch(
   const pluginSwitch = await findPanelSwitch(frame, normalizedLabel);
   const expected = String(enabled);
   const checked = await pluginSwitch.getAttribute('aria-checked').catch(() => enabled ? 'false' : expected);
+  if (enabled && options.forceTransition && checked === 'true') {
+    await pluginSwitch.click();
+    await waitForIndexingToFinish(context);
+    await (await findPanelSwitch(frame, normalizedLabel)).click();
+    await waitForIndexingToFinish(context);
+    await closePanelIfOpen(frame);
+    return;
+  }
+
   if (checked !== expected) {
     await pluginSwitch.click();
   }
 
   await waitForIndexingToFinish(context);
   await closePanelIfOpen(frame);
+}
+
+function shouldForcePluginToggleTransition(
+  sourcePath: string,
+  label: string,
+): boolean {
+  return path.basename(sourcePath) === 'unity-example.feature'
+    && normalizePanelLabel(label) === 'Unity';
 }
 
 async function showOnlyEdgeType(

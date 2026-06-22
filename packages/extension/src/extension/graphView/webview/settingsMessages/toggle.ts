@@ -43,6 +43,11 @@ export async function applySettingsToggleMessage(
         return true;
       }
 
+      if (message.payload.enabled) {
+        await handlers.analyzeAndSendData();
+        return true;
+      }
+
       handlers.smartRebuild(message.payload.pluginId);
       return true;
     }

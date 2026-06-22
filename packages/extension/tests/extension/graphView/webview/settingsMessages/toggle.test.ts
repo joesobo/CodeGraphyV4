@@ -149,8 +149,8 @@ describe('graph view settings toggle message', () => {
     ]);
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
-    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
@@ -410,7 +410,7 @@ describe('graph view settings toggle message', () => {
     expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
-  it('sends plugin webview injections before plugin file reprocessing after package toggles', async () => {
+  it('sends plugin webview injections before workspace analysis after package toggles', async () => {
     const state = createState();
     const sendPluginWebviewInjections = vi.fn();
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
@@ -440,11 +440,11 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.organize']);
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections.mock.invocationCallOrder[0])
-      .toBeLessThan(reprocessPluginFiles.mock.invocationCallOrder[0]);
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
   });
 
   it('sends webview injections immediately after enabling a package-backed UI plugin', async () => {
@@ -480,12 +480,13 @@ describe('graph view settings toggle message', () => {
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     const injectionOrder = sendPluginWebviewInjections.mock.invocationCallOrder[0];
     const syncOrder = syncWorkspacePlugins.mock.invocationCallOrder[0];
-    const reprocessOrder = reprocessPluginFiles.mock.invocationCallOrder[0];
+    const analyzeOrder = vi.mocked(handlers.analyzeAndSendData).mock.invocationCallOrder[0];
     expect(injectionOrder).toEqual(expect.any(Number));
     expect(syncOrder).toEqual(expect.any(Number));
-    expect(reprocessOrder).toEqual(expect.any(Number));
+    expect(analyzeOrder).toEqual(expect.any(Number));
     expect(injectionOrder).toBeGreaterThan(syncOrder as number);
-    expect(injectionOrder).toBeLessThan(reprocessOrder as number);
+    expect(injectionOrder).toBeLessThan(analyzeOrder as number);
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('replays saved plugin data before injecting a newly enabled plugin webview', async () => {
