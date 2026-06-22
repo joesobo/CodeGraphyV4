@@ -8,6 +8,9 @@ import { handleGoImportDeclaration } from './imports';
 import {
   handleGoCallableDeclaration,
   handleGoCallExpression,
+  handleGoConstSpec,
+  handleGoQualifiedTypeReference,
+  handleGoShortVarDeclaration,
   handleGoTypeSpec,
 } from './handlers';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
@@ -43,7 +46,31 @@ function visitGoNode(
       if (!symbolsEnabled) {
         return;
       }
-      handleGoTypeSpec(node, filePath, symbols);
+      handleGoTypeSpec(node, filePath, symbols, relations, importedBindings);
+      return;
+    }
+    case 'const_spec': {
+      if (!symbolsEnabled) {
+        return;
+      }
+      handleGoConstSpec(node, filePath, symbols);
+      return;
+    }
+    case 'short_var_declaration': {
+      if (!symbolsEnabled) {
+        return;
+      }
+      handleGoShortVarDeclaration(node, filePath, symbols);
+      return;
+    }
+    case 'qualified_type': {
+      handleGoQualifiedTypeReference(
+        node,
+        filePath,
+        relations,
+        importedBindings,
+        state.currentSymbolId,
+      );
       return;
     }
     case 'call_expression': {

@@ -6,7 +6,13 @@ import type {
 import { getImportedBindingByIdentifier, getImportedBindingByPropertyAccess } from '../analyze/imports';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getIdentifierText } from '../analyze/nodes';
-import { addCallRelation, createSymbol } from '../analyze/results';
+import {
+  addCallRelation,
+  addInheritRelation,
+  addReferenceRelation,
+  createSymbol,
+  createSymbolId,
+} from '../analyze/results';
 import { walkSymbolBody } from '../analyze/walk';
 
 function getGoCallBinding(
@@ -33,6 +39,35 @@ function getGoTypeKind(node: Parser.SyntaxNode): 'interface' | 'struct' | 'type'
   return 'type';
 }
 
+function getGoQualifiedTypeBinding(
+  node: Parser.SyntaxNode,
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+): ImportedBinding | null {
+  if (node.type !== 'qualified_type') {
+    return null;
+  }
+
+  const packageName = getIdentifierText(node.childForFieldName('package') ?? node.namedChildren[0]);
+  return packageName ? importedBindings.get(packageName) ?? null : null;
+}
+
+function getGoEmbeddedQualifiedTypes(typeNode: Parser.SyntaxNode | null | undefined): Parser.SyntaxNode[] {
+  if (typeNode?.type !== 'struct_type') {
+    return [];
+  }
+
+  return typeNode
+    .descendantsOfType('field_declaration')
+    .flatMap((fieldDeclaration) => {
+      const namedChildren = fieldDeclaration.namedChildren;
+      if (namedChildren.length !== 1 || namedChildren[0]?.type !== 'qualified_type') {
+        return [];
+      }
+
+      return [namedChildren[0]];
+    });
+}
+
 export function handleGoCallableDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
@@ -54,10 +89,74 @@ export function handleGoTypeSpec(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
+  relations?: IAnalysisRelation[],
+  importedBindings?: ReadonlyMap<string, ImportedBinding>,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
   if (name) {
-    symbols.push(createSymbol(filePath, getGoTypeKind(node), name, node));
+    const kind = getGoTypeKind(node);
+    symbols.push(createSymbol(filePath, kind, name, node));
+
+    if (kind !== 'struct' || !relations || !importedBindings) {
+      return;
+    }
+
+    const typeNode = node.childForFieldName('type') ?? node.namedChildren.at(-1);
+    for (const qualifiedType of getGoEmbeddedQualifiedTypes(typeNode)) {
+      const binding = getGoQualifiedTypeBinding(qualifiedType, importedBindings);
+      if (binding) {
+        addInheritRelation(
+          relations,
+          filePath,
+          qualifiedType.text,
+          binding.resolvedPath,
+          createSymbolId(filePath, kind, name),
+        );
+      }
+    }
+  }
+}
+
+export function handleGoConstSpec(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  const nameNode = node.childForFieldName('name') ?? node.namedChildren.find(child => child.type === 'identifier');
+  const name = getIdentifierText(nameNode);
+  if (name) {
+    symbols.push(createSymbol(filePath, 'constant', name, node));
+  }
+}
+
+export function handleGoShortVarDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  const leftExpressionList = node.namedChildren[0];
+  if (!leftExpressionList) {
+    return;
+  }
+
+  for (const child of leftExpressionList.namedChildren) {
+    const name = getIdentifierText(child);
+    if (name) {
+      symbols.push(createSymbol(filePath, 'local', name, child));
+    }
+  }
+}
+
+export function handleGoQualifiedTypeReference(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  currentSymbolId?: string,
+): void {
+  const binding = getGoQualifiedTypeBinding(node, importedBindings);
+  if (binding) {
+    addReferenceRelation(relations, filePath, node.text, binding.resolvedPath, currentSymbolId);
   }
 }
 
