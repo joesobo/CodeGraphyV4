@@ -123,7 +123,7 @@ Step(/^the Edge Types button is no longer disabled$/);
 Step(/^I see a list of node types with toggles$/);
 Step(/^I see a list of edge types with toggles$/);
 Step(/^the available edge types are (?:only )?(.+)$/);
-Step(/^the available C\+\+ node types are only (.+)$/);
+Step(/^the available (?:C\+\+|Go) node types are only (.+)$/);
 Step(/^the available C# node types are only (.+)$/);
 Step(/^the (.+) node type is not available for the (?:C\+\+|C#) example$/);
 Step(/^the visible graph includes the (.+) node (.+) from (.+)$/);
