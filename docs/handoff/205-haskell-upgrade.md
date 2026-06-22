@@ -10,18 +10,18 @@ This lane was started manually from `origin/main` on branch `codex/haskell-upgra
 
 The branch was merged with `origin/main` after PR #291 landed. Acceptance specs now live as Gherkin `.feature` files under `packages/extension/tests/acceptance/specs/**/*.feature`. Generated Playwright entrypoints, generated JSON IR, and DRY reports are ignored build artifacts and must not be committed.
 
-The current stop point is the acceptance gate. The Haskell example and this handoff document are agent-owned. The local acceptance spec at `packages/extension/tests/acceptance/specs/haskell-example.feature` has been drafted but must remain uncommitted until human review.
+The acceptance gate has been cleared: Joe reviewed and committed `packages/extension/tests/acceptance/specs/haskell-example.feature`. Implementation is now on the PR branch, and generated Playwright entrypoints, generated JSON IR, and DRY reports remain local build artifacts.
 
 ## Source Truth Audit
 
-The current Tree-sitter Haskell analyzer supports local module imports and calls to imported functions or data constructors. Calls are resolved by reading callable names from imported local modules, so explicit helper functions such as `makeUser`, `describeUser`, and `describeProfile` are reliable current call targets.
+The current Tree-sitter Haskell analyzer supports local module imports, imported type references, calls to imported functions and data constructors, and generic symbol extraction for the supported node rows. Calls and references respect explicit import lists, including `Type(..)` constructor imports.
 
-The AST can also support a broader Haskell contract that is not implemented yet: imported type references in signatures and data fields, top-level function/value declarations, record fields, function parameters, and local bindings. This matches the C# upgrade shape: C# does not stop at using/import edges; it uses Tree-sitter plus local indexing to expose references, calls, inheritance, and generic type symbols when the AST and resolver can support them.
+This follows the C# upgrade shape: support the generic CodeGraphy node and edge concepts that Tree-sitter plus local source indexing can reliably back, and keep Haskell-specific syntax concepts out of scope until there is a durable generic graph model for them.
 
 The parser/analyzer currently emits Haskell symbols for:
 
-- `newtype` declarations as `newtype`.
-- `data` declarations as `data`.
+- `newtype` declarations as `type`.
+- `data` declarations as `type`.
 - `class` declarations as `class`.
 - Argument-taking function equations as `function`.
 - Top-level `bind` nodes such as `main = ...` and `defaultRunnerId = ...`.
@@ -29,9 +29,9 @@ The parser/analyzer currently emits Haskell symbols for:
 - Function `patterns` that expose parameters.
 - Local `bind` and pattern nodes under `local_binds`.
 
-The analyzer uses top-level `bind` nodes as call-source context, but it does not currently emit them as Function symbols. That means `main = ...` can be a source for call relationships without being a visible Function node.
+The analyzer maps `main = ...` to a Function symbol and other top-level binds such as `defaultRunnerId = ...` to Constant symbols.
 
-Typeclass instance relationships are not a reliable generic graph concept today. Type synonyms also did not appear through the expected `type_synonym` path in the grammar version installed here, so the example avoids relying on them.
+Typeclass instance relationships are not a reliable generic graph concept today. Type synonyms remain out of the example contract for this card.
 
 ## Supported Contract For This Card
 
@@ -49,7 +49,7 @@ The upgraded example is one integrated scenario:
 - `Runner.hs` demonstrates `Greeting`, `RunnerId`, `Runner`, `Runnable`, `defaultRunnerId`, record fields, `greet`, `boot`, `renderGreeting`, parameters, and local bindings.
 - The model modules demonstrate `User`, `Profile`, `makeUser`, `describeUser`, and `describeProfile`.
 
-Expected counts for the local acceptance draft:
+Expected counts for the committed acceptance scenario:
 
 - File-only: 7 nodes, 0 connections.
 - Imports: 7 nodes, 5 connections.
@@ -64,14 +64,14 @@ Expected counts for the local acceptance draft:
 - Local slice with `Contains`: 9 nodes, 2 connections.
 - File + Function + Type + Class + Constant + Field + Parameter + Local with `Contains`: 35 nodes, 28 connections.
 
-The acceptance draft should assert the concrete `points to` relationships for each supported edge type, not only node presence. `Imports`, `References`, and `Calls` use file-level source-to-target assertions. `Contains` stays enabled through each node-type slice so every shown Haskell symbol category has visible ownership edges, followed by a full 28-edge symbol ownership check.
+The acceptance scenario asserts the concrete `points to` relationships for each supported edge type, not only node presence. `Imports`, `References`, and `Calls` use file-level source-to-target assertions. `Contains` stays enabled through each node-type slice so every shown Haskell symbol category has visible ownership edges, followed by a full 28-edge symbol ownership check.
 
-## Verification So Far
+## Verification
 
 - `pnpm install`
-- `pnpm --filter @codegraphy-dev/core exec vitest run tests/treeSitter/haskell/analyze.test.ts tests/treeSitter/haskell/symbols.test.ts`
+- `pnpm --filter @codegraphy-dev/core exec vitest run tests/treeSitter/haskell/analyze.test.ts tests/treeSitter/haskell/symbols.test.ts tests/treeSitter/capabilities.test.ts tests/graph/symbols.test.ts`
 - Parser probe from `packages/core` against the upgraded example source.
 - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/examplesWorkspace.test.ts`
+- `pnpm --filter @codegraphy-dev/core test`
+- `pnpm --filter @codegraphy-dev/extension run generate:acceptance`
 - Branch merged with `origin/main` at merge commit `946d65e4b692b67bd746d34b30d4c6d1c060f555` from PR #291.
-
-Do not continue into generated Playwright tests, focused failing unit tests, or implementation until the human has reviewed and committed the acceptance spec feature file. After the human commits it, run `pnpm --filter @codegraphy-dev/extension run generate:acceptance` to regenerate ignored local artifacts as needed, but do not commit generated output.
