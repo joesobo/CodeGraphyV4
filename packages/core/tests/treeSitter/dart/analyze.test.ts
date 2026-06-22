@@ -120,10 +120,11 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
       expect.objectContaining({
         kind: 'reference',
         sourceId: 'core:treesitter:reference',
-        specifier: 'RunLabel',
+        specifier: 'Profile',
         fromFilePath: runnerPath,
-        resolvedPath: path.join(workspaceRoot, 'lib/app/labels.dart'),
-        toFilePath: path.join(workspaceRoot, 'lib/app/labels.dart'),
+        fromSymbolId: `${runnerPath}:function:boot`,
+        resolvedPath: path.join(workspaceRoot, 'lib/model/profile.dart'),
+        toFilePath: path.join(workspaceRoot, 'lib/model/profile.dart'),
       }),
       expect.objectContaining({
         kind: 'reference',
@@ -142,6 +143,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeDart', () => {
         fromSymbolId: `${runnerPath}:function:boot`,
         resolvedPath: path.join(workspaceRoot, 'lib/model/user.dart'),
         toFilePath: path.join(workspaceRoot, 'lib/model/user.dart'),
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        sourceId: 'core:treesitter:call',
+        specifier: 'run',
+        variant: 'run',
+        fromFilePath: runnerPath,
+        fromSymbolId: `${runnerPath}:function:boot`,
+        resolvedPath: runnerPath,
+        toFilePath: runnerPath,
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([
