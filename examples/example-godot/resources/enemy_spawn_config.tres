@@ -1,0 +1,8 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://enemy-spawn-config"]
+
+[ext_resource type="Script" path="../scripts/data/spawn_config.gd" id="1_script"]
+
+[resource]
+spawn_interval = 3.0
+max_active_enemies = 3
+script = ExtResource("1_script")
