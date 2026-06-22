@@ -128,6 +128,18 @@ Result:
 - File analysis improved from `23352ms` to `3697ms` by skipping TypeScript
   project file enumeration during alias config parsing.
 
+Warm Graph Cache query proxy:
+
+- Command shape: `requestWorkspaceGraphQuery` with report `nodes` and
+  `limit: 1` against the current Graph Cache.
+- Wall time: `0.74s`.
+- Graph Query diagnostic duration: `601ms`.
+- Query graph size: `2514` nodes, `9108` edges.
+- Caveat: cache status reported `stale` with `plugin-signature-changed` because
+  the query status path compared against the user's real installed-plugin cache
+  while the benchmark loaded an isolated plugin cache. The query still loaded
+  the Graph Cache and built graph data.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time
