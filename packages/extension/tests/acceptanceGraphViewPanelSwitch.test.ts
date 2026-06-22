@@ -80,6 +80,18 @@ describe('acceptance graph view panel switches', () => {
     expect(pluginSwitch.click).toHaveBeenCalledOnce();
   });
 
+  it('can force an already-enabled plugin switch through an off-on transition', async () => {
+    const { setPluginSwitch } = await import('./acceptance/graphView/steps');
+    const pluginSwitch = togglingSwitchLocator({ initiallyChecked: true });
+    const frame = panelFrameForSwitch(pluginSwitch);
+
+    await setPluginSwitch({ graphFrame: frame } as never, 'Unity', true, {
+      forceTransition: true,
+    });
+
+    expect(pluginSwitch.click).toHaveBeenCalledTimes(2);
+  });
+
   it('retries enabling a present switch until the checked state settles', async () => {
     const { setPanelSwitch } = await import('./acceptance/graphView/steps');
     const switchInRow = settlingSwitchLocator({ checkedAfterClicks: 2 });
@@ -127,6 +139,28 @@ function settlingSwitchLocator({ checkedAfterClicks }: { checkedAfterClicks: num
       }
 
       return String(clicks >= checkedAfterClicks);
+    }),
+    isVisible: vi.fn(async () => true),
+  } as unknown as Locator;
+}
+
+function togglingSwitchLocator({ initiallyChecked }: { initiallyChecked: boolean }): Locator {
+  let checked = initiallyChecked;
+
+  return {
+    click: vi.fn(async () => {
+      checked = !checked;
+    }),
+    count: vi.fn(async () => 1),
+    first: vi.fn(function first(this: Locator) {
+      return this;
+    }),
+    getAttribute: vi.fn(async (name: string) => {
+      if (name !== 'aria-checked') {
+        return null;
+      }
+
+      return String(checked);
     }),
     isVisible: vi.fn(async () => true),
   } as unknown as Locator;
