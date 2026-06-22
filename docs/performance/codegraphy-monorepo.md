@@ -41,6 +41,27 @@ The first measured bottlenecks are Graph Cache persistence and file/plugin
 analysis. Graph construction is not currently a cold-load bottleneck for this
 workspace.
 
+Canonical Graph Cache write:
+
+- Command: `node packages/core/bin/codegraphy.js --verbose index .`
+- Wall time: `111.03s`
+- Files: `2367`
+- Nodes: `5078`
+- Edges: `9110`
+- File discovery: `1924ms`
+- File analysis: `92850ms`
+- Graph build: `63ms`
+- Graph Cache save: `15139ms`
+- Graph Cache size: `18MB`
+- Max resident set: `3133194240` bytes
+- Peak memory footprint: `4372432256` bytes
+
+Result:
+
+- Cold index wall time improved from `213.93s` to `111.03s`.
+- Graph Cache save improved from `122757ms` to `15139ms`.
+- Graph Cache size improved from `64638976` bytes to `18153472` bytes.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time

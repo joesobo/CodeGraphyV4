@@ -27,6 +27,14 @@ export interface WorkspaceAnalysisDatabaseSnapshot {
   relations: IAnalysisRelation[];
 }
 
+function readSymbolsFromFileAnalysis(files: WorkspaceAnalysisDatabaseSnapshot['files']): IAnalysisSymbol[] {
+  return files.flatMap(file => file.analysis.symbols ?? []);
+}
+
+function readRelationsFromFileAnalysis(files: WorkspaceAnalysisDatabaseSnapshot['files']): IAnalysisRelation[] {
+  return files.flatMap(file => file.analysis.relations ?? []);
+}
+
 export function readWorkspaceAnalysisDatabaseSnapshot(
   workspaceRoot: string,
 ): WorkspaceAnalysisDatabaseSnapshot {
@@ -40,20 +48,23 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
       const fileRows = readRowsSync(connection, FILE_ANALYSIS_ROWS_QUERY);
       const symbolRows = readRowsSync(connection, SYMBOL_ROWS_QUERY) as SymbolRow[];
       const relationRows = readRowsSync(connection, RELATION_ROWS_QUERY) as RelationRow[];
+      const files = fileRows.flatMap((row) => {
+        const entry = createSnapshotFileEntry(row);
+        return entry ? [entry] : [];
+      });
+      const symbols = symbolRows.flatMap((row) => {
+        const entry = createSnapshotSymbolEntry(row);
+        return entry ? [entry] : [];
+      });
+      const relations = relationRows.flatMap((row) => {
+        const entry = createSnapshotRelationEntry(row);
+        return entry ? [entry] : [];
+      });
 
       return {
-        files: fileRows.flatMap((row) => {
-          const entry = createSnapshotFileEntry(row);
-          return entry ? [entry] : [];
-        }),
-        symbols: symbolRows.flatMap((row) => {
-          const entry = createSnapshotSymbolEntry(row);
-          return entry ? [entry] : [];
-        }),
-        relations: relationRows.flatMap((row) => {
-          const entry = createSnapshotRelationEntry(row);
-          return entry ? [entry] : [];
-        }),
+        files,
+        symbols: symbols.length > 0 ? symbols : readSymbolsFromFileAnalysis(files),
+        relations: relations.length > 0 ? relations : readRelationsFromFileAnalysis(files),
       };
     });
   } catch (error) {

@@ -28,6 +28,8 @@
 - Phase-instrumented cold monorepo CLI indexing took `213.93s` wall time for 2367 files, 5078 nodes, and 9114 edges.
 - Phase split: plugin load `542ms`, plugin initialization `1ms`, file discovery `1900ms`, file analysis `88321ms`, graph build `62ms`, Graph Cache save `122757ms`, metadata persistence `4ms`.
 - Measured hot spots: Graph Cache persistence and file/plugin analysis. Graph construction is not a cold-load bottleneck on this workspace.
+- Canonical Graph Cache write iteration: cold indexing improved to `111.03s` wall time; Graph Cache save improved to `15139ms`; Graph Cache size improved from `64638976` bytes to `18153472` bytes.
+- Remaining measured cold-load hot spot: file/plugin analysis at `92850ms` on the canonical-cache run.
 - Raw logs are ignored under `reports/performance/`; commit only scripts and bounded summaries under `docs/performance/`.
 
 ## Success Metrics
