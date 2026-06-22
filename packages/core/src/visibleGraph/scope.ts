@@ -70,6 +70,73 @@ function getEndpointPreference(
   return endpointSpecificity;
 }
 
+function getEdgeKindSuffix(edge: IGraphData['edges'][number]): string {
+  const marker = edge.id.lastIndexOf('#');
+  return marker >= 0 ? edge.id.slice(marker) : `#${edge.kind}`;
+}
+
+function projectEdgeToVisibleNodes(
+  edge: IGraphData['edges'][number],
+  allNodeById: ReadonlyMap<string, IGraphData['nodes'][number]>,
+  visibleNodeIds: ReadonlySet<string>,
+): IGraphData['edges'][number] | undefined {
+  if (edge.kind === 'contains') {
+    return edge;
+  }
+
+  const from = projectEndpointToVisibleNode(edge.from, allNodeById, visibleNodeIds);
+  const to = projectEndpointToVisibleNode(edge.to, allNodeById, visibleNodeIds);
+  if (!from || !to) {
+    return undefined;
+  }
+
+  if (from === edge.from && to === edge.to) {
+    return edge;
+  }
+
+  if (from === to) {
+    return undefined;
+  }
+
+  return {
+    ...edge,
+    id: `${from}->${to}${getEdgeKindSuffix(edge)}`,
+    from,
+    to,
+  };
+}
+
+function projectEndpointToVisibleNode(
+  nodeId: string,
+  allNodeById: ReadonlyMap<string, IGraphData['nodes'][number]>,
+  visibleNodeIds: ReadonlySet<string>,
+): string | undefined {
+  if (visibleNodeIds.has(nodeId)) {
+    return nodeId;
+  }
+
+  const containingFilePath = allNodeById.get(nodeId)?.symbol?.filePath;
+  if (containingFilePath && visibleNodeIds.has(containingFilePath)) {
+    return containingFilePath;
+  }
+
+  return undefined;
+}
+
+function projectEdgesToVisibleNodes(
+  edges: IGraphData['edges'],
+  graphNodes: IGraphData['nodes'],
+  visibleNodes: IGraphData['nodes'],
+): IGraphData['edges'] {
+  const allNodeById = new Map(graphNodes.map((node) => [node.id, node]));
+  const visibleNodeIds = new Set(visibleNodes.map((node) => node.id));
+
+  return edges.flatMap((edge) => {
+    const projectedEdge = projectEdgeToVisibleNodes(edge, allNodeById, visibleNodeIds);
+    return projectedEdge ? [projectedEdge] : [];
+  });
+}
+
 export function applyGraphScope(
   graphData: IGraphData,
   scope: VisibleGraphScopeConfig,
@@ -87,7 +154,7 @@ export function applyGraphScope(
   const scopedEdges = graphData.edges.filter((edge) => !disabledEdgeTypes.has(edge.kind));
   const edges = keepMostSpecificUniqueEdges(
     nodes,
-    filterEdgesToNodes(scopedEdges, nodes),
+    projectEdgesToVisibleNodes(scopedEdges, graphData.nodes, nodes),
   );
   return {
     nodes,
