@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { globMatch, globToRegex } from '../../src/shared/globMatch';
+import { createGlobMatcher, globMatch, globToRegex } from '../../src/shared/globMatch';
 
 describe('shared/globMatch', () => {
   it('matches basename patterns against nested paths', () => {
@@ -23,5 +23,13 @@ describe('shared/globMatch', () => {
     expect(globMatch('src/types/api.d.ts', '*.d.ts')).toBe(true);
     expect(globMatch('src/types/apiXd.ts', '*.d.ts')).toBe(false);
     expect(globToRegex('*.d.ts')).toBeInstanceOf(RegExp);
+  });
+
+  it('creates reusable matchers with the same glob semantics', () => {
+    const matcher = createGlobMatcher('src/**/*.ts');
+
+    expect(matcher('src/index.ts')).toBe(true);
+    expect(matcher('src/deep/index.ts')).toBe(true);
+    expect(matcher('docs/index.ts')).toBe(false);
   });
 });

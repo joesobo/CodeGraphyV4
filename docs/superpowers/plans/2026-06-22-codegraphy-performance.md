@@ -31,6 +31,12 @@
 - Canonical Graph Cache write iteration: cold indexing improved to `111.03s` wall time; Graph Cache save improved to `15139ms`; Graph Cache size improved from `64638976` bytes to `18153472` bytes.
 - Shared content read cache iteration: cold indexing improved to `104.81s`; file/plugin analysis improved to `87297ms`; Graph Cache save stayed stable at `14632ms`.
 - Remaining measured cold-load hot spot: file/plugin analysis at `87297ms` on the shared-content run.
+- Godot class-name metadata fast path improved cold indexing from `104.67s` to `37.27s` and file analysis from `87918ms` to `23352ms`.
+- TypeScript alias-config no-scan parsing improved cold indexing from `37.27s` to `17.28s` and file analysis from `23352ms` to `3697ms`.
+- Warm Graph Cache query proxy took `0.74s` wall time with a `601ms` diagnostic duration for a `2514` node / `9108` edge query graph.
+- Visible Graph projection benchmark before filter optimization: current settings `775ms` median / `933ms` p95, folders-on Graph Scope `1369ms` median / `1445ms` p95, import-edge-hidden `153ms` median.
+- Visible Graph projection after reusable glob matchers and skipping direct edge matching for path-only filters: current settings `22ms` median / `26ms` p95, folders-on Graph Scope `31ms` median / `32ms` p95, import-edge-hidden `17ms` median / `18ms` p95.
+- Visible Graph scenario node and edge counts stayed unchanged across the filter optimization.
 - Raw logs are ignored under `reports/performance/`; commit only scripts and bounded summaries under `docs/performance/`.
 
 ## Success Metrics
@@ -248,15 +254,15 @@ If large Visible Graph messages dominate interaction latency, then avoiding unch
 If plugin analysis runs on files that cannot be affected by a changed setting, then narrowing reprocessing to affected providers/files will reduce Live Update and Graph Cache Sync time.
 ```
 
-- [ ] **Step 2: Add or extend a failing test for the selected bottleneck**
+- [x] **Step 2: Add or extend a failing test for the selected bottleneck**
 
 Use the closest seam: Core Package Graph Query tests for headless data work, Extension provider tests for message routing and refresh decisions, or Playwright for UI latency.
 
-- [ ] **Step 3: Implement the smallest behavior change**
+- [x] **Step 3: Implement the smallest behavior change**
 
 Keep each commit scoped to one measured path.
 
-- [ ] **Step 4: Re-run the targeted test and performance harness**
+- [x] **Step 4: Re-run the targeted test and performance harness**
 
 Compare the metric before committing.
 

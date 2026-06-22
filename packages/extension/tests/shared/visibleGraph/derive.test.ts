@@ -64,6 +64,31 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     });
 
 
+    it('filters edges by wildcard edge id patterns', () => {
+      const result = deriveVisibleGraph(
+        {
+          nodes: [
+            node('src/app.ts'),
+            node('src/generated.ts'),
+            node('src/other.ts'),
+          ],
+          edges: [
+            edge('src/app.ts', 'src/generated.ts', 'import'),
+            edge('src/other.ts', 'src/app.ts', 'reference'),
+          ],
+        },
+        {
+          filter: { patterns: ['src/*->src/generated.ts#import'] },
+        },
+      );
+
+      expect(ids(result.graphData)).toEqual({
+        nodes: ['src/app.ts', 'src/generated.ts', 'src/other.ts'],
+        edges: ['src/other.ts->src/app.ts#reference'],
+      });
+    });
+
+
 
     it('keeps enabled child symbol rows hidden when their parent rows are disabled', () => {
       const result = deriveVisibleGraph(

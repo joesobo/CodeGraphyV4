@@ -140,6 +140,31 @@ Warm Graph Cache query proxy:
   while the benchmark loaded an isolated plugin cache. The query still loaded
   the Graph Cache and built graph data.
 
+Visible Graph projection benchmark:
+
+- Command shape: `pnpm run perf:visible-graph-monorepo` against the existing
+  Graph Cache with the isolated package-plugin cache used by the cold-index
+  benchmark.
+- Before filter optimization:
+  - Warm Graph Cache graph build: `409ms`.
+  - Current settings projection: `775ms` median, `933ms` p95.
+  - No-filter projection: `5ms` median.
+  - Folders-on Graph Scope projection: `1369ms` median, `1445ms` p95.
+  - Import-edge-hidden projection: `153ms` median.
+- After reusable glob matchers and skipping direct edge matching for path-only
+  filters:
+  - Warm Graph Cache graph build: `378ms`.
+  - Current settings projection: `22ms` median, `26ms` p95.
+  - No-filter projection: `5ms` median.
+  - Folders-on Graph Scope projection: `31ms` median, `32ms` p95.
+  - Import-edge-hidden projection: `17ms` median, `18ms` p95.
+- Result:
+  - Current settings projection improved from `775ms` to `22ms`.
+  - Folders-on Graph Scope projection improved from `1369ms` to `31ms`.
+  - Import-edge-hidden projection improved from `153ms` to `17ms`.
+  - Scenario node and edge counts stayed unchanged after the filter
+    optimization.
+
 Full test baseline:
 
 - `pnpm run test`: `1523.98s` wall time

@@ -1,20 +1,39 @@
 import type { IGraphData } from '../graph/contracts';
-import { globMatch } from '../globMatch';
+import { createGlobMatcher } from '../globMatch';
 import type { VisibleGraphFilterConfig } from './contracts';
 import { filterEdgesToNodes } from './model';
 
-function nodeMatchesPattern(node: IGraphData['nodes'][number], pattern: string): boolean {
-  return globMatch(node.id, pattern)
-    || (node.symbol?.filePath ? globMatch(node.symbol.filePath, pattern) : false);
+type GlobMatcher = ReturnType<typeof createGlobMatcher>;
+interface CompiledFilterPattern {
+  matches: GlobMatcher;
+  pattern: string;
 }
 
-function edgeMatchesPattern(edge: IGraphData['edges'][number], pattern: string): boolean {
+function nodeMatchesPattern(node: IGraphData['nodes'][number], matches: GlobMatcher): boolean {
+  return matches(node.id)
+    || (node.symbol?.filePath ? matches(node.symbol.filePath) : false);
+}
+
+function edgeMatchesPattern(edge: IGraphData['edges'][number], matches: GlobMatcher): boolean {
   return (
-    globMatch(edge.id, pattern)
-    || globMatch(edge.kind, pattern)
-    || globMatch(`${edge.from}->${edge.to}`, pattern)
-    || globMatch(`${edge.from}->${edge.to}#${edge.kind}`, pattern)
+    matches(edge.id)
+    || matches(edge.kind)
+    || matches(`${edge.from}->${edge.to}`)
+    || matches(`${edge.from}->${edge.to}#${edge.kind}`)
   );
+}
+
+function canFilterEdgeDirectly(pattern: string): boolean {
+  return pattern.includes('->')
+    || pattern.includes('#')
+    || (!pattern.includes('*') && !pattern.includes('/'));
+}
+
+function compileFilterPatterns(patterns: readonly string[]): CompiledFilterPattern[] {
+  return patterns.map(pattern => ({
+    matches: createGlobMatcher(pattern),
+    pattern,
+  }));
 }
 
 export function applyFilterPatterns(
@@ -25,12 +44,20 @@ export function applyFilterPatterns(
     return graphData;
   }
 
+  const compiledPatterns = compileFilterPatterns(filter.patterns);
   const nodes = graphData.nodes.filter(
-    (node) => !filter.patterns.some((pattern) => nodeMatchesPattern(node, pattern)),
+    (node) => !compiledPatterns.some(({ matches }) => nodeMatchesPattern(node, matches)),
   );
   const nodeFilteredEdges = filterEdgesToNodes(graphData.edges, nodes);
+  const edgePatternMatchers = compiledPatterns
+    .filter(({ pattern }) => canFilterEdgeDirectly(pattern))
+    .map(({ matches }) => matches);
+  if (edgePatternMatchers.length === 0) {
+    return { nodes, edges: nodeFilteredEdges };
+  }
+
   const edges = nodeFilteredEdges.filter(
-    (edge) => !filter.patterns.some((pattern) => edgeMatchesPattern(edge, pattern)),
+    (edge) => !edgePatternMatchers.some((matches) => edgeMatchesPattern(edge, matches)),
   );
 
   return { nodes, edges };
