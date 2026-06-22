@@ -48,6 +48,27 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(fs.existsSync(path.join(workspacePath, 'UserSettings'))).toBe(false);
   });
 
+  it('keeps Unity example default edge visibility focused on using edges', () => {
+    const sourceSettingsPath = path.join(examplesRoot, 'example-unity/.codegraphy/settings.json');
+    const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+      plugins?: Array<{ enabled?: boolean; id?: string }>;
+    };
+
+    expect(sourceSettings.plugins).toEqual([
+      { id: 'codegraphy.markdown', enabled: true },
+      { id: 'codegraphy.unity', enabled: true },
+    ]);
+    expect(sourceSettings.edgeVisibility).toEqual(expect.objectContaining({
+      using: true,
+      type: false,
+      reference: false,
+      call: false,
+      event: false,
+      contains: false,
+    }));
+  });
+
   it('can add VS Code settings for scenarios that assert that node without changing CodeGraphy settings', async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
