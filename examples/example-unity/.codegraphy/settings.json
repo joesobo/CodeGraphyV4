@@ -57,7 +57,7 @@
   "nodeVisibility": {
     "file": true,
     "folder": false,
-    "package": false,
+    "package": true,
     "symbol": true,
     "symbol:function": false,
     "symbol:namespace": false,
