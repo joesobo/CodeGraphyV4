@@ -102,4 +102,24 @@ describe('extractDeclarationSymbols', () => {
       },
     ]);
   });
+
+  it('treats a variable after a standalone export annotation as an exported property', () => {
+    const symbols = extractDeclarationSymbols([
+      '@export_range(0.0, 600.0)',
+      'var speed: float = 300.0',
+    ].join('\n'), '/workspace/game/scripts/player.gd', 'scripts/player.gd');
+
+    expect(symbols).toEqual([
+      expect.objectContaining({
+        id: 'scripts/player.gd#speed:variable',
+        kind: 'variable',
+        name: 'speed',
+        metadata: {
+          language: 'gdscript',
+          pluginKind: 'exported-property',
+          source: 'codegraphy.gdscript',
+        },
+      }),
+    ]);
+  });
 });

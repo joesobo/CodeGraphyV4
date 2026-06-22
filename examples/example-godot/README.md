@@ -67,7 +67,7 @@ Expected behavior:
 
 ## Supported Godot Graph Contract
 
-This example defines the Godot graph contract the plugin should grow into. Generic CodeGraphy concepts should be used for `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Godot-specific concepts should be plugin-owned rows: `Scene`, `Resource`, `Autoload`, `Scene Node`, `Godot class_name`, `Signal`, `Exported Property`, and `Signal Connections`.
+This example defines the Godot graph contract exercised by the plugin. Generic CodeGraphy concepts are used for `Function`, `Enum`, `Constant`, `Variable`, `Loads`, `Inherits`, `References`, `Calls`, and `Contains`. Godot-specific concepts use plugin-owned rows: `Scene`, `Resource`, `Autoload`, `Scene Node`, `Godot class_name`, `Signal`, `Exported Property`, and `Signal Connections`.
 
 Measured current parser/plugin output for the generic surface:
 
@@ -83,7 +83,7 @@ Measured current parser/plugin output for the generic surface:
 - 3 `Constant` symbols
 - 1 `Enum` symbol
 
-Expected upgraded Godot-owned graph surface:
+Expected Godot-owned graph surface:
 
 - 5 `Scene` nodes
 - 1 `Resource` node
@@ -100,6 +100,6 @@ Expected plugin-owned Godot coverage:
 - `.tres` files produce `Resource` nodes.
 - `project.godot` `[autoload]` entries produce `Autoload` nodes.
 - `signal` declarations produce `Signal` nodes.
-- `@export` declarations produce `Exported Property` nodes.
+- Inline and standalone `@export` declarations produce `Exported Property` nodes.
 - Scene node ownership, script ownership, signal ownership, and exported property ownership use `Contains`.
-- Signal `connect(...)`, scene `[connection]`, and signal emit paths use `Signal Connections`.
+- Resolvable signal `connect(...)` calls use `Signal Connections`.

@@ -18,24 +18,22 @@ The current Godot plugin is parser-backed for GDScript and text resources:
 - `project.godot` remains a lightweight project-settings parser for `run/main_scene` and `[autoload]` resource settings.
 - No Godot LSP, Godot CLI, external process, or semantic type checker is involved.
 
-Current parser/plugin support is enough for these generic CodeGraphy concepts:
+The implemented parser/plugin support covers these generic CodeGraphy concepts:
 
 - Node types: `Function`, `Enum`, `Constant`, `Variable`, and plugin-owned `Godot class_name`.
-- Edge types: `Loads`, `Inherits`, `References`, and `Calls`.
+- Edge types: `Loads`, `Inherits`, `References`, `Calls`, and `Contains`.
 - Dynamic `load(...)` is parser-detected, but the example currently uses static `preload(...)` and text-resource/project settings for stable fixture counts.
 
-The upgraded contract should go beyond the current parser surface. Godot developers expect the graph to expose:
+The upgraded Godot-specific graph surface exposes:
 
 - `Scene` nodes from `.tscn` files.
 - `Resource` nodes from `.tres` files.
 - `Autoload` nodes from `project.godot` `[autoload]` entries.
 - `Scene Node` nodes from `[node ...]` entries in scenes.
 - `Signal` nodes from GDScript `signal` declarations.
-- `Exported Property` nodes from `@export` declarations.
+- `Exported Property` nodes from inline and standalone `@export` declarations.
 - `Contains` edges from files/scenes/scripts to those owned concepts.
-- `Signal Connections` edges from `connect(...)`, scene `[connection]` entries, and signal emit paths when the target can be resolved.
-
-One implementation gap is known before the acceptance gate: the plugin extracts `variable` symbols, but `contributeGraphScopeCapabilities()` does not currently declare the generic variable node capability. The acceptance contract should require `Variable`; after human acceptance, the implementation slice should add the failing test and minimal capability fix. The Godot-owned node and edge rows above will also need plugin node/edge definitions, capability declarations, extraction, step bindings, and generated Playwright tests after the human commits the spec.
+- `Signal Connections` edges from declared GDScript signals to receiver scripts for resolvable `connect(...)` calls.
 
 ## Example
 
@@ -67,7 +65,7 @@ Measured current parser/plugin output after the Godot-developer example update:
 - 3 `Constant` symbols.
 - 1 `Enum` symbol.
 
-Acceptance-owned Godot upgrade counts now also require the future plugin surface to expose:
+Acceptance-owned Godot upgrade counts now require the implemented plugin surface to expose:
 
 - 5 `Scene` nodes.
 - 1 `Resource` node.
@@ -80,4 +78,4 @@ Acceptance-owned Godot upgrade counts now also require the future plugin surface
 
 ## Acceptance Gate
 
-`packages/extension/tests/acceptance/specs/godot-example.md` is human-owned Markdown. It should remain local and uncommitted until human review. After the human commits the accepted spec, continue with generated Playwright tests, focused failing unit tests, and minimal implementation.
+The human-owned acceptance specs for this lane are Gherkin feature files under `packages/extension/tests/acceptance/specs/**/*.feature`. The Godot acceptance gate has been reviewed and committed by the human, so implementation work now proceeds through focused failing unit tests, minimal fixes, targeted verification, and CI.

@@ -139,13 +139,20 @@ class GDScriptPlugin implements IGDScriptAnalyzeFilePlugin {
       requiresTextResourceReanalysis ||= changes.resourceUidChanged;
     }
 
-    this.signalConnections.replaceFiles(files, workspaceRoot, resolver);
-
-    return readChangedAnalysisTargets(
+    const signalConnectionAnalysisTargets = this.signalConnections.replaceFiles(
+      files,
+      workspaceRoot,
       resolver,
-      requiresBroadReanalysis,
-      requiresTextResourceReanalysis,
     );
+
+    return [...new Set([
+      ...readChangedAnalysisTargets(
+        resolver,
+        requiresBroadReanalysis,
+        requiresTextResourceReanalysis,
+      ),
+      ...signalConnectionAnalysisTargets,
+    ])];
   }
 
   async analyzeFile(

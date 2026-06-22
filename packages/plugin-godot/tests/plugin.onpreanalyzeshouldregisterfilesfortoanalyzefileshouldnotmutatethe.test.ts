@@ -181,6 +181,66 @@ describe('createGDScriptPlugin lifecycle', () => {
     });
 
 
+    it('onFilesChanged should request signal declaration reanalysis when receiver connections change', async () => {
+      const plugin = createGodotPlugin();
+      await plugin.onPreAnalyze!(
+        [
+          {
+            absolutePath: '/workspace/scripts/player.gd',
+            relativePath: 'scripts/player.gd',
+            content: [
+              'class_name Player',
+              'signal fired',
+            ].join('\n'),
+          },
+          {
+            absolutePath: '/workspace/scripts/main.gd',
+            relativePath: 'scripts/main.gd',
+            content: [
+              'class_name Main',
+              'var _player: Player',
+            ].join('\n'),
+          },
+        ],
+        '/workspace',
+      );
+
+      const addedConnectionTargets = await plugin.onFilesChanged!(
+        [
+          {
+            absolutePath: '/workspace/scripts/main.gd',
+            relativePath: 'scripts/main.gd',
+            content: [
+              'class_name Main',
+              'var _player: Player',
+              'func _ready() -> void:',
+              '\t_player.fired.connect(_on_player_fired)',
+            ].join('\n'),
+          },
+        ],
+        '/workspace',
+      );
+
+      expect(addedConnectionTargets).toEqual(['scripts/player.gd']);
+
+      const removedConnectionTargets = await plugin.onFilesChanged!(
+        [
+          {
+            absolutePath: '/workspace/scripts/main.gd',
+            relativePath: 'scripts/main.gd',
+            content: [
+              'class_name Main',
+              'var _player: Player',
+            ].join('\n'),
+          },
+        ],
+        '/workspace',
+      );
+
+      expect(removedConnectionTargets).toEqual(['scripts/player.gd']);
+    });
+
+
 
     it('analyzeFile should not mutate the resolver with class_name declarations from the current file', async () => {
       const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
