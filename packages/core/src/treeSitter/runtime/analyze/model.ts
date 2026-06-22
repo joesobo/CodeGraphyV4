@@ -15,6 +15,7 @@ export interface TreeWalkAction<TContext> {
 }
 
 export interface SymbolWalkState {
+  currentSymbolKind?: string;
   currentSymbolId?: string;
 }
 

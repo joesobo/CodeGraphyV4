@@ -32,7 +32,7 @@ function visitDartNode(
   importedSymbolPaths: Map<string, string | null>,
   importedSymbolKinds: Map<string, string>,
   localValueReturningMethods: Set<string>,
-  pendingSymbolId: { value: string | undefined },
+  pendingSymbolContext: { value: { id?: string; kind: string } | undefined },
   symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'library_import') {
@@ -96,26 +96,22 @@ function visitDartNode(
   }
 
   if (node.type === 'method_signature') {
-    if (!symbolsEnabled) {
-      return;
-    }
-    const previousSymbolCount = symbols.length;
-    const action = handleDartFunctionSignature(node, filePath, symbols);
-    const symbolId = symbols.length > previousSymbolCount ? symbols.at(-1)?.id : undefined;
+    const targetSymbols = symbolsEnabled ? symbols : [];
+    const previousSymbolCount = targetSymbols.length;
+    const action = handleDartFunctionSignature(node, filePath, targetSymbols);
+    const symbolId = symbolsEnabled && targetSymbols.length > previousSymbolCount ? targetSymbols.at(-1)?.id : undefined;
     registerDartValueReturningMethod(node, filePath, importedSymbolPaths, importedSymbolKinds, localValueReturningMethods);
-    pendingSymbolId.value = symbolId;
+    pendingSymbolContext.value = { id: symbolId, kind: 'method' };
     addDartSignatureReferenceRelations(node, filePath, relations, importedSymbolPaths, symbolId);
     return action;
   }
 
   if (node.type === 'function_signature' && node.parent?.type !== 'method_signature') {
-    if (!symbolsEnabled) {
-      return;
-    }
-    const previousSymbolCount = symbols.length;
-    const action = handleDartFunctionSignature(node, filePath, symbols);
-    const symbolId = symbols.length > previousSymbolCount ? symbols.at(-1)?.id : undefined;
-    pendingSymbolId.value = symbolId;
+    const targetSymbols = symbolsEnabled ? symbols : [];
+    const previousSymbolCount = targetSymbols.length;
+    const action = handleDartFunctionSignature(node, filePath, targetSymbols);
+    const symbolId = symbolsEnabled && targetSymbols.length > previousSymbolCount ? targetSymbols.at(-1)?.id : undefined;
+    pendingSymbolContext.value = { id: symbolId, kind: 'function' };
     addDartSignatureReferenceRelations(node, filePath, relations, importedSymbolPaths, symbolId);
     return action;
   }
@@ -126,10 +122,15 @@ function visitDartNode(
     }
   }
 
-  if (node.type === 'function_body' && pendingSymbolId.value) {
-    const currentSymbolId = pendingSymbolId.value;
-    pendingSymbolId.value = undefined;
-    return { nextContext: { currentSymbolId } };
+  if (node.type === 'function_body' && pendingSymbolContext.value) {
+    const currentSymbol = pendingSymbolContext.value;
+    pendingSymbolContext.value = undefined;
+    return {
+      nextContext: {
+        currentSymbolId: currentSymbol.id,
+        currentSymbolKind: currentSymbol.kind,
+      },
+    };
   }
 
   if (node.type === 'identifier') {
@@ -142,7 +143,14 @@ function visitDartNode(
       localValueReturningMethods,
       state.currentSymbolId,
     );
-    handleDartIdentifierReference(node, filePath, relations, importedSymbolPaths, state.currentSymbolId);
+    handleDartIdentifierReference(
+      node,
+      filePath,
+      relations,
+      importedSymbolPaths,
+      state.currentSymbolId,
+      state.currentSymbolKind,
+    );
   }
 
   return;
@@ -159,7 +167,7 @@ export function analyzeDartFile(
   const importedSymbolPaths = new Map<string, string | null>();
   const importedSymbolKinds = new Map<string, string>();
   const localValueReturningMethods = new Set<string>();
-  const pendingSymbolId = { value: undefined as string | undefined };
+  const pendingSymbolContext = { value: undefined as { id?: string; kind: string } | undefined };
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   walkTree(tree.rootNode, {}, (node, state) =>
     visitDartNode(
@@ -172,7 +180,7 @@ export function analyzeDartFile(
       importedSymbolPaths,
       importedSymbolKinds,
       localValueReturningMethods,
-      pendingSymbolId,
+      pendingSymbolContext,
       symbolsEnabled,
     ),
   );
@@ -303,13 +311,14 @@ function handleDartIdentifierReference(
   relations: IAnalysisRelation[],
   symbolPaths: ReadonlyMap<string, string | null>,
   currentSymbolId?: string,
+  currentSymbolKind?: string,
 ): void {
   const resolvedPath = symbolPaths.get(node.text);
   if (
     !resolvedPath
     || resolvedPath === filePath
     || !isDartTypeLikeExpressionReference(node)
-    || isDartConcreteMethodBodyTypeReference(node, currentSymbolId)
+    || isDartConcreteMethodBodyTypeReference(node, currentSymbolId, currentSymbolKind)
   ) {
     return;
   }
@@ -320,8 +329,9 @@ function handleDartIdentifierReference(
 function isDartConcreteMethodBodyTypeReference(
   node: Parser.SyntaxNode,
   currentSymbolId?: string,
+  currentSymbolKind?: string,
 ): boolean {
-  return Boolean(currentSymbolId?.includes(':method:'))
+  return (currentSymbolKind === 'method' || Boolean(currentSymbolId?.includes(':method:')))
     && (node.parent?.type.includes('selector') || Boolean(findDartAncestor(node, 'function_body')));
 }
 
