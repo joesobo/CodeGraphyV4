@@ -195,6 +195,18 @@ describe('shared/visibleGraph/scope', () => {
 		]);
 	});
 
+	it('precompiles scoped symbol file path matchers', () => {
+		const scopedDefinitions = getScopedSymbolDefinitions({
+			nodes: [
+				{ type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
+			],
+			edges: [],
+		});
+
+		expect(scopedDefinitions[0]?.symbolFilePathMatches?.('scripts/player.gd')).toBe(true);
+		expect(scopedDefinitions[0]?.symbolFilePathMatches?.('scripts/player.ts')).toBe(false);
+	});
+
 	it('keeps symbol nodes that are disconnected after edge scope is applied', () => {
 		const result = applyGraphScope(
 			{

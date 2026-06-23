@@ -33,7 +33,7 @@ function getScopedSymbolVisibility(
 	scopedSymbolDefinitions: readonly ScopedSymbolDefinition[],
 ): ScopedSymbolDefinition | undefined {
 	const matchingDefinition = scopedSymbolDefinitions.find((item) => (
-		symbolMatchesScopedDefinition(node, item.definition)
+		symbolMatchesScopedDefinition(node, item)
 	));
 
 	return matchingDefinition;
