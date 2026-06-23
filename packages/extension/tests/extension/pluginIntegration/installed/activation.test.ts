@@ -158,7 +158,8 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     expect(pluginIds).toEqual(
       expect.arrayContaining(['codegraphy.markdown', installedPackage!.pluginId]),
     );
-    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalled();
   }, 15000);
 });

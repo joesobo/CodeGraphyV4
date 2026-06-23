@@ -15,7 +15,7 @@ import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import {
-  loadWorkspaceAnalysisDatabaseCacheAsync,
+  loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
 } from '../../database/cache/storage';
@@ -135,7 +135,8 @@ export abstract class WorkspacePipelineStateBase {
       return;
     }
 
-    this._cacheHydrationPromise ??= loadWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot)
+    this._cacheHydrationPromise ??= Promise.resolve()
+      .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot))
       .then((cache) => {
         if (Object.keys(this._cache.files).length === 0) {
           this._cache = cache;
