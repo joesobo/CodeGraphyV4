@@ -819,6 +819,25 @@ Interpretation:
   harness probe also still observed the same late visible stats timing, so the
   experiment was backed out. The next startup work should target product work
   inside cached load or webview render cost, not timeline-before-graph ordering.
+- The VS Code graph-view harness now rereads the extension-host performance log
+  after interaction sampling, so completed reports include backend stages for
+  Graph Scope toggles, marker saves, and restore saves instead of startup-only
+  host events. The first complete-host-events run measured a fresh cached load
+  at `4822ms` first graph readiness, Imports toggle at `196ms` wall-clock /
+  `61ms` in-webview, and live update at `697ms` wall-clock with a `537ms`
+  incremental request.
+- Incremental publish now skips merged group recomputation and `LEGENDS_UPDATED`
+  when an indexed changed-file refresh only changes node metric fields such as
+  `fileSize` or `churn`. It still replaces raw graph data, applies the view
+  transform, sends `GRAPH_DATA_UPDATED`, status, plugin, decoration, exporter,
+  toolbar, injection, post-analyze, and workspace-ready updates. A focused
+  publish test covers the metric-only contract. In the next rebuilt VS Code
+  probe, the marker save and restore save both emitted
+  `graphAnalysis.publish.groupsSkipped` with `groupInputsUnchanged`; the
+  post-refresh publish segment dropped from roughly `153ms`-`159ms` to
+  `90ms`-`93ms`. End-to-end request duration stayed in the same band
+  (`543ms`/`537ms`) because that run's TypeScript one-file analysis phase was
+  noisier (`94ms` versus `34ms`-`35ms` in the previous sample).
 
 Full test baseline:
 

@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IGraphData, IGraphNode } from '../../../../shared/graph/contracts';
 import type {
   GraphViewAnalysisExecutionHandlers,
   GraphViewAnalysisExecutionState,
@@ -58,9 +58,53 @@ function areGraphDataPayloadsEqual(left: IGraphData, right: IGraphData): boolean
   }
 }
 
+function areGraphGroupSymbolInputsEqual(
+  left: IGraphNode['symbol'],
+  right: IGraphNode['symbol'],
+): boolean {
+  if (left === right) {
+    return true;
+  }
+
+  if (!left || !right) {
+    return false;
+  }
+
+  return left.kind === right.kind
+    && left.pluginKind === right.pluginKind
+    && left.source === right.source
+    && left.language === right.language
+    && left.filePath === right.filePath;
+}
+
+function areGraphGroupNodeInputsEqual(left: IGraphNode, right: IGraphNode): boolean {
+  return left.id === right.id
+    && left.nodeType === right.nodeType
+    && areGraphGroupSymbolInputsEqual(left.symbol, right.symbol);
+}
+
+function doGraphViewGroupsNeedRecompute(
+  currentRawGraphData: IGraphData,
+  nextRawGraphData: IGraphData,
+): boolean {
+  if (currentRawGraphData.nodes.length !== nextRawGraphData.nodes.length) {
+    return true;
+  }
+
+  const nextNodesById = new Map(nextRawGraphData.nodes.map(node => [node.id, node]));
+  for (const currentNode of currentRawGraphData.nodes) {
+    const nextNode = nextNodesById.get(currentNode.id);
+    if (!nextNode || !areGraphGroupNodeInputsEqual(currentNode, nextNode)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function canReuseCurrentGraphPublication(
   state: GraphViewAnalysisExecutionState,
-  handlers: GraphViewAnalysisExecutionHandlers,
+  currentRawGraphData: IGraphData | undefined,
   rawGraphData: IGraphData,
   actualHasIndex: boolean,
   freshness: CodeGraphyIndexFreshness,
@@ -69,7 +113,6 @@ function canReuseCurrentGraphPublication(
     return false;
   }
 
-  const currentRawGraphData = handlers.getRawGraphData?.();
   return currentRawGraphData
     ? areGraphDataPayloadsEqual(currentRawGraphData, rawGraphData)
     : false;
@@ -105,9 +148,10 @@ export function publishAnalyzedGraph(
   }
 
   let stageStartedAt = Date.now();
+  const currentRawGraphData = handlers.getRawGraphData?.();
   const reuseCurrentGraphPublication = canReuseCurrentGraphPublication(
     state,
-    handlers,
+    currentRawGraphData,
     rawGraphData,
     actualHasIndex,
     status.freshness,
@@ -138,9 +182,18 @@ export function publishAnalyzedGraph(
     recordPublishStage('viewTransform', stageStartedAt);
 
     stageStartedAt = Date.now();
-    handlers.computeMergedGroups();
-    handlers.sendGroupsUpdated();
-    recordPublishStage('groups', stageStartedAt);
+    const canSkipGroupPublication = state.mode === 'incremental'
+      && currentRawGraphData
+      && !doGraphViewGroupsNeedRecompute(currentRawGraphData, rawGraphData);
+    if (canSkipGroupPublication) {
+      recordPublishStage('groupsSkipped', stageStartedAt, {
+        reason: 'groupInputsUnchanged',
+      });
+    } else {
+      handlers.computeMergedGroups();
+      handlers.sendGroupsUpdated();
+      recordPublishStage('groups', stageStartedAt);
+    }
   }
 
   stageStartedAt = Date.now();
