@@ -326,7 +326,7 @@ describe('graphView/provider/analysis/methods', () => {
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
   });
 
-  it('starts stale cache sync in the background after cached load returns', async () => {
+  it('defers stale cache sync until after cached load returns to the caller', async () => {
     const source = createSource({
       _analyzer: {
         getIndexStatus: vi.fn(() => ({
@@ -365,6 +365,10 @@ describe('graphView/provider/analysis/methods', () => {
     await methods._loadAndSendData();
     await Promise.resolve();
 
+    expect(events).toEqual(['load:start', 'load:end']);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     expect(events).toEqual(['load:start', 'load:end', 'analyze:start']);
 
     finishCacheSync?.();
@@ -373,7 +377,7 @@ describe('graphView/provider/analysis/methods', () => {
     expect(events).toEqual(['load:start', 'load:end', 'analyze:start', 'analyze:end']);
   });
 
-  it('starts incremental analysis without waiting for stale cache background sync', async () => {
+  it('starts incremental analysis before deferred stale cache background sync', async () => {
     const source = createSource({
       _firstAnalysis: false,
       _analyzer: {
@@ -413,18 +417,26 @@ describe('graphView/provider/analysis/methods', () => {
     await methods._loadAndSendData();
     await Promise.resolve();
     const incremental = methods._incrementalAnalyzeAndSendData(['src/changed.ts']);
-    await Promise.resolve();
+    await incremental;
 
     expect(events).toEqual([
       'load:start',
       'load:end',
-      'analyze:start',
       'incremental:start',
       'incremental:end',
     ]);
 
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(events).toEqual([
+      'load:start',
+      'load:end',
+      'incremental:start',
+      'incremental:end',
+      'analyze:start',
+    ]);
+
     finishCacheSync?.();
-    await incremental;
     await Promise.resolve();
 
     expect(source._changedFilePaths).toEqual(['src/changed.ts']);
