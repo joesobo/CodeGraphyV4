@@ -40,7 +40,7 @@ describe('shared/globMatch', () => {
   });
 
   it('keeps repeated simple single-glob checks cheap', () => {
-    const matchers = [
+    const patterns = [
       '*.ts',
       '*.tsx',
       '*.json',
@@ -68,29 +68,51 @@ describe('shared/globMatch', () => {
       '*.cpp',
       '*.c',
       '*.h',
-    ].flatMap((pattern) => [
+    ];
+    const matchers = patterns.flatMap((pattern) => [
       createGlobMatcher(pattern),
       createGlobMatcher(pattern),
       createGlobMatcher(pattern),
       createGlobMatcher(pattern),
     ]);
+    const regexMatchers = patterns.flatMap((pattern) => {
+      const regex = globToRegex(pattern);
+      return [
+        (filePath: string) => regex.test(filePath),
+        (filePath: string) => regex.test(filePath),
+        (filePath: string) => regex.test(filePath),
+        (filePath: string) => regex.test(filePath),
+      ];
+    });
     const paths = Array.from({ length: 2_300 }, (_, index) => (
       `packages/package-${index % 100}/src/file-${index}.${index % 5 === 0 ? 'ts' : 'txt'}`
     ));
 
-    const startedAt = performance.now();
-    let matchedCount = 0;
-    for (const filePath of paths) {
-      for (const matcher of matchers) {
-        if (matcher(filePath)) {
-          matchedCount += 1;
+    const countMatches = (nextMatchers: Array<(filePath: string) => boolean>) => {
+      let matchedCount = 0;
+      for (const filePath of paths) {
+        for (const matcher of nextMatchers) {
+          if (matcher(filePath)) {
+            matchedCount += 1;
+          }
         }
       }
-    }
+      return matchedCount;
+    };
+    countMatches(matchers);
+    countMatches(regexMatchers);
+
+    const startedAt = performance.now();
+    const matchedCount = countMatches(matchers);
     const elapsedMs = performance.now() - startedAt;
+    const regexStartedAt = performance.now();
+    const regexMatchedCount = countMatches(regexMatchers);
+    const regexElapsedMs = performance.now() - regexStartedAt;
 
     expect(matchedCount).toBe(1_840);
-    expect(elapsedMs).toBeLessThan(20);
+    expect(regexMatchedCount).toBe(matchedCount);
+    expect(elapsedMs).toBeLessThan(50);
+    expect(elapsedMs).toBeLessThan(regexElapsedMs * 0.75);
   });
 
   it('creates one matcher that preserves any-pattern glob semantics', () => {
