@@ -20,17 +20,24 @@ function areGraphDataPayloadsEqual(left: IGraphData, right: IGraphData): boolean
   }
 }
 
-function shouldSkipSettledDuplicateGraphData(
+function shouldSkipDuplicateGraphData(
   state: ReturnType<NonNullable<IHandlerContext['getState']>>,
   payload: IGraphData,
 ): boolean {
-  return Boolean(
-    state.graphData
-    && state.bootstrapComplete
-    && !state.awaitingInitialBootstrap
-    && !state.graphIsIndexing
-    && !state.isLoading
-    && areGraphDataPayloadsEqual(state.graphData, payload)
+  if (!state.graphData || state.graphIsIndexing || !areGraphDataPayloadsEqual(state.graphData, payload)) {
+    return false;
+  }
+
+  return (
+    (
+      state.bootstrapComplete
+      && !state.awaitingInitialBootstrap
+      && !state.isLoading
+    )
+    || (
+      state.awaitingInitialBootstrap
+      && !state.bootstrapComplete
+    )
   );
 }
 
@@ -44,7 +51,7 @@ export function handleGraphDataUpdated(
   });
 
   const state = ctx?.getState();
-  if (state && shouldSkipSettledDuplicateGraphData(state, message.payload)) {
+  if (state && shouldSkipDuplicateGraphData(state, message.payload)) {
     recordWebviewPerformanceEvent('extensionMessage.graphDataSkipped', {
       edgeCount: message.payload.edges.length,
       nodeCount: message.payload.nodes.length,

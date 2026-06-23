@@ -152,6 +152,31 @@ describe('webview/store/messageHandlers/graph', () => {
     ]);
   });
 
+  it('skips duplicate graph payloads while waiting for initial bootstrap completion', () => {
+    window.__codegraphyPerformance = { enabled: true, events: [] };
+    const payload = {
+      nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      awaitingInitialBootstrap: true,
+      bootstrapComplete: false,
+      graphData: JSON.parse(JSON.stringify(payload)),
+      graphIsIndexing: false,
+      isLoading: true,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toBeUndefined();
+
+    expect(window.__codegraphyPerformance.events).toEqual([
+      expect.objectContaining({ name: 'extensionMessage.graphDataUpdated' }),
+      expect.objectContaining({ name: 'extensionMessage.graphDataSkipped' }),
+    ]);
+  });
+
   it('settles initial bootstrap when graph data arrives after bootstrap and plugin assets are ready', () => {
     const payload = { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] };
     const state = createState({

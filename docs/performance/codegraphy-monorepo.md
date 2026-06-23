@@ -390,6 +390,21 @@ VS Code graph view benchmark:
     `671.5ms`, bootstrap at `1058.7ms`, and graph stats at `1139.7ms`.
   - Imports toggle wall-clock latency was `183ms` median, `489ms` p95; in-webview
     latency was `47ms` median, `50ms` p95.
+- After skipping duplicate graph payloads while the app is waiting for initial
+  bootstrap completion:
+  - VS Code launch: `1172ms`.
+  - Open Graph View to first rendered graph stats: `13885ms`.
+  - First-ready phases: command/open `1727ms`, acceptance-ready frame
+    `12108ms`, stats wait after frame discovery `38ms`.
+  - Host timeline still assigned `webview.html` at `49ms` after
+    `codegraphy.open` started.
+  - The latest startup webview event stream had a single `GRAPH_DATA_UPDATED`
+    for the `24522` node / `20781` edge payload and no second `74`-filter
+    visible-graph derive before bootstrap. The first filtered derive took
+    `245.6ms`, bootstrap completed at `504.1ms`, and first stats rendered at
+    `597.9ms` after the usable document started.
+  - Imports toggle wall-clock latency was `213ms` median, `267ms` p95; in-webview
+    latency was `58ms` median, `62ms` p95.
 
 Interpretation:
 
@@ -460,6 +475,10 @@ Interpretation:
   much later around `37.0s`. The harness now writes a `startup-ready` metrics
   record before Graph Scope interaction sampling so a later control timeout
   still preserves startup evidence.
+- The webview now skips duplicate graph payloads even while it is still waiting
+  for `APP_BOOTSTRAP_COMPLETE`. This keeps loading semantics intact but avoids
+  re-running visible-graph derivation when the same graph arrives before
+  bootstrap settles.
 
 Full test baseline:
 
