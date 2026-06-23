@@ -451,6 +451,20 @@ VS Code graph view benchmark:
     `APP_BOOTSTRAP_COMPLETE` in the ready handler; the bridge/timeline replay
     path needs better delivery/phase instrumentation before changing startup
     semantics.
+- After adding generic webview message-delivery tracing:
+  - VS Code launch: `not captured` in the latest partial report.
+  - Open Graph View to first rendered graph stats: `41989ms`.
+  - Initial rendered stats: `2240` nodes, `5331` connections.
+  - First-ready phases: command/open `1723ms`, acceptance-ready frame
+    `40244ms`, stats wait after frame discovery `14ms`.
+  - The browser received the first `GRAPH_DATA_UPDATED` at `108.7ms`, replayed
+    cached/settings messages around `397ms`-`412ms`, received a duplicate
+    `GRAPH_DATA_UPDATED` at `500.7ms`, skipped it at `510.2ms`, and only then
+    received `APP_BOOTSTRAP_COMPLETE` at `510.9ms`.
+  - The first real `22304` node / `74`-filter visible-graph derive started at
+    `694.3ms`, took `183.3ms`, and first stats rendered after that.
+  - Imports toggle wall-clock latency was `201ms` median, `214ms` p95; in-webview
+    optimistic-to-rendered latency was `53ms` median, `59ms` p95.
 
 Interpretation:
 
@@ -538,6 +552,10 @@ Interpretation:
   next startup iteration should instrument webview message delivery and cached
   timeline replay instead of committing a source reorder that does not change
   visible timing.
+- Message-delivery tracing confirms the browser currently sees bootstrap only
+  after graph data and the duplicate graph replay. The next startup hypothesis
+  should follow the extension-host post sequence and cached timeline bridge,
+  because the webview listener is receiving messages in that late order.
 
 Full test baseline:
 

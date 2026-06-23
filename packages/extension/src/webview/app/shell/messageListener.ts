@@ -11,6 +11,7 @@ import { handlePluginInjectMessage } from './messageListener/pluginInjection';
 import { removeDisabledPluginRegistrations } from './messageListener/pluginRegistrations';
 import { postWebviewReadyOnce, resetWebviewReadyPosted } from './messageListener/ready';
 import { handleCssSnippetsUpdatedMessage } from './messageListener/cssSnippets';
+import { recordWebviewPerformanceEvent } from '../../performance/marks';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -62,6 +63,8 @@ export function createMessageHandler(
     if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
       return;
     }
+
+    recordWebviewPerformanceEvent('extensionMessage.received', { type: raw.type });
 
     if (handlePluginInjectMessage(raw, injectPluginAssets)) {
       return;
