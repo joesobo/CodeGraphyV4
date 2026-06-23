@@ -13,6 +13,7 @@ import {
   scheduleEdgeVisibilityMessage,
   scheduleNodeVisibilityMessage,
 } from './messages';
+import { recordWebviewPerformanceEvent } from '../../performance/marks';
 
 const FOLDER_NODE_TYPE = 'folder';
 
@@ -68,6 +69,7 @@ function updateNodeVisibilityOptimistically(
       [nodeTypeId]: visible,
     },
   }));
+  recordWebviewPerformanceEvent('graphScope.nodeVisibility.optimistic', { nodeTypeId, visible });
 }
 
 function updateEdgeVisibilityOptimistically(edgeKind: string, visible: boolean): void {
@@ -77,6 +79,7 @@ function updateEdgeVisibilityOptimistically(edgeKind: string, visible: boolean):
       [edgeKind]: visible,
     },
   }));
+  recordWebviewPerformanceEvent('graphScope.edgeVisibility.optimistic', { edgeKind, visible });
 }
 
 export function resolveScopeRowClassName(enabled: boolean): string {

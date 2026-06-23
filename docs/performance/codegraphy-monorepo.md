@@ -207,6 +207,21 @@ VS Code graph view benchmark:
   - Open Graph View to first rendered graph stats: `9753ms`.
   - Initial rendered stats: `2249` nodes, `5333` connections.
   - Imports toggle latency: `1628ms` median, `2252ms` p95 across 5 samples.
+- Instrumented webview-stage run before compiled legend matchers:
+  - VS Code launch: `1297ms`.
+  - Open Graph View to first rendered graph stats: `10167ms`.
+  - Imports toggle latency: `1748ms` median, `2272ms` p95 across 5 samples.
+  - Stage medians: `visibleGraph.derive` about `176ms` to `187ms`;
+    `visibleGraph.applyLegendRules` about `460ms` to `490ms`;
+    `graphRuntime.buildGraphData` about `4ms` to `7ms`.
+- After compiling legend rule glob matchers once per legend snapshot:
+  - VS Code launch: `1411ms`.
+  - Open Graph View to first rendered graph stats: `7659ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `835ms` median, `846ms` p95 across 5 samples.
+  - Stage medians: `visibleGraph.derive` `176.1ms`;
+    `visibleGraph.applyLegendRules` `79.8ms`;
+    `graphRuntime.buildGraphData` `5.4ms`.
 
 Interpretation:
 
@@ -220,9 +235,14 @@ Interpretation:
 - The same-environment control varied back to `2891ms`; memoizing the viewport
   surface moved it to `1628ms` by keeping overlay, tooltip, stats, and
   accessibility state churn from re-rendering the force-graph surface.
-- The next user-facing bottleneck remains in the graph surface/runtime/render
-  path, likely the synchronous force-graph `graphData` update and full canvas
-  redraw for thousands of visible objects.
+- Instrumentation showed the force-graph data build is small (`4ms` to `7ms`);
+  the next measurable bottlenecks were legend rule application and visible
+  graph derivation.
+- Compiling legend glob matchers reduced the measured legend stage from roughly
+  `460ms`-`490ms` per pass to about `79ms`-`83ms`, moving the real toggle
+  median under `1s`.
+- The next user-facing bottleneck is visible graph derivation, which still takes
+  about `175ms`-`186ms` per pass and can run multiple times during one toggle.
 
 Full test baseline:
 

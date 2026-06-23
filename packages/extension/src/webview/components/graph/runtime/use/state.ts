@@ -31,6 +31,7 @@ import {
 } from '../../support/contracts/forceGraph';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
+import { measureWebviewPerformance } from '../../../../performance/marks';
 
 export interface GraphMouseState {
   ctrlKey: boolean;
@@ -208,18 +209,25 @@ export function useGraphRuntime({
   }
 
   const graphData = useMemo(() => {
-    const resolvedGraphMode = graphMode ?? '2d';
-    const nextGraphData = buildGraphData({
-      data,
-      appearance,
-      nodeSizeMode: nodeSizeModeRef.current,
-      theme: themeRef.current,
-      favorites,
-      graphViewContributions,
-      graphMode: resolvedGraphMode,
-      bidirectionalMode,
-      timelineActive,
-      previousNodes: graphDataRef.current.nodes,
+    const nextGraphData = measureWebviewPerformance('graphRuntime.buildGraphData', {
+      edgeCount: data.edges.length,
+      graphMode: graphMode ?? '2d',
+      nodeCount: data.nodes.length,
+      previousNodeCount: graphDataRef.current.nodes.length,
+    }, () => {
+      const resolvedGraphMode = graphMode ?? '2d';
+      return buildGraphData({
+        data,
+        appearance,
+        nodeSizeMode: nodeSizeModeRef.current,
+        theme: themeRef.current,
+        favorites,
+        graphViewContributions,
+        graphMode: resolvedGraphMode,
+        bidirectionalMode,
+        timelineActive,
+        previousNodes: graphDataRef.current.nodes,
+      });
     });
 
     graphDataRef.current = nextGraphData;
