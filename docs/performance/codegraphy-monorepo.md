@@ -636,6 +636,13 @@ Interpretation:
   but avoid the trailing full settings/control replay. This removes the
   measured `changedFiles` refresh-state burst and cuts repeated startup
   settings/control messages back to the expected ready/bootstrap sends.
+- Analysis request markers show the next startup stall is in request ownership,
+  not webview rendering. In the latest one-sample run, the first `load` request
+  started at `725ms`, an `incremental` request started at `1477ms`, the load
+  request completed at `1481ms` without publishing `GRAPH_DATA_UPDATED`, and
+  the first published graph came from a full `analyze` request at `36817ms`.
+  The next behavior change should keep changed-file work from preempting the
+  first cached webview load.
 
 Full test baseline:
 

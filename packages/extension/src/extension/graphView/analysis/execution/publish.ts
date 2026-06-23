@@ -4,6 +4,7 @@ import type {
   GraphViewAnalysisExecutionState,
 } from '../execution';
 import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
+import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
 export const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 
@@ -73,6 +74,15 @@ export function publishAnalyzedGraph(
   handlers.sendPluginWebviewInjections?.();
 
   const graphData = handlers.getGraphData();
+  recordExtensionPerformanceEvent('graphAnalysis.publish.graph', {
+    mode: state.mode,
+    rawNodeCount: rawGraphData.nodes.length,
+    rawEdgeCount: rawGraphData.edges.length,
+    nodeCount: graphData.nodes.length,
+    edgeCount: graphData.edges.length,
+    hasIndex: actualHasIndex,
+    freshness: status.freshness,
+  });
   handlers.sendGraphDataUpdated(graphData);
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
