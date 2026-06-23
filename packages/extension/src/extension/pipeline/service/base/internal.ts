@@ -109,7 +109,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
-    return buildWorkspacePipelineGraph(
+    const graphData = buildWorkspacePipelineGraph(
       this._cache,
       this._context,
       this._registry,
@@ -120,6 +120,8 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       this._lastDiscoveredDirectories,
       this._lastGitIgnoredPaths,
     );
+    this._lastGraphData = graphData;
+    return graphData;
   }
 
   protected _buildGraphDataFromAnalysis(
@@ -129,7 +131,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
     const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
-    return buildWorkspacePipelineGraphFromAnalysis(
+    const graphData = buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
       this._context,
       this._registry,
@@ -141,6 +143,8 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       { nodeVisibility },
       this._lastGitIgnoredPaths,
     );
+    this._lastGraphData = graphData;
+    return graphData;
   }
 
   protected _getWorkspaceRoot(): string | undefined {

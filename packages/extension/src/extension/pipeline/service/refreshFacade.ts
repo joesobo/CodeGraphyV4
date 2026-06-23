@@ -9,6 +9,8 @@ import type { IGraphData } from '../../../shared/graph/contracts';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
 import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
+import { getCachedGitHistoryChurnCounts } from '../../gitHistory/cache/state';
+import { createGitHistoryPluginSignature } from '../../gitHistory/pluginSignature';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
@@ -23,6 +25,19 @@ import {
 interface ChangedFileDiscoveryState {
   directories: string[];
   files: IDiscoveredFile[];
+}
+
+function normalizeGraphMetricFilePath(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function getGraphMetricNodeFilePath(node: IGraphData['nodes'][number]): string {
+  const symbolFilePath = node.symbol?.filePath;
+  return normalizeGraphMetricFilePath(
+    typeof symbolFilePath === 'string' && symbolFilePath.length > 0
+      ? symbolFilePath
+      : node.id,
+  );
 }
 
 function recordChangedFileRefreshPhase(
@@ -83,6 +98,8 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         this._buildGraphData(fileConnections, root, true, selectedPlugins),
       _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
         this._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
+      _patchGraphDataNodeMetrics: (graphData, filePaths) =>
+        this._patchGraphDataNodeMetrics(graphData, filePaths),
       _preAnalyzePlugins: (files, root, abortSignal, nextDisabledPlugins = disabledPlugins) =>
         this._preAnalyzePlugins(files, root, abortSignal, nextDisabledPlugins),
       _readAnalysisFiles: files => this._readAnalysisFiles(files),
@@ -114,6 +131,12 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         get: () => this._lastFileConnections,
         set: (fileConnections: WorkspacePipelineRefreshSource['_lastFileConnections']) => {
           this._lastFileConnections = fileConnections;
+        },
+      },
+      _lastGraphData: {
+        get: () => this._lastGraphData,
+        set: (graphData: WorkspacePipelineRefreshSource['_lastGraphData']) => {
+          this._lastGraphData = graphData;
         },
       },
       _lastWorkspaceRoot: {
@@ -192,6 +215,20 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         }),
       );
 
+    const patchGraphDataNodeMetrics = source._patchGraphDataNodeMetrics?.bind(source);
+    if (patchGraphDataNodeMetrics) {
+      source._patchGraphDataNodeMetrics = (graphData, filePaths) =>
+        timeChangedFileRefreshPhaseSync(
+          'patchGraphDataNodeMetrics',
+          () => patchGraphDataNodeMetrics(graphData, filePaths),
+          patchedGraphData => ({
+            changedFileCount: filePaths.length,
+            edgeCount: patchedGraphData.edges.length,
+            nodeCount: patchedGraphData.nodes.length,
+          }),
+        );
+    }
+
     const analyze = source.analyze.bind(source);
     source.analyze = (patterns, nextDisabledPlugins, signal, progress) =>
       timeChangedFileRefreshPhase(
@@ -215,6 +252,39 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     );
 
     return source;
+  }
+
+  private _patchGraphDataNodeMetrics(
+    graphData: IGraphData,
+    filePaths: readonly string[],
+  ): IGraphData {
+    const metricFilePaths = new Set(filePaths.map(normalizeGraphMetricFilePath));
+    if (metricFilePaths.size === 0) {
+      return graphData;
+    }
+
+    const churnCounts = getCachedGitHistoryChurnCounts(
+      this._context.workspaceState,
+      createGitHistoryPluginSignature(this._registry),
+    ) ?? {};
+    let changed = false;
+    const nodes = graphData.nodes.map((node) => {
+      const filePath = getGraphMetricNodeFilePath(node);
+      if (!metricFilePaths.has(filePath)) {
+        return node;
+      }
+
+      const fileSize = this._cache.files[filePath]?.size;
+      const churn = churnCounts[filePath] ?? 0;
+      if (node.fileSize === fileSize && node.churn === churn) {
+        return node;
+      }
+
+      changed = true;
+      return { ...node, fileSize, churn };
+    });
+
+    return changed ? { ...graphData, nodes } : graphData;
   }
 
   private _canReuseCurrentAnalysisForScope(
