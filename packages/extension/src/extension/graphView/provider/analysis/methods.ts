@@ -145,105 +145,107 @@ interface FullIndexAnalysisCoordinator {
   waitForForegroundFullIndexAnalysis(): Promise<boolean>;
 }
 
-function createFullIndexAnalysisCoordinator(
-  dependencies: Pick<GraphViewProviderAnalysisMethodDependencies, 'logError'>,
-): FullIndexAnalysisCoordinator {
-  let fullIndexAnalysisPromise: Promise<void> | undefined;
-  let fullIndexAnalysisKind: 'background' | 'foreground' | undefined;
-  let scheduledBackgroundAnalysis: ReturnType<typeof setTimeout> | undefined;
+type FullIndexAnalysisKind = 'background' | 'foreground';
 
-  const clearScheduledBackgroundAnalysis = (): void => {
-    if (scheduledBackgroundAnalysis === undefined) {
+class FullIndexAnalysisCoordinatorState implements FullIndexAnalysisCoordinator {
+  private _fullIndexAnalysisPromise: Promise<void> | undefined;
+  private _fullIndexAnalysisKind: FullIndexAnalysisKind | undefined;
+  private _scheduledBackgroundAnalysis: ReturnType<typeof setTimeout> | undefined;
+
+  constructor(
+    private readonly _dependencies: Pick<GraphViewProviderAnalysisMethodDependencies, 'logError'>,
+  ) {}
+
+  private _clearScheduledBackgroundAnalysis(): void {
+    if (this._scheduledBackgroundAnalysis === undefined) {
       return;
     }
 
-    clearTimeout(scheduledBackgroundAnalysis);
-    scheduledBackgroundAnalysis = undefined;
-  };
+    clearTimeout(this._scheduledBackgroundAnalysis);
+    this._scheduledBackgroundAnalysis = undefined;
+  }
 
-  const waitForFullIndexAnalysis = async (): Promise<boolean> => {
-    if (!fullIndexAnalysisPromise) {
+  async waitForFullIndexAnalysis(): Promise<boolean> {
+    if (!this._fullIndexAnalysisPromise) {
       return false;
     }
 
     try {
-      await fullIndexAnalysisPromise;
+      await this._fullIndexAnalysisPromise;
     } catch {
       // The request that owns the reindex reports the failure. Competing
       // fire-and-forget webview loads should not create duplicate errors.
     }
     return true;
-  };
+  }
 
-  const waitForForegroundFullIndexAnalysis = async (): Promise<boolean> => {
-    if (fullIndexAnalysisKind === 'background') {
+  async waitForForegroundFullIndexAnalysis(): Promise<boolean> {
+    if (this._fullIndexAnalysisKind === 'background') {
       return false;
     }
 
-    return waitForFullIndexAnalysis();
-  };
+    return this.waitForFullIndexAnalysis();
+  }
 
-  const runFullIndexAnalysis = async (
+  async runFullIndexAnalysis(
     runAnalysis: () => Promise<void>,
-    kind: 'background' | 'foreground' = 'foreground',
-  ): Promise<void> => {
+    kind: FullIndexAnalysisKind = 'foreground',
+  ): Promise<void> {
     if (kind === 'foreground') {
-      clearScheduledBackgroundAnalysis();
+      this._clearScheduledBackgroundAnalysis();
     }
 
-    if (fullIndexAnalysisPromise) {
-      await fullIndexAnalysisPromise;
+    if (this._fullIndexAnalysisPromise) {
+      await this._fullIndexAnalysisPromise;
       return;
     }
 
     const analysisPromise = runAnalysis();
-    fullIndexAnalysisPromise = analysisPromise;
-    fullIndexAnalysisKind = kind;
+    this._fullIndexAnalysisPromise = analysisPromise;
+    this._fullIndexAnalysisKind = kind;
     try {
       await analysisPromise;
     } finally {
-      if (fullIndexAnalysisPromise === analysisPromise) {
-        fullIndexAnalysisPromise = undefined;
-        fullIndexAnalysisKind = undefined;
+      if (this._fullIndexAnalysisPromise === analysisPromise) {
+        this._fullIndexAnalysisPromise = undefined;
+        this._fullIndexAnalysisKind = undefined;
       }
     }
-  };
+  }
 
-  const runFullIndexAnalysisInBackground = (
+  runFullIndexAnalysisInBackground(
     runAnalysis: () => Promise<void>,
     shouldStart: () => boolean = () => true,
-  ): void => {
-    if (scheduledBackgroundAnalysis !== undefined || fullIndexAnalysisPromise) {
+  ): void {
+    if (this._scheduledBackgroundAnalysis !== undefined || this._fullIndexAnalysisPromise) {
       return;
     }
 
-    scheduledBackgroundAnalysis = setTimeout(() => {
-      scheduledBackgroundAnalysis = undefined;
+    this._scheduledBackgroundAnalysis = setTimeout(() => {
+      this._scheduledBackgroundAnalysis = undefined;
       if (!shouldStart()) {
         return;
       }
 
-      void runFullIndexAnalysis(runAnalysis, 'background').catch(error => {
-        dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
+      void this.runFullIndexAnalysis(runAnalysis, 'background').catch(error => {
+        this._dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
       });
     }, 0);
-  };
+  }
 
-  const runAfterFullIndexAnalysis = async (
+  async runAfterFullIndexAnalysis(
     runAnalysis: () => Promise<void>,
-  ): Promise<void> => {
-    clearScheduledBackgroundAnalysis();
-    await waitForFullIndexAnalysis();
+  ): Promise<void> {
+    this._clearScheduledBackgroundAnalysis();
+    await this.waitForFullIndexAnalysis();
     await runAnalysis();
-  };
+  }
+}
 
-  return {
-    runAfterFullIndexAnalysis,
-    runFullIndexAnalysis,
-    runFullIndexAnalysisInBackground,
-    waitForFullIndexAnalysis,
-    waitForForegroundFullIndexAnalysis,
-  };
+function createFullIndexAnalysisCoordinator(
+  dependencies: Pick<GraphViewProviderAnalysisMethodDependencies, 'logError'>,
+): FullIndexAnalysisCoordinator {
+  return new FullIndexAnalysisCoordinatorState(dependencies);
 }
 
 function canReplayStaleCache(source: GraphViewProviderAnalysisMethodsSource): boolean {

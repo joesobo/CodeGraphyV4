@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MutableRefObject,
+  type ReactElement,
+  type SetStateAction,
+} from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
@@ -55,6 +64,74 @@ function createGraphAccessibilitySignature(
 
 function resolveLinkEndpoint(endpoint: string | FGNode): string {
   return typeof endpoint === 'string' ? endpoint : endpoint.id;
+}
+
+function areGraphAccessibilityNodePositionsReady(nodes: readonly FGNode[]): boolean {
+  return nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y));
+}
+
+function publishPluginGraphViewViewportState({
+  globalScale,
+  graph,
+  graphMode,
+  nodes,
+  pluginHost,
+  timelineActive,
+}: {
+  globalScale: number;
+  graph: GraphViewport2dControls | undefined;
+  graphMode: GraphViewStoreState['graphMode'];
+  nodes: readonly FGNode[];
+  pluginHost: WebviewPluginHost | undefined;
+  timelineActive: boolean;
+}): void {
+  if (!pluginHost || pluginHost.hasGraphViewViewportConsumers?.() === false) {
+    return;
+  }
+
+  pluginHost.setGraphViewViewportState(createGraphViewViewportState({
+    globalScale,
+    graph,
+    graphMode,
+    nodes: [...nodes],
+    timelineActive,
+  }));
+}
+
+function publishCurrentGraphAccessibilityItems({
+  accessibilityDirtyRef,
+  graph,
+  graphMode,
+  lastAccessibilitySignatureRef,
+  links,
+  nodes,
+  setAccessibilityItems,
+}: {
+  accessibilityDirtyRef: MutableRefObject<boolean>;
+  graph: GraphScreenProjector | undefined;
+  graphMode: GraphViewStoreState['graphMode'];
+  lastAccessibilitySignatureRef: MutableRefObject<string>;
+  links: readonly FGLink[];
+  nodes: readonly FGNode[];
+  setAccessibilityItems: Dispatch<SetStateAction<GraphAccessibilityItems>>;
+}): void {
+  if (graphMode !== '2d' || !accessibilityDirtyRef.current) {
+    return;
+  }
+
+  if (!areGraphAccessibilityNodePositionsReady(nodes)) {
+    return;
+  }
+
+  const signature = createGraphAccessibilitySignature(nodes, links);
+  if (signature === lastAccessibilitySignatureRef.current) {
+    accessibilityDirtyRef.current = false;
+    return;
+  }
+
+  lastAccessibilitySignatureRef.current = signature;
+  setAccessibilityItems(createGraphAccessibilityItems(nodes, links, graph));
+  accessibilityDirtyRef.current = false;
 }
 
 export function GraphViewportShell({
@@ -124,55 +201,29 @@ export function GraphViewportShell({
   };
 
   const publishGraphViewViewportState = (globalScale: number): void => {
-    if (!pluginHost) {
-      return;
-    }
-
-    if (pluginHost.hasGraphViewViewportConsumers?.() === false) {
-      return;
-    }
-
-    const graph = graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined;
-    pluginHost.setGraphViewViewportState(createGraphViewViewportState({
+    publishPluginGraphViewViewportState({
       globalScale,
-      graph,
+      graph: graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined,
       graphMode: viewState.graphMode,
       nodes: graphState.renderer.graphDataRef.current.nodes,
+      pluginHost,
       timelineActive: viewState.timelineActive,
-    }));
+    });
   };
 
   const publishGraphAccessibilityItems = (): void => {
-    if (viewState.graphMode !== '2d') {
-      return;
-    }
-
-    if (!accessibilityDirtyRef.current) {
-      return;
-    }
-
-    const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
     const nodes = graphState.renderer.graphDataRef.current.nodes;
     const links = graphState.renderer.graphDataRef.current.links;
-    const ready = nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y));
-    if (!ready) {
-      return;
-    }
-
-    const signature = createGraphAccessibilitySignature(nodes, links);
-    if (signature === lastAccessibilitySignatureRef.current) {
-      accessibilityDirtyRef.current = false;
-      return;
-    }
-
-    lastAccessibilitySignatureRef.current = signature;
-    const items = createGraphAccessibilityItems(
-      nodes,
+    const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
+    publishCurrentGraphAccessibilityItems({
+      accessibilityDirtyRef,
+      graph: typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
+      graphMode: viewState.graphMode,
+      lastAccessibilitySignatureRef,
       links,
-      typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
-    );
-    setAccessibilityItems(items);
-    accessibilityDirtyRef.current = false;
+      nodes,
+      setAccessibilityItems,
+    });
   };
 
   renderFramePostRef.current = (ctx, globalScale) => {

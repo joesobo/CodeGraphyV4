@@ -63,17 +63,25 @@ function areStringArraysEqual(left: readonly string[], right: readonly string[])
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
+function arePluginFilterPatternGroupEqual(
+  left: IPluginFilterPatternGroup,
+  right: IPluginFilterPatternGroup | undefined,
+): boolean {
+  if (!right) {
+    return false;
+  }
+
+  return left.pluginId === right.pluginId
+    && left.pluginName === right.pluginName
+    && areStringArraysEqual(left.patterns, right.patterns);
+}
+
 function arePluginFilterPatternGroupsEqual(
   left: readonly IPluginFilterPatternGroup[],
   right: readonly IPluginFilterPatternGroup[],
 ): boolean {
-  return left.length === right.length && left.every((leftGroup, index) => {
-    const rightGroup = right[index];
-    return Boolean(rightGroup)
-      && leftGroup.pluginId === rightGroup.pluginId
-      && leftGroup.pluginName === rightGroup.pluginName
-      && areStringArraysEqual(leftGroup.patterns, rightGroup.patterns);
-  });
+  return left.length === right.length
+    && left.every((leftGroup, index) => arePluginFilterPatternGroupEqual(leftGroup, right[index]));
 }
 
 function areWebviewReadyFilterPatternsEqual(

@@ -22,6 +22,43 @@ interface ScopedEdgeCandidate {
 	key?: string;
 }
 
+function rememberBestEndpointPreference(
+	bestEndpointPreferenceByKey: Map<string, number>,
+	key: string,
+	endpointPreference: number,
+): void {
+	const currentEndpointPreference = bestEndpointPreferenceByKey.get(key);
+	bestEndpointPreferenceByKey.set(
+		key,
+		currentEndpointPreference === undefined
+			? endpointPreference
+			: Math.max(currentEndpointPreference, endpointPreference),
+	);
+}
+
+function createScopedEdgeCandidate(
+	edge: IGraphData['edges'][number],
+	nodeById: ReadonlyMap<string, IGraphData['nodes'][number]>,
+	bestEndpointPreferenceByKey: Map<string, number>,
+): ScopedEdgeCandidate {
+	if (edge.kind === 'contains') {
+		return { edge };
+	}
+
+	const key = getEdgeContainingFileKey(edge, nodeById);
+	const endpointPreference = getEndpointPreference(edge, nodeById);
+	rememberBestEndpointPreference(bestEndpointPreferenceByKey, key, endpointPreference);
+	return { edge, endpointPreference, key };
+}
+
+function shouldKeepScopedEdgeCandidate(
+	candidate: ScopedEdgeCandidate,
+	bestEndpointPreferenceByKey: ReadonlyMap<string, number>,
+): boolean {
+	return !candidate.key
+		|| candidate.endpointPreference === (bestEndpointPreferenceByKey.get(candidate.key) ?? candidate.endpointPreference);
+}
+
 function keepMostSpecificUniqueEdges(
 	nodes: IGraphData['nodes'],
 	edges: IGraphData['edges'],
@@ -31,28 +68,14 @@ function keepMostSpecificUniqueEdges(
 	const candidates: ScopedEdgeCandidate[] = [];
 
   for (const edge of edges) {
-    if (edge.kind === 'contains') {
-			candidates.push({ edge });
-      continue;
-    }
-    const key = getEdgeContainingFileKey(edge, nodeById);
-    const endpointPreference = getEndpointPreference(edge, nodeById);
-    const currentEndpointPreference = bestEndpointPreferenceByKey.get(key);
-    bestEndpointPreferenceByKey.set(
-      key,
-      currentEndpointPreference === undefined
-        ? endpointPreference
-        : Math.max(currentEndpointPreference, endpointPreference),
-    );
-		candidates.push({ edge, endpointPreference, key });
+		candidates.push(createScopedEdgeCandidate(edge, nodeById, bestEndpointPreferenceByKey));
   }
 
 	const seenEdgeIds = new Set<string>();
 	const uniqueEdges: IGraphData['edges'] = [];
 
 	for (const candidate of candidates) {
-		if (candidate.key
-			&& candidate.endpointPreference !== (bestEndpointPreferenceByKey.get(candidate.key) ?? candidate.endpointPreference)) {
+		if (!shouldKeepScopedEdgeCandidate(candidate, bestEndpointPreferenceByKey)) {
 			continue;
 		}
 

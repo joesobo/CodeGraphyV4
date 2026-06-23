@@ -368,4 +368,71 @@ describe('indexing/refresh', () => {
     );
     expect(source._buildGraphData).not.toHaveBeenCalled();
   });
+
+  it('patches only node metrics when changed-file analysis preserves graph structure', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts')],
+      edges: [],
+    };
+    const patchGraphDataNodeMetrics = vi.fn(() => graph);
+    const source = createSource({
+      _lastFileAnalysis: new Map([
+        ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+      ]),
+      _lastFileConnections: new Map([
+        ['src/app.ts', []],
+      ]),
+      _patchGraphDataNodeMetrics: patchGraphDataNodeMetrics,
+    });
+    const previousGraphData = source._lastGraphData;
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      persistIndexMetadata: vi.fn(async () => undefined),
+    }))).resolves.toBe(graph);
+
+    expect(patchGraphDataNodeMetrics).toHaveBeenCalledWith(
+      previousGraphData,
+      ['src/app.ts'],
+    );
+    expect(source._buildGraphDataFromAnalysis).not.toHaveBeenCalled();
+  });
+
+  it('rebuilds the graph when changed-file analysis changes graph structure', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts'), createGraphNode('src/next.ts')],
+      edges: [],
+    };
+    const source = createSource({
+      _analyzeFiles: vi.fn(async () => ({
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map([
+          ['src/app.ts', createFileAnalysis('/workspace/src/app.changed.ts')],
+        ]),
+        fileConnections: new Map([
+          ['src/app.ts', []],
+        ]),
+      })),
+      _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastFileAnalysis: new Map([
+        ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+      ]),
+      _lastFileConnections: new Map([
+        ['src/app.ts', []],
+      ]) as Map<string, never>,
+      _patchGraphDataNodeMetrics: vi.fn(() => ({
+        nodes: [createGraphNode('patched')],
+        edges: [],
+      })),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions())).resolves.toBe(graph);
+
+    expect(source._patchGraphDataNodeMetrics).not.toHaveBeenCalled();
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      source._lastFileAnalysis,
+      '/workspace',
+      new Set(),
+    );
+  });
 });

@@ -20,6 +20,20 @@ function closeQueryResults(result: unknown): void {
   }
 }
 
+function firstQueryResult(result: unknown): LadybugQueryResultLike | undefined {
+  return (Array.isArray(result) ? result[0] : result) as LadybugQueryResultLike | undefined;
+}
+
+function readRowsFromQueryResultSync(queryResult: LadybugQueryResultLike | undefined): FileAnalysisRow[] {
+  return queryResult?.getAllSync?.() ?? [];
+}
+
+async function readRowsFromQueryResultAsync(
+  queryResult: LadybugQueryResultLike | undefined,
+): Promise<FileAnalysisRow[]> {
+  return queryResult?.getAll?.() ?? [];
+}
+
 export function runStatementSync(connection: lb.Connection, statement: string): void {
   const result = connection.querySync(statement);
   closeQueryResults(result);
@@ -74,8 +88,7 @@ export function readRowsSync(connection: lb.Connection, statement: string): File
   const result = connection.querySync(statement);
 
   try {
-    const queryResult = Array.isArray(result) ? result[0] : result;
-    return (queryResult as LadybugQueryResultLike | undefined)?.getAllSync?.() ?? [];
+    return readRowsFromQueryResultSync(firstQueryResult(result));
   } finally {
     closeQueryResults(result);
   }
@@ -85,8 +98,7 @@ export async function readRowsAsync(connection: lb.Connection, statement: string
   const result = await connection.query(statement);
 
   try {
-    const queryResult = Array.isArray(result) ? result[0] : result;
-    return await ((queryResult as LadybugQueryResultLike | undefined)?.getAll?.() ?? []);
+    return await readRowsFromQueryResultAsync(firstQueryResult(result));
   } finally {
     closeQueryResults(result);
   }

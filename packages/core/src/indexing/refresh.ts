@@ -44,6 +44,7 @@ export interface WorkspaceIndexRefreshSource {
   _lastGraphData: IGraphData;
   _lastWorkspaceRoot: string;
   _patchGraphDataNodeMetrics?(
+    this: void,
     graphData: IGraphData,
     filePaths: readonly string[],
   ): IGraphData;
@@ -194,14 +195,18 @@ function buildWorkspaceIndexGraphFromRefreshState(
   return graphData;
 }
 
+function listOrEmpty<T>(value: readonly T[] | undefined): readonly T[] {
+  return value ?? [];
+}
+
 function serializeWorkspaceIndexGraphAnalysis(analysis: IFileAnalysisResult): string {
   return JSON.stringify({
-    edgeTypes: analysis.edgeTypes ?? [],
+    edgeTypes: listOrEmpty(analysis.edgeTypes),
     filePath: analysis.filePath,
-    nodeTypes: analysis.nodeTypes ?? [],
-    nodes: analysis.nodes ?? [],
-    relations: analysis.relations ?? [],
-    symbols: analysis.symbols ?? [],
+    nodeTypes: listOrEmpty(analysis.nodeTypes),
+    nodes: listOrEmpty(analysis.nodes),
+    relations: listOrEmpty(analysis.relations),
+    symbols: listOrEmpty(analysis.symbols),
   });
 }
 
@@ -216,33 +221,67 @@ interface WorkspaceIndexRefreshGraphSnapshot {
   fileConnectionsByPath: Map<string, string>;
 }
 
+function canCaptureWorkspaceIndexRefreshGraphSnapshot(source: WorkspaceIndexRefreshSource): boolean {
+  return Boolean(source._patchGraphDataNodeMetrics) && !isWorkspaceIndexGraphDataEmpty(source._lastGraphData);
+}
+
+function isWorkspaceIndexGraphDataEmpty(graphData: IGraphData): boolean {
+  return graphData.nodes.length === 0 && graphData.edges.length === 0;
+}
+
 function captureWorkspaceIndexRefreshGraphSnapshot(
   source: WorkspaceIndexRefreshSource,
   files: readonly IDiscoveredFile[],
 ): WorkspaceIndexRefreshGraphSnapshot | undefined {
-  if (
-    !source._patchGraphDataNodeMetrics
-    || (source._lastGraphData.nodes.length === 0 && source._lastGraphData.edges.length === 0)
-  ) {
+  if (!canCaptureWorkspaceIndexRefreshGraphSnapshot(source)) {
     return undefined;
   }
 
-  const fileAnalysisByPath = new Map<string, string>();
-  const fileConnectionsByPath = new Map<string, string>();
+  const snapshot: WorkspaceIndexRefreshGraphSnapshot = {
+    fileAnalysisByPath: new Map(),
+    fileConnectionsByPath: new Map(),
+  };
+
   for (const file of files) {
-    const analysis = source._lastFileAnalysis.get(file.relativePath);
-    if (!analysis) {
+    if (!captureWorkspaceIndexRefreshSnapshotFile(source, snapshot, file.relativePath)) {
       return undefined;
     }
-
-    fileAnalysisByPath.set(file.relativePath, serializeWorkspaceIndexGraphAnalysis(analysis));
-    fileConnectionsByPath.set(
-      file.relativePath,
-      serializeWorkspaceIndexConnections(source._lastFileConnections.get(file.relativePath)),
-    );
   }
 
-  return { fileAnalysisByPath, fileConnectionsByPath };
+  return snapshot;
+}
+
+function captureWorkspaceIndexRefreshSnapshotFile(
+  source: WorkspaceIndexRefreshSource,
+  snapshot: WorkspaceIndexRefreshGraphSnapshot,
+  relativePath: string,
+): boolean {
+  const analysis = source._lastFileAnalysis.get(relativePath);
+  if (!analysis) {
+    return false;
+  }
+
+  snapshot.fileAnalysisByPath.set(relativePath, serializeWorkspaceIndexGraphAnalysis(analysis));
+  snapshot.fileConnectionsByPath.set(
+    relativePath,
+    serializeWorkspaceIndexConnections(source._lastFileConnections.get(relativePath)),
+  );
+  return true;
+}
+
+function workspaceIndexRefreshSnapshotMatchesFile(
+  snapshot: WorkspaceIndexRefreshGraphSnapshot,
+  analysisResult: IWorkspaceFileAnalysisResult,
+  relativePath: string,
+): boolean {
+  const analysis = analysisResult.fileAnalysis.get(relativePath);
+  if (!analysis) {
+    return false;
+  }
+
+  return snapshot.fileAnalysisByPath.get(relativePath) === serializeWorkspaceIndexGraphAnalysis(analysis)
+    && snapshot.fileConnectionsByPath.get(relativePath)
+      === serializeWorkspaceIndexConnections(analysisResult.fileConnections.get(relativePath));
 }
 
 function canPatchWorkspaceIndexRefreshGraphData(
@@ -254,28 +293,9 @@ function canPatchWorkspaceIndexRefreshGraphData(
     return false;
   }
 
-  for (const file of files) {
-    const analysis = analysisResult.fileAnalysis.get(file.relativePath);
-    if (!analysis) {
-      return false;
-    }
-
-    if (
-      snapshot.fileAnalysisByPath.get(file.relativePath)
-      !== serializeWorkspaceIndexGraphAnalysis(analysis)
-    ) {
-      return false;
-    }
-
-    if (
-      snapshot.fileConnectionsByPath.get(file.relativePath)
-      !== serializeWorkspaceIndexConnections(analysisResult.fileConnections.get(file.relativePath))
-    ) {
-      return false;
-    }
-  }
-
-  return true;
+  return files.every(file =>
+    workspaceIndexRefreshSnapshotMatchesFile(snapshot, analysisResult, file.relativePath),
+  );
 }
 
 function persistMetricOnlyIndexMetadata(

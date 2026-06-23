@@ -26,6 +26,11 @@ interface ChangedFileDiscoveryState {
   files: IDiscoveredFile[];
 }
 
+interface GraphMetricPatchResult {
+  changed: boolean;
+  node: IGraphData['nodes'][number];
+}
+
 function normalizeGraphMetricFilePath(filePath: string): string {
   return filePath.replace(/\\/g, '/');
 }
@@ -130,22 +135,31 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     ) ?? {};
     let changed = false;
     const nodes = graphData.nodes.map((node) => {
-      const filePath = getGraphMetricNodeFilePath(node);
-      if (!metricFilePaths.has(filePath)) {
-        return node;
-      }
-
-      const fileSize = this._cache.files[filePath]?.size;
-      const churn = churnCounts[filePath] ?? 0;
-      if (node.fileSize === fileSize && node.churn === churn) {
-        return node;
-      }
-
-      changed = true;
-      return { ...node, fileSize, churn };
+      const result = this._patchGraphDataNodeMetric(node, metricFilePaths, churnCounts);
+      changed ||= result.changed;
+      return result.node;
     });
 
     return changed ? { ...graphData, nodes } : graphData;
+  }
+
+  private _patchGraphDataNodeMetric(
+    node: IGraphData['nodes'][number],
+    metricFilePaths: ReadonlySet<string>,
+    churnCounts: Record<string, number>,
+  ): GraphMetricPatchResult {
+    const filePath = getGraphMetricNodeFilePath(node);
+    if (!metricFilePaths.has(filePath)) {
+      return { changed: false, node };
+    }
+
+    const fileSize = this._cache.files[filePath]?.size;
+    const churn = churnCounts[filePath] ?? 0;
+    if (node.fileSize === fileSize && node.churn === churn) {
+      return { changed: false, node };
+    }
+
+    return { changed: true, node: { ...node, fileSize, churn } };
   }
 
   private _canReuseCurrentAnalysisForScope(
@@ -208,31 +222,14 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     workspaceRoot: string,
     filePaths: readonly string[],
   ): ChangedFileDiscoveryState | undefined {
-    if (
-      filePaths.length === 0
-      || this._lastWorkspaceRoot !== workspaceRoot
-      || this._lastDiscoveredFiles.length === 0
-    ) {
+    if (!this._hasReusableChangedFileDiscoveryState(workspaceRoot, filePaths)) {
       return undefined;
     }
 
-    const discoveredByRelativePath = new Map(
-      this._lastDiscoveredFiles.map(file => [
-        file.relativePath.replace(/\\/g, '/'),
-        file,
-      ]),
-    );
+    const discoveredByRelativePath = this._createDiscoveredFilesByRelativePath();
 
     for (const filePath of filePaths) {
-      const relativePath = this._toWorkspaceRelativePath(workspaceRoot, filePath);
-      if (!relativePath || !discoveredByRelativePath.has(relativePath)) {
-        return undefined;
-      }
-
-      const absolutePath = path.isAbsolute(filePath)
-        ? filePath
-        : path.join(workspaceRoot, filePath);
-      if (!fs.existsSync(absolutePath)) {
+      if (!this._canReuseChangedFileDiscovery(filePath, workspaceRoot, discoveredByRelativePath)) {
         return undefined;
       }
     }
@@ -241,6 +238,41 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       directories: [...this._lastDiscoveredDirectories],
       files: this._lastDiscoveredFiles,
     };
+  }
+
+  private _hasReusableChangedFileDiscoveryState(
+    workspaceRoot: string,
+    filePaths: readonly string[],
+  ): boolean {
+    return filePaths.length > 0
+      && this._lastWorkspaceRoot === workspaceRoot
+      && this._lastDiscoveredFiles.length > 0;
+  }
+
+  private _createDiscoveredFilesByRelativePath(): Map<string, IDiscoveredFile> {
+    return new Map(
+      this._lastDiscoveredFiles.map(file => [
+        normalizeGraphMetricFilePath(file.relativePath),
+        file,
+      ]),
+    );
+  }
+
+  private _canReuseChangedFileDiscovery(
+    filePath: string,
+    workspaceRoot: string,
+    discoveredByRelativePath: ReadonlyMap<string, IDiscoveredFile>,
+  ): boolean {
+    const relativePath = this._toWorkspaceRelativePath(workspaceRoot, filePath);
+    return Boolean(
+      relativePath
+      && discoveredByRelativePath.has(relativePath)
+      && fs.existsSync(this._toAbsoluteChangedFilePath(workspaceRoot, filePath)),
+    );
+  }
+
+  private _toAbsoluteChangedFilePath(workspaceRoot: string, filePath: string): string {
+    return path.isAbsolute(filePath) ? filePath : path.join(workspaceRoot, filePath);
   }
 
   async refreshAnalysisScope(

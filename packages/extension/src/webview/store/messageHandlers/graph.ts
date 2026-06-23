@@ -200,6 +200,17 @@ export function handleGraphIndexProgress(
   };
 }
 
+function assignChangedGraphControl<K extends keyof PartialState>(
+  next: PartialState,
+  key: K,
+  currentValue: PartialState[K],
+  nextValue: PartialState[K],
+): void {
+  if (!arePlainValuesEqual(currentValue, nextValue)) {
+    next[key] = nextValue;
+  }
+}
+
 export function handleGraphControlsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
   ctx?: Pick<IHandlerContext, 'getState'>,
@@ -217,25 +228,11 @@ export function handleGraphControlsUpdated(
 
   const next: PartialState = {};
 
-  if (!arePlainValuesEqual(state.graphNodeTypes, message.payload.nodeTypes)) {
-    next.graphNodeTypes = message.payload.nodeTypes;
-  }
-
-  if (!arePlainValuesEqual(state.graphEdgeTypes, message.payload.edgeTypes)) {
-    next.graphEdgeTypes = message.payload.edgeTypes;
-  }
-
-  if (!arePlainValuesEqual(state.nodeColors, message.payload.nodeColors)) {
-    next.nodeColors = message.payload.nodeColors;
-  }
-
-  if (!arePlainValuesEqual(state.nodeVisibility, message.payload.nodeVisibility)) {
-    next.nodeVisibility = message.payload.nodeVisibility;
-  }
-
-  if (!arePlainValuesEqual(state.edgeVisibility, message.payload.edgeVisibility)) {
-    next.edgeVisibility = message.payload.edgeVisibility;
-  }
+  assignChangedGraphControl(next, 'graphNodeTypes', state.graphNodeTypes, message.payload.nodeTypes);
+  assignChangedGraphControl(next, 'graphEdgeTypes', state.graphEdgeTypes, message.payload.edgeTypes);
+  assignChangedGraphControl(next, 'nodeColors', state.nodeColors, message.payload.nodeColors);
+  assignChangedGraphControl(next, 'nodeVisibility', state.nodeVisibility, message.payload.nodeVisibility);
+  assignChangedGraphControl(next, 'edgeVisibility', state.edgeVisibility, message.payload.edgeVisibility);
 
   return Object.keys(next).length > 0 ? next : undefined;
 }

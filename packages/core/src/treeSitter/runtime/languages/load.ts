@@ -3,6 +3,7 @@ import type { TreeSitterRuntimeBinding } from './kinds';
 
 type TreeSitterConstructor = new () => Parser;
 type TreeSitterLanguageBindingName = TreeSitterRuntimeBinding['language'];
+type TreeSitterLanguageLoader = () => Promise<Parser.Language>;
 
 export interface ITreeSitterBindings {
   ParserCtor: TreeSitterConstructor;
@@ -46,53 +47,36 @@ function loadTreeSitterParserCtor(): Promise<TreeSitterConstructor> {
   return treeSitterParserCtorPromise;
 }
 
+const TREE_SITTER_LANGUAGE_LOADERS: Record<TreeSitterLanguageBindingName, TreeSitterLanguageLoader> = {
+  cLanguage: async () => (await import('tree-sitter-c')).default as unknown as Parser.Language,
+  cpp: async () => (await import('tree-sitter-cpp')).default as unknown as Parser.Language,
+  csharp: async () => (await import('tree-sitter-c-sharp')).default as unknown as Parser.Language,
+  dart: async () => (await import('@driftlog/tree-sitter-dart')).default as unknown as Parser.Language,
+  go: async () => (await import('tree-sitter-go')).default as unknown as Parser.Language,
+  haskell: async () => (await import('tree-sitter-haskell')).default as unknown as Parser.Language,
+  java: async () => (await import('tree-sitter-java')).default as unknown as Parser.Language,
+  javaScript: async () => (await import('tree-sitter-javascript')).default as unknown as Parser.Language,
+  kotlin: async () => (await import('@tree-sitter-grammars/tree-sitter-kotlin')).default as unknown as Parser.Language,
+  lua: async () => (await import('@tree-sitter-grammars/tree-sitter-lua')).default as unknown as Parser.Language,
+  objectiveC: async () => (await import('tree-sitter-objc')).default as unknown as Parser.Language,
+  php: async () => ((await import('tree-sitter-php')).default as unknown as { php: Parser.Language }).php,
+  python: async () => (await import('tree-sitter-python')).default as unknown as Parser.Language,
+  ruby: async () => (await import('tree-sitter-ruby')).default as unknown as Parser.Language,
+  rust: async () => (await import('tree-sitter-rust')).default as unknown as Parser.Language,
+  scala: async () => (await import('tree-sitter-scala')).default as unknown as Parser.Language,
+  swift: async () => (await import('tree-sitter-swift')).default as unknown as Parser.Language,
+  tsx: async () => ((await import('tree-sitter-typescript')).default as unknown as {
+    tsx: Parser.Language;
+  }).tsx,
+  typeScript: async () => ((await import('tree-sitter-typescript')).default as unknown as {
+    typescript: Parser.Language;
+  }).typescript,
+};
+
 async function loadTreeSitterLanguage(
   language: TreeSitterLanguageBindingName,
 ): Promise<Parser.Language> {
-  switch (language) {
-    case 'cLanguage':
-      return (await import('tree-sitter-c')).default as unknown as Parser.Language;
-    case 'cpp':
-      return (await import('tree-sitter-cpp')).default as unknown as Parser.Language;
-    case 'csharp':
-      return (await import('tree-sitter-c-sharp')).default as unknown as Parser.Language;
-    case 'dart':
-      return (await import('@driftlog/tree-sitter-dart')).default as unknown as Parser.Language;
-    case 'go':
-      return (await import('tree-sitter-go')).default as unknown as Parser.Language;
-    case 'haskell':
-      return (await import('tree-sitter-haskell')).default as unknown as Parser.Language;
-    case 'java':
-      return (await import('tree-sitter-java')).default as unknown as Parser.Language;
-    case 'javaScript':
-      return (await import('tree-sitter-javascript')).default as unknown as Parser.Language;
-    case 'kotlin':
-      return (await import('@tree-sitter-grammars/tree-sitter-kotlin')).default as unknown as Parser.Language;
-    case 'lua':
-      return (await import('@tree-sitter-grammars/tree-sitter-lua')).default as unknown as Parser.Language;
-    case 'objectiveC':
-      return (await import('tree-sitter-objc')).default as unknown as Parser.Language;
-    case 'php':
-      return ((await import('tree-sitter-php')).default as unknown as { php: Parser.Language }).php;
-    case 'python':
-      return (await import('tree-sitter-python')).default as unknown as Parser.Language;
-    case 'ruby':
-      return (await import('tree-sitter-ruby')).default as unknown as Parser.Language;
-    case 'rust':
-      return (await import('tree-sitter-rust')).default as unknown as Parser.Language;
-    case 'scala':
-      return (await import('tree-sitter-scala')).default as unknown as Parser.Language;
-    case 'swift':
-      return (await import('tree-sitter-swift')).default as unknown as Parser.Language;
-    case 'tsx':
-      return ((await import('tree-sitter-typescript')).default as unknown as {
-        tsx: Parser.Language;
-      }).tsx;
-    case 'typeScript':
-      return ((await import('tree-sitter-typescript')).default as unknown as {
-        typescript: Parser.Language;
-      }).typescript;
-  }
+  return TREE_SITTER_LANGUAGE_LOADERS[language]();
 }
 
 const treeSitterLanguageBindingPromises = new Map<

@@ -187,6 +187,33 @@ describe('graph view ready message', () => {
     )).toHaveLength(1);
   });
 
+  it('does not replay unchanged plugin filter groups after graph loading', async () => {
+    const handlers = createHandlers();
+    handlers.getPluginFilterPatterns.mockReturnValue(['**/*.meta']);
+    handlers.getPluginFilterGroups = vi.fn(() => [
+      { pluginId: 'codegraphy.unity', pluginName: 'Unity', patterns: ['**/*.meta'] },
+    ]);
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(handlers.sendMessage.mock.calls.filter(([message]) =>
+      (message as { type?: string }).type === 'FILTER_PATTERNS_UPDATED'
+    )).toHaveLength(1);
+  });
+
   it('replays plugin filters that become available while loading graph data', async () => {
     const handlers = createHandlers();
     let pluginPatterns: string[] = [];
