@@ -193,6 +193,20 @@ VS Code graph view benchmark:
   - Open Graph View to first rendered graph stats: `9612ms`.
   - Initial rendered stats: `2249` nodes, `5333` connections.
   - Imports toggle latency: `1595ms` median, `1620ms` p95 across 5 samples.
+- Fresh control after reverting the hidden-edge experiment:
+  - VS Code launch: `1292ms`.
+  - Open Graph View to first rendered graph stats: `9938ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `2891ms` median, `3563ms` p95 across 5 samples.
+- Rejected stable-edge experiment:
+  - Keeping the full rendered graph stable and hiding filtered edges through
+    force-graph visibility callbacks measured `2918ms` to `2922ms` median
+    across variants, so it did not improve over the same-environment control.
+- After memoizing the graph viewport surface:
+  - VS Code launch: `1478ms`.
+  - Open Graph View to first rendered graph stats: `9753ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `1628ms` median, `2252ms` p95 across 5 samples.
 
 Interpretation:
 
@@ -203,6 +217,9 @@ Interpretation:
   still not editor-snappy.
 - Passing arrow color and arrow position as primitive values instead of per-edge
   callbacks moves the median to `1595ms` and trims the p95 to `1620ms`.
+- The same-environment control varied back to `2891ms`; memoizing the viewport
+  surface moved it to `1628ms` by keeping overlay, tooltip, stats, and
+  accessibility state churn from re-rendering the force-graph surface.
 - The next user-facing bottleneck remains in the graph surface/runtime/render
   path, likely the synchronous force-graph `graphData` update and full canvas
   redraw for thousands of visible objects.

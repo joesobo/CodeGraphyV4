@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactElement, type Ref } from 'react';
+import { memo, useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactElement, type Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
@@ -106,6 +106,56 @@ function ViewportSurface({
     </SurfaceFallbackBoundary>
   );
 }
+
+function areSurface2dPropsEqual(
+  previous: ViewportSurfaceProps['surface2dProps'],
+  next: ViewportSurfaceProps['surface2dProps'],
+): boolean {
+  return previous.fg2dRef === next.fg2dRef
+    && previous.getArrowColor === next.getArrowColor
+    && previous.getArrowRelPos === next.getArrowRelPos
+    && previous.getLinkColor === next.getLinkColor
+    && previous.getLinkParticles === next.getLinkParticles
+    && previous.getLinkWidth === next.getLinkWidth
+    && previous.getParticleColor === next.getParticleColor
+    && previous.linkCanvasObject === next.linkCanvasObject
+    && previous.nodeCanvasObject === next.nodeCanvasObject
+    && previous.nodePointerAreaPaint === next.nodePointerAreaPaint
+    && previous.onRenderFramePost === next.onRenderFramePost
+    && previous.particleSize === next.particleSize
+    && previous.particleSpeed === next.particleSpeed
+    && previous.sharedProps === next.sharedProps;
+}
+
+function areSurface3dPropsEqual(
+  previous: ViewportSurfaceProps['surface3dProps'],
+  next: ViewportSurfaceProps['surface3dProps'],
+): boolean {
+  return previous.fg3dRef === next.fg3dRef
+    && previous.getArrowColor === next.getArrowColor
+    && previous.getLinkColor === next.getLinkColor
+    && previous.getLinkParticles === next.getLinkParticles
+    && previous.getLinkWidth === next.getLinkWidth
+    && previous.getParticleColor === next.getParticleColor
+    && previous.nodeThreeObject === next.nodeThreeObject
+    && previous.particleSize === next.particleSize
+    && previous.particleSpeed === next.particleSpeed
+    && previous.sharedProps === next.sharedProps;
+}
+
+function areViewportSurfacePropsEqual(
+  previous: ViewportSurfaceProps,
+  next: ViewportSurfaceProps,
+): boolean {
+  return previous.canvasBackgroundColor === next.canvasBackgroundColor
+    && previous.directionMode === next.directionMode
+    && previous.graphMode === next.graphMode
+    && previous.onSurface3dError === next.onSurface3dError
+    && areSurface2dPropsEqual(previous.surface2dProps, next.surface2dProps)
+    && areSurface3dPropsEqual(previous.surface3dProps, next.surface3dProps);
+}
+
+const MemoizedViewportSurface = memo(ViewportSurface, areViewportSurfacePropsEqual);
 
 function ViewportPluginOverlay({
   pluginHost,
@@ -289,7 +339,7 @@ export function Viewport({
           tabIndex={0}
         >
           <ViewportPluginBackground pluginHost={pluginHost} />
-          <ViewportSurface
+          <MemoizedViewportSurface
             canvasBackgroundColor={canvasBackgroundColor}
             directionMode={directionMode}
             graphMode={graphMode}

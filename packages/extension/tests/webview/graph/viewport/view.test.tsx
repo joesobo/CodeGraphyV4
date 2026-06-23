@@ -261,6 +261,62 @@ describe('Viewport', () => {
     );
   });
 
+  it('does not rerender the 2d graph surface when only viewport overlays change', () => {
+    const surface2dProps = createSurface2dProps();
+    const surface3dProps = createSurface3dProps(surface2dProps.sharedProps);
+    const { rerender } = render(
+      <Viewport
+        accessibilityItems={{ nodes: [], edges: [] }}
+        canvasBackgroundColor="transparent"
+        containerBackgroundColor="var(--cg-popover-translucent)"
+        borderColor="#222222"
+        containerRef={{ current: document.createElement('div') }}
+        directionMode="arrows"
+        graphMode="2d"
+        handleContextMenu={vi.fn()}
+        handleMenuAction={vi.fn()}
+        handleMouseDownCapture={vi.fn()}
+        handleMouseLeave={vi.fn()}
+        handleMouseMoveCapture={vi.fn()}
+        handleMouseUpCapture={vi.fn()}
+        menuEntries={createMenuEntries()}
+        surface2dProps={surface2dProps}
+        surface3dProps={surface3dProps}
+        tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
+      />,
+    );
+
+    expect(harness.surface2d).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <Viewport
+        accessibilityItems={{ nodes: [], edges: [{ kind: 'edge', id: 'edge-a', label: 'Edge A' }] }}
+        canvasBackgroundColor="transparent"
+        containerBackgroundColor="var(--cg-popover-translucent)"
+        borderColor="#222222"
+        containerRef={{ current: document.createElement('div') }}
+        directionMode="arrows"
+        graphMode="2d"
+        handleContextMenu={vi.fn()}
+        handleMenuAction={vi.fn()}
+        handleMouseDownCapture={vi.fn()}
+        handleMouseLeave={vi.fn()}
+        handleMouseMoveCapture={vi.fn()}
+        handleMouseUpCapture={vi.fn()}
+        menuEntries={createMenuEntries()}
+        surface2dProps={surface2dProps}
+        surface3dProps={surface3dProps}
+        tooltipData={{ visible: true, nodeRect: { x: 1, y: 2, radius: 3 }, path: 'src/next.ts', info: null, pluginSections: [] }}
+      />,
+    );
+
+    expect(harness.surface2d).toHaveBeenCalledTimes(1);
+    expect(harness.nodeTooltip).toHaveBeenCalledWith(expect.objectContaining({
+      path: 'src/next.ts',
+      visible: true,
+    }));
+  });
+
   it('renders the 3d graph surface when graphMode is 3d', async () => {
     renderViewport({ graphMode: '3d' });
 
