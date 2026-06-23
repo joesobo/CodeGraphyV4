@@ -168,6 +168,7 @@ export function publishAnalyzedGraph(
     edgeCount: graphData.edges.length,
     hasIndex: actualHasIndex,
     freshness: status.freshness,
+    freshnessDetail: status.detail,
   });
   if (!reuseCurrentGraphPublication) {
     stageStartedAt = Date.now();

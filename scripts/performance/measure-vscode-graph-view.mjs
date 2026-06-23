@@ -461,7 +461,7 @@ async function measureSwitchTransition(frame, label, enabled) {
   };
 }
 
-async function measureLiveUpdateTransition({
+export async function measureLiveUpdateTransition({
   extensionHostLogPath,
   frame,
   liveUpdateFilePath,
@@ -477,9 +477,12 @@ async function measureLiveUpdateTransition({
   await resetWebviewPerformanceEvents(frame);
   const startedAtEpoch = Date.now();
   const startedAt = performance.now();
+  let markerWritten = false;
+  let updateRequestCompletedAt;
 
   try {
     await writeFile(absoluteFilePath, `${originalContent}${marker}`);
+    markerWritten = true;
     const requestEvent = await waitForExtensionHostPerformanceEvent(
       extensionHostLogPath,
       events => findCompletedExtensionHostRequestAfter(events, {
@@ -487,6 +490,7 @@ async function measureLiveUpdateTransition({
         startedAt: startedAtEpoch,
       }),
     );
+    updateRequestCompletedAt = requestEvent.at;
 
     return {
       durationMs: Math.round(performance.now() - startedAt),
@@ -496,7 +500,20 @@ async function measureLiveUpdateTransition({
       webviewEvents: await readWebviewPerformanceEvents(frame),
     };
   } finally {
-    await writeFile(absoluteFilePath, originalContent);
+    if (markerWritten) {
+      const restoreStartedAtEpoch = Date.now();
+      await writeFile(absoluteFilePath, originalContent);
+      await waitForExtensionHostPerformanceEvent(
+        extensionHostLogPath,
+        events => findCompletedExtensionHostRequestAfter(events, {
+          mode: LIVE_UPDATE_REQUEST_MODE,
+          startedAt: typeof updateRequestCompletedAt === 'number'
+            ? Math.max(restoreStartedAtEpoch, updateRequestCompletedAt + 1)
+            : restoreStartedAtEpoch,
+        }),
+      );
+      await waitForExtensionHostRequestIdle(extensionHostLogPath, LIVE_UPDATE_REQUEST_MODE);
+    }
   }
 }
 

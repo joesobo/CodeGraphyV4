@@ -59,6 +59,25 @@ describe('repoSettings/freshness/index', () => {
     });
   });
 
+  it('ignores generated pending changed files when evaluating index freshness', () => {
+    expect(evaluateCodeGraphyIndexStatus({
+      meta: {
+        ...indexedMeta,
+        pendingChangedFiles: [
+          '/workspace/packages/plugin-typescript/.turbo',
+          '/workspace/.worktrees/speed-up-codegraphy/packages/extension/src/extension.ts',
+        ],
+      },
+      currentCommit: 'abc123',
+      pluginSignature: 'plugins',
+      settingsSignature: 'settings',
+    })).toMatchObject({
+      freshness: 'fresh',
+      hasIndex: true,
+      staleReasons: [],
+    });
+  });
+
   it('describes plural pending changed files', () => {
     expect(evaluateCodeGraphyIndexStatus({
       meta: {

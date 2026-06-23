@@ -186,7 +186,10 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   }
 
   protected async _persistIndexMetadata(): Promise<void> {
-    await persistWorkspacePipelineIndexMetadata(this._getWorkspaceRoot(), {
+    const workspaceRoot = this._getWorkspaceRoot();
+    await persistWorkspacePipelineIndexMetadata(workspaceRoot, {
+      getCurrentCommitSha: () =>
+        workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
       getPluginSignature: () => this._getPluginSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
       warn: (message: string, error: unknown) => {

@@ -9,6 +9,7 @@ import {
   readCodeGraphyWorkspaceMeta,
   readCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceStatus,
+  writeCodeGraphyWorkspaceMeta,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src';
 
@@ -91,6 +92,30 @@ describe('CodeGraphy Workspace status', () => {
     })).toMatchObject({
       state: 'stale',
       staleReasons: ['plugin-signature-changed'],
+    });
+  });
+
+  it('does not mark the Graph Cache stale for generated pending refresh paths', async () => {
+    const workspaceRoot = await createWorkspace();
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...meta,
+      pendingChangedFiles: [
+        path.join(workspaceRoot, 'packages/plugin-typescript/.turbo'),
+        path.join(workspaceRoot, '.worktrees/speed-up-codegraphy/packages/core/src/index.ts'),
+      ],
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+    })).toMatchObject({
+      state: 'fresh',
+      staleReasons: [],
     });
   });
 });
