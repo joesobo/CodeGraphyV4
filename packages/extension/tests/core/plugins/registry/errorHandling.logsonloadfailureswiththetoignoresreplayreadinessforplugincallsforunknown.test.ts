@@ -78,7 +78,9 @@ describe('PluginRegistry error handling', () => {
 
       registry.register(plugin);
       registry.notifyWorkspaceReady({ nodes: [], edges: [] });
-      await registry.notifyPreAnalyze([], '/workspace');
+      await registry.notifyPreAnalyze([
+        { absolutePath: '/workspace/a.test', relativePath: 'a.test', content: 'const x = 1;' },
+      ], '/workspace');
       registry.notifyPostAnalyze({ nodes: [], edges: [] });
       registry.notifyGraphRebuild({ nodes: [], edges: [] });
       registry.notifyWebviewReady();
