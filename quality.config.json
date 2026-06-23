@@ -224,6 +224,39 @@
 				]
 			}
 		},
+		"codegraphy-svelte-example": {
+			"boundaries": {
+				"entrypoints": [
+					"src/loadFeature.ts",
+					"src/main.ts",
+					"src/types.ts"
+				]
+			}
+		},
+		"codegraphy-typescript-example": {
+			"boundaries": {
+				"entrypoints": [
+					"src/alias/themePack.ts",
+					"src/index.ts",
+					"src/lazyPreview.ts",
+					"src/palette.ts",
+					"src/paletteRunner.ts",
+					"src/registry.ts",
+					"src/scratchpad.ts",
+					"src/seedSettings.ts",
+					"src/themeLabels.ts"
+				]
+			}
+		},
+		"codegraphy-vue-example": {
+			"boundaries": {
+				"entrypoints": [
+					"src/composables/useCounter.ts",
+					"src/data/users.ts",
+					"src/main.ts"
+				]
+			}
+		},
 		"mcp": {
 			"crap": {
 				"coverage": {
@@ -338,6 +371,13 @@
 				]
 			}
 		},
+		"plugin-svelte": {
+			"boundaries": {
+				"entrypoints": [
+					"src/plugin.ts"
+				]
+			}
+		},
 		"plugin-typescript": {
 			"crap": {
 				"coverage": {
@@ -356,6 +396,20 @@
 					"coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
 				}
 			},
+			"boundaries": {
+				"entrypoints": [
+					"src/plugin.ts"
+				]
+			}
+		},
+		"plugin-unity": {
+			"boundaries": {
+				"entrypoints": [
+					"src/lifecycle.ts"
+				]
+			}
+		},
+		"plugin-vue": {
 			"boundaries": {
 				"entrypoints": [
 					"src/plugin.ts"
