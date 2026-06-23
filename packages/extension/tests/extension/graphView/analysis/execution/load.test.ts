@@ -391,6 +391,39 @@ describe('graph view analysis execution load', () => {
     });
   });
 
+  it('routes incremental refreshes without reading index freshness', async () => {
+    const incrementalGraph = {
+      nodes: [{ id: 'src/changed.ts', label: 'src/changed.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const getIndexStatus = vi.fn(() => {
+      throw new Error('incremental refresh should not read index freshness');
+    });
+    const refreshChangedFiles = vi.fn(async () => incrementalGraph);
+    const state = createExecutionState({
+      mode: 'incremental',
+      changedFilePaths: ['src/changed.ts'],
+      analyzer: createExecutionAnalyzer({
+        getIndexStatus,
+        refreshChangedFiles,
+      }),
+      analyzerInitialized: true,
+    });
+
+    const result = await loadGraphViewRawData(
+      new AbortController().signal,
+      state,
+      createExecutionHandlers().handlers,
+    );
+
+    expect(result).toEqual({
+      rawGraphData: incrementalGraph,
+      shouldDiscover: false,
+    });
+    expect(getIndexStatus).not.toHaveBeenCalled();
+    expect(refreshChangedFiles).toHaveBeenCalledOnce();
+  });
+
   it('falls back to full analysis for incremental mode when changed-file refresh is unavailable', async () => {
     const analyzedGraph = {
       nodes: [{ id: 'src/fallback.ts', label: 'src/fallback.ts', color: '#ffffff' }],
