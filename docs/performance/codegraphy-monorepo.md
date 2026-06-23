@@ -773,6 +773,27 @@ Interpretation:
   changed-file refresh at `97ms`, and Imports toggle at `203ms` wall-clock /
   `54ms` in-webview, but the end-to-end save wall clock stayed invalid for
   comparison because the stale full analysis still occupied the session.
+- The VS Code live-update harness now waits for the restore-triggered
+  incremental request before finishing, so a benchmark write/restore pair no
+  longer returns while the restored file is still queued. A script-level test
+  simulates marker and restore requests. With the harness wait in place, the
+  measured marker request stayed in the `218ms`-`434ms` range and the restore
+  request stayed in the `414ms`-`462ms` range while a background full analysis
+  was active.
+- Generated pending paths are now filtered before Graph Cache status/freshness
+  checks in both core and extension code. The extension pipeline also persists
+  `lastIndexedCommit` after full indexing, repairing older metadata where the
+  commit was left `null`. A repair run wrote
+  `5108cc3209a9a1d92789d0ed4b1a4f027fbb741e` to `lastIndexedCommit`, and the
+  generated pending list filtered from `7167` paths down to one real source
+  path. A diagnostic startup run recorded the remaining stale reason as
+  `CodeGraphy Workspace Graph Cache is stale: files changed since the last
+  Indexing run.` The remaining blocker is therefore the benchmark source file
+  (`packages/extension/src/extension/graphViewProvider.ts`) being newer than
+  the last completed index after live-update probes, not `.turbo` or
+  `.worktrees` noise. The next clean measurement pass should wait for a full
+  background index without touching the live-update file, then take the fresh
+  live-update sample.
 
 Full test baseline:
 

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
@@ -314,4 +316,87 @@ test('VS Code graph view runner builds a startup-ready measurement payload befor
     extensionHostEvents: [{ name: 'command.open.start', offsetMs: 0 }],
     initialStats: { nodeCount: 10, edgeCount: 5 },
   });
+});
+
+test('VS Code graph view runner waits for the live-update restore request before finishing', async (t) => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { measureLiveUpdateTransition } = await import(moduleUrl);
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'codegraphy-live-update-'));
+  t.after(() => rm(workspaceRoot, { recursive: true, force: true }));
+
+  const liveUpdateFilePath = 'src/example.ts';
+  const absoluteFilePath = path.join(workspaceRoot, liveUpdateFilePath);
+  const extensionHostLogPath = path.join(workspaceRoot, 'extension-host.jsonl');
+  const originalContent = 'export const value = 1;\n';
+  await mkdir(path.dirname(absoluteFilePath), { recursive: true });
+  await writeFile(absoluteFilePath, originalContent);
+  await writeFile(extensionHostLogPath, '');
+
+  let stopped = false;
+  let markerRequestRecorded = false;
+  let restoreRequestCompleted = false;
+  const frame = {
+    evaluate: async (callback) => {
+      if (String(callback).includes('__codegraphyPerformance?.events')) {
+        return [];
+      }
+      return undefined;
+    },
+    waitForTimeout: async ms => new Promise(resolve => setTimeout(resolve, ms)),
+  };
+
+  async function appendIncrementalRequest(requestId) {
+    const startedAt = Date.now();
+    await writeFile(extensionHostLogPath, [
+      JSON.stringify({
+        name: 'graphAnalysis.request.start',
+        at: startedAt,
+        detail: { requestId, mode: 'incremental' },
+      }),
+      JSON.stringify({
+        name: 'graphAnalysis.request.completed',
+        at: startedAt + 5,
+        detail: { requestId, mode: 'incremental', durationMs: 5 },
+      }),
+      '',
+    ].join('\n'), { flag: 'a' });
+  }
+
+  const observer = (async () => {
+    while (!stopped) {
+      const content = await readFile(absoluteFilePath, 'utf8');
+      if (!markerRequestRecorded && content.includes('CodeGraphy live update perf marker')) {
+        markerRequestRecorded = true;
+        await appendIncrementalRequest(1);
+      } else if (
+        markerRequestRecorded
+        && !restoreRequestCompleted
+        && content === originalContent
+      ) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        await appendIncrementalRequest(2);
+        restoreRequestCompleted = true;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+  })();
+
+  try {
+    const sample = await measureLiveUpdateTransition({
+      extensionHostLogPath,
+      frame,
+      liveUpdateFilePath,
+      workspaceRoot,
+    });
+
+    assert.equal(sample.filePath, liveUpdateFilePath);
+    assert.equal(restoreRequestCompleted, true);
+    assert.equal(await readFile(absoluteFilePath, 'utf8'), originalContent);
+  } finally {
+    stopped = true;
+    await observer;
+  }
 });

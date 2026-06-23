@@ -13,6 +13,7 @@ import { createDefaultStatusPluginSignature } from './statusPlugins';
 import {
   collectCodeGraphyWorkspaceStaleReasons,
 } from './statusReasons';
+import { filterWorkspaceStatusPendingChangedFiles } from './statusPendingFiles';
 import { createCodeGraphyWorkspaceStatusState } from './statusState';
 export type {
   CodeGraphyWorkspaceStatus,
@@ -39,13 +40,17 @@ export function readCodeGraphyWorkspaceStatus(
     ?? (options.plugins
       ? createCodeGraphyWorkspacePluginSignature(options.plugins)
       : createDefaultStatusPluginSignature(settings, options.userHomeDir));
+  const pendingChangedFiles = filterWorkspaceStatusPendingChangedFiles(
+    meta.pendingChangedFiles,
+    { workspaceRoot: resolvedWorkspaceRoot },
+  );
   const staleReasons = collectCodeGraphyWorkspaceStaleReasons({
     hasGraphCache,
     indexedAt: meta.lastIndexedAt,
     metaPluginSignature: meta.pluginSignature,
     metaSettingsSignature: meta.settingsSignature,
     metaAnalysisVersion: meta.analysisVersion,
-    pendingChangedFiles: meta.pendingChangedFiles,
+    pendingChangedFiles,
     pluginSignature,
     settingsSignature,
   });

@@ -139,6 +139,7 @@ describe('graph view analysis execution publish', () => {
         edgeCount: 0,
         hasIndex: true,
         freshness: 'fresh',
+        freshnessDetail: 'CodeGraphy index is fresh.',
       },
     );
     expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
