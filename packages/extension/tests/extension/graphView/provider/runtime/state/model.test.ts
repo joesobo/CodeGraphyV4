@@ -10,6 +10,7 @@ const stateHarness = vi.hoisted(() => {
     analyzerInstances: [] as Array<{
       context: unknown;
       invalidateWorkspaceFiles: ReturnType<typeof vi.fn>;
+      warmGraphCache: ReturnType<typeof vi.fn>;
     }>,
     viewRegistryInstances: [] as Array<{ id: string }>,
     decorationManagerInstances: [] as Array<{ id: string }>,
@@ -115,11 +116,13 @@ vi.mock('vscode', () => ({
 vi.mock('../../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
   WorkspacePipeline: class WorkspacePipeline {
     invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => [...filePaths]);
+    warmGraphCache = vi.fn(async () => undefined);
 
     constructor(context: unknown) {
       stateHarness.analyzerInstances.push({
         context,
         invalidateWorkspaceFiles: this.invalidateWorkspaceFiles,
+        warmGraphCache: this.warmGraphCache,
       });
     }
   },
@@ -306,6 +309,7 @@ describe('graphView/provider/runtime/state/model', () => {
     ];
 
     expect(stateHarness.analyzerInstances).toHaveLength(1);
+    expect(stateHarness.analyzerInstances[0]?.warmGraphCache).toHaveBeenCalledOnce();
     expect(stateHarness.initializeRuntimeStateServices).toHaveBeenCalledOnce();
     expect(stateHarness.restorePersistedRuntimeState).toHaveBeenCalledWith(
       context,

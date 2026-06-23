@@ -312,6 +312,7 @@ Gated incremental analysis behind first workspace readiness: focused provider te
 Skipped full workspace discovery during cached Graph Cache replay: focused facade test failed red on the old discovery call, then passed with cached-path metadata; direct replacement metadata probe is 322ms vs 4083ms full discovery, and latest VS Code trace publishes cached `load` at 2.40s with first graph readiness 5.88s while visible stats remain 2300 nodes / 5345 edges.
 Added cached-load/publish stage markers and reused a prepared Material Icon extension matcher: publish `groups` dropped from 748ms to 96ms, cached `load` publish moved from 2.28s to 1.70s, first graph readiness moved from 5.82s to 5.62s, and Imports sanity check measured 209ms wall-clock / 58ms in-webview.
 Deferred live gitignore probing only for stale cached replay: cached discovery dropped from 324ms to 11ms, cached load completion from 836ms to 497ms, cached load publish from 1.70s to 0.63s, first graph readiness from 5.62s to 5.27s, and visible stats stayed 2300 nodes / 5345 edges while background analysis handled exact ignored metadata.
+Warmed the repo-local Graph Cache when the Graph View runtime creates its analyzer: hydration dropped from 406ms to 170ms, cached load completion from 497ms to 259ms, cached load request completion from 672ms to 429ms, first graph readiness from 5266ms to 5114ms, and visible stats stayed 2300 nodes / 5345 edges.
 ```
 
 ## Task 5: Keep The PR Reviewable
