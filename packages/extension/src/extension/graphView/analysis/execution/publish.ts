@@ -102,6 +102,51 @@ function doGraphViewGroupsNeedRecompute(
   return false;
 }
 
+function normalizeGraphPath(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function isGraphNodeForChangedPath(nodeId: string, changedFilePath: string): boolean {
+  const normalizedNodeId = normalizeGraphPath(nodeId);
+  const normalizedChangedFilePath = normalizeGraphPath(changedFilePath);
+  return normalizedChangedFilePath === normalizedNodeId
+    || normalizedChangedFilePath.endsWith(`/${normalizedNodeId}`);
+}
+
+function findGraphNodeByChangedPath(
+  graphData: IGraphData,
+  changedFilePath: string,
+): IGraphNode | undefined {
+  return graphData.nodes.find(node => isGraphNodeForChangedPath(node.id, changedFilePath));
+}
+
+function hasChangedNodeMetricDifference(
+  currentRawGraphData: IGraphData,
+  nextRawGraphData: IGraphData,
+  changedFilePaths: readonly string[] | undefined,
+): boolean {
+  if (!changedFilePaths?.length) {
+    return false;
+  }
+
+  for (const changedFilePath of changedFilePaths) {
+    const currentNode = findGraphNodeByChangedPath(currentRawGraphData, changedFilePath);
+    const nextNode = findGraphNodeByChangedPath(nextRawGraphData, changedFilePath);
+    if (!currentNode || !nextNode) {
+      continue;
+    }
+
+    if (
+      currentNode.fileSize !== nextNode.fileSize
+      || currentNode.churn !== nextNode.churn
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function canReuseCurrentGraphPublication(
   state: GraphViewAnalysisExecutionState,
   currentRawGraphData: IGraphData | undefined,
@@ -114,7 +159,8 @@ function canReuseCurrentGraphPublication(
   }
 
   return currentRawGraphData
-    ? areGraphDataPayloadsEqual(currentRawGraphData, rawGraphData)
+    ? !hasChangedNodeMetricDifference(currentRawGraphData, rawGraphData, state.changedFilePaths)
+      && areGraphDataPayloadsEqual(currentRawGraphData, rawGraphData)
     : false;
 }
 

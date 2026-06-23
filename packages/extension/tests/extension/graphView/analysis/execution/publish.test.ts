@@ -377,6 +377,64 @@ describe('graph view analysis execution publish', () => {
     );
   });
 
+  it('skips deep graph reuse comparison when a changed node metric already differs', () => {
+    let serializedEdgeCount = 0;
+    const edge = {
+      id: 'src/index.ts->src/view.ts#import',
+      from: 'src/index.ts',
+      to: 'src/view.ts',
+      kind: 'import',
+      sources: [],
+      toJSON: () => {
+        serializedEdgeCount += 1;
+        return {
+          id: 'src/index.ts->src/view.ts#import',
+          from: 'src/index.ts',
+          to: 'src/view.ts',
+          kind: 'import',
+          sources: [],
+        };
+      },
+    } as IGraphData['edges'][number] & { toJSON(): unknown };
+    const currentGraphData: IGraphData = {
+      nodes: [{
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: '#ffffff',
+        fileSize: 100,
+      }],
+      edges: [edge],
+    };
+    const nextGraphData: IGraphData = {
+      nodes: [{
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: '#ffffff',
+        fileSize: 120,
+      }],
+      edges: [edge],
+    };
+    const state = createExecutionState({
+      mode: 'incremental',
+      changedFilePaths: ['/workspace/src/index.ts'],
+      analyzer: createExecutionAnalyzer(),
+    });
+    const { handlers } = createExecutionHandlers({
+      applyViewTransform: vi.fn(() => {
+        handlers.setGraphData(nextGraphData);
+      }),
+    });
+    handlers.setRawGraphData(currentGraphData);
+    handlers.setGraphData(currentGraphData);
+    vi.mocked(handlers.setRawGraphData).mockClear();
+    vi.mocked(handlers.setGraphData).mockClear();
+
+    publishAnalyzedGraph(state, handlers, nextGraphData, true);
+
+    expect(serializedEdgeCount).toBe(0);
+    expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(nextGraphData);
+  });
+
   it('publishes the transformed graph without post-analyze hooks when no analyzer is available', () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],

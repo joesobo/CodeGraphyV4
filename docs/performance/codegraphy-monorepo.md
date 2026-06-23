@@ -838,6 +838,14 @@ Interpretation:
   `90ms`-`93ms`. End-to-end request duration stayed in the same band
   (`543ms`/`537ms`) because that run's TypeScript one-file analysis phase was
   noisier (`94ms` versus `34ms`-`35ms` in the previous sample).
+- The metric-only publish path now recognizes absolute changed-file paths
+  before running the deep unchanged-graph comparison. This lets save/restore
+  updates whose node `fileSize` or `churn` already differs skip serializing the
+  full `6485` node / `20781` edge graph during `reuseCheck`. The rebuilt VS
+  Code probe moved `graphAnalysis.publish.reuseCheck` from `24ms`-`27ms` to
+  `5ms` on marker save and `1ms` on restore. The marker request measured
+  `501ms`, while the cleaner restore sample measured `446ms`; both still sent
+  full `GRAPH_DATA_UPDATED` payloads because node metrics changed.
 
 Full test baseline:
 
