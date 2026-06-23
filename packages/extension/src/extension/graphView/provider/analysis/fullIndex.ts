@@ -1,14 +1,9 @@
+import { scheduleFullIndexBackgroundAnalysis } from './fullIndex/background';
+
+export { canReplayStaleCache } from './fullIndex/cacheReplay';
+
 interface FullIndexAnalysisLogger {
   logError(message: string, error: unknown): void;
-}
-
-interface ReplayableCacheAnalyzer {
-  getIndexStatus?(): { freshness: string };
-  loadCachedGraph?: unknown;
-}
-
-interface ReplayableCacheSource {
-  _analyzer?: ReplayableCacheAnalyzer;
 }
 
 export interface FullIndexAnalysisCoordinator {
@@ -22,7 +17,7 @@ export interface FullIndexAnalysisCoordinator {
   waitForForegroundFullIndexAnalysis(): Promise<boolean>;
 }
 
-type FullIndexAnalysisKind = 'background' | 'foreground';
+export type FullIndexAnalysisKind = 'background' | 'foreground';
 
 class FullIndexAnalysisCoordinatorState implements FullIndexAnalysisCoordinator {
   private _fullIndexAnalysisPromise: Promise<void> | undefined;
@@ -94,20 +89,16 @@ class FullIndexAnalysisCoordinatorState implements FullIndexAnalysisCoordinator 
     runAnalysis: () => Promise<void>,
     shouldStart: () => boolean = () => true,
   ): void {
-    if (this._scheduledBackgroundAnalysis !== undefined || this._fullIndexAnalysisPromise) {
-      return;
-    }
-
-    this._scheduledBackgroundAnalysis = setTimeout(() => {
-      this._scheduledBackgroundAnalysis = undefined;
-      if (!shouldStart()) {
-        return;
-      }
-
-      void this.runFullIndexAnalysis(runAnalysis, 'background').catch(error => {
-        this._dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
-      });
-    }, 0);
+    scheduleFullIndexBackgroundAnalysis({
+      fullIndexAnalysisPromise: this._fullIndexAnalysisPromise,
+      logError: (message, error) => this._dependencies.logError(message, error),
+      runFullIndexAnalysis: (nextRunAnalysis, kind) =>
+        this.runFullIndexAnalysis(nextRunAnalysis, kind),
+      scheduledBackgroundAnalysis: this._scheduledBackgroundAnalysis,
+      setScheduledBackgroundAnalysis: scheduledBackgroundAnalysis => {
+        this._scheduledBackgroundAnalysis = scheduledBackgroundAnalysis;
+      },
+    }, runAnalysis, shouldStart);
   }
 
   async runAfterFullIndexAnalysis(
@@ -123,9 +114,4 @@ export function createFullIndexAnalysisCoordinator(
   dependencies: FullIndexAnalysisLogger,
 ): FullIndexAnalysisCoordinator {
   return new FullIndexAnalysisCoordinatorState(dependencies);
-}
-
-export function canReplayStaleCache(source: ReplayableCacheSource): boolean {
-  return source._analyzer?.getIndexStatus?.().freshness === 'stale'
-    && typeof source._analyzer.loadCachedGraph === 'function';
 }
