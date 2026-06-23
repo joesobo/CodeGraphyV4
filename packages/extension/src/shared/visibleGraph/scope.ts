@@ -16,15 +16,23 @@ function getEdgeContainingFileKey(
   return `${edge.kind}\0${fromFile}\0${toFile}`;
 }
 
+interface ScopedEdgeCandidate {
+	edge: IGraphData['edges'][number];
+	endpointPreference?: number;
+	key?: string;
+}
+
 function keepMostSpecificUniqueEdges(
 	nodes: IGraphData['nodes'],
 	edges: IGraphData['edges'],
 ): IGraphData['edges'] {
 	const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const bestEndpointPreferenceByKey = new Map<string, number>();
+	const candidates: ScopedEdgeCandidate[] = [];
 
   for (const edge of edges) {
     if (edge.kind === 'contains') {
+			candidates.push({ edge });
       continue;
     }
     const key = getEdgeContainingFileKey(edge, nodeById);
@@ -36,24 +44,27 @@ function keepMostSpecificUniqueEdges(
         ? endpointPreference
         : Math.max(currentEndpointPreference, endpointPreference),
     );
+		candidates.push({ edge, endpointPreference, key });
   }
 
 	const seenEdgeIds = new Set<string>();
-	return edges.filter((edge) => {
-		const key = getEdgeContainingFileKey(edge, nodeById);
-		const endpointPreference = getEndpointPreference(edge, nodeById);
-		if (edge.kind !== 'contains'
-			&& endpointPreference !== (bestEndpointPreferenceByKey.get(key) ?? endpointPreference)) {
-			return false;
+	const uniqueEdges: IGraphData['edges'] = [];
+
+	for (const candidate of candidates) {
+		if (candidate.key
+			&& candidate.endpointPreference !== (bestEndpointPreferenceByKey.get(candidate.key) ?? candidate.endpointPreference)) {
+			continue;
 		}
 
-		if (seenEdgeIds.has(edge.id)) {
-			return false;
+		if (seenEdgeIds.has(candidate.edge.id)) {
+			continue;
 		}
 
-		seenEdgeIds.add(edge.id);
-		return true;
-	});
+		seenEdgeIds.add(candidate.edge.id);
+		uniqueEdges.push(candidate.edge);
+	}
+
+	return uniqueEdges;
 }
 
 function getEndpointPreference(
@@ -130,11 +141,16 @@ function projectEdgesToVisibleNodes(
 ): IGraphData['edges'] {
 	const allNodeById = new Map(graphNodes.map((node) => [node.id, node]));
 	const visibleNodeIds = new Set(visibleNodes.map((node) => node.id));
+	const projectedEdges: IGraphData['edges'] = [];
 
-	return edges.flatMap((edge) => {
+	for (const edge of edges) {
 		const projectedEdge = projectEdgeToVisibleNodes(edge, allNodeById, visibleNodeIds);
-		return projectedEdge ? [projectedEdge] : [];
-	});
+		if (projectedEdge) {
+			projectedEdges.push(projectedEdge);
+		}
+	}
+
+	return projectedEdges;
 }
 
 export function applyGraphScope(
