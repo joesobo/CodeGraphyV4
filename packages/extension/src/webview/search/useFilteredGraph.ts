@@ -24,6 +24,7 @@ import {
   buildVisibleGraphConfig,
   withSharedEdgeTypeAliases,
 } from './visibleGraphConfig';
+import { measureWebviewPerformance } from '../performance/marks';
 
 export interface IFilteredGraph {
   /** Graph after node/edge search filtering (null when no graph data). */
@@ -55,7 +56,12 @@ export function useFilteredGraph(
   nodeTypes: IGraphNodeTypeDefinition[] = [],
 ): IFilteredGraph {
   const visibleGraph = useMemo(() => {
-    return deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+    return measureWebviewPerformance('visibleGraph.derive', {
+      edgeCount: graphData?.edges.length ?? 0,
+      filterPatternCount: filterPatterns.length,
+      nodeCount: graphData?.nodes.length ?? 0,
+      searchActive: searchQuery.trim().length > 0,
+    }, () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes,
       edgeVisibility,
       filterPatterns,
@@ -64,7 +70,7 @@ export function useFilteredGraph(
       searchOptions,
       searchQuery,
       showOrphans,
-    }));
+    })));
   }, [
     edgeTypes,
     edgeVisibility,
@@ -78,25 +84,35 @@ export function useFilteredGraph(
   ]);
 
   const filteredData = useMemo(() => {
-    if (!visibleGraph.graphData) {
+    const graph = visibleGraph.graphData;
+    if (!graph) {
       return null;
     }
 
     const edgeTypesForStyling = withSharedEdgeTypeAliases(edgeTypes);
 
-    return {
-      nodes: applyNodeTypeColors(withResolvedNodeTypes(visibleGraph.graphData.nodes), nodeColors),
-      edges: applyEdgeTypeDefaultColors(visibleGraph.graphData.edges, edgeTypesForStyling),
-    };
+    return measureWebviewPerformance('visibleGraph.style', {
+      edgeCount: graph.edges.length,
+      nodeCount: graph.nodes.length,
+    }, () => ({
+      nodes: applyNodeTypeColors(withResolvedNodeTypes(graph.nodes), nodeColors),
+      edges: applyEdgeTypeDefaultColors(graph.edges, edgeTypesForStyling),
+    }));
   }, [edgeTypes, nodeColors, visibleGraph.graphData]);
 
   const coloredData = useMemo(
-    () => applyLegendRules(filteredData, legends),
+    () => measureWebviewPerformance('visibleGraph.applyLegendRules', {
+      edgeCount: filteredData?.edges.length ?? 0,
+      legendCount: legends.length,
+      nodeCount: filteredData?.nodes.length ?? 0,
+    }, () => applyLegendRules(filteredData, legends)),
     [filteredData, legends],
   );
 
   const controlsEdgeDecorations = useMemo(
-    () => filterVisibleEdgeDecorations(filteredData?.edges ?? [], edgeDecorations),
+    () => measureWebviewPerformance('visibleGraph.edgeDecorations', {
+      edgeCount: filteredData?.edges.length ?? 0,
+    }, () => filterVisibleEdgeDecorations(filteredData?.edges ?? [], edgeDecorations)),
     [edgeDecorations, filteredData],
   );
 

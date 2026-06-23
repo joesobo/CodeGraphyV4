@@ -282,6 +282,8 @@ Imports Graph Scope toggle: 2983ms median / 3079ms p95 before, 1925ms median / 2
 Fresh same-environment control before viewport memoization: 2891ms median / 3563ms p95.
 Rejected stable-edge visibility callbacks: 2918ms to 2922ms median, no improvement.
 Memoized viewport surface: 2891ms median / 3563ms p95 control, 1628ms median / 2252ms p95 after.
+Instrumented webview stages: 1748ms median / 2272ms p95; applyLegendRules was ~460ms-490ms per pass.
+Compiled legend matchers: 835ms median / 846ms p95; applyLegendRules now ~79ms-83ms per pass.
 ```
 
 ## Task 5: Keep The PR Reviewable

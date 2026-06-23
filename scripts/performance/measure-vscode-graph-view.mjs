@@ -120,18 +120,61 @@ async function waitForSwitchEnabled(frame, label, enabled) {
   throw new Error(`Timed out waiting for ${label} switch to become ${expected}`);
 }
 
+async function enableWebviewPerformanceEvents(frame) {
+  await frame.evaluate(() => {
+    window.__codegraphyPerformance = {
+      enabled: true,
+      events: [],
+      limit: 500,
+    };
+  });
+}
+
+async function resetWebviewPerformanceEvents(frame) {
+  await frame.evaluate(() => {
+    window.__codegraphyPerformance = {
+      enabled: true,
+      events: [],
+      limit: 500,
+    };
+  });
+}
+
+async function readWebviewPerformanceEvents(frame) {
+  return frame.evaluate(() => window.__codegraphyPerformance?.events ?? []);
+}
+
+async function waitForWebviewPerformanceEvent(frame, name, timeoutMs = DEFAULT_TIMEOUT_MS) {
+  const startedAt = performance.now();
+
+  while (performance.now() - startedAt < timeoutMs) {
+    const matched = await frame.evaluate((eventName) =>
+      Boolean(window.__codegraphyPerformance?.events?.some(event => event.name === eventName)), name);
+    if (matched) {
+      return;
+    }
+
+    await frame.waitForTimeout(25);
+  }
+
+  throw new Error(`Timed out waiting for webview performance event: ${name}`);
+}
+
 async function measureSwitchTransition(frame, label, enabled) {
   const beforeStats = await waitForGraphStats(frame, stats => stats.nodeCount > 0);
+  await resetWebviewPerformanceEvents(frame);
   const startedAt = performance.now();
   await graphScopeSwitch(frame, label).click();
   await waitForSwitchEnabled(frame, label, enabled);
   const afterStats = await waitForGraphStats(frame, stats => !sameGraphStats(stats, beforeStats));
+  await waitForWebviewPerformanceEvent(frame, 'graphStats.rendered');
 
   return {
     durationMs: Math.round(performance.now() - startedAt),
     enabled,
     beforeStats,
     afterStats,
+    webviewEvents: await readWebviewPerformanceEvents(frame),
   };
 }
 
@@ -169,6 +212,7 @@ async function measureVSCodeGraphView({
     const openStartedAt = performance.now();
     await openGraphView(vscode.page);
     const frame = await waitForGraphFrame(vscode.page);
+    await enableWebviewPerformanceEvents(frame);
     const initialStats = await waitForGraphStats(frame, stats => stats.nodeCount > 0);
     const firstGraphReadyMs = Math.round(performance.now() - openStartedAt);
 
