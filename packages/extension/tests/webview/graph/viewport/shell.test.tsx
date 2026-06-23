@@ -148,6 +148,7 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 		},
 		edgeDecorationsRef: { current: {} },
 		favoritesRef: { current: new Set() },
+		graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
 		nodeDecorationsRef: { current: {} },
 		nodeSizeModeRef: { current: 'connections' },
 		setHighlightVersion: vi.fn(),
@@ -206,7 +207,6 @@ function createCallbacks() {
 		linkCanvasObject: vi.fn(),
 		nodeCanvasObject: vi.fn(),
 		nodePointerAreaPaint: vi.fn(),
-		nodeThreeObject: vi.fn(),
 	};
 }
 
@@ -405,7 +405,12 @@ describe('graph/viewport/shell', () => {
 				getArrowColor: callbacks.getArrowColor,
 				getLinkColor: callbacks.getLinkColor,
 				getParticleColor: callbacks.getParticleColor,
-				nodeThreeObject: callbacks.nodeThreeObject,
+				nodeThreeObjectContext: {
+					graphAppearanceRef: graphState.graphAppearanceRef,
+					meshesRef: graphState.renderCaches.meshesRef,
+					showLabelsRef: graphState.showLabelsRef,
+					spritesRef: graphState.renderCaches.spritesRef,
+				},
 				particleSize: 3,
 				particleSpeed: 0.2,
 				sharedProps: expect.objectContaining({ dagMode: 'td' }),

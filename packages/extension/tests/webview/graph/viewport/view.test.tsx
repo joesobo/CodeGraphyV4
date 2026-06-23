@@ -117,6 +117,15 @@ function createSharedProps(): GraphSurfaceSharedProps {
   };
 }
 
+function createNodeThreeObjectContext() {
+  return {
+    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
+    meshesRef: { current: new Map() },
+    showLabelsRef: { current: true },
+    spritesRef: { current: new Map() },
+  };
+}
+
 function createGraphNode(id: string): FGNode {
   return {
     id,
@@ -173,7 +182,7 @@ function createSurface3dProps(
     getLinkParticles: vi.fn(),
     getLinkWidth: vi.fn(),
     getParticleColor: vi.fn(),
-    nodeThreeObject: vi.fn(),
+    nodeThreeObjectContext: createNodeThreeObjectContext(),
     particleSize: 2,
     particleSpeed: 0.1,
     sharedProps,
@@ -232,10 +241,10 @@ describe('Viewport', () => {
     renderViewport({ graphMode: '3d', onSurface3dError });
 
     await waitFor(() => {
-      expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
+      expect(onSurface3dError).toHaveBeenCalledWith(expect.any(Error));
     });
+    expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
     expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
-    expect(onSurface3dError).toHaveBeenCalledWith(expect.any(Error));
 
     harness.throwSurface3d = false;
     consoleError.mockRestore();

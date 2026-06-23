@@ -2,7 +2,7 @@ import {
 	useEffect,
 	type MutableRefObject,
 } from 'react';
-import SpriteText from 'three-spritetext';
+import type SpriteText from 'three-spritetext';
 import { setSpriteVisible } from '../../../support/contracts/forceGraph';
 
 interface UseLabelVisibilityOptions {

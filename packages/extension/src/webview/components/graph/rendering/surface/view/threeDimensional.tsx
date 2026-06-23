@@ -8,6 +8,10 @@ import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import * as THREE from 'three';
 import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../../model/build';
 import type { GraphSurfaceSharedProps } from '../sharedProps';
+import {
+  createNodeThreeObject,
+  type NodeThreeObjectDependencies,
+} from '../../nodes/canvas3d';
 
 type ForceGraph3DRef = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
 type Surface3dMeasurementKey = 'measured' | 'unmeasured';
@@ -21,7 +25,7 @@ export interface Surface3dProps {
   getLinkParticles: (this: void, link: LinkObject) => number;
   getLinkWidth: (this: void, link: LinkObject) => number;
   getParticleColor: (this: void, link: LinkObject) => string;
-  nodeThreeObject: (this: void, node: NodeObject) => THREE.Object3D;
+  nodeThreeObjectContext: NodeThreeObjectDependencies;
   particleSize: number;
   particleSpeed: number;
   sharedProps: GraphSurfaceSharedProps;
@@ -77,7 +81,7 @@ export function Surface3d({
   getLinkParticles,
   getLinkWidth,
   getParticleColor,
-  nodeThreeObject,
+  nodeThreeObjectContext,
   particleSize,
   particleSpeed,
   sharedProps,
@@ -91,7 +95,8 @@ export function Surface3d({
       nodeVal={(node: NodeObject) => (node as FGNode).size / DEFAULT_NODE_SIZE}
       nodeLabel=""
       nodeThreeObjectExtend={false}
-      nodeThreeObject={nodeThreeObject}
+      nodeThreeObject={(node: NodeObject): THREE.Object3D =>
+        createNodeThreeObject(nodeThreeObjectContext, node as FGNode)}
       linkColor={getLinkColor}
       linkWidth={getLinkWidth}
       linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}

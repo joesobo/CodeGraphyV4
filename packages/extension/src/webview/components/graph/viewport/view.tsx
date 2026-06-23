@@ -1,4 +1,13 @@
-import { memo, useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactElement, type Ref } from 'react';
+import {
+  lazy,
+  memo,
+  Suspense,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement,
+  type Ref,
+} from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
@@ -19,15 +28,18 @@ import {
   Surface2d,
   type Surface2dProps,
 } from '../rendering/surface/view/twoDimensional';
-import {
-  DeferredSurface3d,
-  type Surface3dProps,
-} from '../rendering/surface/view/threeDimensional';
+import type { Surface3dProps } from '../rendering/surface/view/threeDimensional';
 import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 import type { GraphAccessibilityItems } from './accessibility';
 import type { FGLink, FGNode } from '../model/build';
+
+const LazyDeferredSurface3d = lazy(async () => {
+  await import('../../../three/runtime');
+  const module = await import('../rendering/surface/view/threeDimensional');
+  return { default: module.DeferredSurface3d };
+});
 
 export interface ViewportProps {
   accessibilityItems?: GraphAccessibilityItems;
@@ -97,12 +109,14 @@ function ViewportSurface({
       onError={onSurface3dError}
       fallback={fallback}
     >
-      <DeferredSurface3d
-        {...surface3dProps}
-        backgroundColor={canvasBackgroundColor}
-        directionMode={directionMode}
-        fallback={fallback}
-      />
+      <Suspense fallback={fallback}>
+        <LazyDeferredSurface3d
+          {...surface3dProps}
+          backgroundColor={canvasBackgroundColor}
+          directionMode={directionMode}
+          fallback={fallback}
+        />
+      </Suspense>
     </SurfaceFallbackBoundary>
   );
 }
@@ -136,8 +150,11 @@ function areSurface3dPropsEqual(
     && previous.getLinkColor === next.getLinkColor
     && previous.getLinkParticles === next.getLinkParticles
     && previous.getLinkWidth === next.getLinkWidth
+    && previous.nodeThreeObjectContext.graphAppearanceRef === next.nodeThreeObjectContext.graphAppearanceRef
+    && previous.nodeThreeObjectContext.meshesRef === next.nodeThreeObjectContext.meshesRef
+    && previous.nodeThreeObjectContext.showLabelsRef === next.nodeThreeObjectContext.showLabelsRef
+    && previous.nodeThreeObjectContext.spritesRef === next.nodeThreeObjectContext.spritesRef
     && previous.getParticleColor === next.getParticleColor
-    && previous.nodeThreeObject === next.nodeThreeObject
     && previous.particleSize === next.particleSize
     && previous.particleSpeed === next.particleSpeed
     && previous.sharedProps === next.sharedProps;
