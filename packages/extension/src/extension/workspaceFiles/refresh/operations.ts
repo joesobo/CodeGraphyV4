@@ -5,53 +5,23 @@ import {
   shouldIgnoreWorkspaceFileWatcherRefresh,
 } from '../ignore';
 import { scheduleWorkspaceRefresh } from './scheduler';
+import {
+  emitWorkspaceRenameEvents,
+  getRenameFilePaths,
+} from './renameEvents';
+import {
+  consumeRecentSavedDocumentPath,
+  rememberRecentSavedDocumentPath,
+} from './recentSaves';
+import {
+  isGitignorePath,
+  refreshWorkspacePaths,
+} from './paths';
 
 type WorkspaceRenameFiles = vscode.FileRenameEvent['files'];
 type WorkspaceFileEventName = 'workspace:fileCreated' | 'workspace:fileDeleted';
 
 const WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS = 32;
-const WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS = 500;
-const RECENT_SAVE_WATCHER_SUPPRESSION_MS = 1000;
-const recentSavedDocumentPaths = new Map<string, number>();
-
-function normalizeFileWatcherPath(filePath: string): string {
-  return filePath.replace(/\\/g, '/');
-}
-
-function pruneRecentSavedDocumentPaths(now: number): void {
-  for (const [filePath, expiresAt] of recentSavedDocumentPaths) {
-    if (expiresAt < now) {
-      recentSavedDocumentPaths.delete(filePath);
-    }
-  }
-}
-
-function isGitignorePath(filePath: string): boolean {
-  const normalizedPath = normalizeFileWatcherPath(filePath);
-  return normalizedPath.endsWith('/.gitignore') || normalizedPath === '.gitignore';
-}
-
-function includesGitignorePath(filePaths: readonly string[]): boolean {
-  return filePaths.some(isGitignorePath);
-}
-
-function refreshWorkspacePaths(
-  provider: GraphViewProvider,
-  logMessage: string,
-  filePaths: readonly string[],
-): string[] {
-  const refreshPaths = filePaths.filter(filePath =>
-    !shouldIgnoreWorkspaceFileWatcherRefresh(filePath),
-  );
-
-  if (refreshPaths.length > 0) {
-    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS, {
-      gitignoreRefresh: includesGitignorePath(refreshPaths),
-    });
-  }
-
-  return refreshPaths;
-}
 
 export function refreshWorkspaceSavedDocument(
   provider: GraphViewProvider,
@@ -61,30 +31,12 @@ export function refreshWorkspaceSavedDocument(
     return;
   }
 
-  const now = Date.now();
-  pruneRecentSavedDocumentPaths(now);
-  recentSavedDocumentPaths.set(
-    normalizeFileWatcherPath(document.uri.fsPath),
-    now + RECENT_SAVE_WATCHER_SUPPRESSION_MS,
-  );
+  rememberRecentSavedDocumentPath(document.uri.fsPath);
   refreshWorkspaceChangedPath(
     provider,
     '[CodeGraphy] File saved, refreshing graph',
     document.uri.fsPath,
   );
-}
-
-function consumeRecentSavedDocumentPath(filePath: string): boolean {
-  const now = Date.now();
-  pruneRecentSavedDocumentPaths(now);
-  const normalizedPath = normalizeFileWatcherPath(filePath);
-  const expiresAt = recentSavedDocumentPaths.get(normalizedPath);
-  if (expiresAt === undefined) {
-    return false;
-  }
-
-  recentSavedDocumentPaths.delete(normalizedPath);
-  return now <= expiresAt;
 }
 
 export function refreshWorkspaceChangedFileWatcherPath(
@@ -132,22 +84,6 @@ export function refreshWorkspaceFileOperation(
 
   for (const filePath of refreshPaths) {
     provider.emitEvent(eventName, { filePath });
-  }
-}
-
-function getRenameFilePaths(files: WorkspaceRenameFiles): string[] {
-  return files.flatMap(file => [file.oldUri.fsPath, file.newUri.fsPath]);
-}
-
-function emitWorkspaceRenameEvents(
-  provider: GraphViewProvider,
-  files: WorkspaceRenameFiles,
-): void {
-  for (const file of files) {
-    provider.emitEvent('workspace:fileRenamed', {
-      oldPath: file.oldUri.fsPath,
-      newPath: file.newUri.fsPath,
-    });
   }
 }
 
