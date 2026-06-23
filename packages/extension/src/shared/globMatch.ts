@@ -39,12 +39,17 @@ export function globToRegex(pattern: string): RegExp {
   return new RegExp(`(?:^|/)${body}$`);
 }
 
-export function createGlobMatcher(pattern: string): (filePath: string) => boolean {
+type GlobMatcher = (filePath: string) => boolean;
+
+export function createGlobMatcher(pattern: string): GlobMatcher {
+  const fastMatcher = createFastGlobMatcher(pattern);
+  if (fastMatcher) {
+    return fastMatcher;
+  }
+
   const regex = globToRegex(pattern);
   return (filePath: string): boolean => regex.test(filePath);
 }
-
-type GlobMatcher = (filePath: string) => boolean;
 
 function matchesPathSuffix(filePath: string, suffix: string): boolean {
   return filePath === suffix || filePath.endsWith(`/${suffix}`);

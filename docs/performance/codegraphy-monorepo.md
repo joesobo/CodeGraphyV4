@@ -1057,6 +1057,17 @@ Interpretation:
   snappy (`197ms` wall-clock / `57ms` in-webview). Post-save live update
   stayed in the same fast band at `120ms` from saved-document receipt to
   request completion.
+- Single-pattern glob matching now reuses the same fast-path classifier as
+  combined matching, so legend rules do not pay a regex test for common
+  suffix, exact-path, recursive-directory, or direct-child patterns. A focused
+  red loop over repeated simple matchers measured `32.5ms` before the change
+  and passed after the change with the focused glob test file completing in
+  `27ms`. In the rebuilt VS Code monorepo probe, the post-settings legend
+  application pass moved from `90.3ms` to `53.2ms` for `131` legend rules over
+  `2300` visible nodes and `5345` visible edges. Startup `visibleGraph.derive`
+  stayed fast at `43.5ms`, Imports stayed snappy (`200ms` wall-clock / `59ms`
+  in-webview), and post-save live update stayed in the fast band at `116ms`
+  from saved-document receipt to request completion.
 
 Full test baseline:
 

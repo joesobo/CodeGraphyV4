@@ -39,6 +39,60 @@ describe('shared/globMatch', () => {
     expect(matcher('docs/index.ts')).toBe(false);
   });
 
+  it('keeps repeated simple single-glob checks cheap', () => {
+    const matchers = [
+      '*.ts',
+      '*.tsx',
+      '*.json',
+      '*.md',
+      '*.gd',
+      '*.cs',
+      '*.sln',
+      '*.meta',
+      '*.yml',
+      '*.yaml',
+      '*.js',
+      '*.css',
+      '*.vue',
+      '*.svelte',
+      '*.go',
+      '*.rs',
+      '*.rb',
+      '*.py',
+      '*.java',
+      '*.php',
+      '*.lua',
+      '*.swift',
+      '*.dart',
+      '*.hpp',
+      '*.cpp',
+      '*.c',
+      '*.h',
+    ].flatMap((pattern) => [
+      createGlobMatcher(pattern),
+      createGlobMatcher(pattern),
+      createGlobMatcher(pattern),
+      createGlobMatcher(pattern),
+    ]);
+    const paths = Array.from({ length: 2_300 }, (_, index) => (
+      `packages/package-${index % 100}/src/file-${index}.${index % 5 === 0 ? 'ts' : 'txt'}`
+    ));
+
+    const startedAt = performance.now();
+    let matchedCount = 0;
+    for (const filePath of paths) {
+      for (const matcher of matchers) {
+        if (matcher(filePath)) {
+          matchedCount += 1;
+        }
+      }
+    }
+    const elapsedMs = performance.now() - startedAt;
+
+    expect(matchedCount).toBe(1_840);
+    expect(elapsedMs).toBeLessThan(20);
+  });
+
   it('creates one matcher that preserves any-pattern glob semantics', () => {
     const matcher = createCombinedGlobMatcher([
       '**/tests/**',
