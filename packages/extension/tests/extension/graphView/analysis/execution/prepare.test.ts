@@ -129,4 +129,21 @@ describe('graph view analysis execution prepare', () => {
     expect(handlers.computeMergedGroups).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
   });
+
+  it('skips pre-refresh group publication for incremental analysis', async () => {
+    const state = createExecutionState({
+      analyzer: createExecutionAnalyzer(),
+      analyzerInitialized: true,
+      mode: 'incremental',
+    });
+    const { handlers } = createExecutionHandlers();
+
+    await expect(
+      prepareGraphViewAnalysis(new AbortController().signal, 1, state, handlers),
+    ).resolves.toBe(true);
+
+    expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(handlers.hasWorkspace).toHaveBeenCalledOnce();
+  });
 });
