@@ -380,6 +380,103 @@ export function summarizeWebviewEventDurations(events) {
   );
 }
 
+function findFirstWebviewEvent(events, predicate) {
+  return events.find(event => typeof event.at === 'number' && predicate(event));
+}
+
+function findFirstExtensionHostEvent(events, predicate) {
+  return events.find(event => typeof event.offsetMs === 'number' && predicate(event));
+}
+
+function addRoundedDelta(target, key, endAt, startAt) {
+  if (typeof endAt !== 'number' || typeof startAt !== 'number') {
+    return;
+  }
+
+  target[key] = Math.round(endAt - startAt);
+}
+
+export function computeFirstGraphReadyBreakdown({
+  extensionHostEvents,
+  firstGraphReadyPhases,
+  firstGraphReadyWebviewEvents,
+}) {
+  const readyPosted = findFirstWebviewEvent(
+    firstGraphReadyWebviewEvents,
+    event => event.name === 'webview.ready.posted',
+  );
+  const graphDataReceived = findFirstWebviewEvent(
+    firstGraphReadyWebviewEvents,
+    event => event.name === 'extensionMessage.received'
+      && event.detail?.type === 'GRAPH_DATA_UPDATED',
+  );
+  const bootstrapComplete = findFirstWebviewEvent(
+    firstGraphReadyWebviewEvents,
+    event => event.name === 'extensionMessage.appBootstrapComplete'
+      || (
+        event.name === 'extensionMessage.received'
+        && event.detail?.type === 'APP_BOOTSTRAP_COMPLETE'
+      ),
+  );
+  const statsRendered = findFirstWebviewEvent(
+    firstGraphReadyWebviewEvents,
+    event => event.name === 'graphStats.rendered',
+  );
+  const htmlAssigned = findFirstExtensionHostEvent(
+    extensionHostEvents,
+    event => event.name === 'graphWebview.html.assigned',
+  );
+  const graphDataSent = findFirstExtensionHostEvent(
+    extensionHostEvents,
+    event => event.name === 'graphWebview.message.send'
+      && event.detail?.type === 'GRAPH_DATA_UPDATED',
+  );
+  const loadRequestCompleted = findFirstExtensionHostEvent(
+    extensionHostEvents,
+    event => event.name === 'graphAnalysis.request.completed'
+      && event.detail?.mode === 'load',
+  );
+
+  const breakdown = {
+    commandAndViewOpenMs: firstGraphReadyPhases.openGraphCommandMs,
+    frameReadyMs: firstGraphReadyPhases.graphFrameReadyMs,
+    statsAfterFrameMs: firstGraphReadyPhases.graphStatsReadyMs,
+    ...(typeof htmlAssigned?.offsetMs === 'number'
+      ? { extensionHostHtmlAssignedOffsetMs: htmlAssigned.offsetMs }
+      : {}),
+    ...(typeof graphDataSent?.offsetMs === 'number'
+      ? { extensionHostFirstGraphDataSendOffsetMs: graphDataSent.offsetMs }
+      : {}),
+    ...(typeof loadRequestCompleted?.offsetMs === 'number'
+      ? { extensionHostFirstLoadRequestCompletedOffsetMs: loadRequestCompleted.offsetMs }
+      : {}),
+    ...(typeof loadRequestCompleted?.detail?.durationMs === 'number'
+      ? { extensionHostFirstLoadRequestDurationMs: loadRequestCompleted.detail.durationMs }
+      : {}),
+  };
+
+  addRoundedDelta(
+    breakdown,
+    'webviewDocumentReadyToStatsMs',
+    statsRendered?.at,
+    readyPosted?.at,
+  );
+  addRoundedDelta(
+    breakdown,
+    'webviewGraphDataToStatsMs',
+    statsRendered?.at,
+    graphDataReceived?.at,
+  );
+  addRoundedDelta(
+    breakdown,
+    'webviewBootstrapToStatsMs',
+    statsRendered?.at,
+    bootstrapComplete?.at,
+  );
+
+  return breakdown;
+}
+
 export function createStartupMeasurements({
   extensionHostEvents,
   extensionHostLogPath,
@@ -395,6 +492,11 @@ export function createStartupMeasurements({
     vscodeLaunchMs,
     firstGraphReadyMs,
     firstGraphReadyPhases,
+    firstGraphReadyBreakdown: computeFirstGraphReadyBreakdown({
+      extensionHostEvents,
+      firstGraphReadyPhases,
+      firstGraphReadyWebviewEvents,
+    }),
     firstGraphReadyWebviewStages: summarizeWebviewEventDurations(firstGraphReadyWebviewEvents),
     firstGraphReadyWebviewEvents,
     firstGraphReadyFrameLifecycleEvents: frameLifecycleEvents,
