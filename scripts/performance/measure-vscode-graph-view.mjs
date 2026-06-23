@@ -287,6 +287,31 @@ export function createStartupMeasurements({
   };
 }
 
+export function createCompleteMeasurements({
+  extensionHostEvents,
+  importsToggleSamples,
+  liveUpdateSamples,
+  startupMeasurements,
+}) {
+  return {
+    ...startupMeasurements,
+    status: 'complete',
+    extensionHostEvents,
+    importsToggle: {
+      ...summarizeSwitchTransitionSamples(importsToggleSamples),
+      samples: importsToggleSamples,
+    },
+    ...(liveUpdateSamples.length > 0
+      ? {
+        liveUpdate: {
+          ...summarizeLiveUpdateSamples(liveUpdateSamples),
+          samples: liveUpdateSamples,
+        },
+      }
+      : {}),
+  };
+}
+
 async function readGraphStats(frame) {
   const text = await frame
     .getByText(/[\d,]+\s+nodes?.*?[\d,]+\s+connections?/i)
@@ -636,22 +661,13 @@ async function measureVSCodeGraphView({
       }));
     }
 
-    const measurements = {
-      ...startupMeasurements,
-      status: 'complete',
-      importsToggle: {
-        ...summarizeSwitchTransitionSamples(samples),
-        samples,
-      },
-      ...(liveUpdateSamples.length > 0
-        ? {
-          liveUpdate: {
-            ...summarizeLiveUpdateSamples(liveUpdateSamples),
-            samples: liveUpdateSamples,
-          },
-        }
-        : {}),
-    };
+    const completeExtensionHostEvents = await readExtensionHostPerformanceEvents(extensionHostLogPath);
+    const measurements = createCompleteMeasurements({
+      extensionHostEvents: completeExtensionHostEvents,
+      importsToggleSamples: samples,
+      liveUpdateSamples,
+      startupMeasurements,
+    });
 
     await writeMetrics({ outputPath, workspacePath: workspaceRoot, measurements });
     return measurements;

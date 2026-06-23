@@ -318,6 +318,55 @@ test('VS Code graph view runner builds a startup-ready measurement payload befor
   });
 });
 
+test('VS Code graph view runner carries post-interaction extension-host events into completed metrics', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { createCompleteMeasurements } = await import(moduleUrl);
+
+  const startupMeasurements = {
+    status: 'startup-ready',
+    extensionHostEvents: [{ name: 'graphAnalysis.request.completed', offsetMs: 10 }],
+  };
+  const extensionHostEvents = [
+    { name: 'graphAnalysis.request.completed', offsetMs: 10 },
+    { name: 'graphAnalysis.publish.broadcasts', offsetMs: 210 },
+  ];
+
+  assert.deepEqual(createCompleteMeasurements({
+    extensionHostEvents,
+    importsToggleSamples: [{ durationMs: 25 }],
+    liveUpdateSamples: [{ durationMs: 40, requestDurationMs: 30 }],
+    startupMeasurements,
+  }), {
+    status: 'complete',
+    extensionHostEvents,
+    importsToggle: {
+      iterations: 1,
+      minMs: 25,
+      medianMs: 25,
+      p95Ms: 25,
+      maxMs: 25,
+      samples: [{ durationMs: 25 }],
+    },
+    liveUpdate: {
+      iterations: 1,
+      minMs: 40,
+      medianMs: 40,
+      p95Ms: 40,
+      maxMs: 40,
+      requestDuration: {
+        iterations: 1,
+        minMs: 30,
+        medianMs: 30,
+        p95Ms: 30,
+        maxMs: 30,
+      },
+      samples: [{ durationMs: 40, requestDurationMs: 30 }],
+    },
+  });
+});
+
 test('VS Code graph view runner waits for the live-update restore request before finishing', async (t) => {
   const moduleUrl = pathToFileURL(
     path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),

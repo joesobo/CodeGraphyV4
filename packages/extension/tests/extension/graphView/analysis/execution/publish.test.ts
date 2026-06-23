@@ -325,6 +325,58 @@ describe('graph view analysis execution publish', () => {
     );
   });
 
+  it('skips group publication when an incremental refresh only changes node sizing metrics', () => {
+    const currentGraphData: IGraphData = {
+      nodes: [{
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: '#ffffff',
+        fileSize: 100,
+        churn: 1,
+      }],
+      edges: [],
+    };
+    const nextGraphData: IGraphData = {
+      nodes: [{
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: '#ffffff',
+        fileSize: 120,
+        churn: 2,
+      }],
+      edges: [],
+    };
+    const state = createExecutionState({
+      mode: 'incremental',
+      analyzer: createExecutionAnalyzer(),
+    });
+    const { handlers } = createExecutionHandlers({
+      applyViewTransform: vi.fn(() => {
+        handlers.setGraphData(nextGraphData);
+      }),
+    });
+    handlers.setRawGraphData(currentGraphData);
+    handlers.setGraphData(currentGraphData);
+    vi.mocked(handlers.setRawGraphData).mockClear();
+    vi.mocked(handlers.setGraphData).mockClear();
+
+    publishAnalyzedGraph(state, handlers, nextGraphData, true);
+
+    expect(handlers.setRawGraphData).toHaveBeenCalledWith(nextGraphData);
+    expect(handlers.updateViewContext).toHaveBeenCalledOnce();
+    expect(handlers.applyViewTransform).toHaveBeenCalledOnce();
+    expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(nextGraphData);
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.groupsSkipped',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        reason: 'groupInputsUnchanged',
+      }),
+    );
+  });
+
   it('publishes the transformed graph without post-analyze hooks when no analyzer is available', () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
