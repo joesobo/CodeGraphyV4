@@ -221,7 +221,7 @@ function createRefreshMethod(
 
     prepareRefreshInputs(source);
     await runPrimaryRefresh(source);
-    sendRefreshState(source);
+    sendRefreshState(source, 'refresh');
   };
 }
 
@@ -239,7 +239,7 @@ function createRefreshIndexMethod(
     state.indexRefreshPromise = (async (): Promise<void> => {
       prepareRefreshInputs(source);
       await runIndexRefresh(source);
-      sendRefreshState(source);
+      sendRefreshState(source, 'refreshIndex');
     })();
 
     try {
@@ -283,7 +283,7 @@ function createRefreshAnalysisScopeMethod(
       ),
       scopedRefreshLifecycle,
     );
-    publishGraphDataIfPresent(source, graphData);
+    publishGraphDataIfPresent(source, graphData, 'analysisScope');
   };
 }
 
@@ -313,7 +313,7 @@ function createRefreshGitignoreMetadataMethod(
       ),
       scopedRefreshLifecycle,
     );
-    publishGraphDataIfPresent(source, graphData);
+    publishGraphDataIfPresent(source, graphData, 'gitignoreMetadata');
   };
 }
 
@@ -345,20 +345,21 @@ function createRefreshPluginFilesMethod(
       ),
       scopedRefreshLifecycle,
     );
-    publishGraphDataIfPresent(source, graphData);
+    publishGraphDataIfPresent(source, graphData, 'pluginFiles');
   };
 }
 
 function publishGraphDataIfPresent(
   source: GraphViewProviderRefreshMethodsSource,
   graphData: IGraphData | undefined,
+  reason: 'analysisScope' | 'gitignoreMetadata' | 'pluginFiles',
 ): void {
   if (!graphData) {
     return;
   }
 
   publishScopedRefreshGraphData(source, graphData);
-  sendRefreshState(source);
+  sendRefreshState(source, reason);
 }
 
 function createRefreshChangedFilesMethod(
@@ -376,7 +377,7 @@ function createRefreshChangedFilesMethod(
 
     prepareRefreshInputs(source);
     await runChangedFileRefresh(source, filePaths);
-    sendRefreshState(source);
+    sendRefreshState(source, 'changedFiles');
   };
 }
 
