@@ -17,50 +17,12 @@ import {
   discoverGraphViewRawData,
   loadCachedGraphViewRawData,
 } from './load/analyzerData';
-import { getGraphIndexFreshness } from './load/freshness';
-import { selectGraphViewRawDataLoadDecision } from './load/routing';
-import type { GraphViewRawDataLoadDecision } from './load/routing';
-import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
-
-type GraphViewRawDataRoute = GraphViewRawDataLoadDecision['route'];
-type GraphViewAnalyzer = NonNullable<GraphViewAnalysisExecutionState['analyzer']>;
-
-interface GraphViewRawDataLoadContext {
-  analyzer: GraphViewAnalyzer;
-  forwardProgress: ReturnType<typeof createGraphViewAnalysisProgressForwarder>;
-  indexFreshness: CodeGraphyIndexFreshness | undefined;
-  signal: AbortSignal;
-  state: GraphViewAnalysisExecutionState;
-}
-
-function hasReplayableGraphData(graphData: IGraphData): boolean {
-  return graphData.nodes.length > 0 || graphData.edges.length > 0;
-}
-
-function selectGraphViewRawDataLoadDecisionForState(
-  state: GraphViewAnalysisExecutionState,
-  analyzer: NonNullable<GraphViewAnalysisExecutionState['analyzer']>,
-): {
-  decision: GraphViewRawDataLoadDecision;
-  indexFreshness: CodeGraphyIndexFreshness | undefined;
-} {
-  if (state.mode === 'incremental') {
-    return {
-      decision: { route: 'incremental', shouldDiscover: false },
-      indexFreshness: undefined,
-    };
-  }
-
-  const indexFreshness = getGraphIndexFreshness(analyzer);
-  return {
-    decision: selectGraphViewRawDataLoadDecision(
-      state.mode,
-      indexFreshness,
-      typeof analyzer.loadCachedGraph === 'function',
-    ),
-    indexFreshness,
-  };
-}
+import {
+  hasReplayableGraphData,
+  selectGraphViewRawDataLoadDecisionForState,
+  type GraphViewRawDataLoadContext,
+  type GraphViewRawDataRoute,
+} from './load/context';
 
 async function loadDiscoveredGraphViewRawData(context: GraphViewRawDataLoadContext): Promise<IGraphData> {
   return discoverGraphViewRawData(context.signal, context.state, context.analyzer);
