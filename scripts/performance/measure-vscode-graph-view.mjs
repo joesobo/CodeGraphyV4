@@ -67,6 +67,12 @@ function findWebviewEventAt(sample, eventName) {
   return typeof event?.at === 'number' ? event.at : undefined;
 }
 
+function findWebviewEventAtOrAfter(sample, eventName, minimumAt) {
+  const event = sample.webviewEvents?.find(item =>
+    item.name === eventName && typeof item.at === 'number' && item.at >= minimumAt);
+  return typeof event?.at === 'number' ? event.at : undefined;
+}
+
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
@@ -150,8 +156,12 @@ export function getWebviewEventDeltaMs(
   renderedEventName = IMPORTS_TOGGLE_RENDERED_EVENT,
 ) {
   const startedAt = findWebviewEventAt(sample, startEventName);
-  const renderedAt = findWebviewEventAt(sample, renderedEventName);
-  if (startedAt === undefined || renderedAt === undefined) {
+  if (startedAt === undefined) {
+    return undefined;
+  }
+
+  const renderedAt = findWebviewEventAtOrAfter(sample, renderedEventName, startedAt);
+  if (renderedAt === undefined) {
     return undefined;
   }
 

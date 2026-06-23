@@ -2,6 +2,7 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 
 export interface GraphViewReadyState {
   maxFiles: number;
@@ -45,17 +46,54 @@ export interface GraphViewReadyHandlers {
   notifyWebviewReady(): void;
 }
 
-function sendWebviewReadyFilterPatterns(handlers: GraphViewReadyHandlers): void {
+type FilterPatternsUpdatedMessage = Extract<ExtensionToWebviewMessage, { type: 'FILTER_PATTERNS_UPDATED' }>;
+type FilterPatternsPayload = FilterPatternsUpdatedMessage['payload'];
+
+function createWebviewReadyFilterPatternsPayload(handlers: GraphViewReadyHandlers): FilterPatternsPayload {
+  return {
+    patterns: handlers.getFilterPatterns(),
+    pluginPatterns: handlers.getPluginFilterPatterns(),
+    pluginPatternGroups: handlers.getPluginFilterGroups?.() ?? [],
+    disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
+    disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
+  };
+}
+
+function areStringArraysEqual(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function arePluginFilterPatternGroupsEqual(
+  left: readonly IPluginFilterPatternGroup[],
+  right: readonly IPluginFilterPatternGroup[],
+): boolean {
+  return left.length === right.length && left.every((leftGroup, index) => {
+    const rightGroup = right[index];
+    return Boolean(rightGroup)
+      && leftGroup.pluginId === rightGroup.pluginId
+      && leftGroup.pluginName === rightGroup.pluginName
+      && areStringArraysEqual(leftGroup.patterns, rightGroup.patterns);
+  });
+}
+
+function areWebviewReadyFilterPatternsEqual(
+  left: FilterPatternsPayload,
+  right: FilterPatternsPayload,
+): boolean {
+  return areStringArraysEqual(left.patterns, right.patterns)
+    && areStringArraysEqual(left.pluginPatterns, right.pluginPatterns)
+    && arePluginFilterPatternGroupsEqual(left.pluginPatternGroups, right.pluginPatternGroups)
+    && areStringArraysEqual(left.disabledCustomPatterns, right.disabledCustomPatterns)
+    && areStringArraysEqual(left.disabledPluginPatterns, right.disabledPluginPatterns);
+}
+
+function sendWebviewReadyFilterPatterns(handlers: GraphViewReadyHandlers): FilterPatternsPayload {
+  const payload = createWebviewReadyFilterPatternsPayload(handlers);
   handlers.sendMessage({
     type: 'FILTER_PATTERNS_UPDATED',
-    payload: {
-      patterns: handlers.getFilterPatterns(),
-      pluginPatterns: handlers.getPluginFilterPatterns(),
-      pluginPatternGroups: handlers.getPluginFilterGroups?.() ?? [],
-      disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
-      disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
-    },
+    payload,
   });
+  return payload;
 }
 
 export function replayWebviewReadySettings(
@@ -154,9 +192,16 @@ export async function applyWebviewReady(
 ): Promise<boolean> {
   replayWebviewReadySettings(state, handlers);
 
+  const initialFilterPatterns = createWebviewReadyFilterPatternsPayload(handlers);
   await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
-  sendWebviewReadyFilterPatterns(handlers);
+  const loadedFilterPatterns = createWebviewReadyFilterPatternsPayload(handlers);
+  if (!areWebviewReadyFilterPatternsEqual(initialFilterPatterns, loadedFilterPatterns)) {
+    handlers.sendMessage({
+      type: 'FILTER_PATTERNS_UPDATED',
+      payload: loadedFilterPatterns,
+    });
+  }
   handlers.sendPluginStatuses?.();
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
