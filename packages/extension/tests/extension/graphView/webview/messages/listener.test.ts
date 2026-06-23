@@ -201,7 +201,7 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
   });
 
-  it('replays settings but not empty bootstrap payloads for duplicate WEBVIEW_READY during first analysis', async () => {
+  it('does not replay settings or empty bootstrap payloads for duplicate WEBVIEW_READY during first analysis', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
       onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
@@ -249,10 +249,10 @@ describe('graph view webview message listener', () => {
         (message as { type?: string }).type === 'GRAPH_DATA_UPDATED'
       ),
     ).toHaveLength(0);
-    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(2);
-    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(2);
-    expect(context.sendSettings).toHaveBeenCalledTimes(2);
-    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(2);
+    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
+    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
+    expect(context.sendSettings).toHaveBeenCalledTimes(1);
+    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(1);
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);
