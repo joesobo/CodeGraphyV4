@@ -1,5 +1,5 @@
-import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { GraphViewProviderRefreshMethodsSource } from './contracts';
 
 export type RefreshStateReason =
   | 'analysisScope'
