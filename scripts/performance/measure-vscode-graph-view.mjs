@@ -14,6 +14,7 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 const WEBVIEW_PERFORMANCE_EVENT_LIMIT = 500;
 const IMPORTS_TOGGLE_START_EVENT = 'graphScope.edgeVisibility.optimistic';
 const IMPORTS_TOGGLE_RENDERED_EVENT = 'graphStats.rendered';
+const ANALYZE_REQUEST_MODE = 'analyze';
 const LIVE_UPDATE_REQUEST_MODE = 'incremental';
 const DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS = [
   'packages/plugin-godot',
@@ -473,6 +474,7 @@ export async function measureLiveUpdateTransition({
   const originalContent = await readFile(absoluteFilePath, 'utf8');
   const marker = `\n// CodeGraphy live update perf marker ${Date.now()}\n`;
 
+  await waitForExtensionHostRequestIdle(extensionHostLogPath, ANALYZE_REQUEST_MODE);
   await waitForExtensionHostRequestIdle(extensionHostLogPath, LIVE_UPDATE_REQUEST_MODE);
   await resetWebviewPerformanceEvents(frame);
   const startedAtEpoch = Date.now();

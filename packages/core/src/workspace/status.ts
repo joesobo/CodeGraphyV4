@@ -42,7 +42,10 @@ export function readCodeGraphyWorkspaceStatus(
       : createDefaultStatusPluginSignature(settings, options.userHomeDir));
   const pendingChangedFiles = filterWorkspaceStatusPendingChangedFiles(
     meta.pendingChangedFiles,
-    { workspaceRoot: resolvedWorkspaceRoot },
+    {
+      lastIndexedAt: meta.lastIndexedAt,
+      workspaceRoot: resolvedWorkspaceRoot,
+    },
   );
   const staleReasons = collectCodeGraphyWorkspaceStaleReasons({
     hasGraphCache,

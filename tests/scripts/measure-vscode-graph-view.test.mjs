@@ -400,3 +400,104 @@ test('VS Code graph view runner waits for the live-update restore request before
     await observer;
   }
 });
+
+test('VS Code graph view runner waits for active analyze requests before live-update markers', async (t) => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { measureLiveUpdateTransition } = await import(moduleUrl);
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'codegraphy-live-update-analyze-'));
+  t.after(() => rm(workspaceRoot, { recursive: true, force: true }));
+
+  const liveUpdateFilePath = 'src/example.ts';
+  const absoluteFilePath = path.join(workspaceRoot, liveUpdateFilePath);
+  const extensionHostLogPath = path.join(workspaceRoot, 'extension-host.jsonl');
+  const originalContent = 'export const value = 1;\n';
+  await mkdir(path.dirname(absoluteFilePath), { recursive: true });
+  await writeFile(absoluteFilePath, originalContent);
+  await writeFile(extensionHostLogPath, `${JSON.stringify({
+    name: 'graphAnalysis.request.start',
+    at: Date.now() - 10,
+    detail: { requestId: 7, mode: 'analyze' },
+  })}\n`);
+
+  let stopped = false;
+  let markerSeenAt = 0;
+  let analyzeCompletedAt = 0;
+  let markerRequestRecorded = false;
+  let restoreRequestCompleted = false;
+  const frame = {
+    evaluate: async (callback) => {
+      if (String(callback).includes('__codegraphyPerformance?.events')) {
+        return [];
+      }
+      return undefined;
+    },
+    waitForTimeout: async ms => new Promise(resolve => setTimeout(resolve, ms)),
+  };
+
+  async function appendRequestEvent(name, requestId, mode) {
+    const at = Date.now();
+    await writeFile(extensionHostLogPath, `${JSON.stringify({
+      name,
+      at,
+      detail: { requestId, mode, durationMs: 5 },
+    })}\n`, { flag: 'a' });
+    return at;
+  }
+
+  async function appendIncrementalRequest(requestId) {
+    await appendRequestEvent('graphAnalysis.request.start', requestId, 'incremental');
+    await appendRequestEvent('graphAnalysis.request.completed', requestId, 'incremental');
+  }
+
+  const analyzeCompletion = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      appendRequestEvent('graphAnalysis.request.completed', 7, 'analyze')
+        .then((at) => {
+          analyzeCompletedAt = at;
+          resolve();
+        })
+        .catch(reject);
+    }, 80);
+  });
+
+  const observer = (async () => {
+    while (!stopped) {
+      const content = await readFile(absoluteFilePath, 'utf8');
+      if (!markerRequestRecorded && content.includes('CodeGraphy live update perf marker')) {
+        markerSeenAt = Date.now();
+        markerRequestRecorded = true;
+        await appendIncrementalRequest(8);
+      } else if (
+        markerRequestRecorded
+        && !restoreRequestCompleted
+        && content === originalContent
+      ) {
+        await appendIncrementalRequest(9);
+        restoreRequestCompleted = true;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+  })();
+
+  try {
+    await measureLiveUpdateTransition({
+      extensionHostLogPath,
+      frame,
+      liveUpdateFilePath,
+      workspaceRoot,
+    });
+    await analyzeCompletion;
+
+    assert.equal(restoreRequestCompleted, true);
+    assert.ok(
+      markerSeenAt >= analyzeCompletedAt,
+      `marker was written before analyze completed: marker=${markerSeenAt} analyze=${analyzeCompletedAt}`,
+    );
+  } finally {
+    stopped = true;
+    await observer;
+  }
+});

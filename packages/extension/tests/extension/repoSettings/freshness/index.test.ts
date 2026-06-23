@@ -1,3 +1,6 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { evaluateCodeGraphyIndexStatus } from '../../../../src/extension/repoSettings/freshness';
 import type { ICodeGraphyRepoMeta } from '../../../../src/extension/repoSettings/meta';
@@ -76,6 +79,32 @@ describe('repoSettings/freshness/index', () => {
       hasIndex: true,
       staleReasons: [],
     });
+  });
+
+  it('ignores pending changed files already covered by index metadata', () => {
+    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-index-freshness-'));
+    const filePath = path.join(workspaceRoot, 'src/types.ts');
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, 'export type Example = string;\n');
+
+    try {
+      expect(evaluateCodeGraphyIndexStatus({
+        meta: {
+          ...indexedMeta,
+          lastIndexedAt: new Date(Date.now() + 1_000).toISOString(),
+          pendingChangedFiles: [filePath],
+        },
+        currentCommit: 'abc123',
+        pluginSignature: 'plugins',
+        settingsSignature: 'settings',
+      })).toMatchObject({
+        freshness: 'fresh',
+        hasIndex: true,
+        staleReasons: [],
+      });
+    } finally {
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 
   it('describes plural pending changed files', () => {

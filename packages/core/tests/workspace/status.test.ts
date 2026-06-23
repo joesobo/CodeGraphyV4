@@ -118,4 +118,27 @@ describe('CodeGraphy Workspace status', () => {
       staleReasons: [],
     });
   });
+
+  it('does not mark the Graph Cache stale for pending files already covered by the last index', async () => {
+    const workspaceRoot = await createWorkspace();
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
+      ...meta,
+      pendingChangedFiles: [
+        path.join(workspaceRoot, 'source.txt'),
+      ],
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      plugins: [textPlugin],
+    })).toMatchObject({
+      state: 'fresh',
+      staleReasons: [],
+    });
+  });
 });
