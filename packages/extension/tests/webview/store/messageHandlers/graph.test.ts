@@ -213,6 +213,65 @@ describe('webview/store/messageHandlers/graph', () => {
 
   });
 
+  it('skips graph controls updates when extension echoes the current controls', () => {
+    const controls: IGraphControlsSnapshot = {
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
+      nodeColors: { file: '#A1A1AA' },
+      nodeVisibility: { file: true },
+      edgeVisibility: { import: false },
+    };
+    const state = createState({
+      graphNodeTypes: controls.nodeTypes,
+      graphEdgeTypes: controls.edgeTypes,
+      nodeColors: controls.nodeColors,
+      nodeVisibility: controls.nodeVisibility,
+      edgeVisibility: controls.edgeVisibility,
+    });
+    const echoedControls: IGraphControlsSnapshot = {
+      nodeTypes: [...controls.nodeTypes],
+      edgeTypes: [...controls.edgeTypes],
+      nodeColors: { ...controls.nodeColors },
+      nodeVisibility: { ...controls.nodeVisibility },
+      edgeVisibility: { ...controls.edgeVisibility },
+    };
+
+    expect(handleGraphControlsUpdated(
+      { type: 'GRAPH_CONTROLS_UPDATED', payload: echoedControls },
+      { getState: () => state },
+    )).toBeUndefined();
+  });
+
+  it('returns only changed graph control fields when extension echoes partial changes', () => {
+    const controls: IGraphControlsSnapshot = {
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
+      nodeColors: { file: '#A1A1AA' },
+      nodeVisibility: { file: true },
+      edgeVisibility: { import: false },
+    };
+    const state = createState({
+      graphNodeTypes: controls.nodeTypes,
+      graphEdgeTypes: controls.edgeTypes,
+      nodeColors: controls.nodeColors,
+      nodeVisibility: controls.nodeVisibility,
+      edgeVisibility: controls.edgeVisibility,
+    });
+    const nextEdgeVisibility = { import: true };
+    const echoedControls: IGraphControlsSnapshot = {
+      nodeTypes: [...controls.nodeTypes],
+      edgeTypes: [...controls.edgeTypes],
+      nodeColors: { ...controls.nodeColors },
+      nodeVisibility: { ...controls.nodeVisibility },
+      edgeVisibility: nextEdgeVisibility,
+    };
+
+    expect(handleGraphControlsUpdated(
+      { type: 'GRAPH_CONTROLS_UPDATED', payload: echoedControls },
+      { getState: () => state },
+    )).toEqual({ edgeVisibility: nextEdgeVisibility });
+  });
+
   it('maps settings and filter payloads', () => {
     expect(handleSettingsUpdated({
       type: 'SETTINGS_UPDATED',

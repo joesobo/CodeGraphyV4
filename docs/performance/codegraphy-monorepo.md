@@ -222,6 +222,16 @@ VS Code graph view benchmark:
   - Stage medians: `visibleGraph.derive` `176.1ms`;
     `visibleGraph.applyLegendRules` `79.8ms`;
     `graphRuntime.buildGraphData` `5.4ms`.
+- After skipping value-equal graph control echo updates:
+  - VS Code launch: `1077ms`.
+  - Open Graph View to first rendered graph stats: `7401ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `493ms` median, `497ms` p95 across 5 samples.
+  - Stage medians: `visibleGraph.derive` `176.9ms`;
+    `visibleGraph.applyLegendRules` `80.3ms`;
+    `graphRuntime.buildGraphData` `5.4ms`.
+  - Instrumented event counts showed one `visibleGraph.derive` per toggle
+    sample instead of the duplicate derive work seen before this iteration.
 
 Interpretation:
 
@@ -241,8 +251,11 @@ Interpretation:
 - Compiling legend glob matchers reduced the measured legend stage from roughly
   `460ms`-`490ms` per pass to about `79ms`-`83ms`, moving the real toggle
   median under `1s`.
+- Skipping value-equal graph control echoes removed the extra visible graph
+  derivation per toggle, moving the real Imports toggle median from `835ms` to
+  `493ms`.
 - The next user-facing bottleneck is visible graph derivation, which still takes
-  about `175ms`-`186ms` per pass and can run multiple times during one toggle.
+  about `175ms`-`177ms` for the remaining pass.
 
 Full test baseline:
 

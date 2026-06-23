@@ -284,6 +284,7 @@ Rejected stable-edge visibility callbacks: 2918ms to 2922ms median, no improveme
 Memoized viewport surface: 2891ms median / 3563ms p95 control, 1628ms median / 2252ms p95 after.
 Instrumented webview stages: 1748ms median / 2272ms p95; applyLegendRules was ~460ms-490ms per pass.
 Compiled legend matchers: 835ms median / 846ms p95; applyLegendRules now ~79ms-83ms per pass.
+Skipped value-equal graph control echoes: 493ms median / 497ms p95; one visibleGraph.derive event per toggle sample.
 ```
 
 ## Task 5: Keep The PR Reviewable

@@ -70,14 +70,42 @@ export function handleGraphIndexProgress(
 
 export function handleGraphControlsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
-): PartialState {
-  return {
-    graphNodeTypes: message.payload.nodeTypes,
-    graphEdgeTypes: message.payload.edgeTypes,
-    nodeColors: message.payload.nodeColors,
-    nodeVisibility: message.payload.nodeVisibility,
-    edgeVisibility: message.payload.edgeVisibility,
-  };
+  ctx?: Pick<IHandlerContext, 'getState'>,
+): PartialState | void {
+  const state = ctx?.getState();
+  if (!state) {
+    return {
+      graphNodeTypes: message.payload.nodeTypes,
+      graphEdgeTypes: message.payload.edgeTypes,
+      nodeColors: message.payload.nodeColors,
+      nodeVisibility: message.payload.nodeVisibility,
+      edgeVisibility: message.payload.edgeVisibility,
+    };
+  }
+
+  const next: PartialState = {};
+
+  if (!arePlainValuesEqual(state.graphNodeTypes, message.payload.nodeTypes)) {
+    next.graphNodeTypes = message.payload.nodeTypes;
+  }
+
+  if (!arePlainValuesEqual(state.graphEdgeTypes, message.payload.edgeTypes)) {
+    next.graphEdgeTypes = message.payload.edgeTypes;
+  }
+
+  if (!arePlainValuesEqual(state.nodeColors, message.payload.nodeColors)) {
+    next.nodeColors = message.payload.nodeColors;
+  }
+
+  if (!arePlainValuesEqual(state.nodeVisibility, message.payload.nodeVisibility)) {
+    next.nodeVisibility = message.payload.nodeVisibility;
+  }
+
+  if (!arePlainValuesEqual(state.edgeVisibility, message.payload.edgeVisibility)) {
+    next.edgeVisibility = message.payload.edgeVisibility;
+  }
+
+  return Object.keys(next).length > 0 ? next : undefined;
 }
 
 export function handleFavoritesUpdated(
