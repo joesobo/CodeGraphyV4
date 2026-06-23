@@ -7,7 +7,6 @@ import {
   applyPendingUserGroupsUpdate,
 } from '../optimistic/groups/updates';
 import { arePlainValuesEqual } from './equality/compare';
-import { recordWebviewPerformanceEvent } from '../../performance/marks';
 
 type GraphNodeMetricsUpdateMessage = Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>;
 type GraphNodeMetricsUpdate = GraphNodeMetricsUpdateMessage['payload']['nodes'][number];
@@ -80,17 +79,8 @@ export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,
   ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState | void {
-  recordWebviewPerformanceEvent('extensionMessage.graphDataUpdated', {
-    edgeCount: message.payload.edges.length,
-    nodeCount: message.payload.nodes.length,
-  });
-
   const state = ctx?.getState();
   if (state && shouldSkipDuplicateGraphData(state, message.payload)) {
-    recordWebviewPerformanceEvent('extensionMessage.graphDataSkipped', {
-      edgeCount: message.payload.edges.length,
-      nodeCount: message.payload.nodes.length,
-    });
     return undefined;
   }
 
@@ -116,10 +106,6 @@ export function handleGraphNodeMetricsUpdated(
   message: GraphNodeMetricsUpdateMessage,
   ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState | void {
-  recordWebviewPerformanceEvent('extensionMessage.graphNodeMetricsUpdated', {
-    nodeCount: message.payload.nodes.length,
-  });
-
   const state = ctx?.getState();
   if (!state?.graphData) {
     return undefined;
@@ -133,12 +119,7 @@ export function handleGraphNodeMetricsUpdated(
 
   if (!nodeSizeModeUsesNodeMetrics(state.nodeSizeMode)) {
     // Metrics do not affect the current visual graph, so keep graphData referentially stable.
-    const changed = applyMetricUpdatesInPlace(state.graphData, updatesById);
-    if (changed) {
-      recordWebviewPerformanceEvent('extensionMessage.graphNodeMetricsPatchedInPlace', {
-        nodeCount: message.payload.nodes.length,
-      });
-    }
+    applyMetricUpdatesInPlace(state.graphData, updatesById);
 
     return {
       isLoading: waitingForInitialBootstrap,
@@ -186,7 +167,6 @@ export function handleAppBootstrapComplete(
 ): PartialState {
   const state = ctx.getState();
   const graphReady = state.graphData !== null;
-  recordWebviewPerformanceEvent('extensionMessage.appBootstrapComplete', { graphReady });
 
   return {
     bootstrapComplete: true,

@@ -111,57 +111,6 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._timelineView).toBe(webviewView);
   });
 
-  it('records provider resolve markers and forwards the timing sink to the webview resolver', () => {
-    const recordPerformanceEvent = vi.fn();
-    const webview = {
-      options: {},
-      html: '',
-    } as unknown as vscode.Webview;
-    const webviewView = {
-      viewType: 'codegraphy.graphView',
-      webview,
-      visible: true,
-      onDidChangeVisibility: vi.fn(() => undefined),
-      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
-    } as unknown as vscode.WebviewView;
-    const resolveWebviewView = vi.fn((_view, options) => {
-      options.recordPerformanceEvent('graphWebview.resolve.inner');
-    });
-    const source = {
-      _extensionUri: vscode.Uri.file('/test/extension'),
-      _view: undefined,
-      _timelineView: undefined,
-      _getLocalResourceRoots: vi.fn(() => []),
-      flushPendingWorkspaceRefresh: vi.fn(),
-    };
-
-    resolveGraphViewProviderWebviewView(source as never, {
-      createHtml: vi.fn(() => '<graph html />'),
-      executeCommand: vi.fn(() => Promise.resolve(undefined)),
-      recordPerformanceEvent,
-      resolveWebviewView,
-      setWebviewMessageListener: vi.fn(),
-    }, webviewView);
-
-    expect(recordPerformanceEvent.mock.calls.map(([name]) => name)).toEqual([
-      'graphWebview.providerResolve.start',
-      'graphWebview.providerResolve.assigned',
-      'graphWebview.providerResolve.delegate.start',
-      'graphWebview.resolve.inner',
-      'graphWebview.providerResolve.delegate.end',
-      'graphWebview.providerResolve.flushPendingRefresh',
-      'graphWebview.providerResolve.end',
-    ]);
-    expect(recordPerformanceEvent).toHaveBeenCalledWith(
-      'graphWebview.providerResolve.start',
-      {
-        viewKind: 'graph',
-        viewType: 'codegraphy.graphView',
-        visible: true,
-      },
-    );
-  });
-
   it('keeps a different timeline view attached when the graph view disposes', () => {
     let disposeListener: (() => void) | undefined;
     const resourceRoots = [vscode.Uri.file('/test/root')];

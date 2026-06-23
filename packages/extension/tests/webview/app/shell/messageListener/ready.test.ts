@@ -12,7 +12,6 @@ describe('app/shell/messageListener/ready', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
-    window.__codegraphyPerformance = undefined;
     delete (window as Window & {
       __codegraphyWebviewReadyPosted?: boolean;
       __codegraphyWebviewPageId?: string;
@@ -37,13 +36,4 @@ describe('app/shell/messageListener/ready', () => {
     });
   });
 
-  it('records when the webview ready handshake is posted', () => {
-    window.__codegraphyPerformance = { enabled: true, events: [] };
-
-    postWebviewReadyOnce(window);
-
-    expect(window.__codegraphyPerformance.events).toEqual([
-      expect.objectContaining({ name: 'webview.ready.posted' }),
-    ]);
-  });
 });

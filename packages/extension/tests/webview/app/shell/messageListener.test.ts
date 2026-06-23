@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { graphStore } from '../../../../src/webview/store/state';
 import { createMessageHandler, setupMessageListener, type InjectAssetsParams } from '../../../../src/webview/app/shell/messageListener';
 import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
@@ -21,11 +21,6 @@ describe('app message listener', () => {
       __codegraphyWebviewReadyPosted?: boolean;
       __codegraphyWebviewPageId?: string;
     }).__codegraphyWebviewPageId;
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    window.__codegraphyPerformance = undefined;
   });
 
   it('ignores invalid window messages', () => {
@@ -259,29 +254,6 @@ describe('app message listener', () => {
     expect(handleExtensionMessage).toHaveBeenCalledWith(message);
     expect(injectPluginAssets).not.toHaveBeenCalled();
     expect(pluginHost.deliverMessage).not.toHaveBeenCalled();
-  });
-
-  it('records inbound extension messages for performance traces', () => {
-    window.__codegraphyPerformance = { enabled: true, events: [] };
-    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
-    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
-    const handleExtensionMessage = vi.fn();
-    vi.spyOn(graphStore, 'getState').mockReturnValue({
-      handleExtensionMessage,
-    } as unknown as ReturnType<typeof graphStore.getState>);
-
-    const handler = createMessageHandler(injectPluginAssets, pluginHost);
-    const message = { type: 'APP_BOOTSTRAP_COMPLETE', payload: null };
-
-    handler({ data: message } as MessageEvent<unknown>);
-
-    expect(handleExtensionMessage).toHaveBeenCalledWith(message);
-    expect(window.__codegraphyPerformance.events).toEqual([
-      expect.objectContaining({
-        name: 'extensionMessage.received',
-        detail: { type: 'APP_BOOTSTRAP_COMPLETE' },
-      }),
-    ]);
   });
 
   it('registers the window listener and posts WEBVIEW_READY', () => {

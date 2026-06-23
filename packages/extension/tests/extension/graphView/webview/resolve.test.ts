@@ -36,50 +36,6 @@ describe('graphView/webview/resolve', () => {
     expect(visibilityHandler).toBeTypeOf('function');
   });
 
-  it('records timing markers around resolver startup work', () => {
-    const recordPerformanceEvent = vi.fn();
-    const webviewView = {
-      visible: true,
-      webview: {
-        options: {},
-        html: '',
-      },
-      onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-    };
-
-    resolveGraphViewWebviewView(webviewView as never, {
-      getLocalResourceRoots: () => ['/workspace'],
-      setWebviewMessageListener: vi.fn(),
-      getHtml: () => '<div id="root"></div>',
-      executeCommand: vi.fn(() => Promise.resolve()),
-      recordPerformanceEvent,
-    });
-
-    expect(recordPerformanceEvent.mock.calls.map(([name]) => name)).toEqual([
-      'graphWebview.resolve.start',
-      'graphWebview.options.start',
-      'graphWebview.options.end',
-      'graphWebview.listener.start',
-      'graphWebview.listener.end',
-      'graphWebview.html.start',
-      'graphWebview.html.assigned',
-      'graphWebview.context.initial',
-      'graphWebview.resolve.end',
-    ]);
-    expect(recordPerformanceEvent).toHaveBeenCalledWith(
-      'graphWebview.resolve.start',
-      { visible: true },
-    );
-    expect(recordPerformanceEvent).toHaveBeenCalledWith(
-      'graphWebview.options.end',
-      { localResourceRootCount: 1 },
-    );
-    expect(recordPerformanceEvent).toHaveBeenCalledWith(
-      'graphWebview.html.assigned',
-      { htmlLength: 21 },
-    );
-  });
-
   it('updates visibility context without triggering reload work when the view becomes visible again', () => {
     const executeCommand = vi.fn(() => Promise.resolve());
     let visibilityHandler: (() => void) | undefined;

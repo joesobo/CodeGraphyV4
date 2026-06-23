@@ -98,7 +98,6 @@ export type WebviewToExtensionMessage =
   | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
   | { type: 'RESET_TIMELINE' }
   | { type: 'PREVIEW_FILE_AT_COMMIT'; payload: { sha: string; filePath: string } }
-  | { type: 'PERF_SAVE_LIVE_UPDATE_FILE'; payload: { path: string } }
   | {
       type: 'NODE_BOUNDS_RESPONSE';
       payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> };

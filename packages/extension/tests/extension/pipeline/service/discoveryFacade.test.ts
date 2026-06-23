@@ -22,10 +22,6 @@ import {
   rebuildWorkspacePipelineGraph,
 } from '../../../../src/extension/pipeline/service/runtime/run';
 
-const performanceMocks = vi.hoisted(() => ({
-  recordExtensionPerformanceEvent: vi.fn(),
-}));
-
 vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
   createWorkspacePipelineDiscoveryDependencies: vi.fn(),
   discoverWorkspacePipelineFilesWithWarnings: vi.fn(),
@@ -48,10 +44,6 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
 
 vi.mock('node:child_process', () => ({
   spawnSync: vi.fn(),
-}));
-
-vi.mock('../../../../src/extension/performance/marks', () => ({
-  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
 }));
 
 vi.mock('vscode', () => ({
@@ -143,7 +135,6 @@ describe('pipeline/service/discoveryFacade', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    performanceMocks.recordExtensionPerformanceEvent.mockReset();
     vi.mocked(spawnSync).mockReturnValue({
       error: undefined,
       status: 1,
@@ -600,15 +591,6 @@ describe('pipeline/service/discoveryFacade', () => {
       }),
       { disabledPlugins: new Set<string>() },
     );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.warmAnalysis',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        filePath: 'src/nested/cached.ts',
-        pluginIdCount: 1,
-        status: 'completed',
-      }),
-    );
   });
 
   it('does not warm cached source analysis when cached replay disables warm-up', async () => {
@@ -653,10 +635,6 @@ describe('pipeline/service/discoveryFacade', () => {
 
     expect(facade._discovery.readContent).not.toHaveBeenCalled();
     expect(analyzeFileResultForPlugins).not.toHaveBeenCalled();
-    expect(performanceMocks.recordExtensionPerformanceEvent).not.toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.warmAnalysis',
-      expect.anything(),
-    );
   });
 
   it('skips cached analysis warm-up quietly when the selected file disappeared', async () => {
@@ -698,15 +676,7 @@ describe('pipeline/service/discoveryFacade', () => {
 
     await facade.loadCachedGraph();
 
-    await vi.waitFor(() =>
-      expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-        'workspacePipeline.loadCachedGraph.warmAnalysis',
-        expect.objectContaining({
-          filePath: 'src/gone.ts',
-          status: 'skipped',
-        }),
-      ),
-    );
+    await vi.waitFor(() => expect(facade._discovery.readContent).toHaveBeenCalledOnce());
     expect(analyzeFileResultForPlugins).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
 
@@ -791,72 +761,5 @@ describe('pipeline/service/discoveryFacade', () => {
 
     expect(spawnSync).not.toHaveBeenCalled();
     expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
-  });
-
-  it('records cached graph load stage performance markers', async () => {
-    const facade = new TestDiscoveryFacade();
-    const cachedAnalysis = {
-      filePath: '/workspace/src/cached.ts',
-      relations: [],
-    };
-    facade._cache = {
-      version: 'test',
-      files: {
-        'src/cached.ts': {
-          mtime: 1,
-          analysis: cachedAnalysis,
-        },
-      },
-    } as never;
-    vi.spyOn(
-      facade as unknown as {
-        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
-      },
-      '_buildGraphDataFromAnalysis',
-    ).mockReturnValue({
-      nodes: [{ id: 'src/cached.ts', label: 'cached.ts', color: '#333333' }],
-      edges: [],
-    });
-
-    await facade.loadCachedGraph();
-
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.hydrate',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        fileCount: 1,
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.cacheSnapshot',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        fileCount: 1,
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.cachedDiscovery',
-      expect.objectContaining({
-        directoryCount: 1,
-        durationMs: expect.any(Number),
-        fileCount: 1,
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.buildGraph',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        edgeCount: 0,
-        nodeCount: 1,
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'workspacePipeline.loadCachedGraph.completed',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        edgeCount: 0,
-        nodeCount: 1,
-      }),
-    );
   });
 });

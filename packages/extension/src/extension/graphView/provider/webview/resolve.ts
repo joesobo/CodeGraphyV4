@@ -64,23 +64,17 @@ export function resolveGraphViewProviderWebviewView(
   source: GraphViewProviderWebviewResolveSource,
   dependencies: Pick<
     GraphViewProviderWebviewMethodDependencies,
-    'createHtml' | 'executeCommand' | 'getWorkspaceTitle' | 'recordPerformanceEvent' | 'resolveWebviewView' | 'setWebviewMessageListener'
+    'createHtml' | 'executeCommand' | 'getWorkspaceTitle' | 'resolveWebviewView' | 'setWebviewMessageListener'
   >,
   webviewView: vscode.WebviewView,
 ): void {
   const viewKind = getWebviewKind(webviewView);
-  dependencies.recordPerformanceEvent?.('graphWebview.providerResolve.start', {
-    viewKind,
-    viewType: webviewView.viewType,
-    visible: webviewView.visible,
-  });
   assignResolvedWebviewView(
     source,
     webviewView,
     viewKind,
     dependencies.getWorkspaceTitle?.(),
   );
-  dependencies.recordPerformanceEvent?.('graphWebview.providerResolve.assigned');
 
   webviewView.onDidDispose(() => {
     clearResolvedWebviewView(source, webviewView, viewKind);
@@ -90,7 +84,6 @@ export function resolveGraphViewProviderWebviewView(
     maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
   });
 
-  dependencies.recordPerformanceEvent?.('graphWebview.providerResolve.delegate.start');
   dependencies.resolveWebviewView(webviewView, {
     getLocalResourceRoots: () => source._getLocalResourceRoots(),
     setWebviewMessageListener: (nextWebview: vscode.Webview) =>
@@ -103,13 +96,6 @@ export function resolveGraphViewProviderWebviewView(
       ),
     executeCommand: (command: string, key: string, value: boolean) =>
       dependencies.executeCommand(command, key, value),
-    recordPerformanceEvent: dependencies.recordPerformanceEvent,
   } as never);
-  dependencies.recordPerformanceEvent?.('graphWebview.providerResolve.delegate.end');
-
-  if (viewKind === 'graph' && webviewView.visible) {
-    dependencies.recordPerformanceEvent?.('graphWebview.providerResolve.flushPendingRefresh');
-  }
   maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
-  dependencies.recordPerformanceEvent?.('graphWebview.providerResolve.end');
 }

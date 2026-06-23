@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { recordWebviewPerformanceEvent } from '../../performance/marks';
+import React from 'react';
 
 const COUNT_FORMATTER = new Intl.NumberFormat('en-US');
 
@@ -17,10 +16,6 @@ export function buildGraphStatsLabel(
 }
 
 export function GraphStatsBadge({ label }: { label: string }): React.ReactElement {
-  useEffect(() => {
-    recordWebviewPerformanceEvent('graphStats.rendered', { label });
-  }, [label]);
-
   return (
     <div className="pointer-events-none absolute right-4 top-4 z-10 rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-background)] px-2 py-1 text-xs text-muted-foreground shadow-sm">
       {label}

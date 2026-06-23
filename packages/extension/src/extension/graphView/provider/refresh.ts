@@ -1,6 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { createGraphViewIndexProgressCoalescer } from '../analysis/execution/progress';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
@@ -378,10 +377,6 @@ function createRefreshChangedFilesMethod(
   state: RefreshCoordinatorState,
 ): (filePaths: readonly string[]) => Promise<void> {
   return async (filePaths: readonly string[]): Promise<void> => {
-    recordExtensionPerformanceEvent('graphView.refreshChangedFiles.received', {
-      fileCount: filePaths.length,
-      indexRefreshInFlight: state.indexRefreshPromise !== undefined,
-    });
     if (state.indexRefreshPromise) {
       state.queuedChangedFilePaths = new Set([
         ...state.queuedChangedFilePaths,

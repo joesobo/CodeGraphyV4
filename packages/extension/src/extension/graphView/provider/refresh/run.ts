@@ -1,5 +1,4 @@
 import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
-import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 
 export type RefreshStateReason =
@@ -14,9 +13,8 @@ export type ChangedFileRefreshMode = 'analysis' | 'incremental' | 'primary';
 
 export function sendRefreshState(
   source: GraphViewProviderRefreshMethodsSource,
-  reason: RefreshStateReason = 'direct',
+  _reason: RefreshStateReason = 'direct',
 ): void {
-  recordExtensionPerformanceEvent('graphWebview.refreshState.send', { reason });
   source._sendAllSettings();
   source._sendGraphControls?.();
 }

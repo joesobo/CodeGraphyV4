@@ -1,5 +1,0 @@
----
-"@codegraphy-dev/extension": patch
----
-
-Make settled Graph Scope updates feel faster by skipping force-layout cooldown ticks when every visible node already has a position, avoiding per-edge callbacks for constant 2D arrow settings, preventing viewport overlay updates from re-rendering the graph surface, and reusing compiled legend rule matchers while filtering the visible graph.
