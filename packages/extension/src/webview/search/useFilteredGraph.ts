@@ -4,10 +4,11 @@
  * @module webview/useFilteredGraph
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
 import { applyLegendRules } from './filtering/rules';
 import { deriveVisibleGraph } from '../../shared/visibleGraph';
+import type { VisibleGraphResult } from '../../shared/visibleGraph';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type {
   IGraphEdgeTypeDefinition,
@@ -37,6 +38,76 @@ export interface IFilteredGraph {
   regexError: string | null;
 }
 
+const VISIBLE_GRAPH_CACHE_LIMIT = 6;
+
+interface VisibleGraphCache {
+  entries: Map<string, VisibleGraphResult>;
+  graphData: IGraphData | null | undefined;
+}
+
+function createVisibleGraphCache(): VisibleGraphCache {
+  return {
+    entries: new Map(),
+    graphData: undefined,
+  };
+}
+
+function sortedRecordEntries<TValue>(record: Record<string, TValue>): [string, TValue][] {
+  return Object.entries(record).sort(([left], [right]) => left.localeCompare(right));
+}
+
+function createVisibleGraphCacheKey({
+  edgeTypes,
+  edgeVisibility,
+  filterPatterns,
+  nodeTypes,
+  nodeVisibility,
+  searchOptions,
+  searchQuery,
+  showOrphans,
+}: {
+  edgeTypes: IGraphEdgeTypeDefinition[];
+  edgeVisibility: Record<string, boolean>;
+  filterPatterns: readonly string[];
+  nodeTypes: IGraphNodeTypeDefinition[];
+  nodeVisibility: Record<string, boolean>;
+  searchOptions: SearchOptions;
+  searchQuery: string;
+  showOrphans: boolean;
+}): string {
+  return JSON.stringify({
+    edgeTypes: edgeTypes.map(({ defaultVisible, id }) => [id, defaultVisible]),
+    edgeVisibility: sortedRecordEntries(edgeVisibility),
+    filterPatterns,
+    nodeTypes: nodeTypes.map(({ defaultVisible, id }) => [id, defaultVisible]),
+    nodeVisibility: sortedRecordEntries(nodeVisibility),
+    searchOptions,
+    searchQuery,
+    showOrphans,
+  });
+}
+
+function cacheVisibleGraphResult(
+  cache: VisibleGraphCache,
+  key: string,
+  result: VisibleGraphResult,
+): void {
+  if (cache.entries.has(key)) {
+    cache.entries.delete(key);
+  }
+
+  cache.entries.set(key, result);
+
+  while (cache.entries.size > VISIBLE_GRAPH_CACHE_LIMIT) {
+    const oldestKey = cache.entries.keys().next().value;
+    if (!oldestKey) {
+      return;
+    }
+
+    cache.entries.delete(oldestKey);
+  }
+}
+
 /**
  * Derives the filtered + colored graph data.
  * Both memos recompute only when their specific inputs change.
@@ -55,8 +126,42 @@ export function useFilteredGraph(
   showOrphans = true,
   nodeTypes: IGraphNodeTypeDefinition[] = [],
 ): IFilteredGraph {
+  const visibleGraphCache = useRef(createVisibleGraphCache());
+  const visibleGraphCacheKey = useMemo(() => createVisibleGraphCacheKey({
+    edgeTypes,
+    edgeVisibility,
+    filterPatterns,
+    nodeTypes,
+    nodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans,
+  }), [
+    edgeTypes,
+    edgeVisibility,
+    filterPatterns,
+    nodeTypes,
+    nodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans,
+  ]);
+
   const visibleGraph = useMemo(() => {
-    return measureWebviewPerformance('visibleGraph.derive', {
+    const cache = visibleGraphCache.current;
+    if (cache.graphData !== graphData) {
+      cache.graphData = graphData;
+      cache.entries.clear();
+    }
+
+    const cached = cache.entries.get(visibleGraphCacheKey);
+    if (cached) {
+      cache.entries.delete(visibleGraphCacheKey);
+      cache.entries.set(visibleGraphCacheKey, cached);
+      return cached;
+    }
+
+    const result = measureWebviewPerformance('visibleGraph.derive', {
       edgeCount: graphData?.edges.length ?? 0,
       filterPatternCount: filterPatterns.length,
       nodeCount: graphData?.nodes.length ?? 0,
@@ -71,6 +176,8 @@ export function useFilteredGraph(
       searchQuery,
       showOrphans,
     })));
+    cacheVisibleGraphResult(cache, visibleGraphCacheKey, result);
+    return result;
   }, [
     edgeTypes,
     edgeVisibility,
@@ -81,6 +188,7 @@ export function useFilteredGraph(
     searchOptions,
     searchQuery,
     showOrphans,
+    visibleGraphCacheKey,
   ]);
 
   const filteredData = useMemo(() => {

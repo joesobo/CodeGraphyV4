@@ -232,6 +232,19 @@ VS Code graph view benchmark:
     `graphRuntime.buildGraphData` `5.4ms`.
   - Instrumented event counts showed one `visibleGraph.derive` per toggle
     sample instead of the duplicate derive work seen before this iteration.
+- Rejected filter matcher cache experiment:
+  - Imports toggle latency stayed flat at `494ms` median, `513ms` p95 across
+    5 samples.
+  - `visibleGraph.derive` stayed flat at `176.7ms` median, so recompiling
+    stable filter-pattern matchers was not the browser-side bottleneck.
+- After caching recent visible-graph derivations by graph data and config:
+  - VS Code launch: `1081ms`.
+  - Open Graph View to first rendered graph stats: `6963ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `313ms` median, `345ms` p95 across 5 samples.
+  - Sampled toggles had no `visibleGraph.derive` events; the remaining stage
+    medians were `visibleGraph.applyLegendRules` `81.3ms`,
+    `visibleGraph.style` `4.3ms`, and `graphRuntime.buildGraphData` `5.7ms`.
 
 Interpretation:
 
@@ -254,8 +267,11 @@ Interpretation:
 - Skipping value-equal graph control echoes removed the extra visible graph
   derivation per toggle, moving the real Imports toggle median from `835ms` to
   `493ms`.
-- The next user-facing bottleneck is visible graph derivation, which still takes
-  about `175ms`-`177ms` for the remaining pass.
+- Caching recent visible-graph derivations removed the remaining derive pass
+  when users return to a recent Graph Scope state, moving the sampled toggle
+  median from `493ms` to `313ms`.
+- The next user-facing bottleneck is legend rule application at about `80ms`
+  per toggle, plus the remaining uninstrumented render latency.
 
 Full test baseline:
 

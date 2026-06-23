@@ -285,6 +285,8 @@ Memoized viewport surface: 2891ms median / 3563ms p95 control, 1628ms median / 2
 Instrumented webview stages: 1748ms median / 2272ms p95; applyLegendRules was ~460ms-490ms per pass.
 Compiled legend matchers: 835ms median / 846ms p95; applyLegendRules now ~79ms-83ms per pass.
 Skipped value-equal graph control echoes: 493ms median / 497ms p95; one visibleGraph.derive event per toggle sample.
+Rejected stable filter matcher cache: 494ms median / 513ms p95; derive stayed ~176.7ms, so no measured win.
+Cached recent visible-graph derivations: 313ms median / 345ms p95; sampled toggles had no visibleGraph.derive events.
 ```
 
 ## Task 5: Keep The PR Reviewable
