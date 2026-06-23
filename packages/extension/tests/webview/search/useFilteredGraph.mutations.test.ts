@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
+import type { IGraphEdgeTypeDefinition } from '../../../src/shared/graphControls/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 
 const deriveVisibleGraphMock = vi.hoisted(() => vi.fn());
@@ -131,5 +132,26 @@ describe('useFilteredGraph dependency array mutations', () => {
       graphA,
       expect.objectContaining({ showOrphans: false }),
     );
+  });
+
+  it('reuses derived visible graphs when graph scope returns to a cached config', () => {
+    const edgeTypes: IGraphEdgeTypeDefinition[] = [
+      { id: 'import', label: 'Imports', defaultColor: '#60a5fa', defaultVisible: true },
+    ];
+    const { rerender } = renderHook(
+      ({ edgeVisibility }) =>
+        useFilteredGraph(graphA, '', defaultOptions, [], {}, {}, edgeVisibility, edgeTypes),
+      { initialProps: { edgeVisibility: {} as Record<string, boolean> } },
+    );
+
+    expect(deriveVisibleGraphMock).toHaveBeenCalledTimes(1);
+
+    rerender({ edgeVisibility: { import: false } });
+
+    expect(deriveVisibleGraphMock).toHaveBeenCalledTimes(2);
+
+    rerender({ edgeVisibility: {} });
+
+    expect(deriveVisibleGraphMock).toHaveBeenCalledTimes(2);
   });
 });
