@@ -110,10 +110,34 @@ export interface GraphViewPrimaryMessageResult {
   filterPatterns?: string[];
 }
 
+async function saveAcceptanceLiveUpdateFile(filePath: string): Promise<void> {
+  const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+  const editor = await vscode.window.showTextDocument(document, {
+    preserveFocus: true,
+    preview: false,
+  });
+  await editor.edit(editBuilder => {
+    editBuilder.insert(
+      new vscode.Position(document.lineCount, 0),
+      `\n// CodeGraphy live update perf marker ${Date.now()}\n`,
+    );
+  });
+  await document.save();
+}
+
 export async function dispatchGraphViewPrimaryMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
+  if (message.type === 'PERF_SAVE_LIVE_UPDATE_FILE') {
+    if (process.env.CODEGRAPHY_ACCEPTANCE === '1') {
+      await saveAcceptanceLiveUpdateFile(message.payload.path);
+      return { handled: true };
+    }
+
+    return { handled: false };
+  }
+
   const routedResult = await dispatchGraphViewPrimaryRouteMessage(message, context);
   if (routedResult.handled) {
     return routedResult;

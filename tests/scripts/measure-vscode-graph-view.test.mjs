@@ -619,6 +619,130 @@ test('VS Code graph view runner waits for the live-update graph message in the w
   }
 });
 
+test('VS Code graph view runner can trigger live updates through editor save', async (t) => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { measureLiveUpdateTransition } = await import(moduleUrl);
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'codegraphy-live-update-editor-'));
+  t.after(() => rm(workspaceRoot, { recursive: true, force: true }));
+
+  const liveUpdateFilePath = 'src/example.ts';
+  const absoluteFilePath = path.join(workspaceRoot, liveUpdateFilePath);
+  const extensionHostLogPath = path.join(workspaceRoot, 'extension-host.jsonl');
+  const originalContent = 'export const value = 1;\n';
+  await mkdir(path.dirname(absoluteFilePath), { recursive: true });
+  await writeFile(absoluteFilePath, originalContent);
+  await writeFile(extensionHostLogPath, '');
+
+  let stopped = false;
+  let editorSaveTriggered = false;
+  let markerRequestRecorded = false;
+  let restoreRequestCompleted = false;
+  const frame = {
+    evaluate: async (callback) => {
+      if (String(callback).includes('__codegraphyPerformance?.events')) {
+        return [];
+      }
+      return undefined;
+    },
+    waitForTimeout: async ms => new Promise(resolve => setTimeout(resolve, ms)),
+  };
+
+  async function saveFileThroughEditor({ absoluteFilePath: targetPath, marker, originalContent: content }) {
+    editorSaveTriggered = true;
+    await writeFile(targetPath, `${content}${marker}`);
+  }
+
+  async function appendIncrementalRequest(requestId) {
+    const startedAt = Date.now();
+    await writeFile(extensionHostLogPath, [
+      JSON.stringify({
+        name: 'graphAnalysis.request.start',
+        at: startedAt,
+        detail: { requestId, mode: 'incremental' },
+      }),
+      JSON.stringify({
+        name: 'graphAnalysis.request.completed',
+        at: startedAt + 3,
+        detail: { requestId, mode: 'incremental', durationMs: 3 },
+      }),
+      '',
+    ].join('\n'), { flag: 'a' });
+  }
+
+  const observer = (async () => {
+    while (!stopped) {
+      const content = await readFile(absoluteFilePath, 'utf8');
+      if (!markerRequestRecorded && content.includes('CodeGraphy live update perf marker')) {
+        markerRequestRecorded = true;
+        await appendIncrementalRequest(1);
+      } else if (
+        markerRequestRecorded
+        && !restoreRequestCompleted
+        && content === originalContent
+      ) {
+        await appendIncrementalRequest(2);
+        restoreRequestCompleted = true;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+  })();
+
+  try {
+    const sample = await measureLiveUpdateTransition({
+      extensionHostLogPath,
+      frame,
+      liveUpdateFilePath,
+      liveUpdateTrigger: 'editor-save',
+      saveFileThroughEditor,
+      workspaceRoot,
+    });
+
+    assert.equal(sample.filePath, liveUpdateFilePath);
+    assert.equal(sample.trigger, 'editor-save');
+    assert.equal(editorSaveTriggered, true);
+    assert.equal(restoreRequestCompleted, true);
+  } finally {
+    stopped = true;
+    await observer;
+  }
+});
+
+test('VS Code graph view runner asks the webview to trigger editor-save live updates', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { saveLiveUpdateFileThroughEditor } = await import(moduleUrl);
+  const messages = [];
+  const frame = {
+    evaluate: async (callback, filePath) => {
+      const previousWindow = globalThis.window;
+      globalThis.window = {
+        vscode: {
+          postMessage: message => messages.push(message),
+        },
+      };
+      try {
+        return callback(filePath);
+      } finally {
+        globalThis.window = previousWindow;
+      }
+    },
+  };
+
+  await saveLiveUpdateFileThroughEditor({
+    absoluteFilePath: '/workspace/src/app.ts',
+    frame,
+  });
+
+  assert.deepEqual(messages, [{
+    type: 'PERF_SAVE_LIVE_UPDATE_FILE',
+    payload: { path: '/workspace/src/app.ts' },
+  }]);
+});
+
 test('VS Code graph view runner waits for active analyze requests before live-update markers', async (t) => {
   const moduleUrl = pathToFileURL(
     path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),

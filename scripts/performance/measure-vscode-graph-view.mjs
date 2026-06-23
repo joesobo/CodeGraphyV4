@@ -16,6 +16,8 @@ const IMPORTS_TOGGLE_START_EVENT = 'graphScope.edgeVisibility.optimistic';
 const IMPORTS_TOGGLE_RENDERED_EVENT = 'graphStats.rendered';
 const ANALYZE_REQUEST_MODE = 'analyze';
 const LIVE_UPDATE_REQUEST_MODE = 'incremental';
+const LIVE_UPDATE_TRIGGER_FILESYSTEM = 'filesystem';
+const LIVE_UPDATE_TRIGGER_EDITOR_SAVE = 'editor-save';
 const GRAPH_UPDATE_MESSAGE_TYPES = new Set([
   'GRAPH_DATA_UPDATED',
   'GRAPH_NODE_METRICS_UPDATED',
@@ -46,6 +48,21 @@ function toPositiveInteger(value, defaultValue) {
 
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : defaultValue;
+}
+
+function parseLiveUpdateTrigger(value) {
+  if (!value) {
+    return LIVE_UPDATE_TRIGGER_FILESYSTEM;
+  }
+
+  if (
+    value === LIVE_UPDATE_TRIGGER_FILESYSTEM
+    || value === LIVE_UPDATE_TRIGGER_EDITOR_SAVE
+  ) {
+    return value;
+  }
+
+  throw new Error(`Unsupported live update trigger: ${value}`);
 }
 
 function parseCount(value) {
@@ -471,6 +488,50 @@ async function waitForWebviewMessageReceived(frame, type, minimumCount = 0, time
   throw new Error(`Timed out waiting for webview message: ${type}`);
 }
 
+export async function saveLiveUpdateFileThroughEditor({
+  absoluteFilePath,
+  frame,
+}) {
+  if (!frame) {
+    throw new Error('The editor-save live update trigger requires a graph webview frame.');
+  }
+
+  await frame.evaluate((filePath) => {
+    const vscode = window.vscode;
+    if (!vscode) {
+      throw new Error('Graph webview did not expose the VS Code API.');
+    }
+
+    vscode.postMessage({
+      type: 'PERF_SAVE_LIVE_UPDATE_FILE',
+      payload: { path: filePath },
+    });
+  }, absoluteFilePath);
+}
+
+async function writeLiveUpdateMarker({
+  absoluteFilePath,
+  frame,
+  liveUpdateTrigger,
+  marker,
+  originalContent,
+  page,
+  saveFileThroughEditor,
+}) {
+  if (liveUpdateTrigger === LIVE_UPDATE_TRIGGER_EDITOR_SAVE) {
+    await saveFileThroughEditor({
+      absoluteFilePath,
+      frame,
+      marker,
+      originalContent,
+      page,
+    });
+    return;
+  }
+
+  await writeFile(absoluteFilePath, `${originalContent}${marker}`);
+}
+
 async function waitForExtensionHostPerformanceEvent(logPath, predicate, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const startedAt = performance.now();
 
@@ -572,8 +633,12 @@ export async function measureLiveUpdateTransition({
   extensionHostLogPath,
   frame,
   liveUpdateFilePath,
+  liveUpdateTrigger = LIVE_UPDATE_TRIGGER_FILESYSTEM,
+  page,
+  saveFileThroughEditor = saveLiveUpdateFileThroughEditor,
   workspaceRoot,
 }) {
+  const normalizedLiveUpdateTrigger = parseLiveUpdateTrigger(liveUpdateTrigger);
   const absoluteFilePath = path.isAbsolute(liveUpdateFilePath)
     ? liveUpdateFilePath
     : path.join(workspaceRoot, liveUpdateFilePath);
@@ -589,7 +654,15 @@ export async function measureLiveUpdateTransition({
   let updateRequestCompletedAt;
 
   try {
-    await writeFile(absoluteFilePath, `${originalContent}${marker}`);
+    await writeLiveUpdateMarker({
+      absoluteFilePath,
+      frame,
+      liveUpdateTrigger: normalizedLiveUpdateTrigger,
+      marker,
+      originalContent,
+      page,
+      saveFileThroughEditor,
+    });
     markerWritten = true;
     const requestEvent = await waitForExtensionHostPerformanceEvent(
       extensionHostLogPath,
@@ -613,6 +686,7 @@ export async function measureLiveUpdateTransition({
       requestStartDelayMs,
       requestCompletionDelayMs,
       requestOffsetMs: requestEvent.offsetMs,
+      trigger: normalizedLiveUpdateTrigger,
       webviewEvents: await readWebviewPerformanceEvents(frame),
     };
   } finally {
@@ -651,6 +725,7 @@ async function restoreWorkspaceSettings(settingsPath, originalSettings) {
 async function measureVSCodeGraphView({
   iterations,
   liveUpdateFilePath,
+  liveUpdateTrigger,
   outputPath,
   warmupIterations,
   workspacePath,
@@ -753,6 +828,8 @@ async function measureVSCodeGraphView({
         extensionHostLogPath,
         frame,
         liveUpdateFilePath,
+        liveUpdateTrigger,
+        page: vscode.page,
         workspaceRoot,
       }));
     }
@@ -778,7 +855,7 @@ async function measureVSCodeGraphView({
 function printUsage() {
   process.stdout.write([
     'Usage:',
-    '  pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs [--workspace <path>] [--iterations <n>] [--warmup <n>] [--live-update-file <path>] [--output <path>]',
+    '  pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs [--workspace <path>] [--iterations <n>] [--warmup <n>] [--live-update-file <path>] [--live-update-trigger filesystem|editor-save] [--output <path>]',
     '',
     'Launches Extension Development Host, opens CodeGraphy, and times rendered Graph Scope toggle latency.',
   ].join('\n'));
@@ -795,10 +872,12 @@ async function runCli(argv) {
   const iterations = toPositiveInteger(readOptionValue(argv, '--iterations'), DEFAULT_ITERATIONS);
   const warmupIterations = toPositiveInteger(readOptionValue(argv, '--warmup'), DEFAULT_WARMUP_ITERATIONS);
   const liveUpdateFilePath = readOptionValue(argv, '--live-update-file');
+  const liveUpdateTrigger = parseLiveUpdateTrigger(readOptionValue(argv, '--live-update-trigger'));
 
   await measureVSCodeGraphView({
     iterations,
     liveUpdateFilePath,
+    liveUpdateTrigger,
     outputPath,
     warmupIterations,
     workspacePath,

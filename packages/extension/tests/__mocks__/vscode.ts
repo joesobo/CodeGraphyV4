@@ -21,6 +21,13 @@ export const commands = {
   executeCommand: vi.fn(),
 };
 
+export class Position {
+  constructor(
+    public readonly line: number,
+    public readonly character: number,
+  ) {}
+}
+
 export const workspace = {
   getConfiguration: vi.fn(() => ({
     get: vi.fn(),
