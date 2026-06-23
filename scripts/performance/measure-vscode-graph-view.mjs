@@ -114,6 +114,36 @@ function createExtensionHostPerformanceLogPath(outputPath) {
   return path.join(path.dirname(resolvedOutputPath), `${basename}-extension-host.jsonl`);
 }
 
+function isWebviewFrameUrl(url) {
+  return url.includes('fake.html') || url.startsWith('vscode-webview://');
+}
+
+export function createGraphFrameLifecycleRecorder(startedAt = performance.now()) {
+  const events = [];
+
+  function record(name, at = performance.now(), detail = {}) {
+    events.push({
+      name,
+      offsetMs: Math.round(at - startedAt),
+      ...detail,
+    });
+  }
+
+  function recordFrame(name, frame, at = performance.now()) {
+    const url = frame.url();
+    record(name, at, {
+      url,
+      webviewFrame: isWebviewFrameUrl(url),
+    });
+  }
+
+  return {
+    events,
+    record,
+    recordFrame,
+  };
+}
+
 export function getWebviewEventDeltaMs(
   sample,
   startEventName = IMPORTS_TOGGLE_START_EVENT,
@@ -159,6 +189,30 @@ export function summarizeWebviewEventDurations(events) {
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([name, durations]) => [name, summarizeDurations(durations)]),
   );
+}
+
+export function createStartupMeasurements({
+  extensionHostEvents,
+  extensionHostLogPath,
+  firstGraphReadyMs,
+  firstGraphReadyPhases,
+  firstGraphReadyWebviewEvents,
+  frameLifecycleEvents,
+  initialStats,
+  vscodeLaunchMs,
+}) {
+  return {
+    status: 'startup-ready',
+    vscodeLaunchMs,
+    firstGraphReadyMs,
+    firstGraphReadyPhases,
+    firstGraphReadyWebviewStages: summarizeWebviewEventDurations(firstGraphReadyWebviewEvents),
+    firstGraphReadyWebviewEvents,
+    firstGraphReadyFrameLifecycleEvents: frameLifecycleEvents,
+    firstGraphReadyExtensionHostLogPath: extensionHostLogPath,
+    extensionHostEvents,
+    initialStats,
+  };
 }
 
 async function readGraphStats(frame) {
@@ -328,17 +382,57 @@ async function measureVSCodeGraphView({
     const launchMs = Math.round(performance.now() - launchStartedAt);
     await installWebviewPerformanceInitScript(vscode.page);
     const openStartedAt = performance.now();
+    const frameLifecycle = createGraphFrameLifecycleRecorder(openStartedAt);
+    const recordFrameAttached = frame => frameLifecycle.recordFrame('frame.attached', frame);
+    const recordFrameNavigated = frame => frameLifecycle.recordFrame('frame.navigated', frame);
+    vscode.page.on('frameattached', recordFrameAttached);
+    vscode.page.on('framenavigated', recordFrameNavigated);
+    frameLifecycle.record('graphOpen.start', openStartedAt, {
+      frameCount: vscode.page.frames().length,
+    });
+    for (const frame of vscode.page.frames()) {
+      frameLifecycle.recordFrame('frame.existingAtOpen', frame, openStartedAt);
+    }
     await openGraphView(vscode.page);
     const openGraphCommandMs = Math.round(performance.now() - openStartedAt);
+    frameLifecycle.record('graphOpen.commandCompleted', performance.now(), {
+      frameCount: vscode.page.frames().length,
+    });
     const frameStartedAt = performance.now();
     const frame = await waitForGraphFrame(vscode.page, DEFAULT_TIMEOUT_MS);
     const graphFrameReadyMs = Math.round(performance.now() - frameStartedAt);
+    frameLifecycle.record('graphFrame.ready', performance.now(), {
+      frameCount: vscode.page.frames().length,
+      url: frame.url(),
+    });
+    vscode.page.off('frameattached', recordFrameAttached);
+    vscode.page.off('framenavigated', recordFrameNavigated);
     await enableWebviewPerformanceEvents(frame);
     const statsStartedAt = performance.now();
     const initialStats = await waitForGraphStats(frame, stats => stats.nodeCount > 0);
     const graphStatsReadyMs = Math.round(performance.now() - statsStartedAt);
     const firstGraphReadyMs = Math.round(performance.now() - openStartedAt);
     const firstGraphReadyWebviewEvents = await readWebviewPerformanceEvents(frame);
+    const extensionHostEvents = await readExtensionHostPerformanceEvents(extensionHostLogPath);
+    const startupMeasurements = createStartupMeasurements({
+      extensionHostEvents,
+      extensionHostLogPath,
+      firstGraphReadyMs,
+      firstGraphReadyPhases: {
+        openGraphCommandMs,
+        graphFrameReadyMs,
+        graphStatsReadyMs,
+      },
+      firstGraphReadyWebviewEvents,
+      frameLifecycleEvents: frameLifecycle.events,
+      initialStats,
+      vscodeLaunchMs: launchMs,
+    });
+    await writeMetrics({
+      outputPath,
+      workspacePath: workspaceRoot,
+      measurements: startupMeasurements,
+    });
 
     await openGraphScopeEdgeTypes(frame);
     const initialImportsEnabled = await readSwitchEnabled(frame, 'Imports');
@@ -358,18 +452,8 @@ async function measureVSCodeGraphView({
     }
 
     const measurements = {
-      vscodeLaunchMs: launchMs,
-      firstGraphReadyMs,
-      firstGraphReadyPhases: {
-        openGraphCommandMs,
-        graphFrameReadyMs,
-        graphStatsReadyMs,
-      },
-      firstGraphReadyWebviewStages: summarizeWebviewEventDurations(firstGraphReadyWebviewEvents),
-      firstGraphReadyWebviewEvents,
-      firstGraphReadyExtensionHostLogPath: extensionHostLogPath,
-      extensionHostEvents: await readExtensionHostPerformanceEvents(extensionHostLogPath),
-      initialStats,
+      ...startupMeasurements,
+      status: 'complete',
       importsToggle: {
         ...summarizeSwitchTransitionSamples(samples),
         samples,
