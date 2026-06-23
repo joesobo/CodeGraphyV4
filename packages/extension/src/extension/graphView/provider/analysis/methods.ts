@@ -137,7 +137,10 @@ export function createDefaultGraphViewProviderAnalysisMethodDependencies(): Grap
 interface FullIndexAnalysisCoordinator {
   runAfterFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
   runFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
-  runFullIndexAnalysisInBackground(runAnalysis: () => Promise<void>): void;
+  runFullIndexAnalysisInBackground(
+    runAnalysis: () => Promise<void>,
+    shouldStart?: () => boolean,
+  ): void;
   waitForFullIndexAnalysis(): Promise<boolean>;
   waitForForegroundFullIndexAnalysis(): Promise<boolean>;
 }
@@ -147,6 +150,16 @@ function createFullIndexAnalysisCoordinator(
 ): FullIndexAnalysisCoordinator {
   let fullIndexAnalysisPromise: Promise<void> | undefined;
   let fullIndexAnalysisKind: 'background' | 'foreground' | undefined;
+  let scheduledBackgroundAnalysis: ReturnType<typeof setTimeout> | undefined;
+
+  const clearScheduledBackgroundAnalysis = (): void => {
+    if (scheduledBackgroundAnalysis === undefined) {
+      return;
+    }
+
+    clearTimeout(scheduledBackgroundAnalysis);
+    scheduledBackgroundAnalysis = undefined;
+  };
 
   const waitForFullIndexAnalysis = async (): Promise<boolean> => {
     if (!fullIndexAnalysisPromise) {
@@ -174,6 +187,10 @@ function createFullIndexAnalysisCoordinator(
     runAnalysis: () => Promise<void>,
     kind: 'background' | 'foreground' = 'foreground',
   ): Promise<void> => {
+    if (kind === 'foreground') {
+      clearScheduledBackgroundAnalysis();
+    }
+
     if (fullIndexAnalysisPromise) {
       await fullIndexAnalysisPromise;
       return;
@@ -194,15 +211,28 @@ function createFullIndexAnalysisCoordinator(
 
   const runFullIndexAnalysisInBackground = (
     runAnalysis: () => Promise<void>,
+    shouldStart: () => boolean = () => true,
   ): void => {
-    void runFullIndexAnalysis(runAnalysis, 'background').catch(error => {
-      dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
-    });
+    if (scheduledBackgroundAnalysis !== undefined || fullIndexAnalysisPromise) {
+      return;
+    }
+
+    scheduledBackgroundAnalysis = setTimeout(() => {
+      scheduledBackgroundAnalysis = undefined;
+      if (!shouldStart()) {
+        return;
+      }
+
+      void runFullIndexAnalysis(runAnalysis, 'background').catch(error => {
+        dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
+      });
+    }, 0);
   };
 
   const runAfterFullIndexAnalysis = async (
     runAnalysis: () => Promise<void>,
   ): Promise<void> => {
+    clearScheduledBackgroundAnalysis();
     await waitForFullIndexAnalysis();
     await runAnalysis();
   };
@@ -338,7 +368,10 @@ export function createGraphViewProviderAnalysisMethods(
 
       await _loadAndSendData();
       if (canReplayStaleCache(source)) {
-        fullIndexAnalysis.runFullIndexAnalysisInBackground(_analyzeAndSendData);
+        fullIndexAnalysis.runFullIndexAnalysisInBackground(
+          _analyzeAndSendData,
+          () => source._analysisController === undefined,
+        );
       }
     },
     _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
