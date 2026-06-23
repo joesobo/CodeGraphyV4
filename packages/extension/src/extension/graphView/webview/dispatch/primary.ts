@@ -8,6 +8,7 @@ import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
 import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';
+import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 import { dispatchGraphViewPrimaryRouteMessage } from './routed';
 import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
@@ -110,19 +111,65 @@ export interface GraphViewPrimaryMessageResult {
   filterPatterns?: string[];
 }
 
+function recordAcceptanceLiveUpdateSaveStage(
+  stage: string,
+  detail: Record<string, unknown>,
+): void {
+  recordExtensionPerformanceEvent(`graphWebview.acceptanceLiveUpdateSave.${stage}`, detail);
+}
+
+async function runAcceptanceLiveUpdateSaveStage<T>(
+  stage: string,
+  filePath: string,
+  action: () => PromiseLike<T>,
+): Promise<T> {
+  const startedAt = Date.now();
+  const result = await action();
+  recordAcceptanceLiveUpdateSaveStage(stage, {
+    durationMs: Date.now() - startedAt,
+    filePath,
+  });
+  return result;
+}
+
 async function saveAcceptanceLiveUpdateFile(filePath: string): Promise<void> {
-  const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
-  const editor = await vscode.window.showTextDocument(document, {
-    preserveFocus: true,
-    preview: false,
-  });
-  await editor.edit(editBuilder => {
-    editBuilder.insert(
-      new vscode.Position(document.lineCount, 0),
-      `\n// CodeGraphy live update perf marker ${Date.now()}\n`,
+  const startedAt = Date.now();
+  recordAcceptanceLiveUpdateSaveStage('start', { filePath });
+  try {
+    const document = await runAcceptanceLiveUpdateSaveStage(
+      'openDocument',
+      filePath,
+      () => vscode.workspace.openTextDocument(vscode.Uri.file(filePath)),
     );
-  });
-  await document.save();
+    const editor = await runAcceptanceLiveUpdateSaveStage(
+      'showDocument',
+      filePath,
+      () => vscode.window.showTextDocument(document, {
+        preserveFocus: true,
+        preview: false,
+      }),
+    );
+    await runAcceptanceLiveUpdateSaveStage('edit', filePath, () =>
+      editor.edit(editBuilder => {
+        editBuilder.insert(
+          new vscode.Position(document.lineCount, 0),
+          `\n// CodeGraphy live update perf marker ${Date.now()}\n`,
+        );
+      }),
+    );
+    await runAcceptanceLiveUpdateSaveStage('save', filePath, () => document.save());
+    recordAcceptanceLiveUpdateSaveStage('completed', {
+      durationMs: Date.now() - startedAt,
+      filePath,
+    });
+  } catch (error) {
+    recordAcceptanceLiveUpdateSaveStage('failed', {
+      durationMs: Date.now() - startedAt,
+      filePath,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 export async function dispatchGraphViewPrimaryMessage(

@@ -8,6 +8,9 @@ const primaryDispatchMocks = vi.hoisted(() => ({
   route: vi.fn(),
   stateful: vi.fn(),
 }));
+const performanceMocks = vi.hoisted(() => ({
+  record: vi.fn(),
+}));
 
 vi.mock('../../../../../../src/extension/graphView/webview/dispatch/routed', () => ({
   dispatchGraphViewPrimaryRouteMessage: primaryDispatchMocks.route,
@@ -17,11 +20,16 @@ vi.mock('../../../../../../src/extension/graphView/webview/dispatch/stateful', (
   dispatchGraphViewPrimaryStateMessage: primaryDispatchMocks.stateful,
 }));
 
+vi.mock('../../../../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: performanceMocks.record,
+}));
+
 describe('graph view primary message dispatch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     primaryDispatchMocks.route.mockReset();
     primaryDispatchMocks.stateful.mockReset();
+    performanceMocks.record.mockReset();
     delete process.env.CODEGRAPHY_ACCEPTANCE;
   });
 
@@ -106,6 +114,21 @@ describe('graph view primary message dispatch', () => {
       expect.stringContaining('CodeGraphy live update perf marker'),
     );
     expect(save).toHaveBeenCalledOnce();
+    expect(performanceMocks.record.mock.calls.map(([name]) => name)).toEqual([
+      'graphWebview.acceptanceLiveUpdateSave.start',
+      'graphWebview.acceptanceLiveUpdateSave.openDocument',
+      'graphWebview.acceptanceLiveUpdateSave.showDocument',
+      'graphWebview.acceptanceLiveUpdateSave.edit',
+      'graphWebview.acceptanceLiveUpdateSave.save',
+      'graphWebview.acceptanceLiveUpdateSave.completed',
+    ]);
+    expect(performanceMocks.record).toHaveBeenCalledWith(
+      'graphWebview.acceptanceLiveUpdateSave.completed',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        filePath: '/workspace/src/app.ts',
+      }),
+    );
     expect(primaryDispatchMocks.route).not.toHaveBeenCalled();
     expect(primaryDispatchMocks.stateful).not.toHaveBeenCalled();
   });

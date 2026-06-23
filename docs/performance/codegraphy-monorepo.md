@@ -978,6 +978,22 @@ Interpretation:
     `25ms` coalescing contract is worth more than the small measured
     pre-request gain. The next target remains the pre-request save/event-
     delivery path rather than backend graph analysis.
+- Extension-host save-path instrumentation now marks acceptance save stages,
+  saved-document receipt, workspace refresh scheduling/start, and provider
+  `refreshChangedFiles` entry. The first instrumented editor-save sample
+  measured `555ms` wall clock, `92ms` request duration, and `367ms`
+  request-start delay. The split showed `252ms` inside the acceptance save
+  helper, the intentional `32ms` saved-file debounce, and `78ms` between
+  provider `refreshChangedFiles` entry and `graphAnalysis.request.start`.
+- Indexed incremental changed-file refreshes now reuse the already-loaded
+  filter/group state instead of reloading groups and filter patterns before
+  every save. Fallback changed-file paths that need a primary/full refresh
+  still prepare settings before running. In the rebuilt editor-save probe, the
+  provider-entry-to-request gap moved from `78ms` to `2ms`, incremental request
+  duration moved from `97ms` to `76ms`, request-start delay moved from `367ms`
+  to `282ms`, and wall time moved from `559ms` to `460ms`. First graph
+  readiness stayed in the same band (`5272ms`) and Imports toggle stayed
+  snappy (`217ms` wall-clock / `62ms` in-webview).
 
 Full test baseline:
 

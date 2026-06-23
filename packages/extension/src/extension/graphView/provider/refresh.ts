@@ -1,5 +1,6 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { createGraphViewIndexProgressCoalescer } from '../analysis/execution/progress';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
@@ -209,6 +210,10 @@ function prepareRefreshInputs(source: GraphViewProviderRefreshMethodsSource): vo
   source._loadGroupsAndFilterPatterns();
 }
 
+function canRunIndexedChangedFileRefresh(source: GraphViewProviderRefreshMethodsSource): boolean {
+  return source._analyzer?.hasIndex() === true && source._incrementalAnalyzeAndSendData !== undefined;
+}
+
 function createRefreshMethod(
   source: GraphViewProviderRefreshMethodsSource,
   state: RefreshCoordinatorState,
@@ -367,6 +372,10 @@ function createRefreshChangedFilesMethod(
   state: RefreshCoordinatorState,
 ): (filePaths: readonly string[]) => Promise<void> {
   return async (filePaths: readonly string[]): Promise<void> => {
+    recordExtensionPerformanceEvent('graphView.refreshChangedFiles.received', {
+      fileCount: filePaths.length,
+      indexRefreshInFlight: state.indexRefreshPromise !== undefined,
+    });
     if (state.indexRefreshPromise) {
       state.queuedChangedFilePaths = new Set([
         ...state.queuedChangedFilePaths,
@@ -375,7 +384,9 @@ function createRefreshChangedFilesMethod(
       return;
     }
 
-    prepareRefreshInputs(source);
+    if (!canRunIndexedChangedFileRefresh(source)) {
+      prepareRefreshInputs(source);
+    }
     const refreshMode = await runChangedFileRefresh(source, filePaths);
     if (refreshMode !== 'incremental') {
       sendRefreshState(source, 'changedFiles');
