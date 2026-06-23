@@ -3,6 +3,7 @@ import type { IWorkspaceFileAnalysisResult } from '../analysis/fileAnalysis';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import type { IDiscoveredFile } from '../discovery/contracts';
 import type { IGraphData } from '../graph/contracts';
+import { toRepoRelativeGraphPath } from '../graph/symbolPaths';
 import { getWorkspaceIndexPluginMatchingFiles } from '../plugins/status/extensions';
 import {
   mapDiscoveredWorkspaceIndexFilesByRelativePath,
@@ -135,6 +136,30 @@ function mergeWorkspaceIndexGraphData(
   };
 }
 
+function workspaceIndexAnalysisCoversConnections(
+  fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
+  fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
+  workspaceRoot: string,
+): boolean {
+  if (fileConnections.size === 0) {
+    return true;
+  }
+
+  const analysisFilePaths = new Set(
+    [...fileAnalysis.keys()].map(filePath =>
+      toRepoRelativeGraphPath(filePath, workspaceRoot),
+    ),
+  );
+
+  for (const filePath of fileConnections.keys()) {
+    if (!analysisFilePaths.has(toRepoRelativeGraphPath(filePath, workspaceRoot))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function buildWorkspaceIndexGraphFromRefreshState(
   source: WorkspaceIndexRefreshSource,
   workspaceRoot: string,
@@ -145,7 +170,11 @@ function buildWorkspaceIndexGraphFromRefreshState(
     workspaceRoot,
     disabledPlugins,
   );
-  if (source._lastFileConnections.size === 0) {
+  if (workspaceIndexAnalysisCoversConnections(
+    source._lastFileAnalysis,
+    source._lastFileConnections,
+    workspaceRoot,
+  )) {
     return analysisGraphData;
   }
 

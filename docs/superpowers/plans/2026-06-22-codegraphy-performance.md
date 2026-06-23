@@ -316,6 +316,7 @@ Warmed the repo-local Graph Cache when the Graph View runtime creates its analyz
 Reused current discovery for existing-file live updates and added a live-update VS Code probe: full-discovery control was 3854ms wall / 3149ms request with 1900ms discovery; cached-discovery fast path was 1887ms wall / 1180ms request with 0ms discovery.
 Added changed-file refresh phase markers: pre-analysis routing hotspot was notifyPreAnalyze at 450ms inside a 722ms request, then routing pre-analysis files by supported extension reduced notifyPreAnalyze to 0ms, analyzeFiles to 78ms, refresh completion to 176ms, and live update to 955ms wall / 267ms request.
 Shortened existing-file save debounce and targeted Tree-sitter language loading: content saves now wait 100ms while file operations keep 500ms coalescing; latest live-update probe is 574ms wall / 283ms request, and targeted TypeScript Tree-sitter binding load probes at 11ms-17ms versus 62ms-205ms for loading all grammar bindings.
+Skipped duplicate changed-file graph builds when analysis already covers retained files: focused Core refresh test failed red on the old fallback `_buildGraphData` call, then passed with the coverage guard; rebuilt VS Code probe removed the `buildGraphData` phase, refresh completion moved 190ms -> 144ms, incremental request 283ms -> 236ms, and live-update wall 574ms -> 545ms.
 ```
 
 ## Task 5: Keep The PR Reviewable

@@ -725,6 +725,14 @@ Interpretation:
   `loadTreeSitterBindings()` path took `62ms`-`205ms` and loaded all language
   bindings. This is a startup and incremental-analysis guardrail rather than a
   visible graph-count change.
+- Changed-file graph refresh now skips the fallback connections-graph build
+  when the analysis map already covers every retained file connection key. The
+  fallback remains for discover-only states that need orphan preservation. On
+  the rebuilt VS Code live-update probe, the `buildGraphData` phase disappeared,
+  `refreshChangedFiles.completed` moved from `190ms` to `144ms`, and
+  incremental request duration moved from `283ms` to `236ms`. The end-to-end
+  live-update wall clock moved from `574ms` to `545ms`, with the remaining wait
+  now mostly outside this backend graph-build pass.
 
 Full test baseline:
 
