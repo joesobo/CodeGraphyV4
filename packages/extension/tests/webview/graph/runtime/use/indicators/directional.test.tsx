@@ -24,8 +24,8 @@ function createDirectionalOptions(
 ): Parameters<typeof applyDirectionalSettings>[1] {
   return {
     directionMode: 'particles',
-    getArrowColor: vi.fn(),
-    getArrowRelPos: vi.fn(),
+    getArrowColor: vi.fn(() => '#abcdef'),
+    getArrowRelPos: vi.fn(() => 1),
     getLinkParticles: vi.fn(),
     getParticleColor: vi.fn(),
     particleSize: 3,
@@ -63,11 +63,11 @@ describe('useDirectional', () => {
       applyDirectionalSettings(graph, options);
 
       expect(graph.linkDirectionalArrowLength).toHaveBeenCalledWith(0);
-      expect(graph.linkDirectionalArrowRelPos).toHaveBeenCalledWith(options.getArrowRelPos);
+      expect(graph.linkDirectionalArrowRelPos).toHaveBeenCalledWith(1);
       expect(graph.linkDirectionalParticles).toHaveBeenCalledWith(options.getLinkParticles);
       expect(graph.linkDirectionalParticleWidth).toHaveBeenCalledWith(3);
       expect(graph.linkDirectionalParticleSpeed).toHaveBeenCalledWith(0.15);
-      expect(graph.linkDirectionalArrowColor).toHaveBeenCalledWith(options.getArrowColor);
+      expect(graph.linkDirectionalArrowColor).toHaveBeenCalledWith('#abcdef');
       expect(graph.linkDirectionalParticleColor).toHaveBeenCalledWith(options.getParticleColor);
       expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
       expect(graph.resumeAnimation).toHaveBeenCalledOnce();

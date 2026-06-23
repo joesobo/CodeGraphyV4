@@ -278,6 +278,7 @@ Latest committed improvement:
 ```text
 Settled interactive graph updates skip force-graph cooldown ticks.
 Imports Graph Scope toggle: 2983ms median / 3079ms p95 before, 1925ms median / 2341ms p95 after.
+2D arrow constants: 1925ms median / 2341ms p95 before, 1595ms median / 1620ms p95 after.
 ```
 
 ## Task 5: Keep The PR Reviewable

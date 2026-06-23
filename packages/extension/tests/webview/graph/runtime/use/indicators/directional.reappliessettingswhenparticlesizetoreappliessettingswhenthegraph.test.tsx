@@ -24,8 +24,8 @@ function createDirectionalOptions(
 ): Parameters<typeof applyDirectionalSettings>[1] {
   return {
     directionMode: 'particles',
-    getArrowColor: vi.fn(),
-    getArrowRelPos: vi.fn(),
+    getArrowColor: vi.fn(() => '#abcdef'),
+    getArrowRelPos: vi.fn(() => 1),
     getLinkParticles: vi.fn(),
     getParticleColor: vi.fn(),
     particleSize: 3,
@@ -110,7 +110,7 @@ describe('useDirectional', () => {
         (props: Parameters<typeof useDirectional>[0]) => useDirectional(props),
         { initialProps: options },
       );
-      const getArrowColor = vi.fn();
+      const getArrowColor = vi.fn(() => '#fedcba');
 
       vi.clearAllMocks();
       rerender({
@@ -118,7 +118,7 @@ describe('useDirectional', () => {
         getArrowColor,
       });
 
-      expect(graph.linkDirectionalArrowColor).toHaveBeenCalledWith(getArrowColor);
+      expect(graph.linkDirectionalArrowColor).toHaveBeenCalledWith('#fedcba');
       expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
     });
 
@@ -133,7 +133,7 @@ describe('useDirectional', () => {
         (props: Parameters<typeof useDirectional>[0]) => useDirectional(props),
         { initialProps: options },
       );
-      const getArrowRelPos = vi.fn();
+      const getArrowRelPos = vi.fn(() => 0.75);
 
       vi.clearAllMocks();
       rerender({
@@ -141,7 +141,7 @@ describe('useDirectional', () => {
         getArrowRelPos,
       });
 
-      expect(graph.linkDirectionalArrowRelPos).toHaveBeenCalledWith(getArrowRelPos);
+      expect(graph.linkDirectionalArrowRelPos).toHaveBeenCalledWith(0.75);
       expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
     });
 
