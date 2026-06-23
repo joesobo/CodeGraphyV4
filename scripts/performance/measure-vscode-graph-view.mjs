@@ -11,6 +11,7 @@ const DEFAULT_OUTPUT_PATH = 'reports/performance/vscode-graph-view-latest.json';
 const DEFAULT_ITERATIONS = 5;
 const DEFAULT_WARMUP_ITERATIONS = 1;
 const DEFAULT_TIMEOUT_MS = 120_000;
+const WEBVIEW_PERFORMANCE_EVENT_LIMIT = 500;
 const IMPORTS_TOGGLE_START_EVENT = 'graphScope.edgeVisibility.optimistic';
 const IMPORTS_TOGGLE_RENDERED_EVENT = 'graphStats.rendered';
 const DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS = [
@@ -93,6 +94,26 @@ export function summarizeSwitchTransitionSamples(samples) {
   };
 }
 
+export function summarizeWebviewEventDurations(events) {
+  const durationsByEventName = new Map();
+
+  for (const event of events) {
+    if (typeof event.durationMs !== 'number') {
+      continue;
+    }
+
+    const durations = durationsByEventName.get(event.name) ?? [];
+    durations.push(event.durationMs);
+    durationsByEventName.set(event.name, durations);
+  }
+
+  return Object.fromEntries(
+    [...durationsByEventName.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([name, durations]) => [name, summarizeDurations(durations)]),
+  );
+}
+
 async function readGraphStats(frame) {
   const text = await frame
     .getByText(/[\d,]+\s+nodes?.*?[\d,]+\s+connections?/i)
@@ -119,6 +140,16 @@ async function waitForGraphStats(frame, predicate, timeoutMs = DEFAULT_TIMEOUT_M
   }
 
   throw new Error(`Timed out waiting for graph stats. Last stats: ${JSON.stringify(lastStats)}`);
+}
+
+async function installWebviewPerformanceInitScript(page) {
+  await page.addInitScript((limit) => {
+    window.__codegraphyPerformance = {
+      enabled: true,
+      events: [],
+      limit,
+    };
+  }, WEBVIEW_PERFORMANCE_EVENT_LIMIT);
 }
 
 async function openGraphScopeEdgeTypes(frame) {
@@ -155,23 +186,24 @@ async function waitForSwitchEnabled(frame, label, enabled) {
 }
 
 async function enableWebviewPerformanceEvents(frame) {
-  await frame.evaluate(() => {
+  await frame.evaluate((limit) => {
+    const existing = window.__codegraphyPerformance;
     window.__codegraphyPerformance = {
       enabled: true,
-      events: [],
-      limit: 500,
+      events: Array.isArray(existing?.events) ? existing.events : [],
+      limit,
     };
-  });
+  }, WEBVIEW_PERFORMANCE_EVENT_LIMIT);
 }
 
 async function resetWebviewPerformanceEvents(frame) {
-  await frame.evaluate(() => {
+  await frame.evaluate((limit) => {
     window.__codegraphyPerformance = {
       enabled: true,
       events: [],
-      limit: 500,
+      limit,
     };
-  });
+  }, WEBVIEW_PERFORMANCE_EVENT_LIMIT);
 }
 
 async function readWebviewPerformanceEvents(frame) {
@@ -243,12 +275,19 @@ async function measureVSCodeGraphView({
       pluginPackageRelativePaths: DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS,
     });
     const launchMs = Math.round(performance.now() - launchStartedAt);
+    await installWebviewPerformanceInitScript(vscode.page);
     const openStartedAt = performance.now();
     await openGraphView(vscode.page);
+    const openGraphCommandMs = Math.round(performance.now() - openStartedAt);
+    const frameStartedAt = performance.now();
     const frame = await waitForGraphFrame(vscode.page);
+    const graphFrameReadyMs = Math.round(performance.now() - frameStartedAt);
     await enableWebviewPerformanceEvents(frame);
+    const statsStartedAt = performance.now();
     const initialStats = await waitForGraphStats(frame, stats => stats.nodeCount > 0);
+    const graphStatsReadyMs = Math.round(performance.now() - statsStartedAt);
     const firstGraphReadyMs = Math.round(performance.now() - openStartedAt);
+    const firstGraphReadyWebviewEvents = await readWebviewPerformanceEvents(frame);
 
     await openGraphScopeEdgeTypes(frame);
     const initialImportsEnabled = await readSwitchEnabled(frame, 'Imports');
@@ -270,6 +309,13 @@ async function measureVSCodeGraphView({
     const measurements = {
       vscodeLaunchMs: launchMs,
       firstGraphReadyMs,
+      firstGraphReadyPhases: {
+        openGraphCommandMs,
+        graphFrameReadyMs,
+        graphStatsReadyMs,
+      },
+      firstGraphReadyWebviewStages: summarizeWebviewEventDurations(firstGraphReadyWebviewEvents),
+      firstGraphReadyWebviewEvents,
       initialStats,
       importsToggle: {
         ...summarizeSwitchTransitionSamples(samples),

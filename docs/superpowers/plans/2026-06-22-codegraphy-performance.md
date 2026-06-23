@@ -291,6 +291,7 @@ Cached recent style and legend stages: 236ms median / 270ms p95; sampled toggles
 Rendered edge-only Graph Scope changes immediately: 203ms median / 226ms p95; Imports toggles now emit renderImmediate instead of renderDebounced.
 Added in-webview delta metric: latest wall-clock 209ms median / 219ms p95, browser-side optimistic-to-rendered 55ms median / 58ms p95.
 Rejected startup timeline replay reorder: first graph readiness regressed from 6377ms to 7285ms; reverted.
+Added startup phase metrics: latest first graph readiness 6789ms split into 1709ms command/open, 5032ms acceptance-ready frame, 35ms stats wait; startup webview data stages are sub-second.
 ```
 
 ## Task 5: Keep The PR Reviewable
