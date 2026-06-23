@@ -668,6 +668,17 @@ Interpretation:
   reusing a prepared extension matcher from the cached material theme. The
   cached `load` publish moved from `2279ms` to `1696ms`, and first graph
   readiness moved from `5823ms` to `5617ms` in the one-sample harness.
+- Stale cached replay now defers live gitignore metadata because load mode
+  immediately starts a background full analysis for stale indexes. Fresh cached
+  replay still includes live gitignore metadata because no background
+  correction is guaranteed. On the CodeGraphy monorepo benchmark this moved
+  `workspacePipeline.loadCachedGraph.cachedDiscovery` from `324ms` to `11ms`,
+  `loadCachedGraph.completed` from `836ms` to `497ms`, cached load request
+  completion from `1007ms` to `672ms`, cached load publish from `1696ms` to
+  `626ms`, and first graph readiness from `5617ms` to `5266ms`. The first
+  rendered stats stayed stable at `2300` nodes and `5345` edges; the stale
+  replay raw graph omitted ignored-only folder metadata until the background
+  analysis sent the follow-up graph update.
 
 Full test baseline:
 

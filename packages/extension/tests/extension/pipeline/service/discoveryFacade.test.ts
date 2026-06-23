@@ -559,6 +559,42 @@ describe('pipeline/service/discoveryFacade', () => {
     expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
   });
 
+  it('can defer current gitignore metadata while replaying stale cached graph data', async () => {
+    const facade = new TestDiscoveryFacade();
+    const cachedAnalysis = {
+      filePath: '/workspace/example-python/src/main.py',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'example-python/src/main.py': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'example-python/src/main.py', label: 'main.py', color: '#333333' }],
+      edges: [],
+    });
+
+    await facade.loadCachedGraph(
+      [],
+      new Set<string>(),
+      undefined,
+      { includeCurrentGitignoreMetadata: false },
+    );
+
+    expect(spawnSync).not.toHaveBeenCalled();
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
+  });
+
   it('records cached graph load stage performance markers', async () => {
     const facade = new TestDiscoveryFacade();
     const cachedAnalysis = {
