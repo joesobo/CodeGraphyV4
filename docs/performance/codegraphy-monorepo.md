@@ -651,6 +651,14 @@ Interpretation:
   frame-readiness harness, while the host-side first publish moved from
   `36817ms` to `9857ms`. The remaining startup target is the cached load path
   itself, which now accounts for roughly `9.9s` before publish.
+- Cached Graph Cache replay no longer performs a full workspace discovery walk.
+  It derives discovered files and directories from cached paths, then asks git
+  for ignored metadata only for those cached paths. A direct probe measured the
+  replacement metadata path at `322ms` versus `4083ms` for full discovery with
+  the user's filters. The VS Code harness then moved cached `load` publish from
+  `9857ms` to `2396ms`, request completion from `9917ms` to `1653ms`, and first
+  graph readiness from `13696ms` to `5876ms`; visible graph stats stayed stable
+  at `2300` nodes and `5345` edges.
 
 Full test baseline:
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import { spawnSync } from 'node:child_process';
 import { WorkspacePipelineDiscoveryFacade } from '../../../../src/extension/pipeline/service/discoveryFacade';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import type { FileDiscovery } from '@codegraphy-dev/core';
@@ -39,6 +40,10 @@ vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
 vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
   analyzeWorkspacePipeline: vi.fn(),
   rebuildWorkspacePipelineGraph: vi.fn(),
+}));
+
+vi.mock('node:child_process', () => ({
+  spawnSync: vi.fn(),
 }));
 
 vi.mock('vscode', () => ({
@@ -129,6 +134,11 @@ describe('pipeline/service/discoveryFacade', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(spawnSync).mockReturnValue({
+      error: undefined,
+      status: 1,
+      stdout: '',
+    } as never);
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
     vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValue({
       directories: ['src/new-folder'],
@@ -458,6 +468,44 @@ describe('pipeline/service/discoveryFacade', () => {
     expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src', 'src/nested']);
   });
 
+  it('loads cached graph data without walking the workspace again', async () => {
+    const facade = new TestDiscoveryFacade();
+    const cachedAnalysis = {
+      filePath: '/workspace/src/nested/cached.ts',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'src/nested/cached.ts': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockRejectedValueOnce(
+      new Error('full discovery should not run for cached replay'),
+    );
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    await expect(facade.loadCachedGraph()).resolves.toEqual({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
+    expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src', 'src/nested']);
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
+  });
+
   it('applies current gitignore metadata when replaying cached graph data', async () => {
     const facade = new TestDiscoveryFacade();
     const cachedAnalysis = {
@@ -473,15 +521,10 @@ describe('pipeline/service/discoveryFacade', () => {
         },
       },
     } as never;
-    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValueOnce({
-      directories: ['example-python', 'example-python/src'],
-      files: [
-        {
-          absolutePath: '/workspace/example-python/src/main.py',
-          relativePath: 'example-python/src/main.py',
-        },
-      ],
-      gitIgnoredPaths: ['example-python/src/main.py'],
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      error: undefined,
+      status: 0,
+      stdout: 'example-python/src/main.py\n',
     } as never);
     vi.spyOn(
       facade as unknown as {
@@ -495,14 +538,14 @@ describe('pipeline/service/discoveryFacade', () => {
 
     await facade.loadCachedGraph();
 
-    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
-      'discovery-deps',
-      '/workspace',
-      { showOrphans: true, respectGitignore: true },
-      [],
-      ['plugin-filter'],
-      undefined,
-      expect.any(Function),
+    expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
+    expect(spawnSync).toHaveBeenCalledWith(
+      'git',
+      ['-C', '/workspace', 'check-ignore', '--stdin'],
+      {
+        encoding: 'utf8',
+        input: 'example-python\nexample-python/src\nexample-python/src/main.py\n',
+      },
     );
     expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
   });
