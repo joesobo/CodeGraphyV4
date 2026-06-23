@@ -157,27 +157,90 @@ function createNodeMap(nodes: readonly IGraphNode[]): Map<string, IGraphNode> {
   return new Map(nodes.map(node => [node.id, node]));
 }
 
-function normalizeNodeForMetricOnlyComparison(node: IGraphNode): Omit<IGraphNode, 'churn' | 'fileSize'> {
-  const comparableNode: Partial<IGraphNode> = { ...node };
-  delete comparableNode.churn;
-  delete comparableNode.fileSize;
-  return comparableNode as Omit<IGraphNode, 'churn' | 'fileSize'>;
+function areGraphValuesEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+      return false;
+    }
+
+    return left.every((leftValue, index) => areGraphValuesEqual(leftValue, right[index]));
+  }
+
+  if (
+    left === null
+    || right === null
+    || typeof left !== 'object'
+    || typeof right !== 'object'
+  ) {
+    return false;
+  }
+
+  const leftRecord = left as unknown as Record<string, unknown>;
+  const rightRecord = right as unknown as Record<string, unknown>;
+  const keys = new Set([...Object.keys(leftRecord), ...Object.keys(rightRecord)]);
+  for (const key of keys) {
+    if (!areGraphValuesEqual(leftRecord[key], rightRecord[key])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function areNodesEqualIgnoringMetrics(left: IGraphNode, right: IGraphNode): boolean {
-  return JSON.stringify(normalizeNodeForMetricOnlyComparison(left))
-    === JSON.stringify(normalizeNodeForMetricOnlyComparison(right));
+  if (left === right) {
+    return true;
+  }
+
+  const leftRecord = left as unknown as Record<string, unknown>;
+  const rightRecord = right as unknown as Record<string, unknown>;
+  const keys = new Set([...Object.keys(leftRecord), ...Object.keys(rightRecord)]);
+  keys.delete('churn');
+  keys.delete('fileSize');
+
+  for (const key of keys) {
+    if (!areGraphValuesEqual(leftRecord[key], rightRecord[key])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-function collectAffectedEdgeSignature(
-  graphData: IGraphData,
-  affectedNodeIds: ReadonlySet<string>,
-): string {
-  return JSON.stringify(
-    graphData.edges
-      .filter(edge => affectedNodeIds.has(edge.from) || affectedNodeIds.has(edge.to))
-      .sort((left, right) => left.id.localeCompare(right.id)),
-  );
+function areGraphDataEqualIgnoringNodeMetrics(
+  currentRawGraphData: IGraphData,
+  nextRawGraphData: IGraphData,
+): boolean {
+  if (
+    currentRawGraphData.nodes.length !== nextRawGraphData.nodes.length
+    || currentRawGraphData.edges.length !== nextRawGraphData.edges.length
+  ) {
+    return false;
+  }
+
+  for (let index = 0; index < currentRawGraphData.nodes.length; index += 1) {
+    if (!areNodesEqualIgnoringMetrics(
+      currentRawGraphData.nodes[index],
+      nextRawGraphData.nodes[index],
+    )) {
+      return false;
+    }
+  }
+
+  for (let index = 0; index < currentRawGraphData.edges.length; index += 1) {
+    if (!areGraphValuesEqual(
+      currentRawGraphData.edges[index],
+      nextRawGraphData.edges[index],
+    )) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function createMetricOnlyGraphUpdate(
@@ -194,6 +257,10 @@ function createMetricOnlyGraphUpdate(
     return undefined;
   }
 
+  if (!areGraphDataEqualIgnoringNodeMetrics(currentRawGraphData, nextRawGraphData)) {
+    return undefined;
+  }
+
   const currentNodes = collectChangedPathNodes(currentRawGraphData, changedFilePaths);
   const nextNodes = collectChangedPathNodes(nextRawGraphData, changedFilePaths);
   if (currentNodes.length === 0 || currentNodes.length !== nextNodes.length) {
@@ -201,7 +268,6 @@ function createMetricOnlyGraphUpdate(
   }
 
   const nextNodesById = createNodeMap(nextNodes);
-  const affectedNodeIds = new Set<string>();
   const updates: IGraphNodeMetricsUpdate[] = [];
 
   for (const currentNode of currentNodes) {
@@ -210,7 +276,6 @@ function createMetricOnlyGraphUpdate(
       return undefined;
     }
 
-    affectedNodeIds.add(currentNode.id);
     if (
       currentNode.fileSize !== nextNode.fileSize
       || currentNode.churn !== nextNode.churn
@@ -227,9 +292,7 @@ function createMetricOnlyGraphUpdate(
     return undefined;
   }
 
-  const currentEdgeSignature = collectAffectedEdgeSignature(currentRawGraphData, affectedNodeIds);
-  const nextEdgeSignature = collectAffectedEdgeSignature(nextRawGraphData, affectedNodeIds);
-  return currentEdgeSignature === nextEdgeSignature ? updates : undefined;
+  return updates;
 }
 
 function canReuseCurrentGraphPublication(

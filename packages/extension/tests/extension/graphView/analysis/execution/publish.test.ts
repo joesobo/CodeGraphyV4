@@ -459,6 +459,84 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(nextGraphData);
   });
 
+  it('falls back to full graph publication when an unrelated edge changes during a metric update', () => {
+    const currentGraphData: IGraphData = {
+      nodes: [
+        {
+          id: 'src/index.ts',
+          label: 'index.ts',
+          color: '#ffffff',
+          fileSize: 100,
+        },
+        {
+          id: 'src/other.ts',
+          label: 'other.ts',
+          color: '#ffffff',
+        },
+        {
+          id: 'src/leaf.ts',
+          label: 'leaf.ts',
+          color: '#ffffff',
+        },
+      ],
+      edges: [{
+        id: 'src/other.ts->src/leaf.ts#import',
+        from: 'src/other.ts',
+        to: 'src/leaf.ts',
+        kind: 'import',
+        sources: [],
+      }],
+    };
+    const nextGraphData: IGraphData = {
+      nodes: [
+        {
+          id: 'src/index.ts',
+          label: 'index.ts',
+          color: '#ffffff',
+          fileSize: 120,
+        },
+        {
+          id: 'src/other.ts',
+          label: 'other.ts',
+          color: '#ffffff',
+        },
+        {
+          id: 'src/leaf.ts',
+          label: 'leaf.ts',
+          color: '#ffffff',
+        },
+      ],
+      edges: [{
+        id: 'src/other.ts->src/leaf.ts#reference',
+        from: 'src/other.ts',
+        to: 'src/leaf.ts',
+        kind: 'reference',
+        sources: [],
+      }],
+    };
+    const state = createExecutionState({
+      mode: 'incremental',
+      changedFilePaths: ['/workspace/src/index.ts'],
+      analyzer: createExecutionAnalyzer(),
+    });
+    const sendGraphNodeMetricsUpdated = vi.fn();
+    const { handlers } = createExecutionHandlers({
+      applyViewTransform: vi.fn(() => {
+        handlers.setGraphData(nextGraphData);
+      }),
+      sendGraphNodeMetricsUpdated,
+    });
+    handlers.setRawGraphData(currentGraphData);
+    handlers.setGraphData(currentGraphData);
+    vi.mocked(handlers.setRawGraphData).mockClear();
+    vi.mocked(handlers.setGraphData).mockClear();
+
+    publishAnalyzedGraph(state, handlers, nextGraphData, true);
+
+    expect(sendGraphNodeMetricsUpdated).not.toHaveBeenCalled();
+    expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(nextGraphData);
+  });
+
   it('skips unrelated edge serialization when a changed node metric already differs', () => {
     let serializedUnrelatedEdgeCount = 0;
     const affectedEdge = {
