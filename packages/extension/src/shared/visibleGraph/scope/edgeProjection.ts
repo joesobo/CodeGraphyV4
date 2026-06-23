@@ -31,18 +31,24 @@ function projectEdgeToVisibleNodes(
 
   const from = getVisibleEdgeEndpoint(edge.from, allNodeById, visibleNodeIds);
   const to = getVisibleEdgeEndpoint(edge.to, allNodeById, visibleNodeIds);
-  if (!from || !to || from === to) {
+  if (!from || !to) {
     return undefined;
   }
 
-  return from === edge.from && to === edge.to
-    ? edge
-    : {
-      ...edge,
-      id: `${from}->${to}${getEdgeKindSuffix(edge)}`,
-      from,
-      to,
-    };
+  if (from === edge.from && to === edge.to) {
+    return edge;
+  }
+
+  if (from === to) {
+    return undefined;
+  }
+
+  return {
+    ...edge,
+    id: `${from}->${to}${getEdgeKindSuffix(edge)}`,
+    from,
+    to,
+  };
 }
 
 function getEdgeKindSuffix(edge: IGraphData['edges'][number]): string {
