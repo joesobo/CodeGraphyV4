@@ -297,6 +297,8 @@ export function publishAnalyzedGraph(
     rawGraphData,
     state.changedFilePaths,
   );
+  const shouldSendMetricPatch = metricOnlyUpdate !== undefined
+    && handlers.sendGraphNodeMetricsUpdated !== undefined;
   const reuseCurrentGraphPublication = canReuseCurrentGraphPublication(
     state,
     currentRawGraphData,
@@ -345,15 +347,21 @@ export function publishAnalyzedGraph(
   }
 
   stageStartedAt = Date.now();
-  handlers.sendDepthState();
-  handlers.sendPluginStatuses();
-  handlers.sendDecorations();
-  handlers.sendContextMenuItems();
-  handlers.sendPluginExporters?.();
-  handlers.sendPluginToolbarActions?.();
-  handlers.sendGraphViewContributionStatuses?.();
-  handlers.sendPluginWebviewInjections?.();
-  recordPublishStage('broadcasts', stageStartedAt);
+  if (shouldSendMetricPatch) {
+    recordPublishStage('broadcastsSkipped', stageStartedAt, {
+      reason: 'metricOnlyGraphPatch',
+    });
+  } else {
+    handlers.sendDepthState();
+    handlers.sendPluginStatuses();
+    handlers.sendDecorations();
+    handlers.sendContextMenuItems();
+    handlers.sendPluginExporters?.();
+    handlers.sendPluginToolbarActions?.();
+    handlers.sendGraphViewContributionStatuses?.();
+    handlers.sendPluginWebviewInjections?.();
+    recordPublishStage('broadcasts', stageStartedAt);
+  }
 
   stageStartedAt = Date.now();
   const graphData = handlers.getGraphData();
@@ -373,8 +381,8 @@ export function publishAnalyzedGraph(
   });
   if (!reuseCurrentGraphPublication) {
     stageStartedAt = Date.now();
-    if (metricOnlyUpdate && handlers.sendGraphNodeMetricsUpdated) {
-      handlers.sendGraphNodeMetricsUpdated(metricOnlyUpdate);
+    if (shouldSendMetricPatch) {
+      handlers.sendGraphNodeMetricsUpdated?.(metricOnlyUpdate);
       recordPublishStage('sendGraphNodeMetrics', stageStartedAt, {
         nodeCount: metricOnlyUpdate.length,
       });

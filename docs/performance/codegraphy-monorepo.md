@@ -934,6 +934,18 @@ Interpretation:
   or webview recomputation. First graph readiness stayed in the same band
   (`5165ms` and `5026ms`), and the Imports toggle measured `201ms`/`198ms`
   wall-clock with `62ms`/`57ms` in-webview.
+- Metric-only incremental patches now skip the static graph-state broadcast
+  bundle (`DEPTH_*`, plugin statuses, decorations, context menu items,
+  exporters, toolbar actions, contribution statuses, and plugin webview
+  injections). They still send progress, the one-node
+  `GRAPH_NODE_METRICS_UPDATED` patch, index status, post-analyze, and
+  workspace-ready notifications. The rebuilt monorepo probes recorded
+  `graphAnalysis.publish.broadcastsSkipped` with
+  `reason: "metricOnlyGraphPatch"` and the webview live-update window shrank
+  to four progress messages, one metrics patch, the in-place patch marker, and
+  index status. Incremental request duration measured `66ms` and `69ms`, down
+  from the prior `83ms`-`87ms` samples, while strict wall clock stayed in the
+  same `427ms`-`429ms` range because request-start delay remained `261ms`.
 
 Full test baseline:
 

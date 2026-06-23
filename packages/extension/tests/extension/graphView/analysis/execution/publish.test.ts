@@ -423,6 +423,76 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendGraphDataUpdated).not.toHaveBeenCalled();
   });
 
+  it('skips static graph-state broadcasts for metric-only incremental patches', () => {
+    const currentGraphData: IGraphData = {
+      nodes: [{
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: '#ffffff',
+        fileSize: 100,
+        churn: 1,
+      }],
+      edges: [],
+    };
+    const nextGraphData: IGraphData = {
+      nodes: [{
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: '#ffffff',
+        fileSize: 120,
+        churn: 2,
+      }],
+      edges: [],
+    };
+    const state = createExecutionState({
+      mode: 'incremental',
+      changedFilePaths: ['/workspace/src/index.ts'],
+      analyzer: createExecutionAnalyzer(),
+    });
+    const sendGraphNodeMetricsUpdated = vi.fn();
+    const sendPluginExporters = vi.fn();
+    const sendPluginToolbarActions = vi.fn();
+    const sendPluginWebviewInjections = vi.fn();
+    const { handlers, getGraphData } = createExecutionHandlers({
+      applyViewTransform: vi.fn(() => {
+        handlers.setGraphData(nextGraphData);
+      }),
+      sendGraphNodeMetricsUpdated,
+      sendPluginExporters,
+      sendPluginToolbarActions,
+      sendPluginWebviewInjections,
+    });
+    handlers.setRawGraphData(currentGraphData);
+    handlers.setGraphData(currentGraphData);
+    vi.mocked(handlers.setRawGraphData).mockClear();
+    vi.mocked(handlers.setGraphData).mockClear();
+
+    publishAnalyzedGraph(state, handlers, nextGraphData, true);
+
+    expect(sendGraphNodeMetricsUpdated).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).not.toHaveBeenCalled();
+    expect(handlers.sendPluginStatuses).not.toHaveBeenCalled();
+    expect(handlers.sendDecorations).not.toHaveBeenCalled();
+    expect(handlers.sendContextMenuItems).not.toHaveBeenCalled();
+    expect(sendPluginExporters).not.toHaveBeenCalled();
+    expect(sendPluginToolbarActions).not.toHaveBeenCalled();
+    expect(handlers.sendGraphViewContributionStatuses).not.toHaveBeenCalled();
+    expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      true,
+      'fresh',
+      'CodeGraphy index is fresh.',
+    );
+    expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+  });
+
   it('falls back to full graph publication when changed node metrics also change edges', () => {
     const currentGraphData: IGraphData = {
       nodes: [{
