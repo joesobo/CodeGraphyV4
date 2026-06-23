@@ -1,16 +1,57 @@
 import type { IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import {
   applyPendingGroupUpdates,
   applyPendingUserGroupsUpdate,
 } from '../optimistic/groups/updates';
 import { arePlainValuesEqual } from './equality/compare';
+import { recordWebviewPerformanceEvent } from '../../performance/marks';
+
+function areGraphDataPayloadsEqual(left: IGraphData, right: IGraphData): boolean {
+  if (left.nodes.length !== right.nodes.length || left.edges.length !== right.edges.length) {
+    return false;
+  }
+
+  try {
+    return JSON.stringify(left) === JSON.stringify(right);
+  } catch {
+    return false;
+  }
+}
+
+function shouldSkipSettledDuplicateGraphData(
+  state: ReturnType<NonNullable<IHandlerContext['getState']>>,
+  payload: IGraphData,
+): boolean {
+  return Boolean(
+    state.graphData
+    && state.bootstrapComplete
+    && !state.awaitingInitialBootstrap
+    && !state.graphIsIndexing
+    && !state.isLoading
+    && areGraphDataPayloadsEqual(state.graphData, payload)
+  );
+}
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,
   ctx?: Pick<IHandlerContext, 'getState'>,
-): PartialState {
+): PartialState | void {
+  recordWebviewPerformanceEvent('extensionMessage.graphDataUpdated', {
+    edgeCount: message.payload.edges.length,
+    nodeCount: message.payload.nodes.length,
+  });
+
   const state = ctx?.getState();
+  if (state && shouldSkipSettledDuplicateGraphData(state, message.payload)) {
+    recordWebviewPerformanceEvent('extensionMessage.graphDataSkipped', {
+      edgeCount: message.payload.edges.length,
+      nodeCount: message.payload.nodes.length,
+    });
+    return undefined;
+  }
+
   const waitingForInitialBootstrap = Boolean(
     state?.awaitingInitialBootstrap
     && !state.bootstrapComplete,
@@ -35,6 +76,7 @@ export function handleAppBootstrapComplete(
 ): PartialState {
   const state = ctx.getState();
   const graphReady = state.graphData !== null;
+  recordWebviewPerformanceEvent('extensionMessage.appBootstrapComplete', { graphReady });
 
   return {
     bootstrapComplete: true,

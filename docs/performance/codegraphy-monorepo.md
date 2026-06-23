@@ -303,6 +303,31 @@ VS Code graph view benchmark:
     `5189ms`, stats wait after frame discovery `40ms`.
   - Imports toggle wall-clock latency: `193ms` median, `203ms` p95; in-webview
     latency: `51ms` median, `81ms` p95.
+- After adding webview startup handshake markers:
+  - VS Code launch: `1538ms`.
+  - Open Graph View to first rendered graph stats: `6940ms`.
+  - First-ready phases: command/open `1698ms`, acceptance-ready frame
+    `5184ms`, stats wait after frame discovery `13ms`.
+  - Once the webview document was alive, it posted ready at `26.3ms`,
+    received `GRAPH_DATA_UPDATED` at `53.5ms`, received
+    `APP_BOOTSTRAP_COMPLETE` at `261.8ms`, and rendered first graph stats at
+    `340.5ms`.
+  - The same startup run received a second `GRAPH_DATA_UPDATED` with the same
+    `5088` node / `9146` edge payload at `985.1ms`, then another bootstrap
+    completion at `1291ms`.
+- After skipping settled duplicate graph payload replays:
+  - VS Code launch: `1337ms`.
+  - Open Graph View to first rendered graph stats: `6987ms`, effectively flat
+    against the `6940ms` startup-marker run because the remaining wall-clock
+    bucket is still frame readiness.
+  - The duplicate `5088` node / `9146` edge graph payload was received at
+    `1011.3ms` and skipped at `1016.6ms`.
+  - The duplicate replay no longer triggered the later visible-graph derivation,
+    styling, legend, edge-decoration, or graph-runtime build pass. Startup
+    event counts dropped from `6` to `5` `visibleGraph.derive` events, `4` to
+    `3` `visibleGraph.style` events, and `5` to `4` graph-runtime build events.
+  - Imports toggle wall-clock latency stayed in the same band at `191ms`
+    median, `222ms` p95; in-webview latency was `54ms` median, `86ms` p95.
 
 Interpretation:
 
@@ -346,6 +371,12 @@ Interpretation:
   and keeps the 2D path from paying for Three.js up front. The current VS Code
   first-ready harness did not show a first-load win because its dominant bucket
   remains the view/frame readiness wait, not measured webview data work.
+- Startup markers show that, after the webview document exists, ready/data/
+  bootstrap/render work reaches first graph stats in roughly `341ms`. The
+  multi-second first-ready wall clock is still outside measured webview graph
+  derivation/rendering. Duplicate graph replay suppression removes avoidable
+  post-startup work from the stale-cache refresh path, but it does not address
+  the current frame-readiness bucket.
 
 Full test baseline:
 

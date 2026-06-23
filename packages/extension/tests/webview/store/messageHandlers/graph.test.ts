@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   handleActiveFileUpdated,
   handleAppBootstrapComplete,
@@ -93,6 +93,10 @@ function createState(
 }
 
 describe('webview/store/messageHandlers/graph', () => {
+  afterEach(() => {
+    window.__codegraphyPerformance = undefined;
+  });
+
   it('maps graph payload updates into loading and indexing state', () => {
     const payload = { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] };
 
@@ -102,6 +106,50 @@ describe('webview/store/messageHandlers/graph', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
     });
+  });
+
+  it('records graph payload receipt for startup timing', () => {
+    window.__codegraphyPerformance = { enabled: true, events: [] };
+    const payload = {
+      nodes: [
+        { id: 'src/app.ts', label: 'App', color: '#fff' },
+        { id: 'src/lib.ts', label: 'Lib', color: '#fff' },
+      ],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+
+    handleGraphDataUpdated({ type: 'GRAPH_DATA_UPDATED', payload });
+
+    expect(window.__codegraphyPerformance.events).toEqual([
+      expect.objectContaining({
+        detail: { edgeCount: 1, nodeCount: 2 },
+        name: 'extensionMessage.graphDataUpdated',
+      }),
+    ]);
+  });
+
+  it('skips duplicate graph payloads after bootstrap has settled', () => {
+    window.__codegraphyPerformance = { enabled: true, events: [] };
+    const payload = {
+      nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      bootstrapComplete: true,
+      graphData: JSON.parse(JSON.stringify(payload)),
+      graphIsIndexing: false,
+      isLoading: false,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toBeUndefined();
+
+    expect(window.__codegraphyPerformance.events).toEqual([
+      expect.objectContaining({ name: 'extensionMessage.graphDataUpdated' }),
+      expect.objectContaining({ name: 'extensionMessage.graphDataSkipped' }),
+    ]);
   });
 
   it('settles initial bootstrap when graph data arrives after bootstrap and plugin assets are ready', () => {
@@ -140,6 +188,25 @@ describe('webview/store/messageHandlers/graph', () => {
       awaitingInitialBootstrap: false,
       isLoading: false,
     });
+  });
+
+  it('records app bootstrap completion for startup timing', () => {
+    window.__codegraphyPerformance = { enabled: true, events: [] };
+    const state = createState({
+      graphData: { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] },
+    });
+
+    handleAppBootstrapComplete(
+      { type: 'APP_BOOTSTRAP_COMPLETE' },
+      { getState: () => state },
+    );
+
+    expect(window.__codegraphyPerformance.events).toEqual([
+      expect.objectContaining({
+        detail: { graphReady: true },
+        name: 'extensionMessage.appBootstrapComplete',
+      }),
+    ]);
   });
 
   it('settles initial bootstrap when graph data and app bootstrap are ready while plugin assets continue loading', () => {
