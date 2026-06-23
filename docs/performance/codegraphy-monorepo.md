@@ -1017,6 +1017,17 @@ Interpretation:
   Imports toggle stayed snappy (`211ms` wall-clock / `60ms` in-webview).
   Live update stayed in the same fast post-save band with `116ms` from
   saved-document receipt to request completion.
+- Rejected precompiled file-path scoped symbol matcher experiment:
+  - The hypothesis was that `visibleGraph.derive` spent meaningful time
+    recompiling the two `**/*.gd` file-path symbol matchers while resolving
+    graph-scope node visibility. A TDD spike added a scoped-definition matcher
+    cache and used it in `nodeMatchesScope`.
+  - The rebuilt monorepo probe did not improve the target stage:
+    `visibleGraph.derive` stayed at `250.9ms` versus the prior `250.2ms`, and
+    first graph readiness stayed flat/noisy (`5215ms` versus `5191ms`).
+    Imports toggle was still snappy (`196ms` wall-clock / `64ms` in-webview),
+    but the code change was backed out because it did not move the measured
+    bottleneck.
 
 Full test baseline:
 
