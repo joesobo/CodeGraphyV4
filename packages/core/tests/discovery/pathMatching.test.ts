@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_EXCLUDE,
+  isDefaultExcludedPath,
   matchesAnyPattern,
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
@@ -41,6 +42,20 @@ describe('pathMatching', () => {
 
   it('matches windows-style paths against forward-slash patterns', () => {
     expect(matchesAnyPattern('src\\app.ts', ['src/*.ts'])).toBe(true);
+  });
+
+  it('fast-matches default generated and build excludes', () => {
+    expect(isDefaultExcludedPath('/workspace/packages/plugin-typescript/.turbo')).toBe(true);
+    expect(isDefaultExcludedPath('/workspace/.worktrees/speed-up-codegraphy/src/app.ts')).toBe(true);
+    expect(isDefaultExcludedPath('packages/extension/dist/webview/index.js')).toBe(true);
+    expect(isDefaultExcludedPath('packages/core/src/index.ts')).toBe(false);
+  });
+
+  it('fast-matches default generated file suffix excludes', () => {
+    expect(isDefaultExcludedPath('dist/index.js.map')).toBe(true);
+    expect(isDefaultExcludedPath('src/vendor.bundle.js')).toBe(true);
+    expect(isDefaultExcludedPath('src/vendor.min.js')).toBe(true);
+    expect(isDefaultExcludedPath('src/vendor.js')).toBe(false);
   });
 
   it('skips exact node_modules and git directories', () => {

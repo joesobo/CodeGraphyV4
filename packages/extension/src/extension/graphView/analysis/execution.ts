@@ -11,6 +11,7 @@ export type GraphViewIndexingProgress = { phase: string; current: number; total:
 
 export interface GraphViewCachedGraphLoadOptions {
   includeCurrentGitignoreMetadata?: boolean;
+  warmAnalysis?: boolean;
 }
 
 interface GraphViewAnalyzerLike {

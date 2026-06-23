@@ -611,6 +611,54 @@ describe('pipeline/service/discoveryFacade', () => {
     );
   });
 
+  it('does not warm cached source analysis when cached replay disables warm-up', async () => {
+    const facade = new TestDiscoveryFacade();
+    const analyzeFileResultForPlugins = vi.fn();
+    facade._discovery = {
+      readContent: vi.fn(async () => 'export const cached = 1;\n'),
+    } as unknown as FileDiscovery;
+    facade._registry = {
+      analyzeFileResultForPlugins,
+      list: vi.fn(() => [{ plugin: { id: 'plugin.typescript' } }]),
+      supportsFile: vi.fn(() => true),
+    } as unknown as PluginRegistry;
+    facade._cache = {
+      version: 'test',
+      files: {
+        'src/nested/cached.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/nested/cached.ts',
+            relations: [],
+          },
+        },
+      },
+    } as never;
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    await expect(facade.loadCachedGraph([], new Set(), undefined, {
+      warmAnalysis: false,
+    })).resolves.toEqual({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(facade._discovery.readContent).not.toHaveBeenCalled();
+    expect(analyzeFileResultForPlugins).not.toHaveBeenCalled();
+    expect(performanceMocks.recordExtensionPerformanceEvent).not.toHaveBeenCalledWith(
+      'workspacePipeline.loadCachedGraph.warmAnalysis',
+      expect.anything(),
+    );
+  });
+
   it('skips cached analysis warm-up quietly when the selected file disappeared', async () => {
     const facade = new TestDiscoveryFacade();
     const readError = Object.assign(new Error('missing cached file'), { code: 'ENOENT' });
