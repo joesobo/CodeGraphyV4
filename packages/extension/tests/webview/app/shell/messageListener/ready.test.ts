@@ -13,8 +13,14 @@ describe('app/shell/messageListener/ready', () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     window.__codegraphyPerformance = undefined;
-    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
-      .__codegraphyWebviewReadyPosted;
+    delete (window as Window & {
+      __codegraphyWebviewReadyPosted?: boolean;
+      __codegraphyWebviewPageId?: string;
+    }).__codegraphyWebviewReadyPosted;
+    delete (window as Window & {
+      __codegraphyWebviewReadyPosted?: boolean;
+      __codegraphyWebviewPageId?: string;
+    }).__codegraphyWebviewPageId;
   });
 
   it('posts webview ready only once per window lifecycle', () => {
@@ -25,7 +31,10 @@ describe('app/shell/messageListener/ready', () => {
 
     expect(beginInitialBootstrap).toHaveBeenCalledOnce();
     expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(postMessage).toHaveBeenCalledWith({ type: 'WEBVIEW_READY', payload: null });
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'WEBVIEW_READY',
+      payload: { pageId: expect.any(String), postedAt: expect.any(Number) },
+    });
   });
 
   it('records when the webview ready handshake is posted', () => {

@@ -96,22 +96,16 @@ function sendWebviewReadyFilterPatterns(handlers: GraphViewReadyHandlers): Filte
   return payload;
 }
 
-export function replayWebviewReadySettings(
+interface ReplayWebviewReadySettingsMessagesOptions {
+  includeFilterPatterns: boolean;
+  includePluginBootstrap: boolean;
+}
+
+function replayWebviewReadySettingsMessages(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
+  options: ReplayWebviewReadySettingsMessagesOptions,
 ): void {
-  createExtensionDiagnosticLogger({
-    isEnabled: () => state.verboseDiagnostics,
-  }).emit({
-    area: 'extension.webview',
-    event: 'ready-replayed',
-    context: {
-      hasWorkspace: state.hasWorkspace,
-      firstAnalysis: state.firstAnalysis,
-      readyNotified: state.readyNotified,
-      maxFiles: state.maxFiles,
-    },
-  });
   handlers.loadGroupsAndFilterPatterns();
   handlers.loadDisabledRulesAndPlugins();
   handlers.sendDepthState();
@@ -120,7 +114,9 @@ export function replayWebviewReadySettings(
   handlers.sendSettings();
   handlers.sendPhysicsSettings();
   handlers.sendGroupsUpdated();
-  sendWebviewReadyFilterPatterns(handlers);
+  if (options.includeFilterPatterns) {
+    sendWebviewReadyFilterPatterns(handlers);
+  }
   handlers.sendMessage({
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
@@ -149,9 +145,47 @@ export function replayWebviewReadySettings(
   handlers.sendContextMenuItems();
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();
-  handlers.sendGraphViewContributionStatuses?.();
-  handlers.sendPluginWebviewInjections();
+  if (options.includePluginBootstrap) {
+    handlers.sendGraphViewContributionStatuses?.();
+    handlers.sendPluginWebviewInjections();
+  }
   handlers.sendActiveFile();
+}
+
+export function replayWebviewReadySettings(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): void {
+  createExtensionDiagnosticLogger({
+    isEnabled: () => state.verboseDiagnostics,
+  }).emit({
+    area: 'extension.webview',
+    event: 'ready-replayed',
+    context: {
+      hasWorkspace: state.hasWorkspace,
+      firstAnalysis: state.firstAnalysis,
+      readyNotified: state.readyNotified,
+      maxFiles: state.maxFiles,
+    },
+  });
+  replayWebviewReadySettingsMessages(state, handlers, {
+    includeFilterPatterns: true,
+    includePluginBootstrap: true,
+  });
+}
+
+function shouldReplayHydrationSettingsAfterLoad(state: GraphViewReadyState): boolean {
+  return state.hasWorkspace && state.firstAnalysis;
+}
+
+function replayWebviewReadyHydrationSettings(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): void {
+  replayWebviewReadySettingsMessages(state, handlers, {
+    includeFilterPatterns: false,
+    includePluginBootstrap: false,
+  });
 }
 
 export function replayWebviewReadyBootstrap(
@@ -209,6 +243,9 @@ export async function applyWebviewReady(
     });
   }
   handlers.sendPluginStatuses?.();
+  if (shouldReplayHydrationSettingsAfterLoad(state)) {
+    replayWebviewReadyHydrationSettings(state, handlers);
+  }
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
   createExtensionDiagnosticLogger({

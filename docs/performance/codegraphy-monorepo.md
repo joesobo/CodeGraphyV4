@@ -528,6 +528,25 @@ VS Code graph view benchmark:
     and `10ms` stats wait.
   - A one-sample Imports Graph Scope sanity check measured `191ms` wall-clock
     and `49ms` in-webview optimistic-to-rendered latency.
+- After fast simple-glob matching, page-tokened ready handshakes, and
+  pre-bootstrap hydration settings:
+  - Command shape:
+    `pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs --workspace /Users/poleski/Desktop/Projects/CodeGraphyV4 --iterations 1 --warmup 0 --output reports/performance/vscode-graph-view-ready-hydration-toggle.json`.
+  - Open Graph View to first rendered graph stats: `4733ms`, split into
+    `1577ms` command/open, `3141ms` frame wait, and `12ms` stats wait.
+  - The visible page received `SETTINGS_UPDATED`, `PHYSICS_SETTINGS_UPDATED`,
+    `LEGENDS_UPDATED`, sizing, decoration, and active-file state before
+    `APP_BOOTSTRAP_COMPLETE` at `332.5ms`.
+  - The real startup work after bootstrap now ran one `visibleGraph.derive`
+    (`43.7ms`), one `visibleGraph.applyLegendRules` (`48.1ms`), and one
+    `graphRuntime.buildGraphData` (`7.4ms`) before first stats rendered at
+    `523.9ms` after the usable document started.
+  - Earlier comparable traces with late ready/settings replay showed three
+    `graphRuntime.buildGraphData` startup iterations and post-bootstrap legend
+    work. This run had one graph-runtime build and no second
+    `APP_BOOTSTRAP_COMPLETE`.
+  - Imports toggle wall-clock latency was `190ms`; in-webview
+    optimistic-to-rendered latency was `55ms`.
 
 Interpretation:
 

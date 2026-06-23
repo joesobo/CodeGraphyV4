@@ -16,13 +16,21 @@ export function applyLegendRules(
   }
 
   const activeRules = getOrderedActiveRules(legends);
+  if (activeRules.length === 0) {
+    return data;
+  }
+
   const nodeRules = compileNodeLegendRules(activeRules);
   const edgeRules = compileEdgeLegendRules(activeRules);
 
   return {
     ...data,
-    nodes: data.nodes.map((node) => applyCompiledNodeLegendRules(node, nodeRules)),
-    edges: data.edges.map((edge) => applyCompiledEdgeLegendRules(edge, edgeRules)),
+    nodes: nodeRules.length === 0
+      ? data.nodes
+      : data.nodes.map((node) => applyCompiledNodeLegendRules(node, nodeRules)),
+    edges: edgeRules.length === 0
+      ? data.edges
+      : data.edges.map((edge) => applyCompiledEdgeLegendRules(edge, edgeRules)),
   };
 }
 

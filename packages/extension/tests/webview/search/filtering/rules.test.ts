@@ -78,4 +78,15 @@ describe('search/filtering/rules', () => {
     expect(result?.edges[1]?.color).toBe('#ff8800');
     expect(result?.nodes[0]?.color).toBe('#111111');
   });
+
+  it('reuses edge rows when no active legend rule targets edges', () => {
+    const groups: IGroup[] = [
+      { id: 'typescript', pattern: '*.ts', color: '#ff0000' },
+      { id: 'disabled-edge', pattern: 'import', color: '#ff8800', target: 'edge', disabled: true },
+    ];
+
+    const result = applyLegendRules(graphData, groups);
+
+    expect(result?.edges).toBe(graphData.edges);
+  });
 });
