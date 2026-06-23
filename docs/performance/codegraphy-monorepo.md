@@ -733,6 +733,13 @@ Interpretation:
   incremental request duration moved from `283ms` to `236ms`. The end-to-end
   live-update wall clock moved from `574ms` to `545ms`, with the remaining wait
   now mostly outside this backend graph-build pass.
+- Existing-file content saves now use a `50ms` debounce while create, delete,
+  and rename operations keep the `500ms` coalescing window. The next VS Code
+  live-update probe measured `488ms` wall-clock and `237ms` request duration.
+  The backend phase split stayed effectively flat (`145ms` changed-file
+  refresh, `82ms` one-file plugin analysis, `52ms` analysis graph build), so
+  this iteration specifically moved request start earlier rather than changing
+  graph computation.
 
 Full test baseline:
 
