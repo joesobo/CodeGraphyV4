@@ -967,6 +967,17 @@ Interpretation:
   expired saved paths pruned before reuse. The rebuilt editor-save probe
   produced one marker request (`89ms`) plus the restore request (`71ms`),
   moving marker wall time to `494ms` and request-start delay to `350ms`.
+- Rejected zero-delay saved-document debounce experiment:
+  - Reducing saved-document refresh scheduling from `32ms` to `0ms` measured
+    request-start delays of `318ms`, `322ms`, and `343ms` across three
+    one-sample editor-save probes, compared with the prior `350ms` editor-save
+    dedupe sample. Request duration stayed small in the clean samples, but
+    end-to-end wall time remained noisy at a `547ms` median.
+  - The production change was backed out because existing focused tests caught
+    regressions in rapid-save and save-plus-create coalescing. Preserving the
+    `25ms` coalescing contract is worth more than the small measured
+    pre-request gain. The next target remains the pre-request save/event-
+    delivery path rather than backend graph analysis.
 
 Full test baseline:
 
