@@ -10,6 +10,7 @@ import {
   type GraphViewPrimaryMessageContext,
 } from '../dispatch/primary';
 import { replayDuplicateWebviewReady } from './ready';
+import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
 export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
@@ -24,6 +25,26 @@ const webviewMessageListenerDisposables = new WeakMap<vscode.Webview, vscode.Dis
 
 type GraphViewPrimaryMessageResult = Awaited<ReturnType<typeof dispatchGraphViewPrimaryMessage>>;
 type GraphViewPluginMessageResult = Awaited<ReturnType<typeof dispatchGraphViewPluginMessage>>;
+type WebviewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW_READY' }>;
+
+interface WebviewReadyDelivery {
+  pageId?: string;
+  postedAt?: number;
+}
+
+function getWebviewReadyDelivery(message: WebviewReadyMessage): WebviewReadyDelivery {
+  const payload = (message as { payload?: unknown }).payload;
+  if (!payload || typeof payload !== 'object') {
+    return {};
+  }
+
+  const pageId = (payload as { pageId?: unknown }).pageId;
+  const postedAt = (payload as { postedAt?: unknown }).postedAt;
+  return {
+    ...(typeof pageId === 'string' && pageId.length > 0 ? { pageId } : {}),
+    ...(typeof postedAt === 'number' && Number.isFinite(postedAt) ? { postedAt } : {}),
+  };
+}
 
 function applyGraphViewPrimaryMessageResult(
   primaryResult: GraphViewPrimaryMessageResult,
@@ -74,26 +95,52 @@ function createGraphViewWebviewMessageHandler(
   context: GraphViewMessageListenerContext,
 ): (message: WebviewToExtensionMessage) => Promise<void> {
   let webviewReadyHandled = false;
+  let webviewReadyPageId: string | undefined;
+  let webviewReadyCompletedAt: number | undefined;
 
   return async function handleGraphViewWebviewMessage(message: WebviewToExtensionMessage): Promise<void> {
-    if (message.type === 'WEBVIEW_READY' && webviewReadyHandled) {
-      await replayDuplicateWebviewReady(createReadyState(context), context);
-      return;
+    const isWebviewReadyMessage = message.type === 'WEBVIEW_READY';
+    if (message.type === 'WEBVIEW_READY') {
+      const delivery = getWebviewReadyDelivery(message);
+      recordExtensionPerformanceEvent('graphWebview.ready.received', {
+        duplicate: webviewReadyHandled,
+        pageId: delivery.pageId,
+        postedAt: delivery.postedAt,
+        previousPageId: webviewReadyPageId,
+        completedAt: webviewReadyCompletedAt,
+      });
+      if (webviewReadyHandled) {
+        const isSamePage = delivery.pageId !== undefined && delivery.pageId === webviewReadyPageId;
+        const wasPostedBeforeCompletedBootstrap = delivery.postedAt !== undefined
+          && webviewReadyCompletedAt !== undefined
+          && delivery.postedAt <= webviewReadyCompletedAt;
+        if (isSamePage || wasPostedBeforeCompletedBootstrap) {
+          return;
+        }
+        webviewReadyPageId = delivery.pageId;
+        await replayDuplicateWebviewReady(createReadyState(context), context);
+        return;
+      }
+      webviewReadyHandled = true;
+      webviewReadyPageId = delivery.pageId;
     }
-    webviewReadyHandled ||= message.type === 'WEBVIEW_READY';
 
     const primaryResult = await dispatchGraphViewPrimaryMessage(message, {
       ...context,
       asWebviewUri: uri => webview.asWebviewUri(uri),
     });
     if (applyGraphViewPrimaryMessageResult(primaryResult, context)) {
+      if (isWebviewReadyMessage) {
+        webviewReadyCompletedAt = Date.now();
+      }
       return;
     }
 
-    applyGraphViewPluginMessageResult(
-      await dispatchGraphViewPluginMessage(message, context),
-      context,
-    );
+    const pluginResult = await dispatchGraphViewPluginMessage(message, context);
+    applyGraphViewPluginMessageResult(pluginResult, context);
+    if (isWebviewReadyMessage && pluginResult.handled) {
+      webviewReadyCompletedAt = Date.now();
+    }
   };
 }
 

@@ -280,6 +280,45 @@ describe('graph view ready message', () => {
     expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
   });
 
+  it('hydrates settings again after initial workspace graph loading before bootstrap', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendSettings.mockImplementation(() => events.push('settings'));
+    handlers.sendGroupsUpdated.mockImplementation(() => events.push('legends'));
+    handlers.loadAndSendData.mockImplementation(() => {
+      events.push('graph');
+    });
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
+        events.push('bootstrap');
+      }
+    });
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(events).toEqual([
+      'settings',
+      'legends',
+      'graph',
+      'settings',
+      'legends',
+      'bootstrap',
+    ]);
+  });
+
   it('does not block bootstrap on first workspace-ready plugin notifications', async () => {
     const events: string[] = [];
     const handlers = createHandlers();

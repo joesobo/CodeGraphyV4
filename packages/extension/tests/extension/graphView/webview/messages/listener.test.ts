@@ -249,13 +249,69 @@ describe('graph view webview message listener', () => {
         (message as { type?: string }).type === 'GRAPH_DATA_UPDATED'
       ),
     ).toHaveLength(0);
-    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
-    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
-    expect(context.sendSettings).toHaveBeenCalledTimes(1);
-    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(1);
+    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(2);
+    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(2);
+    expect(context.sendSettings).toHaveBeenCalledTimes(2);
+    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(2);
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores repeated WEBVIEW_READY deliveries from the same webview page after bootstrap', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext({
+      hasWorkspace: vi.fn(() => true),
+      isFirstAnalysis: vi.fn(() => false),
+      isWebviewReadyNotified: vi.fn(() => true),
+    });
+    const readyMessage = { type: 'WEBVIEW_READY', payload: { pageId: 'page-a' } };
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.(readyMessage);
+    await messageHandler?.(readyMessage);
+
+    expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.sendSettings).toHaveBeenCalledTimes(1);
+    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'APP_BOOTSTRAP_COMPLETE'
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('ignores new-page WEBVIEW_READY deliveries posted before the previous bootstrap completed', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext({
+      hasWorkspace: vi.fn(() => true),
+      isFirstAnalysis: vi.fn(() => false),
+      isWebviewReadyNotified: vi.fn(() => true),
+    });
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({ type: 'WEBVIEW_READY', payload: { pageId: 'page-a', postedAt: 1 } });
+    await messageHandler?.({ type: 'WEBVIEW_READY', payload: { pageId: 'page-b', postedAt: 1 } });
+
+    expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.sendSettings).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'APP_BOOTSTRAP_COMPLETE'
+      ),
+    ).toHaveLength(1);
   });
 
   it('replaces the previous listener when the same webview is wired again', async () => {
