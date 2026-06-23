@@ -271,6 +271,14 @@ VS Code graph view benchmark:
     5 samples.
   - In-webview optimistic-to-rendered latency:
     `55ms` median, `58ms` p95 across 5 samples.
+- Rejected startup timeline replay reorder:
+  - Tried moving cached timeline replay after graph bootstrap so first graph
+    stats could render before slow timeline work.
+  - VS Code launch: `1259ms`.
+  - Open Graph View to first rendered graph stats regressed to `7285ms`.
+  - Imports toggle wall-clock latency stayed flat at `204ms` median,
+    `219ms` p95; in-webview latency was `53ms` median, `111ms` p95.
+  - The change was reverted because it did not improve first graph readiness.
 
 Interpretation:
 

@@ -290,6 +290,7 @@ Cached recent visible-graph derivations: 313ms median / 345ms p95; sampled toggl
 Cached recent style and legend stages: 236ms median / 270ms p95; sampled toggles had no derive/style/legend events.
 Rendered edge-only Graph Scope changes immediately: 203ms median / 226ms p95; Imports toggles now emit renderImmediate instead of renderDebounced.
 Added in-webview delta metric: latest wall-clock 209ms median / 219ms p95, browser-side optimistic-to-rendered 55ms median / 58ms p95.
+Rejected startup timeline replay reorder: first graph readiness regressed from 6377ms to 7285ms; reverted.
 ```
 
 ## Task 5: Keep The PR Reviewable
