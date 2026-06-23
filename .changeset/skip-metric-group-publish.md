@@ -2,4 +2,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Skip redundant legend group publication and deep graph reuse checks when a saved file only changes graph node metrics.
+Skip redundant legend group publication, deep graph reuse checks, and full graph payloads when a saved file only changes graph node metrics.

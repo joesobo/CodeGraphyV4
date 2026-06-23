@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
+import type { IGraphNodeMetricsUpdate } from '../../../shared/protocol/extensionToWebview';
 import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
@@ -76,6 +77,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   getRawGraphData?(): IGraphData;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
+  sendGraphNodeMetricsUpdated?(updates: IGraphNodeMetricsUpdate[]): void;
   sendDepthState(): void;
   computeMergedGroups(): void;
   sendGroupsUpdated(): void;

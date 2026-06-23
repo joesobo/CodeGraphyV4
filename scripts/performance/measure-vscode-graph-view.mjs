@@ -16,6 +16,10 @@ const IMPORTS_TOGGLE_START_EVENT = 'graphScope.edgeVisibility.optimistic';
 const IMPORTS_TOGGLE_RENDERED_EVENT = 'graphStats.rendered';
 const ANALYZE_REQUEST_MODE = 'analyze';
 const LIVE_UPDATE_REQUEST_MODE = 'incremental';
+const GRAPH_UPDATE_MESSAGE_TYPES = new Set([
+  'GRAPH_DATA_UPDATED',
+  'GRAPH_NODE_METRICS_UPDATED',
+]);
 const DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS = [
   'packages/plugin-godot',
   'packages/plugin-markdown',
@@ -424,6 +428,37 @@ async function waitForWebviewPerformanceEvent(frame, name, timeoutMs = DEFAULT_T
   throw new Error(`Timed out waiting for webview performance event: ${name}`);
 }
 
+async function countWebviewMessagesReceived(frame, type) {
+  const count = await frame.evaluate((messageType) =>
+    window.__codegraphyPerformance?.events?.filter(event =>
+      event.name === 'extensionMessage.received'
+      && event.detail?.type === messageType).length ?? 0, type);
+  return Number.isInteger(count) ? count : 0;
+}
+
+async function countWebviewGraphUpdateMessagesReceived(frame) {
+  const counts = new Map();
+  for (const messageType of GRAPH_UPDATE_MESSAGE_TYPES) {
+    counts.set(messageType, await countWebviewMessagesReceived(frame, messageType));
+  }
+
+  return counts;
+}
+
+async function waitForWebviewMessageReceived(frame, type, minimumCount = 0, timeoutMs = DEFAULT_TIMEOUT_MS) {
+  const startedAt = performance.now();
+
+  while (performance.now() - startedAt < timeoutMs) {
+    if (await countWebviewMessagesReceived(frame, type) > minimumCount) {
+      return;
+    }
+
+    await frame.waitForTimeout(25);
+  }
+
+  throw new Error(`Timed out waiting for webview message: ${type}`);
+}
+
 async function waitForExtensionHostPerformanceEvent(logPath, predicate, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const startedAt = performance.now();
 
@@ -467,6 +502,40 @@ async function waitForExtensionHostRequestIdle(
   }
 
   throw new Error(`Timed out waiting for ${mode} extension host requests to become idle`);
+}
+
+function findGraphUpdateMessageSentForRequest(events, requestEvent) {
+  const requestId = requestEvent.detail?.requestId;
+  const mode = requestEvent.detail?.mode;
+  const startedAt = events.find(event =>
+    event.name === 'graphAnalysis.request.start'
+    && event.detail?.requestId === requestId
+    && event.detail?.mode === mode)?.at;
+
+  if (typeof startedAt !== 'number') {
+    return undefined;
+  }
+
+  return events.find(event =>
+    event.name === 'graphWebview.message.send'
+    && event.at >= startedAt
+    && event.at <= requestEvent.at
+    && GRAPH_UPDATE_MESSAGE_TYPES.has(event.detail?.type))?.detail?.type;
+}
+
+async function waitForWebviewGraphUpdateMessageIfSent(
+  logPath,
+  frame,
+  requestEvent,
+  previousMessageCounts = new Map(),
+) {
+  const events = await readExtensionHostPerformanceEvents(logPath);
+  const messageType = findGraphUpdateMessageSentForRequest(events, requestEvent);
+  if (!messageType) {
+    return;
+  }
+
+  await waitForWebviewMessageReceived(frame, messageType, previousMessageCounts.get(messageType) ?? 0);
 }
 
 async function measureSwitchTransition(frame, label, enabled) {
@@ -518,6 +587,7 @@ export async function measureLiveUpdateTransition({
       }),
     );
     updateRequestCompletedAt = requestEvent.at;
+    await waitForWebviewGraphUpdateMessageIfSent(extensionHostLogPath, frame, requestEvent);
 
     return {
       durationMs: Math.round(performance.now() - startedAt),
@@ -529,8 +599,9 @@ export async function measureLiveUpdateTransition({
   } finally {
     if (markerWritten) {
       const restoreStartedAtEpoch = Date.now();
+      const previousMessageCounts = await countWebviewGraphUpdateMessagesReceived(frame);
       await writeFile(absoluteFilePath, originalContent);
-      await waitForExtensionHostPerformanceEvent(
+      const requestEvent = await waitForExtensionHostPerformanceEvent(
         extensionHostLogPath,
         events => findCompletedExtensionHostRequestAfter(events, {
           mode: LIVE_UPDATE_REQUEST_MODE,
@@ -538,6 +609,12 @@ export async function measureLiveUpdateTransition({
             ? Math.max(restoreStartedAtEpoch, updateRequestCompletedAt + 1)
             : restoreStartedAtEpoch,
         }),
+      );
+      await waitForWebviewGraphUpdateMessageIfSent(
+        extensionHostLogPath,
+        frame,
+        requestEvent,
+        previousMessageCounts,
       );
       await waitForExtensionHostRequestIdle(extensionHostLogPath, LIVE_UPDATE_REQUEST_MODE);
     }

@@ -77,6 +77,58 @@ export function handleGraphDataUpdated(
   };
 }
 
+export function handleGraphNodeMetricsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>,
+  ctx?: Pick<IHandlerContext, 'getState'>,
+): PartialState | void {
+  recordWebviewPerformanceEvent('extensionMessage.graphNodeMetricsUpdated', {
+    nodeCount: message.payload.nodes.length,
+  });
+
+  const state = ctx?.getState();
+  if (!state?.graphData) {
+    return undefined;
+  }
+
+  const updatesById = new Map(message.payload.nodes.map(node => [node.id, node]));
+  let changed = false;
+  const nodes = state.graphData.nodes.map((node) => {
+    const update = updatesById.get(node.id);
+    if (!update || (node.fileSize === update.fileSize && node.churn === update.churn)) {
+      return node;
+    }
+
+    changed = true;
+    return {
+      ...node,
+      fileSize: update.fileSize,
+      churn: update.churn,
+    };
+  });
+
+  if (!changed) {
+    return {
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    };
+  }
+
+  const waitingForInitialBootstrap = Boolean(
+    state.awaitingInitialBootstrap
+    && !state.bootstrapComplete,
+  );
+
+  return {
+    graphData: {
+      ...state.graphData,
+      nodes,
+    },
+    isLoading: waitingForInitialBootstrap,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+  };
+}
+
 export function handleAppBootstrapComplete(
   _message: Extract<ExtensionToWebviewMessage, { type: 'APP_BOOTSTRAP_COMPLETE' }>,
   ctx: Pick<IHandlerContext, 'getState'>,

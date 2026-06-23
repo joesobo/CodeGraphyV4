@@ -450,6 +450,122 @@ test('VS Code graph view runner waits for the live-update restore request before
   }
 });
 
+test('VS Code graph view runner waits for the live-update graph message in the webview', async (t) => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { measureLiveUpdateTransition } = await import(moduleUrl);
+  const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), 'codegraphy-live-update-webview-'));
+  t.after(() => rm(workspaceRoot, { recursive: true, force: true }));
+
+  const liveUpdateFilePath = 'src/example.ts';
+  const absoluteFilePath = path.join(workspaceRoot, liveUpdateFilePath);
+  const extensionHostLogPath = path.join(workspaceRoot, 'extension-host.jsonl');
+  const originalContent = 'export const value = 1;\n';
+  await mkdir(path.dirname(absoluteFilePath), { recursive: true });
+  await writeFile(absoluteFilePath, originalContent);
+  await writeFile(extensionHostLogPath, '');
+
+  let stopped = false;
+  let markerRequestRecorded = false;
+  let restoreRequestCompleted = false;
+  let markerWebviewMessageReceived = false;
+  const webviewEvents = [];
+  const frame = {
+    evaluate: async (callback, argument) => {
+      const source = String(callback);
+      if (source.includes('window.__codegraphyPerformance =')) {
+        webviewEvents.length = 0;
+        return undefined;
+      }
+      if (source.includes('.filter(event')) {
+        return webviewEvents.filter(event =>
+          event.name === 'extensionMessage.received'
+          && event.detail?.type === argument).length;
+      }
+      if (source.includes('__codegraphyPerformance?.events')) {
+        return webviewEvents;
+      }
+      return undefined;
+    },
+    waitForTimeout: async ms => new Promise(resolve => setTimeout(resolve, ms)),
+  };
+
+  async function appendIncrementalRequest(requestId) {
+    const startedAt = Date.now();
+    await writeFile(extensionHostLogPath, [
+      JSON.stringify({
+        name: 'graphAnalysis.request.start',
+        at: startedAt,
+        detail: { requestId, mode: 'incremental' },
+      }),
+      JSON.stringify({
+        name: 'graphWebview.message.send',
+        at: startedAt + 1,
+        detail: { type: 'GRAPH_NODE_METRICS_UPDATED' },
+      }),
+      JSON.stringify({
+        name: 'graphAnalysis.request.completed',
+        at: startedAt + 2,
+        detail: { requestId, mode: 'incremental', durationMs: 2 },
+      }),
+      '',
+    ].join('\n'), { flag: 'a' });
+  }
+
+  function enqueueGraphMessageReceived() {
+    setTimeout(() => {
+      markerWebviewMessageReceived = true;
+      webviewEvents.push({
+        name: 'extensionMessage.received',
+        at: performance.now(),
+        detail: { type: 'GRAPH_NODE_METRICS_UPDATED' },
+      });
+    }, 40);
+  }
+
+  const observer = (async () => {
+    while (!stopped) {
+      const content = await readFile(absoluteFilePath, 'utf8');
+      if (!markerRequestRecorded && content.includes('CodeGraphy live update perf marker')) {
+        markerRequestRecorded = true;
+        await appendIncrementalRequest(1);
+        enqueueGraphMessageReceived();
+      } else if (
+        markerRequestRecorded
+        && !restoreRequestCompleted
+        && content === originalContent
+      ) {
+        await appendIncrementalRequest(2);
+        enqueueGraphMessageReceived();
+        restoreRequestCompleted = true;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+  })();
+
+  try {
+    const sample = await measureLiveUpdateTransition({
+      extensionHostLogPath,
+      frame,
+      liveUpdateFilePath,
+      workspaceRoot,
+    });
+
+    assert.equal(sample.filePath, liveUpdateFilePath);
+    assert.equal(markerWebviewMessageReceived, true);
+    assert.equal(
+      sample.webviewEvents.some(event => event.detail?.type === 'GRAPH_NODE_METRICS_UPDATED'),
+      true,
+    );
+    assert.equal(restoreRequestCompleted, true);
+  } finally {
+    stopped = true;
+    await observer;
+  }
+});
+
 test('VS Code graph view runner waits for active analyze requests before live-update markers', async (t) => {
   const moduleUrl = pathToFileURL(
     path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),

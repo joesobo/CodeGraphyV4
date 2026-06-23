@@ -46,6 +46,12 @@ export function createGraphViewProviderAnalysisHandlers(
       );
       source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
     },
+    sendGraphNodeMetricsUpdated: updates => {
+      source._sendMessage({
+        type: 'GRAPH_NODE_METRICS_UPDATED',
+        payload: { nodes: updates },
+      });
+    },
     sendDepthState: () => source._sendDepthState(),
     computeMergedGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
