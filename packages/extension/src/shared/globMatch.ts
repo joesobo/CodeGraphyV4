@@ -44,22 +44,111 @@ export function createGlobMatcher(pattern: string): (filePath: string) => boolea
   return (filePath: string): boolean => regex.test(filePath);
 }
 
+type GlobMatcher = (filePath: string) => boolean;
+
+function matchesPathSuffix(filePath: string, suffix: string): boolean {
+  return filePath === suffix || filePath.endsWith(`/${suffix}`);
+}
+
+function createRecursiveDirectoryMatcher(directoryPath: string): GlobMatcher {
+  const rootPrefix = `${directoryPath}/`;
+  const nestedPrefix = `/${rootPrefix}`;
+
+  return (filePath: string): boolean => (
+    filePath.startsWith(rootPrefix) || filePath.includes(nestedPrefix)
+  );
+}
+
+function createDirectChildMatcher(directoryPath: string): GlobMatcher {
+  const rootPrefix = `${directoryPath}/`;
+  const nestedPrefix = `/${rootPrefix}`;
+
+  return (filePath: string): boolean => {
+    let start = 0;
+    if (!filePath.startsWith(rootPrefix)) {
+      const nestedStart = filePath.lastIndexOf(nestedPrefix);
+      if (nestedStart < 0) {
+        return false;
+      }
+      start = nestedStart + 1;
+    }
+
+    const remainder = filePath.slice(start + rootPrefix.length);
+    return remainder.length > 0 && !remainder.includes('/');
+  };
+}
+
+function createFastGlobMatcher(pattern: string): GlobMatcher | undefined {
+  if (!pattern) {
+    return () => false;
+  }
+
+  const recursivePattern = pattern.startsWith('**/') ? pattern.slice(3) : pattern;
+
+  if (!recursivePattern.includes('*')) {
+    return (filePath: string): boolean => matchesPathSuffix(filePath, recursivePattern);
+  }
+
+  if (
+    recursivePattern.startsWith('*.')
+    && recursivePattern.indexOf('*', 1) === -1
+    && !recursivePattern.includes('/')
+  ) {
+    const suffix = recursivePattern.slice(1);
+    return (filePath: string): boolean => filePath.endsWith(suffix);
+  }
+
+  if (recursivePattern.endsWith('/**')) {
+    const directoryPath = recursivePattern.slice(0, -3);
+    if (directoryPath && !directoryPath.includes('*')) {
+      return createRecursiveDirectoryMatcher(directoryPath);
+    }
+  }
+
+  if (recursivePattern.endsWith('/*')) {
+    const directoryPath = recursivePattern.slice(0, -2);
+    if (directoryPath && !directoryPath.includes('*')) {
+      return createDirectChildMatcher(directoryPath);
+    }
+  }
+
+  return undefined;
+}
+
 export function createCombinedGlobMatcher(patterns: readonly string[]): (filePath: string) => boolean {
   if (patterns.length === 0) {
     return () => false;
   }
 
   if (patterns.length === 1) {
-    return createGlobMatcher(patterns[0] ?? '');
+    const pattern = patterns[0] ?? '';
+    return createFastGlobMatcher(pattern) ?? createGlobMatcher(pattern);
   }
 
-  const regex = new RegExp(
-    patterns
-      .map(pattern => `(?:${globToRegex(pattern).source})`)
-      .join('|'),
-  );
+  const fastMatchers: GlobMatcher[] = [];
+  const regexPatterns: string[] = [];
+  for (const pattern of patterns) {
+    const fastMatcher = createFastGlobMatcher(pattern);
+    if (fastMatcher) {
+      fastMatchers.push(fastMatcher);
+    } else {
+      regexPatterns.push(pattern);
+    }
+  }
 
-  return (filePath: string): boolean => regex.test(filePath);
+  const regex = regexPatterns.length > 0
+    ? new RegExp(regexPatterns.map(pattern => `(?:${globToRegex(pattern).source})`).join('|'))
+    : null;
+
+  return (filePath: string): boolean => {
+    for (const matcher of fastMatchers) {
+      if (matcher(filePath)) {
+        return true;
+      }
+    }
+
+    return regex ? regex.test(filePath) : false;
+  };
 }
 
 export function globMatch(filePath: string, pattern: string): boolean {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { performance } from 'node:perf_hooks';
 import {
   createCombinedGlobMatcher,
   createGlobMatcher,
@@ -51,9 +52,99 @@ describe('shared/globMatch', () => {
     expect(matcher('src/index.ts')).toBe(false);
   });
 
+  it('preserves direct-child path boundaries in combined matchers', () => {
+    const matcher = createCombinedGlobMatcher(['src/*']);
+
+    expect(matcher('src/index.ts')).toBe(true);
+    expect(matcher('packages/extension/src/index.ts')).toBe(true);
+    expect(matcher('packages/extension/src/deep/index.ts')).toBe(false);
+    expect(matcher('packages/extension/xsrc/index.ts')).toBe(false);
+  });
+
+  it('falls back to glob regexes for complex combined patterns', () => {
+    const matcher = createCombinedGlobMatcher([
+      '**/Assets/AddressableAssetsData/**/*.bin*',
+      '**/[Ll]ibrary/**',
+    ]);
+
+    expect(matcher('project/Assets/AddressableAssetsData/android/catalog.bin.hash')).toBe(true);
+    expect(matcher('project/Assets/AddressableAssetsData/catalog.json')).toBe(false);
+    expect(matcher('project/Library/generated.asset')).toBe(false);
+    expect(matcher('project/[Ll]ibrary/generated.asset')).toBe(true);
+  });
+
   it('creates an empty combined matcher that never matches', () => {
     const matcher = createCombinedGlobMatcher([]);
 
     expect(matcher('src/index.ts')).toBe(false);
+  });
+
+  it('rejects nonmatching paths quickly with many plugin default filters', () => {
+    const matcher = createCombinedGlobMatcher([
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/out/**',
+      '**/.next/**',
+      '**/.nuxt/**',
+      '**/coverage/**',
+      '**/.turbo/**',
+      '**/.godot/**',
+      '**/.import/**',
+      '**/*.import',
+      '**/.mono/**',
+      '**/addons/**',
+      '**/*.uid',
+      '**/.svelte-kit/**',
+      '**/[Ll]ibrary/**',
+      '**/[Tt]emp/**',
+      '**/[Oo]bj/**',
+      '**/[Bb]uild/**',
+      '**/[Bb]uilds/**',
+      '**/[Ll]ogs/**',
+      '**/[Pp]roject[Ss]ettings/**',
+      '**/[Uu]ser[Ss]ettings/**',
+      '**/[Mm]emory[Cc]aptures/**',
+      '**/.vs/**',
+      '**/.gradle/**',
+      '**/.idea/**',
+      '**/Assets/Packages/**',
+      '**/Assets/Plugins/Editor/JetBrains/**',
+      '**/ExportedObj/**',
+      '**/.consulo/**',
+      '**/*.meta',
+      '**/*.csproj',
+      '**/*.unityproj',
+      '**/*.sln',
+      '**/*.slnx',
+      '**/*.suo',
+      '**/*.user',
+      '**/*.userprefs',
+      '**/*.pidb',
+      '**/*.booproj',
+      '**/*.tmp',
+      '**/*.pdb',
+      '**/*.mdb',
+      '**/*.pidb.meta',
+      '**/*.pdb.meta',
+      '**/*.mdb.meta',
+      '**/*.opendb',
+      '**/*.VC.db',
+      '**/sysinfo.txt',
+      '**/crashlytics-build.properties',
+      '**/Assets/AddressableAssetsData/**/*.bin*',
+      '**/Assets/StreamingAssets/aa.meta',
+      '**/Assets/StreamingAssets/aa/**',
+    ]);
+    const paths = Array.from({ length: 10_000 }, (_, index) => (
+      `packages/package-${index % 100}/src/deep/file-${index}.ts`
+    ));
+
+    const startedAt = performance.now();
+    const matchedCount = paths.filter(matcher).length;
+    const elapsedMs = performance.now() - startedAt;
+
+    expect(matchedCount).toBe(0);
+    expect(elapsedMs).toBeLessThan(120);
   });
 });

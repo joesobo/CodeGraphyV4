@@ -1041,6 +1041,22 @@ Interpretation:
     post-save live update stayed fast (`112ms` from saved-document receipt to
     request completion), but the production change was backed out because it
     did not move the measured bottleneck.
+- Combined filter glob matching now uses fast-path matchers for the plugin
+  default-filter shapes that dominate large workspace visual filtering:
+  basename suffixes such as `**/*.meta`, exact path suffixes, recursive
+  directory subtrees such as `**/node_modules/**`, and direct-child directory
+  patterns. Complex globs still fall back to the existing regex semantics.
+  The focused regression loop over `10,000` nonmatching paths and real plugin
+  default filters moved from a red `301ms` sample to the focused test file
+  completing in `22ms`. The standalone visible-graph benchmark improved the
+  current scenario median from `29ms` to `19ms`, folders-on from `50ms` to
+  `38ms`, and imports-off from `18ms` to `7ms`. In the rebuilt VS Code
+  monorepo probe, browser `visibleGraph.derive` for the startup graph moved
+  from `250.2ms` to `46.7ms` on `6485` raw nodes / `20781` raw edges, first
+  graph readiness moved from `5191ms` to `5002ms`, and Imports toggle stayed
+  snappy (`197ms` wall-clock / `57ms` in-webview). Post-save live update
+  stayed in the same fast band at `120ms` from saved-document receipt to
+  request completion.
 
 Full test baseline:
 
