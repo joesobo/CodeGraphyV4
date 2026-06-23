@@ -254,6 +254,15 @@ VS Code graph view benchmark:
     `visibleGraph.applyLegendRules` events; remaining stage medians were
     `graphRuntime.buildGraphData` `5.7ms` and
     `visibleGraph.edgeDecorations` `0.3ms`.
+- After rendering edge-only Graph Scope changes immediately:
+  - VS Code launch: `1046ms`.
+  - Open Graph View to first rendered graph stats: `6895ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `203ms` median, `226ms` p95 across 5 samples.
+  - Sampled toggles emitted `graphScope.visibility.renderImmediate` instead
+    of `graphScope.visibility.renderDebounced`; remaining stage medians were
+    `graphRuntime.buildGraphData` `5.9ms` and
+    `visibleGraph.edgeDecorations` `0.4ms`.
 
 Interpretation:
 
@@ -281,8 +290,12 @@ Interpretation:
   median from `493ms` to `313ms`.
 - Caching recent styled and legend-applied graph stages removed the next
   `80ms` legend pass, moving the sampled toggle median from `313ms` to `236ms`.
+- Rendering edge-only Graph Scope changes immediately removed the fixed
+  debounce wait from Imports toggles, moving the sampled toggle median from
+  `236ms` to `203ms`.
 - The next user-facing bottleneck is the remaining render latency after graph
-  data construction, not the measured data derivation stages.
+  data construction, not the measured data derivation or Graph Scope debounce
+  stages.
 
 Full test baseline:
 
