@@ -4,7 +4,6 @@ import {
   shouldIgnoreSaveForGraphRefresh,
   shouldIgnoreWorkspaceFileWatcherRefresh,
 } from '../ignore';
-import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { scheduleWorkspaceRefresh } from './scheduler';
 
 type WorkspaceRenameFiles = vscode.FileRenameEvent['files'];
@@ -63,9 +62,6 @@ export function refreshWorkspaceSavedDocument(
   }
 
   const now = Date.now();
-  recordExtensionPerformanceEvent('workspaceFiles.savedDocument.received', {
-    filePath: document.uri.fsPath,
-  });
   pruneRecentSavedDocumentPaths(now);
   recentSavedDocumentPaths.set(
     normalizeFileWatcherPath(document.uri.fsPath),

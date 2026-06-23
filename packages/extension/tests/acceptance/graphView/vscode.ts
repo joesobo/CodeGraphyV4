@@ -14,7 +14,6 @@ export const VSCODE_TEST_VERSION = process.env.CODEGRAPHY_VSCODE_TEST_VERSION ??
 
 interface LaunchVSCodeWithWorkspaceOptions {
   readonly pluginPackageRelativePaths?: readonly string[];
-  readonly extensionPerformanceLogPath?: string;
 }
 
 export async function launchVSCodeWithWorkspace(
@@ -46,9 +45,6 @@ export async function launchVSCodeWithWorkspace(
     env: {
       ...process.env,
       CODEGRAPHY_ACCEPTANCE: '1',
-      ...(options.extensionPerformanceLogPath
-        ? { CODEGRAPHY_EXTENSION_PERFORMANCE_LOG: options.extensionPerformanceLogPath }
-        : {}),
       HOME: homePath,
     },
   });

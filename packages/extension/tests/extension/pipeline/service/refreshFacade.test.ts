@@ -17,10 +17,6 @@ import {
   PLUGIN_SIGNATURE_KEY,
 } from '../../../../src/extension/gitHistory/cache/stateKeys';
 
-const performanceMocks = vi.hoisted(() => ({
-  recordExtensionPerformanceEvent: vi.fn(),
-}));
-
 vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
   createWorkspacePipelineDiscoveryDependencies: vi.fn(),
   discoverWorkspacePipelineFilesWithWarnings: vi.fn(),
@@ -29,10 +25,6 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
 vi.mock('../../../../src/extension/pipeline/service/runtime/refresh', () => ({
   refreshWorkspacePipelineAnalysisScope: vi.fn(),
   refreshWorkspacePipelineChangedFiles: vi.fn(),
-}));
-
-vi.mock('../../../../src/extension/performance/marks', () => ({
-  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
 }));
 
 vi.mock('vscode', () => ({
@@ -169,7 +161,6 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
 describe('pipeline/service/refreshFacade', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    performanceMocks.recordExtensionPerformanceEvent.mockReset();
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
     vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValue({
       files: [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }],
@@ -348,66 +339,6 @@ describe('pipeline/service/refreshFacade', () => {
         extension: '.ts',
         name: 'a.ts',
       },
-    ]);
-  });
-
-  it('records phase timings for delegated changed-file refresh work', async () => {
-    const facade = new TestRefreshFacade();
-    await facade.refreshChangedFiles(['/workspace/src/a.ts']);
-    const [refreshSource, refreshDependencies] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
-
-    await refreshDependencies.notifyFilesChanged([
-      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts', content: 'content:a' },
-    ], '/workspace');
-    refreshDependencies.persistCache();
-    await refreshDependencies.persistIndexMetadata();
-    await refreshSource._readAnalysisFiles([{
-      absolutePath: '/workspace/src/a.ts',
-      relativePath: 'src/a.ts',
-      extension: '.ts',
-      name: 'a.ts',
-    }]);
-    await refreshSource._analyzeFiles([{
-      absolutePath: '/workspace/src/a.ts',
-      relativePath: 'src/a.ts',
-      extension: '.ts',
-      name: 'a.ts',
-    }], '/workspace');
-    refreshSource._buildGraphData(new Map(), '/workspace', new Set());
-    refreshSource._buildGraphDataFromAnalysis(new Map(), '/workspace', new Set());
-    await refreshSource.analyze(['*.ts'], new Set(), undefined, undefined);
-    refreshSource.invalidateWorkspaceFiles(['/workspace/src/a.ts']);
-
-    const phaseCalls = performanceMocks.recordExtensionPerformanceEvent.mock.calls
-      .filter(([name]) => name === 'workspacePipeline.refreshChangedFiles.phase');
-    expect(phaseCalls.map(([, detail]) => (detail as { phase: string }).phase)).toEqual([
-      'notifyFilesChanged',
-      'persistCache',
-      'persistIndexMetadata',
-      'readAnalysisFiles',
-      'analyzeFiles',
-      'buildGraphData',
-      'buildGraphDataFromAnalysis',
-      'fullAnalyze',
-      'invalidateWorkspaceFiles',
-    ]);
-    expect(phaseCalls).toContainEqual([
-      'workspacePipeline.refreshChangedFiles.phase',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        fileCount: 1,
-        phase: 'notifyFilesChanged',
-      }),
-    ]);
-    expect(phaseCalls).toContainEqual([
-      'workspacePipeline.refreshChangedFiles.phase',
-      expect.objectContaining({
-        cacheHits: 0,
-        cacheMisses: 0,
-        durationMs: expect.any(Number),
-        fileCount: 1,
-        phase: 'analyzeFiles',
-      }),
     ]);
   });
 

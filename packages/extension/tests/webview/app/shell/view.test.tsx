@@ -138,9 +138,7 @@ describe('App', () => {
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
   });
 
-  it('does not derive the visible graph while startup loading hides the graph', async () => {
-    window.__codegraphyPerformance = { enabled: true, events: [] };
-
+  it('applies queued graph and filter updates after startup bootstrap completes', async () => {
     render(<App />);
 
     await act(async () => {
@@ -164,24 +162,12 @@ describe('App', () => {
     });
 
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
-    expect(window.__codegraphyPerformance.events).not.toContainEqual(
-      expect.objectContaining({
-        name: 'visibleGraph.derive',
-        detail: expect.objectContaining({ nodeCount: 1 }),
-      }),
-    );
 
     await act(async () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
     expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
-    expect(window.__codegraphyPerformance.events).toContainEqual(
-      expect.objectContaining({
-        name: 'visibleGraph.derive',
-        detail: expect.objectContaining({ filterPatternCount: 1, nodeCount: 1 }),
-      }),
-    );
   });
 
   it('keeps the first graph visible while startup plugin assets finish loading', async () => {

@@ -15,7 +15,6 @@ import {
   onGraphViewWebviewMessage,
   sendGraphViewWebviewMessage,
 } from '../../webview/bridge';
-import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
 export interface GraphViewProviderWebviewMethodDependencies {
   viewType: string;
@@ -30,7 +29,6 @@ export interface GraphViewProviderWebviewMethodDependencies {
   onWebviewMessage: typeof onGraphViewWebviewMessage;
   setWebviewMessageListener: typeof setGraphViewProviderMessageListener;
   executeCommand(command: string, key: string, value: boolean): Thenable<unknown>;
-  recordPerformanceEvent?(name: string, detail?: Record<string, unknown>): void;
   createPanel: typeof vscode.window.createWebviewPanel;
   getWorkspaceTitle?(): string | undefined;
 }
@@ -81,7 +79,6 @@ export function createDefaultGraphViewProviderWebviewMethodDependencies(): Graph
     onWebviewMessage: onGraphViewWebviewMessage,
     setWebviewMessageListener: setGraphViewProviderMessageListener,
     executeCommand: (command, key, value) => vscode.commands.executeCommand(command, key, value),
-    recordPerformanceEvent: recordExtensionPerformanceEvent,
     createPanel: (viewType, title, column, options) =>
       vscode.window.createWebviewPanel(viewType, title, column, options),
     getWorkspaceTitle: () => vscode.workspace.workspaceFolders?.[0]?.name,

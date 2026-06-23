@@ -7,7 +7,6 @@ import {
 } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
-import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
 import { getCachedGitHistoryChurnCounts } from '../../gitHistory/cache/state';
 import { createGitHistoryPluginSignature } from '../../gitHistory/pluginSignature';
@@ -38,40 +37,6 @@ function getGraphMetricNodeFilePath(node: IGraphData['nodes'][number]): string {
       ? symbolFilePath
       : node.id,
   );
-}
-
-function recordChangedFileRefreshPhase(
-  phase: string,
-  startedAt: number,
-  detail: Record<string, unknown> = {},
-): void {
-  recordExtensionPerformanceEvent('workspacePipeline.refreshChangedFiles.phase', {
-    ...detail,
-    durationMs: Date.now() - startedAt,
-    phase,
-  });
-}
-
-async function timeChangedFileRefreshPhase<T>(
-  phase: string,
-  operation: () => Promise<T>,
-  describeResult: (result: T) => Record<string, unknown> = () => ({}),
-): Promise<T> {
-  const startedAt = Date.now();
-  const result = await operation();
-  recordChangedFileRefreshPhase(phase, startedAt, describeResult(result));
-  return result;
-}
-
-function timeChangedFileRefreshPhaseSync<T>(
-  phase: string,
-  operation: () => T,
-  describeResult: (result: T) => Record<string, unknown> = () => ({}),
-): T {
-  const startedAt = Date.now();
-  const result = operation();
-  recordChangedFileRefreshPhase(phase, startedAt, describeResult(result));
-  return result;
 }
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
@@ -146,110 +111,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         },
       },
     });
-
-    return source;
-  }
-
-  private _createTimedWorkspaceIndexRefreshSource(
-    disabledPlugins: Set<string>,
-  ): WorkspacePipelineRefreshSource {
-    const source = this._createWorkspaceIndexRefreshSource(disabledPlugins);
-
-    const readAnalysisFiles = source._readAnalysisFiles.bind(source);
-    source._readAnalysisFiles = files => timeChangedFileRefreshPhase(
-      'readAnalysisFiles',
-      () => readAnalysisFiles(files),
-      readFiles => ({
-        fileCount: files.length,
-        readFileCount: readFiles.length,
-      }),
-    );
-
-    const analyzeFiles = source._analyzeFiles.bind(source);
-    source._analyzeFiles = (
-      files,
-      root,
-      progress,
-      abortSignal,
-      pluginIds,
-      nextDisabledPlugins,
-    ) => timeChangedFileRefreshPhase(
-      'analyzeFiles',
-      () => analyzeFiles(
-        files,
-        root,
-        progress,
-        abortSignal,
-        pluginIds,
-        nextDisabledPlugins,
-      ),
-      result => ({
-        cacheHits: result.cacheHits,
-        cacheMisses: result.cacheMisses,
-        fileCount: files.length,
-        pluginIdCount: pluginIds?.length ?? 0,
-      }),
-    );
-
-    const buildGraphData = source._buildGraphData.bind(source);
-    source._buildGraphData = (fileConnections, root, selectedPlugins) =>
-      timeChangedFileRefreshPhaseSync(
-        'buildGraphData',
-        () => buildGraphData(fileConnections, root, selectedPlugins),
-        graphData => ({
-          edgeCount: graphData.edges.length,
-          fileCount: fileConnections.size,
-          nodeCount: graphData.nodes.length,
-        }),
-      );
-
-    const buildGraphDataFromAnalysis = source._buildGraphDataFromAnalysis.bind(source);
-    source._buildGraphDataFromAnalysis = (fileAnalysis, root, selectedPlugins) =>
-      timeChangedFileRefreshPhaseSync(
-        'buildGraphDataFromAnalysis',
-        () => buildGraphDataFromAnalysis(fileAnalysis, root, selectedPlugins),
-        graphData => ({
-          edgeCount: graphData.edges.length,
-          fileCount: fileAnalysis.size,
-          nodeCount: graphData.nodes.length,
-        }),
-      );
-
-    const patchGraphDataNodeMetrics = source._patchGraphDataNodeMetrics?.bind(source);
-    if (patchGraphDataNodeMetrics) {
-      source._patchGraphDataNodeMetrics = (graphData, filePaths) =>
-        timeChangedFileRefreshPhaseSync(
-          'patchGraphDataNodeMetrics',
-          () => patchGraphDataNodeMetrics(graphData, filePaths),
-          patchedGraphData => ({
-            changedFileCount: filePaths.length,
-            edgeCount: patchedGraphData.edges.length,
-            nodeCount: patchedGraphData.nodes.length,
-          }),
-        );
-    }
-
-    const analyze = source.analyze.bind(source);
-    source.analyze = (patterns, nextDisabledPlugins, signal, progress) =>
-      timeChangedFileRefreshPhase(
-        'fullAnalyze',
-        () => analyze(patterns, nextDisabledPlugins, signal, progress),
-        graphData => ({
-          edgeCount: graphData.edges.length,
-          nodeCount: graphData.nodes.length,
-          patternCount: patterns?.length ?? 0,
-        }),
-      );
-
-    const invalidateWorkspaceFiles = source.invalidateWorkspaceFiles.bind(source);
-    source.invalidateWorkspaceFiles = filePaths => timeChangedFileRefreshPhaseSync(
-      'invalidateWorkspaceFiles',
-      () => invalidateWorkspaceFiles(filePaths),
-      invalidatedFiles => ({
-        fileCount: filePaths.length,
-        invalidatedFileCount: invalidatedFiles.length,
-      }),
-    );
 
     return source;
   }
@@ -490,7 +351,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    const refreshStartedAt = Date.now();
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       return { nodes: [], edges: [] };
@@ -503,7 +363,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       workspaceRoot,
       filePaths,
     );
-    const discoveryStartedAt = Date.now();
     let discoveryResult: ChangedFileDiscoveryState;
     if (reusableDiscoveryState) {
       discoveryResult = reusableDiscoveryState;
@@ -527,15 +386,8 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       this._lastDiscoveredDirectories = discoveryResult.directories;
       this._lastGitIgnoredPaths = discovered.gitIgnoredPaths ?? [];
     }
-    recordExtensionPerformanceEvent('workspacePipeline.refreshChangedFiles.discovery', {
-      changedFileCount: filePaths.length,
-      directoryCount: discoveryResult.directories?.length ?? 0,
-      durationMs: Date.now() - discoveryStartedAt,
-      fileCount: discoveryResult.files.length,
-      mode: reusableDiscoveryState ? 'cached' : 'discover',
-    });
 
-    const graphData = await refreshWorkspacePipelineChangedFiles(this._createTimedWorkspaceIndexRefreshSource(disabledPlugins), {
+    return refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       deferMetricOnlyIndexMetadata: true,
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories,
@@ -548,43 +400,25 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         analysisContext,
         nextDisabledPlugins = disabledPlugins,
       ) =>
-        timeChangedFileRefreshPhase(
-          'notifyFilesChanged',
-          () => this._registry.notifyFilesChanged(
-            files,
-            root,
-            analysisContext,
-            nextDisabledPlugins,
-          ),
-          result => ({
-            additionalFilePathCount: result.additionalFilePaths.length,
-            fileCount: files.length,
-            requiresFullRefresh: result.requiresFullRefresh,
-          }),
+        this._registry.notifyFilesChanged(
+          files,
+          root,
+          analysisContext,
+          nextDisabledPlugins,
         ),
       onProgress,
       onDeferredIndexMetadataError: error => {
         console.warn('[CodeGraphy] Failed to persist metric-only refresh metadata.', error);
       },
       persistCache: () => {
-        timeChangedFileRefreshPhaseSync('persistCache', () => {
-          this._persistCache();
-        });
+        this._persistCache();
       },
       persistIndexMetadata: async () => {
-        await timeChangedFileRefreshPhase('persistIndexMetadata', () =>
-          this._persistIndexMetadata(),
-        );
+        await this._persistIndexMetadata();
       },
       signal,
       workspaceRoot,
     });
-    recordExtensionPerformanceEvent('workspacePipeline.refreshChangedFiles.completed', {
-      durationMs: Date.now() - refreshStartedAt,
-      edgeCount: graphData.edges.length,
-      nodeCount: graphData.nodes.length,
-    });
-    return graphData;
   }
 
   async refreshGitignoreMetadata(

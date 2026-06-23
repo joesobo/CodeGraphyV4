@@ -5,14 +5,6 @@ import {
   registerSaveHandler,
 } from '../../../../src/extension/workspaceFiles/refresh/watchers';
 
-const performanceMocks = vi.hoisted(() => ({
-  record: vi.fn(),
-}));
-
-vi.mock('../../../../src/extension/performance/marks', () => ({
-  recordExtensionPerformanceEvent: performanceMocks.record,
-}));
-
 function makeProvider() {
   return {
     emitEvent: vi.fn(),
@@ -137,7 +129,6 @@ function uri(filePath: string): vscode.Uri {
 describe('workspaceFiles/refresh/watchers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    performanceMocks.record.mockReset();
     installFileSystemWatcher();
   });
 
@@ -201,10 +192,6 @@ describe('workspaceFiles/refresh/watchers', () => {
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
       filePath: '/workspace/src/app.ts',
     });
-    expect(performanceMocks.record).toHaveBeenCalledWith(
-      'workspaceFiles.savedDocument.received',
-      { filePath: '/workspace/src/app.ts' },
-    );
   });
 
   it('suppresses file-system change duplicates after saved document refreshes', () => {

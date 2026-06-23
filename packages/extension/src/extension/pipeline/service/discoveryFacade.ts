@@ -29,7 +29,6 @@ import {
 } from './runtime/run';
 import { createEmptyWorkspaceAnalysisCache } from '../cache';
 import { createCachedWorkspaceDiscoveryState } from './cache/cachedDiscovery';
-import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
@@ -217,14 +216,8 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     signal?: AbortSignal,
     options: WorkspacePipelineCachedGraphLoadOptions = {},
   ): Promise<IGraphData> {
-    const loadStartedAt = Date.now();
     throwIfWorkspaceAnalysisAborted(signal);
-    let stageStartedAt = Date.now();
     await this._hydrateCacheFromGraphCache();
-    recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.hydrate', {
-      durationMs: Date.now() - stageStartedAt,
-      fileCount: Object.keys(this._cache.files).length,
-    });
     throwIfWorkspaceAnalysisAborted(signal);
 
     const workspaceRoot = this._getWorkspaceRoot();
@@ -233,7 +226,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     }
 
     const config = this._config.getAll();
-    stageStartedAt = Date.now();
     throwIfWorkspaceAnalysisAborted(signal);
 
     const fileAnalysis = new Map(
@@ -243,24 +235,12 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       ]),
     );
     const cachedFilePaths = Object.keys(this._cache.files);
-    recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.cacheSnapshot', {
-      durationMs: Date.now() - stageStartedAt,
-      fileCount: cachedFilePaths.length,
-    });
-    stageStartedAt = Date.now();
     const includeCurrentGitignoreMetadata = options.includeCurrentGitignoreMetadata !== false;
     const cachedDiscovery = createCachedWorkspaceDiscoveryState(
       workspaceRoot,
       cachedFilePaths,
       config.respectGitignore && includeCurrentGitignoreMetadata,
     );
-    recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.cachedDiscovery', {
-      directoryCount: cachedDiscovery.directories.length,
-      durationMs: Date.now() - stageStartedAt,
-      fileCount: cachedDiscovery.files.length,
-      gitIgnoredPathCount: cachedDiscovery.gitIgnoredPaths.length,
-      includeCurrentGitignoreMetadata,
-    });
 
     this._lastDiscoveredFiles = cachedDiscovery.files;
     this._lastDiscoveredDirectories = cachedDiscovery.directories;
@@ -271,23 +251,12 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
 
     throwIfWorkspaceAnalysisAborted(signal);
 
-    stageStartedAt = Date.now();
     const graphData = this._buildGraphDataFromAnalysis(
       fileAnalysis,
       workspaceRoot,
       config.showOrphans,
       disabledPlugins,
     );
-    recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.buildGraph', {
-      durationMs: Date.now() - stageStartedAt,
-      edgeCount: graphData.edges.length,
-      nodeCount: graphData.nodes.length,
-    });
-    recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.completed', {
-      durationMs: Date.now() - loadStartedAt,
-      edgeCount: graphData.edges.length,
-      nodeCount: graphData.nodes.length,
-    });
 
     if (options.warmAnalysis !== false) {
       this._scheduleCachedGraphAnalysisWarmup(
@@ -361,7 +330,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       return;
     }
 
-    const warmupStartedAt = Date.now();
     const disabledPluginSnapshot = new Set(disabledPlugins);
     const pluginIds = this._getActiveAnalysisPluginIds(undefined, disabledPluginSnapshot);
     const cacheTiers = createWorkspacePipelineAnalysisCacheTiers(
@@ -387,24 +355,12 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
         analysisContext,
         { disabledPlugins: disabledPluginSnapshot },
       );
-      recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.warmAnalysis', {
-        durationMs: Date.now() - warmupStartedAt,
-        filePath: file.relativePath,
-        pluginIdCount: pluginIds.length,
-        status: 'completed',
-      });
     })().catch(error => {
       const status = isWorkspaceAnalysisAbortError(error)
         ? 'aborted'
         : isMissingFileError(error)
           ? 'skipped'
           : 'failed';
-      recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.warmAnalysis', {
-        durationMs: Date.now() - warmupStartedAt,
-        filePath: file.relativePath,
-        pluginIdCount: pluginIds.length,
-        status,
-      });
 
       if (status === 'failed') {
         console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);

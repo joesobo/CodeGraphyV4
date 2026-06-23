@@ -10,7 +10,6 @@ import {
   type GraphViewPrimaryMessageContext,
 } from '../dispatch/primary';
 import { replayDuplicateWebviewReady } from './ready';
-import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
 export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
@@ -102,13 +101,6 @@ function createGraphViewWebviewMessageHandler(
     const isWebviewReadyMessage = message.type === 'WEBVIEW_READY';
     if (message.type === 'WEBVIEW_READY') {
       const delivery = getWebviewReadyDelivery(message);
-      recordExtensionPerformanceEvent('graphWebview.ready.received', {
-        duplicate: webviewReadyHandled,
-        pageId: delivery.pageId,
-        postedAt: delivery.postedAt,
-        previousPageId: webviewReadyPageId,
-        completedAt: webviewReadyCompletedAt,
-      });
       if (webviewReadyHandled) {
         const isSamePage = delivery.pageId !== undefined && delivery.pageId === webviewReadyPageId;
         const wasPostedBeforeCompletedBootstrap = delivery.postedAt !== undefined

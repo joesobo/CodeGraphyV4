@@ -1,13 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
-
-const performanceMocks = vi.hoisted(() => ({
-  recordExtensionPerformanceEvent: vi.fn(),
-}));
-
-vi.mock('../../../../../src/extension/performance/marks', () => ({
-  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
-}));
 
 import {
   publishAnalyzedGraph,
@@ -21,10 +13,6 @@ import {
 } from './fixtures';
 
 describe('graph view analysis execution publish', () => {
-  beforeEach(() => {
-    performanceMocks.recordExtensionPerformanceEvent.mockReset();
-  });
-
   it('publishes an empty graph and index state', () => {
     const { handlers } = createExecutionHandlers();
 
@@ -94,61 +82,6 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
       getGraphData(),
       state.disabledPlugins,
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.setRawGraphData',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        rawEdgeCount: 0,
-        rawNodeCount: 1,
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.viewTransform',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.groups',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.broadcasts',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.getGraphData',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        edgeCount: 0,
-        nodeCount: 1,
-      }),
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.graph',
-      {
-        mode: 'analyze',
-        rawNodeCount: 1,
-        rawEdgeCount: 0,
-        nodeCount: 1,
-        edgeCount: 0,
-        hasIndex: true,
-        freshness: 'fresh',
-        freshnessDetail: 'CodeGraphy index is fresh.',
-      },
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.sendGraphData',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        edgeCount: 0,
-        nodeCount: 1,
-      }),
     );
   });
 
@@ -315,14 +248,6 @@ describe('graph view analysis execution publish', () => {
       getGraphData(),
       state.disabledPlugins,
     );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.unchangedGraph',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        edgeCount: 1,
-        nodeCount: 1,
-      }),
-    );
   });
 
   it('skips group publication when an incremental refresh only changes node sizing metrics', () => {
@@ -368,13 +293,6 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
     expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(nextGraphData);
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.publish.groupsSkipped',
-      expect.objectContaining({
-        durationMs: expect.any(Number),
-        reason: 'groupInputsUnchanged',
-      }),
-    );
   });
 
   it('sends node metric patches instead of full graph data for metric-only incremental refreshes', () => {

@@ -25,7 +25,6 @@ import {
   buildVisibleGraphConfig,
   withSharedEdgeTypeAliases,
 } from './visibleGraphConfig';
-import { measureWebviewPerformance } from '../performance/marks';
 
 export interface IFilteredGraph {
   /** Graph after node/edge search filtering (null when no graph data). */
@@ -256,17 +255,7 @@ export function useFilteredGraph(
       return cached;
     }
 
-    const result = measureWebviewPerformance('visibleGraph.derive', {
-      edgeCount: graphData?.edges.length ?? 0,
-      edgeTypeCount: edgeTypes.length,
-      edgeVisibilityCount: Object.keys(edgeVisibility).length,
-      filterPatternCount: filterPatterns.length,
-      nodeTypeCount: nodeTypes.length,
-      nodeVisibilityCount: Object.keys(nodeVisibility).length,
-      nodeCount: graphData?.nodes.length ?? 0,
-      searchActive: searchQuery.trim().length > 0,
-      showOrphans,
-    }, () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+    const result = deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes,
       edgeVisibility,
       filterPatterns,
@@ -275,7 +264,7 @@ export function useFilteredGraph(
       searchOptions,
       searchQuery,
       showOrphans,
-    })));
+    }));
     cacheVisibleGraphResult(cache, visibleGraphCacheKey, result);
     return result;
   }, [
@@ -304,13 +293,10 @@ export function useFilteredGraph(
 
     const edgeTypesForStyling = withSharedEdgeTypeAliases(edgeTypes);
 
-    const result = measureWebviewPerformance('visibleGraph.style', {
-      edgeCount: graph.edges.length,
-      nodeCount: graph.nodes.length,
-    }, () => ({
+    const result = {
       nodes: applyNodeTypeColors(withResolvedNodeTypes(graph.nodes), nodeColors),
       edges: applyEdgeTypeDefaultColors(graph.edges, edgeTypesForStyling),
-    }));
+    };
     cacheReferenceResult(styledGraphCache.current, graph, styledGraphCacheKey, result);
     return result;
   }, [edgeTypes, nodeColors, styledGraphCacheKey, visibleGraph.graphData]);
@@ -325,11 +311,7 @@ export function useFilteredGraph(
       return cached;
     }
 
-    const result = measureWebviewPerformance('visibleGraph.applyLegendRules', {
-      edgeCount: filteredData?.edges.length ?? 0,
-      legendCount: legends.length,
-      nodeCount: filteredData?.nodes.length ?? 0,
-    }, () => applyLegendRules(filteredData, legends));
+    const result = applyLegendRules(filteredData, legends);
     if (result) {
       cacheReferenceResult(coloredGraphCache.current, filteredData, legendGraphCacheKey, result);
     }
@@ -337,9 +319,7 @@ export function useFilteredGraph(
   }, [filteredData, legendGraphCacheKey, legends]);
 
   const controlsEdgeDecorations = useMemo(
-    () => measureWebviewPerformance('visibleGraph.edgeDecorations', {
-      edgeCount: filteredData?.edges.length ?? 0,
-    }, () => filterVisibleEdgeDecorations(filteredData?.edges ?? [], edgeDecorations)),
+    () => filterVisibleEdgeDecorations(filteredData?.edges ?? [], edgeDecorations),
     [edgeDecorations, filteredData],
   );
 

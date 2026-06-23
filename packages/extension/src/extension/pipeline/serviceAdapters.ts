@@ -24,42 +24,9 @@ import {
   getWorkspacePipelineFileStat,
   getWorkspacePipelineRoot,
 } from './io';
-import { recordExtensionPerformanceEvent } from '../performance/marks';
 
 export interface WorkspacePipelineGraphScopeOptions {
   nodeVisibility?: Readonly<Record<string, boolean>>;
-}
-
-function recordWorkspacePipelineAnalyzeFilesPhase(
-  phase: string,
-  startedAt: number,
-  detail: Record<string, unknown> = {},
-): void {
-  recordExtensionPerformanceEvent('workspacePipeline.analyzeFiles.phase', {
-    ...detail,
-    durationMs: Date.now() - startedAt,
-    phase,
-  });
-}
-
-async function timeWorkspacePipelineAnalyzeFilesPhase<T>(
-  phase: string,
-  operation: () => Promise<T>,
-  describeResult: (result: T) => Record<string, unknown> = () => ({}),
-): Promise<T> {
-  const startedAt = Date.now();
-  const result = await operation();
-  recordWorkspacePipelineAnalyzeFilesPhase(phase, startedAt, describeResult(result));
-  return result;
-}
-
-function describeFileAnalysisResult(
-  result: IFileAnalysisResult | null,
-): Record<string, unknown> {
-  return {
-    relationCount: result?.relations?.length ?? 0,
-    symbolCount: result?.symbols?.length ?? 0,
-  };
 }
 
 export async function preAnalyzeWorkspacePipelinePlugins(
@@ -98,107 +65,21 @@ export function analyzeWorkspacePipelineFiles(
   pluginIds?: readonly string[],
   disabledPlugins: Set<string> = new Set(),
 ): Promise<IWorkspaceFileAnalysisResult> {
-  const timedDiscovery: WorkspacePipelineFilesSource['_discovery'] = {
-    readContent: file => timeWorkspacePipelineAnalyzeFilesPhase(
-      'readContent',
-      () => discovery.readContent(file),
-      content => ({
-        byteCount: content.length,
-        filePath: file.relativePath,
-      }),
-    ),
-  };
-  const timedRegistry: WorkspacePipelineFilesSource['_registry'] = {
-    analyzeFileResult: (
-      absolutePath,
-      content,
-      rootPath,
-      analysisContext,
-      options,
-    ) => timeWorkspacePipelineAnalyzeFilesPhase(
-      'analyzeFileResult',
-      () => registry.analyzeFileResult(
-        absolutePath,
-        content,
-        rootPath,
-        analysisContext,
-        options,
-      ),
-      result => ({
-        filePath: absolutePath,
-        ...describeFileAnalysisResult(result),
-      }),
-    ),
-    analyzeFileResultForPlugins: registry.analyzeFileResultForPlugins
-      ? (
-          absolutePath,
-          content,
-          rootPath,
-          pluginIds,
-          analysisContext,
-          options,
-        ) => timeWorkspacePipelineAnalyzeFilesPhase(
-          'analyzeFileResultForPlugins',
-          () => registry.analyzeFileResultForPlugins?.(
-            absolutePath,
-            content,
-            rootPath,
-            pluginIds,
-            analysisContext,
-            options,
-          ) ?? Promise.resolve(null),
-          result => ({
-            filePath: absolutePath,
-            pluginIdCount: pluginIds.length,
-            ...describeFileAnalysisResult(result),
-          }),
-        )
-      : undefined,
-  };
-
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
-    _discovery: timedDiscovery,
+    _discovery: discovery,
     _eventBus: eventBus,
-    _getFileStat: filePath => timeWorkspacePipelineAnalyzeFilesPhase(
-      'getFileStat',
-      () => getFileStat(filePath),
-      stat => ({
-        filePath,
-        found: Boolean(stat),
-        size: stat?.size,
-      }),
-    ),
+    _getFileStat: getFileStat,
     _preAnalyzePlugins: (preAnalyzeFiles, rootPath, abortSignal) =>
-      timeWorkspacePipelineAnalyzeFilesPhase(
-        'preAnalyzeFiles',
-        () => preAnalyzeWorkspacePipelinePlugins(
-          preAnalyzeFiles,
-          rootPath,
-          {
-            notifyPreAnalyze: (analysisFiles, preAnalyzeRootPath, analysisContext, nextDisabledPlugins) =>
-              timeWorkspacePipelineAnalyzeFilesPhase(
-                'notifyPreAnalyze',
-                () => registry.notifyPreAnalyze(
-                  analysisFiles,
-                  preAnalyzeRootPath,
-                  analysisContext,
-                  nextDisabledPlugins,
-                ),
-                () => ({
-                  fileCount: analysisFiles.length,
-                }),
-              ),
-          } as Pick<PluginRegistry, 'notifyPreAnalyze'>,
-          timedDiscovery,
-          abortSignal,
-          disabledPlugins,
-        ),
-        () => ({
-          fileCount: preAnalyzeFiles.length,
-        }),
+      preAnalyzeWorkspacePipelinePlugins(
+        preAnalyzeFiles,
+        rootPath,
+        registry,
+        discovery,
+        abortSignal,
+        disabledPlugins,
       ),
-    _registry: timedRegistry,
+    _registry: registry,
   };
 
   return analyzeWorkspacePipelineSourceFiles(

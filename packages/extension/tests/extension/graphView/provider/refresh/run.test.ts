@@ -1,13 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({
-  recordExtensionPerformanceEvent: vi.fn(),
-}));
-
-vi.mock('../../../../../src/extension/performance/marks', () => ({
-  recordExtensionPerformanceEvent: mocks.recordExtensionPerformanceEvent,
-}));
-
 import {
   runChangedFileRefresh,
   runIndexRefresh,
@@ -38,9 +30,6 @@ describe('graphView/provider/refresh/run', () => {
     expect(() => sendRefreshState(source as never, 'refresh')).not.toThrow();
     expect(source._sendAllSettings).toHaveBeenCalledOnce();
     expect(source._sendFavorites).not.toHaveBeenCalled();
-    expect(mocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith('graphWebview.refreshState.send', {
-      reason: 'refresh',
-    });
   });
 
   it('falls back to full analysis when no primary load helper is available', async () => {

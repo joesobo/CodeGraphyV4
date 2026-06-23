@@ -1,5 +1,4 @@
 import type { DiagnosticEventInput } from '@codegraphy-dev/core';
-import { recordExtensionPerformanceEvent } from '../../performance/marks';
 
 export interface GraphViewAnalysisRequestState {
   analysisController: AbortController | undefined;
@@ -45,7 +44,6 @@ export async function runGraphViewAnalysisRequest(
   handlers.updateAnalysisRequestId(requestId);
   const startedAt = Date.now();
   const requestContext = createRequestContext(state, requestId);
-  recordExtensionPerformanceEvent('graphAnalysis.request.start', requestContext);
   handlers.emitDiagnostic?.({
     area: 'extension.analysis',
     event: 'request-started',
@@ -54,10 +52,6 @@ export async function runGraphViewAnalysisRequest(
 
   try {
     await handlers.executeAnalysis(controller.signal, requestId);
-    recordExtensionPerformanceEvent('graphAnalysis.request.completed', {
-      ...requestContext,
-      durationMs: Date.now() - startedAt,
-    });
     handlers.emitDiagnostic?.({
       area: 'extension.analysis',
       event: 'request-completed',
@@ -67,17 +61,9 @@ export async function runGraphViewAnalysisRequest(
       },
     });
   } catch (error) {
-    const durationMs = Date.now() - startedAt;
     if (handlers.isAbortError(error)) {
-      recordExtensionPerformanceEvent('graphAnalysis.request.aborted', {
-        ...requestContext,
-        durationMs,
-      });
+      return;
     } else {
-      recordExtensionPerformanceEvent('graphAnalysis.request.failed', {
-        ...requestContext,
-        durationMs,
-      });
       handlers.emitDiagnostic?.({
         area: 'extension.analysis',
         event: 'request-failed',

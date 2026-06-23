@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
-import { recordExtensionPerformanceEvent } from '../performance/marks';
 import type { CommandDefinition } from './definitions';
 
 export function getNavCommands(provider: GraphViewProvider): CommandDefinition[] {
@@ -13,15 +12,7 @@ export function getNavCommands(provider: GraphViewProvider): CommandDefinition[]
     {
       id: 'codegraphy.open',
       handler: () => {
-        recordExtensionPerformanceEvent('command.open.start');
-        const openView = vscode.commands.executeCommand('workbench.view.extension.codegraphy');
-        recordExtensionPerformanceEvent('command.open.dispatched');
-        void Promise.resolve(openView).then(
-          () => recordExtensionPerformanceEvent('command.open.completed'),
-          (error: unknown) => recordExtensionPerformanceEvent('command.open.failed', {
-            message: error instanceof Error ? error.message : String(error),
-          }),
-        );
+        void vscode.commands.executeCommand('workbench.view.extension.codegraphy');
       },
     },
     { id: 'codegraphy.openInEditor', handler: () => { provider.openInEditor(); } },

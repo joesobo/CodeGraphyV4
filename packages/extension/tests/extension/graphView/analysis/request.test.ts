@@ -1,13 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const performanceMocks = vi.hoisted(() => ({
-  recordExtensionPerformanceEvent: vi.fn(),
-}));
-
-vi.mock('../../../../src/extension/performance/marks', () => ({
-  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
-}));
-
 import {
   runGraphViewAnalysisRequest,
   type GraphViewAnalysisRequestState,
@@ -25,43 +17,47 @@ function createState(
 
 describe('graph view analysis request', () => {
   beforeEach(() => {
-    performanceMocks.recordExtensionPerformanceEvent.mockReset();
+    vi.clearAllMocks();
   });
 
-  it('records request lifecycle performance markers with mode context', async () => {
+  it('emits request lifecycle diagnostics with mode context', async () => {
     const state = createState({
       mode: 'load',
       filterPatterns: ['src/**'],
       disabledPlugins: new Set(['plugin.test']),
     } as Partial<GraphViewAnalysisRequestState>);
+    const emitDiagnostic = vi.fn();
 
     await runGraphViewAnalysisRequest(state, {
       executeAnalysis: vi.fn(() => Promise.resolve()),
+      emitDiagnostic,
       isAbortError: vi.fn(() => false),
       logError: vi.fn(),
       updateAnalysisController: vi.fn(),
       updateAnalysisRequestId: vi.fn(),
     });
 
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.request.start',
-      {
+    expect(emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: {
         requestId: 1,
         mode: 'load',
         filterPatternCount: 1,
         disabledPluginCount: 1,
       },
-    );
-    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
-      'graphAnalysis.request.completed',
-      expect.objectContaining({
+    });
+    expect(emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-completed',
+      context: expect.objectContaining({
         requestId: 1,
         mode: 'load',
         filterPatternCount: 1,
         disabledPluginCount: 1,
         durationMs: expect.any(Number),
       }),
-    );
+    });
   });
 
   it('aborts the previous controller and clears the active request on success', async () => {

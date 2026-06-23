@@ -5,7 +5,6 @@ import type {
 } from '../execution';
 import type { IGraphNodeMetricsUpdate } from '../../../../shared/protocol/extensionToWebview';
 import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
-import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
 export const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 
@@ -30,17 +29,6 @@ function shouldReportGraphViewUpdateProgress(
   state: GraphViewAnalysisExecutionState,
 ): boolean {
   return state.mode === 'index' || state.mode === 'refresh' || state.mode === 'incremental';
-}
-
-function recordPublishStage(
-  stage: string,
-  startedAt: number,
-  detail: Record<string, unknown> = {},
-): void {
-  recordExtensionPerformanceEvent(`graphAnalysis.publish.${stage}`, {
-    durationMs: Date.now() - startedAt,
-    ...detail,
-  });
 }
 
 function areGraphDataPayloadsEqual(left: IGraphData, right: IGraphData): boolean {
@@ -290,7 +278,6 @@ export function publishAnalyzedGraph(
     });
   }
 
-  let stageStartedAt = Date.now();
   const currentRawGraphData = handlers.getRawGraphData?.();
   const metricOnlyUpdate = createMetricOnlyGraphUpdate(
     currentRawGraphData,
@@ -306,58 +293,24 @@ export function publishAnalyzedGraph(
     actualHasIndex,
     status.freshness,
   );
-  recordPublishStage('reuseCheck', stageStartedAt, {
-    mode: state.mode,
-    reused: reuseCurrentGraphPublication,
-    rawEdgeCount: rawGraphData.edges.length,
-    rawNodeCount: rawGraphData.nodes.length,
-  });
 
-  stageStartedAt = Date.now();
-  if (reuseCurrentGraphPublication) {
-    recordPublishStage('unchangedGraph', stageStartedAt, {
-      edgeCount: rawGraphData.edges.length,
-      nodeCount: rawGraphData.nodes.length,
-    });
-  } else {
+  if (!reuseCurrentGraphPublication) {
     handlers.setRawGraphData(rawGraphData);
-    recordPublishStage('setRawGraphData', stageStartedAt, {
-      rawEdgeCount: rawGraphData.edges.length,
-      rawNodeCount: rawGraphData.nodes.length,
-    });
 
-    stageStartedAt = Date.now();
     handlers.updateViewContext();
     handlers.applyViewTransform();
-    recordPublishStage('viewTransform', stageStartedAt);
 
-    stageStartedAt = Date.now();
     const canSkipGroupPublication = state.mode === 'incremental'
       && currentRawGraphData
       && !doGraphViewGroupsNeedRecompute(currentRawGraphData, rawGraphData);
-    if (canSkipGroupPublication) {
-      recordPublishStage('groupsSkipped', stageStartedAt, {
-        reason: 'groupInputsUnchanged',
-      });
-    } else {
-      const groupsStartedAt = stageStartedAt;
-      stageStartedAt = Date.now();
+    if (!canSkipGroupPublication) {
       handlers.computeMergedGroups();
-      recordPublishStage('computeGroups', stageStartedAt);
 
-      stageStartedAt = Date.now();
       handlers.sendGroupsUpdated();
-      recordPublishStage('sendGroups', stageStartedAt);
-      recordPublishStage('groups', groupsStartedAt);
     }
   }
 
-  stageStartedAt = Date.now();
-  if (shouldSendMetricPatch) {
-    recordPublishStage('broadcastsSkipped', stageStartedAt, {
-      reason: 'metricOnlyGraphPatch',
-    });
-  } else {
+  if (!shouldSendMetricPatch) {
     handlers.sendDepthState();
     handlers.sendPluginStatuses();
     handlers.sendDecorations();
@@ -366,38 +319,14 @@ export function publishAnalyzedGraph(
     handlers.sendPluginToolbarActions?.();
     handlers.sendGraphViewContributionStatuses?.();
     handlers.sendPluginWebviewInjections?.();
-    recordPublishStage('broadcasts', stageStartedAt);
   }
 
-  stageStartedAt = Date.now();
   const graphData = handlers.getGraphData();
-  recordPublishStage('getGraphData', stageStartedAt, {
-    edgeCount: graphData.edges.length,
-    nodeCount: graphData.nodes.length,
-  });
-  recordExtensionPerformanceEvent('graphAnalysis.publish.graph', {
-    mode: state.mode,
-    rawNodeCount: rawGraphData.nodes.length,
-    rawEdgeCount: rawGraphData.edges.length,
-    nodeCount: graphData.nodes.length,
-    edgeCount: graphData.edges.length,
-    hasIndex: actualHasIndex,
-    freshness: status.freshness,
-    freshnessDetail: status.detail,
-  });
   if (!reuseCurrentGraphPublication) {
-    stageStartedAt = Date.now();
     if (shouldSendMetricPatch) {
       handlers.sendGraphNodeMetricsUpdated?.(metricOnlyUpdate);
-      recordPublishStage('sendGraphNodeMetrics', stageStartedAt, {
-        nodeCount: metricOnlyUpdate.length,
-      });
     } else {
       handlers.sendGraphDataUpdated(graphData);
-      recordPublishStage('sendGraphData', stageStartedAt, {
-        edgeCount: graphData.edges.length,
-        nodeCount: graphData.nodes.length,
-      });
     }
   }
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
