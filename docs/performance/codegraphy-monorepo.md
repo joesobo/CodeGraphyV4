@@ -434,6 +434,23 @@ VS Code graph view benchmark:
     state was hiding the graph.
   - Imports toggle wall-clock latency was `202ms` median, `220ms` p95; in-webview
     latency was `53ms` median, `56ms` p95.
+- Rejected early `APP_BOOTSTRAP_COMPLETE` experiments:
+  - Moving bootstrap ahead of graph loading but still after cached timeline
+    replay did not move the browser event stream. Graph data still arrived at
+    `171.5ms`, bootstrap still arrived later at `1662.6ms`, and first stats
+    rendered at `2135.4ms` after the usable document started. Imports toggle
+    was `208ms` median, with one noisy Playwright p95 outlier; in-webview
+    latency stayed `52ms` median.
+  - Moving bootstrap ahead of cached timeline replay also did not move the
+    browser event stream. Graph data arrived at `170.0ms`, bootstrap still
+    arrived later at `1682.2ms`, and first stats rendered at `2140.1ms` after
+    the usable document started. Imports toggle was `199ms` median, `206ms`
+    p95; in-webview latency was `57ms` median, `60ms` p95.
+  - Both production variants were reverted. The result suggests that the
+    current first-display delay is not fixed by simply reordering
+    `APP_BOOTSTRAP_COMPLETE` in the ready handler; the bridge/timeline replay
+    path needs better delivery/phase instrumentation before changing startup
+    semantics.
 
 Interpretation:
 
@@ -515,6 +532,12 @@ Interpretation:
   app is allowed to display it. This removes hidden pre-bootstrap work, while
   the latest first-load wall clock remains dominated by VS Code webview frame
   readiness outside the measured CodeGraphy data path.
+- Sending `APP_BOOTSTRAP_COMPLETE` earlier in the ready handler is not a
+  sufficient startup-display fix. In real Extension Development Host runs, the
+  browser still observed bootstrap after the graph replay/load messages, so the
+  next startup iteration should instrument webview message delivery and cached
+  timeline replay instead of committing a source reorder that does not change
+  visible timing.
 
 Full test baseline:
 
