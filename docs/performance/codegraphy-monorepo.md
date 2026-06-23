@@ -794,6 +794,24 @@ Interpretation:
   `.worktrees` noise. The next clean measurement pass should wait for a full
   background index without touching the live-update file, then take the fresh
   live-update sample.
+- The VS Code live-update harness now waits for active background `analyze`
+  requests to go idle before writing its marker file. A script-level regression
+  test covers the contaminated-measurement case where a stale startup analyze
+  was active before the marker write. On the polluted main workspace, this
+  moved the reported live-update wall clock from the invalid `32164ms`-
+  `32444ms` band down to `671ms`, with the actual incremental request at
+  `404ms`; the background `analyze` still took `34531ms`, but it is no longer
+  counted as live-update latency.
+- Pending source paths are now ignored by freshness checks when the file still
+  exists and its mtime is at or before `lastIndexedAt`. This handles duplicate
+  watcher events that persist after a successful benchmark restore/index cycle.
+  In the polluted main workspace, raw metadata still had `7171` pending paths
+  after shutdown, but the updated source filter reduced that set to `0`. The
+  next rebuilt VS Code run published cached `load` as `fresh` with no
+  background `analyze`, completed the load request in `1119ms`, reached first
+  graph readiness in `5112ms`, measured Imports toggle at `277ms` wall-clock /
+  `62ms` in-webview, and measured live-update at `943ms` wall-clock with a
+  `597ms` incremental request.
 
 Full test baseline:
 

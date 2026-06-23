@@ -39,7 +39,10 @@ export function evaluateCodeGraphyIndexStatus(input: {
   settingsSignature: string;
 }): CodeGraphyIndexStatus {
   const { meta, currentCommit, pluginSignature, settingsSignature } = input;
-  const pendingChangedFiles = filterWorkspaceStatusPendingChangedFiles(meta.pendingChangedFiles);
+  const pendingChangedFiles = filterWorkspaceStatusPendingChangedFiles(
+    meta.pendingChangedFiles,
+    { lastIndexedAt: meta.lastIndexedAt },
+  );
   const statusMeta = {
     ...meta,
     pendingChangedFiles,
