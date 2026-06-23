@@ -142,6 +142,7 @@ describe('webview/store/messageHandlers/graph', () => {
       graphIsIndexing: true,
       graphIndexProgress: { phase: 'Updating Graph View', current: 0, total: 1 },
       isLoading: false,
+      nodeSizeMode: 'file-size',
     });
 
     expect(handleGraphNodeMetricsUpdated(
@@ -164,6 +165,40 @@ describe('webview/store/messageHandlers/graph', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
     });
+  });
+
+  it('keeps the graph data reference stable when metric patches do not affect node sizing', () => {
+    const graphData = {
+      nodes: [
+        { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 100, churn: 1 },
+        { id: 'src/lib.ts', label: 'Lib', color: '#fff', fileSize: 50, churn: 3 },
+      ],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      graphData,
+      graphIsIndexing: true,
+      graphIndexProgress: { phase: 'Updating Graph View', current: 0, total: 1 },
+      isLoading: false,
+      nodeSizeMode: 'connections',
+    });
+
+    expect(handleGraphNodeMetricsUpdated(
+      {
+        type: 'GRAPH_NODE_METRICS_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/app.ts', fileSize: 120, churn: 2 }],
+        },
+      },
+      { getState: () => state },
+    )).toEqual({
+      isLoading: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
+
+    expect(state.graphData).toBe(graphData);
+    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 2 });
   });
 
   it('skips duplicate graph payloads after bootstrap has settled', () => {
