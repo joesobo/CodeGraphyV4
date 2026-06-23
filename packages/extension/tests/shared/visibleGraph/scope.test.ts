@@ -425,5 +425,39 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('keeps file-level self edges while dropping symbol edges projected onto the same file', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/runner.dart'),
+					symbolNode('src/runner.dart#Runner:class', {
+						id: 'src/runner.dart#Runner:class',
+						name: 'Runner',
+						kind: 'class',
+						filePath: 'src/runner.dart',
+					}),
+					symbolNode('src/runner.dart#run:method', {
+						id: 'src/runner.dart#run:method',
+						name: 'run',
+						kind: 'method',
+						filePath: 'src/runner.dart',
+					}),
+				],
+				edges: [
+					edge('src/runner.dart', 'src/runner.dart', 'call'),
+					edge('src/runner.dart#run:method', 'src/runner.dart#Runner:class', 'call'),
+				],
+			},
+			{
+				nodes: [{ type: 'file', enabled: true }],
+				edges: [{ type: 'call', enabled: true }],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/runner.dart'],
+			edges: ['src/runner.dart->src/runner.dart#call'],
+		});
+	});
 
 });
