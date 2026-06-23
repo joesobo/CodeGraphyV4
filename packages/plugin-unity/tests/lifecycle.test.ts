@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
-import { createUnityPlugin } from '../src/plugin';
+import { createUnityPlugin } from '../src/lifecycle';
 
 const playerControllerGuid = '11111111111111111111111111111111';
 
