@@ -8,9 +8,14 @@ export type TypeScriptAliasConfig = {
 };
 
 type CompilerOptionsCacheEntry = {
-  mtimeMs: number;
+  configFileStamps: Map<string, FileStamp>;
   parsed: ts.ParsedCommandLine | null;
 };
+
+type FileStamp = {
+  mtimeMs: number;
+  size: number;
+} | null;
 
 const compilerOptionsCache = new Map<string, CompilerOptionsCacheEntry>();
 
@@ -55,25 +60,28 @@ function findNearestTypeScriptConfig(filePath: string, workspaceRoot: string): s
 }
 
 function readCompilerOptions(tsconfigPath: string): ts.ParsedCommandLine | null {
-  const mtimeMs = fs.statSync(tsconfigPath).mtimeMs;
   const cached = compilerOptionsCache.get(tsconfigPath);
-  if (cached?.mtimeMs === mtimeMs) {
+  if (cached && isCompilerOptionsCacheEntryFresh(cached)) {
     return cached.parsed;
   }
 
-  const readResult = ts.readConfigFile(tsconfigPath, fileName => ts.sys.readFile(fileName));
+  const configFilePaths = new Set<string>([normalizeConfigFilePath(tsconfigPath)]);
+  const readResult = ts.readConfigFile(tsconfigPath, fileName => {
+    configFilePaths.add(normalizeConfigFilePath(fileName));
+    return ts.sys.readFile(fileName);
+  });
   const parsed = readResult.error
     ? null
     : ts.parseJsonConfigFileContent(
         readResult.config,
-        createCompilerOptionsParseHost(),
+        createCompilerOptionsParseHost(configFilePaths),
         path.dirname(tsconfigPath),
         undefined,
         tsconfigPath,
       );
 
   compilerOptionsCache.set(tsconfigPath, {
-    mtimeMs,
+    configFileStamps: createConfigFileStamps(configFilePaths),
     parsed,
   });
 
@@ -84,13 +92,54 @@ function readCompilerOptions(tsconfigPath: string): ts.ParsedCommandLine | null 
   return parsed;
 }
 
-function createCompilerOptionsParseHost(): ts.ParseConfigHost {
+function normalizeConfigFilePath(filePath: string): string {
+  return path.resolve(filePath);
+}
+
+function getFileStamp(filePath: string): FileStamp {
+  try {
+    const stat = fs.statSync(filePath);
+    return {
+      mtimeMs: stat.mtimeMs,
+      size: stat.size,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function areFileStampsEqual(left: FileStamp, right: FileStamp): boolean {
+  if (left === null || right === null) {
+    return left === right;
+  }
+
+  return left.mtimeMs === right.mtimeMs && left.size === right.size;
+}
+
+function createConfigFileStamps(filePaths: ReadonlySet<string>): Map<string, FileStamp> {
+  return new Map([...filePaths].map(filePath => [filePath, getFileStamp(filePath)]));
+}
+
+function isCompilerOptionsCacheEntryFresh(entry: CompilerOptionsCacheEntry): boolean {
+  for (const [filePath, stamp] of entry.configFileStamps) {
+    if (!areFileStampsEqual(getFileStamp(filePath), stamp)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function createCompilerOptionsParseHost(configFilePaths: Set<string>): ts.ParseConfigHost {
   return {
     directoryExists: directoryName => ts.sys.directoryExists?.(directoryName) ?? false,
     fileExists: fileName => ts.sys.fileExists(fileName),
     getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
     readDirectory: () => [],
-    readFile: fileName => ts.sys.readFile(fileName),
+    readFile: fileName => {
+      configFilePaths.add(normalizeConfigFilePath(fileName));
+      return ts.sys.readFile(fileName);
+    },
     realpath: pathName => ts.sys.realpath?.(pathName) ?? pathName,
     useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
   };
