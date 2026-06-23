@@ -946,6 +946,16 @@ Interpretation:
   index status. Incremental request duration measured `66ms` and `69ms`, down
   from the prior `83ms`-`87ms` samples, while strict wall clock stayed in the
   same `427ms`-`429ms` range because request-start delay remained `261ms`.
+- Metric-only changed-file refreshes now return the graph patch before index
+  metadata persistence settles. Persistence still runs in the background and
+  logs failures, while structural refreshes keep waiting for metadata because
+  no compact correction is guaranteed. In two rebuilt monorepo probes,
+  `workspacePipeline.refreshChangedFiles.completed` fired at `44ms`-`58ms`,
+  then `persistIndexMetadata` finished afterward in `18ms`-`26ms`. Strict
+  live-update wall clock measured `420ms` and `448ms`, with incremental request
+  duration at `67ms` and `69ms`; request-start delay still dominated at
+  `266ms` and `263ms`, so the next visible-latency target remains the file
+  watcher/scheduler path before CodeGraphy's refresh begins.
 
 Full test baseline:
 
