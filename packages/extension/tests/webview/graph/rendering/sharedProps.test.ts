@@ -4,7 +4,6 @@ import {
   buildSharedGraphProps,
   INTERACTIVE_COOLDOWN_TICKS,
   normalizeGraphDimension,
-  POSITIONED_INTERACTIVE_COOLDOWN_TICKS,
   TIMELINE_COOLDOWN_TICKS,
   type BuildSharedGraphPropsOptions,
 } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
@@ -79,7 +78,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.d3VelocityDecay).toBe(0.7);
     expect(props.d3AlphaDecay).toBe(0.0228);
     expect(props.warmupTicks).toBe(0);
-    expect(props.cooldownTicks).toBe(POSITIONED_INTERACTIVE_COOLDOWN_TICKS);
+    expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
     expect(props.dagMode).toBe('td');
     expect(props.dagLevelDistance).toBe(60);
   });
@@ -98,7 +97,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.dagLevelDistance).toBeUndefined();
   });
 
-  it('uses the short physics cooldown once every interactive node has a position', () => {
+  it('keeps positioned interactive graphs on the normal physics cooldown', () => {
     const props = buildSharedGraphProps(createOptions({
       graphData: {
         links: [createLink()],
@@ -106,8 +105,7 @@ describe('graph/rendering/surface/sharedProps', () => {
       },
     }));
 
-    expect(POSITIONED_INTERACTIVE_COOLDOWN_TICKS).toBe(0);
-    expect(props.cooldownTicks).toBe(POSITIONED_INTERACTIVE_COOLDOWN_TICKS);
+    expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
   });
 
   it('keeps unpositioned interactive graphs on the normal physics cooldown', () => {
