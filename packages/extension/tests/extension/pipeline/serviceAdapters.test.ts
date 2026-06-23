@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   analyzeWorkspacePipelineFiles,
   buildWorkspacePipelineGraphData,
@@ -9,7 +9,19 @@ import {
 } from '../../../src/extension/pipeline/serviceAdapters';
 import { CACHE_VERSION } from '../../../src/extension/gitHistory/cache/stateKeys';
 
+const performanceMocks = vi.hoisted(() => ({
+  recordExtensionPerformanceEvent: vi.fn(),
+}));
+
+vi.mock('../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
+}));
+
 describe('pipeline/serviceAdapters', () => {
+  beforeEach(() => {
+    performanceMocks.recordExtensionPerformanceEvent.mockReset();
+  });
+
   it('pre-analyzes files with shared registry and discovery adapters', async () => {
     const notifyPreAnalyze = vi.fn(async () => undefined);
     const readContent = vi.fn(async () => 'content');
@@ -108,6 +120,59 @@ describe('pipeline/serviceAdapters', () => {
 
     expect(readWorkspacePipelineRoot([{ uri: { fsPath: '/workspace' } }] as never)).toBe('/workspace');
     await expect(readWorkspacePipelineFileStat('/workspace/src/app.ts', fileSystem as never)).resolves.toEqual(stat);
+  });
+
+  it('records phase timings while analyzing workspace pipeline files', async () => {
+    const cache = { files: {} };
+    const discovery = {
+      readContent: vi.fn(async () => 'content'),
+      readAsString: vi.fn(async () => 'content'),
+      readAsBytes: vi.fn(async () => new Uint8Array()),
+    };
+    const registry = {
+      notifyPreAnalyze: vi.fn(async () => undefined),
+      analyzeFileResult: vi.fn(async () => ({
+        filePath: '/workspace/src/app.ts',
+        relations: [],
+      })),
+    };
+
+    await analyzeWorkspacePipelineFiles(
+      cache as never,
+      discovery as never,
+      undefined,
+      registry as never,
+      vi.fn(async () => ({ mtime: 5, size: 12 })),
+      [{ absolutePath: '/workspace/src/app.ts', relativePath: 'src/app.ts' } as never],
+      '/workspace',
+    );
+
+    const phaseCalls = performanceMocks.recordExtensionPerformanceEvent.mock.calls
+      .filter(([name]) => name === 'workspacePipeline.analyzeFiles.phase');
+    expect(phaseCalls.map(([, detail]) => (detail as { phase: string }).phase)).toEqual([
+      'getFileStat',
+      'readContent',
+      'notifyPreAnalyze',
+      'preAnalyzeFiles',
+      'readContent',
+      'analyzeFileResult',
+    ]);
+    expect(phaseCalls).toContainEqual([
+      'workspacePipeline.analyzeFiles.phase',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        fileCount: 1,
+        phase: 'preAnalyzeFiles',
+      }),
+    ]);
+    expect(phaseCalls).toContainEqual([
+      'workspacePipeline.analyzeFiles.phase',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        phase: 'analyzeFileResult',
+        relationCount: 0,
+      }),
+    ]);
   });
 
   it('builds graph nodes with valid cached git history churn counts', () => {

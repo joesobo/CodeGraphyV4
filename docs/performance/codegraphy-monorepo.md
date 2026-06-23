@@ -699,6 +699,32 @@ Interpretation:
   `1887ms` wall-clock and `1180ms` request time; discovery mode was `cached`
   and took `0ms`. The graph size after the refresh stayed in the same
   `5101` node / `9146` edge raw graph band.
+- Changed-file refresh phase tracing showed that cached discovery exposed the
+  next hot spot inside per-file analysis. Before pre-analysis routing, the
+  one-file live-update request measured `722ms`, with `notifyPreAnalyze`
+  taking `450ms` and the delegated `analyzeFiles` phase taking `527ms`. After
+  routing plugin pre-analysis by supported file extension, the same probe
+  measured `955ms` wall-clock and `267ms` request time; `notifyPreAnalyze`
+  rounded to `0ms`, delegated `analyzeFiles` dropped to `78ms`, and the
+  changed-file refresh completed in `176ms`. The remaining backend phases were
+  one-file plugin analysis at `75ms` and two graph-build passes at `54ms` and
+  `37ms`.
+- Existing-file content saves now use a shorter `100ms` debounce while create,
+  delete, and rename operations keep the wider `500ms` coalescing window. The
+  CodeGraphy monorepo live-update probe measured `574ms` wall-clock and
+  `283ms` request time after this change. The changed-file refresh itself took
+  `190ms`; the phase split was `91ms` analyze files, `53ms`
+  `buildGraphDataFromAnalysis`, and `36ms` `buildGraphData`. This trims the
+  human-visible wait from the cached-discovery `1887ms` run and the
+  pre-debounce `955ms` run, while keeping filesystem-operation coalescing
+  unchanged.
+- Tree-sitter language loading is now targeted per requested language instead
+  of importing every bundled grammar before a one-file parse. A micro-probe
+  showed `loadTreeSitterLanguageBinding("typeScript")` taking `11ms`-`17ms`
+  after warm module cache effects, while the compatibility
+  `loadTreeSitterBindings()` path took `62ms`-`205ms` and loaded all language
+  bindings. This is a startup and incremental-analysis guardrail rather than a
+  visible graph-count change.
 
 Full test baseline:
 
