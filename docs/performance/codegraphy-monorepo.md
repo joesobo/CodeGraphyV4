@@ -907,6 +907,20 @@ Interpretation:
   `142ms`, strict wall clock moved from `594ms` to `545ms`, and the webview
   still received a one-node `GRAPH_NODE_METRICS_UPDATED` patch with zero
   visible-graph derivation or runtime graph rebuild in the live-update window.
+- Cached graph replay now warms one representative cached source file through
+  the routed analyzer in the background, choosing the most common supported
+  source extension while skipping temp/generated folders such as
+  `.stryker-tmp`, `.turbo`, `.worktrees`, `dist`, `coverage`, and `reports`.
+  This targets the cold parser/plugin cost that appeared on the first save
+  after opening a warm Graph Cache. In the rebuilt monorepo probe, the
+  background warm-up analyzed `apps/web/src/index.ts` in `727ms` without
+  regressing first graph readiness (`5263ms`) or Imports toggle (`272ms`
+  wall-clock / `59ms` webview). The first marker save's
+  `analyzeFileResultForPlugins` phase moved from `88ms` to `13ms`,
+  `analyzeFiles` moved from `91ms` to `15ms`,
+  `refreshChangedFiles.completed` moved from `119ms` to `53ms`, and the
+  incremental request moved from `142ms` to `77ms`; strict live-update wall
+  clock moved from `545ms` to `510ms`.
 
 Full test baseline:
 
