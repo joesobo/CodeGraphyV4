@@ -24,6 +24,8 @@ function createSource(overrides: Partial<Record<string, unknown>> = {}) {
     _refreshAndSendData: vi.fn(async () => undefined),
     _analyzeAndSendData: vi.fn(async () => undefined),
     _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
+    _rawGraphData: { nodes: [], edges: [] },
+    _graphData: { nodes: [], edges: [] },
     _analyzer: { hasIndex: vi.fn(() => true) },
     ...overrides,
   };
@@ -98,6 +100,22 @@ describe('graphView/provider/refresh/run', () => {
     expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
     expect(source._loadAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('uses incremental refresh for a loaded graph while index metadata is unavailable', async () => {
+    const source = createSource({
+      _analyzer: { hasIndex: vi.fn(() => false) },
+      _rawGraphData: {
+        nodes: [{ id: 'src/app.ts' }],
+        edges: [],
+      },
+    });
+
+    await runChangedFileRefresh(source as never, ['src/app.ts']);
+
+    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('falls back to full analysis when incremental refresh is unavailable', async () => {

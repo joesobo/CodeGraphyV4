@@ -24,6 +24,29 @@ describe('graphView/provider/refresh targeted refreshes', () => {
     expect(source._sendFavorites).not.toHaveBeenCalled();
   });
 
+  it('refreshChangedFiles stays incremental for a loaded graph while index metadata is unavailable', async () => {
+    const source = createSource({
+      _rawGraphData: {
+        nodes: [{ id: 'src/example.ts' }],
+        edges: [],
+      },
+    });
+    source._analyzer.hasIndex.mockReturnValue(false);
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    await methods.refreshChangedFiles(['src/example.ts']);
+
+    expect(source._loadDisabledRulesAndPlugins).not.toHaveBeenCalled();
+    expect(source._loadGroupsAndFilterPatterns).not.toHaveBeenCalled();
+    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/example.ts']);
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(source._sendAllSettings).not.toHaveBeenCalled();
+  });
+
   it('refreshPluginFiles publishes the targeted plugin refresh result without rebuilding it again', async () => {
     const source = createSource();
     source._analyzer.hasIndex.mockReturnValue(false);

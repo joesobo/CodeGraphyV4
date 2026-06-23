@@ -5,7 +5,13 @@ import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { createGraphViewIndexProgressCoalescer } from '../analysis/execution/progress';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 import { createRebuildSenders } from './refresh/rebuild';
-import { runChangedFileRefresh, runIndexRefresh, runPrimaryRefresh, sendRefreshState } from './refresh/run';
+import {
+  canRunIncrementalChangedFileRefresh,
+  runChangedFileRefresh,
+  runIndexRefresh,
+  runPrimaryRefresh,
+  sendRefreshState,
+} from './refresh/run';
 
 type GraphViewScopedRefreshProgress = { phase: string; current: number; total: number };
 
@@ -211,7 +217,7 @@ function prepareRefreshInputs(source: GraphViewProviderRefreshMethodsSource): vo
 }
 
 function canRunIndexedChangedFileRefresh(source: GraphViewProviderRefreshMethodsSource): boolean {
-  return source._analyzer?.hasIndex() === true && source._incrementalAnalyzeAndSendData !== undefined;
+  return canRunIncrementalChangedFileRefresh(source);
 }
 
 function createRefreshMethod(
