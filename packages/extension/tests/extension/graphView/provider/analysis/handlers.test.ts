@@ -110,6 +110,7 @@ describe('graphView/provider/analysis/handlers', () => {
       nodes: [{ id: 'raw', label: 'raw', color: '#ffffff' }],
       edges: [],
     });
+    expect(handlers.getRawGraphData?.()).toEqual(source._rawGraphData);
     expect(source._graphData).toEqual(graphData);
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
@@ -166,6 +167,7 @@ describe('graphView/provider/analysis/handlers', () => {
     });
 
     expect(handlers.hasWorkspace()).toBe(false);
+    expect(handlers.getRawGraphData?.()).toBe(source._rawGraphData);
     expect(handlers.getGraphData()).toBe(source._graphData);
 
     handlers.sendGraphDataUpdated(graphData);

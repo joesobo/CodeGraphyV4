@@ -42,6 +42,39 @@ function recordPublishStage(
   });
 }
 
+function areGraphDataPayloadsEqual(left: IGraphData, right: IGraphData): boolean {
+  if (left === right) {
+    return true;
+  }
+
+  if (left.nodes.length !== right.nodes.length || left.edges.length !== right.edges.length) {
+    return false;
+  }
+
+  try {
+    return JSON.stringify(left) === JSON.stringify(right);
+  } catch {
+    return false;
+  }
+}
+
+function canReuseCurrentGraphPublication(
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+  rawGraphData: IGraphData,
+  actualHasIndex: boolean,
+  freshness: CodeGraphyIndexFreshness,
+): boolean {
+  if (state.mode !== 'incremental' || !actualHasIndex || freshness !== 'fresh') {
+    return false;
+  }
+
+  const currentRawGraphData = handlers.getRawGraphData?.();
+  return currentRawGraphData
+    ? areGraphDataPayloadsEqual(currentRawGraphData, rawGraphData)
+    : false;
+}
+
 export function publishEmptyGraph(
   handlers: GraphViewAnalysisExecutionHandlers,
   hasIndex: boolean = false,
@@ -70,22 +103,45 @@ export function publishAnalyzedGraph(
       total: 1,
     });
   }
+
   let stageStartedAt = Date.now();
-  handlers.setRawGraphData(rawGraphData);
-  recordPublishStage('setRawGraphData', stageStartedAt, {
+  const reuseCurrentGraphPublication = canReuseCurrentGraphPublication(
+    state,
+    handlers,
+    rawGraphData,
+    actualHasIndex,
+    status.freshness,
+  );
+  recordPublishStage('reuseCheck', stageStartedAt, {
+    mode: state.mode,
+    reused: reuseCurrentGraphPublication,
     rawEdgeCount: rawGraphData.edges.length,
     rawNodeCount: rawGraphData.nodes.length,
   });
 
   stageStartedAt = Date.now();
-  handlers.updateViewContext();
-  handlers.applyViewTransform();
-  recordPublishStage('viewTransform', stageStartedAt);
+  if (reuseCurrentGraphPublication) {
+    recordPublishStage('unchangedGraph', stageStartedAt, {
+      edgeCount: rawGraphData.edges.length,
+      nodeCount: rawGraphData.nodes.length,
+    });
+  } else {
+    handlers.setRawGraphData(rawGraphData);
+    recordPublishStage('setRawGraphData', stageStartedAt, {
+      rawEdgeCount: rawGraphData.edges.length,
+      rawNodeCount: rawGraphData.nodes.length,
+    });
 
-  stageStartedAt = Date.now();
-  handlers.computeMergedGroups();
-  handlers.sendGroupsUpdated();
-  recordPublishStage('groups', stageStartedAt);
+    stageStartedAt = Date.now();
+    handlers.updateViewContext();
+    handlers.applyViewTransform();
+    recordPublishStage('viewTransform', stageStartedAt);
+
+    stageStartedAt = Date.now();
+    handlers.computeMergedGroups();
+    handlers.sendGroupsUpdated();
+    recordPublishStage('groups', stageStartedAt);
+  }
 
   stageStartedAt = Date.now();
   handlers.sendDepthState();
@@ -113,12 +169,14 @@ export function publishAnalyzedGraph(
     hasIndex: actualHasIndex,
     freshness: status.freshness,
   });
-  stageStartedAt = Date.now();
-  handlers.sendGraphDataUpdated(graphData);
-  recordPublishStage('sendGraphData', stageStartedAt, {
-    edgeCount: graphData.edges.length,
-    nodeCount: graphData.nodes.length,
-  });
+  if (!reuseCurrentGraphPublication) {
+    stageStartedAt = Date.now();
+    handlers.sendGraphDataUpdated(graphData);
+    recordPublishStage('sendGraphData', stageStartedAt, {
+      edgeCount: graphData.edges.length,
+      nodeCount: graphData.nodes.length,
+    });
+  }
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
   handlers.markWorkspaceReady(graphData, state.disabledPlugins);

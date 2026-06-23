@@ -250,6 +250,80 @@ describe('graph view analysis execution publish', () => {
     );
   });
 
+  it('skips graph-specific publication when an incremental refresh leaves the raw graph unchanged', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [
+        {
+          id: 'src/index.ts->src/view.ts#import',
+          from: 'src/index.ts',
+          to: 'src/view.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: 'typescript:src/index.ts->src/view.ts',
+              pluginId: 'typescript',
+              sourceId: 'src/index.ts->src/view.ts',
+              label: 'TypeScript import',
+            },
+          ],
+        },
+      ],
+    };
+    const state = createExecutionState({
+      mode: 'incremental',
+      analyzer: createExecutionAnalyzer(),
+    });
+    const sendPluginWebviewInjections = vi.fn();
+    const { handlers, getGraphData } = createExecutionHandlers({
+      sendPluginExporters: vi.fn(),
+      sendPluginToolbarActions: vi.fn(),
+      sendPluginWebviewInjections,
+    });
+    handlers.setRawGraphData(rawGraphData);
+    handlers.setGraphData(rawGraphData);
+    vi.mocked(handlers.setRawGraphData).mockClear();
+    vi.mocked(handlers.setGraphData).mockClear();
+
+    publishAnalyzedGraph(state, handlers, rawGraphData, true);
+
+    expect(handlers.setRawGraphData).not.toHaveBeenCalled();
+    expect(handlers.setGraphData).not.toHaveBeenCalled();
+    expect(handlers.updateViewContext).not.toHaveBeenCalled();
+    expect(handlers.applyViewTransform).not.toHaveBeenCalled();
+    expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(handlers.sendGraphDataUpdated).not.toHaveBeenCalled();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
+    expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(handlers.sendDecorations).toHaveBeenCalledOnce();
+    expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(handlers.sendPluginExporters).toHaveBeenCalledOnce();
+    expect(handlers.sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      true,
+      'fresh',
+      'CodeGraphy index is fresh.',
+    );
+    expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
+      getGraphData(),
+      state.disabledPlugins,
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.unchangedGraph',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        edgeCount: 1,
+        nodeCount: 1,
+      }),
+    );
+  });
+
   it('publishes the transformed graph without post-analyze hooks when no analyzer is available', () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
