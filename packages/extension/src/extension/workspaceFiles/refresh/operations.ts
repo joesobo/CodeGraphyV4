@@ -9,6 +9,9 @@ import { scheduleWorkspaceRefresh } from './scheduler';
 type WorkspaceRenameFiles = vscode.FileRenameEvent['files'];
 type WorkspaceFileEventName = 'workspace:fileCreated' | 'workspace:fileDeleted';
 
+const WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS = 100;
+const WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS = 500;
+
 function isGitignorePath(filePath: string): boolean {
   return filePath.replace(/\\/g, '/').endsWith('/.gitignore')
     || filePath.replace(/\\/g, '/') === '.gitignore';
@@ -28,7 +31,7 @@ function refreshWorkspacePaths(
   );
 
   if (refreshPaths.length > 0) {
-    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, 500, {
+    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS, {
       gitignoreRefresh: includesGitignorePath(refreshPaths),
     });
   }
@@ -64,7 +67,7 @@ export function refreshWorkspaceChangedPath(
     provider,
     logMessage,
     [filePath],
-    500,
+    WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS,
     { gitignoreRefresh: isGitignorePath(filePath) },
   );
   provider.emitEvent('workspace:fileChanged', { filePath });

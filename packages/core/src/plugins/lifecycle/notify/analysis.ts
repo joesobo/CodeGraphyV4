@@ -12,6 +12,24 @@ type AnalyzeFile = {
   content: string;
 };
 
+function pluginMatchesFile(info: ILifecyclePluginInfo, relativePath: string): boolean {
+  if (info.plugin.supportedExtensions.includes('*')) {
+    return true;
+  }
+
+  const lowercasePath = relativePath.toLowerCase();
+  return info.plugin.supportedExtensions.some((extension) =>
+    lowercasePath.endsWith(extension.toLowerCase()),
+  );
+}
+
+function getPluginFiles(
+  info: ILifecyclePluginInfo,
+  files: AnalyzeFile[],
+): AnalyzeFile[] {
+  return files.filter((file) => pluginMatchesFile(info, file.relativePath));
+}
+
 function logLifecycleError(hook: string, pluginId: string, error: unknown): void {
   console.error(`[CodeGraphy] Error in ${hook} for ${pluginId}:`, error);
 }
@@ -32,9 +50,14 @@ export async function notifyPreAnalyze(
       continue;
     }
 
+    const pluginFiles = getPluginFiles(info, files);
+    if (pluginFiles.length === 0) {
+      continue;
+    }
+
     try {
       await info.plugin.onPreAnalyze(
-        files,
+        pluginFiles,
         workspaceRoot,
         withWorkspacePluginAnalysisOptions(analysisContext, info.options),
       );

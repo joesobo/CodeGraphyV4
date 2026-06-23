@@ -314,6 +314,8 @@ Added cached-load/publish stage markers and reused a prepared Material Icon exte
 Deferred live gitignore probing only for stale cached replay: cached discovery dropped from 324ms to 11ms, cached load completion from 836ms to 497ms, cached load publish from 1.70s to 0.63s, first graph readiness from 5.62s to 5.27s, and visible stats stayed 2300 nodes / 5345 edges while background analysis handled exact ignored metadata.
 Warmed the repo-local Graph Cache when the Graph View runtime creates its analyzer: hydration dropped from 406ms to 170ms, cached load completion from 497ms to 259ms, cached load request completion from 672ms to 429ms, first graph readiness from 5266ms to 5114ms, and visible stats stayed 2300 nodes / 5345 edges.
 Reused current discovery for existing-file live updates and added a live-update VS Code probe: full-discovery control was 3854ms wall / 3149ms request with 1900ms discovery; cached-discovery fast path was 1887ms wall / 1180ms request with 0ms discovery.
+Added changed-file refresh phase markers: pre-analysis routing hotspot was notifyPreAnalyze at 450ms inside a 722ms request, then routing pre-analysis files by supported extension reduced notifyPreAnalyze to 0ms, analyzeFiles to 78ms, refresh completion to 176ms, and live update to 955ms wall / 267ms request.
+Shortened existing-file save debounce and targeted Tree-sitter language loading: content saves now wait 100ms while file operations keep 500ms coalescing; latest live-update probe is 574ms wall / 283ms request, and targeted TypeScript Tree-sitter binding load probes at 11ms-17ms versus 62ms-205ms for loading all grammar bindings.
 ```
 
 ## Task 5: Keep The PR Reviewable

@@ -25,6 +25,40 @@ interface ChangedFileDiscoveryState {
   files: IDiscoveredFile[];
 }
 
+function recordChangedFileRefreshPhase(
+  phase: string,
+  startedAt: number,
+  detail: Record<string, unknown> = {},
+): void {
+  recordExtensionPerformanceEvent('workspacePipeline.refreshChangedFiles.phase', {
+    ...detail,
+    durationMs: Date.now() - startedAt,
+    phase,
+  });
+}
+
+async function timeChangedFileRefreshPhase<T>(
+  phase: string,
+  operation: () => Promise<T>,
+  describeResult: (result: T) => Record<string, unknown> = () => ({}),
+): Promise<T> {
+  const startedAt = Date.now();
+  const result = await operation();
+  recordChangedFileRefreshPhase(phase, startedAt, describeResult(result));
+  return result;
+}
+
+function timeChangedFileRefreshPhaseSync<T>(
+  phase: string,
+  operation: () => T,
+  describeResult: (result: T) => Record<string, unknown> = () => ({}),
+): T {
+  const startedAt = Date.now();
+  const result = operation();
+  recordChangedFileRefreshPhase(phase, startedAt, describeResult(result));
+  return result;
+}
+
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
   private _createWorkspaceIndexRefreshSource(
     disabledPlugins: Set<string> = new Set(),
@@ -89,6 +123,96 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         },
       },
     });
+
+    return source;
+  }
+
+  private _createTimedWorkspaceIndexRefreshSource(
+    disabledPlugins: Set<string>,
+  ): WorkspacePipelineRefreshSource {
+    const source = this._createWorkspaceIndexRefreshSource(disabledPlugins);
+
+    const readAnalysisFiles = source._readAnalysisFiles.bind(source);
+    source._readAnalysisFiles = files => timeChangedFileRefreshPhase(
+      'readAnalysisFiles',
+      () => readAnalysisFiles(files),
+      readFiles => ({
+        fileCount: files.length,
+        readFileCount: readFiles.length,
+      }),
+    );
+
+    const analyzeFiles = source._analyzeFiles.bind(source);
+    source._analyzeFiles = (
+      files,
+      root,
+      progress,
+      abortSignal,
+      pluginIds,
+      nextDisabledPlugins,
+    ) => timeChangedFileRefreshPhase(
+      'analyzeFiles',
+      () => analyzeFiles(
+        files,
+        root,
+        progress,
+        abortSignal,
+        pluginIds,
+        nextDisabledPlugins,
+      ),
+      result => ({
+        cacheHits: result.cacheHits,
+        cacheMisses: result.cacheMisses,
+        fileCount: files.length,
+        pluginIdCount: pluginIds?.length ?? 0,
+      }),
+    );
+
+    const buildGraphData = source._buildGraphData.bind(source);
+    source._buildGraphData = (fileConnections, root, selectedPlugins) =>
+      timeChangedFileRefreshPhaseSync(
+        'buildGraphData',
+        () => buildGraphData(fileConnections, root, selectedPlugins),
+        graphData => ({
+          edgeCount: graphData.edges.length,
+          fileCount: fileConnections.size,
+          nodeCount: graphData.nodes.length,
+        }),
+      );
+
+    const buildGraphDataFromAnalysis = source._buildGraphDataFromAnalysis.bind(source);
+    source._buildGraphDataFromAnalysis = (fileAnalysis, root, selectedPlugins) =>
+      timeChangedFileRefreshPhaseSync(
+        'buildGraphDataFromAnalysis',
+        () => buildGraphDataFromAnalysis(fileAnalysis, root, selectedPlugins),
+        graphData => ({
+          edgeCount: graphData.edges.length,
+          fileCount: fileAnalysis.size,
+          nodeCount: graphData.nodes.length,
+        }),
+      );
+
+    const analyze = source.analyze.bind(source);
+    source.analyze = (patterns, nextDisabledPlugins, signal, progress) =>
+      timeChangedFileRefreshPhase(
+        'fullAnalyze',
+        () => analyze(patterns, nextDisabledPlugins, signal, progress),
+        graphData => ({
+          edgeCount: graphData.edges.length,
+          nodeCount: graphData.nodes.length,
+          patternCount: patterns?.length ?? 0,
+        }),
+      );
+
+    const invalidateWorkspaceFiles = source.invalidateWorkspaceFiles.bind(source);
+    source.invalidateWorkspaceFiles = filePaths => timeChangedFileRefreshPhaseSync(
+      'invalidateWorkspaceFiles',
+      () => invalidateWorkspaceFiles(filePaths),
+      invalidatedFiles => ({
+        fileCount: filePaths.length,
+        invalidatedFileCount: invalidatedFiles.length,
+      }),
+    );
 
     return source;
   }
@@ -341,7 +465,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       mode: reusableDiscoveryState ? 'cached' : 'discover',
     });
 
-    const graphData = await refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
+    const graphData = await refreshWorkspacePipelineChangedFiles(this._createTimedWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories,
       discoveredFiles: discoveryResult.files,
@@ -353,18 +477,30 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         analysisContext,
         nextDisabledPlugins = disabledPlugins,
       ) =>
-        this._registry.notifyFilesChanged(
-          files,
-          root,
-          analysisContext,
-          nextDisabledPlugins,
+        timeChangedFileRefreshPhase(
+          'notifyFilesChanged',
+          () => this._registry.notifyFilesChanged(
+            files,
+            root,
+            analysisContext,
+            nextDisabledPlugins,
+          ),
+          result => ({
+            additionalFilePathCount: result.additionalFilePaths.length,
+            fileCount: files.length,
+            requiresFullRefresh: result.requiresFullRefresh,
+          }),
         ),
       onProgress,
       persistCache: () => {
-        this._persistCache();
+        timeChangedFileRefreshPhaseSync('persistCache', () => {
+          this._persistCache();
+        });
       },
       persistIndexMetadata: async () => {
-        await this._persistIndexMetadata();
+        await timeChangedFileRefreshPhase('persistIndexMetadata', () =>
+          this._persistIndexMetadata(),
+        );
       },
       signal,
       workspaceRoot,

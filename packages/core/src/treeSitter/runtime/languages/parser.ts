@@ -5,7 +5,7 @@ import {
   TREE_SITTER_RUNTIME_BINDINGS,
   type TreeSitterLanguageKind,
 } from './catalog';
-import { loadTreeSitterBindings } from './load';
+import { loadTreeSitterLanguageBinding } from './load';
 
 export interface ITreeSitterRuntime {
   languageKind: TreeSitterLanguageKind;
@@ -17,11 +17,6 @@ async function getTreeSitterLanguageForFile(filePath: string): Promise<{
   languageKind: TreeSitterLanguageKind;
   language: Parser.Language;
 } | null> {
-  const bindings = await loadTreeSitterBindings();
-  if (!bindings) {
-    return null;
-  }
-
   const binding = TREE_SITTER_RUNTIME_BINDINGS[
     getFileExtension(filePath) as keyof typeof TREE_SITTER_RUNTIME_BINDINGS
   ];
@@ -29,10 +24,15 @@ async function getTreeSitterLanguageForFile(filePath: string): Promise<{
     return null;
   }
 
+  const languageBinding = await loadTreeSitterLanguageBinding(binding.language);
+  if (!languageBinding) {
+    return null;
+  }
+
   return {
-    ParserCtor: bindings.ParserCtor,
+    ParserCtor: languageBinding.ParserCtor,
     languageKind: binding.languageKind,
-    language: bindings[binding.language],
+    language: languageBinding.language,
   };
 }
 
