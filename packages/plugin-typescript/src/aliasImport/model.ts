@@ -1,5 +1,5 @@
 import type { IFileAnalysisResult, IPluginEdgeType } from '@codegraphy-dev/plugin-api';
-import { readTypeScriptAliasConfig } from './compilerOptions';
+import { clearTypeScriptAliasConfigCache, readTypeScriptAliasConfig } from './compilerOptions';
 import { collectTypeScriptFilePaths, isTypeScriptConfigFile, isTypeScriptSourceFile } from './files';
 import { resolveAliasImport } from './resolve';
 import { extractModuleSpecifiers } from './specifiers';
@@ -18,6 +18,7 @@ export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE: IPluginEdgeType = {
 const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
 
 export {
+  clearTypeScriptAliasConfigCache,
   collectTypeScriptFilePaths,
   isTypeScriptConfigFile,
   isTypeScriptSourceFile,

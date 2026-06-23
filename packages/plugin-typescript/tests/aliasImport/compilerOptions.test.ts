@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
 import { createTypeScriptPlugin } from '../../src/plugin';
@@ -285,6 +286,62 @@ describe('TypeScript Alias Import compiler options support', () => {
       expect(readDirectory).not.toHaveBeenCalled();
     } finally {
       readDirectory.mockRestore();
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('reuses parsed path aliases for files under the same tsconfig', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const readFile = vi.spyOn(ts.sys, 'readFile');
+
+    try {
+      const tsconfigPath = writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const firstSourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/first.ts',
+        "import { token } from '@/token';\n",
+      );
+      const secondSourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/second.ts',
+        "import { token } from '@/token';\n",
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      await plugin.analyzeFile?.(
+        firstSourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+      await plugin.analyzeFile?.(
+        secondSourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      const realTsconfigPath = fs.realpathSync.native(tsconfigPath);
+      const tsconfigReads = readFile.mock.calls.filter(([fileName]) =>
+        fileName === realTsconfigPath,
+      );
+      expect(tsconfigReads).toHaveLength(1);
+    } finally {
+      readFile.mockRestore();
       removeWorkspaceRoot(workspaceRoot);
     }
   });

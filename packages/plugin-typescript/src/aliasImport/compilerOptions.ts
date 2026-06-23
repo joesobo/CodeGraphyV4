@@ -7,6 +7,17 @@ export type TypeScriptAliasConfig = {
   paths: TypeScriptPathMapping[];
 };
 
+type CompilerOptionsCacheEntry = {
+  mtimeMs: number;
+  parsed: ts.ParsedCommandLine | null;
+};
+
+const compilerOptionsCache = new Map<string, CompilerOptionsCacheEntry>();
+
+export function clearTypeScriptAliasConfigCache(): void {
+  compilerOptionsCache.clear();
+}
+
 export function readTypeScriptAliasConfig(filePath: string, workspaceRoot: string): TypeScriptAliasConfig | null {
   const tsconfigPath = findNearestTypeScriptConfig(filePath, workspaceRoot);
   if (!tsconfigPath) {
@@ -44,18 +55,33 @@ function findNearestTypeScriptConfig(filePath: string, workspaceRoot: string): s
 }
 
 function readCompilerOptions(tsconfigPath: string): ts.ParsedCommandLine | null {
+  const mtimeMs = fs.statSync(tsconfigPath).mtimeMs;
+  const cached = compilerOptionsCache.get(tsconfigPath);
+  if (cached?.mtimeMs === mtimeMs) {
+    return cached.parsed;
+  }
+
   const readResult = ts.readConfigFile(tsconfigPath, fileName => ts.sys.readFile(fileName));
-  if (readResult.error) {
+  const parsed = readResult.error
+    ? null
+    : ts.parseJsonConfigFileContent(
+        readResult.config,
+        createCompilerOptionsParseHost(),
+        path.dirname(tsconfigPath),
+        undefined,
+        tsconfigPath,
+      );
+
+  compilerOptionsCache.set(tsconfigPath, {
+    mtimeMs,
+    parsed,
+  });
+
+  if (!parsed) {
     return null;
   }
 
-  return ts.parseJsonConfigFileContent(
-    readResult.config,
-    createCompilerOptionsParseHost(),
-    path.dirname(tsconfigPath),
-    undefined,
-    tsconfigPath,
-  );
+  return parsed;
 }
 
 function createCompilerOptionsParseHost(): ts.ParseConfigHost {
