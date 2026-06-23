@@ -47,6 +47,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _rawGraphData: IGraphData;
   _firstAnalysis: boolean;
   _resolveFirstWorkspaceReady?: () => void;
+  _firstWorkspaceReadyPromise?: Promise<void>;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _sendDepthState(): void;
   _computeMergedGroups(): void;
@@ -293,6 +294,10 @@ export function createGraphViewProviderAnalysisMethods(
   );
   const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
     await fullIndexAnalysis.waitForFullIndexAnalysis();
+    if (source._firstAnalysis && source._firstWorkspaceReadyPromise) {
+      await source._firstWorkspaceReadyPromise;
+    }
+
     source._changedFilePaths = [...filePaths];
     const doIncrementalAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
       source,
