@@ -6,11 +6,13 @@ import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager
 import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
 
 const stateBaseHarness = vi.hoisted(() => ({
+  loadWorkspaceAnalysisDatabaseCache: vi.fn(),
   loadWorkspaceAnalysisDatabaseCacheAsync: vi.fn(),
   readWorkspaceAnalysisDatabaseSnapshot: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
+  loadWorkspaceAnalysisDatabaseCache: stateBaseHarness.loadWorkspaceAnalysisDatabaseCache,
   loadWorkspaceAnalysisDatabaseCacheAsync: stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot: stateBaseHarness.readWorkspaceAnalysisDatabaseSnapshot,
 }));
@@ -104,24 +106,7 @@ describe('extension/pipeline/service/stateBase', () => {
   });
 
   it('warms the repo-local Graph Cache using the shared hydration promise', async () => {
-    let resolveHydration!: (cache: unknown) => void;
-    stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync.mockReturnValueOnce(
-      new Promise(resolve => {
-        resolveHydration = resolve;
-      }),
-    );
-    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
-      _cache: unknown;
-      warmGraphCache(): Promise<void>;
-    };
-
-    const firstWarm = state.warmGraphCache();
-    const secondWarm = state.warmGraphCache();
-
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledOnce();
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace');
-
-    resolveHydration({
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValueOnce({
       version: '2.1.0',
       files: {
         'src/app.ts': {
@@ -130,9 +115,21 @@ describe('extension/pipeline/service/stateBase', () => {
         },
       },
     });
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+      warmGraphCache(): Promise<void>;
+    };
+
+    const firstWarm = state.warmGraphCache();
+    const secondWarm = state.warmGraphCache();
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
 
     await Promise.all([firstWarm, secondWarm]);
 
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledOnce();
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace');
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(state._cache).toEqual({
       version: '2.1.0',
       files: {
