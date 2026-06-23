@@ -11,10 +11,24 @@ type WorkspaceFileEventName = 'workspace:fileCreated' | 'workspace:fileDeleted';
 
 const WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS = 32;
 const WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS = 500;
+const RECENT_SAVE_WATCHER_SUPPRESSION_MS = 1000;
+const recentSavedDocumentPaths = new Map<string, number>();
+
+function normalizeFileWatcherPath(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function pruneRecentSavedDocumentPaths(now: number): void {
+  for (const [filePath, expiresAt] of recentSavedDocumentPaths) {
+    if (expiresAt < now) {
+      recentSavedDocumentPaths.delete(filePath);
+    }
+  }
+}
 
 function isGitignorePath(filePath: string): boolean {
-  return filePath.replace(/\\/g, '/').endsWith('/.gitignore')
-    || filePath.replace(/\\/g, '/') === '.gitignore';
+  const normalizedPath = normalizeFileWatcherPath(filePath);
+  return normalizedPath.endsWith('/.gitignore') || normalizedPath === '.gitignore';
 }
 
 function includesGitignorePath(filePaths: readonly string[]): boolean {
@@ -47,11 +61,42 @@ export function refreshWorkspaceSavedDocument(
     return;
   }
 
+  const now = Date.now();
+  pruneRecentSavedDocumentPaths(now);
+  recentSavedDocumentPaths.set(
+    normalizeFileWatcherPath(document.uri.fsPath),
+    now + RECENT_SAVE_WATCHER_SUPPRESSION_MS,
+  );
   refreshWorkspaceChangedPath(
     provider,
     '[CodeGraphy] File saved, refreshing graph',
     document.uri.fsPath,
   );
+}
+
+function consumeRecentSavedDocumentPath(filePath: string): boolean {
+  const now = Date.now();
+  pruneRecentSavedDocumentPaths(now);
+  const normalizedPath = normalizeFileWatcherPath(filePath);
+  const expiresAt = recentSavedDocumentPaths.get(normalizedPath);
+  if (expiresAt === undefined) {
+    return false;
+  }
+
+  recentSavedDocumentPaths.delete(normalizedPath);
+  return now <= expiresAt;
+}
+
+export function refreshWorkspaceChangedFileWatcherPath(
+  provider: GraphViewProvider,
+  logMessage: string,
+  filePath: string,
+): void {
+  if (consumeRecentSavedDocumentPath(filePath)) {
+    return;
+  }
+
+  refreshWorkspaceChangedPath(provider, logMessage, filePath);
 }
 
 export function refreshWorkspaceChangedPath(

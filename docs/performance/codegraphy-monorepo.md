@@ -956,6 +956,17 @@ Interpretation:
   duration at `67ms` and `69ms`; request-start delay still dominated at
   `266ms` and `263ms`, so the next visible-latency target remains the file
   watcher/scheduler path before CodeGraphy's refresh begins.
+- The VS Code live-update harness can now trigger the benchmark write through
+  an actual editor save using an acceptance-only webview message, so the
+  measured path includes `onDidSaveTextDocument` instead of only raw filesystem
+  watcher events. The first editor-save run exposed duplicate changed-file
+  analysis: the marker save produced two incremental requests (`97ms` and
+  `107ms`) before the restore request (`155ms`), with `555ms` end-to-end marker
+  wall time and `391ms` request-start delay. File watcher change events are now
+  suppressed for one second after the matching saved-document refresh, with
+  expired saved paths pruned before reuse. The rebuilt editor-save probe
+  produced one marker request (`89ms`) plus the restore request (`71ms`),
+  moving marker wall time to `494ms` and request-start delay to `350ms`.
 
 Full test baseline:
 
