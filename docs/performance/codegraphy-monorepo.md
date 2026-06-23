@@ -659,6 +659,15 @@ Interpretation:
   `9857ms` to `2396ms`, request completion from `9917ms` to `1653ms`, and first
   graph readiness from `13696ms` to `5876ms`; visible graph stats stayed stable
   at `2300` nodes and `5345` edges.
+- Cached-load and publish-stage markers now split host-side startup work. After
+  the cached replay change, `loadCachedGraph` itself takes roughly `793ms`-
+  `837ms`, with hydration around `389ms`-`437ms`, cached git/path metadata
+  around `322ms`, and graph construction around `71ms`-`74ms`. The next
+  host-side bottleneck was Material Icon legend generation inside
+  `graphAnalysis.publish.groups`, which dropped from `748ms` to `96ms` after
+  reusing a prepared extension matcher from the cached material theme. The
+  cached `load` publish moved from `2279ms` to `1696ms`, and first graph
+  readiness moved from `5823ms` to `5617ms` in the one-sample harness.
 
 Full test baseline:
 

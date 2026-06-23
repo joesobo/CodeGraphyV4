@@ -96,6 +96,40 @@ describe('graph view analysis execution publish', () => {
       state.disabledPlugins,
     );
     expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.setRawGraphData',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        rawEdgeCount: 0,
+        rawNodeCount: 1,
+      }),
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.viewTransform',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+      }),
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.groups',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+      }),
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.broadcasts',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+      }),
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.getGraphData',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        edgeCount: 0,
+        nodeCount: 1,
+      }),
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
       'graphAnalysis.publish.graph',
       {
         mode: 'analyze',
@@ -106,6 +140,14 @@ describe('graph view analysis execution publish', () => {
         hasIndex: true,
         freshness: 'fresh',
       },
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.sendGraphData',
+      expect.objectContaining({
+        durationMs: expect.any(Number),
+        edgeCount: 0,
+        nodeCount: 1,
+      }),
     );
   });
 

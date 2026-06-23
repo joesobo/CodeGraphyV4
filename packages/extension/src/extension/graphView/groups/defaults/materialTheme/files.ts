@@ -18,6 +18,7 @@ export function collectMaterialFileGroups(
     }
 
     const match = findMaterialMatch(node.id, theme.manifest, {
+      extensionMatcher: theme.extensionMatcher,
       pathMatchers: theme.pathMatchers,
     });
     if (!match) {

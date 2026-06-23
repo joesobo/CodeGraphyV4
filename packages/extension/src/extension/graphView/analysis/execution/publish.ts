@@ -31,6 +31,17 @@ function shouldReportGraphViewUpdateProgress(
   return state.mode === 'index' || state.mode === 'refresh' || state.mode === 'incremental';
 }
 
+function recordPublishStage(
+  stage: string,
+  startedAt: number,
+  detail: Record<string, unknown> = {},
+): void {
+  recordExtensionPerformanceEvent(`graphAnalysis.publish.${stage}`, {
+    durationMs: Date.now() - startedAt,
+    ...detail,
+  });
+}
+
 export function publishEmptyGraph(
   handlers: GraphViewAnalysisExecutionHandlers,
   hasIndex: boolean = false,
@@ -59,11 +70,24 @@ export function publishAnalyzedGraph(
       total: 1,
     });
   }
+  let stageStartedAt = Date.now();
   handlers.setRawGraphData(rawGraphData);
+  recordPublishStage('setRawGraphData', stageStartedAt, {
+    rawEdgeCount: rawGraphData.edges.length,
+    rawNodeCount: rawGraphData.nodes.length,
+  });
+
+  stageStartedAt = Date.now();
   handlers.updateViewContext();
   handlers.applyViewTransform();
+  recordPublishStage('viewTransform', stageStartedAt);
+
+  stageStartedAt = Date.now();
   handlers.computeMergedGroups();
   handlers.sendGroupsUpdated();
+  recordPublishStage('groups', stageStartedAt);
+
+  stageStartedAt = Date.now();
   handlers.sendDepthState();
   handlers.sendPluginStatuses();
   handlers.sendDecorations();
@@ -72,8 +96,14 @@ export function publishAnalyzedGraph(
   handlers.sendPluginToolbarActions?.();
   handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections?.();
+  recordPublishStage('broadcasts', stageStartedAt);
 
+  stageStartedAt = Date.now();
   const graphData = handlers.getGraphData();
+  recordPublishStage('getGraphData', stageStartedAt, {
+    edgeCount: graphData.edges.length,
+    nodeCount: graphData.nodes.length,
+  });
   recordExtensionPerformanceEvent('graphAnalysis.publish.graph', {
     mode: state.mode,
     rawNodeCount: rawGraphData.nodes.length,
@@ -83,7 +113,12 @@ export function publishAnalyzedGraph(
     hasIndex: actualHasIndex,
     freshness: status.freshness,
   });
+  stageStartedAt = Date.now();
   handlers.sendGraphDataUpdated(graphData);
+  recordPublishStage('sendGraphData', stageStartedAt, {
+    edgeCount: graphData.edges.length,
+    nodeCount: graphData.nodes.length,
+  });
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
   handlers.markWorkspaceReady(graphData, state.disabledPlugins);
