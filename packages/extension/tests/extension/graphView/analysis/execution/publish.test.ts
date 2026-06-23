@@ -1,5 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+
+const performanceMocks = vi.hoisted(() => ({
+  recordExtensionPerformanceEvent: vi.fn(),
+}));
+
+vi.mock('../../../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
+}));
+
 import {
   publishAnalyzedGraph,
   publishAnalysisFailure,
@@ -12,6 +21,10 @@ import {
 } from './fixtures';
 
 describe('graph view analysis execution publish', () => {
+  beforeEach(() => {
+    performanceMocks.recordExtensionPerformanceEvent.mockReset();
+  });
+
   it('publishes an empty graph and index state', () => {
     const { handlers } = createExecutionHandlers();
 
@@ -81,6 +94,18 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(
       getGraphData(),
       state.disabledPlugins,
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.publish.graph',
+      {
+        mode: 'analyze',
+        rawNodeCount: 1,
+        rawEdgeCount: 0,
+        nodeCount: 1,
+        edgeCount: 0,
+        hasIndex: true,
+        freshness: 'fresh',
+      },
     );
   });
 

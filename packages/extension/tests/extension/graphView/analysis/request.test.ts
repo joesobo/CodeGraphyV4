@@ -1,4 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const performanceMocks = vi.hoisted(() => ({
+  recordExtensionPerformanceEvent: vi.fn(),
+}));
+
+vi.mock('../../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: performanceMocks.recordExtensionPerformanceEvent,
+}));
+
 import {
   runGraphViewAnalysisRequest,
   type GraphViewAnalysisRequestState,
@@ -15,6 +24,46 @@ function createState(
 }
 
 describe('graph view analysis request', () => {
+  beforeEach(() => {
+    performanceMocks.recordExtensionPerformanceEvent.mockReset();
+  });
+
+  it('records request lifecycle performance markers with mode context', async () => {
+    const state = createState({
+      mode: 'load',
+      filterPatterns: ['src/**'],
+      disabledPlugins: new Set(['plugin.test']),
+    } as Partial<GraphViewAnalysisRequestState>);
+
+    await runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.resolve()),
+      isAbortError: vi.fn(() => false),
+      logError: vi.fn(),
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
+    });
+
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.request.start',
+      {
+        requestId: 1,
+        mode: 'load',
+        filterPatternCount: 1,
+        disabledPluginCount: 1,
+      },
+    );
+    expect(performanceMocks.recordExtensionPerformanceEvent).toHaveBeenCalledWith(
+      'graphAnalysis.request.completed',
+      expect.objectContaining({
+        requestId: 1,
+        mode: 'load',
+        filterPatternCount: 1,
+        disabledPluginCount: 1,
+        durationMs: expect.any(Number),
+      }),
+    );
+  });
+
   it('aborts the previous controller and clears the active request on success', async () => {
     const previousController = new AbortController();
     const abortSpy = vi.spyOn(previousController, 'abort');
