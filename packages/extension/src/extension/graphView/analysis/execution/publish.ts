@@ -3,6 +3,7 @@ import type {
   GraphViewAnalysisExecutionHandlers,
   GraphViewAnalysisExecutionState,
 } from '../execution';
+import type { IGraphNodeMetricsUpdate } from '../../../../shared/protocol/extensionToWebview';
 import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
 import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
@@ -113,6 +114,12 @@ function isGraphNodeForChangedPath(nodeId: string, changedFilePath: string): boo
     || normalizedChangedFilePath.endsWith(`/${normalizedNodeId}`);
 }
 
+function isGraphNodeAffectedByChangedPath(node: IGraphNode, changedFilePath: string): boolean {
+  const symbolFilePath = node.symbol?.filePath;
+  return isGraphNodeForChangedPath(node.id, changedFilePath)
+    || (symbolFilePath ? isGraphNodeForChangedPath(symbolFilePath, changedFilePath) : false);
+}
+
 function findGraphNodeByChangedPath(
   graphData: IGraphData,
   changedFilePath: string,
@@ -145,6 +152,96 @@ function hasChangedNodeMetricDifference(
   }
 
   return false;
+}
+
+function collectChangedPathNodes(
+  graphData: IGraphData,
+  changedFilePaths: readonly string[],
+): IGraphNode[] {
+  return graphData.nodes.filter(node =>
+    changedFilePaths.some(changedFilePath =>
+      isGraphNodeAffectedByChangedPath(node, changedFilePath),
+    ),
+  );
+}
+
+function createNodeMap(nodes: readonly IGraphNode[]): Map<string, IGraphNode> {
+  return new Map(nodes.map(node => [node.id, node]));
+}
+
+function normalizeNodeForMetricOnlyComparison(node: IGraphNode): Omit<IGraphNode, 'churn' | 'fileSize'> {
+  const comparableNode: Partial<IGraphNode> = { ...node };
+  delete comparableNode.churn;
+  delete comparableNode.fileSize;
+  return comparableNode as Omit<IGraphNode, 'churn' | 'fileSize'>;
+}
+
+function areNodesEqualIgnoringMetrics(left: IGraphNode, right: IGraphNode): boolean {
+  return JSON.stringify(normalizeNodeForMetricOnlyComparison(left))
+    === JSON.stringify(normalizeNodeForMetricOnlyComparison(right));
+}
+
+function collectAffectedEdgeSignature(
+  graphData: IGraphData,
+  affectedNodeIds: ReadonlySet<string>,
+): string {
+  return JSON.stringify(
+    graphData.edges
+      .filter(edge => affectedNodeIds.has(edge.from) || affectedNodeIds.has(edge.to))
+      .sort((left, right) => left.id.localeCompare(right.id)),
+  );
+}
+
+function createMetricOnlyGraphUpdate(
+  currentRawGraphData: IGraphData | undefined,
+  nextRawGraphData: IGraphData,
+  changedFilePaths: readonly string[] | undefined,
+): IGraphNodeMetricsUpdate[] | undefined {
+  if (
+    !currentRawGraphData
+    || !changedFilePaths?.length
+    || currentRawGraphData.nodes.length !== nextRawGraphData.nodes.length
+    || currentRawGraphData.edges.length !== nextRawGraphData.edges.length
+  ) {
+    return undefined;
+  }
+
+  const currentNodes = collectChangedPathNodes(currentRawGraphData, changedFilePaths);
+  const nextNodes = collectChangedPathNodes(nextRawGraphData, changedFilePaths);
+  if (currentNodes.length === 0 || currentNodes.length !== nextNodes.length) {
+    return undefined;
+  }
+
+  const nextNodesById = createNodeMap(nextNodes);
+  const affectedNodeIds = new Set<string>();
+  const updates: IGraphNodeMetricsUpdate[] = [];
+
+  for (const currentNode of currentNodes) {
+    const nextNode = nextNodesById.get(currentNode.id);
+    if (!nextNode || !areNodesEqualIgnoringMetrics(currentNode, nextNode)) {
+      return undefined;
+    }
+
+    affectedNodeIds.add(currentNode.id);
+    if (
+      currentNode.fileSize !== nextNode.fileSize
+      || currentNode.churn !== nextNode.churn
+    ) {
+      updates.push({
+        id: nextNode.id,
+        fileSize: nextNode.fileSize,
+        churn: nextNode.churn,
+      });
+    }
+  }
+
+  if (updates.length === 0) {
+    return undefined;
+  }
+
+  const currentEdgeSignature = collectAffectedEdgeSignature(currentRawGraphData, affectedNodeIds);
+  const nextEdgeSignature = collectAffectedEdgeSignature(nextRawGraphData, affectedNodeIds);
+  return currentEdgeSignature === nextEdgeSignature ? updates : undefined;
 }
 
 function canReuseCurrentGraphPublication(
@@ -195,6 +292,11 @@ export function publishAnalyzedGraph(
 
   let stageStartedAt = Date.now();
   const currentRawGraphData = handlers.getRawGraphData?.();
+  const metricOnlyUpdate = createMetricOnlyGraphUpdate(
+    currentRawGraphData,
+    rawGraphData,
+    state.changedFilePaths,
+  );
   const reuseCurrentGraphPublication = canReuseCurrentGraphPublication(
     state,
     currentRawGraphData,
@@ -271,11 +373,18 @@ export function publishAnalyzedGraph(
   });
   if (!reuseCurrentGraphPublication) {
     stageStartedAt = Date.now();
-    handlers.sendGraphDataUpdated(graphData);
-    recordPublishStage('sendGraphData', stageStartedAt, {
-      edgeCount: graphData.edges.length,
-      nodeCount: graphData.nodes.length,
-    });
+    if (metricOnlyUpdate && handlers.sendGraphNodeMetricsUpdated) {
+      handlers.sendGraphNodeMetricsUpdated(metricOnlyUpdate);
+      recordPublishStage('sendGraphNodeMetrics', stageStartedAt, {
+        nodeCount: metricOnlyUpdate.length,
+      });
+    } else {
+      handlers.sendGraphDataUpdated(graphData);
+      recordPublishStage('sendGraphData', stageStartedAt, {
+        edgeCount: graphData.edges.length,
+        nodeCount: graphData.nodes.length,
+      });
+    }
   }
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);

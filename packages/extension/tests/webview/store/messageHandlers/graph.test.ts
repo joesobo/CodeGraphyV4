@@ -12,6 +12,7 @@ import {
   handleGraphDataUpdated,
   handleGraphIndexProgress,
   handleGraphIndexStatusUpdated,
+  handleGraphNodeMetricsUpdated,
   handleLegendsUpdated,
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
@@ -126,6 +127,43 @@ describe('webview/store/messageHandlers/graph', () => {
         name: 'extensionMessage.graphDataUpdated',
       }),
     ]);
+  });
+
+  it('applies node metric patches to the current graph data', () => {
+    const graphData = {
+      nodes: [
+        { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 100, churn: 1 },
+        { id: 'src/lib.ts', label: 'Lib', color: '#fff', fileSize: 50, churn: 3 },
+      ],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      graphData,
+      graphIsIndexing: true,
+      graphIndexProgress: { phase: 'Updating Graph View', current: 0, total: 1 },
+      isLoading: false,
+    });
+
+    expect(handleGraphNodeMetricsUpdated(
+      {
+        type: 'GRAPH_NODE_METRICS_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/app.ts', fileSize: 120, churn: 2 }],
+        },
+      },
+      { getState: () => state },
+    )).toEqual({
+      graphData: {
+        nodes: [
+          { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 120, churn: 2 },
+          graphData.nodes[1],
+        ],
+        edges: graphData.edges,
+      },
+      isLoading: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
   });
 
   it('skips duplicate graph payloads after bootstrap has settled', () => {

@@ -846,6 +846,21 @@ Interpretation:
   `5ms` on marker save and `1ms` on restore. The marker request measured
   `501ms`, while the cleaner restore sample measured `446ms`; both still sent
   full `GRAPH_DATA_UPDATED` payloads because node metrics changed.
+- Metric-only changed-file refreshes now publish a compact
+  `GRAPH_NODE_METRICS_UPDATED` patch instead of resending the full graph when
+  the affected nodes only changed `fileSize` or `churn` and the affected edge
+  signature stayed stable. The publish path still falls back to
+  `GRAPH_DATA_UPDATED` if a changed file adds/removes graph nodes or changes
+  affected edges. The VS Code live-update harness now waits for the exact graph
+  update message to be received in the webview, so this measurement includes
+  delivery rather than extension-host completion alone. The strict rebuilt
+  probe sent one-node metric patches for both marker and restore saves,
+  recorded `graphAnalysis.publish.sendGraphNodeMetrics` at `0ms`, and measured
+  the marker request at `411ms`. The end-to-end marker wall clock was `1193ms`;
+  the webview trace shows the remaining cost is now derived-graph work after
+  the tiny patch (`239.5ms` in `visibleGraph.derive` and `86ms` in
+  `visibleGraph.applyLegendRules`) rather than host-side full graph
+  publication.
 
 Full test baseline:
 
