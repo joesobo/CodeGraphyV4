@@ -180,6 +180,32 @@ describe('search/filtering/rules/nodes', () => {
     });
   });
 
+  it('matches path-based custom rules against symbol containing file paths', () => {
+    const activeRules = getOrderedActiveRules([
+      { id: 'core', pattern: 'packages/core/**', color: '#00ff00' },
+    ]);
+
+    expect(
+      applyNodeLegendRules(
+        {
+          id: 'symbol:function:parseGraph',
+          label: 'parseGraph',
+          color: '#111111',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'symbol:function:parseGraph',
+            name: 'parseGraph',
+            kind: 'function',
+            filePath: 'packages/core/src/graph/parser.ts',
+          },
+        },
+        activeRules,
+      ),
+    ).toMatchObject({
+      color: '#00ff00',
+    });
+  });
+
   it('applies scoped symbol rules by kind, plugin kind, source, language, and containing file', () => {
     const activeRules = getOrderedActiveRules([
       {

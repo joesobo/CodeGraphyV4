@@ -8,6 +8,7 @@ export interface CompiledNodeLegendRule {
   caseInsensitivePatternMatches: (value: string) => boolean;
   hasConstraints: boolean;
   patternMatches: (value: string) => boolean;
+  patternHasPathSeparator: boolean;
   rule: IGroup;
   symbolFilePathMatches?: (value: string) => boolean;
 }
@@ -39,6 +40,7 @@ export function compileNodeLegendRules(activeRules: IGroup[]): CompiledNodeLegen
       caseInsensitivePatternMatches: createGlobMatcher(rule.pattern.toLowerCase()),
       hasConstraints: hasNodeLegendConstraints(rule),
       patternMatches: createGlobMatcher(rule.pattern),
+      patternHasPathSeparator: rule.pattern.includes('/'),
       rule,
       ...(rule.matchSymbolFilePath
         ? { symbolFilePathMatches: createGlobMatcher(rule.matchSymbolFilePath) }
@@ -117,9 +119,20 @@ function compiledRuleConstraintsMatchNode(
   return true;
 }
 
+function pathCandidateMatchesNodeRule(
+  value: string | undefined,
+  compiledRule: CompiledNodeLegendRule,
+): boolean {
+  return Boolean(
+    value
+    && value.includes('/')
+    && compiledRule.caseInsensitivePatternMatches(value.toLowerCase()),
+  );
+}
+
 function compiledRulePatternMatchesNode(
   node: IGraphData['nodes'][number],
-  candidates: readonly string[],
+  getCandidates: () => readonly string[],
   compiledRule: CompiledNodeLegendRule,
 ): boolean {
   if (compiledRule.patternMatches(node.id)) {
@@ -130,16 +143,25 @@ function compiledRulePatternMatchesNode(
     return false;
   }
 
-  return candidates.some((candidate) => compiledRule.caseInsensitivePatternMatches(candidate));
+  if (compiledRule.patternHasPathSeparator) {
+    const symbol = node.symbol;
+    return pathCandidateMatchesNodeRule(node.label, compiledRule)
+      || pathCandidateMatchesNodeRule(symbol?.name, compiledRule)
+      || pathCandidateMatchesNodeRule(symbol?.kind, compiledRule)
+      || pathCandidateMatchesNodeRule(symbol?.pluginKind, compiledRule)
+      || pathCandidateMatchesNodeRule(symbol?.filePath, compiledRule);
+  }
+
+  return getCandidates().some((candidate) => compiledRule.caseInsensitivePatternMatches(candidate));
 }
 
 function compiledRuleMatchesNode(
   node: IGraphData['nodes'][number],
-  candidates: readonly string[],
+  getCandidates: () => readonly string[],
   compiledRule: CompiledNodeLegendRule,
 ): boolean {
   return compiledRuleConstraintsMatchNode(node, compiledRule)
-    && compiledRulePatternMatchesNode(node, candidates, compiledRule);
+    && compiledRulePatternMatchesNode(node, getCandidates, compiledRule);
 }
 
 export function applyCompiledNodeLegendRules(
@@ -150,10 +172,14 @@ export function applyCompiledNodeLegendRules(
     ...node,
     color: node.color || DEFAULT_NODE_COLOR,
   };
-  const candidates = getCaseInsensitiveNodeCandidates(node);
+  let candidates: readonly string[] | undefined;
+  const getCandidates = (): readonly string[] => {
+    candidates ??= getCaseInsensitiveNodeCandidates(node);
+    return candidates;
+  };
 
   for (const compiledRule of activeRules) {
-    if (!compiledRuleMatchesNode(node, candidates, compiledRule)) {
+    if (!compiledRuleMatchesNode(node, getCandidates, compiledRule)) {
       continue;
     }
 
