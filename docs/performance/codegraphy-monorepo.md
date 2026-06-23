@@ -994,6 +994,19 @@ Interpretation:
   to `282ms`, and wall time moved from `559ms` to `460ms`. First graph
   readiness stayed in the same band (`5272ms`) and Imports toggle stayed
   snappy (`217ms` wall-clock / `62ms` in-webview).
+- The VS Code live-update harness now reports post-save phase delays from
+  extension-host markers: saved-document receipt to request start/completion,
+  workspace-refresh start to request start, and provider entry to request
+  start. This keeps production save latency separate from the artificial
+  editor-open/edit/save work used by the benchmark trigger. In the rebuilt
+  editor-save probe, overall marker wall time measured `477ms`, but the real
+  post-save path was `39ms` from saved-document receipt to request start and
+  `140ms` to request completion. Workspace-refresh start to request start was
+  `4ms`, provider entry to request start was `3ms`, incremental request
+  duration was `101ms`, first graph readiness was `5346ms`, and Imports toggle
+  stayed in the same snappy range (`276ms` wall-clock / `58ms` in-webview).
+  Future live-update comparisons should prefer the post-save phase metrics
+  over total wall clock when the trigger is `editor-save`.
 
 Full test baseline:
 
