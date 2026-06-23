@@ -1028,6 +1028,19 @@ Interpretation:
     Imports toggle was still snappy (`196ms` wall-clock / `64ms` in-webview),
     but the code change was backed out because it did not move the measured
     bottleneck.
+- Rejected disabled-base-symbol short-circuit experiment:
+  - The hypothesis was that graph-scope matching wasted measurable startup time
+    by checking scoped symbol definitions before rejecting symbols whose base
+    `symbol` node type was disabled.
+  - A TDD spike moved the disabled-node-type/ancestor check ahead of scoped
+    symbol matching and proved the scoped matcher no longer ran in that case,
+    but the rebuilt monorepo probe did not improve the hotspot:
+    `visibleGraph.derive` measured `251.1ms` versus the prior `250.2ms`, and
+    first graph readiness drifted worse/noisy (`5299ms` versus `5191ms`).
+    Imports toggle stayed snappy (`205ms` wall-clock / `59ms` in-webview) and
+    post-save live update stayed fast (`112ms` from saved-document receipt to
+    request completion), but the production change was backed out because it
+    did not move the measured bottleneck.
 
 Full test baseline:
 
