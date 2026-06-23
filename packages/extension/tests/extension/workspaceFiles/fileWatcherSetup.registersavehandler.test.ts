@@ -82,9 +82,9 @@ describe('registerSaveHandler', () => {
       const listener = mock.mock.calls[0]?.[0] as (doc: unknown) => void;
 
       listener({ uri: { fsPath: '/workspace/src/a.ts' } });
-      vi.advanceTimersByTime(50);
+      vi.advanceTimersByTime(25);
       listener({ uri: { fsPath: '/workspace/src/b.ts' } });
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(50);
 
       expect(provider.refresh).toHaveBeenCalledOnce();
     });

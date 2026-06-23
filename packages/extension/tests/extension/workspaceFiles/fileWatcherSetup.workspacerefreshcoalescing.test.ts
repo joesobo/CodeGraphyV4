@@ -61,7 +61,7 @@ describe('workspace refresh coalescing', () => {
       const saveListener = saveMock.mock.calls[0]?.[0] as (doc: unknown) => void;
 
       saveListener({ uri: { fsPath: '/workspace/src/app.ts' } });
-      vi.advanceTimersByTime(50);
+      vi.advanceTimersByTime(25);
       createListener!({ fsPath: '/workspace/src/app.ts.tmp' });
 
       vi.advanceTimersByTime(499);
