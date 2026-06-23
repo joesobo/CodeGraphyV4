@@ -37,6 +37,24 @@ describe('graphView/materialTheme/pathMatch', () => {
     });
   });
 
+  it('indexes scoped path rules by basename for candidate lookup', () => {
+    const matcher = createMaterialPathRuleMatcher({
+      'apps/web/vite.config.ts': 'web-vite',
+      'packages/api/vite.config.ts': 'api-vite',
+      'apps/web/package.json': 'package',
+    });
+
+    expect(
+      matcher.pathRulesByLowerBaseName.get('vite.config.ts')?.map(rule => rule.normalizedRule),
+    ).toEqual([
+      'packages/api/vite.config.ts',
+      'apps/web/vite.config.ts',
+    ]);
+    expect(
+      matcher.pathRulesByLowerBaseName.get('package.json')?.map(rule => rule.normalizedRule),
+    ).toEqual(['apps/web/package.json']);
+  });
+
   it('returns undefined for non-matches', () => {
     expect(findLongestPathMatch('src/main.ts', { 'package.json': 'package' }, 'fileName')).toBeUndefined();
   });

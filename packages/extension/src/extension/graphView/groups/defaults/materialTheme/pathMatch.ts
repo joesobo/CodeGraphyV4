@@ -19,6 +19,7 @@ interface MaterialPathRuleEntry {
 export interface MaterialPathRuleMatcher {
   baseNameRules: Map<string, MaterialPathRuleEntry>;
   pathRules: MaterialPathRuleEntry[];
+  pathRulesByLowerBaseName: Map<string, MaterialPathRuleEntry[]>;
 }
 
 export function createMaterialPathRuleMatcher(
@@ -26,6 +27,7 @@ export function createMaterialPathRuleMatcher(
 ): MaterialPathRuleMatcher {
   const baseNameRules = new Map<string, MaterialPathRuleEntry>();
   const pathRules: MaterialPathRuleEntry[] = [];
+  const pathRulesByLowerBaseName = new Map<string, MaterialPathRuleEntry[]>();
 
   for (const [ruleKey, iconName] of Object.entries(rules)) {
     const normalizedRule = normalizePathSeparators(ruleKey);
@@ -34,6 +36,10 @@ export function createMaterialPathRuleMatcher(
 
     if (normalizedRule.includes('/')) {
       pathRules.push(entry);
+      const lowerBaseName = getMaterialBaseName(normalizedRule).toLowerCase();
+      const rulesForBaseName = pathRulesByLowerBaseName.get(lowerBaseName) ?? [];
+      rulesForBaseName.push(entry);
+      pathRulesByLowerBaseName.set(lowerBaseName, rulesForBaseName);
       continue;
     }
 
@@ -41,8 +47,11 @@ export function createMaterialPathRuleMatcher(
   }
 
   pathRules.sort((left, right) => right.normalizedRule.length - left.normalizedRule.length);
+  for (const rulesForBaseName of pathRulesByLowerBaseName.values()) {
+    rulesForBaseName.sort((left, right) => right.normalizedRule.length - left.normalizedRule.length);
+  }
 
-  return { baseNameRules, pathRules };
+  return { baseNameRules, pathRules, pathRulesByLowerBaseName };
 }
 
 export function findLongestPathMatch(
@@ -63,7 +72,7 @@ export function findLongestPathMatchWithMatcher(
   kind: PathMatchKind,
 ): MaterialMatch | undefined {
   const context = getPathMatchContext(subjectPath);
-  for (const rule of matcher.pathRules) {
+  for (const rule of matcher.pathRulesByLowerBaseName.get(context.lowerBaseName) ?? []) {
     if (!matchesPathRule(context, rule.normalizedRule, rule.lowerRule)) {
       continue;
     }
