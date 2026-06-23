@@ -107,6 +107,10 @@ export abstract class WorkspacePipelineStateBase {
     return this._lastFileAnalysis;
   }
 
+  async warmGraphCache(): Promise<void> {
+    await this._hydrateCacheFromGraphCache();
+  }
+
   readStructuredAnalysisSnapshot(): WorkspaceAnalysisDatabaseSnapshot {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {

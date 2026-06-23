@@ -679,6 +679,16 @@ Interpretation:
   rendered stats stayed stable at `2300` nodes and `5345` edges; the stale
   replay raw graph omitted ignored-only folder metadata until the background
   analysis sent the follow-up graph update.
+- Graph Cache hydration now overlaps the period between analyzer construction
+  and the first cached load request. The first request still observes the same
+  cache freshness and replay semantics, but it spends less time waiting for the
+  repo-local cache file once the webview asks for graph data. On the CodeGraphy
+  monorepo benchmark this moved `workspacePipeline.loadCachedGraph.hydrate`
+  from `406ms` to `170ms`, `loadCachedGraph.completed` from `497ms` to
+  `259ms`, cached load request completion from `672ms` to `429ms`, and first
+  graph readiness from `5266ms` to `5114ms`. The first rendered stats stayed
+  stable at `2300` nodes and `5345` edges; Imports toggle latency stayed in the
+  same snappy band at `197ms` wall-clock and `54ms` in-webview.
 
 Full test baseline:
 

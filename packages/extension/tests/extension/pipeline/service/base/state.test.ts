@@ -6,10 +6,12 @@ import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager
 import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
 
 const stateBaseHarness = vi.hoisted(() => ({
+  loadWorkspaceAnalysisDatabaseCacheAsync: vi.fn(),
   readWorkspaceAnalysisDatabaseSnapshot: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
+  loadWorkspaceAnalysisDatabaseCacheAsync: stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot: stateBaseHarness.readWorkspaceAnalysisDatabaseSnapshot,
 }));
 
@@ -38,6 +40,10 @@ function createContext(): vscode.ExtensionContext {
 }
 
 describe('extension/pipeline/service/stateBase', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('initializes core collaborators and returns an empty structured snapshot without a workspace root', () => {
     Object.defineProperty(vscode.workspace, 'workspaceFolders', {
       configurable: true,
@@ -95,6 +101,47 @@ describe('extension/pipeline/service/stateBase', () => {
     };
 
     expect(state._discovery).toBeInstanceOf(FileDiscovery);
+  });
+
+  it('warms the repo-local Graph Cache using the shared hydration promise', async () => {
+    let resolveHydration!: (cache: unknown) => void;
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync.mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveHydration = resolve;
+      }),
+    );
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+      warmGraphCache(): Promise<void>;
+    };
+
+    const firstWarm = state.warmGraphCache();
+    const secondWarm = state.warmGraphCache();
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledOnce();
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace');
+
+    resolveHydration({
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
+        },
+      },
+    });
+
+    await Promise.all([firstWarm, secondWarm]);
+
+    expect(state._cache).toEqual({
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
+        },
+      },
+    });
   });
 
   it('stores retained indexing fields in the core engine state', () => {
