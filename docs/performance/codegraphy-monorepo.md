@@ -882,6 +882,19 @@ Interpretation:
   Marker request duration moved from `456ms` to `383ms`, while restore measured
   `328ms`. The wall-clock sample stayed noisy (`836ms`), so this iteration is
   recorded as a backend request improvement rather than a measured UI-wall win.
+- The VS Code live-update harness now captures `graphAnalysis.prepare.*` and
+  `graphAnalysis.load.*` phase marks. Those marks showed incremental prepare
+  was already `0ms`, while `graphAnalysis.load.decision` spent `177ms`-`178ms`
+  reading index freshness even though incremental mode always routes to
+  changed-file refresh. Incremental load now bypasses that freshness scan and
+  records `indexFreshness: "skipped"` for the route decision; publish still
+  reads and broadcasts the real post-refresh index status. In the rebuilt
+  monorepo probe, incremental `load.decision` measured `0ms`, marker request
+  duration moved from `383ms` to `205ms`, restore moved from `328ms` to
+  `135ms`, and strict live-update wall clock moved from `836ms` to `594ms`.
+  The remaining backend cost is now the changed-file refresh itself (`179ms`
+  marker, `113ms` restore), led by one-file plugin analysis and analysis graph
+  rebuild.
 
 Full test baseline:
 
