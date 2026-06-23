@@ -328,6 +328,35 @@ VS Code graph view benchmark:
     `3` `visibleGraph.style` events, and `5` to `4` graph-runtime build events.
   - Imports toggle wall-clock latency stayed in the same band at `191ms`
     median, `222ms` p95; in-webview latency was `54ms` median, `86ms` p95.
+- After adding extension-host startup markers:
+  - VS Code launch: `1087ms`.
+  - Open Graph View to first rendered graph stats: `14305ms`; this run was
+    noisy in the same remaining frame-readiness bucket.
+  - First-ready phases: command/open `1752ms`, acceptance-ready frame
+    `12500ms`, stats wait after frame discovery `40ms`.
+  - The extension-host provider resolve path took `3ms` from
+    `graphWebview.providerResolve.start` to
+    `graphWebview.providerResolve.end`; `webview.html` was assigned at `2ms`
+    with a `1022` byte HTML shell and `2` local resource roots.
+  - Once the webview document was alive, it received a `24522` node / `20781`
+    edge payload at `169.4ms`, applied `74` filter patterns in a
+    `498.4ms` visible-graph derive pass, and rendered first graph stats at
+    `843.3ms`.
+  - Imports toggle wall-clock latency was `213ms` median, `382ms` p95; in-webview
+    latency was `58ms` median, `64ms` p95.
+- After combining visible-graph filter glob patterns into one matcher:
+  - VS Code launch: `1074ms`.
+  - Open Graph View to first rendered graph stats: `13837ms`, still dominated
+    by frame readiness rather than CodeGraphy resolve/render work.
+  - First-ready phases: command/open `1726ms`, acceptance-ready frame
+    `12066ms`, stats wait after frame discovery `32ms`.
+  - Extension-host provider resolve stayed tiny at `2ms`.
+  - The startup `visibleGraph.derive` pass with `74` filters over the `24522`
+    node / `20781` edge payload dropped from `498.4ms` to `244ms`.
+  - First graph stats after webview document start moved from `843.3ms` to
+    `586.4ms`.
+  - Imports toggle wall-clock latency stayed in the same band at `228ms`
+    median, `337ms` p95; in-webview latency was `58ms` median, `59ms` p95.
 
 Interpretation:
 
@@ -377,6 +406,14 @@ Interpretation:
   derivation/rendering. Duplicate graph replay suppression removes avoidable
   post-startup work from the stale-cache refresh path, but it does not address
   the current frame-readiness bucket.
+- Extension-host startup markers show the provider/webview resolver is not the
+  first-load bottleneck: resolving, assigning the HTML shell, setting context,
+  and flushing the pending refresh take only `2ms`-`3ms`.
+- Combining filter glob patterns into one matcher addresses the next measured
+  CodeGraphy-side startup cost for the user's filtered monorepo settings,
+  cutting the `74`-filter visible-graph derive pass from `498.4ms` to `244ms`
+  and moving first stats after webview document start from `843.3ms` to
+  `586.4ms`.
 
 Full test baseline:
 

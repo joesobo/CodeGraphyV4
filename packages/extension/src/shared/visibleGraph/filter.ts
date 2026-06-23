@@ -1,13 +1,9 @@
 import type { IGraphData } from '../graph/contracts';
-import { createGlobMatcher } from '../globMatch';
+import { createCombinedGlobMatcher } from '../globMatch';
 import type { VisibleGraphFilterConfig } from './contracts';
 import { filterEdgesToNodes } from './model';
 
-type GlobMatcher = ReturnType<typeof createGlobMatcher>;
-interface CompiledFilterPattern {
-  matches: GlobMatcher;
-  pattern: string;
-}
+type GlobMatcher = ReturnType<typeof createCombinedGlobMatcher>;
 
 function nodeMatchesPattern(node: IGraphData['nodes'][number], matches: GlobMatcher): boolean {
   return matches(node.id)
@@ -29,13 +25,6 @@ function canFilterEdgeDirectly(pattern: string): boolean {
     || (!pattern.includes('*') && !pattern.includes('/'));
 }
 
-function compileFilterPatterns(patterns: readonly string[]): CompiledFilterPattern[] {
-  return patterns.map(pattern => ({
-    matches: createGlobMatcher(pattern),
-    pattern,
-  }));
-}
-
 export function applyFilterPatterns(
   graphData: IGraphData,
   filter: VisibleGraphFilterConfig,
@@ -44,20 +33,19 @@ export function applyFilterPatterns(
     return graphData;
   }
 
-  const compiledPatterns = compileFilterPatterns(filter.patterns);
+  const nodePatternMatcher = createCombinedGlobMatcher(filter.patterns);
   const nodes = graphData.nodes.filter(
-    (node) => !compiledPatterns.some(({ matches }) => nodeMatchesPattern(node, matches)),
+    (node) => !nodeMatchesPattern(node, nodePatternMatcher),
   );
   const nodeFilteredEdges = filterEdgesToNodes(graphData.edges, nodes);
-  const edgePatternMatchers = compiledPatterns
-    .filter(({ pattern }) => canFilterEdgeDirectly(pattern))
-    .map(({ matches }) => matches);
-  if (edgePatternMatchers.length === 0) {
+  const directEdgePatterns = filter.patterns.filter(canFilterEdgeDirectly);
+  if (directEdgePatterns.length === 0) {
     return { nodes, edges: nodeFilteredEdges };
   }
 
+  const edgePatternMatcher = createCombinedGlobMatcher(directEdgePatterns);
   const edges = nodeFilteredEdges.filter(
-    (edge) => !edgePatternMatchers.some((matches) => edgeMatchesPattern(edge, matches)),
+    (edge) => !edgeMatchesPattern(edge, edgePatternMatcher),
   );
 
   return { nodes, edges };
