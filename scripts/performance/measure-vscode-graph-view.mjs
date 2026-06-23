@@ -178,6 +178,62 @@ export function findActiveExtensionHostRequestIds(events, mode) {
   return [...activeRequestIds];
 }
 
+function findLatestEventBetween(events, name, startedAt, completedAt) {
+  return events
+    .filter(event =>
+      event.name === name
+      && typeof event.at === 'number'
+      && event.at >= startedAt
+      && event.at <= completedAt)
+    .at(-1);
+}
+
+export function computeLiveUpdatePhaseDelays(events, { requestEvent, startedAt }) {
+  const requestDurationMs = requestEvent.detail?.durationMs;
+  if (typeof requestDurationMs !== 'number') {
+    return {};
+  }
+
+  const requestStartedAt = requestEvent.at - requestDurationMs;
+  const savedDocumentEvent = findLatestEventBetween(
+    events,
+    'workspaceFiles.savedDocument.received',
+    startedAt,
+    requestStartedAt,
+  );
+  const workspaceRefreshStartedEvent = findLatestEventBetween(
+    events,
+    'workspaceRefresh.started',
+    startedAt,
+    requestStartedAt,
+  );
+  const providerReceivedEvent = findLatestEventBetween(
+    events,
+    'graphView.refreshChangedFiles.received',
+    startedAt,
+    requestStartedAt,
+  );
+
+  return {
+    ...(providerReceivedEvent
+      ? { providerToRequestStartDelayMs: Math.round(requestStartedAt - providerReceivedEvent.at) }
+      : {}),
+    ...(savedDocumentEvent
+      ? {
+        saveEventToRequestCompletionDelayMs: Math.round(requestEvent.at - savedDocumentEvent.at),
+        saveEventToRequestStartDelayMs: Math.round(requestStartedAt - savedDocumentEvent.at),
+      }
+      : {}),
+    ...(workspaceRefreshStartedEvent
+      ? {
+        workspaceRefreshStartToRequestStartDelayMs: Math.round(
+          requestStartedAt - workspaceRefreshStartedEvent.at,
+        ),
+      }
+      : {}),
+  };
+}
+
 async function readExtensionHostPerformanceEvents(logPath) {
   const logText = await readFile(logPath, 'utf8').catch(() => '');
   return parseExtensionHostPerformanceLog(logText);
@@ -261,6 +317,18 @@ export function summarizeLiveUpdateSamples(samples) {
   const requestCompletionDelays = samples
     .map(sample => sample.requestCompletionDelayMs)
     .filter(value => value !== undefined);
+  const saveEventToRequestStartDelays = samples
+    .map(sample => sample.saveEventToRequestStartDelayMs)
+    .filter(value => value !== undefined);
+  const saveEventToRequestCompletionDelays = samples
+    .map(sample => sample.saveEventToRequestCompletionDelayMs)
+    .filter(value => value !== undefined);
+  const workspaceRefreshStartToRequestStartDelays = samples
+    .map(sample => sample.workspaceRefreshStartToRequestStartDelayMs)
+    .filter(value => value !== undefined);
+  const providerToRequestStartDelays = samples
+    .map(sample => sample.providerToRequestStartDelayMs)
+    .filter(value => value !== undefined);
 
   return {
     ...summarizeDurations(samples.map(sample => sample.durationMs)),
@@ -272,6 +340,22 @@ export function summarizeLiveUpdateSamples(samples) {
       : {}),
     ...(requestCompletionDelays.length > 0
       ? { requestCompletionDelay: summarizeDurations(requestCompletionDelays) }
+      : {}),
+    ...(saveEventToRequestStartDelays.length > 0
+      ? { saveEventToRequestStartDelay: summarizeDurations(saveEventToRequestStartDelays) }
+      : {}),
+    ...(saveEventToRequestCompletionDelays.length > 0
+      ? { saveEventToRequestCompletionDelay: summarizeDurations(saveEventToRequestCompletionDelays) }
+      : {}),
+    ...(workspaceRefreshStartToRequestStartDelays.length > 0
+      ? {
+        workspaceRefreshStartToRequestStartDelay: summarizeDurations(
+          workspaceRefreshStartToRequestStartDelays,
+        ),
+      }
+      : {}),
+    ...(providerToRequestStartDelays.length > 0
+      ? { providerToRequestStartDelay: summarizeDurations(providerToRequestStartDelays) }
       : {}),
   };
 }
@@ -673,15 +757,21 @@ export async function measureLiveUpdateTransition({
     );
     updateRequestCompletedAt = requestEvent.at;
     await waitForWebviewGraphUpdateMessageIfSent(extensionHostLogPath, frame, requestEvent);
+    const extensionHostEvents = await readExtensionHostPerformanceEvents(extensionHostLogPath);
     const requestDurationMs = requestEvent.detail?.durationMs;
     const requestCompletionDelayMs = Math.round(requestEvent.at - startedAtEpoch);
     const requestStartDelayMs = typeof requestDurationMs === 'number'
       ? Math.round(requestEvent.at - requestDurationMs - startedAtEpoch)
       : undefined;
+    const phaseDelays = computeLiveUpdatePhaseDelays(extensionHostEvents, {
+      requestEvent,
+      startedAt: startedAtEpoch,
+    });
 
     return {
       durationMs: Math.round(performance.now() - startedAt),
       filePath: path.relative(workspaceRoot, absoluteFilePath).replace(/\\/g, '/'),
+      ...phaseDelays,
       requestDurationMs,
       requestStartDelayMs,
       requestCompletionDelayMs,

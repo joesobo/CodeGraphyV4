@@ -122,18 +122,30 @@ test('VS Code graph view runner summarizes live-update request durations', async
       requestDurationMs: 120,
       requestStartDelayMs: 420,
       requestCompletionDelayMs: 540,
+      saveEventToRequestStartDelayMs: 70,
+      saveEventToRequestCompletionDelayMs: 190,
+      workspaceRefreshStartToRequestStartDelayMs: 38,
+      providerToRequestStartDelayMs: 36,
     },
     {
       durationMs: 590,
       requestDurationMs: 90,
       requestStartDelayMs: 390,
       requestCompletionDelayMs: 480,
+      saveEventToRequestStartDelayMs: 40,
+      saveEventToRequestCompletionDelayMs: 130,
+      workspaceRefreshStartToRequestStartDelayMs: 8,
+      providerToRequestStartDelayMs: 6,
     },
     {
       durationMs: 615,
       requestDurationMs: 105,
       requestStartDelayMs: 405,
       requestCompletionDelayMs: 510,
+      saveEventToRequestStartDelayMs: 55,
+      saveEventToRequestCompletionDelayMs: 160,
+      workspaceRefreshStartToRequestStartDelayMs: 23,
+      providerToRequestStartDelayMs: 21,
     },
   ]), {
     iterations: 3,
@@ -162,6 +174,63 @@ test('VS Code graph view runner summarizes live-update request durations', async
       p95Ms: 540,
       maxMs: 540,
     },
+    saveEventToRequestStartDelay: {
+      iterations: 3,
+      minMs: 40,
+      medianMs: 55,
+      p95Ms: 70,
+      maxMs: 70,
+    },
+    saveEventToRequestCompletionDelay: {
+      iterations: 3,
+      minMs: 130,
+      medianMs: 160,
+      p95Ms: 190,
+      maxMs: 190,
+    },
+    workspaceRefreshStartToRequestStartDelay: {
+      iterations: 3,
+      minMs: 8,
+      medianMs: 23,
+      p95Ms: 38,
+      maxMs: 38,
+    },
+    providerToRequestStartDelay: {
+      iterations: 3,
+      minMs: 6,
+      medianMs: 21,
+      p95Ms: 36,
+      maxMs: 36,
+    },
+  });
+});
+
+test('VS Code graph view runner computes live-update phase delays from extension-host events', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { computeLiveUpdatePhaseDelays } = await import(moduleUrl);
+
+  const requestEvent = {
+    name: 'graphAnalysis.request.completed',
+    at: 1_300,
+    detail: { requestId: 3, mode: 'incremental', durationMs: 80 },
+  };
+
+  assert.deepEqual(computeLiveUpdatePhaseDelays([
+    { name: 'workspaceFiles.savedDocument.received', at: 1_100 },
+    { name: 'workspaceRefresh.started', at: 1_132 },
+    { name: 'graphView.refreshChangedFiles.received', at: 1_135 },
+    { name: 'graphAnalysis.request.start', at: 1_220 },
+    requestEvent,
+  ], {
+    requestEvent,
+    startedAt: 1_000,
+  }), {
+    providerToRequestStartDelayMs: 85,
+    saveEventToRequestCompletionDelayMs: 200,
+    saveEventToRequestStartDelayMs: 120,
+    workspaceRefreshStartToRequestStartDelayMs: 88,
   });
 });
 
