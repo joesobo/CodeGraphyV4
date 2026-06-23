@@ -289,6 +289,20 @@ VS Code graph view benchmark:
     `visibleGraph.style` `5ms`, `graphRuntime.buildGraphData` `7ms`.
   - Imports toggle wall-clock latency: `208ms` median, `243ms` p95; in-webview
     latency: `56ms` median, `61ms` p95.
+- After lazy-loading the 3D graph runtime outside the default 2D webview
+  bundle:
+  - Default `dist/webview/index.js` dropped from `2242.28 kB` minified
+    (`632.54 kB` gzip) to `819.25 kB` minified (`252.32 kB` gzip).
+  - 3D code now loads through separate chunks:
+    `threeDimensional-D-psWmzG.js` `694.00 kB`, `three.module-BKaKZvIP.js`
+    `726.58 kB`, and `runtime-CQzzxjLZ.js` `0.25 kB`.
+  - VS Code launch: `1125ms`.
+  - Open Graph View to first rendered graph stats: `6936ms`, effectively flat
+    against the `6789ms` startup-phase run.
+  - First-ready phases: command/open `1646ms`, acceptance-ready frame
+    `5189ms`, stats wait after frame discovery `40ms`.
+  - Imports toggle wall-clock latency: `193ms` median, `203ms` p95; in-webview
+    latency: `51ms` median, `81ms` p95.
 
 Interpretation:
 
@@ -328,6 +342,10 @@ Interpretation:
   that frame is found, the stats label is already available within tens of
   milliseconds; the startup webview data stages are not the multi-second
   bottleneck.
+- Lazy-loading the 3D runtime materially reduces the default Graph View bundle
+  and keeps the 2D path from paying for Three.js up front. The current VS Code
+  first-ready harness did not show a first-load win because its dominant bucket
+  remains the view/frame readiness wait, not measured webview data work.
 
 Full test baseline:
 

@@ -13,7 +13,6 @@ import {
   getGraphLinkWidth,
 } from './link/metrics';
 import { renderBidirectionalLink } from './bidirectional/link';
-import { createNodeThreeObject } from './nodes/canvas3d';
 import {
   paintNodePointerArea,
   renderNodeCanvas,
@@ -53,7 +52,6 @@ export interface UseGraphCallbacksResult {
   linkCanvasObject: (this: void, link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void;
   nodeCanvasObject: (this: void, node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void;
   nodePointerAreaPaint: (this: void, node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void;
-  nodeThreeObject: (this: void, node: NodeObject) => ReturnType<typeof createNodeThreeObject>;
 }
 
 type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];
@@ -90,15 +88,6 @@ function getNodeCanvasContext({
     graphAppearanceRef: refs.graphAppearanceRef,
     pluginHost,
     triggerImageRerender,
-  };
-}
-
-function getNodeThreeObjectContext(refs: GraphCallbackRefs) {
-  return {
-    meshesRef: refs.meshesRef,
-    graphAppearanceRef: refs.graphAppearanceRef,
-    showLabelsRef: refs.showLabelsRef,
-    spritesRef: refs.spritesRef,
   };
 }
 
@@ -158,9 +147,6 @@ export function useGraphCallbacks({
       },
       getLinkWidth(link) {
         return getGraphLinkWidth(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
-      },
-      nodeThreeObject(node) {
-        return createNodeThreeObject(getNodeThreeObjectContext(contextRef.current.refs), node as FGNode);
       },
     };
   }

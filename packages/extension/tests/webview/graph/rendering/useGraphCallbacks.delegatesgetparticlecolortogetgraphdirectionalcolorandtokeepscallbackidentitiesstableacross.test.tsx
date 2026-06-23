@@ -8,7 +8,6 @@ import {
 } from '../../../../src/webview/components/graph/rendering/useGraphCallbacks';
 
 const renderingHarness = vi.hoisted(() => ({
-  createNodeThreeObject: vi.fn(),
   getGraphArrowRelPos: vi.fn(),
   getGraphDirectionalColor: vi.fn(),
   getGraphLinkColor: vi.fn(),
@@ -37,10 +36,6 @@ vi.mock('../../../../src/webview/components/graph/rendering/bidirectional/link',
 vi.mock('../../../../src/webview/components/graph/rendering/nodes/canvas2d', () => ({
   paintNodePointerArea: renderingHarness.paintNodePointerArea,
   renderNodeCanvas: renderingHarness.renderNodeCanvas,
-}));
-
-vi.mock('../../../../src/webview/components/graph/rendering/nodes/canvas3d', () => ({
-  createNodeThreeObject: renderingHarness.createNodeThreeObject,
 }));
 
 function createRefs(): UseGraphCallbacksOptions['refs'] {
@@ -84,7 +79,6 @@ function renderUseGraphCallbacks(options: Partial<UseGraphCallbacksOptions> = {}
 describe('graph/rendering/useGraphCallbacks', () => {
 
     beforeEach(() => {
-      renderingHarness.createNodeThreeObject.mockReset();
       renderingHarness.getGraphArrowRelPos.mockReset();
       renderingHarness.getGraphDirectionalColor.mockReset();
       renderingHarness.getGraphLinkColor.mockReset();
@@ -130,24 +124,6 @@ describe('graph/rendering/useGraphCallbacks', () => {
         highlightedNodeRef: refs.highlightedNodeRef,
         themeRef: refs.themeRef,
       }, link);
-    });
-
-
-
-    it('delegates nodeThreeObject to createNodeThreeObject and returns its result', () => {
-      const node = { id: 'node-1' } as FGNode as NodeObject;
-      const threeObject = { isThreeObject: true };
-      renderingHarness.createNodeThreeObject.mockReturnValue(threeObject);
-      const { refs, result } = renderUseGraphCallbacks();
-
-      const returnedObject = result.current.nodeThreeObject(node);
-
-      expect(returnedObject).toBe(threeObject);
-      expect(renderingHarness.createNodeThreeObject).toHaveBeenCalledWith({
-        meshesRef: refs.meshesRef,
-        showLabelsRef: refs.showLabelsRef,
-        spritesRef: refs.spritesRef,
-      }, node);
     });
 
 

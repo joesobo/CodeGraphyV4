@@ -292,6 +292,7 @@ Rendered edge-only Graph Scope changes immediately: 203ms median / 226ms p95; Im
 Added in-webview delta metric: latest wall-clock 209ms median / 219ms p95, browser-side optimistic-to-rendered 55ms median / 58ms p95.
 Rejected startup timeline replay reorder: first graph readiness regressed from 6377ms to 7285ms; reverted.
 Added startup phase metrics: latest first graph readiness 6789ms split into 1709ms command/open, 5032ms acceptance-ready frame, 35ms stats wait; startup webview data stages are sub-second.
+Lazy-loaded 3D runtime: default webview index.js 2242.28 kB -> 819.25 kB minified; latest Imports toggle 193ms median / 203ms p95, first graph readiness flat at 6936ms.
 ```
 
 ## Task 5: Keep The PR Reviewable
