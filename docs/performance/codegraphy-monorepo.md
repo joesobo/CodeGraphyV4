@@ -188,6 +188,11 @@ VS Code graph view benchmark:
   - Open Graph View to first rendered graph stats: `9846ms`.
   - Initial rendered stats: `2249` nodes, `5333` connections.
   - Imports toggle latency: `1925ms` median, `2341ms` p95 across 5 samples.
+- After passing constant 2D arrow color and position values to force-graph:
+  - VS Code launch: `1419ms`.
+  - Open Graph View to first rendered graph stats: `9612ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `1595ms` median, `1620ms` p95 across 5 samples.
 
 Interpretation:
 
@@ -196,9 +201,11 @@ Interpretation:
 - Skipping settled-graph simulation ticks moves the real toggle median from the
   repeat-run `2983ms` baseline to `1925ms`, a `35%` improvement, but this is
   still not editor-snappy.
+- Passing arrow color and arrow position as primitive values instead of per-edge
+  callbacks moves the median to `1595ms` and trims the p95 to `1620ms`.
 - The next user-facing bottleneck remains in the graph surface/runtime/render
-  path, likely the synchronous force-graph `graphData` update and canvas redraw
-  for thousands of visible objects.
+  path, likely the synchronous force-graph `graphData` update and full canvas
+  redraw for thousands of visible objects.
 
 Full test baseline:
 

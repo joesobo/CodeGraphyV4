@@ -53,6 +53,9 @@ export function Surface2d({
   particleSpeed,
   sharedProps,
 }: Surface2dProps): ReactElement {
+  const arrowColor = getArrowColor({} as LinkObject);
+  const arrowRelPos = getArrowRelPos({} as LinkObject);
+
   return (
     <ForceGraph2D
       ref={fg2dRef as unknown as ForceGraph2DRef}
@@ -66,8 +69,8 @@ export function Surface2d({
       linkColor={getLinkColor}
       linkWidth={getLinkWidth}
       linkDirectionalArrowLength={directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0}
-      linkDirectionalArrowRelPos={getArrowRelPos}
-      linkDirectionalArrowColor={getArrowColor}
+      linkDirectionalArrowRelPos={arrowRelPos}
+      linkDirectionalArrowColor={arrowColor}
       linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
       linkDirectionalParticleWidth={particleSize}
       linkDirectionalParticleSpeed={particleSpeed}
