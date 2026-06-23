@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
+
+const recordExtensionPerformanceEvent = vi.hoisted(() => vi.fn());
+
+vi.mock('../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent,
+}));
+
 import { getNavCommands } from '../../../src/extension/commands/navigation';
 
 function makeProvider() {
@@ -40,6 +47,22 @@ describe('getNavCommands', () => {
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'workbench.view.extension.codegraphy'
       );
+    });
+
+    it('records the open command lifecycle for startup timing', async () => {
+      vi.mocked(vscode.commands.executeCommand).mockResolvedValue(undefined);
+      const provider = makeProvider();
+      const commands = getNavCommands(provider as never);
+      const cmd = commands.find((cmd) => cmd.id === 'codegraphy.open')!;
+
+      cmd.handler();
+      await Promise.resolve();
+
+      expect(recordExtensionPerformanceEvent.mock.calls.map(([name]) => name)).toEqual([
+        'command.open.start',
+        'command.open.dispatched',
+        'command.open.completed',
+      ]);
     });
   });
 

@@ -296,6 +296,7 @@ Lazy-loaded 3D runtime: default webview index.js 2242.28 kB -> 819.25 kB minifie
 Added startup handshake markers and skipped settled duplicate graph payload replay: webview document reaches first stats at ~340ms after ready/data/bootstrap markers, duplicate 5088 node / 9146 edge replay is skipped in ~5ms, and the extra visible-graph/render pass is gone; first graph readiness remains flat at ~6987ms due to frame readiness.
 Added extension-host startup markers: provider resolve/html/context/flush work takes only 2ms-3ms, ruling it out as the remaining first-load bottleneck; a noisy first-ready run still spent 12500ms in frame readiness, while the webview-side 74-filter derive pass took 498.4ms.
 Combined visible-graph filter glob patterns into one matcher: startup 74-filter derive over the 24522 node / 20781 edge payload dropped from 498.4ms to 244ms, and first graph stats after webview document start moved from 843.3ms to 586.4ms; first-ready wall clock remains frame-readiness dominated.
+Added command-open markers and extended only the performance harness frame wait: command dispatch completes at 38ms, provider resolve starts at 43ms, and webview.html is assigned at 45ms, so the latest 40497ms first-ready outlier is after HTML assignment and before the harness can observe the VS Code webview frame/document.
 ```
 
 ## Task 5: Keep The PR Reviewable
