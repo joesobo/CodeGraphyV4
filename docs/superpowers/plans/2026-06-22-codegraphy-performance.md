@@ -293,6 +293,7 @@ Added in-webview delta metric: latest wall-clock 209ms median / 219ms p95, brows
 Rejected startup timeline replay reorder: first graph readiness regressed from 6377ms to 7285ms; reverted.
 Added startup phase metrics: latest first graph readiness 6789ms split into 1709ms command/open, 5032ms acceptance-ready frame, 35ms stats wait; startup webview data stages are sub-second.
 Lazy-loaded 3D runtime: default webview index.js 2242.28 kB -> 819.25 kB minified; latest Imports toggle 193ms median / 203ms p95, first graph readiness flat at 6936ms.
+Added startup handshake markers and skipped settled duplicate graph payload replay: webview document reaches first stats at ~340ms after ready/data/bootstrap markers, duplicate 5088 node / 9146 edge replay is skipped in ~5ms, and the extra visible-graph/render pass is gone; first graph readiness remains flat at ~6987ms due to frame readiness.
 ```
 
 ## Task 5: Keep The PR Reviewable

@@ -1,5 +1,6 @@
 import { postMessage } from '../../../vscodeApi';
 import { graphStore } from '../../../store/state';
+import { recordWebviewPerformanceEvent } from '../../../performance/marks';
 
 type WindowWithCodeGraphyReadyFlag = Window & {
   __codegraphyWebviewReadyPosted?: boolean;
@@ -12,6 +13,7 @@ export function postWebviewReadyOnce(targetWindow: Window): void {
   if (!codeGraphyWindow.__codegraphyWebviewReadyPosted) {
     codeGraphyWindow.__codegraphyWebviewReadyPosted = true;
     graphStore.getState().beginInitialBootstrap();
+    recordWebviewPerformanceEvent('webview.ready.posted');
     postMessage({ type: 'WEBVIEW_READY', payload: null });
   }
 }
