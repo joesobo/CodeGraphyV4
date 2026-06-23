@@ -3,10 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
-  type Dispatch,
-  type MutableRefObject,
   type ReactElement,
-  type SetStateAction,
 } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ThemeKind } from '../../../theme/useTheme';
@@ -24,16 +21,13 @@ import { publishGraphViewportScale as publishGraphViewportScaleChange } from './
 import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
 import { useGraphViewportModelOptions } from './shell/modelOptions';
 import { createGraphViewportSurfaceProps } from './shell/surfaceProps';
+import { publishCurrentGraphAccessibilityItems } from './shell/accessibilityItems';
+import { publishPluginGraphViewViewportState } from './shell/pluginViewportState';
+import type { GraphViewport2dControls } from './shell/viewportState';
 import {
-	createGraphViewViewportState,
-	type GraphViewport2dControls,
-} from './shell/viewportState';
-import {
-  createGraphAccessibilityItems,
   type GraphAccessibilityItems,
   type GraphScreenProjector,
 } from './accessibility';
-import type { FGLink, FGNode } from '../model/build';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -46,92 +40,6 @@ export interface GraphViewportShellProps {
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
   viewState: GraphViewStoreState;
-}
-
-function createGraphAccessibilitySignature(
-  nodes: readonly FGNode[],
-  links: readonly FGLink[],
-): string {
-  const nodeSignature = nodes
-    .map(node => `${node.id}:${node.size}:${Number.isFinite(node.x) && Number.isFinite(node.y) ? 'ready' : 'pending'}`)
-    .join('|');
-  const linkSignature = links
-    .map(link => `${link.id}:${resolveLinkEndpoint(link.source)}:${resolveLinkEndpoint(link.target)}`)
-    .join('|');
-
-  return `${nodeSignature}::${linkSignature}`;
-}
-
-function resolveLinkEndpoint(endpoint: string | FGNode): string {
-  return typeof endpoint === 'string' ? endpoint : endpoint.id;
-}
-
-function areGraphAccessibilityNodePositionsReady(nodes: readonly FGNode[]): boolean {
-  return nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y));
-}
-
-function publishPluginGraphViewViewportState({
-  globalScale,
-  graph,
-  graphMode,
-  nodes,
-  pluginHost,
-  timelineActive,
-}: {
-  globalScale: number;
-  graph: GraphViewport2dControls | undefined;
-  graphMode: GraphViewStoreState['graphMode'];
-  nodes: readonly FGNode[];
-  pluginHost: WebviewPluginHost | undefined;
-  timelineActive: boolean;
-}): void {
-  if (!pluginHost || pluginHost.hasGraphViewViewportConsumers?.() === false) {
-    return;
-  }
-
-  pluginHost.setGraphViewViewportState(createGraphViewViewportState({
-    globalScale,
-    graph,
-    graphMode,
-    nodes: [...nodes],
-    timelineActive,
-  }));
-}
-
-function publishCurrentGraphAccessibilityItems({
-  accessibilityDirtyRef,
-  graph,
-  graphMode,
-  lastAccessibilitySignatureRef,
-  links,
-  nodes,
-  setAccessibilityItems,
-}: {
-  accessibilityDirtyRef: MutableRefObject<boolean>;
-  graph: GraphScreenProjector | undefined;
-  graphMode: GraphViewStoreState['graphMode'];
-  lastAccessibilitySignatureRef: MutableRefObject<string>;
-  links: readonly FGLink[];
-  nodes: readonly FGNode[];
-  setAccessibilityItems: Dispatch<SetStateAction<GraphAccessibilityItems>>;
-}): void {
-  if (graphMode !== '2d' || !accessibilityDirtyRef.current) {
-    return;
-  }
-
-  if (!areGraphAccessibilityNodePositionsReady(nodes)) {
-    return;
-  }
-
-  const signature = createGraphAccessibilitySignature(nodes, links);
-  if (signature === lastAccessibilitySignatureRef.current) {
-    accessibilityDirtyRef.current = false;
-    return;
-  }
-
-  lastAccessibilitySignatureRef.current = signature;
-  setAccessibilityItems(createGraphAccessibilityItems(nodes, links, graph));
-  accessibilityDirtyRef.current = false;
 }
 
 export function GraphViewportShell({
