@@ -513,6 +513,21 @@ VS Code graph view benchmark:
   - The first remaining post-bootstrap settings/control replay now has an
     owner: `refreshChangedFiles` sends the full settings/control bundle after
     each changed-file refresh completes.
+- After skipping redundant full settings replay for indexed incremental
+  changed-file refreshes:
+  - The same reason-marker run shape recorded no
+    `graphWebview.refreshState.send` events.
+  - Host `SETTINGS_UPDATED` sends dropped from `24` to `2`.
+  - Host `PHYSICS_SETTINGS_UPDATED` sends dropped from `24` to `2`.
+  - Host `DIRECTION_SETTINGS_UPDATED` sends dropped from `24` to `2`.
+  - Host `SHOW_LABELS_UPDATED` sends dropped from `24` to `2`.
+  - Host `GRAPH_CONTROLS_UPDATED` sends dropped from `47` to `5`.
+  - Host `GRAPH_INDEX_PROGRESS` stayed coalesced at `51`.
+  - First graph readiness remained dominated by the VS Code frame-readiness
+    bucket: `38844ms`, split into `1715ms` command/open, `37115ms` frame wait,
+    and `10ms` stats wait.
+  - A one-sample Imports Graph Scope sanity check measured `191ms` wall-clock
+    and `49ms` in-webview optimistic-to-rendered latency.
 
 Interpretation:
 
@@ -617,6 +632,10 @@ Interpretation:
   of the remaining repeated settings/control bundle. The next behavior change
   should preserve changed-file graph analysis while avoiding redundant full
   settings replay after indexed incremental refreshes.
+- Indexed incremental changed-file refreshes now keep their graph-analysis path
+  but avoid the trailing full settings/control replay. This removes the
+  measured `changedFiles` refresh-state burst and cuts repeated startup
+  settings/control messages back to the expected ready/bootstrap sends.
 
 Full test baseline:
 
