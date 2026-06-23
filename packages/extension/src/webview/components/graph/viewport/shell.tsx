@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
@@ -9,7 +9,7 @@ import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interactio
 import type { GraphRuntime } from '../runtime/use/state';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
-import { Viewport } from './view';
+import { Viewport, type ViewportProps } from './view';
 import { graphStore } from '../../../store/state';
 import { publishGraphViewportScale as publishGraphViewportScaleChange } from './shell/scale';
 import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
@@ -72,6 +72,7 @@ export function GraphViewportShell({
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const lastAccessibilitySignatureRef = useRef('');
   const accessibilityDirtyRef = useRef(true);
+  const renderFramePostRef = useRef<ViewportProps['surface2dProps']['onRenderFramePost']>(() => undefined);
   const [accessibilityItems, setAccessibilityItems] = useState<GraphAccessibilityItems>({
     nodes: [],
     edges: [],
@@ -174,6 +175,18 @@ export function GraphViewportShell({
     accessibilityDirtyRef.current = false;
   };
 
+  renderFramePostRef.current = (ctx, globalScale) => {
+    publishGraphViewportScale(globalScale);
+    publishGraphViewViewportState(globalScale);
+    publishGraphAccessibilityItems();
+    viewportRuntime.renderPluginOverlays(ctx, globalScale);
+  };
+
+  const handleRenderFramePost = useCallback<ViewportProps['surface2dProps']['onRenderFramePost']>(
+    (ctx, globalScale) => renderFramePostRef.current(ctx, globalScale),
+    [],
+  );
+
   useEffect(() => {
     return () => {
       pluginHost?.setGraphViewViewportState(null);
@@ -187,12 +200,7 @@ export function GraphViewportShell({
   const surfaceProps = createGraphViewportSurfaceProps({
     callbacks,
     graphState,
-    onRenderFramePost: (ctx, globalScale) => {
-      publishGraphViewportScale(globalScale);
-      publishGraphViewViewportState(globalScale);
-      publishGraphAccessibilityItems();
-      viewportRuntime.renderPluginOverlays(ctx, globalScale);
-    },
+    onRenderFramePost: handleRenderFramePost,
     sharedProps: viewportModel.sharedProps,
     viewState,
   });
