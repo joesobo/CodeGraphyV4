@@ -1,6 +1,4 @@
-import { performance } from 'node:perf_hooks';
 import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
-import { createDiagnosticEvent } from '../diagnostics/events';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
@@ -12,6 +10,7 @@ import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
+import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing.js';
 export {
   createCodeGraphyWorkspaceEngine,
   type CodeGraphyWorkspaceEngine,
@@ -32,47 +31,6 @@ export type {
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
 } from './contracts';
-
-function emitIndexPhaseCompleted(
-  options: IndexCodeGraphyWorkspaceOptions,
-  phase: string,
-  durationMs: number,
-  context: Record<string, unknown> = {},
-): void {
-  options.diagnostics?.emit(createDiagnosticEvent({
-    area: 'indexing',
-    event: 'phase-completed',
-    context: {
-      phase,
-      durationMs: Math.round(durationMs),
-      ...context,
-    },
-  }));
-}
-
-async function timeIndexPhase<T>(
-  options: IndexCodeGraphyWorkspaceOptions,
-  phase: string,
-  run: () => Promise<T>,
-  createContext: (result: T) => Record<string, unknown> = () => ({}),
-): Promise<T> {
-  const startedAt = performance.now();
-  const result = await run();
-  emitIndexPhaseCompleted(options, phase, performance.now() - startedAt, createContext(result));
-  return result;
-}
-
-function timeIndexPhaseSync<T>(
-  options: IndexCodeGraphyWorkspaceOptions,
-  phase: string,
-  run: () => T,
-  createContext: (result: T) => Record<string, unknown> = () => ({}),
-): T {
-  const startedAt = performance.now();
-  const result = run();
-  emitIndexPhaseCompleted(options, phase, performance.now() - startedAt, createContext(result));
-  return result;
-}
 
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,

@@ -1,38 +1,12 @@
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../../graph/contracts';
 import type { ILifecyclePluginInfo } from '../contracts';
+import { logLifecycleError } from './errors.js';
+import { getPluginFiles, type AnalyzeFile } from './files.js';
 import {
   createWorkspacePluginAnalysisContext,
   withWorkspacePluginAnalysisOptions,
 } from '../../context/workspace';
-
-type AnalyzeFile = {
-  absolutePath: string;
-  relativePath: string;
-  content: string;
-};
-
-function pluginMatchesFile(info: ILifecyclePluginInfo, relativePath: string): boolean {
-  if (info.plugin.supportedExtensions.includes('*')) {
-    return true;
-  }
-
-  const lowercasePath = relativePath.toLowerCase();
-  return info.plugin.supportedExtensions.some((extension) =>
-    lowercasePath.endsWith(extension.toLowerCase()),
-  );
-}
-
-function getPluginFiles(
-  info: ILifecyclePluginInfo,
-  files: AnalyzeFile[],
-): AnalyzeFile[] {
-  return files.filter((file) => pluginMatchesFile(info, file.relativePath));
-}
-
-function logLifecycleError(hook: string, pluginId: string, error: unknown): void {
-  console.error(`[CodeGraphy] Error in ${hook} for ${pluginId}:`, error);
-}
 
 export async function notifyPreAnalyze(
   plugins: Map<string, ILifecyclePluginInfo>,

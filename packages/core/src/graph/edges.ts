@@ -10,8 +10,10 @@ import type { IGraphEdge } from './contracts';
 import { createGraphEdgeId } from './edgeIdentity';
 import { createEdgeSource } from './edgeSources';
 import { getConnectionTargetId } from './edgeTargets';
-
-type ConnectionTargetResolver = typeof getConnectionTargetId;
+import {
+  createCachedConnectionTargetResolver,
+  type ConnectionTargetResolver,
+} from './edgeTargetCache.js';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;
@@ -92,49 +94,6 @@ function appendConnectionEdge(
 
   options.edges.push(edge);
   options.edgeMap.set(edgeId, edge);
-}
-
-function createTargetCacheKey(
-  plugin: IPlugin | undefined,
-  connection: IProjectedConnection,
-): string | undefined {
-  if (connection.resolvedPath) {
-    return `${plugin?.id ?? ''}\0resolved\0${connection.resolvedPath}`;
-  }
-
-  if (connection.specifier) {
-    return `${plugin?.id ?? ''}\0specifier\0${connection.specifier}`;
-  }
-
-  return undefined;
-}
-
-function createCachedConnectionTargetResolver(
-  resolveConnectionTargetId: ConnectionTargetResolver,
-  fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
-  workspaceRoot: string,
-): (plugin: IPlugin | undefined, connection: IProjectedConnection) => string | null {
-  const targetIdByKey = new Map<string, string | null>();
-
-  return (plugin, connection) => {
-    const cacheKey = createTargetCacheKey(plugin, connection);
-    if (cacheKey && targetIdByKey.has(cacheKey)) {
-      return targetIdByKey.get(cacheKey) ?? null;
-    }
-
-    const targetId = resolveConnectionTargetId(
-      plugin,
-      connection,
-      fileConnections,
-      workspaceRoot,
-    );
-
-    if (cacheKey) {
-      targetIdByKey.set(cacheKey, targetId);
-    }
-
-    return targetId;
-  };
 }
 
 export function buildWorkspaceGraphEdges(
