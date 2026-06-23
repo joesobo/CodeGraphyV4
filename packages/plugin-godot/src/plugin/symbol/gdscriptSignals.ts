@@ -4,7 +4,7 @@ import {
   GODOT_SCRIPT_LANGUAGE,
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
-} from './godotKinds';
+} from './vocabulary';
 
 const SIGNAL_DECLARATION_PATTERN = /^signal\s+([A-Za-z_][A-Za-z0-9_]*)\b/;
 

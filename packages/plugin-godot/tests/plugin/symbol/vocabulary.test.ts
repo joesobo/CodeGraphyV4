@@ -5,7 +5,7 @@ import {
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
   GODOT_TEXT_RESOURCE_LANGUAGE,
-} from '../../../src/plugin/symbol/godotKinds';
+} from '../../../src/plugin/symbol/vocabulary';
 
 describe('Godot symbol vocabulary', () => {
   it('uses stable graph scope metadata identifiers', () => {

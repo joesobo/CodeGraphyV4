@@ -23,7 +23,7 @@ import { extractSymbols } from './plugin/symbol/extract';
 import {
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
-} from './plugin/symbol/godotKinds';
+} from './plugin/symbol/vocabulary';
 import type {
   GodotWorkspaceFile,
   IGDScriptAnalyzeFilePlugin,

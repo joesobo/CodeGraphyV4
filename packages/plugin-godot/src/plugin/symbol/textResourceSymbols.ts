@@ -6,7 +6,7 @@ import {
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
   GODOT_TEXT_RESOURCE_LANGUAGE,
-} from './godotKinds';
+} from './vocabulary';
 
 const SCENE_EXTENSIONS = new Set(['.tscn']);
 const RESOURCE_EXTENSIONS = new Set(['.tres']);

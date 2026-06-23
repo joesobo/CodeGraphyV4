@@ -8,7 +8,7 @@ import {
   GODOT_SCRIPT_LANGUAGE,
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
-} from './godotKinds';
+} from './vocabulary';
 
 const EXPORT_DECORATOR_PATTERN = /^@export(?:_[A-Za-z_][A-Za-z0-9_]*)?(?:\([^)]*\))?(?:\s+|$)/;
 
