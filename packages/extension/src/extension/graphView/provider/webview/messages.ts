@@ -8,14 +8,28 @@ export interface GraphViewProviderWebviewMessageSource extends GraphViewProvider
 
 export function sendGraphViewProviderWebviewMessage(
   source: GraphViewProviderWebviewMessageSource,
-  dependencies: Pick<GraphViewProviderWebviewMethodDependencies, 'sendWebviewMessage'>,
+  dependencies: Pick<GraphViewProviderWebviewMethodDependencies, 'recordPerformanceEvent' | 'sendWebviewMessage'>,
   message: unknown,
 ): void {
+  const sidebarViews = getGraphViewProviderSidebarViews(source);
+  dependencies.recordPerformanceEvent?.('graphWebview.message.send', {
+    panelCount: source._panels.length,
+    sidebarViewCount: sidebarViews.length,
+    type: getGraphViewProviderWebviewMessageType(message),
+  });
   dependencies.sendWebviewMessage(
-    getGraphViewProviderSidebarViews(source),
+    sidebarViews,
     source._panels,
     message,
   );
   source._notifyExtensionMessage(message);
 }
 
+function getGraphViewProviderWebviewMessageType(message: unknown): string | undefined {
+  if (!message || typeof message !== 'object') {
+    return undefined;
+  }
+
+  const type = (message as { type?: unknown }).type;
+  return typeof type === 'string' ? type : undefined;
+}

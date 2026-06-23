@@ -465,6 +465,25 @@ VS Code graph view benchmark:
     `694.3ms`, took `183.3ms`, and first stats rendered after that.
   - Imports toggle wall-clock latency was `201ms` median, `214ms` p95; in-webview
     optimistic-to-rendered latency was `53ms` median, `59ms` p95.
+- After adding extension-host outbound message tracing and coalescing dense
+  graph index progress:
+  - Before coalescing, the host sent `7844` `GRAPH_INDEX_PROGRESS` messages in
+    one startup run. The same run hit the webview trace limit with repeated
+    settings/control messages before graph data.
+  - After coalescing progress to deterministic phase buckets, host
+    `GRAPH_INDEX_PROGRESS` sends dropped to `51`.
+  - A 5-sample interaction run preserved startup metrics but timed out during
+    interaction sampling, so its startup evidence was kept as partial data:
+    VS Code launch `1099ms`, first graph ready `46160ms`, and first-ready
+    phases command/open `1673ms`, frame wait `44442ms`, stats wait `30ms`.
+  - A shorter 2-sample interaction run completed: VS Code launch `796ms`,
+    first graph ready `46329ms`, command/open `1680ms`, frame wait `44601ms`,
+    stats wait `32ms`.
+  - The completed run kept host `GRAPH_INDEX_PROGRESS` sends at `51`, with one
+    inbound progress marker in the webview startup trace.
+  - Imports toggle wall-clock latency was `357ms` median, `508ms` p95 across
+    2 samples; in-webview optimistic-to-rendered latency stayed `55ms` median,
+    `57ms` p95.
 
 Interpretation:
 
@@ -556,6 +575,11 @@ Interpretation:
   after graph data and the duplicate graph replay. The next startup hypothesis
   should follow the extension-host post sequence and cached timeline bridge,
   because the webview listener is receiving messages in that late order.
+- Extension-host send tracing found a real message-volume bottleneck:
+  uncoalesced graph index progress produced thousands of outbound messages on
+  startup. Deterministic progress coalescing cuts that to dozens while keeping
+  first/final and phase-boundary progress visible. The remaining repeated
+  settings/control sends are now the next message-volume target.
 
 Full test baseline:
 

@@ -8,6 +8,7 @@ describe('graphView/provider/webview/messages', () => {
     const timelineView = { webview: { postMessage: vi.fn(() => true) } } as unknown as vscode.WebviewView;
     const panel = { webview: { postMessage: vi.fn(() => true) } } as unknown as vscode.WebviewPanel;
     const notifyExtensionMessage = vi.fn();
+    const recordPerformanceEvent = vi.fn();
     const sendWebviewMessage = vi.fn();
 
     sendGraphViewProviderWebviewMessage(
@@ -18,12 +19,18 @@ describe('graphView/provider/webview/messages', () => {
         _notifyExtensionMessage: notifyExtensionMessage,
       },
       {
+        recordPerformanceEvent,
         sendWebviewMessage,
       },
       { type: 'PING' },
     );
 
     expect(sendWebviewMessage).toHaveBeenCalledWith([graphView, timelineView], [panel], {
+      type: 'PING',
+    });
+    expect(recordPerformanceEvent).toHaveBeenCalledWith('graphWebview.message.send', {
+      panelCount: 1,
+      sidebarViewCount: 2,
       type: 'PING',
     });
     expect(notifyExtensionMessage).toHaveBeenCalledWith({ type: 'PING' });

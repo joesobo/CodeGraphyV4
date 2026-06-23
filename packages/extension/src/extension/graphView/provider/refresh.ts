@@ -1,6 +1,7 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
+import { createGraphViewIndexProgressCoalescer } from '../analysis/execution/progress';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 import { createRebuildSenders } from './refresh/rebuild';
 import { runChangedFileRefresh, runIndexRefresh, runPrimaryRefresh, sendRefreshState } from './refresh/run';
@@ -135,15 +136,15 @@ async function runScopedRefreshRequest(
   lifecycle.setController(controller);
   const requestId = ++source._analysisRequestId;
 
-  const forwardProgress = (progress: GraphViewScopedRefreshProgress): void => {
+  const sendProgress = createGraphViewIndexProgressCoalescer((progress: GraphViewScopedRefreshProgress) => {
     if (isScopedRefreshStale(source, controller.signal, requestId)) {
       return;
     }
     source._sendMessage({ type: 'GRAPH_INDEX_PROGRESS', payload: progress });
-  };
+  });
 
   try {
-    const graphData = await runRefresh(controller.signal, forwardProgress);
+    const graphData = await runRefresh(controller.signal, sendProgress);
     if (isScopedRefreshStale(source, controller.signal, requestId)) {
       return undefined;
     }
