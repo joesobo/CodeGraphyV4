@@ -74,6 +74,7 @@ function createSource(
       ['src/plugin.ts', []],
       ['src/plain.txt', []],
     ]) as Map<string, never>,
+    _lastGraphData: graph,
     _lastWorkspaceRoot: '/workspace',
     _preAnalyzePlugins: vi.fn(async () => undefined),
     _readAnalysisFiles: vi.fn(async (files: IDiscoveredFile[]) => files.map(file => ({

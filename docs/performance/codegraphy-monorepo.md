@@ -895,6 +895,18 @@ Interpretation:
   The remaining backend cost is now the changed-file refresh itself (`179ms`
   marker, `113ms` restore), led by one-file plugin analysis and analysis graph
   rebuild.
+- Metric-only changed-file refreshes now patch node metrics onto the cached
+  raw graph when the changed file's analysis and connections are graph-
+  equivalent. This removes the host-side `buildGraphDataFromAnalysis` rebuild
+  from saves that only change `fileSize` or `churn`, while preserving the full
+  rebuild fallback for structural graph changes. In the rebuilt monorepo probe,
+  the marker save recorded `analyzeFiles` at `91ms`,
+  `patchGraphDataNodeMetrics` at `1ms`, and
+  `refreshChangedFiles.completed` at `119ms`; restore recorded `20ms`, `0ms`,
+  and `62ms` respectively. The live-update request moved from `205ms` to
+  `142ms`, strict wall clock moved from `594ms` to `545ms`, and the webview
+  still received a one-node `GRAPH_NODE_METRICS_UPDATED` patch with zero
+  visible-graph derivation or runtime graph rebuild in the live-update window.
 
 Full test baseline:
 

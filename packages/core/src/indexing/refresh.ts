@@ -41,7 +41,12 @@ export interface WorkspaceIndexRefreshSource {
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
+  _lastGraphData: IGraphData;
   _lastWorkspaceRoot: string;
+  _patchGraphDataNodeMetrics?(
+    graphData: IGraphData,
+    filePaths: readonly string[],
+  ): IGraphData;
   _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
@@ -175,13 +180,100 @@ function buildWorkspaceIndexGraphFromRefreshState(
     source._lastFileConnections,
     workspaceRoot,
   )) {
+    source._lastGraphData = analysisGraphData;
     return analysisGraphData;
   }
 
-  return mergeWorkspaceIndexGraphData(
+  const graphData = mergeWorkspaceIndexGraphData(
     analysisGraphData,
     source._buildGraphData(source._lastFileConnections, workspaceRoot, disabledPlugins),
   );
+  source._lastGraphData = graphData;
+  return graphData;
+}
+
+function serializeWorkspaceIndexGraphAnalysis(analysis: IFileAnalysisResult): string {
+  return JSON.stringify({
+    edgeTypes: analysis.edgeTypes ?? [],
+    filePath: analysis.filePath,
+    nodeTypes: analysis.nodeTypes ?? [],
+    nodes: analysis.nodes ?? [],
+    relations: analysis.relations ?? [],
+    symbols: analysis.symbols ?? [],
+  });
+}
+
+function serializeWorkspaceIndexConnections(
+  connections: IProjectedConnection[] | undefined,
+): string {
+  return JSON.stringify(connections ?? []);
+}
+
+interface WorkspaceIndexRefreshGraphSnapshot {
+  fileAnalysisByPath: Map<string, string>;
+  fileConnectionsByPath: Map<string, string>;
+}
+
+function captureWorkspaceIndexRefreshGraphSnapshot(
+  source: WorkspaceIndexRefreshSource,
+  files: readonly IDiscoveredFile[],
+): WorkspaceIndexRefreshGraphSnapshot | undefined {
+  if (
+    !source._patchGraphDataNodeMetrics
+    || (source._lastGraphData.nodes.length === 0 && source._lastGraphData.edges.length === 0)
+  ) {
+    return undefined;
+  }
+
+  const fileAnalysisByPath = new Map<string, string>();
+  const fileConnectionsByPath = new Map<string, string>();
+  for (const file of files) {
+    const analysis = source._lastFileAnalysis.get(file.relativePath);
+    if (!analysis) {
+      return undefined;
+    }
+
+    fileAnalysisByPath.set(file.relativePath, serializeWorkspaceIndexGraphAnalysis(analysis));
+    fileConnectionsByPath.set(
+      file.relativePath,
+      serializeWorkspaceIndexConnections(source._lastFileConnections.get(file.relativePath)),
+    );
+  }
+
+  return { fileAnalysisByPath, fileConnectionsByPath };
+}
+
+function canPatchWorkspaceIndexRefreshGraphData(
+  snapshot: WorkspaceIndexRefreshGraphSnapshot | undefined,
+  analysisResult: IWorkspaceFileAnalysisResult,
+  files: readonly IDiscoveredFile[],
+): boolean {
+  if (!snapshot) {
+    return false;
+  }
+
+  for (const file of files) {
+    const analysis = analysisResult.fileAnalysis.get(file.relativePath);
+    if (!analysis) {
+      return false;
+    }
+
+    if (
+      snapshot.fileAnalysisByPath.get(file.relativePath)
+      !== serializeWorkspaceIndexGraphAnalysis(analysis)
+    ) {
+      return false;
+    }
+
+    if (
+      snapshot.fileConnectionsByPath.get(file.relativePath)
+      !== serializeWorkspaceIndexConnections(analysisResult.fileConnections.get(file.relativePath))
+    ) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function applyWorkspaceIndexAnalysisResult(
@@ -395,6 +487,7 @@ export async function refreshWorkspaceIndexChangedFiles(
     );
   }
 
+  const graphSnapshot = captureWorkspaceIndexRefreshGraphSnapshot(source, filesToAnalyze);
   source.invalidateWorkspaceFiles(filesToAnalyze.map((file) => file.absolutePath));
   dependencies.onProgress?.({
     phase: 'Applying Changes',
@@ -420,6 +513,19 @@ export async function refreshWorkspaceIndexChangedFiles(
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
   dependencies.persistCache();
+  if (
+    canPatchWorkspaceIndexRefreshGraphData(graphSnapshot, analysisResult, filesToAnalyze)
+    && source._patchGraphDataNodeMetrics
+  ) {
+    const graphData = source._patchGraphDataNodeMetrics(
+      source._lastGraphData,
+      filesToAnalyze.map(file => file.relativePath),
+    );
+    source._lastGraphData = graphData;
+    await dependencies.persistIndexMetadata();
+    return graphData;
+  }
+
   const graphData = buildWorkspaceIndexGraphFromRefreshState(
     source,
     dependencies.workspaceRoot,

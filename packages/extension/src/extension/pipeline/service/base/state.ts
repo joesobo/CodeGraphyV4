@@ -13,6 +13,7 @@ import {
 import { Configuration } from '../../../config/reader';
 import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IWorkspaceAnalysisCache } from '../../cache';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import {
   loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
@@ -93,6 +94,14 @@ export abstract class WorkspacePipelineStateBase {
 
   protected set _lastWorkspaceRoot(workspaceRoot: string) {
     this._engineState.workspaceRoot = workspaceRoot;
+  }
+
+  protected get _lastGraphData(): IGraphData {
+    return this._engineState.graph;
+  }
+
+  protected set _lastGraphData(graphData: IGraphData) {
+    this._engineState.graph = graphData;
   }
 
   setEventBus(eventBus: EventBus): void {
