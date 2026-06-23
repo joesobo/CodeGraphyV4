@@ -500,6 +500,19 @@ VS Code graph view benchmark:
     duplicate first-analysis ready replay.
   - Imports toggle wall-clock latency was `231ms` median, `266ms` p95 across
     2 samples; in-webview latency was `50ms` median, `50ms` p95.
+- Refresh-state reason tracing:
+  - Command shape:
+    `pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs --workspace /Users/poleski/Desktop/Projects/CodeGraphyV4 --iterations 2 --warmup 0 --output reports/performance/vscode-graph-view-refresh-state-reasons-2026-06-22.json`.
+  - Open Graph View to first rendered graph stats: `48255ms`.
+  - Host send counts still showed repeated settings/control messages:
+    `SETTINGS_UPDATED` `24`, `PHYSICS_SETTINGS_UPDATED` `24`,
+    `DIRECTION_SETTINGS_UPDATED` `24`, `SHOW_LABELS_UPDATED` `24`,
+    and `GRAPH_CONTROLS_UPDATED` `47`.
+  - All measured `graphWebview.refreshState.send` markers were
+    `changedFiles`, with `22` sends in the run.
+  - The first remaining post-bootstrap settings/control replay now has an
+    owner: `refreshChangedFiles` sends the full settings/control bundle after
+    each changed-file refresh completes.
 
 Interpretation:
 
@@ -600,6 +613,10 @@ Interpretation:
   settings bundle while the original ready handler is still loading graph data.
   Later repeated settings/control sends remain visible and need separate
   ownership tracing before changing behavior.
+- Refresh-state reason tracing identified `refreshChangedFiles` as the owner
+  of the remaining repeated settings/control bundle. The next behavior change
+  should preserve changed-file graph analysis while avoiding redundant full
+  settings replay after indexed incremental refreshes.
 
 Full test baseline:
 

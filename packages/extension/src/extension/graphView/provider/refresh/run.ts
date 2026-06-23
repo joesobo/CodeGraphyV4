@@ -1,6 +1,20 @@
 import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
+import { recordExtensionPerformanceEvent } from '../../../performance/marks';
 
-export function sendRefreshState(source: GraphViewProviderRefreshMethodsSource): void {
+export type RefreshStateReason =
+  | 'analysisScope'
+  | 'changedFiles'
+  | 'direct'
+  | 'gitignoreMetadata'
+  | 'pluginFiles'
+  | 'refresh'
+  | 'refreshIndex';
+
+export function sendRefreshState(
+  source: GraphViewProviderRefreshMethodsSource,
+  reason: RefreshStateReason = 'direct',
+): void {
+  recordExtensionPerformanceEvent('graphWebview.refreshState.send', { reason });
   source._sendAllSettings();
   source._sendGraphControls?.();
 }
