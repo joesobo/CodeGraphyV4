@@ -279,6 +279,16 @@ VS Code graph view benchmark:
   - Imports toggle wall-clock latency stayed flat at `204ms` median,
     `219ms` p95; in-webview latency was `53ms` median, `111ms` p95.
   - The change was reverted because it did not improve first graph readiness.
+- After adding startup webview stage and first-ready phase instrumentation:
+  - VS Code launch: `868ms`.
+  - Open Graph View to first rendered graph stats: `6789ms`.
+  - First-ready phases: command/open `1709ms`, acceptance-ready frame
+    `5032ms`, stats wait after frame discovery `35ms`.
+  - Startup webview stage medians: `visibleGraph.derive` `96ms`,
+    `visibleGraph.applyLegendRules` `0ms` with `89ms` p95,
+    `visibleGraph.style` `5ms`, `graphRuntime.buildGraphData` `7ms`.
+  - Imports toggle wall-clock latency: `208ms` median, `243ms` p95; in-webview
+    latency: `56ms` median, `61ms` p95.
 
 Interpretation:
 
@@ -313,9 +323,11 @@ Interpretation:
   but it now also reports the browser-side delta from
   `graphScope.edgeVisibility.optimistic` to `graphStats.rendered`. The current
   in-webview median is `55ms`, while the wall-clock median is `209ms`.
-- The next user-facing bottleneck is the remaining render latency after graph
-  data construction, not the measured data derivation or Graph Scope debounce
-  stages.
+- Startup instrumentation shows first graph readiness is now dominated by
+  command/view opening and waiting for the acceptance-ready webview frame. Once
+  that frame is found, the stats label is already available within tens of
+  milliseconds; the startup webview data stages are not the multi-second
+  bottleneck.
 
 Full test baseline:
 

@@ -63,3 +63,32 @@ test('VS Code graph view runner summarizes in-webview toggle event deltas', asyn
     },
   });
 });
+
+test('VS Code graph view runner summarizes startup webview stage durations', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { summarizeWebviewEventDurations } = await import(moduleUrl);
+
+  assert.deepEqual(summarizeWebviewEventDurations([
+    { name: 'visibleGraph.derive', durationMs: 110.2 },
+    { name: 'graphStats.rendered', at: 215 },
+    { name: 'visibleGraph.derive', durationMs: 90.8 },
+    { name: 'graphRuntime.buildGraphData', durationMs: 8.4 },
+  ]), {
+    'graphRuntime.buildGraphData': {
+      iterations: 1,
+      minMs: 8,
+      medianMs: 8,
+      p95Ms: 8,
+      maxMs: 8,
+    },
+    'visibleGraph.derive': {
+      iterations: 2,
+      minMs: 91,
+      medianMs: 101,
+      p95Ms: 110,
+      maxMs: 110,
+    },
+  });
+});
