@@ -2,6 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
 import { createSource } from './refresh/fixture';
 
+const performanceMocks = vi.hoisted(() => ({
+  record: vi.fn(),
+}));
+
+vi.mock('../../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: performanceMocks.record,
+}));
+
 describe('graphView/provider/refresh', () => {
   describe('refresh', () => {
 
@@ -161,6 +169,15 @@ describe('graphView/provider/refresh', () => {
 
       await methods.refreshChangedFiles(['src/example.ts']);
 
+      expect(performanceMocks.record).toHaveBeenCalledWith(
+        'graphView.refreshChangedFiles.received',
+        {
+          fileCount: 1,
+          indexRefreshInFlight: false,
+        },
+      );
+      expect(source._loadDisabledRulesAndPlugins).not.toHaveBeenCalled();
+      expect(source._loadGroupsAndFilterPatterns).not.toHaveBeenCalled();
       expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/example.ts']);
       expect(source._sendAllSettings).not.toHaveBeenCalled();
       expect(source._sendGraphControls).not.toHaveBeenCalled();

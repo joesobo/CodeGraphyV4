@@ -1,4 +1,5 @@
 import type { GraphViewProvider } from '../../graphViewProvider';
+import { recordExtensionPerformanceEvent } from '../../performance/marks';
 
 interface PendingWorkspaceRefresh {
   filePaths: Set<string>;
@@ -26,6 +27,18 @@ function markWorkspaceRefreshPending(
   }
 
   provider.markWorkspaceRefreshPending?.(logMessage, filePaths, options);
+}
+
+function createRefreshPerformanceDetail(
+  pending: Pick<PendingWorkspaceRefresh, 'filePaths' | 'fullRefresh' | 'gitignoreRefresh'>,
+  delayMs: number,
+): Record<string, unknown> {
+  return {
+    delayMs,
+    fileCount: pending.filePaths.size,
+    fullRefresh: pending.fullRefresh,
+    gitignoreRefresh: pending.gitignoreRefresh,
+  };
 }
 
 export function scheduleWorkspaceRefresh(
@@ -62,6 +75,10 @@ export function scheduleWorkspaceRefresh(
     gitignoreRefresh,
     logMessage,
     timeout: setTimeout(() => {
+      recordExtensionPerformanceEvent(
+        'workspaceRefresh.started',
+        createRefreshPerformanceDetail(nextPending, delayMs),
+      );
       pendingWorkspaceRefreshes.delete(provider);
       if (!isGraphOpen(provider)) {
         markWorkspaceRefreshPending(
@@ -104,5 +121,9 @@ export function scheduleWorkspaceRefresh(
     }, delayMs),
   };
 
+  recordExtensionPerformanceEvent(
+    'workspaceRefresh.scheduled',
+    createRefreshPerformanceDetail(nextPending, delayMs),
+  );
   pendingWorkspaceRefreshes.set(provider, nextPending);
 }

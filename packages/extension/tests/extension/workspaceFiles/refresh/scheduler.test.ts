@@ -1,6 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { scheduleWorkspaceRefresh } from '../../../../src/extension/workspaceFiles/refresh/scheduler';
 
+const performanceMocks = vi.hoisted(() => ({
+  record: vi.fn(),
+}));
+
+vi.mock('../../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: performanceMocks.record,
+}));
+
 function makeProvider() {
   return {
     refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
@@ -16,6 +24,7 @@ function makeProvider() {
 describe('workspaceFiles/refresh/scheduler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    performanceMocks.record.mockReset();
   });
 
   afterEach(() => {
@@ -68,6 +77,41 @@ describe('workspaceFiles/refresh/scheduler', () => {
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('records schedule and fire timing markers', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+      123,
+    );
+    vi.advanceTimersByTime(123);
+
+    expect(performanceMocks.record).toHaveBeenCalledWith(
+      'workspaceRefresh.scheduled',
+      expect.objectContaining({
+        delayMs: 123,
+        fileCount: 1,
+        fullRefresh: false,
+        gitignoreRefresh: false,
+      }),
+    );
+    expect(performanceMocks.record).toHaveBeenCalledWith(
+      'workspaceRefresh.started',
+      expect.objectContaining({
+        delayMs: 123,
+        fileCount: 1,
+        fullRefresh: false,
+        gitignoreRefresh: false,
+      }),
+    );
 
     consoleSpy.mockRestore();
   });
