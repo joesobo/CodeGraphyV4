@@ -182,13 +182,23 @@ VS Code graph view benchmark:
   - Open Graph View to first rendered graph stats: `9917ms`.
   - Initial rendered stats: `2249` nodes, `5333` connections.
   - Imports toggle latency: `2983ms` median, `3079ms` p95 across 2 samples.
+- After skipping force-graph cooldown ticks for already-positioned interactive
+  graphs:
+  - VS Code launch: `1408ms`.
+  - Open Graph View to first rendered graph stats: `9846ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `1925ms` median, `2341ms` p95 across 5 samples.
 
 Interpretation:
 
 - Headless visible graph derivation is now in the `22ms` median range, but the
-  real webview still takes about `3s` to reflect a Graph Scope edge toggle.
-- The next user-facing bottleneck is in the graph surface/runtime/render path,
-  not in filter pattern derivation.
+  real webview initially took about `3s` to reflect a Graph Scope edge toggle.
+- Skipping settled-graph simulation ticks moves the real toggle median from the
+  repeat-run `2983ms` baseline to `1925ms`, a `35%` improvement, but this is
+  still not editor-snappy.
+- The next user-facing bottleneck remains in the graph surface/runtime/render
+  path, likely the synchronous force-graph `graphData` update and canvas redraw
+  for thousands of visible objects.
 
 Full test baseline:
 

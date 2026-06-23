@@ -269,9 +269,16 @@ Keep each commit scoped to one measured path.
 
 Compare the metric before committing.
 
-- [ ] **Step 5: Commit and push**
+- [x] **Step 5: Commit and push**
 
 Commit each improvement separately with the metric delta in the commit body or PR comment.
+
+Latest committed improvement:
+
+```text
+Settled interactive graph updates skip force-graph cooldown ticks.
+Imports Graph Scope toggle: 2983ms median / 3079ms p95 before, 1925ms median / 2341ms p95 after.
+```
 
 ## Task 5: Keep The PR Reviewable
 
