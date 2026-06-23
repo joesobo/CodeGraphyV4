@@ -245,6 +245,15 @@ VS Code graph view benchmark:
   - Sampled toggles had no `visibleGraph.derive` events; the remaining stage
     medians were `visibleGraph.applyLegendRules` `81.3ms`,
     `visibleGraph.style` `4.3ms`, and `graphRuntime.buildGraphData` `5.7ms`.
+- After caching recent styled and legend-applied graph stages:
+  - VS Code launch: `1023ms`.
+  - Open Graph View to first rendered graph stats: `6918ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle latency: `236ms` median, `270ms` p95 across 5 samples.
+  - Sampled toggles had no `visibleGraph.derive`, `visibleGraph.style`, or
+    `visibleGraph.applyLegendRules` events; remaining stage medians were
+    `graphRuntime.buildGraphData` `5.7ms` and
+    `visibleGraph.edgeDecorations` `0.3ms`.
 
 Interpretation:
 
@@ -270,8 +279,10 @@ Interpretation:
 - Caching recent visible-graph derivations removed the remaining derive pass
   when users return to a recent Graph Scope state, moving the sampled toggle
   median from `493ms` to `313ms`.
-- The next user-facing bottleneck is legend rule application at about `80ms`
-  per toggle, plus the remaining uninstrumented render latency.
+- Caching recent styled and legend-applied graph stages removed the next
+  `80ms` legend pass, moving the sampled toggle median from `313ms` to `236ms`.
+- The next user-facing bottleneck is the remaining render latency after graph
+  data construction, not the measured data derivation stages.
 
 Full test baseline:
 

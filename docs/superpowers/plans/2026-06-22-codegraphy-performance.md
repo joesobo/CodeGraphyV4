@@ -287,6 +287,7 @@ Compiled legend matchers: 835ms median / 846ms p95; applyLegendRules now ~79ms-8
 Skipped value-equal graph control echoes: 493ms median / 497ms p95; one visibleGraph.derive event per toggle sample.
 Rejected stable filter matcher cache: 494ms median / 513ms p95; derive stayed ~176.7ms, so no measured win.
 Cached recent visible-graph derivations: 313ms median / 345ms p95; sampled toggles had no visibleGraph.derive events.
+Cached recent style and legend stages: 236ms median / 270ms p95; sampled toggles had no derive/style/legend events.
 ```
 
 ## Task 5: Keep The PR Reviewable
