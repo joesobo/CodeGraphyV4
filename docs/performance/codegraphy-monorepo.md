@@ -689,6 +689,16 @@ Interpretation:
   graph readiness from `5266ms` to `5114ms`. The first rendered stats stayed
   stable at `2300` nodes and `5345` edges; Imports toggle latency stayed in the
   same snappy band at `197ms` wall-clock and `54ms` in-webview.
+- Existing-file live updates now reuse the current discovered-file snapshot
+  instead of rediscovering the full workspace before changed-file analysis. A
+  VS Code harness probe against `packages/extension/src/extension/graphViewProvider.ts`
+  used `/tmp` for the extension-host performance log so CodeGraphy did not
+  watch its own metrics file. With the shortcut temporarily disabled, the probe
+  measured `3854ms` wall-clock and `3149ms` request time, including a `1900ms`
+  full discovery pass. With cached discovery enabled, the same probe measured
+  `1887ms` wall-clock and `1180ms` request time; discovery mode was `cached`
+  and took `0ms`. The graph size after the refresh stayed in the same
+  `5101` node / `9146` edge raw graph band.
 
 Full test baseline:
 
