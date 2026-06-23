@@ -22,6 +22,10 @@ export interface DiagnosticEventSink {
   emit(event: DiagnosticEvent): void;
 }
 
+type DiagnosticEventFormatter = (
+  context: Record<string, DiagnosticContextValue> | undefined,
+) => string | undefined;
+
 function normalizeError(error: Error): Record<string, DiagnosticContextValue> {
   return {
     name: error.name,
@@ -29,15 +33,14 @@ function normalizeError(error: Error): Record<string, DiagnosticContextValue> {
   };
 }
 
-function normalizeContextValue(value: unknown): DiagnosticContextValue {
-  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-    return value;
-  }
+function isScalarContextValue(value: unknown): value is null | string | number | boolean {
+  return value === null
+    || typeof value === 'string'
+    || typeof value === 'number'
+    || typeof value === 'boolean';
+}
 
-  if (value instanceof Error) {
-    return normalizeError(value);
-  }
-
+function normalizeCollectionContextValue(value: unknown): DiagnosticContextValue | undefined {
   if (Array.isArray(value)) {
     return value.map(normalizeContextValue);
   }
@@ -53,14 +56,22 @@ function normalizeContextValue(value: unknown): DiagnosticContextValue {
     }));
   }
 
-  if (typeof value === 'object') {
-    const normalized: Record<string, DiagnosticContextValue> = {};
-    for (const [key, entryValue] of Object.entries(value)) {
-      normalized[key] = normalizeContextValue(entryValue);
-    }
-    return normalized;
+  return undefined;
+}
+
+function normalizeObjectContextValue(value: unknown): DiagnosticContextValue | undefined {
+  if (value === null || typeof value !== 'object') {
+    return undefined;
   }
 
+  const normalized: Record<string, DiagnosticContextValue> = {};
+  for (const [key, entryValue] of Object.entries(value)) {
+    normalized[key] = normalizeContextValue(entryValue);
+  }
+  return normalized;
+}
+
+function normalizeNonJsonPrimitiveContextValue(value: unknown): DiagnosticContextValue | undefined {
   if (typeof value === 'undefined') {
     return 'undefined';
   }
@@ -77,7 +88,22 @@ function normalizeContextValue(value: unknown): DiagnosticContextValue {
     return value.name ? `[Function: ${value.name}]` : '[Function]';
   }
 
-  return 'unknown';
+  return undefined;
+}
+
+function normalizeContextValue(value: unknown): DiagnosticContextValue {
+  if (isScalarContextValue(value)) {
+    return value;
+  }
+
+  if (value instanceof Error) {
+    return normalizeError(value);
+  }
+
+  return normalizeCollectionContextValue(value)
+    ?? normalizeObjectContextValue(value)
+    ?? normalizeNonJsonPrimitiveContextValue(value)
+    ?? 'unknown';
 }
 
 function normalizeContext(context: Record<string, unknown> | undefined): Record<string, DiagnosticContextValue> | undefined {
@@ -221,132 +247,91 @@ function formatAnalysisEvent(
   event: string,
   context: Record<string, DiagnosticContextValue> | undefined,
 ): string | undefined {
-  if (event === 'request-started') {
-    return `Starting analysis: ${joinDetails([
-      formatContextDetail(context, 'requestId', 'request'),
-      formatContextDetail(context, 'mode'),
-      formatContextDetail(context, 'filterPatternCount', 'filters'),
-      formatContextDetail(context, 'disabledPluginCount', 'disabledPlugins'),
-    ])}`;
-  }
-
-  if (event === 'request-completed') {
-    return `Analysis complete: ${joinDetails([
-      formatContextDetail(context, 'requestId', 'request'),
-      formatContextDetail(context, 'mode'),
-      formatContextDetail(context, 'durationMs', 'durationMs'),
-    ])}`;
-  }
-
-  if (event === 'request-failed') {
-    return `Analysis failed: ${joinDetails([
-      formatContextDetail(context, 'requestId', 'request'),
-      formatContextDetail(context, 'mode'),
-      formatContextDetail(context, 'durationMs', 'durationMs'),
-      formatContextDetail(context, 'error'),
-    ])}`;
-  }
-
-  if (event === 'load-decision') {
-    return `Analysis load decision: ${joinDetails([
-      formatContextDetail(context, 'route'),
-      formatContextDetail(context, 'mode'),
-      formatContextDetail(context, 'shouldDiscover'),
-      formatContextDetail(context, 'canReplayCache'),
-      formatContextDetail(context, 'indexFreshness', 'freshness'),
-    ])}`;
-  }
-
-  return undefined;
+  return ANALYSIS_EVENT_FORMATTERS.get(event)?.(context);
 }
 
+const ANALYSIS_EVENT_FORMATTERS = new Map<string, DiagnosticEventFormatter>([
+  ['request-started', context => `Starting analysis: ${joinDetails([
+    formatContextDetail(context, 'requestId', 'request'),
+    formatContextDetail(context, 'mode'),
+    formatContextDetail(context, 'filterPatternCount', 'filters'),
+    formatContextDetail(context, 'disabledPluginCount', 'disabledPlugins'),
+  ])}`],
+  ['request-completed', context => `Analysis complete: ${joinDetails([
+    formatContextDetail(context, 'requestId', 'request'),
+    formatContextDetail(context, 'mode'),
+    formatContextDetail(context, 'durationMs', 'durationMs'),
+  ])}`],
+  ['request-failed', context => `Analysis failed: ${joinDetails([
+    formatContextDetail(context, 'requestId', 'request'),
+    formatContextDetail(context, 'mode'),
+    formatContextDetail(context, 'durationMs', 'durationMs'),
+    formatContextDetail(context, 'error'),
+  ])}`],
+  ['load-decision', context => `Analysis load decision: ${joinDetails([
+    formatContextDetail(context, 'route'),
+    formatContextDetail(context, 'mode'),
+    formatContextDetail(context, 'shouldDiscover'),
+    formatContextDetail(context, 'canReplayCache'),
+    formatContextDetail(context, 'indexFreshness', 'freshness'),
+  ])}`],
+]);
+
+const KNOWN_EVENT_FORMATTERS = new Map<string, DiagnosticEventFormatter>([
+  ['workspace:index-started', context => `Starting indexing: ${joinDetails([
+    formatContextDetail(context, 'workspaceRoot', 'workspace'),
+    formatContextDetail(context, 'operationId', 'operation'),
+  ])}`],
+  ['workspace:status-read', formatStatusRead],
+  ['indexing:completed', formatIndexingComplete],
+  ['indexing:phase-completed', formatIndexingPhaseCompleted],
+  ['graph-query:started', context => `Starting Graph Query: ${joinDetails([
+    formatContextDetail(context, 'report'),
+    formatContextDetail(context, 'operationId', 'operation'),
+    formatContextDetail(context, 'workspaceRoot', 'workspace'),
+  ])}`],
+  ['graph-query:cache-missing', context => `Graph Cache missing: ${joinDetails([
+    formatContextDetail(context, 'report'),
+    formatContextDetail(context, 'cacheState'),
+    formatContextDetail(context, 'operationId', 'operation'),
+    formatContextDetail(context, 'workspaceRoot', 'workspace'),
+  ])}`],
+  ['graph-query:completed', context => `Graph Query complete: ${joinDetails([
+    formatContextDetail(context, 'report'),
+    formatCount(context?.nodeCount, 'node'),
+    formatCount(context?.edgeCount, 'edge'),
+    formatContextDetail(context, 'durationMs', 'durationMs'),
+    formatContextDetail(context, 'operationId', 'operation'),
+  ])}`],
+  ['extension.lifecycle:activation-started', context => `Extension activation started: ${joinDetails([
+    formatContextDetail(context, 'workspaceFolders'),
+  ])}`],
+  ['extension.lifecycle:activation-completed', context => `Extension activation complete: ${joinDetails([
+    formatContextDetail(context, 'registeredWebviewProviders'),
+  ])}`],
+  ['extension.webview:ready-replayed', context => `Webview ready replayed: ${joinDetails([
+    formatContextDetail(context, 'hasWorkspace'),
+    formatContextDetail(context, 'firstAnalysis'),
+    formatContextDetail(context, 'readyNotified'),
+    formatContextDetail(context, 'maxFiles'),
+  ])}`],
+  ['extension.webview:bootstrap-completed', context => `Webview bootstrap complete: ${joinDetails([
+    formatContextDetail(context, 'hasWorkspace'),
+    formatContextDetail(context, 'firstAnalysis'),
+    formatContextDetail(context, 'readyNotified'),
+  ])}`],
+]);
+
 function formatKnownEvent(event: DiagnosticEvent): string | undefined {
-  const context = event.context;
-
   if (event.area === 'cli') {
-    return formatCommandEvent(event.event, context);
-  }
-
-  if (event.area === 'workspace' && event.event === 'index-started') {
-    return `Starting indexing: ${joinDetails([
-      formatContextDetail(context, 'workspaceRoot', 'workspace'),
-      formatContextDetail(context, 'operationId', 'operation'),
-    ])}`;
-  }
-
-  if (event.area === 'workspace' && event.event === 'status-read') {
-    return formatStatusRead(context);
-  }
-
-  if (event.area === 'indexing' && event.event === 'completed') {
-    return formatIndexingComplete(context);
-  }
-
-  if (event.area === 'indexing' && event.event === 'phase-completed') {
-    return formatIndexingPhaseCompleted(context);
-  }
-
-  if (event.area === 'graph-query' && event.event === 'started') {
-    return `Starting Graph Query: ${joinDetails([
-      formatContextDetail(context, 'report'),
-      formatContextDetail(context, 'operationId', 'operation'),
-      formatContextDetail(context, 'workspaceRoot', 'workspace'),
-    ])}`;
-  }
-
-  if (event.area === 'graph-query' && event.event === 'cache-missing') {
-    return `Graph Cache missing: ${joinDetails([
-      formatContextDetail(context, 'report'),
-      formatContextDetail(context, 'cacheState'),
-      formatContextDetail(context, 'operationId', 'operation'),
-      formatContextDetail(context, 'workspaceRoot', 'workspace'),
-    ])}`;
-  }
-
-  if (event.area === 'graph-query' && event.event === 'completed') {
-    return `Graph Query complete: ${joinDetails([
-      formatContextDetail(context, 'report'),
-      formatCount(context?.nodeCount, 'node'),
-      formatCount(context?.edgeCount, 'edge'),
-      formatContextDetail(context, 'durationMs', 'durationMs'),
-      formatContextDetail(context, 'operationId', 'operation'),
-    ])}`;
-  }
-
-  if (event.area === 'extension.lifecycle' && event.event === 'activation-started') {
-    return `Extension activation started: ${joinDetails([
-      formatContextDetail(context, 'workspaceFolders'),
-    ])}`;
-  }
-
-  if (event.area === 'extension.lifecycle' && event.event === 'activation-completed') {
-    return `Extension activation complete: ${joinDetails([
-      formatContextDetail(context, 'registeredWebviewProviders'),
-    ])}`;
-  }
-
-  if (event.area === 'extension.webview' && event.event === 'ready-replayed') {
-    return `Webview ready replayed: ${joinDetails([
-      formatContextDetail(context, 'hasWorkspace'),
-      formatContextDetail(context, 'firstAnalysis'),
-      formatContextDetail(context, 'readyNotified'),
-      formatContextDetail(context, 'maxFiles'),
-    ])}`;
-  }
-
-  if (event.area === 'extension.webview' && event.event === 'bootstrap-completed') {
-    return `Webview bootstrap complete: ${joinDetails([
-      formatContextDetail(context, 'hasWorkspace'),
-      formatContextDetail(context, 'firstAnalysis'),
-      formatContextDetail(context, 'readyNotified'),
-    ])}`;
+    return formatCommandEvent(event.event, event.context);
   }
 
   if (event.area === 'extension.analysis') {
-    return formatAnalysisEvent(event.event, context);
+    return formatAnalysisEvent(event.event, event.context);
   }
 
-  return undefined;
+  return KNOWN_EVENT_FORMATTERS.get(`${event.area}:${event.event}`)?.(event.context);
 }
 
 function humanizeEventName(event: string): string {
@@ -365,7 +350,11 @@ function formatFallbackEvent(event: DiagnosticEvent): string {
     ...Object.keys(event.context ?? {}).map(key => formatContextDetail(event.context, key)),
   ]);
   const message = humanizeEventName(event.event);
-  return details ? `${message}: ${details}` : message;
+  if (details) {
+    return `${message}: ${details}`;
+  }
+
+  return message;
 }
 
 export function formatDiagnosticEventLine(event: DiagnosticEvent): string {

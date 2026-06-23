@@ -4,6 +4,14 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import { createGlobMatcher } from '../../../globMatch';
 import { ruleTargetsNodes } from './nodeMatcher';
 
+type GraphNode = IGraphData['nodes'][number];
+type GraphNodeSymbol = GraphNode['symbol'];
+type NodeLegendConstraintMatcher = (
+  node: GraphNode,
+  symbol: GraphNodeSymbol,
+  compiledRule: CompiledNodeLegendRule,
+) => boolean;
+
 export interface CompiledNodeLegendRule {
   caseInsensitivePatternMatches: (value: string) => boolean;
   hasConstraints: boolean;
@@ -75,48 +83,37 @@ function getCaseInsensitiveNodeCandidates(
     .map((candidate) => candidate.toLowerCase());
 }
 
+function optionalRuleValueMatches<T>(expected: T | undefined, actual: T | undefined): boolean {
+  return expected === undefined || expected === actual;
+}
+
+function optionalSymbolKindsMatch(expected: readonly string[] | undefined, actual: string | undefined): boolean {
+  return expected === undefined || Boolean(actual && expected.includes(actual));
+}
+
+function optionalSymbolFilePathMatches(compiledRule: CompiledNodeLegendRule, filePath: string | undefined): boolean {
+  return compiledRule.symbolFilePathMatches === undefined
+    || Boolean(filePath && compiledRule.symbolFilePathMatches(filePath));
+}
+
+const NODE_LEGEND_CONSTRAINT_MATCHERS: readonly NodeLegendConstraintMatcher[] = [
+  (node, _symbol, { rule }) => optionalRuleValueMatches(rule.matchNodeType, node.nodeType),
+  (_node, symbol, { rule }) => optionalRuleValueMatches(rule.matchSymbolKind, symbol?.kind),
+  (_node, symbol, { rule }) => optionalRuleValueMatches(rule.matchSymbolPluginKind, symbol?.pluginKind),
+  (_node, symbol, { rule }) => optionalRuleValueMatches(rule.matchSymbolSource, symbol?.source),
+  (_node, symbol, { rule }) => optionalRuleValueMatches(rule.matchSymbolLanguage, symbol?.language),
+  (_node, symbol, { rule }) => optionalSymbolKindsMatch(rule.matchSymbolKinds, symbol?.kind),
+  (_node, symbol, compiledRule) => optionalSymbolFilePathMatches(compiledRule, symbol?.filePath),
+];
+
 function compiledRuleConstraintsMatchNode(
-  node: IGraphData['nodes'][number],
+  node: GraphNode,
   compiledRule: CompiledNodeLegendRule,
 ): boolean {
-  if (!compiledRule.hasConstraints) {
-    return true;
-  }
-
-  const { rule } = compiledRule;
-  const symbol = node.symbol;
-  if (rule.matchNodeType && rule.matchNodeType !== node.nodeType) {
-    return false;
-  }
-
-  if (rule.matchSymbolKind && rule.matchSymbolKind !== symbol?.kind) {
-    return false;
-  }
-
-  if (rule.matchSymbolPluginKind && rule.matchSymbolPluginKind !== symbol?.pluginKind) {
-    return false;
-  }
-
-  if (rule.matchSymbolSource && rule.matchSymbolSource !== symbol?.source) {
-    return false;
-  }
-
-  if (rule.matchSymbolLanguage && rule.matchSymbolLanguage !== symbol?.language) {
-    return false;
-  }
-
-  if (rule.matchSymbolKinds && (!symbol?.kind || !rule.matchSymbolKinds.includes(symbol.kind))) {
-    return false;
-  }
-
-  if (
-    compiledRule.symbolFilePathMatches
-    && (!symbol?.filePath || !compiledRule.symbolFilePathMatches(symbol.filePath))
-  ) {
-    return false;
-  }
-
-  return true;
+  return !compiledRule.hasConstraints
+    || NODE_LEGEND_CONSTRAINT_MATCHERS.every(matcher =>
+      matcher(node, node.symbol, compiledRule),
+    );
 }
 
 function pathCandidateMatchesNodeRule(

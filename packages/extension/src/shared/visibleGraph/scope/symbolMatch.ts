@@ -5,6 +5,13 @@ import type { ScopedSymbolDefinition } from './definitions';
 import { getDefinitionSymbolKinds } from './definitions';
 
 type ScopedSymbolMatcher = IGraphNodeTypeDefinition | ScopedSymbolDefinition;
+type GraphNode = IGraphData['nodes'][number];
+type GraphNodeSymbol = NonNullable<GraphNode['symbol']>;
+type ScopedSymbolConstraintMatcher = (
+  symbol: GraphNodeSymbol,
+  scopedDefinition: ScopedSymbolMatcher,
+  definition: IGraphNodeTypeDefinition,
+) => boolean;
 
 function isCompiledScopedSymbolDefinition(
 	definition: ScopedSymbolMatcher,
@@ -17,7 +24,7 @@ function getMatcherDefinition(definition: ScopedSymbolMatcher): IGraphNodeTypeDe
 }
 
 export function symbolMatchesScopedDefinition(
-	node: IGraphData['nodes'][number],
+	node: GraphNode,
 	scopedDefinition: ScopedSymbolMatcher,
 ): boolean {
 	const symbol = node.symbol;
@@ -26,23 +33,25 @@ export function symbolMatchesScopedDefinition(
 	}
 
 	const definition = getMatcherDefinition(scopedDefinition);
+	return SCOPED_SYMBOL_CONSTRAINT_MATCHERS.every(matcher =>
+		matcher(symbol, scopedDefinition, definition),
+	);
+}
+
+function optionalValueMatches<T>(expected: T | undefined, actual: T | undefined): boolean {
+	return expected === undefined || expected === actual;
+}
+
+function symbolKindMatchesDefinition(symbol: GraphNodeSymbol, definition: IGraphNodeTypeDefinition): boolean {
 	const definitionSymbolKinds = getDefinitionSymbolKinds(definition);
-	if (definitionSymbolKinds && !definitionSymbolKinds.includes(symbol.kind)) {
-		return false;
-	}
+	return definitionSymbolKinds === undefined || definitionSymbolKinds.includes(symbol.kind);
+}
 
-	if (definition.matchSymbolPluginKind && definition.matchSymbolPluginKind !== symbol.pluginKind) {
-		return false;
-	}
-
-	if (definition.matchSymbolSource && definition.matchSymbolSource !== symbol.source) {
-		return false;
-	}
-
-	if (definition.matchSymbolLanguage && definition.matchSymbolLanguage !== symbol.language) {
-		return false;
-	}
-
+function symbolFilePathMatchesDefinition(
+	symbol: GraphNodeSymbol,
+	scopedDefinition: ScopedSymbolMatcher,
+	definition: IGraphNodeTypeDefinition,
+): boolean {
 	if (!definition.matchSymbolFilePath) {
 		return true;
 	}
@@ -53,3 +62,11 @@ export function symbolMatchesScopedDefinition(
 
 	return globMatch(symbol.filePath, definition.matchSymbolFilePath);
 }
+
+const SCOPED_SYMBOL_CONSTRAINT_MATCHERS: readonly ScopedSymbolConstraintMatcher[] = [
+	(symbol, _scopedDefinition, definition) => symbolKindMatchesDefinition(symbol, definition),
+	(symbol, _scopedDefinition, definition) => optionalValueMatches(definition.matchSymbolPluginKind, symbol.pluginKind),
+	(symbol, _scopedDefinition, definition) => optionalValueMatches(definition.matchSymbolSource, symbol.source),
+	(symbol, _scopedDefinition, definition) => optionalValueMatches(definition.matchSymbolLanguage, symbol.language),
+	symbolFilePathMatchesDefinition,
+];

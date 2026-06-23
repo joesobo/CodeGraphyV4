@@ -51,19 +51,21 @@ function areGraphGroupSymbolInputsEqual(
   left: IGraphNode['symbol'],
   right: IGraphNode['symbol'],
 ): boolean {
-  if (left === right) {
-    return true;
+  return createGraphGroupSymbolSignature(left) === createGraphGroupSymbolSignature(right);
+}
+
+function createGraphGroupSymbolSignature(symbol: IGraphNode['symbol']): string | undefined {
+  if (!symbol) {
+    return undefined;
   }
 
-  if (!left || !right) {
-    return false;
-  }
-
-  return left.kind === right.kind
-    && left.pluginKind === right.pluginKind
-    && left.source === right.source
-    && left.language === right.language
-    && left.filePath === right.filePath;
+  return JSON.stringify([
+    symbol.kind,
+    symbol.pluginKind,
+    symbol.source,
+    symbol.language,
+    symbol.filePath,
+  ]);
 }
 
 function areGraphGroupNodeInputsEqual(left: IGraphNode, right: IGraphNode): boolean {
@@ -157,28 +159,7 @@ function createNodeMap(nodes: readonly IGraphNode[]): Map<string, IGraphNode> {
   return new Map(nodes.map(node => [node.id, node]));
 }
 
-function areGraphValuesEqual(left: unknown, right: unknown): boolean {
-  if (Object.is(left, right)) {
-    return true;
-  }
-
-  if (Array.isArray(left) || Array.isArray(right)) {
-    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
-      return false;
-    }
-
-    return left.every((leftValue, index) => areGraphValuesEqual(leftValue, right[index]));
-  }
-
-  if (
-    left === null
-    || right === null
-    || typeof left !== 'object'
-    || typeof right !== 'object'
-  ) {
-    return false;
-  }
-
+function areGraphRecordsEqual(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
   const leftRecord = left as unknown as Record<string, unknown>;
   const rightRecord = right as unknown as Record<string, unknown>;
   const keys = new Set([...Object.keys(leftRecord), ...Object.keys(rightRecord)]);
@@ -189,6 +170,37 @@ function areGraphValuesEqual(left: unknown, right: unknown): boolean {
   }
 
   return true;
+}
+
+function areGraphArraysEqual(left: readonly unknown[], right: readonly unknown[]): boolean {
+  return left.length === right.length
+    && left.every((leftValue, index) => areGraphValuesEqual(leftValue, right[index]));
+}
+
+function isGraphRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null
+    && typeof value === 'object'
+    && !Array.isArray(value);
+}
+
+function compareGraphArrayValues(left: unknown, right: unknown): boolean | undefined {
+  if (!Array.isArray(left) && !Array.isArray(right)) {
+    return undefined;
+  }
+
+  return Array.isArray(left) && Array.isArray(right) && areGraphArraysEqual(left, right);
+}
+
+function compareGraphRecordValues(left: unknown, right: unknown): boolean {
+  return isGraphRecord(left) && isGraphRecord(right) && areGraphRecordsEqual(left, right);
+}
+
+function areGraphValuesEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  return compareGraphArrayValues(left, right) ?? compareGraphRecordValues(left, right);
 }
 
 function areNodesEqualIgnoringMetrics(left: IGraphNode, right: IGraphNode): boolean {
@@ -248,12 +260,8 @@ function createMetricOnlyGraphUpdate(
   nextRawGraphData: IGraphData,
   changedFilePaths: readonly string[] | undefined,
 ): IGraphNodeMetricsUpdate[] | undefined {
-  if (
-    !currentRawGraphData
-    || !changedFilePaths?.length
-    || currentRawGraphData.nodes.length !== nextRawGraphData.nodes.length
-    || currentRawGraphData.edges.length !== nextRawGraphData.edges.length
-  ) {
+  const changedPaths = changedFilePaths ?? [];
+  if (!canConsiderMetricOnlyGraphUpdate(currentRawGraphData, nextRawGraphData, changedFilePaths)) {
     return undefined;
   }
 
@@ -261,13 +269,44 @@ function createMetricOnlyGraphUpdate(
     return undefined;
   }
 
-  const currentNodes = collectChangedPathNodes(currentRawGraphData, changedFilePaths);
-  const nextNodes = collectChangedPathNodes(nextRawGraphData, changedFilePaths);
+  const currentNodes = collectChangedPathNodes(currentRawGraphData, changedPaths);
+  const nextNodes = collectChangedPathNodes(nextRawGraphData, changedPaths);
   if (currentNodes.length === 0 || currentNodes.length !== nextNodes.length) {
     return undefined;
   }
 
-  const nextNodesById = createNodeMap(nextNodes);
+  return collectMetricOnlyGraphUpdates(currentNodes, createNodeMap(nextNodes));
+}
+
+function canConsiderMetricOnlyGraphUpdate(
+  currentRawGraphData: IGraphData | undefined,
+  nextRawGraphData: IGraphData,
+  changedFilePaths: readonly string[] | undefined,
+): currentRawGraphData is IGraphData {
+  return Boolean(
+    currentRawGraphData
+    && changedFilePaths?.length
+    && currentRawGraphData.nodes.length === nextRawGraphData.nodes.length
+    && currentRawGraphData.edges.length === nextRawGraphData.edges.length,
+  );
+}
+
+function haveGraphNodeMetricsChanged(currentNode: IGraphNode, nextNode: IGraphNode): boolean {
+  return currentNode.fileSize !== nextNode.fileSize || currentNode.churn !== nextNode.churn;
+}
+
+function createGraphNodeMetricsUpdate(nextNode: IGraphNode): IGraphNodeMetricsUpdate {
+  return {
+    id: nextNode.id,
+    fileSize: nextNode.fileSize,
+    churn: nextNode.churn,
+  };
+}
+
+function collectMetricOnlyGraphUpdates(
+  currentNodes: readonly IGraphNode[],
+  nextNodesById: ReadonlyMap<string, IGraphNode>,
+): IGraphNodeMetricsUpdate[] | undefined {
   const updates: IGraphNodeMetricsUpdate[] = [];
 
   for (const currentNode of currentNodes) {
@@ -276,23 +315,12 @@ function createMetricOnlyGraphUpdate(
       return undefined;
     }
 
-    if (
-      currentNode.fileSize !== nextNode.fileSize
-      || currentNode.churn !== nextNode.churn
-    ) {
-      updates.push({
-        id: nextNode.id,
-        fileSize: nextNode.fileSize,
-        churn: nextNode.churn,
-      });
+    if (haveGraphNodeMetricsChanged(currentNode, nextNode)) {
+      updates.push(createGraphNodeMetricsUpdate(nextNode));
     }
   }
 
-  if (updates.length === 0) {
-    return undefined;
-  }
-
-  return updates;
+  return updates.length > 0 ? updates : undefined;
 }
 
 function canReuseCurrentGraphPublication(
@@ -309,7 +337,105 @@ function canReuseCurrentGraphPublication(
   return currentRawGraphData
     ? !hasChangedNodeMetricDifference(currentRawGraphData, rawGraphData, state.changedFilePaths)
       && areGraphDataPayloadsEqual(currentRawGraphData, rawGraphData)
-    : false;
+	    : false;
+}
+
+interface GraphPublicationPlan {
+  currentRawGraphData: IGraphData | undefined;
+  metricOnlyUpdate: IGraphNodeMetricsUpdate[] | undefined;
+  reuseCurrentGraphPublication: boolean;
+  shouldSendMetricPatch: boolean;
+}
+
+function createGraphPublicationPlan(
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+  rawGraphData: IGraphData,
+  actualHasIndex: boolean,
+  freshness: CodeGraphyIndexFreshness,
+): GraphPublicationPlan {
+  const currentRawGraphData = handlers.getRawGraphData?.();
+  const metricOnlyUpdate = createMetricOnlyGraphUpdate(
+    currentRawGraphData,
+    rawGraphData,
+    state.changedFilePaths,
+  );
+
+  return {
+    currentRawGraphData,
+    metricOnlyUpdate,
+    reuseCurrentGraphPublication: canReuseCurrentGraphPublication(
+      state,
+      currentRawGraphData,
+      rawGraphData,
+      actualHasIndex,
+      freshness,
+    ),
+    shouldSendMetricPatch: metricOnlyUpdate !== undefined
+      && handlers.sendGraphNodeMetricsUpdated !== undefined,
+  };
+}
+
+function publishRawGraphUpdate(
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+  rawGraphData: IGraphData,
+  plan: GraphPublicationPlan,
+): void {
+  if (plan.reuseCurrentGraphPublication) {
+    return;
+  }
+
+  handlers.setRawGraphData(rawGraphData);
+  handlers.updateViewContext();
+  handlers.applyViewTransform();
+  publishGraphGroupsIfNeeded(state, handlers, rawGraphData, plan.currentRawGraphData);
+}
+
+function publishGraphGroupsIfNeeded(
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+  rawGraphData: IGraphData,
+  currentRawGraphData: IGraphData | undefined,
+): void {
+  const canSkipGroupPublication = state.mode === 'incremental'
+    && currentRawGraphData
+    && !doGraphViewGroupsNeedRecompute(currentRawGraphData, rawGraphData);
+
+  if (canSkipGroupPublication) {
+    return;
+  }
+
+  handlers.computeMergedGroups();
+  handlers.sendGroupsUpdated();
+}
+
+function publishStaticGraphMessages(handlers: GraphViewAnalysisExecutionHandlers): void {
+  handlers.sendDepthState();
+  handlers.sendPluginStatuses();
+  handlers.sendDecorations();
+  handlers.sendContextMenuItems();
+  handlers.sendPluginExporters?.();
+  handlers.sendPluginToolbarActions?.();
+  handlers.sendGraphViewContributionStatuses?.();
+  handlers.sendPluginWebviewInjections?.();
+}
+
+function publishGraphDataMessage(
+  handlers: GraphViewAnalysisExecutionHandlers,
+  graphData: IGraphData,
+  plan: GraphPublicationPlan,
+): void {
+  if (plan.reuseCurrentGraphPublication) {
+    return;
+  }
+
+  if (plan.shouldSendMetricPatch && plan.metricOnlyUpdate) {
+    handlers.sendGraphNodeMetricsUpdated?.(plan.metricOnlyUpdate);
+    return;
+  }
+
+  handlers.sendGraphDataUpdated(graphData);
 }
 
 export function publishEmptyGraph(
@@ -333,6 +459,7 @@ export function publishAnalyzedGraph(
 ): void {
   const actualHasIndex = state.analyzer?.hasIndex() ?? hasIndex;
   const status = resolveGraphIndexStatus(state, actualHasIndex);
+
   if (shouldReportGraphViewUpdateProgress(state)) {
     handlers.sendIndexProgress?.({
       phase: 'Updating Graph View',
@@ -341,57 +468,21 @@ export function publishAnalyzedGraph(
     });
   }
 
-  const currentRawGraphData = handlers.getRawGraphData?.();
-  const metricOnlyUpdate = createMetricOnlyGraphUpdate(
-    currentRawGraphData,
-    rawGraphData,
-    state.changedFilePaths,
-  );
-  const shouldSendMetricPatch = metricOnlyUpdate !== undefined
-    && handlers.sendGraphNodeMetricsUpdated !== undefined;
-  const reuseCurrentGraphPublication = canReuseCurrentGraphPublication(
+  const plan = createGraphPublicationPlan(
     state,
-    currentRawGraphData,
+    handlers,
     rawGraphData,
     actualHasIndex,
     status.freshness,
   );
-
-  if (!reuseCurrentGraphPublication) {
-    handlers.setRawGraphData(rawGraphData);
-
-    handlers.updateViewContext();
-    handlers.applyViewTransform();
-
-    const canSkipGroupPublication = state.mode === 'incremental'
-      && currentRawGraphData
-      && !doGraphViewGroupsNeedRecompute(currentRawGraphData, rawGraphData);
-    if (!canSkipGroupPublication) {
-      handlers.computeMergedGroups();
-
-      handlers.sendGroupsUpdated();
-    }
-  }
-
-  if (!shouldSendMetricPatch) {
-    handlers.sendDepthState();
-    handlers.sendPluginStatuses();
-    handlers.sendDecorations();
-    handlers.sendContextMenuItems();
-    handlers.sendPluginExporters?.();
-    handlers.sendPluginToolbarActions?.();
-    handlers.sendGraphViewContributionStatuses?.();
-    handlers.sendPluginWebviewInjections?.();
-  }
+  publishRawGraphUpdate(state, handlers, rawGraphData, plan);
 
   const graphData = handlers.getGraphData();
-  if (!reuseCurrentGraphPublication) {
-    if (shouldSendMetricPatch) {
-      handlers.sendGraphNodeMetricsUpdated?.(metricOnlyUpdate);
-    } else {
-      handlers.sendGraphDataUpdated(graphData);
-    }
+  if (!plan.shouldSendMetricPatch) {
+    publishStaticGraphMessages(handlers);
   }
+  publishGraphDataMessage(handlers, graphData, plan);
+
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
   handlers.markWorkspaceReady(graphData, state.disabledPlugins);

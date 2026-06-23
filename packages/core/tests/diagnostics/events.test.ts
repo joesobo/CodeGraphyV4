@@ -69,6 +69,16 @@ describe('diagnostics/events', () => {
     })).toBe('[CodeGraphy] Indexing phase complete: phase=analyze-files, durationMs=2750, files=42, cacheHits=20, cacheMisses=22');
   });
 
+  it('formats unknown events with readable fallback context', () => {
+    expect(formatDiagnosticEventLine({
+      area: 'graph-cache',
+      event: 'cache-load-failed',
+      context: {
+        operationId: 'index-1',
+      },
+    })).toBe('[CodeGraphy] Cache load failed: area=graph-cache, operationId=index-1');
+  });
+
   it('normalizes non-JSON primitive context values into readable strings', () => {
     function namedDiagnosticFunction(): void {
       // The function name is the diagnostic payload under test.
@@ -91,6 +101,33 @@ describe('diagnostics/events', () => {
         token: 'Symbol(verbose)',
         count: '12',
         callback: '[Function: namedDiagnosticFunction]',
+      },
+    });
+  });
+
+  it('normalizes nested object context values into JSON-safe values', () => {
+    expect(createDiagnosticEvent({
+      area: 'diagnostics',
+      event: 'nested',
+      context: {
+        payload: {
+          enabled: true,
+          paths: new Set(['src/app.ts']),
+          error: new Error('nested failure'),
+        },
+      },
+    })).toEqual({
+      area: 'diagnostics',
+      event: 'nested',
+      context: {
+        payload: {
+          enabled: true,
+          paths: ['src/app.ts'],
+          error: {
+            name: 'Error',
+            message: 'nested failure',
+          },
+        },
       },
     });
   });

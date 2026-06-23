@@ -192,6 +192,115 @@ function cacheReferenceResult<TValue>(
   }
 }
 
+function getVisibleGraphResult({
+  cache,
+  edgeTypes,
+  edgeVisibility,
+  filterPatterns,
+  graphData,
+  key,
+  nodeTypes,
+  nodeVisibility,
+  searchOptions,
+  searchQuery,
+  showOrphans,
+}: {
+  cache: VisibleGraphCache;
+  edgeTypes: IGraphEdgeTypeDefinition[];
+  edgeVisibility: Record<string, boolean>;
+  filterPatterns: readonly string[];
+  graphData: IGraphData | null;
+  key: string;
+  nodeTypes: IGraphNodeTypeDefinition[];
+  nodeVisibility: Record<string, boolean>;
+  searchOptions: SearchOptions;
+  searchQuery: string;
+  showOrphans: boolean;
+}): VisibleGraphResult {
+  if (cache.graphData !== graphData) {
+    cache.graphData = graphData;
+    cache.entries.clear();
+  }
+
+  const cached = cache.entries.get(key);
+  if (cached) {
+    cache.entries.delete(key);
+    cache.entries.set(key, cached);
+    return cached;
+  }
+
+  const result = deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+    edgeTypes,
+    edgeVisibility,
+    filterPatterns,
+    nodeTypes,
+    nodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans,
+  }));
+  cacheVisibleGraphResult(cache, key, result);
+  return result;
+}
+
+function getStyledGraphResult({
+  cache,
+  edgeTypes,
+  graph,
+  key,
+  nodeColors,
+}: {
+  cache: ReferenceResultCache<IGraphData>;
+  edgeTypes: IGraphEdgeTypeDefinition[];
+  graph: IGraphData | null;
+  key: string;
+  nodeColors: Record<string, string>;
+}): IGraphData | null {
+  if (!graph) {
+    return null;
+  }
+
+  const cached = getReferenceResult(cache, graph, key);
+  if (cached) {
+    return cached;
+  }
+
+  const edgeTypesForStyling = withSharedEdgeTypeAliases(edgeTypes);
+  const result = {
+    nodes: applyNodeTypeColors(withResolvedNodeTypes(graph.nodes), nodeColors),
+    edges: applyEdgeTypeDefaultColors(graph.edges, edgeTypesForStyling),
+  };
+  cacheReferenceResult(cache, graph, key, result);
+  return result;
+}
+
+function getColoredGraphResult({
+  cache,
+  filteredData,
+  key,
+  legends,
+}: {
+  cache: ReferenceResultCache<IGraphData>;
+  filteredData: IGraphData | null;
+  key: string;
+  legends: IGroup[];
+}): IGraphData | null {
+  if (!filteredData) {
+    return null;
+  }
+
+  const cached = getReferenceResult(cache, filteredData, key);
+  if (cached) {
+    return cached;
+  }
+
+  const result = applyLegendRules(filteredData, legends);
+  if (result) {
+    cacheReferenceResult(cache, filteredData, key, result);
+  }
+  return result;
+}
+
 /**
  * Derives the filtered + colored graph data.
  * Both memos recompute only when their specific inputs change.
@@ -242,31 +351,19 @@ export function useFilteredGraph(
   ]);
 
   const visibleGraph = useMemo(() => {
-    const cache = visibleGraphCache.current;
-    if (cache.graphData !== graphData) {
-      cache.graphData = graphData;
-      cache.entries.clear();
-    }
-
-    const cached = cache.entries.get(visibleGraphCacheKey);
-    if (cached) {
-      cache.entries.delete(visibleGraphCacheKey);
-      cache.entries.set(visibleGraphCacheKey, cached);
-      return cached;
-    }
-
-    const result = deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+    return getVisibleGraphResult({
+      cache: visibleGraphCache.current,
       edgeTypes,
       edgeVisibility,
       filterPatterns,
+      graphData,
+      key: visibleGraphCacheKey,
       nodeTypes,
       nodeVisibility,
       searchOptions,
       searchQuery,
       showOrphans,
-    }));
-    cacheVisibleGraphResult(cache, visibleGraphCacheKey, result);
-    return result;
+    });
   }, [
     edgeTypes,
     edgeVisibility,
@@ -281,41 +378,22 @@ export function useFilteredGraph(
   ]);
 
   const filteredData = useMemo(() => {
-    const graph = visibleGraph.graphData;
-    if (!graph) {
-      return null;
-    }
-
-    const cached = getReferenceResult(styledGraphCache.current, graph, styledGraphCacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    const edgeTypesForStyling = withSharedEdgeTypeAliases(edgeTypes);
-
-    const result = {
-      nodes: applyNodeTypeColors(withResolvedNodeTypes(graph.nodes), nodeColors),
-      edges: applyEdgeTypeDefaultColors(graph.edges, edgeTypesForStyling),
-    };
-    cacheReferenceResult(styledGraphCache.current, graph, styledGraphCacheKey, result);
-    return result;
+    return getStyledGraphResult({
+      cache: styledGraphCache.current,
+      edgeTypes,
+      graph: visibleGraph.graphData,
+      key: styledGraphCacheKey,
+      nodeColors,
+    });
   }, [edgeTypes, nodeColors, styledGraphCacheKey, visibleGraph.graphData]);
 
   const coloredData = useMemo(() => {
-    if (!filteredData) {
-      return null;
-    }
-
-    const cached = getReferenceResult(coloredGraphCache.current, filteredData, legendGraphCacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    const result = applyLegendRules(filteredData, legends);
-    if (result) {
-      cacheReferenceResult(coloredGraphCache.current, filteredData, legendGraphCacheKey, result);
-    }
-    return result;
+    return getColoredGraphResult({
+      cache: coloredGraphCache.current,
+      filteredData,
+      key: legendGraphCacheKey,
+      legends,
+    });
   }, [filteredData, legendGraphCacheKey, legends]);
 
   const controlsEdgeDecorations = useMemo(

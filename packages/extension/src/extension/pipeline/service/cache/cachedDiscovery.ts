@@ -38,6 +38,28 @@ function toGitPath(relativePath: string): string {
   return relativePath.split(path.sep).join('/');
 }
 
+function createCachedGitPathLookup(relativePaths: readonly string[]): Map<string, string> {
+  return new Map(relativePaths.map(relativePath => [toGitPath(relativePath), relativePath]));
+}
+
+function createGitCheckIgnoreInput(pathsByGitPath: ReadonlyMap<string, string>): string {
+  return `${[...pathsByGitPath.keys()].join('\n')}\n`;
+}
+
+function didGitCheckIgnoreFail(result: ReturnType<typeof spawnSync>): boolean {
+  return Boolean(result.error) || (result.status !== 0 && result.status !== 1);
+}
+
+function readGitIgnoredCachedPaths(
+  stdout: string,
+  pathsByGitPath: ReadonlyMap<string, string>,
+): string[] {
+  return stdout
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map(gitPath => pathsByGitPath.get(gitPath) ?? gitPath);
+}
+
 export function collectCachedGitIgnoredPaths(
   workspaceRoot: string,
   relativePaths: readonly string[],
@@ -47,24 +69,18 @@ export function collectCachedGitIgnoredPaths(
     return [];
   }
 
-  const pathsByGitPath = new Map<string, string>();
-  for (const relativePath of relativePaths) {
-    pathsByGitPath.set(toGitPath(relativePath), relativePath);
-  }
+  const pathsByGitPath = createCachedGitPathLookup(relativePaths);
 
   const result = spawnSync('git', ['-C', workspaceRoot, 'check-ignore', '--stdin'], {
     encoding: 'utf8',
-    input: `${[...pathsByGitPath.keys()].join('\n')}\n`,
+    input: createGitCheckIgnoreInput(pathsByGitPath),
   });
 
-  if (result.error || (result.status !== 0 && result.status !== 1)) {
+  if (didGitCheckIgnoreFail(result)) {
     return [];
   }
 
-  return result.stdout
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map(gitPath => pathsByGitPath.get(gitPath) ?? gitPath);
+  return readGitIgnoredCachedPaths(result.stdout, pathsByGitPath);
 }
 
 export function createCachedWorkspaceDiscoveryState(

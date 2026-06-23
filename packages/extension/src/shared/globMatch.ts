@@ -48,6 +48,12 @@ interface CombinedFastGlobMatchers {
   suffixes: string[];
 }
 
+type FastGlobPattern =
+  | { kind: 'directChild'; directoryPath: string }
+  | { kind: 'literal'; suffix: string }
+  | { kind: 'recursiveDirectory'; directoryPath: string }
+  | { kind: 'suffix'; suffix: string };
+
 export function createGlobMatcher(pattern: string): GlobMatcher {
   const fastMatcher = createFastGlobMatcher(pattern);
   if (fastMatcher) {
@@ -90,47 +96,92 @@ function createDirectChildMatcher(directoryPath: string): GlobMatcher {
   };
 }
 
+function createSuffixMatcher(suffix: string): GlobMatcher {
+  const suffixLength = suffix.length;
+  const suffixFirstCode = suffix.charCodeAt(0);
+  return (filePath: string): boolean => (
+    filePath.length >= suffixLength
+    && filePath.charCodeAt(filePath.length - suffixLength) === suffixFirstCode
+    && filePath.endsWith(suffix)
+  );
+}
+
+function removeRecursivePrefix(pattern: string): string {
+  return pattern.startsWith('**/') ? pattern.slice(3) : pattern;
+}
+
+function getExtensionSuffixPattern(pattern: string): string | undefined {
+  const hasOnlyLeadingWildcard = pattern.startsWith('*.') && pattern.indexOf('*', 1) === -1;
+  return hasOnlyLeadingWildcard && !pattern.includes('/') ? pattern.slice(1) : undefined;
+}
+
+function getDirectoryPattern(pattern: string, ending: '/**' | '/*'): string | undefined {
+  if (!pattern.endsWith(ending)) {
+    return undefined;
+  }
+
+  const directoryPath = pattern.slice(0, -ending.length);
+  return directoryPath && !directoryPath.includes('*') ? directoryPath : undefined;
+}
+
+function classifyFastGlobPattern(pattern: string): FastGlobPattern | undefined {
+  const recursivePattern = removeRecursivePrefix(pattern);
+
+  if (!recursivePattern.includes('*')) {
+    return { kind: 'literal', suffix: recursivePattern };
+  }
+
+  const suffix = getExtensionSuffixPattern(recursivePattern);
+  if (suffix) {
+    return { kind: 'suffix', suffix };
+  }
+
+  const recursiveDirectoryPath = getDirectoryPattern(recursivePattern, '/**');
+  if (recursiveDirectoryPath) {
+    return { kind: 'recursiveDirectory', directoryPath: recursiveDirectoryPath };
+  }
+
+  const directChildDirectoryPath = getDirectoryPattern(recursivePattern, '/*');
+  return directChildDirectoryPath
+    ? { kind: 'directChild', directoryPath: directChildDirectoryPath }
+    : undefined;
+}
+
+function addFastMatcher(fastMatchers: CombinedFastGlobMatchers, pattern: FastGlobPattern): void {
+  if (pattern.kind === 'literal') {
+    fastMatchers.literalSuffixes.push(pattern.suffix);
+    return;
+  }
+
+  if (pattern.kind === 'suffix') {
+    fastMatchers.suffixes.push(pattern.suffix);
+    return;
+  }
+
+  if (pattern.kind === 'directChild') {
+    fastMatchers.directMatchers.push(createDirectChildMatcher(pattern.directoryPath));
+    return;
+  }
+
+  if (!pattern.directoryPath.includes('/')) {
+    fastMatchers.recursiveDirectoryNames.add(pattern.directoryPath);
+    return;
+  }
+
+  fastMatchers.directMatchers.push(createRecursiveDirectoryMatcher(pattern.directoryPath));
+}
+
 function collectFastMatcher(
   fastMatchers: CombinedFastGlobMatchers,
   pattern: string,
 ): boolean {
-  const recursivePattern = pattern.startsWith('**/') ? pattern.slice(3) : pattern;
-
-  if (!recursivePattern.includes('*')) {
-    fastMatchers.literalSuffixes.push(recursivePattern);
-    return true;
+  const fastPattern = classifyFastGlobPattern(pattern);
+  if (!fastPattern) {
+    return false;
   }
 
-  if (
-    recursivePattern.startsWith('*.')
-    && recursivePattern.indexOf('*', 1) === -1
-    && !recursivePattern.includes('/')
-  ) {
-    fastMatchers.suffixes.push(recursivePattern.slice(1));
-    return true;
-  }
-
-  if (recursivePattern.endsWith('/**')) {
-    const directoryPath = recursivePattern.slice(0, -3);
-    if (directoryPath && !directoryPath.includes('*')) {
-      if (!directoryPath.includes('/')) {
-        fastMatchers.recursiveDirectoryNames.add(directoryPath);
-      } else {
-        fastMatchers.directMatchers.push(createRecursiveDirectoryMatcher(directoryPath));
-      }
-      return true;
-    }
-  }
-
-  if (recursivePattern.endsWith('/*')) {
-    const directoryPath = recursivePattern.slice(0, -2);
-    if (directoryPath && !directoryPath.includes('*')) {
-      fastMatchers.directMatchers.push(createDirectChildMatcher(directoryPath));
-      return true;
-    }
-  }
-
-  return false;
+  addFastMatcher(fastMatchers, fastPattern);
+  return true;
 }
 
 function matchesAnyPathSuffix(filePath: string, suffixes: readonly string[]): boolean {
@@ -183,48 +234,28 @@ function createFastGlobMatcher(pattern: string): GlobMatcher | undefined {
     return () => false;
   }
 
-  const recursivePattern = pattern.startsWith('**/') ? pattern.slice(3) : pattern;
-
-  if (!recursivePattern.includes('*')) {
-    return (filePath: string): boolean => matchesPathSuffix(filePath, recursivePattern);
+  const fastPattern = classifyFastGlobPattern(pattern);
+  if (!fastPattern) {
+    return undefined;
   }
 
-  if (
-    recursivePattern.startsWith('*.')
-    && recursivePattern.indexOf('*', 1) === -1
-    && !recursivePattern.includes('/')
-  ) {
-    const suffix = recursivePattern.slice(1);
-    return (filePath: string): boolean => filePath.endsWith(suffix);
+  if (fastPattern.kind === 'literal') {
+    return (filePath: string): boolean => matchesPathSuffix(filePath, fastPattern.suffix);
   }
 
-  if (recursivePattern.endsWith('/**')) {
-    const directoryPath = recursivePattern.slice(0, -3);
-    if (directoryPath && !directoryPath.includes('*')) {
-      return createRecursiveDirectoryMatcher(directoryPath);
-    }
+  if (fastPattern.kind === 'suffix') {
+    return createSuffixMatcher(fastPattern.suffix);
   }
 
-  if (recursivePattern.endsWith('/*')) {
-    const directoryPath = recursivePattern.slice(0, -2);
-    if (directoryPath && !directoryPath.includes('*')) {
-      return createDirectChildMatcher(directoryPath);
-    }
-  }
-
-  return undefined;
+  return fastPattern.kind === 'directChild'
+    ? createDirectChildMatcher(fastPattern.directoryPath)
+    : createRecursiveDirectoryMatcher(fastPattern.directoryPath);
 }
 
-export function createCombinedGlobMatcher(patterns: readonly string[]): (filePath: string) => boolean {
-  if (patterns.length === 0) {
-    return () => false;
-  }
-
-  if (patterns.length === 1) {
-    const pattern = patterns[0] ?? '';
-    return createFastGlobMatcher(pattern) ?? createGlobMatcher(pattern);
-  }
-
+function collectCombinedFastMatchers(patterns: readonly string[]): {
+  fastMatchers: CombinedFastGlobMatchers;
+  regexPatterns: string[];
+} {
   const fastMatchers: CombinedFastGlobMatchers = {
     directMatchers: [],
     literalSuffixes: [],
@@ -238,10 +269,19 @@ export function createCombinedGlobMatcher(patterns: readonly string[]): (filePat
     }
   }
 
-  const regex = regexPatterns.length > 0
+  return { fastMatchers, regexPatterns };
+}
+
+function createCombinedRegexMatcher(regexPatterns: readonly string[]): RegExp | null {
+  return regexPatterns.length > 0
     ? new RegExp(regexPatterns.map(pattern => `(?:${globToRegex(pattern).source})`).join('|'))
     : null;
+}
 
+function createCombinedFastMatcher(
+  fastMatchers: CombinedFastGlobMatchers,
+  regex: RegExp | null,
+): GlobMatcher {
   return (filePath: string): boolean => {
     if (
       containsRecursiveDirectoryName(filePath, fastMatchers.recursiveDirectoryNames)
@@ -259,6 +299,23 @@ export function createCombinedGlobMatcher(patterns: readonly string[]): (filePat
 
     return regex ? regex.test(filePath) : false;
   };
+}
+
+export function createCombinedGlobMatcher(patterns: readonly string[]): (filePath: string) => boolean {
+  if (patterns.length === 0) {
+    return () => false;
+  }
+
+  if (patterns.length === 1) {
+    const pattern = patterns[0] ?? '';
+    return createFastGlobMatcher(pattern) ?? createGlobMatcher(pattern);
+  }
+
+  const { fastMatchers, regexPatterns } = collectCombinedFastMatchers(patterns);
+  const regex = regexPatterns.length > 0
+    ? createCombinedRegexMatcher(regexPatterns)
+    : null;
+  return createCombinedFastMatcher(fastMatchers, regex);
 }
 
 export function globMatch(filePath: string, pattern: string): boolean {

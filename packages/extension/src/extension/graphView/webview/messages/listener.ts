@@ -31,6 +31,12 @@ interface WebviewReadyDelivery {
   postedAt?: number;
 }
 
+interface WebviewReadyTracking {
+  completedAt?: number;
+  handled: boolean;
+  pageId?: string;
+}
+
 function getWebviewReadyDelivery(message: WebviewReadyMessage): WebviewReadyDelivery {
   const payload = (message as { payload?: unknown }).payload;
   if (!payload || typeof payload !== 'object') {
@@ -89,32 +95,69 @@ function createReadyState(context: GraphViewMessageListenerContext) {
   };
 }
 
+function isSameReadyPage(delivery: WebviewReadyDelivery, tracking: WebviewReadyTracking): boolean {
+  return delivery.pageId !== undefined && delivery.pageId === tracking.pageId;
+}
+
+function wasReadyPostedBeforeBootstrapCompleted(
+  delivery: WebviewReadyDelivery,
+  tracking: WebviewReadyTracking,
+): boolean {
+  return delivery.postedAt !== undefined
+    && tracking.completedAt !== undefined
+    && delivery.postedAt <= tracking.completedAt;
+}
+
+function shouldIgnoreDuplicateReady(
+  delivery: WebviewReadyDelivery,
+  tracking: WebviewReadyTracking,
+): boolean {
+  return isSameReadyPage(delivery, tracking)
+    || wasReadyPostedBeforeBootstrapCompleted(delivery, tracking);
+}
+
+async function handleWebviewReadyMessage(
+  context: GraphViewMessageListenerContext,
+  delivery: WebviewReadyDelivery,
+  tracking: WebviewReadyTracking,
+): Promise<boolean> {
+  if (!tracking.handled) {
+    tracking.handled = true;
+    tracking.pageId = delivery.pageId;
+    return false;
+  }
+
+  if (shouldIgnoreDuplicateReady(delivery, tracking)) {
+    return true;
+  }
+
+  tracking.pageId = delivery.pageId;
+  await replayDuplicateWebviewReady(createReadyState(context), context);
+  return true;
+}
+
+function markWebviewReadyCompleted(
+  tracking: WebviewReadyTracking,
+  isWebviewReadyMessage: boolean,
+): void {
+  if (isWebviewReadyMessage) {
+    tracking.completedAt = Date.now();
+  }
+}
+
 function createGraphViewWebviewMessageHandler(
   webview: vscode.Webview,
   context: GraphViewMessageListenerContext,
 ): (message: WebviewToExtensionMessage) => Promise<void> {
-  let webviewReadyHandled = false;
-  let webviewReadyPageId: string | undefined;
-  let webviewReadyCompletedAt: number | undefined;
+  const webviewReadyTracking: WebviewReadyTracking = { handled: false };
 
   return async function handleGraphViewWebviewMessage(message: WebviewToExtensionMessage): Promise<void> {
     const isWebviewReadyMessage = message.type === 'WEBVIEW_READY';
-    if (message.type === 'WEBVIEW_READY') {
+    if (isWebviewReadyMessage) {
       const delivery = getWebviewReadyDelivery(message);
-      if (webviewReadyHandled) {
-        const isSamePage = delivery.pageId !== undefined && delivery.pageId === webviewReadyPageId;
-        const wasPostedBeforeCompletedBootstrap = delivery.postedAt !== undefined
-          && webviewReadyCompletedAt !== undefined
-          && delivery.postedAt <= webviewReadyCompletedAt;
-        if (isSamePage || wasPostedBeforeCompletedBootstrap) {
-          return;
-        }
-        webviewReadyPageId = delivery.pageId;
-        await replayDuplicateWebviewReady(createReadyState(context), context);
+      if (await handleWebviewReadyMessage(context, delivery, webviewReadyTracking)) {
         return;
       }
-      webviewReadyHandled = true;
-      webviewReadyPageId = delivery.pageId;
     }
 
     const primaryResult = await dispatchGraphViewPrimaryMessage(message, {
@@ -122,16 +165,14 @@ function createGraphViewWebviewMessageHandler(
       asWebviewUri: uri => webview.asWebviewUri(uri),
     });
     if (applyGraphViewPrimaryMessageResult(primaryResult, context)) {
-      if (isWebviewReadyMessage) {
-        webviewReadyCompletedAt = Date.now();
-      }
+      markWebviewReadyCompleted(webviewReadyTracking, isWebviewReadyMessage);
       return;
     }
 
     const pluginResult = await dispatchGraphViewPluginMessage(message, context);
     applyGraphViewPluginMessageResult(pluginResult, context);
     if (isWebviewReadyMessage && pluginResult.handled) {
-      webviewReadyCompletedAt = Date.now();
+      markWebviewReadyCompleted(webviewReadyTracking, isWebviewReadyMessage);
     }
   };
 }

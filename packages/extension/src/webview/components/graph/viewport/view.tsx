@@ -3,6 +3,7 @@ import {
   memo,
   Suspense,
   useRef,
+  type ComponentProps,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
@@ -68,6 +69,64 @@ export interface ViewportProps {
   pluginHost?: WebviewPluginHost;
 }
 
+const EMPTY_ACCESSIBILITY_ITEMS: GraphAccessibilityItems = { nodes: [], edges: [] };
+const ignoreEdgeContextMenu: NonNullable<ViewportProps['handleEdgeContextMenu']> = () => undefined;
+const ignoreNodeClick: NonNullable<ViewportProps['handleNodeClick']> = () => undefined;
+const ignoreNodeContextMenu: NonNullable<ViewportProps['handleNodeContextMenu']> = () => undefined;
+const ignoreNodeHover: NonNullable<ViewportProps['handleNodeHover']> = () => undefined;
+
+type NodeTooltipComponentProps = ComponentProps<typeof NodeTooltip>;
+
+interface ResolvedViewportHandlers {
+  handleEdgeContextMenu: NonNullable<ViewportProps['handleEdgeContextMenu']>;
+  handleNodeClick: NonNullable<ViewportProps['handleNodeClick']>;
+  handleNodeContextMenu: NonNullable<ViewportProps['handleNodeContextMenu']>;
+  handleNodeHover: NonNullable<ViewportProps['handleNodeHover']>;
+}
+
+function resolveViewportAccessibilityItems(
+  accessibilityItems: ViewportProps['accessibilityItems'],
+): GraphAccessibilityItems {
+  return accessibilityItems ?? EMPTY_ACCESSIBILITY_ITEMS;
+}
+
+function resolveViewportHandlers({
+  handleEdgeContextMenu,
+  handleNodeClick,
+  handleNodeContextMenu,
+  handleNodeHover,
+}: Pick<
+  ViewportProps,
+  'handleEdgeContextMenu' | 'handleNodeClick' | 'handleNodeContextMenu' | 'handleNodeHover'
+>): ResolvedViewportHandlers {
+  return {
+    handleEdgeContextMenu: handleEdgeContextMenu ?? ignoreEdgeContextMenu,
+    handleNodeClick: handleNodeClick ?? ignoreNodeClick,
+    handleNodeContextMenu: handleNodeContextMenu ?? ignoreNodeContextMenu,
+    handleNodeHover: handleNodeHover ?? ignoreNodeHover,
+  };
+}
+
+function createNodeTooltipProps({
+  pluginHost,
+  tooltipData,
+}: Pick<ViewportProps, 'pluginHost' | 'tooltipData'>): NodeTooltipComponentProps {
+  return {
+    extraActions: tooltipData.pluginActions,
+    extraSections: tooltipData.pluginSections,
+    incomingCount: tooltipData.incomingCount ?? tooltipData.info?.incomingCount ?? 0,
+    lastModified: tooltipData.info?.lastModified,
+    nodeRect: tooltipData.nodeRect,
+    outgoingCount: tooltipData.outgoingCount ?? tooltipData.info?.outgoingCount ?? 0,
+    path: tooltipData.path,
+    plugin: tooltipData.info?.plugin ?? tooltipData.symbol?.plugin,
+    pluginHost,
+    size: tooltipData.info?.size,
+    symbol: tooltipData.symbol,
+    visible: tooltipData.visible,
+  };
+}
+
 interface ViewportSurfaceProps {
   canvasBackgroundColor: string;
   directionMode: DirectionMode;
@@ -125,39 +184,63 @@ function areSurface2dPropsEqual(
   previous: ViewportSurfaceProps['surface2dProps'],
   next: ViewportSurfaceProps['surface2dProps'],
 ): boolean {
-  return previous.fg2dRef === next.fg2dRef
-    && previous.getArrowColor === next.getArrowColor
-    && previous.getArrowRelPos === next.getArrowRelPos
-    && previous.getLinkColor === next.getLinkColor
-    && previous.getLinkParticles === next.getLinkParticles
-    && previous.getLinkWidth === next.getLinkWidth
-    && previous.getParticleColor === next.getParticleColor
-    && previous.linkCanvasObject === next.linkCanvasObject
-    && previous.nodeCanvasObject === next.nodeCanvasObject
-    && previous.nodePointerAreaPaint === next.nodePointerAreaPaint
-    && previous.onRenderFramePost === next.onRenderFramePost
-    && previous.particleSize === next.particleSize
-    && previous.particleSpeed === next.particleSpeed
-    && previous.sharedProps === next.sharedProps;
+  return propsEqualByKeys(previous, next, SURFACE_2D_PROP_KEYS);
 }
 
 function areSurface3dPropsEqual(
   previous: ViewportSurfaceProps['surface3dProps'],
   next: ViewportSurfaceProps['surface3dProps'],
 ): boolean {
-  return previous.fg3dRef === next.fg3dRef
-    && previous.getArrowColor === next.getArrowColor
-    && previous.getLinkColor === next.getLinkColor
-    && previous.getLinkParticles === next.getLinkParticles
-    && previous.getLinkWidth === next.getLinkWidth
-    && previous.nodeThreeObjectContext.graphAppearanceRef === next.nodeThreeObjectContext.graphAppearanceRef
-    && previous.nodeThreeObjectContext.meshesRef === next.nodeThreeObjectContext.meshesRef
-    && previous.nodeThreeObjectContext.showLabelsRef === next.nodeThreeObjectContext.showLabelsRef
-    && previous.nodeThreeObjectContext.spritesRef === next.nodeThreeObjectContext.spritesRef
-    && previous.getParticleColor === next.getParticleColor
-    && previous.particleSize === next.particleSize
-    && previous.particleSpeed === next.particleSpeed
-    && previous.sharedProps === next.sharedProps;
+  return propsEqualByKeys(previous, next, SURFACE_3D_PROP_KEYS)
+    && propsEqualByKeys(
+      previous.nodeThreeObjectContext,
+      next.nodeThreeObjectContext,
+      NODE_THREE_OBJECT_CONTEXT_KEYS,
+    );
+}
+
+const SURFACE_2D_PROP_KEYS = [
+  'fg2dRef',
+  'getArrowColor',
+  'getArrowRelPos',
+  'getLinkColor',
+  'getLinkParticles',
+  'getLinkWidth',
+  'getParticleColor',
+  'linkCanvasObject',
+  'nodeCanvasObject',
+  'nodePointerAreaPaint',
+  'onRenderFramePost',
+  'particleSize',
+  'particleSpeed',
+  'sharedProps',
+] as const;
+
+const SURFACE_3D_PROP_KEYS = [
+  'fg3dRef',
+  'getArrowColor',
+  'getLinkColor',
+  'getLinkParticles',
+  'getLinkWidth',
+  'getParticleColor',
+  'particleSize',
+  'particleSpeed',
+  'sharedProps',
+] as const;
+
+const NODE_THREE_OBJECT_CONTEXT_KEYS = [
+  'graphAppearanceRef',
+  'meshesRef',
+  'showLabelsRef',
+  'spritesRef',
+] as const;
+
+function propsEqualByKeys<T extends object, K extends keyof T>(
+  previous: T,
+  next: T,
+  keys: readonly K[],
+): boolean {
+  return keys.every(key => previous[key] === next[key]);
 }
 
 function areViewportSurfacePropsEqual(
@@ -313,7 +396,7 @@ function createMenuEntriesSignature(menuEntries: readonly GraphContextMenuEntry[
 }
 
 export function Viewport({
-  accessibilityItems = { nodes: [], edges: [] },
+  accessibilityItems,
   canvasBackgroundColor,
   containerBackgroundColor,
   borderColor,
@@ -326,10 +409,10 @@ export function Viewport({
   handleMouseLeave,
   handleMouseMoveCapture,
   handleMouseUpCapture,
-  handleEdgeContextMenu = () => undefined,
-  handleNodeClick = () => undefined,
-  handleNodeContextMenu = () => undefined,
-  handleNodeHover = () => undefined,
+  handleEdgeContextMenu,
+  handleNodeClick,
+  handleNodeContextMenu,
+  handleNodeHover,
   marqueeSelection,
   menuEntries,
   surface2dProps,
@@ -339,6 +422,13 @@ export function Viewport({
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
+  const resolvedAccessibilityItems = resolveViewportAccessibilityItems(accessibilityItems);
+  const resolvedHandlers = resolveViewportHandlers({
+    handleEdgeContextMenu,
+    handleNodeClick,
+    handleNodeContextMenu,
+    handleNodeHover,
+  });
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -368,13 +458,13 @@ export function Viewport({
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
           <GraphAccessibilityOverlay
-            accessibilityItems={accessibilityItems}
+            accessibilityItems={resolvedAccessibilityItems}
             graphLinks={surface2dProps.sharedProps.graphData.links as FGLink[]}
             graphNodes={surface2dProps.sharedProps.graphData.nodes as FGNode[]}
-            onEdgeContextMenu={handleEdgeContextMenu}
-            onNodeClick={handleNodeClick}
-            onNodeContextMenu={handleNodeContextMenu}
-            onNodeHover={handleNodeHover}
+            onEdgeContextMenu={resolvedHandlers.handleEdgeContextMenu}
+            onNodeClick={resolvedHandlers.handleNodeClick}
+            onNodeContextMenu={resolvedHandlers.handleNodeContextMenu}
+            onNodeHover={resolvedHandlers.handleNodeHover}
           />
         </div>
       </ContextMenuTrigger>
@@ -386,20 +476,7 @@ export function Viewport({
         />
       </ContextMenuContent>
 
-      <NodeTooltip
-        path={tooltipData.path}
-        symbol={tooltipData.symbol}
-        size={tooltipData.info?.size}
-        lastModified={tooltipData.info?.lastModified}
-        incomingCount={tooltipData.incomingCount ?? tooltipData.info?.incomingCount ?? 0}
-        outgoingCount={tooltipData.outgoingCount ?? tooltipData.info?.outgoingCount ?? 0}
-        plugin={tooltipData.info?.plugin ?? tooltipData.symbol?.plugin}
-        nodeRect={tooltipData.nodeRect}
-        visible={tooltipData.visible}
-        extraActions={tooltipData.pluginActions}
-        extraSections={tooltipData.pluginSections}
-        pluginHost={pluginHost}
-      />
+      <NodeTooltip {...createNodeTooltipProps({ tooltipData, pluginHost })} />
     </ContextMenu>
   );
 }
@@ -408,25 +485,67 @@ function toNativeMouseEvent(
   type: 'click' | 'contextmenu',
   event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
 ): MouseEvent {
-  if (event instanceof MouseEvent) {
-    return event;
-  }
-
-  if (event.nativeEvent instanceof MouseEvent) {
-    return event.nativeEvent;
+  const nativeEvent = getNativeMouseEvent(event);
+  if (nativeEvent) {
+    return nativeEvent;
   }
 
   return new MouseEvent(type, {
     bubbles: true,
     cancelable: true,
-    button: type === 'contextmenu' ? 2 : 0,
-    buttons: type === 'contextmenu' ? 2 : 0,
-    clientX: 'clientX' in event ? event.clientX : 0,
-    clientY: 'clientY' in event ? event.clientY : 0,
+    button: mouseButtonForEventType(type),
+    buttons: mouseButtonForEventType(type),
+    clientX: getMouseEventCoordinate(event, 'clientX'),
+    clientY: getMouseEventCoordinate(event, 'clientY'),
     ctrlKey: event.ctrlKey,
     metaKey: event.metaKey,
     shiftKey: event.shiftKey,
   });
+}
+
+function getNativeMouseEvent(
+  event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+): MouseEvent | undefined {
+  if (event instanceof MouseEvent) {
+    return event;
+  }
+
+  return event.nativeEvent instanceof MouseEvent ? event.nativeEvent : undefined;
+}
+
+function mouseButtonForEventType(type: 'click' | 'contextmenu'): number {
+  return type === 'contextmenu' ? 2 : 0;
+}
+
+function getMouseEventCoordinate(
+  event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+  key: 'clientX' | 'clientY',
+): number {
+  if (!(key in event)) {
+    return 0;
+  }
+
+  return (event as MouseEvent | ReactMouseEvent<HTMLElement>)[key];
+}
+
+function isKeyboardActivation(key: string): boolean {
+  return key === 'Enter' || key === ' ';
+}
+
+function handleAccessibilityNodeKeyDown(
+  nodeId: string,
+  handleNodeClick: (
+    nodeId: string,
+    event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+  ) => void,
+  event: ReactKeyboardEvent<HTMLElement>,
+): void {
+  if (!isKeyboardActivation(event.key)) {
+    return;
+  }
+
+  event.preventDefault();
+  handleNodeClick(nodeId, event);
 }
 
 function GraphAccessibilityOverlay({
@@ -499,12 +618,7 @@ function GraphAccessibilityOverlay({
           onClick={event => handleNodeClick(node.id, event)}
           onContextMenu={event => handleNodeContextMenu(node.id, event)}
           onFocus={() => handleNodeHover(node.id)}
-          onKeyDown={event => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              handleNodeClick(node.id, event);
-            }
-          }}
+          onKeyDown={event => handleAccessibilityNodeKeyDown(node.id, handleNodeClick, event)}
           onMouseOut={() => onNodeHover(null)}
           onMouseOver={() => handleNodeHover(node.id)}
           style={{
