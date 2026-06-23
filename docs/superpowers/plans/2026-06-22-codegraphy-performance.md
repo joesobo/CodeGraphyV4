@@ -310,6 +310,7 @@ Skipped redundant full settings replay for indexed incremental changed-file refr
 Added analysis request/publish lifecycle markers: latest startup trace shows the first cached `load` request completing without publishing after an `incremental` request starts, then the first `GRAPH_DATA_UPDATED` comes from a full `analyze` request at 36.8s; next startup fix should prevent changed-file work from preempting first cached load.
 Gated incremental analysis behind first workspace readiness: focused provider test failed red when `incremental:start` raced an unresolved `load:start`, then passed after incremental waited for first ready; latest VS Code trace publishes cached `load` at 9.86s before incremental starts, moving first publish from 36.8s analyze to 9.86s load and first graph readiness from 40.6s to 13.7s in the one-sample harness.
 Skipped full workspace discovery during cached Graph Cache replay: focused facade test failed red on the old discovery call, then passed with cached-path metadata; direct replacement metadata probe is 322ms vs 4083ms full discovery, and latest VS Code trace publishes cached `load` at 2.40s with first graph readiness 5.88s while visible stats remain 2300 nodes / 5345 edges.
+Added cached-load/publish stage markers and reused a prepared Material Icon extension matcher: publish `groups` dropped from 748ms to 96ms, cached `load` publish moved from 2.28s to 1.70s, first graph readiness moved from 5.82s to 5.62s, and Imports sanity check measured 209ms wall-clock / 58ms in-webview.
 ```
 
 ## Task 5: Keep The PR Reviewable
