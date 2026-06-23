@@ -34,6 +34,7 @@ import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
   includeCurrentGitignoreMetadata?: boolean;
+  warmAnalysis?: boolean;
 }
 
 function isWorkspaceAnalysisAbortError(error: unknown): boolean {
@@ -288,12 +289,14 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       nodeCount: graphData.nodes.length,
     });
 
-    this._scheduleCachedGraphAnalysisWarmup(
-      cachedDiscovery.files,
-      workspaceRoot,
-      disabledPlugins,
-      signal,
-    );
+    if (options.warmAnalysis !== false) {
+      this._scheduleCachedGraphAnalysisWarmup(
+        cachedDiscovery.files,
+        workspaceRoot,
+        disabledPlugins,
+        signal,
+      );
+    }
 
     return graphData;
   }

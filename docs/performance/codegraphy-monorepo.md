@@ -547,6 +547,26 @@ VS Code graph view benchmark:
     `APP_BOOTSTRAP_COMPLETE`.
   - Imports toggle wall-clock latency was `190ms`; in-webview
     optimistic-to-rendered latency was `55ms`.
+- After skipping stale-cache analysis warm-up and fast-matching generated
+  pending refresh paths:
+  - Command shape:
+    `pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs --workspace /Users/poleski/Desktop/Projects/CodeGraphyV4 --iterations 1 --warmup 0 --output reports/performance/vscode-graph-view-fast-pending-filter-toggle.json`.
+  - Open Graph View to first rendered graph stats: `4550ms`, split into
+    `1620ms` command/open, `2917ms` frame wait, and `10ms` stats wait.
+  - The stale-cache load decision fell from `214ms` in the previous comparable
+    trace to `11ms`; the background analyze load decision fell from `182ms` to
+    `9ms`.
+  - The cached load request completed in `473ms`, down from `838ms` in the
+    no-stale-warmup trace.
+  - The stale-cache one-file `workspacePipeline.loadCachedGraph.warmAnalysis`
+    event no longer appears before first interaction.
+  - A direct status-profile pass on the CodeGraphy monorepo metadata
+    (`7383` pending paths, mostly generated/cache paths) reduced
+    `pendingFilter` from `317ms` to `13ms`; repeated
+    `readCodeGraphyWorkspaceStatus` calls fell from roughly `214-288ms` to
+    `8-14ms`.
+  - Imports toggle wall-clock latency was `197ms`; in-webview
+    optimistic-to-rendered latency was `53ms`.
 
 Interpretation:
 

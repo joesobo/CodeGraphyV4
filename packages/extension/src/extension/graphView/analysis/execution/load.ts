@@ -119,6 +119,7 @@ export async function loadGraphViewRawData(
     stageStartedAt = Date.now();
     const cachedGraphData = await loadCachedGraphViewRawData(signal, state, analyzer, {
       includeCurrentGitignoreMetadata: indexFreshness !== 'stale',
+      ...(indexFreshness === 'stale' ? { warmAnalysis: false } : {}),
     });
     recordLoadStage(state, 'cached', stageStartedAt, {
       edgeCount: cachedGraphData.edges.length,

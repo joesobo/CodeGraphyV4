@@ -1,6 +1,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { DEFAULT_EXCLUDE, matchesAnyPattern } from '../discovery/pathMatching';
+import {
+  DEFAULT_EXCLUDE,
+  isDefaultExcludedPath,
+  matchesAnyPattern,
+} from '../discovery/pathMatching';
 
 function normalizePendingPath(filePath: string): string {
   return filePath.replace(/\\/g, '/').replace(/\/+$/, '');
@@ -65,7 +69,7 @@ export function filterWorkspaceStatusPendingChangedFiles(
       return false;
     }
 
-    if (matchesAnyPattern(filePath, DEFAULT_EXCLUDE)) {
+    if (isDefaultExcludedPath(filePath) || matchesAnyPattern(filePath, DEFAULT_EXCLUDE)) {
       return false;
     }
 
