@@ -162,10 +162,17 @@ export function replayWebviewReadyBootstrap(
   replayWebviewReadyGraphBootstrap(handlers);
 }
 
+interface ReplayWebviewReadyGraphBootstrapOptions {
+  includeGraphData?: boolean;
+}
+
 export function replayWebviewReadyGraphBootstrap(
   handlers: Pick<GraphViewReadyHandlers, 'getGraphData' | 'sendMessage'>,
+  options: ReplayWebviewReadyGraphBootstrapOptions = {},
 ): void {
-  handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: handlers.getGraphData() });
+  if (options.includeGraphData ?? true) {
+    handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: handlers.getGraphData() });
+  }
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
 }
 
@@ -182,7 +189,7 @@ export async function replayDuplicateWebviewReady(
   }
 
   replayWebviewReadySettings(state, handlers);
-  replayWebviewReadyGraphBootstrap(handlers);
+  replayWebviewReadyGraphBootstrap(handlers, { includeGraphData: !state.readyNotified });
 }
 
 export async function applyWebviewReady(
