@@ -1,5 +1,5 @@
 import '../../../../../three/runtime';
-import { useEffect, useState, type MutableRefObject, type ReactElement } from 'react';
+import { type MutableRefObject, type ReactElement } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type {
   ForceGraphMethods as FG3DMethods,
@@ -13,6 +13,9 @@ import {
   createNodeThreeObject,
   type NodeThreeObjectDependencies,
 } from '../../nodes/canvas3d';
+import { useDeferredSurface3dMount } from './threeDimensional/deferredMount';
+
+export { useDeferredSurface3dMount } from './threeDimensional/deferredMount';
 
 type ForceGraph3DRef = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
 type Surface3dMeasurementKey = 'measured' | 'unmeasured';
@@ -42,35 +45,6 @@ export function getSurface3dMeasurementKey(
   return sharedProps.width === undefined || sharedProps.height === undefined
     ? 'unmeasured'
     : 'measured';
-}
-
-export function useDeferredSurface3dMount(enabled: boolean): boolean {
-  const [isMounted, setIsMounted] = useState(!enabled);
-
-  useEffect(() => {
-    if (!enabled) {
-      setIsMounted(true);
-      return;
-    }
-
-    setIsMounted(false);
-
-    let firstFrame: number | null = null;
-    let secondFrame: number | null = null;
-
-    firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => {
-        setIsMounted(true);
-      });
-    });
-
-    return () => {
-      if (firstFrame !== null) cancelAnimationFrame(firstFrame);
-      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
-    };
-  }, [enabled]);
-
-  return isMounted;
 }
 
 export function Surface3d({

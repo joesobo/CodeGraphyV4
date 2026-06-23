@@ -1,6 +1,6 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IHandlerContext, PartialState } from '../messageTypes';
-import { arePlainValuesEqual } from './equality/compare';
+import { createGraphControlsStatePatch } from './graphControls/patch';
 
 export function handleGraphIndexStatusUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
@@ -27,17 +27,6 @@ export function handleGraphIndexProgress(
   };
 }
 
-function assignChangedGraphControl<K extends keyof PartialState>(
-  next: PartialState,
-  key: K,
-  currentValue: PartialState[K],
-  nextValue: PartialState[K],
-): void {
-  if (!arePlainValuesEqual(currentValue, nextValue)) {
-    next[key] = nextValue;
-  }
-}
-
 export function handleGraphControlsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
   ctx?: Pick<IHandlerContext, 'getState'>,
@@ -53,13 +42,7 @@ export function handleGraphControlsUpdated(
     };
   }
 
-  const next: PartialState = {};
-
-  assignChangedGraphControl(next, 'graphNodeTypes', state.graphNodeTypes, message.payload.nodeTypes);
-  assignChangedGraphControl(next, 'graphEdgeTypes', state.graphEdgeTypes, message.payload.edgeTypes);
-  assignChangedGraphControl(next, 'nodeColors', state.nodeColors, message.payload.nodeColors);
-  assignChangedGraphControl(next, 'nodeVisibility', state.nodeVisibility, message.payload.nodeVisibility);
-  assignChangedGraphControl(next, 'edgeVisibility', state.edgeVisibility, message.payload.edgeVisibility);
+  const next = createGraphControlsStatePatch(state, message.payload);
 
   return Object.keys(next).length > 0 ? next : undefined;
 }
