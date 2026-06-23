@@ -66,6 +66,7 @@ export interface WorkspaceIndexRefreshSource {
 }
 
 export interface WorkspaceIndexRefreshDependencies {
+  deferMetricOnlyIndexMetadata?: boolean;
   disabledPlugins: Set<string>;
   discoveredDirectories?: string[];
   discoveredFiles: IDiscoveredFile[];
@@ -78,6 +79,7 @@ export interface WorkspaceIndexRefreshDependencies {
     disabledPlugins?: Set<string>,
   ): Promise<{ additionalFilePaths: string[]; requiresFullRefresh: boolean }>;
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
+  onDeferredIndexMetadataError?(error: unknown): void;
   persistCache(): void;
   persistIndexMetadata(): Promise<void>;
   signal?: AbortSignal;
@@ -274,6 +276,20 @@ function canPatchWorkspaceIndexRefreshGraphData(
   }
 
   return true;
+}
+
+function persistMetricOnlyIndexMetadata(
+  dependencies: WorkspaceIndexRefreshDependencies,
+): Promise<void> | void {
+  const persistence = dependencies.persistIndexMetadata();
+  if (dependencies.deferMetricOnlyIndexMetadata) {
+    void persistence.catch(error => {
+      dependencies.onDeferredIndexMetadataError?.(error);
+    });
+    return;
+  }
+
+  return persistence;
 }
 
 function applyWorkspaceIndexAnalysisResult(
@@ -522,7 +538,7 @@ export async function refreshWorkspaceIndexChangedFiles(
       filesToAnalyze.map(file => file.relativePath),
     );
     source._lastGraphData = graphData;
-    await dependencies.persistIndexMetadata();
+    await persistMetricOnlyIndexMetadata(dependencies);
     return graphData;
   }
 

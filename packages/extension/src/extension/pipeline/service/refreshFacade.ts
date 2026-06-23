@@ -536,6 +536,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     });
 
     const graphData = await refreshWorkspacePipelineChangedFiles(this._createTimedWorkspaceIndexRefreshSource(disabledPlugins), {
+      deferMetricOnlyIndexMetadata: true,
       disabledPlugins,
       discoveredDirectories: discoveryResult.directories,
       discoveredFiles: discoveryResult.files,
@@ -562,6 +563,9 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
           }),
         ),
       onProgress,
+      onDeferredIndexMetadataError: error => {
+        console.warn('[CodeGraphy] Failed to persist metric-only refresh metadata.', error);
+      },
       persistCache: () => {
         timeChangedFileRefreshPhaseSync('persistCache', () => {
           this._persistCache();
