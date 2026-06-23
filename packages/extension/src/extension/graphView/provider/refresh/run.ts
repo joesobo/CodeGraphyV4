@@ -1,5 +1,6 @@
 import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
 import { recordExtensionPerformanceEvent } from '../../../performance/marks';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 
 export type RefreshStateReason =
   | 'analysisScope'
@@ -38,18 +39,34 @@ export async function runIndexRefresh(source: GraphViewProviderRefreshMethodsSou
   await source._analyzeAndSendData();
 }
 
+function hasGraphData(graphData: IGraphData | undefined): boolean {
+  return (graphData?.nodes.length ?? 0) > 0 || (graphData?.edges.length ?? 0) > 0;
+}
+
+export function canRunIncrementalChangedFileRefresh(
+  source: GraphViewProviderRefreshMethodsSource,
+): boolean {
+  if (!source._analyzer || !source._incrementalAnalyzeAndSendData) {
+    return false;
+  }
+
+  return source._analyzer.hasIndex()
+    || hasGraphData(source._rawGraphData)
+    || hasGraphData(source._graphData);
+}
+
 export async function runChangedFileRefresh(
   source: GraphViewProviderRefreshMethodsSource,
   filePaths: readonly string[],
 ): Promise<ChangedFileRefreshMode> {
+  if (canRunIncrementalChangedFileRefresh(source)) {
+    await source._incrementalAnalyzeAndSendData!(filePaths);
+    return 'incremental';
+  }
+
   if (!source._analyzer?.hasIndex()) {
     await runPrimaryRefresh(source);
     return 'primary';
-  }
-
-  if (source._incrementalAnalyzeAndSendData) {
-    await source._incrementalAnalyzeAndSendData(filePaths);
-    return 'incremental';
   }
 
   await source._analyzeAndSendData();

@@ -1107,6 +1107,16 @@ Interpretation:
   stayed fast at `43.5ms`, Imports stayed snappy (`200ms` wall-clock / `59ms`
   in-webview), and post-save live update stayed in the fast band at `116ms`
   from saved-document receipt to request completion.
+- Loaded changed-file refreshes now stay on the incremental path even when
+  persisted index metadata is temporarily unavailable during stale-cache
+  startup/background analysis. Truly cold no-index refreshes still fall back to
+  the primary load path. A rebuilt filesystem-triggered live-update probe
+  against `packages/core/src/index.ts` completed instead of timing out:
+  first graph readiness was `4534ms`, the marker edit measured `414ms`
+  wall-clock with a `176ms` incremental request, and the benchmark restore
+  also stayed incremental at `87ms` instead of starting a `load` request plus
+  another long background `analyze`. The protected main checkout was clean
+  after the probe restored the benchmark file.
 
 Full test baseline:
 
