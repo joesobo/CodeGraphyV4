@@ -484,6 +484,22 @@ VS Code graph view benchmark:
   - Imports toggle wall-clock latency was `357ms` median, `508ms` p95 across
     2 samples; in-webview optimistic-to-rendered latency stayed `55ms` median,
     `57ms` p95.
+- After skipping duplicate `WEBVIEW_READY` replays while first analysis is
+  already in flight:
+  - The early duplicate full settings replay around `518ms` disappeared from
+    the host send sequence. Startup now sends the first settings batch around
+    `190ms`, then continues to graph/index/bootstrap work without replaying
+    the same first-analysis settings batch.
+  - VS Code launch: `1085ms`.
+  - Open Graph View to first rendered graph stats: `46908ms`.
+  - First-ready phases: command/open `1570ms`, acceptance-ready frame
+    `45254ms`, stats wait after frame discovery `24ms`.
+  - Host `GRAPH_INDEX_PROGRESS` sends stayed at `51`.
+  - Aggregate settings/control sends are still high because later refresh and
+    plugin synchronization paths repeat them; this iteration only removed the
+    duplicate first-analysis ready replay.
+  - Imports toggle wall-clock latency was `231ms` median, `266ms` p95 across
+    2 samples; in-webview latency was `50ms` median, `50ms` p95.
 
 Interpretation:
 
@@ -580,6 +596,10 @@ Interpretation:
   startup. Deterministic progress coalescing cuts that to dozens while keeping
   first/final and phase-boundary progress visible. The remaining repeated
   settings/control sends are now the next message-volume target.
+- Duplicate `WEBVIEW_READY` handling no longer resends the first-analysis
+  settings bundle while the original ready handler is still loading graph data.
+  Later repeated settings/control sends remain visible and need separate
+  ownership tracing before changing behavior.
 
 Full test baseline:
 

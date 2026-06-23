@@ -177,12 +177,11 @@ export async function replayDuplicateWebviewReady(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
 ): Promise<void> {
-  replayWebviewReadySettings(state, handlers);
-
   if (shouldWaitForFirstWorkspaceGraph(state)) {
     return;
   }
 
+  replayWebviewReadySettings(state, handlers);
   replayWebviewReadyGraphBootstrap(handlers);
 }
 
