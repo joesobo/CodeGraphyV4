@@ -1,43 +1,6 @@
-/**
- * Convert a simple glob pattern to a RegExp.
- *
- * Rules:
- *  - `**` matches any path segments, including nested `/`
- *  - `*` matches anything except `/`
- *  - regex metacharacters are escaped
- *
- * Patterns are matched against the basename or path suffix, so `src/*`
- * works anywhere in the tree while still keeping `*` and `**` semantics.
- */
-export function globToRegex(pattern: string): RegExp {
-  let body = '';
-  for (let index = 0; index < pattern.length; index += 1) {
-    const character = pattern[index];
-    const nextCharacter = pattern[index + 1];
-    const afterNextCharacter = pattern[index + 2];
+import { globToRegex } from './globRegex.js';
 
-    if (character === '*' && nextCharacter === '*' && afterNextCharacter === '/') {
-      body += '(?:.*/)?';
-      index += 2;
-      continue;
-    }
-
-    if (character === '*' && nextCharacter === '*') {
-      body += '.*';
-      index += 1;
-      continue;
-    }
-
-    if (character === '*') {
-      body += '[^/]*';
-      continue;
-    }
-
-    body += character.replace(/([.+^${}()|[\]\\])/g, '\\$1');
-  }
-
-  return new RegExp(`(?:^|/)${body}$`);
-}
+export { globToRegex } from './globRegex.js';
 
 export function createGlobMatcher(pattern: string): (filePath: string) => boolean {
   const regex = globToRegex(pattern);
