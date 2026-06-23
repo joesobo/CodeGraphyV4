@@ -63,9 +63,10 @@ export const MESSAGE_HANDLERS: Record<
     handleGraphIndexProgress(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_PROGRESS' }>
     ),
-  GRAPH_CONTROLS_UPDATED: (msg) =>
+  GRAPH_CONTROLS_UPDATED: (msg, ctx) =>
     handleGraphControlsUpdated(
-      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
+      ctx,
     ),
   FAVORITES_UPDATED: (msg, ctx) =>
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>, ctx),
