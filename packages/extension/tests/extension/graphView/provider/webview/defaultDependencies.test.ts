@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   resolveGraphViewWebviewView: vi.fn(),
   sendGraphViewWebviewMessage: vi.fn(),
   onGraphViewWebviewMessage: vi.fn(() => ({ dispose: vi.fn() })),
+  recordExtensionPerformanceEvent: vi.fn(),
   executeCommand: vi.fn(() => Promise.resolve('executed')),
   createWebviewPanel: vi.fn(() => ({
     id: 'panel-1',
@@ -66,6 +67,10 @@ vi.mock('../../../../../src/extension/graphView/webview/bridge', () => ({
   onGraphViewWebviewMessage: mocks.onGraphViewWebviewMessage,
 }));
 
+vi.mock('../../../../../src/extension/performance/marks', () => ({
+  recordExtensionPerformanceEvent: mocks.recordExtensionPerformanceEvent,
+}));
+
 import { createDefaultGraphViewProviderWebviewMethodDependencies } from '../../../../../src/extension/graphView/provider/webview/defaultDependencies';
 
 describe('graphView/provider/webview/defaultDependencies', () => {
@@ -77,6 +82,7 @@ describe('graphView/provider/webview/defaultDependencies', () => {
     mocks.resolveGraphViewWebviewView.mockClear();
     mocks.sendGraphViewWebviewMessage.mockClear();
     mocks.onGraphViewWebviewMessage.mockClear();
+    mocks.recordExtensionPerformanceEvent.mockClear();
     mocks.executeCommand.mockClear();
     mocks.createWebviewPanel.mockClear();
     mocks.onGraphViewWebviewMessage.mockReturnValue({ dispose: vi.fn() });
@@ -91,6 +97,7 @@ describe('graphView/provider/webview/defaultDependencies', () => {
     expect(dependencies.sendWebviewMessage).toBe(mocks.sendGraphViewWebviewMessage);
     expect(dependencies.onWebviewMessage).toBe(mocks.onGraphViewWebviewMessage);
     expect(dependencies.setWebviewMessageListener).toBe(mocks.setGraphViewProviderMessageListener);
+    expect(dependencies.recordPerformanceEvent).toBe(mocks.recordExtensionPerformanceEvent);
   });
 
   it('creates graph html with a fresh nonce', () => {

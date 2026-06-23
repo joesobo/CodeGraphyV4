@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -65,6 +65,53 @@ function sameGraphStats(left, right) {
 function findWebviewEventAt(sample, eventName) {
   const event = sample.webviewEvents?.find(item => item.name === eventName);
   return typeof event?.at === 'number' ? event.at : undefined;
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function parseExtensionHostPerformanceLog(logText) {
+  const events = [];
+
+  for (const line of logText.split('\n')) {
+    if (!line.trim()) {
+      continue;
+    }
+
+    try {
+      const parsed = JSON.parse(line);
+      if (typeof parsed.name !== 'string' || typeof parsed.at !== 'number') {
+        continue;
+      }
+
+      events.push({
+        name: parsed.name,
+        at: parsed.at,
+        ...(isPlainObject(parsed.detail) ? { detail: parsed.detail } : {}),
+      });
+    } catch {
+      // Ignore partial or unrelated lines so a long-running host process cannot poison the metrics file.
+    }
+  }
+
+  const firstEventAt = events[0]?.at ?? 0;
+  return events.map(event => ({
+    ...event,
+    offsetMs: Math.round(event.at - firstEventAt),
+  }));
+}
+
+async function readExtensionHostPerformanceEvents(logPath) {
+  const logText = await readFile(logPath, 'utf8').catch(() => '');
+  return parseExtensionHostPerformanceLog(logText);
+}
+
+function createExtensionHostPerformanceLogPath(outputPath) {
+  const resolvedOutputPath = path.resolve(outputPath);
+  const extension = path.extname(resolvedOutputPath);
+  const basename = path.basename(resolvedOutputPath, extension);
+  return path.join(path.dirname(resolvedOutputPath), `${basename}-extension-host.jsonl`);
 }
 
 export function getWebviewEventDeltaMs(
@@ -260,6 +307,7 @@ async function measureVSCodeGraphView({
 }) {
   const workspaceRoot = path.resolve(workspacePath);
   const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
+  const extensionHostLogPath = createExtensionHostPerformanceLogPath(outputPath);
   const originalSettings = await readFile(settingsPath, 'utf8').catch(() => null);
   const {
     cleanupVSCode,
@@ -270,8 +318,11 @@ async function measureVSCodeGraphView({
   let vscode = null;
 
   try {
+    await mkdir(path.dirname(extensionHostLogPath), { recursive: true });
+    await writeFile(extensionHostLogPath, '');
     const launchStartedAt = performance.now();
     vscode = await launchVSCodeWithWorkspace(workspaceRoot, {
+      extensionPerformanceLogPath: extensionHostLogPath,
       pluginPackageRelativePaths: DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS,
     });
     const launchMs = Math.round(performance.now() - launchStartedAt);
@@ -316,6 +367,8 @@ async function measureVSCodeGraphView({
       },
       firstGraphReadyWebviewStages: summarizeWebviewEventDurations(firstGraphReadyWebviewEvents),
       firstGraphReadyWebviewEvents,
+      firstGraphReadyExtensionHostLogPath: extensionHostLogPath,
+      extensionHostEvents: await readExtensionHostPerformanceEvents(extensionHostLogPath),
       initialStats,
       importsToggle: {
         ...summarizeSwitchTransitionSamples(samples),

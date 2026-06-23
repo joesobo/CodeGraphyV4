@@ -92,3 +92,30 @@ test('VS Code graph view runner summarizes startup webview stage durations', asy
     },
   });
 });
+
+test('VS Code graph view runner parses extension host performance JSONL', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { parseExtensionHostPerformanceLog } = await import(moduleUrl);
+
+  assert.deepEqual(parseExtensionHostPerformanceLog([
+    '{"name":"graphWebview.resolve.start","at":1782129600100,"detail":{"visible":true}}',
+    'not json',
+    '{"name":"graphWebview.html.assigned","at":1782129600125,"detail":{"htmlLength":21}}',
+    '{"name":12,"at":1782129600200}',
+  ].join('\n')), [
+    {
+      name: 'graphWebview.resolve.start',
+      at: 1782129600100,
+      offsetMs: 0,
+      detail: { visible: true },
+    },
+    {
+      name: 'graphWebview.html.assigned',
+      at: 1782129600125,
+      offsetMs: 25,
+      detail: { htmlLength: 21 },
+    },
+  ]);
+});

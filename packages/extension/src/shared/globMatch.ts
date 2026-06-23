@@ -44,6 +44,24 @@ export function createGlobMatcher(pattern: string): (filePath: string) => boolea
   return (filePath: string): boolean => regex.test(filePath);
 }
 
+export function createCombinedGlobMatcher(patterns: readonly string[]): (filePath: string) => boolean {
+  if (patterns.length === 0) {
+    return () => false;
+  }
+
+  if (patterns.length === 1) {
+    return createGlobMatcher(patterns[0] ?? '');
+  }
+
+  const regex = new RegExp(
+    patterns
+      .map(pattern => `(?:${globToRegex(pattern).source})`)
+      .join('|'),
+  );
+
+  return (filePath: string): boolean => regex.test(filePath);
+}
+
 export function globMatch(filePath: string, pattern: string): boolean {
   return createGlobMatcher(pattern)(filePath);
 }

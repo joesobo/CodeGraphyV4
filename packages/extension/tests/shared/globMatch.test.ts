@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { createGlobMatcher, globMatch, globToRegex } from '../../src/shared/globMatch';
+import {
+  createCombinedGlobMatcher,
+  createGlobMatcher,
+  globMatch,
+  globToRegex,
+} from '../../src/shared/globMatch';
 
 describe('shared/globMatch', () => {
   it('matches basename patterns against nested paths', () => {
@@ -31,5 +36,24 @@ describe('shared/globMatch', () => {
     expect(matcher('src/index.ts')).toBe(true);
     expect(matcher('src/deep/index.ts')).toBe(true);
     expect(matcher('docs/index.ts')).toBe(false);
+  });
+
+  it('creates one matcher that preserves any-pattern glob semantics', () => {
+    const matcher = createCombinedGlobMatcher([
+      '**/tests/**',
+      'reports/**',
+      '*.d.ts',
+    ]);
+
+    expect(matcher('packages/extension/tests/unit.test.ts')).toBe(true);
+    expect(matcher('reports/performance/latest.json')).toBe(true);
+    expect(matcher('src/types/api.d.ts')).toBe(true);
+    expect(matcher('src/index.ts')).toBe(false);
+  });
+
+  it('creates an empty combined matcher that never matches', () => {
+    const matcher = createCombinedGlobMatcher([]);
+
+    expect(matcher('src/index.ts')).toBe(false);
   });
 });
