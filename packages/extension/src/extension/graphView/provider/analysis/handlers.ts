@@ -34,6 +34,7 @@ export function createGraphViewProviderAnalysisHandlers(
     setGraphData: graphData => {
       setGraphViewProviderGraphData(source, graphData);
     },
+    getRawGraphData: () => source._rawGraphData,
     getGraphData: () => source._graphData,
     sendGraphDataUpdated: graphData => {
       sendGraphControlsUpdated(

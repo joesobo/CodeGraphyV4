@@ -42,6 +42,22 @@ describe('graphView/provider/runtime/workspaceRefreshPersistence', () => {
     ]);
   });
 
+  it('filters generated pending paths before persisting workspace refresh metadata', () => {
+    persistPendingWorkspaceRefresh('/test/workspace', [
+      '/test/workspace',
+      '/test/workspace/packages/core/.turbo',
+      '/test/workspace/.worktrees/speed-up-codegraphy/src/index.ts',
+      '/test/workspace/src/a.ts',
+    ]);
+
+    expect(metaState.writes).toEqual([
+      {
+        workspaceRoot: '/test/workspace',
+        pendingChangedFiles: ['/test/workspace/src/a.ts'],
+      },
+    ]);
+  });
+
   it('skips persistence and loading when no workspace root exists', () => {
     persistPendingWorkspaceRefresh(undefined, ['src/a.ts']);
 
@@ -57,6 +73,27 @@ describe('graphView/provider/runtime/workspaceRefreshPersistence', () => {
       gitignoreRefresh: false,
       logMessage: '[CodeGraphy] Applying pending workspace changes',
     });
+  });
+
+  it('cleans generated pending paths when loading persisted workspace refresh data', () => {
+    metaState.pendingChangedFiles = [
+      '/test/workspace',
+      '/test/workspace/packages/core/.turbo',
+      '/test/workspace/.worktrees/speed-up-codegraphy/src/index.ts',
+      '/test/workspace/src/a.ts',
+    ];
+
+    expect(loadPersistedWorkspaceRefresh('/test/workspace')).toEqual({
+      filePaths: new Set(['/test/workspace/src/a.ts']),
+      gitignoreRefresh: false,
+      logMessage: '[CodeGraphy] Applying pending workspace changes',
+    });
+    expect(metaState.writes).toEqual([
+      {
+        workspaceRoot: '/test/workspace',
+        pendingChangedFiles: ['/test/workspace/src/a.ts'],
+      },
+    ]);
   });
 
   it('marks persisted gitignore changes as metadata refreshes', () => {

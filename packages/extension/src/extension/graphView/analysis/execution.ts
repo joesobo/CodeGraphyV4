@@ -73,6 +73,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   hasWorkspace(): boolean;
   setRawGraphData(graphData: IGraphData): void;
   setGraphData(graphData: IGraphData): void;
+  getRawGraphData?(): IGraphData;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
   sendDepthState(): void;

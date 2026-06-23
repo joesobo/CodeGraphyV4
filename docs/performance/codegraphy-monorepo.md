@@ -749,6 +749,30 @@ Interpretation:
   moved from `145ms` to `106ms`, incremental request duration moved from
   `237ms` to `200ms`, and end-to-end live-update wall clock moved from `488ms`
   to `432ms`.
+- Incremental publish now has a no-op graph fast path for fresh changed-file
+  refreshes whose raw graph payload is unchanged. The fast path keeps status,
+  plugin, decoration, exporter, toolbar, injection, post-analyze, and workspace
+  ready broadcasts, but skips raw graph replacement, view transforms, merged
+  group recomputation, group publication, and `GRAPH_DATA_UPDATED`. A focused
+  publish test covers the unchanged-graph contract. The first large-repo VS
+  Code probe after this change did not reuse the current graph because stale
+  pending refresh metadata forced a full background analysis before the save
+  refresh; the reuse check took `18ms` and reported `reused: false`, so the
+  next clean run should confirm whether this fast path is net-positive on true
+  no-op saves.
+- The VS Code probe exposed stale pending refresh metadata as the next
+  measurement blocker. The main CodeGraphy workspace had `7154` persisted
+  pending paths, mostly generated `.turbo` folders and nested agent worktree
+  files, which made each benchmark treat the Graph Cache as stale and run a
+  roughly `34s` background full analysis. Pending refresh persistence now
+  ignores the workspace root, generated `.turbo` paths, and `.worktrees` paths
+  before saving or loading metadata. Against the polluted metadata, the new
+  filter reduces the pending set from `7154` paths to `1` real source path
+  (`packages/extension/src/extension/graphViewProvider.ts`). The latest
+  polluted VS Code sample measured the incremental save request at `232ms`,
+  changed-file refresh at `97ms`, and Imports toggle at `203ms` wall-clock /
+  `54ms` in-webview, but the end-to-end save wall clock stayed invalid for
+  comparison because the stale full analysis still occupied the session.
 
 Full test baseline:
 
