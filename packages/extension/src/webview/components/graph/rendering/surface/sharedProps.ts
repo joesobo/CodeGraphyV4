@@ -3,6 +3,7 @@ import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../model/build';
 
 export const INTERACTIVE_COOLDOWN_TICKS = 60;
+export const POSITIONED_INTERACTIVE_COOLDOWN_TICKS = 0;
 export const TIMELINE_COOLDOWN_TICKS = 50;
 
 export interface GraphContainerSize {
@@ -55,6 +56,21 @@ export function normalizeGraphDimension(value: number): number | undefined {
   return value === 0 ? undefined : value;
 }
 
+function everyNodeHasFinitePosition(nodes: readonly FGNode[]): boolean {
+  return nodes.length > 0
+    && nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y));
+}
+
+function getCooldownTicks(options: Pick<BuildSharedGraphPropsOptions, 'graphData' | 'timelineActive'>): number {
+  if (options.timelineActive) {
+    return TIMELINE_COOLDOWN_TICKS;
+  }
+
+  return everyNodeHasFinitePosition(options.graphData.nodes)
+    ? POSITIONED_INTERACTIVE_COOLDOWN_TICKS
+    : INTERACTIVE_COOLDOWN_TICKS;
+}
+
 export function buildSharedGraphProps(
   options: BuildSharedGraphPropsOptions,
 ): GraphSurfaceSharedProps {
@@ -83,7 +99,7 @@ export function buildSharedGraphProps(
     d3VelocityDecay: options.damping,
     d3AlphaDecay: 0.0228,
     warmupTicks: 0,
-    cooldownTicks: options.timelineActive ? TIMELINE_COOLDOWN_TICKS : INTERACTIVE_COOLDOWN_TICKS,
+    cooldownTicks: getCooldownTicks(options),
     nodeId: 'id',
     onNodeHover: (node) => options.onNodeHover(node as FGNode | null),
     dagMode: options.dagMode ?? undefined,
