@@ -873,6 +873,15 @@ Interpretation:
   `graphRuntime.buildGraphData` events in the live-update window. The first
   strict sample moved marker wall clock from `1193ms` to `828ms`; a follow-up
   sample measured `657ms` wall clock with a `356ms` incremental request.
+- Incremental analysis preparation now skips the pre-refresh group recompute
+  and `LEGENDS_UPDATED` broadcast. Group recomputation remains in the publish
+  stage, where metric-only refreshes can skip it with the existing
+  `groupInputsUnchanged` check. In the rebuilt monorepo probe, the live-update
+  window no longer received `LEGENDS_UPDATED`; the request-start-to-refresh
+  gap moved from roughly `254ms` to `178ms` on the comparable marker sample.
+  Marker request duration moved from `456ms` to `383ms`, while restore measured
+  `328ms`. The wall-clock sample stayed noisy (`836ms`), so this iteration is
+  recorded as a backend request improvement rather than a measured UI-wall win.
 
 Full test baseline:
 
