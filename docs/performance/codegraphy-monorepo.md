@@ -812,6 +812,13 @@ Interpretation:
   graph readiness in `5112ms`, measured Imports toggle at `277ms` wall-clock /
   `62ms` in-webview, and measured live-update at `943ms` wall-clock with a
   `597ms` incremental request.
+- Rejected startup-order experiment: moving graph loading before cached timeline
+  replay made the `load` request start earlier (`267ms` after open instead of
+  roughly `741ms`), but it ran under heavier webview startup contention and
+  regressed first graph readiness from `5112ms` to `5583ms`. A stats-frame
+  harness probe also still observed the same late visible stats timing, so the
+  experiment was backed out. The next startup work should target product work
+  inside cached load or webview render cost, not timeline-before-graph ordering.
 
 Full test baseline:
 
