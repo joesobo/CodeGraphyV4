@@ -11,6 +11,8 @@ const DEFAULT_OUTPUT_PATH = 'reports/performance/vscode-graph-view-latest.json';
 const DEFAULT_ITERATIONS = 5;
 const DEFAULT_WARMUP_ITERATIONS = 1;
 const DEFAULT_TIMEOUT_MS = 120_000;
+const IMPORTS_TOGGLE_START_EVENT = 'graphScope.edgeVisibility.optimistic';
+const IMPORTS_TOGGLE_RENDERED_EVENT = 'graphStats.rendered';
 const DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS = [
   'packages/plugin-godot',
   'packages/plugin-markdown',
@@ -57,6 +59,38 @@ export function parseGraphStatsLabel(label) {
 
 function sameGraphStats(left, right) {
   return left.nodeCount === right.nodeCount && left.edgeCount === right.edgeCount;
+}
+
+function findWebviewEventAt(sample, eventName) {
+  const event = sample.webviewEvents?.find(item => item.name === eventName);
+  return typeof event?.at === 'number' ? event.at : undefined;
+}
+
+export function getWebviewEventDeltaMs(
+  sample,
+  startEventName = IMPORTS_TOGGLE_START_EVENT,
+  renderedEventName = IMPORTS_TOGGLE_RENDERED_EVENT,
+) {
+  const startedAt = findWebviewEventAt(sample, startEventName);
+  const renderedAt = findWebviewEventAt(sample, renderedEventName);
+  if (startedAt === undefined || renderedAt === undefined) {
+    return undefined;
+  }
+
+  return renderedAt - startedAt;
+}
+
+export function summarizeSwitchTransitionSamples(samples) {
+  const webviewEventDeltas = samples
+    .map(sample => getWebviewEventDeltaMs(sample))
+    .filter(value => value !== undefined);
+
+  return {
+    ...summarizeDurations(samples.map(sample => sample.durationMs)),
+    ...(webviewEventDeltas.length > 0
+      ? { webviewEventDelta: summarizeDurations(webviewEventDeltas) }
+      : {}),
+  };
 }
 
 async function readGraphStats(frame) {
@@ -238,7 +272,7 @@ async function measureVSCodeGraphView({
       firstGraphReadyMs,
       initialStats,
       importsToggle: {
-        ...summarizeDurations(samples.map(sample => sample.durationMs)),
+        ...summarizeSwitchTransitionSamples(samples),
         samples,
       },
     };
