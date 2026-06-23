@@ -32,6 +32,7 @@ function createSource(
   _rawGraphData: IGraphData;
   _firstAnalysis: boolean;
   _resolveFirstWorkspaceReady?: ReturnType<typeof vi.fn>;
+  _firstWorkspaceReadyPromise: Promise<void>;
   _sendMessage: ReturnType<typeof vi.fn>;
   _sendDepthState: ReturnType<typeof vi.fn>;
   _computeMergedGroups: ReturnType<typeof vi.fn>;
@@ -48,6 +49,8 @@ function createSource(
   _isAbortError?: (error: unknown) => boolean;
   [key: string]: unknown;
 } {
+  const firstWorkspaceReadyPromise = Promise.resolve();
+
   return {
     _analysisController: undefined,
     _analysisRequestId: 7,
@@ -64,6 +67,7 @@ function createSource(
     _rawGraphData: { nodes: [], edges: [] },
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: vi.fn(),
+    _firstWorkspaceReadyPromise: firstWorkspaceReadyPromise,
     _sendMessage: vi.fn(),
     _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
@@ -367,6 +371,58 @@ describe('graphView/provider/analysis/methods', () => {
     await Promise.resolve();
 
     expect(events).toEqual(['load:start', 'load:end', 'analyze:start', 'analyze:end']);
+  });
+
+  it('waits for first workspace readiness before starting incremental analysis', async () => {
+    let markFirstWorkspaceReady: (() => void) | undefined;
+    const firstWorkspaceReadyPromise = new Promise<void>(resolve => {
+      markFirstWorkspaceReady = resolve;
+    });
+    const source = createSource({
+      _firstWorkspaceReadyPromise: firstWorkspaceReadyPromise,
+    });
+    const events: string[] = [];
+    let finishLoad: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      events.push(`${state.mode}:start`);
+      if (state.mode === 'load') {
+        await new Promise<void>(resolve => {
+          finishLoad = resolve;
+        });
+        source._firstAnalysis = false;
+        markFirstWorkspaceReady?.();
+      }
+      events.push(`${state.mode}:end`);
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    const load = methods._loadAndSendData();
+    await Promise.resolve();
+    const incremental = methods._incrementalAnalyzeAndSendData(['src/changed.ts']);
+    await Promise.resolve();
+
+    expect(events).toEqual(['load:start']);
+    expect(runAnalysisRequest).toHaveBeenCalledOnce();
+
+    finishLoad?.();
+    await load;
+    await incremental;
+
+    expect(events).toEqual([
+      'load:start',
+      'load:end',
+      'incremental:start',
+      'incremental:end',
+    ]);
+    expect(source._changedFilePaths).toEqual(['src/changed.ts']);
   });
 
   it('falls back to the delegate wrappers when source-owned analysis methods are unavailable', async () => {

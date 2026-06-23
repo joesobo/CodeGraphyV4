@@ -643,6 +643,14 @@ Interpretation:
   the first published graph came from a full `analyze` request at `36817ms`.
   The next behavior change should keep changed-file work from preempting the
   first cached webview load.
+- Incremental changed-file analysis now waits for the first workspace-ready
+  graph before starting. The next one-sample run published the cached `load`
+  graph at `9857ms` before starting incremental work at `9916ms`, so the first
+  `GRAPH_DATA_UPDATED` no longer waits for a full `analyze` request. First
+  graph readiness improved from `40649ms` to `13696ms` in this noisy VS Code
+  frame-readiness harness, while the host-side first publish moved from
+  `36817ms` to `9857ms`. The remaining startup target is the cached load path
+  itself, which now accounts for roughly `9.9s` before publish.
 
 Full test baseline:
 
