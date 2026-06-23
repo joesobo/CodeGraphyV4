@@ -340,9 +340,15 @@ export function publishAnalyzedGraph(
         reason: 'groupInputsUnchanged',
       });
     } else {
+      const groupsStartedAt = stageStartedAt;
+      stageStartedAt = Date.now();
       handlers.computeMergedGroups();
+      recordPublishStage('computeGroups', stageStartedAt);
+
+      stageStartedAt = Date.now();
       handlers.sendGroupsUpdated();
-      recordPublishStage('groups', stageStartedAt);
+      recordPublishStage('sendGroups', stageStartedAt);
+      recordPublishStage('groups', groupsStartedAt);
     }
   }
 
