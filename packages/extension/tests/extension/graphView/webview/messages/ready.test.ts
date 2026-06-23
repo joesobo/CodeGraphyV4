@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyWebviewReady } from '../../../../../src/extension/graphView/webview/messages/ready';
+import {
+  applyWebviewReady,
+  replayDuplicateWebviewReady,
+} from '../../../../../src/extension/graphView/webview/messages/ready';
 
 function createHandlers() {
   return {
@@ -349,6 +352,37 @@ describe('graph view ready message', () => {
 
     expect(handlers.notifyWebviewReady).not.toHaveBeenCalled();
     expect(readyNotified).toBe(true);
+  });
+
+  it('does not resend full graph data for duplicate ready after bootstrap', async () => {
+    const handlers = createHandlers();
+
+    await replayDuplicateWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: false,
+        readyNotified: true,
+      },
+      handlers,
+    );
+
+    expect(handlers.getGraphData).not.toHaveBeenCalled();
+    expect(handlers.sendMessage).not.toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: {
+        nodes: [{ id: 'cached.ts', label: 'cached.ts', color: '#ffffff' }],
+        edges: [],
+      },
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'APP_BOOTSTRAP_COMPLETE',
+    });
   });
 
   it('waits for cached timeline replay before notifying readiness', async () => {

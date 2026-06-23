@@ -1007,6 +1007,16 @@ Interpretation:
   stayed in the same snappy range (`276ms` wall-clock / `58ms` in-webview).
   Future live-update comparisons should prefer the post-save phase metrics
   over total wall clock when the trigger is `editor-save`.
+- Duplicate `WEBVIEW_READY` handling after bootstrap now replays lightweight
+  settings and `APP_BOOTSTRAP_COMPLETE` without resending the full graph
+  snapshot when the webview is already marked ready. This removes the startup
+  duplicate `GRAPH_DATA_UPDATED` payload that the webview previously skipped
+  only after receiving and inspecting all `6485` raw nodes and `20781` raw
+  edges. In the rebuilt editor-save probe, startup sent one full graph payload
+  instead of two, first graph readiness moved from `5346ms` to `5191ms`, and
+  Imports toggle stayed snappy (`211ms` wall-clock / `60ms` in-webview).
+  Live update stayed in the same fast post-save band with `116ms` from
+  saved-document receipt to request completion.
 
 Full test baseline:
 
