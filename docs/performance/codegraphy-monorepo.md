@@ -405,6 +405,35 @@ VS Code graph view benchmark:
     `597.9ms` after the usable document started.
   - Imports toggle wall-clock latency was `213ms` median, `267ms` p95; in-webview
     latency was `58ms` median, `62ms` p95.
+- Rejected direct Graph View focus before the container fallback:
+  - The command test covered trying `codegraphy.graphView.focus` before
+    `workbench.view.extension.codegraphy`, but the measured run did not improve
+    startup and the production change was reverted.
+  - Open Graph View to first rendered graph stats: `39359ms`.
+  - First-ready phases: command/open `1577ms`, acceptance-ready frame
+    `37734ms`, stats wait after frame discovery `34ms`.
+  - Host timeline still assigned `webview.html` at `50ms` after
+    `codegraphy.open` started, leaving the same frame-readiness bucket.
+  - Imports toggle wall-clock latency was `192ms` median, `219ms` p95; in-webview
+    latency was `51ms` median, `55ms` p95.
+- After deferring visible graph derivation while startup loading hides the graph,
+  skipping unchanged post-load filter pattern replay, and fixing harness
+  in-webview delta pairing:
+  - VS Code launch: `818ms`.
+  - Open Graph View to first rendered graph stats: `42234ms`.
+  - First-ready phases: command/open `1732ms`, acceptance-ready frame
+    `40458ms`, stats wait after frame discovery `15ms`.
+  - Host timeline assigned `webview.html` at `61ms` after `codegraphy.open`
+    started.
+  - The startup webview event stream received graph data at `101.2ms`, skipped
+    the duplicate graph payload at `512.1ms`, completed bootstrap at `512.8ms`,
+    first ran the real `22304` node / `74`-filter visible-graph derive at
+    `696.6ms` for `183.8ms`, and rendered stats at `892.1ms` after the usable
+    document started.
+  - No `22304`-node visible-graph derive ran before bootstrap while the loading
+    state was hiding the graph.
+  - Imports toggle wall-clock latency was `202ms` median, `220ms` p95; in-webview
+    latency was `53ms` median, `56ms` p95.
 
 Interpretation:
 
@@ -479,6 +508,13 @@ Interpretation:
   for `APP_BOOTSTRAP_COMPLETE`. This keeps loading semantics intact but avoids
   re-running visible-graph derivation when the same graph arrives before
   bootstrap settles.
+- Directly focusing the Graph View tree item before the container fallback did
+  not move the first-ready timing, so the command change was discarded instead
+  of adding a behavior path without a measured win.
+- Startup loading no longer derives or styles the real large graph before the
+  app is allowed to display it. This removes hidden pre-bootstrap work, while
+  the latest first-load wall clock remains dominated by VS Code webview frame
+  readiness outside the measured CodeGraphy data path.
 
 Full test baseline:
 

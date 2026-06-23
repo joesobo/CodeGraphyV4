@@ -64,6 +64,21 @@ test('VS Code graph view runner summarizes in-webview toggle event deltas', asyn
   });
 });
 
+test('VS Code graph view runner ignores rendered events before the toggle start', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { getWebviewEventDeltaMs } = await import(moduleUrl);
+
+  assert.equal(getWebviewEventDeltaMs({
+    webviewEvents: [
+      { name: 'graphStats.rendered', at: 5 },
+      { name: 'graphScope.edgeVisibility.optimistic', at: 10 },
+      { name: 'graphStats.rendered', at: 62.4 },
+    ],
+  }), 52.4);
+});
+
 test('VS Code graph view runner summarizes startup webview stage durations', async () => {
   const moduleUrl = pathToFileURL(
     path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),

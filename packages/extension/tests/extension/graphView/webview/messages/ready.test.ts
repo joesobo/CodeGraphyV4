@@ -117,6 +117,11 @@ describe('graph view ready message', () => {
     handlers.sendSettings.mockImplementation(() => callOrder.push('settings'));
     handlers.sendGraphControls.mockImplementation(() => callOrder.push('controls'));
     handlers.sendPluginWebviewInjections.mockImplementation(() => callOrder.push('plugin-injections'));
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'FILTER_PATTERNS_UPDATED') {
+        callOrder.push('filters');
+      }
+    });
     handlers.loadAndSendData.mockImplementation(() => {
       callOrder.push('analyze');
     });
@@ -143,6 +148,40 @@ describe('graph view ready message', () => {
     expect(callOrder.indexOf('settings')).toBeLessThan(callOrder.indexOf('analyze'));
     expect(callOrder.indexOf('controls')).toBeLessThan(callOrder.indexOf('analyze'));
     expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
+    expect(callOrder.indexOf('filters')).toBeLessThan(callOrder.indexOf('analyze'));
+  });
+
+  it('does not replay unchanged filter patterns after graph loading', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'FILTER_PATTERNS_UPDATED') {
+        events.push('filters');
+      }
+    });
+    handlers.loadAndSendData.mockImplementation(() => {
+      events.push('graph');
+    });
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(events).toEqual(['filters', 'graph']);
+    expect(handlers.sendMessage.mock.calls.filter(([message]) =>
+      (message as { type?: string }).type === 'FILTER_PATTERNS_UPDATED'
+    )).toHaveLength(1);
   });
 
   it('replays plugin filters that become available while loading graph data', async () => {
