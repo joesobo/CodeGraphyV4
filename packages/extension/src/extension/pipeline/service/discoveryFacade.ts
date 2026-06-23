@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 import {
+  createWorkspacePluginAnalysisContext,
+  type IDiscoveredFile,
   projectFileAnalysisConnections,
   readCodeGraphyWorkspaceStatus,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
   throwIfWorkspaceAnalysisAborted,
 } from '@codegraphy-dev/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
@@ -27,9 +30,38 @@ import {
 import { createEmptyWorkspaceAnalysisCache } from '../cache';
 import { createCachedWorkspaceDiscoveryState } from './cache/cachedDiscovery';
 import { recordExtensionPerformanceEvent } from '../../performance/marks';
+import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
   includeCurrentGitignoreMetadata?: boolean;
+}
+
+function isWorkspaceAnalysisAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError';
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && (error as { code?: unknown }).code === 'ENOENT';
+}
+
+const CACHED_GRAPH_ANALYSIS_WARMUP_IGNORED_SEGMENTS = new Set([
+  '.codegraphy',
+  '.git',
+  '.stryker-tmp',
+  '.turbo',
+  '.worktrees',
+  'coverage',
+  'dist',
+  'node_modules',
+  'out',
+  'reports',
+]);
+
+function isCachedGraphAnalysisWarmupCandidate(file: IDiscoveredFile): boolean {
+  const segments = file.relativePath.replace(/\\/g, '/').split('/');
+  return !segments.some(segment => CACHED_GRAPH_ANALYSIS_WARMUP_IGNORED_SEGMENTS.has(segment));
 }
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
@@ -256,7 +288,125 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       nodeCount: graphData.nodes.length,
     });
 
+    this._scheduleCachedGraphAnalysisWarmup(
+      cachedDiscovery.files,
+      workspaceRoot,
+      disabledPlugins,
+      signal,
+    );
+
     return graphData;
+  }
+
+  private _selectCachedGraphAnalysisWarmupFile(
+    files: readonly IDiscoveredFile[],
+  ): IDiscoveredFile | undefined {
+    if (typeof this._registry.supportsFile !== 'function') {
+      return files[0];
+    }
+
+    const sourceFiles = files.filter(isCachedGraphAnalysisWarmupCandidate);
+    const supportedFiles = sourceFiles.filter(file =>
+      this._registry.supportsFile(file.absolutePath)
+      || this._registry.supportsFile(file.relativePath),
+    );
+    if (supportedFiles.length === 0) {
+      return files.find(file =>
+        this._registry.supportsFile(file.absolutePath)
+        || this._registry.supportsFile(file.relativePath),
+      ) ?? files[0];
+    }
+
+    const extensionStats = new Map<string, {
+      count: number;
+      file: IDiscoveredFile;
+      firstIndex: number;
+    }>();
+    for (const [index, file] of supportedFiles.entries()) {
+      const extension = file.extension;
+      const stats = extensionStats.get(extension);
+      if (stats) {
+        stats.count += 1;
+        continue;
+      }
+
+      extensionStats.set(extension, {
+        count: 1,
+        file,
+        firstIndex: index,
+      });
+    }
+
+    return [...extensionStats.values()]
+      .sort((left, right) =>
+        right.count - left.count || left.firstIndex - right.firstIndex,
+      )[0]?.file;
+  }
+
+  private _scheduleCachedGraphAnalysisWarmup(
+    files: readonly IDiscoveredFile[],
+    workspaceRoot: string,
+    disabledPlugins: Set<string>,
+    signal?: AbortSignal,
+  ): void {
+    if (typeof this._registry.analyzeFileResultForPlugins !== 'function') {
+      return;
+    }
+
+    const file = this._selectCachedGraphAnalysisWarmupFile(files);
+    if (!file) {
+      return;
+    }
+
+    const warmupStartedAt = Date.now();
+    const disabledPluginSnapshot = new Set(disabledPlugins);
+    const pluginIds = this._getActiveAnalysisPluginIds(undefined, disabledPluginSnapshot);
+    const cacheTiers = createWorkspacePipelineAnalysisCacheTiers(
+      this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+      pluginIds,
+    );
+    const analysisContext = createWorkspacePluginAnalysisContext(workspaceRoot, {
+      features: {
+        symbols: cacheTiers.active === undefined
+          || cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER),
+      },
+    });
+
+    void (async () => {
+      throwIfWorkspaceAnalysisAborted(signal);
+      const content = await this._discovery.readContent(file);
+      throwIfWorkspaceAnalysisAborted(signal);
+      await this._registry.analyzeFileResultForPlugins(
+        file.absolutePath,
+        content,
+        workspaceRoot,
+        pluginIds,
+        analysisContext,
+        { disabledPlugins: disabledPluginSnapshot },
+      );
+      recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.warmAnalysis', {
+        durationMs: Date.now() - warmupStartedAt,
+        filePath: file.relativePath,
+        pluginIdCount: pluginIds.length,
+        status: 'completed',
+      });
+    })().catch(error => {
+      const status = isWorkspaceAnalysisAbortError(error)
+        ? 'aborted'
+        : isMissingFileError(error)
+          ? 'skipped'
+          : 'failed';
+      recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.warmAnalysis', {
+        durationMs: Date.now() - warmupStartedAt,
+        filePath: file.relativePath,
+        pluginIdCount: pluginIds.length,
+        status,
+      });
+
+      if (status === 'failed') {
+        console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);
+      }
+    });
   }
 
   rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
