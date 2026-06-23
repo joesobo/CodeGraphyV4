@@ -921,6 +921,19 @@ Interpretation:
   `refreshChangedFiles.completed` moved from `119ms` to `53ms`, and the
   incremental request moved from `142ms` to `77ms`; strict live-update wall
   clock moved from `545ms` to `510ms`.
+- Normal saved-file and file-change refreshes now use a `32ms` two-frame
+  debounce instead of `50ms`; create/delete/rename operations keep their
+  `500ms` coalescing window. The VS Code live-update harness also now reports
+  write-to-request start and write-to-request completion delay, so backend
+  processing can be separated from VS Code watcher/scheduler latency. In two
+  rebuilt monorepo probes, strict live-update wall clock measured `434ms` and
+  `382ms` versus the previous `510ms`, with request durations in the same band
+  (`87ms` and `83ms` versus `77ms`). The new request-start delay metric
+  measured `259ms` and `203ms`, confirming the remaining wall cost is mostly
+  before CodeGraphy's incremental request begins rather than graph rebuilding
+  or webview recomputation. First graph readiness stayed in the same band
+  (`5165ms` and `5026ms`), and the Imports toggle measured `201ms`/`198ms`
+  wall-clock with `62ms`/`57ms` in-webview.
 
 Full test baseline:
 

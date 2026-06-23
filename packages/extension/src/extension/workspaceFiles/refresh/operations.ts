@@ -9,7 +9,7 @@ import { scheduleWorkspaceRefresh } from './scheduler';
 type WorkspaceRenameFiles = vscode.FileRenameEvent['files'];
 type WorkspaceFileEventName = 'workspace:fileCreated' | 'workspace:fileDeleted';
 
-const WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS = 50;
+const WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS = 32;
 const WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS = 500;
 
 function isGitignorePath(filePath: string): boolean {
