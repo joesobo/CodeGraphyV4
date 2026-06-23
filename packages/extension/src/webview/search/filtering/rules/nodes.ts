@@ -6,6 +6,7 @@ import { ruleTargetsNodes } from './nodeMatcher';
 
 export interface CompiledNodeLegendRule {
   caseInsensitivePatternMatches: (value: string) => boolean;
+  hasConstraints: boolean;
   patternMatches: (value: string) => boolean;
   rule: IGroup;
   symbolFilePathMatches?: (value: string) => boolean;
@@ -19,11 +20,24 @@ export function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
     .reverse();
 }
 
+function hasNodeLegendConstraints(rule: IGroup): boolean {
+  return Boolean(
+    rule.matchNodeType
+    || rule.matchSymbolKind
+    || rule.matchSymbolKinds?.length
+    || rule.matchSymbolPluginKind
+    || rule.matchSymbolSource
+    || rule.matchSymbolLanguage
+    || rule.matchSymbolFilePath,
+  );
+}
+
 export function compileNodeLegendRules(activeRules: IGroup[]): CompiledNodeLegendRule[] {
   return activeRules
     .filter(ruleTargetsNodes)
     .map((rule) => ({
       caseInsensitivePatternMatches: createGlobMatcher(rule.pattern.toLowerCase()),
+      hasConstraints: hasNodeLegendConstraints(rule),
       patternMatches: createGlobMatcher(rule.pattern),
       rule,
       ...(rule.matchSymbolFilePath
@@ -63,22 +77,44 @@ function compiledRuleConstraintsMatchNode(
   node: IGraphData['nodes'][number],
   compiledRule: CompiledNodeLegendRule,
 ): boolean {
+  if (!compiledRule.hasConstraints) {
+    return true;
+  }
+
   const { rule } = compiledRule;
   const symbol = node.symbol;
-  const exactMatches = [
-    [rule.matchNodeType, node.nodeType],
-    [rule.matchSymbolKind, symbol?.kind],
-    [rule.matchSymbolPluginKind, symbol?.pluginKind],
-    [rule.matchSymbolSource, symbol?.source],
-    [rule.matchSymbolLanguage, symbol?.language],
-  ];
-  const exactFieldsMatch = exactMatches.every(([expected, actual]) => !expected || expected === actual);
-  const symbolKindsMatch = !rule.matchSymbolKinds
-    || Boolean(symbol?.kind && rule.matchSymbolKinds.includes(symbol.kind));
-  const symbolPathMatches = !compiledRule.symbolFilePathMatches
-    || Boolean(symbol?.filePath && compiledRule.symbolFilePathMatches(symbol.filePath));
+  if (rule.matchNodeType && rule.matchNodeType !== node.nodeType) {
+    return false;
+  }
 
-  return exactFieldsMatch && symbolKindsMatch && symbolPathMatches;
+  if (rule.matchSymbolKind && rule.matchSymbolKind !== symbol?.kind) {
+    return false;
+  }
+
+  if (rule.matchSymbolPluginKind && rule.matchSymbolPluginKind !== symbol?.pluginKind) {
+    return false;
+  }
+
+  if (rule.matchSymbolSource && rule.matchSymbolSource !== symbol?.source) {
+    return false;
+  }
+
+  if (rule.matchSymbolLanguage && rule.matchSymbolLanguage !== symbol?.language) {
+    return false;
+  }
+
+  if (rule.matchSymbolKinds && (!symbol?.kind || !rule.matchSymbolKinds.includes(symbol.kind))) {
+    return false;
+  }
+
+  if (
+    compiledRule.symbolFilePathMatches
+    && (!symbol?.filePath || !compiledRule.symbolFilePathMatches(symbol.filePath))
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 function compiledRulePatternMatchesNode(
