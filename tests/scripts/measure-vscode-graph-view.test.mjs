@@ -110,6 +110,52 @@ test('VS Code graph view runner summarizes startup webview stage durations', asy
   });
 });
 
+test('VS Code graph view runner computes first graph ready timing breakdown', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { computeFirstGraphReadyBreakdown } = await import(moduleUrl);
+
+  assert.deepEqual(computeFirstGraphReadyBreakdown({
+    extensionHostEvents: [
+      { name: 'command.open.start', offsetMs: 0 },
+      { name: 'graphWebview.html.assigned', offsetMs: 42 },
+      {
+        name: 'graphWebview.message.send',
+        offsetMs: 310,
+        detail: { type: 'GRAPH_DATA_UPDATED' },
+      },
+      {
+        name: 'graphAnalysis.request.completed',
+        offsetMs: 350,
+        detail: { mode: 'load', durationMs: 120 },
+      },
+    ],
+    firstGraphReadyPhases: {
+      openGraphCommandMs: 100,
+      graphFrameReadyMs: 1000,
+      graphStatsReadyMs: 20,
+    },
+    firstGraphReadyWebviewEvents: [
+      { name: 'webview.ready.posted', at: 10.2 },
+      { name: 'extensionMessage.received', at: 40.3, detail: { type: 'GRAPH_DATA_UPDATED' } },
+      { name: 'extensionMessage.appBootstrapComplete', at: 70.4 },
+      { name: 'graphStats.rendered', at: 130.8 },
+    ],
+  }), {
+    commandAndViewOpenMs: 100,
+    frameReadyMs: 1000,
+    statsAfterFrameMs: 20,
+    extensionHostHtmlAssignedOffsetMs: 42,
+    extensionHostFirstGraphDataSendOffsetMs: 310,
+    extensionHostFirstLoadRequestCompletedOffsetMs: 350,
+    extensionHostFirstLoadRequestDurationMs: 120,
+    webviewDocumentReadyToStatsMs: 121,
+    webviewGraphDataToStatsMs: 91,
+    webviewBootstrapToStatsMs: 60,
+  });
+});
+
 test('VS Code graph view runner summarizes live-update request durations', async () => {
   const moduleUrl = pathToFileURL(
     path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
@@ -404,6 +450,11 @@ test('VS Code graph view runner builds a startup-ready measurement payload befor
         p95Ms: 12,
         maxMs: 12,
       },
+    },
+    firstGraphReadyBreakdown: {
+      commandAndViewOpenMs: 100,
+      frameReadyMs: 1000,
+      statsAfterFrameMs: 20,
     },
     firstGraphReadyWebviewEvents: [
       { name: 'visibleGraph.derive', durationMs: 12.2 },

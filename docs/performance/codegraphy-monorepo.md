@@ -1128,6 +1128,15 @@ Interpretation:
   edit completed in `380ms` wall-clock with a `105ms` incremental request.
   The restore request also stayed incremental at `65ms`, and the protected
   main checkout was clean after the temporary stale marker was restored.
+- The VS Code graph-view harness now reports a first-graph-ready breakdown so
+  remaining startup work is not hidden inside one wall-clock number. Applied to
+  the latest clean large-monorepo trace, CodeGraphy assigned the webview HTML
+  at `73ms` after the extension command started, sent the first graph payload
+  at `1041ms`, and completed the cached `load` request in `237ms`. Once the
+  browser document posted ready, it reached rendered graph stats in `243ms`.
+  The measured `4614ms` first-ready total is therefore dominated by the
+  benchmark's `1647ms` command/view-open bucket and `2954ms` VS Code webview
+  frame-readiness bucket, not graph derivation or renderer work.
 
 Full test baseline:
 
