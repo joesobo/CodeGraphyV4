@@ -313,6 +313,7 @@ Skipped full workspace discovery during cached Graph Cache replay: focused facad
 Added cached-load/publish stage markers and reused a prepared Material Icon extension matcher: publish `groups` dropped from 748ms to 96ms, cached `load` publish moved from 2.28s to 1.70s, first graph readiness moved from 5.82s to 5.62s, and Imports sanity check measured 209ms wall-clock / 58ms in-webview.
 Deferred live gitignore probing only for stale cached replay: cached discovery dropped from 324ms to 11ms, cached load completion from 836ms to 497ms, cached load publish from 1.70s to 0.63s, first graph readiness from 5.62s to 5.27s, and visible stats stayed 2300 nodes / 5345 edges while background analysis handled exact ignored metadata.
 Warmed the repo-local Graph Cache when the Graph View runtime creates its analyzer: hydration dropped from 406ms to 170ms, cached load completion from 497ms to 259ms, cached load request completion from 672ms to 429ms, first graph readiness from 5266ms to 5114ms, and visible stats stayed 2300 nodes / 5345 edges.
+Reused current discovery for existing-file live updates and added a live-update VS Code probe: full-discovery control was 3854ms wall / 3149ms request with 1900ms discovery; cached-discovery fast path was 1887ms wall / 1180ms request with 0ms discovery.
 ```
 
 ## Task 5: Keep The PR Reviewable

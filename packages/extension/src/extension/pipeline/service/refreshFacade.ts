@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import * as vscode from 'vscode';
 import {
   hasRequiredAnalysisCacheTiers,
@@ -5,6 +7,7 @@ import {
 } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
+import { recordExtensionPerformanceEvent } from '../../performance/marks';
 import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
 import {
   createWorkspacePipelineDiscoveryDependencies,
@@ -16,6 +19,11 @@ import {
   refreshWorkspacePipelinePluginFiles,
   type WorkspacePipelineRefreshSource,
 } from './runtime/refresh';
+
+interface ChangedFileDiscoveryState {
+  directories: string[];
+  files: IDiscoveredFile[];
+}
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
   private _createWorkspaceIndexRefreshSource(
@@ -141,6 +149,45 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     return graphData;
   }
 
+  private _getReusableChangedFileDiscoveryState(
+    workspaceRoot: string,
+    filePaths: readonly string[],
+  ): ChangedFileDiscoveryState | undefined {
+    if (
+      filePaths.length === 0
+      || this._lastWorkspaceRoot !== workspaceRoot
+      || this._lastDiscoveredFiles.length === 0
+    ) {
+      return undefined;
+    }
+
+    const discoveredByRelativePath = new Map(
+      this._lastDiscoveredFiles.map(file => [
+        file.relativePath.replace(/\\/g, '/'),
+        file,
+      ]),
+    );
+
+    for (const filePath of filePaths) {
+      const relativePath = this._toWorkspaceRelativePath(workspaceRoot, filePath);
+      if (!relativePath || !discoveredByRelativePath.has(relativePath)) {
+        return undefined;
+      }
+
+      const absolutePath = path.isAbsolute(filePath)
+        ? filePath
+        : path.join(workspaceRoot, filePath);
+      if (!fs.existsSync(absolutePath)) {
+        return undefined;
+      }
+    }
+
+    return {
+      directories: [...this._lastDiscoveredDirectories],
+      files: this._lastDiscoveredFiles,
+    };
+  }
+
   async refreshAnalysisScope(
     filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
@@ -249,6 +296,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
+    const refreshStartedAt = Date.now();
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       return { nodes: [], edges: [] };
@@ -257,24 +305,45 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     const config = this._config.getAll();
     const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns);
     const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns);
-    const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
-      createWorkspacePipelineDiscoveryDependencies(this._discovery),
+    const reusableDiscoveryState = this._getReusableChangedFileDiscoveryState(
       workspaceRoot,
-      config,
-      filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
-      this.getPluginFilterPatterns(disabledPlugins)
-        .filter(pattern => !disabledPluginPatterns.has(pattern)),
-      signal,
-      message => {
-        vscode.window.showWarningMessage(message);
-      },
+      filePaths,
     );
-    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
-    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
+    const discoveryStartedAt = Date.now();
+    let discoveryResult: ChangedFileDiscoveryState;
+    if (reusableDiscoveryState) {
+      discoveryResult = reusableDiscoveryState;
+    } else {
+      const discovered = await discoverWorkspacePipelineFilesWithWarnings(
+        createWorkspacePipelineDiscoveryDependencies(this._discovery),
+        workspaceRoot,
+        config,
+        filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
+        this.getPluginFilterPatterns(disabledPlugins)
+          .filter(pattern => !disabledPluginPatterns.has(pattern)),
+        signal,
+        message => {
+          vscode.window.showWarningMessage(message);
+        },
+      );
+      discoveryResult = {
+        directories: discovered.directories ?? [],
+        files: discovered.files,
+      };
+      this._lastDiscoveredDirectories = discoveryResult.directories;
+      this._lastGitIgnoredPaths = discovered.gitIgnoredPaths ?? [];
+    }
+    recordExtensionPerformanceEvent('workspacePipeline.refreshChangedFiles.discovery', {
+      changedFileCount: filePaths.length,
+      directoryCount: discoveryResult.directories?.length ?? 0,
+      durationMs: Date.now() - discoveryStartedAt,
+      fileCount: discoveryResult.files.length,
+      mode: reusableDiscoveryState ? 'cached' : 'discover',
+    });
 
-    return refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
+    const graphData = await refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(disabledPlugins), {
       disabledPlugins,
-      discoveredDirectories: discoveryResult.directories ?? [],
+      discoveredDirectories: discoveryResult.directories,
       discoveredFiles: discoveryResult.files,
       filePaths,
       filterPatterns,
@@ -300,6 +369,12 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       signal,
       workspaceRoot,
     });
+    recordExtensionPerformanceEvent('workspacePipeline.refreshChangedFiles.completed', {
+      durationMs: Date.now() - refreshStartedAt,
+      edgeCount: graphData.edges.length,
+      nodeCount: graphData.nodes.length,
+    });
+    return graphData;
   }
 
   async refreshGitignoreMetadata(

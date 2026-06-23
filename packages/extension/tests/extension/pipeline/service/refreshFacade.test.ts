@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import fs from 'node:fs';
 import * as vscode from 'vscode';
 import { WorkspacePipelineRefreshFacade } from '../../../../src/extension/pipeline/service/refreshFacade';
 import {
@@ -74,6 +75,14 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
 
   public override set _lastDiscoveredFiles(files: never) {
     super._lastDiscoveredFiles = files;
+  }
+
+  public override get _lastDiscoveredDirectories(): string[] {
+    return super._lastDiscoveredDirectories;
+  }
+
+  public override set _lastDiscoveredDirectories(directories: string[]) {
+    super._lastDiscoveredDirectories = directories;
   }
 
   public override get _lastGitIgnoredPaths(): string[] {
@@ -280,6 +289,35 @@ describe('pipeline/service/refreshFacade', () => {
 
     refreshSource.invalidateWorkspaceFiles(['/workspace/src/a.ts']);
     expect(facade.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/a.ts']);
+  });
+
+  it('reuses the current discovered files for existing changed files', async () => {
+    const facade = new TestRefreshFacade();
+    facade._lastWorkspaceRoot = '/workspace';
+    facade._lastDiscoveredDirectories = ['src'];
+    facade._lastDiscoveredFiles = [
+      {
+        absolutePath: '/workspace/src/a.ts',
+        relativePath: 'src/a.ts',
+        extension: '.ts',
+        name: 'a.ts',
+      },
+    ] as never;
+    vi.spyOn(fs, 'existsSync').mockImplementation(filePath => filePath === '/workspace/src/a.ts');
+
+    await facade.refreshChangedFiles(['/workspace/src/a.ts']);
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
+    const [, refreshDependencies] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
+    expect(refreshDependencies.discoveredDirectories).toEqual(['src']);
+    expect(refreshDependencies.discoveredFiles).toEqual([
+      {
+        absolutePath: '/workspace/src/a.ts',
+        relativePath: 'src/a.ts',
+        extension: '.ts',
+        name: 'a.ts',
+      },
+    ]);
   });
 
   it('builds delegated discovery and refresh dependencies for analysis-scope refreshes', async () => {

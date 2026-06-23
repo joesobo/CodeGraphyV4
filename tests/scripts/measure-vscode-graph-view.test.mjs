@@ -108,6 +108,32 @@ test('VS Code graph view runner summarizes startup webview stage durations', asy
   });
 });
 
+test('VS Code graph view runner summarizes live-update request durations', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { summarizeLiveUpdateSamples } = await import(moduleUrl);
+
+  assert.deepEqual(summarizeLiveUpdateSamples([
+    { durationMs: 640, requestDurationMs: 120 },
+    { durationMs: 590, requestDurationMs: 90 },
+    { durationMs: 615, requestDurationMs: 105 },
+  ]), {
+    iterations: 3,
+    minMs: 590,
+    medianMs: 615,
+    p95Ms: 640,
+    maxMs: 640,
+    requestDuration: {
+      iterations: 3,
+      minMs: 90,
+      medianMs: 105,
+      p95Ms: 120,
+      maxMs: 120,
+    },
+  });
+});
+
 test('VS Code graph view runner parses extension host performance JSONL', async () => {
   const moduleUrl = pathToFileURL(
     path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
@@ -133,6 +159,73 @@ test('VS Code graph view runner parses extension host performance JSONL', async 
       detail: { htmlLength: 21 },
     },
   ]);
+});
+
+test('VS Code graph view runner ignores request completions whose start was before the marker', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { findCompletedExtensionHostRequestAfter } = await import(moduleUrl);
+
+  assert.deepEqual(findCompletedExtensionHostRequestAfter([
+    {
+      name: 'graphAnalysis.request.start',
+      at: 90,
+      detail: { requestId: 1, mode: 'incremental' },
+    },
+    {
+      name: 'graphAnalysis.request.completed',
+      at: 140,
+      detail: { requestId: 1, mode: 'incremental', durationMs: 50 },
+    },
+    {
+      name: 'graphAnalysis.request.start',
+      at: 150,
+      detail: { requestId: 2, mode: 'incremental' },
+    },
+    {
+      name: 'graphAnalysis.request.completed',
+      at: 190,
+      detail: { requestId: 2, mode: 'incremental', durationMs: 40 },
+    },
+  ], {
+    mode: 'incremental',
+    startedAt: 100,
+  }), {
+    name: 'graphAnalysis.request.completed',
+    at: 190,
+    detail: { requestId: 2, mode: 'incremental', durationMs: 40 },
+  });
+});
+
+test('VS Code graph view runner detects active extension-host requests', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { findActiveExtensionHostRequestIds } = await import(moduleUrl);
+
+  assert.deepEqual(findActiveExtensionHostRequestIds([
+    {
+      name: 'graphAnalysis.request.start',
+      at: 100,
+      detail: { requestId: 1, mode: 'incremental' },
+    },
+    {
+      name: 'graphAnalysis.request.start',
+      at: 120,
+      detail: { requestId: 2, mode: 'incremental' },
+    },
+    {
+      name: 'graphAnalysis.request.completed',
+      at: 150,
+      detail: { requestId: 1, mode: 'incremental', durationMs: 50 },
+    },
+    {
+      name: 'graphAnalysis.request.start',
+      at: 180,
+      detail: { requestId: 3, mode: 'analyze' },
+    },
+  ], 'incremental'), [2]);
 });
 
 test('VS Code graph view runner records frame lifecycle offsets from graph open', async () => {

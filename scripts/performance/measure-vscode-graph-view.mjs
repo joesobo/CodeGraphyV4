@@ -14,6 +14,7 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 const WEBVIEW_PERFORMANCE_EVENT_LIMIT = 500;
 const IMPORTS_TOGGLE_START_EVENT = 'graphScope.edgeVisibility.optimistic';
 const IMPORTS_TOGGLE_RENDERED_EVENT = 'graphStats.rendered';
+const LIVE_UPDATE_REQUEST_MODE = 'incremental';
 const DEFAULT_PLUGIN_PACKAGE_RELATIVE_PATHS = [
   'packages/plugin-godot',
   'packages/plugin-markdown',
@@ -108,6 +109,53 @@ export function parseExtensionHostPerformanceLog(logText) {
   }));
 }
 
+export function findCompletedExtensionHostRequestAfter(events, { mode, startedAt }) {
+  const matchingRequestIds = new Set();
+
+  for (const event of events) {
+    const requestId = event.detail?.requestId;
+    if (requestId === undefined || event.detail?.mode !== mode) {
+      continue;
+    }
+
+    if (event.name === 'graphAnalysis.request.start' && event.at >= startedAt) {
+      matchingRequestIds.add(requestId);
+      continue;
+    }
+
+    if (
+      event.name === 'graphAnalysis.request.completed'
+      && matchingRequestIds.has(requestId)
+    ) {
+      return event;
+    }
+  }
+
+  return undefined;
+}
+
+export function findActiveExtensionHostRequestIds(events, mode) {
+  const activeRequestIds = new Set();
+
+  for (const event of events) {
+    const requestId = event.detail?.requestId;
+    if (requestId === undefined || event.detail?.mode !== mode) {
+      continue;
+    }
+
+    if (event.name === 'graphAnalysis.request.start') {
+      activeRequestIds.add(requestId);
+      continue;
+    }
+
+    if (event.name === 'graphAnalysis.request.completed') {
+      activeRequestIds.delete(requestId);
+    }
+  }
+
+  return [...activeRequestIds];
+}
+
 async function readExtensionHostPerformanceEvents(logPath) {
   const logText = await readFile(logPath, 'utf8').catch(() => '');
   return parseExtensionHostPerformanceLog(logText);
@@ -177,6 +225,19 @@ export function summarizeSwitchTransitionSamples(samples) {
     ...summarizeDurations(samples.map(sample => sample.durationMs)),
     ...(webviewEventDeltas.length > 0
       ? { webviewEventDelta: summarizeDurations(webviewEventDeltas) }
+      : {}),
+  };
+}
+
+export function summarizeLiveUpdateSamples(samples) {
+  const requestDurations = samples
+    .map(sample => sample.requestDurationMs)
+    .filter(value => value !== undefined);
+
+  return {
+    ...summarizeDurations(samples.map(sample => sample.durationMs)),
+    ...(requestDurations.length > 0
+      ? { requestDuration: summarizeDurations(requestDurations) }
       : {}),
   };
 }
@@ -337,6 +398,51 @@ async function waitForWebviewPerformanceEvent(frame, name, timeoutMs = DEFAULT_T
   throw new Error(`Timed out waiting for webview performance event: ${name}`);
 }
 
+async function waitForExtensionHostPerformanceEvent(logPath, predicate, timeoutMs = DEFAULT_TIMEOUT_MS) {
+  const startedAt = performance.now();
+
+  while (performance.now() - startedAt < timeoutMs) {
+    const events = await readExtensionHostPerformanceEvents(logPath);
+    const event = predicate(events);
+    if (event) {
+      return event;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  throw new Error('Timed out waiting for extension host performance event');
+}
+
+async function waitForExtensionHostRequestIdle(
+  logPath,
+  mode,
+  quietMs = 500,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+) {
+  const startedAt = performance.now();
+
+  while (performance.now() - startedAt < timeoutMs) {
+    const events = await readExtensionHostPerformanceEvents(logPath);
+    const activeRequestIds = findActiveExtensionHostRequestIds(events, mode);
+    const latestModeEventAt = events
+      .filter(event => event.name.startsWith('graphAnalysis.request.')
+        && event.detail?.mode === mode)
+      .at(-1)?.at;
+
+    if (
+      activeRequestIds.length === 0
+      && (latestModeEventAt === undefined || Date.now() - latestModeEventAt >= quietMs)
+    ) {
+      return;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  throw new Error(`Timed out waiting for ${mode} extension host requests to become idle`);
+}
+
 async function measureSwitchTransition(frame, label, enabled) {
   const beforeStats = await waitForGraphStats(frame, stats => stats.nodeCount > 0);
   await resetWebviewPerformanceEvents(frame);
@@ -355,6 +461,45 @@ async function measureSwitchTransition(frame, label, enabled) {
   };
 }
 
+async function measureLiveUpdateTransition({
+  extensionHostLogPath,
+  frame,
+  liveUpdateFilePath,
+  workspaceRoot,
+}) {
+  const absoluteFilePath = path.isAbsolute(liveUpdateFilePath)
+    ? liveUpdateFilePath
+    : path.join(workspaceRoot, liveUpdateFilePath);
+  const originalContent = await readFile(absoluteFilePath, 'utf8');
+  const marker = `\n// CodeGraphy live update perf marker ${Date.now()}\n`;
+
+  await waitForExtensionHostRequestIdle(extensionHostLogPath, LIVE_UPDATE_REQUEST_MODE);
+  await resetWebviewPerformanceEvents(frame);
+  const startedAtEpoch = Date.now();
+  const startedAt = performance.now();
+
+  try {
+    await writeFile(absoluteFilePath, `${originalContent}${marker}`);
+    const requestEvent = await waitForExtensionHostPerformanceEvent(
+      extensionHostLogPath,
+      events => findCompletedExtensionHostRequestAfter(events, {
+        mode: LIVE_UPDATE_REQUEST_MODE,
+        startedAt: startedAtEpoch,
+      }),
+    );
+
+    return {
+      durationMs: Math.round(performance.now() - startedAt),
+      filePath: path.relative(workspaceRoot, absoluteFilePath).replace(/\\/g, '/'),
+      requestDurationMs: requestEvent.detail?.durationMs,
+      requestOffsetMs: requestEvent.offsetMs,
+      webviewEvents: await readWebviewPerformanceEvents(frame),
+    };
+  } finally {
+    await writeFile(absoluteFilePath, originalContent);
+  }
+}
+
 async function restoreWorkspaceSettings(settingsPath, originalSettings) {
   if (originalSettings === null) {
     return;
@@ -365,6 +510,7 @@ async function restoreWorkspaceSettings(settingsPath, originalSettings) {
 
 async function measureVSCodeGraphView({
   iterations,
+  liveUpdateFilePath,
   outputPath,
   warmupIterations,
   workspacePath,
@@ -461,6 +607,16 @@ async function measureVSCodeGraphView({
       await measureSwitchTransition(frame, 'Imports', initialImportsEnabled);
     }
 
+    const liveUpdateSamples = [];
+    if (liveUpdateFilePath) {
+      liveUpdateSamples.push(await measureLiveUpdateTransition({
+        extensionHostLogPath,
+        frame,
+        liveUpdateFilePath,
+        workspaceRoot,
+      }));
+    }
+
     const measurements = {
       ...startupMeasurements,
       status: 'complete',
@@ -468,6 +624,14 @@ async function measureVSCodeGraphView({
         ...summarizeSwitchTransitionSamples(samples),
         samples,
       },
+      ...(liveUpdateSamples.length > 0
+        ? {
+          liveUpdate: {
+            ...summarizeLiveUpdateSamples(liveUpdateSamples),
+            samples: liveUpdateSamples,
+          },
+        }
+        : {}),
     };
 
     await writeMetrics({ outputPath, workspacePath: workspaceRoot, measurements });
@@ -483,7 +647,7 @@ async function measureVSCodeGraphView({
 function printUsage() {
   process.stdout.write([
     'Usage:',
-    '  pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs [--workspace <path>] [--iterations <n>] [--warmup <n>] [--output <path>]',
+    '  pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs [--workspace <path>] [--iterations <n>] [--warmup <n>] [--live-update-file <path>] [--output <path>]',
     '',
     'Launches Extension Development Host, opens CodeGraphy, and times rendered Graph Scope toggle latency.',
   ].join('\n'));
@@ -499,9 +663,11 @@ async function runCli(argv) {
   const outputPath = readOptionValue(argv, '--output') ?? DEFAULT_OUTPUT_PATH;
   const iterations = toPositiveInteger(readOptionValue(argv, '--iterations'), DEFAULT_ITERATIONS);
   const warmupIterations = toPositiveInteger(readOptionValue(argv, '--warmup'), DEFAULT_WARMUP_ITERATIONS);
+  const liveUpdateFilePath = readOptionValue(argv, '--live-update-file');
 
   await measureVSCodeGraphView({
     iterations,
+    liveUpdateFilePath,
     outputPath,
     warmupIterations,
     workspacePath,
