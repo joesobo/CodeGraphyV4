@@ -1,5 +1,6 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type {
+  GraphViewCachedGraphLoadOptions,
   GraphViewAnalysisExecutionState,
   GraphViewIndexingProgress,
 } from '../../execution';
@@ -37,10 +38,12 @@ export async function loadCachedGraphViewRawData(
   signal: AbortSignal,
   state: GraphViewAnalysisExecutionState,
   analyzer: GraphViewAnalyzer,
+  options?: GraphViewCachedGraphLoadOptions,
 ): Promise<IGraphData> {
   return (await analyzer.loadCachedGraph?.(
     state.filterPatterns,
     state.disabledPlugins,
     signal,
+    options,
   )) ?? EMPTY_GRAPH_DATA;
 }

@@ -28,6 +28,10 @@ import { createEmptyWorkspaceAnalysisCache } from '../cache';
 import { createCachedWorkspaceDiscoveryState } from './cache/cachedDiscovery';
 import { recordExtensionPerformanceEvent } from '../../performance/marks';
 
+export interface WorkspacePipelineCachedGraphLoadOptions {
+  includeCurrentGitignoreMetadata?: boolean;
+}
+
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
 
@@ -178,6 +182,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     _filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
+    options: WorkspacePipelineCachedGraphLoadOptions = {},
   ): Promise<IGraphData> {
     const loadStartedAt = Date.now();
     throwIfWorkspaceAnalysisAborted(signal);
@@ -210,16 +215,18 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       fileCount: cachedFilePaths.length,
     });
     stageStartedAt = Date.now();
+    const includeCurrentGitignoreMetadata = options.includeCurrentGitignoreMetadata !== false;
     const cachedDiscovery = createCachedWorkspaceDiscoveryState(
       workspaceRoot,
       cachedFilePaths,
-      config.respectGitignore,
+      config.respectGitignore && includeCurrentGitignoreMetadata,
     );
     recordExtensionPerformanceEvent('workspacePipeline.loadCachedGraph.cachedDiscovery', {
       directoryCount: cachedDiscovery.directories.length,
       durationMs: Date.now() - stageStartedAt,
       fileCount: cachedDiscovery.files.length,
       gitIgnoredPathCount: cachedDiscovery.gitIgnoredPaths.length,
+      includeCurrentGitignoreMetadata,
     });
 
     this._lastDiscoveredFiles = cachedDiscovery.files;

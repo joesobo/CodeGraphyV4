@@ -65,7 +65,9 @@ export async function loadGraphViewRawData(
   }
 
   if (decision.route === 'cached') {
-    const cachedGraphData = await loadCachedGraphViewRawData(signal, state, analyzer);
+    const cachedGraphData = await loadCachedGraphViewRawData(signal, state, analyzer, {
+      includeCurrentGitignoreMetadata: indexFreshness !== 'stale',
+    });
     if (hasReplayableGraphData(cachedGraphData)) {
       return {
         rawGraphData: cachedGraphData,

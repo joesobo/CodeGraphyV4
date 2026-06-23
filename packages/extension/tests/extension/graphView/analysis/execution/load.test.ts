@@ -95,7 +95,12 @@ describe('graph view analysis execution load', () => {
 
     expect(result.shouldDiscover).toBe(false);
     expect(result.rawGraphData).toEqual(cachedGraph);
-    expect(loadCachedGraph).toHaveBeenCalledOnce();
+    expect(loadCachedGraph).toHaveBeenCalledWith(
+      [],
+      new Set<string>(),
+      expect.any(AbortSignal),
+      { includeCurrentGitignoreMetadata: true },
+    );
     expect(analyze).not.toHaveBeenCalled();
     expect(refreshIndex).not.toHaveBeenCalled();
     expect(handlers.emitDiagnostic).toHaveBeenCalledWith({
@@ -145,7 +150,12 @@ describe('graph view analysis execution load', () => {
 
     expect(result.shouldDiscover).toBe(false);
     expect(result.rawGraphData).toEqual(cachedGraph);
-    expect(loadCachedGraph).toHaveBeenCalledOnce();
+    expect(loadCachedGraph).toHaveBeenCalledWith(
+      [],
+      new Set<string>(),
+      expect.any(AbortSignal),
+      { includeCurrentGitignoreMetadata: false },
+    );
     expect(refreshIndex).not.toHaveBeenCalled();
     expect(analyze).not.toHaveBeenCalled();
   });

@@ -8,6 +8,10 @@ import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
 
+export interface GraphViewCachedGraphLoadOptions {
+  includeCurrentGitignoreMetadata?: boolean;
+}
+
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
   hasIndex(): boolean;
@@ -24,6 +28,7 @@ interface GraphViewAnalyzerLike {
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
+    options?: GraphViewCachedGraphLoadOptions,
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
