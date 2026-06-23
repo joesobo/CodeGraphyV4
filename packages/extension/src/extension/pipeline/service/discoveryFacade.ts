@@ -1,21 +1,12 @@
 import * as vscode from 'vscode';
 import {
-  createWorkspacePluginAnalysisContext,
   type IDiscoveredFile,
   projectFileAnalysisConnections,
-  readCodeGraphyWorkspaceStatus,
-  SYMBOLS_ANALYSIS_CACHE_TIER,
   throwIfWorkspaceAnalysisAborted,
 } from '@codegraphy-dev/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
-import {
-  getWorkspacePipelinePluginFilterGroups,
-  getWorkspacePipelinePluginFilterPatterns,
-  initializeWorkspacePipeline,
-  syncWorkspacePipelinePlugins,
-} from '../plugins/bootstrap';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
 import { WorkspacePipelineInternalBase } from './base/internal';
 import {
@@ -29,130 +20,75 @@ import {
 } from './runtime/run';
 import { createEmptyWorkspaceAnalysisCache } from '../cache';
 import { createCachedWorkspaceDiscoveryState } from './cache/cachedDiscovery';
-import { createWorkspacePipelineAnalysisCacheTiers } from './cache/tiers';
+import {
+  createCachedGraphAnalysisWarmupInput,
+  isMissingFileError,
+  isWorkspaceAnalysisAbortError,
+  warmCachedGraphAnalysisFile,
+} from './cachedGraphWarmup';
+import { getWorkspacePipelineIndexStatus } from './indexStatus';
+import {
+  getEffectiveCustomFilterPatterns,
+  getEffectivePluginFilterPatterns,
+  getPipelinePluginFilterGroups,
+  getPipelinePluginFilterPatterns,
+  initializeWorkspacePipelinePlugins,
+  queueWorkspacePipelinePluginReload,
+  queueWorkspacePipelinePluginSync,
+} from './pluginState';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
   includeCurrentGitignoreMetadata?: boolean;
   warmAnalysis?: boolean;
 }
 
-interface CachedGraphAnalysisWarmupInput {
-  analysisContext: ReturnType<typeof createWorkspacePluginAnalysisContext>;
-  disabledPluginSnapshot: Set<string>;
-  file: IDiscoveredFile;
-  pluginIds: readonly string[];
-  signal?: AbortSignal;
-  workspaceRoot: string;
-}
-
-function isWorkspaceAnalysisAbortError(error: unknown): boolean {
-  return error instanceof Error && error.name === 'AbortError';
-}
-
-function isMissingFileError(error: unknown): boolean {
-  return error instanceof Error
-    && 'code' in error
-    && (error as { code?: unknown }).code === 'ENOENT';
-}
-
-const CACHED_GRAPH_ANALYSIS_WARMUP_IGNORED_SEGMENTS = new Set([
-  '.codegraphy',
-  '.git',
-  '.stryker-tmp',
-  '.turbo',
-  '.worktrees',
-  'coverage',
-  'dist',
-  'node_modules',
-  'out',
-  'reports',
-]);
-
-function isCachedGraphAnalysisWarmupCandidate(file: IDiscoveredFile): boolean {
-  const segments = file.relativePath.replace(/\\/g, '/').split('/');
-  return !segments.some(segment => CACHED_GRAPH_ANALYSIS_WARMUP_IGNORED_SEGMENTS.has(segment));
-}
-
-function selectMostRepresentedCachedGraphWarmupFile(
-  files: readonly IDiscoveredFile[],
-): IDiscoveredFile | undefined {
-  const extensionStats = new Map<string, {
-    count: number;
-    file: IDiscoveredFile;
-    firstIndex: number;
-  }>();
-
-  for (const [index, file] of files.entries()) {
-    const extension = file.extension;
-    const stats = extensionStats.get(extension);
-    if (stats) {
-      stats.count += 1;
-      continue;
-    }
-
-    extensionStats.set(extension, {
-      count: 1,
-      file,
-      firstIndex: index,
-    });
-  }
-
-  return [...extensionStats.values()]
-    .sort((left, right) => right.count - left.count || left.firstIndex - right.firstIndex)[0]
-    ?.file;
-}
-
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
 
   async initialize(): Promise<void> {
-    await initializeWorkspacePipeline(this._registry, {
-      getWorkspaceRoot: () => this._getWorkspaceRoot(),
-    });
+    await initializeWorkspacePipelinePlugins(this._registry, () => this._getWorkspaceRoot());
 
     console.log('[CodeGraphy] WorkspacePipeline initialized');
   }
 
   async reloadWorkspacePlugins(): Promise<void> {
-    const reload = this._workspacePluginReloadQueue.then(async () => {
-      this._registry.disposeAll();
-      await this.initialize();
-    });
-    this._workspacePluginReloadQueue = reload.catch(() => undefined);
+    const { reload, nextQueue } = queueWorkspacePipelinePluginReload(
+      this._workspacePluginReloadQueue,
+      this._registry,
+      () => this.initialize(),
+    );
+    this._workspacePluginReloadQueue = nextQueue;
     return reload;
   }
 
   async syncWorkspacePlugins(): Promise<void> {
-    const sync = this._workspacePluginReloadQueue.then(async () => {
-      await syncWorkspacePipelinePlugins(this._registry, {
-        getWorkspaceRoot: () => this._getWorkspaceRoot(),
-      });
-    });
-    this._workspacePluginReloadQueue = sync.catch(() => undefined);
+    const { sync, nextQueue } = queueWorkspacePipelinePluginSync(
+      this._workspacePluginReloadQueue,
+      this._registry,
+      () => this._getWorkspaceRoot(),
+    );
+    this._workspacePluginReloadQueue = nextQueue;
     return sync;
   }
 
   getPluginFilterPatterns(
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): string[] {
-    return getWorkspacePipelinePluginFilterPatterns(this._registry, disabledPlugins);
+    return getPipelinePluginFilterPatterns(this._registry, disabledPlugins);
   }
 
   getPluginFilterGroups(
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): IPluginFilterPatternGroup[] {
-    return getWorkspacePipelinePluginFilterGroups(this._registry, disabledPlugins);
+    return getPipelinePluginFilterGroups(this._registry, disabledPlugins);
   }
 
   private _getEffectiveCustomFilterPatterns(filterPatterns: string[]): string[] {
-    const disabledPatterns = new Set(this._config.disabledCustomFilterPatterns);
-    return filterPatterns.filter(pattern => !disabledPatterns.has(pattern));
+    return getEffectiveCustomFilterPatterns(this._config, filterPatterns);
   }
 
   private _getEffectivePluginFilterPatterns(disabledPlugins: ReadonlySet<string>): string[] {
-    const disabledPatterns = new Set(this._config.disabledPluginFilterPatterns);
-    return this.getPluginFilterPatterns(disabledPlugins)
-      .filter(pattern => !disabledPatterns.has(pattern));
+    return getEffectivePluginFilterPatterns(this._registry, this._config, disabledPlugins);
   }
 
   hasIndex(): boolean {
@@ -160,30 +96,12 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
   }
 
   getIndexStatus(): { freshness: 'fresh' | 'stale' | 'missing'; detail: string } {
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot) {
-      return {
-        freshness: 'missing',
-        detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
-      };
-    }
-
-    if (!this.hasIndex()) {
-      return {
-        freshness: 'missing',
-        detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
-      };
-    }
-
-    const status = readCodeGraphyWorkspaceStatus(workspaceRoot, {
+    return getWorkspacePipelineIndexStatus({
+      hasIndex: () => this.hasIndex(),
       pluginSignature: this._getPluginSignature(),
       settingsSignature: this._getSettingsSignature(),
+      workspaceRoot: this._getWorkspaceRoot(),
     });
-
-    return {
-      freshness: status.state,
-      detail: status.detail,
-    };
   }
 
   async discoverGraph(
@@ -308,49 +226,27 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return graphData;
   }
 
-  private _selectCachedGraphAnalysisWarmupFile(
-    files: readonly IDiscoveredFile[],
-  ): IDiscoveredFile | undefined {
-    if (typeof this._registry.supportsFile !== 'function') {
-      return files[0];
-    }
-
-    const supportedFiles = this._getSupportedCachedGraphAnalysisWarmupFiles(
-      files.filter(isCachedGraphAnalysisWarmupCandidate),
-    );
-    if (supportedFiles.length === 0) {
-      return this._getSupportedCachedGraphAnalysisWarmupFiles(files)[0] ?? files[0];
-    }
-
-    return selectMostRepresentedCachedGraphWarmupFile(supportedFiles);
-  }
-
-  private _getSupportedCachedGraphAnalysisWarmupFiles(
-    files: readonly IDiscoveredFile[],
-  ): IDiscoveredFile[] {
-    return files.filter(file =>
-      this._registry.supportsFile?.(file.absolutePath)
-      || this._registry.supportsFile?.(file.relativePath),
-    );
-  }
-
   private _scheduleCachedGraphAnalysisWarmup(
     files: readonly IDiscoveredFile[],
     workspaceRoot: string,
     disabledPlugins: Set<string>,
     signal?: AbortSignal,
   ): void {
-    const input = this._createCachedGraphAnalysisWarmupInput(
-      files,
-      workspaceRoot,
+    const input = createCachedGraphAnalysisWarmupInput({
       disabledPlugins,
+      files,
+      getActiveAnalysisPluginIds: disabledPluginSnapshot =>
+        this._getActiveAnalysisPluginIds(undefined, disabledPluginSnapshot),
+      nodeVisibility: this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+      registry: this._registry,
       signal,
-    );
+      workspaceRoot,
+    });
     if (!input) {
       return;
     }
 
-    void this._warmCachedGraphAnalysisFile(input).catch(error => {
+    void warmCachedGraphAnalysisFile(input, this._discovery, this._registry).catch(error => {
       const status = isWorkspaceAnalysisAbortError(error)
         ? 'aborted'
         : isMissingFileError(error)
@@ -361,57 +257,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
         console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);
       }
     });
-  }
-
-  private _createCachedGraphAnalysisWarmupInput(
-    files: readonly IDiscoveredFile[],
-    workspaceRoot: string,
-    disabledPlugins: Set<string>,
-    signal?: AbortSignal,
-  ): CachedGraphAnalysisWarmupInput | undefined {
-    if (typeof this._registry.analyzeFileResultForPlugins !== 'function') {
-      return undefined;
-    }
-
-    const file = this._selectCachedGraphAnalysisWarmupFile(files);
-    if (!file) {
-      return undefined;
-    }
-
-    const disabledPluginSnapshot = new Set(disabledPlugins);
-    const pluginIds = this._getActiveAnalysisPluginIds(undefined, disabledPluginSnapshot);
-    const cacheTiers = createWorkspacePipelineAnalysisCacheTiers(
-      this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
-      pluginIds,
-    );
-
-    return {
-      analysisContext: createWorkspacePluginAnalysisContext(workspaceRoot, {
-        features: {
-          symbols: cacheTiers.active === undefined
-            || cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER),
-        },
-      }),
-      disabledPluginSnapshot,
-      file,
-      pluginIds,
-      signal,
-      workspaceRoot,
-    };
-  }
-
-  private async _warmCachedGraphAnalysisFile(input: CachedGraphAnalysisWarmupInput): Promise<void> {
-    throwIfWorkspaceAnalysisAborted(input.signal);
-    const content = await this._discovery.readContent(input.file);
-    throwIfWorkspaceAnalysisAborted(input.signal);
-    await this._registry.analyzeFileResultForPlugins(
-      input.file.absolutePath,
-      content,
-      input.workspaceRoot,
-      input.pluginIds,
-      input.analysisContext,
-      { disabledPlugins: input.disabledPluginSnapshot },
-    );
   }
 
   rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
