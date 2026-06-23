@@ -10,6 +10,37 @@ describe('useDebouncedGraphScopeVisibility', () => {
     vi.useRealTimers();
   });
 
+  it('renders the first populated graph scope immediately', () => {
+    vi.useFakeTimers();
+    const initialNodeVisibility = {};
+    const initialEdgeVisibility = {};
+    const nextNodeVisibility = { file: true };
+    const nextEdgeVisibility = { include: true };
+
+    const { result, rerender } = renderHook(
+      ({ nodeVisibility, edgeVisibility }) => useDebouncedGraphScopeVisibility(
+        nodeVisibility,
+        edgeVisibility,
+      ),
+      {
+        initialProps: {
+          edgeVisibility: initialEdgeVisibility,
+          nodeVisibility: initialNodeVisibility,
+        },
+      },
+    );
+
+    rerender({
+      edgeVisibility: nextEdgeVisibility,
+      nodeVisibility: nextNodeVisibility,
+    });
+
+    expect(result.current).toEqual({
+      edgeVisibility: nextEdgeVisibility,
+      nodeVisibility: nextNodeVisibility,
+    });
+  });
+
   it('renders edge-only graph scope changes immediately', () => {
     vi.useFakeTimers();
     const nodeVisibility = { file: true };

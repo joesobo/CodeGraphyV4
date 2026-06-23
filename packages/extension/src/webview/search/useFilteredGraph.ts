@@ -258,9 +258,14 @@ export function useFilteredGraph(
 
     const result = measureWebviewPerformance('visibleGraph.derive', {
       edgeCount: graphData?.edges.length ?? 0,
+      edgeTypeCount: edgeTypes.length,
+      edgeVisibilityCount: Object.keys(edgeVisibility).length,
       filterPatternCount: filterPatterns.length,
+      nodeTypeCount: nodeTypes.length,
+      nodeVisibilityCount: Object.keys(nodeVisibility).length,
       nodeCount: graphData?.nodes.length ?? 0,
       searchActive: searchQuery.trim().length > 0,
+      showOrphans,
     }, () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes,
       edgeVisibility,
