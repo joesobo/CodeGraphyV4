@@ -1,19 +1,6 @@
-import * as vscode from 'vscode';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import {
-  executeGraphViewProviderAnalysis,
-  isGraphViewAbortError,
-  isGraphViewAnalysisStale,
-  markGraphViewWorkspaceReady,
-  runGraphViewProviderAnalysisRequest,
-  type GraphViewProviderAnalysisHandlers,
-  type GraphViewProviderAnalysisRequestHandlers,
-  type GraphViewProviderAnalysisState,
-} from '../../analysis/lifecycle';
-import type { DiagnosticEventInput } from '@codegraphy-dev/core';
-import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
-import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
+import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
 import { createGraphViewProviderAnalysisDelegates } from './delegates';
 import {
   createGraphViewProviderWorkspaceReadyState,
@@ -25,8 +12,17 @@ import {
   canReplayStaleCache,
   createFullIndexAnalysisCoordinator,
 } from './fullIndex';
+import {
+  createDefaultGraphViewProviderAnalysisMethodDependencies,
+  type GraphViewProviderAnalysisMethodDependencies,
+} from './methods/dependencies';
 
-interface GraphViewProviderWorkspaceReadyRegistryLike {
+export {
+  createDefaultGraphViewProviderAnalysisMethodDependencies,
+  type GraphViewProviderAnalysisMethodDependencies,
+} from './methods/dependencies';
+
+export interface GraphViewProviderWorkspaceReadyRegistryLike {
   notifyWorkspaceReady(
     graphData: IGraphData,
     disabledPlugins?: ReadonlySet<string>,
@@ -86,56 +82,6 @@ export interface GraphViewProviderAnalysisMethods {
   _markWorkspaceReady(graph: IGraphData, disabledPlugins?: ReadonlySet<string>): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
   _isAbortError(error: unknown): boolean;
-}
-
-export interface GraphViewProviderAnalysisMethodDependencies {
-  runAnalysisRequest: (
-    state: GraphViewProviderAnalysisState,
-    handlers: GraphViewProviderAnalysisRequestHandlers,
-  ) => Promise<void>;
-  executeAnalysis: (
-    signal: AbortSignal,
-    requestId: number,
-    state: GraphViewProviderAnalysisState,
-    handlers: GraphViewProviderAnalysisHandlers,
-  ) => Promise<void>;
-  markWorkspaceReady: (
-    state: {
-      firstAnalysis: boolean;
-      resolveFirstWorkspaceReady: (() => void) | undefined;
-    },
-    registry: GraphViewProviderWorkspaceReadyRegistryLike | undefined,
-    graphData: IGraphData,
-    disabledPlugins?: ReadonlySet<string>,
-  ) => void;
-  isAnalysisStale: (
-    signal: AbortSignal,
-    requestId: number,
-    currentRequestId: number,
-  ) => boolean;
-  isAbortError(error: unknown): boolean;
-  hasWorkspace(): boolean;
-  logError(message: string, error: unknown): void;
-  emitDiagnostic?(input: DiagnosticEventInput): void;
-}
-
-export function createDefaultGraphViewProviderAnalysisMethodDependencies(): GraphViewProviderAnalysisMethodDependencies {
-  const diagnostics = createExtensionDiagnosticLogger({
-    isEnabled: () => getCodeGraphyConfiguration().get('verboseDiagnostics', false),
-  });
-
-  return {
-    runAnalysisRequest: runGraphViewProviderAnalysisRequest,
-    executeAnalysis: executeGraphViewProviderAnalysis,
-    markWorkspaceReady: markGraphViewWorkspaceReady,
-    isAnalysisStale: isGraphViewAnalysisStale,
-    isAbortError: isGraphViewAbortError,
-    hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
-    logError: (message, error) => {
-      console.error(message, error);
-    },
-    emitDiagnostic: input => diagnostics.emit(input),
-  };
 }
 
 export function createGraphViewProviderAnalysisMethods(
