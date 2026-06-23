@@ -1,3 +1,4 @@
+import '../../../../../three/runtime';
 import { useEffect, useState, type MutableRefObject, type ReactElement } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type {

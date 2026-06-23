@@ -37,7 +37,6 @@ import type { GraphAccessibilityItems } from './accessibility';
 import type { FGLink, FGNode } from '../model/build';
 
 const LazyDeferredSurface3d = lazy(async () => {
-  await import('../../../three/runtime');
   const module = await import('../rendering/surface/view/threeDimensional');
   return { default: module.DeferredSurface3d };
 });
