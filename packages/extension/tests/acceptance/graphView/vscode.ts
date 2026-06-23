@@ -87,7 +87,10 @@ export async function openGraphView(page: Page): Promise<void> {
   throw lastError;
 }
 
-export async function waitForGraphFrame(page: Page): Promise<Frame> {
+export async function waitForGraphFrame(
+  page: Page,
+  timeoutMs = VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS,
+): Promise<Frame> {
   await expect.poll(async () => {
     for (const frame of page.frames().filter(candidate => candidate.url().includes('fake.html'))) {
       if (await isReadyGraphFrame(frame)) {
@@ -96,7 +99,7 @@ export async function waitForGraphFrame(page: Page): Promise<Frame> {
     }
 
     return false;
-  }, { timeout: VSCODE_PLAYWRIGHT_WAIT_TIMEOUT_MS }).toBe(true);
+  }, { timeout: timeoutMs }).toBe(true);
 
   for (const frame of page.frames().filter(candidate => candidate.url().includes('fake.html'))) {
     if (await isReadyGraphFrame(frame)) {

@@ -357,6 +357,22 @@ VS Code graph view benchmark:
     `586.4ms`.
   - Imports toggle wall-clock latency stayed in the same band at `228ms`
     median, `337ms` p95; in-webview latency was `58ms` median, `59ms` p95.
+- After adding `codegraphy.open` command markers and extending only the
+  performance harness frame wait:
+  - VS Code launch: `958ms`.
+  - Open Graph View to first rendered graph stats: `40497ms`; the extended
+    harness wait captured an outlier that previously timed out at `20s`.
+  - First-ready phases: command/open `1595ms`, acceptance-ready frame
+    `38852ms`, stats wait after frame discovery `37ms`.
+  - Host timeline: `command.open.start` and `command.open.dispatched` at `0ms`,
+    `command.open.completed` at `38ms`, provider resolve start at `43ms`, and
+    `webview.html` assignment at `45ms`.
+  - Once the webview document was alive, it posted ready at `27.5ms`, received
+    graph data at `95.3ms`, ran the `74`-filter visible-graph derive in
+    `171.4ms`, completed app bootstrap at `1066.4ms`, and rendered stats at
+    `1145.9ms`.
+  - Imports toggle wall-clock latency was `185ms` median, `193ms` p95; in-webview
+    latency was `48ms` median, `50ms` p95.
 
 Interpretation:
 
@@ -414,6 +430,13 @@ Interpretation:
   cutting the `74`-filter visible-graph derive pass from `498.4ms` to `244ms`
   and moving first stats after webview document start from `843.3ms` to
   `586.4ms`.
+- Command markers rule out the command palette/open command and provider
+  resolver as the multi-second startup bucket. On the latest run, CodeGraphy
+  assigned `webview.html` `45ms` after `codegraphy.open` started; the remaining
+  outlier was after HTML assignment and before the harness could observe the
+  VS Code webview frame/document. The performance harness now uses the same
+  `120s` timeout as the rest of the graph-view metric collection for that
+  frame wait so these outliers produce data instead of failed runs.
 
 Full test baseline:
 

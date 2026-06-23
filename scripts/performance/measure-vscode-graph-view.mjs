@@ -331,7 +331,7 @@ async function measureVSCodeGraphView({
     await openGraphView(vscode.page);
     const openGraphCommandMs = Math.round(performance.now() - openStartedAt);
     const frameStartedAt = performance.now();
-    const frame = await waitForGraphFrame(vscode.page);
+    const frame = await waitForGraphFrame(vscode.page, DEFAULT_TIMEOUT_MS);
     const graphFrameReadyMs = Math.round(performance.now() - frameStartedAt);
     await enableWebviewPerformanceEvents(frame);
     const statsStartedAt = performance.now();
