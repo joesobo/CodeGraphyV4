@@ -318,6 +318,7 @@ Added changed-file refresh phase markers: pre-analysis routing hotspot was notif
 Shortened existing-file save debounce and targeted Tree-sitter language loading: content saves now wait 100ms while file operations keep 500ms coalescing; latest live-update probe is 574ms wall / 283ms request, and targeted TypeScript Tree-sitter binding load probes at 11ms-17ms versus 62ms-205ms for loading all grammar bindings.
 Skipped duplicate changed-file graph builds when analysis already covers retained files: focused Core refresh test failed red on the old fallback `_buildGraphData` call, then passed with the coverage guard; rebuilt VS Code probe removed the `buildGraphData` phase, refresh completion moved 190ms -> 144ms, incremental request 283ms -> 236ms, and live-update wall 574ms -> 545ms.
 Lowered existing-file save debounce from 100ms to 50ms while keeping create/delete/rename at 500ms: focused debounce tests failed red at the 50ms boundary, then passed; VS Code live-update wall moved 545ms -> 488ms while request duration stayed flat at 237ms.
+Cached TypeScript alias compiler options by tsconfig mtime with lifecycle invalidation for tsconfig-style changes: cache test failed red on two tsconfig reads and lifecycle test failed red on stale extended-config aliases, then passed; VS Code live-update one-file plugin analysis moved 82ms -> 40ms, refresh completion 145ms -> 106ms, request 237ms -> 200ms, and wall 488ms -> 432ms.
 ```
 
 ## Task 5: Keep The PR Reviewable

@@ -740,6 +740,15 @@ Interpretation:
   refresh, `82ms` one-file plugin analysis, `52ms` analysis graph build), so
   this iteration specifically moved request start earlier rather than changing
   graph computation.
+- The TypeScript alias plugin now caches parsed compiler options by
+  `tsconfig.json` mtime and clears that cache when tsconfig-style files change.
+  This avoids reparsing the same path-alias config for each TypeScript file
+  while preserving alias updates from extended configs. On the live-update
+  probe, one-file plugin analysis moved from `82ms` to `40ms`, delegated
+  `analyzeFiles` moved from `84ms` to `43ms`, changed-file refresh completion
+  moved from `145ms` to `106ms`, incremental request duration moved from
+  `237ms` to `200ms`, and end-to-end live-update wall clock moved from `488ms`
+  to `432ms`.
 
 Full test baseline:
 
