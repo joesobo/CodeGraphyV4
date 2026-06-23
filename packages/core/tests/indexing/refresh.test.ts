@@ -335,4 +335,36 @@ describe('indexing/refresh', () => {
     expect(persistCache).toHaveBeenCalledOnce();
     expect(persistIndexMetadata).toHaveBeenCalledOnce();
   });
+
+  it('skips the fallback connections graph build when analysis covers retained files', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts'), createGraphNode('README.md')],
+      edges: [],
+    };
+    const source = createSource({
+      _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastFileAnalysis: new Map([
+        ['README.md', createFileAnalysis('/workspace/README.md')],
+        ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+      ]),
+      _lastFileConnections: new Map([
+        ['README.md', []],
+        ['src/app.ts', []],
+      ]),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [
+        createDiscoveredFile('README.md'),
+        createDiscoveredFile('src/app.ts'),
+      ],
+    }))).resolves.toEqual(graph);
+
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      source._lastFileAnalysis,
+      '/workspace',
+      new Set(),
+    );
+    expect(source._buildGraphData).not.toHaveBeenCalled();
+  });
 });
