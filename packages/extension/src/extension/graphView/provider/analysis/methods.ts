@@ -139,12 +139,14 @@ interface FullIndexAnalysisCoordinator {
   runFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
   runFullIndexAnalysisInBackground(runAnalysis: () => Promise<void>): void;
   waitForFullIndexAnalysis(): Promise<boolean>;
+  waitForForegroundFullIndexAnalysis(): Promise<boolean>;
 }
 
 function createFullIndexAnalysisCoordinator(
   dependencies: Pick<GraphViewProviderAnalysisMethodDependencies, 'logError'>,
 ): FullIndexAnalysisCoordinator {
   let fullIndexAnalysisPromise: Promise<void> | undefined;
+  let fullIndexAnalysisKind: 'background' | 'foreground' | undefined;
 
   const waitForFullIndexAnalysis = async (): Promise<boolean> => {
     if (!fullIndexAnalysisPromise) {
@@ -160,8 +162,17 @@ function createFullIndexAnalysisCoordinator(
     return true;
   };
 
+  const waitForForegroundFullIndexAnalysis = async (): Promise<boolean> => {
+    if (fullIndexAnalysisKind === 'background') {
+      return false;
+    }
+
+    return waitForFullIndexAnalysis();
+  };
+
   const runFullIndexAnalysis = async (
     runAnalysis: () => Promise<void>,
+    kind: 'background' | 'foreground' = 'foreground',
   ): Promise<void> => {
     if (fullIndexAnalysisPromise) {
       await fullIndexAnalysisPromise;
@@ -170,11 +181,13 @@ function createFullIndexAnalysisCoordinator(
 
     const analysisPromise = runAnalysis();
     fullIndexAnalysisPromise = analysisPromise;
+    fullIndexAnalysisKind = kind;
     try {
       await analysisPromise;
     } finally {
       if (fullIndexAnalysisPromise === analysisPromise) {
         fullIndexAnalysisPromise = undefined;
+        fullIndexAnalysisKind = undefined;
       }
     }
   };
@@ -182,7 +195,7 @@ function createFullIndexAnalysisCoordinator(
   const runFullIndexAnalysisInBackground = (
     runAnalysis: () => Promise<void>,
   ): void => {
-    void runFullIndexAnalysis(runAnalysis).catch(error => {
+    void runFullIndexAnalysis(runAnalysis, 'background').catch(error => {
       dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
     });
   };
@@ -199,6 +212,7 @@ function createFullIndexAnalysisCoordinator(
     runFullIndexAnalysis,
     runFullIndexAnalysisInBackground,
     waitForFullIndexAnalysis,
+    waitForForegroundFullIndexAnalysis,
   };
 }
 
@@ -293,7 +307,7 @@ export function createGraphViewProviderAnalysisMethods(
     'refresh',
   );
   const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
-    await fullIndexAnalysis.waitForFullIndexAnalysis();
+    await fullIndexAnalysis.waitForForegroundFullIndexAnalysis();
     if (source._firstAnalysis && source._firstWorkspaceReadyPromise) {
       await source._firstWorkspaceReadyPromise;
     }

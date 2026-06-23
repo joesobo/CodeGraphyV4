@@ -1117,6 +1117,17 @@ Interpretation:
   also stayed incremental at `87ms` instead of starting a `load` request plus
   another long background `analyze`. The protected main checkout was clean
   after the probe restored the benchmark file.
+- Incremental changed-file refreshes now bypass stale-cache background sync
+  waits after the first graph is already usable. Explicit foreground index and
+  refresh work still blocks competing analysis, but the lower-priority
+  background cache sync no longer makes a user edit wait. A new
+  `--live-update-no-analyze-idle-wait` benchmark flag exercises that behavior
+  without weakening the default clean live-update metric. In a forced-stale
+  probe, the stale background `analyze` started after cached load, the marker
+  edit started an incremental request while that analyze was active, and the
+  edit completed in `380ms` wall-clock with a `105ms` incremental request.
+  The restore request also stayed incremental at `65ms`, and the protected
+  main checkout was clean after the temporary stale marker was restored.
 
 Full test baseline:
 

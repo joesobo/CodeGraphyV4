@@ -720,6 +720,7 @@ export async function measureLiveUpdateTransition({
   liveUpdateTrigger = LIVE_UPDATE_TRIGGER_FILESYSTEM,
   page,
   saveFileThroughEditor = saveLiveUpdateFileThroughEditor,
+  waitForAnalyzeIdle = true,
   workspaceRoot,
 }) {
   const normalizedLiveUpdateTrigger = parseLiveUpdateTrigger(liveUpdateTrigger);
@@ -729,7 +730,9 @@ export async function measureLiveUpdateTransition({
   const originalContent = await readFile(absoluteFilePath, 'utf8');
   const marker = `\n// CodeGraphy live update perf marker ${Date.now()}\n`;
 
-  await waitForExtensionHostRequestIdle(extensionHostLogPath, ANALYZE_REQUEST_MODE);
+  if (waitForAnalyzeIdle) {
+    await waitForExtensionHostRequestIdle(extensionHostLogPath, ANALYZE_REQUEST_MODE);
+  }
   await waitForExtensionHostRequestIdle(extensionHostLogPath, LIVE_UPDATE_REQUEST_MODE);
   await resetWebviewPerformanceEvents(frame);
   const startedAtEpoch = Date.now();
@@ -817,6 +820,7 @@ async function measureVSCodeGraphView({
   liveUpdateFilePath,
   liveUpdateTrigger,
   outputPath,
+  waitForAnalyzeIdle,
   warmupIterations,
   workspacePath,
 }) {
@@ -920,6 +924,7 @@ async function measureVSCodeGraphView({
         liveUpdateFilePath,
         liveUpdateTrigger,
         page: vscode.page,
+        waitForAnalyzeIdle,
         workspaceRoot,
       }));
     }
@@ -945,7 +950,7 @@ async function measureVSCodeGraphView({
 function printUsage() {
   process.stdout.write([
     'Usage:',
-    '  pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs [--workspace <path>] [--iterations <n>] [--warmup <n>] [--live-update-file <path>] [--live-update-trigger filesystem|editor-save] [--output <path>]',
+    '  pnpm exec tsx scripts/performance/measure-vscode-graph-view.mjs [--workspace <path>] [--iterations <n>] [--warmup <n>] [--live-update-file <path>] [--live-update-trigger filesystem|editor-save] [--live-update-no-analyze-idle-wait] [--output <path>]',
     '',
     'Launches Extension Development Host, opens CodeGraphy, and times rendered Graph Scope toggle latency.',
   ].join('\n'));
@@ -963,12 +968,14 @@ async function runCli(argv) {
   const warmupIterations = toPositiveInteger(readOptionValue(argv, '--warmup'), DEFAULT_WARMUP_ITERATIONS);
   const liveUpdateFilePath = readOptionValue(argv, '--live-update-file');
   const liveUpdateTrigger = parseLiveUpdateTrigger(readOptionValue(argv, '--live-update-trigger'));
+  const waitForAnalyzeIdle = !hasFlag(argv, '--live-update-no-analyze-idle-wait');
 
   await measureVSCodeGraphView({
     iterations,
     liveUpdateFilePath,
     liveUpdateTrigger,
     outputPath,
+    waitForAnalyzeIdle,
     warmupIterations,
     workspacePath,
   });
