@@ -1,7 +1,5 @@
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
-  type IDiscoveredFile,
   projectFileAnalysisConnections,
   readCodeGraphyWorkspaceStatus,
   throwIfWorkspaceAnalysisAborted,
@@ -27,32 +25,7 @@ import {
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
 import { createEmptyWorkspaceAnalysisCache } from '../cache';
-
-function createCachedDiscoveredFiles(
-  workspaceRoot: string,
-  filePaths: readonly string[],
-): IDiscoveredFile[] {
-  return filePaths.map(relativePath => ({
-    absolutePath: path.join(workspaceRoot, relativePath),
-    extension: path.extname(relativePath),
-    name: path.basename(relativePath),
-    relativePath,
-  }));
-}
-
-function collectCachedDirectoryPaths(filePaths: readonly string[]): string[] {
-  const directories = new Set<string>();
-
-  for (const filePath of filePaths) {
-    let directory = path.posix.dirname(filePath.replace(/\\/g, '/'));
-    while (directory && directory !== '.') {
-      directories.add(directory);
-      directory = path.posix.dirname(directory);
-    }
-  }
-
-  return [...directories].sort();
-}
+import { createCachedWorkspaceDiscoveryState } from './cache/cachedDiscovery';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
@@ -215,17 +188,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     }
 
     const config = this._config.getAll();
-    const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
-      createWorkspacePipelineDiscoveryDependencies(this._discovery),
-      workspaceRoot,
-      config,
-      this._getEffectiveCustomFilterPatterns(_filterPatterns),
-      this._getEffectivePluginFilterPatterns(disabledPlugins),
-      signal,
-      message => {
-        vscode.window.showWarningMessage(message);
-      },
-    );
     throwIfWorkspaceAnalysisAborted(signal);
 
     const fileAnalysis = new Map(
@@ -235,11 +197,15 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       ]),
     );
     const cachedFilePaths = Object.keys(this._cache.files);
+    const cachedDiscovery = createCachedWorkspaceDiscoveryState(
+      workspaceRoot,
+      cachedFilePaths,
+      config.respectGitignore,
+    );
 
-    this._lastDiscoveredFiles = createCachedDiscoveredFiles(workspaceRoot, cachedFilePaths);
-    this._lastDiscoveredDirectories = discoveryResult.directories
-      ?? collectCachedDirectoryPaths(cachedFilePaths);
-    this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
+    this._lastDiscoveredFiles = cachedDiscovery.files;
+    this._lastDiscoveredDirectories = cachedDiscovery.directories;
+    this._lastGitIgnoredPaths = cachedDiscovery.gitIgnoredPaths;
     this._lastFileAnalysis = fileAnalysis;
     this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
     this._lastWorkspaceRoot = workspaceRoot;
