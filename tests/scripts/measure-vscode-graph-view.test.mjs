@@ -117,9 +117,24 @@ test('VS Code graph view runner summarizes live-update request durations', async
   const { summarizeLiveUpdateSamples } = await import(moduleUrl);
 
   assert.deepEqual(summarizeLiveUpdateSamples([
-    { durationMs: 640, requestDurationMs: 120 },
-    { durationMs: 590, requestDurationMs: 90 },
-    { durationMs: 615, requestDurationMs: 105 },
+    {
+      durationMs: 640,
+      requestDurationMs: 120,
+      requestStartDelayMs: 420,
+      requestCompletionDelayMs: 540,
+    },
+    {
+      durationMs: 590,
+      requestDurationMs: 90,
+      requestStartDelayMs: 390,
+      requestCompletionDelayMs: 480,
+    },
+    {
+      durationMs: 615,
+      requestDurationMs: 105,
+      requestStartDelayMs: 405,
+      requestCompletionDelayMs: 510,
+    },
   ]), {
     iterations: 3,
     minMs: 590,
@@ -132,6 +147,20 @@ test('VS Code graph view runner summarizes live-update request durations', async
       medianMs: 105,
       p95Ms: 120,
       maxMs: 120,
+    },
+    requestStartDelay: {
+      iterations: 3,
+      minMs: 390,
+      medianMs: 405,
+      p95Ms: 420,
+      maxMs: 420,
+    },
+    requestCompletionDelay: {
+      iterations: 3,
+      minMs: 480,
+      medianMs: 510,
+      p95Ms: 540,
+      maxMs: 540,
     },
   });
 });
@@ -336,7 +365,12 @@ test('VS Code graph view runner carries post-interaction extension-host events i
   assert.deepEqual(createCompleteMeasurements({
     extensionHostEvents,
     importsToggleSamples: [{ durationMs: 25 }],
-    liveUpdateSamples: [{ durationMs: 40, requestDurationMs: 30 }],
+    liveUpdateSamples: [{
+      durationMs: 40,
+      requestDurationMs: 30,
+      requestStartDelayMs: 10,
+      requestCompletionDelayMs: 40,
+    }],
     startupMeasurements,
   }), {
     status: 'complete',
@@ -362,7 +396,26 @@ test('VS Code graph view runner carries post-interaction extension-host events i
         p95Ms: 30,
         maxMs: 30,
       },
-      samples: [{ durationMs: 40, requestDurationMs: 30 }],
+      requestStartDelay: {
+        iterations: 1,
+        minMs: 10,
+        medianMs: 10,
+        p95Ms: 10,
+        maxMs: 10,
+      },
+      requestCompletionDelay: {
+        iterations: 1,
+        minMs: 40,
+        medianMs: 40,
+        p95Ms: 40,
+        maxMs: 40,
+      },
+      samples: [{
+        durationMs: 40,
+        requestDurationMs: 30,
+        requestStartDelayMs: 10,
+        requestCompletionDelayMs: 40,
+      }],
     },
   });
 });

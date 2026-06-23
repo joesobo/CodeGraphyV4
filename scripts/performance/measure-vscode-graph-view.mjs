@@ -238,11 +238,23 @@ export function summarizeLiveUpdateSamples(samples) {
   const requestDurations = samples
     .map(sample => sample.requestDurationMs)
     .filter(value => value !== undefined);
+  const requestStartDelays = samples
+    .map(sample => sample.requestStartDelayMs)
+    .filter(value => value !== undefined);
+  const requestCompletionDelays = samples
+    .map(sample => sample.requestCompletionDelayMs)
+    .filter(value => value !== undefined);
 
   return {
     ...summarizeDurations(samples.map(sample => sample.durationMs)),
     ...(requestDurations.length > 0
       ? { requestDuration: summarizeDurations(requestDurations) }
+      : {}),
+    ...(requestStartDelays.length > 0
+      ? { requestStartDelay: summarizeDurations(requestStartDelays) }
+      : {}),
+    ...(requestCompletionDelays.length > 0
+      ? { requestCompletionDelay: summarizeDurations(requestCompletionDelays) }
       : {}),
   };
 }
@@ -588,11 +600,18 @@ export async function measureLiveUpdateTransition({
     );
     updateRequestCompletedAt = requestEvent.at;
     await waitForWebviewGraphUpdateMessageIfSent(extensionHostLogPath, frame, requestEvent);
+    const requestDurationMs = requestEvent.detail?.durationMs;
+    const requestCompletionDelayMs = Math.round(requestEvent.at - startedAtEpoch);
+    const requestStartDelayMs = typeof requestDurationMs === 'number'
+      ? Math.round(requestEvent.at - requestDurationMs - startedAtEpoch)
+      : undefined;
 
     return {
       durationMs: Math.round(performance.now() - startedAt),
       filePath: path.relative(workspaceRoot, absoluteFilePath).replace(/\\/g, '/'),
-      requestDurationMs: requestEvent.detail?.durationMs,
+      requestDurationMs,
+      requestStartDelayMs,
+      requestCompletionDelayMs,
       requestOffsetMs: requestEvent.offsetMs,
       webviewEvents: await readWebviewPerformanceEvents(frame),
     };
