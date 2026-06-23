@@ -263,6 +263,14 @@ VS Code graph view benchmark:
     of `graphScope.visibility.renderDebounced`; remaining stage medians were
     `graphRuntime.buildGraphData` `5.9ms` and
     `visibleGraph.edgeDecorations` `0.4ms`.
+- After adding the in-webview event-delta metric to the VS Code harness:
+  - VS Code launch: `1068ms`.
+  - Open Graph View to first rendered graph stats: `6377ms`.
+  - Initial rendered stats: `2249` nodes, `5333` connections.
+  - Imports toggle wall-clock latency: `209ms` median, `219ms` p95 across
+    5 samples.
+  - In-webview optimistic-to-rendered latency:
+    `55ms` median, `58ms` p95 across 5 samples.
 
 Interpretation:
 
@@ -293,6 +301,10 @@ Interpretation:
 - Rendering edge-only Graph Scope changes immediately removed the fixed
   debounce wait from Imports toggles, moving the sampled toggle median from
   `236ms` to `203ms`.
+- The VS Code harness still reports a Playwright-driven wall-clock duration,
+  but it now also reports the browser-side delta from
+  `graphScope.edgeVisibility.optimistic` to `graphStats.rendered`. The current
+  in-webview median is `55ms`, while the wall-clock median is `209ms`.
 - The next user-facing bottleneck is the remaining render latency after graph
   data construction, not the measured data derivation or Graph Scope debounce
   stages.
