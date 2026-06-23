@@ -114,6 +114,23 @@ describe('core/graph/edges', () => {
     ]);
   });
 
+  it('reuses resolved target ids for repeated resolved paths', () => {
+    const resolveTarget = vi.fn(() => 'src/utils.ts');
+    const result = buildWorkspaceGraphEdges(createOptions({
+      fileConnections: new Map<string, IProjectedConnection[]>([
+        ['src/index.ts', [
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reference', sourceId: 'reference' },
+        ]],
+        ['src/utils.ts', []],
+      ]),
+      getConnectionTargetId: resolveTarget,
+    }));
+
+    expect(resolveTarget).toHaveBeenCalledOnce();
+    expect(result.edges.map(edge => edge.to)).toEqual(['src/utils.ts', 'src/utils.ts']);
+  });
+
   it('filters only the disabled plugin provenance when multiple plugins contribute to one file', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       disabledPlugins: new Set<string>(['plugin.markdown']),
