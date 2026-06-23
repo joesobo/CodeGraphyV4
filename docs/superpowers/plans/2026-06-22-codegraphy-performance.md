@@ -288,6 +288,7 @@ Skipped value-equal graph control echoes: 493ms median / 497ms p95; one visibleG
 Rejected stable filter matcher cache: 494ms median / 513ms p95; derive stayed ~176.7ms, so no measured win.
 Cached recent visible-graph derivations: 313ms median / 345ms p95; sampled toggles had no visibleGraph.derive events.
 Cached recent style and legend stages: 236ms median / 270ms p95; sampled toggles had no derive/style/legend events.
+Rendered edge-only Graph Scope changes immediately: 203ms median / 226ms p95; Imports toggles now emit renderImmediate instead of renderDebounced.
 ```
 
 ## Task 5: Keep The PR Reviewable

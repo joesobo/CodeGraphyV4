@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { GraphState } from '../../store/state';
 import { recordWebviewPerformanceEvent } from '../../performance/marks';
 
@@ -17,8 +17,22 @@ export function useDebouncedGraphScopeVisibility(
     edgeVisibility,
     nodeVisibility,
   });
+  const renderVisibilityRef = useRef(renderVisibility);
+  renderVisibilityRef.current = renderVisibility;
 
   useEffect(() => {
+    if (renderVisibilityRef.current.nodeVisibility === nodeVisibility) {
+      recordWebviewPerformanceEvent('graphScope.visibility.renderImmediate', {
+        edgeVisibilityCount: Object.keys(edgeVisibility).length,
+        nodeVisibilityCount: Object.keys(nodeVisibility).length,
+      });
+      setRenderVisibility({
+        edgeVisibility,
+        nodeVisibility,
+      });
+      return;
+    }
+
     const timer = setTimeout(() => {
       recordWebviewPerformanceEvent('graphScope.visibility.renderDebounced', {
         edgeVisibilityCount: Object.keys(edgeVisibility).length,
