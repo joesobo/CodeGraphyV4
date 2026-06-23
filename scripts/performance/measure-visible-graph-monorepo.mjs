@@ -19,6 +19,7 @@ const [
   installedPluginCacheModule,
   settingsStorageModule,
   settingsDefaultsModule,
+  indexingRegistryModule,
   visibleGraphModule,
   edgeTypesModule,
   nodeTypesModule,
@@ -31,6 +32,7 @@ const [
   import('../../packages/core/src/plugins/installedPluginCache/storage.ts').then(unwrapModule),
   import('../../packages/core/src/workspace/settingsStorage.ts').then(unwrapModule),
   import('../../packages/core/src/workspace/settingsDefaults.ts').then(unwrapModule),
+  import('../../packages/core/src/indexing/registry.ts').then(unwrapModule),
   import('../../packages/extension/src/shared/visibleGraph/index.ts').then(unwrapModule),
   import('../../packages/extension/src/shared/graphControls/defaults/edgeTypes.ts').then(unwrapModule),
   import('../../packages/extension/src/shared/graphControls/defaults/nodeTypes.ts').then(unwrapModule),
@@ -44,6 +46,7 @@ const { createDisabledPluginSet, createPluginActivityState } = activityStateModu
 const { readCodeGraphyInstalledPluginCache } = installedPluginCacheModule;
 const { readCodeGraphyWorkspaceSettings } = settingsStorageModule;
 const { CODEGRAPHY_MARKDOWN_PLUGIN_ID } = settingsDefaultsModule;
+const { createWorkspaceIndexRegistry } = indexingRegistryModule;
 const { deriveVisibleGraph } = visibleGraphModule;
 const { CORE_GRAPH_EDGE_TYPES } = edgeTypesModule;
 const { CORE_GRAPH_NODE_TYPES } = nodeTypesModule;
@@ -97,38 +100,53 @@ function createActivePluginSet(settings, userHomeDir) {
   return new Set(activityState.activePluginIds);
 }
 
-function buildGraphDataFromGraphCache(workspacePath, userHomeDir) {
+async function buildGraphDataFromGraphCache(workspacePath, userHomeDir) {
   const workspaceRoot = path.resolve(workspacePath);
   const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
   const disabledPlugins = createDisabledPluginSet(settings);
   const activePluginIds = createActivePluginSet(settings, userHomeDir);
+  const { registry } = await createWorkspaceIndexRegistry(
+    { userHomeDir },
+    settings,
+    workspaceRoot,
+    disabledPlugins,
+  );
+  const pluginFilterPatterns = registry.getPluginFilterPatterns(disabledPlugins);
   const cache = loadWorkspaceAnalysisDatabaseCache(workspaceRoot);
   const fileAnalysis = new Map(
     Object.entries(cache.files).map(([filePath, entry]) => [filePath, entry.analysis]),
   );
+  const graphBuildStartedAt = performance.now();
+  const graphData = buildWorkspaceGraphDataFromAnalysis({
+    cacheFiles: cache.files,
+    churnCounts: {},
+    directoryPaths: collectDirectoryPaths(Object.keys(cache.files)),
+    disabledPlugins,
+    fileAnalysis: filterInactivePluginFileAnalysis(fileAnalysis, activePluginIds),
+    getPluginForFile: () => undefined,
+    nodeVisibility: settings.nodeVisibility,
+    showOrphans: settings.showOrphans,
+    workspaceRoot,
+  });
 
   return {
-    graphData: buildWorkspaceGraphDataFromAnalysis({
-      cacheFiles: cache.files,
-      churnCounts: {},
-      directoryPaths: collectDirectoryPaths(Object.keys(cache.files)),
-      disabledPlugins,
-      fileAnalysis: filterInactivePluginFileAnalysis(fileAnalysis, activePluginIds),
-      getPluginForFile: () => undefined,
-      nodeVisibility: settings.nodeVisibility,
-      showOrphans: settings.showOrphans,
-      workspaceRoot,
-    }),
+    graphData,
+    warmCacheGraphBuildMs: Math.round(performance.now() - graphBuildStartedAt),
     settings,
+    pluginFilterPatterns,
   };
 }
 
-function createActiveFilterPatterns(settings) {
+function createActiveFilterPatterns(settings, pluginFilterPatterns = []) {
   const disabledCustomPatterns = new Set(settings.disabledCustomFilterPatterns ?? []);
-  return (settings.filterPatterns ?? []).filter(pattern => !disabledCustomPatterns.has(pattern));
+  const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns ?? []);
+  return [
+    ...pluginFilterPatterns.filter(pattern => !disabledPluginPatterns.has(pattern)),
+    ...(settings.filterPatterns ?? []).filter(pattern => !disabledCustomPatterns.has(pattern)),
+  ];
 }
 
-function createVisibleGraphScenarioConfig(settings, overrides = {}) {
+function createVisibleGraphScenarioConfig(settings, pluginFilterPatterns, overrides = {}) {
   const nodeVisibility = {
     ...(settings.nodeVisibility ?? {}),
     ...(overrides.nodeVisibility ?? {}),
@@ -141,7 +159,7 @@ function createVisibleGraphScenarioConfig(settings, overrides = {}) {
   return buildVisibleGraphConfig({
     edgeTypes: CORE_GRAPH_EDGE_TYPES,
     edgeVisibility,
-    filterPatterns: overrides.filterPatterns ?? createActiveFilterPatterns(settings),
+    filterPatterns: overrides.filterPatterns ?? createActiveFilterPatterns(settings, pluginFilterPatterns),
     nodeTypes: CORE_GRAPH_NODE_TYPES,
     nodeVisibility,
     searchOptions: overrides.searchOptions ?? { matchCase: false, wholeWord: false, regex: false },
@@ -150,17 +168,17 @@ function createVisibleGraphScenarioConfig(settings, overrides = {}) {
   });
 }
 
-function createVisibleGraphScenarios(settings) {
+function createVisibleGraphScenarios(settings, pluginFilterPatterns) {
   return {
-    current: createVisibleGraphScenarioConfig(settings),
-    noFilters: createVisibleGraphScenarioConfig(settings, { filterPatterns: [] }),
-    foldersOn: createVisibleGraphScenarioConfig(settings, {
+    current: createVisibleGraphScenarioConfig(settings, pluginFilterPatterns),
+    noFilters: createVisibleGraphScenarioConfig(settings, pluginFilterPatterns, { filterPatterns: [] }),
+    foldersOn: createVisibleGraphScenarioConfig(settings, pluginFilterPatterns, {
       nodeVisibility: { folder: true },
     }),
-    importsOff: createVisibleGraphScenarioConfig(settings, {
+    importsOff: createVisibleGraphScenarioConfig(settings, pluginFilterPatterns, {
       edgeVisibility: { import: false },
     }),
-    searchGraph: createVisibleGraphScenarioConfig(settings, {
+    searchGraph: createVisibleGraphScenarioConfig(settings, pluginFilterPatterns, {
       searchQuery: 'graph',
     }),
   };
@@ -195,7 +213,8 @@ function measureVisibleGraphScenario(graphData, config, options) {
 export function measureVisibleGraphScenarios(graphData, settings, options = {}) {
   const iterations = options.iterations ?? DEFAULT_ITERATIONS;
   const warmupIterations = options.warmupIterations ?? DEFAULT_WARMUP_ITERATIONS;
-  const scenarios = createVisibleGraphScenarios(settings);
+  const pluginFilterPatterns = options.pluginFilterPatterns ?? [];
+  const scenarios = createVisibleGraphScenarios(settings, pluginFilterPatterns);
 
   return Object.fromEntries(
     Object.entries(scenarios).map(([scenarioName, config]) => [
@@ -206,16 +225,18 @@ export function measureVisibleGraphScenarios(graphData, settings, options = {}) 
 }
 
 async function measureVisibleGraph({ workspacePath, userHomeDir, iterations, warmupIterations }) {
-  const startedAt = performance.now();
-  const { graphData, settings } = buildGraphDataFromGraphCache(workspacePath, userHomeDir);
-  const warmCacheGraphBuildMs = Math.round(performance.now() - startedAt);
+  const { graphData, settings, pluginFilterPatterns, warmCacheGraphBuildMs } =
+    await buildGraphDataFromGraphCache(workspacePath, userHomeDir);
   const visibleGraphScenarios = measureVisibleGraphScenarios(graphData, settings, {
     iterations,
+    pluginFilterPatterns,
     warmupIterations,
   });
 
   return {
     warmCacheGraphBuildMs,
+    activeFilterPatternCount: createActiveFilterPatterns(settings, pluginFilterPatterns).length,
+    pluginFilterPatternCount: pluginFilterPatterns.length,
     graphNodeCount: graphData.nodes.length,
     graphEdgeCount: graphData.edges.length,
     visibleGraphScenarios,
