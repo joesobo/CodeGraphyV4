@@ -41,6 +41,13 @@ export function globToRegex(pattern: string): RegExp {
 
 type GlobMatcher = (filePath: string) => boolean;
 
+interface CombinedFastGlobMatchers {
+  directMatchers: GlobMatcher[];
+  literalSuffixes: string[];
+  recursiveDirectoryNames: Set<string>;
+  suffixes: string[];
+}
+
 export function createGlobMatcher(pattern: string): GlobMatcher {
   const fastMatcher = createFastGlobMatcher(pattern);
   if (fastMatcher) {
@@ -81,6 +88,94 @@ function createDirectChildMatcher(directoryPath: string): GlobMatcher {
     const remainder = filePath.slice(start + rootPrefix.length);
     return remainder.length > 0 && !remainder.includes('/');
   };
+}
+
+function collectFastMatcher(
+  fastMatchers: CombinedFastGlobMatchers,
+  pattern: string,
+): boolean {
+  const recursivePattern = pattern.startsWith('**/') ? pattern.slice(3) : pattern;
+
+  if (!recursivePattern.includes('*')) {
+    fastMatchers.literalSuffixes.push(recursivePattern);
+    return true;
+  }
+
+  if (
+    recursivePattern.startsWith('*.')
+    && recursivePattern.indexOf('*', 1) === -1
+    && !recursivePattern.includes('/')
+  ) {
+    fastMatchers.suffixes.push(recursivePattern.slice(1));
+    return true;
+  }
+
+  if (recursivePattern.endsWith('/**')) {
+    const directoryPath = recursivePattern.slice(0, -3);
+    if (directoryPath && !directoryPath.includes('*')) {
+      if (!directoryPath.includes('/')) {
+        fastMatchers.recursiveDirectoryNames.add(directoryPath);
+      } else {
+        fastMatchers.directMatchers.push(createRecursiveDirectoryMatcher(directoryPath));
+      }
+      return true;
+    }
+  }
+
+  if (recursivePattern.endsWith('/*')) {
+    const directoryPath = recursivePattern.slice(0, -2);
+    if (directoryPath && !directoryPath.includes('*')) {
+      fastMatchers.directMatchers.push(createDirectChildMatcher(directoryPath));
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function matchesAnyPathSuffix(filePath: string, suffixes: readonly string[]): boolean {
+  for (const suffix of suffixes) {
+    if (matchesPathSuffix(filePath, suffix)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function hasAnySuffix(filePath: string, suffixes: readonly string[]): boolean {
+  for (const suffix of suffixes) {
+    if (filePath.endsWith(suffix)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function containsRecursiveDirectoryName(
+  filePath: string,
+  directoryNames: ReadonlySet<string>,
+): boolean {
+  if (directoryNames.size === 0) {
+    return false;
+  }
+
+  let segmentStart = 0;
+  while (segmentStart < filePath.length) {
+    const slashIndex = filePath.indexOf('/', segmentStart);
+    if (slashIndex < 0) {
+      return false;
+    }
+
+    if (directoryNames.has(filePath.slice(segmentStart, slashIndex))) {
+      return true;
+    }
+
+    segmentStart = slashIndex + 1;
+  }
+
+  return false;
 }
 
 function createFastGlobMatcher(pattern: string): GlobMatcher | undefined {
@@ -130,13 +225,15 @@ export function createCombinedGlobMatcher(patterns: readonly string[]): (filePat
     return createFastGlobMatcher(pattern) ?? createGlobMatcher(pattern);
   }
 
-  const fastMatchers: GlobMatcher[] = [];
+  const fastMatchers: CombinedFastGlobMatchers = {
+    directMatchers: [],
+    literalSuffixes: [],
+    recursiveDirectoryNames: new Set(),
+    suffixes: [],
+  };
   const regexPatterns: string[] = [];
   for (const pattern of patterns) {
-    const fastMatcher = createFastGlobMatcher(pattern);
-    if (fastMatcher) {
-      fastMatchers.push(fastMatcher);
-    } else {
+    if (!collectFastMatcher(fastMatchers, pattern)) {
       regexPatterns.push(pattern);
     }
   }
@@ -146,7 +243,15 @@ export function createCombinedGlobMatcher(patterns: readonly string[]): (filePat
     : null;
 
   return (filePath: string): boolean => {
-    for (const matcher of fastMatchers) {
+    if (
+      containsRecursiveDirectoryName(filePath, fastMatchers.recursiveDirectoryNames)
+      || hasAnySuffix(filePath, fastMatchers.suffixes)
+      || matchesAnyPathSuffix(filePath, fastMatchers.literalSuffixes)
+    ) {
+      return true;
+    }
+
+    for (const matcher of fastMatchers.directMatchers) {
       if (matcher(filePath)) {
         return true;
       }
