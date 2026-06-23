@@ -9,6 +9,7 @@ export type RefreshStateReason =
   | 'pluginFiles'
   | 'refresh'
   | 'refreshIndex';
+export type ChangedFileRefreshMode = 'analysis' | 'incremental' | 'primary';
 
 export function sendRefreshState(
   source: GraphViewProviderRefreshMethodsSource,
@@ -40,16 +41,17 @@ export async function runIndexRefresh(source: GraphViewProviderRefreshMethodsSou
 export async function runChangedFileRefresh(
   source: GraphViewProviderRefreshMethodsSource,
   filePaths: readonly string[],
-): Promise<void> {
+): Promise<ChangedFileRefreshMode> {
   if (!source._analyzer?.hasIndex()) {
     await runPrimaryRefresh(source);
-    return;
+    return 'primary';
   }
 
   if (source._incrementalAnalyzeAndSendData) {
     await source._incrementalAnalyzeAndSendData(filePaths);
-    return;
+    return 'incremental';
   }
 
   await source._analyzeAndSendData();
+  return 'analysis';
 }

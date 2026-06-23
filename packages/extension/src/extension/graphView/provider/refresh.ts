@@ -376,8 +376,10 @@ function createRefreshChangedFilesMethod(
     }
 
     prepareRefreshInputs(source);
-    await runChangedFileRefresh(source, filePaths);
-    sendRefreshState(source, 'changedFiles');
+    const refreshMode = await runChangedFileRefresh(source, filePaths);
+    if (refreshMode !== 'incremental') {
+      sendRefreshState(source, 'changedFiles');
+    }
   };
 }
 
