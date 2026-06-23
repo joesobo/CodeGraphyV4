@@ -119,3 +119,91 @@ test('VS Code graph view runner parses extension host performance JSONL', async 
     },
   ]);
 });
+
+test('VS Code graph view runner records frame lifecycle offsets from graph open', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { createGraphFrameLifecycleRecorder } = await import(moduleUrl);
+  const recorder = createGraphFrameLifecycleRecorder(1_000);
+
+  recorder.record('graphOpen.start', 1_000);
+  recorder.recordFrame('frame.attached', { url: () => 'about:blank' }, 1_025);
+  recorder.recordFrame('frame.navigated', { url: () => 'vscode-webview://test/fake.html' }, 1_150);
+  recorder.record('graphFrame.ready', 1_425, { frameCount: 3 });
+
+  assert.deepEqual(recorder.events, [
+    {
+      name: 'graphOpen.start',
+      offsetMs: 0,
+    },
+    {
+      name: 'frame.attached',
+      offsetMs: 25,
+      url: 'about:blank',
+      webviewFrame: false,
+    },
+    {
+      name: 'frame.navigated',
+      offsetMs: 150,
+      url: 'vscode-webview://test/fake.html',
+      webviewFrame: true,
+    },
+    {
+      name: 'graphFrame.ready',
+      offsetMs: 425,
+      frameCount: 3,
+    },
+  ]);
+});
+
+test('VS Code graph view runner builds a startup-ready measurement payload before interactions', async () => {
+  const moduleUrl = pathToFileURL(
+    path.resolve('scripts/performance/measure-vscode-graph-view.mjs'),
+  ).href;
+  const { createStartupMeasurements } = await import(moduleUrl);
+
+  assert.deepEqual(createStartupMeasurements({
+    extensionHostEvents: [{ name: 'command.open.start', offsetMs: 0 }],
+    extensionHostLogPath: '/tmp/extension-host.jsonl',
+    firstGraphReadyMs: 1200,
+    firstGraphReadyPhases: {
+      openGraphCommandMs: 100,
+      graphFrameReadyMs: 1000,
+      graphStatsReadyMs: 20,
+    },
+    firstGraphReadyWebviewEvents: [
+      { name: 'visibleGraph.derive', durationMs: 12.2 },
+      { name: 'graphStats.rendered', at: 30 },
+    ],
+    frameLifecycleEvents: [{ name: 'graphFrame.ready', offsetMs: 1100 }],
+    initialStats: { nodeCount: 10, edgeCount: 5 },
+    vscodeLaunchMs: 900,
+  }), {
+    status: 'startup-ready',
+    vscodeLaunchMs: 900,
+    firstGraphReadyMs: 1200,
+    firstGraphReadyPhases: {
+      openGraphCommandMs: 100,
+      graphFrameReadyMs: 1000,
+      graphStatsReadyMs: 20,
+    },
+    firstGraphReadyWebviewStages: {
+      'visibleGraph.derive': {
+        iterations: 1,
+        minMs: 12,
+        medianMs: 12,
+        p95Ms: 12,
+        maxMs: 12,
+      },
+    },
+    firstGraphReadyWebviewEvents: [
+      { name: 'visibleGraph.derive', durationMs: 12.2 },
+      { name: 'graphStats.rendered', at: 30 },
+    ],
+    firstGraphReadyFrameLifecycleEvents: [{ name: 'graphFrame.ready', offsetMs: 1100 }],
+    firstGraphReadyExtensionHostLogPath: '/tmp/extension-host.jsonl',
+    extensionHostEvents: [{ name: 'command.open.start', offsetMs: 0 }],
+    initialStats: { nodeCount: 10, edgeCount: 5 },
+  });
+});

@@ -373,6 +373,23 @@ VS Code graph view benchmark:
     `1145.9ms`.
   - Imports toggle wall-clock latency was `185ms` median, `193ms` p95; in-webview
     latency was `48ms` median, `50ms` p95.
+- After adding Playwright frame lifecycle markers and writing startup-ready
+  metrics before interaction sampling:
+  - VS Code launch: `743ms`.
+  - Open Graph View to first rendered graph stats: `38513ms`.
+  - First-ready phases: command/open `1597ms`, acceptance-ready frame
+    `36867ms`, stats wait after frame discovery `36ms`.
+  - Frame lifecycle: the workbench frame existed at graph open; VS Code attached
+    and navigated webview frames around `1795ms`-`1983ms`; the usable
+    graph-ready fake.html frame attached/navigated at `37035ms`/`37040ms`;
+    Graph Stage was ready at `38464ms`.
+  - Extension-host timeline still assigned `webview.html` at `63ms` after
+    `codegraphy.open` started.
+  - Webview document work after the usable frame started remained near `1.14s`:
+    ready at `27.5ms`, graph data at `95ms`, first filtered derive at
+    `671.5ms`, bootstrap at `1058.7ms`, and graph stats at `1139.7ms`.
+  - Imports toggle wall-clock latency was `183ms` median, `489ms` p95; in-webview
+    latency was `47ms` median, `50ms` p95.
 
 Interpretation:
 
@@ -437,6 +454,12 @@ Interpretation:
   VS Code webview frame/document. The performance harness now uses the same
   `120s` timeout as the rest of the graph-view metric collection for that
   frame wait so these outliers produce data instead of failed runs.
+- Frame lifecycle markers show the coarse frame-readiness bucket is not just
+  “no iframe exists.” VS Code attaches and navigates early webview frames
+  around `1.8s`-`2.0s`, then the usable graph-ready fake.html frame appears
+  much later around `37.0s`. The harness now writes a `startup-ready` metrics
+  record before Graph Scope interaction sampling so a later control timeout
+  still preserves startup evidence.
 
 Full test baseline:
 
