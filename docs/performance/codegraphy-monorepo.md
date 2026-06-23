@@ -861,6 +861,18 @@ Interpretation:
   the tiny patch (`239.5ms` in `visibleGraph.derive` and `86ms` in
   `visibleGraph.applyLegendRules`) rather than host-side full graph
   publication.
+- The webview metric-patch handler now applies `fileSize`/`churn` patches in
+  place when the active node size mode is `connections` or `uniform`, keeping
+  the `graphData` reference stable so metric-only saves do not invalidate
+  visible graph derivation, legend coloring, or runtime graph construction.
+  Metric-based node size modes (`file-size` and `churn`) still replace
+  `graphData` so the visual sizes update correctly. The rebuilt monorepo probe
+  received the one-node `GRAPH_NODE_METRICS_UPDATED` message, recorded
+  `extensionMessage.graphNodeMetricsPatchedInPlace`, and emitted zero
+  `visibleGraph.derive`, zero `visibleGraph.applyLegendRules`, and zero
+  `graphRuntime.buildGraphData` events in the live-update window. The first
+  strict sample moved marker wall clock from `1193ms` to `828ms`; a follow-up
+  sample measured `657ms` wall clock with a `356ms` incremental request.
 
 Full test baseline:
 

@@ -1,12 +1,16 @@
 import type { IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import type { NodeSizeMode } from '../../../shared/settings/modes';
 import {
   applyPendingGroupUpdates,
   applyPendingUserGroupsUpdate,
 } from '../optimistic/groups/updates';
 import { arePlainValuesEqual } from './equality/compare';
 import { recordWebviewPerformanceEvent } from '../../performance/marks';
+
+type GraphNodeMetricsUpdateMessage = Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>;
+type GraphNodeMetricsUpdate = GraphNodeMetricsUpdateMessage['payload']['nodes'][number];
 
 function areGraphDataPayloadsEqual(left: IGraphData, right: IGraphData): boolean {
   if (left.nodes.length !== right.nodes.length || left.edges.length !== right.edges.length) {
@@ -39,6 +43,37 @@ function shouldSkipDuplicateGraphData(
       && !state.bootstrapComplete
     )
   );
+}
+
+function nodeSizeModeUsesNodeMetrics(mode: NodeSizeMode): boolean {
+  return mode === 'file-size' || mode === 'churn';
+}
+
+function nodeMetricsDiffer(
+  node: IGraphData['nodes'][number],
+  update: GraphNodeMetricsUpdate,
+): boolean {
+  return node.fileSize !== update.fileSize || node.churn !== update.churn;
+}
+
+function applyMetricUpdatesInPlace(
+  graphData: IGraphData,
+  updatesById: ReadonlyMap<string, GraphNodeMetricsUpdate>,
+): boolean {
+  let changed = false;
+
+  for (const node of graphData.nodes) {
+    const update = updatesById.get(node.id);
+    if (!update || !nodeMetricsDiffer(node, update)) {
+      continue;
+    }
+
+    node.fileSize = update.fileSize;
+    node.churn = update.churn;
+    changed = true;
+  }
+
+  return changed;
 }
 
 export function handleGraphDataUpdated(
@@ -78,7 +113,7 @@ export function handleGraphDataUpdated(
 }
 
 export function handleGraphNodeMetricsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>,
+  message: GraphNodeMetricsUpdateMessage,
   ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState | void {
   recordWebviewPerformanceEvent('extensionMessage.graphNodeMetricsUpdated', {
@@ -91,10 +126,31 @@ export function handleGraphNodeMetricsUpdated(
   }
 
   const updatesById = new Map(message.payload.nodes.map(node => [node.id, node]));
+  const waitingForInitialBootstrap = Boolean(
+    state.awaitingInitialBootstrap
+    && !state.bootstrapComplete,
+  );
+
+  if (!nodeSizeModeUsesNodeMetrics(state.nodeSizeMode)) {
+    // Metrics do not affect the current visual graph, so keep graphData referentially stable.
+    const changed = applyMetricUpdatesInPlace(state.graphData, updatesById);
+    if (changed) {
+      recordWebviewPerformanceEvent('extensionMessage.graphNodeMetricsPatchedInPlace', {
+        nodeCount: message.payload.nodes.length,
+      });
+    }
+
+    return {
+      isLoading: waitingForInitialBootstrap,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    };
+  }
+
   let changed = false;
   const nodes = state.graphData.nodes.map((node) => {
     const update = updatesById.get(node.id);
-    if (!update || (node.fileSize === update.fileSize && node.churn === update.churn)) {
+    if (!update || !nodeMetricsDiffer(node, update)) {
       return node;
     }
 
@@ -112,11 +168,6 @@ export function handleGraphNodeMetricsUpdated(
       graphIndexProgress: null,
     };
   }
-
-  const waitingForInitialBootstrap = Boolean(
-    state.awaitingInitialBootstrap
-    && !state.bootstrapComplete,
-  );
 
   return {
     graphData: {
