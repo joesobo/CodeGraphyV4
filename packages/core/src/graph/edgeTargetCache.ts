@@ -9,11 +9,22 @@ export function createCachedConnectionTargetResolver(
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
   workspaceRoot: string,
 ): (plugin: IPlugin | undefined, connection: IProjectedConnection) => string | null {
-  const targetIdByKey = new Map<string, string | null>();
+  const targetIdByPlugin = new Map<string | undefined, Map<string, string | null>>();
 
   return (plugin, connection) => {
-    const cacheKey = createTargetCacheKey(plugin, connection);
-    if (cacheKey && targetIdByKey.has(cacheKey)) {
+    const cacheKey = createTargetCacheKey(connection);
+    if (!cacheKey) {
+      return resolveConnectionTargetId(
+        plugin,
+        connection,
+        fileConnections,
+        workspaceRoot,
+      );
+    }
+
+    const pluginKey = plugin?.id;
+    const targetIdByKey = targetIdByPlugin.get(pluginKey);
+    if (targetIdByKey?.has(cacheKey)) {
       return targetIdByKey.get(cacheKey) ?? null;
     }
 
@@ -24,24 +35,23 @@ export function createCachedConnectionTargetResolver(
       workspaceRoot,
     );
 
-    if (cacheKey) {
-      targetIdByKey.set(cacheKey, targetId);
-    }
+    const pluginTargetIds = targetIdByKey ?? new Map<string, string | null>();
+    targetIdByPlugin.set(pluginKey, pluginTargetIds);
+    pluginTargetIds.set(cacheKey, targetId);
 
     return targetId;
   };
 }
 
 function createTargetCacheKey(
-  plugin: IPlugin | undefined,
   connection: IProjectedConnection,
 ): string | undefined {
   if (connection.resolvedPath) {
-    return `${plugin?.id ?? ''}\0resolved\0${connection.resolvedPath}`;
+    return `resolved\0${connection.resolvedPath}`;
   }
 
   if (connection.specifier) {
-    return `${plugin?.id ?? ''}\0specifier\0${connection.specifier}`;
+    return `specifier\0${connection.specifier}`;
   }
 
   return undefined;
