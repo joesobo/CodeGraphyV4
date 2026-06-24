@@ -24,9 +24,7 @@ export function getColoredGraphResult({
     return cached;
   }
 
-  const result = applyLegendRules(filteredData, legends);
-  if (result) {
-    cacheReferenceResult(cache, filteredData, key, result);
-  }
+  const result = applyLegendRules(filteredData, legends)!;
+  cacheReferenceResult(cache, filteredData, key, result);
   return result;
 }
