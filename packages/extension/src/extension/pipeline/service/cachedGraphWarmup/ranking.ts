@@ -6,10 +6,9 @@ export function selectMostRepresentedCachedGraphWarmupFile(
   const extensionStats = new Map<string, {
     count: number;
     file: IDiscoveredFile;
-    firstIndex: number;
   }>();
 
-  for (const [index, file] of files.entries()) {
+  for (const file of files) {
     const extension = file.extension;
     const stats = extensionStats.get(extension);
     if (stats) {
@@ -20,11 +19,15 @@ export function selectMostRepresentedCachedGraphWarmupFile(
     extensionStats.set(extension, {
       count: 1,
       file,
-      firstIndex: index,
     });
   }
 
-  return [...extensionStats.values()]
-    .sort((left, right) => right.count - left.count || left.firstIndex - right.firstIndex)[0]
-    ?.file;
+  let selected: { count: number; file: IDiscoveredFile } | undefined;
+  for (const stats of extensionStats.values()) {
+    if (!selected || stats.count > selected.count) {
+      selected = stats;
+    }
+  }
+
+  return selected?.file;
 }
