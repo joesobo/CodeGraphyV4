@@ -26,15 +26,6 @@ export async function refreshWorkspaceIndexPluginFiles(
     dependencies.pluginIds,
   );
   const registeredPluginIds = pluginInfos.map(({ plugin }) => plugin.id);
-  if (pluginInfos.length === 0) {
-    const graphData = buildWorkspaceIndexGraphFromRefreshState(
-      source,
-      dependencies.workspaceRoot,
-      dependencies.disabledPlugins,
-    );
-    await dependencies.persistIndexMetadata();
-    return graphData;
-  }
 
   const pluginFiles = selectWorkspaceIndexPluginFiles(pluginInfos, dependencies.discoveredFiles);
   if (pluginFiles.length > 0) {
