@@ -8,10 +8,6 @@ export function selectCachedGraphAnalysisWarmupFile(
   registry: CachedGraphWarmupRegistry,
   files: readonly IDiscoveredFile[],
 ): IDiscoveredFile | undefined {
-  if (typeof registry.supportsFile !== 'function') {
-    return files[0];
-  }
-
   const supportedFiles = getSupportedCachedGraphAnalysisWarmupFiles(
     registry,
     files.filter(isCachedGraphAnalysisWarmupCandidate),
