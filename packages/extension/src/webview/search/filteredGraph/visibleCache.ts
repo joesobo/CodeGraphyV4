@@ -20,18 +20,11 @@ export function cacheVisibleGraphResult(
   key: string,
   result: VisibleGraphResult,
 ): void {
-  if (cache.entries.has(key)) {
-    cache.entries.delete(key);
-  }
-
+  cache.entries.delete(key);
   cache.entries.set(key, result);
 
   while (cache.entries.size > VISIBLE_GRAPH_CACHE_LIMIT) {
-    const oldestKey = cache.entries.keys().next().value;
-    if (!oldestKey) {
-      return;
-    }
-
+    const oldestKey = cache.entries.keys().next().value as string;
     cache.entries.delete(oldestKey);
   }
 }
