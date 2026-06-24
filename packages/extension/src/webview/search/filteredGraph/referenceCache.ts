@@ -29,18 +29,11 @@ export function cacheReferenceResult<TValue>(
   result: TValue,
 ): void {
   const cacheKey = getReferenceResultCacheKey(cache, reference, key);
-  if (cache.entries.has(cacheKey)) {
-    cache.entries.delete(cacheKey);
-  }
-
+  cache.entries.delete(cacheKey);
   cache.entries.set(cacheKey, result);
 
   while (cache.entries.size > REFERENCE_RESULT_CACHE_LIMIT) {
-    const oldestKey = cache.entries.keys().next().value;
-    if (!oldestKey) {
-      return;
-    }
-
+    const oldestKey = cache.entries.keys().next().value as string;
     cache.entries.delete(oldestKey);
   }
 }
