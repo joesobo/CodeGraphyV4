@@ -2,11 +2,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import {
   collectCachedGitIgnoredPaths,
+  collectCachedDirectoryPaths,
   createCachedWorkspaceDiscoveryState,
 } from '../../../../../src/extension/pipeline/service/cache/cachedDiscovery';
 
-vi.mock('node:child_process', () => ({
+const childProcessMock = vi.hoisted(() => ({
   spawnSync: vi.fn(),
+}));
+
+vi.mock('node:child_process', () => ({
+  ...childProcessMock,
+  default: childProcessMock,
 }));
 
 describe('pipeline/service/cache/cachedDiscovery', () => {
@@ -45,6 +51,27 @@ describe('pipeline/service/cache/cachedDiscovery', () => {
       ],
       gitIgnoredPaths: [],
     });
+    expect(spawnSync).toHaveBeenCalledWith(
+      'git',
+      ['-C', '/workspace', 'check-ignore', '--stdin'],
+      {
+        encoding: 'utf8',
+        input: 'src\nsrc/nested\nsrc/nested/cached.ts\nREADME.md\n',
+      },
+    );
+  });
+
+  it('normalizes windows separators while deriving cached directory ancestry', () => {
+    expect(
+      collectCachedDirectoryPaths([
+        'src\\nested\\cached.ts',
+        'src\\other\\child.ts',
+      ]),
+    ).toEqual([
+      'src',
+      'src/nested',
+      'src/other',
+    ]);
   });
 
   it('collects current gitignore matches only for cached paths', () => {
