@@ -36,7 +36,7 @@ export function createRefreshAnalysisScopeMethod(
       ),
       scopedRefreshLifecycle,
     );
-    publishGraphDataIfPresent(source, graphData, 'analysisScope');
+    publishGraphDataIfPresent(source, graphData);
   };
 }
 
@@ -66,7 +66,7 @@ export function createRefreshGitignoreMetadataMethod(
       ),
       scopedRefreshLifecycle,
     );
-    publishGraphDataIfPresent(source, graphData, 'gitignoreMetadata');
+    publishGraphDataIfPresent(source, graphData);
   };
 }
 
@@ -98,6 +98,6 @@ export function createRefreshPluginFilesMethod(
       ),
       scopedRefreshLifecycle,
     );
-    publishGraphDataIfPresent(source, graphData, 'pluginFiles');
+    publishGraphDataIfPresent(source, graphData);
   };
 }

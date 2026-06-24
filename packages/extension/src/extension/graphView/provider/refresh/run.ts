@@ -1,19 +1,10 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphViewProviderRefreshMethodsSource } from './contracts';
 
-export type RefreshStateReason =
-  | 'analysisScope'
-  | 'changedFiles'
-  | 'direct'
-  | 'gitignoreMetadata'
-  | 'pluginFiles'
-  | 'refresh'
-  | 'refreshIndex';
 export type ChangedFileRefreshMode = 'analysis' | 'incremental' | 'primary';
 
 export function sendRefreshState(
   source: GraphViewProviderRefreshMethodsSource,
-  _reason: RefreshStateReason = 'direct',
 ): void {
   source._sendAllSettings();
   source._sendGraphControls?.();
