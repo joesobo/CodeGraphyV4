@@ -59,10 +59,6 @@ function workspaceIndexAnalysisCoversConnections(
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
   workspaceRoot: string,
 ): boolean {
-  if (fileConnections.size === 0) {
-    return true;
-  }
-
   const analysisFilePaths = new Set(
     [...fileAnalysis.keys()].map(filePath =>
       toRepoRelativeGraphPath(filePath, workspaceRoot),
