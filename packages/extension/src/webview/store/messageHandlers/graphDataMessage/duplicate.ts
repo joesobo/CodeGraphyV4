@@ -5,7 +5,11 @@ export function shouldSkipDuplicateGraphData(
   state: ReturnType<NonNullable<IHandlerContext['getState']>>,
   payload: IGraphData,
 ): boolean {
-  if (!state.graphData || state.graphIsIndexing || !areGraphDataPayloadsEqual(state.graphData, payload)) {
+  if (
+    !state.graphData
+    || state.graphIsIndexing
+    || areGraphDataPayloadsEqual(state.graphData, payload) === false
+  ) {
     return false;
   }
 
