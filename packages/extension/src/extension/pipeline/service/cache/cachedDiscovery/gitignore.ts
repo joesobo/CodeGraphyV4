@@ -1,8 +1,7 @@
 import { spawnSync } from 'node:child_process';
-import * as path from 'node:path';
 
 function toGitPath(relativePath: string): string {
-  return relativePath.split(path.sep).join('/');
+  return relativePath.split(/[\\/]/).join('/');
 }
 
 function createCachedGitPathLookup(relativePaths: readonly string[]): Map<string, string> {
@@ -14,7 +13,17 @@ function createGitCheckIgnoreInput(pathsByGitPath: ReadonlyMap<string, string>):
 }
 
 function didGitCheckIgnoreFail(result: ReturnType<typeof spawnSync>): boolean {
-  return Boolean(result.error) || (result.status !== 0 && result.status !== 1);
+  if (result.error) {
+    return true;
+  }
+
+  switch (result.status) {
+    case 0:
+    case 1:
+      return false;
+    default:
+      return true;
+  }
 }
 
 function readGitIgnoredCachedPaths(

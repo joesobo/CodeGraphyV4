@@ -98,8 +98,67 @@ describe('pipeline/service/cache/cachedDiscovery', () => {
     );
   });
 
+  it('maps git-normalized ignored paths back to cached relative paths', () => {
+    vi.mocked(spawnSync).mockReturnValue({
+      error: undefined,
+      status: 0,
+      stdout: 'src/generated.ts\nexternal/generated.ts\n',
+    } as never);
+
+    expect(
+      collectCachedGitIgnoredPaths(
+        '/workspace',
+        ['src\\generated.ts'],
+        true,
+      ),
+    ).toEqual(['src\\generated.ts', 'external/generated.ts']);
+    expect(spawnSync).toHaveBeenCalledWith(
+      'git',
+      ['-C', '/workspace', 'check-ignore', '--stdin'],
+      {
+        encoding: 'utf8',
+        input: 'src/generated.ts\n',
+      },
+    );
+  });
+
+  it('returns no ignored paths when git check-ignore fails', () => {
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      error: undefined,
+      status: 2,
+      stdout: 'src/generated.ts\n',
+    } as never);
+
+    expect(
+      collectCachedGitIgnoredPaths(
+        '/workspace',
+        ['src/generated.ts'],
+        true,
+      ),
+    ).toEqual([]);
+
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      error: new Error('git failed'),
+      status: 0,
+      stdout: 'src/generated.ts\n',
+    } as never);
+
+    expect(
+      collectCachedGitIgnoredPaths(
+        '/workspace',
+        ['src/generated.ts'],
+        true,
+      ),
+    ).toEqual([]);
+  });
+
   it('skips git when gitignore handling is disabled', () => {
     expect(collectCachedGitIgnoredPaths('/workspace', ['src/generated.ts'], false)).toEqual([]);
+    expect(spawnSync).not.toHaveBeenCalled();
+  });
+
+  it('skips git when there are no cached paths to check', () => {
+    expect(collectCachedGitIgnoredPaths('/workspace', [], true)).toEqual([]);
     expect(spawnSync).not.toHaveBeenCalled();
   });
 });
