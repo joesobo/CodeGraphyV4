@@ -27,7 +27,7 @@ describe('graphView/provider/refresh/run', () => {
   it('sends refresh state even when graph controls are unavailable', () => {
     const source = createSource({ _sendGraphControls: undefined });
 
-    expect(() => sendRefreshState(source as never, 'refresh')).not.toThrow();
+    expect(() => sendRefreshState(source as never)).not.toThrow();
     expect(source._sendAllSettings).toHaveBeenCalledOnce();
     expect(source._sendFavorites).not.toHaveBeenCalled();
   });
@@ -63,8 +63,9 @@ describe('graphView/provider/refresh/run', () => {
       _loadAndSendData: vi.fn(async () => undefined),
     });
 
-    await runChangedFileRefresh(source as never, ['src/app.ts']);
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
+    expect(refreshMode).toBe('primary');
     expect(source._loadAndSendData).toHaveBeenCalledOnce();
     expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -75,8 +76,9 @@ describe('graphView/provider/refresh/run', () => {
       _loadAndSendData: vi.fn(async () => undefined),
     });
 
-    await runChangedFileRefresh(source as never, ['src/app.ts']);
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
+    expect(refreshMode).toBe('primary');
     expect(source._loadAndSendData).toHaveBeenCalledOnce();
     expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
   });
@@ -84,8 +86,9 @@ describe('graphView/provider/refresh/run', () => {
   it('uses incremental refresh when an indexed analyzer is available', async () => {
     const source = createSource();
 
-    await runChangedFileRefresh(source as never, ['src/app.ts']);
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
+    expect(refreshMode).toBe('incremental');
     expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
     expect(source._loadAndSendData).not.toHaveBeenCalled();
@@ -100,8 +103,44 @@ describe('graphView/provider/refresh/run', () => {
       },
     });
 
-    await runChangedFileRefresh(source as never, ['src/app.ts']);
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
+    expect(refreshMode).toBe('incremental');
+    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('uses incremental refresh for an edge-only loaded graph while index metadata is unavailable', async () => {
+    const source = createSource({
+      _analyzer: { hasIndex: vi.fn(() => false) },
+      _rawGraphData: {
+        nodes: [],
+        edges: [{ from: 'src/app.ts', to: 'src/dep.ts' }],
+      },
+    });
+
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
+
+    expect(refreshMode).toBe('incremental');
+    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('uses visible graph data when raw graph data has not loaded yet', async () => {
+    const source = createSource({
+      _analyzer: { hasIndex: vi.fn(() => false) },
+      _rawGraphData: undefined,
+      _graphData: {
+        nodes: [{ id: 'src/app.ts' }],
+        edges: [],
+      },
+    });
+
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
+
+    expect(refreshMode).toBe('incremental');
     expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
     expect(source._loadAndSendData).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
@@ -112,8 +151,9 @@ describe('graphView/provider/refresh/run', () => {
       _incrementalAnalyzeAndSendData: undefined,
     });
 
-    await runChangedFileRefresh(source as never, ['src/app.ts']);
+    const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
+    expect(refreshMode).toBe('analysis');
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
   });
 });

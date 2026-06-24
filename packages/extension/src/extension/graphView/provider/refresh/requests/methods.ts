@@ -25,7 +25,7 @@ export function createRefreshMethod(
 
     prepareRefreshInputs(source);
     await runPrimaryRefresh(source);
-    sendRefreshState(source, 'refresh');
+    sendRefreshState(source);
   };
 }
 
@@ -73,7 +73,7 @@ export function createRefreshChangedFilesMethod(
     }
     const refreshMode = await runChangedFileRefresh(source, filePaths);
     if (refreshMode !== 'incremental') {
-      sendRefreshState(source, 'changedFiles');
+      sendRefreshState(source);
     }
   };
 }
@@ -83,5 +83,5 @@ async function runIndexRefreshWithInputs(
 ): Promise<void> {
   prepareRefreshInputs(source);
   await runIndexRefresh(source);
-  sendRefreshState(source, 'refreshIndex');
+  sendRefreshState(source);
 }

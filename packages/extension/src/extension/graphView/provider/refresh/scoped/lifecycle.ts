@@ -5,7 +5,7 @@ import type {
   GraphViewScopedRefreshProgress,
   ScopedRefreshLifecycle,
 } from '../contracts';
-import { sendRefreshState, type RefreshStateReason } from '../run';
+import { sendRefreshState } from '../run';
 
 export function createScopedRefreshLifecycle(): ScopedRefreshLifecycle {
   let scopedRefreshController: AbortController | undefined;
@@ -81,14 +81,13 @@ export function publishScopedRefreshGraphData(
 export function publishGraphDataIfPresent(
   source: GraphViewProviderRefreshMethodsSource,
   graphData: IGraphData | undefined,
-  reason: RefreshStateReason,
 ): void {
   if (!graphData) {
     return;
   }
 
   publishScopedRefreshGraphData(source, graphData);
-  sendRefreshState(source, reason);
+  sendRefreshState(source);
 }
 
 function isScopedRefreshStale(
