@@ -22,7 +22,7 @@ export interface WorkspacePipelineCachedGraphLoadOptions {
 
 export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipelineAnalysisFacade {
   async loadCachedGraph(
-    _filterPatterns: string[] = [],
+    _filterPatterns?: string[],
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     options: WorkspacePipelineCachedGraphLoadOptions = {},
@@ -102,15 +102,11 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     }
 
     void warmCachedGraphAnalysisFile(input, this._discovery, this._registry).catch(error => {
-      const status = isWorkspaceAnalysisAbortError(error)
-        ? 'aborted'
-        : isMissingFileError(error)
-          ? 'skipped'
-          : 'failed';
-
-      if (status === 'failed') {
-        console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);
+      if (isWorkspaceAnalysisAbortError(error) || isMissingFileError(error)) {
+        return;
       }
+
+      console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);
     });
   }
 }
