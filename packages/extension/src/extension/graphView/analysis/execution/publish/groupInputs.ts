@@ -22,8 +22,7 @@ function areGraphGroupSymbolInputsEqual(
 }
 
 function areGraphGroupNodeInputsEqual(left: IGraphNode, right: IGraphNode): boolean {
-  return left.id === right.id
-    && left.nodeType === right.nodeType
+  return left.nodeType === right.nodeType
     && areGraphGroupSymbolInputsEqual(left.symbol, right.symbol);
 }
 
