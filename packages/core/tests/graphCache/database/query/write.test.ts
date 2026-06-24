@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createWorkspaceAnalysisCacheWriter,
+  createWorkspaceAnalysisCacheWriterAsync,
   persistAnalysisEntry,
+  persistAnalysisEntryAsync,
   sortedCacheEntries,
   type WorkspaceAnalysisCacheWriter,
 } from '../../../../src/graphCache/database/query/write';
@@ -33,6 +35,21 @@ describe('graphCache/database/writeStatements', () => {
 
     expect(prepareStatementSyncSpy).toHaveBeenCalledTimes(1);
     expect(prepareStatementSyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('filePath: $filePath'));
+  });
+
+  it('prepares the async canonical file analysis write statement once per cache write session', async () => {
+    const fileStatement = {};
+    const prepareStatementAsyncSpy = vi
+      .spyOn(cacheConnectionModule, 'prepareStatementAsync')
+      .mockResolvedValueOnce(fileStatement as never);
+
+    await expect(createWorkspaceAnalysisCacheWriterAsync({} as never)).resolves.toEqual({
+      connection: {},
+      fileAnalysisStatement: fileStatement,
+    });
+
+    expect(prepareStatementAsyncSpy).toHaveBeenCalledTimes(1);
+    expect(prepareStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, expect.stringContaining('filePath: $filePath'));
   });
 
   it('persists one canonical file analysis row through a prepared statement', () => {
@@ -107,5 +124,40 @@ describe('graphCache/database/writeStatements', () => {
       size: 20,
       analysis: JSON.stringify({}),
     });
+  });
+
+  it('persists one canonical file analysis row asynchronously before yielding', async () => {
+    const sequence: string[] = [];
+    const executeStatementAsyncSpy = vi
+      .spyOn(cacheConnectionModule, 'executeStatementAsync')
+      .mockImplementation(async () => {
+        sequence.push('execute');
+      });
+    const afterStatement = vi.fn(async () => {
+      sequence.push('yield');
+    });
+    const writer = {
+      connection: {} as never,
+      fileAnalysisStatement: { kind: 'file' } as never,
+    } satisfies WorkspaceAnalysisCacheWriter;
+
+    await persistAnalysisEntryAsync(
+      writer,
+      '/workspace/src/app.ts',
+      {
+        analysis: {},
+      } as never,
+      afterStatement,
+    );
+
+    expect(executeStatementAsyncSpy).toHaveBeenCalledTimes(1);
+    expect(executeStatementAsyncSpy).toHaveBeenNthCalledWith(1, {}, { kind: 'file' }, {
+      filePath: '/workspace/src/app.ts',
+      mtime: 0,
+      size: 0,
+      analysis: JSON.stringify({}),
+    });
+    expect(afterStatement).toHaveBeenCalledOnce();
+    expect(sequence).toEqual(['execute', 'yield']);
   });
 });
