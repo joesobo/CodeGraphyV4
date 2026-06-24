@@ -36,6 +36,10 @@ describe('pathMatching', () => {
     expect(matchesAnyPattern('src/app.ts', ['*.ts'])).toBe(true);
   });
 
+  it('matches when any pattern matches the normalized path', () => {
+    expect(matchesAnyPattern('src/app.ts', ['*.md', '*.ts'])).toBe(true);
+  });
+
   it('matches hidden files when dot matching is enabled', () => {
     expect(matchesAnyPattern('config/.env', ['*.env'])).toBe(true);
   });
