@@ -129,6 +129,7 @@ describe('pipeline/service/cache/index', () => {
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
     });
+    expect(writeCodeGraphyRepoMeta).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
   });
 
