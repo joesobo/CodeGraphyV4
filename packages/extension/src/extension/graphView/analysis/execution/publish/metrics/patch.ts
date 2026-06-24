@@ -7,26 +7,12 @@ import {
 } from './updates';
 import { areGraphDataEqualIgnoringNodeMetrics } from '../equality/graph';
 
-function canConsiderMetricOnlyGraphUpdate(
-  currentRawGraphData: IGraphData | undefined,
-  nextRawGraphData: IGraphData,
-  changedFilePaths: readonly string[] | undefined,
-): currentRawGraphData is IGraphData {
-  return Boolean(
-    currentRawGraphData
-    && changedFilePaths?.length
-    && currentRawGraphData.nodes.length === nextRawGraphData.nodes.length
-    && currentRawGraphData.edges.length === nextRawGraphData.edges.length,
-  );
-}
-
 export function createMetricOnlyGraphUpdate(
   currentRawGraphData: IGraphData | undefined,
   nextRawGraphData: IGraphData,
   changedFilePaths: readonly string[] | undefined,
 ): IGraphNodeMetricsUpdate[] | undefined {
-  const changedPaths = changedFilePaths ?? [];
-  if (!canConsiderMetricOnlyGraphUpdate(currentRawGraphData, nextRawGraphData, changedFilePaths)) {
+  if (!currentRawGraphData || !changedFilePaths?.length) {
     return undefined;
   }
 
@@ -34,11 +20,7 @@ export function createMetricOnlyGraphUpdate(
     return undefined;
   }
 
-  const currentNodes = collectChangedPathNodes(currentRawGraphData, changedPaths);
-  const nextNodes = collectChangedPathNodes(nextRawGraphData, changedPaths);
-  if (currentNodes.length === 0 || currentNodes.length !== nextNodes.length) {
-    return undefined;
-  }
-
+  const currentNodes = collectChangedPathNodes(currentRawGraphData, changedFilePaths);
+  const nextNodes = collectChangedPathNodes(nextRawGraphData, changedFilePaths);
   return collectMetricOnlyGraphUpdates(currentNodes, createNodeMap(nextNodes));
 }
