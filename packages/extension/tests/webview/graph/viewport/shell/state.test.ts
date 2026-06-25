@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
 	createGraphViewViewportState,
 	toGraphViewViewportNodes,
-} from '../../../../../src/webview/components/graph/viewport/shell/viewportState';
+} from '../../../../../src/webview/components/graph/viewport/shell/state';
 
-describe('graph/viewport/shell/viewportState', () => {
+describe('graph/viewport/shell/state', () => {
 	it('sanitizes viewport node fields while preserving plugin-owned custom state', () => {
 		const nodes = toGraphViewViewportNodes([{
 			customRuntimeState: { owner: 'plugin-a' },

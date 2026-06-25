@@ -5,7 +5,7 @@ import {
   collectMetricOnlyGraphUpdates,
   createNodeMap,
 } from './updates';
-import { areGraphDataEqualIgnoringNodeMetrics } from '../equality/graph';
+import { areGraphDataEqualIgnoringNodeMetrics } from '../equality/data';
 
 export function createMetricOnlyGraphUpdate(
   currentRawGraphData: IGraphData | undefined,

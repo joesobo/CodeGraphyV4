@@ -1,7 +1,7 @@
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../../view/store';
 import type { FGNode } from '../../model/build';
-import { createGraphViewViewportState, type GraphViewport2dControls } from './viewportState';
+import { createGraphViewViewportState, type GraphViewport2dControls } from './state';
 
 export function publishPluginGraphViewViewportState({
   globalScale,

@@ -8,7 +8,7 @@ import {
   replayWebviewReadyBootstrap as replayWebviewReadyBootstrapImpl,
   replayWebviewReadyGraphBootstrap as replayWebviewReadyGraphBootstrapImpl,
   shouldWaitForFirstWorkspaceGraph as shouldWaitForFirstWorkspaceGraphImpl,
-} from './webviewReady/graphBootstrap';
+} from './webviewReady/bootstrap';
 import { replayWebviewReadySettings as replayWebviewReadySettingsImpl } from './webviewReady/settingsReplay';
 
 export type {
