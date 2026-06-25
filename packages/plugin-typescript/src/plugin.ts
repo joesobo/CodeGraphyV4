@@ -2,6 +2,7 @@ import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
 import {
   analyzeTypeScriptAliasImports,
+  clearTypeScriptAliasConfigCache,
   collectTypeScriptFilePaths,
   isTypeScriptConfigFile,
   TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE,
@@ -33,9 +34,12 @@ export function createTypeScriptPlugin(): IPlugin {
       typeScriptFiles = collectTypeScriptFilePaths(files);
     },
     async onFilesChanged(files) {
-      return files.some(file => isTypeScriptConfigFile(file.relativePath))
-        ? typeScriptFiles
-        : undefined;
+      if (!files.some(file => isTypeScriptConfigFile(file.relativePath))) {
+        return undefined;
+      }
+
+      clearTypeScriptAliasConfigCache();
+      return typeScriptFiles;
     },
   };
 }

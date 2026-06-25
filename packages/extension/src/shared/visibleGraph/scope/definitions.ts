@@ -1,11 +1,13 @@
 import type { IGraphNodeTypeDefinition } from '../../graphControls/contracts';
 import type { VisibleGraphScopeConfig } from '../contracts';
 import { CORE_GRAPH_NODE_TYPES } from '../../graphControls/defaults/definitions';
+import { createGlobMatcher } from '../../globMatch';
 
 export interface ScopedSymbolDefinition {
 	definition: IGraphNodeTypeDefinition;
 	enabled: boolean;
 	specificity: number;
+	symbolFilePathMatches?: (value: string) => boolean;
 }
 
 export function getDefinitionSymbolKinds(
@@ -49,6 +51,9 @@ export function getScopedSymbolDefinitions(
 			definition,
 			enabled: nodeVisibility.get(definition.id) ?? definition.defaultVisible,
 			specificity: getDefinitionSpecificity(definition),
+			...(definition.matchSymbolFilePath
+				? { symbolFilePathMatches: createGlobMatcher(definition.matchSymbolFilePath) }
+				: {}),
 		}))
 		.sort((left, right) => right.specificity - left.specificity);
 }

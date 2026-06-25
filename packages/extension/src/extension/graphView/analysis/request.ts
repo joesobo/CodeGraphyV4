@@ -61,7 +61,9 @@ export async function runGraphViewAnalysisRequest(
       },
     });
   } catch (error) {
-    if (!handlers.isAbortError(error)) {
+    if (handlers.isAbortError(error)) {
+      return;
+    } else {
       handlers.emitDiagnostic?.({
         area: 'extension.analysis',
         event: 'request-failed',

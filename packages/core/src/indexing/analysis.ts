@@ -8,6 +8,23 @@ import { preAnalyzeCoreTreeSitterFiles } from '../treeSitter/core';
 import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
 import { getFileStat } from './fileStat';
 
+function createCachedWorkspaceFileContentReader(
+  discovery: FileDiscovery,
+): (file: IDiscoveryResult['files'][number]) => Promise<string> {
+  const contentByRelativePath = new Map<string, Promise<string>>();
+
+  return (file) => {
+    const cached = contentByRelativePath.get(file.relativePath);
+    if (cached) {
+      return cached;
+    }
+
+    const content = discovery.readContent(file);
+    contentByRelativePath.set(file.relativePath, content);
+    return content;
+  };
+}
+
 export async function analyzeWorkspaceIndexFiles(input: {
   cache: IWorkspaceAnalysisCache;
   discovery: FileDiscovery;
@@ -17,6 +34,8 @@ export async function analyzeWorkspaceIndexFiles(input: {
   registry: CorePluginRegistry;
   workspaceRoot: string;
 }) {
+  const readContent = createCachedWorkspaceFileContentReader(input.discovery);
+
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
       input.registry.analyzeFileResult(
@@ -52,11 +71,11 @@ export async function analyzeWorkspaceIndexFiles(input: {
               input.disabledPlugins,
             );
           },
-          readContent: file => input.discovery.readContent(file),
+          readContent,
         },
         signal,
       ),
-    readContent: file => input.discovery.readContent(file),
+    readContent,
     signal: input.options.signal,
     workspaceRoot: input.workspaceRoot,
   });

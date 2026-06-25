@@ -16,11 +16,16 @@ export interface LegendIconImport {
   contentsBase64: string;
 }
 
+export interface WebviewReadyPayload {
+  pageId: string;
+  postedAt: number;
+}
+
 export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
   | { type: 'CLEAR_FOCUSED_FILE' }
-  | { type: 'WEBVIEW_READY'; payload: null }
+  | { type: 'WEBVIEW_READY'; payload: WebviewReadyPayload | null }
   | { type: 'OPEN_FILE'; payload: { path: string } }
   | { type: 'OPEN_IN_EDITOR' }
   | { type: 'REVEAL_IN_EXPLORER'; payload: { path: string } }

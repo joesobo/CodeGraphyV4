@@ -1,4 +1,5 @@
 import type { ICodeGraphyRepoMeta } from '../meta';
+import { filterWorkspaceStatusPendingChangedFiles } from '@codegraphy-dev/core';
 import {
   createFreshDetail,
   createMissingDetail,
@@ -38,12 +39,25 @@ export function evaluateCodeGraphyIndexStatus(input: {
   settingsSignature: string;
 }): CodeGraphyIndexStatus {
   const { meta, currentCommit, pluginSignature, settingsSignature } = input;
+  const pendingChangedFiles = filterWorkspaceStatusPendingChangedFiles(
+    meta.pendingChangedFiles,
+    { lastIndexedAt: meta.lastIndexedAt },
+  );
+  const statusMeta = {
+    ...meta,
+    pendingChangedFiles,
+  };
 
   if (meta.lastIndexedAt === null) {
     return createMissingStatus();
   }
 
-  const staleReasons = collectStaleReasons({ meta, currentCommit, pluginSignature, settingsSignature });
+  const staleReasons = collectStaleReasons({
+    meta: statusMeta,
+    currentCommit,
+    pluginSignature,
+    settingsSignature,
+  });
   if (staleReasons.length === 0) {
     return createFreshStatus();
   }
@@ -52,6 +66,6 @@ export function evaluateCodeGraphyIndexStatus(input: {
     freshness: 'stale',
     hasIndex: false,
     staleReasons,
-    detail: createStaleDetail(staleReasons, meta.pendingChangedFiles),
+    detail: createStaleDetail(staleReasons, pendingChangedFiles),
   };
 }

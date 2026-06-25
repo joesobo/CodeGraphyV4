@@ -31,6 +31,15 @@ function createSharedProps() {
   };
 }
 
+function createNodeThreeObjectContext() {
+  return {
+    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
+    meshesRef: { current: new Map() },
+    showLabelsRef: { current: true },
+    spritesRef: { current: new Map() },
+  };
+}
+
 function createDefaultProps() {
   return {
     backgroundColor: '#1e1e1e',
@@ -41,7 +50,7 @@ function createDefaultProps() {
     getLinkParticles: vi.fn(() => 2),
     getLinkWidth: vi.fn(() => 1),
     getParticleColor: vi.fn(() => '#ff0000'),
-    nodeThreeObject: vi.fn(),
+    nodeThreeObjectContext: createNodeThreeObjectContext(),
     particleSize: 4,
     particleSpeed: 0.005,
     sharedProps: createSharedProps(),

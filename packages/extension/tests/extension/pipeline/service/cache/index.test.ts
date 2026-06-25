@@ -8,11 +8,13 @@ import {
 } from '../../../../../src/extension/pipeline/service/cache/index';
 import {
   readCodeGraphyRepoMeta,
+  writeCodeGraphyRepoMeta,
 } from '../../../../../src/extension/repoSettings/meta';
 import type { ICodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 
 vi.mock('../../../../../src/extension/repoSettings/meta', () => ({
   readCodeGraphyRepoMeta: vi.fn(),
+  writeCodeGraphyRepoMeta: vi.fn(),
 }));
 
 describe('pipeline/service/cache/index', () => {
@@ -127,7 +129,30 @@ describe('pipeline/service/cache/index', () => {
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
     });
+    expect(writeCodeGraphyRepoMeta).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('records the current commit when index metadata is persisted', async () => {
+    const persistIndexMetadata = vi.fn();
+    const dependencies = {
+      getCurrentCommitSha: vi.fn(() => 'def456'),
+      getPluginSignature: vi.fn(() => 'next-plugin-signature'),
+      getSettingsSignature: vi.fn(() => 'next-settings-signature'),
+      persistIndexMetadata,
+      warn: vi.fn(),
+    };
+
+    await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
+
+    expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      pluginSignature: 'next-plugin-signature',
+      settingsSignature: 'next-settings-signature',
+    });
+    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
+      ...meta(),
+      lastIndexedCommit: 'def456',
+    });
   });
 
   it('delegates pending changed file cleanup to core metadata persistence', async () => {

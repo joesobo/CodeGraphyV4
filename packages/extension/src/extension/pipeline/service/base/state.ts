@@ -13,8 +13,9 @@ import {
 import { Configuration } from '../../../config/reader';
 import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IWorkspaceAnalysisCache } from '../../cache';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import {
-  loadWorkspaceAnalysisDatabaseCacheAsync,
+  loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
 } from '../../database/cache/storage';
@@ -95,6 +96,14 @@ export abstract class WorkspacePipelineStateBase {
     this._engineState.workspaceRoot = workspaceRoot;
   }
 
+  protected get _lastGraphData(): IGraphData {
+    return this._engineState.graph;
+  }
+
+  protected set _lastGraphData(graphData: IGraphData) {
+    this._engineState.graph = graphData;
+  }
+
   setEventBus(eventBus: EventBus): void {
     this._eventBus = eventBus;
   }
@@ -105,6 +114,10 @@ export abstract class WorkspacePipelineStateBase {
 
   get lastFileAnalysis(): ReadonlyMap<string, IFileAnalysisResult> {
     return this._lastFileAnalysis;
+  }
+
+  async warmGraphCache(): Promise<void> {
+    await this._hydrateCacheFromGraphCache();
   }
 
   readStructuredAnalysisSnapshot(): WorkspaceAnalysisDatabaseSnapshot {
@@ -122,7 +135,8 @@ export abstract class WorkspacePipelineStateBase {
       return;
     }
 
-    this._cacheHydrationPromise ??= loadWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot)
+    this._cacheHydrationPromise ??= Promise.resolve()
+      .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot))
       .then((cache) => {
         if (Object.keys(this._cache.files).length === 0) {
           this._cache = cache;

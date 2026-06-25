@@ -42,7 +42,12 @@ export function createGraphViewportSurfaceProps({
 			getLinkParticles: callbacks.getLinkParticles,
 			getLinkWidth: callbacks.getLinkWidth,
 			getParticleColor: callbacks.getParticleColor,
-			nodeThreeObject: callbacks.nodeThreeObject,
+			nodeThreeObjectContext: {
+				graphAppearanceRef: graphState.graphAppearanceRef,
+				meshesRef: graphState.renderCaches.meshesRef,
+				showLabelsRef: graphState.showLabelsRef,
+				spritesRef: graphState.renderCaches.spritesRef,
+			},
 			particleSize: viewState.particleSize,
 			particleSpeed: viewState.particleSpeed,
 			sharedProps,

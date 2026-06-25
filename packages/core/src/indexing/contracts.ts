@@ -1,6 +1,7 @@
 import type { IGraphData, IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../analysis/cache';
 import type { IDiscoveredFile } from '../discovery/contracts';
+import type { DiagnosticEventSink } from '../diagnostics/events';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 
 export interface IndexCodeGraphyWorkspacePluginEntry {
@@ -25,6 +26,7 @@ export interface IndexCodeGraphyWorkspaceOptions {
   maxFiles?: number;
   respectGitignore?: boolean;
   signal?: AbortSignal;
+  diagnostics?: DiagnosticEventSink;
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   logInfo?: (message: string) => void;
   warn?: (message: string) => void;

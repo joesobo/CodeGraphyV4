@@ -1,38 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyWebviewReady } from '../../../../../src/extension/graphView/webview/messages/ready';
-
-function createHandlers() {
-  return {
-    getGraphData: vi.fn(() => ({
-      nodes: [{ id: 'cached.ts', label: 'cached.ts', color: '#ffffff' }],
-      edges: [],
-    })),
-    getFilterPatterns: vi.fn(() => ['dist/**']),
-    getPluginFilterPatterns: vi.fn(() => ['venv/**']),
-    getPluginFilterGroups: vi.fn(() => []),
-    getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
-    loadGroupsAndFilterPatterns: vi.fn(),
-    loadDisabledRulesAndPlugins: vi.fn(),
-    sendDepthState: vi.fn(),
-    sendGraphControls: vi.fn(),
-    loadAndSendData: vi.fn(),
-    sendFavorites: vi.fn(),
-    sendSettings: vi.fn(),
-    sendPhysicsSettings: vi.fn(),
-    sendGroupsUpdated: vi.fn(),
-    sendMessage: vi.fn(),
-    sendCachedTimeline: vi.fn(),
-    sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
-    sendPluginStatuses: vi.fn(),
-    sendPluginWebviewInjections: vi.fn(),
-    sendPluginToolbarActions: vi.fn(),
-    sendGraphViewContributionStatuses: vi.fn(),
-    sendActiveFile: vi.fn(),
-    waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
-    notifyWebviewReady: vi.fn(),
-  };
-}
+import {
+  applyWebviewReady,
+  replayDuplicateWebviewReady,
+} from '../../../../../src/extension/graphView/webview/messages/ready';
+import { createHandlers } from './ready/fixture';
 
 describe('graph view ready message', () => {
   it('sends the initial webview payloads and notifies readiness', async () => {
@@ -117,6 +88,11 @@ describe('graph view ready message', () => {
     handlers.sendSettings.mockImplementation(() => callOrder.push('settings'));
     handlers.sendGraphControls.mockImplementation(() => callOrder.push('controls'));
     handlers.sendPluginWebviewInjections.mockImplementation(() => callOrder.push('plugin-injections'));
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'FILTER_PATTERNS_UPDATED') {
+        callOrder.push('filters');
+      }
+    });
     handlers.loadAndSendData.mockImplementation(() => {
       callOrder.push('analyze');
     });
@@ -143,6 +119,67 @@ describe('graph view ready message', () => {
     expect(callOrder.indexOf('settings')).toBeLessThan(callOrder.indexOf('analyze'));
     expect(callOrder.indexOf('controls')).toBeLessThan(callOrder.indexOf('analyze'));
     expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
+    expect(callOrder.indexOf('filters')).toBeLessThan(callOrder.indexOf('analyze'));
+  });
+
+  it('does not replay unchanged filter patterns after graph loading', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'FILTER_PATTERNS_UPDATED') {
+        events.push('filters');
+      }
+    });
+    handlers.loadAndSendData.mockImplementation(() => {
+      events.push('graph');
+    });
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(events).toEqual(['filters', 'graph']);
+    expect(handlers.sendMessage.mock.calls.filter(([message]) =>
+      (message as { type?: string }).type === 'FILTER_PATTERNS_UPDATED'
+    )).toHaveLength(1);
+  });
+
+  it('does not replay unchanged plugin filter groups after graph loading', async () => {
+    const handlers = createHandlers();
+    handlers.getPluginFilterPatterns.mockReturnValue(['**/*.meta']);
+    handlers.getPluginFilterGroups = vi.fn(() => [
+      { pluginId: 'codegraphy.unity', pluginName: 'Unity', patterns: ['**/*.meta'] },
+    ]);
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(handlers.sendMessage.mock.calls.filter(([message]) =>
+      (message as { type?: string }).type === 'FILTER_PATTERNS_UPDATED'
+    )).toHaveLength(1);
   });
 
   it('replays plugin filters that become available while loading graph data', async () => {
@@ -238,6 +275,45 @@ describe('graph view ready message', () => {
     expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
   });
 
+  it('hydrates settings again after initial workspace graph loading before bootstrap', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendSettings.mockImplementation(() => events.push('settings'));
+    handlers.sendGroupsUpdated.mockImplementation(() => events.push('legends'));
+    handlers.loadAndSendData.mockImplementation(() => {
+      events.push('graph');
+    });
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
+        events.push('bootstrap');
+      }
+    });
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(events).toEqual([
+      'settings',
+      'legends',
+      'graph',
+      'settings',
+      'legends',
+      'bootstrap',
+    ]);
+  });
+
   it('does not block bootstrap on first workspace-ready plugin notifications', async () => {
     const events: string[] = [];
     const handlers = createHandlers();
@@ -310,6 +386,37 @@ describe('graph view ready message', () => {
 
     expect(handlers.notifyWebviewReady).not.toHaveBeenCalled();
     expect(readyNotified).toBe(true);
+  });
+
+  it('does not resend full graph data for duplicate ready after bootstrap', async () => {
+    const handlers = createHandlers();
+
+    await replayDuplicateWebviewReady(
+      {
+        maxFiles: 500,
+        verboseDiagnostics: false,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: false,
+        readyNotified: true,
+      },
+      handlers,
+    );
+
+    expect(handlers.getGraphData).not.toHaveBeenCalled();
+    expect(handlers.sendMessage).not.toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: {
+        nodes: [{ id: 'cached.ts', label: 'cached.ts', color: '#ffffff' }],
+        edges: [],
+      },
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'APP_BOOTSTRAP_COMPLETE',
+    });
   });
 
   it('waits for cached timeline replay before notifying readiness', async () => {

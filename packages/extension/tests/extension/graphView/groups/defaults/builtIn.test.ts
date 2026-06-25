@@ -1,9 +1,16 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getBuiltInGraphViewDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/builtIn';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 
 describe('graphView/builtInDefaultGroups', () => {
+  beforeEach(() => {
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+      get: <T>(_key: string, defaultValue: T): T => defaultValue,
+    } as never);
+  });
+
   it('materializes matching Material theme defaults for the current graph and keeps Material Icon Theme metadata', () => {
     const groups = getBuiltInGraphViewDefaultGroups(
       {
@@ -209,5 +216,56 @@ describe('graphView/builtInDefaultGroups', () => {
       'default:symbol-kind:enum',
       'default:symbol-kind:plugin',
     ]));
+  });
+
+  it('reuses computed defaults for repeated same graph inputs', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'package.json', label: 'package.json', color: '#000000', nodeType: 'file' },
+        {
+          id: 'src/app.ts#format:function',
+          label: 'format',
+          color: '#000000',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'src/app.ts#format:function',
+            name: 'format',
+            kind: 'function',
+            filePath: 'src/app.ts',
+          },
+        },
+      ],
+      edges: [],
+    };
+    const extensionUri = vscode.Uri.file(path.resolve(process.cwd(), '../..'));
+
+    const first = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
+    const second = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
+
+    expect(second).toBe(first);
+  });
+
+  it('recomputes defaults when folder visibility changes for the same graph', () => {
+    let nodeVisibility: Record<string, boolean> = {};
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+      get: <T>(key: string, defaultValue: T): T => (
+        key === 'nodeVisibility' ? nodeVisibility as T : defaultValue
+      ),
+    } as never);
+
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'src', label: 'src', color: '#000000', nodeType: 'folder' },
+        { id: 'src/app.ts', label: 'app.ts', color: '#000000', nodeType: 'file' },
+      ],
+      edges: [],
+    };
+    const extensionUri = vscode.Uri.file(path.resolve(process.cwd(), '../..'));
+    const hiddenFolders = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
+
+    nodeVisibility = { folder: true };
+    const visibleFolders = getBuiltInGraphViewDefaultGroups(graphData, extensionUri);
+
+    expect(visibleFolders).not.toBe(hiddenFolders);
   });
 });

@@ -10,10 +10,15 @@ import type { IGraphEdge } from './contracts';
 import { createGraphEdgeId } from './edgeIdentity';
 import { createEdgeSource } from './edgeSources';
 import { getConnectionTargetId } from './edgeTargets';
+import {
+  createCachedConnectionTargetResolver,
+  type ConnectionTargetResolver,
+} from './edgeTargetCache.js';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+  getConnectionTargetId?: ConnectionTargetResolver;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   workspaceRoot: string;
 }
@@ -43,10 +48,9 @@ function appendConnectionEdge(
     disabledPlugins: ReadonlySet<string>;
     edgeMap: Map<string, IGraphEdge>;
     edges: IGraphEdge[];
-    fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
     nodeIds: Set<string>;
     plugin: IPlugin | undefined;
-    workspaceRoot: string;
+    resolveConnectionTargetId: (plugin: IPlugin | undefined, connection: IProjectedConnection) => string | null;
   },
 ): void {
   const sourcePluginId = connection.pluginId;
@@ -54,11 +58,9 @@ function appendConnectionEdge(
     return;
   }
 
-  const targetId = getConnectionTargetId(
+  const targetId = options.resolveConnectionTargetId(
     options.plugin,
     connection,
-    options.fileConnections,
-    options.workspaceRoot,
   );
   if (!targetId) {
     return;
@@ -100,6 +102,7 @@ export function buildWorkspaceGraphEdges(
   const {
     disabledPlugins,
     fileConnections,
+    getConnectionTargetId: resolveConnectionTargetId = getConnectionTargetId,
     getPluginForFile,
     workspaceRoot,
   } = options;
@@ -108,6 +111,11 @@ export function buildWorkspaceGraphEdges(
   const edgeMap = new Map<string, IGraphEdge>();
   const edges: IGraphEdge[] = [];
   const nodeIds = new Set<string>();
+  const resolveTarget = createCachedConnectionTargetResolver(
+    resolveConnectionTargetId,
+    fileConnections,
+    workspaceRoot,
+  );
 
   for (const [filePath, connections] of fileConnections) {
     nodeIds.add(filePath);
@@ -120,10 +128,9 @@ export function buildWorkspaceGraphEdges(
         disabledPlugins,
         edgeMap,
         edges,
-        fileConnections,
         nodeIds,
         plugin,
-        workspaceRoot,
+        resolveConnectionTargetId: resolveTarget,
       });
     }
   }

@@ -37,7 +37,10 @@ describe('workspaceFiles/refresh/operations', () => {
       provider as never,
       { uri: uri('/workspace/src/app.ts') } as vscode.TextDocument,
     );
-    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(31);
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
 
     expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts']);
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
@@ -55,7 +58,10 @@ describe('workspaceFiles/refresh/operations', () => {
       provider as never,
       { uri: uri('/workspace/.gitignore') } as vscode.TextDocument,
     );
-    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(31);
+    expect(provider.refreshGitignoreMetadata).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
 
     expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
     expect(provider.refreshIndex).not.toHaveBeenCalled();

@@ -11,11 +11,11 @@ export function sendGraphViewProviderWebviewMessage(
   dependencies: Pick<GraphViewProviderWebviewMethodDependencies, 'sendWebviewMessage'>,
   message: unknown,
 ): void {
+  const sidebarViews = getGraphViewProviderSidebarViews(source);
   dependencies.sendWebviewMessage(
-    getGraphViewProviderSidebarViews(source),
+    sidebarViews,
     source._panels,
     message,
   );
   source._notifyExtensionMessage(message);
 }
-

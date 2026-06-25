@@ -33,7 +33,7 @@ vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDime
 }));
 
 vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDimensional', () => ({
-  Surface3d: (props: Record<string, unknown>) => {
+  DeferredSurface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
     return <div data-testid="surface-3d" />;
   },
@@ -76,6 +76,15 @@ function createSharedProps() {
     onNodeRightClick: vi.fn(),
     warmupTicks: 0,
     width: 300,
+  };
+}
+
+function createNodeThreeObjectContext() {
+  return {
+    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
+    meshesRef: { current: new Map() },
+    showLabelsRef: { current: true },
+    spritesRef: { current: new Map() },
   };
 }
 
@@ -125,7 +134,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
         getLinkParticles: vi.fn(),
         getLinkWidth: vi.fn(),
         getParticleColor: vi.fn(),
-        nodeThreeObject: vi.fn(),
+        nodeThreeObjectContext: createNodeThreeObjectContext(),
         particleSize: 2,
         particleSpeed: 0.1,
         sharedProps: createSharedProps(),

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { graphStore } from '../../../../src/webview/store/state';
 import { createMessageHandler, setupMessageListener, type InjectAssetsParams } from '../../../../src/webview/app/shell/messageListener';
 import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
@@ -13,12 +13,14 @@ describe('app message listener', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
-    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
-      .__codegraphyWebviewReadyPosted;
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
+    delete (window as Window & {
+      __codegraphyWebviewReadyPosted?: boolean;
+      __codegraphyWebviewPageId?: string;
+    }).__codegraphyWebviewReadyPosted;
+    delete (window as Window & {
+      __codegraphyWebviewReadyPosted?: boolean;
+      __codegraphyWebviewPageId?: string;
+    }).__codegraphyWebviewPageId;
   });
 
   it('ignores invalid window messages', () => {
@@ -265,7 +267,10 @@ describe('app message listener', () => {
 
     expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
     expect(beginInitialBootstrap).toHaveBeenCalledOnce();
-    expect(postMessage).toHaveBeenCalledWith({ type: 'WEBVIEW_READY', payload: null });
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'WEBVIEW_READY',
+      payload: { pageId: expect.any(String), postedAt: expect.any(Number) },
+    });
 
     const registeredHandler = addEventListenerSpy.mock.calls[0]?.[1];
     cleanup();
@@ -281,7 +286,10 @@ describe('app message listener', () => {
     const secondCleanup = setupMessageListener(injectPluginAssets, pluginHost);
 
     expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(postMessage).toHaveBeenCalledWith({ type: 'WEBVIEW_READY', payload: null });
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'WEBVIEW_READY',
+      payload: { pageId: expect.any(String), postedAt: expect.any(Number) },
+    });
 
     firstCleanup();
     secondCleanup();
@@ -296,8 +304,19 @@ describe('app message listener', () => {
     const secondCleanup = setupMessageListener(injectPluginAssets, pluginHost);
 
     expect(postMessage).toHaveBeenCalledTimes(2);
-    expect(postMessage).toHaveBeenNthCalledWith(1, { type: 'WEBVIEW_READY', payload: null });
-    expect(postMessage).toHaveBeenNthCalledWith(2, { type: 'WEBVIEW_READY', payload: null });
+    expect(postMessage).toHaveBeenNthCalledWith(1, {
+      type: 'WEBVIEW_READY',
+      payload: { pageId: expect.any(String), postedAt: expect.any(Number) },
+    });
+    expect(postMessage).toHaveBeenNthCalledWith(2, {
+      type: 'WEBVIEW_READY',
+      payload: { pageId: expect.any(String), postedAt: expect.any(Number) },
+    });
+    const firstPayload = (vi.mocked(postMessage).mock.calls[0]?.[0] as { payload?: { pageId?: string } } | undefined)
+      ?.payload;
+    const secondPayload = (vi.mocked(postMessage).mock.calls[1]?.[0] as { payload?: { pageId?: string } } | undefined)
+      ?.payload;
+    expect(secondPayload?.pageId).toBe(firstPayload?.pageId);
 
     secondCleanup();
   });

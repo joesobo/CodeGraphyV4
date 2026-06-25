@@ -1,6 +1,28 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
+const explicitTestIncludes = process.env.QUALITY_TOOLS_VITEST_INCLUDE_JSON
+  ?? process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
+
+function packageRelativeInclude(includePattern: string): string {
+  const negated = includePattern.startsWith('!');
+  const pattern = negated ? includePattern.slice(1) : includePattern;
+  const packagePrefix = 'packages/core/';
+  const relativePattern = pattern.startsWith(packagePrefix)
+    ? pattern.slice(packagePrefix.length)
+    : pattern;
+
+  return negated ? `!${relativePattern}` : relativePattern;
+}
+
+function resolveTestIncludes(): string[] {
+  if (!explicitTestIncludes) {
+    return ['tests/**/*.test.ts'];
+  }
+
+  return (JSON.parse(explicitTestIncludes) as string[]).map(packageRelativeInclude);
+}
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -10,7 +32,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    include: resolveTestIncludes(),
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],

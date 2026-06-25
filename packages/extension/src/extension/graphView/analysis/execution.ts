@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
+import type { IGraphNodeMetricsUpdate } from '../../../shared/protocol/extensionToWebview';
 import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
@@ -7,6 +8,11 @@ import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 
 export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
+
+export interface GraphViewCachedGraphLoadOptions {
+  includeCurrentGitignoreMetadata?: boolean;
+  warmAnalysis?: boolean;
+}
 
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
@@ -24,6 +30,7 @@ interface GraphViewAnalyzerLike {
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
+    options?: GraphViewCachedGraphLoadOptions,
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
@@ -68,8 +75,10 @@ export interface GraphViewAnalysisExecutionHandlers {
   hasWorkspace(): boolean;
   setRawGraphData(graphData: IGraphData): void;
   setGraphData(graphData: IGraphData): void;
+  getRawGraphData?(): IGraphData;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
+  sendGraphNodeMetricsUpdated?(updates: IGraphNodeMetricsUpdate[]): void;
   sendDepthState(): void;
   computeMergedGroups(): void;
   sendGroupsUpdated(): void;

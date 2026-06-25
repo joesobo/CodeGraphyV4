@@ -1,1 +1,1 @@
-export { globMatch, globToRegex } from '../shared/globMatch';
+export { createGlobMatcher, globMatch, globToRegex } from '../shared/globMatch';

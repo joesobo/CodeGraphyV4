@@ -35,12 +35,15 @@ export function applyDirectionalSettings(
 		physicsPaused,
 	}: DirectionalOptions,
 ): void {
+	const arrowColor = getArrowColor({} as LinkObject);
+	const arrowRelPos = getArrowRelPos({} as LinkObject);
+
 	graph.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 12 : 0);
-	graph.linkDirectionalArrowRelPos?.(getArrowRelPos);
+	graph.linkDirectionalArrowRelPos?.(arrowRelPos);
 	graph.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
 	graph.linkDirectionalParticleWidth?.(particleSize);
 	graph.linkDirectionalParticleSpeed?.(particleSpeed);
-	graph.linkDirectionalArrowColor?.(getArrowColor);
+	graph.linkDirectionalArrowColor?.(arrowColor);
 	graph.linkDirectionalParticleColor?.(getParticleColor);
 	graph.d3ReheatSimulation?.();
 	if (!physicsPaused) {

@@ -194,6 +194,46 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
   });
 
+  it('suppresses file-system change duplicates after saved document refreshes', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+    const triggerSave = captureSaveListener();
+
+    registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    triggerSave({ uri: uri('/workspace/src/app.ts') } as vscode.TextDocument);
+    vi.advanceTimersByTime(32);
+    watcherListeners.change?.(uri('/workspace/src/app.ts'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/src/app.ts',
+    });
+  });
+
+  it('allows file-system changes after saved document suppression expires', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+    const triggerSave = captureSaveListener();
+
+    registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    triggerSave({ uri: uri('/workspace/src/app.ts') } as vscode.TextDocument);
+    vi.advanceTimersByTime(1001);
+    watcherListeners.change?.(uri('/workspace/src/app.ts'));
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledTimes(2);
+    expect(provider.emitEvent).toHaveBeenCalledTimes(2);
+    expect(provider.emitEvent).toHaveBeenLastCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/src/app.ts',
+    });
+  });
+
   it('wires file-system create and delete watchers to workspace events', () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);

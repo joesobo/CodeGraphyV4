@@ -81,13 +81,14 @@ export default function App(): React.ReactElement {
     edgeVisibility: renderEdgeVisibility,
     nodeVisibility: renderNodeVisibility,
   } = useDebouncedGraphScopeVisibility(nodeVisibility, edgeVisibility);
+  const visibleGraphInput = isLoading ? null : graphData;
   const {
     filteredData,
     coloredData,
     edgeDecorations: graphEdgeDecorations,
     regexError,
   } = useFilteredGraph(
-    graphData,
+    visibleGraphInput,
     searchQuery,
     searchOptions,
     legends,
@@ -104,7 +105,7 @@ export default function App(): React.ReactElement {
     activeFilterPatterns,
     edgeVisibility: renderEdgeVisibility,
     filteredData,
-    graphData,
+    graphData: visibleGraphInput,
     graphEdgeTypes,
     graphNodeTypes,
     nodeVisibility: renderNodeVisibility,
@@ -129,7 +130,7 @@ export default function App(): React.ReactElement {
     return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData);
   }, [injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData]);
 
-  const displayGraphData = coloredData || graphData;
+  const displayGraphData = coloredData || visibleGraphInput;
   useVisibleGraphStateResponse(displayGraphData);
 
   if (isLoading) return <LoadingState />;

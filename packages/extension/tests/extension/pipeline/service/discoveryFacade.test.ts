@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import { spawnSync } from 'node:child_process';
 import { WorkspacePipelineDiscoveryFacade } from '../../../../src/extension/pipeline/service/discoveryFacade';
 import type { Configuration } from '../../../../src/extension/config/reader';
 import type { FileDiscovery } from '@codegraphy-dev/core';
@@ -39,6 +40,10 @@ vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
 vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
   analyzeWorkspacePipeline: vi.fn(),
   rebuildWorkspacePipelineGraph: vi.fn(),
+}));
+
+vi.mock('node:child_process', () => ({
+  spawnSync: vi.fn(),
 }));
 
 vi.mock('vscode', () => ({
@@ -89,6 +94,7 @@ class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
   }
 
   _config = {
+    get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
     getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
   } as unknown as Configuration;
 
@@ -129,6 +135,11 @@ describe('pipeline/service/discoveryFacade', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(spawnSync).mockReturnValue({
+      error: undefined,
+      status: 1,
+      stdout: '',
+    } as never);
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
     vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValue({
       directories: ['src/new-folder'],
@@ -458,6 +469,220 @@ describe('pipeline/service/discoveryFacade', () => {
     expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src', 'src/nested']);
   });
 
+  it('loads cached graph data without walking the workspace again', async () => {
+    const facade = new TestDiscoveryFacade();
+    const cachedAnalysis = {
+      filePath: '/workspace/src/nested/cached.ts',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'src/nested/cached.ts': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockRejectedValueOnce(
+      new Error('full discovery should not run for cached replay'),
+    );
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    await expect(facade.loadCachedGraph()).resolves.toEqual({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
+    expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src', 'src/nested']);
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
+  });
+
+  it('warms one cached source file through the routed analyzer after cached replay', async () => {
+    const facade = new TestDiscoveryFacade();
+    const warmContent = createDeferred<string>();
+    const analyzeFileResultForPlugins = vi.fn(async () => ({
+      filePath: '/workspace/src/nested/cached.ts',
+      relations: [],
+    }));
+    facade._discovery = {
+      readContent: vi.fn(() => warmContent.promise),
+    } as unknown as FileDiscovery;
+    facade._registry = {
+      analyzeFileResultForPlugins,
+      list: vi.fn(() => [{ plugin: { id: 'plugin.typescript' } }]),
+      supportsFile: vi.fn(() => true),
+    } as unknown as PluginRegistry;
+    facade._cache = {
+      version: 'test',
+      files: {
+        'docs/readme.md': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/docs/readme.md',
+            relations: [],
+          },
+        },
+        '.stryker-tmp/sandbox/src/mutant.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/.stryker-tmp/sandbox/src/mutant.ts',
+            relations: [],
+          },
+        },
+        'src/nested/cached.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/nested/cached.ts',
+            relations: [],
+          },
+        },
+        'src/nested/next.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/nested/next.ts',
+            relations: [],
+          },
+        },
+      },
+    } as never;
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    await expect(facade.loadCachedGraph()).resolves.toEqual({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(facade._discovery.readContent).toHaveBeenCalledWith({
+      absolutePath: '/workspace/src/nested/cached.ts',
+      extension: '.ts',
+      name: 'cached.ts',
+      relativePath: 'src/nested/cached.ts',
+    });
+    expect(analyzeFileResultForPlugins).not.toHaveBeenCalled();
+
+    warmContent.resolve('export const cached = 1;\n');
+    await vi.waitFor(() => expect(analyzeFileResultForPlugins).toHaveBeenCalledOnce());
+    expect(analyzeFileResultForPlugins).toHaveBeenCalledWith(
+      '/workspace/src/nested/cached.ts',
+      'export const cached = 1;\n',
+      '/workspace',
+      ['plugin.typescript'],
+      expect.objectContaining({
+        features: expect.objectContaining({ symbols: false }),
+        mode: 'workspace',
+      }),
+      { disabledPlugins: new Set<string>() },
+    );
+  });
+
+  it('does not warm cached source analysis when cached replay disables warm-up', async () => {
+    const facade = new TestDiscoveryFacade();
+    const analyzeFileResultForPlugins = vi.fn();
+    facade._discovery = {
+      readContent: vi.fn(async () => 'export const cached = 1;\n'),
+    } as unknown as FileDiscovery;
+    facade._registry = {
+      analyzeFileResultForPlugins,
+      list: vi.fn(() => [{ plugin: { id: 'plugin.typescript' } }]),
+      supportsFile: vi.fn(() => true),
+    } as unknown as PluginRegistry;
+    facade._cache = {
+      version: 'test',
+      files: {
+        'src/nested/cached.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/nested/cached.ts',
+            relations: [],
+          },
+        },
+      },
+    } as never;
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    await expect(facade.loadCachedGraph([], new Set(), undefined, {
+      warmAnalysis: false,
+    })).resolves.toEqual({
+      nodes: [{ id: 'src/nested/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(facade._discovery.readContent).not.toHaveBeenCalled();
+    expect(analyzeFileResultForPlugins).not.toHaveBeenCalled();
+  });
+
+  it('skips cached analysis warm-up quietly when the selected file disappeared', async () => {
+    const facade = new TestDiscoveryFacade();
+    const readError = Object.assign(new Error('missing cached file'), { code: 'ENOENT' });
+    const analyzeFileResultForPlugins = vi.fn();
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    facade._discovery = {
+      readContent: vi.fn(async () => {
+        throw readError;
+      }),
+    } as unknown as FileDiscovery;
+    facade._registry = {
+      analyzeFileResultForPlugins,
+      list: vi.fn(() => [{ plugin: { id: 'plugin.typescript' } }]),
+      supportsFile: vi.fn(() => true),
+    } as unknown as PluginRegistry;
+    facade._cache = {
+      version: 'test',
+      files: {
+        'src/gone.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/gone.ts',
+            relations: [],
+          },
+        },
+      },
+    } as never;
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'src/gone.ts', label: 'gone.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    await facade.loadCachedGraph();
+
+    await vi.waitFor(() => expect(facade._discovery.readContent).toHaveBeenCalledOnce());
+    expect(analyzeFileResultForPlugins).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    warnSpy.mockRestore();
+  });
+
   it('applies current gitignore metadata when replaying cached graph data', async () => {
     const facade = new TestDiscoveryFacade();
     const cachedAnalysis = {
@@ -473,15 +698,10 @@ describe('pipeline/service/discoveryFacade', () => {
         },
       },
     } as never;
-    vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValueOnce({
-      directories: ['example-python', 'example-python/src'],
-      files: [
-        {
-          absolutePath: '/workspace/example-python/src/main.py',
-          relativePath: 'example-python/src/main.py',
-        },
-      ],
-      gitIgnoredPaths: ['example-python/src/main.py'],
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      error: undefined,
+      status: 0,
+      stdout: 'example-python/src/main.py\n',
     } as never);
     vi.spyOn(
       facade as unknown as {
@@ -495,15 +715,51 @@ describe('pipeline/service/discoveryFacade', () => {
 
     await facade.loadCachedGraph();
 
-    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
-      'discovery-deps',
-      '/workspace',
-      { showOrphans: true, respectGitignore: true },
-      [],
-      ['plugin-filter'],
-      undefined,
-      expect.any(Function),
+    expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
+    expect(spawnSync).toHaveBeenCalledWith(
+      'git',
+      ['-C', '/workspace', 'check-ignore', '--stdin'],
+      {
+        encoding: 'utf8',
+        input: 'example-python\nexample-python/src\nexample-python/src/main.py\n',
+      },
     );
     expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
+  });
+
+  it('can defer current gitignore metadata while replaying stale cached graph data', async () => {
+    const facade = new TestDiscoveryFacade();
+    const cachedAnalysis = {
+      filePath: '/workspace/example-python/src/main.py',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'example-python/src/main.py': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    vi.spyOn(
+      facade as unknown as {
+        _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+      },
+      '_buildGraphDataFromAnalysis',
+    ).mockReturnValue({
+      nodes: [{ id: 'example-python/src/main.py', label: 'main.py', color: '#333333' }],
+      edges: [],
+    });
+
+    await facade.loadCachedGraph(
+      [],
+      new Set<string>(),
+      undefined,
+      { includeCurrentGitignoreMetadata: false },
+    );
+
+    expect(spawnSync).not.toHaveBeenCalled();
+    expect(discoveryState(facade)._lastGitIgnoredPaths).toEqual([]);
   });
 });

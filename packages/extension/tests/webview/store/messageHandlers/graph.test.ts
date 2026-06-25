@@ -12,6 +12,7 @@ import {
   handleGraphDataUpdated,
   handleGraphIndexProgress,
   handleGraphIndexStatusUpdated,
+  handleGraphNodeMetricsUpdated,
   handleLegendsUpdated,
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
@@ -19,78 +20,8 @@ import {
   handleShowLabelsUpdated,
   handleVerboseDiagnosticsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
-import type { IStoreFields } from '../../../../src/webview/store/messageTypes';
 import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
-
-function createState(
-  overrides: Partial<IStoreFields> = {},
-): IStoreFields {
-  return {
-    graphData: null,
-    graphHasIndex: false,
-    graphIndexFreshness: 'missing',
-    graphIndexDetail: null,
-    graphIsIndexing: false,
-    graphIndexProgress: null,
-    isLoading: true,
-    awaitingInitialBootstrap: false,
-    bootstrapComplete: false,
-    pendingPluginAssetLoads: 0,
-    searchQuery: '',
-    searchOptions: { matchCase: false, wholeWord: false, regex: false },
-    favorites: new Set<string>(),
-    pendingFavoriteSnapshot: null,
-    bidirectionalMode: 'separate',
-    showOrphans: true,
-    directionMode: 'none',
-    directionColor: '#ffffff',
-    particleSpeed: 0,
-    particleSize: 1,
-    physicsPaused: false,
-    showLabels: true,
-    cssSnippets: {},
-    graphMode: '2d',
-    graphViewportScale: null,
-    nodeSizeMode: 'uniform',
-    physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
-    depthMode: false,
-    depthLimit: 2,
-    maxDepthLimit: 10,
-    legends: [],
-    optimisticLegendUpdates: {},
-    optimisticUserLegends: null,
-    filterPatterns: [],
-    pluginFilterPatterns: [],
-    pluginFilterGroups: [],
-    disabledCustomFilterPatterns: [],
-    disabledPluginFilterPatterns: [],
-    dagMode: null,
-    pluginStatuses: [],
-    graphNodeTypes: [],
-    graphEdgeTypes: [],
-    nodeColors: {},
-    nodeVisibility: {},
-    edgeVisibility: {},
-    nodeDecorations: {},
-    edgeDecorations: {},
-    pluginContextMenuItems: [],
-    pluginExporters: [],
-    pluginToolbarActions: [],
-    graphViewContributionStatuses: [],
-    activePanel: 'none',
-    maxFiles: 500,
-    verboseDiagnostics: false,
-    activeFilePath: null,
-    timelineActive: false,
-    timelineCommits: [],
-    currentCommitSha: null,
-    isIndexing: false,
-    indexProgress: null,
-    isPlaying: false,
-    playbackSpeed: 1,
-    ...overrides,
-  };
-}
+import { createState } from './graph/fixture';
 
 describe('webview/store/messageHandlers/graph', () => {
   it('maps graph payload updates into loading and indexing state', () => {
@@ -102,6 +33,115 @@ describe('webview/store/messageHandlers/graph', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
     });
+  });
+
+  it('applies node metric patches to the current graph data', () => {
+    const graphData = {
+      nodes: [
+        { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 100, churn: 1 },
+        { id: 'src/lib.ts', label: 'Lib', color: '#fff', fileSize: 50, churn: 3 },
+      ],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      graphData,
+      graphIsIndexing: true,
+      graphIndexProgress: { phase: 'Updating Graph View', current: 0, total: 1 },
+      isLoading: false,
+      nodeSizeMode: 'file-size',
+    });
+
+    expect(handleGraphNodeMetricsUpdated(
+      {
+        type: 'GRAPH_NODE_METRICS_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/app.ts', fileSize: 120, churn: 2 }],
+        },
+      },
+      { getState: () => state },
+    )).toEqual({
+      graphData: {
+        nodes: [
+          { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 120, churn: 2 },
+          graphData.nodes[1],
+        ],
+        edges: graphData.edges,
+      },
+      isLoading: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
+  });
+
+  it('keeps the graph data reference stable when metric patches do not affect node sizing', () => {
+    const graphData = {
+      nodes: [
+        { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 100, churn: 1 },
+        { id: 'src/lib.ts', label: 'Lib', color: '#fff', fileSize: 50, churn: 3 },
+      ],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      graphData,
+      graphIsIndexing: true,
+      graphIndexProgress: { phase: 'Updating Graph View', current: 0, total: 1 },
+      isLoading: false,
+      nodeSizeMode: 'connections',
+    });
+
+    expect(handleGraphNodeMetricsUpdated(
+      {
+        type: 'GRAPH_NODE_METRICS_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/app.ts', fileSize: 120, churn: 2 }],
+        },
+      },
+      { getState: () => state },
+    )).toEqual({
+      isLoading: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
+
+    expect(state.graphData).toBe(graphData);
+    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 2 });
+  });
+
+  it('skips duplicate graph payloads after bootstrap has settled', () => {
+    const payload = {
+      nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      bootstrapComplete: true,
+      graphData: JSON.parse(JSON.stringify(payload)),
+      graphIsIndexing: false,
+      isLoading: false,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toBeUndefined();
+  });
+
+  it('skips duplicate graph payloads while waiting for initial bootstrap completion', () => {
+    const payload = {
+      nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }],
+      edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts', kind: 'import' as const, sources: [] }],
+    };
+    const state = createState({
+      awaitingInitialBootstrap: true,
+      bootstrapComplete: false,
+      graphData: JSON.parse(JSON.stringify(payload)),
+      graphIsIndexing: false,
+      isLoading: true,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toBeUndefined();
   });
 
   it('settles initial bootstrap when graph data arrives after bootstrap and plugin assets are ready', () => {
@@ -211,6 +251,65 @@ describe('webview/store/messageHandlers/graph', () => {
     });
     expect([...favorites.favorites ?? []]).toEqual(['src/app.ts', 'src/lib.ts']);
 
+  });
+
+  it('skips graph controls updates when extension echoes the current controls', () => {
+    const controls: IGraphControlsSnapshot = {
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
+      nodeColors: { file: '#A1A1AA' },
+      nodeVisibility: { file: true },
+      edgeVisibility: { import: false },
+    };
+    const state = createState({
+      graphNodeTypes: controls.nodeTypes,
+      graphEdgeTypes: controls.edgeTypes,
+      nodeColors: controls.nodeColors,
+      nodeVisibility: controls.nodeVisibility,
+      edgeVisibility: controls.edgeVisibility,
+    });
+    const echoedControls: IGraphControlsSnapshot = {
+      nodeTypes: [...controls.nodeTypes],
+      edgeTypes: [...controls.edgeTypes],
+      nodeColors: { ...controls.nodeColors },
+      nodeVisibility: { ...controls.nodeVisibility },
+      edgeVisibility: { ...controls.edgeVisibility },
+    };
+
+    expect(handleGraphControlsUpdated(
+      { type: 'GRAPH_CONTROLS_UPDATED', payload: echoedControls },
+      { getState: () => state },
+    )).toBeUndefined();
+  });
+
+  it('returns only changed graph control fields when extension echoes partial changes', () => {
+    const controls: IGraphControlsSnapshot = {
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
+      nodeColors: { file: '#A1A1AA' },
+      nodeVisibility: { file: true },
+      edgeVisibility: { import: false },
+    };
+    const state = createState({
+      graphNodeTypes: controls.nodeTypes,
+      graphEdgeTypes: controls.edgeTypes,
+      nodeColors: controls.nodeColors,
+      nodeVisibility: controls.nodeVisibility,
+      edgeVisibility: controls.edgeVisibility,
+    });
+    const nextEdgeVisibility = { import: true };
+    const echoedControls: IGraphControlsSnapshot = {
+      nodeTypes: [...controls.nodeTypes],
+      edgeTypes: [...controls.edgeTypes],
+      nodeColors: { ...controls.nodeColors },
+      nodeVisibility: { ...controls.nodeVisibility },
+      edgeVisibility: nextEdgeVisibility,
+    };
+
+    expect(handleGraphControlsUpdated(
+      { type: 'GRAPH_CONTROLS_UPDATED', payload: echoedControls },
+      { getState: () => state },
+    )).toEqual({ edgeVisibility: nextEdgeVisibility });
   });
 
   it('maps settings and filter payloads', () => {

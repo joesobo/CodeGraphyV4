@@ -2,7 +2,7 @@ import {
 	useEffect,
 	type MutableRefObject,
 } from 'react';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appearance/model';
 import type { FGLink, FGNode } from '../../../model/build';
 

@@ -119,6 +119,9 @@ describe('visibleGraph collapse and filtering', () => {
     expect(applyFilterPatterns(graphData, { patterns: ['import'] }).edges).toEqual([
       edge('src/b.ts', 'src/a.ts', 'reference'),
     ]);
+    expect(applyFilterPatterns(graphData, { patterns: ['src/*->src/b.ts#import'] }).edges).toEqual([
+      edge('src/b.ts', 'src/a.ts', 'reference'),
+    ]);
   });
 
   it('hides descendants of collapsed folders and projects external edges onto the visible folder', () => {

@@ -6,7 +6,7 @@ import {
   GODOT_SCRIPT_LANGUAGE,
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
-} from './godotKinds';
+} from './vocabulary';
 
 export function extractClassNameSymbols(
   content: string,

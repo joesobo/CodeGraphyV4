@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import * as fs from 'node:fs';
+import ts from 'typescript';
+import { describe, expect, it, vi } from 'vitest';
 import { createTypeScriptPlugin } from '../../src/plugin';
 import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from '../workspace';
 
@@ -228,6 +230,174 @@ describe('TypeScript Alias Import compiler options support', () => {
           specifier: '@/token',
         },
       );
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('reads path aliases without scanning project files', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const readDirectory = vi.spyOn(ts.sys, 'readDirectory')
+      .mockImplementation(() => {
+        throw new Error('project file scanning should not run for alias config');
+      });
+
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '@/token';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '@/token',
+        },
+      ]);
+      expect(readDirectory).not.toHaveBeenCalled();
+    } finally {
+      readDirectory.mockRestore();
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('reuses parsed path aliases for files under the same tsconfig', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const readFile = vi.spyOn(ts.sys, 'readFile');
+
+    try {
+      const tsconfigPath = writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const firstSourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/first.ts',
+        "import { token } from '@/token';\n",
+      );
+      const secondSourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/second.ts',
+        "import { token } from '@/token';\n",
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      await plugin.analyzeFile?.(
+        firstSourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+      await plugin.analyzeFile?.(
+        secondSourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      const realTsconfigPath = fs.realpathSync.native(tsconfigPath);
+      const tsconfigReads = readFile.mock.calls.filter(([fileName]) =>
+        fileName === realTsconfigPath,
+      );
+      expect(tsconfigReads).toHaveLength(1);
+    } finally {
+      readFile.mockRestore();
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('invalidates parsed path aliases when an extended tsconfig changes on disk', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const baseConfig = (target: string) => JSON.stringify({
+        compilerOptions: {
+          baseUrl: '.',
+          paths: {
+            '#/*': [`${target}/*`],
+          },
+        },
+      });
+      writeWorkspaceFile(workspaceRoot, 'tsconfig.base.json', baseConfig('src-a'));
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          extends: './tsconfig.base.json',
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '#/token';\n",
+      );
+      const firstTargetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src-a/token.ts',
+        'export const token = 1;\n',
+      );
+      const secondTargetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src-b/token.ts',
+        'export const token = 2;\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const firstResult = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '#/token';\n",
+        workspaceRoot,
+      );
+
+      writeWorkspaceFile(workspaceRoot, 'tsconfig.base.json', baseConfig('src-b'));
+
+      const secondResult = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '#/token';\n",
+        workspaceRoot,
+      );
+
+      expect(firstResult?.relations?.[0]?.resolvedPath).toBe(firstTargetPath);
+      expect(secondResult?.relations?.[0]?.resolvedPath).toBe(secondTargetPath);
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }

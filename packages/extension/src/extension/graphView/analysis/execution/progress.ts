@@ -3,6 +3,10 @@ import type {
   GraphViewAnalysisMode,
   GraphViewIndexingProgress,
 } from '../execution';
+import { createGraphViewIndexProgressCoalescer } from './progress/coalescer';
+import { supportsInitialProgress } from './progress/modes';
+
+export { createGraphViewIndexProgressCoalescer } from './progress/coalescer';
 
 const ANALYSIS_PHASE_BY_MODE: Record<GraphViewAnalysisMode, string> = {
   analyze: 'Indexing Workspace',
@@ -11,19 +15,17 @@ const ANALYSIS_PHASE_BY_MODE: Record<GraphViewAnalysisMode, string> = {
   refresh: 'Refreshing Index',
   incremental: 'Applying Changes',
 };
-
-function supportsInitialProgress(mode: GraphViewAnalysisMode): boolean {
-  return mode === 'index' || mode === 'refresh' || mode === 'incremental';
-}
-
 export function createGraphViewAnalysisProgressForwarder(
   mode: GraphViewAnalysisMode,
   handlers: GraphViewAnalysisExecutionHandlers,
 ): (progress: GraphViewIndexingProgress) => void {
   const phase = ANALYSIS_PHASE_BY_MODE[mode];
+  const sendProgress = createGraphViewIndexProgressCoalescer((progress) => {
+    handlers.sendIndexProgress?.(progress);
+  });
 
   return (progress) => {
-    handlers.sendIndexProgress?.({
+    sendProgress({
       ...progress,
       phase: progress.phase || phase,
     });

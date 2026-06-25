@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import {
   runGraphViewAnalysisRequest,
   type GraphViewAnalysisRequestState,
@@ -15,6 +16,50 @@ function createState(
 }
 
 describe('graph view analysis request', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('emits request lifecycle diagnostics with mode context', async () => {
+    const state = createState({
+      mode: 'load',
+      filterPatterns: ['src/**'],
+      disabledPlugins: new Set(['plugin.test']),
+    } as Partial<GraphViewAnalysisRequestState>);
+    const emitDiagnostic = vi.fn();
+
+    await runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.resolve()),
+      emitDiagnostic,
+      isAbortError: vi.fn(() => false),
+      logError: vi.fn(),
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
+    });
+
+    expect(emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: {
+        requestId: 1,
+        mode: 'load',
+        filterPatternCount: 1,
+        disabledPluginCount: 1,
+      },
+    });
+    expect(emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-completed',
+      context: expect.objectContaining({
+        requestId: 1,
+        mode: 'load',
+        filterPatternCount: 1,
+        disabledPluginCount: 1,
+        durationMs: expect.any(Number),
+      }),
+    });
+  });
+
   it('aborts the previous controller and clears the active request on success', async () => {
     const previousController = new AbortController();
     const abortSpy = vi.spyOn(previousController, 'abort');

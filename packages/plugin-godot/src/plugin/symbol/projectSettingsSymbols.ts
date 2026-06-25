@@ -5,7 +5,7 @@ import {
   GODOT_PROJECT_SETTINGS_LANGUAGE,
   GODOT_SYMBOL_PLUGIN_KIND,
   GODOT_SYMBOL_SOURCE,
-} from './godotKinds';
+} from './vocabulary';
 
 export function extractProjectSettingsSymbols(
   content: string,

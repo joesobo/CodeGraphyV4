@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
 import {
-  refreshWorkspaceChangedPath,
+  refreshWorkspaceChangedFileWatcherPath,
   refreshWorkspaceFileOperation,
   refreshWorkspaceRenameOperation,
   refreshWorkspaceSavedDocument,
@@ -46,7 +46,7 @@ export function registerFileWatcher(
   );
   context.subscriptions.push(
     fileWatcher.onDidChange((uri) => {
-      refreshWorkspaceChangedPath(
+      refreshWorkspaceChangedFileWatcherPath(
         provider,
         '[CodeGraphy] File changed, refreshing graph',
         uri.fsPath,
@@ -75,7 +75,7 @@ export function registerFileWatcher(
   );
   context.subscriptions.push(
     gitignoreWatcher.onDidChange((uri) => {
-      refreshWorkspaceChangedPath(
+      refreshWorkspaceChangedFileWatcherPath(
         provider,
         '[CodeGraphy] .gitignore changed, refreshing graph',
         uri.fsPath,

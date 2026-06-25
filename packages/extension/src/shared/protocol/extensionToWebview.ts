@@ -1,5 +1,5 @@
 import type { IFileInfo } from '../files/info';
-import type { IGraphData } from '../graph/contracts';
+import type { IGraphData, IGraphNode } from '../graph/contracts';
 import type { IPluginContextMenuItem } from '../plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/decorations';
 import type { IPluginExporterItem } from '../plugins/exporters';
@@ -38,8 +38,15 @@ export interface IGraphViewContributionStatus {
   label: string;
 }
 
+export interface IGraphNodeMetricsUpdate {
+  id: IGraphNode['id'];
+  fileSize: IGraphNode['fileSize'];
+  churn: IGraphNode['churn'];
+}
+
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
+  | { type: 'GRAPH_NODE_METRICS_UPDATED'; payload: { nodes: IGraphNodeMetricsUpdate[] } }
   | { type: 'APP_BOOTSTRAP_COMPLETE' }
   | {
       type: 'GRAPH_INDEX_STATUS_UPDATED';

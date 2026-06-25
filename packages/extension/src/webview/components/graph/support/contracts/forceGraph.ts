@@ -1,5 +1,5 @@
 import type { ForceGraphMethods as FG2DMethods, LinkObject, NodeObject } from 'react-force-graph-2d';
-import SpriteText from 'three-spritetext';
+import type SpriteText from 'three-spritetext';
 
 export type FG2DExtMethods<NodeT extends NodeObject = NodeObject, LinkT extends LinkObject = LinkObject> =
   FG2DMethods<NodeT, LinkT> & {

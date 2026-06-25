@@ -77,4 +77,84 @@ describe('TypeScript plugin lifecycle', () => {
       removeWorkspaceRoot(workspaceRoot);
     }
   });
+
+  it('invalidates cached alias config when an extended tsconfig changes', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const baseConfigPath = writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.base.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '#/*': ['src-a/*'],
+            },
+          },
+        }),
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          extends: './tsconfig.base.json',
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '#/token';\n",
+      );
+      const firstTargetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src-a/token.ts',
+        'export const token = 1;\n',
+      );
+      const secondTargetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src-b/token.ts',
+        'export const token = 2;\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      await plugin.onPreAnalyze?.(
+        [{ absolutePath: sourcePath, relativePath: 'src/app.ts', content: 'export {};\n' }],
+        workspaceRoot,
+      );
+
+      const firstResult = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '#/token';\n",
+        workspaceRoot,
+      );
+
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.base.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '#/*': ['src-b/*'],
+            },
+          },
+        }),
+      );
+      await plugin.onFilesChanged?.(
+        [{ absolutePath: baseConfigPath, relativePath: 'tsconfig.base.json', content: '' }],
+        workspaceRoot,
+      );
+
+      const secondResult = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '#/token';\n",
+        workspaceRoot,
+      );
+
+      expect(firstResult?.relations?.[0]?.resolvedPath).toBe(firstTargetPath);
+      expect(secondResult?.relations?.[0]?.resolvedPath).toBe(secondTargetPath);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
 });

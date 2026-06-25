@@ -1,20 +1,12 @@
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../../graph/contracts';
 import type { ILifecyclePluginInfo } from '../contracts';
+import { logLifecycleError } from './errors.js';
+import { getPluginFiles, type AnalyzeFile } from './files.js';
 import {
   createWorkspacePluginAnalysisContext,
   withWorkspacePluginAnalysisOptions,
 } from '../../context/workspace';
-
-type AnalyzeFile = {
-  absolutePath: string;
-  relativePath: string;
-  content: string;
-};
-
-function logLifecycleError(hook: string, pluginId: string, error: unknown): void {
-  console.error(`[CodeGraphy] Error in ${hook} for ${pluginId}:`, error);
-}
 
 export async function notifyPreAnalyze(
   plugins: Map<string, ILifecyclePluginInfo>,
@@ -32,9 +24,14 @@ export async function notifyPreAnalyze(
       continue;
     }
 
+    const pluginFiles = getPluginFiles(info, files);
+    if (pluginFiles.length === 0) {
+      continue;
+    }
+
     try {
       await info.plugin.onPreAnalyze(
-        files,
+        pluginFiles,
         workspaceRoot,
         withWorkspacePluginAnalysisOptions(analysisContext, info.options),
       );

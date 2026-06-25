@@ -71,7 +71,7 @@ describe('PluginRegistry v2', () => {
           const { registry } = createConfiguredRegistry();
           const plugin = createV2Plugin('notify-all');
           const graph: IGraphData = { nodes: [{ id: 'x', label: 'x', color: '#fff' }], edges: [] };
-          const files = [{ absolutePath: '/workspace/a.ts', relativePath: 'a.ts', content: 'const x = 1;' }];
+          const files = [{ absolutePath: '/workspace/a.test', relativePath: 'a.test', content: 'const x = 1;' }];
 
           registry.register(plugin);
           registry.notifyWorkspaceReady(graph);

@@ -150,4 +150,23 @@ describe('graphView/provider/refresh', () => {
 
   });
 
+  describe('refreshChangedFiles', () => {
+    it('uses indexed incremental analysis without replaying full settings state', async () => {
+      const source = createSource();
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => true),
+        rebuildGraphData: vi.fn(),
+        smartRebuildGraphData: vi.fn(),
+      });
+
+      await methods.refreshChangedFiles(['src/example.ts']);
+
+      expect(source._loadDisabledRulesAndPlugins).not.toHaveBeenCalled();
+      expect(source._loadGroupsAndFilterPatterns).not.toHaveBeenCalled();
+      expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/example.ts']);
+      expect(source._sendAllSettings).not.toHaveBeenCalled();
+      expect(source._sendGraphControls).not.toHaveBeenCalled();
+    });
+  });
+
 });

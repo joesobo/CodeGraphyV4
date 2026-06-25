@@ -5,107 +5,15 @@ import {
   refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
   refreshWorkspaceIndexPluginFiles,
-  type WorkspaceIndexRefreshDependencies,
-  type WorkspaceIndexRefreshSource,
 } from '../../src/indexing/refresh';
-import type { IDiscoveredFile } from '../../src/discovery/contracts';
 import type { IGraphData } from '../../src/graph/contracts';
-
-function createDiscoveredFile(relativePath: string): IDiscoveredFile {
-  const name = relativePath.split('/').at(-1) ?? relativePath;
-  return {
-    absolutePath: `/workspace/${relativePath}`,
-    extension: name.includes('.') ? name.slice(name.lastIndexOf('.')) : '',
-    name,
-    relativePath,
-  };
-}
-
-function createFileAnalysis(filePath: string): IFileAnalysisResult {
-  return {
-    filePath,
-    relations: [],
-  };
-}
-
-function createGraphNode(id: string) {
-  return {
-    color: '#808080',
-    id,
-    label: id.split('/').at(-1) ?? id,
-  };
-}
-
-function createSource(
-  overrides: Partial<WorkspaceIndexRefreshSource> = {},
-): WorkspaceIndexRefreshSource {
-  const graph: IGraphData = {
-    nodes: [{ color: '#808080', id: 'src/app.ts', label: 'app.ts', nodeType: 'file' }],
-    edges: [],
-  };
-
-  return {
-    _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => ({
-      cacheHits: 0,
-      cacheMisses: files.length,
-      fileAnalysis: new Map(files.map(file => [
-        file.relativePath,
-        createFileAnalysis(file.absolutePath),
-      ])),
-      fileConnections: new Map(files.map(file => [file.relativePath, []])),
-    })),
-    _buildGraphData: vi.fn((fileConnections: Map<string, unknown[]>) => ({
-      nodes: [...fileConnections.keys()].map(createGraphNode),
-      edges: [],
-    })),
-    _buildGraphDataFromAnalysis: vi.fn((fileAnalysis: Map<string, IFileAnalysisResult>) => ({
-      nodes: [...fileAnalysis.keys()].map(createGraphNode),
-      edges: [],
-    })),
-    _lastDiscoveredDirectories: ['src'],
-    _lastDiscoveredFiles: [
-      createDiscoveredFile('README.md'),
-      createDiscoveredFile('src/plugin.ts'),
-      createDiscoveredFile('src/plain.txt'),
-    ],
-    _lastFileAnalysis: new Map<string, IFileAnalysisResult>(),
-    _lastFileConnections: new Map<string, unknown[]>([
-      ['README.md', []],
-      ['src/plugin.ts', []],
-      ['src/plain.txt', []],
-    ]) as Map<string, never>,
-    _lastWorkspaceRoot: '/workspace',
-    _preAnalyzePlugins: vi.fn(async () => undefined),
-    _readAnalysisFiles: vi.fn(async (files: IDiscoveredFile[]) => files.map(file => ({
-      absolutePath: file.absolutePath,
-      relativePath: file.relativePath,
-      content: '',
-    }))),
-    analyze: vi.fn(async () => graph),
-    invalidateWorkspaceFiles: vi.fn(() => []),
-    ...overrides,
-  };
-}
-
-function refreshOptions(
-  overrides: Partial<WorkspaceIndexRefreshDependencies> = {},
-): WorkspaceIndexRefreshDependencies {
-  return {
-    disabledPlugins: new Set(),
-    discoveredDirectories: ['src'],
-    discoveredFiles: [createDiscoveredFile('src/app.ts')],
-    filePaths: ['/workspace/src/app.ts'],
-    filterPatterns: [],
-    notifyFilesChanged: vi.fn(async () => ({
-      additionalFilePaths: [],
-      requiresFullRefresh: false,
-    })),
-    persistCache: vi.fn(),
-    persistIndexMetadata: vi.fn(),
-    workspaceRoot: '/workspace',
-    ...overrides,
-  };
-}
+import {
+  createDiscoveredFile,
+  createFileAnalysis,
+  createGraphNode,
+  createSource,
+  refreshOptions,
+} from './refresh/fixture';
 
 describe('indexing/refresh', () => {
   it('lets file analysis own pre-analysis during analysis scope refreshes', async () => {
@@ -334,5 +242,104 @@ describe('indexing/refresh', () => {
     );
     expect(persistCache).toHaveBeenCalledOnce();
     expect(persistIndexMetadata).toHaveBeenCalledOnce();
+  });
+
+  it('skips the fallback connections graph build when analysis covers retained files', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts'), createGraphNode('README.md')],
+      edges: [],
+    };
+    const source = createSource({
+      _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastFileAnalysis: new Map([
+        ['README.md', createFileAnalysis('/workspace/README.md')],
+        ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+      ]),
+      _lastFileConnections: new Map([
+        ['README.md', []],
+        ['src/app.ts', []],
+      ]),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [
+        createDiscoveredFile('README.md'),
+        createDiscoveredFile('src/app.ts'),
+      ],
+    }))).resolves.toEqual(graph);
+
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      source._lastFileAnalysis,
+      '/workspace',
+      new Set(),
+    );
+    expect(source._buildGraphData).not.toHaveBeenCalled();
+  });
+
+  it('patches only node metrics when changed-file analysis preserves graph structure', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts')],
+      edges: [],
+    };
+    const patchGraphDataNodeMetrics = vi.fn(() => graph);
+    const source = createSource({
+      _lastFileAnalysis: new Map([
+        ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+      ]),
+      _lastFileConnections: new Map([
+        ['src/app.ts', []],
+      ]),
+      _patchGraphDataNodeMetrics: patchGraphDataNodeMetrics,
+    });
+    const previousGraphData = source._lastGraphData;
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      persistIndexMetadata: vi.fn(async () => undefined),
+    }))).resolves.toBe(graph);
+
+    expect(patchGraphDataNodeMetrics).toHaveBeenCalledWith(
+      previousGraphData,
+      ['src/app.ts'],
+    );
+    expect(source._buildGraphDataFromAnalysis).not.toHaveBeenCalled();
+  });
+
+  it('rebuilds the graph when changed-file analysis changes graph structure', async () => {
+    const graph: IGraphData = {
+      nodes: [createGraphNode('src/app.ts'), createGraphNode('src/next.ts')],
+      edges: [],
+    };
+    const source = createSource({
+      _analyzeFiles: vi.fn(async () => ({
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map([
+          ['src/app.ts', createFileAnalysis('/workspace/src/app.changed.ts')],
+        ]),
+        fileConnections: new Map([
+          ['src/app.ts', []],
+        ]),
+      })),
+      _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastFileAnalysis: new Map([
+        ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+      ]),
+      _lastFileConnections: new Map([
+        ['src/app.ts', []],
+      ]) as Map<string, never>,
+      _patchGraphDataNodeMetrics: vi.fn(() => ({
+        nodes: [createGraphNode('patched')],
+        edges: [],
+      })),
+    });
+
+    await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions())).resolves.toBe(graph);
+
+    expect(source._patchGraphDataNodeMetrics).not.toHaveBeenCalled();
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      source._lastFileAnalysis,
+      '/workspace',
+      new Set(),
+    );
   });
 });

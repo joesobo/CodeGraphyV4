@@ -1,63 +1,17 @@
 import type * as vscode from 'vscode';
-import type { CodeGraphyWebviewKind } from '../../webview/html';
 import type { GraphViewProviderWebviewMethodDependencies } from './defaultDependencies';
 import type { GraphViewProviderSidebarViewSource } from './sidebarViews';
+import {
+  assignResolvedWebviewView,
+  clearResolvedWebviewView,
+  getWebviewKind,
+  maybeFlushPendingWorkspaceRefresh,
+} from './resolve/views';
 
 export interface GraphViewProviderWebviewResolveSource extends GraphViewProviderSidebarViewSource {
   _extensionUri: vscode.Uri;
   _getLocalResourceRoots(): vscode.Uri[];
   flushPendingWorkspaceRefresh?(): void;
-}
-
-function isTimelineWebviewView(webviewView: vscode.WebviewView): boolean {
-  return webviewView.viewType === 'codegraphy.timelineView';
-}
-
-function getWebviewKind(webviewView: vscode.WebviewView): CodeGraphyWebviewKind {
-  if (isTimelineWebviewView(webviewView)) {
-    return 'timeline';
-  }
-
-  return 'graph';
-}
-
-function assignResolvedWebviewView(
-  source: GraphViewProviderWebviewResolveSource,
-  webviewView: vscode.WebviewView,
-  viewKind: CodeGraphyWebviewKind,
-  workspaceTitle: string | undefined,
-): void {
-  if (viewKind === 'timeline') {
-    source._timelineView = webviewView;
-    return;
-  }
-
-  webviewView.title = workspaceTitle ?? 'Graph';
-  source._view = webviewView;
-}
-
-function clearResolvedWebviewView(
-  source: GraphViewProviderWebviewResolveSource,
-  webviewView: vscode.WebviewView,
-  viewKind: CodeGraphyWebviewKind,
-): void {
-  if (viewKind === 'timeline' && source._timelineView === webviewView) {
-    source._timelineView = undefined;
-  }
-
-  if (viewKind === 'graph' && source._view === webviewView) {
-    source._view = undefined;
-  }
-}
-
-function maybeFlushPendingWorkspaceRefresh(
-  source: GraphViewProviderWebviewResolveSource,
-  webviewView: vscode.WebviewView,
-  viewKind: CodeGraphyWebviewKind,
-): void {
-  if (viewKind === 'graph' && webviewView.visible) {
-    source.flushPendingWorkspaceRefresh?.();
-  }
 }
 
 export function resolveGraphViewProviderWebviewView(
@@ -97,6 +51,5 @@ export function resolveGraphViewProviderWebviewView(
     executeCommand: (command: string, key: string, value: boolean) =>
       dependencies.executeCommand(command, key, value),
   } as never);
-
   maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
 }

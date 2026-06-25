@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   analyzeWorkspacePipelineFiles,
   buildWorkspacePipelineGraphData,
@@ -10,6 +10,10 @@ import {
 import { CACHE_VERSION } from '../../../src/extension/gitHistory/cache/stateKeys';
 
 describe('pipeline/serviceAdapters', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('pre-analyzes files with shared registry and discovery adapters', async () => {
     const notifyPreAnalyze = vi.fn(async () => undefined);
     const readContent = vi.fn(async () => 'content');

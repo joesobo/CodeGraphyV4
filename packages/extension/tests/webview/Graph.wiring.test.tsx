@@ -166,7 +166,6 @@ function createCallbacks() {
 		linkCanvasObject: vi.fn(),
 		nodeCanvasObject: vi.fn(),
 		nodePointerAreaPaint: vi.fn(),
-		nodeThreeObject: vi.fn(),
 	};
 }
 
@@ -265,7 +264,7 @@ describe('Graph wiring', () => {
 			callbacks: expect.objectContaining({
 				getArrowColor: expect.any(Function),
 				getLinkColor: expect.any(Function),
-				nodeThreeObject: expect.any(Function),
+				nodeCanvasObject: expect.any(Function),
 			}),
 			graphDataLayoutKey: expect.any(String),
 			graphState: expect.objectContaining({

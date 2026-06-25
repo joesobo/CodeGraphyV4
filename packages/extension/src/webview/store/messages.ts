@@ -5,6 +5,7 @@ import {
   handleGraphIndexStatusUpdated,
   handleGraphControlsUpdated,
   handleFavoritesUpdated,
+  handleGraphNodeMetricsUpdated,
   handleSettingsUpdated,
   handleLegendsUpdated,
   handleFilterPatternsUpdated,
@@ -50,6 +51,11 @@ export const MESSAGE_HANDLERS: Record<
 > = {
   GRAPH_DATA_UPDATED: (msg, ctx) =>
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>, ctx),
+  GRAPH_NODE_METRICS_UPDATED: (msg, ctx) =>
+    handleGraphNodeMetricsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>,
+      ctx,
+    ),
   APP_BOOTSTRAP_COMPLETE: (msg, ctx) =>
     handleAppBootstrapComplete(
       msg as Extract<ExtensionToWebviewMessage, { type: 'APP_BOOTSTRAP_COMPLETE' }>,
@@ -63,9 +69,10 @@ export const MESSAGE_HANDLERS: Record<
     handleGraphIndexProgress(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_PROGRESS' }>
     ),
-  GRAPH_CONTROLS_UPDATED: (msg) =>
+  GRAPH_CONTROLS_UPDATED: (msg, ctx) =>
     handleGraphControlsUpdated(
-      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
+      ctx,
     ),
   FAVORITES_UPDATED: (msg, ctx) =>
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>, ctx),

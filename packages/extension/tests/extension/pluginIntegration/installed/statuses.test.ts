@@ -270,7 +270,8 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       ]),
     );
     await internals._analysisMethods._analyzeAndSendData();
-    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalled();
   }, 15000);
 

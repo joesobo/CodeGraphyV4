@@ -27,7 +27,9 @@ async function loadSubject(
     | undefined,
 ) {
   vi.doMock('../../src/extension/pipeline/service/lifecycleFacade', () => ({
-    WorkspacePipeline: class WorkspacePipeline {},
+    WorkspacePipeline: class WorkspacePipeline {
+      warmGraphCache = vi.fn(async () => undefined);
+    },
   }));
   vi.doMock('../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {

@@ -95,7 +95,12 @@ describe('graph view analysis execution load', () => {
 
     expect(result.shouldDiscover).toBe(false);
     expect(result.rawGraphData).toEqual(cachedGraph);
-    expect(loadCachedGraph).toHaveBeenCalledOnce();
+    expect(loadCachedGraph).toHaveBeenCalledWith(
+      [],
+      new Set<string>(),
+      expect.any(AbortSignal),
+      { includeCurrentGitignoreMetadata: true },
+    );
     expect(analyze).not.toHaveBeenCalled();
     expect(refreshIndex).not.toHaveBeenCalled();
     expect(handlers.emitDiagnostic).toHaveBeenCalledWith({
@@ -145,7 +150,12 @@ describe('graph view analysis execution load', () => {
 
     expect(result.shouldDiscover).toBe(false);
     expect(result.rawGraphData).toEqual(cachedGraph);
-    expect(loadCachedGraph).toHaveBeenCalledOnce();
+    expect(loadCachedGraph).toHaveBeenCalledWith(
+      [],
+      new Set<string>(),
+      expect.any(AbortSignal),
+      { includeCurrentGitignoreMetadata: false, warmAnalysis: false },
+    );
     expect(refreshIndex).not.toHaveBeenCalled();
     expect(analyze).not.toHaveBeenCalled();
   });
@@ -379,6 +389,39 @@ describe('graph view analysis execution load', () => {
       current: 2,
       total: 4,
     });
+  });
+
+  it('routes incremental refreshes without reading index freshness', async () => {
+    const incrementalGraph = {
+      nodes: [{ id: 'src/changed.ts', label: 'src/changed.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const getIndexStatus = vi.fn(() => {
+      throw new Error('incremental refresh should not read index freshness');
+    });
+    const refreshChangedFiles = vi.fn(async () => incrementalGraph);
+    const state = createExecutionState({
+      mode: 'incremental',
+      changedFilePaths: ['src/changed.ts'],
+      analyzer: createExecutionAnalyzer({
+        getIndexStatus,
+        refreshChangedFiles,
+      }),
+      analyzerInitialized: true,
+    });
+
+    const result = await loadGraphViewRawData(
+      new AbortController().signal,
+      state,
+      createExecutionHandlers().handlers,
+    );
+
+    expect(result).toEqual({
+      rawGraphData: incrementalGraph,
+      shouldDiscover: false,
+    });
+    expect(getIndexStatus).not.toHaveBeenCalled();
+    expect(refreshChangedFiles).toHaveBeenCalledOnce();
   });
 
   it('falls back to full analysis for incremental mode when changed-file refresh is unavailable', async () => {

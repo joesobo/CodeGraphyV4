@@ -5,36 +5,23 @@ import {
   shouldIgnoreWorkspaceFileWatcherRefresh,
 } from '../ignore';
 import { scheduleWorkspaceRefresh } from './scheduler';
+import {
+  emitWorkspaceRenameEvents,
+  getRenameFilePaths,
+} from './renameEvents';
+import {
+  consumeRecentSavedDocumentPath,
+  rememberRecentSavedDocumentPath,
+} from './recentSaves';
+import {
+  isGitignorePath,
+  refreshWorkspacePaths,
+} from './paths';
 
 type WorkspaceRenameFiles = vscode.FileRenameEvent['files'];
 type WorkspaceFileEventName = 'workspace:fileCreated' | 'workspace:fileDeleted';
 
-function isGitignorePath(filePath: string): boolean {
-  return filePath.replace(/\\/g, '/').endsWith('/.gitignore')
-    || filePath.replace(/\\/g, '/') === '.gitignore';
-}
-
-function includesGitignorePath(filePaths: readonly string[]): boolean {
-  return filePaths.some(isGitignorePath);
-}
-
-function refreshWorkspacePaths(
-  provider: GraphViewProvider,
-  logMessage: string,
-  filePaths: readonly string[],
-): string[] {
-  const refreshPaths = filePaths.filter(filePath =>
-    !shouldIgnoreWorkspaceFileWatcherRefresh(filePath),
-  );
-
-  if (refreshPaths.length > 0) {
-    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, 500, {
-      gitignoreRefresh: includesGitignorePath(refreshPaths),
-    });
-  }
-
-  return refreshPaths;
-}
+const WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS = 32;
 
 export function refreshWorkspaceSavedDocument(
   provider: GraphViewProvider,
@@ -44,11 +31,24 @@ export function refreshWorkspaceSavedDocument(
     return;
   }
 
+  rememberRecentSavedDocumentPath(document.uri.fsPath);
   refreshWorkspaceChangedPath(
     provider,
     '[CodeGraphy] File saved, refreshing graph',
     document.uri.fsPath,
   );
+}
+
+export function refreshWorkspaceChangedFileWatcherPath(
+  provider: GraphViewProvider,
+  logMessage: string,
+  filePath: string,
+): void {
+  if (consumeRecentSavedDocumentPath(filePath)) {
+    return;
+  }
+
+  refreshWorkspaceChangedPath(provider, logMessage, filePath);
 }
 
 export function refreshWorkspaceChangedPath(
@@ -64,7 +64,7 @@ export function refreshWorkspaceChangedPath(
     provider,
     logMessage,
     [filePath],
-    500,
+    WORKSPACE_CONTENT_CHANGE_REFRESH_DELAY_MS,
     { gitignoreRefresh: isGitignorePath(filePath) },
   );
   provider.emitEvent('workspace:fileChanged', { filePath });
@@ -84,22 +84,6 @@ export function refreshWorkspaceFileOperation(
 
   for (const filePath of refreshPaths) {
     provider.emitEvent(eventName, { filePath });
-  }
-}
-
-function getRenameFilePaths(files: WorkspaceRenameFiles): string[] {
-  return files.flatMap(file => [file.oldUri.fsPath, file.newUri.fsPath]);
-}
-
-function emitWorkspaceRenameEvents(
-  provider: GraphViewProvider,
-  files: WorkspaceRenameFiles,
-): void {
-  for (const file of files) {
-    provider.emitEvent('workspace:fileRenamed', {
-      oldPath: file.oldUri.fsPath,
-      newPath: file.newUri.fsPath,
-    });
   }
 }
 

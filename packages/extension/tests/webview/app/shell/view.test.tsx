@@ -2,66 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults/definitions';
-
-// Mock window message listeners
-const messageListeners: ((event: MessageEvent) => void)[] = [];
-
-vi.stubGlobal('addEventListener', (type: string, listener: (event: MessageEvent) => void) => {
-  if (type === 'message') {
-    messageListeners.push(listener);
-  }
-});
-
-vi.stubGlobal('removeEventListener', (type: string, listener: (event: MessageEvent) => void) => {
-  if (type === 'message') {
-    const index = messageListeners.indexOf(listener);
-    if (index > -1) messageListeners.splice(index, 1);
-  }
-});
-
-/** Reset store to initial state between tests */
-function resetStore() {
-  graphStore.setState({
-    graphData: null,
-    isLoading: true,
-    searchQuery: '',
-    searchOptions: { matchCase: false, wholeWord: false, regex: false },
-    favorites: new Set<string>(),
-    bidirectionalMode: 'separate',
-    showOrphans: true,
-    directionMode: 'arrows',
-    directionColor: DEFAULT_DIRECTION_COLOR,
-    particleSpeed: 0.005,
-    particleSize: 4,
-    showLabels: true,
-    graphMode: '2d',
-    nodeSizeMode: 'connections',
-    physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
-    graphHasIndex: false,
-    graphIsIndexing: false,
-    graphIndexProgress: null,
-    awaitingInitialBootstrap: false,
-    bootstrapComplete: false,
-    pendingPluginAssetLoads: 0,
-    depthMode: false,
-    depthLimit: 1,
-    maxDepthLimit: 10,
-    legends: [],
-    filterPatterns: [],
-    pluginFilterPatterns: [],
-    pluginFilterGroups: [],
-    pluginStatuses: [],
-    graphNodeTypes: [],
-    graphEdgeTypes: [],
-    nodeColors: {},
-    nodeVisibility: {},
-    edgeVisibility: {},
-    activePanel: 'none',
-    maxFiles: 500,
-  });
-}
+import { messageListeners, resetStore, sendMessage } from './view/fixture';
 
 describe('App', () => {
   beforeEach(() => {
@@ -136,6 +78,38 @@ describe('App', () => {
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+  });
+
+  it('applies queued graph and filter updates after startup bootstrap completes', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'FILTER_PATTERNS_UPDATED',
+        payload: {
+          patterns: ['dist/**'],
+          pluginPatterns: [],
+          pluginPatternGroups: [],
+          disabledCustomPatterns: [],
+          disabledPluginPatterns: [],
+        },
+      });
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+    });
+
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
   });
 
   it('keeps the first graph visible while startup plugin assets finish loading', async () => {
@@ -673,119 +647,5 @@ describe('App', () => {
     expect(screen.queryByTitle('Zoom Out')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Fit to Screen')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Open in Editor')).not.toBeInTheDocument();
-  });
-});
-
-// ── Message Handler Coverage ────────────────────────────────────────────────
-
-function sendMessage(data: unknown) {
-  const event = new MessageEvent('message', { data });
-  messageListeners.forEach((listener) => listener(event));
-}
-
-describe('App: message handlers', () => {
-  beforeEach(() => {
-    messageListeners.length = 0;
-    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
-      .__codegraphyWebviewReadyPosted;
-    resetStore();
-    vi.useRealTimers();
-  });
-  afterEach(() => vi.useRealTimers());
-
-  it('SETTINGS_UPDATED updates settings state', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({
-        type: 'SETTINGS_UPDATED',
-        payload: {
-          bidirectionalEdges: 'combined',
-          showOrphans: false,
-        },
-      });
-    });
-    expect(graphStore.getState().bidirectionalMode).toBe('combined');
-    expect(graphStore.getState().showOrphans).toBe(false);
-  });
-
-  it('DIRECTION_SETTINGS_UPDATED updates direction mode state', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode: 'particles', directionColor: '#00FF00', particleSpeed: 0.01, particleSize: 6 } });
-    });
-    expect(graphStore.getState().directionMode).toBe('particles');
-    expect(graphStore.getState().directionColor).toBe('#00FF00');
-    expect(graphStore.getState().particleSpeed).toBe(0.01);
-    expect(graphStore.getState().particleSize).toBe(6);
-  });
-
-  it('FAVORITES_UPDATED message is handled without error', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({ type: 'FAVORITES_UPDATED', payload: { favorites: ['src/index.ts'] } });
-    });
-    expect(graphStore.getState().favorites).toEqual(new Set(['src/index.ts']));
-  });
-
-  it('FILTER_PATTERNS_UPDATED message is handled', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({
-        type: 'FILTER_PATTERNS_UPDATED',
-        payload: {
-          patterns: ['**/*.test.ts'],
-          pluginPatterns: [],
-          pluginPatternGroups: [],
-          disabledCustomPatterns: [],
-          disabledPluginPatterns: [],
-        },
-      });
-    });
-    expect(graphStore.getState().filterPatterns).toEqual(['**/*.test.ts']);
-  });
-
-  it('LEGENDS_UPDATED message is handled', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({
-        type: 'LEGENDS_UPDATED',
-        payload: { legends: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
-      });
-    });
-    expect(graphStore.getState().legends).toEqual([{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
-  });
-
-  it('PHYSICS_SETTINGS_UPDATED message is handled', async () => {
-    render(<App />);
-    const physics = {
-      repelForce: 4,
-      centerForce: 0.02,
-      linkDistance: 150,
-      linkForce: 0.05,
-      damping: 0.5,
-    };
-    await act(async () => {
-      sendMessage({
-        type: 'PHYSICS_SETTINGS_UPDATED',
-        payload: physics,
-      });
-    });
-    expect(graphStore.getState().physicsSettings).toEqual(physics);
-  });
-
-  it('DEPTH_LIMIT_UPDATED message is handled', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: 3 } });
-    });
-    expect(graphStore.getState().depthLimit).toBe(3);
-  });
-
-  it('DEPTH_LIMIT_RANGE_UPDATED message is handled', async () => {
-    render(<App />);
-    await act(async () => {
-      sendMessage({ type: 'DEPTH_LIMIT_RANGE_UPDATED', payload: { maxDepthLimit: 2 } });
-    });
-    expect(graphStore.getState().maxDepthLimit).toBe(2);
   });
 });
