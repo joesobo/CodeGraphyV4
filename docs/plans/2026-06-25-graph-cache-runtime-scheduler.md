@@ -17,11 +17,29 @@ without each click scheduling its own Graph Cache save.
 The target model:
 
 - Graph Cache stores durable indexed evidence.
-- Runtime memory holds the loaded working graph.
+- Runtime memory holds the loaded working graph evidence needed for the current
+  view, with additional evidence hydrated from Graph Cache on demand.
 - Projection state decides what the user currently sees.
 - Settings store lightweight user preferences.
 - D3 receives graph data from memory and should not wait on disk persistence for
   ordinary view changes.
+
+## Alignment Decisions
+
+- Plugin impact metadata should be required everywhere. CodeGraphy owns the
+  current monorepo plugins, so the implementation should update the Plugin API
+  and migrate built-in plugins as examples instead of leaving optional or
+  partially guessed plugin behavior.
+- Filters, Graph Scope, node visibility, and edge visibility should primarily be
+  projection changes. They should update the visible graph from runtime memory
+  and settings instead of making Graph Cache stale by default.
+- Workspace file changes still need to update the graph and Graph Cache. Adding
+  a file should create new graph nodes/edges in the live view and patch those
+  indexed changes into Graph Cache without rewriting the whole cache when a
+  targeted update is possible.
+- Explicit Re-index is a force refresh. It should use the current settings,
+  bypass ordinary debounce, supersede pending scheduled graph work, and rebuild
+  Graph Cache deterministically.
 
 ## Current Problem Shape
 
@@ -80,6 +98,20 @@ flowchart LR
   E["Settings\nsaved preferences"] --> C
 ```
 
+Runtime memory should not have to load every cached node and edge up front. The
+Graph Cache can contain all indexed evidence while runtime memory hydrates the
+evidence needed for the current projection first.
+
+```mermaid
+flowchart LR
+  A["Graph Cache\nall indexed evidence"] --> B["Runtime Memory\nbase visible graph"]
+  A --> C["On-demand evidence hydration"]
+  C --> D["Symbols / variables / disabled scopes / plugin tiers"]
+  D --> B
+  B --> E["Projection"]
+  E --> F["D3 Graph"]
+```
+
 ## Architectural Review Notes
 
 ### Intent Classification Must Be A Contract
@@ -116,6 +148,38 @@ Conservative fallback: if a plugin cannot declare the impact of an analysis
 option, treat it as indexed-evidence-changing rather than silently showing stale
 analysis.
 
+The implementation should not keep this fallback as the normal path for built-in
+plugins. Update every monorepo plugin to declare impact metadata so third-party
+plugin authors have real examples to copy.
+
+### Runtime Memory Can Hydrate Evidence Lazily
+
+Runtime memory does not need to load all Graph Cache evidence on startup. It can
+start with the evidence required for the current projection, then hydrate hidden
+or disabled tiers only when the user turns them on.
+
+Examples:
+
+- Symbol nodes can remain in Graph Cache until the Symbols Graph Scope row is
+  toggled on.
+- Variable nodes and variable-related edges can remain in Graph Cache until that
+  scope is visible.
+- Plugin-owned nodes and edges can remain in Graph Cache until that plugin or
+  its graph contribution is enabled.
+
+Once a tier is hydrated into memory, keep it there even if the user toggles it
+back off. That keeps first use memory lower while making future toggles fast.
+
+Hydration rules:
+
+- Projection changes should first check runtime memory.
+- If the requested evidence tier is missing from memory, load it from Graph
+  Cache without scheduling analysis or cache writes.
+- Hydrating from Graph Cache must not mark the cache stale.
+- If Graph Cache does not contain the requested tier, schedule the appropriate
+  targeted analysis lane.
+- A full re-index clears and rebuilds the hydration state from the new cache.
+
 ### Runtime Memory Needs Versioning
 
 Runtime memory and projection updates must carry generation IDs or equivalent
@@ -151,6 +215,16 @@ Graph Cache should not become stale because of:
 
 Incremental refresh should be preferred when it is correct, but the scheduler
 must know when a full index is required.
+
+For workspace edits, prefer patching existing runtime memory and Graph Cache:
+
+- new file: analyze the file, add its nodes and edges to runtime memory, and
+  patch the Graph Cache entry
+- changed file: invalidate old file-owned evidence, analyze the file, update
+  runtime memory, and patch the Graph Cache entry
+- deleted file: remove file-owned evidence from runtime memory and Graph Cache
+- rename or move: update identity/path metadata without full cache rewrite when
+  the relationship evidence can be preserved safely
 
 Full-index candidates:
 
@@ -197,6 +271,35 @@ Expected thresholds:
 - Explicit re-index bypasses normal debounce and schedules exactly 1
   authoritative full-index job.
 
+### Secondary Metric: Graph Cache Patch Count
+
+Measure whether workspace edits use targeted cache patches instead of whole-cache
+rewrites.
+
+Expected thresholds:
+
+| Scenario | Expected cache patch jobs | Expected full cache rewrites |
+| --- | ---: | ---: |
+| Add 1 file | 1 | 0 |
+| Change 1 file | 1 | 0 |
+| Delete 1 file | 1 | 0 |
+| Rename 1 file | 1 | 0 unless identity cannot be preserved |
+| Explicit re-index | 0 | 1 |
+
+### Secondary Metric: Evidence Hydration Count
+
+Measure how often hidden graph evidence is loaded from Graph Cache into runtime
+memory.
+
+Expected thresholds:
+
+| Scenario | Expected cache reads | Expected analysis jobs | Expected cache saves |
+| --- | ---: | ---: | ---: |
+| Toggle Symbols on first time when cached | 1 | 0 | 0 |
+| Toggle Symbols off then on again | 0 | 0 | 0 |
+| Toggle plugin evidence on when cached | 1 | 0 | 0 |
+| Toggle plugin evidence on when missing | 0 | <= 1 targeted job | <= 1 |
+
 ### Secondary Metric: Progress Restart Count
 
 Measure how many user-visible Graph Cache or indexing progress sequences appear
@@ -224,6 +327,10 @@ Required assertions:
   intermediate value.
 - A pending cache refresh persists metadata for the snapshot it actually
   analyzed.
+- A lazily hydrated evidence tier remains in memory after being toggled off and
+  is reused without another cache read when toggled back on.
+- A workspace file patch updates runtime memory and Graph Cache without a full
+  Graph Cache rewrite.
 
 ### Final User-Perceived Timing Checks
 
@@ -255,6 +362,16 @@ Useful final timing targets:
   time.
 - Gitignore or discovery policy changes invalidate runtime memory that a
   projection update was using.
+- User toggles a hidden evidence tier on for the first time and Graph Cache has
+  the evidence.
+- User toggles a hidden evidence tier on for the first time and Graph Cache does
+  not have the evidence.
+- User toggles a hydrated evidence tier off and on repeatedly.
+- User adds a file while filters hide its folder, then later changes filters so
+  the file should become visible from runtime memory.
+- User renames or moves a file while a projection-only filter update is pending.
+- Explicit Re-index starts while a targeted file patch or plugin refresh is
+  queued.
 
 ## Mistakes To Avoid
 
@@ -266,6 +383,12 @@ Useful final timing targets:
 - Do not make plugin impact guessable from current behavior only.
 - Do not update Graph Cache for projection-only changes.
 - Do not let stale async work publish over newer runtime graph memory.
+- Do not eagerly load every cached node and edge when the current projection does
+  not need them.
+- Do not rerun analysis just to hydrate evidence that already exists in Graph
+  Cache.
+- Do not implement file changes as whole-cache rewrites when targeted cache
+  patches are available and correct.
 
 ## Acceptance Test Ideas
 
@@ -276,7 +399,18 @@ Useful final timing targets:
 - Plugin view setting saves settings but does not reanalyze.
 - Plugin analysis setting schedules one coalesced refresh.
 - Plugin toggles with cached evidence project in and out without reindexing.
+- Plugin impact metadata is required by the Plugin API and present in every
+  monorepo plugin.
+- Hidden symbol or variable evidence hydrates from Graph Cache on first toggle
+  without analysis or cache save.
+- Hydrated evidence stays in runtime memory after being toggled off and is reused
+  on the next toggle.
+- Adding a workspace file patches runtime memory and Graph Cache without full
+  cache rewrite.
+- Changing a workspace file replaces that file's indexed evidence without full
+  cache rewrite.
 - Explicit re-index updates Graph Cache immediately.
+- Explicit re-index bypasses debounce and supersedes pending graph work.
 - Stale async refresh cannot overwrite newer runtime projection.
 - Debounced settings persistence flushes on webview dispose or extension
   shutdown.
@@ -286,9 +420,14 @@ Useful final timing targets:
 - What exact plugin API shape should expose impact metadata?
 - Should impact metadata live on plugin settings schema, plugin contributions,
   or both?
+- Does the required Plugin API metadata change require a major version bump?
 - Which current settings belong in Graph Cache freshness and which should move
   to projection/settings-only freshness?
 - Which current refresh paths can patch runtime memory safely, and which still
   require full graph rebuilds?
+- Which Graph Cache query APIs are needed to hydrate hidden evidence tiers
+  without loading the whole cache?
+- Which Graph Cache write APIs are needed to patch add/change/delete/rename
+  updates without rewriting the whole cache?
 - Where should the coordinator live so core, extension, and plugin API boundaries
   stay clean?
