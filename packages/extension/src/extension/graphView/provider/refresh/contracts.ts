@@ -10,6 +10,15 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
+  loadCachedGraph?(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    options?: {
+      includeCurrentGitignoreMetadata?: boolean;
+      warmAnalysis?: boolean;
+    },
+  ): Promise<IGraphData>;
   registry: {
     notifyGraphRebuild(
       graphData: IGraphData,
@@ -82,6 +91,7 @@ export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
   refreshIndex(): Promise<void>;
   refreshGitignoreMetadata(): Promise<void>;
+  hydrateGraphScope(): Promise<boolean>;
   refreshAnalysisScope(): Promise<void>;
   refreshPluginFiles(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;

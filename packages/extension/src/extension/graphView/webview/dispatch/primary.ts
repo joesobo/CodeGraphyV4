@@ -44,6 +44,7 @@ export interface GraphViewPrimaryMessageContext {
   indexAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  hydrateGraphScope(): Promise<boolean>;
   refreshAnalysisScope(): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;

@@ -14,6 +14,7 @@ export function createGraphViewProviderPublicMethodDelegates(
   | 'redo'
   | 'refreshIndex'
   | 'refreshGitignoreMetadata'
+  | 'hydrateGraphScope'
   | 'refreshAnalysisScope'
   | 'refreshPluginFiles'
   | 'refreshChangedFiles'
@@ -29,6 +30,7 @@ export function createGraphViewProviderPublicMethodDelegates(
     redo: () => owner._methodContainers.command.redo(),
     refreshIndex: () => owner._methodContainers.refresh.refreshIndex(),
     refreshGitignoreMetadata: () => owner._methodContainers.refresh.refreshGitignoreMetadata(),
+    hydrateGraphScope: () => owner._methodContainers.refresh.hydrateGraphScope(),
     refreshAnalysisScope: () => owner._methodContainers.refresh.refreshAnalysisScope(),
     refreshPluginFiles: pluginIds => owner._methodContainers.refresh.refreshPluginFiles(pluginIds),
     refreshChangedFiles: filePaths => owner._methodContainers.refresh.refreshChangedFiles(filePaths),
