@@ -3,7 +3,7 @@ import { applyFilterPatternsUpdate } from '../../../../../../src/extension/graph
 import { createHandlers, createState } from '../testSupport';
 
 describe('settingsMessages/updates/filterPatterns', () => {
-  it('stores filter patterns and publishes plugin patterns', async () => {
+  it('stores filter patterns as projection state without reanalyzing', async () => {
     const state = createState();
     const handlers = createHandlers({
       getPluginFilterPatterns: vi.fn(() => ['venv/**']),
@@ -27,6 +27,7 @@ describe('settingsMessages/updates/filterPatterns', () => {
         disabledPluginPatterns: [],
       },
     });
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 });
