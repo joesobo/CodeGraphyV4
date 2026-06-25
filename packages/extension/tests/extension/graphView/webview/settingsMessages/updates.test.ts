@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { WebviewToExtensionMessage } from '../../../../../src/shared/protocol/webviewToExtension';
 import {
   applySettingsUpdateMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/updates/apply';
@@ -40,10 +41,11 @@ describe('graph view settings update message', () => {
         disabledPluginPatterns: [],
       },
     });
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('persists filter row state and refreshes graph data so old nodes can return', async () => {
+  it('persists filter row state without scheduling graph work', async () => {
     const state = createState({ filterPatterns: ['dist/**'] });
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -64,10 +66,11 @@ describe('graph view settings update message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', []);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('persists section filter state and refreshes graph data once', async () => {
+  it('persists section filter state without scheduling graph work', async () => {
     const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
     const handlers = createHandlers();
 
@@ -84,7 +87,61 @@ describe('graph view settings update message', () => {
       'dist/**',
       'coverage/**',
     ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('keeps filter bursts projection-only with zero graph jobs', async () => {
+    const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
+    const handlers = createHandlers({
+      getPluginFilterPatterns: vi.fn(() => ['venv/**', '.mypy_cache/**']),
+    });
+
+    const messages: WebviewToExtensionMessage[] = [
+      { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**'] } },
+      { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**', 'coverage/**'] } },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'custom', pattern: 'dist/**', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'custom', pattern: 'dist/**', enabled: true },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'plugin', pattern: 'venv/**', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'plugin', pattern: 'venv/**', enabled: true },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'custom', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'custom', enabled: true },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'plugin', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'plugin', enabled: true },
+      },
+    ];
+
+    for (const message of messages) {
+      await expect(applySettingsUpdateMessage(message, state, handlers)).resolves.toBe(true);
+    }
+
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('persists update-show-orphans through config updates', async () => {

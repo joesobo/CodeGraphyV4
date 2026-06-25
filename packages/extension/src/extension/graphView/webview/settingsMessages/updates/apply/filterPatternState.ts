@@ -30,7 +30,6 @@ export async function applyFilterPatternStateMessage(
   sendFilterPatternsUpdated(state, handlers, {
     [getFilterPatternStateOverrideKey(message.payload.source)]: disabledPatterns,
   });
-  await handlers.analyzeAndSendData();
   return true;
 }
 
@@ -54,6 +53,5 @@ export async function applyFilterPatternGroupMessage(
   sendFilterPatternsUpdated(state, handlers, {
     [getFilterPatternStateOverrideKey(message.payload.source)]: disabledPatterns,
   });
-  await handlers.analyzeAndSendData();
   return true;
 }
