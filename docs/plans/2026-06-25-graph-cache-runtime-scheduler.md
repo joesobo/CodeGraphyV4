@@ -373,6 +373,63 @@ Useful final timing targets:
 - Explicit Re-index starts while a targeted file patch or plugin refresh is
   queued.
 
+## Implementation Progress
+
+### Projection-Only Settings
+
+Implemented deterministic tests and extension behavior so filter bursts update
+settings and projection state without scheduling analysis, scoped reprocess, or
+Graph Cache saves.
+
+Current deterministic threshold covered:
+
+| Scenario | Actions | Analysis jobs | Scoped reprocess jobs | Graph Cache saves |
+| --- | ---: | ---: | ---: | ---: |
+| Filter burst | 10 | 0 | 0 | 0 |
+
+### Plugin Impact Metadata
+
+Plugin API now exposes update impact metadata, and all built-in monorepo
+plugins declare whether updates are projection-only, plugin-file targeted, or
+full-index affecting. Missing metadata remains conservative for third-party
+plugins.
+
+Current deterministic thresholds covered:
+
+| Scenario | Expected behavior |
+| --- | --- |
+| Built-in visual/plugin UI settings | Projection/settings path, no analysis |
+| Built-in analyzer plugin updates | Target plugin-file refresh path |
+| Unknown plugin impact | Conservative analysis path |
+
+### Incremental Graph Cache Patching
+
+Changed-file refreshes now patch Graph Cache rows for add/change/delete paths
+instead of falling back to whole-cache persistence when targeted patching is
+available. Deleted files invalidate runtime memory without immediately writing
+the full cache.
+
+Current deterministic thresholds covered:
+
+| Scenario | Cache patch jobs | Full cache rewrites |
+| --- | ---: | ---: |
+| Add 1 file | 1 | 0 |
+| Change 1 file | 1 | 0 |
+| Delete 1 file | 1 | 0 |
+
+### Cached Graph Scope Hydration
+
+Symbol-dependent Graph Scope toggles now try to hydrate graph scope from Graph
+Cache before scoped analysis. A successful cache hydration replays cached graph
+data with `warmAnalysis: false`, publishes the graph, and avoids scoped analysis
+or Graph Cache writes.
+
+Current deterministic threshold covered:
+
+| Scenario | Cache reads | Analysis jobs | Graph Cache saves |
+| --- | ---: | ---: | ---: |
+| Toggle symbol leaf on when cached | 1 | 0 | 0 |
+
 ## Mistakes To Avoid
 
 - Do not add particle-specific architecture in core or extension.

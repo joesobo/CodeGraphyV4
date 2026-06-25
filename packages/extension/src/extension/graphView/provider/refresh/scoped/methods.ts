@@ -1,3 +1,4 @@
+import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type {
   GraphViewProviderRefreshMethodsSource,
   RefreshCoordinatorState,
@@ -8,6 +9,47 @@ import {
   publishGraphDataIfPresent,
   runScopedRefreshRequest,
 } from './lifecycle';
+
+function hasGraphData(graphData: IGraphData | undefined): graphData is IGraphData {
+  return (graphData?.nodes.length ?? 0) > 0 || (graphData?.edges.length ?? 0) > 0;
+}
+
+export function createHydrateGraphScopeMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  scopedRefreshLifecycle: ScopedRefreshLifecycle,
+): () => Promise<boolean> {
+  return async (): Promise<boolean> => {
+    if (state.indexRefreshPromise) {
+      await state.indexRefreshPromise;
+    }
+
+    prepareRefreshInputs(source);
+    if (!source._analyzer?.loadCachedGraph) {
+      return false;
+    }
+
+    const graphData = await runScopedRefreshRequest(
+      source,
+      signal => source._analyzer!.loadCachedGraph!(
+        source._filterPatterns,
+        source._disabledPlugins,
+        signal,
+        {
+          includeCurrentGitignoreMetadata: true,
+          warmAnalysis: false,
+        },
+      ),
+      scopedRefreshLifecycle,
+    );
+    if (!hasGraphData(graphData)) {
+      return false;
+    }
+
+    publishGraphDataIfPresent(source, graphData);
+    return true;
+  };
+}
 
 export function createRefreshAnalysisScopeMethod(
   source: GraphViewProviderRefreshMethodsSource,

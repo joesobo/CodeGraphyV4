@@ -29,6 +29,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
+  | 'hydrateGraphScope'
   | 'reprocessGraphScope'
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
@@ -117,6 +118,7 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
     reprocessGraphScope: () => source.refreshAnalysisScope(),
     reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),
     resetAllSettings: async () => {

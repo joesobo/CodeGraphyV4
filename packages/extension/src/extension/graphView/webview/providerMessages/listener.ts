@@ -132,6 +132,7 @@ export interface GraphViewProviderMessageListenerSource {
   _indexAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  hydrateGraphScope?(): Promise<boolean>;
   refreshAnalysisScope(): Promise<void>;
   refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;

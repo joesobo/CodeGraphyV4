@@ -35,6 +35,16 @@ async function applyGraphControlsUpdate(
   return true;
 }
 
+async function hydrateOrReprocessGraphScope(
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<void> {
+  if (await handlers.hydrateGraphScope()) {
+    return;
+  }
+
+  await handlers.reprocessGraphScope();
+}
+
 function isSymbolDependentNodeType(nodeType: string): boolean {
   return nodeType === 'variable'
     || nodeType.startsWith('symbol:')
@@ -80,7 +90,7 @@ async function applySymbolVisibilityUpdate(
     !requiresSymbolAnalysisCacheTier(previousVisibility)
     && requiresSymbolAnalysisCacheTier(nodeVisibility)
   ) {
-    await handlers.reprocessGraphScope();
+    await hydrateOrReprocessGraphScope(handlers);
   }
   return true;
 }
@@ -113,7 +123,7 @@ async function applySymbolDependentVisibilityUpdate(
     !requiresSymbolAnalysisCacheTier(previousVisibility)
     && requiresSymbolAnalysisCacheTier(nodeVisibility)
   ) {
-    await handlers.reprocessGraphScope();
+    await hydrateOrReprocessGraphScope(handlers);
   }
   return true;
 }
@@ -170,7 +180,7 @@ async function applyGraphControlVisibilityBatch(
       !requiresSymbolAnalysisCacheTier(previousVisibility)
       && requiresSymbolAnalysisCacheTier(prunedNodeVisibility)
     ) {
-      await handlers.reprocessGraphScope();
+      await hydrateOrReprocessGraphScope(handlers);
     }
   }
 

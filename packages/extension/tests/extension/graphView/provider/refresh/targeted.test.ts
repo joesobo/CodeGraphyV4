@@ -162,4 +162,41 @@ describe('graphView/provider/refresh targeted refreshes', () => {
     expect(source._rawGraphData).toBe(graphData);
     expect(source._analysisController).toBeUndefined();
   });
+
+  it('hydrateGraphScope replays cached graph data without scoped analysis or warm analysis', async () => {
+    const source = createSource();
+    const graphData = {
+      nodes: [{ id: 'symbol-node', label: 'symbol-node', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
+    source._analyzer.loadCachedGraph.mockResolvedValueOnce(graphData);
+    const rebuildGraphData = vi.fn();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData,
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    await expect(methods.hydrateGraphScope()).resolves.toBe(true);
+
+    expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+    expect(source._analyzer.loadCachedGraph).toHaveBeenCalledWith(
+      ['src/**'],
+      source._disabledPlugins,
+      expect.any(AbortSignal),
+      {
+        includeCurrentGitignoreMetadata: true,
+        warmAnalysis: false,
+      },
+    );
+    expect(source._analyzer.refreshAnalysisScope).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+    expect(rebuildGraphData).not.toHaveBeenCalled();
+    expect(source._rawGraphData).toBe(graphData);
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: source._graphData,
+    });
+  });
 });

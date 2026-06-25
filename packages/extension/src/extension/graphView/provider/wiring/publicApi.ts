@@ -33,6 +33,7 @@ export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
   refreshIndex: () => Promise<void>;
   refreshGitignoreMetadata: () => Promise<void>;
+  hydrateGraphScope: () => Promise<boolean>;
   refreshAnalysisScope: () => Promise<void>;
   refreshPluginFiles: (pluginIds: readonly string[]) => Promise<void>;
   refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>;
@@ -98,6 +99,7 @@ export function assignGraphViewProviderPublicMethods(
   target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
   target.refreshGitignoreMetadata = () =>
     target._methodContainers.refresh.refreshGitignoreMetadata();
+  target.hydrateGraphScope = () => target._methodContainers.refresh.hydrateGraphScope();
   target.refreshAnalysisScope = () => target._methodContainers.refresh.refreshAnalysisScope();
   target.refreshPluginFiles = pluginIds => target._methodContainers.refresh.refreshPluginFiles(pluginIds);
   target.refreshChangedFiles = filePaths =>

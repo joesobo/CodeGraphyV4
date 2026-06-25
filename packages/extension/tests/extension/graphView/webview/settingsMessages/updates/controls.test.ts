@@ -223,6 +223,29 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
+  it('hydrates cached graph scope instead of reprocessing when a symbol child type is enabled from cache', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, 'symbol:function': false } as T;
+        }
+        return defaultValue;
+      }),
+      hydrateGraphScope: vi.fn(() => Promise.resolve(true)),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:function', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.hydrateGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
   it('enables Symbols and Variables when a variable child type is enabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
