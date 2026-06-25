@@ -24,6 +24,7 @@ export async function applySettingsToggleMessage(
           defaultOptions: message.payload.enabled
             ? handlers.getInstalledPluginDefaultOptions?.(message.payload.pluginId)
             : undefined,
+          updateImpact: handlers.getInstalledPluginUpdateImpact?.(message.payload.pluginId),
         },
       );
       await handlers.updateConfig('plugins', plan.plugins);
@@ -45,6 +46,11 @@ export async function applySettingsToggleMessage(
 
       if (plan.indexing.kind === 'analyze-workspace') {
         await handlers.analyzeAndSendData();
+        return true;
+      }
+
+      if (plan.indexing.kind === 'projection-only') {
+        handlers.smartRebuild(message.payload.pluginId);
         return true;
       }
 

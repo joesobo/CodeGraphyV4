@@ -79,6 +79,39 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Glob patterns to exclude from file discovery by default"
+    },
+    "updateImpact": {
+      "type": "object",
+      "required": ["toggle"],
+      "additionalProperties": false,
+      "properties": {
+        "toggle": {
+          "$ref": "#/definitions/updateImpactLevel",
+          "description": "Impact of enabling or disabling the plugin"
+        },
+        "defaultSetting": {
+          "$ref": "#/definitions/updateImpactLevel",
+          "description": "Fallback impact for plugin-owned settings"
+        },
+        "settings": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/updateImpactLevel" },
+          "description": "Per plugin-owned setting impact overrides"
+        }
+      },
+      "description": "How plugin toggles and settings affect graph indexing and projection"
+    }
+  },
+  "definitions": {
+    "updateImpactLevel": {
+      "type": "string",
+      "enum": [
+        "view-only",
+        "settings-only",
+        "projection-only",
+        "reanalyze-plugin-files",
+        "requires-full-index"
+      ]
     }
   }
 }

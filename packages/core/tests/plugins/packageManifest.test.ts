@@ -28,6 +28,13 @@ describe('CodeGraphy plugin package manifest', () => {
         defaultOptions: {
           includeTests: true,
         },
+        updateImpact: {
+          toggle: 'reanalyze-plugin-files',
+          defaultSetting: 'settings-only',
+          settings: {
+            includeTests: 'reanalyze-plugin-files',
+          },
+        },
         disclosures: ['network'],
       },
     })).toEqual({
@@ -36,6 +43,13 @@ describe('CodeGraphy plugin package manifest', () => {
       apiVersion: '^2.0.0',
       defaultOptions: {
         includeTests: true,
+      },
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+        defaultSetting: 'settings-only',
+        settings: {
+          includeTests: 'reanalyze-plugin-files',
+        },
       },
       disclosures: ['network'],
     });

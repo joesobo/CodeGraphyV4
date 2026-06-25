@@ -149,6 +149,8 @@ export type {
   IPluginFactory,
   IPluginFactoryOptions,
   IPluginHostApi,
+  IPluginUpdateImpact,
+  IPluginUpdateImpactPolicy,
   IPluginToolbarAction,
   IPluginToolbarActionItem,
   IPluginWebviewAsset,

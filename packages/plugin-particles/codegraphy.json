@@ -6,5 +6,9 @@
   "apiVersion": "^2.0.0",
   "supportedExtensions": [],
   "defaultFilters": [],
+  "updateImpact": {
+    "toggle": "projection-only",
+    "defaultSetting": "settings-only"
+  },
   "fileColors": {}
 }
