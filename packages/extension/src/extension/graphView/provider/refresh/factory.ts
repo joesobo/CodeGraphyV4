@@ -14,6 +14,7 @@ import {
 import { createScopedRefreshLifecycle } from './scoped/lifecycle';
 import {
   createHydrateGraphScopeMethod,
+  createHydratePluginGraphScopeMethod,
   createRefreshAnalysisScopeMethod,
   createRefreshGitignoreMetadataMethod,
   createRefreshPluginFilesMethod,
@@ -44,6 +45,11 @@ export function createGraphViewProviderRefreshMethods(
     state,
     scopedRefreshLifecycle,
   );
+  const hydratePluginGraphScope = createHydratePluginGraphScopeMethod(
+    source,
+    state,
+    scopedRefreshLifecycle,
+  );
   const refreshAnalysisScope = createRefreshAnalysisScopeMethod(
     source,
     state,
@@ -68,6 +74,7 @@ export function createGraphViewProviderRefreshMethods(
     refreshIndex,
     refreshGitignoreMetadata,
     hydrateGraphScope,
+    hydratePluginGraphScope,
     refreshAnalysisScope,
     refreshPluginFiles,
     refreshChangedFiles,

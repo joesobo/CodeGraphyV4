@@ -40,7 +40,12 @@ export async function applySettingsToggleMessage(
       handlers.sendGraphViewContributionStatuses?.();
       handlers.sendGraphControls();
       sendFilterPatternsUpdated(state, handlers);
-      await applyPluginGraphWorkPlan(plan.indexing, message.payload.pluginId, handlers);
+      await applyPluginToggleGraphWorkPlan(
+        plan.indexing,
+        message.payload.pluginId,
+        message.payload.enabled,
+        handlers,
+      );
       return true;
     }
 
@@ -49,6 +54,22 @@ export async function applySettingsToggleMessage(
   }
 }
 
+async function applyPluginToggleGraphWorkPlan(
+  plan: ReturnType<typeof createCodeGraphyWorkspacePluginTogglePlan>['indexing'],
+  pluginId: string,
+  enabled: boolean,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<void> {
+  if (
+    enabled
+    && plan.kind === 'reprocess-plugin-files'
+    && await (handlers.hydratePluginGraphScope?.([pluginId]) ?? Promise.resolve(false))
+  ) {
+    return;
+  }
+
+  await applyPluginGraphWorkPlan(plan, pluginId, handlers);
+}
 
 function replaySavedPluginData(
   pluginId: string,

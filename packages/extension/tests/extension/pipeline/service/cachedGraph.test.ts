@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  hasRequiredAnalysisCacheTiers,
   projectFileAnalysisConnections,
   throwIfWorkspaceAnalysisAborted,
   type FileDiscovery,
@@ -20,6 +21,7 @@ vi.mock('@codegraphy-dev/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@codegraphy-dev/core')>();
   return {
     ...actual,
+    hasRequiredAnalysisCacheTiers: vi.fn(),
     projectFileAnalysisConnections: vi.fn(),
     throwIfWorkspaceAnalysisAborted: vi.fn(),
   };
@@ -47,10 +49,18 @@ vi.mock('vscode', () => ({
 }));
 
 const cachedAnalysis = { filePath: '/workspace/src/cached.ts', imports: [], relations: [], symbols: [] };
+const readmeAnalysis = { filePath: '/workspace/README.md', imports: [], relations: [], symbols: [] };
 const cachedFiles: IDiscoveredFile[] = [{
   absolutePath: '/workspace/src/cached.ts',
   relativePath: 'src/cached.ts',
 }] as never;
+const mixedCachedFiles: IDiscoveredFile[] = [
+  ...cachedFiles,
+  {
+    absolutePath: '/workspace/README.md',
+    relativePath: 'README.md',
+  },
+] as never;
 
 class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
@@ -115,6 +125,7 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
 }
 
 interface CachedGraphState {
+  _cache: unknown;
   _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, unknown>;
@@ -127,17 +138,23 @@ function cachedGraphState(facade: TestCachedGraphFacade): CachedGraphState {
   return facade as unknown as CachedGraphState;
 }
 
-function setupCachedDiscovery(): Map<string, never[]> {
-  const projectedConnections = new Map<string, never[]>([['src/cached.ts', []]]);
+function setCachedGraphCache(facade: TestCachedGraphFacade, cache: unknown): void {
+  cachedGraphState(facade)._cache = cache;
+}
+
+function setupCachedDiscovery(files: readonly IDiscoveredFile[] = cachedFiles): Map<string, never[]> {
+  const projectedConnections = new Map<string, never[]>(
+    files.map(file => [file.relativePath, []]),
+  );
 
   vi.mocked(projectFileAnalysisConnections).mockReturnValue(projectedConnections as never);
   vi.mocked(createCachedWorkspaceDiscoveryState).mockReturnValue({
     directories: ['src'],
-    files: cachedFiles,
+    files: [...files],
     gitIgnoredPaths: ['dist/generated.ts'],
   });
   vi.mocked(createCachedGraphAnalysisWarmupInput).mockReturnValue({
-    file: cachedFiles[0],
+    file: files[0],
   } as never);
   vi.mocked(warmCachedGraphAnalysisFile).mockResolvedValue(undefined);
 
@@ -152,6 +169,7 @@ async function flushWarmupCatch(): Promise<void> {
 describe('extension/pipeline/service/cachedGraph', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(hasRequiredAnalysisCacheTiers).mockReturnValue(true);
     vi.mocked(isMissingFileError).mockReturnValue(false);
     vi.mocked(isWorkspaceAnalysisAbortError).mockReturnValue(false);
     setupCachedDiscovery();
@@ -259,6 +277,73 @@ describe('extension/pipeline/service/cachedGraph', () => {
       new Map([['src/cached.ts', cachedAnalysis]]),
       '/workspace',
       true,
+      new Set<string>(),
+    );
+  });
+
+  it('returns an empty graph without mutating retained graph state when required cache tiers are missing', async () => {
+    const facade = new TestCachedGraphFacade();
+    vi.mocked(hasRequiredAnalysisCacheTiers).mockReturnValueOnce(false);
+
+    await expect(
+      facade.loadCachedGraph([], new Set(), undefined, {
+        requiredAnalysisCacheTiers: ['baseline', 'symbols'],
+        warmAnalysis: false,
+      }),
+    ).resolves.toEqual({ nodes: [], edges: [] });
+
+    expect(hasRequiredAnalysisCacheTiers).toHaveBeenCalledWith(
+      cachedAnalysis,
+      ['baseline', 'symbols'],
+    );
+    expect(projectFileAnalysisConnections).not.toHaveBeenCalled();
+    expect(facade.buildGraphDataFromAnalysis).not.toHaveBeenCalled();
+    const retainedState = cachedGraphState(facade);
+    expect(retainedState._lastFileAnalysis).toEqual(new Map());
+    expect(retainedState._lastFileConnections).toEqual(new Map());
+  });
+
+  it('requires plugin cache tiers only on files owned by that plugin', async () => {
+    const facade = new TestCachedGraphFacade();
+    setCachedGraphCache(facade, {
+      files: {
+        'src/cached.ts': { analysis: cachedAnalysis, mtime: 1, size: 10 },
+        'README.md': { analysis: readmeAnalysis, mtime: 1, size: 10 },
+      },
+    });
+    vi.mocked(facade._registry.list).mockReturnValue([{
+      plugin: {
+        id: 'codegraphy.typescript',
+        supportedExtensions: ['.ts'],
+      },
+    }] as never);
+    vi.mocked(hasRequiredAnalysisCacheTiers).mockImplementation((analysis, tiers) =>
+      analysis === cachedAnalysis
+      || !tiers?.some(tier => tier === 'plugin:codegraphy.typescript'),
+    );
+    setupCachedDiscovery(mixedCachedFiles);
+
+    await expect(
+      facade.loadCachedGraph([], new Set(), undefined, {
+        requiredAnalysisCacheTiers: ['baseline', 'plugin:codegraphy.typescript'],
+        warmAnalysis: false,
+      }),
+    ).resolves.toEqual({
+      nodes: [{ id: 'graph', label: 'Graph', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(hasRequiredAnalysisCacheTiers).not.toHaveBeenCalledWith(
+      readmeAnalysis,
+      ['plugin:codegraphy.typescript'],
+    );
+    expect(facade.buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      new Map([
+        ['src/cached.ts', cachedAnalysis],
+        ['README.md', readmeAnalysis],
+      ]),
+      '/workspace',
+      false,
       new Set<string>(),
     );
   });

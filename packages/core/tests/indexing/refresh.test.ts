@@ -176,7 +176,10 @@ describe('indexing/refresh', () => {
       notifyFilesChanged: vi.fn(),
     }));
 
-    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/deleted.ts']);
+    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/src/deleted.ts'],
+      { persist: false },
+    );
     expect(source.analyze).toHaveBeenCalledWith(
       ['dist'],
       disabledPlugins,
