@@ -145,7 +145,7 @@ function invalidateDeletedWorkspaceIndexFiles(
   const unmatchedFilePaths: string[] = [];
 
   for (const filePath of filePaths) {
-    const invalidatedFilePaths = source.invalidateWorkspaceFiles([filePath], { persist: false });
+    const invalidatedFilePaths = source.invalidateWorkspaceFiles([filePath], { persist: false }) ?? [];
     if (invalidatedFilePaths.length === 0) {
       unmatchedFilePaths.push(filePath);
       continue;
