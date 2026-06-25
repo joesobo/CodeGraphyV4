@@ -22,6 +22,10 @@ function prepareAnalysisGroups(
   return true;
 }
 
+function shouldPrepareAnalysisGroups(state: GraphViewAnalysisExecutionState): boolean {
+  return state.mode !== 'incremental';
+}
+
 export async function prepareGraphViewAnalysis(
   signal: AbortSignal,
   requestId: number,
@@ -45,7 +49,7 @@ export async function prepareGraphViewAnalysis(
     return false;
   }
 
-  if (!prepareAnalysisGroups(signal, requestId, handlers)) {
+  if (shouldPrepareAnalysisGroups(state) && !prepareAnalysisGroups(signal, requestId, handlers)) {
     return false;
   }
 

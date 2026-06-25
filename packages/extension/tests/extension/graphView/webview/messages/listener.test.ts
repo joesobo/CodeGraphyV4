@@ -1,108 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { NodeSizeMode } from '../../../../../src/shared/settings/modes';
-import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
-import type { IViewContext } from '../../../../../src/core/views/contracts';
 import {
   setGraphViewWebviewMessageListener,
-  type GraphViewMessageListenerContext,
 } from '../../../../../src/extension/graphView/webview/messages/listener';
-
-function createContext(
-  overrides: Partial<GraphViewMessageListenerContext> = {},
-): GraphViewMessageListenerContext {
-  const context = {
-    getTimelineActive: vi.fn(() => false),
-    getCurrentCommitSha: vi.fn(() => undefined),
-    getCanMutateGraphRevision: vi.fn(() => true),
-    getUserGroups: vi.fn(() => []),
-    getFilterPatterns: vi.fn(() => []),
-    getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
-    getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
-    getFocusedFile: vi.fn(() => undefined),
-    setFocusedFile: vi.fn(),
-    openSelectedNode: vi.fn(() => Promise.resolve()),
-    activateNode: vi.fn(() => Promise.resolve()),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
-    openFile: vi.fn(() => Promise.resolve()),
-    revealInExplorer: vi.fn(() => Promise.resolve()),
-    copyToClipboard: vi.fn(() => Promise.resolve()),
-    deleteFiles: vi.fn(() => Promise.resolve()),
-    renameFile: vi.fn(() => Promise.resolve()),
-    createFile: vi.fn(() => Promise.resolve()),
-    createFolder: vi.fn(() => Promise.resolve()),
-    toggleFavorites: vi.fn(() => Promise.resolve()),
-    addToExclude: vi.fn(() => Promise.resolve()),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
-    refreshIndex: vi.fn(() => Promise.resolve()),
-    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
-    getFileInfo: vi.fn(() => Promise.resolve()),
-    undo: vi.fn(() => Promise.resolve(undefined)),
-    redo: vi.fn(() => Promise.resolve(undefined)),
-    showInformationMessage: vi.fn(),
-    changeView: vi.fn(() => Promise.resolve()),
-    setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
-    updateNodeSizeMode: vi.fn(() => Promise.resolve()),
-    indexRepository: vi.fn(() => Promise.resolve()),
-    jumpToCommit: vi.fn(() => Promise.resolve()),
-    resetTimeline: vi.fn(() => Promise.resolve()),
-    sendPhysicsSettings: vi.fn(),
-    updatePhysicsSetting: vi.fn(() => Promise.resolve()),
-    resetPhysicsSettings: vi.fn(() => Promise.resolve()),
-    workspaceFolder: undefined,
-    persistLegends: vi.fn(() => Promise.resolve()),
-    persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
-    recomputeGroups: vi.fn(),
-    sendGroupsUpdated: vi.fn(),
-    showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
-    createDirectory: vi.fn(() => Promise.resolve()),
-    copyFile: vi.fn(() => Promise.resolve()),
-    getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
-    updateConfig: vi.fn(() => Promise.resolve()),
-    getPluginFilterPatterns: vi.fn(() => []),
-    getPluginFilterGroups: vi.fn(() => []),
-    sendGraphControls: vi.fn(),
-    sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
-    resetAllSettings: vi.fn(() => Promise.resolve()),
-    getMaxFiles: vi.fn(() => 500),
-    getPlaybackSpeed: vi.fn(() => 1),
-    getDagMode: vi.fn(() => null),
-    getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
-    hasWorkspace: vi.fn(() => false),
-    isFirstAnalysis: vi.fn(() => false),
-    isWebviewReadyNotified: vi.fn(() => false),
-    loadGroupsAndFilterPatterns: vi.fn(),
-    loadDisabledRulesAndPlugins: vi.fn(),
-    sendDepthState: vi.fn(),
-    loadAndSendData: vi.fn(() => Promise.resolve()),
-    sendFavorites: vi.fn(),
-    sendSettings: vi.fn(),
-    sendCachedTimeline: vi.fn(),
-    sendDecorations: vi.fn(),
-    sendContextMenuItems: vi.fn(),
-    sendPluginWebviewInjections: vi.fn(),
-    sendActiveFile: vi.fn(),
-    waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
-    notifyWebviewReady: vi.fn(),
-    getInteractionPluginApi: vi.fn(),
-    getContextMenuPluginApi: vi.fn(),
-    emitEvent: vi.fn(),
-    findNode: vi.fn(),
-    findEdge: vi.fn(),
-    logError: vi.fn(),
-    setUserGroups: vi.fn(),
-    setFilterPatterns: vi.fn(),
-    setWebviewReadyNotified: vi.fn(),
-    ...overrides,
-  };
-
-  context.sendGraphControls ??= vi.fn();
-
-  return context as GraphViewMessageListenerContext;
-}
+import { createContext } from './listener/fixture';
 
 describe('graph view webview message listener', () => {
   it('stores user group updates from primary dispatch flows', async () => {
@@ -201,7 +102,7 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
   });
 
-  it('replays settings but not empty bootstrap payloads for duplicate WEBVIEW_READY during first analysis', async () => {
+  it('does not replay settings or empty bootstrap payloads for duplicate WEBVIEW_READY during first analysis', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
       onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
@@ -256,6 +157,62 @@ describe('graph view webview message listener', () => {
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores repeated WEBVIEW_READY deliveries from the same webview page after bootstrap', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext({
+      hasWorkspace: vi.fn(() => true),
+      isFirstAnalysis: vi.fn(() => false),
+      isWebviewReadyNotified: vi.fn(() => true),
+    });
+    const readyMessage = { type: 'WEBVIEW_READY', payload: { pageId: 'page-a' } };
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.(readyMessage);
+    await messageHandler?.(readyMessage);
+
+    expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.sendSettings).toHaveBeenCalledTimes(1);
+    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'APP_BOOTSTRAP_COMPLETE'
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('ignores new-page WEBVIEW_READY deliveries posted before the previous bootstrap completed', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext({
+      hasWorkspace: vi.fn(() => true),
+      isFirstAnalysis: vi.fn(() => false),
+      isWebviewReadyNotified: vi.fn(() => true),
+    });
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({ type: 'WEBVIEW_READY', payload: { pageId: 'page-a', postedAt: 1 } });
+    await messageHandler?.({ type: 'WEBVIEW_READY', payload: { pageId: 'page-b', postedAt: 1 } });
+
+    expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.sendSettings).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'APP_BOOTSTRAP_COMPLETE'
+      ),
+    ).toHaveLength(1);
   });
 
   it('replaces the previous listener when the same webview is wired again', async () => {

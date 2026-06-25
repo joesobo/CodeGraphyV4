@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const mocks = vi.hoisted(() => {
   const render = vi.fn();
@@ -92,5 +94,23 @@ describe('main', () => {
     expect(mocks.createRoot).not.toHaveBeenCalled();
     expect(mocks.render).not.toHaveBeenCalled();
     expect((window as unknown as { vscode: unknown }).vscode).toBe(mocks.vscodeApi);
+  });
+
+  it('does not load the Three.js runtime from the webview entrypoint', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../src/webview/main.tsx'),
+      'utf8',
+    );
+
+    expect(source).not.toContain("import './three/runtime'");
+  });
+
+  it('does not load 3d node rendering from shared graph callbacks', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../src/webview/components/graph/rendering/useGraphCallbacks.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('nodes/canvas3d');
   });
 });

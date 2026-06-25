@@ -77,6 +77,17 @@ describe('Surface2d', () => {
       expect(props.linkDirectionalArrowLength).toBe(12);
     });
 
+    it('passes constant arrow position and color values', () => {
+      const defaultProps = createDefaultProps();
+      render(<Surface2d {...defaultProps} />);
+      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
+
+      expect(props.linkDirectionalArrowRelPos).toBe(1);
+      expect(props.linkDirectionalArrowColor).toBe('#ffffff');
+      expect(defaultProps.getArrowRelPos).toHaveBeenCalledOnce();
+      expect(defaultProps.getArrowColor).toHaveBeenCalledOnce();
+    });
+
 
 
     it('sets linkDirectionalArrowLength to 0 when direction mode is not arrows', () => {

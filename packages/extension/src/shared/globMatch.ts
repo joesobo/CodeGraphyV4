@@ -1,44 +1,19 @@
-/**
- * Convert a simple glob pattern to a RegExp.
- *
- * Rules:
- *  - `**` matches any path segments, including nested `/`
- *  - `*` matches anything except `/`
- *  - regex metacharacters are escaped
- *
- * Patterns are matched against the basename or path suffix, so `src/*`
- * works anywhere in the tree while still keeping `*` and `**` semantics.
- */
+import { createCombinedGlobMatcher as createCombinedGlobMatcherImpl } from './globMatch/combined/matcher';
+import { createGlobMatcher as createGlobMatcherImpl, globMatch as globMatchImpl } from './globMatch/matcher';
+import { globToRegex as globToRegexImpl } from './globMatch/regex';
+
 export function globToRegex(pattern: string): RegExp {
-  let body = '';
-  for (let index = 0; index < pattern.length; index += 1) {
-    const character = pattern[index];
-    const nextCharacter = pattern[index + 1];
-    const afterNextCharacter = pattern[index + 2];
+  return globToRegexImpl(pattern);
+}
 
-    if (character === '*' && nextCharacter === '*' && afterNextCharacter === '/') {
-      body += '(?:.*/)?';
-      index += 2;
-      continue;
-    }
+export function createGlobMatcher(pattern: string): (filePath: string) => boolean {
+  return createGlobMatcherImpl(pattern);
+}
 
-    if (character === '*' && nextCharacter === '*') {
-      body += '.*';
-      index += 1;
-      continue;
-    }
-
-    if (character === '*') {
-      body += '[^/]*';
-      continue;
-    }
-
-    body += character.replace(/([.+^${}()|[\]\\])/g, '\\$1');
-  }
-
-  return new RegExp(`(?:^|/)${body}$`);
+export function createCombinedGlobMatcher(patterns: readonly string[]): (filePath: string) => boolean {
+  return createCombinedGlobMatcherImpl(patterns);
 }
 
 export function globMatch(filePath: string, pattern: string): boolean {
-  return globToRegex(pattern).test(filePath);
+  return globMatchImpl(filePath, pattern);
 }

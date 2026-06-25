@@ -90,7 +90,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     );
   }
 
-  private _getActiveAnalysisPluginIds(
+  protected _getActiveAnalysisPluginIds(
     pluginIds: readonly string[] | undefined,
     disabledPlugins: ReadonlySet<string>,
   ): string[] {
@@ -109,7 +109,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
-    return buildWorkspacePipelineGraph(
+    const graphData = buildWorkspacePipelineGraph(
       this._cache,
       this._context,
       this._registry,
@@ -120,6 +120,8 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       this._lastDiscoveredDirectories,
       this._lastGitIgnoredPaths,
     );
+    this._lastGraphData = graphData;
+    return graphData;
   }
 
   protected _buildGraphDataFromAnalysis(
@@ -129,7 +131,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
     const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
-    return buildWorkspacePipelineGraphFromAnalysis(
+    const graphData = buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
       this._context,
       this._registry,
@@ -141,6 +143,8 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       { nodeVisibility },
       this._lastGitIgnoredPaths,
     );
+    this._lastGraphData = graphData;
+    return graphData;
   }
 
   protected _getWorkspaceRoot(): string | undefined {
@@ -186,7 +190,10 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   }
 
   protected async _persistIndexMetadata(): Promise<void> {
-    await persistWorkspacePipelineIndexMetadata(this._getWorkspaceRoot(), {
+    const workspaceRoot = this._getWorkspaceRoot();
+    await persistWorkspacePipelineIndexMetadata(workspaceRoot, {
+      getCurrentCommitSha: () =>
+        workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
       getPluginSignature: () => this._getPluginSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
       warn: (message: string, error: unknown) => {

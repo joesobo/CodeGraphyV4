@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactElement,
+} from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
@@ -9,22 +15,19 @@ import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interactio
 import type { GraphRuntime } from '../runtime/use/state';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
-import { Viewport } from './view';
+import { Viewport, type ViewportProps } from './view';
 import { graphStore } from '../../../store/state';
 import { publishGraphViewportScale as publishGraphViewportScaleChange } from './shell/scale';
 import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
 import { useGraphViewportModelOptions } from './shell/modelOptions';
 import { createGraphViewportSurfaceProps } from './shell/surfaceProps';
+import { publishCurrentGraphAccessibilityItems } from './shell/accessibilityItems';
+import { publishPluginGraphViewViewportState } from './shell/pluginState';
+import type { GraphViewport2dControls } from './shell/state';
 import {
-	createGraphViewViewportState,
-	type GraphViewport2dControls,
-} from './shell/viewportState';
-import {
-  createGraphAccessibilityItems,
   type GraphAccessibilityItems,
   type GraphScreenProjector,
 } from './accessibility';
-import type { FGLink, FGNode } from '../model/build';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -37,24 +40,6 @@ export interface GraphViewportShellProps {
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
   viewState: GraphViewStoreState;
-}
-
-function createGraphAccessibilitySignature(
-  nodes: readonly FGNode[],
-  links: readonly FGLink[],
-): string {
-  const nodeSignature = nodes
-    .map(node => `${node.id}:${node.size}:${Number.isFinite(node.x) && Number.isFinite(node.y) ? 'ready' : 'pending'}`)
-    .join('|');
-  const linkSignature = links
-    .map(link => `${link.id}:${resolveLinkEndpoint(link.source)}:${resolveLinkEndpoint(link.target)}`)
-    .join('|');
-
-  return `${nodeSignature}::${linkSignature}`;
-}
-
-function resolveLinkEndpoint(endpoint: string | FGNode): string {
-  return typeof endpoint === 'string' ? endpoint : endpoint.id;
 }
 
 export function GraphViewportShell({
@@ -72,6 +57,7 @@ export function GraphViewportShell({
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const lastAccessibilitySignatureRef = useRef('');
   const accessibilityDirtyRef = useRef(true);
+  const renderFramePostRef = useRef<ViewportProps['surface2dProps']['onRenderFramePost']>(() => undefined);
   const [accessibilityItems, setAccessibilityItems] = useState<GraphAccessibilityItems>({
     nodes: [],
     edges: [],
@@ -123,56 +109,42 @@ export function GraphViewportShell({
   };
 
   const publishGraphViewViewportState = (globalScale: number): void => {
-    if (!pluginHost) {
-      return;
-    }
-
-    if (pluginHost.hasGraphViewViewportConsumers?.() === false) {
-      return;
-    }
-
-    const graph = graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined;
-    pluginHost.setGraphViewViewportState(createGraphViewViewportState({
+    publishPluginGraphViewViewportState({
       globalScale,
-      graph,
+      graph: graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined,
       graphMode: viewState.graphMode,
       nodes: graphState.renderer.graphDataRef.current.nodes,
+      pluginHost,
       timelineActive: viewState.timelineActive,
-    }));
+    });
   };
 
   const publishGraphAccessibilityItems = (): void => {
-    if (viewState.graphMode !== '2d') {
-      return;
-    }
-
-    if (!accessibilityDirtyRef.current) {
-      return;
-    }
-
-    const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
     const nodes = graphState.renderer.graphDataRef.current.nodes;
     const links = graphState.renderer.graphDataRef.current.links;
-    const ready = nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y));
-    if (!ready) {
-      return;
-    }
-
-    const signature = createGraphAccessibilitySignature(nodes, links);
-    if (signature === lastAccessibilitySignatureRef.current) {
-      accessibilityDirtyRef.current = false;
-      return;
-    }
-
-    lastAccessibilitySignatureRef.current = signature;
-    const items = createGraphAccessibilityItems(
-      nodes,
+    const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
+    publishCurrentGraphAccessibilityItems({
+      accessibilityDirtyRef,
+      graph: typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
+      graphMode: viewState.graphMode,
+      lastAccessibilitySignatureRef,
       links,
-      typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
-    );
-    setAccessibilityItems(items);
-    accessibilityDirtyRef.current = false;
+      nodes,
+      setAccessibilityItems,
+    });
   };
+
+  renderFramePostRef.current = (ctx, globalScale) => {
+    publishGraphViewportScale(globalScale);
+    publishGraphViewViewportState(globalScale);
+    publishGraphAccessibilityItems();
+    viewportRuntime.renderPluginOverlays(ctx, globalScale);
+  };
+
+  const handleRenderFramePost = useCallback<ViewportProps['surface2dProps']['onRenderFramePost']>(
+    (ctx, globalScale) => renderFramePostRef.current(ctx, globalScale),
+    [],
+  );
 
   useEffect(() => {
     return () => {
@@ -187,12 +159,7 @@ export function GraphViewportShell({
   const surfaceProps = createGraphViewportSurfaceProps({
     callbacks,
     graphState,
-    onRenderFramePost: (ctx, globalScale) => {
-      publishGraphViewportScale(globalScale);
-      publishGraphViewViewportState(globalScale);
-      publishGraphAccessibilityItems();
-      viewportRuntime.renderPluginOverlays(ctx, globalScale);
-    },
+    onRenderFramePost: handleRenderFramePost,
     sharedProps: viewportModel.sharedProps,
     viewState,
   });

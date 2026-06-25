@@ -1,39 +1,38 @@
-import { DEFAULT_NODE_COLOR } from '../../../../shared/fileColors';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
-import { ruleMatchesNode, ruleTargetsNodes } from './nodeMatcher';
+import {
+  applyCompiledNodeLegendRules as applyCompiledNodeLegendRulesImpl,
+  applyNodeLegendRules as applyNodeLegendRulesImpl,
+} from './nodeLegend/apply';
+import {
+  compileNodeLegendRules as compileNodeLegendRulesImpl,
+  getOrderedActiveRules as getOrderedActiveRulesImpl,
+} from './nodeLegend/compile';
+import type {
+  CompiledNodeLegendRule,
+  NodeLegendRuleInput,
+} from './nodeLegend/contracts';
+
+export type { CompiledNodeLegendRule } from './nodeLegend/contracts';
 
 export function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
-  return legends
-    .filter((group) => !group.disabled)
-    .reverse();
+  return getOrderedActiveRulesImpl(legends);
+}
+
+export function compileNodeLegendRules(activeRules: IGroup[]): CompiledNodeLegendRule[] {
+  return compileNodeLegendRulesImpl(activeRules);
+}
+
+export function applyCompiledNodeLegendRules(
+  node: IGraphData['nodes'][number],
+  activeRules: readonly CompiledNodeLegendRule[],
+): IGraphData['nodes'][number] {
+  return applyCompiledNodeLegendRulesImpl(node, activeRules);
 }
 
 export function applyNodeLegendRules(
   node: IGraphData['nodes'][number],
-  activeRules: IGroup[],
+  activeRules: readonly NodeLegendRuleInput[],
 ): IGraphData['nodes'][number] {
-  const nextNode = {
-    ...node,
-    color: node.color || DEFAULT_NODE_COLOR,
-  };
-
-  for (const rule of activeRules) {
-    if (!ruleTargetsNodes(rule) || !ruleMatchesNode(node, rule)) {
-      continue;
-    }
-
-    nextNode.color = rule.color;
-    if (rule.shape2D) {
-      nextNode.shape2D = rule.shape2D;
-    }
-    if (rule.shape3D) {
-      nextNode.shape3D = rule.shape3D;
-    }
-    if (rule.imageUrl) {
-      nextNode.imageUrl = rule.imageUrl;
-    }
-  }
-
-  return nextNode;
+  return applyNodeLegendRulesImpl(node, activeRules);
 }

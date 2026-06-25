@@ -48,6 +48,54 @@ describe('plugins/lifecycle analysis notifications', () => {
     expect(onGraphRebuild).toHaveBeenCalledWith(emptyGraph);
   });
 
+  it('routes pre-analysis files to matching plugin extensions', async () => {
+    const onTypeScriptPreAnalyze = vi.fn();
+    const onMarkdownPreAnalyze = vi.fn();
+    const onWildcardPreAnalyze = vi.fn();
+    const plugins = new Map<string, ILifecyclePluginInfo>([
+      ['ts', pluginInfo({
+        id: 'ts',
+        name: 'TypeScript',
+        version: '1.0.0',
+        apiVersion: '2',
+        supportedExtensions: ['.ts'],
+        onPreAnalyze: onTypeScriptPreAnalyze,
+      })],
+      ['markdown', pluginInfo({
+        id: 'markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        apiVersion: '2',
+        supportedExtensions: ['.md'],
+        onPreAnalyze: onMarkdownPreAnalyze,
+      })],
+      ['wildcard', pluginInfo({
+        id: 'wildcard',
+        name: 'Wildcard',
+        version: '1.0.0',
+        apiVersion: '2',
+        supportedExtensions: ['*'],
+        onPreAnalyze: onWildcardPreAnalyze,
+      })],
+    ]);
+    const typeScriptFile = {
+      absolutePath: '/workspace/src/app.ts',
+      relativePath: 'src/app.ts',
+      content: 'content',
+    };
+    const markdownFile = {
+      absolutePath: '/workspace/README.md',
+      relativePath: 'README.md',
+      content: '# docs',
+    };
+
+    await notifyPreAnalyze(plugins, [typeScriptFile, markdownFile], '/workspace');
+
+    expect(onTypeScriptPreAnalyze).toHaveBeenCalledWith([typeScriptFile], '/workspace', expect.any(Object));
+    expect(onMarkdownPreAnalyze).toHaveBeenCalledWith([markdownFile], '/workspace', expect.any(Object));
+    expect(onWildcardPreAnalyze).toHaveBeenCalledWith([typeScriptFile, markdownFile], '/workspace', expect.any(Object));
+  });
+
   it('logs lifecycle hook errors without stopping later plugins', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const afterRebuild = vi.fn();

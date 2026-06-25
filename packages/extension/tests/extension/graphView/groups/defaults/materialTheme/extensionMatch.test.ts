@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { findLongestExtensionMatch } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/extensionMatch';
+import {
+  createMaterialExtensionMatcher,
+  findLongestExtensionMatch,
+  findLongestExtensionMatchWithMatcher,
+} from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/extensionMatch';
 
 describe('graphView/materialTheme/extensionMatch', () => {
   it('matches bare extension filenames', () => {
@@ -24,6 +28,20 @@ describe('graphView/materialTheme/extensionMatch', () => {
       ['test.ts', 'test-typescript'],
       ['d.test.ts', 'definition-test'],
     ])).toEqual({
+      iconName: 'definition-test',
+      key: 'd.test.ts',
+      kind: 'fileExtension',
+    });
+  });
+
+  it('reuses a prepared extension matcher while preserving longest-match behavior', () => {
+    const matcher = createMaterialExtensionMatcher({
+      ts: 'typescript',
+      'test.ts': 'test-typescript',
+      'd.test.ts': 'definition-test',
+    });
+
+    expect(findLongestExtensionMatchWithMatcher('main.d.test.ts', matcher)).toEqual({
       iconName: 'definition-test',
       key: 'd.test.ts',
       kind: 'fileExtension',

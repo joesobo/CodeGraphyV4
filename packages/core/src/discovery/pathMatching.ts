@@ -1,28 +1,10 @@
-/**
- * @fileoverview Path normalization and pattern matching helpers for discovery.
- * @module core/discovery/pathMatching
- */
-
 import { minimatch } from 'minimatch';
+import { normalizeDiscoveryPath } from './pathNormalization.js';
 
-export const DEFAULT_EXCLUDE = [
-  '**/node_modules/**',
-  '**/dist/**',
-  '**/build/**',
-  '**/out/**',
-  '**/.git/**',
-  '**/.codegraphy/**',
-  '**/.turbo/**',
-  '**/coverage/**',
-  '**/.DS_Store',
-  '**/*.min.js',
-  '**/*.bundle.js',
-  '**/*.map',
-];
-
-export function normalizeDiscoveryPath(relativePath: string): string {
-  return relativePath.replace(/\\/g, '/');
-}
+export { DEFAULT_EXCLUDE } from './pathExclusions.js';
+export { isDefaultExcludedPath } from './defaultExcludedPath.js';
+export { normalizeDiscoveryPath } from './pathNormalization.js';
+export { shouldSkipKnownDirectory } from './knownDirectory.js';
 
 export function matchesAnyPattern(relativePath: string, patterns: readonly string[]): boolean {
   const normalizedPath = normalizeDiscoveryPath(relativePath);
@@ -30,15 +12,4 @@ export function matchesAnyPattern(relativePath: string, patterns: readonly strin
   return patterns.some((pattern) =>
     minimatch(normalizedPath, pattern, { dot: true, matchBase: true })
   );
-}
-
-export function shouldSkipKnownDirectory(relativePath: string): boolean {
-  const normalizedRelative = normalizeDiscoveryPath(relativePath);
-
-  return normalizedRelative === 'node_modules'
-    || normalizedRelative === '.git'
-    || normalizedRelative === '.codegraphy'
-    || normalizedRelative.startsWith('node_modules/')
-    || normalizedRelative.startsWith('.git/')
-    || normalizedRelative.startsWith('.codegraphy/');
 }

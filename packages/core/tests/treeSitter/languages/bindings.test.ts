@@ -108,6 +108,33 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     expect(second).toBe(first);
   });
 
+  it('loads and caches only the requested language binding', async () => {
+    class FakeParser {}
+    const typeScript = { name: 'typescript' };
+
+    vi.doMock('tree-sitter', () => ({ default: FakeParser }));
+    vi.doMock('tree-sitter-javascript', () => {
+      throw new Error('should not load javascript grammar');
+    });
+    vi.doMock('tree-sitter-typescript', () => ({
+      default: {
+        tsx: { name: 'tsx' },
+        typescript: typeScript,
+      },
+    }));
+
+    const { loadTreeSitterLanguageBinding } = await import(MODULE_PATH);
+
+    const first = await loadTreeSitterLanguageBinding('typeScript');
+    const second = await loadTreeSitterLanguageBinding('typeScript');
+
+    expect(first).toEqual({
+      ParserCtor: FakeParser,
+      language: typeScript,
+    });
+    expect(second).toBe(first);
+  });
+
   it('logs unavailable bindings once and returns null on repeated failures', async () => {
     const warning = new Error('missing native module');
     const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});

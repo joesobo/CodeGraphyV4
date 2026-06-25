@@ -1,5 +1,15 @@
 import type { MaterialMatch } from './model';
 import { getMaterialBaseName, normalizePathSeparators } from './paths';
+import {
+  createMaterialPathRuleMatcher,
+  type MaterialPathRuleEntry,
+  type MaterialPathRuleMatcher,
+} from './pathMatcher';
+
+export {
+  createMaterialPathRuleMatcher,
+  type MaterialPathRuleMatcher,
+};
 
 type PathMatchKind = Extract<MaterialMatch['kind'], 'fileName' | 'folderName'>;
 
@@ -8,41 +18,6 @@ interface PathMatchContext {
   lowerBaseName: string;
   lowerSubjectPath: string;
   subjectPath: string;
-}
-
-interface MaterialPathRuleEntry {
-  iconName: string;
-  lowerRule: string;
-  normalizedRule: string;
-}
-
-export interface MaterialPathRuleMatcher {
-  baseNameRules: Map<string, MaterialPathRuleEntry>;
-  pathRules: MaterialPathRuleEntry[];
-}
-
-export function createMaterialPathRuleMatcher(
-  rules: Record<string, string>,
-): MaterialPathRuleMatcher {
-  const baseNameRules = new Map<string, MaterialPathRuleEntry>();
-  const pathRules: MaterialPathRuleEntry[] = [];
-
-  for (const [ruleKey, iconName] of Object.entries(rules)) {
-    const normalizedRule = normalizePathSeparators(ruleKey);
-    const lowerRule = normalizedRule.toLowerCase();
-    const entry = { iconName, lowerRule, normalizedRule };
-
-    if (normalizedRule.includes('/')) {
-      pathRules.push(entry);
-      continue;
-    }
-
-    baseNameRules.set(lowerRule, entry);
-  }
-
-  pathRules.sort((left, right) => right.normalizedRule.length - left.normalizedRule.length);
-
-  return { baseNameRules, pathRules };
 }
 
 export function findLongestPathMatch(
@@ -63,7 +38,7 @@ export function findLongestPathMatchWithMatcher(
   kind: PathMatchKind,
 ): MaterialMatch | undefined {
   const context = getPathMatchContext(subjectPath);
-  for (const rule of matcher.pathRules) {
+  for (const rule of matcher.pathRulesByLowerBaseName.get(context.lowerBaseName) ?? []) {
     if (!matchesPathRule(context, rule.normalizedRule, rule.lowerRule)) {
       continue;
     }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../../../../src/shared/fileColors';
-import { applyNodeLegendRules, getOrderedActiveRules } from '../../../../../src/webview/search/filtering/rules/nodes';
+import {
+  applyNodeLegendRules,
+  compileNodeLegendRules,
+  getOrderedActiveRules,
+} from '../../../../../src/webview/search/filtering/rules/nodes';
 import { buildGraphViewMergedGroups } from '../../../../../src/extension/graphView/groups/merged';
 
 describe('search/filtering/rules/nodes', () => {
@@ -13,6 +17,23 @@ describe('search/filtering/rules/nodes', () => {
 
     expect(getOrderedActiveRules(legends).map((rule) => rule.id)).toEqual(['last', 'first']);
     expect(legends.map((rule) => rule.id)).toEqual(['first', 'disabled', 'last']);
+  });
+
+  it('precomputes whether compiled rules have scoped constraints', () => {
+    const compiledRules = compileNodeLegendRules([
+      { id: 'plain', pattern: 'src/**', color: '#111111' },
+      {
+        id: 'scoped',
+        pattern: '**',
+        color: '#222222',
+        matchNodeType: 'symbol',
+      },
+    ]);
+
+    expect(compiledRules.map((rule) => [rule.rule.id, rule.hasConstraints])).toEqual([
+      ['plain', false],
+      ['scoped', true],
+    ]);
   });
 
   it('drops disabled rules and applies active rules from bottom to top', () => {
@@ -156,6 +177,32 @@ describe('search/filtering/rules/nodes', () => {
       label: 'app.ts',
       color: '#111111',
       nodeType: 'file',
+    });
+  });
+
+  it('matches path-based custom rules against symbol containing file paths', () => {
+    const activeRules = getOrderedActiveRules([
+      { id: 'core', pattern: 'packages/core/**', color: '#00ff00' },
+    ]);
+
+    expect(
+      applyNodeLegendRules(
+        {
+          id: 'symbol:function:parseGraph',
+          label: 'parseGraph',
+          color: '#111111',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'symbol:function:parseGraph',
+            name: 'parseGraph',
+            kind: 'function',
+            filePath: 'packages/core/src/graph/parser.ts',
+          },
+        },
+        activeRules,
+      ),
+    ).toMatchObject({
+      color: '#00ff00',
     });
   });
 

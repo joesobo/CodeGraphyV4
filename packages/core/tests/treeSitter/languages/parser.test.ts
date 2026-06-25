@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { loadTreeSitterBindings } = vi.hoisted(() => ({
-  loadTreeSitterBindings: vi.fn(),
+const { loadTreeSitterLanguageBinding } = vi.hoisted(() => ({
+  loadTreeSitterLanguageBinding: vi.fn(),
 }));
 
 vi.mock(
   '../../../src/treeSitter/runtime/languages/load',
   () => ({
-    loadTreeSitterBindings,
+    loadTreeSitterLanguageBinding,
   }),
 );
 
@@ -26,9 +26,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns a configured parser for supported files when bindings are available', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      typeScript: { id: 'typescript' },
+      language: { id: 'typescript' },
     });
 
     const parser = await createTreeSitterParser('/workspace/src/app.ts');
@@ -39,15 +39,21 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for C and C++ files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
-      ParserCtor: MockParser,
-      cLanguage: { id: 'c' },
-      cpp: { id: 'cpp' },
-    });
+    loadTreeSitterLanguageBinding
+      .mockResolvedValueOnce({
+        ParserCtor: MockParser,
+        language: { id: 'c' },
+      })
+      .mockResolvedValueOnce({
+        ParserCtor: MockParser,
+        language: { id: 'cpp' },
+      });
 
     const cRuntime = await createTreeSitterRuntime('/workspace/src/main.c');
     const cppRuntime = await createTreeSitterRuntime('/workspace/src/main.cpp');
 
+    expect(loadTreeSitterLanguageBinding).toHaveBeenNthCalledWith(1, 'cLanguage');
+    expect(loadTreeSitterLanguageBinding).toHaveBeenNthCalledWith(2, 'cpp');
     expect(cRuntime?.languageKind).toBe('c');
     expect((cRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({ id: 'c' });
     expect(cppRuntime?.languageKind).toBe('cpp');
@@ -55,9 +61,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for Kotlin files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      kotlin: { id: 'kotlin' },
+      language: { id: 'kotlin' },
     });
 
     const kotlinRuntime = await createTreeSitterRuntime('/workspace/src/App.kt');
@@ -74,9 +80,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for PHP files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      php: { id: 'php' },
+      language: { id: 'php' },
     });
 
     const phpRuntime = await createTreeSitterRuntime('/workspace/src/App.php');
@@ -88,9 +94,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for Dart files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      dart: { id: 'dart' },
+      language: { id: 'dart' },
     });
 
     const dartRuntime = await createTreeSitterRuntime('/workspace/lib/app/runner.dart');
@@ -102,9 +108,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for Ruby files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      ruby: { id: 'ruby' },
+      language: { id: 'ruby' },
     });
 
     const rubyRuntime = await createTreeSitterRuntime('/workspace/lib/app/runner.rb');
@@ -116,9 +122,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for Haskell files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      haskell: { id: 'haskell' },
+      language: { id: 'haskell' },
     });
 
     const haskellRuntime = await createTreeSitterRuntime('/workspace/src/App.hs');
@@ -135,9 +141,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for Lua files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      lua: { id: 'lua' },
+      language: { id: 'lua' },
     });
 
     const luaRuntime = await createTreeSitterRuntime('/workspace/src/app.lua');
@@ -149,9 +155,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns configured parsers for Swift files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      swift: { id: 'swift' },
+      language: { id: 'swift' },
     });
 
     const swiftRuntime = await createTreeSitterRuntime('/workspace/Sources/App/Runner.swift');
@@ -163,9 +169,9 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns a runtime with the parser and language kind for supported files', async () => {
-    loadTreeSitterBindings.mockResolvedValue({
+    loadTreeSitterLanguageBinding.mockResolvedValue({
       ParserCtor: MockParser,
-      javaScript: { id: 'javascript' },
+      language: { id: 'javascript' },
     });
 
     const runtime = await createTreeSitterRuntime('/workspace/src/app.js');
@@ -179,7 +185,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   });
 
   it('returns null for supported files when bindings are unavailable', async () => {
-    loadTreeSitterBindings.mockResolvedValue(null);
+    loadTreeSitterLanguageBinding.mockResolvedValue(null);
 
     await expect(createTreeSitterParser('/workspace/src/app.ts')).resolves.toBeNull();
     await expect(createTreeSitterRuntime('/workspace/src/app.ts')).resolves.toBeNull();
@@ -189,6 +195,6 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     await expect(createTreeSitterParser('/workspace/README.md')).resolves.toBeNull();
     await expect(createTreeSitterRuntime('/workspace/README.md')).resolves.toBeNull();
 
-    expect(loadTreeSitterBindings).not.toHaveBeenCalled();
+    expect(loadTreeSitterLanguageBinding).not.toHaveBeenCalled();
   });
 });

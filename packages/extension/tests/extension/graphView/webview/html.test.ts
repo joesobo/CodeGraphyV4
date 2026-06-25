@@ -30,10 +30,11 @@ describe('graphView/webview/html', () => {
       'light',
     );
 
-    expect(html).toContain("script-src 'nonce-nonce-value'");
+    expect(html).toContain("script-src vscode-webview://test 'nonce-nonce-value'");
     expect(html).toContain("img-src vscode-webview://test data:");
     expect(html).toContain('webview:/test/extension/dist/webview/index.js');
     expect(html).toContain('webview:/test/extension/dist/webview/index.css');
+    expect(html).toContain('<script type="module" nonce="nonce-value" src="webview:/test/extension/dist/webview/index.js"></script>');
     expect(html).toContain('data-codegraphy-view="graph"');
     expect(html).toContain('data-codegraphy-theme="light"');
     expect(html).toContain('<div id="root"></div>');

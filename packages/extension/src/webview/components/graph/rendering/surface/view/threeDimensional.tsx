@@ -1,4 +1,5 @@
-import { useEffect, useState, type MutableRefObject, type ReactElement } from 'react';
+import '../../../../../three/runtime';
+import { type MutableRefObject, type ReactElement } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type {
   ForceGraphMethods as FG3DMethods,
@@ -8,6 +9,13 @@ import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import * as THREE from 'three';
 import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../../model/build';
 import type { GraphSurfaceSharedProps } from '../sharedProps';
+import {
+  createNodeThreeObject,
+  type NodeThreeObjectDependencies,
+} from '../../nodes/canvas3d';
+import { useDeferredSurface3dMount } from './threeDimensional/deferredMount';
+
+export { useDeferredSurface3dMount } from './threeDimensional/deferredMount';
 
 type ForceGraph3DRef = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
 type Surface3dMeasurementKey = 'measured' | 'unmeasured';
@@ -21,7 +29,7 @@ export interface Surface3dProps {
   getLinkParticles: (this: void, link: LinkObject) => number;
   getLinkWidth: (this: void, link: LinkObject) => number;
   getParticleColor: (this: void, link: LinkObject) => string;
-  nodeThreeObject: (this: void, node: NodeObject) => THREE.Object3D;
+  nodeThreeObjectContext: NodeThreeObjectDependencies;
   particleSize: number;
   particleSpeed: number;
   sharedProps: GraphSurfaceSharedProps;
@@ -39,35 +47,6 @@ export function getSurface3dMeasurementKey(
     : 'measured';
 }
 
-export function useDeferredSurface3dMount(enabled: boolean): boolean {
-  const [isMounted, setIsMounted] = useState(!enabled);
-
-  useEffect(() => {
-    if (!enabled) {
-      setIsMounted(true);
-      return;
-    }
-
-    setIsMounted(false);
-
-    let firstFrame: number | null = null;
-    let secondFrame: number | null = null;
-
-    firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => {
-        setIsMounted(true);
-      });
-    });
-
-    return () => {
-      if (firstFrame !== null) cancelAnimationFrame(firstFrame);
-      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
-    };
-  }, [enabled]);
-
-  return isMounted;
-}
-
 export function Surface3d({
   backgroundColor,
   directionMode,
@@ -77,7 +56,7 @@ export function Surface3d({
   getLinkParticles,
   getLinkWidth,
   getParticleColor,
-  nodeThreeObject,
+  nodeThreeObjectContext,
   particleSize,
   particleSpeed,
   sharedProps,
@@ -91,7 +70,8 @@ export function Surface3d({
       nodeVal={(node: NodeObject) => (node as FGNode).size / DEFAULT_NODE_SIZE}
       nodeLabel=""
       nodeThreeObjectExtend={false}
-      nodeThreeObject={nodeThreeObject}
+      nodeThreeObject={(node: NodeObject): THREE.Object3D =>
+        createNodeThreeObject(nodeThreeObjectContext, node as FGNode)}
       linkColor={getLinkColor}
       linkWidth={getLinkWidth}
       linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
+import type { IGraphEdgeTypeDefinition } from '../../../src/shared/graphControls/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 
 const deriveVisibleGraphMock = vi.hoisted(() => vi.fn());
@@ -131,5 +132,57 @@ describe('useFilteredGraph dependency array mutations', () => {
       graphA,
       expect.objectContaining({ showOrphans: false }),
     );
+  });
+
+  it('reuses derived visible graphs when graph scope returns to a cached config', () => {
+    const edgeTypes: IGraphEdgeTypeDefinition[] = [
+      { id: 'import', label: 'Imports', defaultColor: '#60a5fa', defaultVisible: true },
+    ];
+    const { rerender } = renderHook(
+      ({ edgeVisibility }) =>
+        useFilteredGraph(graphA, '', defaultOptions, [], {}, {}, edgeVisibility, edgeTypes),
+      { initialProps: { edgeVisibility: {} as Record<string, boolean> } },
+    );
+
+    expect(deriveVisibleGraphMock).toHaveBeenCalledTimes(1);
+
+    rerender({ edgeVisibility: { import: false } });
+
+    expect(deriveVisibleGraphMock).toHaveBeenCalledTimes(2);
+
+    rerender({ edgeVisibility: {} });
+
+    expect(deriveVisibleGraphMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('reuses colored graph data when graph scope returns to a cached visible graph', () => {
+    const edgeTypes: IGraphEdgeTypeDefinition[] = [
+      { id: 'import', label: 'Imports', defaultColor: '#60a5fa', defaultVisible: true },
+    ];
+    const groups: IGroup[] = [{ id: 'source', pattern: 'src/**', color: '#ff0000' }];
+    deriveVisibleGraphMock.mockImplementation((
+      _graphData: IGraphData | null,
+      config: { scope?: { edges?: { type: string; enabled: boolean }[] } },
+    ) => {
+      const importEnabled = config.scope?.edges?.find(edge => edge.type === 'import')?.enabled !== false;
+      return {
+        graphData: importEnabled ? graphA : graphB,
+        regexError: null,
+      };
+    });
+    const { result, rerender } = renderHook(
+      ({ edgeVisibility }) =>
+        useFilteredGraph(graphA, '', defaultOptions, groups, {}, {}, edgeVisibility, edgeTypes),
+      { initialProps: { edgeVisibility: {} as Record<string, boolean> } },
+    );
+    const initialColoredData = result.current.coloredData;
+
+    rerender({ edgeVisibility: { import: false } });
+
+    expect(result.current.coloredData).not.toBe(initialColoredData);
+
+    rerender({ edgeVisibility: {} });
+
+    expect(result.current.coloredData).toBe(initialColoredData);
   });
 });

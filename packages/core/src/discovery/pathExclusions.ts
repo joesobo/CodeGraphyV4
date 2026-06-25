@@ -1,0 +1,17 @@
+export const DEFAULT_EXCLUDE = [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/build/**',
+  '**/out/**',
+  '**/.git/**',
+  '**/.codegraphy/**',
+  '**/.turbo',
+  '**/.turbo/**',
+  '**/.worktrees',
+  '**/.worktrees/**',
+  '**/coverage/**',
+  '**/.DS_Store',
+  '**/*.min.js',
+  '**/*.bundle.js',
+  '**/*.map',
+];

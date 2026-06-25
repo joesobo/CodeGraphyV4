@@ -39,15 +39,19 @@ export function createExecutionAnalyzer(
 export function createExecutionHandlers(
   overrides: Partial<GraphViewAnalysisExecutionHandlers> = {},
 ) {
+  let rawGraphData: IGraphData = { nodes: [], edges: [] };
   let graphData: IGraphData = { nodes: [], edges: [] };
 
   const handlers: GraphViewAnalysisExecutionHandlers = {
     isAnalysisStale: vi.fn(() => false),
     hasWorkspace: vi.fn(() => true),
-    setRawGraphData: vi.fn(),
+    setRawGraphData: vi.fn((nextGraphData: IGraphData) => {
+      rawGraphData = nextGraphData;
+    }),
     setGraphData: vi.fn((nextGraphData: IGraphData) => {
       graphData = nextGraphData;
     }),
+    getRawGraphData: vi.fn(() => rawGraphData),
     getGraphData: vi.fn(() => graphData),
     sendGraphDataUpdated: vi.fn(),
     sendDepthState: vi.fn(),

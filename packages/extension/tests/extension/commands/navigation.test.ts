@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
+
 import { getNavCommands } from '../../../src/extension/commands/navigation';
 
 function makeProvider() {

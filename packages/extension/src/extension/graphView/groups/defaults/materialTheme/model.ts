@@ -1,3 +1,6 @@
+import type { MaterialExtensionMatcher } from './extensionMatch';
+import type { MaterialPathRuleMatcher } from './pathMatch';
+
 export interface MaterialIconManifest {
   fileExtensions?: Record<string, string>;
   fileNames?: Record<string, string>;
@@ -15,6 +18,7 @@ export interface MaterialIconData {
 }
 
 export interface MaterialThemeCacheEntry {
+  extensionMatcher?: MaterialExtensionMatcher;
   iconDataByName: Map<string, MaterialIconData>;
   manifest: MaterialIconManifest;
   manifestPath: string;
@@ -34,4 +38,3 @@ export interface MaterialMatch {
 }
 
 export const DEFAULT_MATERIAL_COLOR = '#90A4AE';
-import type { MaterialPathRuleMatcher } from './pathMatch';

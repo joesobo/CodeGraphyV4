@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import fs from 'node:fs';
 import * as vscode from 'vscode';
 import { WorkspacePipelineRefreshFacade } from '../../../../src/extension/pipeline/service/refreshFacade';
 import {
@@ -8,7 +9,14 @@ import {
 import {
   refreshWorkspacePipelineAnalysisScope,
   refreshWorkspacePipelineChangedFiles,
+  refreshWorkspacePipelinePluginFiles,
 } from '../../../../src/extension/pipeline/service/runtime/refresh';
+import {
+  CACHE_VERSION,
+  CACHE_VERSION_KEY,
+  CHURN_COUNTS_STATE_KEY,
+  PLUGIN_SIGNATURE_KEY,
+} from '../../../../src/extension/gitHistory/cache/stateKeys';
 
 vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
   createWorkspacePipelineDiscoveryDependencies: vi.fn(),
@@ -18,6 +26,7 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
 vi.mock('../../../../src/extension/pipeline/service/runtime/refresh', () => ({
   refreshWorkspacePipelineAnalysisScope: vi.fn(),
   refreshWorkspacePipelineChangedFiles: vi.fn(),
+  refreshWorkspacePipelinePluginFiles: vi.fn(),
 }));
 
 vi.mock('vscode', () => ({
@@ -53,11 +62,18 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
   }
 
   _config = {
+    get: vi.fn((key: string, defaultValue: unknown) => {
+      if (key === 'nodeVisibility') {
+        return {};
+      }
+      return defaultValue;
+    }),
     getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
   } as never;
 
   _discovery = { kind: 'discovery' } as never;
   _registry = {
+    list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
     notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
   } as never;
 
@@ -67,6 +83,14 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
 
   public override set _lastDiscoveredFiles(files: never) {
     super._lastDiscoveredFiles = files;
+  }
+
+  public override get _lastDiscoveredDirectories(): string[] {
+    return super._lastDiscoveredDirectories;
+  }
+
+  public override set _lastDiscoveredDirectories(directories: string[]) {
+    super._lastDiscoveredDirectories = directories;
   }
 
   public override get _lastGitIgnoredPaths(): string[] {
@@ -99,6 +123,22 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
 
   public override set _lastWorkspaceRoot(workspaceRoot: string) {
     super._lastWorkspaceRoot = workspaceRoot;
+  }
+
+  public override get _lastGraphData(): never {
+    return super._lastGraphData as never;
+  }
+
+  public override set _lastGraphData(graphData: never) {
+    super._lastGraphData = graphData;
+  }
+
+  public override get _cache(): never {
+    return super._cache as never;
+  }
+
+  public override set _cache(cache: never) {
+    super._cache = cache;
   }
 
   _getWorkspaceRoot = vi.fn(() => '/workspace');
@@ -134,6 +174,10 @@ describe('pipeline/service/refreshFacade', () => {
     } as never);
     vi.mocked(refreshWorkspacePipelineAnalysisScope).mockResolvedValue({
       nodes: [{ id: 'scope-refresh' }],
+      edges: [],
+    } as never);
+    vi.mocked(refreshWorkspacePipelinePluginFiles).mockResolvedValue({
+      nodes: [{ id: 'plugin-refresh' }],
       edges: [],
     } as never);
   });
@@ -275,6 +319,108 @@ describe('pipeline/service/refreshFacade', () => {
     expect(facade.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/a.ts']);
   });
 
+  it('reuses the current discovered files for existing changed files', async () => {
+    const facade = new TestRefreshFacade();
+    facade._lastWorkspaceRoot = '/workspace';
+    facade._lastDiscoveredDirectories = ['src'];
+    facade._lastDiscoveredFiles = [
+      {
+        absolutePath: '/workspace/src/a.ts',
+        relativePath: 'src/a.ts',
+        extension: '.ts',
+        name: 'a.ts',
+      },
+    ] as never;
+    vi.spyOn(fs, 'existsSync').mockImplementation(filePath => filePath === '/workspace/src/a.ts');
+
+    await facade.refreshChangedFiles(['/workspace/src/a.ts']);
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
+    const [, refreshDependencies] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
+    expect(refreshDependencies.discoveredDirectories).toEqual(['src']);
+    expect(refreshDependencies.discoveredFiles).toEqual([
+      {
+        absolutePath: '/workspace/src/a.ts',
+        relativePath: 'src/a.ts',
+        extension: '.ts',
+        name: 'a.ts',
+      },
+    ]);
+  });
+
+  it('patches delegated graph metrics for file and symbol nodes', async () => {
+    const facade = new TestRefreshFacade();
+    facade._cache = {
+      files: {
+        'src/a.ts': { size: 12 },
+      },
+    } as never;
+    facade._registry = {
+      notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
+      list: vi.fn(() => [{ plugin: { id: 'plugin.a', version: '1.0.0' } }]),
+    } as never;
+    const workspaceState = (
+      facade as unknown as {
+        _context: { workspaceState: { get: ReturnType<typeof vi.fn> } };
+      }
+    )._context.workspaceState;
+    workspaceState.get.mockImplementation((key: string) => {
+      if (key === CACHE_VERSION_KEY) {
+        return CACHE_VERSION;
+      }
+      if (key === PLUGIN_SIGNATURE_KEY) {
+        return 'plugin.a@1.0.0';
+      }
+      if (key === CHURN_COUNTS_STATE_KEY) {
+        return { 'src/a.ts': 7 };
+      }
+      return undefined;
+    });
+
+    await facade.refreshChangedFiles(['/workspace/src/a.ts']);
+
+    const [refreshSource] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
+    expect(refreshSource._patchGraphDataNodeMetrics?.({
+      nodes: [
+        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 10, churn: 1 },
+        {
+          color: '#fff',
+          id: 'src/a.ts#run:function',
+          label: 'run',
+          symbol: {
+            filePath: 'src/a.ts',
+            id: 'src/a.ts#run:function',
+            kind: 'function',
+            name: 'run',
+          },
+          fileSize: 10,
+          churn: 1,
+        },
+        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4, churn: 2 },
+      ],
+      edges: [],
+    }, ['src/a.ts'])).toEqual({
+      nodes: [
+        { color: '#fff', id: 'src/a.ts', label: 'a.ts', fileSize: 12, churn: 7 },
+        {
+          color: '#fff',
+          id: 'src/a.ts#run:function',
+          label: 'run',
+          symbol: {
+            filePath: 'src/a.ts',
+            id: 'src/a.ts#run:function',
+            kind: 'function',
+            name: 'run',
+          },
+          fileSize: 12,
+          churn: 7,
+        },
+        { color: '#fff', id: 'src/b.ts', label: 'b.ts', fileSize: 4, churn: 2 },
+      ],
+      edges: [],
+    });
+  });
+
   it('builds delegated discovery and refresh dependencies for analysis-scope refreshes', async () => {
     const facade = new TestRefreshFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
@@ -326,6 +472,142 @@ describe('pipeline/service/refreshFacade', () => {
     );
   });
 
+  it('uses empty filters by default for analysis-scope refreshes', async () => {
+    const facade = new TestRefreshFacade();
+
+    await facade.refreshAnalysisScope();
+
+    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
+      'discovery-deps',
+      '/workspace',
+      { showOrphans: true, respectGitignore: true },
+      [],
+      ['plugin-filter'],
+      undefined,
+      expect.any(Function),
+    );
+  });
+
+  it('builds delegated discovery and refresh dependencies for plugin-file refreshes', async () => {
+    const facade = new TestRefreshFacade();
+    const disabledPlugins = new Set(['plugin.disabled']);
+    const signal = new AbortController().signal;
+    const onProgress = vi.fn();
+
+    const result = await facade.refreshPluginFiles(
+      ['plugin.a'],
+      undefined,
+      disabledPlugins,
+      signal,
+      onProgress,
+    );
+
+    expect(result).toEqual({ nodes: [{ id: 'plugin-refresh' }], edges: [] });
+    expect(facade._lastGitIgnoredPaths).toEqual(['example-python/app.py']);
+    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
+      'discovery-deps',
+      '/workspace',
+      { showOrphans: true, respectGitignore: true },
+      [],
+      ['plugin-filter'],
+      signal,
+      expect.any(Function),
+    );
+
+    const [refreshSource, refreshDependencies] = vi.mocked(refreshWorkspacePipelinePluginFiles).mock.calls[0];
+    expect(refreshDependencies.disabledPlugins).toBe(disabledPlugins);
+    expect(refreshDependencies.discoveredDirectories).toEqual([]);
+    expect(refreshDependencies.discoveredFiles).toEqual([
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+    ]);
+    expect(refreshDependencies.onProgress).toBe(onProgress);
+    expect(refreshDependencies.pluginIds).toEqual(['plugin.a']);
+    expect(refreshDependencies.pluginInfos).toEqual([{ plugin: { id: 'plugin.a' } }]);
+    expect(refreshDependencies.signal).toBe(signal);
+    expect(refreshDependencies.workspaceRoot).toBe('/workspace');
+
+    refreshDependencies.persistCache();
+    expect(facade._persistCache).toHaveBeenCalledOnce();
+
+    await refreshDependencies.persistIndexMetadata();
+    expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
+
+    await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
+    expect(facade._analyzeFiles).toHaveBeenCalledWith(
+      [],
+      '/workspace',
+      undefined,
+      signal,
+      undefined,
+      disabledPlugins,
+    );
+  });
+
+  it('rebuilds analysis scope from tier-complete cached analysis without reanalyzing files', async () => {
+    const facade = new TestRefreshFacade();
+    const disabledPlugins = new Set(['plugin.disabled']);
+    const signal = new AbortController().signal;
+    const onProgress = vi.fn();
+    const graphData = {
+      nodes: [{ id: 'src/a.ts#run:function' }],
+      edges: [],
+    };
+    facade._config = {
+      get: vi.fn((key: string, defaultValue: unknown) => {
+        if (key === 'nodeVisibility') {
+          return { symbol: true, 'symbol:function': true };
+        }
+        return defaultValue;
+      }),
+      getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
+    } as never;
+    facade._lastFileAnalysis = new Map([
+      ['src/a.ts', {
+        filePath: '/workspace/src/a.ts',
+        relations: [],
+        symbols: [{
+          filePath: '/workspace/src/a.ts',
+          id: '/workspace/src/a.ts:function:run',
+          kind: 'function',
+          name: 'run',
+        }],
+        cache: {
+          tiers: ['baseline', 'symbols', 'plugin:plugin.a'],
+        },
+      }],
+    ]) as never;
+    facade._buildGraphDataFromAnalysis = vi.fn(() => graphData) as never;
+
+    await expect(
+      facade.refreshAnalysisScope(['dist/**'], disabledPlugins, signal, onProgress),
+    ).resolves.toBe(graphData);
+
+    expect(refreshWorkspacePipelineAnalysisScope).not.toHaveBeenCalled();
+    expect(facade._lastDiscoveredFiles).toEqual([
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+    ]);
+    expect(facade._lastGitIgnoredPaths).toEqual(['example-python/app.py']);
+    expect(facade._lastWorkspaceRoot).toBe('/workspace');
+    expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      facade._lastFileAnalysis,
+      '/workspace',
+      true,
+      disabledPlugins,
+    );
+    expect(facade._persistCache).not.toHaveBeenCalled();
+    expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
+    expect(onProgress).toHaveBeenNthCalledWith(1, {
+      phase: 'Applying Scope',
+      current: 0,
+      total: 1,
+    });
+    expect(onProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Applying Scope',
+      current: 1,
+      total: 1,
+    });
+  });
+
   it('refreshes gitignore metadata by rebuilding from cached analysis without analyzing files', async () => {
     const facade = new TestRefreshFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
@@ -353,7 +635,7 @@ describe('pipeline/service/refreshFacade', () => {
     })) as never;
 
     await expect(
-      facade.refreshGitignoreMetadata(['dist/**'], disabledPlugins),
+      facade.refreshGitignoreMetadata(undefined, disabledPlugins),
     ).resolves.toEqual({
       nodes: [{
         color: '#64748B',
@@ -366,6 +648,15 @@ describe('pipeline/service/refreshFacade', () => {
 
     expect(facade._analyzeFiles).not.toHaveBeenCalled();
     expect(facade._lastGitIgnoredPaths).toEqual(['example-python/src/main.py']);
+    expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
+      'discovery-deps',
+      '/workspace',
+      { showOrphans: true, respectGitignore: true },
+      [],
+      ['plugin-filter'],
+      undefined,
+      expect.any(Function),
+    );
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
       facade._lastFileAnalysis,
       '/workspace',

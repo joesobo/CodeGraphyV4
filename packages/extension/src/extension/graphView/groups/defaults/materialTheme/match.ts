@@ -1,3 +1,4 @@
+import type { MaterialExtensionMatcher } from './extensionMatch';
 import type { MaterialIconManifest, MaterialMatch, MaterialThemePathMatchers } from './model';
 import { matchMaterialFileExtension } from './fileExtension';
 import { matchMaterialFileName } from './fileName';
@@ -8,11 +9,15 @@ import { getMaterialBaseName } from './paths';
 export function findMaterialMatch(
   nodeId: string,
   manifest: MaterialIconManifest,
-  options?: { nodeType?: 'file' | 'folder'; pathMatchers?: MaterialThemePathMatchers },
+  options?: {
+    extensionMatcher?: MaterialExtensionMatcher;
+    nodeType?: 'file' | 'folder';
+    pathMatchers?: MaterialThemePathMatchers;
+  },
 ): MaterialMatch | undefined {
   return options?.nodeType === 'folder'
     ? findFolderMaterialMatch(nodeId, manifest, options.pathMatchers)
-    : findFileMaterialMatch(nodeId, manifest, options?.pathMatchers);
+    : findFileMaterialMatch(nodeId, manifest, options?.pathMatchers, options?.extensionMatcher);
 }
 
 function findFolderMaterialMatch(
@@ -34,6 +39,7 @@ function findFileMaterialMatch(
   nodeId: string,
   manifest: MaterialIconManifest,
   pathMatchers: MaterialThemePathMatchers | undefined,
+  extensionMatcher: MaterialExtensionMatcher | undefined,
 ): MaterialMatch | undefined {
   const baseName = getMaterialBaseName(nodeId);
   if (!baseName) {
@@ -41,7 +47,7 @@ function findFileMaterialMatch(
   }
 
   return findFileNameMaterialMatch(nodeId, manifest, pathMatchers)
-    ?? findFileExtensionMaterialMatch(baseName, manifest)
+    ?? findFileExtensionMaterialMatch(baseName, manifest, extensionMatcher)
     ?? findLanguageMaterialMatch(baseName, manifest);
 }
 
@@ -58,9 +64,10 @@ function findFileNameMaterialMatch(
 function findFileExtensionMaterialMatch(
   baseName: string,
   manifest: MaterialIconManifest,
+  extensionMatcher: MaterialExtensionMatcher | undefined,
 ): MaterialMatch | undefined {
   return manifest.fileExtensions
-    ? matchMaterialFileExtension(baseName, manifest.fileExtensions)
+    ? matchMaterialFileExtension(baseName, manifest.fileExtensions, extensionMatcher)
     : undefined;
 }
 

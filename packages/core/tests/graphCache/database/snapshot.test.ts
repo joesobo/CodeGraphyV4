@@ -85,6 +85,42 @@ describe('pipeline/database/cache/snapshot', () => {
     expect(readRowsSync).toHaveBeenNthCalledWith(3, 'connection', RELATION_ROWS_QUERY);
   });
 
+  it('derives structured symbols and relations from file analysis rows when dedicated rows are absent', () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(withConnection).mockImplementation((_path, callback) => callback('connection' as never));
+    vi.mocked(readRowsSync)
+      .mockReturnValueOnce([{ id: 'file-1' }] as never)
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([]);
+    vi.mocked(createSnapshotFileEntry).mockReturnValueOnce({
+      filePath: 'src/file.ts',
+      mtime: 1,
+      analysis: {
+        filePath: 'src/file.ts',
+        symbols: [
+          { id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' },
+        ],
+        relations: [
+          { kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' },
+        ],
+      },
+    } as never);
+
+    expect(readWorkspaceAnalysisDatabaseSnapshot('/workspace')).toEqual({
+      files: [{
+        filePath: 'src/file.ts',
+        mtime: 1,
+        analysis: {
+          filePath: 'src/file.ts',
+          symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
+          relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
+        },
+      }],
+      symbols: [{ id: 'symbol-1', filePath: 'src/file.ts', name: 'render', kind: 'function' }],
+      relations: [{ kind: 'import', sourceId: 'source', fromFilePath: 'src/file.ts' }],
+    });
+  });
+
   it('warns and falls back to an empty snapshot when reading the database fails', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);

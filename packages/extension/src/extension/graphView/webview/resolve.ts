@@ -29,14 +29,17 @@ export function resolveGraphViewWebviewView(
     executeCommand,
   }: ResolveGraphViewWebviewOptions,
 ): void {
+  const localResourceRoots = getLocalResourceRoots();
   webviewView.webview.options = {
     enableScripts: true,
-    localResourceRoots: getLocalResourceRoots(),
+    localResourceRoots,
     retainContextWhenHidden: true,
   };
 
   setWebviewMessageListener(webviewView.webview);
-  webviewView.webview.html = getHtml(webviewView.webview);
+
+  const html = getHtml(webviewView.webview);
+  webviewView.webview.html = html;
 
   void executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
 

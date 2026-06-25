@@ -164,7 +164,8 @@ describe('extension/pluginIntegration/typescript', () => {
     ).map((pluginInfo) => pluginInfo.plugin.id);
 
     expect(pluginIds).toContain('codegraphy.typescript');
-    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalled();

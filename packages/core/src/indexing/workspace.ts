@@ -2,14 +2,15 @@ import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
+import { createDisabledPluginSet } from '../plugins/activityState/model';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { analyzeWorkspaceIndexFiles } from './analysis';
-import { createDisabledPluginSet } from '../plugins/activityState/model';
 import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
 import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
+import { timeIndexPhase, timeIndexPhaseSync } from './workspace/timing.js';
 export {
   createCodeGraphyWorkspaceEngine,
   type CodeGraphyWorkspaceEngine,
@@ -39,54 +40,103 @@ export async function indexCodeGraphyWorkspace(
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = createDisabledPluginSet(settings, options.disabledPlugins);
-  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(
+  const { registry, loadedPackagePlugins } = await timeIndexPhase(
     options,
-    settings,
-    workspaceRoot,
-    disabledPlugins,
+    'load-plugins',
+    () => createWorkspaceIndexRegistry(
+      options,
+      settings,
+      workspaceRoot,
+      disabledPlugins,
+    ),
+    result => ({
+      loadedPackagePlugins: result.loadedPackagePlugins.length,
+      registeredPlugins: result.registry.list().length,
+    }),
   );
 
-  await registry.initializeAll(workspaceRoot);
-
-  const discoveryResult = await discoverWorkspaceIndexFiles({
-    disabledPlugins,
-    discovery,
+  await timeIndexPhase(
     options,
-    registry,
-    settings,
-    workspaceRoot,
-  });
-  const analysisResult = await analyzeWorkspaceIndexFiles({
-    cache,
-    discovery,
-    discoveryResult,
-    options,
-    registry,
-    disabledPlugins,
-    workspaceRoot,
-  });
+    'initialize-plugins',
+    () => registry.initializeAll(workspaceRoot),
+    () => ({ registeredPlugins: registry.list().length }),
+  );
 
-  const graph = buildWorkspacePipelineGraphFromAnalysis({
-    cacheFiles: cache.files,
-    churnCounts: {},
-    directoryPaths: discoveryResult.directories ?? [],
-    gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
-    disabledPlugins,
-    fileAnalysis: analysisResult.fileAnalysis,
-    getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
-    showOrphans: true,
-    workspaceRoot,
-  });
+  const discoveryResult = await timeIndexPhase(
+    options,
+    'discover-files',
+    () => discoverWorkspaceIndexFiles({
+      disabledPlugins,
+      discovery,
+      options,
+      registry,
+      settings,
+      workspaceRoot,
+    }),
+    result => ({
+      files: result.files.length,
+      directories: result.directories?.length ?? 0,
+      totalFound: result.totalFound ?? result.files.length,
+      limitReached: result.limitReached,
+    }),
+  );
+  const analysisResult = await timeIndexPhase(
+    options,
+    'analyze-files',
+    () => analyzeWorkspaceIndexFiles({
+      cache,
+      discovery,
+      discoveryResult,
+      options,
+      registry,
+      disabledPlugins,
+      workspaceRoot,
+    }),
+    result => ({
+      files: discoveryResult.files.length,
+      cacheHits: result.cacheHits,
+      cacheMisses: result.cacheMisses,
+    }),
+  );
+
+  const graph = timeIndexPhaseSync(
+    options,
+    'build-graph',
+    () => buildWorkspacePipelineGraphFromAnalysis({
+      cacheFiles: cache.files,
+      churnCounts: {},
+      directoryPaths: discoveryResult.directories ?? [],
+      gitIgnoredPaths: discoveryResult.gitIgnoredPaths ?? [],
+      disabledPlugins,
+      fileAnalysis: analysisResult.fileAnalysis,
+      getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
+      showOrphans: true,
+      workspaceRoot,
+    }),
+    result => ({
+      nodes: result.nodes.length,
+      edges: result.edges.length,
+    }),
+  );
 
   registry.notifyPostAnalyze(graph, disabledPlugins);
   registry.notifyWorkspaceReady(graph, disabledPlugins);
-  saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
-  persistWorkspaceIndexMetadata({
-    loadedPackagePlugins,
-    registry,
-    settings,
-    workspaceRoot,
-  });
+  timeIndexPhaseSync(
+    options,
+    'save-graph-cache',
+    () => saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache),
+    () => ({ files: Object.keys(cache.files).length }),
+  );
+  timeIndexPhaseSync(
+    options,
+    'persist-metadata',
+    () => persistWorkspaceIndexMetadata({
+      loadedPackagePlugins,
+      registry,
+      settings,
+      workspaceRoot,
+    }),
+  );
   options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
 
   return {

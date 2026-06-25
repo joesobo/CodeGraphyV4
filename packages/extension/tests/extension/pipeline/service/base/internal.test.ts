@@ -26,6 +26,7 @@ import {
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../../../../src/extension/pipeline/service/cache/signatures';
+import { createWorkspacePipelineAnalysisCacheTiers } from '../../../../../src/extension/pipeline/service/cache/tiers';
 import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 
 vi.mock('../../../../../src/extension/pipeline/serviceAdapters', () => ({
@@ -63,6 +64,10 @@ vi.mock('../../../../../src/extension/pipeline/service/cache/signatures', () => 
   createWorkspacePipelineSettingsSignature: vi.fn(),
   readWorkspacePipelineCurrentCommitSha: vi.fn(),
   readWorkspacePipelineCurrentCommitShaSync: vi.fn(),
+}));
+
+vi.mock('../../../../../src/extension/pipeline/service/cache/tiers', () => ({
+  createWorkspacePipelineAnalysisCacheTiers: vi.fn(),
 }));
 
 vi.mock('@codegraphy-dev/core', async (importOriginal) => ({
@@ -225,6 +230,11 @@ describe('extension/pipeline/service/internalBase', () => {
     vi.clearAllMocks();
     vi.mocked(createWorkspacePipelinePluginSignature).mockReturnValue('plugin-signature');
     vi.mocked(createWorkspacePipelineSettingsSignature).mockReturnValue('settings-signature');
+    vi.mocked(createWorkspacePipelineAnalysisCacheTiers).mockReturnValue({
+      active: ['baseline', 'plugin:plugin.a'],
+      completed: ['baseline', 'plugin:plugin.a'],
+      required: ['baseline', 'plugin:plugin.a'],
+    });
     vi.mocked(readWorkspacePipelineCurrentCommitSha).mockResolvedValue('async-commit-sha');
     vi.mocked(readWorkspacePipelineCurrentCommitShaSync).mockReturnValue('commit-sha');
     vi.mocked(readWorkspacePipelineFileStat).mockResolvedValue({
@@ -295,6 +305,15 @@ describe('extension/pipeline/service/internalBase', () => {
     const progress = vi.fn();
     const disabledPlugins = new Set(['plugin.disabled']);
     source.setEventBus({ emit: vi.fn() } as never);
+    source._registry = {
+      ...source._registry,
+      list: vi.fn(() => [
+        { plugin: { id: 'plugin.a' } },
+        { plugin: { id: '' } },
+        { plugin: { id: undefined } },
+        { plugin: { id: 'plugin.disabled' } },
+      ]),
+    } as never;
     const state = source as unknown as { _eventBus: unknown };
     const getFileStat = vi
       .spyOn(source as unknown as { _getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null> }, '_getFileStat')
@@ -324,6 +343,10 @@ describe('extension/pipeline/service/internalBase', () => {
       },
       ['plugin.a'],
       disabledPlugins,
+    );
+    expect(createWorkspacePipelineAnalysisCacheTiers).toHaveBeenCalledWith(
+      { file: true, symbol: false },
+      ['plugin.a'],
     );
     await expect(
       vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mock.calls[0][4]('/workspace/src/a.ts'),
@@ -484,6 +507,9 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(getPluginSignature).toHaveBeenCalledOnce();
     expect(dependencies.getSettingsSignature()).toBe('settings-signature');
     expect(getSettingsSignature).toHaveBeenCalledOnce();
+    expect(dependencies.getCurrentCommitSha).toBeDefined();
+    expect(dependencies.getCurrentCommitSha?.()).toBe('commit-sha');
+    expect(readWorkspacePipelineCurrentCommitShaSync).toHaveBeenCalledWith('/workspace');
     dependencies.warn('failed to persist', new Error('boom'));
     expect(warnSpy).toHaveBeenCalledWith('failed to persist', expect.any(Error));
   });

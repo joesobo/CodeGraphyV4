@@ -402,6 +402,7 @@ export type {
   ReadCodeGraphyWorkspaceStatusOptions,
 } from './workspace/status';
 export { readCodeGraphyWorkspaceStatus } from './workspace/status';
+export { filterWorkspaceStatusPendingChangedFiles } from './workspace/statusPendingFiles';
 export type {
   GraphQueryConfig,
   GraphQueryConnectionConfig,

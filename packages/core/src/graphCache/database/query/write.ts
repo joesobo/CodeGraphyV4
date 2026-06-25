@@ -1,26 +1,29 @@
 import type * as lb from '@ladybugdb/core';
-import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementAsync, runStatementSync } from '../io/connection';
-import { createRelationStatement } from '../relation/statement';
+import {
+  executeStatementAsync,
+  executeStatementSync,
+  prepareStatementAsync,
+  prepareStatementSync,
+} from '../io/connection';
 
-function escapeCypherString(value: string): string {
-  return JSON.stringify(value);
+const CREATE_FILE_ANALYSIS_STATEMENT = 'CREATE (entry:FileAnalysis {filePath: $filePath, mtime: $mtime, size: $size, analysis: $analysis})';
+
+export interface WorkspaceAnalysisCacheWriter {
+  connection: lb.Connection;
+  fileAnalysisStatement: lb.PreparedStatement;
 }
 
-function serializeJson(value: unknown): string {
-  return JSON.stringify(value ?? null);
-}
-
-function createFileAnalysisStatement(
+function createFileAnalysisParams(
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
-): string {
-  return `CREATE (entry:FileAnalysis {filePath: ${escapeCypherString(filePath)}, mtime: ${entry.mtime}, size: ${entry.size ?? 0}, analysis: ${escapeCypherString(JSON.stringify(entry.analysis))}})`;
-}
-
-function createSymbolStatement(symbol: IAnalysisSymbol): string {
-  return `CREATE (entry:Symbol {symbolId: ${escapeCypherString(symbol.id)}, filePath: ${escapeCypherString(symbol.filePath)}, name: ${escapeCypherString(symbol.name)}, kind: ${escapeCypherString(symbol.kind)}, signature: ${escapeCypherString(symbol.signature ?? '')}, rangeJson: ${escapeCypherString(serializeJson(symbol.range))}, metadataJson: ${escapeCypherString(serializeJson(symbol.metadata))}})`;
+): Record<string, lb.LbugValue> {
+  return {
+    filePath,
+    mtime: entry.mtime ?? 0,
+    size: entry.size ?? 0,
+    analysis: JSON.stringify(entry.analysis),
+  };
 }
 
 export function sortedCacheEntries(
@@ -29,48 +32,54 @@ export function sortedCacheEntries(
   return Object.entries(cache.files).sort(([left], [right]) => left.localeCompare(right));
 }
 
-export function persistAnalysisEntry(
+export function createWorkspaceAnalysisCacheWriter(
   connection: lb.Connection,
+): WorkspaceAnalysisCacheWriter {
+  return {
+    connection,
+    fileAnalysisStatement: prepareStatementSync(connection, CREATE_FILE_ANALYSIS_STATEMENT),
+  };
+}
+
+export async function createWorkspaceAnalysisCacheWriterAsync(
+  connection: lb.Connection,
+): Promise<WorkspaceAnalysisCacheWriter> {
+  const fileAnalysisStatement = await prepareStatementAsync(connection, CREATE_FILE_ANALYSIS_STATEMENT);
+  return {
+    connection,
+    fileAnalysisStatement,
+  };
+}
+
+export function persistAnalysisEntry(
+  writer: WorkspaceAnalysisCacheWriter,
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
 ): void {
-  runStatementSync(connection, createFileAnalysisStatement(filePath, entry));
-
-  for (const symbol of entry.analysis.symbols ?? []) {
-    runStatementSync(connection, createSymbolStatement(symbol));
-  }
-
-  for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
-  }
+  executeStatementSync(writer.connection, writer.fileAnalysisStatement, createFileAnalysisParams(filePath, entry));
 }
 
-async function runStatementAndYield(
-  connection: lb.Connection,
-  statement: string,
+async function executeStatementAndYield(
+  writer: WorkspaceAnalysisCacheWriter,
+  preparedStatement: lb.PreparedStatement,
+  params: Record<string, lb.LbugValue>,
   afterStatement: () => Promise<void>,
 ): Promise<void> {
-  await runStatementAsync(connection, statement);
+  await executeStatementAsync(writer.connection, preparedStatement, params);
   await afterStatement();
 }
 
 export async function persistAnalysisEntryAsync(
-  connection: lb.Connection,
+  writer: WorkspaceAnalysisCacheWriter,
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
   afterStatement: () => Promise<void>,
 ): Promise<void> {
-  await runStatementAndYield(connection, createFileAnalysisStatement(filePath, entry), afterStatement);
+  await executeStatementAndYield(
+    writer,
+    writer.fileAnalysisStatement,
+    createFileAnalysisParams(filePath, entry),
+    afterStatement,
+  );
 
-  for (const symbol of entry.analysis.symbols ?? []) {
-    await runStatementAndYield(connection, createSymbolStatement(symbol), afterStatement);
-  }
-
-  for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-    await runStatementAndYield(
-      connection,
-      createRelationStatement(filePath, relation, relationIndex),
-      afterStatement,
-    );
-  }
 }

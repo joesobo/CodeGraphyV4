@@ -9,8 +9,8 @@ import type {
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import * as THREE from 'three';
-import SpriteText from 'three-spritetext';
+import type * as THREE from 'three';
+import type SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../../shared/settings/physics';
 import { ThemeKind } from '../../../../theme/useTheme';

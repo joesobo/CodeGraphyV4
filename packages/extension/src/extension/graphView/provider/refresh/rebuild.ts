@@ -2,7 +2,7 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import type {
   GraphViewProviderRefreshMethodDependencies,
   GraphViewProviderRefreshMethodsSource,
-} from '../refresh';
+} from './contracts';
 
 export function createRebuildSenders(
   source: GraphViewProviderRefreshMethodsSource,

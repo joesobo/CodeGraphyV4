@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import { collectMaterialFileGroups } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/files';
 import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
+import { createMaterialPathRuleMatcher } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/pathMatch';
 
 const tempDirs: string[] = [];
 
@@ -18,17 +19,31 @@ function createTheme(): MaterialThemeCacheEntry {
   fs.writeFileSync(manifestPath, '{}');
   fs.writeFileSync(path.join(iconRoot, 'typescript.svg'), '<svg><path fill="#3178C6" /></svg>');
   fs.writeFileSync(path.join(iconRoot, 'readme.svg'), '<svg><path fill="#42A5F5" /></svg>');
+  fs.writeFileSync(path.join(iconRoot, 'vite.svg'), '<svg><path fill="#AA00FF" /></svg>');
+  fs.writeFileSync(path.join(iconRoot, 'web-vite.svg'), '<svg><path fill="#00AAFF" /></svg>');
+  fs.writeFileSync(path.join(iconRoot, 'api-vite.svg'), '<svg><path fill="#FFAA00" /></svg>');
 
+  const fileNames = {
+    'readme.md': 'readme',
+    'vite.config.ts': 'vite',
+    'apps/web/vite.config.ts': 'web-vite',
+    'packages/api/vite.config.ts': 'api-vite',
+  };
   return {
     iconDataByName: new Map(),
     manifestPath,
-    pathMatchers: {},
+    pathMatchers: {
+      fileNames: createMaterialPathRuleMatcher(fileNames),
+    },
     manifest: {
       fileExtensions: { ts: 'typescript' },
-      fileNames: { 'readme.md': 'readme' },
+      fileNames,
       iconDefinitions: {
         typescript: { iconPath: '../icons/typescript.svg' },
         readme: { iconPath: '../icons/readme.svg' },
+        vite: { iconPath: '../icons/vite.svg' },
+        'web-vite': { iconPath: '../icons/web-vite.svg' },
+        'api-vite': { iconPath: '../icons/api-vite.svg' },
       },
     },
   };
@@ -56,6 +71,26 @@ describe('graphView/materialTheme/files', () => {
     expect(groups.map((group) => group.id)).toEqual([
       'default:fileExtension:ts',
       'default:fileName:README.md',
+    ]);
+  });
+
+  it('keeps path-specific filename groups distinct while caching basename-only matches', () => {
+    const groups = collectMaterialFileGroups({
+      nodes: [
+        { id: 'apps/web/vite.config.ts', label: 'vite.config.ts', color: '#000000' },
+        { id: 'packages/api/vite.config.ts', label: 'vite.config.ts', color: '#000000' },
+        { id: 'examples/basic/vite.config.ts', label: 'vite.config.ts', color: '#000000' },
+        { id: 'src/main.ts', label: 'main.ts', color: '#000000' },
+        { id: 'tests/main.ts', label: 'main.ts', color: '#000000' },
+      ],
+      edges: [],
+    } satisfies IGraphData, createTheme());
+
+    expect(groups.map((group) => group.id)).toEqual([
+      'default:fileName:apps/web/vite.config.ts',
+      'default:fileName:packages/api/vite.config.ts',
+      'default:fileName:vite.config.ts',
+      'default:fileExtension:ts',
     ]);
   });
 });

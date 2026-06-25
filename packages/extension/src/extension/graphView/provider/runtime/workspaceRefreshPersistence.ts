@@ -2,11 +2,41 @@ import {
   readCodeGraphyRepoMeta,
   writeCodeGraphyRepoMeta,
 } from '../../../repoSettings/meta';
+import { shouldIgnoreWorkspaceFileWatcherRefresh } from '../../../workspaceFiles/ignore';
 
 export interface PendingWorkspaceRefreshState {
   filePaths: Set<string>;
   gitignoreRefresh: boolean;
   logMessage: string;
+}
+
+function normalizeFilePath(filePath: string): string {
+  return filePath.replace(/\\/g, '/').replace(/\/+$/, '');
+}
+
+function filterPendingWorkspaceRefreshPaths(
+  workspaceRoot: string,
+  filePaths: readonly string[],
+): string[] {
+  const normalizedWorkspaceRoot = normalizeFilePath(workspaceRoot);
+  return filePaths.filter((filePath) => {
+    if (normalizeFilePath(filePath) === normalizedWorkspaceRoot) {
+      return false;
+    }
+
+    return !shouldIgnoreWorkspaceFileWatcherRefresh(filePath);
+  });
+}
+
+function persistPendingWorkspaceRefreshPaths(
+  workspaceRoot: string,
+  filePaths: readonly string[],
+): void {
+  const meta = readCodeGraphyRepoMeta(workspaceRoot);
+  writeCodeGraphyRepoMeta(workspaceRoot, {
+    ...meta,
+    pendingChangedFiles: [...filePaths],
+  });
 }
 
 export function persistPendingWorkspaceRefresh(
@@ -17,11 +47,10 @@ export function persistPendingWorkspaceRefresh(
     return;
   }
 
-  const meta = readCodeGraphyRepoMeta(workspaceRoot);
-  writeCodeGraphyRepoMeta(workspaceRoot, {
-    ...meta,
-    pendingChangedFiles: [...filePaths],
-  });
+  persistPendingWorkspaceRefreshPaths(
+    workspaceRoot,
+    filterPendingWorkspaceRefreshPaths(workspaceRoot, filePaths),
+  );
 }
 
 export function loadPersistedWorkspaceRefresh(
@@ -32,13 +61,21 @@ export function loadPersistedWorkspaceRefresh(
   }
 
   const meta = readCodeGraphyRepoMeta(workspaceRoot);
-  if (meta.pendingChangedFiles.length === 0) {
+  const pendingChangedFiles = filterPendingWorkspaceRefreshPaths(
+    workspaceRoot,
+    meta.pendingChangedFiles,
+  );
+  if (pendingChangedFiles.length !== meta.pendingChangedFiles.length) {
+    persistPendingWorkspaceRefreshPaths(workspaceRoot, pendingChangedFiles);
+  }
+
+  if (pendingChangedFiles.length === 0) {
     return undefined;
   }
 
   return {
-    filePaths: new Set(meta.pendingChangedFiles),
-    gitignoreRefresh: meta.pendingChangedFiles.some(filePath =>
+    filePaths: new Set(pendingChangedFiles),
+    gitignoreRefresh: pendingChangedFiles.some(filePath =>
       filePath.replace(/\\/g, '/').endsWith('/.gitignore')
       || filePath.replace(/\\/g, '/') === '.gitignore'
     ),

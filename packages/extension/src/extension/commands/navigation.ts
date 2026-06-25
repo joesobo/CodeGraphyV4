@@ -9,7 +9,12 @@ import type { CommandDefinition } from './definitions';
 
 export function getNavCommands(provider: GraphViewProvider): CommandDefinition[] {
   return [
-    { id: 'codegraphy.open', handler: () => { vscode.commands.executeCommand('workbench.view.extension.codegraphy'); } },
+    {
+      id: 'codegraphy.open',
+      handler: () => {
+        void vscode.commands.executeCommand('workbench.view.extension.codegraphy');
+      },
+    },
     { id: 'codegraphy.openInEditor', handler: () => { provider.openInEditor(); } },
     { id: 'codegraphy.fitView', handler: () => { provider.sendCommand('FIT_VIEW'); } },
     { id: 'codegraphy.zoomIn', handler: () => { provider.sendCommand('ZOOM_IN'); } },

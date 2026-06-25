@@ -3,32 +3,18 @@ import type {
   GraphViewAnalysisExecutionHandlers,
   GraphViewAnalysisExecutionState,
 } from '../execution';
-import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
+import {
+  publishGraphDataMessage,
+  publishRawGraphUpdate,
+  publishStaticGraphMessages,
+} from './publish/messages';
+import { createGraphPublicationPlan } from './publish/plan';
+import {
+  resolveGraphIndexStatus,
+  shouldReportGraphViewUpdateProgress,
+} from './publish/status';
 
 export const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
-
-function resolveGraphIndexStatus(
-  state: GraphViewAnalysisExecutionState | undefined,
-  hasIndex: boolean,
-): { freshness: CodeGraphyIndexFreshness; detail: string } {
-  const status = state?.analyzer?.getIndexStatus?.();
-  if (status) {
-    return status;
-  }
-
-  return {
-    freshness: hasIndex ? 'fresh' : 'missing',
-    detail: hasIndex
-      ? 'CodeGraphy index is fresh.'
-      : 'CodeGraphy index is missing. Index the workspace to build the graph.',
-  };
-}
-
-function shouldReportGraphViewUpdateProgress(
-  state: GraphViewAnalysisExecutionState,
-): boolean {
-  return state.mode === 'index' || state.mode === 'refresh' || state.mode === 'incremental';
-}
 
 export function publishEmptyGraph(
   handlers: GraphViewAnalysisExecutionHandlers,
@@ -51,6 +37,7 @@ export function publishAnalyzedGraph(
 ): void {
   const actualHasIndex = state.analyzer?.hasIndex() ?? hasIndex;
   const status = resolveGraphIndexStatus(state, actualHasIndex);
+
   if (shouldReportGraphViewUpdateProgress(state)) {
     handlers.sendIndexProgress?.({
       phase: 'Updating Graph View',
@@ -58,22 +45,22 @@ export function publishAnalyzedGraph(
       total: 1,
     });
   }
-  handlers.setRawGraphData(rawGraphData);
-  handlers.updateViewContext();
-  handlers.applyViewTransform();
-  handlers.computeMergedGroups();
-  handlers.sendGroupsUpdated();
-  handlers.sendDepthState();
-  handlers.sendPluginStatuses();
-  handlers.sendDecorations();
-  handlers.sendContextMenuItems();
-  handlers.sendPluginExporters?.();
-  handlers.sendPluginToolbarActions?.();
-  handlers.sendGraphViewContributionStatuses?.();
-  handlers.sendPluginWebviewInjections?.();
+
+  const plan = createGraphPublicationPlan(
+    state,
+    handlers,
+    rawGraphData,
+    actualHasIndex,
+    status.freshness,
+  );
+  publishRawGraphUpdate(state, handlers, rawGraphData, plan);
 
   const graphData = handlers.getGraphData();
-  handlers.sendGraphDataUpdated(graphData);
+  if (!plan.shouldSendMetricPatch) {
+    publishStaticGraphMessages(handlers);
+  }
+  publishGraphDataMessage(handlers, graphData, plan);
+
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData, state.disabledPlugins);
   handlers.markWorkspaceReady(graphData, state.disabledPlugins);

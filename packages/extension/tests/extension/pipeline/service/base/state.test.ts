@@ -6,10 +6,14 @@ import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager
 import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
 
 const stateBaseHarness = vi.hoisted(() => ({
+  loadWorkspaceAnalysisDatabaseCache: vi.fn(),
+  loadWorkspaceAnalysisDatabaseCacheAsync: vi.fn(),
   readWorkspaceAnalysisDatabaseSnapshot: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
+  loadWorkspaceAnalysisDatabaseCache: stateBaseHarness.loadWorkspaceAnalysisDatabaseCache,
+  loadWorkspaceAnalysisDatabaseCacheAsync: stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot: stateBaseHarness.readWorkspaceAnalysisDatabaseSnapshot,
 }));
 
@@ -38,6 +42,10 @@ function createContext(): vscode.ExtensionContext {
 }
 
 describe('extension/pipeline/service/stateBase', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('initializes core collaborators and returns an empty structured snapshot without a workspace root', () => {
     Object.defineProperty(vscode.workspace, 'workspaceFolders', {
       configurable: true,
@@ -97,18 +105,158 @@ describe('extension/pipeline/service/stateBase', () => {
     expect(state._discovery).toBeInstanceOf(FileDiscovery);
   });
 
+  it('warms the repo-local Graph Cache using the shared hydration promise', async () => {
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValueOnce({
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
+        },
+      },
+    });
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+      warmGraphCache(): Promise<void>;
+    };
+
+    const firstWarm = state.warmGraphCache();
+    const secondWarm = state.warmGraphCache();
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+
+    await Promise.all([firstWarm, secondWarm]);
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledOnce();
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace');
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
+    expect(state._cache).toEqual({
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: { filePath: '/workspace/src/app.ts', relations: [] },
+        },
+      },
+    });
+  });
+
+  it('skips Graph Cache warming without a workspace root or when cache is already populated', async () => {
+    const stateWithoutRoot = new TestWorkspacePipelineState(createContext()) as TestWorkspacePipelineState & {
+      warmGraphCache(): Promise<void>;
+    };
+
+    await stateWithoutRoot.warmGraphCache();
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+
+    const stateWithCache = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+      warmGraphCache(): Promise<void>;
+    };
+    stateWithCache._cache = {
+      version: '2.1.0',
+      files: {
+        'src/current.ts': {
+          mtime: 2,
+          analysis: { filePath: '/workspace/src/current.ts', relations: [] },
+        },
+      },
+    };
+
+    await stateWithCache.warmGraphCache();
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+  });
+
+  it('does not overwrite cache populated while Graph Cache hydration is pending', async () => {
+    let resolveHydration!: (cache: unknown) => void;
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveHydration = resolve;
+      }),
+    );
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+      warmGraphCache(): Promise<void>;
+    };
+    const populatedDuringHydration = {
+      version: '2.1.0',
+      files: {
+        'src/current.ts': {
+          mtime: 2,
+          analysis: { filePath: '/workspace/src/current.ts', relations: [] },
+        },
+      },
+    };
+
+    const warm = state.warmGraphCache();
+    state._cache = populatedDuringHydration;
+    resolveHydration({
+      version: '2.1.0',
+      files: {
+        'src/stale.ts': {
+          mtime: 1,
+          analysis: { filePath: '/workspace/src/stale.ts', relations: [] },
+        },
+      },
+    });
+    await warm;
+
+    expect(state._cache).toBe(populatedDuringHydration);
+  });
+
+  it('clears the shared hydration promise so empty cache warms can retry', async () => {
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValue({
+      version: '2.1.0',
+      files: {},
+    });
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      warmGraphCache(): Promise<void>;
+    };
+
+    await state.warmGraphCache();
+    await state.warmGraphCache();
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledTimes(2);
+  });
+
   it('stores retained indexing fields in the core engine state', () => {
     const state = new TestWorkspacePipelineState(createContext()) as TestWorkspacePipelineState & {
       _cache: { files: Record<string, unknown> };
       _engineState: {
         cache: unknown;
         fileAnalysis: unknown;
+        fileConnections: unknown;
+        discoveredFiles: unknown;
+        graph: unknown;
         workspaceRoot: string;
       };
       _lastFileAnalysis: Map<string, unknown>;
+      _lastFileConnections: Map<string, unknown[]>;
+      _lastDiscoveredFiles: unknown[];
+      _lastGraphData: unknown;
       _lastWorkspaceRoot: string;
     };
     const fileAnalysis = new Map([['src/a.ts', { filePath: '/workspace/src/a.ts' }]]);
+    const fileConnections = new Map([[
+      'src/a.ts',
+      [{
+        kind: 'import' as const,
+        sourceId: 'src/a.ts',
+        specifier: './b',
+        resolvedPath: '/workspace/src/b.ts',
+      }],
+    ]]);
+    const discoveredFiles = [{
+      absolutePath: '/workspace/src/a.ts',
+      extension: '.ts',
+      name: 'a.ts',
+      relativePath: 'src/a.ts',
+    }];
+    const graphData = {
+      nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#67E8F9', nodeType: 'file' }],
+      edges: [],
+    };
 
     state._cache = {
       version: 'test',
@@ -120,10 +268,18 @@ describe('extension/pipeline/service/stateBase', () => {
       },
     };
     state._lastFileAnalysis = fileAnalysis;
+    state._lastFileConnections = fileConnections;
+    state._lastDiscoveredFiles = discoveredFiles;
+    state._lastGraphData = graphData;
     state._lastWorkspaceRoot = '/workspace';
 
     expect(state._engineState.cache).toBe(state._cache);
     expect(state._engineState.fileAnalysis).toBe(fileAnalysis);
+    expect(state._lastFileConnections).toBe(fileConnections);
+    expect(state._engineState.fileConnections).toBe(fileConnections);
+    expect(state._engineState.discoveredFiles).toBe(discoveredFiles);
+    expect(state._lastGraphData).toBe(graphData);
+    expect(state._engineState.graph).toBe(graphData);
     expect(state._engineState.workspaceRoot).toBe('/workspace');
   });
 });

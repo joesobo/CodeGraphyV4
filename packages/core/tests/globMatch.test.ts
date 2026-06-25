@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { globMatch, globToRegex } from '../src/globMatch';
+import { createGlobMatcher, globMatch, globToRegex } from '../src/globMatch';
 
 describe('globMatch', () => {
   it('supports basename, single-star, and recursive glob matching', () => {
@@ -21,5 +21,13 @@ describe('globMatch', () => {
     expect(globToRegex('src/[special].ts').test('src/special.ts')).toBe(false);
     expect(globToRegex('src/app+(test).ts').test('src/app+(test).ts')).toBe(true);
     expect(globToRegex('src/app+(test).ts').test('src/appptestt.ts')).toBe(false);
+  });
+
+  it('creates reusable matchers with the same glob semantics', () => {
+    const matcher = createGlobMatcher('src/**/*.ts');
+
+    expect(matcher('src/index.ts')).toBe(true);
+    expect(matcher('src/deep/index.ts')).toBe(true);
+    expect(matcher('docs/index.ts')).toBe(false);
   });
 });

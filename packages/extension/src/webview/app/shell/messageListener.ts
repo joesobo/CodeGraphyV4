@@ -9,6 +9,7 @@ import { parsePluginScopedMessage } from './messages';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
 import { handlePluginInjectMessage } from './messageListener/pluginInjection';
 import { removeDisabledPluginRegistrations } from './messageListener/pluginRegistrations';
+import { handlePluginDataUpdatedMessage } from './messageListener/pluginData';
 import { postWebviewReadyOnce, resetWebviewReadyPosted } from './messageListener/ready';
 import { handleCssSnippetsUpdatedMessage } from './messageListener/cssSnippets';
 
@@ -29,23 +30,6 @@ export interface InjectAssetsParams {
 export type ResetPluginAssets = (pluginId: string) => void;
 export type UpdatePluginData = (pluginId: string, data: unknown) => void;
 
-function handlePluginDataUpdatedMessage(
-  raw: { type?: unknown; payload?: unknown },
-  updatePluginData: UpdatePluginData,
-): boolean {
-  if (raw.type !== 'PLUGIN_DATA_UPDATED' || !raw.payload || typeof raw.payload !== 'object') {
-    return false;
-  }
-
-  const payload = raw.payload as { pluginId?: unknown; data?: unknown };
-  if (typeof payload.pluginId !== 'string' || payload.pluginId.length === 0) {
-    return false;
-  }
-
-  updatePluginData(payload.pluginId, payload.data);
-  return true;
-}
-
 /**
  * Create the message event handler for the App's window listener.
  */
@@ -62,7 +46,6 @@ export function createMessageHandler(
     if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
       return;
     }
-
     if (handlePluginInjectMessage(raw, injectPluginAssets)) {
       return;
     }
