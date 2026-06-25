@@ -33,6 +33,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'schedulePluginGraphWork'
   | 'cancelScheduledPluginGraphWork'
   | 'hydrateGraphScope'
+  | 'hydratePluginGraphScope'
   | 'reprocessGraphScope'
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
@@ -133,6 +134,8 @@ export function createGraphViewProviderMessageSettingsContext(
       pluginGraphWorkScheduler.cancel();
     },
     hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
+    hydratePluginGraphScope: pluginIds =>
+      source.hydratePluginGraphScope?.(pluginIds) ?? Promise.resolve(false),
     reprocessGraphScope: () => source.refreshAnalysisScope(),
     reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),
     resetAllSettings: async () => {

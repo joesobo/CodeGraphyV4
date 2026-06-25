@@ -1,6 +1,7 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { rebuildGraphViewData, smartRebuildGraphView } from '../../view/rebuild';
+import type { AnalysisCacheTier } from '@codegraphy-dev/core';
 
 export type GraphViewScopedRefreshProgress = { phase: string; current: number; total: number };
 
@@ -16,6 +17,7 @@ export interface GraphViewProviderRefreshAnalyzerLike {
     signal?: AbortSignal,
     options?: {
       includeCurrentGitignoreMetadata?: boolean;
+      requiredAnalysisCacheTiers?: readonly AnalysisCacheTier[];
       warmAnalysis?: boolean;
     },
   ): Promise<IGraphData>;
@@ -47,7 +49,7 @@ export interface GraphViewProviderRefreshAnalyzerLike {
 }
 
 export interface RefreshCoordinatorState {
-  graphScopeHydrated: boolean;
+  hydratedAnalysisCacheTiers: Set<AnalysisCacheTier>;
   indexRefreshPromise: Promise<void> | undefined;
   queuedChangedFilePaths: Set<string>;
 }
@@ -93,6 +95,7 @@ export interface GraphViewProviderRefreshMethods {
   refreshIndex(): Promise<void>;
   refreshGitignoreMetadata(): Promise<void>;
   hydrateGraphScope(): Promise<boolean>;
+  hydratePluginGraphScope(pluginIds: readonly string[]): Promise<boolean>;
   refreshAnalysisScope(): Promise<void>;
   refreshPluginFiles(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;

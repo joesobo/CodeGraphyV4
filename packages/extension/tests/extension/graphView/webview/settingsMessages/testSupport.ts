@@ -27,6 +27,7 @@ export function createHandlers(
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
     smartRebuild: vi.fn(),
     hydrateGraphScope: vi.fn(() => Promise.resolve(false)),
+    hydratePluginGraphScope: vi.fn(() => Promise.resolve(false)),
     reprocessGraphScope: vi.fn(() => Promise.resolve()),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),

@@ -34,6 +34,7 @@ export interface GraphViewSettingsMessageHandlers {
   cancelScheduledPluginGraphWork?(): void;
   sendGraphControls(): void;
   hydrateGraphScope(): Promise<boolean>;
+  hydratePluginGraphScope?(pluginIds: readonly string[]): Promise<boolean>;
   reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];

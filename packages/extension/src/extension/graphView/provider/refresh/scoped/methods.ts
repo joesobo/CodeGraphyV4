@@ -1,3 +1,9 @@
+import {
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  createPluginAnalysisCacheTier,
+  type AnalysisCacheTier,
+} from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type {
   GraphViewProviderRefreshMethodsSource,
@@ -14,17 +20,43 @@ function hasGraphData(graphData: IGraphData | undefined): graphData is IGraphDat
   return (graphData?.nodes.length ?? 0) > 0 || (graphData?.edges.length ?? 0) > 0;
 }
 
-export function createHydrateGraphScopeMethod(
+function createRequiredAnalysisCacheTiers(
+  tiers: readonly AnalysisCacheTier[],
+): AnalysisCacheTier[] {
+  return [
+    BASELINE_ANALYSIS_CACHE_TIER,
+    ...tiers.filter(tier => tier !== BASELINE_ANALYSIS_CACHE_TIER),
+  ];
+}
+
+function hasHydratedAnalysisCacheTiers(
+  state: RefreshCoordinatorState,
+  tiers: readonly AnalysisCacheTier[],
+): boolean {
+  return tiers.every(tier => state.hydratedAnalysisCacheTiers.has(tier));
+}
+
+function markHydratedAnalysisCacheTiers(
+  state: RefreshCoordinatorState,
+  tiers: readonly AnalysisCacheTier[],
+): void {
+  for (const tier of tiers) {
+    state.hydratedAnalysisCacheTiers.add(tier);
+  }
+}
+
+function createHydrateAnalysisCacheTiersMethod(
   source: GraphViewProviderRefreshMethodsSource,
   state: RefreshCoordinatorState,
   scopedRefreshLifecycle: ScopedRefreshLifecycle,
+  tiers: readonly AnalysisCacheTier[],
 ): () => Promise<boolean> {
   return async (): Promise<boolean> => {
     if (state.indexRefreshPromise) {
       await state.indexRefreshPromise;
     }
 
-    if (state.graphScopeHydrated) {
+    if (hasHydratedAnalysisCacheTiers(state, tiers)) {
       return true;
     }
 
@@ -41,6 +73,7 @@ export function createHydrateGraphScopeMethod(
         signal,
         {
           includeCurrentGitignoreMetadata: true,
+          requiredAnalysisCacheTiers: createRequiredAnalysisCacheTiers(tiers),
           warmAnalysis: false,
         },
       ),
@@ -51,8 +84,41 @@ export function createHydrateGraphScopeMethod(
     }
 
     publishGraphDataIfPresent(source, graphData);
-    state.graphScopeHydrated = true;
+    markHydratedAnalysisCacheTiers(state, tiers);
     return true;
+  };
+}
+
+export function createHydrateGraphScopeMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  scopedRefreshLifecycle: ScopedRefreshLifecycle,
+): () => Promise<boolean> {
+  return createHydrateAnalysisCacheTiersMethod(
+    source,
+    state,
+    scopedRefreshLifecycle,
+    [SYMBOLS_ANALYSIS_CACHE_TIER],
+  );
+}
+
+export function createHydratePluginGraphScopeMethod(
+  source: GraphViewProviderRefreshMethodsSource,
+  state: RefreshCoordinatorState,
+  scopedRefreshLifecycle: ScopedRefreshLifecycle,
+): (pluginIds: readonly string[]) => Promise<boolean> {
+  return async (pluginIds: readonly string[]): Promise<boolean> => {
+    const tiers = pluginIds.map(createPluginAnalysisCacheTier);
+    if (tiers.length === 0) {
+      return true;
+    }
+
+    return createHydrateAnalysisCacheTiersMethod(
+      source,
+      state,
+      scopedRefreshLifecycle,
+      tiers,
+    )();
   };
 }
 
@@ -85,7 +151,7 @@ export function createRefreshAnalysisScopeMethod(
     );
     publishGraphDataIfPresent(source, graphData);
     if (hasGraphData(graphData)) {
-      state.graphScopeHydrated = true;
+      markHydratedAnalysisCacheTiers(state, [SYMBOLS_ANALYSIS_CACHE_TIER]);
     }
   };
 }
@@ -149,5 +215,11 @@ export function createRefreshPluginFilesMethod(
       scopedRefreshLifecycle,
     );
     publishGraphDataIfPresent(source, graphData);
+    if (hasGraphData(graphData)) {
+      markHydratedAnalysisCacheTiers(
+        state,
+        pluginIds.map(createPluginAnalysisCacheTier),
+      );
+    }
   };
 }

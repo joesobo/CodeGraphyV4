@@ -161,7 +161,7 @@ describe('plugins/workspaceSelection', () => {
     })).toEqual({ kind: 'analyze-workspace' });
   });
 
-  it('plans a workspace analysis refresh when disabling a plugin id', () => {
+  it('plans projection-only work when disabling a plugin id', () => {
     const plan = createCodeGraphyWorkspacePluginTogglePlan([
       { id: 'codegraphy.markdown', enabled: true },
       { id: 'codegraphy.vue', enabled: true },
@@ -176,8 +176,23 @@ describe('plugins/workspaceSelection', () => {
         { id: 'codegraphy.vue', enabled: false },
       ],
       indexing: {
-        kind: 'analyze-workspace',
+        kind: 'projection-only',
       },
+    });
+  });
+
+  it('keeps enabling plugin evidence conservative until cache hydration or targeted analysis can run', () => {
+    const plan = createCodeGraphyWorkspacePluginTogglePlan([], {
+      pluginId: 'codegraphy.vue',
+      enabled: true,
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+      },
+    });
+
+    expect(plan.indexing).toEqual({
+      kind: 'reprocess-plugin-files',
+      pluginIds: ['codegraphy.vue'],
     });
   });
 });

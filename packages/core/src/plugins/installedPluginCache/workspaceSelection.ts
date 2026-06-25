@@ -65,7 +65,11 @@ export function createCodeGraphyWorkspacePluginTogglePlan(
 ): CodeGraphyWorkspacePluginTogglePlan {
   return {
     plugins: updateCodeGraphyWorkspacePluginSelection(plugins, options),
-    indexing: createPluginToggleIndexingPlan(options.pluginId, options.updateImpact?.toggle),
+    indexing: createPluginToggleIndexingPlan(
+      options.pluginId,
+      options.enabled,
+      options.updateImpact?.toggle,
+    ),
   };
 }
 
@@ -91,8 +95,13 @@ export function createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan(
 
 function createPluginToggleIndexingPlan(
   pluginId: string,
+  enabled: boolean,
   impact: IPluginUpdateImpact | undefined,
 ): CodeGraphyWorkspacePluginIndexingPlan {
+  if (!enabled) {
+    return { kind: 'projection-only' };
+  }
+
   return createPluginUpdateIndexingPlan(pluginId, impact);
 }
 

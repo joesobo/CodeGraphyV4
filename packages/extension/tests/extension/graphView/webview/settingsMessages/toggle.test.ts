@@ -36,6 +36,7 @@ function createHandlers(
       getPluginFilterPatterns: vi.fn(() => []),
       getPluginFilterGroups: vi.fn(() => []),
       sendGraphControls: vi.fn(),
+      hydratePluginGraphScope: vi.fn(() => Promise.resolve(false)),
       reprocessPluginFiles: vi.fn(() => Promise.resolve()),
       sendMessage: vi.fn(),
       resetAllSettings: vi.fn(() => Promise.resolve()),
@@ -65,8 +66,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { id: 'codegraphy.vue', enabled: false },
     ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -111,7 +112,33 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
+    expect(handlers.hydratePluginGraphScope).toHaveBeenCalledWith(['codegraphy.vue']);
     expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('hydrates cached plugin evidence before scheduling targeted plugin-file reprocessing', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+      })),
+      hydratePluginGraphScope: vi.fn(() => Promise.resolve(true)),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: { pluginId: 'codegraphy.vue', enabled: true },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.hydratePluginGraphScope).toHaveBeenCalledWith(['codegraphy.vue']);
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
@@ -158,8 +185,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
     expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.vue');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -202,7 +229,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('reanalyzes the workspace when disabling a package-backed plugin', async () => {
+  it('projects the graph when disabling a package-backed plugin', async () => {
     const state = createState();
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
@@ -228,8 +255,8 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.unity');
   });
 
   it('copies plugin default options into workspace settings when enabling a package-backed plugin', async () => {
@@ -296,7 +323,6 @@ describe('graph view settings toggle message', () => {
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
     const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
     const sendGraphViewContributionStatuses = vi.fn();
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
@@ -310,7 +336,6 @@ describe('graph view settings toggle message', () => {
       reloadWorkspacePlugins,
       syncWorkspacePlugins,
       sendGraphViewContributionStatuses,
-      analyzeAndSendData,
     });
 
     const handled = await applySettingsToggleMessage(
@@ -329,12 +354,12 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins).toHaveBeenCalledOnce();
     expect(reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('acme.graph-tools');
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphViewContributionStatuses.mock.invocationCallOrder[0]);
     expect(sendGraphViewContributionStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
   it('sends graph controls after package toggles sync plugin contributions', async () => {
@@ -342,7 +367,6 @@ describe('graph view settings toggle message', () => {
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
     const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
     const sendGraphControls = vi.fn();
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
@@ -353,7 +377,6 @@ describe('graph view settings toggle message', () => {
       reloadWorkspacePlugins,
       syncWorkspacePlugins,
       sendGraphControls,
-      analyzeAndSendData,
     });
 
     const handled = await applySettingsToggleMessage(
@@ -375,7 +398,7 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphControls.mock.invocationCallOrder[0]);
     expect(sendGraphControls.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
   it('sends fresh filter patterns after package toggles sync plugin filters', async () => {
@@ -430,10 +453,10 @@ describe('graph view settings toggle message', () => {
     expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0]);
     expect(vi.mocked(handlers.getPluginFilterPatterns).mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(handlers.analyzeAndSendData).mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
-  it('broadcasts package plugin cleanup before re-analysis when a package is toggled off', async () => {
+  it('broadcasts package plugin cleanup before graph projection when a package is toggled off', async () => {
     const state = createState();
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
     const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
@@ -442,7 +465,6 @@ describe('graph view settings toggle message', () => {
     const sendPluginToolbarActions = vi.fn();
     const sendGraphViewContributionStatuses = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
@@ -460,7 +482,6 @@ describe('graph view settings toggle message', () => {
       sendPluginToolbarActions,
       sendGraphViewContributionStatuses,
       sendPluginWebviewInjections,
-      analyzeAndSendData,
     });
 
     const handled = await applySettingsToggleMessage(
@@ -484,8 +505,8 @@ describe('graph view settings toggle message', () => {
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeGreaterThan(syncWorkspacePlugins.mock.invocationCallOrder[0]);
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('sends plugin webview injections before workspace analysis after package toggles', async () => {

@@ -5,7 +5,7 @@
 - Trello card: [Rethink Graph Cache, runtime memory, and update scheduling](https://trello.com/c/sawpINvf)
 - Branch: `codex/graph-cache-runtime-scheduler`
 - Base: `main` after PR [#294](https://github.com/joesobo/CodeGraphyV4/pull/294)
-- Scope: planning notes for a follow-up rearchitecture PR
+- Scope: implementation notes for the runtime scheduler follow-up PR
 
 ## Goal
 
@@ -23,6 +23,30 @@ The target model:
 - Settings store lightweight user preferences.
 - D3 receives graph data from memory and should not wait on disk persistence for
   ordinary view changes.
+
+## Measured Performance Results
+
+These measurements come from the CodeGraphy monorepo benchmark used during the
+performance PR. They are included here so future scheduler work has concrete
+numbers to compare against.
+
+| Area | Before | After | Improvement |
+| --- | ---: | ---: | --- |
+| Cold indexing | 214.04s | 17.28s | 196.76s faster, 91.93% lower, 12.39x faster |
+| Graph Cache save | 122,757ms | 10,904ms | 111,853ms faster, 91.12% lower, 11.26x faster |
+| Graph Cache size | 64,638,976 bytes | 18,153,472 bytes | 46,485,504 bytes smaller, 71.92% lower, 3.56x smaller |
+| Visible Graph projection | 775ms | 12ms | 763ms faster, 98.45% lower, 64.58x faster |
+| Folder-node projection | 1,369ms | 32ms | 1,337ms faster, 97.66% lower, 42.78x faster |
+| Import-edge-off projection | 153ms | 7ms | 146ms faster, 95.42% lower, 21.86x faster |
+| Search projection | 781ms | 12ms | 769ms faster, 98.46% lower, 65.08x faster |
+| Imports Graph Scope row toggle | 2,983ms | 188ms | 2,795ms faster, 93.70% lower, 15.87x faster |
+| Warm Graph View startup | 9,917ms | 4,614ms | 5,303ms faster, 53.47% lower, 2.15x faster |
+| Material group computation | 66ms | 38ms | 28ms faster, 42.42% lower, 1.74x faster |
+| Material group publish | 71ms | 39ms | 32ms faster, 45.07% lower, 1.82x faster |
+| Godot metadata cold-indexing slice | 104.67s | 37.27s | 67.40s faster, 64.39% lower, 2.81x faster |
+| Godot file analysis | 87,918ms | 23,352ms | 64,566ms faster, 73.44% lower, 3.76x faster |
+| TypeScript alias cold-indexing slice | 37.27s | 17.28s | 19.99s faster, 53.64% lower, 2.16x faster |
+| TypeScript file analysis | 23,352ms | 3,697ms | 19,655ms faster, 84.17% lower, 6.32x faster |
 
 ## Alignment Decisions
 
@@ -432,21 +456,32 @@ Current deterministic thresholds covered:
 | Change 1 file | 1 | 0 |
 | Delete 1 file | 1 | 0 |
 
-### Cached Graph Scope Hydration
+### Cached Evidence-Tier Hydration
 
-Symbol-dependent Graph Scope toggles now try to hydrate graph scope from Graph
-Cache before scoped analysis. A successful cache hydration replays cached graph
-data with `warmAnalysis: false`, publishes the graph, marks the tier hydrated in
+Symbol-dependent Graph Scope toggles and plugin-enable actions now try to
+hydrate the requested evidence tier from Graph Cache before scheduling scoped
+analysis. The implementation uses the same cache-tier path for `symbols` and
+`plugin:<id>` evidence. A successful cache hydration replays cached graph data
+with `warmAnalysis: false`, publishes the graph, marks the tier hydrated in
 runtime memory, and avoids scoped analysis or Graph Cache writes. Later off/on
 toggles reuse the hydrated runtime graph without rereading Graph Cache until a
 full Re-index resets the hydration state.
+
+Hydration requires the requested cache tier to actually exist in cached file
+analysis. File-only cache data is not treated as a successful symbol or plugin
+hydration; when a tier is missing, CodeGraphy falls back to the targeted
+analysis lane.
 
 Current deterministic threshold covered:
 
 | Scenario | Cache reads | Analysis jobs | Graph Cache saves |
 | --- | ---: | ---: | ---: |
 | Toggle symbol leaf on when cached | 1 | 0 | 0 |
+| Toggle symbol leaf on when cache tier is missing | 1, then fallback | 1 scoped analysis | targeted only |
 | Toggle symbol leaf off then on after hydration | 0 additional | 0 | 0 |
+| Enable analyzer plugin when cached | 1 | 0 | 0 |
+| Enable analyzer plugin when cache tier is missing | 1, then fallback | 1 plugin-file refresh | targeted only |
+| Explicit Re-index after cached hydration | next toggle rereads cache | 0 unless tier missing | 0 |
 
 ### Explicit Re-index Supersedes Scoped Work
 
