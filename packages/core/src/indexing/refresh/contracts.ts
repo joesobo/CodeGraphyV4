@@ -75,6 +75,10 @@ export interface WorkspaceIndexRefreshDependencies {
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   onDeferredIndexMetadataError?(error: unknown): void;
   persistCache(): void;
+  persistCachePatch?(patch: {
+    deleteFilePaths: readonly string[];
+    upsertFilePaths: readonly string[];
+  }): void;
   persistIndexMetadata(): Promise<void>;
   signal?: AbortSignal;
   workspaceRoot: string;

@@ -56,6 +56,9 @@ export async function refreshChangedFilesForFacade(
     persistCache: () => {
       facade._persistCache();
     },
+    persistCachePatch: patch => {
+      facade._persistCachePatch(patch);
+    },
     persistIndexMetadata: async () => {
       await facade._persistIndexMetadata();
     },

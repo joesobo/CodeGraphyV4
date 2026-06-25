@@ -11,6 +11,7 @@ import {
   clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
+  patchWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
@@ -208,6 +209,116 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     saveWorkspaceAnalysisDatabaseCache(workspaceRoot, secondCache);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(secondCache);
+  });
+
+  it('patches changed file analysis rows without rewriting unrelated Graph Cache entries', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const initialCache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/changed.ts': {
+          mtime: 1,
+          size: 10,
+          analysis: {
+            filePath: '/workspace/src/changed.ts',
+            relations: [],
+          },
+        },
+        'src/deleted.ts': {
+          mtime: 2,
+          size: 20,
+          analysis: {
+            filePath: '/workspace/src/deleted.ts',
+            relations: [],
+          },
+        },
+        'src/stable.ts': {
+          mtime: 3,
+          size: 30,
+          analysis: {
+            filePath: '/workspace/src/stable.ts',
+            relations: [{
+              kind: 'import',
+              sourceId: 'core:treesitter:import',
+              fromFilePath: '/workspace/src/stable.ts',
+              toFilePath: '/workspace/src/changed.ts',
+              resolvedPath: '/workspace/src/changed.ts',
+            }],
+          },
+        },
+      },
+    };
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, initialCache);
+
+    patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      deleteFilePaths: ['src/deleted.ts'],
+      upsertFiles: {
+        'src/changed.ts': {
+          mtime: 4,
+          size: 40,
+          analysis: {
+            filePath: '/workspace/src/changed.ts',
+            symbols: [{
+              id: '/workspace/src/changed.ts:function:changed',
+              filePath: '/workspace/src/changed.ts',
+              kind: 'function',
+              name: 'changed',
+            }],
+            relations: [],
+          },
+        },
+        'src/created.ts': {
+          mtime: 5,
+          size: 50,
+          analysis: {
+            filePath: '/workspace/src/created.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/changed.ts': {
+          mtime: 4,
+          size: 40,
+          analysis: {
+            filePath: '/workspace/src/changed.ts',
+            symbols: [{
+              id: '/workspace/src/changed.ts:function:changed',
+              filePath: '/workspace/src/changed.ts',
+              kind: 'function',
+              name: 'changed',
+            }],
+            relations: [],
+          },
+        },
+        'src/created.ts': {
+          mtime: 5,
+          size: 50,
+          analysis: {
+            filePath: '/workspace/src/created.ts',
+            relations: [],
+          },
+        },
+        'src/stable.ts': initialCache.files['src/stable.ts']!,
+      },
+    });
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toMatchObject({
+      files: [
+        { filePath: 'src/changed.ts', mtime: 4, size: 40 },
+        { filePath: 'src/created.ts', mtime: 5, size: 50 },
+        { filePath: 'src/stable.ts', mtime: 3, size: 30 },
+      ],
+      symbols: [{
+        id: '/workspace/src/changed.ts:function:changed',
+        filePath: '/workspace/src/changed.ts',
+        kind: 'function',
+        name: 'changed',
+      }],
+    });
   });
 
   it('falls back to an empty cache when the persisted database is unreadable', () => {

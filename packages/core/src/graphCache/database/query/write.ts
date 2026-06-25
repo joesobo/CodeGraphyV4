@@ -8,10 +8,19 @@ import {
 } from '../io/connection';
 
 const CREATE_FILE_ANALYSIS_STATEMENT = 'CREATE (entry:FileAnalysis {filePath: $filePath, mtime: $mtime, size: $size, analysis: $analysis})';
+const DELETE_FILE_ANALYSIS_STATEMENT = 'MATCH (entry:FileAnalysis {filePath: $filePath}) DELETE entry';
+const DELETE_SYMBOL_STATEMENT = 'MATCH (entry:Symbol {filePath: $filePath}) DELETE entry';
+const DELETE_RELATION_STATEMENT = 'MATCH (entry:Relation {filePath: $filePath}) DELETE entry';
 
 export interface WorkspaceAnalysisCacheWriter {
   connection: lb.Connection;
   fileAnalysisStatement: lb.PreparedStatement;
+}
+
+export interface WorkspaceAnalysisCachePatchWriter extends WorkspaceAnalysisCacheWriter {
+  deleteFileAnalysisStatement: lb.PreparedStatement;
+  deleteSymbolStatement: lb.PreparedStatement;
+  deleteRelationStatement: lb.PreparedStatement;
 }
 
 function createFileAnalysisParams(
@@ -41,6 +50,17 @@ export function createWorkspaceAnalysisCacheWriter(
   };
 }
 
+export function createWorkspaceAnalysisCachePatchWriter(
+  connection: lb.Connection,
+): WorkspaceAnalysisCachePatchWriter {
+  return {
+    ...createWorkspaceAnalysisCacheWriter(connection),
+    deleteFileAnalysisStatement: prepareStatementSync(connection, DELETE_FILE_ANALYSIS_STATEMENT),
+    deleteSymbolStatement: prepareStatementSync(connection, DELETE_SYMBOL_STATEMENT),
+    deleteRelationStatement: prepareStatementSync(connection, DELETE_RELATION_STATEMENT),
+  };
+}
+
 export async function createWorkspaceAnalysisCacheWriterAsync(
   connection: lb.Connection,
 ): Promise<WorkspaceAnalysisCacheWriter> {
@@ -57,6 +77,16 @@ export function persistAnalysisEntry(
   entry: IWorkspaceAnalysisCache['files'][string],
 ): void {
   executeStatementSync(writer.connection, writer.fileAnalysisStatement, createFileAnalysisParams(filePath, entry));
+}
+
+export function deleteAnalysisEntry(
+  writer: WorkspaceAnalysisCachePatchWriter,
+  filePath: string,
+): void {
+  const params = { filePath };
+  executeStatementSync(writer.connection, writer.deleteFileAnalysisStatement, params);
+  executeStatementSync(writer.connection, writer.deleteSymbolStatement, params);
+  executeStatementSync(writer.connection, writer.deleteRelationStatement, params);
 }
 
 async function executeStatementAndYield(

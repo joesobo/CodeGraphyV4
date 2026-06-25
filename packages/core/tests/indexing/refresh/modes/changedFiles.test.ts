@@ -105,6 +105,31 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(source._analyzeFiles).toHaveBeenCalledOnce();
   });
 
+  it('persists changed files through a targeted Graph Cache patch instead of a full cache save', async () => {
+    const persistCache = vi.fn();
+    const persistCachePatch = vi.fn();
+    const source = createSource({
+      _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => ({
+        cacheHits: 0,
+        cacheMisses: files.length,
+        fileAnalysis: new Map([['src/app.ts', createFileAnalysis('/workspace/src/app.ts')]]),
+        fileConnections: new Map([['src/app.ts', []]]),
+      })),
+    });
+
+    await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      persistCache,
+      persistCachePatch,
+    }));
+
+    expect(persistCache).not.toHaveBeenCalled();
+    expect(persistCachePatch).toHaveBeenCalledOnce();
+    expect(persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/app.ts'],
+    });
+  });
+
   it('labels fallback full-analysis progress as applying changes when no phase is provided', async () => {
     const graph: IGraphData = { nodes: [], edges: [] };
     const onProgress = vi.fn();

@@ -9,8 +9,10 @@ import {
 } from './snapshot';
 import {
   clearWorkspaceAnalysisDatabaseCache as clearWorkspaceAnalysisDatabaseCacheImpl,
+  patchWorkspaceAnalysisDatabaseCache as patchWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCache as saveWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncImpl,
+  type WorkspaceAnalysisDatabasePatch,
   type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
 
@@ -51,6 +53,13 @@ export function saveWorkspaceAnalysisDatabaseCache(
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
 ): void {
   saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache);
+}
+
+export function patchWorkspaceAnalysisDatabaseCache(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): void {
+  patchWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch);
 }
 
 export function saveWorkspaceAnalysisDatabaseCacheAsync(

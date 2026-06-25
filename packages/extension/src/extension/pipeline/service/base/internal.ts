@@ -24,7 +24,11 @@ import {
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../cache/signatures';
-import { persistWorkspacePipelineCache } from '../cache/storage';
+import {
+  patchWorkspacePipelineCache,
+  persistWorkspacePipelineCache,
+  type WorkspacePipelineCachePatch,
+} from '../cache/storage';
 import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
@@ -206,6 +210,17 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     persistWorkspacePipelineCache(
       this._getWorkspaceRoot(),
       this._cache,
+      (message: string, error: unknown) => {
+        console.warn(message, error);
+      },
+    );
+  }
+
+  protected _persistCachePatch(patch: WorkspacePipelineCachePatch): void {
+    patchWorkspacePipelineCache(
+      this._getWorkspaceRoot(),
+      this._cache,
+      patch,
       (message: string, error: unknown) => {
         console.warn(message, error);
       },
