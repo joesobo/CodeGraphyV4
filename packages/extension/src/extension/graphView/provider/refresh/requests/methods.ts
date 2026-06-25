@@ -33,6 +33,7 @@ export function createRefreshIndexMethod(
   source: GraphViewProviderRefreshMethodsSource,
   state: RefreshCoordinatorState,
   refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>,
+  beforeRefreshIndex?: () => void,
 ): () => Promise<void> {
   return async (): Promise<void> => {
     if (state.indexRefreshPromise) {
@@ -40,6 +41,7 @@ export function createRefreshIndexMethod(
       return;
     }
 
+    beforeRefreshIndex?.();
     state.indexRefreshPromise = runIndexRefreshWithInputs(source);
     try {
       await state.indexRefreshPromise;

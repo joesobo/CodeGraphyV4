@@ -430,6 +430,18 @@ Current deterministic threshold covered:
 | --- | ---: | ---: | ---: |
 | Toggle symbol leaf on when cached | 1 | 0 | 0 |
 
+### Explicit Re-index Supersedes Scoped Work
+
+Explicit Re-index now aborts any in-flight scoped refresh before starting the
+full-index path, so a slow Graph Scope/plugin hydration result cannot publish
+over the re-indexed graph.
+
+Current deterministic threshold covered:
+
+| Scenario | Full-index jobs | Stale scoped publishes |
+| --- | ---: | ---: |
+| Re-index during scoped refresh | 1 | 0 |
+
 ## Mistakes To Avoid
 
 - Do not add particle-specific architecture in core or extension.

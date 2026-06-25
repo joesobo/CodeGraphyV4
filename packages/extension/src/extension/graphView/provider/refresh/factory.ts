@@ -33,7 +33,12 @@ export function createGraphViewProviderRefreshMethods(
   const state = createRefreshCoordinatorState();
   const refresh = createRefreshMethod(source, state);
   const refreshChangedFiles = createRefreshChangedFilesMethod(source, state);
-  const refreshIndex = createRefreshIndexMethod(source, state, refreshChangedFiles);
+  const refreshIndex = createRefreshIndexMethod(
+    source,
+    state,
+    refreshChangedFiles,
+    () => scopedRefreshLifecycle.abort(),
+  );
   const hydrateGraphScope = createHydrateGraphScopeMethod(
     source,
     state,
