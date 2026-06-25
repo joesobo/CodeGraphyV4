@@ -24,6 +24,10 @@ export function createHydrateGraphScopeMethod(
       await state.indexRefreshPromise;
     }
 
+    if (state.graphScopeHydrated) {
+      return true;
+    }
+
     prepareRefreshInputs(source);
     if (!source._analyzer?.loadCachedGraph) {
       return false;
@@ -47,6 +51,7 @@ export function createHydrateGraphScopeMethod(
     }
 
     publishGraphDataIfPresent(source, graphData);
+    state.graphScopeHydrated = true;
     return true;
   };
 }
@@ -79,6 +84,9 @@ export function createRefreshAnalysisScopeMethod(
       scopedRefreshLifecycle,
     );
     publishGraphDataIfPresent(source, graphData);
+    if (hasGraphData(graphData)) {
+      state.graphScopeHydrated = true;
+    }
   };
 }
 
