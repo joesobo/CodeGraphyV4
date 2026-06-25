@@ -92,7 +92,10 @@ export async function refreshWorkspaceIndexChangedFiles(
 
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
-  dependencies.persistCache();
+  persistChangedFilesCachePatch(dependencies, {
+    deleteFilePaths: [],
+    upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
+  });
   if (
     canPatchWorkspaceIndexRefreshGraphData(graphSnapshot, analysisResult, filesToAnalyze)
     && source._patchGraphDataNodeMetrics
@@ -114,6 +117,21 @@ export async function refreshWorkspaceIndexChangedFiles(
   await dependencies.persistIndexMetadata();
 
   return graphData;
+}
+
+function persistChangedFilesCachePatch(
+  dependencies: WorkspaceIndexRefreshDependencies,
+  patch: {
+    deleteFilePaths: readonly string[];
+    upsertFilePaths: readonly string[];
+  },
+): void {
+  if (dependencies.persistCachePatch) {
+    dependencies.persistCachePatch(patch);
+    return;
+  }
+
+  dependencies.persistCache();
 }
 
 function analyzeWorkspaceIndexFromRefresh(

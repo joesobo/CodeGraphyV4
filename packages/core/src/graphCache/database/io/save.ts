@@ -4,7 +4,9 @@ import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import { runStatementSync, withConnection } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
+  createWorkspaceAnalysisCachePatchWriter,
   createWorkspaceAnalysisCacheWriter,
+  deleteAnalysisEntry,
   persistAnalysisEntry,
   sortedCacheEntries,
 } from '../query/write';
@@ -24,6 +26,11 @@ export interface WorkspaceAnalysisDatabaseSaveProgress {
 export interface WorkspaceAnalysisDatabaseSaveOptions {
   onProgress?: (progress: WorkspaceAnalysisDatabaseSaveProgress) => void;
   yieldEvery?: number;
+}
+
+export interface WorkspaceAnalysisDatabasePatch {
+  deleteFilePaths?: readonly string[];
+  upsertFiles?: IWorkspaceAnalysisCache['files'];
 }
 
 export function saveWorkspaceAnalysisDatabaseCache(
@@ -53,6 +60,35 @@ export function saveWorkspaceAnalysisDatabaseCache(
     cleanupTemporaryDatabase(tempDatabasePath);
     throw error;
   }
+}
+
+export function patchWorkspaceAnalysisDatabaseCache(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): void {
+  ensureDatabaseDirectory(workspaceRoot);
+  const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  if (!fs.existsSync(path.dirname(databasePath))) {
+    return;
+  }
+
+  const deleteFilePaths = new Set([
+    ...(patch.deleteFilePaths ?? []),
+    ...Object.keys(patch.upsertFiles ?? {}),
+  ]);
+
+  withConnection(databasePath, (connection) => {
+    const writer = createWorkspaceAnalysisCachePatchWriter(connection);
+    for (const filePath of [...deleteFilePaths].sort()) {
+      deleteAnalysisEntry(writer, filePath);
+    }
+    for (const [filePath, entry] of sortedCacheEntries({
+      version: '',
+      files: patch.upsertFiles ?? {},
+    })) {
+      persistAnalysisEntry(writer, filePath, entry);
+    }
+  });
 }
 
 export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void {
