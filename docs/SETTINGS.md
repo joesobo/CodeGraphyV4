@@ -424,7 +424,9 @@ Disabling a plugin makes that plugin inactive for the workspace graph surface. I
 
 When several relevant Edge Types are available, built-in Edge Types keep their common-usefulness order: **Imports**, **References**, **Calls**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
 
-Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first; enabling Symbols or a plugin computes the missing tier and keeps it cached when that scope is turned off again.
+Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first. Graph View loads that baseline into runtime memory first, then hydrates Symbol or plugin-owned evidence only when a scope toggle needs it. Once a tier has been loaded, CodeGraphy keeps it in runtime memory for faster future toggles even if the scope is turned off again.
+
+Normal file edits patch the changed Graph Cache rows atomically. Re-index is the force-refresh path that rebuilds and replaces the complete Graph Cache with the current settings.
 
 ## File discovery settings
 
