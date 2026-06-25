@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  type AnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
   projectFileAnalysisConnections,
   throwIfWorkspaceAnalysisAborted,
@@ -64,7 +67,9 @@ const mixedCachedFiles: IDiscoveredFile[] = [
 
 class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
-  readonly hydrateCacheFromGraphCache = vi.fn(async () => undefined);
+  readonly hydrateCacheFromGraphCache = vi.fn(async (
+    _options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] },
+  ) => undefined);
   readonly activeAnalysisPluginIds = vi.fn((
     _pluginIds: readonly string[] | undefined, _disabledPlugins: ReadonlySet<string>,
   ) => ['plugin.active']);
@@ -89,7 +94,7 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
 
   _config = {
     get: vi.fn((key: string, defaultValue: unknown) =>
-      key === 'nodeVisibility' ? { Symbol: true } : defaultValue,
+      key === 'nodeVisibility' ? { symbol: true, 'symbol:function': true } : defaultValue,
     ),
     getAll: vi.fn(() => ({ respectGitignore: true, showOrphans: false })),
   } as unknown as Configuration;
@@ -103,8 +108,10 @@ class TestCachedGraphFacade extends WorkspacePipelineCachedGraphFacade {
     return this.getWorkspaceRoot();
   }
 
-  protected override async _hydrateCacheFromGraphCache(): Promise<void> {
-    await this.hydrateCacheFromGraphCache();
+  protected override async _hydrateCacheFromGraphCache(
+    options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] },
+  ): Promise<void> {
+    await this.hydrateCacheFromGraphCache(options);
   }
 
   protected override _getActiveAnalysisPluginIds(
@@ -201,6 +208,13 @@ describe('extension/pipeline/service/cachedGraph', () => {
     });
 
     expect(throwIfWorkspaceAnalysisAborted).toHaveBeenCalledWith(signal);
+    expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
+      activeAnalysisCacheTiers: [
+        BASELINE_ANALYSIS_CACHE_TIER,
+        SYMBOLS_ANALYSIS_CACHE_TIER,
+        'plugin:plugin.active',
+      ],
+    });
     expect(createCachedWorkspaceDiscoveryState).toHaveBeenCalledWith(
       '/workspace',
       ['src/cached.ts'],
@@ -228,7 +242,7 @@ describe('extension/pipeline/service/cachedGraph', () => {
       disabledPlugins,
       files: cachedFiles,
       getActiveAnalysisPluginIds: expect.any(Function),
-      nodeVisibility: { Symbol: true },
+      nodeVisibility: { symbol: true, 'symbol:function': true },
       registry: facade._registry,
       signal,
       workspaceRoot: '/workspace',
@@ -346,6 +360,22 @@ describe('extension/pipeline/service/cachedGraph', () => {
       false,
       new Set<string>(),
     );
+  });
+
+  it('hydrates only baseline runtime tiers when symbols and plugin analysis are inactive', async () => {
+    const facade = new TestCachedGraphFacade();
+    vi.mocked(facade._config.get).mockImplementation((key: string, defaultValue: unknown) =>
+      key === 'nodeVisibility' ? { symbol: false } : defaultValue,
+    );
+    facade.activeAnalysisPluginIds.mockReturnValue([]);
+
+    await facade.loadCachedGraph([], new Set(), undefined, {
+      warmAnalysis: false,
+    });
+
+    expect(facade.hydrateCacheFromGraphCache).toHaveBeenCalledWith({
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
+    });
   });
 
   it('logs only unexpected cached analysis warmup failures', async () => {

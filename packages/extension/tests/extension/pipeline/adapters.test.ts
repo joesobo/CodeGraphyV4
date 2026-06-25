@@ -208,7 +208,6 @@ describe('WorkspacePipeline adapters', () => {
           cache: {
             tiers: [BASELINE_ANALYSIS_CACHE_TIER],
           },
-          symbols: [],
         }],
       ]),
       fileConnections: new Map([['src/index.ts', []]]),

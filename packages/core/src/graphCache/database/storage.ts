@@ -1,6 +1,7 @@
 import {
   loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl,
   loadWorkspaceAnalysisDatabaseCacheAsync as loadWorkspaceAnalysisDatabaseCacheAsyncImpl,
+  type WorkspaceAnalysisDatabaseLoadOptions,
 } from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
 import {
@@ -17,6 +18,7 @@ import {
 } from './io/save';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
+export type { WorkspaceAnalysisDatabaseLoadOptions };
 
 export function getWorkspaceAnalysisDatabasePath(
   workspaceRoot: string,
@@ -26,14 +28,16 @@ export function getWorkspaceAnalysisDatabasePath(
 
 export function loadWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
+  options?: WorkspaceAnalysisDatabaseLoadOptions,
 ) {
-  return loadWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot);
+  return loadWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, options);
 }
 
 export function loadWorkspaceAnalysisDatabaseCacheAsync(
   workspaceRoot: string,
+  options?: WorkspaceAnalysisDatabaseLoadOptions,
 ) {
-  return loadWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot);
+  return loadWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot, options);
 }
 
 export function readWorkspaceAnalysisDatabaseSnapshot(

@@ -1,4 +1,5 @@
 import type {
+  IAnalysisNode,
   IAnalysisRelation,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -46,6 +47,83 @@ function hasPluginFacts(analysis: IFileAnalysisResult, pluginId: string): boolea
     analysis.relations?.some(relation => relation.pluginId === pluginId)
     || analysis.symbols?.some(symbol => readAnalysisSymbolPluginId(symbol) === pluginId),
   );
+}
+
+function readStringMetadataValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function readAnalysisNodePluginId(node: IAnalysisNode): string | undefined {
+  return readStringMetadataValue(node.metadata?.pluginId)
+    ?? readStringMetadataValue(node.metadata?.source);
+}
+
+function readActivePluginIds(activeTiers: readonly AnalysisCacheTier[]): Set<string> {
+  return new Set(
+    activeTiers
+      .filter((tier): tier is `plugin:${string}` => tier.startsWith('plugin:'))
+      .map(tier => tier.slice('plugin:'.length)),
+  );
+}
+
+function hasInactivePluginId(
+  pluginId: string | undefined,
+  activePluginIds: ReadonlySet<string>,
+): boolean {
+  return pluginId !== undefined && !activePluginIds.has(pluginId);
+}
+
+function filterInactivePluginFacts(
+  analysis: IFileAnalysisResult,
+  activeTiers: readonly AnalysisCacheTier[],
+): IFileAnalysisResult {
+  const activePluginIds = readActivePluginIds(activeTiers);
+  const projectedAnalysis: IFileAnalysisResult = { ...analysis };
+  if (analysis.nodes) {
+    projectedAnalysis.nodes = analysis.nodes.filter(node =>
+      !hasInactivePluginId(readAnalysisNodePluginId(node), activePluginIds),
+    );
+  }
+  if (analysis.symbols) {
+    projectedAnalysis.symbols = analysis.symbols.filter(symbol =>
+      !hasInactivePluginId(readAnalysisSymbolPluginId(symbol), activePluginIds),
+    );
+  }
+  if (analysis.relations) {
+    projectedAnalysis.relations = analysis.relations.filter(relation =>
+      !hasInactivePluginId(relation.pluginId, activePluginIds),
+    );
+  }
+  return projectedAnalysis;
+}
+
+function projectCacheTierMetadata(
+  analysis: IFileAnalysisResult,
+  activeTiers: readonly AnalysisCacheTier[],
+): IFileAnalysisResult {
+  const explicitTiers = readExplicitCacheTiers(analysis);
+  if (!explicitTiers) {
+    return analysis;
+  }
+  const activeTierSet = new Set(activeTiers);
+  const retainedTiers = explicitTiers.filter((tier): tier is AnalysisCacheTier =>
+    isKnownAnalysisCacheTier(tier) && activeTierSet.has(tier),
+  );
+
+  const tieredAnalysis: TieredFileAnalysisResult = {
+    ...(analysis as TieredFileAnalysisResult),
+    cache: {
+      ...(analysis as TieredFileAnalysisResult).cache,
+      tiers: sortCacheTiers(retainedTiers),
+    },
+  };
+  return tieredAnalysis;
+}
+
+function isKnownAnalysisCacheTier(tier: string): tier is AnalysisCacheTier {
+  return tier === BASELINE_ANALYSIS_CACHE_TIER
+    || tier === SYMBOLS_ANALYSIS_CACHE_TIER
+    || tier.startsWith('plugin:');
 }
 
 function isCacheTierSatisfied(analysis: IFileAnalysisResult, tier: AnalysisCacheTier): boolean {
@@ -110,17 +188,29 @@ export function projectAnalysisForCacheTiers(
   analysis: IFileAnalysisResult,
   activeTiers: readonly AnalysisCacheTier[] | undefined,
 ): IFileAnalysisResult {
-  if (isSymbolTierActive(activeTiers)) {
+  if (activeTiers === undefined) {
     return analysis;
   }
 
-  return {
+  const pluginProjectedAnalysis = filterInactivePluginFacts(analysis, activeTiers);
+  const projectedAnalysis = isSymbolTierActive(activeTiers)
+    ? pluginProjectedAnalysis
+    : stripInactiveSymbolFacts(pluginProjectedAnalysis);
+
+  return projectCacheTierMetadata(projectedAnalysis, activeTiers);
+}
+
+function stripInactiveSymbolFacts(analysis: IFileAnalysisResult): IFileAnalysisResult {
+  const projectedAnalysis: IFileAnalysisResult = {
     ...analysis,
     relations: (analysis.relations ?? [])
       .map(stripSymbolRelationEndpoints)
       .filter((relation): relation is IAnalysisRelation => relation !== undefined),
-    symbols: [],
   };
+  if (analysis.symbols) {
+    projectedAnalysis.symbols = [];
+  }
+  return projectedAnalysis;
 }
 
 function sortCacheTiers(tiers: Iterable<AnalysisCacheTier>): AnalysisCacheTier[] {

@@ -33,6 +33,26 @@ export interface WorkspaceAnalysisDatabasePatch {
   upsertFiles?: IWorkspaceAnalysisCache['files'];
 }
 
+function runTransactionSync(connection: Parameters<typeof runStatementSync>[0], patch: () => void): void {
+  runStatementSync(connection, 'BEGIN TRANSACTION');
+  let committed = false;
+
+  try {
+    patch();
+    runStatementSync(connection, 'COMMIT');
+    committed = true;
+  } catch (error) {
+    if (!committed) {
+      try {
+        runStatementSync(connection, 'ROLLBACK');
+      } catch {
+        // Keep the original patch failure as the actionable error.
+      }
+    }
+    throw error;
+  }
+}
+
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
@@ -78,16 +98,18 @@ export function patchWorkspaceAnalysisDatabaseCache(
   ]);
 
   withConnection(databasePath, (connection) => {
-    const writer = createWorkspaceAnalysisCachePatchWriter(connection);
-    for (const filePath of [...deleteFilePaths].sort()) {
-      deleteAnalysisEntry(writer, filePath);
-    }
-    for (const [filePath, entry] of sortedCacheEntries({
-      version: '',
-      files: patch.upsertFiles ?? {},
-    })) {
-      persistAnalysisEntry(writer, filePath, entry);
-    }
+    runTransactionSync(connection, () => {
+      const writer = createWorkspaceAnalysisCachePatchWriter(connection);
+      for (const filePath of [...deleteFilePaths].sort()) {
+        deleteAnalysisEntry(writer, filePath);
+      }
+      for (const [filePath, entry] of sortedCacheEntries({
+        version: '',
+        files: patch.upsertFiles ?? {},
+      })) {
+        persistAnalysisEntry(writer, filePath, entry);
+      }
+    });
   });
 }
 

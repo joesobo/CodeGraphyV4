@@ -1,5 +1,6 @@
 import {
   BASELINE_ANALYSIS_CACHE_TIER,
+  createWorkspaceIndexAnalysisCacheTiers,
   getWorkspaceIndexPluginMatchingFiles,
   hasRequiredAnalysisCacheTiers,
   SYMBOLS_ANALYSIS_CACHE_TIER,
@@ -36,10 +37,16 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     options: WorkspacePipelineCachedGraphLoadOptions = {},
   ): Promise<IGraphData> {
     throwIfWorkspaceAnalysisAborted(signal);
-    await this._hydrateCacheFromGraphCache();
+    const workspaceRoot = this._getWorkspaceRoot();
+    await this._hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: getCachedGraphRuntimeCacheTiers(
+        this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+        this._getActiveAnalysisPluginIds(undefined, disabledPlugins),
+        options.requiredAnalysisCacheTiers,
+      ),
+    });
     throwIfWorkspaceAnalysisAborted(signal);
 
-    const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       return { nodes: [], edges: [] };
     }
@@ -127,6 +134,21 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
       console.warn('[CodeGraphy] Failed to warm cached graph analysis.', error);
     });
   }
+}
+
+function getCachedGraphRuntimeCacheTiers(
+  nodeVisibility: Record<string, boolean>,
+  activePluginIds: readonly string[],
+  requiredAnalysisCacheTiers: readonly AnalysisCacheTier[] | undefined,
+): readonly AnalysisCacheTier[] {
+  if (requiredAnalysisCacheTiers && requiredAnalysisCacheTiers.length > 0) {
+    return requiredAnalysisCacheTiers;
+  }
+
+  return createWorkspaceIndexAnalysisCacheTiers(
+    nodeVisibility,
+    activePluginIds,
+  ).active ?? [BASELINE_ANALYSIS_CACHE_TIER];
 }
 
 function canReplayCachedGraphAnalysis(
