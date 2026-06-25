@@ -98,4 +98,50 @@ describe('graphView/provider/refresh cancellation', () => {
     expect(rebuildGraphData).toHaveBeenCalledOnce();
     expect(source._analysisController).toBeUndefined();
   });
+
+  it('explicit reindex aborts in-flight scoped refreshes before stale results can publish', async () => {
+    const source = createSource();
+    let finishRefresh: (() => void) | undefined;
+    let refreshSignal: AbortSignal | undefined;
+    const staleGraph = {
+      nodes: [{ id: 'stale-scope', label: 'stale-scope', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
+    source._analyzer.refreshAnalysisScope.mockImplementationOnce(async (
+      _filterPatterns,
+      _disabledPlugins,
+      signal: AbortSignal,
+    ) => {
+      refreshSignal = signal;
+      await new Promise<void>(resolve => {
+        finishRefresh = resolve;
+      });
+      return staleGraph;
+    });
+    const refreshAndSendData = vi.fn(async () => undefined);
+    source._refreshAndSendData = refreshAndSendData;
+    const rebuildGraphData = vi.fn();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData,
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    const scopedRefresh = methods.refreshAnalysisScope();
+    await Promise.resolve();
+    await methods.refreshIndex();
+
+    expect(refreshSignal?.aborted).toBe(true);
+    expect(refreshAndSendData).toHaveBeenCalledOnce();
+    finishRefresh?.();
+    await scopedRefresh;
+
+    expect(source._rawGraphData).not.toBe(staleGraph);
+    expect(source._sendMessage).not.toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: expect.objectContaining({ nodes: staleGraph.nodes }),
+    });
+    expect(rebuildGraphData).not.toHaveBeenCalled();
+    expect(source._analysisController).toBeUndefined();
+  });
 });
