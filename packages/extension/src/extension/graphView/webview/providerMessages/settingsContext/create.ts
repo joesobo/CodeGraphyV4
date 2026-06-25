@@ -10,6 +10,7 @@ import {
   readInstalledPluginDefaultOptions,
   readInstalledPluginUpdateImpact,
 } from '../../settingsMessages/defaultOptions';
+import { createPluginGraphWorkScheduler } from '../../settingsMessages/pluginGraphWork';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -29,6 +30,8 @@ type GraphViewProviderSettingsContext = Pick<
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
+  | 'schedulePluginGraphWork'
+  | 'cancelScheduledPluginGraphWork'
   | 'hydrateGraphScope'
   | 'reprocessGraphScope'
   | 'reprocessPluginFiles'
@@ -62,6 +65,11 @@ export function createGraphViewProviderMessageSettingsContext(
     source._analyzerInitPromise = updatePromise;
     return updatePromise;
   };
+  const pluginGraphWorkScheduler = createPluginGraphWorkScheduler({
+    analyzeAndSendData: () => source._analyzeAndSendData(),
+    reprocessPluginFiles: pluginIds => reprocessPluginFiles(source, pluginIds),
+    smartRebuild: pluginId => source._smartRebuild(pluginId),
+  });
 
   return {
     updateDagMode: async dagMode => {
@@ -118,6 +126,12 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    schedulePluginGraphWork: request => {
+      pluginGraphWorkScheduler.schedule(request);
+    },
+    cancelScheduledPluginGraphWork: () => {
+      pluginGraphWorkScheduler.cancel();
+    },
     hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
     reprocessGraphScope: () => source.refreshAnalysisScope(),
     reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),

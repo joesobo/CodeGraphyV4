@@ -7,6 +7,8 @@ export type {
 } from './installedPluginCache/contracts';
 export type {
   CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
+  CodeGraphyWorkspacePluginSettingUpdatePlanOptions,
   CodeGraphyWorkspacePluginToggleOptions,
   CodeGraphyWorkspacePluginTogglePlan,
   UpdateCodeGraphyWorkspacePluginSelectionOptions,
@@ -26,6 +28,7 @@ export {
   writeCodeGraphyInstalledPluginCache,
 } from './installedPluginCache/storage';
 export {
+  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
   createCodeGraphyWorkspacePluginTogglePlan,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,

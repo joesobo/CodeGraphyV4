@@ -8,6 +8,7 @@ import type {
   GraphViewSettingsMessageState,
 } from './router';
 import { sendFilterPatternsUpdated } from './updates/apply/filterPatternNotification';
+import { applyPluginGraphWorkPlan } from './pluginGraphWork';
 
 export async function applySettingsToggleMessage(
   message: WebviewToExtensionMessage,
@@ -39,22 +40,7 @@ export async function applySettingsToggleMessage(
       handlers.sendGraphViewContributionStatuses?.();
       handlers.sendGraphControls();
       sendFilterPatternsUpdated(state, handlers);
-      if (plan.indexing.kind === 'reprocess-plugin-files') {
-        await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
-        return true;
-      }
-
-      if (plan.indexing.kind === 'analyze-workspace') {
-        await handlers.analyzeAndSendData();
-        return true;
-      }
-
-      if (plan.indexing.kind === 'projection-only') {
-        handlers.smartRebuild(message.payload.pluginId);
-        return true;
-      }
-
-      handlers.smartRebuild(message.payload.pluginId);
+      await applyPluginGraphWorkPlan(plan.indexing, message.payload.pluginId, handlers);
       return true;
     }
 
@@ -62,6 +48,7 @@ export async function applySettingsToggleMessage(
       return false;
   }
 }
+
 
 function replaySavedPluginData(
   pluginId: string,
