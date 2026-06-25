@@ -56,7 +56,10 @@ export interface WorkspaceIndexRefreshSource {
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData>;
-  invalidateWorkspaceFiles(filePaths: readonly string[]): string[];
+  invalidateWorkspaceFiles(
+    filePaths: readonly string[],
+    options?: { persist?: boolean },
+  ): string[];
 }
 
 export interface WorkspaceIndexRefreshDependencies {
