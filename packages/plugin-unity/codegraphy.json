@@ -54,6 +54,10 @@
     "**/Assets/StreamingAssets/aa.meta",
     "**/Assets/StreamingAssets/aa/**"
   ],
+  "updateImpact": {
+    "toggle": "reanalyze-plugin-files",
+    "defaultSetting": "reanalyze-plugin-files"
+  },
   "fileColors": {
     "*.unity": {
       "color": "#F97316",

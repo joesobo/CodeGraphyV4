@@ -20,6 +20,7 @@ class UnityPlugin implements IPlugin {
   readonly apiVersion = manifest.apiVersion;
   readonly supportedExtensions = manifest.supportedExtensions;
   readonly defaultFilters = manifest.defaultFilters;
+  readonly updateImpact = manifest.updateImpact as IPlugin['updateImpact'];
   readonly fileColors = manifest.fileColors as IPlugin['fileColors'];
   readonly sources = manifest.sources;
 

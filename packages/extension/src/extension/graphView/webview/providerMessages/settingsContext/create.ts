@@ -6,7 +6,10 @@ import type {
 } from '../listener';
 import { createSettingsConfigPersistence } from './persistence';
 import { reprocessPluginFiles } from './pluginFiles';
-import { readInstalledPluginDefaultOptions } from '../../settingsMessages/defaultOptions';
+import {
+  readInstalledPluginDefaultOptions,
+  readInstalledPluginUpdateImpact,
+} from '../../settingsMessages/defaultOptions';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -16,6 +19,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getConfig'
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
+  | 'getInstalledPluginUpdateImpact'
   | 'reloadWorkspacePlugins'
   | 'syncWorkspacePlugins'
   | 'sendPluginStatuses'
@@ -76,6 +80,8 @@ export function createGraphViewProviderMessageSettingsContext(
     updateConfig: async (key, value) => persistConfig(key, value),
     getInstalledPluginDefaultOptions: (pluginId: string) =>
       readInstalledPluginDefaultOptions(pluginId),
+    getInstalledPluginUpdateImpact: (pluginId: string) =>
+      readInstalledPluginUpdateImpact(pluginId),
     reloadWorkspacePlugins: () => {
       const analyzer = source._analyzer;
       if (!analyzer?.reloadWorkspacePlugins) {

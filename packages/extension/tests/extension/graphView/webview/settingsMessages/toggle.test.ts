@@ -30,6 +30,7 @@ function createHandlers(
       sendPluginToolbarActions: vi.fn(),
       sendGraphViewContributionStatuses: vi.fn(),
       sendPluginWebviewInjections: vi.fn(),
+      getInstalledPluginUpdateImpact: vi.fn(() => undefined),
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
       smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
@@ -67,6 +68,52 @@ describe('graph view settings toggle message', () => {
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+  });
+
+  it('uses projection-only plugin impact metadata without scheduling index work', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'projection-only' as const,
+      })),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: { pluginId: 'codegraphy.particles', enabled: true },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.particles');
+  });
+
+  it('uses plugin analysis impact metadata for targeted plugin-file reprocessing', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+      })),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: { pluginId: 'codegraphy.vue', enabled: true },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('disables package-backed plugins by persisting disabled plugin id intent', async () => {

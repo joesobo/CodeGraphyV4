@@ -1,5 +1,6 @@
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type * as vscode from 'vscode';
 import { applySettingsUpdateMessage } from './updates/apply';
@@ -17,6 +18,7 @@ export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginDefaultOptions?(pluginId: string): Record<string, unknown> | undefined;
+  getInstalledPluginUpdateImpact?(pluginId: string): IPluginUpdateImpactPolicy | undefined;
   reloadWorkspacePlugins(): Promise<void>;
   syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;

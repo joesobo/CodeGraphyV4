@@ -92,6 +92,40 @@ describe('plugins/workspaceSelection', () => {
     });
   });
 
+  it('plans projection-only work when plugin metadata says toggles do not affect indexed evidence', () => {
+    const plan = createCodeGraphyWorkspacePluginTogglePlan([], {
+      pluginId: 'codegraphy.particles',
+      enabled: true,
+      updateImpact: {
+        toggle: 'projection-only',
+      },
+    });
+
+    expect(plan).toEqual({
+      plugins: [
+        { id: 'codegraphy.particles', enabled: true },
+      ],
+      indexing: {
+        kind: 'projection-only',
+      },
+    });
+  });
+
+  it('plans targeted plugin-file analysis when plugin metadata says toggles affect plugin evidence', () => {
+    const plan = createCodeGraphyWorkspacePluginTogglePlan([], {
+      pluginId: 'codegraphy.vue',
+      enabled: true,
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+      },
+    });
+
+    expect(plan.indexing).toEqual({
+      kind: 'reprocess-plugin-files',
+      pluginIds: ['codegraphy.vue'],
+    });
+  });
+
   it('plans a workspace analysis refresh when disabling a plugin id', () => {
     const plan = createCodeGraphyWorkspacePluginTogglePlan([
       { id: 'codegraphy.markdown', enabled: true },

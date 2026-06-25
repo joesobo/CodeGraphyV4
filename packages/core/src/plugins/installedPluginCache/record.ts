@@ -1,5 +1,6 @@
 import { readDisclosures } from '../disclosures';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
+import { readPluginUpdateImpact } from '../updateImpact';
 import { isRecord } from './values';
 
 type InstalledPluginRecordFields = Pick<
@@ -50,6 +51,10 @@ function addOptionalInstalledPluginRecordFields(
   }
   if (typeof value.pluginName === 'string' && value.pluginName.length > 0) {
     record.pluginName = value.pluginName;
+  }
+  const updateImpact = readPluginUpdateImpact(value.updateImpact);
+  if (updateImpact) {
+    record.updateImpact = updateImpact;
   }
 
   const supportedExtensions = readSupportedExtensions(value.supportedExtensions);

@@ -20,6 +20,10 @@ describe('plugins/installedPluginCache record normalization', () => {
       packageRoot: '/global/plugin-vue',
       disclosures: ['network', 'invalid'],
       defaultOptions: { includeTests: true },
+      updateImpact: {
+        toggle: 'projection-only',
+        defaultSetting: 'settings-only',
+      },
     })).toEqual({
       package: '@codegraphy-dev/plugin-vue',
       version: '1.0.0',
@@ -27,6 +31,10 @@ describe('plugins/installedPluginCache record normalization', () => {
       packageRoot: '/global/plugin-vue',
       disclosures: ['network'],
       defaultOptions: { includeTests: true },
+      updateImpact: {
+        toggle: 'projection-only',
+        defaultSetting: 'settings-only',
+      },
     });
   });
 

@@ -1,6 +1,7 @@
 import { readDisclosures } from './disclosures';
 import type { CodeGraphyPluginPackageManifest } from './packageManifest';
 import { readDefaultOptions } from './packageManifestValues';
+import { readPluginUpdateImpact } from './updateImpact';
 
 export function createCodeGraphyPluginPackageManifest(input: {
   apiVersion: string;
@@ -17,6 +18,10 @@ export function createCodeGraphyPluginPackageManifest(input: {
   const defaultOptions = readDefaultOptions(input.codegraphy.defaultOptions);
   if (defaultOptions) {
     manifest.defaultOptions = defaultOptions;
+  }
+  const updateImpact = readPluginUpdateImpact(input.codegraphy.updateImpact);
+  if (updateImpact) {
+    manifest.updateImpact = updateImpact;
   }
 
   return manifest;
