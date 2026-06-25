@@ -7,6 +7,7 @@ import { applySettingsUpdateMessage } from './updates/apply';
 import { applyCssSnippetMessage } from './cssSnippets';
 import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';
+import type { PluginGraphWorkRequest } from './pluginGraphWork';
 
 export interface GraphViewSettingsMessageState {
   filterPatterns: string[];
@@ -29,6 +30,8 @@ export interface GraphViewSettingsMessageHandlers {
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
   smartRebuild(id: string): void;
+  schedulePluginGraphWork?(request: PluginGraphWorkRequest): void;
+  cancelScheduledPluginGraphWork?(): void;
   sendGraphControls(): void;
   hydrateGraphScope(): Promise<boolean>;
   reprocessGraphScope(): Promise<void>;

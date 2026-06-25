@@ -20,9 +20,19 @@ export type CodeGraphyWorkspacePluginIndexingPlan =
   | { kind: 'analyze-workspace' }
   | { kind: 'reprocess-plugin-files'; pluginIds: string[] };
 
+export type CodeGraphyWorkspacePluginSettingUpdateIndexingPlan =
+  | { kind: 'settings-only' }
+  | CodeGraphyWorkspacePluginIndexingPlan;
+
 export interface CodeGraphyWorkspacePluginTogglePlan {
   plugins: CodeGraphyWorkspacePluginSettings[];
   indexing: CodeGraphyWorkspacePluginIndexingPlan;
+}
+
+export interface CodeGraphyWorkspacePluginSettingUpdatePlanOptions {
+  pluginId: string;
+  settingKeys: readonly string[];
+  updateImpact?: IPluginUpdateImpactPolicy;
 }
 
 export function updateCodeGraphyWorkspacePluginSelection(
@@ -59,7 +69,34 @@ export function createCodeGraphyWorkspacePluginTogglePlan(
   };
 }
 
+export function createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan(
+  options: CodeGraphyWorkspacePluginSettingUpdatePlanOptions,
+): CodeGraphyWorkspacePluginSettingUpdateIndexingPlan {
+  const impact = getHighestImpact(
+    getPluginSettingImpacts(options.updateImpact, options.settingKeys),
+  );
+  switch (impact) {
+    case 'view-only':
+    case 'settings-only':
+      return { kind: 'settings-only' };
+    case 'projection-only':
+      return { kind: 'projection-only' };
+    case 'reanalyze-plugin-files':
+      return { kind: 'reprocess-plugin-files', pluginIds: [options.pluginId] };
+    case 'requires-full-index':
+    default:
+      return { kind: 'analyze-workspace' };
+  }
+}
+
 function createPluginToggleIndexingPlan(
+  pluginId: string,
+  impact: IPluginUpdateImpact | undefined,
+): CodeGraphyWorkspacePluginIndexingPlan {
+  return createPluginUpdateIndexingPlan(pluginId, impact);
+}
+
+function createPluginUpdateIndexingPlan(
   pluginId: string,
   impact: IPluginUpdateImpact | undefined,
 ): CodeGraphyWorkspacePluginIndexingPlan {
@@ -74,6 +111,40 @@ function createPluginToggleIndexingPlan(
     default:
       return { kind: 'analyze-workspace' };
   }
+}
+
+function getPluginSettingImpacts(
+  updateImpact: IPluginUpdateImpactPolicy | undefined,
+  settingKeys: readonly string[],
+): IPluginUpdateImpact[] {
+  if (settingKeys.length === 0) {
+    return [updateImpact?.defaultSetting].filter((impact): impact is IPluginUpdateImpact =>
+      impact !== undefined,
+    );
+  }
+
+  return settingKeys.map(settingKey =>
+    updateImpact?.settings?.[settingKey] ?? updateImpact?.defaultSetting ?? 'requires-full-index',
+  );
+}
+
+function getHighestImpact(impacts: readonly IPluginUpdateImpact[]): IPluginUpdateImpact | undefined {
+  if (impacts.includes('requires-full-index')) {
+    return 'requires-full-index';
+  }
+  if (impacts.includes('reanalyze-plugin-files')) {
+    return 'reanalyze-plugin-files';
+  }
+  if (impacts.includes('projection-only')) {
+    return 'projection-only';
+  }
+  if (impacts.includes('settings-only')) {
+    return 'settings-only';
+  }
+  if (impacts.includes('view-only')) {
+    return 'view-only';
+  }
+  return undefined;
 }
 
 export function enableCodeGraphyWorkspacePlugin(

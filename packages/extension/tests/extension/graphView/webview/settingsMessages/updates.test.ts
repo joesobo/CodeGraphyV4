@@ -1,11 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WebviewToExtensionMessage } from '../../../../../src/shared/protocol/webviewToExtension';
 import {
   applySettingsUpdateMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/updates/apply';
+import { createPluginGraphWorkScheduler } from '../../../../../src/extension/graphView/webview/settingsMessages/pluginGraphWork';
 import { createHandlers, createState } from './testSupport';
 
 describe('graph view settings update message', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('delegates reset-all requests', async () => {
     const state = createState();
     const handlers = createHandlers();
@@ -216,6 +221,95 @@ describe('graph view settings update message', () => {
       type: 'PLUGIN_DATA_UPDATED',
       payload: { pluginId: 'acme.plugin', data },
     });
+  });
+
+  it('uses plugin setting impact metadata instead of hard-coded plugin setting branches', async () => {
+    const state = createState();
+    const schedulePluginGraphWork = vi.fn();
+    const handlers = createHandlers({
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'projection-only' as const,
+        defaultSetting: 'settings-only' as const,
+      })),
+      schedulePluginGraphWork,
+    });
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_PLUGIN_DATA',
+          payload: {
+            pluginId: 'codegraphy.particles',
+            data: { speed: 0.4, size: 0.8 },
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(schedulePluginGraphWork).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('coalesces analyzer plugin setting bursts into one graph work job', async () => {
+    vi.useFakeTimers();
+    const state = createState();
+    const pluginData: Record<string, unknown> = {};
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const scheduler = createPluginGraphWorkScheduler({
+      analyzeAndSendData,
+      reprocessPluginFiles,
+      smartRebuild: vi.fn(),
+    }, { delayMs: 50 });
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'pluginData') {
+          return { ...pluginData } as T;
+        }
+        return defaultValue;
+      }),
+      updateConfig: vi.fn(async (key: string, value: unknown) => {
+        if (key === 'pluginData' && value && typeof value === 'object' && !Array.isArray(value)) {
+          Object.assign(pluginData, value as Record<string, unknown>);
+        }
+      }),
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+        defaultSetting: 'reanalyze-plugin-files' as const,
+      })),
+      schedulePluginGraphWork: request => scheduler.schedule(request),
+      analyzeAndSendData,
+      reprocessPluginFiles,
+    });
+
+    for (let index = 0; index < 10; index += 1) {
+      await expect(
+        applySettingsUpdateMessage(
+          {
+            type: 'UPDATE_PLUGIN_DATA',
+            payload: {
+              pluginId: 'codegraphy.vue',
+              data: { includeTests: index % 2 === 0 },
+            },
+          },
+          state,
+          handlers,
+        ),
+      ).resolves.toBe(true);
+    }
+
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(reprocessPluginFiles).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('merges plugin-owned data with existing plugin data', async () => {

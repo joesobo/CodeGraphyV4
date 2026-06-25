@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
   createCodeGraphyWorkspacePluginTogglePlan,
   updateCodeGraphyWorkspacePluginSelection,
   type CodeGraphyWorkspacePluginSettings,
@@ -124,6 +125,40 @@ describe('plugins/workspaceSelection', () => {
       kind: 'reprocess-plugin-files',
       pluginIds: ['codegraphy.vue'],
     });
+  });
+
+  it('plans plugin setting updates from per-key and default impact metadata', () => {
+    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
+      pluginId: 'codegraphy.particles',
+      settingKeys: ['speed', 'size'],
+      updateImpact: {
+        toggle: 'projection-only',
+        defaultSetting: 'settings-only',
+      },
+    })).toEqual({ kind: 'settings-only' });
+
+    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
+      pluginId: 'codegraphy.vue',
+      settingKeys: ['includeTests'],
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+        defaultSetting: 'settings-only',
+        settings: {
+          includeTests: 'reanalyze-plugin-files',
+        },
+      },
+    })).toEqual({
+      kind: 'reprocess-plugin-files',
+      pluginIds: ['codegraphy.vue'],
+    });
+
+    expect(createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan({
+      pluginId: 'acme.unknown',
+      settingKeys: ['mode'],
+      updateImpact: {
+        toggle: 'projection-only',
+      },
+    })).toEqual({ kind: 'analyze-workspace' });
   });
 
   it('plans a workspace analysis refresh when disabling a plugin id', () => {

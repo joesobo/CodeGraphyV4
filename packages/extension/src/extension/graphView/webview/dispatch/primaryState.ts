@@ -16,8 +16,14 @@ export function createGraphViewPrimaryNodeFileHandlers(
 ): GraphViewNodeFileHandlers {
   return {
     ...context,
-    indexGraph: () => context.indexAndSendData(),
-    refreshGraph: () => context.refreshIndex(),
+    indexGraph: async () => {
+      context.cancelScheduledPluginGraphWork?.();
+      await context.indexAndSendData();
+    },
+    refreshGraph: async () => {
+      context.cancelScheduledPluginGraphWork?.();
+      await context.refreshIndex();
+    },
     timelineActive: context.getTimelineActive(),
     canMutateGraphRevision: context.getCanMutateGraphRevision(),
     currentCommitSha: context.getCurrentCommitSha(),
