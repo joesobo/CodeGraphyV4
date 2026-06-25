@@ -108,6 +108,53 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
   });
 
+  it('keeps node and edge visibility bursts projection-only with zero graph jobs', async () => {
+    const config = {
+      nodeVisibility: {} as Record<string, boolean | string>,
+      edgeVisibility: {} as Record<string, boolean | string>,
+      nodeColors: {} as Record<string, boolean | string>,
+    };
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key in config ? { ...config[key as keyof typeof config] } as T : defaultValue
+      )),
+      updateConfig: vi.fn(async (key: string, value: unknown) => {
+        if (key in config && value && typeof value === 'object' && !Array.isArray(value)) {
+          config[key as keyof typeof config] = value as Record<string, boolean | string>;
+        }
+      }),
+    });
+
+    const messages = [
+      { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'file', visible: false } },
+      { type: 'UPDATE_EDGE_VISIBILITY', payload: { edgeKind: 'import', visible: false } },
+      { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'folder', visible: true } },
+      { type: 'UPDATE_EDGE_VISIBILITY', payload: { edgeKind: 'reference', visible: true } },
+      { type: 'UPDATE_NODE_COLOR', payload: { nodeType: 'file', color: '#123456' } },
+      { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'package', visible: false } },
+      { type: 'UPDATE_EDGE_VISIBILITY', payload: { edgeKind: 'nests', visible: true } },
+      { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'external-package', visible: true } },
+      { type: 'UPDATE_EDGE_VISIBILITY', payload: { edgeKind: 'exports', visible: false } },
+      {
+        type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+        payload: {
+          nodeVisibility: { file: true },
+          edgeVisibility: { import: true },
+        },
+      },
+    ] as const;
+
+    for (const message of messages) {
+      await expect(applyGraphControlMessage(message, handlers)).resolves.toBe(true);
+    }
+
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.hydrateGraphScope).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
   it('ignores empty batched visibility updates', async () => {
     const handlers = createHandlers();
 
@@ -242,6 +289,47 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.hydrateGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('keeps hydrated symbol evidence in memory for later off/on toggles', async () => {
+    let nodeVisibility: Record<string, boolean> = {
+      symbol: false,
+      'symbol:function': false,
+    };
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key === 'nodeVisibility' ? { ...nodeVisibility } as T : defaultValue
+      )),
+      updateConfig: vi.fn(async (key: string, value: unknown) => {
+        if (key === 'nodeVisibility') {
+          nodeVisibility = value as Record<string, boolean>;
+        }
+      }),
+      hydrateGraphScope: vi.fn(() => Promise.resolve(true)),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:function', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:function', visible: false } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:function', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.hydrateGraphScope).toHaveBeenCalledTimes(2);
     expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });

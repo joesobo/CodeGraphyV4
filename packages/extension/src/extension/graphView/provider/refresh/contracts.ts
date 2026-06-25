@@ -47,6 +47,7 @@ export interface GraphViewProviderRefreshAnalyzerLike {
 }
 
 export interface RefreshCoordinatorState {
+  graphScopeHydrated: boolean;
   indexRefreshPromise: Promise<void> | undefined;
   queuedChangedFilePaths: Set<string>;
 }

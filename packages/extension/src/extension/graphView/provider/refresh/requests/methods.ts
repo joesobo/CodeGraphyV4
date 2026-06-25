@@ -42,6 +42,7 @@ export function createRefreshIndexMethod(
     }
 
     beforeRefreshIndex?.();
+    state.graphScopeHydrated = false;
     state.indexRefreshPromise = runIndexRefreshWithInputs(source);
     try {
       await state.indexRefreshPromise;

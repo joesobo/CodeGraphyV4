@@ -199,4 +199,27 @@ describe('graphView/provider/refresh targeted refreshes', () => {
       payload: source._graphData,
     });
   });
+
+  it('hydrateGraphScope reuses hydrated graph memory without rereading Graph Cache', async () => {
+    const source = createSource();
+    const graphData = {
+      nodes: [{ id: 'symbol-node', label: 'symbol-node', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
+    source._analyzer.loadCachedGraph.mockResolvedValueOnce(graphData);
+    const rebuildGraphData = vi.fn();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData,
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    await expect(methods.hydrateGraphScope()).resolves.toBe(true);
+    await expect(methods.hydrateGraphScope()).resolves.toBe(true);
+
+    expect(source._analyzer.loadCachedGraph).toHaveBeenCalledOnce();
+    expect(source._analyzer.refreshAnalysisScope).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+    expect(rebuildGraphData).not.toHaveBeenCalled();
+  });
 });

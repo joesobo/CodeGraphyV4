@@ -6,6 +6,7 @@ import { canRunIncrementalChangedFileRefresh } from './run';
 
 export function createRefreshCoordinatorState(): RefreshCoordinatorState {
   return {
+    graphScopeHydrated: false,
     indexRefreshPromise: undefined,
     queuedChangedFilePaths: new Set<string>(),
   };
