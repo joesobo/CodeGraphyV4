@@ -63,7 +63,10 @@ export function createWorkspaceIndexRefreshSource(
     _readAnalysisFiles: files => facade._readAnalysisFiles(files),
     analyze: (patterns, selectedPlugins, abortSignal, progress) =>
       facade.analyze(patterns, selectedPlugins, abortSignal, progress),
-    invalidateWorkspaceFiles: paths => facade.invalidateWorkspaceFiles(paths),
+    invalidateWorkspaceFiles: (paths, options) =>
+      options
+        ? facade.invalidateWorkspaceFiles(paths, options)
+        : facade.invalidateWorkspaceFiles(paths),
   } as WorkspacePipelineRefreshSource;
 
   Object.defineProperties(source, {

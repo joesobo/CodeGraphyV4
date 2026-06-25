@@ -61,7 +61,10 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
     );
   }
 
-  override invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
+  override invalidateWorkspaceFiles(
+    filePaths: readonly string[],
+    options: { persist?: boolean } = {},
+  ): string[] {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot || filePaths.length === 0) {
       return [];
@@ -85,7 +88,7 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
       (root, filePath) => this._toWorkspaceRelativePath(root, filePath),
     );
 
-    if (invalidated.length > 0) {
+    if (invalidated.length > 0 && options.persist !== false) {
       this._persistCache();
     }
 
