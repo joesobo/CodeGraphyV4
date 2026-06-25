@@ -391,8 +391,10 @@ Current deterministic threshold covered:
 
 Plugin API now exposes update impact metadata, and all built-in monorepo
 plugins declare whether updates are projection-only, plugin-file targeted, or
-full-index affecting. Missing metadata remains conservative for third-party
-plugins.
+full-index affecting. Plugin-owned data updates use the same policy, so visual
+plugin settings can persist and broadcast immediately while analyzer plugin
+settings schedule one debounced graph job. Missing metadata remains conservative
+for third-party plugins.
 
 Current deterministic thresholds covered:
 
@@ -401,6 +403,19 @@ Current deterministic thresholds covered:
 | Built-in visual/plugin UI settings | Projection/settings path, no analysis |
 | Built-in analyzer plugin updates | Target plugin-file refresh path |
 | Unknown plugin impact | Conservative analysis path |
+| Analyzer plugin setting burst | 10 actions coalesce to 1 plugin-file graph job |
+
+### Projection-Only Graph Controls
+
+Node visibility, edge visibility, node colors, and batched Graph Scope changes
+now update saved projection state and Graph Controls without scheduling graph
+jobs when no hidden evidence tier is required.
+
+Current deterministic threshold covered:
+
+| Scenario | Actions | Analysis jobs | Scoped reprocess jobs | Cache hydration jobs |
+| --- | ---: | ---: | ---: | ---: |
+| Node/edge visibility burst | 10 | 0 | 0 | 0 |
 
 ### Incremental Graph Cache Patching
 
@@ -421,26 +436,29 @@ Current deterministic thresholds covered:
 
 Symbol-dependent Graph Scope toggles now try to hydrate graph scope from Graph
 Cache before scoped analysis. A successful cache hydration replays cached graph
-data with `warmAnalysis: false`, publishes the graph, and avoids scoped analysis
-or Graph Cache writes.
+data with `warmAnalysis: false`, publishes the graph, marks the tier hydrated in
+runtime memory, and avoids scoped analysis or Graph Cache writes. Later off/on
+toggles reuse the hydrated runtime graph without rereading Graph Cache until a
+full Re-index resets the hydration state.
 
 Current deterministic threshold covered:
 
 | Scenario | Cache reads | Analysis jobs | Graph Cache saves |
 | --- | ---: | ---: | ---: |
 | Toggle symbol leaf on when cached | 1 | 0 | 0 |
+| Toggle symbol leaf off then on after hydration | 0 additional | 0 | 0 |
 
 ### Explicit Re-index Supersedes Scoped Work
 
 Explicit Re-index now aborts any in-flight scoped refresh before starting the
-full-index path, so a slow Graph Scope/plugin hydration result cannot publish
-over the re-indexed graph.
+full-index path and cancels queued plugin graph work, so a slow Graph
+Scope/plugin hydration result cannot publish over the re-indexed graph.
 
 Current deterministic threshold covered:
 
-| Scenario | Full-index jobs | Stale scoped publishes |
-| --- | ---: | ---: |
-| Re-index during scoped refresh | 1 | 0 |
+| Scenario | Full-index jobs | Stale scoped publishes | Queued plugin jobs after re-index |
+| --- | ---: | ---: | ---: |
+| Re-index during scoped refresh | 1 | 0 | 0 |
 
 ## Mistakes To Avoid
 
