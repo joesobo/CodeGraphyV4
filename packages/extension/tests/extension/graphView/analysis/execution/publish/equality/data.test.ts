@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../../../../src/shared/graph/contracts';
-import { areGraphDataEqualIgnoringNodeMetrics } from '../../../../../../../src/extension/graphView/analysis/execution/publish/equality/graph';
+import { areGraphDataEqualIgnoringNodeMetrics } from '../../../../../../../src/extension/graphView/analysis/execution/publish/equality/data';
 
 function createNode(overrides: Partial<IGraphNode> = {}): IGraphNode {
   return {
@@ -43,7 +43,7 @@ function createEmptyTripWireArray<T>(message: string): T[] {
   });
 }
 
-describe('extension/graphView/analysis/execution/publish/equality/graph', () => {
+describe('extension/graphView/analysis/execution/publish/equality/data', () => {
   it('treats matching graphs as equal while ignoring node metrics', () => {
     expect(
       areGraphDataEqualIgnoringNodeMetrics(

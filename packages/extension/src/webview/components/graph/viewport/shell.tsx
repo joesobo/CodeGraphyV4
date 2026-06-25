@@ -22,8 +22,8 @@ import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
 import { useGraphViewportModelOptions } from './shell/modelOptions';
 import { createGraphViewportSurfaceProps } from './shell/surfaceProps';
 import { publishCurrentGraphAccessibilityItems } from './shell/accessibilityItems';
-import { publishPluginGraphViewViewportState } from './shell/pluginViewportState';
-import type { GraphViewport2dControls } from './shell/viewportState';
+import { publishPluginGraphViewViewportState } from './shell/pluginState';
+import type { GraphViewport2dControls } from './shell/state';
 import {
   type GraphAccessibilityItems,
   type GraphScreenProjector,
