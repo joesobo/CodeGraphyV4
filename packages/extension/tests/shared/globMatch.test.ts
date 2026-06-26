@@ -7,6 +7,14 @@ import {
   globToRegex,
 } from '../../src/shared/globMatch';
 
+function expectWallClockBudgetOutsideMutationRun(assertBudget: () => void): void {
+  if (process.env.CODEGRAPHY_MUTATION_RUN === '1') {
+    return;
+  }
+
+  assertBudget();
+}
+
 describe('shared/globMatch', () => {
   it('matches basename patterns against nested paths', () => {
     expect(globMatch('src/player.gd', '*.gd')).toBe(true);
@@ -111,8 +119,10 @@ describe('shared/globMatch', () => {
 
     expect(matchedCount).toBe(1_840);
     expect(regexMatchedCount).toBe(matchedCount);
-    expect(elapsedMs).toBeLessThan(50);
-    expect(elapsedMs).toBeLessThan(regexElapsedMs * 0.75);
+    expectWallClockBudgetOutsideMutationRun(() => {
+      expect(elapsedMs).toBeLessThan(50);
+      expect(elapsedMs).toBeLessThan(regexElapsedMs * 0.75);
+    });
   });
 
   it('creates one matcher that preserves any-pattern glob semantics', () => {
@@ -221,6 +231,8 @@ describe('shared/globMatch', () => {
     const elapsedMs = performance.now() - startedAt;
 
     expect(matchedCount).toBe(0);
-    expect(elapsedMs).toBeLessThan(120);
+    expectWallClockBudgetOutsideMutationRun(() => {
+      expect(elapsedMs).toBeLessThan(120);
+    });
   });
 });
