@@ -59,6 +59,7 @@ function createFacade(
     _lastWorkspaceRoot: '/workspace',
     _patchGraphDataNodeMetrics: vi.fn(),
     _persistCache: vi.fn(),
+    _persistCachePatch: vi.fn(),
     _persistIndexMetadata: vi.fn(async () => undefined),
     _preAnalyzePlugins: vi.fn(),
     _readAnalysisFiles: vi.fn(),
@@ -157,6 +158,7 @@ describe('extension/pipeline/service/refresh/modes/pluginFiles', () => {
       discoveredFiles: files,
       onProgress,
       persistCache: expect.any(Function),
+      persistCachePatch: expect.any(Function),
       persistIndexMetadata: expect.any(Function),
       pluginIds,
       pluginInfos: [{ id: 'plugin.a', name: 'Plugin A' }],
@@ -166,8 +168,16 @@ describe('extension/pipeline/service/refresh/modes/pluginFiles', () => {
 
     const refreshOptions = vi.mocked(refreshWorkspacePipelinePluginFiles).mock.calls[0][1];
     refreshOptions.persistCache();
+    refreshOptions.persistCachePatch?.({
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/plugin.ts'],
+    });
     await refreshOptions.persistIndexMetadata();
     expect(facade._persistCache).toHaveBeenCalledOnce();
+    expect(facade._persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/plugin.ts'],
+    });
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
   });
 });

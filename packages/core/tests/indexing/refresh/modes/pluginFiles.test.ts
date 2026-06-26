@@ -90,6 +90,7 @@ describe('indexing/refresh/modes/pluginFiles', () => {
       undefined,
       ['codegraphy.typescript'],
       new Set(),
+      { forceAnalyze: true },
     );
     expect(onProgress).toHaveBeenNthCalledWith(1, {
       phase: 'Applying Plugin',
@@ -103,6 +104,46 @@ describe('indexing/refresh/modes/pluginFiles', () => {
     });
     expect(persistCache).toHaveBeenCalledOnce();
     expect(persistIndexMetadata).toHaveBeenCalledOnce();
+  });
+
+  it('forces selected plugin files through analysis and patches only those cache rows', async () => {
+    const persistCache = vi.fn();
+    const persistCachePatch = vi.fn();
+    const discoveredFiles = [
+      createDiscoveredFile('README.md'),
+      createDiscoveredFile('src/app.ts'),
+      createDiscoveredFile('src/extra.ts'),
+    ];
+    const source = createSource({
+      _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => createAnalysisResult(files)),
+    });
+
+    await refreshWorkspaceIndexPluginFiles(source, {
+      disabledPlugins: new Set(),
+      discoveredFiles,
+      persistCache,
+      persistCachePatch,
+      persistIndexMetadata: vi.fn(),
+      pluginIds: ['codegraphy.typescript'],
+      pluginInfos: [createPluginInfo('codegraphy.typescript', ['.ts'])],
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      [createDiscoveredFile('src/app.ts'), createDiscoveredFile('src/extra.ts')],
+      '/workspace',
+      expect.any(Function),
+      undefined,
+      ['codegraphy.typescript'],
+      new Set(),
+      { forceAnalyze: true },
+    );
+    expect(persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/app.ts', 'src/extra.ts'],
+    });
+    expect(persistCache).not.toHaveBeenCalled();
   });
 
   it('does not require a plugin progress callback', async () => {

@@ -52,8 +52,9 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
   cacheTiers?: AnalysisCacheTierOptions,
   pluginIds?: readonly string[],
   disabledPlugins: Set<string> = new Set(),
+  options?: { forceAnalyze?: boolean },
 ): Promise<IWorkspaceFileAnalysisResult> {
-  return analyzeWorkspacePipelineFiles(
+  const args = [
     cache,
     discovery,
     eventBus,
@@ -66,5 +67,9 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
     cacheTiers,
     pluginIds,
     disabledPlugins,
-  );
+  ] as const;
+
+  return options
+    ? analyzeWorkspacePipelineFiles(...args, options)
+    : analyzeWorkspacePipelineFiles(...args);
 }

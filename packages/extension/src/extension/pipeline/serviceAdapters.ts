@@ -64,6 +64,7 @@ export function analyzeWorkspacePipelineFiles(
   cacheTiers?: AnalysisCacheTierOptions,
   pluginIds?: readonly string[],
   disabledPlugins: Set<string> = new Set(),
+  options?: { forceAnalyze?: boolean },
 ): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
@@ -82,11 +83,11 @@ export function analyzeWorkspacePipelineFiles(
     _registry: registry,
   };
 
-  return analyzeWorkspacePipelineSourceFiles(
+  const args = [
     source,
     files,
     workspaceRoot,
-    message => {
+    (message: string) => {
       console.log(message);
     },
     onProgress,
@@ -94,7 +95,11 @@ export function analyzeWorkspacePipelineFiles(
     cacheTiers,
     pluginIds,
     disabledPlugins,
-  );
+  ] as const;
+
+  return options
+    ? analyzeWorkspacePipelineSourceFiles(...args, options)
+    : analyzeWorkspacePipelineSourceFiles(...args);
 }
 
 export function buildWorkspacePipelineGraphData(

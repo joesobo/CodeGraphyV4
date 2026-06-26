@@ -47,10 +47,18 @@ export async function refreshWorkspaceIndexPluginFiles(
       dependencies.signal,
       registeredPluginIds,
       dependencies.disabledPlugins,
+      { forceAnalyze: true },
     );
 
     applyWorkspaceIndexAnalysisResult(source, analysisResult);
-    dependencies.persistCache();
+    if (dependencies.persistCachePatch) {
+      dependencies.persistCachePatch({
+        deleteFilePaths: [],
+        upsertFilePaths: pluginFiles.map(file => file.relativePath),
+      });
+    } else {
+      dependencies.persistCache();
+    }
   }
 
   const graphData = buildWorkspaceIndexGraphFromRefreshState(

@@ -11,7 +11,9 @@ import {
   hasRequiredAnalysisCacheTiers,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
+  removeAnalysisFactsForCacheTiers,
   SYMBOLS_ANALYSIS_CACHE_TIER,
+  type AnalysisCacheTier,
 } from './cacheTiers';
 import { enrichWorkspaceFileAnalysis } from './enrichment';
 import type {
@@ -54,8 +56,13 @@ function createWorkspaceFileAnalysisRequest(
 function mergeReusableAnalysisForCacheStorage(
   reusableAnalysis: IFileAnalysisResult,
   projectedAnalysis: IFileAnalysisResult,
+  replacedTiers?: readonly AnalysisCacheTier[],
 ): IFileAnalysisResult {
-  const mergedAnalysis = mergeFileAnalysisResults(reusableAnalysis, projectedAnalysis) as IFileAnalysisResult & {
+  const reusableStorageAnalysis = removeAnalysisFactsForCacheTiers(
+    reusableAnalysis,
+    replacedTiers,
+  );
+  const mergedAnalysis = mergeFileAnalysisResults(reusableStorageAnalysis, projectedAnalysis) as IFileAnalysisResult & {
     cache?: unknown;
   };
   mergedAnalysis.cache = (reusableAnalysis as { cache?: unknown }).cache;
@@ -69,7 +76,11 @@ function prepareAnalysisForCacheStorage(
 ): IFileAnalysisResult {
   const projectedAnalysis = prepareAnalysisForActiveCacheTiers(options, analysis);
   const storageAnalysis = reusableAnalysis && options.cacheTiers?.active !== undefined
-    ? mergeReusableAnalysisForCacheStorage(reusableAnalysis, projectedAnalysis)
+    ? mergeReusableAnalysisForCacheStorage(
+        reusableAnalysis,
+        projectedAnalysis,
+        options.forceAnalyze ? options.cacheTiers.completed : undefined,
+      )
     : projectedAnalysis;
 
   return markAnalysisCacheTiers(
@@ -112,6 +123,9 @@ function readCacheHitAnalysis(
 ): IFileAnalysisResult | undefined {
   const cached = options.cache.files[file.relativePath];
   if (!cached || cached.mtime !== stat?.mtime) {
+    return undefined;
+  }
+  if (options.forceAnalyze) {
     return undefined;
   }
 
