@@ -5,8 +5,14 @@ import type {
 } from '../../../../core/plugins/types/contracts';
 import { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import {
+  BASELINE_ANALYSIS_CACHE_TIER,
   createWorkspaceIndexEngineState,
   FileDiscovery,
+  hasRequiredAnalysisCacheTiers,
+  isAnalysisCacheTier,
+  readAnalysisCacheTiers,
+  sortAnalysisCacheTiers,
+  type AnalysisCacheTier,
   type IDiscoveredFile,
   type WorkspaceIndexEngineState,
 } from '@codegraphy-dev/core';
@@ -20,6 +26,46 @@ import {
   type WorkspaceAnalysisDatabaseSnapshot,
 } from '../../database/cache/storage';
 import { createWorkspacePipelineInitialCache } from '../cache/initialState';
+
+export interface WorkspacePipelineGraphCacheHydrationOptions {
+  activeAnalysisCacheTiers?: readonly AnalysisCacheTier[];
+}
+
+function getDefaultGraphCacheHydrationTiers(): readonly AnalysisCacheTier[] {
+  return [BASELINE_ANALYSIS_CACHE_TIER];
+}
+
+function hasCacheFiles(cache: IWorkspaceAnalysisCache): boolean {
+  return Object.keys(cache.files).length > 0;
+}
+
+function hasHydratedAnalysisCacheTiers(
+  cache: IWorkspaceAnalysisCache,
+  tiers: readonly AnalysisCacheTier[],
+): boolean {
+  return hasCacheFiles(cache)
+    && Object.values(cache.files).every(entry =>
+      hasRequiredAnalysisCacheTiers(entry.analysis, tiers),
+    );
+}
+
+function createRuntimeHydrationCacheTiers(
+  cache: IWorkspaceAnalysisCache,
+  requestedTiers: readonly AnalysisCacheTier[],
+): readonly AnalysisCacheTier[] {
+  const tiers = new Set<AnalysisCacheTier>([
+    BASELINE_ANALYSIS_CACHE_TIER,
+    ...requestedTiers,
+  ]);
+  for (const entry of Object.values(cache.files)) {
+    for (const tier of readAnalysisCacheTiers(entry.analysis)) {
+      if (isAnalysisCacheTier(tier)) {
+        tiers.add(tier);
+      }
+    }
+  }
+  return sortAnalysisCacheTiers(tiers);
+}
 
 export abstract class WorkspacePipelineStateBase {
   protected readonly _config: Configuration;
@@ -117,7 +163,9 @@ export abstract class WorkspacePipelineStateBase {
   }
 
   async warmGraphCache(): Promise<void> {
-    await this._hydrateCacheFromGraphCache();
+    await this._hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: getDefaultGraphCacheHydrationTiers(),
+    });
   }
 
   readStructuredAnalysisSnapshot(): WorkspaceAnalysisDatabaseSnapshot {
@@ -129,24 +177,59 @@ export abstract class WorkspacePipelineStateBase {
     return readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
   }
 
-  protected async _hydrateCacheFromGraphCache(): Promise<void> {
+  protected async _hydrateCacheFromGraphCache(
+    options: WorkspacePipelineGraphCacheHydrationOptions = {},
+  ): Promise<void> {
     const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot || Object.keys(this._cache.files).length > 0) {
+    if (!workspaceRoot) {
       return;
     }
 
-    this._cacheHydrationPromise ??= Promise.resolve()
-      .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot))
-      .then((cache) => {
-        if (Object.keys(this._cache.files).length === 0) {
-          this._cache = cache;
-        }
-      })
-      .finally(() => {
-        this._cacheHydrationPromise = undefined;
-      });
+    const requestedAnalysisCacheTiers = options.activeAnalysisCacheTiers
+      ?? getDefaultGraphCacheHydrationTiers();
+    if (hasHydratedAnalysisCacheTiers(this._cache, requestedAnalysisCacheTiers)) {
+      return;
+    }
 
-    await this._cacheHydrationPromise;
+    let attemptedRequestedHydration = false;
+    while (!hasHydratedAnalysisCacheTiers(this._cache, requestedAnalysisCacheTiers)) {
+      const existingHydration = this._cacheHydrationPromise;
+      if (existingHydration) {
+        await existingHydration;
+        if (hasHydratedAnalysisCacheTiers(this._cache, requestedAnalysisCacheTiers)) {
+          return;
+        }
+      }
+
+      if (attemptedRequestedHydration) {
+        return;
+      }
+
+      const cacheWasEmptyAtStart = !hasCacheFiles(this._cache);
+      this._cacheHydrationPromise = Promise.resolve()
+        .then(() => loadWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+          activeAnalysisCacheTiers: createRuntimeHydrationCacheTiers(
+            this._cache,
+            requestedAnalysisCacheTiers,
+          ),
+        }))
+        .then((cache) => {
+          if (cacheWasEmptyAtStart && hasCacheFiles(this._cache)) {
+            return;
+          }
+          if (!hasCacheFiles(cache) && hasCacheFiles(this._cache)) {
+            return;
+          }
+
+          this._cache = cache;
+        })
+        .finally(() => {
+          this._cacheHydrationPromise = undefined;
+        });
+
+      attemptedRequestedHydration = true;
+      await this._cacheHydrationPromise;
+    }
   }
 
   protected abstract _getWorkspaceRoot(): string | undefined;

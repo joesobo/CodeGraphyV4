@@ -10,5 +10,9 @@ export const CODEGRAPHY_MARKDOWN_PLUGIN_METADATA = {
   version: '1.0.0',
   apiVersion: '^2.0.0',
   supportedExtensions: ['*'],
+  updateImpact: {
+    toggle: 'reanalyze-plugin-files',
+    defaultSetting: 'reanalyze-plugin-files',
+  },
   disclosures: [],
 } as const;

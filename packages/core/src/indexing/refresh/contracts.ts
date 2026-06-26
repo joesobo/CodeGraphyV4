@@ -11,6 +11,15 @@ export type WorkspaceIndexPluginInfo = {
   };
 };
 
+export interface WorkspaceIndexFileAnalysisOptions {
+  forceAnalyze?: boolean;
+}
+
+export interface WorkspaceIndexCachePatch {
+  deleteFilePaths: readonly string[];
+  upsertFilePaths: readonly string[];
+}
+
 export interface WorkspaceIndexRefreshSource {
   _analyzeFiles(
     files: IDiscoveredFile[],
@@ -19,6 +28,7 @@ export interface WorkspaceIndexRefreshSource {
     signal?: AbortSignal,
     pluginIds?: readonly string[],
     disabledPlugins?: Set<string>,
+    options?: WorkspaceIndexFileAnalysisOptions,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -56,7 +66,10 @@ export interface WorkspaceIndexRefreshSource {
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData>;
-  invalidateWorkspaceFiles(filePaths: readonly string[]): string[];
+  invalidateWorkspaceFiles(
+    filePaths: readonly string[],
+    options?: { persist?: boolean },
+  ): string[];
 }
 
 export interface WorkspaceIndexRefreshDependencies {
@@ -75,6 +88,7 @@ export interface WorkspaceIndexRefreshDependencies {
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   onDeferredIndexMetadataError?(error: unknown): void;
   persistCache(): void;
+  persistCachePatch?(patch: WorkspaceIndexCachePatch): void;
   persistIndexMetadata(): Promise<void>;
   signal?: AbortSignal;
   workspaceRoot: string;
@@ -93,6 +107,7 @@ export interface WorkspaceIndexAnalysisScopeRefreshDependencies {
 
 export interface WorkspaceIndexPluginRefreshDependencies
   extends WorkspaceIndexAnalysisScopeRefreshDependencies {
+  persistCachePatch?(patch: WorkspaceIndexCachePatch): void;
   pluginIds: readonly string[];
   pluginInfos: readonly WorkspaceIndexPluginInfo[];
 }

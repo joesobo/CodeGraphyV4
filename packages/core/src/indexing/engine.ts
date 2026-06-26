@@ -5,7 +5,10 @@ import type { IDiscoveredFile, IDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import type { IGraphData } from '../graph/contracts';
-import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
+import {
+  patchWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCache,
+} from '../graphCache/database/storage';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { analyzeWorkspaceIndexFiles } from './analysis';
 import { createDisabledPluginSet } from '../plugins/activityState/model';
@@ -134,6 +137,38 @@ function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
   }
 
   saveWorkspaceAnalysisDatabaseCache(workspaceRoot, state.cache);
+  persistWorkspaceIndexMetadata({
+    loadedPackagePlugins: state.loadedPackagePlugins,
+    registry: state.registry,
+    settings: state.settings,
+    workspaceRoot,
+  });
+}
+
+function patchWorkspaceEngineCache(
+  runtime: WorkspaceEngineRuntime,
+  patch: {
+    deleteFilePaths: readonly string[];
+    upsertFilePaths: readonly string[];
+  },
+): void {
+  const { state, workspaceRoot } = runtime;
+  if (!state.registry || !state.settings) {
+    return;
+  }
+
+  const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
+  for (const filePath of patch.upsertFilePaths) {
+    const entry = state.cache.files[filePath];
+    if (entry) {
+      upsertFiles[filePath] = entry;
+    }
+  }
+
+  patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+    deleteFilePaths: patch.deleteFilePaths,
+    upsertFiles,
+  });
   persistWorkspaceIndexMetadata({
     loadedPackagePlugins: state.loadedPackagePlugins,
     registry: state.registry,
@@ -336,7 +371,10 @@ export function createCodeGraphyWorkspaceEngine(
 
     const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
     registry.notifyPostAnalyze(graph, disabledPlugins);
-    persistWorkspaceEngine(runtime);
+    patchWorkspaceEngineCache(runtime, {
+      deleteFilePaths: [],
+      upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
+    });
 
     return createWorkspaceEngineIndexResult(runtime, graph);
   };

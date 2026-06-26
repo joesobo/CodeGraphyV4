@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { EventBus } from '../../../../../src/core/plugins/events/bus';
-import { FileDiscovery } from '@codegraphy-dev/core';
+import {
+  BASELINE_ANALYSIS_CACHE_TIER,
+  FileDiscovery,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  type AnalysisCacheTier,
+} from '@codegraphy-dev/core';
 import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
 import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
 
@@ -27,6 +32,10 @@ class TestWorkspacePipelineState extends WorkspacePipelineStateBase {
 
   protected _getWorkspaceRoot(): string | undefined {
     return this.workspaceRoot;
+  }
+
+  hydrateCacheFromGraphCache(options?: { activeAnalysisCacheTiers?: readonly AnalysisCacheTier[] }): Promise<void> {
+    return this._hydrateCacheFromGraphCache(options);
   }
 }
 
@@ -128,7 +137,9 @@ describe('extension/pipeline/service/stateBase', () => {
     await Promise.all([firstWarm, secondWarm]);
 
     expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledOnce();
-    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace');
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace', {
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
+    });
     expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(state._cache).toEqual({
       version: '2.1.0',
@@ -203,6 +214,188 @@ describe('extension/pipeline/service/stateBase', () => {
     await warm;
 
     expect(state._cache).toBe(populatedDuringHydration);
+  });
+
+  it('reloads Graph Cache when later hydration needs tiers missing from warm baseline memory', async () => {
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache
+      .mockReturnValueOnce({
+        version: '2.1.0',
+        files: {
+          'src/app.ts': {
+            mtime: 1,
+            analysis: {
+              filePath: '/workspace/src/app.ts',
+              cache: { tiers: [BASELINE_ANALYSIS_CACHE_TIER] },
+              relations: [],
+              symbols: [],
+            },
+          },
+        },
+      })
+      .mockReturnValueOnce({
+        version: '2.1.0',
+        files: {
+          'src/app.ts': {
+            mtime: 1,
+            analysis: {
+              filePath: '/workspace/src/app.ts',
+              cache: {
+                tiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+              },
+              relations: [],
+              symbols: [{
+                id: 'src/app.ts#fn',
+                filePath: '/workspace/src/app.ts',
+                kind: 'function',
+                name: 'run',
+              }],
+            },
+          },
+        },
+      });
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+    };
+
+    await state.hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
+    });
+    await state.hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+    });
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenNthCalledWith(1, '/workspace', {
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER],
+    });
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenNthCalledWith(2, '/workspace', {
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+    });
+    expect(state._cache).toEqual({
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/app.ts',
+            cache: {
+              tiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+            },
+            relations: [],
+            symbols: [{
+              id: 'src/app.ts#fn',
+              filePath: '/workspace/src/app.ts',
+              kind: 'function',
+              name: 'run',
+            }],
+          },
+        },
+      },
+    });
+  });
+
+  it('keeps previously hydrated plugin evidence resident when loading another plugin tier', async () => {
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache
+      .mockReturnValueOnce({
+        version: '2.1.0',
+        files: {
+          'src/app.ts': {
+            mtime: 1,
+            analysis: {
+              filePath: '/workspace/src/app.ts',
+              cache: {
+                tiers: [BASELINE_ANALYSIS_CACHE_TIER, 'plugin:codegraphy.vue'],
+              },
+              relations: [],
+            },
+          },
+        },
+      })
+      .mockReturnValueOnce({
+        version: '2.1.0',
+        files: {
+          'src/app.ts': {
+            mtime: 1,
+            analysis: {
+              filePath: '/workspace/src/app.ts',
+              cache: {
+                tiers: [
+                  BASELINE_ANALYSIS_CACHE_TIER,
+                  'plugin:codegraphy.vue',
+                  'plugin:codegraphy.unity',
+                ],
+              },
+              relations: [],
+            },
+          },
+        },
+      });
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+    };
+
+    await state.hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, 'plugin:codegraphy.vue'],
+    });
+    await state.hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, 'plugin:codegraphy.unity'],
+    });
+
+    expect(stateBaseHarness.loadWorkspaceAnalysisDatabaseCache).toHaveBeenNthCalledWith(2, '/workspace', {
+      activeAnalysisCacheTiers: [
+        BASELINE_ANALYSIS_CACHE_TIER,
+        'plugin:codegraphy.unity',
+        'plugin:codegraphy.vue',
+      ],
+    });
+    expect(state._cache).toEqual({
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/app.ts',
+            cache: {
+              tiers: [
+                BASELINE_ANALYSIS_CACHE_TIER,
+                'plugin:codegraphy.vue',
+                'plugin:codegraphy.unity',
+              ],
+            },
+            relations: [],
+          },
+        },
+      },
+    });
+  });
+
+  it('keeps existing runtime memory when a later tier load finds an empty Graph Cache', async () => {
+    stateBaseHarness.loadWorkspaceAnalysisDatabaseCache.mockReturnValueOnce({
+      version: '2.1.0',
+      files: {},
+    });
+    const state = new TestWorkspacePipelineState(createContext(), '/workspace') as TestWorkspacePipelineState & {
+      _cache: unknown;
+    };
+    const baselineCache = {
+      version: '2.1.0',
+      files: {
+        'src/app.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/app.ts',
+            cache: { tiers: [BASELINE_ANALYSIS_CACHE_TIER] },
+            relations: [],
+          },
+        },
+      },
+    };
+    state._cache = baselineCache;
+
+    await state.hydrateCacheFromGraphCache({
+      activeAnalysisCacheTiers: [BASELINE_ANALYSIS_CACHE_TIER, 'plugin:codegraphy.vue'],
+    });
+
+    expect(state._cache).toBe(baselineCache);
   });
 
   it('clears the shared hydration promise so empty cache warms can retry', async () => {

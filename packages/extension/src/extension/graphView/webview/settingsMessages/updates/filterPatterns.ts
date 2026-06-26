@@ -25,6 +25,5 @@ export async function applyFilterPatternsUpdate(
       disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
     },
   });
-  await handlers.analyzeAndSendData();
   return true;
 }

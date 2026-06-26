@@ -1,10 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { WebviewToExtensionMessage } from '../../../../../src/shared/protocol/webviewToExtension';
 import {
   applySettingsUpdateMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/updates/apply';
+import { createPluginGraphWorkScheduler } from '../../../../../src/extension/graphView/webview/settingsMessages/pluginGraphWork';
 import { createHandlers, createState } from './testSupport';
 
 describe('graph view settings update message', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('delegates reset-all requests', async () => {
     const state = createState();
     const handlers = createHandlers();
@@ -40,10 +46,11 @@ describe('graph view settings update message', () => {
         disabledPluginPatterns: [],
       },
     });
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('persists filter row state and refreshes graph data so old nodes can return', async () => {
+  it('persists filter row state without scheduling graph work', async () => {
     const state = createState({ filterPatterns: ['dist/**'] });
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -64,10 +71,11 @@ describe('graph view settings update message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', []);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('persists section filter state and refreshes graph data once', async () => {
+  it('persists section filter state without scheduling graph work', async () => {
     const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
     const handlers = createHandlers();
 
@@ -84,7 +92,61 @@ describe('graph view settings update message', () => {
       'dist/**',
       'coverage/**',
     ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('keeps filter bursts projection-only with zero graph jobs', async () => {
+    const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
+    const handlers = createHandlers({
+      getPluginFilterPatterns: vi.fn(() => ['venv/**', '.mypy_cache/**']),
+    });
+
+    const messages: WebviewToExtensionMessage[] = [
+      { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**'] } },
+      { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**', 'coverage/**'] } },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'custom', pattern: 'dist/**', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'custom', pattern: 'dist/**', enabled: true },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'plugin', pattern: 'venv/**', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'plugin', pattern: 'venv/**', enabled: true },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'custom', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'custom', enabled: true },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'plugin', enabled: false },
+      },
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'plugin', enabled: true },
+      },
+    ];
+
+    for (const message of messages) {
+      await expect(applySettingsUpdateMessage(message, state, handlers)).resolves.toBe(true);
+    }
+
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('persists update-show-orphans through config updates', async () => {
@@ -159,6 +221,95 @@ describe('graph view settings update message', () => {
       type: 'PLUGIN_DATA_UPDATED',
       payload: { pluginId: 'acme.plugin', data },
     });
+  });
+
+  it('uses plugin setting impact metadata instead of hard-coded plugin setting branches', async () => {
+    const state = createState();
+    const schedulePluginGraphWork = vi.fn();
+    const handlers = createHandlers({
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'projection-only' as const,
+        defaultSetting: 'settings-only' as const,
+      })),
+      schedulePluginGraphWork,
+    });
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_PLUGIN_DATA',
+          payload: {
+            pluginId: 'codegraphy.particles',
+            data: { speed: 0.4, size: 0.8 },
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(schedulePluginGraphWork).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('coalesces analyzer plugin setting bursts into one graph work job', async () => {
+    vi.useFakeTimers();
+    const state = createState();
+    const pluginData: Record<string, unknown> = {};
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const reprocessPluginFiles = vi.fn(() => Promise.resolve());
+    const scheduler = createPluginGraphWorkScheduler({
+      analyzeAndSendData,
+      reprocessPluginFiles,
+      smartRebuild: vi.fn(),
+    }, { delayMs: 50 });
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'pluginData') {
+          return { ...pluginData } as T;
+        }
+        return defaultValue;
+      }),
+      updateConfig: vi.fn(async (key: string, value: unknown) => {
+        if (key === 'pluginData' && value && typeof value === 'object' && !Array.isArray(value)) {
+          Object.assign(pluginData, value as Record<string, unknown>);
+        }
+      }),
+      getInstalledPluginUpdateImpact: vi.fn(() => ({
+        toggle: 'reanalyze-plugin-files' as const,
+        defaultSetting: 'reanalyze-plugin-files' as const,
+      })),
+      schedulePluginGraphWork: request => scheduler.schedule(request),
+      analyzeAndSendData,
+      reprocessPluginFiles,
+    });
+
+    for (let index = 0; index < 10; index += 1) {
+      await expect(
+        applySettingsUpdateMessage(
+          {
+            type: 'UPDATE_PLUGIN_DATA',
+            payload: {
+              pluginId: 'codegraphy.vue',
+              data: { includeTests: index % 2 === 0 },
+            },
+          },
+          state,
+          handlers,
+        ),
+      ).resolves.toBe(true);
+    }
+
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(reprocessPluginFiles).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.vue']);
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('merges plugin-owned data with existing plugin data', async () => {

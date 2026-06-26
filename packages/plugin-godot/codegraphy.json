@@ -18,6 +18,10 @@
     "**/addons/**",
     "**/*.uid"
   ],
+  "updateImpact": {
+    "toggle": "reanalyze-plugin-files",
+    "defaultSetting": "reanalyze-plugin-files"
+  },
   "sources": [
     {
       "id": "preload",

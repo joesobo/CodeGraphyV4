@@ -48,7 +48,8 @@ describe('settingsMessages/updates/apply/filterPatternState', () => {
         disabledPluginPatterns: ['venv/**', '.mypy_cache/**'],
       }),
     }));
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('updates plugin group state from all plugin patterns', async () => {
@@ -74,7 +75,8 @@ describe('settingsMessages/updates/apply/filterPatternState', () => {
         disabledPluginPatterns: ['venv/**', '.mypy_cache/**'],
       }),
     }));
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('starts a disabled row list from an empty config default', async () => {

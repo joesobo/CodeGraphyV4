@@ -6,6 +6,7 @@
     "types": ["vitest/globals", "node"],
     "paths": {
       "@codegraphy-dev/core": ["../core/src/index.ts"],
+      "@codegraphy-dev/plugin-api": ["../plugin-api/src/index.ts"],
       "@codegraphy-dev/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
       "@/*": ["./src/*"],
       "react-force-graph-2d": ["./tests/types/react-force-graph-2d"],

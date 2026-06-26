@@ -8,6 +8,7 @@ export function createSource(
   _analyzer: {
     hasIndex: ReturnType<typeof vi.fn>;
     rebuildGraph: ReturnType<typeof vi.fn>;
+    loadCachedGraph: ReturnType<typeof vi.fn>;
     refreshGitignoreMetadata: ReturnType<typeof vi.fn>;
     refreshAnalysisScope: ReturnType<typeof vi.fn>;
     refreshPluginFiles: ReturnType<typeof vi.fn>;
@@ -46,6 +47,7 @@ export function createSource(
     _analyzer: {
       hasIndex: vi.fn(() => true),
       rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+      loadCachedGraph: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       refreshGitignoreMetadata: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       refreshAnalysisScope: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       refreshPluginFiles: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),

@@ -24,7 +24,11 @@ import {
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../cache/signatures';
-import { persistWorkspacePipelineCache } from '../cache/storage';
+import {
+  patchWorkspacePipelineCache,
+  persistWorkspacePipelineCache,
+  type WorkspacePipelineCachePatch,
+} from '../cache/storage';
 import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
@@ -65,29 +69,48 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     signal?: AbortSignal,
     pluginCacheTierIds?: readonly string[],
     disabledPlugins: Set<string> = new Set(),
+    options?: { forceAnalyze?: boolean },
   ): Promise<IWorkspaceFileAnalysisResult> {
     const analysisPluginIds = this._getActiveAnalysisPluginIds(
       pluginCacheTierIds,
       disabledPlugins,
     );
 
-    return analyzeWorkspacePipelineDiscoveredFiles(
-      this._cache,
-      this._discovery,
-      this._eventBus,
-      this._registry,
-      (filePath: string) => this._getFileStat(filePath),
-      files,
-      workspaceRoot,
-      onProgress,
-      signal,
-      createWorkspacePipelineAnalysisCacheTiers(
-        this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
-        analysisPluginIds,
-      ),
+    const analysisCacheTiers = createWorkspacePipelineAnalysisCacheTiers(
+      this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
       analysisPluginIds,
-      disabledPlugins,
     );
+
+    return options
+      ? analyzeWorkspacePipelineDiscoveredFiles(
+          this._cache,
+          this._discovery,
+          this._eventBus,
+          this._registry,
+          (filePath: string) => this._getFileStat(filePath),
+          files,
+          workspaceRoot,
+          onProgress,
+          signal,
+          analysisCacheTiers,
+          analysisPluginIds,
+          disabledPlugins,
+          options,
+        )
+      : analyzeWorkspacePipelineDiscoveredFiles(
+          this._cache,
+          this._discovery,
+          this._eventBus,
+          this._registry,
+          (filePath: string) => this._getFileStat(filePath),
+          files,
+          workspaceRoot,
+          onProgress,
+          signal,
+          analysisCacheTiers,
+          analysisPluginIds,
+          disabledPlugins,
+        );
   }
 
   protected _getActiveAnalysisPluginIds(
@@ -206,6 +229,17 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     persistWorkspacePipelineCache(
       this._getWorkspaceRoot(),
       this._cache,
+      (message: string, error: unknown) => {
+        console.warn(message, error);
+      },
+    );
+  }
+
+  protected _persistCachePatch(patch: WorkspacePipelineCachePatch): void {
+    patchWorkspacePipelineCache(
+      this._getWorkspaceRoot(),
+      this._cache,
+      patch,
       (message: string, error: unknown) => {
         console.warn(message, error);
       },

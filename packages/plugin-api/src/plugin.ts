@@ -145,6 +145,28 @@ export interface IPluginFactoryOptions {
 
 export type IPluginFactory = (options?: IPluginFactoryOptions) => IPlugin | Promise<IPlugin>;
 
+export type IPluginUpdateImpact =
+  | 'view-only'
+  | 'settings-only'
+  | 'projection-only'
+  | 'reanalyze-plugin-files'
+  | 'requires-full-index';
+
+export interface IPluginUpdateImpactPolicy {
+  /**
+   * Impact of enabling or disabling the plugin.
+   *
+   * Plugins that only contribute UI/runtime projection should use
+   * `projection-only`. Plugins that emit per-file indexed evidence should use
+   * `reanalyze-plugin-files` unless a toggle truly invalidates the whole index.
+   */
+  toggle: IPluginUpdateImpact;
+  /** Fallback impact for plugin-owned setting keys that are not listed below. */
+  defaultSetting?: IPluginUpdateImpact;
+  /** Per plugin-owned setting impact overrides. */
+  settings?: Record<string, IPluginUpdateImpact>;
+}
+
 /**
  * The main plugin interface for CodeGraphy.
  *
@@ -221,6 +243,9 @@ export interface IPlugin {
 
   /** Optional webview scripts and styles loaded into CodeGraphy Graph View. */
   webviewContributions?: IPluginWebviewContributions;
+
+  /** Declares how plugin toggles and plugin-owned settings affect graph work. */
+  updateImpact?: IPluginUpdateImpactPolicy;
 
   // ---------------------------------------------------------------------------
   // Core analysis contract

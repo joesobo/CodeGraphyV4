@@ -8,6 +8,7 @@ import type {
   GraphViewSettingsMessageState,
 } from './router';
 import { sendFilterPatternsUpdated } from './updates/apply/filterPatternNotification';
+import { applyPluginGraphWorkPlan } from './pluginGraphWork';
 
 export async function applySettingsToggleMessage(
   message: WebviewToExtensionMessage,
@@ -24,6 +25,7 @@ export async function applySettingsToggleMessage(
           defaultOptions: message.payload.enabled
             ? handlers.getInstalledPluginDefaultOptions?.(message.payload.pluginId)
             : undefined,
+          updateImpact: handlers.getInstalledPluginUpdateImpact?.(message.payload.pluginId),
         },
       );
       await handlers.updateConfig('plugins', plan.plugins);
@@ -38,23 +40,35 @@ export async function applySettingsToggleMessage(
       handlers.sendGraphViewContributionStatuses?.();
       handlers.sendGraphControls();
       sendFilterPatternsUpdated(state, handlers);
-      if (plan.indexing.kind === 'reprocess-plugin-files') {
-        await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
-        return true;
-      }
-
-      if (plan.indexing.kind === 'analyze-workspace') {
-        await handlers.analyzeAndSendData();
-        return true;
-      }
-
-      handlers.smartRebuild(message.payload.pluginId);
+      await applyPluginToggleGraphWorkPlan(
+        plan.indexing,
+        message.payload.pluginId,
+        message.payload.enabled,
+        handlers,
+      );
       return true;
     }
 
     default:
       return false;
   }
+}
+
+async function applyPluginToggleGraphWorkPlan(
+  plan: ReturnType<typeof createCodeGraphyWorkspacePluginTogglePlan>['indexing'],
+  pluginId: string,
+  enabled: boolean,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<void> {
+  if (
+    enabled
+    && plan.kind === 'reprocess-plugin-files'
+    && await (handlers.hydratePluginGraphScope?.([pluginId]) ?? Promise.resolve(false))
+  ) {
+    return;
+  }
+
+  await applyPluginGraphWorkPlan(plan, pluginId, handlers);
 }
 
 function replaySavedPluginData(

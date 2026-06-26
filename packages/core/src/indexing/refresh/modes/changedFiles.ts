@@ -30,20 +30,25 @@ export async function refreshWorkspaceIndexChangedFiles(
     dependencies.filePaths,
     discoveredByRelativePath,
   );
+  const deletionSelection = invalidateDeletedWorkspaceIndexFiles(
+    source,
+    changeSelection.unmatchedFilePaths,
+  );
+  const deleteFilePaths = deletionSelection.deleteFilePaths;
   const changedFiles = changeSelection.files;
 
-  if (changeSelection.unmatchedFilePaths.length > 0) {
-    source.invalidateWorkspaceFiles(changeSelection.unmatchedFilePaths);
+  if (deletionSelection.unmatchedFilePaths.length > 0) {
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
-  const changedAnalysisFiles = await source._readAnalysisFiles(changedFiles);
-  const incrementalLifecycle = await dependencies.notifyFilesChanged(
-    changedAnalysisFiles,
-    dependencies.workspaceRoot,
-    undefined,
-    dependencies.disabledPlugins,
-  );
+  const incrementalLifecycle = changedFiles.length > 0
+    ? await dependencies.notifyFilesChanged(
+        await source._readAnalysisFiles(changedFiles),
+        dependencies.workspaceRoot,
+        undefined,
+        dependencies.disabledPlugins,
+      )
+    : { additionalFilePaths: [], requiresFullRefresh: false };
 
   if (incrementalLifecycle.requiresFullRefresh) {
     return analyzeWorkspaceIndexFromRefresh(source, dependencies);
@@ -60,6 +65,13 @@ export async function refreshWorkspaceIndexChangedFiles(
   retainWorkspaceIndexDiscoveredFileConnections(source, dependencies.discoveredFiles);
 
   if (filesToAnalyze.length === 0) {
+    if (deleteFilePaths.length > 0) {
+      persistChangedFilesCachePatch(dependencies, {
+        deleteFilePaths,
+        upsertFilePaths: [],
+      });
+      await dependencies.persistIndexMetadata();
+    }
     return buildWorkspaceIndexGraphFromRefreshState(
       source,
       dependencies.workspaceRoot,
@@ -68,7 +80,10 @@ export async function refreshWorkspaceIndexChangedFiles(
   }
 
   const graphSnapshot = captureWorkspaceIndexRefreshGraphSnapshot(source, filesToAnalyze);
-  source.invalidateWorkspaceFiles(filesToAnalyze.map((file) => file.absolutePath));
+  source.invalidateWorkspaceFiles(
+    filesToAnalyze.map((file) => file.absolutePath),
+    { persist: false },
+  );
   dependencies.onProgress?.({
     phase: 'Applying Changes',
     current: 0,
@@ -92,7 +107,10 @@ export async function refreshWorkspaceIndexChangedFiles(
 
   applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
-  dependencies.persistCache();
+  persistChangedFilesCachePatch(dependencies, {
+    deleteFilePaths,
+    upsertFilePaths: filesToAnalyze.map(file => file.relativePath),
+  });
   if (
     canPatchWorkspaceIndexRefreshGraphData(graphSnapshot, analysisResult, filesToAnalyze)
     && source._patchGraphDataNodeMetrics
@@ -114,6 +132,49 @@ export async function refreshWorkspaceIndexChangedFiles(
   await dependencies.persistIndexMetadata();
 
   return graphData;
+}
+
+function invalidateDeletedWorkspaceIndexFiles(
+  source: WorkspaceIndexRefreshSource,
+  filePaths: readonly string[],
+): {
+  deleteFilePaths: string[];
+  unmatchedFilePaths: string[];
+} {
+  const deleteFilePaths = new Set<string>();
+  const unmatchedFilePaths: string[] = [];
+
+  for (const filePath of filePaths) {
+    const invalidatedFilePaths = source.invalidateWorkspaceFiles([filePath], { persist: false }) ?? [];
+    if (invalidatedFilePaths.length === 0) {
+      unmatchedFilePaths.push(filePath);
+      continue;
+    }
+
+    for (const invalidatedFilePath of invalidatedFilePaths) {
+      deleteFilePaths.add(invalidatedFilePath);
+    }
+  }
+
+  return {
+    deleteFilePaths: [...deleteFilePaths],
+    unmatchedFilePaths,
+  };
+}
+
+function persistChangedFilesCachePatch(
+  dependencies: WorkspaceIndexRefreshDependencies,
+  patch: {
+    deleteFilePaths: readonly string[];
+    upsertFilePaths: readonly string[];
+  },
+): void {
+  if (dependencies.persistCachePatch) {
+    dependencies.persistCachePatch(patch);
+    return;
+  }
+
+  dependencies.persistCache();
 }
 
 function analyzeWorkspaceIndexFromRefresh(

@@ -2,12 +2,14 @@ import type * as vscode from 'vscode';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
 import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';
+import type { PluginGraphWorkRequest } from '../settingsMessages/pluginGraphWork';
 import { dispatchGraphViewPrimaryRouteMessage } from './routed';
 import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
@@ -43,6 +45,7 @@ export interface GraphViewPrimaryMessageContext {
   indexAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  hydrateGraphScope(): Promise<boolean>;
   refreshAnalysisScope(): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
@@ -86,6 +89,7 @@ export interface GraphViewPrimaryMessageContext {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginDefaultOptions?(pluginId: string): Record<string, unknown> | undefined;
+  getInstalledPluginUpdateImpact?(pluginId: string): IPluginUpdateImpactPolicy | undefined;
   reloadWorkspacePlugins(): Promise<void>;
   syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
@@ -101,6 +105,8 @@ export interface GraphViewPrimaryMessageContext {
   sendMessage(message: unknown): void;
   applyViewTransform(): void;
   smartRebuild(id: string): void;
+  schedulePluginGraphWork?(request: PluginGraphWorkRequest): void;
+  cancelScheduledPluginGraphWork?(): void;
   resetAllSettings(): Promise<void>;
 }
 

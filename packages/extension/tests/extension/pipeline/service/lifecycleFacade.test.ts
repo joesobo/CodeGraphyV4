@@ -289,6 +289,16 @@ describe('pipeline/service/lifecycleFacade', () => {
     expect(facade.persistCache).toHaveBeenCalledOnce();
   });
 
+  it('invalidates workspace files without immediate cache persistence when requested by refresh', () => {
+    const facade = new TestLifecycleFacade();
+
+    expect(facade.invalidateWorkspaceFiles(['/workspace/src/a.ts'], { persist: false }))
+      .toEqual(['src/a.ts']);
+
+    expect(invalidateWorkspacePipelineFiles).toHaveBeenCalledOnce();
+    expect(facade.persistCache).not.toHaveBeenCalled();
+  });
+
   it('returns early when plugin invalidation receives no plugin ids', () => {
     const facade = new TestLifecycleFacade();
 

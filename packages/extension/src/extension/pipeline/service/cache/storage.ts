@@ -1,6 +1,14 @@
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import { clearWorkspacePipelineCache } from '../../analysis/state';
-import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../database/cache/storage';
+import {
+  patchWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
+} from '../../database/cache/storage';
+
+export interface WorkspacePipelineCachePatch {
+  deleteFilePaths: readonly string[];
+  upsertFilePaths: readonly string[];
+}
 
 export function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,
@@ -22,4 +30,32 @@ export function persistWorkspacePipelineCache(
     .catch((error: unknown) => {
       warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
     });
+}
+
+export function patchWorkspacePipelineCache(
+  workspaceRoot: string | undefined,
+  cache: IWorkspaceAnalysisCache,
+  patch: WorkspacePipelineCachePatch,
+  warn: (message: string, error: unknown) => void,
+): void {
+  if (!workspaceRoot) {
+    return;
+  }
+
+  const upsertFiles: IWorkspaceAnalysisCache['files'] = {};
+  for (const filePath of patch.upsertFilePaths) {
+    const entry = cache.files[filePath];
+    if (entry) {
+      upsertFiles[filePath] = entry;
+    }
+  }
+
+  try {
+    patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      deleteFilePaths: patch.deleteFilePaths,
+      upsertFiles,
+    });
+  } catch (error) {
+    warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);
+  }
 }

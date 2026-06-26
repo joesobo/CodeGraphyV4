@@ -23,6 +23,10 @@ describe('plugins/installedPluginCache/bundled', () => {
       pluginId: 'codegraphy.markdown',
       pluginName: 'Markdown',
       supportedExtensions: ['*'],
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+        defaultSetting: 'reanalyze-plugin-files',
+      },
       disclosures: [],
       packageRoot: '',
     });

@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type {
+  ExtensionToWebviewMessage,
+  IPluginFilterPatternGroup,
+} from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
-import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
@@ -132,6 +134,8 @@ export interface GraphViewProviderMessageListenerSource {
   _indexAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  hydrateGraphScope?(): Promise<boolean>;
+  hydratePluginGraphScope?(pluginIds: readonly string[]): Promise<boolean>;
   refreshAnalysisScope(): Promise<void>;
   refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;

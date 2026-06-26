@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import {
   clearWorkspaceAnalysisDatabaseCache,
+  patchWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCache,
 } from '../../../../src/graphCache/database/io/save';
 import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../../../src/graphCache/database/io/saveAsync';
@@ -47,8 +48,10 @@ vi.mock('../../../../src/graphCache/database/io/temporary', () => ({
 }));
 
 vi.mock('../../../../src/graphCache/database/query/write', () => ({
+  createWorkspaceAnalysisCachePatchWriter: vi.fn(),
   createWorkspaceAnalysisCacheWriter: vi.fn(),
   createWorkspaceAnalysisCacheWriterAsync: vi.fn(),
+  deleteAnalysisEntry: vi.fn(),
   persistAnalysisEntry: vi.fn(),
   persistAnalysisEntryAsync: vi.fn(),
   sortedCacheEntries: vi.fn(),
@@ -70,12 +73,20 @@ describe('graphCache/database/io/save', () => {
       .mockReturnValue('/workspace/.codegraphy/graph.lbug');
     vi.mocked(temporaryModule.createTemporaryDatabasePath)
       .mockReturnValue('/workspace/.codegraphy/graph.lbug.tmp');
-    vi.mocked(writeModule.sortedCacheEntries).mockReturnValue([
-      ['src/a.ts', { mtime: 1, size: 10, analysis: {} }],
-      ['src/b.ts', { mtime: 2, size: 20, analysis: {} }],
-    ] as never);
+    vi.mocked(writeModule.sortedCacheEntries).mockImplementation(cacheInput =>
+      Object.entries(cacheInput.files)
+        .sort(([left], [right]) => left.localeCompare(right)) as never,
+    );
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriter)
       .mockReturnValue({ connection: 'connection', fileAnalysisStatement: 'statement' } as never);
+    vi.mocked(writeModule.createWorkspaceAnalysisCachePatchWriter)
+      .mockReturnValue({
+        connection: 'connection',
+        deleteFileAnalysisStatement: 'delete-file-statement',
+        deleteRelationStatement: 'delete-relation-statement',
+        deleteSymbolStatement: 'delete-symbol-statement',
+        fileAnalysisStatement: 'statement',
+      } as never);
     vi.mocked(writeModule.createWorkspaceAnalysisCacheWriterAsync)
       .mockResolvedValue({ connection: 'connection', fileAnalysisStatement: 'statement' } as never);
     vi.mocked(connectionModule.withConnection).mockImplementation((_databasePath, callback) =>
@@ -175,6 +186,73 @@ describe('graphCache/database/io/save', () => {
       3,
       'connection',
       'MATCH (entry:Relation) DELETE entry',
+    );
+  });
+
+  it('patches changed rows inside a transaction and commits the complete patch', () => {
+    patchWorkspaceAnalysisDatabaseCache('/workspace', {
+      deleteFilePaths: ['src/deleted.ts'],
+      upsertFiles: {
+        'src/changed.ts': {
+          mtime: 4,
+          size: 40,
+          analysis: { filePath: '/workspace/src/changed.ts' },
+        },
+      },
+    });
+
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      1,
+      'connection',
+      'BEGIN TRANSACTION',
+    );
+    expect(writeModule.deleteAnalysisEntry).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ connection: 'connection' }),
+      'src/changed.ts',
+    );
+    expect(writeModule.deleteAnalysisEntry).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ connection: 'connection' }),
+      'src/deleted.ts',
+    );
+    expect(writeModule.persistAnalysisEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ connection: 'connection' }),
+      'src/changed.ts',
+      {
+        mtime: 4,
+        size: 40,
+        analysis: { filePath: '/workspace/src/changed.ts' },
+      },
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenLastCalledWith(
+      'connection',
+      'COMMIT',
+    );
+  });
+
+  it('rolls back the patch transaction when any patch statement fails', () => {
+    vi.mocked(writeModule.persistAnalysisEntry).mockImplementationOnce(() => {
+      throw new Error('patch failed');
+    });
+
+    expect(() => patchWorkspaceAnalysisDatabaseCache('/workspace', {
+      upsertFiles: {
+        'src/changed.ts': {
+          mtime: 4,
+          size: 40,
+          analysis: { filePath: '/workspace/src/changed.ts' },
+        },
+      },
+    })).toThrow('patch failed');
+
+    expect(connectionModule.runStatementSync).toHaveBeenCalledWith(
+      'connection',
+      'ROLLBACK',
+    );
+    expect(connectionModule.runStatementSync).not.toHaveBeenCalledWith(
+      'connection',
+      'COMMIT',
     );
   });
 

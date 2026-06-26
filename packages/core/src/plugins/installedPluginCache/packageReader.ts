@@ -2,11 +2,12 @@ import * as fsPromises from 'node:fs/promises';
 import * as path from 'node:path';
 import { parseCodeGraphyPluginPackageManifest } from '../packageManifest';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
+import { readPluginUpdateImpact } from '../updateImpact';
 import { isRecord } from './values';
 
 type PluginPackageDisplayFields = Pick<
   CodeGraphyInstalledPluginRecord,
-  'pluginId' | 'pluginName' | 'supportedExtensions'
+  'pluginId' | 'pluginName' | 'supportedExtensions' | 'updateImpact'
 >;
 
 interface PluginPackageStaticDescriptor extends PluginPackageDisplayFields {
@@ -33,11 +34,13 @@ function buildPluginPackageDisplayFields(
 
   const pluginName = readString(descriptor.name);
   const supportedExtensions = readSupportedExtensions(descriptor.supportedExtensions);
+  const updateImpact = readPluginUpdateImpact(descriptor.updateImpact);
 
   return {
     pluginId,
     ...(pluginName ? { pluginName } : {}),
     ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+    ...(updateImpact ? { updateImpact } : {}),
   };
 }
 

@@ -21,6 +21,7 @@ export interface WorkspacePipelineFilesDependencies {
   cache: IWorkspaceAnalysisCache;
   cacheTiers?: AnalysisCacheTierOptions;
   emitFileProcessed?: (payload: IWorkspaceFileProcessedPayload) => void;
+  forceAnalyze?: boolean;
   files: IDiscoveredFile[];
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
   logInfo(message: string): void;
@@ -117,6 +118,7 @@ export async function analyzeWorkspacePipelineFiles(
     cache: dependencies.cache,
     cacheTiers: dependencies.cacheTiers,
     emitFileProcessed: dependencies.emitFileProcessed,
+    ...(dependencies.forceAnalyze !== undefined ? { forceAnalyze: dependencies.forceAnalyze } : {}),
     files: dependencies.files,
     getFileStat: dependencies.getFileStat,
     onProgress: dependencies.onProgress,
@@ -142,6 +144,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
   cacheTiers?: AnalysisCacheTierOptions,
   pluginIds?: readonly string[],
   disabledPlugins: Set<string> = new Set(),
+  options: { forceAnalyze?: boolean } = {},
 ): Promise<IWorkspaceFileAnalysisResult> {
   const eventBus = source._eventBus;
 
@@ -164,6 +167,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
     emitFileProcessed: eventBus
       ? payload => eventBus.emit('analysis:fileProcessed', payload)
       : undefined,
+    ...(options.forceAnalyze !== undefined ? { forceAnalyze: options.forceAnalyze } : {}),
     files,
     getFileStat: filePath => source._getFileStat(filePath),
     logInfo,

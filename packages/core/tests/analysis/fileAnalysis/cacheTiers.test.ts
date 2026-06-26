@@ -3,7 +3,9 @@ import {
   BASELINE_ANALYSIS_CACHE_TIER,
   SYMBOLS_ANALYSIS_CACHE_TIER,
   createWorkspaceIndexAnalysisCacheTiers,
+  isAnalysisCacheTier,
   projectAnalysisForCacheTiers,
+  sortAnalysisCacheTiers,
 } from '../../../src/analysis/fileAnalysis/cacheTiers';
 
 describe('analysis/fileAnalysis/cacheTiers', () => {
@@ -75,6 +77,22 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
     });
   });
 
+  it('validates and sorts cache tiers consistently for runtime hydration', () => {
+    expect(isAnalysisCacheTier('plugin:codegraphy.vue')).toBe(true);
+    expect(isAnalysisCacheTier('plugin')).toBe(false);
+    expect(sortAnalysisCacheTiers([
+      'plugin:codegraphy.vue',
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+      'plugin:codegraphy.unity',
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ])).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+      'plugin:codegraphy.unity',
+      'plugin:codegraphy.vue',
+    ]);
+  });
+
   it('does not downgrade same-file symbol containment into a file self-edge', () => {
     expect(projectAnalysisForCacheTiers({
       filePath: '/workspace/Assets/Prefabs/Player.prefab',
@@ -91,7 +109,7 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
         toFilePath: '/workspace/Assets/Prefabs/Player.prefab',
         toSymbolId: 'Assets/Prefabs/Player.prefab#unity:game-object:1000',
       }],
-    }, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
+    } as never, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
       filePath: '/workspace/Assets/Prefabs/Player.prefab',
       symbols: [],
       relations: [],
@@ -113,9 +131,109 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
         fromFilePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
         toSymbolId: 'Assets/Prefabs/Enemy1.prefab#unity:game-object:1000',
       }],
-    }, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
+    } as never, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
       filePath: '/workspace/Assets/Prefabs/Enemy1.prefab',
       symbols: [],
+      relations: [],
+    });
+  });
+
+  it('keeps inactive plugin-owned evidence out of projected runtime cache tiers', () => {
+    expect(projectAnalysisForCacheTiers({
+      filePath: '/workspace/src/App.vue',
+      cache: {
+        tiers: [
+          BASELINE_ANALYSIS_CACHE_TIER,
+          SYMBOLS_ANALYSIS_CACHE_TIER,
+          'plugin:codegraphy.vue',
+        ],
+      },
+      nodes: [
+        {
+          id: 'src/App.vue',
+          label: 'App.vue',
+          nodeType: 'file',
+        },
+        {
+          id: 'src/App.vue#component',
+          label: 'App',
+          metadata: { pluginId: 'codegraphy.vue' },
+          nodeType: 'plugin:codegraphy.vue:component',
+        },
+      ],
+      symbols: [{
+        id: 'src/App.vue#component',
+        filePath: '/workspace/src/App.vue',
+        kind: 'component',
+        metadata: { pluginId: 'codegraphy.vue' },
+        name: 'App',
+      }],
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'core:treesitter:import',
+          fromFilePath: '/workspace/src/App.vue',
+          toFilePath: '/workspace/src/main.ts',
+        },
+        {
+          kind: 'contains',
+          pluginId: 'codegraphy.vue',
+          sourceId: 'codegraphy.vue:component',
+          fromFilePath: '/workspace/src/App.vue',
+          toNodeId: 'src/App.vue#component',
+        },
+      ],
+    } as never, [BASELINE_ANALYSIS_CACHE_TIER])).toEqual({
+      filePath: '/workspace/src/App.vue',
+      cache: {
+        tiers: [BASELINE_ANALYSIS_CACHE_TIER],
+      },
+      nodes: [
+        {
+          id: 'src/App.vue',
+          label: 'App.vue',
+          nodeType: 'file',
+        },
+      ],
+      symbols: [],
+      relations: [{
+        kind: 'import',
+        sourceId: 'core:treesitter:import',
+        fromFilePath: '/workspace/src/App.vue',
+        toFilePath: '/workspace/src/main.ts',
+      }],
+    });
+  });
+
+  it('does not mark a requested plugin tier as loaded when persisted cache metadata is missing it', () => {
+    expect(projectAnalysisForCacheTiers({
+      filePath: '/workspace/src/App.vue',
+      cache: {
+        tiers: [BASELINE_ANALYSIS_CACHE_TIER],
+      },
+      nodes: [
+        {
+          id: 'src/App.vue',
+          label: 'App.vue',
+          nodeType: 'file',
+        },
+      ],
+      relations: [],
+    } as never, [
+      BASELINE_ANALYSIS_CACHE_TIER,
+      'plugin:codegraphy.vue',
+    ])).toEqual({
+      filePath: '/workspace/src/App.vue',
+      cache: {
+        tiers: [BASELINE_ANALYSIS_CACHE_TIER],
+      },
+      nodes: [
+        {
+          id: 'src/App.vue',
+          label: 'App.vue',
+          nodeType: 'file',
+        },
+      ],
       relations: [],
     });
   });
