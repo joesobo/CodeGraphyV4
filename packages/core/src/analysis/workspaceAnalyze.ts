@@ -23,6 +23,7 @@ export interface WorkspacePipelineAnalysisSource {
     signal?: AbortSignal,
     pluginIds?: readonly string[],
     disabledPlugins?: Set<string>,
+    options?: { forceAnalyze?: boolean },
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,

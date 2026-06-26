@@ -20,6 +20,7 @@ export interface WorkspacePipelineSourceOwner {
     nextSignal?: AbortSignal,
     pluginIds?: readonly string[],
     disabledPlugins?: Set<string>,
+    options?: { forceAnalyze?: boolean },
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IProjectedConnection[]>,
@@ -66,6 +67,7 @@ export function createWorkspacePipelineAnalysisSource(
       nextSignal?: AbortSignal,
       pluginIds?: readonly string[],
       disabledPlugins?: Set<string>,
+      options?: { forceAnalyze?: boolean },
     ) => owner._analyzeFiles(
       files,
       workspaceRoot,
@@ -73,6 +75,7 @@ export function createWorkspacePipelineAnalysisSource(
       nextSignal,
       pluginIds,
       disabledPlugins,
+      options,
     ),
     _buildGraphData: (
       fileConnections: Map<string, IProjectedConnection[]>,

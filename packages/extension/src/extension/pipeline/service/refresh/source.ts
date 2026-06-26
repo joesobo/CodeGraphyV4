@@ -44,14 +44,25 @@ export function createWorkspaceIndexRefreshSource(
       abortSignal,
       pluginIds,
       nextDisabledPlugins = disabledPlugins,
-    ) => facade._analyzeFiles(
-      files,
-      root,
-      progress,
-      abortSignal,
-      pluginIds,
-      nextDisabledPlugins,
-    ),
+      options,
+    ) => options
+      ? facade._analyzeFiles(
+          files,
+          root,
+          progress,
+          abortSignal,
+          pluginIds,
+          nextDisabledPlugins,
+          options,
+        )
+      : facade._analyzeFiles(
+          files,
+          root,
+          progress,
+          abortSignal,
+          pluginIds,
+          nextDisabledPlugins,
+        ),
     _buildGraphData: (fileConnections, root, selectedPlugins) =>
       facade._buildGraphData(fileConnections, root, true, selectedPlugins),
     _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>

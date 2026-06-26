@@ -73,6 +73,13 @@ function hasInactivePluginId(
   return pluginId !== undefined && !activePluginIds.has(pluginId);
 }
 
+function hasPluginId(
+  pluginId: string | undefined,
+  pluginIds: ReadonlySet<string>,
+): boolean {
+  return pluginId !== undefined && pluginIds.has(pluginId);
+}
+
 function filterInactivePluginFacts(
   analysis: IFileAnalysisResult,
   activeTiers: readonly AnalysisCacheTier[],
@@ -198,6 +205,34 @@ export function projectAnalysisForCacheTiers(
     : stripInactiveSymbolFacts(pluginProjectedAnalysis);
 
   return projectCacheTierMetadata(projectedAnalysis, activeTiers);
+}
+
+export function removeAnalysisFactsForCacheTiers(
+  analysis: IFileAnalysisResult,
+  tiers: readonly AnalysisCacheTier[] | undefined,
+): IFileAnalysisResult {
+  const replacedPluginIds = readActivePluginIds(tiers ?? []);
+  if (replacedPluginIds.size === 0) {
+    return analysis;
+  }
+
+  const retainedAnalysis: IFileAnalysisResult = { ...analysis };
+  if (analysis.nodes) {
+    retainedAnalysis.nodes = analysis.nodes.filter(node =>
+      !hasPluginId(readAnalysisNodePluginId(node), replacedPluginIds),
+    );
+  }
+  if (analysis.symbols) {
+    retainedAnalysis.symbols = analysis.symbols.filter(symbol =>
+      !hasPluginId(readAnalysisSymbolPluginId(symbol), replacedPluginIds),
+    );
+  }
+  if (analysis.relations) {
+    retainedAnalysis.relations = analysis.relations.filter(relation =>
+      !hasPluginId(relation.pluginId, replacedPluginIds),
+    );
+  }
+  return retainedAnalysis;
 }
 
 function stripInactiveSymbolFacts(analysis: IFileAnalysisResult): IFileAnalysisResult {
