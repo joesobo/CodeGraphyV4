@@ -116,6 +116,7 @@ describe('indexing/refresh', () => {
       undefined,
       ['codegraphy.typescript'],
       new Set(),
+      { forceAnalyze: true },
     );
     expect(graph.nodes.map(node => node.id)).toEqual([
       'src/plugin.ts',
