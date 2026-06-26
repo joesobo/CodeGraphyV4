@@ -1,5 +1,20 @@
 # @codegraphy-dev/plugin-godot
 
+## 2.3.1
+
+### Patch Changes
+
+- [#294](https://github.com/joesobo/CodeGraphyV4/pull/294) [`e950612`](https://github.com/joesobo/CodeGraphyV4/commit/e95061239ab63fc3c5e64ec8b653db7466271979) Thanks [@joesobo](https://github.com/joesobo)! - Godot class-name indexing no longer runs the full GDScript parser for metadata-only `class_name` discovery. On the CodeGraphy monorepo benchmark, the Godot metadata slice helped move cold indexing from 104.67s to 37.27s: 67.40s faster, a 64.39% reduction, and 2.81x faster. File analysis improved from 87,918ms to 23,352ms: 64,566ms faster, a 73.44% reduction, and 3.76x faster.
+
+- [#295](https://github.com/joesobo/CodeGraphyV4/pull/295) [`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f) Thanks [@joesobo](https://github.com/joesobo)! - Graph View now keeps plugin-owned evidence and symbol evidence out of runtime memory until the user enables the matching Graph Scope or plugin. If the evidence is already in Graph Cache, the first toggle hydrates it with 1 cache read, 0 analysis jobs, and 0 cache saves; later off/on toggles reuse memory with 0 additional cache reads.
+
+  On the current `main` versus PR CodeGraphy monorepo benchmark, baseline runtime cache size improved from 18,583,676 serialized bytes to 10,781,465 serialized bytes: 7,802,211 bytes less, a 41.98% reduction, and 1.72x smaller. Retained symbol facts stay at 0 until Symbol scope is enabled instead of retaining 11,631 hidden symbol facts on startup.
+
+  Plugin authors can now declare whether toggles and plugin-owned settings are visual-only, settings-only, projection-only, plugin-file analysis, or full-index changes. All built-in plugins declare this metadata so plugin toggles use the fastest correct path without stale graph output.
+
+- Updated dependencies [[`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f)]:
+  - @codegraphy-dev/plugin-api@5.3.0
+
 ## 2.3.0
 
 ### Minor Changes
