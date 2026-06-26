@@ -1,5 +1,20 @@
 # @codegraphy-dev/plugin-typescript
 
+## 2.2.5
+
+### Patch Changes
+
+- [#294](https://github.com/joesobo/CodeGraphyV4/pull/294) [`e950612`](https://github.com/joesobo/CodeGraphyV4/commit/e95061239ab63fc3c5e64ec8b653db7466271979) Thanks [@joesobo](https://github.com/joesobo)! - TypeScript alias import analysis now reads `tsconfig` compiler options without enumerating every project file, and it reuses parsed alias configuration until the config changes. On the CodeGraphy monorepo benchmark, this moved cold indexing from 37.27s to 17.28s: 19.99s faster, a 53.64% reduction, and 2.16x faster. File analysis improved from 23,352ms to 3,697ms: 19,655ms faster, an 84.17% reduction, and 6.32x faster.
+
+- [#295](https://github.com/joesobo/CodeGraphyV4/pull/295) [`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f) Thanks [@joesobo](https://github.com/joesobo)! - Graph View now keeps plugin-owned evidence and symbol evidence out of runtime memory until the user enables the matching Graph Scope or plugin. If the evidence is already in Graph Cache, the first toggle hydrates it with 1 cache read, 0 analysis jobs, and 0 cache saves; later off/on toggles reuse memory with 0 additional cache reads.
+
+  On the current `main` versus PR CodeGraphy monorepo benchmark, baseline runtime cache size improved from 18,583,676 serialized bytes to 10,781,465 serialized bytes: 7,802,211 bytes less, a 41.98% reduction, and 1.72x smaller. Retained symbol facts stay at 0 until Symbol scope is enabled instead of retaining 11,631 hidden symbol facts on startup.
+
+  Plugin authors can now declare whether toggles and plugin-owned settings are visual-only, settings-only, projection-only, plugin-file analysis, or full-index changes. All built-in plugins declare this metadata so plugin toggles use the fastest correct path without stale graph output.
+
+- Updated dependencies [[`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f)]:
+  - @codegraphy-dev/plugin-api@5.3.0
+
 ## 2.2.4
 
 ### Patch Changes

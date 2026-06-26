@@ -1,5 +1,29 @@
 # @codegraphy-dev/core
 
+## 1.7.1
+
+### Patch Changes
+
+- [#294](https://github.com/joesobo/CodeGraphyV4/pull/294) [`e950612`](https://github.com/joesobo/CodeGraphyV4/commit/e95061239ab63fc3c5e64ec8b653db7466271979) Thanks [@joesobo](https://github.com/joesobo)! - Large CodeGraphy workspaces now index, save, and filter graph data much faster. On the CodeGraphy monorepo benchmark, cold indexing improved from 214.04s to 17.28s: 196.76s faster, a 91.93% reduction, and 12.39x faster. Graph Cache saves improved from 122,757ms to 10,904ms: 111,853ms faster, a 91.12% reduction, and 11.26x faster. Graph Cache size shrank from 64,638,976 bytes to 18,153,472 bytes: 46,485,504 bytes smaller, a 71.92% reduction, and 3.56x smaller.
+
+  The same benchmark now projects the current Visible Graph in 12ms instead of 775ms: 763ms faster, a 98.45% reduction, and 64.58x faster. Folder-node projection improved from 1,369ms to 32ms: 1,337ms faster, a 97.66% reduction, and 42.78x faster. Import-edge-off projection improved from 153ms to 7ms: 146ms faster, a 95.42% reduction, and 21.86x faster. Search projection improved from 781ms to 12ms: 769ms faster, a 98.46% reduction, and 65.08x faster.
+
+  Graph Cache replay also normalizes cached path separators before checking gitignore rules, so ignored files stay filtered across platforms during warm starts.
+
+- [#295](https://github.com/joesobo/CodeGraphyV4/pull/295) [`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f) Thanks [@joesobo](https://github.com/joesobo)! - Saved-file updates now patch changed Graph Cache rows instead of rewriting the whole Graph Cache. On the current `main` versus PR CodeGraphy monorepo benchmark, edit persistence improved from a 25,705ms average full save to a 341ms average one-row patch: 25,364ms faster, a 98.67% reduction, and 75.47x faster.
+
+  Full Re-index still replaces the complete Graph Cache, while normal add, change, and delete file updates delete and upsert only the changed cache rows inside one transaction.
+
+- [#295](https://github.com/joesobo/CodeGraphyV4/pull/295) [`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f) Thanks [@joesobo](https://github.com/joesobo)! - Graph View now keeps plugin-owned evidence and symbol evidence out of runtime memory until the user enables the matching Graph Scope or plugin. If the evidence is already in Graph Cache, the first toggle hydrates it with 1 cache read, 0 analysis jobs, and 0 cache saves; later off/on toggles reuse memory with 0 additional cache reads.
+
+  On the current `main` versus PR CodeGraphy monorepo benchmark, baseline runtime cache size improved from 18,583,676 serialized bytes to 10,781,465 serialized bytes: 7,802,211 bytes less, a 41.98% reduction, and 1.72x smaller. Retained symbol facts stay at 0 until Symbol scope is enabled instead of retaining 11,631 hidden symbol facts on startup.
+
+  Plugin authors can now declare whether toggles and plugin-owned settings are visual-only, settings-only, projection-only, plugin-file analysis, or full-index changes. All built-in plugins declare this metadata so plugin toggles use the fastest correct path without stale graph output.
+
+- Updated dependencies [[`710858c`](https://github.com/joesobo/CodeGraphyV4/commit/710858ce3cad87c85b1abded24857ad3ccab5b9f)]:
+  - @codegraphy-dev/plugin-api@5.3.0
+  - @codegraphy-dev/plugin-markdown@1.1.8
+
 ## 1.7.0
 
 ### Minor Changes
