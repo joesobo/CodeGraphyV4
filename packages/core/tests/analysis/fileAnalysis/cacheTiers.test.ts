@@ -3,7 +3,9 @@ import {
   BASELINE_ANALYSIS_CACHE_TIER,
   SYMBOLS_ANALYSIS_CACHE_TIER,
   createWorkspaceIndexAnalysisCacheTiers,
+  isAnalysisCacheTier,
   projectAnalysisForCacheTiers,
+  sortAnalysisCacheTiers,
 } from '../../../src/analysis/fileAnalysis/cacheTiers';
 
 describe('analysis/fileAnalysis/cacheTiers', () => {
@@ -73,6 +75,22 @@ describe('analysis/fileAnalysis/cacheTiers', () => {
       completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
       required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
     });
+  });
+
+  it('validates and sorts cache tiers consistently for runtime hydration', () => {
+    expect(isAnalysisCacheTier('plugin:codegraphy.vue')).toBe(true);
+    expect(isAnalysisCacheTier('plugin')).toBe(false);
+    expect(sortAnalysisCacheTiers([
+      'plugin:codegraphy.vue',
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+      'plugin:codegraphy.unity',
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ])).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+      'plugin:codegraphy.unity',
+      'plugin:codegraphy.vue',
+    ]);
   });
 
   it('does not downgrade same-file symbol containment into a file self-edge', () => {

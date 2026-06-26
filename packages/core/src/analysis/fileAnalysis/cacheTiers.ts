@@ -107,20 +107,20 @@ function projectCacheTierMetadata(
   }
   const activeTierSet = new Set(activeTiers);
   const retainedTiers = explicitTiers.filter((tier): tier is AnalysisCacheTier =>
-    isKnownAnalysisCacheTier(tier) && activeTierSet.has(tier),
+    isAnalysisCacheTier(tier) && activeTierSet.has(tier),
   );
 
   const tieredAnalysis: TieredFileAnalysisResult = {
     ...(analysis as TieredFileAnalysisResult),
     cache: {
       ...(analysis as TieredFileAnalysisResult).cache,
-      tiers: sortCacheTiers(retainedTiers),
+      tiers: sortAnalysisCacheTiers(retainedTiers),
     },
   };
   return tieredAnalysis;
 }
 
-function isKnownAnalysisCacheTier(tier: string): tier is AnalysisCacheTier {
+export function isAnalysisCacheTier(tier: string): tier is AnalysisCacheTier {
   return tier === BASELINE_ANALYSIS_CACHE_TIER
     || tier === SYMBOLS_ANALYSIS_CACHE_TIER
     || tier.startsWith('plugin:');
@@ -213,7 +213,7 @@ function stripInactiveSymbolFacts(analysis: IFileAnalysisResult): IFileAnalysisR
   return projectedAnalysis;
 }
 
-function sortCacheTiers(tiers: Iterable<AnalysisCacheTier>): AnalysisCacheTier[] {
+export function sortAnalysisCacheTiers(tiers: Iterable<AnalysisCacheTier>): AnalysisCacheTier[] {
   const tierSet = new Set<AnalysisCacheTier>([
     BASELINE_ANALYSIS_CACHE_TIER,
     ...tiers,
@@ -247,8 +247,8 @@ export function markAnalysisCacheTiers(
     ...(analysis as TieredFileAnalysisResult),
     cache: {
       ...(analysis as TieredFileAnalysisResult).cache,
-      tiers: sortCacheTiers([
-        ...(readAnalysisCacheTiers(analysis) as AnalysisCacheTier[]),
+      tiers: sortAnalysisCacheTiers([
+        ...readAnalysisCacheTiers(analysis).filter(isAnalysisCacheTier),
         ...completedTiers,
       ]),
     },

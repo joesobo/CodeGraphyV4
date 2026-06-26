@@ -178,6 +178,39 @@ If that workspace later disables `includeClassNameUsage`, the effective runtime 
 }
 ```
 
+## Update impact metadata
+
+Plugin manifests declare `updateImpact` so CodeGraphy can choose the fastest
+safe path when a user toggles a plugin or changes plugin-owned settings:
+
+```json
+{
+  "updateImpact": {
+    "toggle": "reanalyze-plugin-files",
+    "defaultSetting": "reanalyze-plugin-files",
+    "settings": {
+      "showOverlay": "projection-only",
+      "themePreset": "settings-only"
+    }
+  }
+}
+```
+
+Impact levels:
+
+- `view-only` updates plugin UI only.
+- `settings-only` persists settings and broadcasts plugin data without graph work.
+- `projection-only` rebuilds the visible graph from runtime memory.
+- `reanalyze-plugin-files` refreshes only files owned by that plugin.
+- `requires-full-index` runs a full workspace index.
+
+Analyzer plugins should use `reanalyze-plugin-files` for toggles and analysis
+options. Visual plugins should use `projection-only` or `settings-only` so users
+can adjust them without Graph Cache progress restarting. When an analyzer plugin
+is enabled, CodeGraphy first tries to hydrate that plugin's evidence tier from
+Graph Cache into runtime memory. If that tier is missing or stale, CodeGraphy
+falls back to the targeted plugin-file refresh path.
+
 ## Plugin author setup
 
 Install the type package:
