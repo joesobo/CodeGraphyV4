@@ -8,6 +8,13 @@ CodeGraphy keeps CodeGraphy Workspace settings under `.codegraphy/settings.json`
 - `.codegraphy/settings.json` is the source of truth for workspace-local behavior.
 - These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
+Settings do not all trigger the same graph work. Display and projection settings
+such as filters, Graph Scope visibility, node colors, edge colors, visual plugin
+data, and CSS snippets update the live Graph View from runtime memory without
+marking Graph Cache stale. Analyzer plugin settings and discovery settings can
+schedule targeted graph work, and explicit Re-index remains the full refresh
+path that rebuilds Graph Cache from the current settings.
+
 ## Workspace-local settings file
 
 The workspace-local settings file lives at:

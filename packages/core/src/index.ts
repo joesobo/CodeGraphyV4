@@ -59,10 +59,12 @@ export {
   createWorkspaceIndexAnalysisCacheTiers,
   createPluginAnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
+  isAnalysisCacheTier,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
   readAnalysisCacheTiers,
   requiresSymbolAnalysisCacheTier,
+  sortAnalysisCacheTiers,
 } from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,

@@ -9,8 +9,9 @@ import {
   createWorkspaceIndexEngineState,
   FileDiscovery,
   hasRequiredAnalysisCacheTiers,
+  isAnalysisCacheTier,
   readAnalysisCacheTiers,
-  SYMBOLS_ANALYSIS_CACHE_TIER,
+  sortAnalysisCacheTiers,
   type AnalysisCacheTier,
   type IDiscoveredFile,
   type WorkspaceIndexEngineState,
@@ -48,28 +49,6 @@ function hasHydratedAnalysisCacheTiers(
     );
 }
 
-function isAnalysisCacheTier(tier: string): tier is AnalysisCacheTier {
-  return tier === BASELINE_ANALYSIS_CACHE_TIER
-    || tier === SYMBOLS_ANALYSIS_CACHE_TIER
-    || tier.startsWith('plugin:');
-}
-
-function compareAnalysisCacheTiers(left: AnalysisCacheTier, right: AnalysisCacheTier): number {
-  if (left === BASELINE_ANALYSIS_CACHE_TIER) {
-    return -1;
-  }
-  if (right === BASELINE_ANALYSIS_CACHE_TIER) {
-    return 1;
-  }
-  if (left === SYMBOLS_ANALYSIS_CACHE_TIER) {
-    return -1;
-  }
-  if (right === SYMBOLS_ANALYSIS_CACHE_TIER) {
-    return 1;
-  }
-  return left.localeCompare(right);
-}
-
 function createRuntimeHydrationCacheTiers(
   cache: IWorkspaceAnalysisCache,
   requestedTiers: readonly AnalysisCacheTier[],
@@ -85,7 +64,7 @@ function createRuntimeHydrationCacheTiers(
       }
     }
   }
-  return [...tiers].sort(compareAnalysisCacheTiers);
+  return sortAnalysisCacheTiers(tiers);
 }
 
 export abstract class WorkspacePipelineStateBase {
