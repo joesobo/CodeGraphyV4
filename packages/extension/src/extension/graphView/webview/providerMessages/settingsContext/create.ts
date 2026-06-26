@@ -6,7 +6,11 @@ import type {
 } from '../listener';
 import { createSettingsConfigPersistence } from './persistence';
 import { reprocessPluginFiles } from './pluginFiles';
-import { readInstalledPluginDefaultOptions } from '../../settingsMessages/defaultOptions';
+import {
+  readInstalledPluginDefaultOptions,
+  readInstalledPluginUpdateImpact,
+} from '../../settingsMessages/defaultOptions';
+import { createPluginGraphWorkScheduler } from '../../settingsMessages/pluginGraphWork';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -16,6 +20,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getConfig'
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
+  | 'getInstalledPluginUpdateImpact'
   | 'reloadWorkspacePlugins'
   | 'syncWorkspacePlugins'
   | 'sendPluginStatuses'
@@ -25,6 +30,10 @@ type GraphViewProviderSettingsContext = Pick<
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
+  | 'schedulePluginGraphWork'
+  | 'cancelScheduledPluginGraphWork'
+  | 'hydrateGraphScope'
+  | 'hydratePluginGraphScope'
   | 'reprocessGraphScope'
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
@@ -57,6 +66,11 @@ export function createGraphViewProviderMessageSettingsContext(
     source._analyzerInitPromise = updatePromise;
     return updatePromise;
   };
+  const pluginGraphWorkScheduler = createPluginGraphWorkScheduler({
+    analyzeAndSendData: () => source._analyzeAndSendData(),
+    reprocessPluginFiles: pluginIds => reprocessPluginFiles(source, pluginIds),
+    smartRebuild: pluginId => source._smartRebuild(pluginId),
+  });
 
   return {
     updateDagMode: async dagMode => {
@@ -76,6 +90,8 @@ export function createGraphViewProviderMessageSettingsContext(
     updateConfig: async (key, value) => persistConfig(key, value),
     getInstalledPluginDefaultOptions: (pluginId: string) =>
       readInstalledPluginDefaultOptions(pluginId),
+    getInstalledPluginUpdateImpact: (pluginId: string) =>
+      readInstalledPluginUpdateImpact(pluginId),
     reloadWorkspacePlugins: () => {
       const analyzer = source._analyzer;
       if (!analyzer?.reloadWorkspacePlugins) {
@@ -111,6 +127,15 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    schedulePluginGraphWork: request => {
+      pluginGraphWorkScheduler.schedule(request);
+    },
+    cancelScheduledPluginGraphWork: () => {
+      pluginGraphWorkScheduler.cancel();
+    },
+    hydrateGraphScope: () => source.hydrateGraphScope?.() ?? Promise.resolve(false),
+    hydratePluginGraphScope: pluginIds =>
+      source.hydratePluginGraphScope?.(pluginIds) ?? Promise.resolve(false),
     reprocessGraphScope: () => source.refreshAnalysisScope(),
     reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),
     resetAllSettings: async () => {

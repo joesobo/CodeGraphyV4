@@ -5,10 +5,12 @@ export {
   createPluginAnalysisCacheTier,
   createWorkspaceIndexAnalysisCacheTiers,
   hasRequiredAnalysisCacheTiers,
+  isAnalysisCacheTier,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
   readAnalysisCacheTiers,
   requiresSymbolAnalysisCacheTier,
+  sortAnalysisCacheTiers,
 } from './fileAnalysis/cacheTiers';
 export type {
   AnalysisCacheTier,

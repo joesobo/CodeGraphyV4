@@ -192,6 +192,9 @@ describe('CodeGraphy Plugin Registry', () => {
       id: 'codegraphy.vue',
       name: 'Vue',
       supportedExtensions: ['.vue'],
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+      },
     });
     await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
       version: '1.0.0',
@@ -206,6 +209,9 @@ describe('CodeGraphy Plugin Registry', () => {
       pluginId: 'codegraphy.vue',
       pluginName: 'Vue',
       supportedExtensions: ['.vue'],
+      updateImpact: {
+        toggle: 'reanalyze-plugin-files',
+      },
       disclosures: [],
       packageRoot: pluginRoot,
     });

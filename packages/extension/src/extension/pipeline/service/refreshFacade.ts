@@ -84,5 +84,8 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     });
   }
 
-  abstract invalidateWorkspaceFiles(filePaths: readonly string[]): string[];
+  abstract invalidateWorkspaceFiles(
+    filePaths: readonly string[],
+    options?: { persist?: boolean },
+  ): string[];
 }

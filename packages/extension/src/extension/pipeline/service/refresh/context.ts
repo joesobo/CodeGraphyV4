@@ -2,6 +2,7 @@ import type { FileDiscovery } from '@codegraphy-dev/core';
 import type { Configuration } from '../../../config/reader';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { WorkspacePipelineCachePatch } from '../cache/storage';
 import type { AnalysisScopeRefreshFacade } from './scope';
 import type { RefreshSourceFacade } from './source';
 
@@ -22,6 +23,7 @@ export interface RefreshFacadeContext
   _getWorkspaceRoot(): string | undefined;
   _lastGitIgnoredPaths: string[];
   _persistCache(): void;
+  _persistCachePatch(patch: WorkspacePipelineCachePatch): void;
   _persistIndexMetadata(): Promise<void>;
   _registry: Pick<PluginRegistry, 'list' | 'notifyFilesChanged'>;
   _toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined;

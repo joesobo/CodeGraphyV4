@@ -109,7 +109,7 @@ The `Run Extension` launch config runs `pnpm run build:devhost` before opening t
 
 The Plugins panel is a workspace Plugin ID toggle surface backed by static package metadata. It shows installed package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
 
-Disabling a plugin writes `enabled: false` for that Plugin ID in the workspace `plugins` array and unloads its runtime immediately. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that Plugin ID is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a toggle. Disabling a plugin rebuilds the Graph View from cached analysis instead of rerunning full Indexing; enabling a plugin refreshes only the plugin-owned analysis tier for supported files, then keeps that tier in Graph Cache so future toggles can reuse it.
+Disabling a plugin writes `enabled: false` for that Plugin ID in the workspace `plugins` array and unloads its runtime immediately. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that Plugin ID is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a toggle. Disabling a plugin rebuilds the Graph View from cached analysis instead of rerunning full Indexing. Enabling an analyzer plugin first tries to hydrate that plugin-owned evidence tier from Graph Cache into runtime memory; if the tier is missing, CodeGraphy refreshes only the plugin-owned analysis tier for supported files. Once loaded, that tier remains resident for future toggles, and normal file edits patch changed Graph Cache rows instead of resaving the full cache.
 
 When Indexing loads an enabled package, `@codegraphy-dev/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 
@@ -177,6 +177,39 @@ If that workspace later disables `includeClassNameUsage`, the effective runtime 
   "includeClassNameUsage": false
 }
 ```
+
+## Update impact metadata
+
+Plugin manifests declare `updateImpact` so CodeGraphy can choose the fastest
+safe path when a user toggles a plugin or changes plugin-owned settings:
+
+```json
+{
+  "updateImpact": {
+    "toggle": "reanalyze-plugin-files",
+    "defaultSetting": "reanalyze-plugin-files",
+    "settings": {
+      "showOverlay": "projection-only",
+      "themePreset": "settings-only"
+    }
+  }
+}
+```
+
+Impact levels:
+
+- `view-only` updates plugin UI only.
+- `settings-only` persists settings and broadcasts plugin data without graph work.
+- `projection-only` rebuilds the visible graph from runtime memory.
+- `reanalyze-plugin-files` refreshes only files owned by that plugin.
+- `requires-full-index` runs a full workspace index.
+
+Analyzer plugins should use `reanalyze-plugin-files` for toggles and analysis
+options. Visual plugins should use `projection-only` or `settings-only` so users
+can adjust them without Graph Cache progress restarting. When an analyzer plugin
+is enabled, CodeGraphy first tries to hydrate that plugin's evidence tier from
+Graph Cache into runtime memory. If that tier is missing or stale, CodeGraphy
+falls back to the targeted plugin-file refresh path.
 
 ## Plugin author setup
 

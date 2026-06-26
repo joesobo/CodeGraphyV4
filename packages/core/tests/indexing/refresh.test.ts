@@ -116,6 +116,7 @@ describe('indexing/refresh', () => {
       undefined,
       ['codegraphy.typescript'],
       new Set(),
+      { forceAnalyze: true },
     );
     expect(graph.nodes.map(node => node.id)).toEqual([
       'src/plugin.ts',
@@ -176,7 +177,10 @@ describe('indexing/refresh', () => {
       notifyFilesChanged: vi.fn(),
     }));
 
-    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/deleted.ts']);
+    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/src/deleted.ts'],
+      { persist: false },
+    );
     expect(source.analyze).toHaveBeenCalledWith(
       ['dist'],
       disabledPlugins,

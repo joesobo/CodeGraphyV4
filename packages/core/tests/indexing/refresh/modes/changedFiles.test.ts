@@ -45,7 +45,7 @@ describe('indexing/refresh/modes/changedFiles', () => {
     expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith([
       '/workspace/src/app.ts',
       '/workspace/src/generated.ts',
-    ]);
+    ], { persist: false });
     expect(onProgress).toHaveBeenNthCalledWith(1, {
       phase: 'Applying Changes',
       current: 0,
@@ -103,6 +103,82 @@ describe('indexing/refresh/modes/changedFiles', () => {
       onProgress: undefined,
     }))).resolves.toBeDefined();
     expect(source._analyzeFiles).toHaveBeenCalledOnce();
+  });
+
+  it('persists changed files through a targeted Graph Cache patch instead of a full cache save', async () => {
+    const persistCache = vi.fn();
+    const persistCachePatch = vi.fn();
+    const invalidateWorkspaceFiles = vi.fn(() => ['src/app.ts']);
+    const source = createSource({
+      _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => ({
+        cacheHits: 0,
+        cacheMisses: files.length,
+        fileAnalysis: new Map([['src/app.ts', createFileAnalysis('/workspace/src/app.ts')]]),
+        fileConnections: new Map([['src/app.ts', []]]),
+      })),
+      invalidateWorkspaceFiles,
+    });
+
+    await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      persistCache,
+      persistCachePatch,
+    }));
+
+    expect(persistCache).not.toHaveBeenCalled();
+    expect(persistCachePatch).toHaveBeenCalledOnce();
+    expect(persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: [],
+      upsertFilePaths: ['src/app.ts'],
+    });
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts'], {
+      persist: false,
+    });
+  });
+
+  it('patches deleted file evidence without falling back to full cache persistence', async () => {
+    const persistCache = vi.fn();
+    const persistCachePatch = vi.fn();
+    const lastFileAnalysis = new Map([
+      ['src/deleted.ts', createFileAnalysis('/workspace/src/deleted.ts')],
+      ['src/app.ts', createFileAnalysis('/workspace/src/app.ts')],
+    ]);
+    const lastFileConnections = new Map([
+      ['src/deleted.ts', []],
+      ['src/app.ts', []],
+    ]);
+    const invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => {
+      for (const filePath of filePaths) {
+        const relativePath = filePath.replace('/workspace/', '');
+        lastFileAnalysis.delete(relativePath);
+        lastFileConnections.delete(relativePath);
+      }
+      return ['src/deleted.ts'];
+    });
+    const source = createSource({
+      _lastFileAnalysis: lastFileAnalysis,
+      _lastFileConnections: lastFileConnections,
+      analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+      invalidateWorkspaceFiles,
+    });
+
+    await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [createDiscoveredFile('src/app.ts')],
+      filePaths: ['/workspace/src/deleted.ts'],
+      persistCache,
+      persistCachePatch,
+    }));
+
+    expect(source.analyze).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).not.toHaveBeenCalled();
+    expect(persistCache).not.toHaveBeenCalled();
+    expect(persistCachePatch).toHaveBeenCalledOnce();
+    expect(persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: ['src/deleted.ts'],
+      upsertFilePaths: [],
+    });
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/deleted.ts'], {
+      persist: false,
+    });
   });
 
   it('labels fallback full-analysis progress as applying changes when no phase is provided', async () => {

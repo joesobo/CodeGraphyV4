@@ -8,5 +8,9 @@
     ".vue"
   ],
   "defaultFilters": [],
+  "updateImpact": {
+    "toggle": "reanalyze-plugin-files",
+    "defaultSetting": "reanalyze-plugin-files"
+  },
   "fileColors": {}
 }

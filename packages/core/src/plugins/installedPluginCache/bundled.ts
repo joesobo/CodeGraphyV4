@@ -9,6 +9,7 @@ export function createBundledMarkdownInstalledPluginRecord(): CodeGraphyInstalle
     pluginId: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.id,
     pluginName: CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.name,
     supportedExtensions: [...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.supportedExtensions],
+    updateImpact: { ...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.updateImpact },
     disclosures: [...CODEGRAPHY_MARKDOWN_PLUGIN_METADATA.disclosures],
     packageRoot: '',
   };

@@ -3,7 +3,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { writeCodeGraphyInstalledPluginCache } from '@codegraphy-dev/core';
-import { readInstalledPluginDefaultOptions } from '../../../../../src/extension/graphView/webview/settingsMessages/defaultOptions';
+import {
+  readInstalledPluginDefaultOptions,
+  readInstalledPluginUpdateImpact,
+} from '../../../../../src/extension/graphView/webview/settingsMessages/defaultOptions';
 
 describe('graph view settings plugin default options', () => {
   let homeDir: string;
@@ -88,5 +91,33 @@ describe('graph view settings plugin default options', () => {
     );
 
     expect(readInstalledPluginDefaultOptions('codegraphy.vue', { homeDir })).toBeUndefined();
+  });
+
+  it('reads plugin update impact metadata from the installed plugin cache', () => {
+    writeCodeGraphyInstalledPluginCache(
+      {
+        version: 1,
+        plugins: [
+          {
+            package: '@codegraphy-dev/plugin-particles',
+            pluginId: 'codegraphy.particles',
+            version: '0.2.1',
+            apiVersion: '^2.0.0',
+            disclosures: [],
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-particles',
+            updateImpact: {
+              toggle: 'projection-only',
+              defaultSetting: 'settings-only',
+            },
+          },
+        ],
+      },
+      { homeDir },
+    );
+
+    expect(readInstalledPluginUpdateImpact('codegraphy.particles', { homeDir })).toEqual({
+      toggle: 'projection-only',
+      defaultSetting: 'settings-only',
+    });
   });
 });

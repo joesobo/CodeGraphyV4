@@ -30,7 +30,7 @@ function createSource() {
     })),
     _readAnalysisFiles: vi.fn(),
     analyze: vi.fn(),
-    invalidateWorkspaceFiles: vi.fn(),
+    invalidateWorkspaceFiles: vi.fn(() => []),
   };
 }
 
@@ -109,7 +109,10 @@ describe('pipeline/service/refresh', () => {
 
     const graph = await refreshWorkspacePipelineChangedFiles(source as never, dependencies as never);
 
-    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/missing.ts']);
+    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/missing.ts'],
+      { persist: false },
+    );
     expect(source._readAnalysisFiles).not.toHaveBeenCalled();
     expect(dependencies.notifyFilesChanged).not.toHaveBeenCalled();
     expect(source._buildGraphDataFromAnalysis).not.toHaveBeenCalled();
@@ -159,7 +162,7 @@ describe('pipeline/service/refresh', () => {
     expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith([
       '/workspace/src/a.ts',
       '/workspace/src/b.ts',
-    ]);
+    ], { persist: false });
     expect(dependencies.onProgress).toHaveBeenNthCalledWith(1, {
       phase: 'Applying Changes',
       current: 0,

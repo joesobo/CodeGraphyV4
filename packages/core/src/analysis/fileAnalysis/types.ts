@@ -35,6 +35,7 @@ export interface IWorkspaceFileAnalysisOptions {
   };
   cacheTiers?: AnalysisCacheTierOptions;
   emitFileProcessed?: (payload: IWorkspaceFileProcessedPayload) => void;
+  forceAnalyze?: boolean;
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
   files: IDiscoveredFile[];
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;

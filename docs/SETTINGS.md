@@ -8,6 +8,13 @@ CodeGraphy keeps CodeGraphy Workspace settings under `.codegraphy/settings.json`
 - `.codegraphy/settings.json` is the source of truth for workspace-local behavior.
 - These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
+Settings do not all trigger the same graph work. Display and projection settings
+such as filters, Graph Scope visibility, node colors, edge colors, visual plugin
+data, and CSS snippets update the live Graph View from runtime memory without
+marking Graph Cache stale. Analyzer plugin settings and discovery settings can
+schedule targeted graph work, and explicit Re-index remains the full refresh
+path that rebuilds Graph Cache from the current settings.
+
 ## Workspace-local settings file
 
 The workspace-local settings file lives at:
@@ -424,7 +431,9 @@ Disabling a plugin makes that plugin inactive for the workspace graph surface. I
 
 When several relevant Edge Types are available, built-in Edge Types keep their common-usefulness order: **Imports**, **References**, **Calls**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
 
-Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first; enabling Symbols or a plugin computes the missing tier and keeps it cached when that scope is turned off again.
+Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first. Graph View loads that baseline into runtime memory first, then hydrates Symbol or plugin-owned evidence only when a scope toggle needs it. Once a tier has been loaded, CodeGraphy keeps it in runtime memory for faster future toggles even if the scope is turned off again.
+
+Normal file edits patch the changed Graph Cache rows atomically. Re-index is the force-refresh path that rebuilds and replaces the complete Graph Cache with the current settings.
 
 ## File discovery settings
 

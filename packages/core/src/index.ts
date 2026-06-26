@@ -59,10 +59,12 @@ export {
   createWorkspaceIndexAnalysisCacheTiers,
   createPluginAnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
+  isAnalysisCacheTier,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
   readAnalysisCacheTiers,
   requiresSymbolAnalysisCacheTier,
+  sortAnalysisCacheTiers,
 } from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,
@@ -130,6 +132,7 @@ export {
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
   loadWorkspaceAnalysisDatabaseCacheAsync,
+  patchWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,
@@ -273,6 +276,8 @@ export type {
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
   CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
+  CodeGraphyWorkspacePluginSettingUpdatePlanOptions,
   CodeGraphyWorkspacePluginToggleOptions,
   CodeGraphyWorkspacePluginTogglePlan,
   CodeGraphyInstalledPluginCache,
@@ -282,6 +287,7 @@ export type {
   RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
+  createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan,
   createCodeGraphyWorkspacePluginTogglePlan,
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,

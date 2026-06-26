@@ -1,5 +1,6 @@
 import { satisfiesSemverRange } from './apiVersion';
 import type { CodeGraphyPluginDisclosure } from './disclosures';
+import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import { CORE_PLUGIN_API_VERSION } from './api';
 import { createCodeGraphyPluginPackageManifest } from './packageManifestBuild';
 import { isRecord, readRequiredString } from './packageManifestValues';
@@ -11,6 +12,7 @@ export interface CodeGraphyPluginPackageManifest {
   version: string;
   apiVersion: string;
   defaultOptions?: Record<string, unknown>;
+  updateImpact?: IPluginUpdateImpactPolicy;
   disclosures: CodeGraphyPluginDisclosure[];
 }
 

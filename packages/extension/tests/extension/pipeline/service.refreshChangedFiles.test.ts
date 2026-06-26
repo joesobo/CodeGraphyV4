@@ -195,7 +195,7 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
     );
   });
 
-  it('falls back to full analysis when a changed path is no longer discovered', async () => {
+  it('removes cached graph data when a changed path is no longer discovered', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext,
     );
@@ -215,6 +215,8 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
         notifyFilesChanged: ReturnType<typeof vi.fn>;
       };
       _readAnalysisFiles?: ReturnType<typeof vi.fn>;
+      _persistIndexMetadata?: ReturnType<typeof vi.fn>;
+      _persistCachePatch?: ReturnType<typeof vi.fn>;
     };
     const invalidateWorkspaceFiles = vi.spyOn(analyzer, 'invalidateWorkspaceFiles');
 
@@ -240,20 +242,31 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       requiresFullRefresh: false,
     }));
     analyzerPrivate._readAnalysisFiles = vi.fn(async () => []);
+    analyzerPrivate._persistIndexMetadata = vi.fn(async () => undefined);
+    analyzerPrivate._persistCachePatch = vi.fn();
 
     await expect(analyzer.refreshChangedFiles(['/workspace/src/remove.ts'])).resolves.toEqual({
-      nodes: [{ id: 'fresh', label: 'fresh.ts', color: '#ffffff' }],
+      nodes: [{
+        id: 'src/keep.ts',
+        label: 'keep.ts',
+        color: '#A1A1AA',
+        fileSize: undefined,
+        churn: 0,
+      }],
       edges: [],
     });
 
-    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/remove.ts']);
-    expect(analyzerPrivate._registry.notifyFilesChanged).not.toHaveBeenCalled();
-    expect(analyzer.analyze).toHaveBeenCalledWith(
-      [],
-      new Set(),
-      undefined,
-      expect.any(Function),
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith(
+      ['/workspace/src/remove.ts'],
+      { persist: false },
     );
+    expect(analyzerPrivate._registry.notifyFilesChanged).not.toHaveBeenCalled();
+    expect(analyzer.analyze).not.toHaveBeenCalled();
+    expect(analyzerPrivate._persistCachePatch).toHaveBeenCalledWith({
+      deleteFilePaths: ['src/remove.ts'],
+      upsertFilePaths: [],
+    });
+    expect(analyzerPrivate._persistIndexMetadata).toHaveBeenCalledOnce();
   });
 
   it('invalidates discovered empty directories below a deleted directory path', () => {
