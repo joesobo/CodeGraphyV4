@@ -304,6 +304,40 @@ describe('CreateFileAction', () => {
       expect(mockRefreshGraph).toHaveBeenCalledOnce();
     });
 
+    it('uses the normalized created file path when undoing a whitespace-padded nested file create', async () => {
+      vi.mocked(vscode.workspace.fs.stat).mockImplementation(async (uri: vscode.Uri) => {
+        if (uri.fsPath === '/workspace/src') {
+          return {} as vscode.FileStat;
+        }
+
+        throw new Error('missing');
+      });
+      const action = new CreateFileAction(
+        '  src/core/menuCreated.ts  ',
+        mockWorkspaceFolder,
+        mockRefreshGraph,
+      );
+
+      await action.execute();
+      vi.mocked(vscode.workspace.fs.delete).mockClear();
+      mockRefreshGraph.mockClear();
+
+      await action.undo();
+
+      expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ fsPath: '/workspace/src/core/menuCreated.ts' }),
+        { useTrash: true },
+      );
+      expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ fsPath: '/workspace/src/core' }),
+        { recursive: false, useTrash: true },
+      );
+      expect(vscode.workspace.fs.delete).toHaveBeenCalledTimes(2);
+      expect(mockRefreshGraph).toHaveBeenCalledOnce();
+    });
+
     it('keeps created parent directories that are no longer empty on undo', async () => {
       vi.mocked(vscode.workspace.fs.stat).mockRejectedValue(new Error('missing'));
       vi.mocked(vscode.workspace.fs.readDirectory).mockImplementation(async (uri: vscode.Uri) => {

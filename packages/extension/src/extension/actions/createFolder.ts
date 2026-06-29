@@ -5,6 +5,7 @@ import { resolveWorkspaceCreatePath } from './createPath';
 export class CreateFolderAction implements IUndoableAction {
   readonly description: string;
   private _createdParentPaths: string[] = [];
+  private _normalizedPath: string | undefined;
 
   constructor(
     private readonly _path: string,
@@ -15,7 +16,7 @@ export class CreateFolderAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const folderPath = resolveWorkspaceCreatePath(this._path, 'folder');
+    const folderPath = this._getNormalizedPath();
     const folderUri = vscode.Uri.joinPath(this._workspaceFolder, folderPath);
     this._createdParentPaths = await collectMissingFolderPaths(
       this._workspaceFolder,
@@ -28,11 +29,16 @@ export class CreateFolderAction implements IUndoableAction {
   async undo(): Promise<void> {
     const deleted = await deleteCreatedFolders(
       this._workspaceFolder,
-      this._createdParentPaths.length > 0 ? this._createdParentPaths : [this._path],
+      this._createdParentPaths.length > 0 ? this._createdParentPaths : [this._getNormalizedPath()],
     );
     if (deleted) {
       await this._refreshGraph();
     }
+  }
+
+  private _getNormalizedPath(): string {
+    this._normalizedPath ??= resolveWorkspaceCreatePath(this._path, 'folder');
+    return this._normalizedPath;
   }
 }
 
