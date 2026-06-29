@@ -85,7 +85,7 @@ describe('workspaceFiles/refresh/operations', () => {
     expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
-  it('refreshes file operations and emits an event for each refreshable path', () => {
+  it('refreshes create operations and emits an event for each refreshable path', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
 
@@ -106,6 +106,45 @@ describe('workspaceFiles/refresh/operations', () => {
     });
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
       filePath: '/workspace/src/b.ts',
+    });
+  });
+
+  it('schedules a follow-up create refresh so nested descendants are discovered after folder events', () => {
+    vi.useFakeTimers();
+    const provider = {
+      ...makeProvider(),
+      refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    };
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      [
+        uri('/workspace/src/core/menuCreated.ts'),
+        uri('/workspace/src/features/generated'),
+      ],
+      'workspace:fileCreated',
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
+      '/workspace/src/core/menuCreated.ts',
+      '/workspace/src/features/generated',
+    ]);
+    vi.advanceTimersByTime(1_500);
+    vi.advanceTimersByTime(1);
+    expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
+    expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
+      '/workspace/src/core/menuCreated.ts',
+      '/workspace/src/features/generated',
+    ]);
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/src/core/menuCreated.ts',
+    });
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/src/features/generated',
     });
   });
 

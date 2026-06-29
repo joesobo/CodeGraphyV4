@@ -133,11 +133,51 @@ describe('graphView/files/actions', () => {
     );
   });
 
+  it('trims nested file paths before executing create actions', async () => {
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => '  src/core/menuCreated.ts  '),
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateAction).toHaveBeenCalledWith(
+      'src/core/menuCreated.ts',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it.each([
+    ['short root file', '.', 'a.ts', 'a.ts'],
+    ['deep nested root file', '.', 'src/features/generated/deep/menuCreated.test.ts', 'src/features/generated/deep/menuCreated.test.ts'],
+    ['long root file', '.', `${'generated-'.repeat(12)}folder/${'component-'.repeat(12)}view.tsx`, `${'generated-'.repeat(12)}folder/${'component-'.repeat(12)}view.tsx`],
+    ['dotfile below selected folder', 'src', '.env.local', 'src/.env.local'],
+    ['spaced file below selected folder', 'src/new menu', 'item [draft].ts', 'src/new menu/item [draft].ts'],
+    ['nested file below selected folder', 'src', 'core/menuCreated.ts', 'src/core/menuCreated.ts'],
+  ])('creates %s from the graph prompt', async (_label, directory, input, expectedPath) => {
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile(directory, {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => input),
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateAction).toHaveBeenCalledWith(
+      expectedPath,
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
   it.each([
     ['../outside.ts'],
     ['components/../outside.ts'],
     ['/absolute.ts'],
     ['C:/outside.ts'],
+    ['C:'],
     ['nested//file.ts'],
     ['nested/'],
     ['nested\\file.ts'],
@@ -145,6 +185,8 @@ describe('graphView/files/actions', () => {
     ['..'],
     [''],
     ['   '],
+    ['src/\u0000file.ts'],
+    ['src/\nfile.ts'],
   ])('rejects unsafe file names from the create prompt: %j', async (fileName) => {
     const executeCreateAction = vi.fn(async () => undefined);
     const showErrorMessage = vi.fn();
@@ -199,10 +241,50 @@ describe('graphView/files/actions', () => {
   });
 
   it.each([
+    ['short root folder', '.', 'a', 'a'],
+    ['deep nested root folder', '.', 'src/features/generated/deep', 'src/features/generated/deep'],
+    ['long root folder', '.', `${'generated-'.repeat(12)}folder/${'slice-'.repeat(12)}area`, `${'generated-'.repeat(12)}folder/${'slice-'.repeat(12)}area`],
+    ['dotfolder below selected folder', 'src', '.storybook', 'src/.storybook'],
+    ['spaced folder below selected folder', 'src/new menu', 'items [draft]', 'src/new menu/items [draft]'],
+    ['nested folder below selected folder', 'src', 'features/generated', 'src/features/generated'],
+  ])('creates %s from the graph prompt', async (_label, directory, input, expectedPath) => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+
+    await createGraphViewFolder(directory, {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => input),
+      executeCreateFolderAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateFolderAction).toHaveBeenCalledWith(
+      expectedPath,
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it('trims nested folder paths before executing create actions', async () => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+
+    await createGraphViewFolder('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => '  src/features/generated  '),
+      executeCreateFolderAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateFolderAction).toHaveBeenCalledWith(
+      'src/features/generated',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it.each([
     ['../outside'],
     ['components/../outside'],
     ['/absolute'],
     ['C:/outside'],
+    ['C:'],
     ['nested//folder'],
     ['nested/'],
     ['nested\\folder'],
@@ -210,6 +292,8 @@ describe('graphView/files/actions', () => {
     ['..'],
     [''],
     ['   '],
+    ['src/\u0000folder'],
+    ['src/\nfolder'],
   ])('rejects unsafe folder names from the create prompt: %j', async (folderName) => {
     const executeCreateFolderAction = vi.fn(async () => undefined);
     const showErrorMessage = vi.fn();
@@ -265,6 +349,21 @@ describe('graphView/files/actions', () => {
     });
 
     expect(showErrorMessage).toHaveBeenCalledWith('Failed to create file: disk full');
+  });
+
+  it('shows an error when creating the folder fails', async () => {
+    const showErrorMessage = vi.fn();
+
+    await createGraphViewFolder('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => 'new-folder'),
+      executeCreateFolderAction: vi.fn(async () => {
+        throw new Error('disk full');
+      }),
+      showErrorMessage,
+    });
+
+    expect(showErrorMessage).toHaveBeenCalledWith('Failed to create folder: disk full');
   });
 
   it('delegates exclude additions to the undoable action runner', async () => {

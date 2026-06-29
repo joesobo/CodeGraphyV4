@@ -2,6 +2,7 @@ import type { GraphViewProvider } from '../../graphViewProvider';
 
 interface PendingWorkspaceRefresh {
   filePaths: Set<string>;
+  followUpDelayMs?: number;
   fullRefresh: boolean;
   gitignoreRefresh: boolean;
   logMessage: string;
@@ -33,9 +34,10 @@ export function scheduleWorkspaceRefresh(
   logMessage: string,
   filePaths: readonly string[] = [],
   delayMs: number = 500,
-  options: { fullRefresh?: boolean; gitignoreRefresh?: boolean } = {},
+  options: { followUpDelayMs?: number; fullRefresh?: boolean; gitignoreRefresh?: boolean } = {},
 ): void {
   const nextFilePaths = new Set(filePaths);
+  let followUpDelayMs = options.followUpDelayMs;
   let fullRefresh = options.fullRefresh === true;
   let gitignoreRefresh = options.gitignoreRefresh === true;
 
@@ -49,6 +51,7 @@ export function scheduleWorkspaceRefresh(
   const pending = pendingWorkspaceRefreshes.get(provider);
   if (pending) {
     clearTimeout(pending.timeout);
+    followUpDelayMs = maxFollowUpDelay(followUpDelayMs, pending.followUpDelayMs);
     fullRefresh = fullRefresh || pending.fullRefresh;
     gitignoreRefresh = gitignoreRefresh || pending.gitignoreRefresh;
     for (const filePath of pending.filePaths) {
@@ -58,6 +61,7 @@ export function scheduleWorkspaceRefresh(
 
   const nextPending: PendingWorkspaceRefresh = {
     filePaths: nextFilePaths,
+    followUpDelayMs,
     fullRefresh,
     gitignoreRefresh,
     logMessage,
@@ -77,10 +81,12 @@ export function scheduleWorkspaceRefresh(
       if (nextPending.gitignoreRefresh) {
         if (provider.refreshGitignoreMetadata) {
           void provider.refreshGitignoreMetadata();
+          scheduleWorkspaceRefreshFollowUp(provider, nextPending);
           return;
         }
         if (provider.refreshIndex) {
           void provider.refreshIndex();
+          scheduleWorkspaceRefreshFollowUp(provider, nextPending);
           return;
         }
       }
@@ -88,21 +94,56 @@ export function scheduleWorkspaceRefresh(
       if (nextPending.fullRefresh) {
         if (provider.refreshIndex) {
           void provider.refreshIndex();
+          scheduleWorkspaceRefreshFollowUp(provider, nextPending);
           return;
         }
         void provider.refresh();
+        scheduleWorkspaceRefreshFollowUp(provider, nextPending);
         return;
       }
 
       if (provider.refreshChangedFiles) {
         void provider.refreshChangedFiles([...nextPending.filePaths]);
+        scheduleWorkspaceRefreshFollowUp(provider, nextPending);
         return;
       }
 
       provider.invalidateWorkspaceFiles?.([...nextPending.filePaths]);
       void provider.refresh();
+      scheduleWorkspaceRefreshFollowUp(provider, nextPending);
     }, delayMs),
   };
 
   pendingWorkspaceRefreshes.set(provider, nextPending);
+}
+
+function maxFollowUpDelay(
+  left: number | undefined,
+  right: number | undefined,
+): number | undefined {
+  if (left === undefined) return right;
+  if (right === undefined) return left;
+  return Math.max(left, right);
+}
+
+function scheduleWorkspaceRefreshFollowUp(
+  provider: GraphViewProvider,
+  pending: PendingWorkspaceRefresh,
+): void {
+  if (pending.followUpDelayMs === undefined) {
+    return;
+  }
+
+  setTimeout(() => {
+    scheduleWorkspaceRefresh(
+      provider,
+      pending.logMessage,
+      [...pending.filePaths],
+      0,
+      {
+        fullRefresh: pending.fullRefresh,
+        gitignoreRefresh: pending.gitignoreRefresh,
+      },
+    );
+  }, pending.followUpDelayMs);
 }

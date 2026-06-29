@@ -110,6 +110,15 @@ describe('extension/pipeline/service/refresh/discovery/changed', () => {
     expect(fs.existsSync).not.toHaveBeenCalled();
   });
 
+  it('does not reuse discovery for a newly created folder path', () => {
+    expect(
+      getReusableChangedFileDiscoveryState(createInput({
+        filePaths: ['/workspace/src/features/generated'],
+      })),
+    ).toBeUndefined();
+    expect(fs.existsSync).not.toHaveBeenCalled();
+  });
+
   it('does not reuse discovery when a changed file no longer exists on disk', () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
 

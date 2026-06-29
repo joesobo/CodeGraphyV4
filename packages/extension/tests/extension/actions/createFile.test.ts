@@ -99,6 +99,43 @@ describe('CreateFileAction', () => {
       );
     });
 
+    it.each([
+      ['short root path', 'a.ts', '/workspace/a.ts', undefined],
+      ['single nested path', 'src/menuCreated.ts', '/workspace/src/menuCreated.ts', '/workspace/src'],
+      [
+        'deep nested path',
+        'src/features/generated/deep/menuCreated.test.ts',
+        '/workspace/src/features/generated/deep/menuCreated.test.ts',
+        '/workspace/src/features/generated/deep',
+      ],
+      [
+        'long valid path',
+        `${'generated-'.repeat(12)}folder/${'component-'.repeat(12)}view.tsx`,
+        `/workspace/${'generated-'.repeat(12)}folder/${'component-'.repeat(12)}view.tsx`,
+        `/workspace/${'generated-'.repeat(12)}folder`,
+      ],
+      ['dotfile path', 'src/.env.local', '/workspace/src/.env.local', '/workspace/src'],
+      ['path with spaces', 'src/new menu/item [draft].ts', '/workspace/src/new menu/item [draft].ts', '/workspace/src/new menu'],
+    ])('creates a file for a %s', async (_label, filePath, expectedFileFsPath, expectedParentFsPath) => {
+      vi.mocked(vscode.workspace.fs.stat).mockRejectedValue(new Error('missing'));
+      const action = new CreateFileAction(filePath, mockWorkspaceFolder, mockRefreshGraph);
+
+      await action.execute();
+
+      if (expectedParentFsPath) {
+        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
+          expect.objectContaining({ fsPath: expectedParentFsPath }),
+        );
+      } else {
+        expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
+      }
+      expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: expectedFileFsPath }),
+        expect.any(Uint8Array),
+      );
+      expect(mockRefreshGraph).toHaveBeenCalledOnce();
+    });
+
     it('does not create a parent directory for root-level files', async () => {
       const action = new CreateFileAction('index.ts', mockWorkspaceFolder, mockRefreshGraph);
 
@@ -132,6 +169,36 @@ describe('CreateFileAction', () => {
       await action.execute();
 
       expect(mockRefreshGraph).toHaveBeenCalledOnce();
+    });
+
+    it.each([
+      '',
+      '   ',
+      '../outside.ts',
+      'src/../outside.ts',
+      '/absolute.ts',
+      'C:/outside.ts',
+      'C:',
+      'src//file.ts',
+      'src/file.ts/',
+      './file.ts',
+      'src/./file.ts',
+      'nested\\file.ts',
+      'src/\u0000file.ts',
+      'src/\nfile.ts',
+    ])('rejects unsafe workspace-relative file paths before mutating the filesystem: %j', async (filePath) => {
+      const action = new CreateFileAction(filePath, mockWorkspaceFolder, mockRefreshGraph);
+
+      await expect(action.execute()).rejects.toThrow(
+        'Enter a relative file path inside the workspace.',
+      );
+
+      expect(vscode.workspace.fs.stat).not.toHaveBeenCalled();
+      expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
+      expect(vscode.workspace.fs.writeFile).not.toHaveBeenCalled();
+      expect(vscode.workspace.openTextDocument).not.toHaveBeenCalled();
+      expect(vscode.window.showTextDocument).not.toHaveBeenCalled();
+      expect(mockRefreshGraph).not.toHaveBeenCalled();
     });
   });
 
@@ -234,6 +301,40 @@ describe('CreateFileAction', () => {
         { recursive: false, useTrash: true },
       );
       expect(vscode.workspace.fs.delete).toHaveBeenCalledTimes(4);
+      expect(mockRefreshGraph).toHaveBeenCalledOnce();
+    });
+
+    it('uses the normalized created file path when undoing a whitespace-padded nested file create', async () => {
+      vi.mocked(vscode.workspace.fs.stat).mockImplementation(async (uri: vscode.Uri) => {
+        if (uri.fsPath === '/workspace/src') {
+          return {} as vscode.FileStat;
+        }
+
+        throw new Error('missing');
+      });
+      const action = new CreateFileAction(
+        '  src/core/menuCreated.ts  ',
+        mockWorkspaceFolder,
+        mockRefreshGraph,
+      );
+
+      await action.execute();
+      vi.mocked(vscode.workspace.fs.delete).mockClear();
+      mockRefreshGraph.mockClear();
+
+      await action.undo();
+
+      expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ fsPath: '/workspace/src/core/menuCreated.ts' }),
+        { useTrash: true },
+      );
+      expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ fsPath: '/workspace/src/core' }),
+        { recursive: false, useTrash: true },
+      );
+      expect(vscode.workspace.fs.delete).toHaveBeenCalledTimes(2);
       expect(mockRefreshGraph).toHaveBeenCalledOnce();
     });
 
