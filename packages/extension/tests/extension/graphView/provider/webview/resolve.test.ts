@@ -111,6 +111,77 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._timelineView).toBe(webviewView);
   });
 
+  it('requests initial graph data when the graph sidebar resolves without active analysis', async () => {
+    const webview = {
+      options: {},
+      html: '',
+    } as unknown as vscode.Webview;
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview,
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => undefined),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const resolveWebviewView = vi.fn((_view, options) => {
+      options.getHtml(webview);
+    });
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _analysisController: undefined,
+      _graphData: { nodes: [], edges: [] },
+      _webviewReadyNotified: false,
+      _getLocalResourceRoots: vi.fn(() => []),
+      _loadAndSendData: vi.fn(async () => undefined),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<graph html />'),
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      resolveWebviewView,
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+  });
+
+  it('does not request fallback graph data when webview ready already started analysis', async () => {
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidChangeVisibility: vi.fn(() => undefined),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _analysisController: new AbortController(),
+      _graphData: { nodes: [], edges: [] },
+      _webviewReadyNotified: false,
+      _getLocalResourceRoots: vi.fn(() => []),
+      _loadAndSendData: vi.fn(async () => undefined),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<graph html />'),
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+  });
+
   it('keeps a different timeline view attached when the graph view disposes', () => {
     let disposeListener: (() => void) | undefined;
     const resourceRoots = [vscode.Uri.file('/test/root')];
