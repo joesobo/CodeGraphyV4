@@ -135,6 +135,63 @@ describe('CreateFolderAction', () => {
     expect(mockRefreshGraph).toHaveBeenCalledOnce();
   });
 
+  it('uses normalized created folder paths when undoing a whitespace-padded nested folder create', async () => {
+    vi.mocked(vscode.workspace.fs.stat).mockImplementation(async (uri: vscode.Uri) => {
+      if (uri.fsPath === '/workspace/src') {
+        return {} as vscode.FileStat;
+      }
+
+      throw new Error('missing');
+    });
+    const action = new CreateFolderAction(
+      '  src/features/generated  ',
+      mockWorkspaceFolder,
+      mockRefreshGraph,
+    );
+
+    await action.execute();
+    vi.mocked(vscode.workspace.fs.delete).mockClear();
+    mockRefreshGraph.mockClear();
+
+    await action.undo();
+
+    expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ fsPath: '/workspace/src/features/generated' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ fsPath: '/workspace/src/features' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenCalledTimes(2);
+    expect(mockRefreshGraph).toHaveBeenCalledOnce();
+  });
+
+  it('uses the normalized folder path for simple folder undo fallback', async () => {
+    const action = new CreateFolderAction(
+      '  src/components  ',
+      mockWorkspaceFolder,
+      mockRefreshGraph,
+    );
+
+    await action.execute();
+    vi.mocked(vscode.workspace.fs.delete).mockClear();
+    mockRefreshGraph.mockClear();
+
+    await action.undo();
+
+    expect(vscode.workspace.fs.readDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: '/workspace/src/components' }),
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: '/workspace/src/components' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(mockRefreshGraph).toHaveBeenCalledOnce();
+  });
+
   it('moves an empty created folder to trash on undo', async () => {
     const action = new CreateFolderAction('src/components', mockWorkspaceFolder, mockRefreshGraph);
 
