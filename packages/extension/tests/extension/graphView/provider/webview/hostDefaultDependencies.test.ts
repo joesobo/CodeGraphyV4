@@ -125,7 +125,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
       'light',
       false,
     );
-    expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
+    expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(
+      nextWebview,
+      source,
+      undefined,
+      { viewKind: 'graph' },
+    );
     expect(mocks.executeCommand).toHaveBeenCalledWith(
       'setContext',
       'codegraphy.graphViewVisible',
@@ -167,7 +172,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
       2,
       { enableScripts: true },
     );
-    expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
+    expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(
+      nextWebview,
+      source,
+      undefined,
+      { viewKind: 'graph' },
+    );
     expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
     expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(
       source._extensionUri,

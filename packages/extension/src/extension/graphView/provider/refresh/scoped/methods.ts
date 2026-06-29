@@ -159,6 +159,7 @@ export function createRefreshAnalysisScopeMethod(
 export function createRefreshGitignoreMetadataMethod(
   source: GraphViewProviderRefreshMethodsSource,
   state: RefreshCoordinatorState,
+  refresh: () => Promise<void>,
   refreshIndex: () => Promise<void>,
   scopedRefreshLifecycle: ScopedRefreshLifecycle,
 ): () => Promise<void> {
@@ -167,12 +168,18 @@ export function createRefreshGitignoreMetadataMethod(
       await state.indexRefreshPromise;
     }
 
-    prepareRefreshInputs(source);
     if (!source._analyzer?.refreshGitignoreMetadata) {
+      prepareRefreshInputs(source);
       await refreshIndex();
       return;
     }
 
+    if (!source._analyzer.hasIndex()) {
+      await refresh();
+      return;
+    }
+
+    prepareRefreshInputs(source);
     const graphData = await runScopedRefreshRequest(
       source,
       signal => source._analyzer!.refreshGitignoreMetadata!(

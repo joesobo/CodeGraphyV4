@@ -136,14 +136,55 @@ suite('Graph: Workspace Analysis', function () {
 
   test('fresh open shows file nodes', async function() {
     const api = await getAPI();
-    await ensureDiscoveredGraph(api);
+    const graphUpdates: Array<{ nodes: number; edges: number }> = [];
+    const subscription = api.onExtensionMessage(message => {
+      if ((message as { type?: string }).type !== 'GRAPH_DATA_UPDATED') {
+        return;
+      }
 
-    const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, `Expected graph nodes, got ${graphData.nodes.length}`);
+      const graphData = (message as { payload: import('../../shared/graph/contracts').IGraphData }).payload;
+      graphUpdates.push({
+        nodes: graphData.nodes.length,
+        edges: graphData.edges.length,
+      });
+    });
 
-    console.log(
-      `[e2e] Fresh graph has ${graphData.nodes.length} node(s) and ${graphData.edges.length} edge(s)`
-    );
+    try {
+      const bootstrapComplete = waitForExtensionMessage(api, 'APP_BOOTSTRAP_COMPLETE', 30_000);
+      await ensureDiscoveredGraph(api);
+      await bootstrapComplete;
+      await sleep(2_000);
+
+      const graphData = api.getGraphData();
+      assert.ok(
+        graphData.nodes.length > 0,
+        `Expected graph nodes after startup settled, got ${graphData.nodes.length}. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+
+      const firstNodeUpdateIndex = graphUpdates.findIndex(update => update.nodes > 0);
+      assert.ok(
+        firstNodeUpdateIndex >= 0,
+        `Expected at least one positive node update during fresh open. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+      const droppedUpdate = graphUpdates.slice(firstNodeUpdateIndex + 1).find(update => update.nodes === 0);
+      assert.strictEqual(
+        droppedUpdate,
+        undefined,
+        `Expected no later zero-node graph update after initial discovery. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+
+      const visibleGraph = await requestVisibleGraphState(api, 30_000);
+      assert.ok(
+        visibleGraph.nodeCount > 0,
+        `Expected visible graph nodes after startup settled. Visible graph: ${JSON.stringify(visibleGraph)}. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+
+      console.log(
+        `[e2e] Fresh graph has ${graphData.nodes.length} node(s) and ${graphData.edges.length} edge(s)`
+      );
+    } finally {
+      subscription.dispose();
+    }
   });
 
   test('fixture files appear as nodes before indexing', async function() {

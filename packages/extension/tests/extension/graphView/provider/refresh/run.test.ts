@@ -94,7 +94,7 @@ describe('graphView/provider/refresh/run', () => {
     expect(source._loadAndSendData).not.toHaveBeenCalled();
   });
 
-  it('uses incremental refresh for a loaded graph while index metadata is unavailable', async () => {
+  it('uses primary refresh for a loaded graph while index metadata is unavailable', async () => {
     const source = createSource({
       _analyzer: { hasIndex: vi.fn(() => false) },
       _rawGraphData: {
@@ -105,13 +105,13 @@ describe('graphView/provider/refresh/run', () => {
 
     const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
-    expect(refreshMode).toBe('incremental');
-    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
-    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(refreshMode).toBe('primary');
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
-  it('uses incremental refresh for an edge-only loaded graph while index metadata is unavailable', async () => {
+  it('uses primary refresh for an edge-only loaded graph while index metadata is unavailable', async () => {
     const source = createSource({
       _analyzer: { hasIndex: vi.fn(() => false) },
       _rawGraphData: {
@@ -122,13 +122,13 @@ describe('graphView/provider/refresh/run', () => {
 
     const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
-    expect(refreshMode).toBe('incremental');
-    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
-    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(refreshMode).toBe('primary');
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
-  it('uses visible graph data when raw graph data has not loaded yet', async () => {
+  it('uses primary refresh when raw graph data has not loaded yet', async () => {
     const source = createSource({
       _analyzer: { hasIndex: vi.fn(() => false) },
       _rawGraphData: undefined,
@@ -140,9 +140,9 @@ describe('graphView/provider/refresh/run', () => {
 
     const refreshMode = await runChangedFileRefresh(source as never, ['src/app.ts']);
 
-    expect(refreshMode).toBe('incremental');
-    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
-    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(refreshMode).toBe('primary');
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 

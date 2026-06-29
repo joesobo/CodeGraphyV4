@@ -249,6 +249,15 @@ async function countVisibleEdgesBetween(
   { sourcePath, targetPath });
 }
 
+function graphCachePath(context: GraphAcceptanceContext): string {
+  const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+  return path.join(workspacePath, '.codegraphy', 'graph.lbug');
+}
+
+function expectWorkspaceHasNoGraphCache(context: GraphAcceptanceContext): void {
+  expect(fs.existsSync(graphCachePath(context))).toBe(false);
+}
+
 const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
   'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
@@ -288,9 +297,37 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     context.beforeIndexNodeCount = counts.nodes;
   },
 
+  'I see file nodes': async (context) => {
+    const frame = requireGraphFrame(context);
+
+    await expect(graphStage(frame)).toBeVisible();
+    await expect.poll(() => countVisibleGraphPixels(frame)).toBeGreaterThan(0);
+    await findNodeProbe(context, 'src/index.ts');
+    await findNodeProbe(context, 'src/palette.ts');
+    const counts = await getGraphCounts(frame);
+    expect(counts.nodes).toBeGreaterThan(0);
+    context.beforeIndexNodeCount = counts.nodes;
+  },
+
   'I do not see edges': async (context) => {
     await expect.poll(async () => (await getGraphCounts(requireGraphFrame(context))).edges).toBe(0);
     context.beforeIndexStageImage = await graphStage(requireGraphFrame(context)).screenshot();
+  },
+
+  'the workspace has no Graph Cache': async (context) => {
+    expectWorkspaceHasNoGraphCache(context);
+  },
+
+  'the workspace still has no Graph Cache': async (context) => {
+    expectWorkspaceHasNoGraphCache(context);
+  },
+
+  'I see folder nodes and Nests containment edges before indexing': async (context) => {
+    await findNodeProbe(context, 'src');
+    await findNodeProbe(context, 'src/alias');
+    await expectVisibleEdgeBetween(context, 'src', 'src/index.ts');
+    await expectVisibleEdgeBetween(context, 'src', 'src/alias');
+    await expectVisibleEdgeBetween(context, 'src/alias', 'src/alias/themePack.ts');
   },
 
   'I index the workspace': async (context) => {
@@ -1596,16 +1633,7 @@ async function openGraphScopeSection(
         await clickToolbarButton(frame, 'Graph Scope');
       }
 
-      const sectionButton = frame.getByRole('button', { name: sectionName });
-      if (sectionName === 'Edge Types' && await sectionButton.isDisabled().catch(() => false)) {
-        await closePanelIfOpen(frame);
-        await indexWorkspace(context);
-        await waitForIndexingToFinish(context);
-        await ensureGraphViewVisible(context);
-        await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
-      }
-
-      await requireGraphFrame(context).getByRole('button', { name: sectionName }).click();
+      await frame.getByRole('button', { name: sectionName }).click();
       return;
     } catch (error) {
       if (!isFrameDetachedError(error) || attempt === 1) {

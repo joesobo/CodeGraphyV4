@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { MdiIcon } from '../icons/MdiIcon';
 import { TooltipProvider } from '../ui/overlay/tooltip';
 import { ScrollArea } from '../ui/scroll-area';
-import { NodeTypeRows, EdgeTypeRows } from './rows';
+import { NodeTypeRows, EdgeTypeRows, resolveAvailableEdgeTypes } from './rows';
 import { type GraphScopeTab, ScopeTabButton } from './tabs';
 import { flushGraphScopeVisibilityMessages } from './messages';
 
@@ -26,7 +26,12 @@ export default function GraphScopePanel({
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
-  const edgeTypesAvailable = useGraphStore((state) => state.graphHasIndex);
+  const graphHasIndex = useGraphStore((state) => state.graphHasIndex);
+  const availableEdgeTypes = useMemo(
+    () => resolveAvailableEdgeTypes(edgeTypes, edgeVisibility, graphHasIndex, nodeVisibility),
+    [edgeTypes, edgeVisibility, graphHasIndex, nodeVisibility],
+  );
+  const edgeTypesAvailable = availableEdgeTypes.length > 0;
   const edgeColors = useMemo(
     () => resolveEdgeTypeColors(edgeTypes, legends),
     [edgeTypes, legends],
@@ -74,7 +79,7 @@ export default function GraphScopePanel({
               active={activeTab === 'edges'}
               disabled={!edgeTypesAvailable}
               onClick={() => setActiveTab('edges')}
-              title={!edgeTypesAvailable ? 'Index workspace to enable Edge Type controls' : undefined}
+              title={!edgeTypesAvailable ? 'No Edge Type controls available' : undefined}
             >
               Edge Types
             </ScopeTabButton>
@@ -95,6 +100,7 @@ export default function GraphScopePanel({
                     edgeColors={edgeColors}
                     edgeTypes={edgeTypes}
                     edgeVisibility={edgeVisibility}
+                    graphHasIndex={graphHasIndex}
                     nodeVisibility={nodeVisibility}
                   />
                 )}
