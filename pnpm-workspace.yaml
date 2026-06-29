@@ -5,15 +5,27 @@ packages:
 allowBuilds:
   '@driftlog/tree-sitter-dart': true
   '@ladybugdb/core': true
+  '@tree-sitter-grammars/tree-sitter-kotlin': true
+  '@tree-sitter-grammars/tree-sitter-lua': true
+  '@vscode/vsce-sign': true
+  esbuild: true
+  keytar: true
   tree-sitter: true
+  tree-sitter-c: true
   tree-sitter-c-sharp: true
+  tree-sitter-cli: true
+  tree-sitter-cpp: true
   tree-sitter-go: true
+  tree-sitter-haskell: true
   tree-sitter-java: true
   tree-sitter-javascript: true
   tree-sitter-objc: true
+  tree-sitter-php: true
   tree-sitter-python: true
+  tree-sitter-ruby: true
   tree-sitter-rust: true
   tree-sitter-scala: true
+  tree-sitter-swift: true
   tree-sitter-typescript: true
 overrides:
   "ajv>fast-uri": "3.1.2"
