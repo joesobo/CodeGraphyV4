@@ -99,6 +99,43 @@ describe('CreateFileAction', () => {
       );
     });
 
+    it.each([
+      ['short root path', 'a.ts', '/workspace/a.ts', undefined],
+      ['single nested path', 'src/menuCreated.ts', '/workspace/src/menuCreated.ts', '/workspace/src'],
+      [
+        'deep nested path',
+        'src/features/generated/deep/menuCreated.test.ts',
+        '/workspace/src/features/generated/deep/menuCreated.test.ts',
+        '/workspace/src/features/generated/deep',
+      ],
+      [
+        'long valid path',
+        `${'generated-'.repeat(12)}folder/${'component-'.repeat(12)}view.tsx`,
+        `/workspace/${'generated-'.repeat(12)}folder/${'component-'.repeat(12)}view.tsx`,
+        `/workspace/${'generated-'.repeat(12)}folder`,
+      ],
+      ['dotfile path', 'src/.env.local', '/workspace/src/.env.local', '/workspace/src'],
+      ['path with spaces', 'src/new menu/item [draft].ts', '/workspace/src/new menu/item [draft].ts', '/workspace/src/new menu'],
+    ])('creates a file for a %s', async (_label, filePath, expectedFileFsPath, expectedParentFsPath) => {
+      vi.mocked(vscode.workspace.fs.stat).mockRejectedValue(new Error('missing'));
+      const action = new CreateFileAction(filePath, mockWorkspaceFolder, mockRefreshGraph);
+
+      await action.execute();
+
+      if (expectedParentFsPath) {
+        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
+          expect.objectContaining({ fsPath: expectedParentFsPath }),
+        );
+      } else {
+        expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
+      }
+      expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: expectedFileFsPath }),
+        expect.any(Uint8Array),
+      );
+      expect(mockRefreshGraph).toHaveBeenCalledOnce();
+    });
+
     it('does not create a parent directory for root-level files', async () => {
       const action = new CreateFileAction('index.ts', mockWorkspaceFolder, mockRefreshGraph);
 
@@ -141,7 +178,14 @@ describe('CreateFileAction', () => {
       'src/../outside.ts',
       '/absolute.ts',
       'C:/outside.ts',
+      'C:',
+      'src//file.ts',
+      'src/file.ts/',
+      './file.ts',
+      'src/./file.ts',
       'nested\\file.ts',
+      'src/\u0000file.ts',
+      'src/\nfile.ts',
     ])('rejects unsafe workspace-relative file paths before mutating the filesystem: %j', async (filePath) => {
       const action = new CreateFileAction(filePath, mockWorkspaceFolder, mockRefreshGraph);
 
@@ -149,6 +193,7 @@ describe('CreateFileAction', () => {
         'Enter a relative file path inside the workspace.',
       );
 
+      expect(vscode.workspace.fs.stat).not.toHaveBeenCalled();
       expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
       expect(vscode.workspace.fs.writeFile).not.toHaveBeenCalled();
       expect(vscode.workspace.openTextDocument).not.toHaveBeenCalled();

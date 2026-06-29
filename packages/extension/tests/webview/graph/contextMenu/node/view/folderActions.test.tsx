@@ -63,4 +63,18 @@ describe('Graph node context menu folder actions', () => {
 
     expect(findMessage('CREATE_FOLDER')?.payload.directory).toBe('src');
   });
+
+  it('posts New File messages with the folder path', async () => {
+    await openNodeMenu(folderData, 'src');
+    await waitFor(() => {
+      expect(screen.getByText('New File')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('New File'));
+    });
+
+    expect(findMessage('CREATE_FILE')?.payload.directory).toBe('src');
+  });
 });

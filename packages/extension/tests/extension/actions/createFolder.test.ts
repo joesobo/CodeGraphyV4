@@ -51,13 +51,43 @@ describe('CreateFolderAction', () => {
   });
 
   it.each([
+    ['short root path', 'a', '/workspace/a'],
+    ['single nested path', 'src/core', '/workspace/src/core'],
+    ['deep nested path', 'src/features/generated/deep', '/workspace/src/features/generated/deep'],
+    [
+      'long valid path',
+      `${'generated-'.repeat(12)}folder/${'slice-'.repeat(12)}area`,
+      `/workspace/${'generated-'.repeat(12)}folder/${'slice-'.repeat(12)}area`,
+    ],
+    ['dotfolder path', 'src/.storybook', '/workspace/src/.storybook'],
+    ['path with spaces', 'src/new menu/items [draft]', '/workspace/src/new menu/items [draft]'],
+  ])('creates a folder for a %s', async (_label, folderPath, expectedFolderFsPath) => {
+    vi.mocked(vscode.workspace.fs.stat).mockRejectedValue(new Error('missing'));
+    const action = new CreateFolderAction(folderPath, mockWorkspaceFolder, mockRefreshGraph);
+
+    await action.execute();
+
+    expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: expectedFolderFsPath }),
+    );
+    expect(mockRefreshGraph).toHaveBeenCalledOnce();
+  });
+
+  it.each([
     '',
     '   ',
     '../outside',
     'src/../outside',
     '/absolute',
     'C:/outside',
+    'C:',
+    'src//core',
+    'src/core/',
+    './core',
+    'src/./core',
     'nested\\folder',
+    'src/\u0000core',
+    'src/\ncore',
   ])('rejects unsafe workspace-relative folder paths before mutating the filesystem: %j', async (folderPath) => {
     const action = new CreateFolderAction(folderPath, mockWorkspaceFolder, mockRefreshGraph);
 
