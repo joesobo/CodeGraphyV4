@@ -109,6 +109,38 @@ describe('workspaceFiles/refresh/operations', () => {
     });
   });
 
+  it('passes nested file and folder create paths to changed-file refresh when available', () => {
+    vi.useFakeTimers();
+    const provider = {
+      ...makeProvider(),
+      refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    };
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      [
+        uri('/workspace/src/core/menuCreated.ts'),
+        uri('/workspace/src/features/generated'),
+      ],
+      'workspace:fileCreated',
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
+      '/workspace/src/core/menuCreated.ts',
+      '/workspace/src/features/generated',
+    ]);
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/src/core/menuCreated.ts',
+    });
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/src/features/generated',
+    });
+  });
+
   it('runs a metadata-only graph refresh when gitignore is created or deleted', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
