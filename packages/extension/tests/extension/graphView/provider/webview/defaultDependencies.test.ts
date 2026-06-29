@@ -90,7 +90,7 @@ describe('graphView/provider/webview/defaultDependencies', () => {
     expect(dependencies.openInEditor).toBe(mocks.openGraphViewInEditor);
     expect(dependencies.sendWebviewMessage).toBe(mocks.sendGraphViewWebviewMessage);
     expect(dependencies.onWebviewMessage).toBe(mocks.onGraphViewWebviewMessage);
-    expect(dependencies.setWebviewMessageListener).toBe(mocks.setGraphViewProviderMessageListener);
+    expect(dependencies.setWebviewMessageListener).toEqual(expect.any(Function));
   });
 
   it('creates graph html with a fresh nonce', () => {

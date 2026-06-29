@@ -1,5 +1,6 @@
 import type {
   GraphViewProviderMessageListenerDependencies,
+  GraphViewProviderMessageListenerOptions,
   GraphViewProviderMessageListenerSource,
 } from './listener';
 import { createEditorActions } from './primaryActions/editorActions';
@@ -15,11 +16,12 @@ import { createWorkspaceFileActions } from './primaryActions/workspaceFileAction
 export function createGraphViewProviderMessagePrimaryActions(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
+  options: GraphViewProviderMessageListenerOptions = {},
 ): GraphViewProviderPrimaryActions {
   return {
     ...createFileActions(source),
     ...createEditorActions(source),
-    ...createPipelineActions(source),
+    ...createPipelineActions(source, options),
     ...createMessageActions(dependencies),
     ...createTimelineActions(source),
     ...createLegendActions(source),

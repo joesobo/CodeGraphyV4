@@ -1,6 +1,7 @@
 import type { GraphViewMessageListenerContext } from '../messages/listener';
 import type {
   GraphViewProviderMessageListenerDependencies,
+  GraphViewProviderMessageListenerOptions,
   GraphViewProviderMessageListenerSource,
 } from './listener';
 import { createGraphViewProviderMessagePluginContext } from './pluginContext';
@@ -11,10 +12,11 @@ import { createGraphViewProviderMessageSettingsContext } from './settingsContext
 export function createGraphViewProviderMessageContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
+  options: GraphViewProviderMessageListenerOptions = {},
 ): GraphViewMessageListenerContext {
   return {
     ...createGraphViewProviderMessageReadContext(source, dependencies),
-    ...createGraphViewProviderMessagePrimaryActions(source, dependencies),
+    ...createGraphViewProviderMessagePrimaryActions(source, dependencies, options),
     ...createGraphViewProviderMessageSettingsContext(source, dependencies),
     ...createGraphViewProviderMessagePluginContext(source, dependencies),
   };

@@ -313,6 +313,37 @@ describe('graph view provider listener bridge', () => {
     });
   });
 
+  it('keeps timeline ready from starting graph loading', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const deps = createDependencies();
+    const source = createSource({
+      _firstAnalysis: true,
+      _webviewReadyNotified: false,
+    });
+    const setListener = setGraphViewProviderMessageListener as unknown as (
+      nextWebview: typeof webview,
+      nextSource: GraphViewProviderMessageListenerSource,
+      nextDependencies: GraphViewProviderMessageListenerDependencies,
+      options: { viewKind: 'timeline' },
+    ) => void;
+
+    setListener(webview, source, deps, { viewKind: 'timeline' });
+    await messageHandler?.({ type: 'WEBVIEW_READY', payload: { pageId: 'timeline-page' } });
+
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'APP_BOOTSTRAP_COMPLETE',
+    });
+    expect(source._webviewReadyNotified).toBe(true);
+  });
+
   it('wires read-context values into the captured listener context', async () => {
     const { context, source, workspaceFolders } = await loadDefaultListenerHarness();
 

@@ -194,7 +194,7 @@ describe('graphView/provider/webview/host', () => {
     expect(options.getLocalResourceRoots()).toBe(resourceRoots);
 
     options.setWebviewMessageListener(nextWebview);
-    expect(setWebviewMessageListener).toHaveBeenCalledWith(nextWebview, source);
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(nextWebview, source, 'graph');
 
     expect(options.getHtml(nextWebview)).toBe('<html />');
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'graph');
@@ -415,7 +415,7 @@ describe('graphView/provider/webview/host', () => {
       vscode.ViewColumn.Beside,
       { enableScripts: true },
     );
-    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source, 'graph');
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'graph');
   });
 
@@ -539,7 +539,7 @@ describe('graphView/provider/webview/host', () => {
     methods._setWebviewMessageListener(webview);
     const html = methods._getHtmlForWebview(webview);
 
-    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source, 'graph');
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'graph');
     expect(html).toBe('<html />');
   });
