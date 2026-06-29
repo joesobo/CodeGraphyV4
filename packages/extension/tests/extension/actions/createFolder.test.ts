@@ -8,6 +8,7 @@ vi.mock('vscode', () => ({
       createDirectory: vi.fn().mockResolvedValue(undefined),
       delete: vi.fn().mockResolvedValue(undefined),
       readDirectory: vi.fn().mockResolvedValue([]),
+      stat: vi.fn().mockResolvedValue({}),
     },
   },
   Uri: {
@@ -46,6 +47,41 @@ describe('CreateFolderAction', () => {
     expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
       expect.objectContaining({ fsPath: '/workspace/src/components' }),
     );
+    expect(mockRefreshGraph).toHaveBeenCalledOnce();
+  });
+
+  it('removes created parent directories when undoing a nested folder create', async () => {
+    vi.mocked(vscode.workspace.fs.stat).mockImplementation(async (uri: vscode.Uri) => {
+      if (uri.fsPath === '/workspace/test') {
+        return {} as vscode.FileStat;
+      }
+
+      throw new Error('missing');
+    });
+    const action = new CreateFolderAction('test/a/b/c', mockWorkspaceFolder, mockRefreshGraph);
+
+    await action.execute();
+    vi.mocked(vscode.workspace.fs.delete).mockClear();
+    mockRefreshGraph.mockClear();
+
+    await action.undo();
+
+    expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ fsPath: '/workspace/test/a/b/c' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ fsPath: '/workspace/test/a/b' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ fsPath: '/workspace/test/a' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenCalledTimes(3);
     expect(mockRefreshGraph).toHaveBeenCalledOnce();
   });
 
