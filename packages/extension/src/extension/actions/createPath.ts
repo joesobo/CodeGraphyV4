@@ -1,5 +1,18 @@
-export function isSafeGraphViewChildPath(input: string): boolean {
+const CREATE_PATH_VALIDATION_MESSAGES = {
+  file: 'Enter a relative file path inside the workspace.',
+  folder: 'Enter a relative folder path inside the workspace.',
+};
+
+export function resolveWorkspaceCreatePath(input: string, kind: 'file' | 'folder'): string {
   const value = input.trim();
+  if (!isSafeWorkspaceCreatePath(value)) {
+    throw new Error(CREATE_PATH_VALIDATION_MESSAGES[kind]);
+  }
+
+  return value;
+}
+
+function isSafeWorkspaceCreatePath(value: string): boolean {
   if (
     !value
     || value.startsWith('/')
@@ -11,14 +24,6 @@ export function isSafeGraphViewChildPath(input: string): boolean {
   }
 
   return value.split('/').every(isSafePathSegment);
-}
-
-export function isSafeGraphViewBasename(input: string): boolean {
-  const value = input.trim();
-  return isSafePathSegment(value)
-    && !value.includes('/')
-    && !value.includes('\\')
-    && !hasControlCharacter(value);
 }
 
 function isSafePathSegment(segment: string): boolean {

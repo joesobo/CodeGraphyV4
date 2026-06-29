@@ -68,6 +68,41 @@ describe('shared/visibleGraph/structure/applyStructuralProjection', () => {
     });
   });
 
+  it('projects nested create results as folder nodes and nests edges', () => {
+    const result = applyStructuralProjection(
+      {
+        nodes: [
+          node('src/core/menuCreated.ts'),
+          node('src/features/generated', 'folder'),
+        ],
+        edges: [],
+      },
+      {
+        nodes: [
+          { type: 'file', enabled: true },
+          { type: 'folder', enabled: true },
+        ],
+        edges: [{ type: STRUCTURAL_NESTS_EDGE_KIND, enabled: true }],
+      },
+    );
+
+    expect(ids(result)).toEqual({
+      nodes: [
+        'src/core/menuCreated.ts',
+        'src/features/generated',
+        'src',
+        'src/core',
+        'src/features',
+      ],
+      edges: [
+        'src->src/core#nests',
+        'src->src/features#nests',
+        'src/features->src/features/generated#nests',
+        'src/core->src/core/menuCreated.ts#nests',
+      ],
+    });
+  });
+
   it('omits generated nests edges when nests are disabled explicitly', () => {
     const result = applyStructuralProjection(
       {

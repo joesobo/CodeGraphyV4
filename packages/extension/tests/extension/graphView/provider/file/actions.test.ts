@@ -269,11 +269,12 @@ describe('graphView/provider/file/actions', () => {
   });
 
   it('uses vscode input and error defaults for create actions', async () => {
-    const { source, methods, showInputBox, showErrorMessage, CreateFileAction, execute } =
+    const { source, methods, createFile, showInputBox, showErrorMessage, CreateFileAction, execute } =
       await createDefaultDependencyHarness();
 
     await methods._createFile('src');
 
+    expect(createFile).toHaveBeenCalledWith('src', expect.any(Object));
     expect(showInputBox).toHaveBeenCalledWith({ prompt: 'Create file' });
     expect(showErrorMessage).toHaveBeenCalledWith('create failed');
     expect(CreateFileAction).toHaveBeenCalledWith(
@@ -286,11 +287,12 @@ describe('graphView/provider/file/actions', () => {
   });
 
   it('uses vscode input and error defaults for create folder actions', async () => {
-    const { source, methods, showInputBox, showErrorMessage, CreateFolderAction, execute } =
+    const { source, methods, createFolder, showInputBox, showErrorMessage, CreateFolderAction, execute } =
       await createDefaultDependencyHarness();
 
     await methods._createFolder('src');
 
+    expect(createFolder).toHaveBeenCalledWith('src', expect.any(Object));
     expect(showInputBox).toHaveBeenCalledWith({ prompt: 'Create folder' });
     expect(showErrorMessage).toHaveBeenCalledWith('create folder failed');
     expect(CreateFolderAction).toHaveBeenCalledWith(
@@ -300,6 +302,22 @@ describe('graphView/provider/file/actions', () => {
     );
     expect(execute).toHaveBeenCalledTimes(1);
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+  });
+
+  it('passes workspace-root create contexts through to the file create helper', async () => {
+    const { methods, createFile } = await createDefaultDependencyHarness();
+
+    await methods._createFile('.');
+
+    expect(createFile).toHaveBeenCalledWith('.', expect.any(Object));
+  });
+
+  it('passes nested folder-node create contexts through to the folder create helper', async () => {
+    const { methods, createFolder } = await createDefaultDependencyHarness();
+
+    await methods._createFolder('src/features');
+
+    expect(createFolder).toHaveBeenCalledWith('src/features', expect.any(Object));
   });
 
   it('uses the undo manager default for favorite toggles', async () => {
@@ -503,6 +521,8 @@ async function createDefaultDependencyHarness(
     revealFile,
     copyText,
     deleteFiles,
+    createFile,
+    createFolder,
     showWarningMessage,
     showQuickPick,
     showInputBox,

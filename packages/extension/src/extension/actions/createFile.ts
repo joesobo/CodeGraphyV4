@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { resolveWorkspaceCreatePath } from './createPath';
 
 /**
  * Action for creating a file with undo support.
@@ -13,6 +14,7 @@ import { IUndoableAction } from '../undoManager';
 export class CreateFileAction implements IUndoableAction {
   readonly description: string;
   private _createdParentPaths: string[] = [];
+  private _normalizedPath: string | undefined;
 
   /**
    * Creates a new CreateFileAction.
@@ -29,8 +31,9 @@ export class CreateFileAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const fileUri = vscode.Uri.joinPath(this._workspaceFolder, this._path);
-    const parentPath = this._path.split('/').slice(0, -1).join('/');
+    const filePath = this._getNormalizedPath();
+    const fileUri = vscode.Uri.joinPath(this._workspaceFolder, filePath);
+    const parentPath = filePath.split('/').slice(0, -1).join('/');
     if (parentPath) {
       this._createdParentPaths = await collectMissingParentPaths(
         this._workspaceFolder,
@@ -50,7 +53,7 @@ export class CreateFileAction implements IUndoableAction {
   }
 
   async undo(): Promise<void> {
-    const fileUri = vscode.Uri.joinPath(this._workspaceFolder, this._path);
+    const fileUri = vscode.Uri.joinPath(this._workspaceFolder, this._getNormalizedPath());
 
     // Close any editors showing this file
     const editors = vscode.window.visibleTextEditors.filter(
@@ -65,6 +68,11 @@ export class CreateFileAction implements IUndoableAction {
     await vscode.workspace.fs.delete(fileUri, { useTrash: true });
     await deleteCreatedParentDirectories(this._workspaceFolder, this._createdParentPaths);
     await this._refreshGraph();
+  }
+
+  private _getNormalizedPath(): string {
+    this._normalizedPath ??= resolveWorkspaceCreatePath(this._path, 'file');
+    return this._normalizedPath;
   }
 }
 

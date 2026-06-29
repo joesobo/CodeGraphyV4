@@ -80,6 +80,7 @@ export function refreshWorkspaceFileOperation(
     provider,
     logMessage,
     files.map(uri => uri.fsPath),
+    { followUpRefresh: eventName === 'workspace:fileCreated' },
   );
 
   for (const filePath of refreshPaths) {

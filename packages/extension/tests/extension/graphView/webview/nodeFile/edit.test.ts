@@ -82,6 +82,17 @@ describe('graph view node/file edit message', () => {
     expect(handlers.createFile).toHaveBeenCalledWith('src');
   });
 
+  it('creates files from the workspace root context', async () => {
+    const handlers = createHandlers();
+
+    await expect(applyNodeFileEditMessage(
+      { type: 'CREATE_FILE', payload: { directory: '.' } },
+      handlers,
+    )).resolves.toBe(true);
+
+    expect(handlers.createFile).toHaveBeenCalledWith('.');
+  });
+
   it('creates folders outside timeline mode', async () => {
     const handlers = createHandlers();
 
@@ -91,6 +102,17 @@ describe('graph view node/file edit message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.createFolder).toHaveBeenCalledWith('src');
+  });
+
+  it('creates folders from nested folder-node contexts', async () => {
+    const handlers = createHandlers();
+
+    await expect(applyNodeFileEditMessage(
+      { type: 'CREATE_FOLDER', payload: { directory: 'src/features' } },
+      handlers,
+    )).resolves.toBe(true);
+
+    expect(handlers.createFolder).toHaveBeenCalledWith('src/features');
   });
 
   it('creates folders in timeline mode when the graph revision is mutable', async () => {
