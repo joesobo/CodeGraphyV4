@@ -13,7 +13,13 @@ export function resolveWorkspaceCreatePath(input: string, kind: 'file' | 'folder
 }
 
 function isSafeWorkspaceCreatePath(value: string): boolean {
-  if (!value || value.startsWith('/') || value.includes('\\') || /^[A-Za-z]:($|\/)/.test(value)) {
+  if (
+    !value
+    || value.startsWith('/')
+    || value.includes('\\')
+    || hasControlCharacter(value)
+    || /^[A-Za-z]:($|\/)/.test(value)
+  ) {
     return false;
   }
 
@@ -22,4 +28,15 @@ function isSafeWorkspaceCreatePath(value: string): boolean {
 
 function isSafePathSegment(segment: string): boolean {
   return Boolean(segment) && segment !== '.' && segment !== '..';
+}
+
+function hasControlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 31 || code === 127) {
+      return true;
+    }
+  }
+
+  return false;
 }
