@@ -50,6 +50,26 @@ describe('CreateFolderAction', () => {
     expect(mockRefreshGraph).toHaveBeenCalledOnce();
   });
 
+  it.each([
+    '',
+    '   ',
+    '../outside',
+    'src/../outside',
+    '/absolute',
+    'C:/outside',
+    'nested\\folder',
+  ])('rejects unsafe workspace-relative folder paths before mutating the filesystem: %j', async (folderPath) => {
+    const action = new CreateFolderAction(folderPath, mockWorkspaceFolder, mockRefreshGraph);
+
+    await expect(action.execute()).rejects.toThrow(
+      'Enter a relative folder path inside the workspace.',
+    );
+
+    expect(vscode.workspace.fs.stat).not.toHaveBeenCalled();
+    expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
+    expect(mockRefreshGraph).not.toHaveBeenCalled();
+  });
+
   it('removes created parent directories when undoing a nested folder create', async () => {
     vi.mocked(vscode.workspace.fs.stat).mockImplementation(async (uri: vscode.Uri) => {
       if (uri.fsPath === '/workspace/test') {

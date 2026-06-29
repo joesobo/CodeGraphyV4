@@ -133,6 +133,22 @@ describe('graphView/files/actions', () => {
     );
   });
 
+  it('trims nested file paths before executing create actions', async () => {
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => '  src/core/menuCreated.ts  '),
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateAction).toHaveBeenCalledWith(
+      'src/core/menuCreated.ts',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
   it.each([
     ['../outside.ts'],
     ['components/../outside.ts'],
@@ -194,6 +210,22 @@ describe('graphView/files/actions', () => {
 
     expect(executeCreateFolderAction).toHaveBeenCalledWith(
       'src/components/forms',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it('trims nested folder paths before executing create actions', async () => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+
+    await createGraphViewFolder('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => '  src/features/generated  '),
+      executeCreateFolderAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateFolderAction).toHaveBeenCalledWith(
+      'src/features/generated',
       vscode.Uri.file('/workspace'),
     );
   });

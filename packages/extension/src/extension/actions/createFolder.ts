@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { resolveWorkspaceCreatePath } from './createPath';
 
 export class CreateFolderAction implements IUndoableAction {
   readonly description: string;
@@ -14,10 +15,11 @@ export class CreateFolderAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const folderUri = vscode.Uri.joinPath(this._workspaceFolder, this._path);
+    const folderPath = resolveWorkspaceCreatePath(this._path, 'folder');
+    const folderUri = vscode.Uri.joinPath(this._workspaceFolder, folderPath);
     this._createdParentPaths = await collectMissingFolderPaths(
       this._workspaceFolder,
-      this._path,
+      folderPath,
     );
     await vscode.workspace.fs.createDirectory(folderUri);
     await this._refreshGraph();

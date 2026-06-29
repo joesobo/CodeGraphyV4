@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { resolveWorkspaceCreatePath } from './createPath';
 
 /**
  * Action for creating a file with undo support.
@@ -29,8 +30,9 @@ export class CreateFileAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const fileUri = vscode.Uri.joinPath(this._workspaceFolder, this._path);
-    const parentPath = this._path.split('/').slice(0, -1).join('/');
+    const filePath = resolveWorkspaceCreatePath(this._path, 'file');
+    const fileUri = vscode.Uri.joinPath(this._workspaceFolder, filePath);
+    const parentPath = filePath.split('/').slice(0, -1).join('/');
     if (parentPath) {
       this._createdParentPaths = await collectMissingParentPaths(
         this._workspaceFolder,
