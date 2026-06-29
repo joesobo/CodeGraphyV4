@@ -63,11 +63,15 @@ Implementation plan:
 
 ## TDD Slices
 
-Pending first RED.
+- Slice 1 RED: `CreateFolderAction` did not remove recursively created parent folders on undo.
+- Slice 1 GREEN: `CreateFolderAction` now records missing nested folders before create and removes the empty created chain deepest-first on undo while preserving existing leaf-folder undo behavior.
+- Slice 1 targeted test: `npx -y pnpm@10.32.0 --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/actions/createFolder.test.ts`
 
 ## PR And Trello Updates
 
-Pending.
+- Commit `454c05547` records the pre-implementation audit/alignment notes.
+- Draft PR opened: https://github.com/joesobo/CodeGraphyV4/pull/298
+- Trello progress comment posted: `6a42de49ce748dec0c8e251e`
 
 ## Verification
 
