@@ -85,7 +85,7 @@ describe('workspaceFiles/refresh/operations', () => {
     expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
-  it('refreshes file operations and emits an event for each refreshable path', () => {
+  it('refreshes create operations and emits an event for each refreshable path', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
 
@@ -109,7 +109,7 @@ describe('workspaceFiles/refresh/operations', () => {
     });
   });
 
-  it('passes nested file and folder create paths to changed-file refresh when available', () => {
+  it('schedules a follow-up create refresh so nested descendants are discovered after folder events', () => {
     vi.useFakeTimers();
     const provider = {
       ...makeProvider(),
@@ -128,6 +128,13 @@ describe('workspaceFiles/refresh/operations', () => {
     vi.advanceTimersByTime(500);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
+      '/workspace/src/core/menuCreated.ts',
+      '/workspace/src/features/generated',
+    ]);
+    vi.advanceTimersByTime(1_500);
+    vi.advanceTimersByTime(1);
+    expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
+    expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
       '/workspace/src/core/menuCreated.ts',
       '/workspace/src/features/generated',
     ]);

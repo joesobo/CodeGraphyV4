@@ -71,6 +71,9 @@ Implementation plan:
 - Slice 2 targeted test: `npx -y pnpm@10.32.0 --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/actions/createPath.test.ts tests/extension/actions/createFile.test.ts tests/extension/actions/createFolder.test.ts tests/extension/graphView/files/actions.test.ts`
 - Slice 3 coverage: nested external/Explorer file and folder create paths are passed to `refreshChangedFiles`; newly created folder paths do not reuse stale discovery and therefore trigger rediscovery for directory graph state.
 - Slice 3 targeted test: `npx -y pnpm@10.32.0 --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/workspaceFiles/refresh/operations.test.ts tests/extension/pipeline/service/refresh/discovery/changed.test.ts`
+- Slice 4 RED from real Extension Development Host smoke: external creation of `src/core/` followed by `src/core/menuCreated.ts` could refresh the graph with only the folder node and miss the child file.
+- Slice 4 GREEN: create file operation refreshes now schedule a follow-up changed-file refresh, catching descendants created just after a folder event without relying on a stale Graph Cache replay.
+- Slice 4 targeted test: `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/workspaceFiles/refresh/operations.test.ts tests/extension/workspaceFiles/refresh/scheduler.test.ts tests/extension/workspaceFiles/refresh/watchers.test.ts`
 
 ## PR And Trello Updates
 
@@ -80,4 +83,17 @@ Implementation plan:
 
 ## Verification
 
-Pending.
+- `pnpm run lint` passed.
+- `pnpm run typecheck` passed.
+- `pnpm run test` passed, including 119/119 VS Code Playwright acceptance tests.
+- `pnpm run build` passed.
+- `pnpm --filter @codegraphy-dev/extension run build:vscode` passed after the watcher fix.
+- Real Mac Mini Extension Development Host smoke ran against a fresh temp workspace with no starting Graph Cache:
+  - Opened CodeGraphy graph view.
+  - Verified initial `src/index.ts` graph node.
+  - Created `src/core/menuCreated.ts` externally while CodeGraphy was open and verified the file node after watcher refresh.
+  - Derived the visible graph with Folder nodes and Nests edges enabled; verified `src -> src/core -> src/core/menuCreated.ts`.
+  - Created `src/features/generated` and verified folder nodes plus `src -> src/features -> src/features/generated` Nests edges.
+  - Created `src/external/watcherCreated.ts` externally while CodeGraphy was open and verified the file node, folder node, and Nests edge.
+  - PASS summary: `fileCreated=true`, `folderCreated=true`, `externalCreated=true`, raw graph `nodeCount=6`, visible graph `visibleNodeCount=10`, `visibleEdgeCount=9`.
+  - Note: the temporary smoke wrapper printed PASS from inside the Extension Development Host, then required Ctrl+C to stop the `@vscode/test-electron` wrapper after the VS Code host had exited.
