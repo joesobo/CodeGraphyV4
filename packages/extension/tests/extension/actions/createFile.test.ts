@@ -133,6 +133,28 @@ describe('CreateFileAction', () => {
 
       expect(mockRefreshGraph).toHaveBeenCalledOnce();
     });
+
+    it.each([
+      '',
+      '   ',
+      '../outside.ts',
+      'src/../outside.ts',
+      '/absolute.ts',
+      'C:/outside.ts',
+      'nested\\file.ts',
+    ])('rejects unsafe workspace-relative file paths before mutating the filesystem: %j', async (filePath) => {
+      const action = new CreateFileAction(filePath, mockWorkspaceFolder, mockRefreshGraph);
+
+      await expect(action.execute()).rejects.toThrow(
+        'Enter a relative file path inside the workspace.',
+      );
+
+      expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
+      expect(vscode.workspace.fs.writeFile).not.toHaveBeenCalled();
+      expect(vscode.workspace.openTextDocument).not.toHaveBeenCalled();
+      expect(vscode.window.showTextDocument).not.toHaveBeenCalled();
+      expect(mockRefreshGraph).not.toHaveBeenCalled();
+    });
   });
 
   describe('undo', () => {

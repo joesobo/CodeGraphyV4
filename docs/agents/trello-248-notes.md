@@ -66,6 +66,9 @@ Implementation plan:
 - Slice 1 RED: `CreateFolderAction` did not remove recursively created parent folders on undo.
 - Slice 1 GREEN: `CreateFolderAction` now records missing nested folders before create and removes the empty created chain deepest-first on undo while preserving existing leaf-folder undo behavior.
 - Slice 1 targeted test: `npx -y pnpm@10.32.0 --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/actions/createFolder.test.ts`
+- Slice 2 RED: create actions accepted unsafe final workspace-relative paths and graph-view prompt paths preserved accidental surrounding spaces.
+- Slice 2 GREEN: `CreateFileAction` and `CreateFolderAction` now share `resolveWorkspaceCreatePath`; graph-view create prompts trim before dispatching to the shared create path.
+- Slice 2 targeted test: `npx -y pnpm@10.32.0 --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/actions/createPath.test.ts tests/extension/actions/createFile.test.ts tests/extension/actions/createFolder.test.ts tests/extension/graphView/files/actions.test.ts`
 
 ## PR And Trello Updates
 

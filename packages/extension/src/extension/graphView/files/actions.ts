@@ -63,12 +63,13 @@ export async function createGraphViewFile(
     ignoreFocusOut: true,
   });
   if (fileName === undefined) return undefined;
-  if (!isSafeGraphViewChildPath(fileName)) {
+  const normalizedFileName = fileName.trim();
+  if (!isSafeGraphViewChildPath(normalizedFileName)) {
     handlers.showErrorMessage('Enter a relative file path inside this folder.');
     return undefined;
   }
 
-  const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
+  const filePath = directory === '.' ? normalizedFileName : `${directory}/${normalizedFileName}`;
 
   try {
     await handlers.executeCreateAction(filePath, handlers.workspaceFolder.uri);
@@ -91,12 +92,13 @@ export async function createGraphViewFolder(
     ignoreFocusOut: true,
   });
   if (folderName === undefined) return undefined;
-  if (!isSafeGraphViewChildPath(folderName)) {
+  const normalizedFolderName = folderName.trim();
+  if (!isSafeGraphViewChildPath(normalizedFolderName)) {
     handlers.showErrorMessage('Enter a relative folder path inside this folder.');
     return undefined;
   }
 
-  const folderPath = directory === '.' ? folderName : `${directory}/${folderName}`;
+  const folderPath = directory === '.' ? normalizedFolderName : `${directory}/${normalizedFolderName}`;
 
   try {
     await handlers.executeCreateFolderAction(folderPath, handlers.workspaceFolder.uri);
