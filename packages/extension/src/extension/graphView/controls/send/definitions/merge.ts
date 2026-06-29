@@ -156,7 +156,7 @@ function collectAvailableEdgeKinds(
   }
 
   if (graphData.nodes.some(isFileNode)) {
-    if (shouldAddLegacyReferenceEdgeKind(edgeKinds)) {
+    if (edgeKinds.size > 0 && shouldAddLegacyReferenceEdgeKind(edgeKinds)) {
       edgeKinds.add('reference');
     }
     edgeKinds.add(STRUCTURAL_NESTS_EDGE_KIND);

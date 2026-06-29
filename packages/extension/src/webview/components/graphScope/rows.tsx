@@ -234,21 +234,30 @@ export function NodeTypeRows({
   );
 }
 
+export function resolveAvailableEdgeTypes(
+  edgeTypes: IGraphEdgeTypeDefinition[],
+  edgeVisibility: Record<string, boolean>,
+  nodeVisibility: Record<string, boolean>,
+): IGraphEdgeTypeDefinition[] {
+  const folderNodesEnabled = nodeVisibility[FOLDER_NODE_TYPE] ?? false;
+  const visibleEdgeTypes = folderNodesEnabled
+    ? edgeTypes
+    : edgeTypes.filter((edgeType) => edgeType.id !== STRUCTURAL_NESTS_EDGE_KIND);
+
+  return visibleEdgeTypes.filter((edgeType) =>
+    !edgeType.requiresEdgeType
+    || edgeVisibility[edgeType.requiresEdgeType] === true
+    || edgeVisibility[edgeType.id] === true
+  );
+}
+
 export function EdgeTypeRows({
   edgeColors,
   edgeTypes,
   edgeVisibility,
   nodeVisibility,
 }: EdgeTypeRowsProps): React.ReactElement {
-  const folderNodesEnabled = nodeVisibility[FOLDER_NODE_TYPE] ?? false;
-  const visibleEdgeTypes = folderNodesEnabled
-    ? edgeTypes
-    : edgeTypes.filter((edgeType) => edgeType.id !== STRUCTURAL_NESTS_EDGE_KIND);
-  const availableEdgeTypes = visibleEdgeTypes.filter((edgeType) =>
-    !edgeType.requiresEdgeType
-    || edgeVisibility[edgeType.requiresEdgeType] === true
-    || edgeVisibility[edgeType.id] === true
-  );
+  const availableEdgeTypes = resolveAvailableEdgeTypes(edgeTypes, edgeVisibility, nodeVisibility);
 
   return (
     <>
