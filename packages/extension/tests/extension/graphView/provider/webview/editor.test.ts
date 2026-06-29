@@ -57,7 +57,7 @@ describe('graphView/provider/webview/editor', () => {
         retainContextWhenHidden: true,
       }),
     );
-    expect(setWebviewMessageListener).toHaveBeenCalledWith(panel.webview, source);
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(panel.webview, source, 'graph');
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, panel.webview, 'graph');
     expect(source._panels).toEqual([]);
   });

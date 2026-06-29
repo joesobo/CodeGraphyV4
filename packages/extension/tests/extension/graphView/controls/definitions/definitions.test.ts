@@ -290,7 +290,7 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     expect(definitions.some((definition) => definition.id === 'import')).toBe(false);
   });
 
-  it('adds legacy reference when edge capabilities are omitted for file graphs', () => {
+  it('adds only structural edges when edge capabilities and indexed edges are absent for file graphs', () => {
     const definitions = mergeEdgeTypes(
       {
         nodes: [{ id: 'src/app.ts', nodeType: 'file' }],
@@ -300,7 +300,6 @@ describe('extension/graphView/controls/send/definitions/merge', () => {
     );
 
     expect(definitions.map((definition) => definition.id)).toEqual([
-      'reference',
       STRUCTURAL_NESTS_EDGE_KIND,
     ]);
   });

@@ -26,7 +26,7 @@ export function openGraphViewProviderWebviewInEditor(
     ) =>
       dependencies.createPanel(viewType, title, column, options),
     setWebviewMessageListener: (webview: vscode.Webview) =>
-      dependencies.setWebviewMessageListener(webview, source as never),
+      dependencies.setWebviewMessageListener(webview, source as never, 'graph'),
     getHtmlForWebview: (webview: vscode.Webview) =>
       dependencies.createHtml(source._extensionUri, webview, 'graph'),
     registerPanel: (panel: vscode.WebviewPanel) => {

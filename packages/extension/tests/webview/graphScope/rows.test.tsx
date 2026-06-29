@@ -140,6 +140,7 @@ describe('graph scope rows', () => {
           { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
         ]}
         edgeVisibility={{ reference: false }}
+        graphHasIndex={true}
         nodeVisibility={{ folder: true }}
       />,
     );
@@ -158,6 +159,24 @@ describe('graph scope rows', () => {
     });
   });
 
+  it('shows only structural edge rows before indexing', () => {
+    const { container } = render(
+      <EdgeTypeRows
+        edgeColors={{}}
+        edgeTypes={[
+          { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
+          { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
+        ]}
+        edgeVisibility={{}}
+        graphHasIndex={false}
+        nodeVisibility={{ folder: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'References')).not.toBeInTheDocument();
+    expect(scopeRow(container, 'Nests')).toBeInTheDocument();
+  });
+
   it('hides edge rows until their prerequisite edge type is enabled', () => {
     const { container, rerender } = render(
       <EdgeTypeRows
@@ -173,6 +192,7 @@ describe('graph scope rows', () => {
           },
         ]}
         edgeVisibility={{ inherit: false }}
+        graphHasIndex={true}
         nodeVisibility={{ folder: true }}
       />,
     );
@@ -194,6 +214,7 @@ describe('graph scope rows', () => {
           },
         ]}
         edgeVisibility={{ inherit: true }}
+        graphHasIndex={true}
         nodeVisibility={{ folder: true }}
       />,
     );
@@ -214,6 +235,7 @@ describe('graph scope rows', () => {
           },
         ]}
         edgeVisibility={{ inherit: false, overrides: true }}
+        graphHasIndex={true}
         nodeVisibility={{ folder: true }}
       />,
     );
@@ -239,6 +261,7 @@ describe('graph scope rows', () => {
             },
           ]}
           edgeVisibility={{}}
+          graphHasIndex={true}
           nodeVisibility={{ folder: true }}
         />
       </TooltipProvider>,

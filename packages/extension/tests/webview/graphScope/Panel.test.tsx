@@ -166,22 +166,54 @@ describe('GraphScopePanel', () => {
     });
   });
 
-  it('keeps edge types unavailable until the workspace has an index', () => {
+  it('keeps structural edge type controls available before the workspace has an index', () => {
     graphStore.setState({
+      graphEdgeTypes: [
+        { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
+      ],
       graphHasIndex: false,
       graphIndexFreshness: 'missing',
     });
     render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
     const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
-    expect(edgeTypesButton).toBeDisabled();
-    expect(edgeTypesButton).toHaveAttribute('title', 'Index workspace to enable Edge Type controls');
+    expect(edgeTypesButton).toBeEnabled();
 
     fireEvent.click(edgeTypesButton);
 
-    expect(edgeTypesButton).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByText('File')).toBeInTheDocument();
-    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
+    expect(edgeTypesButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Nests')).toBeInTheDocument();
+  });
+
+  it('disables edge types when the current node scope hides every edge control', () => {
+    graphStore.setState({
+      graphEdgeTypes: [
+        { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
+      ],
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+      nodeVisibility: { folder: false },
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeDisabled();
+  });
+
+  it('keeps relationship edge type controls unavailable before the workspace has an index', () => {
+    graphStore.setState({
+      graphEdgeTypes: [
+        { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
+        { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
+      ],
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+      nodeVisibility: { folder: false },
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeDisabled();
   });
 
   it('returns to node types when the active edge tab becomes unavailable', () => {
@@ -192,6 +224,7 @@ describe('GraphScopePanel', () => {
 
     act(() => {
       graphStore.setState({
+        graphEdgeTypes: [],
         graphHasIndex: false,
         graphIndexFreshness: 'missing',
       });

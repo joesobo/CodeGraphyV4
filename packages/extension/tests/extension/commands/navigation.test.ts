@@ -31,15 +31,18 @@ describe('getNavCommands', () => {
   });
 
   describe('open command', () => {
-    it('executes the workbench view command', () => {
+    it('opens the CodeGraphy container and focuses the graph view', async () => {
       const provider = makeProvider();
       const commands = getNavCommands(provider as never);
       const cmd = commands.find((cmd) => cmd.id === 'codegraphy.open')!;
 
-      cmd.handler();
+      await cmd.handler();
 
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'workbench.view.extension.codegraphy'
+      );
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'codegraphy.graphView.focus'
       );
     });
   });

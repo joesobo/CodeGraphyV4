@@ -11,8 +11,9 @@ export function getNavCommands(provider: GraphViewProvider): CommandDefinition[]
   return [
     {
       id: 'codegraphy.open',
-      handler: () => {
-        void vscode.commands.executeCommand('workbench.view.extension.codegraphy');
+      handler: async () => {
+        await vscode.commands.executeCommand('workbench.view.extension.codegraphy');
+        await vscode.commands.executeCommand('codegraphy.graphView.focus');
       },
     },
     { id: 'codegraphy.openInEditor', handler: () => { provider.openInEditor(); } },

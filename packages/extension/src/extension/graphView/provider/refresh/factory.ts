@@ -59,6 +59,7 @@ export function createGraphViewProviderRefreshMethods(
   const refreshGitignoreMetadata = createRefreshGitignoreMetadataMethod(
     source,
     state,
+    refresh,
     refreshIndex,
     scopedRefreshLifecycle,
   );

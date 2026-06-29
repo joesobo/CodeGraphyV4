@@ -41,7 +41,7 @@ export function resolveGraphViewProviderWebviewView(
   dependencies.resolveWebviewView(webviewView, {
     getLocalResourceRoots: () => source._getLocalResourceRoots(),
     setWebviewMessageListener: (nextWebview: vscode.Webview) =>
-      dependencies.setWebviewMessageListener(nextWebview as never, source as never),
+      dependencies.setWebviewMessageListener(nextWebview as never, source as never, viewKind),
     getHtml: (nextWebview: vscode.Webview) =>
       dependencies.createHtml(
         source._extensionUri,

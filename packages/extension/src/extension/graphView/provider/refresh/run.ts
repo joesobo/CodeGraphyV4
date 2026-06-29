@@ -1,4 +1,3 @@
-import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphViewProviderRefreshMethodsSource } from './contracts';
 
 export type ChangedFileRefreshMode = 'analysis' | 'incremental' | 'primary';
@@ -28,10 +27,6 @@ export async function runIndexRefresh(source: GraphViewProviderRefreshMethodsSou
   await source._analyzeAndSendData();
 }
 
-function hasGraphData(graphData: IGraphData | undefined): boolean {
-  return (graphData?.nodes.length ?? 0) > 0 || (graphData?.edges.length ?? 0) > 0;
-}
-
 export function canRunIncrementalChangedFileRefresh(
   source: GraphViewProviderRefreshMethodsSource,
 ): boolean {
@@ -39,9 +34,7 @@ export function canRunIncrementalChangedFileRefresh(
     return false;
   }
 
-  return source._analyzer.hasIndex()
-    || hasGraphData(source._rawGraphData)
-    || hasGraphData(source._graphData);
+  return source._analyzer.hasIndex();
 }
 
 export async function runChangedFileRefresh(

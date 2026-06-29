@@ -47,7 +47,7 @@ export function createGraphViewProviderWebviewMethods(
   };
 
   const _setWebviewMessageListener = (webview: vscode.Webview): void => {
-    resolvedDependencies.setWebviewMessageListener(webview, source);
+    resolvedDependencies.setWebviewMessageListener(webview, source, 'graph');
   };
 
   const _getHtmlForWebview = (

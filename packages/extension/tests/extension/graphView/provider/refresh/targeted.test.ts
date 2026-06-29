@@ -24,7 +24,7 @@ describe('graphView/provider/refresh targeted refreshes', () => {
     expect(source._sendFavorites).not.toHaveBeenCalled();
   });
 
-  it('refreshChangedFiles stays incremental for a loaded graph while index metadata is unavailable', async () => {
+  it('refreshChangedFiles reloads discovery for a loaded graph while index metadata is unavailable', async () => {
     const source = createSource({
       _rawGraphData: {
         nodes: [{ id: 'src/example.ts' }],
@@ -40,11 +40,11 @@ describe('graphView/provider/refresh targeted refreshes', () => {
 
     await methods.refreshChangedFiles(['src/example.ts']);
 
-    expect(source._loadDisabledRulesAndPlugins).not.toHaveBeenCalled();
-    expect(source._loadGroupsAndFilterPatterns).not.toHaveBeenCalled();
-    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/example.ts']);
-    expect(source._loadAndSendData).not.toHaveBeenCalled();
-    expect(source._sendAllSettings).not.toHaveBeenCalled();
+    expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
   });
 
   it('refreshPluginFiles publishes the targeted plugin refresh result without rebuilding it again', async () => {
@@ -121,6 +121,24 @@ describe('graphView/provider/refresh targeted refreshes', () => {
     });
     expect(source._sendAllSettings).toHaveBeenCalledOnce();
     expect(source._sendFavorites).not.toHaveBeenCalled();
+  });
+
+  it('refreshGitignoreMetadata reloads discovery when no index exists yet', async () => {
+    const source = createSource();
+    source._analyzer.hasIndex.mockReturnValue(false);
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    await methods.refreshGitignoreMetadata();
+
+    expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._analyzer.refreshGitignoreMetadata).not.toHaveBeenCalled();
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
   });
 
   it('refreshAnalysisScope forwards progress from the scoped refresh request', async () => {

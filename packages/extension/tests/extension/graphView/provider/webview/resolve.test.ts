@@ -101,7 +101,7 @@ describe('graphView/provider/webview/resolve', () => {
     expect(source._view).toBe(webviewView);
     expect(resolveWebviewView).toHaveBeenCalledOnce();
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'graph');
-    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source, 'graph');
     expect(executeCommand).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', true);
     expect(source.flushPendingWorkspaceRefresh).toHaveBeenCalledOnce();
 
@@ -171,8 +171,10 @@ describe('graphView/provider/webview/resolve', () => {
     } as unknown as vscode.WebviewView;
     const createHtml = vi.fn(() => '<timeline html />');
     const resolveWebviewView = vi.fn((_view, options) => {
+      options.setWebviewMessageListener(webview);
       options.getHtml(webview);
     });
+    const setWebviewMessageListener = vi.fn();
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: webviewView,
@@ -185,11 +187,12 @@ describe('graphView/provider/webview/resolve', () => {
       createHtml,
       executeCommand: vi.fn(() => Promise.resolve(undefined)),
       resolveWebviewView,
-      setWebviewMessageListener: vi.fn(),
+      setWebviewMessageListener,
     }, webviewView);
 
     expect(source._timelineView).toBe(webviewView);
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'timeline');
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source, 'timeline');
     expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
 
     disposeListener?.();
