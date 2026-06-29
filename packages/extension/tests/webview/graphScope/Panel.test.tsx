@@ -200,6 +200,22 @@ describe('GraphScopePanel', () => {
     expect(edgeTypesButton).toBeDisabled();
   });
 
+  it('keeps relationship edge type controls unavailable before the workspace has an index', () => {
+    graphStore.setState({
+      graphEdgeTypes: [
+        { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
+        { id: 'nests', label: 'Nests', defaultColor: '#555555', defaultVisible: false },
+      ],
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+      nodeVisibility: { folder: false },
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    const edgeTypesButton = screen.getByRole('button', { name: 'Edge Types' });
+    expect(edgeTypesButton).toBeDisabled();
+  });
+
   it('returns to node types when the active edge tab becomes unavailable', () => {
     render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 

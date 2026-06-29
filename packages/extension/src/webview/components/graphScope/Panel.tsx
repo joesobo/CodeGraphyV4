@@ -26,9 +26,10 @@ export default function GraphScopePanel({
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
+  const graphHasIndex = useGraphStore((state) => state.graphHasIndex);
   const availableEdgeTypes = useMemo(
-    () => resolveAvailableEdgeTypes(edgeTypes, edgeVisibility, nodeVisibility),
-    [edgeTypes, edgeVisibility, nodeVisibility],
+    () => resolveAvailableEdgeTypes(edgeTypes, edgeVisibility, graphHasIndex, nodeVisibility),
+    [edgeTypes, edgeVisibility, graphHasIndex, nodeVisibility],
   );
   const edgeTypesAvailable = availableEdgeTypes.length > 0;
   const edgeColors = useMemo(
@@ -99,6 +100,7 @@ export default function GraphScopePanel({
                     edgeColors={edgeColors}
                     edgeTypes={edgeTypes}
                     edgeVisibility={edgeVisibility}
+                    graphHasIndex={graphHasIndex}
                     nodeVisibility={nodeVisibility}
                   />
                 )}
