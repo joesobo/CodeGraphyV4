@@ -5,6 +5,7 @@ dist/
 .vscode/settings.json
 /coverage/
 *.log
+*.tsbuildinfo
 .DS_Store
 dist-e2e/
 /artifacts/
@@ -18,6 +19,8 @@ packages/extension/tests/playwright-vscode/generated/
 packages/extension/tests/playwright-vscode/generated-ir/
 .superpowers/
 .turbo/
+.next/
+out/
 reports/
 .stryker-tmp/
 .pnpm-store/
