@@ -1,7 +1,7 @@
 {
 	"name": "codegraphy",
 	"version": "1.0.0",
-	"packageManager": "pnpm@10.32.0",
+	"packageManager": "pnpm@11.9.0",
 	"workspaces": [
 		"packages/*",
 		"apps/*"
@@ -231,6 +231,7 @@
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",
+		"@next/eslint-plugin-next": "^16.2.9",
 		"@poleski/quality-tools": "0.2.1",
 		"@types/node": "^20.11.0",
 		"@types/vscode": "^1.85.0",
@@ -247,7 +248,7 @@
 		"husky": "^9.0.0",
 		"lint-staged": "^15.0.0",
 		"tsx": "^4.21.0",
-		"turbo": "^2.5.8",
+		"turbo": "^2.10.1",
 		"typescript": "^5.3.3",
 		"typescript-eslint": "^8.0.0",
 		"vitest": "^3.0.0"

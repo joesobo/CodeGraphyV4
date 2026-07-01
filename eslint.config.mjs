@@ -3,6 +3,7 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import nextPlugin from '@next/eslint-plugin-next';
 import mochaPlugin from 'eslint-plugin-mocha';
 import playwrightPlugin from 'eslint-plugin-playwright';
 import globals from 'globals';
@@ -49,7 +50,7 @@ export default defineConfig(
     },
   },
   {
-    files: ['packages/extension/**/*.{ts,tsx}'],
+    files: ['packages/extension/**/*.{ts,tsx}', 'apps/web/**/*.{ts,tsx}'],
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
@@ -67,8 +68,21 @@ export default defineConfig(
     },
   },
   {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    plugins: {
+      '@next/next': nextPlugin,
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
+  },
+  {
     files: [
       'examples/**/*.{ts,tsx}',
+      'apps/**/*.test.{ts,tsx}',
+      'apps/**/tests/**/*.{ts,tsx}',
+      'apps/**/vitest*.config.ts',
       '.codegraphy/particles/**/*.ts',
       'packages/**/playwright*.config.ts',
       'packages/**/test-fixtures/**/*.ts',
@@ -114,6 +128,8 @@ export default defineConfig(
     'coverage/**',
     '.turbo/**',
     '.worktrees/**',
+    'apps/**/.next/**',
+    'apps/**/out/**',
     'playwright-report/**',
     'test-results/**',
     'blob-report/**',
