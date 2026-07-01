@@ -3,6 +3,7 @@ import type { CodeGraphyInstalledPluginRecord } from './installedCache';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 
 export interface LoadedCodeGraphyWorkspacePluginPackage {
+  bundled?: boolean;
   plugin: IPlugin;
   packageName: string;
   record: CodeGraphyInstalledPluginRecord;
@@ -10,6 +11,7 @@ export interface LoadedCodeGraphyWorkspacePluginPackage {
 }
 
 export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
+  bundledPackageRoots?: Iterable<string>;
   disabledPlugins?: Iterable<string>;
   settings: CodeGraphyWorkspaceSettings;
   homeDir?: string;

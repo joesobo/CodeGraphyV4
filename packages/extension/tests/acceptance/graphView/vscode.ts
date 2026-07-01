@@ -25,7 +25,8 @@ export async function launchVSCodeWithWorkspace(
   const extensionsPath = path.join(tempRoot, 'e');
   const homePath = path.join(tempRoot, 'h');
   fs.mkdirSync(homePath, { recursive: true });
-  writeAcceptanceInstalledPluginCache(homePath, repoRoot(), options.pluginPackageRelativePaths ?? []);
+  const pluginPackageRelativePaths = options.pluginPackageRelativePaths ?? [];
+  writeAcceptanceInstalledPluginCache(homePath, repoRoot(), pluginPackageRelativePaths);
 
   const vscodeExecutablePath = await downloadAndUnzipVSCode({
     version: VSCODE_TEST_VERSION,
@@ -45,6 +46,9 @@ export async function launchVSCodeWithWorkspace(
     env: {
       ...process.env,
       CODEGRAPHY_ACCEPTANCE: '1',
+      CODEGRAPHY_BUNDLED_PLUGIN_PACKAGE_ROOTS: pluginPackageRelativePaths
+        .map(relativePath => path.join(repoRoot(), relativePath))
+        .join(path.delimiter),
       HOME: homePath,
     },
   });

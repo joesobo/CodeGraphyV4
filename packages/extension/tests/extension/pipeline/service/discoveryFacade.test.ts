@@ -84,6 +84,9 @@ class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
 
   constructor() {
     super({
+      extensionUri: {
+        fsPath: '/extension',
+      },
       subscriptions: [],
       workspaceState: {
         get: vi.fn(),
@@ -168,9 +171,9 @@ describe('pipeline/service/discoveryFacade', () => {
 
     await facade.initialize();
 
-    expect(initializeWorkspacePipeline).toHaveBeenCalledWith(facade._registry, {
+    expect(initializeWorkspacePipeline).toHaveBeenCalledWith(facade._registry, expect.objectContaining({
       getWorkspaceRoot: expect.any(Function),
-    });
+    }));
     expect(vi.mocked(initializeWorkspacePipeline).mock.calls[0][1].getWorkspaceRoot()).toBe('/workspace');
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] WorkspacePipeline initialized');
   });
@@ -186,23 +189,19 @@ describe('pipeline/service/discoveryFacade', () => {
     const first = facade.syncWorkspacePlugins();
     const second = facade.syncWorkspacePlugins();
 
-    await Promise.resolve();
-
-    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledTimes(1);
+    await expect.poll(() => vi.mocked(syncWorkspacePipelinePlugins).mock.calls.length).toBe(1);
     expect(facade._registry.disposeAll).not.toHaveBeenCalled();
 
     firstReload.resolve(undefined);
     await first;
-    await Promise.resolve();
-
-    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledTimes(2);
+    await expect.poll(() => vi.mocked(syncWorkspacePipelinePlugins).mock.calls.length).toBe(2);
     expect(facade._registry.disposeAll).not.toHaveBeenCalled();
 
     secondReload.resolve(undefined);
     await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined]);
-    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledWith(facade._registry, {
+    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledWith(facade._registry, expect.objectContaining({
       getWorkspaceRoot: expect.any(Function),
-    });
+    }));
   });
 
   it('delegates plugin filters and index checks through the shared helpers', () => {

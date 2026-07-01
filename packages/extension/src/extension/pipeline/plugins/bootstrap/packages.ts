@@ -6,6 +6,7 @@ import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { WorkspacePipelinePluginRegistration } from './builtIns';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
+  bundledPluginPackageRoots?: Iterable<string>;
   disabledPlugins?: Iterable<string>;
   userHomeDir?: string;
   warn?: (message: string) => void;
@@ -17,6 +18,7 @@ export async function loadWorkspacePackagePluginRegistrations(
   dependencies: WorkspacePackagePluginRegistrationDependencies,
 ): Promise<WorkspacePipelinePluginRegistration[]> {
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
     settings,
     workspaceRoot,
@@ -27,6 +29,7 @@ export async function loadWorkspacePackagePluginRegistrations(
   return loadedPackagePlugins.map(loadedPlugin => ({
     plugin: loadedPlugin.plugin,
     options: {
+      ...(loadedPlugin.bundled ? { builtIn: true } : {}),
       sourcePackage: loadedPlugin.packageName,
       sourcePackageRoot: loadedPlugin.record.packageRoot,
       ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
