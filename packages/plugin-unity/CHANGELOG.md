@@ -1,5 +1,11 @@
 # @codegraphy-dev/plugin-unity
 
+## 0.2.2
+
+### Patch Changes
+
+- [#299](https://github.com/joesobo/CodeGraphyV4/pull/299) [`2cdffa6`](https://github.com/joesobo/CodeGraphyV4/commit/2cdffa62eef0e569d66c4186ced1b010d756d1a7) Thanks [@joesobo](https://github.com/joesobo)! - Package built-in Unity plugin icon assets so theme legend rows and graph nodes can load their configured icons, use a white Material Icon Theme Unity glyph for Unity defaults, render `.asset` defaults with a triangle shape, and show an intentional fallback when an icon preview cannot load.
+
 ## 0.2.1
 
 ### Patch Changes
