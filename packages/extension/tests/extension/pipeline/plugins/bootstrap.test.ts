@@ -32,6 +32,12 @@ async function createWorkspace(): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-bootstrap-'));
 }
 
+async function createPackageFixtureRoot(prefix: string): Promise<string> {
+  const root = path.join(process.cwd(), 'node_modules', '.cache', 'codegraphy-test-packages');
+  await fs.mkdir(root, { recursive: true });
+  return fs.mkdtemp(path.join(root, prefix));
+}
+
 async function createPluginPackage(packageRoot: string): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
@@ -344,7 +350,7 @@ describe('pipeline/plugins/bootstrap', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-extension-bootstrap',
@@ -404,13 +410,13 @@ describe('pipeline/plugins/bootstrap', () => {
     const packageName = '@acme/codegraphy-plugin-bundled';
     const pluginId = 'acme.bundled';
     const stalePackageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-bundled',
     );
     const bundledPackageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-bundled-')),
+      await createPackageFixtureRoot('codegraphy-extension-bundled-'),
       'codegraphy-plugin-bundled',
     );
 
@@ -450,6 +456,9 @@ describe('pipeline/plugins/bootstrap', () => {
       bundledPluginPackageRoots: [bundledPackageRoot],
       getWorkspaceRoot: () => workspaceRoot,
       userHomeDir: homeDir,
+      warn: message => {
+        throw new Error(message);
+      },
     });
 
     const bundledRegistration = registry.register.mock.calls.find(
@@ -477,7 +486,7 @@ describe('pipeline/plugins/bootstrap', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-extension-bootstrap',
@@ -536,7 +545,7 @@ describe('pipeline/plugins/bootstrap', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-extension-bootstrap',
@@ -575,7 +584,7 @@ describe('pipeline/plugins/bootstrap', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-extension-data-host',
@@ -650,7 +659,7 @@ describe('pipeline/plugins/bootstrap', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-extension-bootstrap',
@@ -734,7 +743,7 @@ describe('pipeline/plugins/bootstrap', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-extension-bootstrap',
