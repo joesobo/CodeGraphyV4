@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.5rem;
+  --background: hsl(222 47% 5%);
+  --foreground: hsl(210 40% 96%);
+  --card: hsl(221 39% 8%);
+  --card-foreground: hsl(210 40% 96%);
+  --popover: hsl(221 39% 8%);
+  --popover-foreground: hsl(210 40% 96%);
+  --primary: hsl(193 94% 54%);
+  --primary-foreground: hsl(222 47% 5%);
+  --secondary: hsl(220 16% 16%);
+  --secondary-foreground: hsl(210 40% 96%);
+  --muted: hsl(219 18% 15%);
+  --muted-foreground: hsl(215 18% 68%);
+  --accent: hsl(163 82% 40%);
+  --accent-foreground: hsl(222 47% 5%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(218 22% 22%);
+  --input: hsl(218 22% 22%);
+  --ring: hsl(193 94% 54%);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
