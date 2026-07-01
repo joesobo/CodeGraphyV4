@@ -1,5 +1,14 @@
 # @codegraphy-dev/extension
 
+## 5.12.3
+
+### Patch Changes
+
+- [#300](https://github.com/joesobo/CodeGraphyV4/pull/300) [`e3e7e61`](https://github.com/joesobo/CodeGraphyV4/commit/e3e7e6166fce6d72b2117a36a9eb1510562fb6b7) Thanks [@joesobo](https://github.com/joesobo)! - Package bundled workspace plugin runtimes with the VS Code extension and load their plugin icon assets from the packaged plugin root.
+
+- Updated dependencies [[`e3e7e61`](https://github.com/joesobo/CodeGraphyV4/commit/e3e7e6166fce6d72b2117a36a9eb1510562fb6b7)]:
+  - @codegraphy-dev/core@1.7.2
+
 ## 5.12.2
 
 ### Patch Changes

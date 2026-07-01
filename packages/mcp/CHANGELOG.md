@@ -1,5 +1,12 @@
 # @codegraphy-dev/mcp
 
+## 2.2.7
+
+### Patch Changes
+
+- Updated dependencies [[`e3e7e61`](https://github.com/joesobo/CodeGraphyV4/commit/e3e7e6166fce6d72b2117a36a9eb1510562fb6b7)]:
+  - @codegraphy-dev/core@1.7.2
+
 ## 2.2.6
 
 ### Patch Changes
