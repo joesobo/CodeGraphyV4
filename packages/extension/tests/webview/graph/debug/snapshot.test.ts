@@ -17,7 +17,7 @@ describe('webview/graph/debug/snapshot', () => {
         zoomToFit: vi.fn(),
       },
       graphMode: '2d',
-      nodes: [{ id: 'a.ts', size: 12, x: 5, y: 6 }],
+      nodes: [{ id: 'a.ts', imageUrl: 'webview://icon.svg', size: 12, x: 5, y: 6 }],
     });
 
     expect(snapshot).toEqual({
@@ -26,6 +26,7 @@ describe('webview/graph/debug/snapshot', () => {
       graphMode: '2d',
       nodes: [{
         id: 'a.ts',
+        imageUrl: 'webview://icon.svg',
         screenX: 15,
         screenY: 26,
         size: 12,

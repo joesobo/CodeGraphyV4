@@ -81,6 +81,28 @@ describe('webview/components/legends/ruleControls', () => {
     expect(screen.queryByTitle('Choose legend shape')).toBeNull();
   });
 
+  it('replaces unavailable plugin default icon previews with an intentional fallback', () => {
+    render(
+      <RuleVisualControls
+        rule={{
+          id: 'legend:default',
+          pattern: '*.unity',
+          color: '#f97316',
+          target: 'node',
+          isPluginDefault: true,
+          imageUrl: 'webview://missing-unity-scene.svg',
+        }}
+        index={0}
+        onChange={vi.fn()}
+      />,
+    );
+
+    fireEvent.error(screen.getByAltText('*.unity icon'));
+
+    expect(screen.queryByAltText('*.unity icon')).toBeNull();
+    expect(screen.getByTitle('*.unity icon unavailable')).toBeInTheDocument();
+  });
+
   it('renders no icon preview for plugin defaults without an icon', () => {
     render(
       <RuleVisualControls

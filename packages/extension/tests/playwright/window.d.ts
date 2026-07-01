@@ -6,6 +6,7 @@ interface GraphDebugSnapshot {
     baseOpacity?: number;
     color?: string;
     id: string;
+    imageUrl?: string;
     screenX: number;
     screenY: number;
     size: number;

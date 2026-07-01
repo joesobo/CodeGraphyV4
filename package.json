@@ -58,6 +58,7 @@
 	"files": [
 		"dist/**",
 		"assets/**",
+		"packages/plugin-unity/assets/**",
 		"docs/**",
 		"README.md",
 		"CONTRIBUTING.md",

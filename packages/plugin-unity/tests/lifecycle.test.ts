@@ -39,15 +39,15 @@ describe('createUnityPlugin', () => {
     expect(plugin.fileColors).toEqual(expect.objectContaining({
       '*.unity': expect.objectContaining({
         color: '#F97316',
-        imagePath: 'assets/scene.svg',
+        imagePath: 'assets/unity.svg',
       }),
       '*.prefab': expect.objectContaining({
         color: '#8B5CF6',
-        imagePath: 'assets/prefab.svg',
+        imagePath: 'assets/unity.svg',
       }),
       '*.mat': expect.objectContaining({
         color: '#14B8A6',
-        imagePath: 'assets/material.svg',
+        imagePath: 'assets/unity.svg',
       }),
     }));
   });

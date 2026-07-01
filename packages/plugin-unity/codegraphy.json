@@ -63,37 +63,37 @@
       "color": "#F97316",
       "shape2D": "hexagon",
       "shape3D": "dodecahedron",
-      "imagePath": "assets/scene.svg"
+      "imagePath": "assets/unity.svg"
     },
     "*.prefab": {
       "color": "#8B5CF6",
       "shape2D": "hexagon",
       "shape3D": "dodecahedron",
-      "imagePath": "assets/prefab.svg"
+      "imagePath": "assets/unity.svg"
     },
     "*.asset": {
       "color": "#0EA5E9",
       "shape2D": "square",
       "shape3D": "cube",
-      "imagePath": "assets/asset.svg"
+      "imagePath": "assets/unity.svg"
     },
     "*.mat": {
       "color": "#14B8A6",
       "shape2D": "circle",
       "shape3D": "sphere",
-      "imagePath": "assets/material.svg"
+      "imagePath": "assets/unity.svg"
     },
     "*.asmdef": {
       "color": "#64748B",
       "shape2D": "square",
       "shape3D": "cube",
-      "imagePath": "assets/asmdef.svg"
+      "imagePath": "assets/unity.svg"
     },
     "*.inputactions": {
       "color": "#F59E0B",
       "shape2D": "diamond",
       "shape3D": "octahedron",
-      "imagePath": "assets/input-actions.svg"
+      "imagePath": "assets/unity.svg"
     }
   },
   "sources": [
