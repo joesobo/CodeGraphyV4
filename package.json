@@ -8,6 +8,7 @@
 	],
 	"scripts": {
 		"build": "turbo run build",
+		"web:dev": "pnpm --filter @codegraphy/web dev",
 		"build:devhost": "node scripts/build-devhost.mjs",
 		"watch": "pnpm --filter @codegraphy-dev/extension run watch",
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
