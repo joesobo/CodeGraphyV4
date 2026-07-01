@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { mdiImageOff } from '@mdi/js';
 import { MdiIcon } from '../../../../icons/MdiIcon';
 import type { ShapeOption } from './types';
 
@@ -9,11 +10,22 @@ export function IconPreview({
   imageUrl: string;
   label: string;
 }): React.ReactElement {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <span title={`${label} icon unavailable`} className="text-muted-foreground">
+        <MdiIcon path={mdiImageOff} size={15} />
+      </span>
+    );
+  }
+
   return (
     <img
       src={imageUrl}
       alt={`${label} icon`}
       className="h-4 w-4 object-contain"
+      onError={() => setFailed(true)}
     />
   );
 }

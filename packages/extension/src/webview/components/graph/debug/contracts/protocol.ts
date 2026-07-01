@@ -6,6 +6,7 @@ export interface GraphDebugSnapshot {
     baseOpacity?: number;
     color?: string;
     id: string;
+    imageUrl?: string;
     screenX: number;
     shapeSize2D?: {
       height: number;

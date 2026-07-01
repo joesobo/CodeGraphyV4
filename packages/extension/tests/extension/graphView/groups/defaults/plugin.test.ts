@@ -138,7 +138,7 @@ describe('graphView/pluginDefaultGroups', () => {
                     color: '#F97316',
                     shape2D: 'hexagon',
                     shape3D: 'dodecahedron',
-                    imagePath: 'assets/scene.svg',
+                    imagePath: 'assets/unity.svg',
                   },
                 },
               },
@@ -161,7 +161,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pluginName: 'Unity',
         shape2D: 'hexagon',
         shape3D: 'dodecahedron',
-        imagePath: 'assets/scene.svg',
+        imagePath: 'assets/unity.svg',
       },
     ]);
     expect(pluginExtensionUris.get('codegraphy.unity')?.fsPath).toBe(
