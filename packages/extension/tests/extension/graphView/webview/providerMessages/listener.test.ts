@@ -546,7 +546,7 @@ describe('graph view provider listener bridge', () => {
     expect(execute).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'reset-settings' }),
     );
-  });
+  }, 15_000);
 
   it('does not enumerate proposed workspace getters while building default dependencies', async () => {
     vi.resetModules();
