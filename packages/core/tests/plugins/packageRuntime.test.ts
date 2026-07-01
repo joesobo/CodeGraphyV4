@@ -14,6 +14,12 @@ async function createWorkspace(): Promise<string> {
   return fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-workspace-'));
 }
 
+async function createPackageFixtureRoot(prefix: string): Promise<string> {
+  const root = path.join(process.cwd(), 'node_modules', '.cache', 'codegraphy-test-packages');
+  await fs.mkdir(root, { recursive: true });
+  return fs.mkdtemp(path.join(root, prefix));
+}
+
 async function createPluginPackage(packageRoot: string): Promise<void> {
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
@@ -127,7 +133,7 @@ describe('CodeGraphy package runtime', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-data-host',
@@ -178,7 +184,7 @@ describe('CodeGraphy package runtime', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-disabled-runtime',
@@ -222,13 +228,13 @@ describe('CodeGraphy package runtime', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
     const packageRootOne = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-vue-one',
     );
     const packageRootTwo = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-vue-two',
@@ -297,13 +303,13 @@ describe('CodeGraphy package runtime', () => {
     const packageName = '@acme/codegraphy-plugin-bundled-runtime';
     const pluginId = 'acme.bundled-runtime';
     const stalePackageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-bundled-runtime',
     );
     const bundledPackageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-bundled-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-bundled-'),
       'codegraphy-plugin-bundled-runtime',
     );
 
@@ -346,6 +352,9 @@ describe('CodeGraphy package runtime', () => {
       settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
       homeDir,
       workspaceRoot,
+      warn: message => {
+        throw new Error(message);
+      },
     });
 
     expect(loadedPlugin?.bundled).toBe(true);
@@ -357,7 +366,7 @@ describe('CodeGraphy package runtime', () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
     const packageRoot = path.join(
-      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
       'node_modules',
       '@acme',
       'codegraphy-plugin-id-mismatch',
