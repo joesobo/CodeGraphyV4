@@ -1,6 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+const BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV = 'CODEGRAPHY_BUNDLED_PLUGIN_PACKAGE_ROOTS';
+
 function getCandidatePackagesRoots(extensionRoot: string): string[] {
   const roots = [path.join(extensionRoot, 'packages')];
   const parent = path.dirname(extensionRoot);
@@ -24,6 +26,13 @@ async function readPackageDirectories(packagesRoot: string): Promise<string[]> {
 export async function readBundledWorkspacePluginPackageRoots(
   extensionRoot: string | undefined,
 ): Promise<string[]> {
+  if (Object.prototype.hasOwnProperty.call(process.env, BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV)) {
+    return (process.env[BUNDLED_PLUGIN_PACKAGE_ROOTS_ENV] ?? '')
+      .split(path.delimiter)
+      .map(root => root.trim())
+      .filter(Boolean);
+  }
+
   if (!extensionRoot) {
     return [];
   }
