@@ -5,6 +5,7 @@ export interface DebugNode {
   baseOpacity?: number;
   color?: string;
   id: string;
+  imageUrl?: string;
   shapeSize2D?: {
     height: number;
     width: number;
@@ -40,6 +41,7 @@ function buildDebugNodeSnapshot(
     ...(typeof node.baseOpacity === 'number' ? { baseOpacity: node.baseOpacity } : {}),
     ...(typeof node.color === 'string' ? { color: node.color } : {}),
     id: node.id,
+    ...(typeof node.imageUrl === 'string' ? { imageUrl: node.imageUrl } : {}),
     screenX: screen.x,
     ...(node.shapeSize2D ? { shapeSize2D: node.shapeSize2D } : {}),
     screenY: screen.y,
