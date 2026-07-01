@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import { createUnityPlugin } from '../src/lifecycle';
@@ -45,11 +46,26 @@ describe('createUnityPlugin', () => {
         color: '#8B5CF6',
         imagePath: 'assets/unity.svg',
       }),
+      '*.asset': expect.objectContaining({
+        color: '#0EA5E9',
+        shape2D: 'triangle',
+        imagePath: 'assets/unity.svg',
+      }),
       '*.mat': expect.objectContaining({
         color: '#14B8A6',
         imagePath: 'assets/unity.svg',
       }),
     }));
+  });
+
+  it('ships Unity icons as white glyphs', () => {
+    const unityIcon = readFileSync(new URL('../assets/unity.svg', import.meta.url), 'utf8');
+    const packageIcon = readFileSync(new URL('../assets/icon.svg', import.meta.url), 'utf8');
+
+    expect(unityIcon).toContain('fill="#fff"');
+    expect(packageIcon).toContain('fill="#fff"');
+    expect(unityIcon).not.toContain('#42a5f5');
+    expect(packageIcon).not.toContain('#42a5f5');
   });
 
   it('uses .meta GUIDs to name MonoBehaviour components after their scripts', async () => {

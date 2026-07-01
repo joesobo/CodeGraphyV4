@@ -42,6 +42,7 @@ test.describe('Unity plugin icons', () => {
         }).toBe(true);
         await expect(frame.getByTitle(label.replace(/ icon$/, ' icon unavailable'))).toHaveCount(0);
       }
+      await expect(frame.getByTitle('*.asset shape: triangle')).toHaveCount(1);
 
       await expect.poll(() => readUnityFileNodeImageUrlsByExtension(frame), {
         message: 'Unity file node image URLs',
