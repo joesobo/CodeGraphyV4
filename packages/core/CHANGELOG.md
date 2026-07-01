@@ -1,5 +1,11 @@
 # @codegraphy-dev/core
 
+## 1.7.2
+
+### Patch Changes
+
+- [#300](https://github.com/joesobo/CodeGraphyV4/pull/300) [`e3e7e61`](https://github.com/joesobo/CodeGraphyV4/commit/e3e7e6166fce6d72b2117a36a9eb1510562fb6b7) Thanks [@joesobo](https://github.com/joesobo)! - Prefer bundled workspace plugin package records over stale installed plugin cache records when both declare the same plugin.
+
 ## 1.7.1
 
 ### Patch Changes

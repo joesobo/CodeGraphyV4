@@ -1,5 +1,11 @@
 # @codegraphy-dev/plugin-unity
 
+## 0.2.3
+
+### Patch Changes
+
+- [#300](https://github.com/joesobo/CodeGraphyV4/pull/300) [`e3e7e61`](https://github.com/joesobo/CodeGraphyV4/commit/e3e7e6166fce6d72b2117a36a9eb1510562fb6b7) Thanks [@joesobo](https://github.com/joesobo)! - Ship Unity plugin icon and file shape defaults so Unity project files render with plugin-provided graph icons.
+
 ## 0.2.2
 
 ### Patch Changes
