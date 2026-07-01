@@ -17,7 +17,6 @@ on:
           - markdown
           - vue
           - plugin-api
-          - website
           - npm
           - vsce
           - all
@@ -44,7 +43,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.0.8
         with:
-          version: 11.9.0
+          version: 10.32.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -91,7 +90,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.0.8
         with:
-          version: 11.9.0
+          version: 10.32.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -105,30 +104,3 @@ jobs:
 
       - name: Publish VSIX target
         run: pnpm run release:publish vsce
-
-  release-website-check:
-    if: ${{ inputs.target == 'all' || inputs.target == 'website' }}
-    name: Release website check
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6.0.8
-        with:
-          version: 11.9.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22.22.0
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build website
-        run: pnpm --filter @codegraphy/web run build
