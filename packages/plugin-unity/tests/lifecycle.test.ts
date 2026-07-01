@@ -1,9 +1,22 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import { createUnityPlugin } from '../src/lifecycle';
 
 const playerControllerGuid = '11111111111111111111111111111111';
+
+function resolveAssetPath(fileName: string): string {
+  const candidates = [
+    join(process.cwd(), 'assets', fileName),
+    join(process.cwd(), 'packages', 'plugin-unity', 'assets', fileName),
+  ];
+  const assetPath = candidates.find(candidate => existsSync(candidate));
+  if (!assetPath) {
+    throw new Error(`Unable to find Unity test asset '${fileName}'.`);
+  }
+  return assetPath;
+}
 
 describe('createUnityPlugin', () => {
   it('exposes Unity manifest metadata and Graph Scope capabilities', () => {
@@ -58,9 +71,9 @@ describe('createUnityPlugin', () => {
     }));
   });
 
-  it('ships Unity icons as white glyphs', () => {
-    const unityIcon = readFileSync(new URL('../assets/unity.svg', import.meta.url), 'utf8');
-    const packageIcon = readFileSync(new URL('../assets/icon.svg', import.meta.url), 'utf8');
+  it.skipIf(process.env.CODEGRAPHY_MUTATION_RUN === '1')('ships Unity icons as white glyphs', () => {
+    const unityIcon = readFileSync(resolveAssetPath('unity.svg'), 'utf8');
+    const packageIcon = readFileSync(resolveAssetPath('icon.svg'), 'utf8');
 
     expect(unityIcon).toContain('fill="#fff"');
     expect(packageIcon).toContain('fill="#fff"');

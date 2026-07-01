@@ -25,23 +25,20 @@ export async function getBuiltInWorkspacePipelinePluginRegistrations(
   const disabledPlugins = new Set(disabledPluginsInput);
   const registrations: WorkspacePipelinePluginRegistration[] = [];
 
-  if (!shouldRegisterMarkdownPlugin(settings)) {
-    return registrations;
+  if (
+    shouldRegisterMarkdownPlugin(settings)
+    && !disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)
+  ) {
+    const markdownOptions = getDefaultMarkdownPluginOptions(settings);
+    registrations.push({
+      plugin: await loadBundledMarkdownPlugin() as IPlugin,
+      options: {
+        builtIn: true,
+        sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+        ...(markdownOptions ? { options: markdownOptions } : {}),
+      },
+    });
   }
-
-  if (disabledPlugins.has(CODEGRAPHY_MARKDOWN_PLUGIN_ID)) {
-    return registrations;
-  }
-
-  const markdownOptions = getDefaultMarkdownPluginOptions(settings);
-  registrations.push({
-    plugin: await loadBundledMarkdownPlugin() as IPlugin,
-    options: {
-      builtIn: true,
-      sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      ...(markdownOptions ? { options: markdownOptions } : {}),
-    },
-  });
 
   return registrations;
 }

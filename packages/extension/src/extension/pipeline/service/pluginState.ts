@@ -5,6 +5,7 @@ import {
   initializeWorkspacePipeline,
   syncWorkspacePipelinePlugins,
 } from '../plugins/bootstrap';
+import { readBundledWorkspacePluginPackageRoots } from '../plugins/bootstrap/bundledPackages';
 
 type WorkspacePipelinePluginRegistry = Parameters<typeof initializeWorkspacePipeline>[0] & {
   disposeAll(): void;
@@ -18,8 +19,12 @@ interface WorkspacePipelinePluginFilterConfig {
 export async function initializeWorkspacePipelinePlugins(
   registry: WorkspacePipelinePluginRegistry,
   getWorkspaceRoot: () => string | undefined,
+  extensionRoot?: string,
 ): Promise<void> {
-  await initializeWorkspacePipeline(registry, { getWorkspaceRoot });
+  await initializeWorkspacePipeline(registry, {
+    bundledPluginPackageRoots: await readBundledWorkspacePluginPackageRoots(extensionRoot),
+    getWorkspaceRoot,
+  });
 }
 
 export function queueWorkspacePipelinePluginReload(
@@ -42,9 +47,13 @@ export function queueWorkspacePipelinePluginSync(
   queue: Promise<void>,
   registry: WorkspacePipelinePluginRegistry,
   getWorkspaceRoot: () => string | undefined,
+  extensionRoot?: string,
 ): { nextQueue: Promise<void>; sync: Promise<void> } {
   const sync = queue.then(async () => {
-    await syncWorkspacePipelinePlugins(registry, { getWorkspaceRoot });
+    await syncWorkspacePipelinePlugins(registry, {
+      bundledPluginPackageRoots: await readBundledWorkspacePluginPackageRoots(extensionRoot),
+      getWorkspaceRoot,
+    });
   });
 
   return {
