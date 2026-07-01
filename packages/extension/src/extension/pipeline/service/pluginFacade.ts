@@ -16,7 +16,11 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
 
   async initialize(): Promise<void> {
-    await initializeWorkspacePipelinePlugins(this._registry, () => this._getWorkspaceRoot());
+    await initializeWorkspacePipelinePlugins(
+      this._registry,
+      () => this._getWorkspaceRoot(),
+      this._context.extensionUri.fsPath,
+    );
 
     console.log('[CodeGraphy] WorkspacePipeline initialized');
   }
@@ -36,6 +40,7 @@ export abstract class WorkspacePipelinePluginFacade extends WorkspacePipelineInt
       this._workspacePluginReloadQueue,
       this._registry,
       () => this._getWorkspaceRoot(),
+      this._context.extensionUri.fsPath,
     );
     this._workspacePluginReloadQueue = nextQueue;
     return sync;

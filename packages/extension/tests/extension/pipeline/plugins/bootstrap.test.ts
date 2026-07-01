@@ -68,6 +68,79 @@ export default function createPlugin() {
   );
 }
 
+async function createManifestPluginPackage(
+  packageRoot: string,
+  input: {
+    marker: string;
+    packageName?: string;
+    pluginId?: string;
+    pluginName?: string;
+    version?: string;
+  },
+): Promise<void> {
+  const packageName = input.packageName ?? '@acme/codegraphy-plugin-extension-bootstrap';
+  const pluginId = input.pluginId ?? 'acme.extension-bootstrap';
+  const pluginName = input.pluginName ?? 'Extension Bootstrap';
+  const version = input.version ?? '1.0.0';
+
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: packageName,
+      version,
+      type: 'module',
+      exports: './plugin.js',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'codegraphy.json'),
+    JSON.stringify({
+      id: pluginId,
+      name: pluginName,
+      version,
+      apiVersion: '^2.0.0',
+      supportedExtensions: ['.txt'],
+      fileColors: {
+        '*.txt': {
+          color: '#0EA5E9',
+          shape2D: 'triangle',
+          imagePath: 'assets/example.svg',
+        },
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+export default function createPlugin() {
+  return {
+    id: ${JSON.stringify(pluginId)},
+    name: ${JSON.stringify(pluginName)},
+    version: ${JSON.stringify(version)},
+    apiVersion: '^2.0.0',
+    supportedExtensions: ['.txt'],
+    fileColors: {
+      '*.txt': {
+        color: '#0EA5E9',
+        shape2D: 'triangle',
+        imagePath: 'assets/example.svg',
+        marker: ${JSON.stringify(input.marker)}
+      }
+    }
+  };
+}
+`,
+    'utf-8',
+  );
+}
+
 async function createPluginPackageWithRuntimeMarkers(packageRoot: string): Promise<{
   factoryMarkerPath: string;
   importMarkerPath: string;
@@ -322,6 +395,81 @@ describe('pipeline/plugins/bootstrap', () => {
         includeFrontmatter: true,
       },
     });
+  });
+
+  it('prefers a bundled plugin package over a stale installed package record', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageName = '@acme/codegraphy-plugin-bundled';
+    const pluginId = 'acme.bundled';
+    const stalePackageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-bundled',
+    );
+    const bundledPackageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-bundled-')),
+      'codegraphy-plugin-bundled',
+    );
+
+    await createManifestPluginPackage(stalePackageRoot, {
+      marker: 'stale-installed',
+      packageName,
+      pluginId,
+      version: '1.0.0',
+    });
+    await createManifestPluginPackage(bundledPackageRoot, {
+      marker: 'fresh-bundled',
+      packageName,
+      pluginId,
+      version: '1.0.1',
+    });
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: packageName,
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot: stalePackageRoot,
+        pluginId,
+        pluginName: 'Bundled',
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { id: 'codegraphy.markdown', enabled: true },
+        { id: pluginId, enabled: true },
+      ],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      bundledPluginPackageRoots: [bundledPackageRoot],
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    const bundledRegistration = registry.register.mock.calls.find(
+      ([plugin]) => plugin.id === pluginId,
+    );
+
+    expect(bundledRegistration?.[0].fileColors?.['*.txt']).toEqual(expect.objectContaining({
+      marker: 'fresh-bundled',
+      shape2D: 'triangle',
+      imagePath: 'assets/example.svg',
+    }));
+    expect(bundledRegistration?.[1]).toEqual({
+      builtIn: true,
+      sourcePackage: packageName,
+      sourcePackageRoot: bundledPackageRoot,
+    });
+    expect(registry.register.mock.calls.map(([plugin]) => plugin.id)).toEqual([
+      'codegraphy.markdown',
+      pluginId,
+    ]);
   });
 
   it('registers enabled npm plugin packages for the current CodeGraphy Workspace', async () => {

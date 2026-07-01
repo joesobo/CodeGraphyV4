@@ -63,6 +63,8 @@ async function createPluginPackageWithRuntimeMarkers(
   packageRoot: string,
   packageName = '@acme/codegraphy-plugin-disabled-runtime',
   pluginId = 'acme.disabled-runtime',
+  pluginName = 'Disabled Runtime Plugin',
+  version = '1.0.0',
 ): Promise<{
   factoryMarkerPath: string;
   importMarkerPath: string;
@@ -75,13 +77,24 @@ async function createPluginPackageWithRuntimeMarkers(
     path.join(packageRoot, 'package.json'),
     `${JSON.stringify({
       name: packageName,
-      version: '1.0.0',
+      version,
       type: 'module',
       exports: './plugin.js',
       codegraphy: {
         type: 'plugin',
         apiVersion: '^2.0.0',
       },
+    }, null, 2)}\n`,
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'codegraphy.json'),
+    `${JSON.stringify({
+      id: pluginId,
+      name: pluginName,
+      version,
+      apiVersion: '^2.0.0',
+      supportedExtensions: ['.disabled'],
     }, null, 2)}\n`,
     'utf-8',
   );
@@ -96,8 +109,8 @@ export default function createPlugin() {
   writeFileSync(${JSON.stringify(factoryMarkerPath)}, 'factory called');
   return {
     id: ${JSON.stringify(pluginId)},
-    name: 'Disabled Runtime Plugin',
-    version: '1.0.0',
+    name: ${JSON.stringify(pluginName)},
+    version: ${JSON.stringify(version)},
     apiVersion: '^2.0.0',
     supportedExtensions: ['.disabled']
   };
@@ -276,6 +289,68 @@ describe('CodeGraphy package runtime', () => {
     await expect(fs.access(firstMarkers.factoryMarkerPath)).rejects.toThrow();
     await expect(fs.access(secondMarkers.importMarkerPath)).rejects.toThrow();
     await expect(fs.access(secondMarkers.factoryMarkerPath)).rejects.toThrow();
+  });
+
+  it('prefers bundled package roots over stale installed package records', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageName = '@acme/codegraphy-plugin-bundled-runtime';
+    const pluginId = 'acme.bundled-runtime';
+    const stalePackageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-bundled-runtime',
+    );
+    const bundledPackageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-bundled-')),
+      'codegraphy-plugin-bundled-runtime',
+    );
+
+    await createPluginPackageWithRuntimeMarkers(
+      stalePackageRoot,
+      packageName,
+      pluginId,
+      'Stale Runtime Plugin',
+      '1.0.0',
+    );
+    await createPluginPackageWithRuntimeMarkers(
+      bundledPackageRoot,
+      packageName,
+      pluginId,
+      'Bundled Runtime Plugin',
+      '1.0.1',
+    );
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: packageName,
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot: stalePackageRoot,
+        pluginId,
+        pluginName: 'Stale Runtime Plugin',
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        id: pluginId,
+        enabled: true,
+      }],
+    });
+
+    const [loadedPlugin] = await loadCodeGraphyWorkspacePluginPackages({
+      bundledPackageRoots: [bundledPackageRoot],
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+    });
+
+    expect(loadedPlugin?.bundled).toBe(true);
+    expect(loadedPlugin?.record.packageRoot).toBe(bundledPackageRoot);
+    expect(loadedPlugin?.plugin.name).toBe('Bundled Runtime Plugin');
   });
 
   it('refuses package runtimes whose plugin id does not match static metadata', async () => {

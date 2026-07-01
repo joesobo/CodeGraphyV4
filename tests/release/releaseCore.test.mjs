@@ -17,6 +17,22 @@ test('core extension release includes built-in Unity plugin icon assets', () => 
   );
 });
 
+test('core extension release includes the bundled Unity plugin runtime and manifest', () => {
+  const rootManifest = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
+  );
+  const entries = releaseCore.collectCoreReleaseEntries(rootManifest);
+
+  assert.ok(
+    entries.includes('packages/plugin-unity/codegraphy.json'),
+    'Unity plugin manifest must be staged so packaged extension defaults match the bundled runtime.',
+  );
+  assert.ok(
+    entries.includes('packages/plugin-unity/dist'),
+    'Unity plugin runtime must be staged so packaged extensions can load the bundled Unity plugin.',
+  );
+});
+
 test('core extension release declares platform-specific VSIX targets', () => {
   assert.deepEqual(releaseCore.EXTENSION_VSIX_TARGETS, [
     'linux-x64',
@@ -80,6 +96,47 @@ test('publish mode publishes every target-specific VSIX target', () => {
       ['publish', '--no-dependencies', '--skip-duplicate', '--target', 'win32-x64'],
     ],
   );
+});
+
+test('release preparation builds bundled workspace plugin packages before staging', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-release-build-filters-'));
+  const repoDir = path.join(tempDir, 'repo');
+  const commands = [];
+
+  fs.mkdirSync(path.join(repoDir, 'packages', 'plugin-example'), { recursive: true });
+  fs.writeFileSync(
+    path.join(repoDir, 'package.json'),
+    JSON.stringify({
+      files: [
+        'dist/**',
+        'packages/plugin-example/dist/**',
+      ],
+    }),
+  );
+  fs.writeFileSync(
+    path.join(repoDir, 'packages', 'plugin-example', 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-plugin-example',
+    }),
+  );
+
+  releaseCore.prepareCoreReleaseBase(repoDir, (command, args, options) => {
+    commands.push({ command, args, options });
+  });
+
+  assert.deepEqual(commands, [{
+    command: 'pnpm',
+    args: [
+      '-w',
+      'exec',
+      'turbo',
+      'run',
+      'build',
+      '--filter=@codegraphy-dev/extension...',
+      '--filter=@acme/codegraphy-plugin-example...',
+    ],
+    options: { cwd: repoDir },
+  }]);
 });
 
 test('resolves the VSIX target that matches the host native runtime', () => {

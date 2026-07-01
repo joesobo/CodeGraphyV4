@@ -66,6 +66,28 @@ export function buildCoreReleaseManifest(rootManifest, extensionManifest) {
   return manifest;
 }
 
+export function collectCoreReleaseBuildFilters(rootManifest, baseDir = repoRoot) {
+  const filters = ['@codegraphy-dev/extension...'];
+
+  for (const entry of collectCoreReleaseEntries(rootManifest)) {
+    if (!/^packages\/[^/]+\/dist$/.test(entry)) {
+      continue;
+    }
+
+    const packageManifestPath = path.join(baseDir, path.dirname(entry), 'package.json');
+    if (!existsSync(packageManifestPath)) {
+      continue;
+    }
+
+    const packageManifest = readJson(packageManifestPath);
+    if (typeof packageManifest.name === 'string' && packageManifest.name.length > 0) {
+      filters.push(`${packageManifest.name}...`);
+    }
+  }
+
+  return [...new Set(filters)];
+}
+
 function createCoreReleaseStage(baseDir) {
   const rootManifest = readJson(path.join(baseDir, 'package.json'));
   const extensionManifest = readJson(path.join(baseDir, 'packages/extension/package.json'));
@@ -103,7 +125,16 @@ function run(command, args, options = {}) {
 }
 
 export function prepareCoreReleaseBase(baseDir = repoRoot, runCommand = run) {
-  runCommand('pnpm', ['--filter', '@codegraphy-dev/extension', 'run', 'build'], {
+  const rootManifest = readJson(path.join(baseDir, 'package.json'));
+  runCommand('pnpm', [
+    '-w',
+    'exec',
+    'turbo',
+    'run',
+    'build',
+    ...collectCoreReleaseBuildFilters(rootManifest, baseDir)
+      .map(filter => `--filter=${filter}`),
+  ], {
     cwd: baseDir,
   });
 }
