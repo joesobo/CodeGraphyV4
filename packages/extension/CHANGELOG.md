@@ -1,5 +1,15 @@
 # @codegraphy-dev/extension
 
+## 5.12.2
+
+### Patch Changes
+
+- [#297](https://github.com/joesobo/CodeGraphyV4/pull/297) [`9561673`](https://github.com/joesobo/CodeGraphyV4/commit/956167314eaabba791b167e71626c1eb13961c52) Thanks [@joesobo](https://github.com/joesobo)! - Open the CodeGraphy graph view directly so fresh workspaces discover and keep file nodes in the sidebar without requiring Open in Editor or a reload.
+
+- [#298](https://github.com/joesobo/CodeGraphyV4/pull/298) [`cbf3d86`](https://github.com/joesobo/CodeGraphyV4/commit/cbf3d867cd5f7f765bcb15e0951971fa89c62b29) Thanks [@joesobo](https://github.com/joesobo)! - Create file and folder actions now validate nested workspace-relative paths before touching the filesystem, create missing nested folders, and keep graph refreshes flowing for nested Explorer or external filesystem creates.
+
+- [#299](https://github.com/joesobo/CodeGraphyV4/pull/299) [`2cdffa6`](https://github.com/joesobo/CodeGraphyV4/commit/2cdffa62eef0e569d66c4186ced1b010d756d1a7) Thanks [@joesobo](https://github.com/joesobo)! - Package built-in Unity plugin icon assets so theme legend rows and graph nodes can load their configured icons, use a white Material Icon Theme Unity glyph for Unity defaults, render `.asset` defaults with a triangle shape, and show an intentional fallback when an icon preview cannot load.
+
 ## 5.12.1
 
 ### Patch Changes
