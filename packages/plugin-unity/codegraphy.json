@@ -73,7 +73,7 @@
     },
     "*.asset": {
       "color": "#0EA5E9",
-      "shape2D": "square",
+      "shape2D": "triangle",
       "shape3D": "cube",
       "imagePath": "assets/unity.svg"
     },
