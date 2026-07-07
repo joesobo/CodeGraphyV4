@@ -1,86 +1,56 @@
+import { z } from 'zod';
 import { readDisclosures } from '../disclosures';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
 import { readPluginUpdateImpact } from '../updateImpact';
-import { isRecord } from './values';
+import { looseStringArraySchema, unknownRecordSchema } from '../../values';
 
-type InstalledPluginRecordFields = Pick<
-  CodeGraphyInstalledPluginRecord,
-  'apiVersion' | 'package' | 'packageRoot' | 'version'
->;
+const nonEmptyStringSchema = z.string().min(1);
 
-function readNonEmptyStringField(
-  value: Record<string, unknown>,
-  key: keyof InstalledPluginRecordFields,
-): string | null {
-  const field = value[key];
-  return typeof field === 'string' && field.length > 0 ? field : null;
-}
+const installedPluginRecordShapeSchema = z.looseObject({
+  package: nonEmptyStringSchema,
+  version: nonEmptyStringSchema,
+  apiVersion: nonEmptyStringSchema,
+  packageRoot: nonEmptyStringSchema,
+  disclosures: z.unknown(),
+  defaultOptions: unknownRecordSchema.optional().catch(undefined),
+  pluginId: nonEmptyStringSchema.optional().catch(undefined),
+  pluginName: nonEmptyStringSchema.optional().catch(undefined),
+  updateImpact: z.unknown(),
+  supportedExtensions: looseStringArraySchema
+    .transform(entries => entries.filter(entry => entry.length > 0)),
+});
 
-function readInstalledPluginRecordFields(
-  value: Record<string, unknown>,
-): InstalledPluginRecordFields | null {
-  const packageName = readNonEmptyStringField(value, 'package');
-  const version = readNonEmptyStringField(value, 'version');
-  const apiVersion = readNonEmptyStringField(value, 'apiVersion');
-  const packageRoot = readNonEmptyStringField(value, 'packageRoot');
-
-  return packageName && version && apiVersion && packageRoot
-    ? { package: packageName, version, apiVersion, packageRoot }
-    : null;
-}
-
-function readSupportedExtensions(value: unknown): string[] | undefined {
-  if (!Array.isArray(value)) {
-    return undefined;
+export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstalledPluginRecord | null {
+  const parsed = installedPluginRecordShapeSchema.safeParse(value);
+  if (!parsed.success) {
+    return null;
   }
 
-  const supportedExtensions = value
-    .filter((extension): extension is string => typeof extension === 'string' && extension.length > 0);
-  return supportedExtensions.length > 0 ? supportedExtensions : undefined;
-}
+  const shape = parsed.data;
+  const record: CodeGraphyInstalledPluginRecord = {
+    package: shape.package,
+    version: shape.version,
+    apiVersion: shape.apiVersion,
+    disclosures: readDisclosures(shape.disclosures),
+    packageRoot: shape.packageRoot,
+  };
 
-function addOptionalInstalledPluginRecordFields(
-  record: CodeGraphyInstalledPluginRecord,
-  value: Record<string, unknown>,
-): void {
-  if (isRecord(value.defaultOptions)) {
-    record.defaultOptions = { ...value.defaultOptions };
+  if (shape.defaultOptions) {
+    record.defaultOptions = { ...shape.defaultOptions };
   }
-  if (typeof value.pluginId === 'string' && value.pluginId.length > 0) {
-    record.pluginId = value.pluginId;
+  if (shape.pluginId) {
+    record.pluginId = shape.pluginId;
   }
-  if (typeof value.pluginName === 'string' && value.pluginName.length > 0) {
-    record.pluginName = value.pluginName;
+  if (shape.pluginName) {
+    record.pluginName = shape.pluginName;
   }
-  const updateImpact = readPluginUpdateImpact(value.updateImpact);
+  const updateImpact = readPluginUpdateImpact(shape.updateImpact);
   if (updateImpact) {
     record.updateImpact = updateImpact;
   }
-
-  const supportedExtensions = readSupportedExtensions(value.supportedExtensions);
-  if (supportedExtensions) {
-    record.supportedExtensions = supportedExtensions;
-  }
-}
-
-export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstalledPluginRecord | null {
-  if (!isRecord(value)) {
-    return null;
+  if (shape.supportedExtensions.length > 0) {
+    record.supportedExtensions = shape.supportedExtensions;
   }
 
-  const fields = readInstalledPluginRecordFields(value);
-  if (!fields) {
-    return null;
-  }
-
-  const record: CodeGraphyInstalledPluginRecord = {
-    package: fields.package,
-    version: fields.version,
-    apiVersion: fields.apiVersion,
-    disclosures: readDisclosures(value.disclosures),
-    packageRoot: fields.packageRoot,
-  };
-
-  addOptionalInstalledPluginRecordFields(record, value);
   return record;
 }
