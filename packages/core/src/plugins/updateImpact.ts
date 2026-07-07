@@ -1,10 +1,11 @@
+import { z } from 'zod';
 import type {
   IPluginUpdateImpact,
   IPluginUpdateImpactPolicy,
 } from '@codegraphy-dev/plugin-api';
-import { isRecord } from './packageManifestValues';
+import { unknownRecordSchema } from '../values';
 
-const UPDATE_IMPACT_VALUES = new Set<IPluginUpdateImpact>([
+const impactSchema: z.ZodType<IPluginUpdateImpact> = z.enum([
   'view-only',
   'settings-only',
   'projection-only',
@@ -12,38 +13,37 @@ const UPDATE_IMPACT_VALUES = new Set<IPluginUpdateImpact>([
   'requires-full-index',
 ]);
 
-function readImpact(value: unknown): IPluginUpdateImpact | undefined {
-  return typeof value === 'string' && UPDATE_IMPACT_VALUES.has(value as IPluginUpdateImpact)
-    ? value as IPluginUpdateImpact
-    : undefined;
-}
+const updateImpactPolicySchema = z.looseObject({
+  toggle: impactSchema,
+  defaultSetting: impactSchema.optional().catch(undefined),
+  settings: unknownRecordSchema.optional().catch(undefined),
+});
 
-function readSettingsImpact(value: unknown): Record<string, IPluginUpdateImpact> | undefined {
-  if (!isRecord(value)) {
+function readSettingsImpact(
+  value: Record<string, unknown> | undefined,
+): Record<string, IPluginUpdateImpact> | undefined {
+  if (!value) {
     return undefined;
   }
 
   const settings = Object.fromEntries(
     Object.entries(value)
-      .map(([key, impact]) => [key, readImpact(impact)] as const)
-      .filter((entry): entry is [string, IPluginUpdateImpact] => entry[1] !== undefined),
+      .map(([key, impact]) => [key, impactSchema.safeParse(impact)] as const)
+      .filter((entry): entry is [string, { success: true; data: IPluginUpdateImpact }] => entry[1].success)
+      .map(([key, result]) => [key, result.data] as const),
   );
 
   return Object.keys(settings).length > 0 ? settings : undefined;
 }
 
 export function readPluginUpdateImpact(value: unknown): IPluginUpdateImpactPolicy | undefined {
-  if (!isRecord(value)) {
+  const parsed = updateImpactPolicySchema.safeParse(value);
+  if (!parsed.success) {
     return undefined;
   }
 
-  const toggle = readImpact(value.toggle);
-  if (!toggle) {
-    return undefined;
-  }
-
-  const defaultSetting = readImpact(value.defaultSetting);
-  const settings = readSettingsImpact(value.settings);
+  const { toggle, defaultSetting } = parsed.data;
+  const settings = readSettingsImpact(parsed.data.settings);
 
   return {
     toggle,

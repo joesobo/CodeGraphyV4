@@ -6,7 +6,7 @@ import {
   createInitialCodeGraphyWorkspaceSettings,
 } from './settingsDefaults';
 import { normalizeCodeGraphyWorkspaceSettings } from './settingsNormalize';
-import { isRecord } from './settingsValues';
+import { unknownRecordSchema } from '../values';
 import type { CodeGraphyWorkspaceSettings } from './settingsContracts';
 
 export function readCodeGraphyWorkspaceSettings(
@@ -45,8 +45,10 @@ export function writeCodeGraphyWorkspaceSettings(
 
 function readRawWorkspaceSettingsOrInitial(workspaceRoot: string): Record<string, unknown> {
   try {
-    const parsed = JSON.parse(fs.readFileSync(getWorkspaceSettingsPath(workspaceRoot), 'utf-8')) as unknown;
-    return isRecord(parsed) ? { ...parsed } : { ...createInitialCodeGraphyWorkspaceSettings() };
+    const parsed = unknownRecordSchema.safeParse(
+      JSON.parse(fs.readFileSync(getWorkspaceSettingsPath(workspaceRoot), 'utf-8')),
+    );
+    return parsed.success ? { ...parsed.data } : { ...createInitialCodeGraphyWorkspaceSettings() };
   } catch {
     return { ...createInitialCodeGraphyWorkspaceSettings() };
   }
@@ -58,7 +60,8 @@ export function writeCodeGraphyWorkspacePluginData(
   data: unknown,
 ): void {
   const settings = readRawWorkspaceSettingsOrInitial(workspaceRoot);
-  const pluginData = isRecord(settings.pluginData) ? { ...settings.pluginData } : {};
+  const parsedPluginData = unknownRecordSchema.safeParse(settings.pluginData);
+  const pluginData = parsedPluginData.success ? { ...parsedPluginData.data } : {};
   settings.pluginData = {
     ...pluginData,
     [pluginId]: data,
