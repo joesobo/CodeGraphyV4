@@ -1,6 +1,4 @@
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+import { isObjectRecord } from '../../../../shared/records';
 
 export function arePlainObjectValuesEqual(left: unknown, right: unknown): boolean {
   if (Object.is(left, right)) {
@@ -12,7 +10,7 @@ export function arePlainObjectValuesEqual(left: unknown, right: unknown): boolea
       && left.every((item, index) => arePlainObjectValuesEqual(item, right[index]));
   }
 
-  if (isPlainObject(left) && isPlainObject(right)) {
+  if (isObjectRecord(left) && isObjectRecord(right)) {
     const leftKeys = Object.keys(left);
     const rightKeys = Object.keys(right);
 

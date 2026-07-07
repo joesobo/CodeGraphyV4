@@ -37,6 +37,12 @@ describe('webview/components/legends/panel/storage', () => {
     });
   });
 
+  it('returns an empty collapsed state when persisted webview state is not a JSON record', () => {
+    mockState = new Date('2026-01-01T00:00:00.000Z');
+
+    expect(readLegendPanelCollapsedState()).toEqual({});
+  });
+
   it('merges collapsed entries back into the existing webview state', () => {
     mockState = { keep: 'value' };
 
