@@ -1,6 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { z } from 'zod';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
+import { looseStringArraySchema } from '../values';
 import { getWorkspaceMetaPath } from './paths';
 
 export interface CodeGraphyWorkspaceMeta {
@@ -11,6 +13,24 @@ export interface CodeGraphyWorkspaceMeta {
   analysisVersion: string | null;
   pendingChangedFiles: string[];
 }
+
+const optionalNullableStringSchema = z.union([z.string(), z.null()]).optional().catch(undefined);
+
+const codeGraphyWorkspaceMetaSchema = z.looseObject({
+  analysisVersion: optionalNullableStringSchema,
+  lastIndexedAt: optionalNullableStringSchema,
+  pendingChangedFiles: looseStringArraySchema,
+  pluginSignature: optionalNullableStringSchema,
+  settingsSignature: optionalNullableStringSchema,
+}).transform((meta): CodeGraphyWorkspaceMeta => ({
+  ...createDefaultCodeGraphyWorkspaceMeta(),
+  ...(meta.analysisVersion !== undefined ? { analysisVersion: meta.analysisVersion } : {}),
+  ...(meta.lastIndexedAt !== undefined ? { lastIndexedAt: meta.lastIndexedAt } : {}),
+  ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
+  ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
+  pendingChangedFiles: meta.pendingChangedFiles,
+  version: 1,
+}));
 
 export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta {
   return {
@@ -25,14 +45,10 @@ export function createDefaultCodeGraphyWorkspaceMeta(): CodeGraphyWorkspaceMeta 
 
 export function readCodeGraphyWorkspaceMeta(workspaceRoot: string): CodeGraphyWorkspaceMeta {
   try {
-    const parsed = JSON.parse(fs.readFileSync(getWorkspaceMetaPath(workspaceRoot), 'utf-8')) as Partial<CodeGraphyWorkspaceMeta>;
-    return {
-      ...createDefaultCodeGraphyWorkspaceMeta(),
-      ...parsed,
-      pendingChangedFiles: Array.isArray(parsed.pendingChangedFiles)
-        ? parsed.pendingChangedFiles.filter((entry): entry is string => typeof entry === 'string')
-        : [],
-    };
+    const parsed = codeGraphyWorkspaceMetaSchema.safeParse(
+      JSON.parse(fs.readFileSync(getWorkspaceMetaPath(workspaceRoot), 'utf-8')),
+    );
+    return parsed.success ? parsed.data : createDefaultCodeGraphyWorkspaceMeta();
   } catch {
     return createDefaultCodeGraphyWorkspaceMeta();
   }

@@ -3,6 +3,9 @@
  * @module webview/pluginMessageValidation
  */
 
+import { z } from 'zod';
+import { looseStringArraySchema } from '../../shared/values';
+
 export interface PluginInjectPayload {
   pluginId: string;
   scripts: string[];
@@ -24,39 +27,38 @@ export interface PluginScopedMessage {
   message: { type: string; data: unknown };
 }
 
+const pluginWebviewAssetSchema = z.looseObject({
+  id: z.string(),
+  label: z.string(),
+  url: z.string(),
+}).transform((asset): PluginWebviewAsset => asset as PluginWebviewAsset);
+
+const pluginWebviewAssetsSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((entries): PluginWebviewAsset[] => entries.flatMap((entry) => {
+    const parsed = pluginWebviewAssetSchema.safeParse(entry);
+    return parsed.success ? [parsed.data] : [];
+  }));
+
+const pluginInjectPayloadSchema = z.looseObject({
+  pluginId: z.string(),
+  scripts: looseStringArraySchema,
+  styles: looseStringArraySchema,
+  assets: pluginWebviewAssetsSchema,
+});
+
+const pluginScopedMessageSchema = z.object({
+  pluginId: z.string(),
+  message: z.object({
+    type: z.string(),
+    data: z.unknown(),
+  }),
+});
+
 export function normalizePluginInjectPayload(payload: unknown): PluginInjectPayload | null {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-
-  const candidate = payload as { pluginId?: unknown; scripts?: unknown; styles?: unknown; assets?: unknown };
-  if (typeof candidate.pluginId !== 'string') {
-    return null;
-  }
-
-  return {
-    pluginId: candidate.pluginId,
-    scripts: Array.isArray(candidate.scripts)
-      ? candidate.scripts.filter((script): script is string => typeof script === 'string')
-      : [],
-    styles: Array.isArray(candidate.styles)
-      ? candidate.styles.filter((style): style is string => typeof style === 'string')
-      : [],
-    assets: Array.isArray(candidate.assets)
-      ? candidate.assets.filter(isPluginWebviewAsset)
-      : [],
-  };
-}
-
-function isPluginWebviewAsset(value: unknown): value is PluginWebviewAsset {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const candidate = value as Partial<PluginWebviewAsset>;
-  return typeof candidate.id === 'string'
-    && typeof candidate.label === 'string'
-    && typeof candidate.url === 'string';
+  const parsed = pluginInjectPayloadSchema.safeParse(payload);
+  return parsed.success ? parsed.data : null;
 }
 
 export function parsePluginScopedMessage(type: string, data: unknown): PluginScopedMessage | null {
@@ -69,8 +71,10 @@ export function parsePluginScopedMessage(type: string, data: unknown): PluginSco
     return null;
   }
 
-  return {
+  const parsed = pluginScopedMessageSchema.safeParse({
     pluginId,
     message: { type: typeParts.join(':'), data },
-  };
+  });
+
+  return parsed.success ? parsed.data : null;
 }

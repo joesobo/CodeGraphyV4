@@ -1,8 +1,5 @@
 import type { GraphView3dCoords } from '../../../fit/api/controls';
-
-export function isFiniteNumber(value: number): boolean {
-  return Number.isFinite(value);
-}
+import { isFiniteNumber } from '../../../../runtime/physics/numeric';
 
 export function isCoord(value: unknown): value is GraphView3dCoords {
   const candidate = value as Partial<GraphView3dCoords> | undefined;

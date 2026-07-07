@@ -31,6 +31,11 @@ describe('extension/graphView/analysis/execution/publish/equality/collections', 
     expect(compareGraphRecordValues({ id: 'src/a.ts' }, { id: 'src/a.ts', extra: true }, comparePrimitiveValue)).toBe(false);
   });
 
+  it('treats missing graph payload keys like explicit undefined values', () => {
+    expect(compareGraphRecordValues({}, { extra: undefined }, comparePrimitiveValue)).toBe(true);
+    expect(compareGraphRecordValues({ leftKey: undefined }, { rightKey: undefined }, comparePrimitiveValue)).toBe(true);
+  });
+
   it('rejects nulls and one-sided records', () => {
     expect(compareGraphRecordValues(null, {}, comparePrimitiveValue)).toBe(false);
     expect(compareGraphRecordValues({ id: 'src/a.ts' }, ['src/a.ts'], comparePrimitiveValue)).toBe(false);

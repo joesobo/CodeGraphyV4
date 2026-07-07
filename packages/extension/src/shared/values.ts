@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Kept package-local so the published core API does not expose generic zod helpers.
+// Kept extension-local so webview/e2e code does not depend on core's public API surface.
 export const unknownRecordSchema = z.record(z.string(), z.unknown());
 
 export const looseStringArraySchema = z
@@ -8,6 +8,6 @@ export const looseStringArraySchema = z
   .catch([])
   .transform(entries => entries.filter((entry): entry is string => typeof entry === 'string'));
 
-export const stringValueSchema = z.string();
-
 export const nonEmptyStringSchema = z.string().min(1);
+
+export const trimmedNonEmptyStringSchema = z.string().trim().min(1);

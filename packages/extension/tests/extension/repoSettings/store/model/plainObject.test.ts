@@ -6,8 +6,13 @@ import {
 } from '../../../../../src/extension/repoSettings/store/model/plainObject';
 describe('extension/repoSettings/store/model/plainObject', () => {
   it('deep clones nested objects and arrays without preserving references', () => {
-    const original = {
+    const original: {
+      legend: Array<{ color: string; id: string; pattern: string }>;
+      optional?: string;
+      timeline: { maxCommits: number; playbackSpeed: number };
+    } = {
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],
+      optional: undefined,
       timeline: { maxCommits: 500, playbackSpeed: 1 },
     };
 
@@ -17,10 +22,12 @@ describe('extension/repoSettings/store/model/plainObject', () => {
 
     expect(cloned).toEqual({
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#abcdef' }],
+      optional: undefined,
       timeline: { maxCommits: 500, playbackSpeed: 2 },
     });
     expect(original).toEqual({
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],
+      optional: undefined,
       timeline: { maxCommits: 500, playbackSpeed: 1 },
     });
   });

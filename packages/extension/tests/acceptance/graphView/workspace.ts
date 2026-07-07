@@ -2,6 +2,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import ignore, { type Ignore } from 'ignore';
+import {
+  looseStringArraySchema,
+  unknownRecordSchema,
+} from '../../../src/shared/values';
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../../../../core/src/discovery/file/defaults';
 import {
   DEFAULT_EXCLUDE,
@@ -222,12 +226,12 @@ function readAcceptanceFilterSettings(workspacePath: string): AcceptanceFilterSe
       plugins?: unknown;
       respectGitignore?: unknown;
     };
-    const include = readStringArray(settings.include);
+    const include = readUniqueStringArray(settings.include);
 
     return {
-      disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
-      disabledPluginFilterPatterns: readStringArray(settings.disabledPluginFilterPatterns),
-      filterPatterns: readStringArray(settings.filterPatterns),
+      disabledCustomFilterPatterns: readUniqueStringArray(settings.disabledCustomFilterPatterns),
+      disabledPluginFilterPatterns: readUniqueStringArray(settings.disabledPluginFilterPatterns),
+      filterPatterns: readUniqueStringArray(settings.filterPatterns),
       include: include.length > 0 ? include : [...DEFAULT_INCLUDE],
       maxFiles: readMaxFiles(settings.maxFiles),
       plugins: readAcceptancePluginSettings(settings.plugins),
@@ -360,7 +364,9 @@ function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings[
   }
 
   return value
-    .filter(isRecord)
+    .map(entry => unknownRecordSchema.safeParse(entry))
+    .filter(result => result.success)
+    .map(result => result.data)
     .map((entry) => {
       const packageName = typeof entry.package === 'string'
         ? entry.package.trim()
@@ -371,7 +377,7 @@ function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings[
         return undefined;
       }
 
-      const disabledFilterPatterns = readStringArray(entry.disabledFilterPatterns);
+      const disabledFilterPatterns = readUniqueStringArray(entry.disabledFilterPatterns);
       return {
         enabled: entry.enabled !== false,
         packageName,
@@ -383,10 +389,8 @@ function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings[
     .filter((entry): entry is AcceptanceFilterSettings['plugins'][number] => entry !== undefined);
 }
 
-function readStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? [...new Set(value.filter((pattern): pattern is string => typeof pattern === 'string'))]
-    : [];
+function readUniqueStringArray(value: unknown): string[] {
+  return [...new Set(looseStringArraySchema.parse(value))];
 }
 
 function readMaxFiles(value: unknown): number {
@@ -397,10 +401,6 @@ function readMaxFiles(value: unknown): number {
 
 function normalizeCopyPath(relativePath: string): string {
   return relativePath.split(path.sep).join('/');
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 interface AcceptanceDiscoveryOptions {

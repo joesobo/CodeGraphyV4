@@ -2,8 +2,8 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
 } from '@codegraphy-dev/core';
+import { looseStringArraySchema } from '../../../../../shared/values';
 import { isPlainObject } from '../plainObject';
-import { readStringArray } from './stringArray';
 
 export function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
   if (!Array.isArray(normalized.plugins)) {
@@ -43,7 +43,7 @@ function normalizePersistedPlugin(plugin: unknown): Record<string, unknown> | nu
     id,
     enabled,
   };
-  const disabledFilterPatterns = readStringArray(plugin.disabledFilterPatterns);
+  const disabledFilterPatterns = looseStringArraySchema.parse(plugin.disabledFilterPatterns);
   if (disabledFilterPatterns.length > 0) {
     normalizedPlugin.disabledFilterPatterns = Array.from(new Set(disabledFilterPatterns));
   }
