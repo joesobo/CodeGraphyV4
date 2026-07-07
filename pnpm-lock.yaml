@@ -205,6 +205,9 @@ importers:
       tree-sitter-typescript:
         specifier: ^0.23.2
         version: 0.23.2(tree-sitter@0.25.0(patch_hash=581e1c376edeabe3d25b64ea7bac59e14cc731627b17b97acccf0cce1dd051cb))
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
 
   packages/extension:
     dependencies:
