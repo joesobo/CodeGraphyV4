@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { z } from 'zod';
+import { unknownRecordSchema } from '../shared/values';
 import type { E2EScenario } from './scenarios';
 
 interface CodeGraphyInstalledPluginRecord {
@@ -35,9 +37,33 @@ const CODEGRAPHY_MARKDOWN_PLUGIN_ID = 'codegraphy.markdown';
 const DEFAULT_MAX_FILES = 1000;
 const DEFAULT_INCLUDE = ['**/*'];
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+const workspaceSettingsShapeSchema = z.looseObject({
+  maxFiles: z.number().optional().catch(undefined),
+  include: z.unknown(),
+  respectGitignore: z.boolean().optional().catch(undefined),
+  showOrphans: z.boolean().optional().catch(undefined),
+  filterPatterns: z.unknown(),
+  disabledCustomFilterPatterns: z.unknown(),
+  plugins: z.array(z.unknown()),
+});
+
+const workspacePluginShapeSchema = z.looseObject({
+  id: z.unknown(),
+  package: z.unknown(),
+  enabled: z.boolean().optional().catch(undefined),
+  options: unknownRecordSchema.optional().catch(undefined),
+});
+
+const scenarioPackageJsonSchema = z.looseObject({
+  name: z.string().catch(''),
+  version: z.string().catch(''),
+  codegraphy: z.looseObject({
+    type: z.unknown(),
+    apiVersion: z.string().catch(''),
+    disclosures: z.unknown(),
+    defaultOptions: unknownRecordSchema.optional().catch(undefined),
+  }),
+});
 
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)
@@ -53,18 +79,20 @@ function readScenarioPackageDescriptor(
   packageRoot: string,
 ): Pick<CodeGraphyInstalledPluginRecord, 'pluginId' | 'pluginName' | 'supportedExtensions'> {
   const descriptorPath = path.join(packageRoot, 'codegraphy.json');
-  const descriptor = JSON.parse(fs.readFileSync(descriptorPath, 'utf-8')) as unknown;
-  if (!isRecord(descriptor)) {
+  const descriptor = unknownRecordSchema.safeParse(
+    JSON.parse(fs.readFileSync(descriptorPath, 'utf-8')),
+  );
+  if (!descriptor.success) {
     throw new Error(`E2E scenario package has invalid codegraphy.json: ${packageRoot}`);
   }
 
-  const pluginId = readOptionalString(descriptor.id);
+  const pluginId = readOptionalString(descriptor.data.id);
   if (!pluginId) {
     throw new Error(`E2E scenario package is missing codegraphy.json id: ${packageRoot}`);
   }
 
-  const pluginName = readOptionalString(descriptor.name);
-  const supportedExtensions = readStringArray(descriptor.supportedExtensions);
+  const pluginName = readOptionalString(descriptor.data.name);
+  const supportedExtensions = readStringArray(descriptor.data.supportedExtensions);
   return {
     pluginId,
     ...(pluginName ? { pluginName } : {}),
@@ -74,21 +102,19 @@ function readScenarioPackageDescriptor(
 
 function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPluginRecord {
   const packageJsonPath = path.join(packageRoot, 'package.json');
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as unknown;
-  if (!isRecord(packageJson) || !isRecord(packageJson.codegraphy)) {
+  const packageJson = scenarioPackageJsonSchema.safeParse(
+    JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')),
+  );
+  if (!packageJson.success) {
     throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
   }
 
-  const packageName = typeof packageJson.name === 'string' ? packageJson.name : '';
-  const version = typeof packageJson.version === 'string' ? packageJson.version : '';
-  const apiVersion = typeof packageJson.codegraphy.apiVersion === 'string'
-    ? packageJson.codegraphy.apiVersion
-    : '';
+  const { name: packageName, version, codegraphy } = packageJson.data;
   if (
     packageName.length === 0
     || version.length === 0
-    || packageJson.codegraphy.type !== 'plugin'
-    || apiVersion.length === 0
+    || codegraphy.type !== 'plugin'
+    || codegraphy.apiVersion.length === 0
   ) {
     throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
   }
@@ -96,13 +122,13 @@ function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPlug
   const plugin: CodeGraphyInstalledPluginRecord = {
     package: packageName,
     version,
-    apiVersion,
+    apiVersion: codegraphy.apiVersion,
     packageRoot,
-    disclosures: readStringArray(packageJson.codegraphy.disclosures),
+    disclosures: readStringArray(codegraphy.disclosures),
     ...readScenarioPackageDescriptor(packageRoot),
   };
-  if (isRecord(packageJson.codegraphy.defaultOptions)) {
-    plugin.defaultOptions = { ...packageJson.codegraphy.defaultOptions };
+  if (codegraphy.defaultOptions) {
+    plugin.defaultOptions = { ...codegraphy.defaultOptions };
   }
 
   return plugin;
@@ -144,23 +170,28 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
     return createInitialWorkspaceSettings([]);
   }
 
-  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')) as unknown;
-  if (!isRecord(settings) || !Array.isArray(settings.plugins)) {
+  const parsed = workspaceSettingsShapeSchema.safeParse(
+    JSON.parse(fs.readFileSync(settingsPath, 'utf-8')),
+  );
+  if (!parsed.success) {
     return createInitialWorkspaceSettings([]);
   }
 
+  const settings = parsed.data;
   const include = readStringArray(settings.include);
   return {
     version: 1,
-    maxFiles: typeof settings.maxFiles === 'number' ? settings.maxFiles : DEFAULT_MAX_FILES,
+    maxFiles: settings.maxFiles ?? DEFAULT_MAX_FILES,
     include: include.length > 0 ? include : DEFAULT_INCLUDE,
-    respectGitignore: typeof settings.respectGitignore === 'boolean' ? settings.respectGitignore : true,
-    showOrphans: typeof settings.showOrphans === 'boolean' ? settings.showOrphans : true,
+    respectGitignore: settings.respectGitignore ?? true,
+    showOrphans: settings.showOrphans ?? true,
     filterPatterns: readStringArray(settings.filterPatterns),
     disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
     plugins: settings.plugins
-      .filter(isRecord)
-      .map((plugin): CodeGraphyWorkspacePluginSettings | null => {
+      .map(entry => workspacePluginShapeSchema.safeParse(entry))
+      .filter(result => result.success)
+      .map((result): CodeGraphyWorkspacePluginSettings | null => {
+        const plugin = result.data;
         const pluginId = readOptionalString(plugin.id)
           ?? readOptionalString(plugin.package);
         if (!pluginId) {
@@ -169,9 +200,9 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
 
         const normalized: CodeGraphyWorkspacePluginSettings = {
           id: pluginId,
-          enabled: typeof plugin.enabled === 'boolean' ? plugin.enabled : true,
+          enabled: plugin.enabled ?? true,
         };
-        if (isRecord(plugin.options)) {
+        if (plugin.options) {
           normalized.options = { ...plugin.options };
         }
         return normalized;

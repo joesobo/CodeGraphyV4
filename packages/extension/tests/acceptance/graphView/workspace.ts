@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import ignore, { type Ignore } from 'ignore';
+import { unknownRecordSchema } from '../../../src/shared/values';
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../../../../core/src/discovery/file/defaults';
 import {
   DEFAULT_EXCLUDE,
@@ -360,7 +361,9 @@ function readAcceptancePluginSettings(value: unknown): AcceptanceFilterSettings[
   }
 
   return value
-    .filter(isRecord)
+    .map(entry => unknownRecordSchema.safeParse(entry))
+    .filter(result => result.success)
+    .map(result => result.data)
     .map((entry) => {
       const packageName = typeof entry.package === 'string'
         ? entry.package.trim()
@@ -397,10 +400,6 @@ function readMaxFiles(value: unknown): number {
 
 function normalizeCopyPath(relativePath: string): string {
   return relativePath.split(path.sep).join('/');
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 interface AcceptanceDiscoveryOptions {

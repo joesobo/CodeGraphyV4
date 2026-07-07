@@ -1,10 +1,8 @@
 import type { IGraphEdge } from '../../../../shared/graph/contracts';
-import { isRecordLike } from './guards';
 
 export function resolveLinkEndpointId(value: unknown): string | null {
   if (typeof value === 'string') return value;
-  if (!isRecordLike(value)) return null;
-  const maybeId = (value as { id?: unknown }).id;
+  const maybeId = (value as { id?: unknown } | null | undefined)?.id;
   return typeof maybeId === 'string' ? maybeId : null;
 }
 
