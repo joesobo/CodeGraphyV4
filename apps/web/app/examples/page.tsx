@@ -1,10 +1,18 @@
-import { SitePageHeader } from '@/components/site/page-header';
+import type { Metadata } from 'next';
+import { ExampleList } from './_components/example-list';
+import { ExamplesHeader } from './_components/examples-header';
+
+export const metadata: Metadata = {
+  title: 'Examples',
+  description:
+    'Runnable example workspaces showing exactly what CodeGraphy reads in each language and plugin.',
+};
 
 export default function ExamplesPage(): React.ReactElement {
   return (
-    <SitePageHeader eyebrow="Examples" title="See language support with real examples.">
-      This page will become a language-by-language index with anchors, screenshots,
-      supported graph concepts, and links to the matching example workspaces.
-    </SitePageHeader>
+    <div className="min-w-0 space-y-12">
+      <ExamplesHeader />
+      <ExampleList />
+    </div>
   );
 }

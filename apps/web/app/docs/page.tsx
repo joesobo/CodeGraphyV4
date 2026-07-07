@@ -1,10 +1,17 @@
-import { SitePageHeader } from '@/components/site/page-header';
+import type { Metadata } from 'next';
+import { DocList } from './_components/doc-list';
+import { DocsHeader } from './_components/docs-header';
+
+export const metadata: Metadata = {
+  title: 'Docs',
+  description: 'Source-backed CodeGraphy documentation — setup, commands, interactions, settings, and the Plugin API.',
+};
 
 export default function DocsPage(): React.ReactElement {
   return (
-    <SitePageHeader eyebrow="Docs" title="Find the right CodeGraphy documentation.">
-      This page will become the public docs hub for extension setup, core concepts,
-      built-in plugins, the plugin API, and useful repo references.
-    </SitePageHeader>
+    <div className="min-w-0 space-y-12">
+      <DocsHeader />
+      <DocList />
+    </div>
   );
 }

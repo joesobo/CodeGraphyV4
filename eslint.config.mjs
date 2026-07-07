@@ -6,6 +6,7 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import mochaPlugin from 'eslint-plugin-mocha';
 import playwrightPlugin from 'eslint-plugin-playwright';
+import importPlugin from 'eslint-plugin-import-x';
 import globals from 'globals';
 
 export default defineConfig(
@@ -75,6 +76,39 @@ export default defineConfig(
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,
+      '@typescript-eslint/member-ordering': [
+        'error',
+        {
+          interfaces: {
+            memberTypes: 'never',
+            optionalityOrder: 'required-first',
+            order: 'as-written',
+          },
+          typeLiterals: {
+            memberTypes: 'never',
+            optionalityOrder: 'required-first',
+            order: 'as-written',
+          },
+        },
+      ],
+    },
+  },
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    plugins: {
+      'import-x': importPlugin,
+    },
+    rules: {
+      'import-x/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          pathGroups: [{ pattern: '@/**', group: 'internal', position: 'after' }],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          'newlines-between': 'never',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
     },
   },
   {

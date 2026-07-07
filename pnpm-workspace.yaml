@@ -28,6 +28,7 @@ allowBuilds:
   tree-sitter-scala: true
   tree-sitter-swift: true
   tree-sitter-typescript: true
+  unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@tailwindcss/node@4.3.2'
   - '@tailwindcss/oxide-android-arm64@4.3.2'
