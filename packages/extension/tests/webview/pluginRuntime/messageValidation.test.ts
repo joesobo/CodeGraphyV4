@@ -43,17 +43,47 @@ describe('normalizePluginInjectPayload', () => {
     });
   });
 
-  it('defaults scripts and styles to empty arrays when they are not arrays', () => {
+  it('defaults scripts, styles, and assets to empty arrays when they are not arrays', () => {
     expect(normalizePluginInjectPayload({
       pluginId: 'plugin.test',
       scripts: 'a.js',
       styles: { href: 'a.css' },
+      assets: 'fireflies',
     })).toEqual({
       pluginId: 'plugin.test',
       scripts: [],
       styles: [],
       assets: [],
     });
+  });
+
+  it('preserves valid webview asset optional and plugin-owned fields', () => {
+    expect(normalizePluginInjectPayload({
+      pluginId: 'plugin.test',
+      scripts: [],
+      styles: [],
+      assets: [
+        {
+          id: 'fireflies',
+          label: 'Fireflies',
+          url: 'webview://fireflies.js',
+          path: 'assets/fireflies.js',
+          kind: 'script',
+          metadata: { glow: true },
+          pluginOwned: 'kept',
+        },
+      ],
+    })?.assets).toEqual([
+      {
+        id: 'fireflies',
+        label: 'Fireflies',
+        url: 'webview://fireflies.js',
+        path: 'assets/fireflies.js',
+        kind: 'script',
+        metadata: { glow: true },
+        pluginOwned: 'kept',
+      },
+    ]);
   });
 });
 

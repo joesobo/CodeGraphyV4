@@ -87,4 +87,40 @@ describe('graphView/materialTheme/manifest', () => {
     }));
     expect(loadMaterialTheme(vscode.Uri.file(extensionRoot))?.manifest.fileExtensions?.js).toBe('javascript');
   });
+
+  it('caches malformed material icon manifests as unavailable', () => {
+    const extensionRoot = createTempDir();
+    const packageRoot = path.join(extensionRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme');
+    fs.mkdirSync(path.join(packageRoot, 'dist'), { recursive: true });
+    fs.writeFileSync(path.join(packageRoot, 'package.json'), '{}');
+    fs.writeFileSync(path.join(packageRoot, 'dist', 'material-icons.json'), '{bad json');
+
+    expect(loadMaterialTheme(vscode.Uri.file(extensionRoot))).toBeNull();
+
+    fs.writeFileSync(path.join(packageRoot, 'dist', 'material-icons.json'), JSON.stringify({
+      fileExtensions: { ts: 'typescript' },
+    }));
+    expect(loadMaterialTheme(vscode.Uri.file(extensionRoot))).toBeNull();
+  });
+
+  it('filters malformed optional manifest maps', () => {
+    const extensionRoot = createTempDir();
+    const packageRoot = path.join(extensionRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme');
+    fs.mkdirSync(path.join(packageRoot, 'dist'), { recursive: true });
+    fs.writeFileSync(path.join(packageRoot, 'package.json'), '{}');
+    fs.writeFileSync(path.join(packageRoot, 'dist', 'material-icons.json'), JSON.stringify({
+      fileExtensions: { ts: 'typescript', broken: 7 },
+      fileNames: 'invalid',
+      iconDefinitions: {
+        typescript: { iconPath: '../icons/typescript.svg' },
+        broken: { iconPath: 7 },
+      },
+    }));
+
+    expect(loadMaterialTheme(vscode.Uri.file(extensionRoot))?.manifest).toMatchObject({
+      fileExtensions: { ts: 'typescript' },
+      iconDefinitions: { typescript: { iconPath: '../icons/typescript.svg' } },
+    });
+    expect(loadMaterialTheme(vscode.Uri.file(extensionRoot))?.manifest.fileNames).toBeUndefined();
+  });
 });

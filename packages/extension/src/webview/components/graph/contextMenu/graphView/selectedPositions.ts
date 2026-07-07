@@ -2,10 +2,7 @@ import type {
   GraphContextMenuNode,
   GraphContextSelection,
 } from '../contracts';
-
-function isFiniteNumber(value: unknown): value is number {
-  return Number.isFinite(value);
-}
+import { isFiniteNumber } from '../../runtime/physics/numeric';
 
 export function createSelectedNodePositions(
   selection: GraphContextSelection,

@@ -59,6 +59,40 @@ describe('gitHistory/cache/storage', () => {
     await expect(
       readCachedGraphData({ fsPath: '/tmp/storage' } as never, 'abc123', fsPromises as never)
     ).resolves.toEqual({ nodes: [], edges: [] });
+
+    fsPromises.access.mockResolvedValueOnce(undefined);
+    fsPromises.readFile.mockResolvedValueOnce('{bad json');
+    await expect(
+      readCachedGraphData({ fsPath: '/tmp/storage' } as never, 'abc123', fsPromises as never)
+    ).resolves.toEqual({ nodes: [], edges: [] });
+  });
+
+  it('returns empty graph data when cached JSON does not match the graph shape', async () => {
+    const fsPromises = createFsPromises();
+
+    fsPromises.access.mockResolvedValue(undefined);
+    fsPromises.readFile.mockResolvedValue(JSON.stringify({ nodes: [{ id: 'src/a.ts' }], edges: [] }));
+
+    await expect(
+      readCachedGraphData({ fsPath: '/tmp/storage' } as never, 'abc123', fsPromises as never)
+    ).resolves.toEqual({ nodes: [], edges: [] });
+  });
+
+  it('normalizes missing cached edge sources to an empty provenance list', async () => {
+    const fsPromises = createFsPromises();
+
+    fsPromises.access.mockResolvedValue(undefined);
+    fsPromises.readFile.mockResolvedValue(JSON.stringify({
+      nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#fff' }],
+      edges: [{ id: 'a->b#import', from: 'src/a.ts', to: 'src/b.ts', kind: 'import' }],
+    }));
+
+    await expect(
+      readCachedGraphData({ fsPath: '/tmp/storage' } as never, 'abc123', fsPromises as never)
+    ).resolves.toEqual({
+      nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#fff' }],
+      edges: [{ id: 'a->b#import', from: 'src/a.ts', to: 'src/b.ts', kind: 'import', sources: [] }],
+    });
   });
 
   it('returns empty graph data when storage is unavailable', async () => {

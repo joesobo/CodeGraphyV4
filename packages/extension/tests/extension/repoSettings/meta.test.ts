@@ -112,6 +112,35 @@ describe('extension/repoSettings/meta', () => {
     expect(readCodeGraphyRepoMeta(workspaceRoot).pendingChangedFiles).toEqual([]);
   });
 
+  it('filters invalid persisted metadata fields through the repo meta schema', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const metaPath = getCodeGraphyRepoMetaPath(workspaceRoot);
+
+    fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({
+        version: 999,
+        lastIndexedAt: 42,
+        lastIndexedCommit: 'abc123',
+        pluginSignature: null,
+        settingsSignature: { sha: 'settings-sha' },
+        pendingChangedFiles: ['src/app.ts', 7, 'src/index.ts'],
+      }, null, 2),
+      'utf8',
+    );
+
+    expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual({
+      version: 1,
+      lastIndexedAt: null,
+      lastIndexedCommit: 'abc123',
+      pluginSignature: null,
+      settingsSignature: null,
+      pendingChangedFiles: ['src/app.ts', 'src/index.ts'],
+    });
+  });
+
   it('falls back to defaults when meta.json is invalid', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);

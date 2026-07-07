@@ -6,7 +6,6 @@ import {
 import {
   hasDistanceAndStrength,
   hasStrength,
-  isRecordLike,
 } from '../../../../src/webview/components/graph/support/guards';
 import {
   resolveEdgeActionTargetId,
@@ -19,13 +18,6 @@ import {
 import type SpriteText from 'three-spritetext';
 
 describe('graph/support', () => {
-  it('recognizes objects and functions as record-like values', () => {
-    expect(isRecordLike({ key: 'value' })).toBe(true);
-    expect(isRecordLike(() => undefined)).toBe(true);
-    expect(isRecordLike(null)).toBe(false);
-    expect(isRecordLike('text')).toBe(false);
-  });
-
   it('detects force objects with a strength function', () => {
     expect(hasStrength({ strength: () => undefined })).toBe(true);
     expect(hasStrength({ strength: 'nope' })).toBe(false);

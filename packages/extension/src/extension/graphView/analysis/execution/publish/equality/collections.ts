@@ -1,3 +1,5 @@
+import { isObjectRecord } from '../../../../../../shared/records';
+
 type CompareGraphValue = (left: unknown, right: unknown) => boolean;
 
 function areGraphRecordsEqual(
@@ -26,12 +28,6 @@ function areGraphArraysEqual(
     && left.every((leftValue, index) => compareValue(leftValue, right[index]));
 }
 
-function isGraphRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null
-    && typeof value === 'object'
-    && !Array.isArray(value);
-}
-
 export function compareGraphArrayValues(
   left: unknown,
   right: unknown,
@@ -49,5 +45,5 @@ export function compareGraphRecordValues(
   right: unknown,
   compareValue: CompareGraphValue,
 ): boolean {
-  return isGraphRecord(left) && isGraphRecord(right) && areGraphRecordsEqual(left, right, compareValue);
+  return isObjectRecord(left) && isObjectRecord(right) && areGraphRecordsEqual(left, right, compareValue);
 }
