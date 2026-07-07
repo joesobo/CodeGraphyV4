@@ -1,9 +1,11 @@
+import { isObjectRecord } from '../../../../shared/records';
+
 export function deepClone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
+  return structuredClone(value);
 }
 
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return isObjectRecord(value);
 }
 
 export function deepMerge<T>(base: T, overrides: unknown): T {
