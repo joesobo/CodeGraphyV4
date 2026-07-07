@@ -1,4 +1,5 @@
 import type { FGNode } from '../../../model/build';
+import { isFiniteNumber } from '../../physics/numeric';
 
 type GraphMode = '2d' | '3d';
 
@@ -9,10 +10,6 @@ export interface GraphNodePosition2D {
 
 export interface GraphNodePosition3D extends GraphNodePosition2D {
   z: number;
-}
-
-export function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
 }
 
 export function readNodePosition(

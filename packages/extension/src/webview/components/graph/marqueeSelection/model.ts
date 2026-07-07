@@ -1,4 +1,5 @@
 import type { FGNode } from '../model/build';
+import { isFiniteNumber } from '../runtime/physics/numeric';
 
 export interface MarqueePoint {
   x: number;
@@ -20,10 +21,6 @@ export interface GetMarqueeSelectedNodeIdsOptions {
 
 export interface GraphMarqueeSelectionState {
   bounds: MarqueeBounds;
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
 }
 
 export function getMarqueeBounds(start: MarqueePoint, current: MarqueePoint): MarqueeBounds {

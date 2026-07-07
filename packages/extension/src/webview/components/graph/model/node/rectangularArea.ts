@@ -1,10 +1,8 @@
+import { isFinitePositiveNumber } from '../../runtime/physics/numeric';
+
 export interface RectangularNodeArea2D {
   height: number;
   width: number;
-}
-
-function isFinitePositiveNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
 export function getRectangularNodeArea2D(area: unknown): RectangularNodeArea2D | undefined {
