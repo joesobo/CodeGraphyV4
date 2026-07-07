@@ -1,27 +1,29 @@
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
+import { unknownRecordSchema } from '../values';
+
+const EXPORT_CONDITIONS = ['default', 'import', 'node', 'require'] as const;
 
 export function getEntrypointFromExports(exportsValue: unknown): string | undefined {
   if (typeof exportsValue === 'string') {
     return exportsValue;
   }
 
-  if (!isRecord(exportsValue)) {
+  const exportsRecord = unknownRecordSchema.safeParse(exportsValue);
+  if (!exportsRecord.success) {
     return undefined;
   }
 
-  const rootExport = exportsValue['.'] ?? exportsValue;
+  const rootExport = exportsRecord.data['.'] ?? exportsRecord.data;
   if (typeof rootExport === 'string') {
     return rootExport;
   }
 
-  if (!isRecord(rootExport)) {
+  const rootRecord = unknownRecordSchema.safeParse(rootExport);
+  if (!rootRecord.success) {
     return undefined;
   }
 
-  for (const condition of ['default', 'import', 'node', 'require']) {
-    const conditionTarget = rootExport[condition];
+  for (const condition of EXPORT_CONDITIONS) {
+    const conditionTarget = rootRecord.data[condition];
     if (typeof conditionTarget === 'string') {
       return conditionTarget;
     }
