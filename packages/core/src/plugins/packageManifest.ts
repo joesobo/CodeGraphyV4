@@ -1,9 +1,18 @@
+import { z } from 'zod';
 import { satisfiesSemverRange } from './apiVersion';
 import type { CodeGraphyPluginDisclosure } from './disclosures';
 import type { IPluginUpdateImpactPolicy } from '@codegraphy-dev/plugin-api';
 import { CORE_PLUGIN_API_VERSION } from './api';
 import { createCodeGraphyPluginPackageManifest } from './packageManifestBuild';
-import { isRecord, readRequiredString } from './packageManifestValues';
+
+const pluginPackageJsonSchema = z.looseObject({
+  name: z.string().catch(''),
+  version: z.string().catch(''),
+  codegraphy: z.looseObject({
+    type: z.unknown(),
+    apiVersion: z.string().catch(''),
+  }),
+});
 
 export type { CodeGraphyPluginDisclosure };
 
@@ -19,18 +28,18 @@ export interface CodeGraphyPluginPackageManifest {
 export function parseCodeGraphyPluginPackageManifest(
   packageJson: unknown,
 ): CodeGraphyPluginPackageManifest | null {
-  if (!isRecord(packageJson) || !isRecord(packageJson.codegraphy)) {
+  const parsed = pluginPackageJsonSchema.safeParse(packageJson);
+  if (!parsed.success) {
     return null;
   }
 
-  const packageName = readRequiredString(packageJson.name);
-  const version = readRequiredString(packageJson.version);
-  const apiVersion = readRequiredString(packageJson.codegraphy.apiVersion);
+  const { name: packageName, version, codegraphy } = parsed.data;
+  const apiVersion = codegraphy.apiVersion;
 
   if (
     packageName.length === 0
     || version.length === 0
-    || packageJson.codegraphy.type !== 'plugin'
+    || codegraphy.type !== 'plugin'
     || apiVersion.length === 0
   ) {
     return null;
@@ -44,7 +53,7 @@ export function parseCodeGraphyPluginPackageManifest(
 
   return createCodeGraphyPluginPackageManifest({
     apiVersion,
-    codegraphy: packageJson.codegraphy,
+    codegraphy,
     packageName,
     version,
   });
