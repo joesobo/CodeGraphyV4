@@ -2,6 +2,7 @@ import { createCodeGraphyWorkspacePluginSettingUpdateIndexingPlan } from '@codeg
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
 import type { GraphViewSettingsMessageHandlers } from '../../router';
 import { applyPluginGraphWorkPlan } from '../../pluginGraphWork';
+import { unknownRecordSchema } from '../../../../../../shared/values';
 
 export async function applyPluginDataMessage(
   message: WebviewToExtensionMessage,
@@ -43,17 +44,24 @@ export async function applyPluginDataMessage(
   return true;
 }
 
+function parsePluginDataRecord(value: unknown): Record<string, unknown> | undefined {
+  const parsed = unknownRecordSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
+
 function hasPluginDataChanged(previousData: unknown, nextData: unknown): boolean {
-  if (!isRecord(previousData) || !isRecord(nextData)) {
+  const previousRecord = parsePluginDataRecord(previousData);
+  const nextRecord = parsePluginDataRecord(nextData);
+  if (!previousRecord || !nextRecord) {
     return !Object.is(previousData, nextData);
   }
 
-  return getChangedPluginDataKeys(previousData, nextData).length > 0;
+  return changedPluginDataRecordKeys(previousRecord, nextRecord).length > 0;
 }
 
 function getChangedPluginDataKeys(previousData: unknown, nextData: unknown): string[] {
-  const previousRecord = isRecord(previousData) ? previousData : undefined;
-  const nextRecord = isRecord(nextData) ? nextData : undefined;
+  const previousRecord = parsePluginDataRecord(previousData);
+  const nextRecord = parsePluginDataRecord(nextData);
 
   if (!previousRecord && !nextRecord) {
     return [];
@@ -67,14 +75,17 @@ function getChangedPluginDataKeys(previousData: unknown, nextData: unknown): str
     return Object.keys(previousRecord);
   }
 
+  return changedPluginDataRecordKeys(previousRecord, nextRecord);
+}
+
+function changedPluginDataRecordKeys(
+  previousRecord: Record<string, unknown>,
+  nextRecord: Record<string, unknown>,
+): string[] {
   const keys = new Set([
     ...Object.keys(previousRecord),
     ...Object.keys(nextRecord),
   ]);
 
   return [...keys].filter(key => !Object.is(previousRecord[key], nextRecord[key]));
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }

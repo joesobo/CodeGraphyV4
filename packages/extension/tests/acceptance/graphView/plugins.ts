@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { unknownRecordSchema } from '../../../src/shared/values';
 
 interface CodeGraphyPluginPackageJson {
   name?: unknown;
@@ -86,8 +87,9 @@ function readAcceptanceInstalledPluginRecord(packageRoot: string): AcceptanceIns
     ...displayFields,
   };
 
-  if (isRecord(codegraphy.defaultOptions)) {
-    record.defaultOptions = { ...codegraphy.defaultOptions };
+  const defaultOptions = unknownRecordSchema.safeParse(codegraphy.defaultOptions);
+  if (defaultOptions.success) {
+    record.defaultOptions = { ...defaultOptions.data };
   }
 
   return record;
@@ -132,6 +134,3 @@ function readStringArray(value: unknown): string[] {
     : [];
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
