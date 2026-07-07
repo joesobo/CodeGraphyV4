@@ -1,7 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { z } from 'zod';
-import { unknownRecordSchema } from '../shared/values';
+import {
+  looseStringArraySchema,
+  trimmedNonEmptyStringSchema,
+  unknownRecordSchema,
+} from '../shared/values';
 import type { E2EScenario } from './scenarios';
 
 interface CodeGraphyInstalledPluginRecord {
@@ -65,14 +69,9 @@ const scenarioPackageJsonSchema = z.looseObject({
   }),
 });
 
-function readStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === 'string')
-    : [];
-}
-
-function readOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+function readTrimmedOptionalString(value: unknown): string | undefined {
+  const parsed = trimmedNonEmptyStringSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
 
 function readScenarioPackageDescriptor(
@@ -86,13 +85,13 @@ function readScenarioPackageDescriptor(
     throw new Error(`E2E scenario package has invalid codegraphy.json: ${packageRoot}`);
   }
 
-  const pluginId = readOptionalString(descriptor.data.id);
+  const pluginId = readTrimmedOptionalString(descriptor.data.id);
   if (!pluginId) {
     throw new Error(`E2E scenario package is missing codegraphy.json id: ${packageRoot}`);
   }
 
-  const pluginName = readOptionalString(descriptor.data.name);
-  const supportedExtensions = readStringArray(descriptor.data.supportedExtensions);
+  const pluginName = readTrimmedOptionalString(descriptor.data.name);
+  const supportedExtensions = looseStringArraySchema.parse(descriptor.data.supportedExtensions);
   return {
     pluginId,
     ...(pluginName ? { pluginName } : {}),
@@ -124,7 +123,7 @@ function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPlug
     version,
     apiVersion: codegraphy.apiVersion,
     packageRoot,
-    disclosures: readStringArray(codegraphy.disclosures),
+    disclosures: looseStringArraySchema.parse(codegraphy.disclosures),
     ...readScenarioPackageDescriptor(packageRoot),
   };
   if (codegraphy.defaultOptions) {
@@ -178,22 +177,22 @@ function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSett
   }
 
   const settings = parsed.data;
-  const include = readStringArray(settings.include);
+  const include = looseStringArraySchema.parse(settings.include);
   return {
     version: 1,
     maxFiles: settings.maxFiles ?? DEFAULT_MAX_FILES,
     include: include.length > 0 ? include : DEFAULT_INCLUDE,
     respectGitignore: settings.respectGitignore ?? true,
     showOrphans: settings.showOrphans ?? true,
-    filterPatterns: readStringArray(settings.filterPatterns),
-    disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
+    filterPatterns: looseStringArraySchema.parse(settings.filterPatterns),
+    disabledCustomFilterPatterns: looseStringArraySchema.parse(settings.disabledCustomFilterPatterns),
     plugins: settings.plugins
       .map(entry => workspacePluginShapeSchema.safeParse(entry))
       .filter(result => result.success)
       .map((result): CodeGraphyWorkspacePluginSettings | null => {
         const plugin = result.data;
-        const pluginId = readOptionalString(plugin.id)
-          ?? readOptionalString(plugin.package);
+        const pluginId = readTrimmedOptionalString(plugin.id)
+          ?? readTrimmedOptionalString(plugin.package);
         if (!pluginId) {
           return null;
         }

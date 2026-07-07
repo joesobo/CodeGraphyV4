@@ -1,6 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { unknownRecordSchema } from '../../../src/shared/values';
+import {
+  looseStringArraySchema,
+  nonEmptyStringSchema,
+  unknownRecordSchema,
+} from '../../../src/shared/values';
 
 interface CodeGraphyPluginPackageJson {
   name?: unknown;
@@ -69,8 +73,8 @@ export function writeAcceptanceInstalledPluginCache(
 function readAcceptanceInstalledPluginRecord(packageRoot: string): AcceptanceInstalledPluginRecord {
   const packageJsonPath = path.join(packageRoot, 'package.json');
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as CodeGraphyPluginPackageJson;
-  const packageName = readRequiredString(packageJson.name, `${packageJsonPath} name`);
-  const version = readRequiredString(packageJson.version, `${packageJsonPath} version`);
+  const packageName = readRequiredNonEmptyString(packageJson.name, `${packageJsonPath} name`);
+  const version = readRequiredNonEmptyString(packageJson.version, `${packageJsonPath} version`);
   const codegraphy = packageJson.codegraphy;
   const displayFields = readAcceptancePluginDisplayFields(packageRoot);
 
@@ -81,9 +85,9 @@ function readAcceptanceInstalledPluginRecord(packageRoot: string): AcceptanceIns
   const record: AcceptanceInstalledPluginRecord = {
     package: packageName,
     version,
-    apiVersion: readRequiredString(codegraphy.apiVersion, `${packageJsonPath} codegraphy.apiVersion`),
+    apiVersion: readRequiredNonEmptyString(codegraphy.apiVersion, `${packageJsonPath} codegraphy.apiVersion`),
     packageRoot,
-    disclosures: readStringArray(codegraphy.disclosures),
+    disclosures: looseStringArraySchema.parse(codegraphy.disclosures),
     ...displayFields,
   };
 
@@ -102,13 +106,13 @@ function readAcceptancePluginDisplayFields(
   const descriptor = JSON.parse(
     fs.readFileSync(descriptorPath, 'utf-8'),
   ) as CodeGraphyPluginDescriptor;
-  const pluginId = readOptionalString(descriptor.id);
+  const pluginId = readOptionalNonEmptyString(descriptor.id);
   if (!pluginId) {
     throw new Error(`Acceptance plugin package is missing codegraphy.json id: ${packageRoot}`);
   }
 
-  const pluginName = readOptionalString(descriptor.name);
-  const supportedExtensions = readStringArray(descriptor.supportedExtensions);
+  const pluginName = readOptionalNonEmptyString(descriptor.name);
+  const supportedExtensions = looseStringArraySchema.parse(descriptor.supportedExtensions);
   return {
     pluginId,
     ...(pluginName ? { pluginName } : {}),
@@ -116,21 +120,17 @@ function readAcceptancePluginDisplayFields(
   };
 }
 
-function readRequiredString(value: unknown, label: string): string {
-  if (typeof value !== 'string' || value.length === 0) {
+function readRequiredNonEmptyString(value: unknown, label: string): string {
+  const parsed = nonEmptyStringSchema.safeParse(value);
+  if (!parsed.success) {
     throw new Error(`Expected ${label} to be a non-empty string`);
   }
 
-  return value;
+  return parsed.data;
 }
 
-function readOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
-}
-
-function readStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === 'string')
-    : [];
+function readOptionalNonEmptyString(value: unknown): string | undefined {
+  const parsed = nonEmptyStringSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
 
