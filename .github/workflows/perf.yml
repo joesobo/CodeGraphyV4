@@ -1,0 +1,106 @@
+name: Performance
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perf-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CODEGRAPHY_PERF_RUNNER_CLASS: linux-x64
+  CODEGRAPHY_VSCODE_TEST_VERSION: 1.128.0
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      configurations: ${{ steps.matrix.outputs.configurations }}
+
+    steps:
+      - name: Select performance configurations
+        id: matrix
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false},{"fixture":"large","variant":"default","symbols":false},{"fixture":"huge","variant":"default","symbols":false},{"fixture":"giant","variant":"default","symbols":false},{"fixture":"giant","variant":"symbols","symbols":true},{"fixture":"self","variant":"default","symbols":false}]'
+          else
+            configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false}]'
+          fi
+          echo "configurations=${configurations}" >> "${GITHUB_OUTPUT}"
+
+  benchmark:
+    name: Performance / ${{ matrix.fixture }} / ${{ matrix.variant }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.configurations) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.8
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore VS Code test host
+        uses: actions/cache@v5
+        with:
+          path: .vscode-test
+          key: ${{ runner.os }}-${{ runner.arch }}-vscode-${{ env.CODEGRAPHY_VSCODE_TEST_VERSION }}
+
+      - name: Clear prior fixture reports
+        env:
+          PERF_FIXTURE: ${{ matrix.fixture }}
+        run: |
+          mkdir -p perf/results
+          find perf/results -maxdepth 1 -type f -name "${PERF_FIXTURE}*.json" -delete
+
+      - name: Run three performance samples
+        env:
+          PERF_FIXTURE: ${{ matrix.fixture }}
+          PERF_SYMBOLS: ${{ matrix.symbols }}
+        run: |
+          budget_arguments=()
+          symbol_arguments=()
+          if [[ ! -f "perf/baselines/${CODEGRAPHY_PERF_RUNNER_CLASS}.json" ]]; then
+            budget_arguments+=(--no-budget)
+          fi
+          if [[ "${PERF_SYMBOLS}" == "true" ]]; then
+            symbol_arguments+=(--symbols)
+          fi
+          xvfb-run --auto-servernum pnpm perf -- \
+            --fixture "${PERF_FIXTURE}" \
+            --runs 3 \
+            "${symbol_arguments[@]}" \
+            "${budget_arguments[@]}"
+
+      - name: Upload deterministic performance reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: perf-linux-x64-${{ matrix.fixture }}-${{ matrix.variant }}
+          path: perf/results/${{ matrix.fixture }}*.json
+          if-no-files-found: error
+          retention-days: 30
