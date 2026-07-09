@@ -223,7 +223,7 @@ This keeps the extension unaware of plugin handling while still letting the core
 - Labels are expensive at giant scale. Use Obsidian-like text fade threshold, label culling, and possibly a Canvas2D or SDF overlay instead of full labels for every node.
 - Picking can be CPU spatial-index based or GPU color-picking based. CPU spatial index is likely simpler and avoids GPU readback stalls.
 - Plugin compatibility needs a migration story from raw Canvas callbacks to declarative render descriptors.
-- 3D mode should probably remain separate or legacy while the WebGPU effort focuses on the 2D graph.
+- 3D mode: decided — remove `react-force-graph-3d` entirely rather than maintaining it as legacy. The WebGPU effort targets a single 2D renderer.
 
 ## Bottom Line
 

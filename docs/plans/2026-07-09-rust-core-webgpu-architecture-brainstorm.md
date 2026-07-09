@@ -174,10 +174,12 @@ process:
   where the files are, rendering happens where the GPU is. The graph payload
   crosses the remote channel, which strengthens the case for compact binary
   projections and diffs.
-- vscode.dev / github.dev: there is no process spawn at all. Options are a
-  wasm build of the core running in a web worker (Tree-sitter and SQLite both
-  have wasm stories), or simply declaring web unsupported initially. Decide
-  deliberately; do not discover this later.
+- vscode.dev / github.dev (VS Code in a browser): there is no process spawn at
+  all, so a native binary cannot run. Decision: browser-hosted VS Code is
+  unsupported. The extension should detect the web environment and show a
+  clear "CodeGraphy requires desktop VS Code" message rather than failing
+  silently. (Remote SSH/WSL/containers remain supported — those have a real
+  machine to run the binary on.)
 - Platform matrix: macOS arm64/x64, Windows x64/arm64, Linux gnu/musl
   x64/arm64. Biome and esbuild both ship platform-specific packages;
   platform-specific VSIXes are the VS Code equivalent.

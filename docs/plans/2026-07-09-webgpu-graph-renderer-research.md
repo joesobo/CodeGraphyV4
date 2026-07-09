@@ -514,7 +514,7 @@ renderer first so wins are provable:
 
 - Baseline: measure react-force-graph FPS and interaction latency at 1k / 10k
   / 50k nodes on the current stack (the screenshot harness can host this).
-- Suggested targets: 60fps pan/zoom at 100k nodes / 300k edges; < 16ms
+- Committed targets: 60fps pan/zoom at 100k nodes / 300k edges; < 16ms
   hit-test; < 100ms full projection swap at 100k nodes; force-control changes
   reflected next frame.
 - Platform matrix: macOS (Metal), Windows (D3D12), Linux (Vulkan — Electron
@@ -591,9 +591,10 @@ Rust core computes compact graph projection/diffs
 
 ## Open Questions With Leanings
 
-- Should 3D remain `react-force-graph-3d` while 2D goes custom WebGPU?
-  Leaning: yes. 3D is already WebGL via Three.js and is not the performance
-  pain point. Freezing 3D as legacy keeps the WebGPU scope honest.
+- 3D mode: decided — remove it. It is a gimmick relative to the 2D graph's
+  navigation value, and dropping `react-force-graph-3d`/Three.js removes a
+  large dependency, shrinks the webview bundle, and keeps the WebGPU effort
+  focused on a single renderer.
 - Should layout be d3-compatible at first or should we jump to a new force
   model? Leaning: keep the current d3 simulation verbatim behind the layout
   interface for step 1, so renderer changes can be validated against pixel-
@@ -606,9 +607,9 @@ Rust core computes compact graph projection/diffs
 - Persistent layout coordinates: SQLite table in the core cache keyed by stable
   node id. Note the hard sub-problem is node identity across renames/moves —
   positions keyed by path evaporate on refactors.
-- Target scale: recommend committing to a concrete tier — smooth at 100k
-  nodes / 300k edges, usable at 500k edges — because buffer formats, picking,
-  and LOD strategy all change shape depending on this answer.
+- Target scale: decided — smooth (60fps pan/zoom/drag) at 100k nodes / 300k
+  edges; usable (interactive, degraded decoration) at 500k edges. Buffer
+  formats, picking, and LOD strategy should be designed against this tier.
 - Dense graph mode hiding order: particles first (pure decoration, per-frame
   cost), then icons, then labels (keep zoom-gated labels for hovered/selected
   neighborhoods), then arrows, then low-importance edges by weight.
