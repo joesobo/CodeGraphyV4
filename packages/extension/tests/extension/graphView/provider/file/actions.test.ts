@@ -55,12 +55,10 @@ describe('graphView/provider/file/actions', () => {
       showWarningMessage: vi.fn(),
       showInputBox: vi.fn(),
       showErrorMessage: vi.fn(),
-      createDeleteAction: vi.fn(() => createUndoableAction()),
-      createRenameAction: vi.fn(() => createUndoableAction()),
-      createCreateAction: vi.fn(() => createUndoableAction()),
       createCreateFolderAction: vi.fn(() => createUndoableAction()),
       createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
+      executeWorkspaceFileMutation: vi.fn(async () => undefined),
     });
 
     await methods._openFile('src/app.ts', { preview: true, preserveFocus: false });
@@ -78,83 +76,6 @@ describe('graphView/provider/file/actions', () => {
     );
     expect(revealFile).toHaveBeenCalledWith('src/app.ts');
     expect(copyText).toHaveBeenCalledWith('hello');
-  });
-
-  it('creates undoable file actions for delete, rename, and create operations', async () => {
-    const executeUndoAction = vi.fn(async () => undefined);
-    const createDeleteAction = vi.fn(() => createUndoableAction({ type: 'delete' }));
-    const createRenameAction = vi.fn(() => createUndoableAction({ type: 'rename' }));
-    const createCreateAction = vi.fn(() => createUndoableAction({ type: 'create' }));
-    const createCreateFolderAction = vi.fn(() => createUndoableAction({ type: 'create-folder' }));
-    const deleteFiles = vi.fn(async (_paths, handlers) => {
-      await handlers.executeDeleteAction(['src/app.ts'], { fsPath: '/workspace' });
-    });
-    const renameFile = vi.fn(async (_filePath, handlers) => {
-      await handlers.executeRenameAction('src/app.ts', 'src/main.ts', { fsPath: '/workspace' });
-    });
-    const createFile = vi.fn(async (_directory, handlers) => {
-      await handlers.executeCreateAction('src/new.ts', { fsPath: '/workspace' });
-    });
-    const createFolder = vi.fn(async (_directory, handlers) => {
-      await handlers.executeCreateFolderAction('src/components', { fsPath: '/workspace' });
-    });
-    const source = {
-      _analyzeAndSendData: vi.fn(async () => undefined),
-      _sendFavorites: vi.fn(),
-      _setFocusedFile: vi.fn(),
-    };
-    const methods = createGraphViewProviderFileActionMethods(source as never, {
-      openFile: vi.fn(async () => undefined),
-      revealFile: vi.fn(async () => undefined),
-      copyText: vi.fn(async () => undefined),
-      deleteFiles,
-      renameFile,
-      createFile,
-      createFolder,
-      toggleFavorites: vi.fn(async () => undefined),
-      getWorkspaceFolder: vi.fn(() => ({
-        uri: { fsPath: '/workspace' },
-        name: 'workspace',
-        index: 0,
-      } as never)),
-      showWarningMessage: vi.fn(),
-      showInputBox: vi.fn(),
-      showErrorMessage: vi.fn(),
-      createDeleteAction,
-      createRenameAction,
-      createCreateAction,
-      createCreateFolderAction,
-      createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
-      executeUndoAction,
-    });
-
-    await methods._deleteFiles(['src/app.ts']);
-    await methods._renameFile('src/app.ts');
-    await methods._createFile('src');
-    await methods._createFolder('src');
-
-    expect(createDeleteAction).toHaveBeenCalledWith(
-      ['src/app.ts'],
-      { fsPath: '/workspace' },
-      expect.any(Function),
-    );
-    expect(createRenameAction).toHaveBeenCalledWith(
-      'src/app.ts',
-      'src/main.ts',
-      { fsPath: '/workspace' },
-      expect.any(Function),
-    );
-    expect(createCreateAction).toHaveBeenCalledWith(
-      'src/new.ts',
-      { fsPath: '/workspace' },
-      expect.any(Function),
-    );
-    expect(createCreateFolderAction).toHaveBeenCalledWith(
-      'src/components',
-      { fsPath: '/workspace' },
-      expect.any(Function),
-    );
-    expect(executeUndoAction).toHaveBeenCalledTimes(4);
   });
 
   it('creates undoable favorite toggles that send the explicit post-action favorites', async () => {
@@ -184,12 +105,10 @@ describe('graphView/provider/file/actions', () => {
       showWarningMessage: vi.fn(),
       showInputBox: vi.fn(),
       showErrorMessage: vi.fn(),
-      createDeleteAction: vi.fn(() => createUndoableAction()),
-      createRenameAction: vi.fn(() => createUndoableAction()),
-      createCreateAction: vi.fn(() => createUndoableAction()),
       createCreateFolderAction: vi.fn(() => createUndoableAction()),
       createToggleFavoriteAction,
       executeUndoAction,
+      executeWorkspaceFileMutation: vi.fn(async () => undefined),
     });
 
     await methods._toggleFavorites(['src/app.ts']);

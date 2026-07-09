@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
-import { CreateFileAction } from '../../../actions/createFile';
 import { CreateFolderAction } from '../../../actions/createFolder';
-import { DeleteFilesAction } from '../../../actions/deleteFiles';
-import { RenameFileAction } from '../../../actions/renameFile';
 import { ToggleFavoriteAction } from '../../../actions/toggleFavorite';
 import { createGraphViewFile, createGraphViewFolder, deleteGraphViewFiles } from '../../files/actions';
 import { renameGraphViewFile } from '../../files/rename';
@@ -15,6 +12,7 @@ import {
   revealGraphViewProviderFileInExplorer,
   type GraphViewProviderFileNavigationSource,
 } from './navigation';
+import { executeWorkspaceFileMutation } from './mutations';
 
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
 
@@ -62,22 +60,6 @@ export interface GraphViewProviderFileActionMethodDependencies {
   ): Thenable<'Delete' | undefined>;
   showInputBox: typeof vscode.window.showInputBox;
   showErrorMessage(message: string): void;
-  createDeleteAction(
-    paths: string[],
-    workspaceFolderUri: vscode.Uri,
-    analyzeAndSendData: () => Promise<void>,
-  ): IUndoableAction;
-  createRenameAction(
-    oldPath: string,
-    newPath: string,
-    workspaceFolderUri: vscode.Uri,
-    analyzeAndSendData: () => Promise<void>,
-  ): IUndoableAction;
-  createCreateAction(
-    filePath: string,
-    workspaceFolderUri: vscode.Uri,
-    analyzeAndSendData: () => Promise<void>,
-  ): IUndoableAction;
   createCreateFolderAction(
     folderPath: string,
     workspaceFolderUri: vscode.Uri,
@@ -85,6 +67,7 @@ export interface GraphViewProviderFileActionMethodDependencies {
   ): IUndoableAction;
   createToggleFavoriteAction(paths: string[], sendFavorites: (favorites: string[]) => void): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
+  executeWorkspaceFileMutation: typeof executeWorkspaceFileMutation;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
@@ -110,17 +93,12 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
   showErrorMessage: message => {
     vscode.window.showErrorMessage(message);
   },
-  createDeleteAction: (paths, workspaceFolderUri, analyzeAndSendData) =>
-    new DeleteFilesAction(paths, workspaceFolderUri, analyzeAndSendData),
-  createRenameAction: (oldPath, newPath, workspaceFolderUri, analyzeAndSendData) =>
-    new RenameFileAction(oldPath, newPath, workspaceFolderUri, analyzeAndSendData),
-  createCreateAction: (filePath, workspaceFolderUri, analyzeAndSendData) =>
-    new CreateFileAction(filePath, workspaceFolderUri, analyzeAndSendData),
   createCreateFolderAction: (folderPath, workspaceFolderUri, analyzeAndSendData) =>
     new CreateFolderAction(folderPath, workspaceFolderUri, analyzeAndSendData),
   createToggleFavoriteAction: (paths, sendFavorites) =>
     new ToggleFavoriteAction(paths, sendFavorites),
   executeUndoAction: action => getUndoManager().execute(action),
+  executeWorkspaceFileMutation,
 };
 
 export function createGraphViewProviderFileActionMethods(
@@ -155,12 +133,13 @@ export function createGraphViewProviderFileActionMethods(
           typeof deleteAction | undefined
         >,
       executeDeleteAction: async (nextPaths, workspaceFolderUri) => {
-        const action = dependencies.createDeleteAction(
-          nextPaths,
-          workspaceFolderUri,
-          () => source._analyzeAndSendData(),
+        await dependencies.executeWorkspaceFileMutation(
+          { kind: 'delete', paths: nextPaths },
+          {
+            workspaceFolderUri,
+            refreshGraph: () => source._analyzeAndSendData(),
+          },
         );
-        await dependencies.executeUndoAction(action);
       },
     });
   };
@@ -170,13 +149,13 @@ export function createGraphViewProviderFileActionMethods(
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeRenameAction: async (oldPath, newPath, workspaceFolderUri) => {
-        const action = dependencies.createRenameAction(
-          oldPath,
-          newPath,
-          workspaceFolderUri,
-          () => source._analyzeAndSendData(),
+        await dependencies.executeWorkspaceFileMutation(
+          { kind: 'rename', oldPath, newPath },
+          {
+            workspaceFolderUri,
+            refreshGraph: () => source._analyzeAndSendData(),
+          },
         );
-        await dependencies.executeUndoAction(action);
       },
       showErrorMessage: message => {
         dependencies.showErrorMessage(message);
@@ -189,12 +168,13 @@ export function createGraphViewProviderFileActionMethods(
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeCreateAction: async (filePath, workspaceFolderUri) => {
-        const action = dependencies.createCreateAction(
-          filePath,
-          workspaceFolderUri,
-          () => source._analyzeAndSendData(),
+        await dependencies.executeWorkspaceFileMutation(
+          { kind: 'create', filePath },
+          {
+            workspaceFolderUri,
+            refreshGraph: () => source._analyzeAndSendData(),
+          },
         );
-        await dependencies.executeUndoAction(action);
       },
       showErrorMessage: message => {
         dependencies.showErrorMessage(message);

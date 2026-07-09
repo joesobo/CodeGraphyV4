@@ -216,4 +216,83 @@ describe('performance open scenarios', () => {
       scenario: 'warm-open',
     });
   });
+
+  it('aggregates high-volume Core metrics in an open result', async () => {
+    const runtime = createRuntime();
+    runtime.startMetricSession = vi.fn(() => {
+      runtime.emitMetric({
+        runId: 'run-aggregate',
+        scenario: 'cold-open',
+        metric: 'treeSitterParseMs',
+        unit: 'ms',
+        value: 2,
+        dimension: 'typescript',
+      });
+      runtime.emitMetric({
+        runId: 'run-foreign',
+        scenario: 'cold-open',
+        metric: 'treeSitterParseMs',
+        unit: 'ms',
+        value: 100,
+        dimension: 'typescript',
+      });
+      runtime.emitMetric({
+        runId: 'run-aggregate',
+        scenario: 'cold-open',
+        metric: 'graphBuildMs',
+        unit: 'ms',
+        value: 11,
+        dimension: 'workspace-pipeline-analysis',
+      });
+      runtime.emitMetric({
+        runId: 'run-aggregate',
+        scenario: 'cold-open',
+        metric: 'cacheBytes',
+        unit: 'bytes',
+        value: 4_096,
+      });
+      runtime.emitMetric({
+        runId: 'run-aggregate',
+        scenario: 'cold-open',
+        metric: 'cacheSaveMs',
+        unit: 'ms',
+        value: 4,
+      });
+      runtime.emitMetric({
+        runId: 'run-aggregate',
+        scenario: 'cold-open',
+        metric: 'treeSitterParseMs',
+        unit: 'ms',
+        value: 5,
+        dimension: 'typescript',
+      });
+      return { dispose: vi.fn() };
+    });
+
+    await expect(runPerfScenario({
+      runId: 'run-aggregate',
+      scenario: 'cold-open',
+      startedAt: 5,
+    }, runtime)).resolves.toEqual({
+      runId: 'run-aggregate',
+      scenario: 'cold-open',
+      metrics: [
+        { metric: 'coldOpenMs', unit: 'ms', value: 20 },
+        { metric: 'cacheSaveMs', unit: 'ms', value: 4 },
+        { metric: 'cacheBytes', unit: 'bytes', value: 4_096 },
+        {
+          metric: 'treeSitterParseMs',
+          unit: 'ms',
+          value: 7,
+          dimension: 'typescript',
+        },
+        {
+          metric: 'graphBuildMs',
+          unit: 'ms',
+          value: 11,
+          dimension: 'workspace-pipeline-analysis',
+        },
+      ],
+    });
+  });
 });

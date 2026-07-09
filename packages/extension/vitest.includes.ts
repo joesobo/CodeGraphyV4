@@ -31,6 +31,7 @@ export const extensionWebviewAppAndPluginTestIncludes = [
   'packages/extension/tests/webview/pluginHost/**/*.test.{ts,tsx}',
   'packages/extension/tests/webview/pluginRuntime/**/*.test.{ts,tsx}',
   'packages/extension/tests/webview/plugins/**/*.test.{ts,tsx}',
+  'packages/extension/tests/webview/perf/**/*.test.{ts,tsx}',
   'packages/extension/tests/webview/store/**/*.test.ts',
   'packages/extension/tests/webview/theme/**/*.test.ts',
   'packages/extension/tests/webview/three/**/*.test.ts',

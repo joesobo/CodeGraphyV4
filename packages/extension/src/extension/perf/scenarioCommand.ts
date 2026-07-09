@@ -10,6 +10,10 @@ import {
 import * as vscode from 'vscode';
 import { z } from 'zod';
 import type { GraphViewProvider } from '../graphViewProvider';
+import {
+  createPerfMetricAggregation,
+  type PerfScenarioMetric,
+} from './aggregation';
 
 export const PERF_SCENARIO_COMMAND_ID = 'codegraphy.perf.runScenario';
 const bootstrapTimeoutMs = 180_000;
@@ -22,14 +26,6 @@ const perfScenarioRequestSchema = z.strictObject({
 });
 
 export type PerfScenarioRequest = z.infer<typeof perfScenarioRequestSchema>;
-
-export interface PerfScenarioMetric {
-  dimension?: string;
-  metric: PerfMetricContext['metric'];
-  operationId?: string;
-  unit: PerfMetricContext['unit'];
-  value: number;
-}
 
 export interface PerfScenarioResult {
   runId: string;
@@ -123,19 +119,8 @@ export async function runPerfScenario(
   runtime: PerfScenarioRuntime,
 ): Promise<PerfScenarioResult> {
   const parsedRequest = perfScenarioRequestSchema.parse(request);
-  const metrics: PerfScenarioMetric[] = [];
-  const metricSubscription = runtime.onMetric((event) => {
-    if (event.context.runId !== parsedRequest.runId) {
-      return;
-    }
-    metrics.push({
-      metric: event.context.metric,
-      unit: event.context.unit,
-      value: event.context.value,
-      ...(event.context.dimension ? { dimension: event.context.dimension } : {}),
-      ...(event.context.operationId ? { operationId: event.context.operationId } : {}),
-    });
-  });
+  const metricAggregation = createPerfMetricAggregation({ runId: parsedRequest.runId });
+  const metricSubscription = runtime.onMetric(event => metricAggregation.collect(event));
   const metricSession = runtime.startMetricSession({
     runId: parsedRequest.runId,
     scenario: parsedRequest.scenario,
@@ -197,7 +182,7 @@ export async function runPerfScenario(
     return {
       runId: parsedRequest.runId,
       scenario: parsedRequest.scenario,
-      metrics,
+      metrics: metricAggregation.metrics(),
     };
   } finally {
     metricSession.dispose();
