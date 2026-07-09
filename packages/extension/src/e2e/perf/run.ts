@@ -2,13 +2,17 @@ import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import * as vscode from 'vscode';
+import {
+  perfScenarioSchema,
+  type PerfScenario,
+} from '../../shared/perf/protocol';
 
 const extensionId = 'codegraphy.codegraphy';
 const scenarioCommandId = 'codegraphy.perf.runScenario';
 
 interface PerfScenarioResult {
   runId: string;
-  scenario: 'cold-open' | 'warm-open';
+  scenario: PerfScenario;
   metrics: Array<{
     dimension?: string;
     metric:
@@ -26,7 +30,12 @@ interface PerfScenarioResult {
       | 'scopeToggleMs'
       | 'settleTimeMs'
       | 'idleCpuPct'
-      | 'simTicksAfterSettle';
+      | 'simTicksAfterSettle'
+      | 'fpsIdle'
+      | 'fpsDrag'
+      | 'fpsSettle'
+      | 'longTasksPerInteraction'
+      | 'heapUsedBytes';
     operationId?: string;
     unit: 'ms' | 'bytes' | 'count' | 'fps' | 'percent';
     value: number;
@@ -61,10 +70,13 @@ export async function run(): Promise<void> {
   const fixture = requireEnvironmentVariable('CODEGRAPHY_PERF_FIXTURE');
   const resultPath = requireEnvironmentVariable('CODEGRAPHY_PERF_RESULT_PATH');
   const runId = requireEnvironmentVariable('CODEGRAPHY_PERF_RUN_ID');
-  const scenario = requireEnvironmentVariable('CODEGRAPHY_PERF_SCENARIO');
-  if (scenario !== 'cold-open' && scenario !== 'warm-open') {
-    throw new Error(`Unsupported open performance scenario: ${scenario}`);
+  const idleCpuReadyPath = process.env.CODEGRAPHY_PERF_IDLE_READY_PATH;
+  const scenarioValue = requireEnvironmentVariable('CODEGRAPHY_PERF_SCENARIO');
+  const parsedScenario = perfScenarioSchema.safeParse(scenarioValue);
+  if (!parsedScenario.success) {
+    throw new Error(`Unsupported performance scenario: ${scenarioValue}`);
   }
+  const scenario = parsedScenario.data;
   const extension = vscode.extensions.getExtension(extensionId);
   if (!extension) {
     throw new Error(`CodeGraphy extension ${extensionId} is not available`);
@@ -73,7 +85,13 @@ export async function run(): Promise<void> {
   await extension.activate();
   const scenarioResult = await vscode.commands.executeCommand<PerfScenarioResult>(
     scenarioCommandId,
-    { runId, scenario, startedAt },
+    {
+      runId,
+      scenario,
+      dimension: fixture,
+      startedAt,
+      ...(idleCpuReadyPath ? { idleCpuReadyPath } : {}),
+    },
   );
   if (!scenarioResult) {
     throw new Error(`Performance command ${scenarioCommandId} returned no result`);

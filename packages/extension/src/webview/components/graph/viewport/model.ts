@@ -35,6 +35,7 @@ export interface GraphViewportModelOptions {
   graphViewContributions?: CoreGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
+  onEngineTick?: (this: void) => void;
   appearance?: GraphAppearance;
   theme?: ThemeKind;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
@@ -57,6 +58,7 @@ export function useGraphViewportModel({
   graphViewContributions,
   interactions,
   handleEngineStop,
+  onEngineTick,
   appearance,
   viewportRuntime,
   viewState,
@@ -69,12 +71,14 @@ export function useGraphViewportModel({
       graphData: graphState.graphData,
       handleEngineStop,
       interactions,
+      onEngineTick,
       timelineActive: viewState.timelineActive,
     })),
     [
       graphState.graphData,
       handleEngineStop,
       interactions,
+      onEngineTick,
       viewportRuntime.containerSize,
       viewState.dagMode,
       viewState.physicsSettings.damping,

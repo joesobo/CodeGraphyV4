@@ -9,4 +9,32 @@ describe('graph/runtime/use/interaction engine stop', () => {
 
     expect(sendMessage).toHaveBeenCalledWith({ type: 'PHYSICS_STABILIZED' });
   });
+
+  it('publishes correlated performance settle events before the generic message', () => {
+    const calls: string[] = [];
+    const sendMessage = vi.fn(() => calls.push('generic'));
+    const perfLifecycle = {
+      engineStopped: vi.fn(() => {
+        calls.push('correlated');
+        return true;
+      }),
+    };
+
+    postPhysicsStabilized(sendMessage, perfLifecycle);
+
+    expect(calls).toEqual(['correlated', 'generic']);
+  });
+
+  it('notifies scripted scenarios of settle before the generic message', () => {
+    const calls: string[] = [];
+    const sendMessage = vi.fn(() => calls.push('generic'));
+    const perfLifecycle = { engineStopped: vi.fn(() => false) };
+    const perfControl = {
+      engineStopped: vi.fn(() => calls.push('scenario')),
+    };
+
+    postPhysicsStabilized(sendMessage, perfLifecycle, perfControl);
+
+    expect(calls).toEqual(['scenario', 'generic']);
+  });
 });

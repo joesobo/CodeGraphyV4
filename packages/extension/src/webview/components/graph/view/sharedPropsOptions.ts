@@ -10,6 +10,7 @@ export function buildGraphSharedPropsOptions({
   graphData,
   handleEngineStop,
   interactions,
+  onEngineTick,
   timelineActive,
 }: {
   containerSize: { width: number; height: number };
@@ -18,6 +19,7 @@ export function buildGraphSharedPropsOptions({
   graphData: GraphRuntime['renderer']['graphData'];
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
+  onEngineTick?: (this: void) => void;
   timelineActive: boolean;
 }): BuildSharedGraphPropsOptions {
   return {
@@ -28,6 +30,7 @@ export function buildGraphSharedPropsOptions({
     onBackgroundClick: interactions.interactionHandlers.handleBackgroundClick,
     onBackgroundRightClick: interactions.handleBackgroundRightClick,
     onEngineStop: handleEngineStop,
+    ...(onEngineTick ? { onEngineTick } : {}),
     onLinkClick: interactions.interactionHandlers.handleLinkClick,
     onLinkRightClick: interactions.handleLinkRightClick,
     onNodeClick: interactions.interactionHandlers.handleNodeClick,

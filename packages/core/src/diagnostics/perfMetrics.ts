@@ -29,6 +29,11 @@ export const perfMetricNameSchema = z.enum([
   'settleTimeMs',
   'idleCpuPct',
   'simTicksAfterSettle',
+  'fpsIdle',
+  'fpsDrag',
+  'fpsSettle',
+  'longTasksPerInteraction',
+  'heapUsedBytes',
 ]);
 
 export const perfMetricUnitSchema = z.enum([
@@ -59,6 +64,11 @@ const expectedUnitByMetric: Readonly<Record<PerfMetricName, PerfMetricUnit>> = {
   settleTimeMs: 'ms',
   idleCpuPct: 'percent',
   simTicksAfterSettle: 'count',
+  fpsIdle: 'fps',
+  fpsDrag: 'fps',
+  fpsSettle: 'fps',
+  longTasksPerInteraction: 'count',
+  heapUsedBytes: 'bytes',
 };
 
 export const perfMetricContextSchema = z.strictObject({
@@ -105,10 +115,14 @@ export interface PerfMetricSubscription {
 }
 
 const perfMetricListeners = new Set<PerfMetricListener>();
-let activePerfMetricSession: {
+interface PerfMetricSessionState {
   context: PerfMetricSessionContext;
+  disposed: boolean;
   identity: object;
-} | undefined;
+  previous: PerfMetricSessionState | undefined;
+}
+
+let activePerfMetricSession: PerfMetricSessionState | undefined;
 
 export function emitPerfMetric(
   context: PerfMetricContext,
@@ -144,13 +158,25 @@ export function startPerfMetricSession(
   context: PerfMetricSessionContext,
 ): PerfMetricSubscription {
   const identity = {};
-  activePerfMetricSession = { context, identity };
+  const session: PerfMetricSessionState = {
+    context,
+    disposed: false,
+    identity,
+    previous: activePerfMetricSession,
+  };
+  activePerfMetricSession = session;
 
   return {
     dispose(): void {
-      if (activePerfMetricSession?.identity === identity) {
-        activePerfMetricSession = undefined;
+      if (session.disposed) return;
+      session.disposed = true;
+      if (activePerfMetricSession?.identity !== identity) return;
+
+      let previous = session.previous;
+      while (previous?.disposed) {
+        previous = previous.previous;
       }
+      activePerfMetricSession = previous;
     },
   };
 }

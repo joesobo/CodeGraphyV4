@@ -18,6 +18,8 @@ export interface ExtensionPerfBridge {
   disarmGraph(): boolean;
   handleMessage(message: unknown): boolean;
   isArmed(): boolean;
+  runIdleWatch(durationMs?: number): boolean;
+  runInteractionBurst(): boolean;
 }
 
 function belongsToOperation(event: PerfEventPayload, operation: PerfOperation): boolean {
@@ -91,6 +93,40 @@ export function createExtensionPerfBridge(
 
     isArmed(): boolean {
       return options.enabled && armedOperation !== undefined;
+    },
+
+    runIdleWatch(durationMs): boolean {
+      if (!options.enabled || !armedOperation) {
+        return false;
+      }
+      const message = perfControlMessageSchema.safeParse({
+        type: 'PERF_CONTROL',
+        payload: {
+          kind: 'run-idle-watch',
+          operationId: armedOperation.operationId,
+          ...(durationMs === undefined ? {} : { durationMs }),
+        },
+      });
+      if (!message.success) {
+        return false;
+      }
+      options.sendControl(message.data);
+      return true;
+    },
+
+    runInteractionBurst(): boolean {
+      if (!options.enabled || !armedOperation) {
+        return false;
+      }
+      const message = perfControlMessageSchema.parse({
+        type: 'PERF_CONTROL',
+        payload: {
+          kind: 'run-interaction-burst',
+          operationId: armedOperation.operationId,
+        },
+      });
+      options.sendControl(message);
+      return true;
     },
   };
 }

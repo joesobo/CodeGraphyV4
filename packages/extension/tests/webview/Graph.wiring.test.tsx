@@ -13,6 +13,8 @@ const harness = vi.hoisted(() => ({
 	useGraphCallbacks: vi.fn(),
 	useGraphDebugApi: vi.fn(),
 	useGraphInteractionRuntime: vi.fn(),
+	useGraphPerfCommit: vi.fn(),
+	useGraphPerfScenarios: vi.fn(),
 	useGraphRuntime: vi.fn(),
 }));
 
@@ -34,6 +36,14 @@ vi.mock('../../src/webview/components/graph/runtime/use/state', () => ({
 
 vi.mock('../../src/webview/components/graph/runtime/use/interaction', () => ({
 	useGraphInteractionRuntime: harness.useGraphInteractionRuntime,
+}));
+
+vi.mock('../../src/webview/perf/graph/commit', () => ({
+	useGraphPerfCommit: harness.useGraphPerfCommit,
+}));
+
+vi.mock('../../src/webview/perf/graph/useScenarios', () => ({
+	useGraphPerfScenarios: harness.useGraphPerfScenarios,
 }));
 
 vi.mock('../../src/webview/components/graph/rendering/useGraphCallbacks', () => ({
@@ -130,6 +140,8 @@ function createInteractionRuntime() {
 		handleContextMenu: vi.fn(),
 		handleEngineStop: vi.fn(),
 		handleLinkRightClick: vi.fn(),
+		handleNodeDrag: vi.fn(),
+		handleNodeDragEnd: vi.fn(),
 		handleMenuAction: vi.fn(),
 		handleMouseDownCapture: vi.fn(),
 		handleMouseLeave: vi.fn(),
@@ -142,6 +154,7 @@ function createInteractionRuntime() {
 			handleBackgroundClick: vi.fn(),
 			handleLinkClick: vi.fn(),
 			handleNodeClick: vi.fn(),
+			zoomGraphView: vi.fn(),
 		},
 		setTooltipData: vi.fn(),
 		tooltipData: {
@@ -221,6 +234,7 @@ describe('Graph wiring', () => {
 		harness.useGraphRuntime.mockImplementation(({ data }: { data: IGraphData }) => createGraphState(data));
 		harness.useGraphInteractionRuntime.mockReturnValue(createInteractionRuntime());
 		harness.useGraphCallbacks.mockReturnValue(createCallbacks());
+		harness.useGraphPerfScenarios.mockReturnValue(vi.fn());
 	});
 
 	afterEach(() => {
@@ -287,6 +301,24 @@ describe('Graph wiring', () => {
 				timelineActive: true,
 				}),
 			}));
+		expect(harness.useGraphPerfCommit).toHaveBeenCalledWith({
+			edgeCount: 1,
+			layoutKey: 'file-size::src/app.ts|src/lib.ts::src/app.ts->src/lib.ts',
+			nodeCount: 2,
+			revision: baseData,
+		});
+		expect(harness.useGraphPerfScenarios).toHaveBeenCalledWith(expect.objectContaining({
+			getContainer: expect.any(Function),
+			getGraph: expect.any(Function),
+			getNodes: expect.any(Function),
+			graphMode: '3d',
+			handleNodeDrag: expect.any(Function),
+			handleNodeDragEnd: expect.any(Function),
+			zoomGraphView: expect.any(Function),
+		}));
+		expect(harness.graphViewportShell.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+			onEngineTick: expect.any(Function),
+		}));
 	});
 
 	it('defaults the viewport shell theme to dark when no theme prop is provided', () => {

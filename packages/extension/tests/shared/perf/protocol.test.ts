@@ -37,6 +37,42 @@ describe('shared/perf/protocol', () => {
     expect(perfControlMessageSchema.parse(message)).toEqual(message);
   });
 
+  it('parses an explicitly correlated interaction burst control', () => {
+    const message = {
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-interaction-burst',
+        operationId: operation.operationId,
+      },
+    } as const;
+
+    expect(perfControlMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it('parses an explicitly correlated idle watch duration', () => {
+    const message = {
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-idle-watch',
+        operationId: operation.operationId,
+        durationMs: 60_000,
+      },
+    } as const;
+
+    expect(perfControlMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it('rejects a non-positive idle watch duration', () => {
+    expect(perfControlMessageSchema.safeParse({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-idle-watch',
+        operationId: operation.operationId,
+        durationMs: 0,
+      },
+    }).success).toBe(false);
+  });
+
   it('rejects an unknown field inside an operation', () => {
     expect(perfControlMessageSchema.safeParse({
       type: 'PERF_CONTROL',
@@ -98,6 +134,11 @@ describe('shared/perf/protocol', () => {
     ['scopeToggleMs', 'ms'],
     ['settleTimeMs', 'ms'],
     ['simTicksAfterSettle', 'count'],
+    ['fpsIdle', 'fps'],
+    ['fpsDrag', 'fps'],
+    ['fpsSettle', 'fps'],
+    ['longTasksPerInteraction', 'count'],
+    ['heapUsedBytes', 'bytes'],
   ] as const)('parses the %s metric with its required unit', (metric, unit) => {
     const message = {
       type: 'PERF_EVENT',

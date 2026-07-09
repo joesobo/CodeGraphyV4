@@ -20,6 +20,11 @@ const metricRank = {
   settleTimeMs: 12,
   idleCpuPct: 13,
   simTicksAfterSettle: 14,
+  fpsIdle: 15,
+  fpsDrag: 16,
+  fpsSettle: 17,
+  longTasksPerInteraction: 18,
+  heapUsedBytes: 19,
 } satisfies Readonly<Record<PerfMetricName, number>>;
 
 export interface PerfScenarioMetric {

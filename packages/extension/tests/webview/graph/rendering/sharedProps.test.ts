@@ -176,4 +176,15 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(handlers.onNodeHover).toHaveBeenNthCalledWith(2, null);
     expect(handlers.onEngineStop).toHaveBeenCalledOnce();
   });
+
+  it('installs engine tick measurement only when a callback is active', () => {
+    const onEngineTick = vi.fn();
+
+    const activeProps = buildSharedGraphProps(createOptions({ onEngineTick }));
+    const inactiveProps = buildSharedGraphProps(createOptions());
+    activeProps.onEngineTick?.();
+
+    expect(onEngineTick).toHaveBeenCalledOnce();
+    expect(inactiveProps.onEngineTick).toBeUndefined();
+  });
 });

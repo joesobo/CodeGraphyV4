@@ -1,9 +1,22 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { handleGraphDataUpdated } from '../../../../../src/webview/store/messageHandlers/graphDataMessage/payload';
 import { createState } from '../graph/fixture';
 
 describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
+  it('records received graph payload bytes through armed performance instrumentation', () => {
+    const payload = createGraphData();
+    const emitPayloadBytes = vi.fn();
+
+    handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      undefined,
+      emitPayloadBytes,
+    );
+
+    expect(emitPayloadBytes).toHaveBeenCalledWith(payload);
+  });
+
   it('maps graph payload updates without requiring current state context', () => {
     const payload = createGraphData();
 

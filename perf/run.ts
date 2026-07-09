@@ -6,10 +6,9 @@ import {
   type PerfSmokeResult,
 } from './runner/launch';
 import {
-  runPerfOpenPair,
-  type PerfOpenPairOptions,
-  type PerfOpenPairResult,
-} from './runner/openPair';
+  runPerfScenarioSuite,
+  type PerfScenarioSuiteOptions,
+} from './runner/scenarioSuite';
 
 const fixtureNames = ['small', 'medium', 'large', 'huge', 'giant'] as const;
 type GeneratedFixtureName = typeof fixtureNames[number];
@@ -25,7 +24,7 @@ export interface PerfCliOptions {
 interface PerfRunDependencies {
   launchSession(options: LaunchPerfSessionOptions): Promise<PerfSmokeResult>;
   repoRoot: string;
-  runOpenPair(options: PerfOpenPairOptions): Promise<PerfOpenPairResult>;
+  runScenarioSuite(options: PerfScenarioSuiteOptions): Promise<PerfSmokeResult[]>;
   vscodeVersion: string;
 }
 
@@ -100,7 +99,7 @@ export async function runPerf(
 
   for (let runNumber = 1; runNumber <= options.runs; runNumber += 1) {
     if (!options.smoke) {
-      const pair = await dependencies.runOpenPair({
+      const suite = await dependencies.runScenarioSuite({
         fixture: options.fixture,
         repoRoot: dependencies.repoRoot,
         resultDirectory: join(dependencies.repoRoot, 'perf', 'results'),
@@ -108,7 +107,7 @@ export async function runPerf(
         symbols: options.symbols,
         vscodeVersion: dependencies.vscodeVersion,
       });
-      results.push(pair.cold, pair.warm);
+      results.push(...suite);
       continue;
     }
 
@@ -132,7 +131,7 @@ async function main(): Promise<void> {
   const results = await runPerf(options, {
     launchSession: launchPerfSession,
     repoRoot,
-    runOpenPair: runPerfOpenPair,
+    runScenarioSuite: runPerfScenarioSuite,
     vscodeVersion: process.env.CODEGRAPHY_VSCODE_TEST_VERSION ?? '1.128.0',
   });
   process.stdout.write(`${JSON.stringify(results, null, 2)}\n`);

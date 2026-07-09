@@ -4,6 +4,7 @@ import { buildGraphSharedPropsOptions } from '../../../../src/webview/components
 describe('graph/sharedPropsOptions', () => {
   it('builds the shared graph props input from interaction handlers', () => {
     const handleEngineStop = vi.fn();
+    const onEngineTick = vi.fn();
     const interactions = {
       handleBackgroundRightClick: vi.fn(),
       handleLinkRightClick: vi.fn(),
@@ -25,6 +26,7 @@ describe('graph/sharedPropsOptions', () => {
         graphData: { links: [] as never, nodes: [] as never },
         handleEngineStop,
         interactions: interactions as never,
+        onEngineTick,
         timelineActive: true,
       }),
     ).toEqual({
@@ -35,6 +37,7 @@ describe('graph/sharedPropsOptions', () => {
       onBackgroundClick: interactions.interactionHandlers.handleBackgroundClick,
       onBackgroundRightClick: interactions.handleBackgroundRightClick,
       onEngineStop: handleEngineStop,
+      onEngineTick,
       onLinkClick: interactions.interactionHandlers.handleLinkClick,
       onLinkRightClick: interactions.handleLinkRightClick,
 			onNodeClick: interactions.interactionHandlers.handleNodeClick,

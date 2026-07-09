@@ -28,6 +28,13 @@ export class Position {
   ) {}
 }
 
+export class Range {
+  constructor(
+    public readonly start: Position,
+    public readonly end: Position,
+  ) {}
+}
+
 export const workspace = {
   getConfiguration: vi.fn(() => ({
     get: vi.fn(),

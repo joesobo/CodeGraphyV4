@@ -4,6 +4,7 @@ import { DepthViewControls } from '../../components/depthViewControls';
 import { EmptyState } from '../shell/states';
 import { getNoDataHint } from '../shell/messages';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import { useGraphPerfCommit } from '../../perf/graph/commit';
 
 type GraphComponentProps = React.ComponentProps<typeof Graph>;
 
@@ -34,7 +35,16 @@ export function GraphSurface({
   onAddFilterRequested,
   onAddLegendRequested,
 }: GraphSurfaceProps): React.ReactElement {
-  if (graphData.nodes.length === 0) {
+  const graphIsEmpty = graphData.nodes.length === 0;
+  useGraphPerfCommit({
+    edgeCount: 0,
+    enabled: graphIsEmpty,
+    layoutKey: undefined,
+    nodeCount: 0,
+    revision: graphData,
+  });
+
+  if (graphIsEmpty) {
     return (
       <EmptyState
         hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)}

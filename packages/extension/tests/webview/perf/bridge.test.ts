@@ -53,6 +53,41 @@ describe('webview/perf/bridge', () => {
     expect(bridge.isArmed()).toBe(true);
   });
 
+  it('rejects a scripted graph control before an operation is armed', () => {
+    const { bridge } = setup();
+
+    expect(bridge.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-interaction-burst',
+        operationId: operation.operationId,
+      },
+    })).toBe(false);
+  });
+
+  it('accepts a scripted graph control only for the armed operation', () => {
+    const { bridge } = setup();
+    bridge.handleControl(armMessage);
+
+    expect(bridge.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-idle-watch',
+        operationId: 'operation-stale',
+        durationMs: 1_000,
+      },
+    })).toBe(false);
+    expect(bridge.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-idle-watch',
+        operationId: operation.operationId,
+        durationMs: 1_000,
+      },
+    })).toBe(true);
+    expect(bridge.isArmed()).toBe(true);
+  });
+
   it('emits graph events with the armed operation context', () => {
     const { bridge, postMessage } = setup();
     bridge.handleControl(armMessage);
@@ -73,6 +108,32 @@ describe('webview/perf/bridge', () => {
         edgeCount: 75,
       },
     });
+  });
+
+  it('exposes the currently armed operation for correlated async work', () => {
+    const { bridge } = setup();
+    bridge.handleControl(armMessage);
+
+    expect(bridge.getArmedOperation()).toEqual(operation);
+  });
+
+  it('does not attribute stale async work to a replacement arm', () => {
+    const { bridge, postMessage } = setup();
+    bridge.handleControl(armMessage);
+    const capturedOperation = bridge.getArmedOperation();
+    if (!capturedOperation) {
+      throw new Error('Expected the graph operation to be armed');
+    }
+    bridge.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'arm-graph',
+        operation: { ...operation },
+      },
+    });
+
+    expect(bridge.emitFor(capturedOperation, { kind: 'physics-settled' })).toBe(false);
+    expect(postMessage).not.toHaveBeenCalled();
   });
 
   it('emits strict webview-origin metrics', () => {

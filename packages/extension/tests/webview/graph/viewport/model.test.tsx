@@ -161,6 +161,7 @@ describe('graph/viewport/model', () => {
 		const graphData = createGraphData();
 		const interactions = createInteractions();
 		const handleEngineStop = vi.fn();
+		const onEngineTick = vi.fn();
 		const viewState = createViewState();
 
 		const { result } = renderHook(() => useGraphViewportModel({
@@ -170,6 +171,7 @@ describe('graph/viewport/model', () => {
 			},
 			handleEngineStop,
 			interactions,
+			onEngineTick,
 			theme: 'light',
 			viewportRuntime: { containerSize: { width: 480, height: 320 } },
 			viewState,
@@ -182,6 +184,7 @@ describe('graph/viewport/model', () => {
 			graphData,
 			handleEngineStop,
 			interactions,
+			onEngineTick,
 			timelineActive: true,
 		}));
 		expect(harness.buildSharedGraphProps).toHaveBeenCalledWith(expect.objectContaining({

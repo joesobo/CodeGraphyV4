@@ -36,6 +36,7 @@ export interface GraphViewportShellProps {
   graphState: GraphRuntime;
   graphViewContributions?: CoreGraphViewContributionSet;
   handleEngineStop(this: void): void;
+  onEngineTick?: (this: void) => void;
   interactions: UseGraphInteractionRuntimeResult;
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
@@ -49,6 +50,7 @@ export function GraphViewportShell({
   graphState,
   graphViewContributions,
   handleEngineStop,
+  onEngineTick,
   interactions,
   pluginHost,
   theme,
@@ -95,6 +97,7 @@ export function GraphViewportShell({
     graphViewContributions,
     handleEngineStop,
     interactions,
+    onEngineTick,
     viewportRuntime,
     viewState,
   });

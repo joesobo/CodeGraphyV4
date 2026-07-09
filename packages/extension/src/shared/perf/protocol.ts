@@ -35,6 +35,15 @@ export const perfControlMessageSchema = z.strictObject({
       kind: z.literal('disarm-graph'),
       operationId: identifierSchema,
     }),
+    z.strictObject({
+      kind: z.literal('run-interaction-burst'),
+      operationId: identifierSchema,
+    }),
+    z.strictObject({
+      kind: z.literal('run-idle-watch'),
+      operationId: identifierSchema,
+      durationMs: z.number().finite().positive().optional(),
+    }),
   ]),
 });
 
@@ -84,6 +93,41 @@ const metricEventSchema = z.discriminatedUnion('metric', [
     metric: z.literal('simTicksAfterSettle'),
     value: nonnegativeFiniteNumberSchema,
     unit: z.literal('count'),
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
+    kind: z.literal('metric'),
+    metric: z.literal('fpsIdle'),
+    value: nonnegativeFiniteNumberSchema,
+    unit: z.literal('fps'),
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
+    kind: z.literal('metric'),
+    metric: z.literal('fpsDrag'),
+    value: nonnegativeFiniteNumberSchema,
+    unit: z.literal('fps'),
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
+    kind: z.literal('metric'),
+    metric: z.literal('fpsSettle'),
+    value: nonnegativeFiniteNumberSchema,
+    unit: z.literal('fps'),
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
+    kind: z.literal('metric'),
+    metric: z.literal('longTasksPerInteraction'),
+    value: nonnegativeFiniteNumberSchema,
+    unit: z.literal('count'),
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
+    kind: z.literal('metric'),
+    metric: z.literal('heapUsedBytes'),
+    value: nonnegativeFiniteNumberSchema,
+    unit: z.literal('bytes'),
   }),
 ]);
 

@@ -22,6 +22,7 @@ export interface GraphSurfaceSharedProps {
   onBackgroundClick(this: void, event?: MouseEvent): void;
   onBackgroundRightClick(this: void, event: MouseEvent): void;
   onEngineStop(this: void): void;
+  onEngineTick?(this: void): void;
   onLinkClick(this: void, link: LinkObject, event: MouseEvent): void;
   onLinkRightClick(this: void, link: LinkObject, event: MouseEvent): void;
   onNodeClick(this: void, node: NodeObject, event: MouseEvent): void;
@@ -40,6 +41,7 @@ export interface BuildSharedGraphPropsOptions {
   onBackgroundClick(this: void, event?: MouseEvent): void;
   onBackgroundRightClick(this: void, event: MouseEvent): void;
   onEngineStop(this: void): void;
+  onEngineTick?: (this: void) => void;
   onLinkClick(this: void, link: FGLink, event: MouseEvent): void;
   onLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
   onNodeClick(this: void, node: FGNode, event: MouseEvent): void;
@@ -80,6 +82,9 @@ export function buildSharedGraphProps(
     onBackgroundClick: (event) => options.onBackgroundClick(event),
     onBackgroundRightClick: (event) => options.onBackgroundRightClick(event),
     onEngineStop: () => options.onEngineStop(),
+    ...(options.onEngineTick
+      ? { onEngineTick: () => options.onEngineTick?.() }
+      : {}),
     d3VelocityDecay: options.damping,
     d3AlphaDecay: 0.0228,
     warmupTicks: 0,

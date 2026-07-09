@@ -9,9 +9,8 @@ import type {
   PerfSmokeResult,
 } from './runner/launch';
 import type {
-  PerfOpenPairOptions,
-  PerfOpenPairResult,
-} from './runner/openPair';
+  PerfScenarioSuiteOptions,
+} from './runner/scenarioSuite';
 
 describe('performance CLI', () => {
   it('defaults to one small full run', () => {
@@ -70,7 +69,7 @@ describe('performance CLI', () => {
     const results = await runPerf(options, {
       launchSession,
       repoRoot: '/repo',
-      runOpenPair: vi.fn(),
+      runScenarioSuite: vi.fn(),
       vscodeVersion: '1.128.0',
     });
 
@@ -81,26 +80,22 @@ describe('performance CLI', () => {
     ]);
   });
 
-  it('runs cold and warm opens in one environment for each full run', async () => {
-    const openResult = (runNumber: number): PerfOpenPairResult => ({
-      cold: {
-        schemaVersion: 1,
-        fixture: 'medium',
-        runId: `medium-${runNumber}-cold`,
-        scenario: 'cold-open',
-        metrics: [{ metric: 'coldOpenMs', unit: 'ms', value: 20 }],
-      },
-      warm: {
-        schemaVersion: 1,
-        fixture: 'medium',
-        runId: `medium-${runNumber}-warm`,
-        scenario: 'warm-open',
-        metrics: [{ metric: 'warmOpenMs', unit: 'ms', value: 10 }],
-      },
-    });
-    const runOpenPair = vi.fn(async (
-      options: PerfOpenPairOptions,
-    ): Promise<PerfOpenPairResult> => openResult(options.runNumber));
+  it('runs the scripted scenario suite in one environment for each full run', async () => {
+    const runScenarioSuite = vi.fn(async (
+      options: PerfScenarioSuiteOptions,
+    ): Promise<PerfSmokeResult[]> => ([{
+      schemaVersion: 1,
+      fixture: 'medium',
+      runId: `medium-${options.runNumber}-cold-open`,
+      scenario: 'cold-open',
+      metrics: [{ metric: 'coldOpenMs', unit: 'ms', value: 20 }],
+    }, {
+      schemaVersion: 1,
+      fixture: 'medium',
+      runId: `medium-${options.runNumber}-warm-open`,
+      scenario: 'warm-open',
+      metrics: [{ metric: 'warmOpenMs', unit: 'ms', value: 10 }],
+    }]));
 
     const results = await runPerf({
       fixture: 'medium',
@@ -111,7 +106,7 @@ describe('performance CLI', () => {
     }, {
       launchSession: vi.fn(),
       repoRoot: '/repo',
-      runOpenPair,
+      runScenarioSuite,
       vscodeVersion: '1.128.0',
     });
 
@@ -121,7 +116,7 @@ describe('performance CLI', () => {
       'cold-open',
       'warm-open',
     ]);
-    expect(runOpenPair.mock.calls.map(call => call[0])).toEqual([
+    expect(runScenarioSuite.mock.calls.map(call => call[0])).toEqual([
       expect.objectContaining({ runNumber: 1, resultDirectory: '/repo/perf/results' }),
       expect.objectContaining({ runNumber: 2, resultDirectory: '/repo/perf/results' }),
     ]);

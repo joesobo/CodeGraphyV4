@@ -1,7 +1,15 @@
 import React from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { GraphSurface } from '../../../../src/webview/app/graph/surface';
+
+const perfHarness = vi.hoisted(() => ({
+  useGraphPerfCommit: vi.fn(),
+}));
+
+vi.mock('../../../../src/webview/perf/graph/commit', () => ({
+  useGraphPerfCommit: perfHarness.useGraphPerfCommit,
+}));
 
 vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: ({ data }: { data: { nodes: Array<{ id: string }> } }) => (
@@ -14,6 +22,10 @@ vi.mock('../../../../src/webview/components/depthViewControls', () => ({
 }));
 
 describe('app/graph/surface', () => {
+  beforeEach(() => {
+    perfHarness.useGraphPerfCommit.mockReset();
+  });
+
   it('renders the graph with colored data when nodes are present', () => {
     render(
       <GraphSurface
@@ -36,9 +48,10 @@ describe('app/graph/surface', () => {
   });
 
   it('renders the empty hint when the graph has no nodes', () => {
+    const graphData = { nodes: [], edges: [] };
     render(
       <GraphSurface
-        graphData={{ nodes: [], edges: [] }}
+        graphData={graphData}
         coloredData={null}
         showOrphans={false}
         depthMode={false}
@@ -53,6 +66,13 @@ describe('app/graph/surface', () => {
     );
 
     expect(screen.getByText(/All files are hidden/)).toBeInTheDocument();
+    expect(perfHarness.useGraphPerfCommit).toHaveBeenCalledWith({
+      edgeCount: 0,
+      enabled: true,
+      layoutKey: undefined,
+      nodeCount: 0,
+      revision: graphData,
+    });
   });
 
   it('renders the timeline-specific empty hint when the active commit has no graphable files', () => {

@@ -24,6 +24,8 @@ import { useGraphRuntime } from '../runtime/use/state';
 import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { useGraphPerfCommit } from '../../../perf/graph/commit';
+import { useGraphPerfScenarios } from '../../../perf/graph/useScenarios';
 import { useGraphAppearance } from '../appearance/use';
 
 interface GraphProps {
@@ -114,6 +116,13 @@ export default function Graph({
     timelineActive: viewState.timelineActive,
   });
   const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
+  const graphNodeCount = graphRuntime.renderer.graphData.nodes.length;
+  useGraphPerfCommit({
+    edgeCount: graphRuntime.renderer.graphData.links.length,
+    layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
+    nodeCount: graphNodeCount,
+    revision: data,
+  });
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
   const interactions = useGraphInteractionRuntime({
@@ -148,6 +157,18 @@ export default function Graph({
     timelineActive: viewState.timelineActive,
   });
 
+  const onEngineTick = useGraphPerfScenarios({
+    getContainer: () => graphRuntime.renderer.containerRef.current,
+    getGraph: () => viewState.graphMode === '2d'
+      ? graphRuntime.renderer.fg2dRef.current
+      : graphRuntime.renderer.fg3dRef.current,
+    getNodes: () => graphRuntime.renderer.graphDataRef.current.nodes,
+    graphMode: viewState.graphMode,
+    handleNodeDrag: interactions.handleNodeDrag,
+    handleNodeDragEnd: interactions.handleNodeDragEnd,
+    zoomGraphView: interactions.interactionHandlers.zoomGraphView,
+  });
+
   const handleEngineStop = useGraphAutoFit({
     handleEngineStop: interactions.handleEngineStop,
   });
@@ -170,6 +191,7 @@ export default function Graph({
       graphViewContributions={resolvedGraphViewContributions}
       handleEngineStop={handleEngineStop}
       interactions={interactions}
+      onEngineTick={onEngineTick}
       pluginHost={pluginHost}
       theme={theme}
       viewState={viewState}

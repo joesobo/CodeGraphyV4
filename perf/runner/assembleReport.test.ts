@@ -1,0 +1,340 @@
+import { describe, expect, it } from 'vitest';
+
+import type { PerfReport } from '../report';
+import type {
+  LaunchPerfScenario,
+  PerfSmokeResult,
+} from './launch';
+import {
+  assemblePerfReport,
+  type AssemblePerfReportInput,
+} from './assembleReport';
+
+type SmokeMetric = PerfSmokeResult['metrics'][number];
+
+const unitByMetric: Record<SmokeMetric['metric'], SmokeMetric['unit']> = {
+  coldOpenMs: 'ms',
+  warmOpenMs: 'ms',
+  incrementalRefreshMs: 'ms',
+  payloadBytes: 'bytes',
+  watcherToGraphMs: 'ms',
+  fileOpRoundtripMs: 'ms',
+  layoutResets: 'count',
+  cacheSaveMs: 'ms',
+  cacheBytes: 'bytes',
+  treeSitterParseMs: 'ms',
+  graphBuildMs: 'ms',
+  scopeToggleMs: 'ms',
+  settleTimeMs: 'ms',
+  idleCpuPct: 'percent',
+  simTicksAfterSettle: 'count',
+  fpsIdle: 'fps',
+  fpsDrag: 'fps',
+  fpsSettle: 'fps',
+  longTasksPerInteraction: 'count',
+  heapUsedBytes: 'bytes',
+};
+
+function metric(
+  name: SmokeMetric['metric'],
+  value: number,
+  dimension?: string,
+): SmokeMetric {
+  return {
+    metric: name,
+    unit: unitByMetric[name],
+    value,
+    ...(dimension ? { dimension } : {}),
+  };
+}
+
+function result(
+  scenario: LaunchPerfScenario,
+  metrics: SmokeMetric[],
+): PerfSmokeResult {
+  return {
+    fixture: 'small',
+    metrics,
+    runId: `run-${scenario}`,
+    scenario,
+    schemaVersion: 1,
+  };
+}
+
+function operationResult(
+  scenario: 'single-save' | 'rename' | 'create' | 'delete' | 'batch-100',
+  metrics: SmokeMetric[],
+): PerfSmokeResult {
+  const operationId = `run-${scenario}:${scenario}:small:0`;
+  return result(scenario, [
+    ...metrics.map(entry => ({ ...entry, operationId })),
+    metric('incrementalRefreshMs', 999, 'cleanup'),
+    metric('watcherToGraphMs', 999, 'cleanup'),
+    metric('payloadBytes', 99_999, 'cleanup'),
+    metric('layoutResets', 100, 'cleanup'),
+  ]);
+}
+
+function createResults(): PerfSmokeResult[] {
+  return [
+    result('cold-open', [
+      metric('coldOpenMs', 1_000),
+      metric('treeSitterParseMs', 50, 'typescript'),
+      metric('treeSitterParseMs', 70, 'tree-sitter'),
+      metric('graphBuildMs', 80, 'files'),
+      metric('graphBuildMs', 100, 'symbols'),
+      metric('payloadBytes', 2_048),
+      metric('cacheSaveMs', 10),
+      metric('cacheBytes', 4_000),
+      metric('layoutResets', 1),
+      metric('settleTimeMs', 250),
+    ]),
+    result('warm-open', [
+      metric('warmOpenMs', 500),
+      metric('payloadBytes', 4_096),
+      metric('cacheSaveMs', 12),
+      metric('cacheBytes', 4_096),
+      metric('layoutResets', 2),
+      metric('settleTimeMs', 300),
+    ]),
+    operationResult('single-save', [
+      metric('incrementalRefreshMs', 10),
+      metric('watcherToGraphMs', 11),
+      metric('payloadBytes', 3_000),
+      metric('layoutResets', 3),
+    ]),
+    operationResult('rename', [
+      metric('incrementalRefreshMs', 20),
+      metric('watcherToGraphMs', 21),
+      metric('fileOpRoundtripMs', 25),
+    ]),
+    operationResult('create', [
+      metric('incrementalRefreshMs', 30),
+      metric('watcherToGraphMs', 31),
+      metric('fileOpRoundtripMs', 35),
+    ]),
+    operationResult('delete', [
+      metric('incrementalRefreshMs', 40),
+      metric('watcherToGraphMs', 41),
+      metric('fileOpRoundtripMs', 45),
+    ]),
+    operationResult('batch-100', [
+      metric('incrementalRefreshMs', 50),
+      metric('watcherToGraphMs', 51),
+    ]),
+    result('interaction-burst', [metric('settleTimeMs', 280)]),
+    result('scope-toggle', [
+      metric('scopeToggleMs', 8, 'files'),
+      metric('scopeToggleMs', 9, 'files'),
+      metric('scopeToggleMs', 12, 'symbols'),
+    ]),
+    result('idle-watch', [
+      metric('simTicksAfterSettle', 0),
+      metric('simTicksAfterSettle', 2),
+    ]),
+  ];
+}
+
+const runner: PerfReport['runner'] = {
+  arch: 'arm64',
+  cpuModel: 'Apple M4',
+  nodeVersion: 'v22.22.0',
+  os: 'darwin',
+  runnerClass: 'local-reference',
+  vscodeVersion: '1.128.0',
+};
+
+function createInput(): AssemblePerfReportInput {
+  return {
+    codeGraphyRevealMs: 15,
+    explorer: {
+      explorerCreateMs: 30,
+      explorerDeleteMs: 40,
+      explorerRenameMs: 20,
+      explorerRevealMs: 10,
+    },
+    idleCpuPct: 0.5,
+    results: createResults(),
+    runner,
+    variant: 'default',
+    webview: {
+      fpsDrag: 58,
+      fpsIdle: 60,
+      fpsSettle: 55,
+      heapUsedBytes: 1_048_576,
+      longTasksPerInteraction: 0,
+    },
+  };
+}
+
+describe('performance report assembly', () => {
+  it('assembles every report key with deterministic reducers', () => {
+    const report = assemblePerfReport(createInput());
+
+    expect(report).toEqual({
+      explorer: {
+        explorerCreateMs: 30,
+        explorerDeleteMs: 40,
+        explorerRenameMs: 20,
+        explorerRevealMs: 10,
+      },
+      fixture: 'small',
+      metrics: {
+        cacheBytes: 4_096,
+        cacheSaveMs: 12,
+        coldOpenMs: 1_000,
+        fileOpRoundtripMs: { create: 35, delete: 45, rename: 25, reveal: 15 },
+        graphBuildMs: 180,
+        idleCpuPct: 0.5,
+        incrementalRefreshMs: {
+          batch100: 50,
+          create: 30,
+          delete: 40,
+          rename: 20,
+          save: 10,
+        },
+        layoutResets: 6,
+        payloadBytes: 4_096,
+        scopeToggleMs: { files: 9, symbols: 12 },
+        settleTimeMs: 300,
+        simTicksAfterSettle: 2,
+        treeSitterParseMs: 120,
+        warmOpenMs: 500,
+        watcherToGraphMs: {
+          batch100: 51,
+          create: 31,
+          delete: 41,
+          rename: 21,
+          save: 11,
+        },
+      },
+      ratios: {
+        createRatio: 35 / 30,
+        deleteRatio: 45 / 40,
+        renameRatio: 25 / 20,
+        revealRatio: 15 / 10,
+      },
+      runner,
+      schemaVersion: 1,
+      variant: 'default',
+      webview: {
+        fpsDrag: 58,
+        fpsIdle: 60,
+        fpsSettle: 55,
+        heapUsedBytes: 1_048_576,
+        longTasksPerInteraction: 0,
+      },
+    });
+  });
+
+  it('is independent of result and metric arrival order', () => {
+    const first = createInput();
+    const second = createInput();
+    second.results.reverse();
+    for (const scenario of second.results) scenario.metrics.reverse();
+
+    expect(assemblePerfReport(second)).toEqual(assemblePerfReport(first));
+  });
+
+  it('uses normal result metrics before explicit webview and Explorer fallbacks', () => {
+    const input = createInput();
+    const idle = input.results.find(result => result.scenario === 'idle-watch')!;
+    const interaction = input.results.find(result => result.scenario === 'interaction-burst')!;
+    const futureMetrics = idle.metrics as unknown as Array<Record<string, unknown>>;
+    futureMetrics.push(
+      { metric: 'fpsIdle', unit: 'fps', value: 59 },
+      { metric: 'fpsSettle', unit: 'fps', value: 54 },
+      { metric: 'heapUsedBytes', unit: 'bytes', value: 2_000_000 },
+      { metric: 'explorerRenameMs', unit: 'ms', value: 22 },
+      { metric: 'explorerCreateMs', unit: 'ms', value: 32 },
+      { metric: 'explorerDeleteMs', unit: 'ms', value: 42 },
+      { metric: 'explorerRevealMs', unit: 'ms', value: 12 },
+    );
+    (interaction.metrics as unknown as Array<Record<string, unknown>>).push(
+      { metric: 'fpsDrag', unit: 'fps', value: 57 },
+      { metric: 'longTasksPerInteraction', unit: 'count', value: 1 },
+    );
+
+    const report = assemblePerfReport(input);
+
+    expect(report.webview).toEqual({
+      fpsDrag: 57,
+      fpsIdle: 59,
+      fpsSettle: 54,
+      heapUsedBytes: 2_000_000,
+      longTasksPerInteraction: 1,
+    });
+    expect(report.explorer).toEqual({
+      explorerCreateMs: 32,
+      explorerDeleteMs: 42,
+      explorerRenameMs: 22,
+      explorerRevealMs: 12,
+    });
+  });
+
+  it('fails when a scripted scenario result is missing', () => {
+    const input = createInput();
+    input.results = input.results.filter(result => result.scenario !== 'idle-watch');
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Missing required scenario result: idle-watch',
+    );
+  });
+
+  it('fails when a scripted scenario result is duplicated', () => {
+    const input = createInput();
+    input.results.push(structuredClone(input.results[0]));
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Duplicate scenario result: cold-open',
+    );
+  });
+
+  it('fails when a mapped scenario metric is missing', () => {
+    const input = createInput();
+    const save = input.results.find(result => result.scenario === 'single-save')!;
+    save.metrics = save.metrics.filter(metric => metric.metric !== 'watcherToGraphMs');
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Expected exactly one watcherToGraphMs metric for single-save; found 0',
+    );
+  });
+
+  it('fails when a direct metric is duplicated', () => {
+    const input = createInput();
+    const cold = input.results.find(result => result.scenario === 'cold-open')!;
+    cold.metrics.push(metric('coldOpenMs', 1_100));
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Expected exactly one coldOpenMs metric for cold-open; found 2',
+    );
+  });
+
+  it('fails when an operation scenario has no measured operation ID', () => {
+    const input = createInput();
+    const rename = input.results.find(result => result.scenario === 'rename')!;
+    rename.metrics = rename.metrics.map(({ operationId: _, ...entry }) => entry);
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Scenario rename has no measured operation-ID metrics',
+    );
+  });
+
+  it('fails when an Explorer denominator is zero', () => {
+    const input = createInput();
+    input.explorer!.explorerRenameMs = 0;
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'explorerRenameMs must be greater than zero',
+    );
+  });
+
+  it('fails when a required fallback and normal metric are both missing', () => {
+    const input = createInput();
+    delete input.webview!.fpsIdle;
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Missing required measurement: fpsIdle',
+    );
+  });
+});

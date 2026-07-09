@@ -110,4 +110,33 @@ describe('extension/perf/bridge', () => {
       },
     });
   });
+
+  it('requests an interaction burst for the armed operation', () => {
+    const { bridge, sendControl } = setup();
+    bridge.armGraph(operation);
+
+    expect(bridge.runInteractionBurst()).toBe(true);
+    expect(sendControl).toHaveBeenLastCalledWith({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-interaction-burst',
+        operationId: operation.operationId,
+      },
+    });
+  });
+
+  it('requests a bounded idle watch for the armed operation', () => {
+    const { bridge, sendControl } = setup();
+    bridge.armGraph(operation);
+
+    expect(bridge.runIdleWatch(60_000)).toBe(true);
+    expect(sendControl).toHaveBeenLastCalledWith({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-idle-watch',
+        operationId: operation.operationId,
+        durationMs: 60_000,
+      },
+    });
+  });
 });

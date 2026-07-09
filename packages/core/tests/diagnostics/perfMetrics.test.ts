@@ -55,6 +55,23 @@ describe('diagnostics/perfMetrics', () => {
     }).success).toBe(false);
   });
 
+  it.each([
+    ['fpsIdle', 'fps'],
+    ['fpsDrag', 'fps'],
+    ['fpsSettle', 'fps'],
+    ['longTasksPerInteraction', 'count'],
+    ['heapUsedBytes', 'bytes'],
+  ] as const)('accepts the %s webview metric in %s', (metric, unit) => {
+    expect(perfMetricDiagnosticEventSchema.safeParse({
+      ...validMetricEvent,
+      context: {
+        ...validMetricEvent.context,
+        metric,
+        unit,
+      },
+    }).success).toBe(true);
+  });
+
   it('rejects unknown performance metric context fields', () => {
     expect(perfMetricDiagnosticEventSchema.safeParse({
       ...validMetricEvent,

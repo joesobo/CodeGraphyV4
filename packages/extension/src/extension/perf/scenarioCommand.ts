@@ -1,4 +1,5 @@
 import { performance } from 'node:perf_hooks';
+import { writeFile } from 'node:fs/promises';
 import {
   emitPerfMetric,
   onPerfMetric,
@@ -11,17 +12,31 @@ import * as vscode from 'vscode';
 import { z } from 'zod';
 import type { GraphViewProvider } from '../graphViewProvider';
 import {
+  perfScenarioSchema,
+  type PerfScenario,
+} from '../../shared/perf/protocol';
+import {
   createPerfMetricAggregation,
   type PerfScenarioMetric,
 } from './aggregation';
+import { createPerfScenarioOperationRunner } from './scenarioOperation';
+import {
+  runNonOpenPerfScenario,
+  type NonOpenPerfScenario,
+} from './scenarios/run';
+import {
+  runIdleWatchScenario,
+  runInteractionBurstScenario,
+} from './scenarios/webviewControl';
 
 export const PERF_SCENARIO_COMMAND_ID = 'codegraphy.perf.runScenario';
 const bootstrapTimeoutMs = 180_000;
-const openScenarioSchema = z.enum(['cold-open', 'warm-open']);
 
 const perfScenarioRequestSchema = z.strictObject({
   runId: z.string().min(1),
-  scenario: openScenarioSchema,
+  scenario: perfScenarioSchema,
+  dimension: z.string().trim().min(1),
+  idleCpuReadyPath: z.string().trim().min(1).optional(),
   startedAt: z.number().finite().nonnegative(),
 });
 
@@ -29,7 +44,7 @@ export type PerfScenarioRequest = z.infer<typeof perfScenarioRequestSchema>;
 
 export interface PerfScenarioResult {
   runId: string;
-  scenario: z.infer<typeof openScenarioSchema>;
+  scenario: PerfScenario;
   metrics: PerfScenarioMetric[];
 }
 
@@ -37,10 +52,12 @@ export interface PerfScenarioRuntime {
   emitMetric(input: PerfMetricContext): void;
   indexGraph(): Promise<void>;
   now(): number;
+  notifyScenarioReady?(request: PerfScenarioRequest): Promise<void>;
   onMetric(listener: (event: PerfMetricDiagnosticEvent) => void): vscode.Disposable;
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   openGraph(): Promise<void>;
+  runScriptedScenario?(request: PerfScenarioRequest): Promise<void>;
   startMetricSession(context: PerfMetricSessionContext): vscode.Disposable;
 }
 
@@ -79,6 +96,10 @@ function waitForMessage(
 
 function isGraphCacheReady(message: unknown): boolean {
   return (message as { payload?: { hasIndex?: unknown } }).payload?.hasIndex === true;
+}
+
+function isOpenScenario(scenario: PerfScenario): scenario is 'cold-open' | 'warm-open' {
+  return scenario === 'cold-open' || scenario === 'warm-open';
 }
 
 async function indexColdGraph(runtime: PerfScenarioRuntime): Promise<void> {
@@ -124,18 +145,19 @@ export async function runPerfScenario(
   const metricSession = runtime.startMetricSession({
     runId: parsedRequest.runId,
     scenario: parsedRequest.scenario,
+    dimension: parsedRequest.dimension,
   });
   const bootstrap = waitForMessage(
     handler => runtime.onExtensionMessage(handler),
     'APP_BOOTSTRAP_COMPLETE',
   );
-  const warmGraphUpdated = parsedRequest.scenario === 'warm-open'
+  const warmGraphUpdated = parsedRequest.scenario !== 'cold-open'
     ? waitForMessage(
         handler => runtime.onExtensionMessage(handler),
         'GRAPH_DATA_UPDATED',
       )
     : undefined;
-  const warmGraphCacheReady = parsedRequest.scenario === 'warm-open'
+  const warmGraphCacheReady = parsedRequest.scenario !== 'cold-open'
     ? waitForMessage(
         handler => runtime.onExtensionMessage(handler),
         'GRAPH_INDEX_STATUS_UPDATED',
@@ -171,13 +193,20 @@ export async function runPerfScenario(
       await indexColdGraph(runtime);
     }
 
-    runtime.emitMetric({
-      runId: parsedRequest.runId,
-      scenario: parsedRequest.scenario,
-      metric: parsedRequest.scenario === 'cold-open' ? 'coldOpenMs' : 'warmOpenMs',
-      unit: 'ms',
-      value: Math.max(0, runtime.now() - parsedRequest.startedAt),
-    });
+    if (isOpenScenario(parsedRequest.scenario)) {
+      runtime.emitMetric({
+        runId: parsedRequest.runId,
+        scenario: parsedRequest.scenario,
+        metric: parsedRequest.scenario === 'cold-open' ? 'coldOpenMs' : 'warmOpenMs',
+        unit: 'ms',
+        value: Math.max(0, runtime.now() - parsedRequest.startedAt),
+      });
+    } else if (runtime.runScriptedScenario) {
+      await runtime.notifyScenarioReady?.(parsedRequest);
+      await runtime.runScriptedScenario(parsedRequest);
+    } else {
+      throw new Error(`Performance scenario ${parsedRequest.scenario} is not registered`);
+    }
 
     return {
       runId: parsedRequest.runId,
@@ -192,28 +221,58 @@ export async function runPerfScenario(
 
 export function registerPerfScenarioCommand(
   context: vscode.ExtensionContext,
-  provider: Pick<
-    GraphViewProvider,
-    'dispatchWebviewMessage' | 'onExtensionMessage' | 'onWebviewMessage'
-  >,
+  provider: GraphViewProvider,
 ): void {
   if (process.env.CODEGRAPHY_PERF !== '1') {
     return;
   }
 
-  const runtime: PerfScenarioRuntime = {
+  const operationRuntime = {
     emitMetric: input => { emitPerfMetric(input); },
+    now: () => performance.now(),
+    onMessage: (handler: (message: unknown) => void) => provider.onWebviewMessage(handler),
+    sendControl: message => { provider.sendToWebview(message); },
+    startMetricSession: input => startPerfMetricSession(input),
+  } satisfies Parameters<typeof createPerfScenarioOperationRunner>[0];
+  const runOperation = createPerfScenarioOperationRunner(operationRuntime);
+  const runtime: PerfScenarioRuntime = {
+    emitMetric: operationRuntime.emitMetric,
     indexGraph: async () => {
       await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
     },
-    now: () => performance.now(),
+    now: operationRuntime.now,
+    notifyScenarioReady: async (request) => {
+      if (request.idleCpuReadyPath) {
+        await writeFile(request.idleCpuReadyPath, `${request.runId}\n`, 'utf8');
+      }
+    },
     onMetric: listener => onPerfMetric(listener),
     onExtensionMessage: handler => provider.onExtensionMessage(handler),
     onWebviewMessage: handler => provider.onWebviewMessage(handler),
     openGraph: async () => {
       await vscode.commands.executeCommand('codegraphy.open');
     },
-    startMetricSession: input => startPerfMetricSession(input),
+    runScriptedScenario: async (request) => {
+      if (isOpenScenario(request.scenario)) {
+        throw new Error(`Open scenario cannot use scripted runner: ${request.scenario}`);
+      }
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        throw new Error(`Performance scenario ${request.scenario} requires a workspace folder`);
+      }
+      await runNonOpenPerfScenario({
+        dimension: request.dimension,
+        provider,
+        runId: request.runId,
+        scenario: request.scenario as NonOpenPerfScenario,
+        workspaceFolderUri: workspaceFolder.uri,
+      }, runOperation, {
+        runIdleWatchScenario: input => runIdleWatchScenario(input, operationRuntime),
+        runInteractionBurstScenario: input =>
+          runInteractionBurstScenario(input, operationRuntime),
+      });
+    },
+    startMetricSession: input => operationRuntime.startMetricSession(input),
   };
   context.subscriptions.push(
     vscode.commands.registerCommand(

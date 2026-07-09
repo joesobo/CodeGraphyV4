@@ -70,6 +70,51 @@ describe('webview/graph/runtime/use/physics/layout', () => {
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
   });
 
+  it('records one layout reset when a changed key reapplies physics', () => {
+    const graph = {} as never;
+    const onLayoutReset = vi.fn();
+    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
+    const refs = {
+      fg2dRef: { current: graph },
+      fg3dRef: { current: undefined },
+      graphMode: '2d' as const,
+      layoutKey: 'layout:a',
+      onLayoutReset,
+      physicsPaused: false,
+      physicsInitialisedRef: { current: true },
+      physicsSettingsRef: { current: SETTINGS },
+      previousLayoutKeyRef: { current: 'layout:a' as string | null },
+    };
+    const { rerender } = renderHook(
+      ({ layoutKey }: { layoutKey: string }) => usePhysicsRuntimeLayoutKey({ ...refs, layoutKey }),
+      { initialProps: { layoutKey: 'layout:a' } },
+    );
+
+    rerender({ layoutKey: 'layout:b' });
+
+    expect(onLayoutReset).toHaveBeenCalledOnce();
+  });
+
+  it('does not record a layout reset for the initial key', () => {
+    const graph = {} as never;
+    const onLayoutReset = vi.fn();
+    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
+
+    renderHook(() => usePhysicsRuntimeLayoutKey({
+      fg2dRef: { current: graph },
+      fg3dRef: { current: undefined },
+      graphMode: '2d',
+      layoutKey: 'layout:a',
+      onLayoutReset,
+      physicsPaused: false,
+      physicsInitialisedRef: { current: true },
+      physicsSettingsRef: { current: SETTINGS },
+      previousLayoutKeyRef: { current: null },
+    }));
+
+    expect(onLayoutReset).not.toHaveBeenCalled();
+  });
+
   it('reapplies settings without pausing when physics is not paused', () => {
     const graph = {} as never;
     physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);

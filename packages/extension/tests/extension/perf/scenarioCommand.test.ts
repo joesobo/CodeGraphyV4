@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+
+const perfHarness = vi.hoisted(() => ({
+  runNonOpenPerfScenario: vi.fn(async () => undefined),
+}));
+
+vi.mock('../../../src/extension/perf/scenarios/run', () => ({
+  runNonOpenPerfScenario: perfHarness.runNonOpenPerfScenario,
+}));
+
 import {
   PERF_SCENARIO_COMMAND_ID,
   registerPerfScenarioCommand,
@@ -58,6 +67,7 @@ describe('performance scenario command', () => {
 
   afterEach(() => {
     delete process.env.CODEGRAPHY_PERF;
+    (vscode.workspace as unknown as { workspaceFolders: unknown }).workspaceFolders = undefined;
   });
 
   it('stays unregistered outside performance runs', () => {
@@ -96,10 +106,50 @@ describe('performance scenario command', () => {
     await expect(command?.({
       runId: 'run-production-path',
       scenario: 'cold-open',
+      dimension: 'small',
       startedAt: 0,
     })).resolves.toBeDefined();
     expect(vscode.commands.executeCommand).toHaveBeenCalledWith('codegraphy.open');
     expect(provider.dispatchWebviewMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
+  });
+
+  it('routes a scripted request through the production scenario runner', async () => {
+    process.env.CODEGRAPHY_PERF = '1';
+    const provider = createScenarioProvider();
+    const workspaceFolderUri = vscode.Uri.file('/workspace');
+    (vscode.workspace as unknown as { workspaceFolders: unknown }).workspaceFolders = [{
+      uri: workspaceFolderUri,
+    }];
+    vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+      provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+      provider.emitExtensionMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+      provider.emitExtensionMessage({
+        type: 'GRAPH_INDEX_STATUS_UPDATED',
+        payload: { hasIndex: true },
+      });
+    });
+
+    registerPerfScenarioCommand(createContext(), provider as never);
+    const command = vi.mocked(vscode.commands.registerCommand).mock.calls[0]?.[1] as
+      | ((request: unknown) => Promise<unknown>)
+      | undefined;
+
+    await expect(command?.({
+      runId: 'run-rename',
+      scenario: 'rename',
+      dimension: 'small',
+      startedAt: 0,
+    })).resolves.toBeDefined();
+    expect(perfHarness.runNonOpenPerfScenario).toHaveBeenCalledWith({
+      dimension: 'small',
+      provider,
+      runId: 'run-rename',
+      scenario: 'rename',
+      workspaceFolderUri,
+    }, expect.any(Function), {
+      runIdleWatchScenario: expect.any(Function),
+      runInteractionBurstScenario: expect.any(Function),
+    });
   });
 
   it('rejects unknown scenario request fields', async () => {
@@ -109,6 +159,7 @@ describe('performance scenario command', () => {
     await expect(runPerfScenario({
       runId: 'run-1',
       scenario: 'cold-open',
+      dimension: 'small',
       startedAt: 5,
       unexpected: true,
     }, runtime)).rejects.toThrow();

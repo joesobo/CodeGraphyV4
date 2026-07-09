@@ -12,6 +12,10 @@ import { removeDisabledPluginRegistrations } from './messageListener/pluginRegis
 import { handlePluginDataUpdatedMessage } from './messageListener/pluginData';
 import { postWebviewReadyOnce, resetWebviewReadyPosted } from './messageListener/ready';
 import { handleCssSnippetsUpdatedMessage } from './messageListener/cssSnippets';
+import {
+  webviewGraphPerfControl,
+  type WebviewGraphPerfControl,
+} from '../../perf/graph/control';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -38,12 +42,16 @@ export function createMessageHandler(
   pluginHost: WebviewPluginHost,
   resetPluginAssets?: ResetPluginAssets,
   updatePluginData: UpdatePluginData = () => undefined,
+  perfControl: Pick<WebviewGraphPerfControl, 'handleControl'> = webviewGraphPerfControl,
 ): (event: MessageEvent<unknown>) => void {
   const packagePluginIdsByPackageName = new Map<string, string>();
 
   return (event: MessageEvent<unknown>) => {
     const raw = event.data as { type?: unknown; payload?: unknown; data?: unknown };
     if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
+      return;
+    }
+    if (raw.type === 'PERF_CONTROL' && perfControl.handleControl(raw)) {
       return;
     }
     if (handlePluginInjectMessage(raw, injectPluginAssets)) {

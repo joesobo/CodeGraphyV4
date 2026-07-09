@@ -3,6 +3,11 @@ import type { IPhysicsSettings } from '../../../../../../../shared/settings/phys
 import type { PhysicsRuntimeRefs } from './refs';
 import { applyPhysicsSettings, syncPhysicsAnimation } from '../../../physics';
 import { selectActivePhysicsGraph } from '../../../physicsLifecycle/readiness';
+import { webviewGraphPerfLifecycle } from '../../../../../../perf/graph/lifecycle';
+
+function recordLayoutReset(): void {
+  webviewGraphPerfLifecycle.layoutReset();
+}
 
 interface UsePhysicsRuntimeLayoutResetOptions {
   graphMode: '2d' | '3d';
@@ -19,6 +24,7 @@ interface UsePhysicsRuntimeLayoutKeyOptions extends PhysicsRuntimeRefs {
   physicsInitialisedRef: MutableRefObject<boolean>;
   physicsSettingsRef: MutableRefObject<IPhysicsSettings>;
   previousLayoutKeyRef: MutableRefObject<string | null>;
+  onLayoutReset?: (this: void) => void;
 }
 
 export function usePhysicsRuntimeLayoutReset({
@@ -45,6 +51,7 @@ export function usePhysicsRuntimeLayoutKey({
   physicsInitialisedRef,
   physicsSettingsRef,
   previousLayoutKeyRef,
+  onLayoutReset = recordLayoutReset,
 }: UsePhysicsRuntimeLayoutKeyOptions): void {
   useEffect(() => {
     const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
@@ -62,6 +69,7 @@ export function usePhysicsRuntimeLayoutKey({
     }
 
     previousLayoutKeyRef.current = layoutKey;
+    onLayoutReset();
     applyPhysicsSettings(graph, physicsSettingsRef.current);
     if (physicsPaused) {
       syncPhysicsAnimation(graph, true);
@@ -75,5 +83,6 @@ export function usePhysicsRuntimeLayoutKey({
     physicsPaused,
     physicsSettingsRef,
     previousLayoutKeyRef,
+    onLayoutReset,
   ]);
 }

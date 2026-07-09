@@ -153,6 +153,41 @@ describe('diagnostics/perfMetricSession', () => {
     }
   });
 
+  it('restores the parent session when a nested session is disposed', () => {
+    const received: PerfMetricDiagnosticEvent[] = [];
+    const subscription = onPerfMetric(event => received.push(event));
+    const parentSession = startPerfMetricSession({
+      runId: 'run-parent',
+      scenario: 'rename',
+      dimension: 'small',
+    });
+    const operationSession = startPerfMetricSession({
+      runId: 'run-parent',
+      scenario: 'rename',
+      operationId: 'run-parent:rename:small:0',
+      dimension: 'small',
+    });
+
+    try {
+      operationSession.dispose();
+      emitActivePerfMetric({
+        metric: 'incrementalRefreshMs',
+        value: 12,
+        unit: 'ms',
+      });
+
+      expect(received[0]?.context).toMatchObject({
+        runId: 'run-parent',
+        scenario: 'rename',
+        dimension: 'small',
+      });
+      expect(received[0]?.context.operationId).toBeUndefined();
+    } finally {
+      parentSession.dispose();
+      subscription.dispose();
+    }
+  });
+
   it('skips active metric validation when no session is armed', () => {
     expect(emitActivePerfMetric({
       metric: 'treeSitterParseMs',

@@ -83,6 +83,7 @@ describe('performance open scenarios', () => {
     await expect(runPerfScenario({
       runId: 'run-1',
       scenario: 'cold-open',
+      dimension: 'small',
       startedAt: 5,
     }, runtime)).resolves.toEqual({
       runId: 'run-1',
@@ -101,6 +102,7 @@ describe('performance open scenarios', () => {
     expect(runtime.startMetricSession).toHaveBeenCalledWith({
       runId: 'run-1',
       scenario: 'cold-open',
+      dimension: 'small',
     });
   });
 
@@ -132,6 +134,7 @@ describe('performance open scenarios', () => {
     const result = runPerfScenario({
       runId: 'run-settle',
       scenario: 'cold-open',
+      dimension: 'small',
       startedAt: 5,
     }, runtime);
     await vi.waitFor(() => {
@@ -165,6 +168,7 @@ describe('performance open scenarios', () => {
     await expect(runPerfScenario({
       runId: 'run-2',
       scenario: 'warm-open',
+      dimension: 'small',
       startedAt: 5,
     }, runtime)).resolves.toEqual({
       runId: 'run-2',
@@ -198,6 +202,7 @@ describe('performance open scenarios', () => {
     const result = runPerfScenario({
       runId: 'run-warm-cache',
       scenario: 'warm-open',
+      dimension: 'small',
       startedAt: 5,
     }, runtime);
     await new Promise<void>(resolve => { setImmediate(resolve); });
@@ -272,6 +277,7 @@ describe('performance open scenarios', () => {
     await expect(runPerfScenario({
       runId: 'run-aggregate',
       scenario: 'cold-open',
+      dimension: 'small',
       startedAt: 5,
     }, runtime)).resolves.toEqual({
       runId: 'run-aggregate',

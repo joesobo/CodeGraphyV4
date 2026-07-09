@@ -5,6 +5,7 @@ import {
   type PerfEventMessage,
   type PerfOperation,
 } from '../../shared/perf/protocol';
+import { postMessage } from '../vscodeApi';
 
 export interface WebviewPerfBridgeOptions {
   postMessage(message: PerfEventMessage): void;
@@ -12,6 +13,8 @@ export interface WebviewPerfBridgeOptions {
 
 export interface WebviewPerfBridge {
   emit(event: PerfEventInput): boolean;
+  emitFor(operation: PerfOperation, event: PerfEventInput): boolean;
+  getArmedOperation(): PerfOperation | undefined;
   handleControl(message: unknown): boolean;
   isArmed(): boolean;
 }
@@ -27,25 +30,38 @@ export function createWebviewPerfBridge(
 ): WebviewPerfBridge {
   let armedOperation: PerfOperation | undefined;
 
+  const emitFor = (operation: PerfOperation, event: PerfEventInput): boolean => {
+    if (armedOperation !== operation) {
+      return false;
+    }
+
+    const message = perfEventMessageSchema.safeParse({
+      type: 'PERF_EVENT',
+      payload: {
+        ...event,
+        ...operation,
+      },
+    });
+    if (!message.success) {
+      return false;
+    }
+
+    options.postMessage(message.data);
+    return true;
+  };
+
   return {
     emit(event): boolean {
       if (!armedOperation) {
         return false;
       }
+      return emitFor(armedOperation, event);
+    },
 
-      const message = perfEventMessageSchema.safeParse({
-        type: 'PERF_EVENT',
-        payload: {
-          ...event,
-          ...armedOperation,
-        },
-      });
-      if (!message.success) {
-        return false;
-      }
+    emitFor,
 
-      options.postMessage(message.data);
-      return true;
+    getArmedOperation(): PerfOperation | undefined {
+      return armedOperation;
     },
 
     handleControl(message): boolean {
@@ -64,10 +80,14 @@ export function createWebviewPerfBridge(
         return true;
       }
 
-      if (armedOperation?.operationId === control.operationId) {
-        armedOperation = undefined;
+      if (control.kind === 'disarm-graph') {
+        if (armedOperation?.operationId === control.operationId) {
+          armedOperation = undefined;
+        }
+        return true;
       }
-      return true;
+
+      return armedOperation?.operationId === control.operationId;
     },
 
     isArmed(): boolean {
@@ -75,3 +95,5 @@ export function createWebviewPerfBridge(
     },
   };
 }
+
+export const webviewPerfBridge = createWebviewPerfBridge({ postMessage });

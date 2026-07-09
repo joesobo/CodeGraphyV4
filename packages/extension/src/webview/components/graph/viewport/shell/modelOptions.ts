@@ -12,6 +12,7 @@ export interface UseGraphViewportModelOptionsInput {
 	graphViewContributions?: CoreGraphViewContributionSet;
 	interactions: UseGraphInteractionRuntimeResult;
 	handleEngineStop(this: void): void;
+	onEngineTick?: (this: void) => void;
 	viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize' | 'renderPluginOverlays'>;
 	viewState: GraphViewStoreState;
 }
@@ -22,6 +23,7 @@ export function useGraphViewportModelOptions({
 	graphViewContributions,
 	interactions,
 	handleEngineStop,
+	onEngineTick,
 	viewportRuntime,
 	viewState,
 }: UseGraphViewportModelOptionsInput) {
@@ -32,6 +34,7 @@ export function useGraphViewportModelOptions({
 		},
 		graphViewContributions,
 		handleEngineStop,
+		onEngineTick,
 		appearance,
 		interactions,
 		viewportRuntime,
