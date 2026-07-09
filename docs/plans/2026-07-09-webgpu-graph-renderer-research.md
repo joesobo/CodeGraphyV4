@@ -245,7 +245,8 @@ dependency.
 
 CodeGraphy lesson:
 
-- Keeping a `d3-force`-like force interface could make migration easier.
+- d3-force is a reference implementation to learn from (integrator, annealing,
+  Barnes-Hut), not a dependency: CodeGraphy builds its own engine.
 - The real performance win comes when position and velocity buffers avoid
   round-tripping back to JavaScript every frame.
 
@@ -315,21 +316,22 @@ separate leaves room for these adapters:
 
 - current `react-force-graph` adapter;
 - custom Canvas2D adapter;
-- WebGPU rendering + CPU d3 layout;
+- WebGPU rendering + custom CPU layout engine;
 - WebGPU rendering + workerized CPU layout;
 - WebGPU rendering + WebGPU compute layout.
 
 ## Migration Levels
 
-### Level 1: WebGPU Renderer, Existing CPU Layout
+### Level 1: WebGPU Renderer, Custom CPU Layout
 
-Keep `d3-force` or force-graph-like CPU simulation. Replace the 2D canvas
-drawing path with WebGPU.
+Build the custom typed-array simulation engine (see the physics section of
+the parity spec) on the CPU, and replace the 2D canvas drawing path with
+WebGPU.
 
 Pros:
 
 - smaller first step;
-- preserves force behavior;
+- force feel can be tuned against the current renderer side-by-side;
 - performance win for draw-heavy graphs;
 - easier to compare visually against current renderer.
 
@@ -433,31 +435,77 @@ API). Sources: `sharedProps.ts`, `twoDimensional.tsx`, the physics runtime
 (`runtime/physics/root/settings/*`, `pluginForces.ts`), and the interaction
 runtime (`interactionRuntime/*`, `runtime/use/interaction/*`).
 
-### 1. Physics Engine (the biggest hidden subsystem)
+### 1. Physics Engine: Our Own, Not d3-force
 
-CodeGraphy configures the d3 simulation directly, so the replacement needs a
-full d3-force-compatible engine, not "some physics":
+Decision: the replacement does not depend on `d3-force` (or any port of it).
+CodeGraphy builds its own simulation engine, designed for GPU-friendly data
+from day one. This is the Obsidian path: Obsidian originally used d3 for both
+simulation and drawing, abandoned it for performance, moved rendering to
+Pixi/WebGL, and built a custom undisclosed force engine
+([tech stack thread](https://forum.obsidian.md/t/what-is-the-tech-stack-currently/833/5),
+[graph core thread](https://forum.obsidian.md/t/understanding-the-graph-view-core/41020),
+[physics discussion](https://forum.obsidian.md/t/graph-view-physics-and-force-directed-graphs/72586)).
 
-- Integration: velocity Verlet with the d3 alpha lifecycle — `alpha`,
-  `alphaMin`, `alphaDecay` (currently 0.0228), `velocityDecay` (the damping
-  setting, 0.7), and `d3ReheatSimulation` semantics (reset alpha to 1).
-- Forces in use (`root/settings/`): charge/many-body (Barnes-Hut quadtree,
-  `gravitationalConstant: -250`), link springs (per-link distance 80 /
-  strength 0.15), center + centroid gravity (0.1), and collision (iterative,
-  radius-aware).
-- Pinning: `fx`/`fy` fixed positions — this is how node drag works (fix during
-  drag, optionally release on drag end) and how persisted layouts would load.
-- Lifecycle: `warmupTicks` (currently 0), `cooldownTicks` (60 interactive / 50
-  timeline), and `onEngineStop` — the app listens for stabilization.
-- Plugin forces: `pluginForces.ts` installs adapters with
-  `initialize(nodes)` / `tick(alpha)` / `dispose()` under namespaced ids. This
-  exact contract must survive in the CPU layout; a GPU layout needs a
-  declarative replacement before plugin forces can move.
+What we take from reading d3-force's implementation (the ideas, not the code):
 
-Recommendation: do not rewrite the math initially. Run the actual `d3-force`
-package (or a literal port) inside the layout module — main thread first,
-worker later — so physics feel is bit-identical while the renderer changes
-underneath. Custom/GPU physics is a later, separately validated step.
+- Integrator: semi-implicit / velocity-Verlet-style — accumulate force into
+  velocity, apply a velocity damping multiplier, add velocity to position.
+  Simple, stable, and trivially parallel per node.
+- Annealing: a global "temperature" (d3's alpha) that decays each tick and
+  scales all force applications, so the graph settles instead of oscillating.
+  Reheat = reset temperature (this is what makes drag/filter changes feel
+  alive). Stabilization event fires when temperature crosses a floor.
+- Repulsion at scale: never all-pairs. d3 uses a Barnes-Hut quadtree
+  (theta ~0.9, min/max distance clamps); that is the right CPU algorithm. For
+  the GPU compute path, a uniform spatial grid is the better-shaped
+  approximation (regular memory access, no tree traversal in shaders).
+- Details that make sims feel good and are easy to miss: jiggle (tiny random
+  displacement when two nodes are exactly coincident, avoids NaN/explosions),
+  link-force degree bias (a link moves the lower-degree endpoint more, so
+  hubs stay put), and collision solved iteratively over a few passes.
+
+What we take from Obsidian's product behavior:
+
+- The whole force model reduces to four user-facing knobs — repel force, link
+  force, link distance, center force — plus damping. CodeGraphy's settings
+  already match this shape; the engine should treat these as the public
+  contract and keep them hot-adjustable (slider moves re-scale forces next
+  tick, with a gentle reheat).
+- Settle fast: aggressive early cooling, so even large graphs reach a
+  readable layout in a couple of seconds, then go quiet (no CPU/GPU burn at
+  idle).
+
+Engine design requirements:
+
+- State is struct-of-arrays typed arrays from the start (`Float32Array`
+  positions, velocities; `Uint32Array` edge endpoints) — the same buffers the
+  renderer uploads, and the same layout a WGSL compute port consumes later.
+  No per-node objects anywhere in the sim.
+- Runs headless: no DOM, no renderer dependency, tick-driven
+  (`tick(dt)` under a frame budget), so it can live on the main thread, in a
+  worker, or eventually in Rust/WGSL without interface changes.
+- Deterministic option: seeded initial placement and fixed-timestep mode, so
+  fixture tests and screenshot diffs are reproducible.
+- Pinning: fixed-position flags per node (drag grabs a node by pinning it;
+  persisted layouts load as pinned-then-released or as initial positions).
+- Lifecycle parity with current behavior: warmup ticks, cooldown ticks (60
+  interactive / 50 timeline today), stabilization callback.
+- Plugin forces: the existing adapter contract (`initialize(nodes)` /
+  `tick(alpha)` / `dispose()`) is object-based and cannot survive as-is —
+  typed arrays are the new interface. Provide a small custom-force API
+  (read positions, add to velocity/force accumulators, scaled by
+  temperature) for the CPU path, and treat GPU-path plugin forces as a later
+  declarative feature.
+- Migration consequence: dropping d3 means the current tuned constants
+  (charge -250, spring 80/0.15, damping 0.7, centralGravity 0.1) are
+  reference behavior, not reusable values. Tune the new engine side-by-side
+  against the current renderer on fixture graphs until the feel matches or
+  beats it — "beats" is allowed; feel-parity is a floor, not the goal.
+
+Staging still applies: the engine starts as TypeScript-in-a-worker operating
+on the shared typed arrays, and the WGSL compute version is a port of the
+same passes (springs, grid repulsion, center/damping, integrate/pin) — not a
+second engine.
 
 ### 2. Node Rendering
 
@@ -553,8 +601,10 @@ code), `onLinkHover`, `linkPointerAreaPaint`, `cooldownTime`, `dagNodeFilter`
 
 ### 9. Parity Verification
 
-- Physics: identical d3 engine (or port) validated by running old and new
-  side-by-side on fixture graphs and diffing settled positions.
+- Physics: the custom engine is validated by running old and new side-by-side
+  on fixture graphs — not for identical positions (different engine), but for
+  settle time, stability (no oscillation/explosion), and interaction feel;
+  seeded/fixed-timestep mode makes each engine's own runs reproducible.
 - Interaction: the existing acceptance specs plus the debug snapshot protocol
   give a comparison harness; extend snapshots to include camera transform and
   hit-test results.
@@ -739,9 +789,11 @@ Rust core computes compact graph projection/diffs
   large dependency, shrinks the webview bundle, and keeps the WebGPU effort
   focused on a single renderer.
 - Should layout be d3-compatible at first or should we jump to a new force
-  model? Leaning: keep the current d3 simulation verbatim behind the layout
-  interface for step 1, so renderer changes can be validated against pixel-
-  identical physics. New force models come only after the renderer is trusted.
+  model? Decided: build our own engine, no d3-force dependency. d3's
+  internals (velocity integration, alpha annealing, Barnes-Hut, degree bias,
+  jiggle) and Obsidian's four-knob force model are the study material; the
+  engine itself is CodeGraphy's, typed-array-native and GPU-portable. The
+  react-force-graph adapter remains only as the migration comparison rail.
 - How much of DAG mode is essential? Needs usage data; if kept, DAG is a layout
   adapter, which the interface split already accommodates.
 - Plugin Canvas renderers: remove raw hooks, keep DOM slots, add declarative
