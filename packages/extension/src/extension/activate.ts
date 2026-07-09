@@ -11,6 +11,7 @@ import { getCodeGraphyConfiguration } from './repoSettings/current';
 import { createExtensionDiagnosticLogger } from './diagnostics/logger';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
+import { registerPerfScenarioCommand } from './perf/scenarioCommand';
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {
@@ -73,6 +74,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   registerSaveHandler(context, provider);
   registerFileWatcher(context, provider);
   registerCommands(context, provider);
+  registerPerfScenarioCommand(context, provider);
   diagnostics.emit({
     area: 'extension.lifecycle',
     event: 'activation-completed',

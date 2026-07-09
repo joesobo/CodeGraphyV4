@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { activate } from '../../src/extension/activate';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { PERF_SCENARIO_COMMAND_ID } from '../../src/extension/perf/scenarioCommand';
 
 function makeMockContext() {
   return {
@@ -23,7 +24,23 @@ function getRegisteredProvider(): GraphViewProvider {
 describe('activate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    delete process.env.CODEGRAPHY_PERF;
     (vscode.extensions as unknown as { all: unknown[] }).all = [];
+  });
+
+  afterEach(() => {
+    delete process.env.CODEGRAPHY_PERF;
+  });
+
+  it('registers the hidden scenario command in performance mode', () => {
+    process.env.CODEGRAPHY_PERF = '1';
+
+    activate(makeMockContext() as unknown as vscode.ExtensionContext);
+
+    expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+      PERF_SCENARIO_COMMAND_ID,
+      expect.any(Function),
+    );
   });
 
   it('dispatches webview messages through the provider', async () => {

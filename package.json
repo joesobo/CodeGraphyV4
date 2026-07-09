@@ -35,6 +35,8 @@
 		"release:publish": "node scripts/release.mjs publish",
 		"typecheck": "turbo run typecheck && pnpm run typecheck:perf",
 		"typecheck:perf": "tsc --noEmit -p perf/tsconfig.json",
+		"perf": "pnpm run perf:build && tsx perf/run.ts",
+		"perf:build": "pnpm --filter @codegraphy-dev/extension run build:vscode",
 		"perf:generate": "tsx perf/fixtures/generate.ts",
 		"prepare": "husky"
 	},
@@ -258,7 +260,8 @@
 		"turbo": "^2.5.8",
 		"typescript": "^5.3.3",
 		"typescript-eslint": "^8.0.0",
-		"vitest": "^3.0.0"
+		"vitest": "^3.0.0",
+		"zod": "^4.3.6"
 	},
 	"overrides": {
 		"mocha": {

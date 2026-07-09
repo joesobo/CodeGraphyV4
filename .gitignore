@@ -20,6 +20,7 @@ packages/extension/tests/playwright-vscode/generated-ir/
 .turbo/
 reports/
 /perf/fixtures/generated/
+/perf/results/
 .stryker-tmp/
 .pnpm-store/
 .codegraphy/*
