@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    { "name": "small", "kind": "generated", "fileCount": 100 },
+    { "name": "medium", "kind": "generated", "fileCount": 1000 },
+    { "name": "large", "kind": "generated", "fileCount": 5000 },
+    { "name": "huge", "kind": "generated", "fileCount": 10000 },
+    { "name": "giant", "kind": "generated", "fileCount": 30000 },
+    { "name": "self", "kind": "workspace", "path": "../.." }
+  ]
+}

@@ -200,7 +200,7 @@ Committed as `docs/plans/explorer-parity-checklist.md` in Task 2.1; gate 2-A cou
 
 Seeded, zero-randomness generator (file *i* imports files *i/2*, *i/3*): `small` 100 · `medium` 1,000 · `large` 5,000 · `huge` 10,000 · **`giant` 30,000 files (~36k nodes — deliberately past Obsidian's ~25k documented ceiling)** · `self` = this monorepo. `giant` also gets a symbol-heavy variant flag (`--symbols`) that enables symbol/variable nodes for Phase 4 scenarios.
 
-- [ ] `perf/fixtures/generate.ts` + `manifest.json`; unit test: regenerate twice → identical tree hash. Commit.
+- [x] `perf/fixtures/generate.ts` + `manifest.json`; unit test: regenerate twice → identical tree hash. Commit.
 
 ### Task 1.2: In-window scenario runner
 
