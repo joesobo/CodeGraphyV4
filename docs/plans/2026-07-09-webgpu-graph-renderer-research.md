@@ -471,6 +471,60 @@ renderer as normal graph projection data.
 Future declarative graph styling can still exist, but it should be a narrow core
 or projection feature rather than a general "plugin gets the renderer" interface.
 
+## The Extension-Host Hop
+
+The renderer does not receive data from the core directly. Every payload
+crosses: core stdio -> extension host (Node) -> `webview.postMessage` ->
+webview. Two facts govern this path:
+
+- VS Code webview messaging JSON-serializes by default, which is pathological
+  for typed arrays; VS Code added explicit ArrayBuffer transfer support
+  ([issue #115807](https://github.com/microsoft/vscode/issues/115807),
+  [PR #148429](https://github.com/microsoft/vscode/pull/148429)). The renderer
+  payload format must be flat binary buffers passed via the transfer parameter,
+  never per-node JSON objects.
+- `SharedArrayBuffer` requires cross-origin isolation and should not be assumed
+  available inside webviews.
+
+Design rule: the extension host never parses graph payloads. It forwards
+binary frames from the core to the webview untouched. In VS Code Remote
+scenarios the core runs on the remote host while the webview (and GPU) run on
+the client, so the payload also crosses the network — one more reason diffs
+and compact binary formats are non-negotiable.
+
+## GPU-Resident Positions Have Consumers
+
+Level 3 (compute layout) keeps positions in GPU buffers, but several features
+need positions on the CPU:
+
+- hit testing via spatial index;
+- node drag (write user position back into the sim);
+- context menu placement, `graphToScreen`, fit-to-bounds;
+- persisting layout snapshots to the core cache.
+
+So Level 3 still needs a throttled async readback (`mapAsync` on a staging
+buffer, e.g. every N frames), or GPU color-picking plus GPU-computed bounds to
+avoid readback for interaction. Budget this as part of Level 3's design, not
+as a surprise; naive per-frame synchronous readback would erase the win.
+
+## Performance Budgets And Test Matrix
+
+The plan should commit to numbers before code exists, and measure the current
+renderer first so wins are provable:
+
+- Baseline: measure react-force-graph FPS and interaction latency at 1k / 10k
+  / 50k nodes on the current stack (the screenshot harness can host this).
+- Suggested targets: 60fps pan/zoom at 100k nodes / 300k edges; < 16ms
+  hit-test; < 100ms full projection swap at 100k nodes; force-control changes
+  reflected next frame.
+- Platform matrix: macOS (Metal), Windows (D3D12), Linux (Vulkan — Electron
+  has a history of `requestAdapter()` returning null on Linux,
+  [electron#41763](https://github.com/electron/electron/issues/41763)), plus
+  VS Code Remote (client GPU) and a software-rendering/VM case that must hit
+  the Canvas fallback cleanly.
+- Device loss: suspend/resume and driver-reset recovery is a test case, not an
+  afterthought.
+
 ## Performance Strategy
 
 For the "giant graphs moving fast" dream, prioritize:
@@ -535,16 +589,26 @@ Rust core computes compact graph projection/diffs
   -> React owns controls, panels, plugin UI slots
 ```
 
-## Open Questions
+## Open Questions With Leanings
 
 - Should 3D remain `react-force-graph-3d` while 2D goes custom WebGPU?
-- Should layout be d3-compatible at first or should we jump to a new force model?
-- How much of DAG mode is essential?
-- Do we keep Canvas plugin renderers through a compatibility overlay, remove
-  direct graph-renderer plugin hooks, or migrate only selected capabilities to
-  declarative styling?
-- Where should persistent layout coordinates live in the Rust/SQLite future?
-- What is the target scale: 10k nodes, 100k nodes, or "whatever the machine can
-  reasonably show"?
-- What should dense graph mode hide first: labels, icons, particles, arrows, or
-  low-importance edges?
+  Leaning: yes. 3D is already WebGL via Three.js and is not the performance
+  pain point. Freezing 3D as legacy keeps the WebGPU scope honest.
+- Should layout be d3-compatible at first or should we jump to a new force
+  model? Leaning: keep the current d3 simulation verbatim behind the layout
+  interface for step 1, so renderer changes can be validated against pixel-
+  identical physics. New force models come only after the renderer is trusted.
+- How much of DAG mode is essential? Needs usage data; if kept, DAG is a layout
+  adapter, which the interface split already accommodates.
+- Plugin Canvas renderers: remove raw hooks, keep DOM slots, add declarative
+  styling later (per the plugin sections above). A compatibility Canvas overlay
+  layered on the WebGPU canvas is a plausible bridge if a real plugin needs it.
+- Persistent layout coordinates: SQLite table in the core cache keyed by stable
+  node id. Note the hard sub-problem is node identity across renames/moves —
+  positions keyed by path evaporate on refactors.
+- Target scale: recommend committing to a concrete tier — smooth at 100k
+  nodes / 300k edges, usable at 500k edges — because buffer formats, picking,
+  and LOD strategy all change shape depending on this answer.
+- Dense graph mode hiding order: particles first (pure decoration, per-frame
+  cost), then icons, then labels (keep zoom-gated labels for hovered/selected
+  neighborhoods), then arrows, then low-importance edges by weight.

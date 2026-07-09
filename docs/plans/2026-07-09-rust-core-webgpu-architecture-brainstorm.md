@@ -122,6 +122,171 @@ coordination is handled correctly. Architecturally there is still one core: one
 Rust codebase and one local cache format. There may simply be multiple running
 instances, just like multiple terminals can run the same CLI.
 
+## SQLite Multi-Process Coordination
+
+"SQLite write coordination is handled correctly" is doing a lot of work in the
+multi-window model and needs a concrete design:
+
+- Open the cache in WAL mode with a generous `busy_timeout`. WAL allows many
+  readers concurrent with one writer, which matches the desired shape.
+- Elect a single indexer per workspace. If Window A and Window B both start
+  `codegraphy stdio` against the same workspace, only one process should run
+  the watcher/indexer; the other should be a reader. A simple election is an
+  advisory lock (a locked row or a separate lock file with the writer's PID and
+  a heartbeat timestamp). When the writer exits, a reader promotes itself.
+- Readers need a change signal. A monotonically increasing `revision` value in
+  a metadata table plus either polling on a slow timer or a filesystem watch on
+  the WAL file is enough for readers to know "re-run my active projection and
+  send a diff."
+- Migrations must be guarded by the same writer election so two processes never
+  race a schema upgrade.
+
+This also answers "are per-window processes wasteful": readers are cheap; only
+the elected writer pays for watching and indexing.
+
+## File Watching Ownership
+
+`watchWorkspace` appears in the protocol list but the watcher's owner is
+undecided, and it matters:
+
+- If the Rust core owns watching (e.g. the `notify` crate), the CLI and MCP
+  surfaces get incremental indexing for free, but each core process needs the
+  writer election above to avoid N watchers per workspace.
+- If the VS Code extension forwards its own file events into the core, the
+  extension inherits VS Code's efficient platform watcher and remote support,
+  but then CLI/MCP long-lived sessions need their own watch path anyway.
+
+Recommendation: the core owns watching (single code path for all surfaces),
+gated behind the writer election, with debounced incremental re-index. The
+extension may additionally forward save events for lower latency on the file
+the user is editing.
+
+## Where The Binary Runs: Remote, Containers, Web
+
+This is the biggest gap in the current draft. VS Code is not always one local
+process:
+
+- Remote SSH / WSL / dev containers: the extension host runs on the remote
+  machine, next to the workspace files. `codegraphy stdio` must run there too,
+  which means the extension needs the right binary for the *remote* platform,
+  not the user's laptop. The webview (and therefore the WebGPU renderer) runs
+  on the local client — this split is actually favorable: indexing happens
+  where the files are, rendering happens where the GPU is. The graph payload
+  crosses the remote channel, which strengthens the case for compact binary
+  projections and diffs.
+- vscode.dev / github.dev: there is no process spawn at all. Options are a
+  wasm build of the core running in a web worker (Tree-sitter and SQLite both
+  have wasm stories), or simply declaring web unsupported initially. Decide
+  deliberately; do not discover this later.
+- Platform matrix: macOS arm64/x64, Windows x64/arm64, Linux gnu/musl
+  x64/arm64. Biome and esbuild both ship platform-specific packages;
+  platform-specific VSIXes are the VS Code equivalent.
+
+## Binary Distribution And Version Skew
+
+- Prefer bundling the binary in platform-specific VSIXes (the repo already
+  builds platform VSIXes for Tree-sitter natives, so this pipeline exists),
+  with a `codegraphy.path` setting to override with a user-installed binary,
+  Deno/Biome style.
+- The `initialize` handshake must exchange protocol versions and refuse or
+  degrade cleanly on mismatch. Version skew is guaranteed once the CLI can be
+  installed independently of the extension.
+- Windows file locking of a running binary during extension update needs the
+  Biome-style copy-to-temp workaround.
+
+## Protocol Details Worth Deciding Early
+
+- Do not invent framing. JSON-RPC 2.0 with LSP-style `Content-Length` framing
+  gets mature client/server libraries on both sides, plus a well-understood
+  model for requests, notifications, cancellation (`$/cancelRequest`), and
+  progress (`$/progress`). Indexing is long-running; cancellation and progress
+  are day-one requirements, not extensions.
+- JSON is fine for control messages but wrong for graph payloads: typed arrays
+  become base64 or number arrays, and the cost is paid again at every hop.
+  Reserve a binary frame type (length-prefixed, referenced from a JSON-RPC
+  result by id) for projections and diffs.
+- Define revision semantics for diffs: every projection and diff carries the
+  revision it was computed from; a client that misses a diff or reconnects
+  requests a full snapshot. Snapshot + ordered diff log is the model.
+
+## One Flat Binary Path End To End
+
+The single biggest cross-cutting performance idea, and the reason the Rust
+core and the WebGPU renderer belong in the same conversation:
+
+```text
+Rust core builds struct-of-arrays projection
+  (positions?, node ids, sizes, colors as flat typed buffers)
+  -> binary frame over stdio (no JSON, no base64)
+  -> extension holds it as a Uint8Array, does not parse it
+  -> webview.postMessage(msg, [buffer]) transfers the ArrayBuffer
+  -> webview writes it straight into GPU buffers (queue.writeBuffer)
+```
+
+VS Code added ArrayBuffer transfer to webview messaging precisely because
+JSON-serializing typed arrays was pathologically slow
+([issue #115807](https://github.com/microsoft/vscode/issues/115807),
+[PR #148429](https://github.com/microsoft/vscode/pull/148429) extended it to
+webview views). Do not count on `SharedArrayBuffer` in webviews — it requires
+cross-origin isolation headers the webview host does not guarantee.
+
+The payoff: node and edge data is encoded once in Rust and decoded zero times.
+The extension host is a dumb pipe. If any hop reintroduces per-node JS objects,
+most of the Rust rewrite's rendering benefit is lost. This constraint should
+shape the projection format before either the core or the renderer is built.
+
+## Plugin Migration Cost
+
+The draft describes the plugin end state but not what happens to the seven
+existing TS plugins (typescript, vue, svelte, godot, unity, markdown,
+particles). Looking at their actual shape:
+
+- They are imperative TS with hooks (`analyzeFile`, `onPreAnalyze`,
+  `onFilesChanged`) and real logic — e.g. the TypeScript plugin implements
+  tsconfig path-alias resolution. A purely declarative "tree-sitter queries +
+  mapping manifest" format would cover the simple analyzers but not these.
+- Realistic options per plugin: (a) fold into the Rust core as built-in
+  analyzers (likely right for typescript/markdown — they are near-core), (b)
+  rewrite as Wasm plugins, (c) run under a JS compatibility host (Oxc-style),
+  (d) stay webview-only (particles needs no core at all).
+- Whatever the path, build a differential harness first: run the Rust indexer
+  and the current TS indexer over fixture repos and diff emitted facts. That
+  harness is also the rewrite's acceptance test.
+
+## Wasm Runtime Specifics
+
+- Runtime: Wasmtime with the component model and WIT-defined interfaces is the
+  current best practice for typed plugin ABIs (this is where the ecosystem
+  SWC/Zed pointed at is converging).
+- Resource limits: use epoch interruption or fuel so a misbehaving plugin
+  cannot hang indexing — this is the rust-analyzer proc-macro lesson applied
+  to Wasm.
+- Parse once: plugins must not each bundle their own Tree-sitter and re-parse
+  files. The host should parse once and expose an AST/query API through the
+  plugin interface. This is both a performance and a plugin-size decision, and
+  it constrains the WIT interface early.
+
+## Migration Sequencing
+
+The end state is well described but there is no strangler path. A workable
+order, each step shippable:
+
+```text
+1. Renderer seam in the webview (GraphRenderer interface, react-force-graph
+   behind it). Pure TS, no Rust dependency, immediately useful.
+2. WebGPU 2D renderer behind the seam, CPU layout. Biggest visible win,
+   independent of the core rewrite.
+3. Rust indexer as a sidecar: `codegraphy stdio` produces graph facts, the
+   existing extension consumes them behind the current data layer, validated
+   by the differential harness.
+4. Move query/search/filter/projection into the core; extension data layer
+   shrinks to a protocol client.
+5. Plugin runtime (Wasm host), migrate plugins per the table above.
+6. CLI/MCP surfaces over the now-proven core.
+```
+
+Steps 1–2 and 3–4 are independent tracks and can proceed in parallel.
+
 ## Why Not A Server
 
 This direction intentionally avoids an always-on CodeGraphy server.
