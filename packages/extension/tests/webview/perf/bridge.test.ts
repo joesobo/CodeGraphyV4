@@ -158,6 +158,32 @@ describe('webview/perf/bridge', () => {
     });
   });
 
+  it('emits a scope metric with its row-specific dimension', () => {
+    const { bridge, postMessage } = setup();
+    bridge.handleControl(armMessage);
+    const armedOperation = bridge.getArmedOperation();
+    if (!armedOperation) throw new Error('Expected an armed operation');
+
+    expect(bridge.emitFor(armedOperation, {
+      kind: 'metric',
+      metric: 'scopeToggleMs',
+      dimension: 'node:file',
+      value: 8,
+      unit: 'ms',
+    })).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        dimension: 'node:file',
+        kind: 'metric',
+        metric: 'scopeToggleMs',
+        value: 8,
+        unit: 'ms',
+      },
+    });
+  });
+
   it('rejects malformed event payloads', () => {
     const { bridge, postMessage } = setup();
     bridge.handleControl(armMessage);

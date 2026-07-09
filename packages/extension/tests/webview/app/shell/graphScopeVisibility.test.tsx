@@ -92,6 +92,7 @@ describe('useDebouncedGraphScopeVisibility', () => {
       edgeVisibility: initialEdgeVisibility,
       nodeVisibility: initialNodeVisibility,
     });
+    const initialProjectionRevision = result.current;
 
     rerender({
       edgeVisibility: initialEdgeVisibility,
@@ -106,6 +107,7 @@ describe('useDebouncedGraphScopeVisibility', () => {
       edgeVisibility: initialEdgeVisibility,
       nodeVisibility: initialNodeVisibility,
     });
+    expect(result.current).toBe(initialProjectionRevision);
 
     rerender({
       edgeVisibility: finalEdgeVisibility,
@@ -120,5 +122,6 @@ describe('useDebouncedGraphScopeVisibility', () => {
       edgeVisibility: finalEdgeVisibility,
       nodeVisibility: finalNodeVisibility,
     });
+    expect(result.current).not.toBe(initialProjectionRevision);
   });
 });

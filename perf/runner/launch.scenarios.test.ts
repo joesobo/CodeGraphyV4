@@ -20,6 +20,10 @@ describe('performance VS Code scenario launcher', () => {
         fixture: 'small',
         runId: 'small-rename-1',
         scenario: 'rename',
+        comparison: {
+          codeGraphyRevealMs: 7,
+          explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+        },
         metrics: [{
           dimension: 'small',
           metric: 'fileOpRoundtripMs',
@@ -41,6 +45,39 @@ describe('performance VS Code scenario launcher', () => {
     }, { runTests });
 
     expect(result.scenario).toBe('rename');
+    expect(result.comparison).toEqual({
+      codeGraphyRevealMs: 7,
+      explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+    });
+  });
+
+  it('rejects a strict comparison payload from another scenario', async () => {
+    const resultRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-comparison-'));
+    onTestFinished(() => rm(resultRoot, { recursive: true, force: true }));
+    const resultPath = join(resultRoot, 'create.json');
+    const runTests = vi.fn(async () => {
+      await writeFile(resultPath, JSON.stringify({
+        schemaVersion: 1,
+        fixture: 'small',
+        runId: 'small-create-1',
+        scenario: 'create',
+        comparison: {
+          codeGraphyRevealMs: 7,
+          explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+        },
+        metrics: [{ metric: 'fileOpRoundtripMs', unit: 'ms', value: 15 }],
+      }));
+      return 0;
+    });
+
+    await expect(launchPerfSession({
+      fixture: 'small',
+      repoRoot: resolve('.'),
+      resultPath,
+      runId: 'small-create-1',
+      scenario: 'create',
+      vscodeVersion: '1.128.0',
+    }, { runTests })).rejects.toThrow();
   });
 
   it('rejects a result whose scenario differs from the launch request', async () => {
@@ -76,6 +113,8 @@ describe('performance VS Code scenario launcher', () => {
     const runTests = vi.fn(async (options: RunVSCodeTestsOptions) => {
       expect(options.extensionTestsEnv.CODEGRAPHY_PERF_IDLE_READY_PATH)
         .toBe(`${resultPath}.idle-ready`);
+      expect(options.extensionTestsEnv.CODEGRAPHY_PERF_IDLE_DONE_PATH)
+        .toBe(`${resultPath}.idle-done`);
       await writeFile(resultPath, JSON.stringify({
         schemaVersion: 1,
         fixture: 'small',
@@ -117,5 +156,61 @@ describe('performance VS Code scenario launcher', () => {
       value: 0.5,
     });
     expect(JSON.parse(await readFile(resultPath, 'utf8'))).toEqual(result);
+  });
+
+  it('waits for the VS Code test run before cleaning up after a sampler failure', async () => {
+    const resultRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-idle-failure-'));
+    onTestFinished(() => rm(resultRoot, { recursive: true, force: true }));
+    const resultPath = join(resultRoot, 'idle.json');
+    const markerPath = `${resultPath}.idle-ready`;
+    const doneMarkerPath = `${resultPath}.idle-done`;
+    let finishTest: ((exitCode: number) => void) | undefined;
+    const runTests = vi.fn(() => new Promise<number>((resolve) => {
+      finishTest = resolve;
+    }));
+    const waitForIdleReady = vi.fn(async (path: string) => {
+      await writeFile(path, 'run-idle-failure\n', 'utf8');
+    });
+    const sampleIdleCpu = vi.fn(async () => {
+      throw new Error('idle sampler failed');
+    });
+    const launch = launchPerfSession({
+      environment: {
+        dispose: vi.fn(async () => {}),
+        extensionsPath: resultRoot,
+        fixture: 'small',
+        homePath: resultRoot,
+        rootPath: resultRoot,
+        symbols: false,
+        userDataPath: resultRoot,
+        workspacePath: resultRoot,
+      },
+      fixture: 'small',
+      repoRoot: resolve('.'),
+      resultPath,
+      runId: 'run-idle-failure',
+      scenario: 'idle-watch',
+      vscodeVersion: '1.128.0',
+    }, { runTests, sampleIdleCpu, waitForIdleReady });
+    let settled = false;
+    const observed = launch.then(
+      value => ({ value }),
+      (error: unknown) => ({ error }),
+    ).finally(() => { settled = true; });
+
+    await vi.waitFor(() => expect(sampleIdleCpu).toHaveBeenCalledOnce());
+    await new Promise<void>(resolveImmediate => { setImmediate(resolveImmediate); });
+
+    expect(settled).toBe(false);
+    await expect(readFile(markerPath, 'utf8')).resolves.toBe('run-idle-failure\n');
+    await expect(readFile(doneMarkerPath, 'utf8')).resolves.toBe('run-idle-failure\n');
+
+    finishTest?.(0);
+    const outcome = await observed;
+    expect('error' in outcome ? outcome.error : undefined).toEqual(
+      expect.objectContaining({ message: 'idle sampler failed' }),
+    );
+    await expect(readFile(markerPath, 'utf8')).rejects.toThrow();
+    await expect(readFile(doneMarkerPath, 'utf8')).rejects.toThrow();
   });
 });

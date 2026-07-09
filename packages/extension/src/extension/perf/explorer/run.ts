@@ -16,6 +16,7 @@ import {
 import type { FileMutationPerfScenario } from '../scenarios/fileMutation/targets';
 
 export interface RunExplorerMutationComparisonInput {
+  dimension: string;
   scenario: FileMutationPerfScenario;
   timeoutMs?: number;
   waitForRefreshIdle: () => Promise<void>;
@@ -51,7 +52,7 @@ async function restoreAndDrain(
   before: ReadonlyMap<string, FileState>,
   runtime: ExplorerComparisonRuntime,
 ): Promise<void> {
-  const target = createExplorerComparisonTargets()[input.scenario];
+  const target = createExplorerComparisonTargets(input.dimension)[input.scenario];
   try {
     await input.waitForRefreshIdle();
   } finally {
@@ -67,7 +68,7 @@ export async function runExplorerMutationComparison(
   input: RunExplorerMutationComparisonInput,
   runtime: ExplorerComparisonRuntime = explorerComparisonRuntime,
 ): Promise<ExplorerMutationMeasurement> {
-  const target = createExplorerComparisonTargets()[input.scenario];
+  const target = createExplorerComparisonTargets(input.dimension)[input.scenario];
   const before = await captureFileStates(
     input.workspaceFolderUri,
     target.observedPaths,
@@ -91,6 +92,7 @@ export async function runExplorerMutationComparison(
         applied = await adapter.apply();
         return applied;
       },
+      completeVisibility: () => runtime.revealInExplorer(adapter.visibilityUri),
       timeoutMs: input.timeoutMs,
     }, runtime);
   } finally {

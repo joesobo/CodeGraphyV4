@@ -12,6 +12,7 @@ export interface ExplorerMutationAdapter {
   label: 'rename' | 'create' | 'delete';
   apply: () => Promise<boolean>;
   matches: (event: ExplorerMutationWorkspaceEvent) => boolean;
+  visibilityUri: vscode.Uri;
   subscribe: (
     listener: (event: ExplorerMutationWorkspaceEvent) => void,
   ) => ExplorerMeasurementDisposable;
@@ -19,6 +20,17 @@ export interface ExplorerMutationAdapter {
 
 function sameUri(left: vscode.Uri, right: vscode.Uri): boolean {
   return left.fsPath === right.fsPath;
+}
+
+function parentUri(
+  workspaceFolderUri: vscode.Uri,
+  filePath: string,
+  runtime: ExplorerComparisonRuntime,
+): vscode.Uri {
+  const separatorIndex = filePath.lastIndexOf('/');
+  return separatorIndex < 0
+    ? workspaceFolderUri
+    : runtime.joinPath(workspaceFolderUri, filePath.slice(0, separatorIndex));
 }
 
 export function createExplorerMutationAdapter(
@@ -37,6 +49,7 @@ export function createExplorerMutationAdapter(
         matches: event => (event as vscode.FileRenameEvent).files.some(file =>
           sameUri(file.oldUri, oldUri) && sameUri(file.newUri, newUri)),
         subscribe: listener => runtime.onDidRenameFiles(event => listener(event)),
+        visibilityUri: newUri,
       };
     }
     case 'create': {
@@ -47,6 +60,7 @@ export function createExplorerMutationAdapter(
         matches: event => (event as vscode.FileCreateEvent).files
           .some(file => sameUri(file, uri)),
         subscribe: listener => runtime.onDidCreateFiles(event => listener(event)),
+        visibilityUri: uri,
       };
     }
     case 'delete': {
@@ -61,6 +75,7 @@ export function createExplorerMutationAdapter(
         matches: event => (event as vscode.FileDeleteEvent).files
           .some(file => sameUri(file, uri)),
         subscribe: listener => runtime.onDidDeleteFiles(event => listener(event)),
+        visibilityUri: parentUri(workspaceFolderUri, path, runtime),
       };
     }
   }

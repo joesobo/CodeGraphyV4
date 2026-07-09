@@ -4,22 +4,40 @@ import { measureExplorerRevealComparison } from '../../../../src/extension/perf/
 import type { ExplorerComparisonRuntime } from '../../../../src/extension/perf/explorer/runtime';
 
 describe('extension/perf/explorer/reveal', () => {
-  it('measures reveal command completion plus a dispatch turn', async () => {
-    const uri = { fsPath: '/fixture/src/file.ts' } as vscode.Uri;
-    const revealInExplorer = vi.fn(async () => undefined);
-    const waitForWorkbenchDispatchTurn = vi.fn(async () => undefined);
+  it('neutralizes selection before starting the target reveal measurement', async () => {
+    const order: string[] = [];
+    const uri = { fsPath: '/fixture/src/target.ts' } as vscode.Uri;
+    const neutralUri = { fsPath: '/fixture/src/neutral.ts' } as vscode.Uri;
+    let nowCall = 0;
+    const revealInExplorer = vi.fn(async (nextUri: vscode.Uri) => {
+      order.push(`reveal:${nextUri.fsPath}`);
+    });
+    const waitForWorkbenchDispatchTurn = vi.fn(async () => {
+      order.push('dispatch');
+    });
     const runtime = {
-      now: vi.fn().mockReturnValueOnce(10).mockReturnValueOnce(27),
+      now: vi.fn(() => {
+        const started = nowCall === 0;
+        nowCall += 1;
+        order.push(started ? 'start' : 'stop');
+        return started ? 10 : 27;
+      }),
       revealInExplorer,
       waitForWorkbenchDispatchTurn,
     } as unknown as ExplorerComparisonRuntime;
 
-    await expect(measureExplorerRevealComparison(uri, runtime)).resolves.toEqual({
+    await expect(measureExplorerRevealComparison(uri, neutralUri, runtime)).resolves.toEqual({
       metric: 'explorerRevealMs',
       observation: "commands.executeCommand('revealInExplorer')",
       value: 17,
     });
-    expect(revealInExplorer).toHaveBeenCalledWith(uri);
-    expect(waitForWorkbenchDispatchTurn).toHaveBeenCalledOnce();
+    expect(order).toEqual([
+      'reveal:/fixture/src/neutral.ts',
+      'dispatch',
+      'start',
+      'reveal:/fixture/src/target.ts',
+      'dispatch',
+      'stop',
+    ]);
   });
 });

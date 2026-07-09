@@ -14,7 +14,7 @@ export async function applyNodeFileNavigationMessage(
 ): Promise<boolean> {
   switch (message.type) {
     case 'REVEAL_IN_EXPLORER':
-      void handlers.revealInExplorer(message.payload.path);
+      await handlers.revealInExplorer(message.payload.path);
       return true;
 
     case 'COPY_TO_CLIPBOARD':

@@ -37,6 +37,7 @@ interface GraphProps {
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
+  projectionRevision?: object;
 }
 
 function hasGraphViewContributions(
@@ -91,6 +92,7 @@ export default function Graph({
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
+  projectionRevision,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const appearance = useGraphAppearance(theme);
@@ -121,6 +123,7 @@ export default function Graph({
     edgeCount: graphRuntime.renderer.graphData.links.length,
     layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
     nodeCount: graphNodeCount,
+    projectionRevision,
     revision: data,
   });
   const isMacPlatform = detectMacPlatform(getGraphNavigator());

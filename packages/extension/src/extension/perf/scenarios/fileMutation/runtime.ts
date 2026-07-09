@@ -6,7 +6,11 @@ import {
 } from '../../../graphView/provider/file/mutations';
 import { getUndoManager } from '../../../undoManager';
 import type { GraphViewProvider } from '../../../graphViewProvider';
-import { waitForWorkspaceRefreshIdle } from '../../../workspaceFiles/refresh/scheduler';
+import {
+  armWorkspaceRefreshIdleWait,
+  waitForWorkspaceRefreshIdle,
+  type ArmedWorkspaceRefreshIdleWait,
+} from '../../../workspaceFiles/refresh/scheduler';
 import type { ReadWorkspaceFile } from './snapshot';
 
 export interface FileMutationScenarioDependencies {
@@ -36,4 +40,13 @@ export function createFileMutationRefreshIdleWaiter(
   provider: GraphViewProvider,
 ): () => Promise<void> {
   return () => waitForWorkspaceRefreshIdle(provider, { quietMs: 32 });
+}
+
+export function createFileMutationRefreshIdleArm(
+  provider: GraphViewProvider,
+): () => ArmedWorkspaceRefreshIdleWait {
+  return () => armWorkspaceRefreshIdleWait(
+    provider,
+    { quietMs: 32, timeoutMs: 30_000 },
+  );
 }

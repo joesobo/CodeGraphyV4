@@ -5,6 +5,7 @@ import { createWebviewPerfBridge } from '../../../../src/webview/perf/bridge';
 import {
   createWebviewGraphPerfControl,
   type GraphPerfScenarioTarget,
+  type ScopePerfScenarioTarget,
 } from '../../../../src/webview/perf/graph/control';
 
 const operation: PerfOperation = {
@@ -15,7 +16,8 @@ const operation: PerfOperation = {
 };
 
 function setup() {
-  const bridge = createWebviewPerfBridge({ postMessage: vi.fn() });
+  const postMessage = vi.fn();
+  const bridge = createWebviewPerfBridge({ postMessage });
   const control = createWebviewGraphPerfControl({ bridge });
   const target: GraphPerfScenarioTarget = {
     cancel: vi.fn(),
@@ -24,8 +26,15 @@ function setup() {
     startIdleWatch: vi.fn(),
     startInteractionBurst: vi.fn(),
   };
+  const scopeTarget: ScopePerfScenarioTarget = {
+    cancel: vi.fn(),
+    graphControlsUpdated: vi.fn(),
+    requestInventory: vi.fn(),
+    toggle: vi.fn(() => true),
+  };
   control.attachTarget(target);
-  return { bridge, control, target };
+  const detachScopeTarget = control.attachScopeTarget(scopeTarget);
+  return { bridge, control, detachScopeTarget, postMessage, scopeTarget, target };
 }
 
 describe('webview/perf/graph/control', () => {
@@ -84,6 +93,164 @@ describe('webview/perf/graph/control', () => {
       expect.objectContaining(operation),
       60_000,
     );
+  });
+
+  it('dispatches explicit scope inventory and toggle commands', () => {
+    const { control, scopeTarget } = setup();
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'request-scope-inventory',
+        operationId: operation.operationId,
+      },
+    });
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'toggle-scope',
+        operationId: operation.operationId,
+        scopeKind: 'edge',
+        scopeId: 'imports',
+        enabled: false,
+      },
+    });
+
+    expect(scopeTarget.requestInventory).toHaveBeenCalledWith(expect.objectContaining(operation));
+    expect(scopeTarget.toggle).toHaveBeenCalledWith(expect.objectContaining(operation), {
+      scopeKind: 'edge',
+      scopeId: 'imports',
+      enabled: false,
+    });
+  });
+
+  it('emits a correlated rejection when no scope target is attached', () => {
+    const { control, detachScopeTarget, postMessage } = setup();
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+    detachScopeTarget();
+
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'toggle-scope',
+        operationId: operation.operationId,
+        scopeKind: 'node',
+        scopeId: 'file',
+        enabled: false,
+      },
+    });
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        kind: 'scope-toggle-rejected',
+        scopeKind: 'node',
+        scopeId: 'file',
+        enabled: false,
+        reason: 'target-unavailable',
+      },
+    });
+  });
+
+  it('emits a correlated rejection when inventory has no scope target', () => {
+    const { control, detachScopeTarget, postMessage } = setup();
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+    detachScopeTarget();
+
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'request-scope-inventory',
+        operationId: operation.operationId,
+      },
+    });
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        kind: 'scope-inventory-rejected',
+        reason: 'target-unavailable',
+      },
+    });
+  });
+
+  it('emits a correlated rejection when the scope target declines a toggle', () => {
+    const { control, postMessage, scopeTarget } = setup();
+    vi.mocked(scopeTarget.toggle).mockReturnValue(false);
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'toggle-scope',
+        operationId: operation.operationId,
+        scopeKind: 'edge',
+        scopeId: 'imports',
+        enabled: true,
+      },
+    });
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        kind: 'scope-toggle-rejected',
+        scopeKind: 'edge',
+        scopeId: 'imports',
+        enabled: true,
+        reason: 'toggle-unavailable',
+      },
+    });
+  });
+
+  it('forwards graph-control host echoes to the scope target', () => {
+    const { control, scopeTarget } = setup();
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+    const payload = {
+      nodeTypes: [],
+      edgeTypes: [],
+      nodeColors: {},
+      nodeVisibility: {},
+      edgeVisibility: {},
+    };
+
+    control.handleExtensionMessage({ type: 'GRAPH_CONTROLS_UPDATED', payload });
+
+    expect(scopeTarget.graphControlsUpdated).toHaveBeenCalledWith(payload);
+  });
+
+  it('does not inspect graph-control echoes while performance collection is disarmed', () => {
+    const { control, scopeTarget } = setup();
+
+    expect(control.handleExtensionMessage({
+      type: 'GRAPH_CONTROLS_UPDATED',
+      payload: {
+        nodeTypes: [],
+        edgeTypes: [],
+        nodeColors: {},
+        nodeVisibility: {},
+        edgeVisibility: {},
+      },
+    })).toBe(false);
+    expect(scopeTarget.graphControlsUpdated).not.toHaveBeenCalled();
   });
 
   it('cancels in-flight work before replacing the armed operation', () => {

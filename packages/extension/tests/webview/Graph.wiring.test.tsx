@@ -244,6 +244,7 @@ describe('Graph wiring', () => {
 
 	it('passes store-backed runtime settings into the graph state, interaction runtime, and viewport shell', () => {
 		const favorites = new Set(['src/app.ts']);
+		const projectionRevision = {};
 		setStoreState({
 			bidirectionalMode: 'line',
 			depthMode: true,
@@ -258,7 +259,13 @@ describe('Graph wiring', () => {
 			timelineActive: true,
 		});
 
-		render(<Graph data={baseData} theme="light" />);
+		render(
+			<Graph
+				data={baseData}
+				projectionRevision={projectionRevision}
+				theme="light"
+			/>,
+		);
 
 		expect(harness.useGraphRuntime).toHaveBeenCalledWith(expect.objectContaining({
 			bidirectionalMode: 'line',
@@ -305,6 +312,7 @@ describe('Graph wiring', () => {
 			edgeCount: 1,
 			layoutKey: 'file-size::src/app.ts|src/lib.ts::src/app.ts->src/lib.ts',
 			nodeCount: 2,
+			projectionRevision,
 			revision: baseData,
 		});
 		expect(harness.useGraphPerfScenarios).toHaveBeenCalledWith(expect.objectContaining({

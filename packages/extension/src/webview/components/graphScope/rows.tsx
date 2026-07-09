@@ -4,17 +4,16 @@ import type {
   IGraphNodeTypeDefinition,
   IGraphTypeDescription,
 } from '../../../shared/graphControls/contracts';
-import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults/edgeTypes';
 import { cn } from '../ui/cn';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
 import { Switch } from '../ui/switch';
-import { graphStore } from '../../store/state';
 import {
-  scheduleEdgeVisibilityMessage,
-  scheduleNodeVisibilityMessage,
-} from './messages';
+  applyEdgeScopeVisibility,
+  applyNodeScopeVisibility,
+  resolveAvailableEdgeTypes,
+} from './visibility';
 
-const FOLDER_NODE_TYPE = 'folder';
+export { resolveAvailableEdgeTypes } from './visibility';
 
 interface ScopeRowProps {
   color?: string;
@@ -37,47 +36,6 @@ interface EdgeTypeRowsProps {
   edgeVisibility: Record<string, boolean>;
   graphHasIndex: boolean;
   nodeVisibility: Record<string, boolean>;
-}
-
-function getParentNodeTypeUpdates(
-  nodeTypes: IGraphNodeTypeDefinition[],
-  nodeTypeId: string,
-): Record<string, boolean> {
-  const nodeTypeById = new Map(nodeTypes.map((nodeType) => [nodeType.id, nodeType]));
-  const updates: Record<string, boolean> = {};
-  let current = nodeTypeById.get(nodeTypeId);
-
-  while (current?.parentId) {
-    updates[current.parentId] = true;
-    current = nodeTypeById.get(current.parentId);
-  }
-
-  return updates;
-}
-
-function updateNodeVisibilityOptimistically(
-  nodeTypes: IGraphNodeTypeDefinition[],
-  nodeTypeId: string,
-  visible: boolean,
-): void {
-  const parentUpdates = visible ? getParentNodeTypeUpdates(nodeTypes, nodeTypeId) : {};
-
-  graphStore.setState((state) => ({
-    nodeVisibility: {
-      ...state.nodeVisibility,
-      ...parentUpdates,
-      [nodeTypeId]: visible,
-    },
-  }));
-}
-
-function updateEdgeVisibilityOptimistically(edgeKind: string, visible: boolean): void {
-  graphStore.setState((state) => ({
-    edgeVisibility: {
-      ...state.edgeVisibility,
-      [edgeKind]: visible,
-    },
-  }));
 }
 
 export function resolveScopeRowClassName(enabled: boolean): string {
@@ -225,34 +183,12 @@ export function NodeTypeRows({
             enabled={enabled}
             label={nodeType.label}
             onCheckedChange={(visible) => {
-              updateNodeVisibilityOptimistically(nodeTypes, nodeType.id, visible);
-              scheduleNodeVisibilityMessage(nodeType.id, visible);
+              applyNodeScopeVisibility(nodeTypes, nodeType.id, visible);
             }}
           />
         );
       })}
     </>
-  );
-}
-
-export function resolveAvailableEdgeTypes(
-  edgeTypes: IGraphEdgeTypeDefinition[],
-  edgeVisibility: Record<string, boolean>,
-  graphHasIndex: boolean,
-  nodeVisibility: Record<string, boolean>,
-): IGraphEdgeTypeDefinition[] {
-  const folderNodesEnabled = nodeVisibility[FOLDER_NODE_TYPE] ?? false;
-  const structurallyVisibleEdgeTypes = folderNodesEnabled
-    ? edgeTypes
-    : edgeTypes.filter(edgeType => edgeType.id !== STRUCTURAL_NESTS_EDGE_KIND);
-  const visibleEdgeTypes = graphHasIndex
-    ? structurallyVisibleEdgeTypes
-    : structurallyVisibleEdgeTypes.filter(edgeType => edgeType.id === STRUCTURAL_NESTS_EDGE_KIND);
-
-  return visibleEdgeTypes.filter((edgeType) =>
-    !edgeType.requiresEdgeType
-    || edgeVisibility[edgeType.requiresEdgeType] === true
-    || edgeVisibility[edgeType.id] === true
   );
 }
 
@@ -279,8 +215,7 @@ export function EdgeTypeRows({
             enabled={enabled}
             label={edgeType.label}
             onCheckedChange={(visible) => {
-              updateEdgeVisibilityOptimistically(edgeType.id, visible);
-              scheduleEdgeVisibilityMessage(edgeType.id, visible);
+              applyEdgeScopeVisibility(edgeType.id, visible);
             }}
           />
         );

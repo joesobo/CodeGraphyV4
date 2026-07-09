@@ -1,12 +1,39 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import * as vscode from 'vscode';
 
 const perfHarness = vi.hoisted(() => ({
-  runNonOpenPerfScenario: vi.fn(async () => undefined),
+  runNonOpenPerfScenario: vi.fn<(...args: unknown[]) => Promise<unknown>>(
+    async () => undefined,
+  ),
+  runIdleWatchScenario: vi.fn(async (input: unknown) => {
+    const request = input as {
+      dimension: string;
+      onIdleStarted?: (event: unknown) => Promise<void> | void;
+      runId: string;
+    };
+    await request.onIdleStarted?.({
+      dimension: request.dimension,
+      durationMs: 60_000,
+      kind: 'idle-started',
+      operationId: `${request.runId}:idle-watch:${request.dimension}:0`,
+      runId: request.runId,
+      scenario: 'idle-watch',
+    });
+    return undefined;
+  }),
+  runInteractionBurstScenario: vi.fn(async () => undefined),
 }));
 
 vi.mock('../../../src/extension/perf/scenarios/run', () => ({
   runNonOpenPerfScenario: perfHarness.runNonOpenPerfScenario,
+}));
+
+vi.mock('../../../src/extension/perf/scenarios/webviewControl', () => ({
+  runIdleWatchScenario: perfHarness.runIdleWatchScenario,
+  runInteractionBurstScenario: perfHarness.runInteractionBurstScenario,
 }));
 
 import {
@@ -128,6 +155,12 @@ describe('performance scenario command', () => {
         payload: { hasIndex: true },
       });
     });
+    perfHarness.runNonOpenPerfScenario.mockResolvedValueOnce({
+      comparison: {
+        codeGraphyRevealMs: 7,
+        explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+      },
+    });
 
     registerPerfScenarioCommand(createContext(), provider as never);
     const command = vi.mocked(vscode.commands.registerCommand).mock.calls[0]?.[1] as
@@ -139,7 +172,12 @@ describe('performance scenario command', () => {
       scenario: 'rename',
       dimension: 'small',
       startedAt: 0,
-    })).resolves.toBeDefined();
+    })).resolves.toEqual(expect.objectContaining({
+      comparison: {
+        codeGraphyRevealMs: 7,
+        explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+      },
+    }));
     expect(perfHarness.runNonOpenPerfScenario).toHaveBeenCalledWith({
       dimension: 'small',
       provider,
@@ -149,7 +187,61 @@ describe('performance scenario command', () => {
     }, expect.any(Function), {
       runIdleWatchScenario: expect.any(Function),
       runInteractionBurstScenario: expect.any(Function),
+      runScopeToggleScenario: expect.any(Function),
     });
+  });
+
+  it('writes the idle marker only from the correlated idle-started event', async () => {
+    process.env.CODEGRAPHY_PERF = '1';
+    const resultRoot = await mkdtemp(join(tmpdir(), 'codegraphy-idle-marker-'));
+    onTestFinished(() => rm(resultRoot, { recursive: true, force: true }));
+    const markerPath = join(resultRoot, 'idle.ready');
+    const provider = createScenarioProvider();
+    const workspaceFolderUri = vscode.Uri.file('/workspace');
+    (vscode.workspace as unknown as { workspaceFolders: unknown }).workspaceFolders = [{
+      uri: workspaceFolderUri,
+    }];
+    vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+      provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+      provider.emitExtensionMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+      provider.emitExtensionMessage({
+        type: 'GRAPH_INDEX_STATUS_UPDATED',
+        payload: { hasIndex: true },
+      });
+    });
+    perfHarness.runNonOpenPerfScenario.mockImplementationOnce(async (...args: unknown[]) => {
+      const dependencies = args[2] as {
+        runIdleWatchScenario(input: {
+          dimension: string;
+          ordinal: number;
+          runId: string;
+        }): Promise<unknown>;
+      };
+      return dependencies.runIdleWatchScenario({
+        dimension: 'small',
+        ordinal: 0,
+        runId: 'run-idle-marker',
+      });
+    });
+
+    registerPerfScenarioCommand(createContext(), provider as never);
+    const command = vi.mocked(vscode.commands.registerCommand).mock.calls[0]?.[1] as
+      | ((request: unknown) => Promise<unknown>)
+      | undefined;
+
+    await command?.({
+      dimension: 'small',
+      idleCpuReadyPath: markerPath,
+      runId: 'run-idle-marker',
+      scenario: 'idle-watch',
+      startedAt: 0,
+    });
+
+    await expect(readFile(markerPath, 'utf8')).resolves.toBe('run-idle-marker\n');
+    expect(perfHarness.runIdleWatchScenario).toHaveBeenCalledWith(
+      expect.objectContaining({ onIdleStarted: expect.any(Function) }),
+      expect.anything(),
+    );
   });
 
   it('rejects unknown scenario request fields', async () => {

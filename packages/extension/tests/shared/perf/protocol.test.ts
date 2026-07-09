@@ -62,6 +62,47 @@ describe('shared/perf/protocol', () => {
     expect(perfControlMessageSchema.parse(message)).toEqual(message);
   });
 
+  it('parses an explicitly correlated scope inventory request', () => {
+    const message = {
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'request-scope-inventory',
+        operationId: operation.operationId,
+      },
+    } as const;
+
+    expect(perfControlMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it('parses an explicitly correlated scope toggle', () => {
+    const message = {
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'toggle-scope',
+        operationId: operation.operationId,
+        scopeKind: 'node',
+        scopeId: 'file',
+        enabled: false,
+      },
+    } as const;
+
+    expect(perfControlMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it('rejects unknown scope toggle fields', () => {
+    expect(perfControlMessageSchema.safeParse({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'toggle-scope',
+        operationId: operation.operationId,
+        scopeKind: 'node',
+        scopeId: 'file',
+        enabled: false,
+        unexpected: true,
+      },
+    }).success).toBe(false);
+  });
+
   it('rejects a non-positive idle watch duration', () => {
     expect(perfControlMessageSchema.safeParse({
       type: 'PERF_CONTROL',
@@ -91,6 +132,8 @@ describe('shared/perf/protocol', () => {
       edgeCount: 75,
     },
     { kind: 'physics-settled' },
+    { kind: 'idle-started', durationMs: 60_000 },
+    { kind: 'scope-inventory-rejected', reason: 'target-unavailable' },
     {
       kind: 'scope-inventory',
       entries: [
@@ -103,6 +146,13 @@ describe('shared/perf/protocol', () => {
       scopeKind: 'node',
       scopeId: 'file',
       enabled: false,
+    },
+    {
+      kind: 'scope-toggle-rejected',
+      scopeKind: 'node',
+      scopeId: 'file',
+      enabled: false,
+      reason: 'target-unavailable',
     },
     {
       kind: 'scope-persist-complete',

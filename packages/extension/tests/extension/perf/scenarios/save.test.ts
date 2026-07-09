@@ -22,15 +22,16 @@ function setup() {
   const savedContents: string[] = [];
   const targetUri = uri('/workspace/src/group-00000/file-000000.ts');
   const previousDocument = { uri: uri(activeDocument) } as vscode.TextDocument;
+  const saveDocument = vi.fn(async () => {
+    savedContents.push(content);
+    dirty = false;
+    return true;
+  });
   const document = {
     get isDirty() { return dirty; },
     getText: () => content,
     positionAt: (offset: number) => offset as unknown as vscode.Position,
-    save: vi.fn(async () => {
-      savedContents.push(content);
-      dirty = false;
-      return true;
-    }),
+    save: saveDocument,
     uri: targetUri,
   } as unknown as vscode.TextDocument;
   const editor = {
@@ -54,7 +55,12 @@ function setup() {
     viewColumn: 1,
   } as vscode.TextEditor;
   const openDocuments: vscode.TextDocument[] = [previousDocument];
-  const waitForWorkspaceRefreshIdle = vi.fn(async () => undefined);
+  const refreshWaitDisposers: Array<ReturnType<typeof vi.fn>> = [];
+  const armWorkspaceRefreshIdleWait = vi.fn(() => {
+    const dispose = vi.fn();
+    refreshWaitDisposers.push(dispose);
+    return { dispose, promise: Promise.resolve() };
+  });
   const executeCommand = vi.fn(async (command: string) => {
     if (command === 'workbench.action.closeActiveEditor') {
       const targetIndex = openDocuments.indexOf(document);
@@ -66,7 +72,8 @@ function setup() {
     if (!openDocuments.includes(document)) openDocuments.push(document);
     return document;
   });
-  const dependencies: DocumentSaveScenarioDependencies = {
+  const dependencies = {
+    armWorkspaceRefreshIdleWait,
     executeCommand,
     getActiveTextEditor: () => activeDocument === previousDocument.uri.fsPath
       ? previousEditor
@@ -79,23 +86,50 @@ function setup() {
       activeDocument = nextDocument.uri.fsPath;
       return nextDocument === document ? editor : previousEditor;
     }),
-    waitForWorkspaceRefreshIdle,
-  };
+  } satisfies DocumentSaveScenarioDependencies;
 
   return {
     activeDocument: () => activeDocument,
+    armWorkspaceRefreshIdleWait,
     content: () => content,
     dependencies,
     document,
     executeCommand,
     openTextDocument,
+    refreshWaitDisposers,
+    saveDocument,
     savedContents,
     targetUri,
-    waitForWorkspaceRefreshIdle,
   };
 }
 
 describe('extension/perf/scenarios/save', () => {
+  it('uses the self target and structural import marker for the self dimension', async () => {
+    const harness = setup();
+
+    const result = await runDocumentSaveScenario({
+      dimension: 'self',
+      ordinal: 0,
+      provider: {} as never,
+      runId: 'run-self',
+      runOperation: async (_operation, action) => {
+        await action();
+        return { operation: 'complete' };
+      },
+      workspaceFolderUri: uri('/workspace'),
+    }, harness.dependencies);
+
+    expect(harness.openTextDocument).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ fsPath: '/workspace/perf/fixtures/paths.ts' }),
+    );
+    expect(harness.savedContents).toEqual([
+      `${originalContent}\nimport './generate';\n`,
+      originalContent,
+    ]);
+    expect(result.targetPath).toBe('perf/fixtures/paths.ts');
+  });
+
   it('saves a deterministic document through a correlated operation', async () => {
     const harness = setup();
     const runOperation: PerfScenarioOperationRunner = vi.fn(async (operation, action) => {
@@ -106,7 +140,9 @@ describe('extension/perf/scenarios/save', () => {
         dimension: 'medium',
       });
       await action();
-      expect(harness.savedContents[0]).toBe(originalContent + PERF_SAVE_MARKER);
+      expect(harness.savedContents[0]).toBe(
+        `${originalContent}\nimport './file-000001';\n`,
+      );
       return { operation: 'complete' };
     });
 
@@ -132,11 +168,11 @@ describe('extension/perf/scenarios/save', () => {
         fsPath: `/workspace/${PERF_SAVE_TARGET_RELATIVE_PATH}`,
       }),
     );
-    expect(harness.waitForWorkspaceRefreshIdle).toHaveBeenCalledTimes(2);
-    expect(harness.waitForWorkspaceRefreshIdle).toHaveBeenNthCalledWith(
+    expect(harness.armWorkspaceRefreshIdleWait).toHaveBeenCalledTimes(2);
+    expect(harness.armWorkspaceRefreshIdleWait).toHaveBeenNthCalledWith(
       1,
       expect.anything(),
-      { quietMs: 32 },
+      { quietMs: 32, timeoutMs: 30_000 },
     );
     expect(harness.savedContents).toEqual([
       originalContent + PERF_SAVE_MARKER,
@@ -167,5 +203,30 @@ describe('extension/perf/scenarios/save', () => {
     expect(harness.savedContents.at(-1)).toBe(originalContent);
     expect(harness.executeCommand).toHaveBeenCalledWith('workbench.action.closeActiveEditor');
     expect(harness.activeDocument()).toBe('/workspace/src/previous.ts');
+  });
+
+  it('arms refresh-idle acknowledgement before saving the mutation and its restoration', async () => {
+    const harness = setup();
+
+    await runDocumentSaveScenario({
+      dimension: 'small',
+      ordinal: 0,
+      provider: {} as never,
+      runId: 'run-ordering',
+      runOperation: async (_operation, action) => {
+        await action();
+        return { operation: 'complete' };
+      },
+      workspaceFolderUri: uri('/workspace'),
+    }, harness.dependencies);
+
+    expect(harness.armWorkspaceRefreshIdleWait).toHaveBeenCalledTimes(2);
+    expect(harness.armWorkspaceRefreshIdleWait.mock.invocationCallOrder[0])
+      .toBeLessThan(harness.saveDocument.mock.invocationCallOrder[0]);
+    expect(harness.armWorkspaceRefreshIdleWait.mock.invocationCallOrder[1])
+      .toBeLessThan(harness.saveDocument.mock.invocationCallOrder[1]);
+    expect(harness.refreshWaitDisposers).toHaveLength(2);
+    expect(harness.refreshWaitDisposers.every(dispose => dispose.mock.calls.length === 1))
+      .toBe(true);
   });
 });

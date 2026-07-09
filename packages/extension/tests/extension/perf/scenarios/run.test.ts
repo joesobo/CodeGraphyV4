@@ -28,6 +28,7 @@ function setupDependencies(
   return {
     runBatchBranchScenario: vi.fn(),
     runDocumentSaveScenario: vi.fn(),
+    runExplorerScenarioComparison: vi.fn(),
     runFileMutationScenario: vi.fn(),
     ...overrides,
   };
@@ -59,27 +60,39 @@ describe('extension/perf/scenarios/run', () => {
   });
 
   it.each(['rename', 'create', 'delete'] as const)(
-    'routes %s through the file mutation scenario',
+    'runs the same-session Explorer %s comparison after CodeGraphy cleanup',
     async (scenario) => {
       const input = setupInput(scenario);
       const result = { scenario, restored: true };
+      const comparisonByScenario = {
+        rename: {
+          codeGraphyRevealMs: 7,
+          explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+        },
+        create: { explorer: { explorerCreateMs: 12 } },
+        delete: { explorer: { explorerDeleteMs: 13 } },
+      } as const;
       const dependencies = setupDependencies({
         runFileMutationScenario: vi.fn(async () => result as never),
+        runExplorerScenarioComparison: vi.fn(async () => comparisonByScenario[scenario]),
       });
 
       await expect(runNonOpenPerfScenario(
         input,
         runOperation,
         dependencies,
-      )).resolves.toBe(result);
+      )).resolves.toEqual({
+        ...result,
+        comparison: comparisonByScenario[scenario],
+      });
       expect(dependencies.runFileMutationScenario).toHaveBeenCalledWith({
+        armRefreshIdle: expect.any(Function),
         dimension: input.dimension,
         ordinal: 0,
         refreshGraph: expect.any(Function),
         runId: input.runId,
         runOperation,
         scenario,
-        waitForRefreshIdle: expect.any(Function),
         workspaceFolderUri: input.workspaceFolderUri,
       });
 
@@ -87,6 +100,17 @@ describe('extension/perf/scenarios/run', () => {
         .mock.calls[0][0];
       await routedInput.refreshGraph();
       expect(input.provider.refresh).toHaveBeenCalledOnce();
+      expect(dependencies.runExplorerScenarioComparison).toHaveBeenCalledWith({
+        dimension: input.dimension,
+        provider: input.provider,
+        scenario,
+        waitForRefreshIdle: expect.any(Function),
+        workspaceFolderUri: input.workspaceFolderUri,
+      });
+      expect(vi.mocked(dependencies.runFileMutationScenario).mock.invocationCallOrder[0])
+        .toBeLessThan(
+          vi.mocked(dependencies.runExplorerScenarioComparison).mock.invocationCallOrder[0],
+        );
     },
   );
 

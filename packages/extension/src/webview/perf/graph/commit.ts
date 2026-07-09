@@ -7,6 +7,7 @@ import { webviewGraphPerfLifecycle } from './lifecycle';
 
 interface GraphPerfCommitInput extends GraphCommitInput {
   enabled?: boolean;
+  projectionRevision?: object;
   revision: object;
 }
 
@@ -28,6 +29,7 @@ export function useGraphPerfCommit(
     enabled = true,
     layoutKey,
     nodeCount,
+    projectionRevision,
     revision,
   }: GraphPerfCommitInput,
   dependencies: GraphPerfCommitDependencies = defaultDependencies,
@@ -46,5 +48,15 @@ export function useGraphPerfCommit(
 
     const frame = requestFrame(() => lifecycle.publishCommit(commit));
     return () => cancelFrame(frame);
-  }, [cancelFrame, edgeCount, enabled, layoutKey, lifecycle, nodeCount, requestFrame, revision]);
+  }, [
+    cancelFrame,
+    edgeCount,
+    enabled,
+    layoutKey,
+    lifecycle,
+    nodeCount,
+    projectionRevision,
+    requestFrame,
+    revision,
+  ]);
 }

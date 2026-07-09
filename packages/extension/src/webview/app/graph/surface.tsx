@@ -11,6 +11,7 @@ type GraphComponentProps = React.ComponentProps<typeof Graph>;
 export interface GraphSurfaceProps {
   graphData: IGraphData;
   coloredData: IGraphData | null | undefined;
+  projectionRevision?: object;
   showOrphans: boolean;
   depthMode: boolean;
   timelineActive: boolean;
@@ -25,6 +26,7 @@ export interface GraphSurfaceProps {
 export function GraphSurface({
   graphData,
   coloredData,
+  projectionRevision,
   showOrphans,
   depthMode,
   timelineActive,
@@ -41,6 +43,7 @@ export function GraphSurface({
     enabled: graphIsEmpty,
     layoutKey: undefined,
     nodeCount: 0,
+    projectionRevision,
     revision: graphData,
   });
 
@@ -57,6 +60,7 @@ export function GraphSurface({
     <>
       <Graph
         data={coloredData || graphData}
+        projectionRevision={projectionRevision}
         theme={theme}
         nodeDecorations={nodeDecorations}
         edgeDecorations={edgeDecorations}

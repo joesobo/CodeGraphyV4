@@ -38,8 +38,8 @@ export function createWebviewPerfBridge(
     const message = perfEventMessageSchema.safeParse({
       type: 'PERF_EVENT',
       payload: {
-        ...event,
         ...operation,
+        ...event,
       },
     });
     if (!message.success) {

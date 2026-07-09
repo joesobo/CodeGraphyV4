@@ -1,6 +1,8 @@
 import type { GraphViewProvider } from '../../graphViewProvider';
 
 interface WorkspaceRefreshIdleWaiter {
+  activityOrdinal: number;
+  deadlineTimeout?: ReturnType<typeof setTimeout>;
   quietMs: number;
   quietTimeout?: ReturnType<typeof setTimeout>;
   reject: (error: unknown) => void;
@@ -8,11 +10,17 @@ interface WorkspaceRefreshIdleWaiter {
 }
 
 interface WorkspaceRefreshActivity {
+  activityOrdinal: number;
   error?: unknown;
   followUpTimeouts: Set<ReturnType<typeof setTimeout>>;
   inFlightRefreshes: Set<Promise<unknown>>;
   pending: boolean;
   waiters: Set<WorkspaceRefreshIdleWaiter>;
+}
+
+export interface ArmedWorkspaceRefreshIdleWait {
+  promise: Promise<void>;
+  dispose(): void;
 }
 
 const workspaceRefreshActivities = new WeakMap<GraphViewProvider, WorkspaceRefreshActivity>();
@@ -24,6 +32,7 @@ function getWorkspaceRefreshActivity(provider: GraphViewProvider): WorkspaceRefr
   }
 
   const activity: WorkspaceRefreshActivity = {
+    activityOrdinal: 0,
     followUpTimeouts: new Set(),
     inFlightRefreshes: new Set(),
     pending: false,
@@ -39,31 +48,48 @@ function isWorkspaceRefreshBusy(activity: WorkspaceRefreshActivity): boolean {
     || activity.inFlightRefreshes.size > 0;
 }
 
+function clearWorkspaceRefreshIdleWaiter(
+  activity: WorkspaceRefreshActivity,
+  waiter: WorkspaceRefreshIdleWaiter,
+): void {
+  if (waiter.deadlineTimeout !== undefined) {
+    clearTimeout(waiter.deadlineTimeout);
+    waiter.deadlineTimeout = undefined;
+  }
+  if (waiter.quietTimeout !== undefined) {
+    clearTimeout(waiter.quietTimeout);
+    waiter.quietTimeout = undefined;
+  }
+  activity.waiters.delete(waiter);
+}
+
 export function settleWorkspaceRefreshIdle(provider: GraphViewProvider): void {
   const activity = workspaceRefreshActivities.get(provider);
   if (!activity || isWorkspaceRefreshBusy(activity)) {
     return;
   }
 
-  const waiters = [...activity.waiters];
+  const waiters = [...activity.waiters].filter(
+    waiter => activity.activityOrdinal >= waiter.activityOrdinal,
+  );
   if (activity.error !== undefined && waiters.length === 0) {
     return;
   }
 
   if (activity.error !== undefined) {
-    workspaceRefreshActivities.delete(provider);
     for (const waiter of waiters) {
-      if (waiter.quietTimeout !== undefined) {
-        clearTimeout(waiter.quietTimeout);
-      }
+      clearWorkspaceRefreshIdleWaiter(activity, waiter);
       waiter.reject(activity.error);
+    }
+    if (activity.waiters.size === 0) {
+      workspaceRefreshActivities.delete(provider);
     }
     return;
   }
 
   for (const waiter of waiters) {
     if (waiter.quietMs === 0) {
-      activity.waiters.delete(waiter);
+      clearWorkspaceRefreshIdleWaiter(activity, waiter);
       waiter.resolve();
       continue;
     }
@@ -75,7 +101,7 @@ export function settleWorkspaceRefreshIdle(provider: GraphViewProvider): void {
       if (isWorkspaceRefreshBusy(activity)) {
         return;
       }
-      activity.waiters.delete(waiter);
+      clearWorkspaceRefreshIdleWaiter(activity, waiter);
       waiter.resolve();
       if (activity.waiters.size === 0) {
         workspaceRefreshActivities.delete(provider);
@@ -103,7 +129,10 @@ export function interruptWorkspaceRefreshQuietWindow(provider: GraphViewProvider
 }
 
 export function markWorkspaceRefreshScheduled(provider: GraphViewProvider): void {
-  getWorkspaceRefreshActivity(provider).pending = true;
+  const activity = getWorkspaceRefreshActivity(provider);
+  activity.activityOrdinal += 1;
+  activity.error = undefined;
+  activity.pending = true;
 }
 
 export function markWorkspaceRefreshStarted(provider: GraphViewProvider): void {
@@ -157,6 +186,7 @@ export function waitForWorkspaceRefreshIdle(
   const activity = getWorkspaceRefreshActivity(provider);
   const idle = new Promise<void>((resolve, reject) => {
     activity.waiters.add({
+      activityOrdinal: activity.activityOrdinal,
       quietMs: Math.max(0, options.quietMs ?? 0),
       reject,
       resolve,
@@ -164,4 +194,42 @@ export function waitForWorkspaceRefreshIdle(
   });
   settleWorkspaceRefreshIdle(provider);
   return idle;
+}
+
+export function armWorkspaceRefreshIdleWait(
+  provider: GraphViewProvider,
+  options: { quietMs?: number; timeoutMs: number },
+): ArmedWorkspaceRefreshIdleWait {
+  if (!Number.isFinite(options.timeoutMs) || options.timeoutMs <= 0) {
+    throw new Error('Workspace refresh idle wait timeout must be positive');
+  }
+
+  const activity = getWorkspaceRefreshActivity(provider);
+  let waiter!: WorkspaceRefreshIdleWaiter;
+  const promise = new Promise<void>((resolve, reject) => {
+    waiter = {
+      activityOrdinal: activity.activityOrdinal + 1,
+      quietMs: Math.max(0, options.quietMs ?? 0),
+      reject,
+      resolve,
+    };
+  });
+  waiter.deadlineTimeout = setTimeout(() => {
+    clearWorkspaceRefreshIdleWaiter(activity, waiter);
+    waiter.reject(new Error('Timed out waiting for future workspace refresh activity to become idle'));
+    if (activity.waiters.size === 0 && !isWorkspaceRefreshBusy(activity)) {
+      workspaceRefreshActivities.delete(provider);
+    }
+  }, options.timeoutMs);
+  activity.waiters.add(waiter);
+
+  return {
+    promise,
+    dispose(): void {
+      clearWorkspaceRefreshIdleWaiter(activity, waiter);
+      if (activity.waiters.size === 0 && !isWorkspaceRefreshBusy(activity)) {
+        workspaceRefreshActivities.delete(provider);
+      }
+    },
+  };
 }

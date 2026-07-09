@@ -12,7 +12,11 @@ import {
   trackWorkspaceRefreshFollowUp,
 } from './drain';
 
-export { waitForWorkspaceRefreshIdle } from './drain';
+export {
+  armWorkspaceRefreshIdleWait,
+  waitForWorkspaceRefreshIdle,
+  type ArmedWorkspaceRefreshIdleWait,
+} from './drain';
 
 interface WatcherMetricTiming {
   emit: ActivePerfMetricEmitter;

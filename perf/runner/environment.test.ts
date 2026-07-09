@@ -9,6 +9,68 @@ import { createPerfRunEnvironment } from './environment';
 const execFileAsync = promisify(execFile);
 
 describe('performance run environment', () => {
+  it('copies self into isolation and adds 100 graph-member files only on its batch branch', {
+    timeout: 120_000,
+  }, async () => {
+    const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+    const sourceTargetPath = join(repoRoot, 'perf', 'fixtures', 'paths.ts');
+    const sourceBefore = await readFile(sourceTargetPath, 'utf8');
+    const environment = await createPerfRunEnvironment({
+      fixture: 'self',
+      repoRoot,
+    });
+
+    try {
+      expect(environment.fixture).toBe('self');
+      expect(environment.workspacePath).not.toBe(repoRoot);
+      expect(await readFile(
+        join(environment.workspacePath, 'perf', 'fixtures', 'paths.ts'),
+        'utf8',
+      )).toBe(sourceBefore);
+      await expect(access(join(environment.workspacePath, 'node_modules')))
+        .rejects.toThrow();
+
+      const settings = JSON.parse(await readFile(
+        join(environment.workspacePath, '.codegraphy', 'settings.json'),
+        'utf8',
+      )) as { include?: unknown; maxFiles?: unknown; plugins?: unknown };
+      expect(settings.include).toEqual(['**/*.ts', '**/*.tsx']);
+      expect(settings.maxFiles).toEqual(expect.any(Number));
+      expect(settings.plugins).toEqual(expect.arrayContaining([
+        { id: 'codegraphy.typescript', enabled: true },
+      ]));
+
+      const { stdout: addedFiles } = await execFileAsync('git', [
+        'diff',
+        '--name-only',
+        '--diff-filter=A',
+        'perf-base..perf-batch-100',
+      ], { cwd: environment.workspacePath });
+      const paths = addedFiles.trim().split('\n');
+      expect(paths).toHaveLength(100);
+      expect(paths.every(path => path.startsWith('perf/self-batch-100/'))).toBe(true);
+      const { stdout: baseBatchFiles } = await execFileAsync('git', [
+        'ls-tree',
+        '--name-only',
+        'perf-base',
+        'perf/self-batch-100',
+      ], { cwd: environment.workspacePath });
+      expect(baseBatchFiles).toBe('');
+    } finally {
+      await environment.dispose();
+    }
+
+    expect(await readFile(sourceTargetPath, 'utf8')).toBe(sourceBefore);
+  });
+
+  it('rejects symbol expansion before preparing a self environment', async () => {
+    await expect(createPerfRunEnvironment({
+      fixture: 'self',
+      repoRoot: '/repo',
+      symbols: true,
+    })).rejects.toThrow('--symbols is not supported for the self performance fixture');
+  });
+
   it('prepares a clean full-scale symbol workspace and preserves it until disposal', async () => {
     const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
     const environment = await createPerfRunEnvironment({

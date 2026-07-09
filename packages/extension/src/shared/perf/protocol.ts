@@ -14,6 +14,13 @@ export const perfScenarioSchema = z.enum([
 ]);
 
 const identifierSchema = z.string().trim().min(1);
+const scopeKindSchema = z.enum(['node', 'edge']);
+
+const scopeEntryShape = {
+  scopeKind: scopeKindSchema,
+  scopeId: identifierSchema,
+  enabled: z.boolean(),
+} as const;
 
 const perfOperationShape = {
   operationId: identifierSchema,
@@ -44,20 +51,21 @@ export const perfControlMessageSchema = z.strictObject({
       operationId: identifierSchema,
       durationMs: z.number().finite().positive().optional(),
     }),
+    z.strictObject({
+      kind: z.literal('request-scope-inventory'),
+      operationId: identifierSchema,
+    }),
+    z.strictObject({
+      kind: z.literal('toggle-scope'),
+      operationId: identifierSchema,
+      ...scopeEntryShape,
+    }),
   ]),
 });
 
 const perfEventContextShape = { ...perfOperationShape };
 const nonnegativeFiniteNumberSchema = z.number().finite().nonnegative();
 const nonnegativeIntegerSchema = z.number().int().nonnegative();
-const scopeKindSchema = z.enum(['node', 'edge']);
-
-const scopeEntryShape = {
-  scopeKind: scopeKindSchema,
-  scopeId: identifierSchema,
-  enabled: z.boolean(),
-} as const;
-
 const metricEventSchema = z.discriminatedUnion('metric', [
   z.strictObject({
     ...perfEventContextShape,
@@ -145,13 +153,29 @@ export const perfEventPayloadSchema = z.discriminatedUnion('kind', [
   }),
   z.strictObject({
     ...perfEventContextShape,
+    kind: z.literal('idle-started'),
+    durationMs: nonnegativeFiniteNumberSchema,
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
     kind: z.literal('scope-inventory'),
     entries: z.array(z.strictObject(scopeEntryShape)),
   }),
   z.strictObject({
     ...perfEventContextShape,
+    kind: z.literal('scope-inventory-rejected'),
+    reason: z.literal('target-unavailable'),
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
     kind: z.literal('scope-toggle-complete'),
     ...scopeEntryShape,
+  }),
+  z.strictObject({
+    ...perfEventContextShape,
+    kind: z.literal('scope-toggle-rejected'),
+    ...scopeEntryShape,
+    reason: z.enum(['target-unavailable', 'toggle-unavailable']),
   }),
   z.strictObject({
     ...perfEventContextShape,
@@ -182,9 +206,12 @@ export type PerfOperation = z.infer<typeof perfOperationSchema>;
 export type PerfControlMessage = z.infer<typeof perfControlMessageSchema>;
 export type PerfEventPayload = z.infer<typeof perfEventPayloadSchema>;
 export type PerfEventMessage = z.infer<typeof perfEventMessageSchema>;
+export type PerfScopeEntry = z.infer<z.ZodObject<typeof scopeEntryShape>>;
 
 type WithoutOperationContext<Event> = Event extends PerfEventPayload
-  ? Omit<Event, keyof PerfOperation>
+  ? Event extends { kind: 'metric'; metric: 'scopeToggleMs' }
+    ? Omit<Event, keyof PerfOperation> & { dimension: string }
+    : Omit<Event, keyof PerfOperation>
   : never;
 
 export type PerfEventInput = WithoutOperationContext<PerfEventPayload>;

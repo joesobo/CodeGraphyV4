@@ -50,4 +50,15 @@ describe('graph scope messages', () => {
     ]);
 
   });
+
+  it('acknowledges a correlated toggle only after its batch is posted', () => {
+    vi.useFakeTimers();
+    const onPosted = vi.fn();
+
+    scheduleNodeVisibilityMessage('file', false, onPosted);
+
+    expect(onPosted).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(GRAPH_SCOPE_VISIBILITY_MESSAGE_DEBOUNCE_MS);
+    expect(onPosted).toHaveBeenCalledOnce();
+  });
 });

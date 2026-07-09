@@ -4,6 +4,7 @@ export const GRAPH_SCOPE_VISIBILITY_MESSAGE_DEBOUNCE_MS = 80;
 
 let pendingNodeVisibility: Record<string, boolean> = {};
 let pendingEdgeVisibility: Record<string, boolean> = {};
+let pendingPostedCallbacks: Array<() => void> = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 function hasPendingVisibility(): boolean {
@@ -21,19 +22,35 @@ function scheduleFlush(): void {
   }, GRAPH_SCOPE_VISIBILITY_MESSAGE_DEBOUNCE_MS);
 }
 
-export function scheduleNodeVisibilityMessage(nodeType: string, visible: boolean): void {
+function recordPostedCallback(onPosted?: () => void): void {
+  if (onPosted) {
+    pendingPostedCallbacks.push(onPosted);
+  }
+}
+
+export function scheduleNodeVisibilityMessage(
+  nodeType: string,
+  visible: boolean,
+  onPosted?: () => void,
+): void {
   pendingNodeVisibility = {
     ...pendingNodeVisibility,
     [nodeType]: visible,
   };
+  recordPostedCallback(onPosted);
   scheduleFlush();
 }
 
-export function scheduleEdgeVisibilityMessage(edgeKind: string, visible: boolean): void {
+export function scheduleEdgeVisibilityMessage(
+  edgeKind: string,
+  visible: boolean,
+  onPosted?: () => void,
+): void {
   pendingEdgeVisibility = {
     ...pendingEdgeVisibility,
     [edgeKind]: visible,
   };
+  recordPostedCallback(onPosted);
   scheduleFlush();
 }
 
@@ -49,8 +66,10 @@ export function flushGraphScopeVisibilityMessages(): void {
 
   const nodeVisibility = pendingNodeVisibility;
   const edgeVisibility = pendingEdgeVisibility;
+  const postedCallbacks = pendingPostedCallbacks;
   pendingNodeVisibility = {};
   pendingEdgeVisibility = {};
+  pendingPostedCallbacks = [];
 
   postMessage({
     type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
@@ -59,6 +78,9 @@ export function flushGraphScopeVisibilityMessages(): void {
       ...(Object.keys(edgeVisibility).length > 0 ? { edgeVisibility } : {}),
     },
   });
+  for (const callback of postedCallbacks) {
+    callback();
+  }
 }
 
 export function resetGraphScopeVisibilityMessageQueueForTests(): void {
@@ -68,4 +90,5 @@ export function resetGraphScopeVisibilityMessageQueueForTests(): void {
   }
   pendingNodeVisibility = {};
   pendingEdgeVisibility = {};
+  pendingPostedCallbacks = [];
 }

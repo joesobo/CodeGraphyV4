@@ -9,16 +9,30 @@ import type { ExplorerComparisonRuntime } from '../../../../src/extension/perf/e
 const original = new Uint8Array([1, 2, 3]);
 const workspaceFolderUri = { fsPath: '/fixture' } as vscode.Uri;
 
-function setup(scenario: 'rename' | 'create' | 'delete') {
+function setup(
+  scenario: 'rename' | 'create' | 'delete',
+  dimension = 'small',
+) {
   const files = new Map<string, Uint8Array>();
   if (scenario === 'rename') {
-    files.set('/fixture/src/group-00000/file-000004.ts', original);
+    files.set(
+      dimension === 'self'
+        ? '/fixture/perf/fixtures/paths.ts'
+        : '/fixture/src/group-00000/file-000004.ts',
+      original,
+    );
   } else if (scenario === 'delete') {
-    files.set('/fixture/src/group-00000/file-000003.ts', original);
+    files.set(
+      dimension === 'self'
+        ? '/fixture/perf/fixtures/generate.ts'
+        : '/fixture/src/group-00000/file-000003.ts',
+      original,
+    );
   }
   let renameListener: ((event: vscode.FileRenameEvent) => void) | undefined;
   let createListener: ((event: vscode.FileCreateEvent) => void) | undefined;
   let deleteListener: ((event: vscode.FileDeleteEvent) => void) | undefined;
+  const revealInExplorer = vi.fn(async () => undefined);
   const waitForWorkbenchDispatchTurn = vi.fn(async () => undefined);
   const runtime = {
     applyRenameFile: vi.fn(async (oldUri: vscode.Uri, newUri: vscode.Uri) => {
@@ -59,6 +73,7 @@ function setup(scenario: 'rename' | 'create' | 'delete') {
       const contents = files.get(`/fixture/${path}`);
       return contents ? new Uint8Array(contents) : undefined;
     }),
+    revealInExplorer,
     waitForWorkbenchDispatchTurn,
     writeFile: vi.fn(async (uri: vscode.Uri, contents: Uint8Array) => {
       files.set(uri.fsPath, new Uint8Array(contents));
@@ -66,14 +81,54 @@ function setup(scenario: 'rename' | 'create' | 'delete') {
   } as unknown as ExplorerComparisonRuntime;
   const waitForRefreshIdle = vi.fn(async () => undefined);
   const input: RunExplorerMutationComparisonInput = {
+    dimension,
     scenario,
     waitForRefreshIdle,
     workspaceFolderUri,
   };
-  return { files, input, runtime, waitForRefreshIdle, waitForWorkbenchDispatchTurn };
+  return {
+    files,
+    input,
+    revealInExplorer,
+    runtime,
+    waitForRefreshIdle,
+    waitForWorkbenchDispatchTurn,
+  };
 }
 
 describe('extension/perf/explorer/run', () => {
+  it.each([
+    ['rename', '/fixture/perf/fixtures/paths.perf-renamed.ts'],
+    ['create', '/fixture/perf/fixtures/perf-created.ts'],
+    ['delete', '/fixture/perf/fixtures'],
+  ] as const)('forces the self %s row visible', async (scenario, visibilityPath) => {
+    const harness = setup(scenario, 'self');
+
+    await runExplorerMutationComparison(harness.input, harness.runtime);
+
+    expect(harness.revealInExplorer).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: visibilityPath }),
+    );
+  });
+
+  it.each([
+    ['rename', '/fixture/src/group-00000/file-000004.perf-renamed.ts'],
+    ['create', '/fixture/src/group-00000/perf-created.ts'],
+    ['delete', '/fixture/src/group-00000'],
+  ] as const)('forces the affected Explorer row visible after %s', async (
+    scenario,
+    visibilityPath,
+  ) => {
+    const harness = setup(scenario);
+
+    await runExplorerMutationComparison(harness.input, harness.runtime);
+
+    expect(harness.revealInExplorer).toHaveBeenCalledOnce();
+    expect(harness.revealInExplorer).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: visibilityPath }),
+    );
+  });
+
   it.each([
     ['rename', 'explorerRenameMs', 'workspace.onDidRenameFiles'],
     ['create', 'explorerCreateMs', 'workspace.onDidCreateFiles'],

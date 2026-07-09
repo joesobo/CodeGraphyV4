@@ -12,6 +12,7 @@ export interface ExplorerWorkspaceEventMeasurement<Event> {
   subscribe: (listener: (event: Event) => void) => ExplorerMeasurementDisposable;
   matches: (event: Event) => boolean;
   apply: () => Promise<boolean>;
+  completeVisibility: () => Promise<void>;
   timeoutMs?: number;
 }
 
@@ -46,10 +47,11 @@ function waitForMatchingExplorerEvent<Event>(
 }
 
 /**
- * Times workspace.applyEdit start through the matching onDid*Files event and
- * one workbench dispatch turn. VS Code exposes no public Explorer DOM-paint
- * completion event, so this deliberately reports observable workspace latency,
- * not claimed pixel-paint latency.
+ * Times workspace.applyEdit start through the matching onDid*Files event, a
+ * forced reveal of the affected Explorer row, and one workbench dispatch turn.
+ * VS Code exposes no public Explorer selection- or DOM-paint-completion event,
+ * so the awaited reveal command is the strongest deterministic public signal;
+ * this does not claim pixel-paint latency.
  */
 export async function measureExplorerWorkspaceEventLatency<Event>(
   input: ExplorerWorkspaceEventMeasurement<Event>,
@@ -67,6 +69,7 @@ export async function measureExplorerWorkspaceEventLatency<Event>(
       })(),
       observed.promise,
     ]);
+    await input.completeVisibility();
     await clock.waitForWorkbenchDispatchTurn();
     return Math.max(0, clock.now() - startedAt);
   } finally {

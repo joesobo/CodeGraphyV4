@@ -21,6 +21,8 @@ import { useFilterPopoverState } from './filterPopover';
 import { useVisibleGraphStateResponse } from './visibleGraphResponse';
 import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
+import { webviewGraphPerfControl } from '../../perf/graph/control';
+import { webviewScopePerfTarget } from '../../perf/scope/target';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
@@ -77,10 +79,14 @@ export default function App(): React.ReactElement {
     legends,
   );
   const effectiveShowOrphans = graphHasIndex ? showOrphans : true;
+  const renderGraphScopeVisibility = useDebouncedGraphScopeVisibility(
+    nodeVisibility,
+    edgeVisibility,
+  );
   const {
     edgeVisibility: renderEdgeVisibility,
     nodeVisibility: renderNodeVisibility,
-  } = useDebouncedGraphScopeVisibility(nodeVisibility, edgeVisibility);
+  } = renderGraphScopeVisibility;
   const visibleGraphInput = isLoading ? null : graphData;
   const {
     filteredData,
@@ -129,6 +135,8 @@ export default function App(): React.ReactElement {
   useEffect(() => {
     return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData);
   }, [injectPluginAssets, pluginHost, resetPluginAssets, updatePluginData]);
+
+  useEffect(() => webviewGraphPerfControl.attachScopeTarget(webviewScopePerfTarget), []);
 
   const displayGraphData = coloredData || visibleGraphInput;
   useVisibleGraphStateResponse(displayGraphData);
@@ -191,6 +199,7 @@ export default function App(): React.ReactElement {
         <GraphSurface
           graphData={graphData}
           coloredData={coloredData}
+          projectionRevision={renderGraphScopeVisibility}
           showOrphans={effectiveShowOrphans}
           depthMode={depthMode}
           timelineActive={timelineActive}

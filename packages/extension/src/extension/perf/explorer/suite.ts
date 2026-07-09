@@ -9,6 +9,7 @@ import {
 import { createExplorerComparisonTargets } from './targets';
 
 export interface RunExplorerComparisonSuiteInput {
+  dimension: string;
   timeoutMs?: number;
   waitForRefreshIdle: () => Promise<void>;
   workspaceFolderUri: vscode.Uri;
@@ -22,6 +23,7 @@ export async function runExplorerComparisonSuite(
   await runtime.waitForWorkbenchDispatchTurn();
 
   const common = {
+    dimension: input.dimension,
     timeoutMs: input.timeoutMs,
     waitForRefreshIdle: input.waitForRefreshIdle,
     workspaceFolderUri: input.workspaceFolderUri,
@@ -38,11 +40,17 @@ export async function runExplorerComparisonSuite(
     { ...common, scenario: 'delete' },
     runtime,
   );
+  const targets = createExplorerComparisonTargets(input.dimension);
   const revealTarget = runtime.joinPath(
     input.workspaceFolderUri,
-    createExplorerComparisonTargets().revealPath,
+    targets.revealPath,
   );
-  const reveal = await measureExplorerRevealComparison(revealTarget, runtime);
+  const neutralTarget = runtime.joinPath(input.workspaceFolderUri, targets.neutralPath);
+  const reveal = await measureExplorerRevealComparison(
+    revealTarget,
+    neutralTarget,
+    runtime,
+  );
 
   return {
     explorerRenameMs: rename.value,

@@ -5,6 +5,7 @@ import type {
 import type { FrameMetrics } from '../frameMetrics';
 
 export const DEFAULT_IDLE_WATCH_DURATION_MS = 60_000;
+export const INTERACTION_BURST_FRAME_COUNT = 12;
 
 interface ScenarioPerfBridge {
   emitFor: (operation: PerfOperation, event: PerfEventInput) => boolean;
@@ -32,10 +33,12 @@ export interface GraphPerfScenarios {
 
 interface InteractionState {
   burstRan: boolean;
+  framesRun: number;
   frameReady: boolean;
   operation: PerfOperation;
   settled: boolean;
   startedAt: number;
+  waitForSettle: boolean;
 }
 
 interface IdleState {
@@ -120,6 +123,10 @@ export function createGraphPerfScenarios({
     state.startedAt = now();
     frameMetrics.startIdle(state.operation);
     timer = setTimer(() => finishIdle(state), state.durationMs);
+    bridge.emitFor(state.operation, {
+      kind: 'idle-started',
+      durationMs: state.durationMs,
+    });
   };
 
   return {
@@ -160,31 +167,43 @@ export function createGraphPerfScenarios({
       graphSettled = false;
       const state: InteractionState = {
         burstRan: false,
+        framesRun: 0,
         frameReady: false,
         operation,
         settled: false,
         startedAt: now(),
+        waitForSettle: false,
       };
       interaction = state;
       frameMetrics.startInteraction(operation);
-      frame = requestFrame(() => {
-        if (interaction !== state) {
-          return;
-        }
-        frame = undefined;
-        const result = runInteractionBurst();
-        frameMetrics.startSettle(operation);
-        state.burstRan = true;
-        state.settled = !result.waitForSettle;
+      const runNextInteractionFrame = (): void => {
         frame = requestFrame(() => {
           if (interaction !== state) {
             return;
           }
           frame = undefined;
-          state.frameReady = true;
-          completeInteractionIfReady(state);
+          const result = runInteractionBurst();
+          state.framesRun += 1;
+          state.waitForSettle ||= result.waitForSettle;
+          if (state.framesRun < INTERACTION_BURST_FRAME_COUNT) {
+            runNextInteractionFrame();
+            return;
+          }
+
+          frameMetrics.startSettle(operation);
+          state.burstRan = true;
+          state.settled = !state.waitForSettle;
+          frame = requestFrame(() => {
+            if (interaction !== state) {
+              return;
+            }
+            frame = undefined;
+            state.frameReady = true;
+            completeInteractionIfReady(state);
+          });
         });
-      });
+      };
+      runNextInteractionFrame();
     },
   };
 }

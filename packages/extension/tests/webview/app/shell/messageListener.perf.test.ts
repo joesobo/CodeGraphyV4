@@ -11,7 +11,10 @@ describe('app message listener performance controls', () => {
     vi.spyOn(graphStore, 'getState').mockReturnValue({
       handleExtensionMessage,
     } as unknown as ReturnType<typeof graphStore.getState>);
-    const perfBridge = { handleControl: vi.fn(() => true) };
+    const perfBridge = {
+      handleControl: vi.fn(() => true),
+      handleExtensionMessage: vi.fn(() => true),
+    };
     const handler = createMessageHandler(
       vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue(),
       { deliverMessage: vi.fn() } as unknown as WebviewPluginHost,
@@ -43,7 +46,10 @@ describe('app message listener performance controls', () => {
     vi.spyOn(graphStore, 'getState').mockReturnValue({
       handleExtensionMessage,
     } as unknown as ReturnType<typeof graphStore.getState>);
-    const perfBridge = { handleControl: vi.fn(() => false) };
+    const perfBridge = {
+      handleControl: vi.fn(() => false),
+      handleExtensionMessage: vi.fn(() => true),
+    };
     const handler = createMessageHandler(
       vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue(),
       { deliverMessage: vi.fn() } as unknown as WebviewPluginHost,
@@ -57,5 +63,42 @@ describe('app message listener performance controls', () => {
 
     expect(perfBridge.handleControl).not.toHaveBeenCalled();
     expect(handleExtensionMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('observes graph control echoes after the store applies them', () => {
+    const callOrder: string[] = [];
+    const handleExtensionMessage = vi.fn(() => { callOrder.push('store'); });
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+    const perfBridge = {
+      handleControl: vi.fn(() => false),
+      handleExtensionMessage: vi.fn(() => {
+        callOrder.push('perf');
+        return true;
+      }),
+    };
+    const handler = createMessageHandler(
+      vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue(),
+      { deliverMessage: vi.fn() } as unknown as WebviewPluginHost,
+      undefined,
+      undefined,
+      perfBridge,
+    );
+    const message = {
+      type: 'GRAPH_CONTROLS_UPDATED' as const,
+      payload: {
+        nodeTypes: [],
+        edgeTypes: [],
+        nodeColors: {},
+        nodeVisibility: {},
+        edgeVisibility: {},
+      },
+    };
+
+    handler({ data: message } as MessageEvent<unknown>);
+
+    expect(callOrder).toEqual(['store', 'perf']);
+    expect(perfBridge.handleExtensionMessage).toHaveBeenCalledWith(message);
   });
 });

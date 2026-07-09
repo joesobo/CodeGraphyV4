@@ -3,6 +3,7 @@ import {
   type CorrelatedControlOperationRuntime,
 } from '../controlOperation';
 import { createPerfOperation } from '../operationId';
+import type { PerfEventPayload } from '../../../shared/perf/protocol';
 
 export const PERF_IDLE_WATCH_DURATION_MS = 60_000;
 
@@ -14,6 +15,9 @@ export interface RunWebviewControlScenarioInput {
 
 export interface RunIdleWatchScenarioInput extends RunWebviewControlScenarioInput {
   durationMs?: number;
+  onIdleStarted?: (
+    event: Extract<PerfEventPayload, { kind: 'idle-started' }>,
+  ) => Promise<void> | void;
 }
 
 export interface WebviewControlScenarioDependencies {
@@ -35,7 +39,9 @@ export async function runInteractionBurstScenario(
     scenario: 'interaction-burst';
   }> {
   const operation = createPerfOperation({
-    ...input,
+    dimension: input.dimension,
+    ordinal: input.ordinal,
+    runId: input.runId,
     scenario: 'interaction-burst',
   });
   const result = await dependencies.runControlOperation(
@@ -67,7 +73,9 @@ export async function runIdleWatchScenario(
   }> {
   const durationMs = input.durationMs ?? PERF_IDLE_WATCH_DURATION_MS;
   const operation = createPerfOperation({
-    ...input,
+    dimension: input.dimension,
+    ordinal: input.ordinal,
+    runId: input.runId,
     scenario: 'idle-watch',
   });
   const result = await dependencies.runControlOperation(
@@ -75,6 +83,11 @@ export async function runIdleWatchScenario(
     'idle-complete',
     bridge => bridge.runIdleWatch(durationMs),
     runtime,
+    {
+      onEvent: event => event.kind === 'idle-started'
+        ? input.onIdleStarted?.(event)
+        : undefined,
+    },
   );
   if (result.event.kind !== 'idle-complete') {
     throw new Error(`Unexpected idle result for ${operation.operationId}`);

@@ -12,8 +12,19 @@ vi.mock('../../../../src/webview/perf/graph/commit', () => ({
 }));
 
 vi.mock('../../../../src/webview/components/graph/view/component', () => ({
-  default: ({ data }: { data: { nodes: Array<{ id: string }> } }) => (
-    <div data-testid="graph-surface-graph">{data.nodes.map((node) => node.id).join(',')}</div>
+  default: ({
+    data,
+    projectionRevision,
+  }: {
+    data: { nodes: Array<{ id: string }> };
+    projectionRevision?: object;
+  }) => (
+    <div
+      data-testid="graph-surface-graph"
+      data-projection-revision={projectionRevision ? 'present' : 'absent'}
+    >
+      {data.nodes.map((node) => node.id).join(',')}
+    </div>
   ),
 }));
 
@@ -27,10 +38,16 @@ describe('app/graph/surface', () => {
   });
 
   it('renders the graph with colored data when nodes are present', () => {
+    const graphData = {
+      nodes: [{ id: 'base-node', label: 'Base', color: '#111111' }],
+      edges: [],
+    };
+    const projectionRevision = {};
     render(
       <GraphSurface
-        graphData={{ nodes: [{ id: 'base-node', label: 'Base', color: '#111111' }], edges: [] }}
+        graphData={graphData}
         coloredData={{ nodes: [{ id: 'colored-node', label: 'Colored', color: '#222222' }], edges: [] }}
+        projectionRevision={projectionRevision}
         showOrphans
         depthMode={false}
         timelineActive={false}
@@ -44,15 +61,27 @@ describe('app/graph/surface', () => {
     );
 
     expect(screen.getByTestId('graph-surface-graph')).toHaveTextContent('colored-node');
+    expect(screen.getByTestId('graph-surface-graph'))
+      .toHaveAttribute('data-projection-revision', 'present');
     expect(screen.getByTestId('depth-controls')).toBeInTheDocument();
+    expect(perfHarness.useGraphPerfCommit).toHaveBeenCalledWith({
+      edgeCount: 0,
+      enabled: false,
+      layoutKey: undefined,
+      nodeCount: 0,
+      projectionRevision,
+      revision: graphData,
+    });
   });
 
   it('renders the empty hint when the graph has no nodes', () => {
     const graphData = { nodes: [], edges: [] };
+    const projectionRevision = {};
     render(
       <GraphSurface
         graphData={graphData}
         coloredData={null}
+        projectionRevision={projectionRevision}
         showOrphans={false}
         depthMode={false}
         timelineActive={false}
@@ -71,6 +100,7 @@ describe('app/graph/surface', () => {
       enabled: true,
       layoutKey: undefined,
       nodeCount: 0,
+      projectionRevision,
       revision: graphData,
     });
   });

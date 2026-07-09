@@ -30,6 +30,32 @@ describe('graph view node/file navigation message', () => {
     expect(handlers.revealInExplorer).toHaveBeenCalledWith('src/app.ts');
   });
 
+  it('awaits Explorer reveal command completion', async () => {
+    let finished = false;
+    let completeReveal!: () => void;
+    const revealDone = new Promise<void>(resolve => { completeReveal = resolve; });
+    const handlers = createHandlers({
+      revealInExplorer: vi.fn(async () => {
+        await revealDone;
+        finished = true;
+      }),
+    });
+
+    let handled: boolean | undefined;
+    const pending = applyNodeFileNavigationMessage(
+      { type: 'REVEAL_IN_EXPLORER', payload: { path: 'src/app.ts' } },
+      handlers,
+    ).then(result => { handled = result; });
+
+    await Promise.resolve();
+    expect(handled).toBeUndefined();
+    completeReveal();
+    await pending;
+
+    expect(handled).toBe(true);
+    expect(finished).toBe(true);
+  });
+
   it('copies text to the clipboard', async () => {
     const handlers = createHandlers();
 

@@ -39,13 +39,18 @@ type WebviewMetric = keyof PerfReport['webview'];
 type ExplorerMetric = keyof PerfReport['explorer'];
 
 export interface AssemblePerfReportInput {
-  codeGraphyRevealMs: number;
+  codeGraphyRevealMs?: number;
   explorer?: Partial<PerfReport['explorer']>;
-  idleCpuPct: number;
+  idleCpuPct?: number;
   results: PerfSmokeResult[];
   runner: PerfReport['runner'];
   variant: PerfReport['variant'];
   webview?: Partial<PerfReport['webview']>;
+}
+
+interface CollectedComparisons {
+  codeGraphyRevealMs?: number;
+  explorer: Partial<PerfReport['explorer']>;
 }
 
 function collectScenarioResults(results: readonly PerfSmokeResult[]): ScenarioResults {
@@ -74,6 +79,38 @@ function getScenarioResult(
     throw new Error(`Missing required scenario result: ${scenario}`);
   }
   return result;
+}
+
+function collectComparisons(results: ScenarioResults): CollectedComparisons {
+  const values = new Map<string, number>();
+  const add = (metricName: string, value: number): void => {
+    if (values.has(metricName)) {
+      throw new Error(`Duplicate comparison measurement: ${metricName}`);
+    }
+    values.set(metricName, value);
+  };
+
+  for (const scenario of scriptedPerfScenarios) {
+    const comparison = getScenarioResult(results, scenario).comparison;
+    if (!comparison) continue;
+    if ('codeGraphyRevealMs' in comparison) {
+      add('codeGraphyRevealMs', comparison.codeGraphyRevealMs);
+    }
+    for (const [metricName, value] of Object.entries(comparison.explorer)) {
+      add(metricName, value);
+    }
+  }
+
+  return {
+    codeGraphyRevealMs: values.get('codeGraphyRevealMs'),
+    explorer: Object.fromEntries(
+      (['explorerRenameMs', 'explorerCreateMs', 'explorerDeleteMs', 'explorerRevealMs'] as const)
+        .flatMap(metricName => {
+          const value = values.get(metricName);
+          return value === undefined ? [] : [[metricName, value]];
+        }),
+    ),
+  };
 }
 
 function getResultMetrics(result: PerfSmokeResult): readonly ReportMetric[] {
@@ -132,6 +169,22 @@ function exactlyOneMetric(
     );
   }
   return matches[0].value;
+}
+
+function maxScenarioMetric(
+  metrics: ScenarioMetrics,
+  scenario: LaunchPerfScenario,
+  metricName: string,
+): number {
+  const values = metricsForScenario(metrics, scenario)
+    .filter(metric => metric.metric === metricName)
+    .map(metric => metric.value);
+  if (values.length === 0) {
+    throw new Error(
+      `Expected at least one ${metricName} metric for ${scenario}; found 0`,
+    );
+  }
+  return Math.max(...values);
 }
 
 function allMetrics(metrics: ScenarioMetrics): ReportMetric[] {
@@ -237,6 +290,7 @@ function assertFixtureConsistency(results: ScenarioResults): PerfReport['fixture
 
 export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
   const results = collectScenarioResults(input.results);
+  const comparisons = collectComparisons(results);
   const measuredByScenario = collectScenarioMetrics(results);
   const measured = allMetrics(measuredByScenario);
 
@@ -251,7 +305,8 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
     (['explorerRenameMs', 'explorerCreateMs', 'explorerDeleteMs', 'explorerRevealMs'] as const)
       .map((metricName: ExplorerMetric) => [
         metricName,
-        findMeasurement(measured, metricName, input.explorer?.[metricName]),
+        comparisons.explorer[metricName]
+          ?? findMeasurement(measured, metricName, input.explorer?.[metricName]),
       ]),
   ) as PerfReport['explorer'];
 
@@ -259,7 +314,8 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
     rename: exactlyOneMetric(measuredByScenario, 'rename', 'fileOpRoundtripMs'),
     create: exactlyOneMetric(measuredByScenario, 'create', 'fileOpRoundtripMs'),
     delete: exactlyOneMetric(measuredByScenario, 'delete', 'fileOpRoundtripMs'),
-    reveal: input.codeGraphyRevealMs,
+    reveal: comparisons.codeGraphyRevealMs
+      ?? findMeasurement([], 'codeGraphyRevealMs', input.codeGraphyRevealMs),
   };
   const coldMetrics = metricsForScenario(measuredByScenario, 'cold-open');
 
@@ -274,18 +330,18 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       incrementalRefreshMs: Object.fromEntries(
         Object.entries(operationMetricScenarios).map(([reportKey, scenario]) => [
           reportKey,
-          exactlyOneMetric(measuredByScenario, scenario, 'incrementalRefreshMs'),
+          maxScenarioMetric(measuredByScenario, scenario, 'incrementalRefreshMs'),
         ]),
       ),
       payloadBytes: maxMetric(measured, 'payloadBytes'),
       watcherToGraphMs: Object.fromEntries(
         Object.entries(operationMetricScenarios).map(([reportKey, scenario]) => [
           reportKey,
-          exactlyOneMetric(measuredByScenario, scenario, 'watcherToGraphMs'),
+          maxScenarioMetric(measuredByScenario, scenario, 'watcherToGraphMs'),
         ]),
       ),
       fileOpRoundtripMs,
-      layoutResets: sumMetric(measured, 'layoutResets', false),
+      layoutResets: sumMetric(measured, 'layoutResets'),
       cacheSaveMs: maxMetric(measured, 'cacheSaveMs'),
       // The launcher does not retain emission timestamps, so max is the stable
       // cache-size reducer and remains independent of metric arrival order.
@@ -294,7 +350,7 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       graphBuildMs: sumMetric(coldMetrics, 'graphBuildMs'),
       scopeToggleMs: collectScopeMetrics(measuredByScenario),
       settleTimeMs: maxMetric(measured, 'settleTimeMs'),
-      idleCpuPct: input.idleCpuPct,
+      idleCpuPct: findMeasurement(measured, 'idleCpuPct', input.idleCpuPct),
       simTicksAfterSettle: maxMetric(
         metricsForScenario(measuredByScenario, 'idle-watch'),
         'simTicksAfterSettle',

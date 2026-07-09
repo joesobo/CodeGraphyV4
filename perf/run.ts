@@ -1,5 +1,16 @@
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { arch, cpus, platform } from 'node:os';
+import type { PerfFixture, PerfReport } from './report';
+import {
+  assemblePerfReport,
+  type AssemblePerfReportInput,
+} from './runner/assembleReport';
+import {
+  finalizePerfReports,
+  type FinalizePerfReportsOptions,
+  type FinalizedPerfReport,
+} from './runner/finalReport';
 import {
   launchPerfSession,
   type LaunchPerfSessionOptions,
@@ -9,12 +20,19 @@ import {
   runPerfScenarioSuite,
   type PerfScenarioSuiteOptions,
 } from './runner/scenarioSuite';
+import { createPerfRunnerMetadata } from './runner/metadata';
 
-const fixtureNames = ['small', 'medium', 'large', 'huge', 'giant'] as const;
-type GeneratedFixtureName = typeof fixtureNames[number];
+const fixtureNames = [
+  'small',
+  'medium',
+  'large',
+  'huge',
+  'giant',
+  'self',
+] as const satisfies readonly PerfFixture[];
 
 export interface PerfCliOptions {
-  fixture: GeneratedFixtureName;
+  fixture: PerfFixture;
   noBudget: boolean;
   runs: number;
   smoke: boolean;
@@ -22,6 +40,11 @@ export interface PerfCliOptions {
 }
 
 interface PerfRunDependencies {
+  assembleReport?: (input: AssemblePerfReportInput) => PerfReport;
+  createRunnerMetadata?: (vscodeVersion: string) => PerfReport['runner'];
+  finalizeReports?: (
+    options: FinalizePerfReportsOptions,
+  ) => Promise<FinalizedPerfReport>;
   launchSession(options: LaunchPerfSessionOptions): Promise<PerfSmokeResult>;
   repoRoot: string;
   runScenarioSuite(options: PerfScenarioSuiteOptions): Promise<PerfSmokeResult[]>;
@@ -36,11 +59,11 @@ function requireOptionValue(arguments_: string[], index: number, option: string)
   return value;
 }
 
-function parseFixture(value: string): GeneratedFixtureName {
-  if (!fixtureNames.includes(value as GeneratedFixtureName)) {
+function parseFixture(value: string): PerfFixture {
+  if (!fixtureNames.includes(value as PerfFixture)) {
     throw new Error(`Unknown performance fixture: ${value}`);
   }
-  return value as GeneratedFixtureName;
+  return value as PerfFixture;
 }
 
 function parseRuns(value: string): number {
@@ -87,6 +110,10 @@ export function parsePerfCliArguments(arguments_: string[]): PerfCliOptions {
     }
   }
 
+  if (options.fixture === 'self' && options.symbols) {
+    throw new Error('--symbols is not supported for the self performance fixture');
+  }
+
   return options;
 }
 
@@ -95,7 +122,25 @@ export async function runPerf(
   dependencies: PerfRunDependencies,
 ): Promise<PerfSmokeResult[]> {
   const results: PerfSmokeResult[] = [];
-  const variant = options.symbols ? '-symbols' : '';
+  const reports: PerfReport[] = [];
+  const runIdVariant = options.symbols ? '-symbols' : '';
+  const reportVariant: PerfReport['variant'] = options.symbols
+    ? 'symbols'
+    : 'default';
+  const assembleReport = dependencies.assembleReport ?? assemblePerfReport;
+  const finalizeReports = dependencies.finalizeReports ?? finalizePerfReports;
+  const createRunnerMetadata = dependencies.createRunnerMetadata
+    ?? ((vscodeVersion: string) => createPerfRunnerMetadata({
+      arch: () => arch(),
+      cpuModels: () => cpus().map(cpu => cpu.model),
+      nodeVersion: process.version,
+      os: () => platform(),
+      runnerClass: process.env.CODEGRAPHY_PERF_RUNNER_CLASS ?? 'local-reference',
+      vscodeVersion,
+    }));
+  const runner = options.smoke
+    ? undefined
+    : createRunnerMetadata(dependencies.vscodeVersion);
 
   for (let runNumber = 1; runNumber <= options.runs; runNumber += 1) {
     if (!options.smoke) {
@@ -108,10 +153,15 @@ export async function runPerf(
         vscodeVersion: dependencies.vscodeVersion,
       });
       results.push(...suite);
+      reports.push(assembleReport({
+        results: suite,
+        runner: runner!,
+        variant: reportVariant,
+      }));
       continue;
     }
 
-    const runId = `${options.fixture}${variant}-${runNumber}`;
+    const runId = `${options.fixture}${runIdVariant}-${runNumber}`;
     results.push(await dependencies.launchSession({
       fixture: options.fixture,
       repoRoot: dependencies.repoRoot,
@@ -120,6 +170,15 @@ export async function runPerf(
       symbols: options.symbols,
       vscodeVersion: dependencies.vscodeVersion,
     }));
+  }
+
+  if (!options.smoke) {
+    await finalizeReports({
+      baselineDirectory: join(dependencies.repoRoot, 'perf', 'baselines'),
+      noBudget: options.noBudget,
+      outputDirectory: join(dependencies.repoRoot, 'perf', 'results'),
+      reports,
+    });
   }
 
   return results;

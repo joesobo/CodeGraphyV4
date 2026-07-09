@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { PerfReport } from './report';
 import {
   parsePerfCliArguments,
   runPerf,
@@ -8,6 +9,7 @@ import type {
   LaunchPerfSessionOptions,
   PerfSmokeResult,
 } from './runner/launch';
+import type { AssemblePerfReportInput } from './runner/assembleReport';
 import type {
   PerfScenarioSuiteOptions,
 } from './runner/scenarioSuite';
@@ -46,6 +48,24 @@ describe('performance CLI', () => {
     expect(() => parsePerfCliArguments(['--fixture', 'enormous'])).toThrow(
       'Unknown performance fixture',
     );
+  });
+
+  it('accepts the isolated self workspace fixture', () => {
+    expect(parsePerfCliArguments(['--fixture', 'self'])).toEqual({
+      fixture: 'self',
+      noBudget: false,
+      runs: 1,
+      smoke: false,
+      symbols: false,
+    });
+  });
+
+  it('rejects symbol expansion for the self workspace fixture', () => {
+    expect(() => parsePerfCliArguments([
+      '--symbols',
+      '--fixture',
+      'self',
+    ])).toThrow('--symbols is not supported for the self performance fixture');
   });
 
   it('launches each requested run sequentially', async () => {
@@ -97,6 +117,12 @@ describe('performance CLI', () => {
       metrics: [{ metric: 'warmOpenMs', unit: 'ms', value: 10 }],
     }]));
 
+    const report = { fixture: 'medium' } as PerfReport;
+    const assembleReport = vi.fn((_input: AssemblePerfReportInput) => report);
+    const finalizeReports = vi.fn(async () => ({
+      outputPath: '/repo/perf/results/medium.json',
+      report,
+    }));
     const results = await runPerf({
       fixture: 'medium',
       noBudget: true,
@@ -108,6 +134,9 @@ describe('performance CLI', () => {
       repoRoot: '/repo',
       runScenarioSuite,
       vscodeVersion: '1.128.0',
+      assembleReport,
+      createRunnerMetadata: vi.fn(() => ({ runnerClass: 'local-reference' }) as PerfReport['runner']),
+      finalizeReports,
     });
 
     expect(results.map(result => result.scenario)).toEqual([
@@ -120,5 +149,51 @@ describe('performance CLI', () => {
       expect.objectContaining({ runNumber: 1, resultDirectory: '/repo/perf/results' }),
       expect.objectContaining({ runNumber: 2, resultDirectory: '/repo/perf/results' }),
     ]);
+    expect(assembleReport).toHaveBeenCalledTimes(2);
+    const firstReportInput = assembleReport.mock.calls[0]?.[0];
+    expect(firstReportInput?.variant).toBe('default');
+    expect(firstReportInput?.results.map(result => result.scenario)).toEqual([
+      'cold-open',
+      'warm-open',
+    ]);
+    expect(finalizeReports).toHaveBeenCalledWith({
+      baselineDirectory: '/repo/perf/baselines',
+      noBudget: true,
+      outputDirectory: '/repo/perf/results',
+      reports: [report, report],
+    });
+  });
+
+  it('does not assemble or finalize reports for smoke runs', async () => {
+    const launchSession = vi.fn(async (
+      options: LaunchPerfSessionOptions,
+    ): Promise<PerfSmokeResult> => ({
+      schemaVersion: 1,
+      fixture: options.fixture,
+      runId: options.runId,
+      scenario: 'cold-open',
+      metrics: [{ metric: 'coldOpenMs', unit: 'ms', value: 20 }],
+    }));
+    const assembleReport = vi.fn();
+    const finalizeReports = vi.fn();
+
+    await runPerf({
+      fixture: 'small',
+      noBudget: false,
+      runs: 1,
+      smoke: true,
+      symbols: false,
+    }, {
+      assembleReport,
+      createRunnerMetadata: vi.fn(),
+      finalizeReports,
+      launchSession,
+      repoRoot: '/repo',
+      runScenarioSuite: vi.fn(),
+      vscodeVersion: '1.128.0',
+    });
+
+    expect(assembleReport).not.toHaveBeenCalled();
+    expect(finalizeReports).not.toHaveBeenCalled();
   });
 });

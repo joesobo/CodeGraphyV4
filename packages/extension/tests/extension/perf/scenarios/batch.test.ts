@@ -16,26 +16,36 @@ function uri(fsPath: string): vscode.Uri {
 function setup(originalBranch = 'feature/original') {
   let currentBranch = originalBranch;
   const gitCalls: string[][] = [];
-  const waitForWorkspaceRefreshIdle = vi.fn(async () => undefined);
-  const dependencies: BatchBranchScenarioDependencies = {
+  const refreshOrdering: string[] = [];
+  const refreshWaitDisposers: Array<ReturnType<typeof vi.fn>> = [];
+  const armWorkspaceRefreshIdleWait = vi.fn(() => {
+    refreshOrdering.push('arm');
+    const dispose = vi.fn();
+    refreshWaitDisposers.push(dispose);
+    return { dispose, promise: Promise.resolve() };
+  });
+  const dependencies = {
+    armWorkspaceRefreshIdleWait,
     execGit: vi.fn(async (arguments_) => {
       gitCalls.push(arguments_);
       if (arguments_[0] === 'symbolic-ref') return `${currentBranch}\n`;
       if (arguments_[0] === 'rev-parse') return '0123456789abcdef\n';
       if (arguments_[0] === 'switch') {
+        refreshOrdering.push(`switch:${arguments_.at(-1)}`);
         currentBranch = arguments_.at(-1) ?? '';
         return '';
       }
       throw new Error(`Unexpected git arguments: ${arguments_.join(' ')}`);
     }),
-    waitForWorkspaceRefreshIdle,
-  };
+  } satisfies BatchBranchScenarioDependencies;
 
   return {
+    armWorkspaceRefreshIdleWait,
     currentBranch: () => currentBranch,
     dependencies,
     gitCalls,
-    waitForWorkspaceRefreshIdle,
+    refreshOrdering,
+    refreshWaitDisposers,
   };
 }
 
@@ -77,12 +87,16 @@ describe('extension/perf/scenarios/batch', () => {
       ['switch', '--quiet', PERF_BATCH_TARGET_BRANCH],
       ['switch', '--quiet', 'feature/original'],
     ]);
-    expect(harness.waitForWorkspaceRefreshIdle).toHaveBeenCalledTimes(3);
-    expect(harness.waitForWorkspaceRefreshIdle).toHaveBeenNthCalledWith(
-      1,
-      expect.anything(),
-      { quietMs: 32 },
-    );
+    expect(harness.refreshOrdering).toEqual([
+      'arm',
+      `switch:${PERF_BATCH_BASE_BRANCH}`,
+      'arm',
+      `switch:${PERF_BATCH_TARGET_BRANCH}`,
+      'arm',
+      'switch:feature/original',
+    ]);
+    expect(harness.refreshWaitDisposers.every(dispose => dispose.mock.calls.length === 1))
+      .toBe(true);
     expect(harness.currentBranch()).toBe('feature/original');
   });
 

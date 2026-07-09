@@ -4,8 +4,12 @@ import type { PerfScenario } from '../../../shared/perf/protocol';
 import { runBatchBranchScenario } from './batch';
 import type { PerfScenarioOperationRunner } from './contracts';
 import { runFileMutationScenario } from './fileMutation/run';
-import { createFileMutationRefreshIdleWaiter } from './fileMutation/runtime';
+import {
+  createFileMutationRefreshIdleArm,
+  createFileMutationRefreshIdleWaiter,
+} from './fileMutation/runtime';
 import { runDocumentSaveScenario } from './save';
+import { runExplorerScenarioComparison } from '../explorer/scenario';
 
 export type NonOpenPerfScenario = Exclude<
   PerfScenario,
@@ -40,6 +44,7 @@ export type DeferredPerfScenarioRunner<
 export interface NonOpenPerfScenarioDependencies {
   runBatchBranchScenario: typeof runBatchBranchScenario;
   runDocumentSaveScenario: typeof runDocumentSaveScenario;
+  runExplorerScenarioComparison: typeof runExplorerScenarioComparison;
   runFileMutationScenario: typeof runFileMutationScenario;
   runIdleWatchScenario?: DeferredPerfScenarioRunner<'idle-watch'>;
   runInteractionBurstScenario?: DeferredPerfScenarioRunner<'interaction-burst'>;
@@ -49,6 +54,7 @@ export interface NonOpenPerfScenarioDependencies {
 const defaultDependencies: NonOpenPerfScenarioDependencies = {
   runBatchBranchScenario,
   runDocumentSaveScenario,
+  runExplorerScenarioComparison,
   runFileMutationScenario,
 };
 
@@ -88,17 +94,27 @@ export async function runNonOpenPerfScenario(
       });
     case 'rename':
     case 'create':
-    case 'delete':
-      return dependencies.runFileMutationScenario({
+    case 'delete': {
+      const waitForRefreshIdle = createFileMutationRefreshIdleWaiter(input.provider);
+      const mutation = await dependencies.runFileMutationScenario({
+        armRefreshIdle: createFileMutationRefreshIdleArm(input.provider),
         dimension: input.dimension,
         ordinal: 0,
         refreshGraph: () => input.provider.refresh(),
         runId: input.runId,
         runOperation,
         scenario: input.scenario,
-        waitForRefreshIdle: createFileMutationRefreshIdleWaiter(input.provider),
         workspaceFolderUri: input.workspaceFolderUri,
       });
+      const comparison = await dependencies.runExplorerScenarioComparison({
+        dimension: input.dimension,
+        provider: input.provider,
+        scenario: input.scenario,
+        waitForRefreshIdle,
+        workspaceFolderUri: input.workspaceFolderUri,
+      });
+      return { ...mutation, comparison };
+    }
     case 'batch-100':
       return dependencies.runBatchBranchScenario({
         dimension: input.dimension,

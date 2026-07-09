@@ -11,6 +11,8 @@ import {
   fixtureBatchSourcePaths,
   fixtureImportSpecifier,
 } from '../fixtures/paths';
+import type { PerfFixture } from '../report';
+import { copySelfWorkspace, writeSelfBatchFiles } from './selfWorkspace';
 
 const execFileAsync = promisify(execFile);
 const batchFileCount = 100;
@@ -19,7 +21,7 @@ export type GeneratedPerfFixture = 'small' | 'medium' | 'large' | 'huge' | 'gian
 
 export interface PerfRunEnvironment {
   extensionsPath: string;
-  fixture: GeneratedPerfFixture;
+  fixture: PerfFixture;
   homePath: string;
   rootPath: string;
   symbols: boolean;
@@ -29,7 +31,7 @@ export interface PerfRunEnvironment {
 }
 
 export interface CreatePerfRunEnvironmentOptions {
-  fixture: GeneratedPerfFixture;
+  fixture: PerfFixture;
   repoRoot: string;
   symbols?: boolean;
 }
@@ -55,17 +57,29 @@ async function writeFixtureSettings(
   workspacePath: string,
   fileCount: number,
   symbols: boolean,
+  include: string[] = ['src/**/*.ts'],
 ): Promise<void> {
   const settings = createDefaultCodeGraphyRepoSettings();
-  settings.include = ['src/**/*.ts'];
+  settings.include = include;
   settings.maxFiles = fileCount;
   settings.plugins.push({ id: 'codegraphy.typescript', enabled: true });
   if (symbols) enableSymbolScopes(settings.nodeVisibility);
 
   const settingsDirectory = join(workspacePath, '.codegraphy');
   await mkdir(settingsDirectory, { recursive: true });
+  let gitignore = '';
+  try {
+    gitignore = await readFile(join(workspacePath, '.gitignore'), 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  const settingsIgnoreEntry = '.codegraphy/*';
+  const gitignoreLines = gitignore.split(/\r?\n/);
+  const nextGitignore = gitignoreLines.includes(settingsIgnoreEntry)
+    ? gitignore
+    : `${gitignore}${gitignore && !gitignore.endsWith('\n') ? '\n' : ''}${settingsIgnoreEntry}\n`;
   await Promise.all([
-    writeFile(join(workspacePath, '.gitignore'), '.codegraphy/*\n', 'utf8'),
+    writeFile(join(workspacePath, '.gitignore'), nextGitignore, 'utf8'),
     writeFile(join(settingsDirectory, 'settings.json'), serializeSettings(settings), 'utf8'),
   ]);
 }
@@ -77,6 +91,7 @@ async function runGit(workspacePath: string, arguments_: string[]): Promise<void
 async function prepareFixtureBranches(
   workspacePath: string,
   fileCount: number,
+  fixture: PerfFixture,
 ): Promise<void> {
   await runGit(workspacePath, ['init', '--initial-branch=perf-base']);
   await runGit(workspacePath, ['add', '--all']);
@@ -87,21 +102,25 @@ async function prepareFixtureBranches(
   ]);
   await runGit(workspacePath, ['switch', '--quiet', '-c', 'perf-batch-100']);
 
-  const sourcePaths = fixtureBatchSourcePaths(fileCount, batchFileCount);
-  const firstBatchIndex = fileCount - batchFileCount;
-  await Promise.all(sourcePaths.map(async (sourcePath, offset) => {
-    const fileIndex = firstBatchIndex + offset;
-    const nextIndex = offset === sourcePaths.length - 1
-      ? firstBatchIndex
-      : fileIndex + 1;
-    const filePath = join(workspacePath, sourcePath);
-    const content = await readFile(filePath, 'utf8');
-    await writeFile(
-      filePath,
-      `import '${fixtureImportSpecifier(fileIndex, nextIndex)}';\n${content}`,
-      'utf8',
-    );
-  }));
+  if (fixture === 'self') {
+    await writeSelfBatchFiles(workspacePath);
+  } else {
+    const sourcePaths = fixtureBatchSourcePaths(fileCount, batchFileCount);
+    const firstBatchIndex = fileCount - batchFileCount;
+    await Promise.all(sourcePaths.map(async (sourcePath, offset) => {
+      const fileIndex = firstBatchIndex + offset;
+      const nextIndex = offset === sourcePaths.length - 1
+        ? firstBatchIndex
+        : fileIndex + 1;
+      const filePath = join(workspacePath, sourcePath);
+      const content = await readFile(filePath, 'utf8');
+      await writeFile(
+        filePath,
+        `import '${fixtureImportSpecifier(fileIndex, nextIndex)}';\n${content}`,
+        'utf8',
+      );
+    }));
+  }
   await runGit(workspacePath, ['add', '--all']);
   await runGit(workspacePath, [
     '-c', 'user.name=CodeGraphy Perf',
@@ -114,6 +133,9 @@ async function prepareFixtureBranches(
 export async function createPerfRunEnvironment(
   options: CreatePerfRunEnvironmentOptions,
 ): Promise<PerfRunEnvironment> {
+  if (options.fixture === 'self' && options.symbols === true) {
+    throw new Error('--symbols is not supported for the self performance fixture');
+  }
   const rootPath = await mkdtemp(join(
     process.platform === 'darwin' ? '/tmp' : tmpdir(),
     'cgp-',
@@ -125,13 +147,22 @@ export async function createPerfRunEnvironment(
   const extensionsPath = join(profilePath, 'extensions');
 
   try {
-    const fileCount = await generatedFixtureFileCount(options.fixture);
+    const generatedFileCount = options.fixture === 'self'
+      ? undefined
+      : await generatedFixtureFileCount(options.fixture);
+    const selfCopy = options.fixture === 'self'
+      ? await copySelfWorkspace(options.repoRoot, workspacePath)
+      : undefined;
+    const fileCount = generatedFileCount
+      ?? (selfCopy?.analyzableFileCount ?? 0) + batchFileCount;
     await Promise.all([
-      generateFixture({
-        fixture: options.fixture,
-        outputRoot: workspacePath,
-        symbols: options.symbols === true,
-      }),
+      ...(options.fixture === 'self'
+        ? []
+        : [generateFixture({
+            fixture: options.fixture,
+            outputRoot: workspacePath,
+            symbols: options.symbols === true,
+          })]),
       mkdir(homePath, { recursive: true }),
       mkdir(userDataPath, { recursive: true }),
       mkdir(extensionsPath, { recursive: true }),
@@ -140,12 +171,13 @@ export async function createPerfRunEnvironment(
       workspacePath,
       fileCount,
       options.symbols === true,
+      options.fixture === 'self' ? ['**/*.ts', '**/*.tsx'] : undefined,
     );
     await linkCodeGraphyInstalledPluginPackage({
       homeDir: homePath,
       packageRoot: join(options.repoRoot, 'packages', 'plugin-typescript'),
     });
-    await prepareFixtureBranches(workspacePath, fileCount);
+    await prepareFixtureBranches(workspacePath, fileCount, options.fixture);
   } catch (error) {
     await rm(rootPath, { recursive: true, force: true });
     throw error;

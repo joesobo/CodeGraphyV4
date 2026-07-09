@@ -43,4 +43,37 @@ describe('extension/perf/scenarios/fileMutation/targets', () => {
     expect(first.observedPaths).not.toBe(second.observedPaths);
     expect(first.mutation).not.toBe(second.mutation);
   });
+
+  it.each([
+    ['rename', {
+      scenario: 'rename',
+      mutation: {
+        kind: 'rename',
+        oldPath: 'perf/fixtures/paths.ts',
+        newPath: 'perf/fixtures/paths.perf-renamed.ts',
+      },
+      observedPaths: [
+        'perf/fixtures/paths.ts',
+        'perf/fixtures/paths.perf-renamed.ts',
+      ],
+    }],
+    ['create', {
+      scenario: 'create',
+      mutation: {
+        kind: 'create',
+        filePath: 'perf/fixtures/perf-created.ts',
+      },
+      observedPaths: ['perf/fixtures/perf-created.ts'],
+    }],
+    ['delete', {
+      scenario: 'delete',
+      mutation: {
+        kind: 'delete',
+        paths: ['perf/fixtures/generate.ts'],
+      },
+      observedPaths: ['perf/fixtures/generate.ts'],
+    }],
+  ] as const)('selects deterministic self %s paths', (scenario, expected) => {
+    expect(createFileMutationTarget(scenario, 'self')).toEqual(expected);
+  });
 });

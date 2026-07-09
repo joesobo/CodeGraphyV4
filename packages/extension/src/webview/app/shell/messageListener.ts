@@ -42,7 +42,10 @@ export function createMessageHandler(
   pluginHost: WebviewPluginHost,
   resetPluginAssets?: ResetPluginAssets,
   updatePluginData: UpdatePluginData = () => undefined,
-  perfControl: Pick<WebviewGraphPerfControl, 'handleControl'> = webviewGraphPerfControl,
+  perfControl: Pick<
+    WebviewGraphPerfControl,
+    'handleControl' | 'handleExtensionMessage'
+  > = webviewGraphPerfControl,
 ): (event: MessageEvent<unknown>) => void {
   const packagePluginIdsByPackageName = new Map<string, string>();
 
@@ -74,6 +77,9 @@ export function createMessageHandler(
 
     removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
     graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
+    if (raw.type === 'GRAPH_CONTROLS_UPDATED') {
+      perfControl.handleExtensionMessage(raw);
+    }
   };
 }
 

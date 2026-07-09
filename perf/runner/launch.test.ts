@@ -4,7 +4,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { launchPerfSession, type RunVSCodeTestsOptions } from './launch';
-import { createPerfRunEnvironment } from './environment';
+import {
+  createPerfRunEnvironment,
+  type PerfRunEnvironment,
+} from './environment';
 
 async function countTypeScriptFiles(directory: string): Promise<number> {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -18,6 +21,66 @@ async function countTypeScriptFiles(directory: string): Promise<number> {
 }
 
 describe('performance VS Code launcher', () => {
+  it('preserves self as the fixture identity through launch and result parsing', async () => {
+    const rootPath = await mkdtemp(join(tmpdir(), 'codegraphy-perf-self-launch-'));
+    onTestFinished(() => rm(rootPath, { recursive: true, force: true }));
+    const resultPath = join(rootPath, 'self.json');
+    const environment = {
+      dispose: vi.fn(async () => undefined),
+      extensionsPath: rootPath,
+      fixture: 'self',
+      homePath: rootPath,
+      rootPath,
+      symbols: false,
+      userDataPath: rootPath,
+      workspacePath: rootPath,
+    } satisfies PerfRunEnvironment;
+    const runTests = vi.fn(async (options: RunVSCodeTestsOptions) => {
+      expect(options.extensionTestsEnv.CODEGRAPHY_PERF_FIXTURE).toBe('self');
+      await writeFile(resultPath, JSON.stringify({
+        schemaVersion: 1,
+        fixture: 'self',
+        runId: 'self-1',
+        scenario: 'cold-open',
+        metrics: [{ metric: 'coldOpenMs', unit: 'ms', value: 20 }],
+      }));
+      return 0;
+    });
+
+    await expect(launchPerfSession({
+      environment,
+      fixture: 'self',
+      repoRoot: resolve('.'),
+      resultPath,
+      runId: 'self-1',
+      vscodeVersion: '1.128.0',
+    }, { runTests })).resolves.toEqual(expect.objectContaining({ fixture: 'self' }));
+    expect(environment.dispose).not.toHaveBeenCalled();
+  });
+
+  it('rejects symbol expansion for a provided self environment', async () => {
+    const environment = {
+      dispose: vi.fn(async () => undefined),
+      extensionsPath: '/profile/extensions',
+      fixture: 'self',
+      homePath: '/profile/home',
+      rootPath: '/profile',
+      symbols: false,
+      userDataPath: '/profile/user-data',
+      workspacePath: '/workspace',
+    } satisfies PerfRunEnvironment;
+
+    await expect(launchPerfSession({
+      environment,
+      fixture: 'self',
+      repoRoot: '/repo',
+      resultPath: '/results/self.json',
+      runId: 'self-symbols',
+      symbols: true,
+      vscodeVersion: '1.128.0',
+    })).rejects.toThrow('--symbols is not supported for the self performance fixture');
+  });
+
   it('launches an isolated generated workspace', async () => {
     const resultRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-result-'));
     onTestFinished(() => rm(resultRoot, { recursive: true, force: true }));

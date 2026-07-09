@@ -1,12 +1,16 @@
 import type * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
 import { execGitCommand } from '../../gitHistory/exec';
-import { waitForWorkspaceRefreshIdle } from '../../workspaceFiles/refresh/scheduler';
+import {
+  armWorkspaceRefreshIdleWait,
+  type ArmedWorkspaceRefreshIdleWait,
+} from '../../workspaceFiles/refresh/scheduler';
 import { createPerfOperation } from '../operationId';
 import type { PerfScenarioOperationRunner } from './contracts';
 
 export const PERF_BATCH_BASE_BRANCH = 'perf-base';
 export const PERF_BATCH_TARGET_BRANCH = 'perf-batch-100';
+const workspaceRefreshTimeoutMs = 30_000;
 
 interface BranchHead {
   kind: 'branch';
@@ -30,11 +34,11 @@ export interface RunBatchBranchScenarioInput {
 }
 
 export interface BatchBranchScenarioDependencies {
-  execGit(arguments_: string[], workspaceRoot: string): Promise<string>;
-  waitForWorkspaceRefreshIdle(
+  armWorkspaceRefreshIdleWait(
     provider: GraphViewProvider,
-    options: { quietMs: number },
-  ): Promise<void>;
+    options: { quietMs: number; timeoutMs: number },
+  ): ArmedWorkspaceRefreshIdleWait;
+  execGit(arguments_: string[], workspaceRoot: string): Promise<string>;
 }
 
 export interface BatchBranchScenarioResult {
@@ -47,8 +51,8 @@ export interface BatchBranchScenarioResult {
 }
 
 const defaultDependencies: BatchBranchScenarioDependencies = {
+  armWorkspaceRefreshIdleWait,
   execGit: (arguments_, workspaceRoot) => execGitCommand(arguments_, { workspaceRoot }),
-  waitForWorkspaceRefreshIdle,
 };
 
 function requireGitHeadValue(value: string, label: string): string {
@@ -85,14 +89,21 @@ async function readGitHead(
   }
 }
 
-async function waitForRefresh(
+async function switchGitHead(
+  arguments_: string[],
   input: RunBatchBranchScenarioInput,
   dependencies: BatchBranchScenarioDependencies,
 ): Promise<void> {
-  await dependencies.waitForWorkspaceRefreshIdle(
+  const refreshIdle = dependencies.armWorkspaceRefreshIdleWait(
     input.provider,
-    { quietMs: 32 },
+    { quietMs: 32, timeoutMs: workspaceRefreshTimeoutMs },
   );
+  try {
+    await dependencies.execGit(arguments_, input.workspaceFolderUri.fsPath);
+    await refreshIdle.promise;
+  } finally {
+    refreshIdle.dispose();
+  }
 }
 
 async function switchToBranch(
@@ -100,11 +111,11 @@ async function switchToBranch(
   input: RunBatchBranchScenarioInput,
   dependencies: BatchBranchScenarioDependencies,
 ): Promise<void> {
-  await dependencies.execGit(
+  await switchGitHead(
     ['switch', '--quiet', branch],
-    input.workspaceFolderUri.fsPath,
+    input,
+    dependencies,
   );
-  await waitForRefresh(input, dependencies);
 }
 
 async function restoreGitHead(
@@ -115,8 +126,7 @@ async function restoreGitHead(
   const arguments_ = originalHead.kind === 'branch'
     ? ['switch', '--quiet', originalHead.value]
     : ['switch', '--quiet', '--detach', originalHead.value];
-  await dependencies.execGit(arguments_, input.workspaceFolderUri.fsPath);
-  await waitForRefresh(input, dependencies);
+  await switchGitHead(arguments_, input, dependencies);
 
   const restoredHead = await readGitHead(
     input.workspaceFolderUri.fsPath,

@@ -2,8 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { executeWorkspaceFileMutation } from '../../../../../src/extension/graphView/provider/file/mutations';
 import { getUndoManager } from '../../../../../src/extension/undoManager';
-import { waitForWorkspaceRefreshIdle } from '../../../../../src/extension/workspaceFiles/refresh/scheduler';
 import {
+  armWorkspaceRefreshIdleWait,
+  waitForWorkspaceRefreshIdle,
+} from '../../../../../src/extension/workspaceFiles/refresh/scheduler';
+import {
+  createFileMutationRefreshIdleArm,
   createFileMutationRefreshIdleWaiter,
   fileMutationScenarioRuntime,
 } from '../../../../../src/extension/perf/scenarios/fileMutation/runtime';
@@ -31,6 +35,7 @@ vi.mock('../../../../../src/extension/undoManager', () => ({
 }));
 
 vi.mock('../../../../../src/extension/workspaceFiles/refresh/scheduler', () => ({
+  armWorkspaceRefreshIdleWait: vi.fn(),
   waitForWorkspaceRefreshIdle: vi.fn(),
 }));
 
@@ -95,6 +100,18 @@ describe('extension/perf/scenarios/fileMutation/runtime', () => {
     expect(waitForWorkspaceRefreshIdle).toHaveBeenCalledWith(
       provider,
       { quietMs: 32 },
+    );
+  });
+
+  it('creates a bounded refresh-idle arm before a production mutation', async () => {
+    const provider = { isGraphOpen: vi.fn() };
+    const refreshIdle = { dispose: vi.fn(), promise: Promise.resolve() };
+    vi.mocked(armWorkspaceRefreshIdleWait).mockReturnValue(refreshIdle);
+
+    expect(createFileMutationRefreshIdleArm(provider as never)()).toBe(refreshIdle);
+    expect(armWorkspaceRefreshIdleWait).toHaveBeenCalledWith(
+      provider,
+      { quietMs: 32, timeoutMs: 30_000 },
     );
   });
 });

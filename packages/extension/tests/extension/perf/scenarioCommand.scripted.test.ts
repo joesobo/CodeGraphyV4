@@ -5,8 +5,12 @@ import {
   type PerfScenarioRuntime,
 } from '../../../src/extension/perf/scenarioCommand';
 
-function createScriptedRuntime(): PerfScenarioRuntime {
+function createScriptedRuntime(
+  options: { webviewAvailableOnlyAfterOpen?: boolean } = {},
+): PerfScenarioRuntime {
   const extensionHandlers = new Set<(message: unknown) => void>();
+  const webviewHandlers = new Set<(message: unknown) => void>();
+  let graphOpen = false;
   let metricListener: ((event: never) => void) | undefined;
   const runtime = {
     emitMetric: vi.fn((context) => {
@@ -27,10 +31,14 @@ function createScriptedRuntime(): PerfScenarioRuntime {
       return { dispose: vi.fn() };
     }),
     onWebviewMessage: vi.fn((handler) => {
+      if (options.webviewAvailableOnlyAfterOpen && !graphOpen) {
+        return { dispose: vi.fn() };
+      }
       handler({ type: 'PHYSICS_STABILIZED' });
-      return { dispose: vi.fn() };
+      return { dispose: () => { webviewHandlers.delete(handler); } };
     }),
     openGraph: vi.fn(async () => {
+      graphOpen = true;
       for (const handler of extensionHandlers) {
         handler({ type: 'APP_BOOTSTRAP_COMPLETE' });
         handler({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
@@ -50,6 +58,12 @@ function createScriptedRuntime(): PerfScenarioRuntime {
         unit: 'ms',
         value: 12,
       });
+      return request.scenario === 'rename'
+        ? {
+            codeGraphyRevealMs: 7,
+            explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+          }
+        : undefined;
     }),
     startMetricSession: vi.fn(() => ({ dispose: vi.fn() })),
   } satisfies PerfScenarioRuntime;
@@ -58,6 +72,27 @@ function createScriptedRuntime(): PerfScenarioRuntime {
 }
 
 describe('performance scripted scenarios', () => {
+  it('subscribes to physics after the graph webview becomes available', async () => {
+    vi.useFakeTimers();
+    const runtime = createScriptedRuntime({ webviewAvailableOnlyAfterOpen: true });
+
+    const pending = runPerfScenario({
+      runId: 'run-initial-physics',
+      scenario: 'warm-open',
+      dimension: 'small',
+      startedAt: 5,
+    }, runtime);
+    const assertion = expect(pending).resolves.toMatchObject({
+      runId: 'run-initial-physics',
+      scenario: 'warm-open',
+    });
+
+    await vi.advanceTimersByTimeAsync(180_000);
+    await assertion;
+    expect(runtime.onWebviewMessage).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
   it('runs a file scenario after the cached graph is ready', async () => {
     const runtime = createScriptedRuntime();
 
@@ -69,6 +104,10 @@ describe('performance scripted scenarios', () => {
     }, runtime)).resolves.toEqual({
       runId: 'run-rename',
       scenario: 'rename',
+      comparison: {
+        codeGraphyRevealMs: 7,
+        explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+      },
       metrics: [{
         operationId: 'run-rename:rename:small:0',
         dimension: 'small',
@@ -85,9 +124,10 @@ describe('performance scripted scenarios', () => {
     });
   });
 
-  it('signals process sampling after bootstrap and before idle work starts', async () => {
+  it('does not signal process sampling before correlated idle work starts', async () => {
     const runtime = createScriptedRuntime();
-    runtime.notifyScenarioReady = vi.fn(async () => {});
+    const notifyScenarioReady = vi.fn(async () => {});
+    const runtimeWithLegacySignal = { ...runtime, notifyScenarioReady };
 
     await runPerfScenario({
       runId: 'run-idle',
@@ -95,17 +135,9 @@ describe('performance scripted scenarios', () => {
       dimension: 'small',
       startedAt: 5,
       idleCpuReadyPath: '/tmp/run-idle.ready',
-    }, runtime);
+    }, runtimeWithLegacySignal);
 
-    expect(runtime.notifyScenarioReady).toHaveBeenCalledWith({
-      runId: 'run-idle',
-      scenario: 'idle-watch',
-      dimension: 'small',
-      startedAt: 5,
-      idleCpuReadyPath: '/tmp/run-idle.ready',
-    });
-    expect(vi.mocked(runtime.notifyScenarioReady).mock.invocationCallOrder[0])
-      .toBeLessThan(vi.mocked(runtime.runScriptedScenario!).mock.invocationCallOrder[0]);
+    expect(notifyScenarioReady).not.toHaveBeenCalled();
   });
 
   it('rejects a scripted request without a fixture dimension', async () => {
@@ -118,5 +150,19 @@ describe('performance scripted scenarios', () => {
     }, runtime)).rejects.toThrow();
 
     expect(runtime.openGraph).not.toHaveBeenCalled();
+  });
+
+  it('rejects a comparison payload that does not match the scenario', async () => {
+    const runtime = createScriptedRuntime();
+    runtime.runScriptedScenario = vi.fn(async () => ({
+      explorer: { explorerDeleteMs: 9 },
+    }));
+
+    await expect(runPerfScenario({
+      runId: 'run-create',
+      scenario: 'create',
+      dimension: 'small',
+      startedAt: 5,
+    }, runtime)).rejects.toThrow();
   });
 });

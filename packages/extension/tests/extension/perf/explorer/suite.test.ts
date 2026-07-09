@@ -78,6 +78,7 @@ describe('extension/perf/explorer/suite', () => {
     });
 
     const metrics = await runExplorerComparisonSuite({
+      dimension: 'small',
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
     }, runtime);
@@ -90,10 +91,16 @@ describe('extension/perf/explorer/suite', () => {
       explorerRevealMs: 14,
     });
     expect(runExplorerMutationComparison).toHaveBeenNthCalledWith(1, {
+      dimension: 'small',
       scenario: 'rename',
       timeoutMs: undefined,
       waitForRefreshIdle: expect.any(Function),
       workspaceFolderUri,
     }, runtime);
+    expect(measureExplorerRevealComparison).toHaveBeenCalledWith(
+      { fsPath: '/fixture/src/group-00000/file-000000.ts' },
+      { fsPath: '/fixture/src/group-00000/file-000001.ts' },
+      runtime,
+    );
   });
 });

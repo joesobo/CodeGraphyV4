@@ -4,43 +4,12 @@ import { performance } from 'node:perf_hooks';
 import * as vscode from 'vscode';
 import {
   perfScenarioSchema,
-  type PerfScenario,
 } from '../../shared/perf/protocol';
+import { perfScenarioResultSchema } from '../../extension/perf/result';
+import { waitForIdleCpuDone } from './coordination';
 
 const extensionId = 'codegraphy.codegraphy';
 const scenarioCommandId = 'codegraphy.perf.runScenario';
-
-interface PerfScenarioResult {
-  runId: string;
-  scenario: PerfScenario;
-  metrics: Array<{
-    dimension?: string;
-    metric:
-      | 'coldOpenMs'
-      | 'warmOpenMs'
-      | 'incrementalRefreshMs'
-      | 'payloadBytes'
-      | 'watcherToGraphMs'
-      | 'fileOpRoundtripMs'
-      | 'layoutResets'
-      | 'cacheSaveMs'
-      | 'cacheBytes'
-      | 'treeSitterParseMs'
-      | 'graphBuildMs'
-      | 'scopeToggleMs'
-      | 'settleTimeMs'
-      | 'idleCpuPct'
-      | 'simTicksAfterSettle'
-      | 'fpsIdle'
-      | 'fpsDrag'
-      | 'fpsSettle'
-      | 'longTasksPerInteraction'
-      | 'heapUsedBytes';
-    operationId?: string;
-    unit: 'ms' | 'bytes' | 'count' | 'fps' | 'percent';
-    value: number;
-  }>;
-}
 
 function requireEnvironmentVariable(name: string): string {
   const value = process.env[name];
@@ -77,13 +46,16 @@ export async function run(): Promise<void> {
     throw new Error(`Unsupported performance scenario: ${scenarioValue}`);
   }
   const scenario = parsedScenario.data;
+  const idleCpuDonePath = scenario === 'idle-watch'
+    ? requireEnvironmentVariable('CODEGRAPHY_PERF_IDLE_DONE_PATH')
+    : undefined;
   const extension = vscode.extensions.getExtension(extensionId);
   if (!extension) {
     throw new Error(`CodeGraphy extension ${extensionId} is not available`);
   }
 
   await extension.activate();
-  const scenarioResult = await vscode.commands.executeCommand<PerfScenarioResult>(
+  const rawScenarioResult = await vscode.commands.executeCommand<unknown>(
     scenarioCommandId,
     {
       runId,
@@ -93,13 +65,17 @@ export async function run(): Promise<void> {
       ...(idleCpuReadyPath ? { idleCpuReadyPath } : {}),
     },
   );
-  if (!scenarioResult) {
+  if (!rawScenarioResult) {
     throw new Error(`Performance command ${scenarioCommandId} returned no result`);
   }
+  const scenarioResult = perfScenarioResultSchema.parse(rawScenarioResult);
 
   await writeResultAtomically(resultPath, {
     schemaVersion: 1,
     fixture,
     ...scenarioResult,
   });
+  if (idleCpuDonePath) {
+    await waitForIdleCpuDone(idleCpuDonePath);
+  }
 }

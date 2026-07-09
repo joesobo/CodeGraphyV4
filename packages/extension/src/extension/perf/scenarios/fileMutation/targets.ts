@@ -1,4 +1,5 @@
 import type { WorkspaceFileMutation } from '../../../graphView/provider/file/mutations';
+import { createPerfFixtureTargets } from '../../fixtures/targets';
 
 export type FileMutationPerfScenario = 'rename' | 'create' | 'delete';
 
@@ -8,36 +9,33 @@ export interface FileMutationTarget {
   observedPaths: string[];
 }
 
-const renameSourcePath = 'src/group-00000/file-000004.ts';
-const renameTargetPath = 'src/group-00000/file-000004.perf-renamed.ts';
-const createdFilePath = 'src/group-00000/perf-created.ts';
-const deletedFilePath = 'src/group-00000/file-000003.ts';
-
 export function createFileMutationTarget(
   scenario: FileMutationPerfScenario,
+  dimension = 'small',
 ): FileMutationTarget {
+  const targets = createPerfFixtureTargets(dimension);
   switch (scenario) {
     case 'rename':
       return {
         scenario,
         mutation: {
           kind: 'rename',
-          oldPath: renameSourcePath,
-          newPath: renameTargetPath,
+          oldPath: targets.renameSourcePath,
+          newPath: targets.renameTargetPath,
         },
-        observedPaths: [renameSourcePath, renameTargetPath],
+        observedPaths: [targets.renameSourcePath, targets.renameTargetPath],
       };
     case 'create':
       return {
         scenario,
-        mutation: { kind: 'create', filePath: createdFilePath },
-        observedPaths: [createdFilePath],
+        mutation: { kind: 'create', filePath: targets.createPath },
+        observedPaths: [targets.createPath],
       };
     case 'delete':
       return {
         scenario,
-        mutation: { kind: 'delete', paths: [deletedFilePath] },
-        observedPaths: [deletedFilePath],
+        mutation: { kind: 'delete', paths: [targets.deletePath] },
+        observedPaths: [targets.deletePath],
       };
   }
 }

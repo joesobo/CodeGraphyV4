@@ -139,4 +139,60 @@ describe('extension/perf/bridge', () => {
       },
     });
   });
+
+  it('requests the current scope inventory for the armed operation', () => {
+    const { bridge, sendControl } = setup();
+    bridge.armGraph(operation);
+
+    expect(bridge.requestScopeInventory()).toBe(true);
+    expect(sendControl).toHaveBeenLastCalledWith({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'request-scope-inventory',
+        operationId: operation.operationId,
+      },
+    });
+  });
+
+  it('requests one scope toggle for the armed operation', () => {
+    const { bridge, sendControl } = setup();
+    bridge.armGraph(operation);
+
+    expect(bridge.toggleScope({
+      scopeKind: 'edge',
+      scopeId: 'imports',
+      enabled: false,
+    })).toBe(true);
+    expect(sendControl).toHaveBeenLastCalledWith({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'toggle-scope',
+        operationId: operation.operationId,
+        scopeKind: 'edge',
+        scopeId: 'imports',
+        enabled: false,
+      },
+    });
+  });
+
+  it('accepts a row-specific dimension for a correlated scope metric', () => {
+    const { bridge, onEvent } = setup();
+    bridge.armGraph(operation);
+
+    expect(bridge.handleMessage({
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        dimension: 'node:file',
+        kind: 'metric',
+        metric: 'scopeToggleMs',
+        unit: 'ms',
+        value: 12,
+      },
+    })).toBe(true);
+    expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
+      dimension: 'node:file',
+      metric: 'scopeToggleMs',
+    }));
+  });
 });

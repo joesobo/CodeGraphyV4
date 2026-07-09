@@ -14,11 +14,18 @@ function copy(contents: Uint8Array): Uint8Array {
   return new Uint8Array(contents);
 }
 
-function setup(scenario: 'rename' | 'create' | 'delete') {
+function setup(
+  scenario: 'rename' | 'create' | 'delete',
+  dimension = 'medium',
+) {
   const files = new Map<string, Uint8Array>();
-  const sourcePath = scenario === 'rename'
-    ? 'src/group-00000/file-000004.ts'
-    : 'src/group-00000/file-000003.ts';
+  const sourcePath = dimension === 'self'
+    ? scenario === 'rename'
+      ? 'perf/fixtures/paths.ts'
+      : 'perf/fixtures/generate.ts'
+    : scenario === 'rename'
+      ? 'src/group-00000/file-000004.ts'
+      : 'src/group-00000/file-000003.ts';
   if (scenario !== 'create') files.set(sourcePath, copy(originalContents));
 
   let lastMutation: WorkspaceFileMutation | undefined;
@@ -69,37 +76,66 @@ function setup(scenario: 'rename' | 'create' | 'delete') {
     undoLastMutation,
   };
   const refreshGraph = vi.fn(async () => undefined);
-  const waitForRefreshIdle = vi.fn(async () => undefined);
+  const refreshWaitDisposers: Array<ReturnType<typeof vi.fn>> = [];
+  const armRefreshIdle = vi.fn(() => {
+    const dispose = vi.fn();
+    refreshWaitDisposers.push(dispose);
+    return { dispose, promise: Promise.resolve() };
+  });
   const runOperation = vi.fn(async (_operation, action) => {
     await action();
     return { elapsedMs: 12 };
   });
   const input: RunFileMutationScenarioInput = {
-    dimension: 'medium',
+    armRefreshIdle,
+    dimension,
     ordinal: 2,
     refreshGraph,
     runId: 'run-7',
     runOperation,
     scenario,
-    waitForRefreshIdle,
     workspaceFolderUri,
-  };
+  } as RunFileMutationScenarioInput;
 
   return {
+    armRefreshIdle,
     dependencies,
     executeMutation,
     files,
     input,
     refreshGraph,
+    refreshWaitDisposers,
     runOperation,
     undoLastMutation,
-    waitForRefreshIdle,
   };
 }
 
 describe('extension/perf/scenarios/fileMutation/run', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each([
+    ['rename', {
+      kind: 'rename',
+      oldPath: 'perf/fixtures/paths.ts',
+      newPath: 'perf/fixtures/paths.perf-renamed.ts',
+    }],
+    ['create', {
+      kind: 'create',
+      filePath: 'perf/fixtures/perf-created.ts',
+    }],
+    ['delete', {
+      kind: 'delete',
+      paths: ['perf/fixtures/generate.ts'],
+    }],
+  ] as const)('runs the self %s target', async (scenario, expectedMutation) => {
+    const harness = setup(scenario, 'self');
+
+    const result = await runFileMutationScenario(harness.input, harness.dependencies);
+
+    expect(result.mutation).toEqual(expectedMutation);
+    expect(result.dimension).toBe('self');
   });
 
   it.each(['rename', 'create', 'delete'] as const)(
@@ -134,14 +170,17 @@ describe('extension/perf/scenarios/fileMutation/run', () => {
     },
   );
 
-  it('waits for delayed refresh work inside the measured mutation', async () => {
+  it('arms delayed refresh work before the measured mutation', async () => {
     const harness = setup('rename');
     harness.input.runOperation = async (_operation, action) => {
       await action();
-      expect(harness.waitForRefreshIdle).toHaveBeenCalledOnce();
+      expect(harness.armRefreshIdle).toHaveBeenCalledOnce();
     };
 
     await runFileMutationScenario(harness.input, harness.dependencies);
+
+    expect(harness.armRefreshIdle.mock.invocationCallOrder[0])
+      .toBeLessThan(harness.executeMutation.mock.invocationCallOrder[0]);
   });
 
   it('waits for delayed refresh work after UndoManager restoration', async () => {
@@ -149,9 +188,11 @@ describe('extension/perf/scenarios/fileMutation/run', () => {
 
     await runFileMutationScenario(harness.input, harness.dependencies);
 
-    expect(harness.waitForRefreshIdle).toHaveBeenCalledTimes(2);
+    expect(harness.armRefreshIdle).toHaveBeenCalledTimes(2);
     expect(harness.undoLastMutation.mock.invocationCallOrder[0])
-      .toBeLessThan(harness.waitForRefreshIdle.mock.invocationCallOrder[1]);
+      .toBeGreaterThan(harness.armRefreshIdle.mock.invocationCallOrder[1]);
+    expect(harness.refreshWaitDisposers.every(dispose => dispose.mock.calls.length === 1))
+      .toBe(true);
   });
 
   it.each(['rename', 'create', 'delete'] as const)(

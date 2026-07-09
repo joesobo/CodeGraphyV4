@@ -74,6 +74,38 @@ describe('webview/perf/graph/commit', () => {
     expect(cancelFrame).toHaveBeenCalledWith(57);
   });
 
+  it('schedules a commit when only the scope projection revision changes', () => {
+    const lifecycle = {
+      prepareCommit: vi.fn(() => ({ operation: {}, layoutChanged: false }) as never),
+      publishCommit: vi.fn(),
+    };
+    const requestFrame = vi.fn(() => 61);
+    const cancelFrame = vi.fn();
+    const graphRevision = {};
+    const firstProjectionRevision = {};
+    const { rerender } = renderHook(
+      ({ projectionRevision }) => useGraphPerfCommit({
+        edgeCount: 2,
+        layoutKey: 'uniform::stable',
+        nodeCount: 3,
+        projectionRevision,
+        revision: graphRevision,
+      }, { cancelFrame, lifecycle, requestFrame }),
+      { initialProps: { projectionRevision: firstProjectionRevision } },
+    );
+
+    rerender({ projectionRevision: {} });
+
+    expect(lifecycle.prepareCommit).toHaveBeenCalledTimes(2);
+    expect(lifecycle.prepareCommit).toHaveBeenLastCalledWith({
+      edgeCount: 2,
+      layoutKey: 'uniform::stable',
+      nodeCount: 3,
+    });
+    expect(requestFrame).toHaveBeenCalledTimes(2);
+    expect(cancelFrame).toHaveBeenCalledWith(61);
+  });
+
   it('does not observe a non-empty parent fallback handled by the graph component', () => {
     const lifecycle = {
       prepareCommit: vi.fn(),

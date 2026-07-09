@@ -64,4 +64,36 @@ describe('extension/perf/scenarios/webviewControl', () => {
     });
     expect(runIdleWatch).toHaveBeenCalledWith(60_000);
   });
+
+  it('signals process sampling from the correlated idle-started event', async () => {
+    const onIdleStarted = vi.fn();
+    const runControlOperation = vi.fn(async (operation, _completion, _start, _runtime, options) => {
+      options?.onEvent?.({
+        ...operation,
+        kind: 'idle-started' as const,
+        durationMs: 60_000,
+      });
+      return {
+        elapsedMs: 60_001,
+        event: {
+          ...operation,
+          kind: 'idle-complete' as const,
+          durationMs: 60_000,
+        },
+      };
+    });
+
+    await runIdleWatchScenario({
+      dimension: 'small',
+      ordinal: 0,
+      runId: 'run-idle-started',
+      onIdleStarted,
+    }, runtime, { runControlOperation });
+
+    expect(onIdleStarted).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'idle-started',
+      durationMs: 60_000,
+      operationId: 'run-idle-started:idle-watch:small:0',
+    }));
+  });
 });

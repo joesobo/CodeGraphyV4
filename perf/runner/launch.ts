@@ -12,6 +12,11 @@ import {
   type IdleCpuSampleOptions,
   type IdleCpuSampleResult,
 } from './idleCpu/sample';
+import {
+  parsePerfScenarioComparison,
+  perfScenarioComparisonSchema,
+} from '../../packages/extension/src/extension/perf/explorer/comparison';
+import type { PerfFixture } from '../report';
 
 export interface RunVSCodeTestsOptions {
   extensionDevelopmentPath: string;
@@ -39,7 +44,7 @@ export type LaunchPerfScenario = z.infer<typeof launchPerfScenarioSchema>;
 
 export interface LaunchPerfSessionOptions {
   environment?: PerfRunEnvironment;
-  fixture: 'small' | 'medium' | 'large' | 'huge' | 'giant';
+  fixture: PerfFixture;
   repoRoot: string;
   resultPath: string;
   runId: string;
@@ -118,8 +123,9 @@ const smokeMetricSchema = z.strictObject({
 });
 
 const perfSmokeResultSchema = z.strictObject({
+  comparison: perfScenarioComparisonSchema.optional(),
   schemaVersion: z.literal(1),
-  fixture: z.enum(['small', 'medium', 'large', 'huge', 'giant']),
+  fixture: z.enum(['small', 'medium', 'large', 'huge', 'giant', 'self']),
   runId: z.string().min(1),
   scenario: launchPerfScenarioSchema,
   metrics: z.array(smokeMetricSchema).min(1),
@@ -135,6 +141,17 @@ const perfSmokeResultSchema = z.strictObject({
       path: ['metrics'],
       message: `${result.scenario} requires ${expectedMetric}`,
     });
+  }
+  if (result.comparison) {
+    try {
+      parsePerfScenarioComparison(result.scenario, result.comparison);
+    } catch {
+      issues.addIssue({
+        code: 'custom',
+        path: ['comparison'],
+        message: `Comparison payload does not match scenario ${result.scenario}`,
+      });
+    }
   }
 });
 
@@ -174,10 +191,17 @@ function createLaunchArguments(
   ];
 }
 
+function asError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value));
+}
+
 export async function launchPerfSession(
   options: LaunchPerfSessionOptions,
   dependencies: LaunchPerfSessionDependencies = {},
 ): Promise<PerfSmokeResult> {
+  if (options.fixture === 'self' && options.symbols === true) {
+    throw new Error('--symbols is not supported for the self performance fixture');
+  }
   const ownsEnvironment = options.environment === undefined;
   const environment = options.environment ?? await createPerfRunEnvironment({
     fixture: options.fixture,
@@ -196,12 +220,16 @@ export async function launchPerfSession(
   const idleCpuReadyPath = scenario === 'idle-watch'
     ? `${options.resultPath}.idle-ready`
     : undefined;
+  const idleCpuDonePath = scenario === 'idle-watch'
+    ? `${options.resultPath}.idle-done`
+    : undefined;
 
   try {
     await Promise.all([
       mkdir(dirname(options.resultPath), { recursive: true }),
       rm(options.resultPath, { force: true }),
       ...(idleCpuReadyPath ? [rm(idleCpuReadyPath, { force: true })] : []),
+      ...(idleCpuDonePath ? [rm(idleCpuDonePath, { force: true })] : []),
     ]);
 
     process.env.HOME = environment.homePath;
@@ -222,6 +250,9 @@ export async function launchPerfSession(
         ...(idleCpuReadyPath
           ? { CODEGRAPHY_PERF_IDLE_READY_PATH: idleCpuReadyPath }
           : {}),
+        ...(idleCpuDonePath
+          ? { CODEGRAPHY_PERF_IDLE_DONE_PATH: idleCpuDonePath }
+          : {}),
         HOME: environment.homePath,
       },
       launchArgs: createLaunchArguments(
@@ -233,29 +264,46 @@ export async function launchPerfSession(
     });
     const idleCpuSample = idleCpuReadyPath
       ? (async () => {
-          const waitForIdleReady = dependencies.waitForIdleReady ?? waitForIdleCpuReady;
-          await Promise.race([
-            waitForIdleReady(idleCpuReadyPath),
-            testRun.then((exitCode) => {
-              throw new Error(
-                `VS Code performance session exited with code ${exitCode} before idle CPU sampling began`,
-              );
-            }),
-          ]);
-          const sampleIdleCpu = dependencies.sampleIdleCpu ?? sampleVsCodeIdleCpu;
-          return sampleIdleCpu({
-            durationMs: 60_000,
-            identity: {
-              userDataPath: environment.userDataPath,
-              workspacePath: environment.workspacePath,
-            },
-          });
+          try {
+            const waitForIdleReady = dependencies.waitForIdleReady ?? waitForIdleCpuReady;
+            await Promise.race([
+              waitForIdleReady(idleCpuReadyPath),
+              testRun.then((exitCode) => {
+                throw new Error(
+                  `VS Code performance session exited with code ${exitCode} before idle CPU sampling began`,
+                );
+              }),
+            ]);
+            const sampleIdleCpu = dependencies.sampleIdleCpu ?? sampleVsCodeIdleCpu;
+            return await sampleIdleCpu({
+              durationMs: 60_000,
+              identity: {
+                userDataPath: environment.userDataPath,
+                workspacePath: environment.workspacePath,
+              },
+            });
+          } finally {
+            if (idleCpuDonePath) {
+              await writeFile(idleCpuDonePath, `${options.runId}\n`, 'utf8');
+            }
+          }
         })()
       : Promise.resolve(undefined);
-    const [exitCode, idleCpu] = await Promise.all([testRun, idleCpuSample]);
+    const [testOutcome, sampleOutcome] = await Promise.allSettled([
+      testRun,
+      idleCpuSample,
+    ]);
+    if (testOutcome.status === 'rejected') {
+      throw asError(testOutcome.reason);
+    }
+    const exitCode = testOutcome.value;
     if (exitCode !== 0) {
       throw new Error(`VS Code performance session exited with code ${exitCode}`);
     }
+    if (sampleOutcome.status === 'rejected') {
+      throw asError(sampleOutcome.reason);
+    }
+    const idleCpu = sampleOutcome.value;
 
     const baseResult = perfSmokeResultSchema.parse(
       JSON.parse(await readFile(options.resultPath, 'utf8')),
@@ -289,6 +337,9 @@ export async function launchPerfSession(
     }
     if (idleCpuReadyPath) {
       await rm(idleCpuReadyPath, { force: true });
+    }
+    if (idleCpuDonePath) {
+      await rm(idleCpuDonePath, { force: true });
     }
   }
 }

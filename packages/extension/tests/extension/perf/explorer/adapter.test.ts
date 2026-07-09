@@ -34,6 +34,22 @@ function setup() {
 const workspaceFolderUri = { fsPath: '/fixture' } as vscode.Uri;
 
 describe('extension/perf/explorer/adapter', () => {
+  it.each([
+    ['rename', '/fixture/src/group-00000/file-000004.perf-renamed.ts'],
+    ['create', '/fixture/src/group-00000/perf-created.ts'],
+    ['delete', '/fixture/src/group-00000'],
+  ] as const)('reveals the visible Explorer row after %s', (scenario, expectedPath) => {
+    const { runtime } = setup();
+
+    const adapter = createExplorerMutationAdapter(
+      createFileMutationTarget(scenario),
+      workspaceFolderUri,
+      runtime,
+    );
+
+    expect(adapter.visibilityUri.fsPath).toBe(expectedPath);
+  });
+
   it('adapts rename workspace events and edits', async () => {
     const { listeners, runtime } = setup();
     const adapter = createExplorerMutationAdapter(

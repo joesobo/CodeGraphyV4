@@ -17,7 +17,6 @@ import {
 } from '../../shared/perf/protocol';
 import {
   createPerfMetricAggregation,
-  type PerfScenarioMetric,
 } from './aggregation';
 import { createPerfScenarioOperationRunner } from './scenarioOperation';
 import {
@@ -28,6 +27,15 @@ import {
   runIdleWatchScenario,
   runInteractionBurstScenario,
 } from './scenarios/webviewControl';
+import { runScopeToggleScenario } from './scope/battery';
+import {
+  parsePerfScenarioComparison,
+  type PerfScenarioComparison,
+} from './explorer/comparison';
+import {
+  perfScenarioResultSchema,
+  type PerfScenarioResult,
+} from './result';
 
 export const PERF_SCENARIO_COMMAND_ID = 'codegraphy.perf.runScenario';
 const bootstrapTimeoutMs = 180_000;
@@ -42,22 +50,17 @@ const perfScenarioRequestSchema = z.strictObject({
 
 export type PerfScenarioRequest = z.infer<typeof perfScenarioRequestSchema>;
 
-export interface PerfScenarioResult {
-  runId: string;
-  scenario: PerfScenario;
-  metrics: PerfScenarioMetric[];
-}
-
 export interface PerfScenarioRuntime {
   emitMetric(input: PerfMetricContext): void;
   indexGraph(): Promise<void>;
   now(): number;
-  notifyScenarioReady?(request: PerfScenarioRequest): Promise<void>;
   onMetric(listener: (event: PerfMetricDiagnosticEvent) => void): vscode.Disposable;
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   openGraph(): Promise<void>;
-  runScriptedScenario?(request: PerfScenarioRequest): Promise<void>;
+  runScriptedScenario?(
+    request: PerfScenarioRequest,
+  ): Promise<PerfScenarioComparison | undefined>;
   startMetricSession(context: PerfMetricSessionContext): vscode.Disposable;
 }
 
@@ -140,6 +143,7 @@ export async function runPerfScenario(
   runtime: PerfScenarioRuntime,
 ): Promise<PerfScenarioResult> {
   const parsedRequest = perfScenarioRequestSchema.parse(request);
+  let comparison: PerfScenarioComparison | undefined;
   const metricAggregation = createPerfMetricAggregation({ runId: parsedRequest.runId });
   const metricSubscription = runtime.onMetric(event => metricAggregation.collect(event));
   const metricSession = runtime.startMetricSession({
@@ -168,25 +172,24 @@ export async function runPerfScenario(
   try {
     try {
       await runtime.openGraph();
-      await Promise.all([
-        bootstrap.promise,
-        ...(warmGraphUpdated ? [warmGraphUpdated.promise] : []),
-        ...(warmGraphCacheReady ? [warmGraphCacheReady.promise] : []),
-      ]);
+      const stabilized = waitForMessage(
+        handler => runtime.onWebviewMessage(handler),
+        'PHYSICS_STABILIZED',
+      );
+      try {
+        await Promise.all([
+          bootstrap.promise,
+          ...(warmGraphUpdated ? [warmGraphUpdated.promise] : []),
+          ...(warmGraphCacheReady ? [warmGraphCacheReady.promise] : []),
+          stabilized.promise,
+        ]);
+      } finally {
+        stabilized.dispose();
+      }
     } finally {
       bootstrap.dispose();
       warmGraphUpdated?.dispose();
       warmGraphCacheReady?.dispose();
-    }
-
-    const stabilized = waitForMessage(
-      handler => runtime.onWebviewMessage(handler),
-      'PHYSICS_STABILIZED',
-    );
-    try {
-      await stabilized.promise;
-    } finally {
-      stabilized.dispose();
     }
 
     if (parsedRequest.scenario === 'cold-open') {
@@ -202,17 +205,23 @@ export async function runPerfScenario(
         value: Math.max(0, runtime.now() - parsedRequest.startedAt),
       });
     } else if (runtime.runScriptedScenario) {
-      await runtime.notifyScenarioReady?.(parsedRequest);
-      await runtime.runScriptedScenario(parsedRequest);
+      const scriptedComparison = await runtime.runScriptedScenario(parsedRequest);
+      if (scriptedComparison !== undefined) {
+        comparison = parsePerfScenarioComparison(
+          parsedRequest.scenario,
+          scriptedComparison,
+        );
+      }
     } else {
       throw new Error(`Performance scenario ${parsedRequest.scenario} is not registered`);
     }
 
-    return {
+    return perfScenarioResultSchema.parse({
+      ...(comparison ? { comparison } : {}),
       runId: parsedRequest.runId,
       scenario: parsedRequest.scenario,
       metrics: metricAggregation.metrics(),
-    };
+    });
   } finally {
     metricSession.dispose();
     metricSubscription.dispose();
@@ -241,11 +250,6 @@ export function registerPerfScenarioCommand(
       await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
     },
     now: operationRuntime.now,
-    notifyScenarioReady: async (request) => {
-      if (request.idleCpuReadyPath) {
-        await writeFile(request.idleCpuReadyPath, `${request.runId}\n`, 'utf8');
-      }
-    },
     onMetric: listener => onPerfMetric(listener),
     onExtensionMessage: handler => provider.onExtensionMessage(handler),
     onWebviewMessage: handler => provider.onWebviewMessage(handler),
@@ -260,17 +264,40 @@ export function registerPerfScenarioCommand(
       if (!workspaceFolder) {
         throw new Error(`Performance scenario ${request.scenario} requires a workspace folder`);
       }
-      await runNonOpenPerfScenario({
+      const scriptedResult = await runNonOpenPerfScenario({
         dimension: request.dimension,
         provider,
         runId: request.runId,
         scenario: request.scenario as NonOpenPerfScenario,
         workspaceFolderUri: workspaceFolder.uri,
       }, runOperation, {
-        runIdleWatchScenario: input => runIdleWatchScenario(input, operationRuntime),
+        runIdleWatchScenario: input => runIdleWatchScenario({
+          ...input,
+          ...(request.idleCpuReadyPath
+            ? {
+                onIdleStarted: () => writeFile(
+                  request.idleCpuReadyPath!,
+                  `${request.runId}\n`,
+                  'utf8',
+                ),
+              }
+            : {}),
+        }, operationRuntime),
         runInteractionBurstScenario: input =>
           runInteractionBurstScenario(input, operationRuntime),
+        runScopeToggleScenario: input => runScopeToggleScenario(input, operationRuntime),
       });
+      if (
+        request.scenario !== 'rename'
+        && request.scenario !== 'create'
+        && request.scenario !== 'delete'
+      ) {
+        return undefined;
+      }
+      return parsePerfScenarioComparison(
+        request.scenario,
+        (scriptedResult as { comparison?: unknown }).comparison,
+      );
     },
     startMetricSession: input => operationRuntime.startMetricSession(input),
   };

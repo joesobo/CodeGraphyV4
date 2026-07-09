@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  armWorkspaceRefreshIdleWait,
   scheduleWorkspaceRefresh,
   waitForWorkspaceRefreshIdle,
 } from '../../../../src/extension/workspaceFiles/refresh/scheduler';
@@ -128,5 +129,53 @@ describe('workspaceFiles/refresh/drain', () => {
     await vi.advanceTimersByTimeAsync(1);
     await idle;
     expect(idleSettled).toBe(true);
+  });
+
+  it('waits for refresh activity scheduled after the waiter is armed', async () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    const armed = armWorkspaceRefreshIdleWait(
+      provider as never,
+      { quietMs: 32, timeoutMs: 1_000 },
+    );
+    let idleSettled = false;
+    void armed.promise.then(() => {
+      idleSettled = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(32);
+    expect(idleSettled).toBe(false);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+      0,
+    );
+    await vi.advanceTimersByTimeAsync(0);
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(idleSettled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(31);
+    expect(idleSettled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await armed.promise;
+    expect(idleSettled).toBe(true);
+  });
+
+  it('rejects a bounded arm when no future refresh activity arrives', async () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    const armed = armWorkspaceRefreshIdleWait(
+      provider as never,
+      { quietMs: 32, timeoutMs: 50 },
+    );
+    const rejection = expect(armed.promise).rejects.toThrow(
+      'Timed out waiting for future workspace refresh activity to become idle',
+    );
+
+    await vi.advanceTimersByTimeAsync(50);
+    await rejection;
   });
 });

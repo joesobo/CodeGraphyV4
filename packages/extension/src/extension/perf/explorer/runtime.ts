@@ -29,8 +29,9 @@ async function applyWorkspaceEdit(
 ): Promise<boolean> {
   const edit = new vscode.WorkspaceEdit();
   configure(edit);
-  // VS Code's onDid*Files events fire for workspace.applyEdit, unlike direct
-  // workspace.fs mutations, which makes this the public prompt-free Explorer lane.
+  // workspace.applyEdit is the prompt-free public entry into the same VS Code
+  // file-operation service used by Explorer mutations. Unlike direct
+  // workspace.fs calls, it also emits the public onDid*Files completion events.
   return vscode.workspace.applyEdit(edit);
 }
 

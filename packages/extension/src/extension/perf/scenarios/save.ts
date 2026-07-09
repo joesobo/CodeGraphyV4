@@ -1,11 +1,17 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
-import { waitForWorkspaceRefreshIdle } from '../../workspaceFiles/refresh/scheduler';
+import {
+  armWorkspaceRefreshIdleWait,
+  type ArmedWorkspaceRefreshIdleWait,
+} from '../../workspaceFiles/refresh/scheduler';
 import { createPerfOperation } from '../operationId';
+import { createPerfFixtureTargets } from '../fixtures/targets';
 import type { PerfScenarioOperationRunner } from './contracts';
 
-export const PERF_SAVE_TARGET_RELATIVE_PATH = 'src/group-00000/file-000000.ts';
-export const PERF_SAVE_MARKER = '\n// CodeGraphy deterministic performance save.\n';
+const generatedTargets = createPerfFixtureTargets('small');
+export const PERF_SAVE_TARGET_RELATIVE_PATH = generatedTargets.savePath;
+export const PERF_SAVE_MARKER = generatedTargets.saveMarker;
+const workspaceRefreshTimeoutMs = 30_000;
 
 export interface RunDocumentSaveScenarioInput {
   dimension: string;
@@ -17,6 +23,10 @@ export interface RunDocumentSaveScenarioInput {
 }
 
 export interface DocumentSaveScenarioDependencies {
+  armWorkspaceRefreshIdleWait(
+    provider: GraphViewProvider,
+    options: { quietMs: number; timeoutMs: number },
+  ): ArmedWorkspaceRefreshIdleWait;
   executeCommand(command: string): PromiseLike<unknown>;
   getActiveTextEditor(): vscode.TextEditor | undefined;
   getOpenTextDocuments(): readonly vscode.TextDocument[];
@@ -25,10 +35,6 @@ export interface DocumentSaveScenarioDependencies {
     document: vscode.TextDocument,
     options?: vscode.TextDocumentShowOptions,
   ): PromiseLike<vscode.TextEditor>;
-  waitForWorkspaceRefreshIdle(
-    provider: GraphViewProvider,
-    options: { quietMs: number },
-  ): Promise<void>;
 }
 
 export interface DocumentSaveScenarioResult {
@@ -40,12 +46,12 @@ export interface DocumentSaveScenarioResult {
 }
 
 const defaultDependencies: DocumentSaveScenarioDependencies = {
+  armWorkspaceRefreshIdleWait,
   executeCommand: command => vscode.commands.executeCommand(command),
   getActiveTextEditor: () => vscode.window.activeTextEditor,
   getOpenTextDocuments: () => vscode.workspace.textDocuments,
   openTextDocument: uri => vscode.workspace.openTextDocument(uri),
   showTextDocument: (document, options) => vscode.window.showTextDocument(document, options),
-  waitForWorkspaceRefreshIdle,
 };
 
 function isTargetDocument(document: vscode.TextDocument, targetUri: vscode.Uri): boolean {
@@ -55,18 +61,44 @@ function isTargetDocument(document: vscode.TextDocument, targetUri: vscode.Uri):
 async function saveDocumentMutation(
   document: vscode.TextDocument,
   editor: vscode.TextEditor,
+  marker: string,
+  input: RunDocumentSaveScenarioInput,
+  dependencies: DocumentSaveScenarioDependencies,
 ): Promise<void> {
   const changed = await editor.edit((builder) => {
     builder.insert(
       document.positionAt(document.getText().length),
-      PERF_SAVE_MARKER,
+      marker,
     );
   });
   if (!changed) {
     throw new Error(`Unable to edit performance save target ${document.uri.fsPath}`);
   }
-  if (!await document.save()) {
-    throw new Error(`Unable to save performance target ${document.uri.fsPath}`);
+  await saveDocumentAndWaitForRefresh(
+    document,
+    input,
+    dependencies,
+    `Unable to save performance target ${document.uri.fsPath}`,
+  );
+}
+
+async function saveDocumentAndWaitForRefresh(
+  document: vscode.TextDocument,
+  input: RunDocumentSaveScenarioInput,
+  dependencies: DocumentSaveScenarioDependencies,
+  failureMessage: string,
+): Promise<void> {
+  const refreshIdle = dependencies.armWorkspaceRefreshIdleWait(
+    input.provider,
+    { quietMs: 32, timeoutMs: workspaceRefreshTimeoutMs },
+  );
+  try {
+    if (!await document.save()) {
+      throw new Error(failureMessage);
+    }
+    await refreshIdle.promise;
+  } finally {
+    refreshIdle.dispose();
   }
 }
 
@@ -98,12 +130,11 @@ async function restoreDocumentContent(
   }
 
   if (changed || document.isDirty) {
-    if (!await document.save()) {
-      throw new Error(`Unable to save restored performance target ${document.uri.fsPath}`);
-    }
-    await dependencies.waitForWorkspaceRefreshIdle(
-      input.provider,
-      { quietMs: 32 },
+    await saveDocumentAndWaitForRefresh(
+      document,
+      input,
+      dependencies,
+      `Unable to save restored performance target ${document.uri.fsPath}`,
     );
   }
 
@@ -148,9 +179,10 @@ export async function runDocumentSaveScenario(
     dimension: input.dimension,
     ordinal: input.ordinal,
   });
+  const targets = createPerfFixtureTargets(input.dimension);
   const targetUri = vscode.Uri.joinPath(
     input.workspaceFolderUri,
-    ...PERF_SAVE_TARGET_RELATIVE_PATH.split('/'),
+    ...targets.savePath.split('/'),
   );
   const targetWasOpen = dependencies.getOpenTextDocuments()
     .some(document => isTargetDocument(document, targetUri));
@@ -173,10 +205,12 @@ export async function runDocumentSaveScenario(
       preview: false,
     });
     await input.runOperation(operation, async () => {
-      await saveDocumentMutation(document, editor);
-      await dependencies.waitForWorkspaceRefreshIdle(
-        input.provider,
-        { quietMs: 32 },
+      await saveDocumentMutation(
+        document,
+        editor,
+        targets.saveMarker,
+        input,
+        dependencies,
       );
     });
   } finally {
@@ -204,6 +238,6 @@ export async function runDocumentSaveScenario(
     operationId: operation.operationId,
     restored: true,
     scenario: 'single-save',
-    targetPath: PERF_SAVE_TARGET_RELATIVE_PATH,
+    targetPath: targets.savePath,
   };
 }

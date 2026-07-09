@@ -13,6 +13,7 @@ export type ControlCompletionKind =
   | 'idle-complete';
 
 export interface CorrelatedControlOperationOptions {
+  onEvent?: (event: PerfEventPayload) => Promise<void> | void;
   timeoutMs?: number;
 }
 
@@ -49,6 +50,8 @@ export async function runCorrelatedControlOperation(
   runtime: CorrelatedControlOperationRuntime,
   options: CorrelatedControlOperationOptions = {},
 ): Promise<CorrelatedControlOperationResult> {
+  const eventEffects: Promise<void>[] = [];
+  let eventEffectError: Error | undefined;
   let resolveCompletion: (event: PerfEventPayload) => void = () => {};
   const completion = new Promise<PerfEventPayload>((resolve) => {
     resolveCompletion = resolve;
@@ -56,6 +59,12 @@ export async function runCorrelatedControlOperation(
   const bridge = createExtensionPerfBridge({
     enabled: true,
     onEvent: (event) => {
+      const effect = options.onEvent?.(event);
+      if (effect) {
+        eventEffects.push(Promise.resolve(effect).catch((error: unknown) => {
+          eventEffectError = error instanceof Error ? error : new Error(String(error));
+        }));
+      }
       if (event.kind === 'metric') {
         emitControlMetric(event, metric => { runtime.emitMetric(metric); });
       }
@@ -80,6 +89,10 @@ export async function runCorrelatedControlOperation(
       throw new Error(`Unable to start control operation ${operation.operationId}`);
     }
     const event = await Promise.race([completion, timeout]);
+    await Promise.all(eventEffects);
+    if (eventEffectError) {
+      throw eventEffectError;
+    }
     return {
       elapsedMs: Math.max(0, runtime.now() - startedAt),
       event,

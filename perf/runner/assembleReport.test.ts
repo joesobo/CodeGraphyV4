@@ -236,6 +236,39 @@ describe('performance report assembly', () => {
     expect(assemblePerfReport(second)).toEqual(assemblePerfReport(first));
   });
 
+  it('uses the slowest correlated refresh cycle for each operation scenario', () => {
+    const input = createInput();
+    const rename = input.results.find(result => result.scenario === 'rename')!;
+    const create = input.results.find(result => result.scenario === 'create')!;
+    const appendMeasuredMetric = (
+      target: PerfSmokeResult,
+      name: 'incrementalRefreshMs' | 'watcherToGraphMs',
+      value: number,
+    ): void => {
+      const operationId = target.metrics.find(entry => entry.operationId)?.operationId;
+      target.metrics.push({ ...metric(name, value), operationId });
+    };
+    appendMeasuredMetric(rename, 'incrementalRefreshMs', 18);
+    appendMeasuredMetric(rename, 'incrementalRefreshMs', 27);
+    appendMeasuredMetric(rename, 'watcherToGraphMs', 33);
+    appendMeasuredMetric(rename, 'watcherToGraphMs', 19);
+    appendMeasuredMetric(create, 'incrementalRefreshMs', 42);
+    appendMeasuredMetric(create, 'incrementalRefreshMs', 28);
+    appendMeasuredMetric(create, 'watcherToGraphMs', 29);
+    appendMeasuredMetric(create, 'watcherToGraphMs', 44);
+
+    const report = assemblePerfReport(input);
+
+    expect(report.metrics.incrementalRefreshMs).toMatchObject({
+      create: 42,
+      rename: 27,
+    });
+    expect(report.metrics.watcherToGraphMs).toMatchObject({
+      create: 44,
+      rename: 33,
+    });
+  });
+
   it('uses normal result metrics before explicit webview and Explorer fallbacks', () => {
     const input = createInput();
     const idle = input.results.find(result => result.scenario === 'idle-watch')!;
@@ -272,6 +305,80 @@ describe('performance report assembly', () => {
     });
   });
 
+  it('prefers same-session comparison payloads over explicit fallbacks', () => {
+    const input = createInput();
+    input.results.find(result => result.scenario === 'rename')!.comparison = {
+      codeGraphyRevealMs: 17,
+      explorer: { explorerRenameMs: 27, explorerRevealMs: 12 },
+    };
+    input.results.find(result => result.scenario === 'create')!.comparison = {
+      explorer: { explorerCreateMs: 37 },
+    };
+    input.results.find(result => result.scenario === 'delete')!.comparison = {
+      explorer: { explorerDeleteMs: 47 },
+    };
+
+    const report = assemblePerfReport(input);
+
+    expect(report.explorer).toEqual({
+      explorerRenameMs: 27,
+      explorerCreateMs: 37,
+      explorerDeleteMs: 47,
+      explorerRevealMs: 12,
+    });
+    expect(report.metrics.fileOpRoundtripMs.reveal).toBe(17);
+    expect(report.ratios.revealRatio).toBe(17 / 12);
+  });
+
+  it('assembles comparisons and idle CPU without duplicate external inputs', () => {
+    const input = createInput();
+    input.results.find(result => result.scenario === 'rename')!.comparison = {
+      codeGraphyRevealMs: 17,
+      explorer: { explorerRenameMs: 27, explorerRevealMs: 12 },
+    };
+    input.results.find(result => result.scenario === 'create')!.comparison = {
+      explorer: { explorerCreateMs: 37 },
+    };
+    input.results.find(result => result.scenario === 'delete')!.comparison = {
+      explorer: { explorerDeleteMs: 47 },
+    };
+    input.results.find(result => result.scenario === 'idle-watch')!.metrics.push(
+      metric('idleCpuPct', 0.75),
+    );
+    delete input.codeGraphyRevealMs;
+    delete input.explorer;
+    delete input.idleCpuPct;
+
+    const report = assemblePerfReport(input);
+
+    expect(report.metrics.idleCpuPct).toBe(0.75);
+    expect(report.explorer.explorerCreateMs).toBe(37);
+  });
+
+  it('rejects duplicate same-session comparison fields', () => {
+    const input = createInput();
+    input.results.find(result => result.scenario === 'rename')!.comparison = {
+      codeGraphyRevealMs: 17,
+      explorer: { explorerRenameMs: 27, explorerRevealMs: 12 },
+    };
+    input.results.find(result => result.scenario === 'create')!.comparison = {
+      explorer: { explorerRenameMs: 37 },
+    } as never;
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Duplicate comparison measurement: explorerRenameMs',
+    );
+  });
+
+  it('rejects a missing comparison and fallback field', () => {
+    const input = createInput();
+    delete input.explorer!.explorerCreateMs;
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Missing required measurement: explorerCreateMs',
+    );
+  });
+
   it('fails when a scripted scenario result is missing', () => {
     const input = createInput();
     input.results = input.results.filter(result => result.scenario !== 'idle-watch');
@@ -290,13 +397,16 @@ describe('performance report assembly', () => {
     );
   });
 
-  it('fails when a mapped scenario metric is missing', () => {
+  it.each([
+    'incrementalRefreshMs',
+    'watcherToGraphMs',
+  ] as const)('fails when a mapped %s metric is missing', (metricName) => {
     const input = createInput();
     const save = input.results.find(result => result.scenario === 'single-save')!;
-    save.metrics = save.metrics.filter(metric => metric.metric !== 'watcherToGraphMs');
+    save.metrics = save.metrics.filter(metric => metric.metric !== metricName);
 
     expect(() => assemblePerfReport(input)).toThrow(
-      'Expected exactly one watcherToGraphMs metric for single-save; found 0',
+      `Expected at least one ${metricName} metric for single-save; found 0`,
     );
   });
 
@@ -335,6 +445,17 @@ describe('performance report assembly', () => {
 
     expect(() => assemblePerfReport(input)).toThrow(
       'Missing required measurement: fpsIdle',
+    );
+  });
+
+  it('fails when no layout-reset metric was emitted', () => {
+    const input = createInput();
+    for (const result of input.results) {
+      result.metrics = result.metrics.filter(metric => metric.metric !== 'layoutResets');
+    }
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'Expected at least one layoutResets metric; found 0',
     );
   });
 });

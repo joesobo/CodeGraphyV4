@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { WorkspaceFileMutation } from '../../../graphView/provider/file/mutations';
+import type { ArmedWorkspaceRefreshIdleWait } from '../../../workspaceFiles/refresh/scheduler';
 import { createPerfOperation } from '../../operationId';
 import type { PerfScenarioOperationRunner } from '../contracts';
 import {
@@ -18,13 +19,13 @@ import {
 } from './runtime';
 
 export interface RunFileMutationScenarioInput {
+  armRefreshIdle: () => ArmedWorkspaceRefreshIdleWait;
   dimension: string;
   ordinal: number;
   refreshGraph: () => Promise<void>;
   runId: string;
   runOperation: PerfScenarioOperationRunner;
   scenario: FileMutationPerfScenario;
-  waitForRefreshIdle: () => Promise<void>;
   workspaceFolderUri: vscode.Uri;
 }
 
@@ -49,13 +50,18 @@ async function restoreMutation(
   dependencies: FileMutationScenarioDependencies,
 ): Promise<void> {
   if (mutationCompleted) {
-    const description = await dependencies.undoLastMutation();
-    if (!description) {
-      throw new Error(
-        `Performance ${input.scenario} scenario was not recorded by UndoManager`,
-      );
+    const refreshIdle = input.armRefreshIdle();
+    try {
+      const description = await dependencies.undoLastMutation();
+      if (!description) {
+        throw new Error(
+          `Performance ${input.scenario} scenario was not recorded by UndoManager`,
+        );
+      }
+      await refreshIdle.promise;
+    } finally {
+      refreshIdle.dispose();
     }
-    await input.waitForRefreshIdle();
   }
   await assertRestoredFileStates(
     input.scenario,
@@ -69,7 +75,7 @@ export async function runFileMutationScenario(
   input: RunFileMutationScenarioInput,
   dependencies: FileMutationScenarioDependencies = fileMutationScenarioRuntime,
 ): Promise<FileMutationScenarioResult> {
-  const target = createFileMutationTarget(input.scenario);
+  const target = createFileMutationTarget(input.scenario, input.dimension);
   const operation = createPerfOperation({
     runId: input.runId,
     scenario: input.scenario,
@@ -87,12 +93,17 @@ export async function runFileMutationScenario(
 
   try {
     await input.runOperation(operation, async () => {
-      await dependencies.executeMutation(target.mutation, {
-        workspaceFolderUri: input.workspaceFolderUri,
-        refreshGraph: input.refreshGraph,
-      });
-      mutationCompleted = true;
-      await input.waitForRefreshIdle();
+      const refreshIdle = input.armRefreshIdle();
+      try {
+        await dependencies.executeMutation(target.mutation, {
+          workspaceFolderUri: input.workspaceFolderUri,
+          refreshGraph: input.refreshGraph,
+        });
+        mutationCompleted = true;
+        await refreshIdle.promise;
+      } finally {
+        refreshIdle.dispose();
+      }
     });
   } catch (error) {
     operationFailure = toError(error);

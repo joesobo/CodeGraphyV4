@@ -111,6 +111,43 @@ describe('extension/perf/controlOperation', () => {
     });
   });
 
+  it('observes correlated lifecycle events before control completion', async () => {
+    const harness = setup();
+    const onEvent = vi.fn();
+
+    await runCorrelatedControlOperation(
+      operation,
+      'interaction-complete',
+      () => {
+        harness.emit({
+          type: 'PERF_EVENT',
+          payload: {
+            ...operation,
+            kind: 'idle-started',
+            durationMs: 60_000,
+          },
+        });
+        harness.emit({
+          type: 'PERF_EVENT',
+          payload: {
+            ...operation,
+            kind: 'interaction-complete',
+            interaction: 'burst',
+            durationMs: 20,
+          },
+        });
+        return true;
+      },
+      harness.runtime,
+      { onEvent },
+    );
+
+    expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'idle-started',
+      durationMs: 60_000,
+    }));
+  });
+
   it('disarms and restores the metric session after completion', async () => {
     const harness = setup();
 

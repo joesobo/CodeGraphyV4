@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { PerfOperation } from '../../../../src/shared/perf/protocol';
-import { createGraphPerfScenarios } from '../../../../src/webview/perf/graph/scenarios';
+import {
+  createGraphPerfScenarios,
+  INTERACTION_BURST_FRAME_COUNT,
+} from '../../../../src/webview/perf/graph/scenarios';
 
 const interactionOperation: PerfOperation = {
   dimension: 'medium',
@@ -33,6 +36,7 @@ function setup(waitForSettle = true) {
     startInteraction: vi.fn(),
     startSettle: vi.fn(),
   };
+  const runInteractionBurst = vi.fn(() => ({ waitForSettle }));
   const scenarios = createGraphPerfScenarios({
     bridge: { emitFor },
     cancelFrame: frame => frames.delete(frame),
@@ -45,7 +49,7 @@ function setup(waitForSettle = true) {
       frames.set(frame, callback);
       return frame;
     },
-    runInteractionBurst: vi.fn(() => ({ waitForSettle })),
+    runInteractionBurst,
     setTickEnabled,
     setTimer: (callback) => {
       const timer = nextTimer;
@@ -58,6 +62,7 @@ function setup(waitForSettle = true) {
     emitFor,
     frameMetrics,
     frames,
+    runInteractionBurst,
     scenarios,
     setNow: (value: number) => { now = value; },
     setTickEnabled,
@@ -72,6 +77,12 @@ function runNextFrame(frames: Map<number, FrameRequestCallback>): void {
   entry[1](0);
 }
 
+function runInteractionWorkload(frames: Map<number, FrameRequestCallback>): void {
+  for (let index = 0; index < INTERACTION_BURST_FRAME_COUNT; index += 1) {
+    runNextFrame(frames);
+  }
+}
+
 function runNextTimer(timers: Map<number, () => void>): void {
   const entry = timers.entries().next().value as [number, () => void] | undefined;
   if (!entry) throw new Error('Expected a queued timer');
@@ -80,12 +91,28 @@ function runNextTimer(timers: Map<number, () => void>): void {
 }
 
 describe('webview/perf/graph/scenarios', () => {
+  it('sustains the deterministic interaction workload across multiple frames', () => {
+    const { frameMetrics, frames, runInteractionBurst, scenarios } = setup(true);
+    scenarios.startInteractionBurst(interactionOperation);
+
+    for (let index = 0; index < INTERACTION_BURST_FRAME_COUNT; index += 1) {
+      runNextFrame(frames);
+      expect(runInteractionBurst).toHaveBeenCalledTimes(index + 1);
+      if (index < INTERACTION_BURST_FRAME_COUNT - 1) {
+        expect(frameMetrics.startSettle).not.toHaveBeenCalled();
+      }
+    }
+
+    expect(INTERACTION_BURST_FRAME_COUNT).toBeGreaterThan(1);
+    expect(frameMetrics.startSettle).toHaveBeenCalledWith(interactionOperation);
+  });
+
   it('waits for both the post-burst frame and physics settle before completing', () => {
     const { emitFor, frameMetrics, frames, scenarios, setNow } = setup(true);
     scenarios.startInteractionBurst(interactionOperation);
     expect(frameMetrics.startInteraction).toHaveBeenCalledWith(interactionOperation);
 
-    runNextFrame(frames);
+    runInteractionWorkload(frames);
     expect(frameMetrics.startSettle).toHaveBeenCalledWith(interactionOperation);
     scenarios.engineStopped();
     expect(emitFor).not.toHaveBeenCalled();
@@ -105,7 +132,7 @@ describe('webview/perf/graph/scenarios', () => {
     const { emitFor, frames, scenarios } = setup(false);
     scenarios.startInteractionBurst(interactionOperation);
 
-    runNextFrame(frames);
+    runInteractionWorkload(frames);
     runNextFrame(frames);
 
     expect(emitFor).toHaveBeenCalledWith(
@@ -115,7 +142,7 @@ describe('webview/perf/graph/scenarios', () => {
   });
 
   it('starts the idle timer only after physics has settled', () => {
-    const { frameMetrics, scenarios, timers } = setup();
+    const { emitFor, frameMetrics, scenarios, timers } = setup();
 
     scenarios.startIdleWatch(idleOperation, 1_000);
 
@@ -124,6 +151,10 @@ describe('webview/perf/graph/scenarios', () => {
     scenarios.engineStopped();
     expect(timers.size).toBe(1);
     expect(frameMetrics.startIdle).toHaveBeenCalledWith(idleOperation);
+    expect(emitFor).toHaveBeenCalledWith(idleOperation, {
+      kind: 'idle-started',
+      durationMs: 1_000,
+    });
   });
 
   it('counts real engine ticks only during the settled idle window', () => {
@@ -139,6 +170,10 @@ describe('webview/perf/graph/scenarios', () => {
 
     expect(frameMetrics.completeIdle).toHaveBeenCalledWith(idleOperation);
     expect(emitFor.mock.calls).toEqual([
+      [idleOperation, {
+        kind: 'idle-started',
+        durationMs: 1_000,
+      }],
       [idleOperation, {
         kind: 'metric',
         metric: 'simTicksAfterSettle',
@@ -164,6 +199,9 @@ describe('webview/perf/graph/scenarios', () => {
     expect(timers.size).toBe(0);
     expect(setTickEnabled).toHaveBeenLastCalledWith(false);
     expect(frameMetrics.cancel).toHaveBeenCalled();
-    expect(emitFor).not.toHaveBeenCalled();
+    expect(emitFor.mock.calls).toEqual([[
+      idleOperation,
+      { kind: 'idle-started', durationMs: 1_000 },
+    ]]);
   });
 });

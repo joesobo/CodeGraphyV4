@@ -18,15 +18,27 @@ export interface ExtensionPerfBridge {
   disarmGraph(): boolean;
   handleMessage(message: unknown): boolean;
   isArmed(): boolean;
+  requestScopeInventory(): boolean;
   runIdleWatch(durationMs?: number): boolean;
   runInteractionBurst(): boolean;
+  toggleScope(entry: {
+    scopeKind: 'node' | 'edge';
+    scopeId: string;
+    enabled: boolean;
+  }): boolean;
 }
 
 function belongsToOperation(event: PerfEventPayload, operation: PerfOperation): boolean {
-  return event.operationId === operation.operationId
+  const belongsToContext = event.operationId === operation.operationId
     && event.runId === operation.runId
-    && event.scenario === operation.scenario
-    && event.dimension === operation.dimension;
+    && event.scenario === operation.scenario;
+  if (!belongsToContext) {
+    return false;
+  }
+
+  return event.kind === 'metric' && event.metric === 'scopeToggleMs'
+    ? true
+    : event.dimension === operation.dimension;
 }
 
 export function createExtensionPerfBridge(
@@ -95,6 +107,21 @@ export function createExtensionPerfBridge(
       return options.enabled && armedOperation !== undefined;
     },
 
+    requestScopeInventory(): boolean {
+      if (!options.enabled || !armedOperation) {
+        return false;
+      }
+      const message = perfControlMessageSchema.parse({
+        type: 'PERF_CONTROL',
+        payload: {
+          kind: 'request-scope-inventory',
+          operationId: armedOperation.operationId,
+        },
+      });
+      options.sendControl(message);
+      return true;
+    },
+
     runIdleWatch(durationMs): boolean {
       if (!options.enabled || !armedOperation) {
         return false;
@@ -126,6 +153,25 @@ export function createExtensionPerfBridge(
         },
       });
       options.sendControl(message);
+      return true;
+    },
+
+    toggleScope(entry): boolean {
+      if (!options.enabled || !armedOperation) {
+        return false;
+      }
+      const message = perfControlMessageSchema.safeParse({
+        type: 'PERF_CONTROL',
+        payload: {
+          kind: 'toggle-scope',
+          operationId: armedOperation.operationId,
+          ...entry,
+        },
+      });
+      if (!message.success) {
+        return false;
+      }
+      options.sendControl(message.data);
       return true;
     },
   };
