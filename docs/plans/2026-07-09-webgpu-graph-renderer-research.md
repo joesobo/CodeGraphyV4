@@ -425,6 +425,149 @@ Plugin-facing behavior:
 - raw renderer access should stay private;
 - plugin graph styling should become declarative enough for GPU buffers.
 
+## Full Replacement Parity Spec
+
+What a WebGPU renderer must actually implement for `react-force-graph-2d` to
+be removed, grounded in what the codebase uses today (not the library's full
+API). Sources: `sharedProps.ts`, `twoDimensional.tsx`, the physics runtime
+(`runtime/physics/root/settings/*`, `pluginForces.ts`), and the interaction
+runtime (`interactionRuntime/*`, `runtime/use/interaction/*`).
+
+### 1. Physics Engine (the biggest hidden subsystem)
+
+CodeGraphy configures the d3 simulation directly, so the replacement needs a
+full d3-force-compatible engine, not "some physics":
+
+- Integration: velocity Verlet with the d3 alpha lifecycle — `alpha`,
+  `alphaMin`, `alphaDecay` (currently 0.0228), `velocityDecay` (the damping
+  setting, 0.7), and `d3ReheatSimulation` semantics (reset alpha to 1).
+- Forces in use (`root/settings/`): charge/many-body (Barnes-Hut quadtree,
+  `gravitationalConstant: -250`), link springs (per-link distance 80 /
+  strength 0.15), center + centroid gravity (0.1), and collision (iterative,
+  radius-aware).
+- Pinning: `fx`/`fy` fixed positions — this is how node drag works (fix during
+  drag, optionally release on drag end) and how persisted layouts would load.
+- Lifecycle: `warmupTicks` (currently 0), `cooldownTicks` (60 interactive / 50
+  timeline), and `onEngineStop` — the app listens for stabilization.
+- Plugin forces: `pluginForces.ts` installs adapters with
+  `initialize(nodes)` / `tick(alpha)` / `dispose()` under namespaced ids. This
+  exact contract must survive in the CPU layout; a GPU layout needs a
+  declarative replacement before plugin forces can move.
+
+Recommendation: do not rewrite the math initially. Run the actual `d3-force`
+package (or a literal port) inside the layout module — main thread first,
+worker later — so physics feel is bit-identical while the renderer changes
+underneath. Custom/GPU physics is a later, separately validated step.
+
+### 2. Node Rendering
+
+Current drawing is fully custom (`nodeCanvasObjectMode: 'replace'`) via
+`rendering/node/*`: body shapes, labels, media/icons, collapse indicators,
+pointer areas. WebGPU equivalents:
+
+- Bodies: one instanced draw of quads shaded as SDF circles (and any other
+  body shapes as SDF variants); per-instance position, radius (`nodeVal` ->
+  radius mapping), fill color, border, and state flags (selected, hovered,
+  muted, search hit) driving halo/dim effects in the shader.
+- File icons/media (`node/media.ts`): a texture atlas sampled per instance;
+  LOD rule to drop icons below a zoom threshold.
+- Collapse indicators/badges: a second small instanced layer positioned
+  relative to the parent node.
+- Labels (`node/label.ts`): the hardest rendering problem. Two viable paths:
+  (a) MSDF glyph atlas rendered in-GPU — best scaling, most work; (b) a
+  Canvas2D/DOM overlay that draws only the top-N visible labels (hovered,
+  selected, largest on screen) with zoom-gated fade, Obsidian-style. Path (b)
+  is recommended first: at the committed 100k-node scale, only a tiny fraction
+  of labels are legible at once anyway.
+
+### 3. Link Rendering
+
+- Lines: instanced segments expanded to screen-space width in the vertex
+  shader; per-instance color, width, opacity.
+- Curvature (`linkCurvature`): quadratic bezier evaluated in the vertex shader
+  over a small subdivided strip; curvature is per-link data already
+  (`link.curvature` for multi-edges/self-loops).
+- Directional arrows: instanced triangles placed at `arrowRelPos` along the
+  (possibly curved) link, oriented by the curve tangent, shortened by target
+  node radius.
+- Directional particles: currently the only always-animating feature
+  (`autoPauseRedraw` is disabled in particles mode). On GPU this is nearly
+  free: particle position = bezier evaluated at a per-link phase advanced by
+  time; one instanced draw, no per-particle JS state.
+- Link text/dash/custom draws that today go through `linkCanvasObject` need an
+  inventory pass — each becomes either per-instance data or a shader feature.
+
+### 4. Viewport And Camera
+
+Replace the library's zoom/pan transform with an owned 2D camera (translate +
+scale), providing: `zoom(k, ms)`, `centerAt(x, y, ms)` with tweened
+animation, `zoomToFit(ms, padding, filter)`, `getGraphBbox`, min/max zoom
+clamps, `screen2GraphCoords`/`graph2ScreenCoords` (trivial matrix math), and
+an `onZoom` event stream. Note CodeGraphy already disables the library's pan
+(`enablePanInteraction={false}`) and implements its own Ctrl-drag pan
+(`runtime/use/interaction/viewportPan/`) — the custom camera actually
+simplifies this code.
+
+### 5. Picking And Pointer Model
+
+Replace `nodePointerAreaPaint` (hidden hit-canvas) with a CPU spatial hash or
+quadtree rebuilt from positions each tick (cheap for 100k points):
+
+- node hit test: nearest node within radius (+ pointer slop);
+- link hit test: point-to-segment/bezier distance with hover precision;
+- marquee selection (`interaction/marquee/`): a range query on the same index;
+- pointer state machine reproducing the library's semantics: hover
+  (enter/leave with null), click vs drag threshold, right-click, background
+  click/right-click, drag start/move/end with `fx`/`fy` pinning and reheat.
+
+The same position data feeds the accessibility projector
+(`viewport/accessibility.ts` needs `graph2ScreenCoords` + node radii), tooltip
+rects, and the debug snapshot protocol (`graph/debug/`), so positions must
+remain CPU-readable — one more reason CPU/worker layout comes before GPU
+layout.
+
+### 6. Render Loop And Damage Model
+
+Reproduce `autoPauseRedraw`: draw only when the simulation ticked, the camera
+moved, interaction state changed, or a continuous animation (particles, tween)
+is active. Add a frame budget so simulation ticks and buffer uploads cannot
+starve pointer handling. `onRenderFramePost` (used today for overlays like
+marquee rectangles) becomes an explicit overlay pass or a DOM/Canvas overlay
+layer above the WebGPU canvas.
+
+### 7. DAG Mode
+
+`dagMode`/`dagLevelDistance` are wired through settings today
+(td/bu/lr/rl/radial variants in the library). The library implements DAG as
+constraint forces on top of the same simulation, so it ports as one more
+force. Keep it as a layout-module feature, or explicitly drop it — but decide;
+it is user-visible settings surface.
+
+### 8. Explicitly Not Needed
+
+Force-graph API surface CodeGraphy does not use and the replacement should not
+build: `nodeAutoColorBy`/`linkAutoColorBy`, `emitParticle`, particle offset /
+custom particle draws, `linkLineDash` (dashes, if any, live in custom draw
+code), `onLinkHover`, `linkPointerAreaPaint`, `cooldownTime`, `dagNodeFilter`
+/ `onDagError`, and all 3D/VR/AR surfaces (3D is being removed).
+
+### 9. Parity Verification
+
+- Physics: identical d3 engine (or port) validated by running old and new
+  side-by-side on fixture graphs and diffing settled positions.
+- Interaction: the existing acceptance specs plus the debug snapshot protocol
+  give a comparison harness; extend snapshots to include camera transform and
+  hit-test results.
+- Visuals: screenshot-diff fixture graphs at fixed seeds/zoom levels between
+  the react-force-graph adapter and the WebGPU renderer.
+
+### Effort Ranking
+
+Hardest first: labels at scale; physics feel parity (drag/reheat/settle);
+curved-link arrows and particles; picking semantics parity; DAG mode;
+everything else (bodies, lines, camera, halos) is standard instanced
+rendering.
+
 ## Plugin Implications
 
 The current plugin API includes Canvas-oriented hooks such as node renderers and
