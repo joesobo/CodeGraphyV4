@@ -11,14 +11,14 @@ export function CodeBlock({ children, className }: CodeBlockProps): React.ReactE
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 rounded-md border border-border bg-muted p-3 font-mono text-sm leading-6',
+        'flex min-w-0 items-start justify-between gap-3 rounded-md border border-border bg-muted p-3 font-mono text-sm leading-6',
         className,
       )}
     >
-      <pre className="overflow-x-auto text-foreground">
+      <pre className="min-w-0 flex-1 overflow-x-auto text-foreground">
         <code>{children}</code>
       </pre>
-      <CopyButton text={children} />
+      <CopyButton className="shrink-0" text={children} />
     </div>
   );
 }

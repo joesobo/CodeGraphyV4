@@ -11,7 +11,7 @@ const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-fira-code' })
 
 const title = 'CodeGraphy — See how your workspace connects';
 const description =
-  'An interactive Relationship Graph for your workspace. Files, symbols, and the connections between them — for people and agents.';
+  'An interactive Relationship Graph for your CodeGraphy Workspace. Files, symbols, and Relationships — for people and agents.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://codegraphy.dev'),
@@ -48,10 +48,8 @@ export default function RootLayout({
                 <Navbar />
               </div>
             </header>
-            <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:px-12">
-              <main className="w-full py-10 sm:py-14">{children}</main>
-              <Footer />
-            </div>
+            <main className="w-full pt-10 sm:pt-14">{children}</main>
+            <Footer />
           </div>
         </ThemeProvider>
       </body>

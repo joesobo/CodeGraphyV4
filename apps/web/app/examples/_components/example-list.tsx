@@ -9,7 +9,7 @@ export function ExampleList(): React.ReactElement {
     <section className="grid gap-10" id="example-workspaces">
       <SectionHeader
         title="Example workspaces"
-        description="Open the repo-root examples folder to compare languages side by side, or open one focused example when you want a clean demo."
+        description="Open the repo-root examples folder to compare CodeGraphy Workspaces side by side, or open one focused example when you want a clean demo."
       />
 
       <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-6">
@@ -17,14 +17,14 @@ export function ExampleList(): React.ReactElement {
         <div className="grid gap-10">
           <ExampleGroup
             title="Language examples"
-            description="Core reads these out of the box — each card opens a runnable workspace showing the imports, symbols, and inheritance CodeGraphy indexes for that language."
+            description="The Core Package reads these out of the box — each card opens a runnable CodeGraphy Workspace showing the imports, symbols, and inheritance CodeGraphy indexes for that language."
             examples={exampleContent.filter((example) => example.category === 'language')}
             id="language-examples"
           />
 
           <ExampleGroup
             title="Plugin package examples"
-            description="Workspaces that need a package-backed CodeGraphy plugin for framework, engine, document, or visual graph behavior."
+            description="CodeGraphy Workspaces that need a package-backed Plugin for framework, engine, document, or visual Relationship Graph behavior."
             examples={exampleContent.filter((example) => example.category === 'plugin')}
             id="plugin-examples"
           />

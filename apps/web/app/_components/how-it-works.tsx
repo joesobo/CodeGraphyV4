@@ -36,19 +36,13 @@ const coreChips: string[] = ['Tree-sitter', 'Indexing', 'Graph Cache', 'Plugin h
 
 export function HowItWorks(): React.ReactElement {
   return (
-    <section className="grid gap-8">
+    <section className="mx-auto grid w-full max-w-7xl gap-6 px-6 sm:px-8 lg:px-12">
       <SectionHeader
         title="How CodeGraphy works"
         description="One headless engine sits at the center. It reads your workspace, analyzes it with Tree-sitter, and caches every connection, then serves that graph to the extension, agents, the CLI, and plugins."
       />
 
       <div className="mx-auto grid w-full max-w-5xl gap-4">
-        {/*
-         * One grid drives both layouts: on mobile it collapses to a single column,
-         * so the cards and connectors stack into a top-to-bottom flow; on desktop it
-         * expands to a sources -> core -> surfaces pipeline. The connectors read at
-         * every size because they live in the flow rather than a separate row.
-         */}
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.4fr)_auto_minmax(0,1fr)] lg:items-center">
           <Stage label="Reads from" nodes={sourceNodes} />
           <FlowConnector label="index" />
@@ -128,7 +122,6 @@ function FlowConnector({ label }: { label: string }): React.ReactElement {
       <span className="font-mono text-[0.6rem] font-semibold uppercase tracking-widest">
         {label}
       </span>
-      {/* Points down while the flow is stacked, right once it runs across. */}
       <East aria-hidden="true" className="size-5 rotate-90 lg:rotate-0" />
     </div>
   );

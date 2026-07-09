@@ -22,7 +22,7 @@ export async function PluginList(): Promise<React.ReactElement> {
     <section className="grid gap-6" id="plugin-list">
       <SectionHeader
         title="Official plugins"
-        description="Official plugins maintained in the CodeGraphy monorepo. Each adds language, framework, or visual coverage to the graph — install it, enable it, and re-index."
+        description="Official Plugins maintained in the CodeGraphy monorepo. Each adds language, framework, or visual coverage to the Relationship Graph — install it, enable it, and run Indexing again."
       />
       <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-6">
         <PageSidebar nav={pluginNavGroups} />

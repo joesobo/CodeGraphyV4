@@ -42,7 +42,7 @@ export function Navbar(): React.ReactElement {
       </Link>
 
       <NavigationMenu className="hidden lg:flex">
-        <NavigationMenuList>
+        <NavigationMenuList className="gap-1.5">
           {siteNavigation.primary.map((item) => (
             <NavbarPrimaryItem item={item} key={item.href} pathname={pathname} />
           ))}
@@ -55,15 +55,17 @@ export function Navbar(): React.ReactElement {
           className={cn(
             buttonVariants({ size: 'sm', variant: 'ghost' }),
             navbarActionClassName,
-            'hidden text-foreground sm:inline-flex',
+            'hidden border border-border/80 text-foreground hover:border-primary/40 sm:inline-flex',
           )}
           href={siteNavigation.github.href}
+          icon="github"
         >
           {siteNavigation.github.label}
         </Link>
         <Link
           className={cn(buttonVariants({ size: 'sm' }), navbarActionClassName, 'hidden sm:inline-flex')}
           href={siteNavigation.install.href}
+          icon="vscode"
         >
           {siteNavigation.install.label}
         </Link>

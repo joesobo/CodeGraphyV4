@@ -19,7 +19,7 @@ const image = {
 } as const;
 
 // Next reads these named exports by convention for generated metadata image routes.
-export const alt = 'CodeGraphy social preview with a relationship graph';
+export const alt = 'CodeGraphy social preview with a Relationship Graph';
 export const contentType = 'image/png';
 export const size = image;
 
@@ -59,7 +59,7 @@ export default async function OpenGraphImage(): Promise<ImageResponse> {
           }}
         >
           <div style={{ alignItems: 'center', display: 'flex', gap: 18 }}>
-            <img alt="" height={58} src={brandMarkSrc} width={58} />
+            <img alt="CodeGraphy mark" height={58} src={brandMarkSrc} width={58} />
             <div style={{ display: 'flex', fontSize: 40, fontWeight: 700 }}>CodeGraphy</div>
           </div>
 
@@ -90,7 +90,7 @@ export default async function OpenGraphImage(): Promise<ImageResponse> {
                 lineHeight: 1.35,
               }}
             >
-              Files, symbols, and relationships indexed once for editors, agents, and plugins.
+              Files, symbols, and Relationships indexed once for editors, agents, and Plugins.
             </div>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default async function OpenGraphImage(): Promise<ImageResponse> {
           }}
         >
           <img
-            alt=""
+            alt="CodeGraphy Relationship Graph preview"
             height={448}
             src={graphSrc}
             style={{ objectFit: 'contain', objectPosition: 'center' }}

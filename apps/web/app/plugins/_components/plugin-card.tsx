@@ -22,7 +22,11 @@ export function PluginCard({
           <Icon className="size-8 shrink-0" src={plugin.iconUrl} />
           <div className="min-w-0">
             <h3 className="text-lg font-semibold">
-              <Link className="transition-colors hover:text-primary" href={plugin.sourceHref}>
+              <Link
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
+                href={plugin.sourceHref}
+                icon="github"
+              >
                 {plugin.name}
               </Link>
             </h3>
@@ -38,8 +42,8 @@ export function PluginCard({
               <Link
                 className="inline-flex items-center gap-1 text-sm font-semibold text-foreground transition-colors hover:text-primary"
                 href={plugin.sourceHref}
+                icon="github"
               >
-                <Icon className="size-3.5" src="/icons/github.svg" variant="mono" />
                 Source
               </Link>
             </div>

@@ -21,7 +21,7 @@ export const pluginContent = [
     href: `${pluginsHref}#typescript`,
     name: 'TypeScript',
     summary:
-      'Core web app and library support for imports, exports, aliases, symbols, and inheritance edges.',
+      'Core web app and library support for imports, exports, aliases, symbols, and inheritance Edges.',
     supported: ['imports', 'exports', 'path aliases', 'symbols', 'inheritance'],
     iconUrl: '/icons/typescript.svg',
     packageName: '@codegraphy-dev/plugin-typescript',
@@ -34,7 +34,7 @@ export const pluginContent = [
     href: `${pluginsHref}#vue`,
     name: 'Vue',
     summary:
-      'Vue single-file component support for script blocks, component imports, type imports, and lazy component edges.',
+      'Vue single-file component support for script blocks, component imports, type imports, and lazy component Edges.',
     supported: ['SFC scripts', 'component imports', 'type imports', 'lazy imports'],
     iconUrl: '/icons/vue.svg',
     packageName: '@codegraphy-dev/plugin-vue',
@@ -86,7 +86,7 @@ export const pluginContent = [
     href: `${pluginsHref}#markdown`,
     name: 'Markdown',
     summary:
-      'Document graph support for Markdown links, wiki-style notes, mixed docs/code relationships, and references.',
+      'Document Relationship Graph support for Markdown links, wiki-style notes, mixed docs/code Relationships, and references.',
     supported: ['links', 'wikilinks', 'documents', 'references'],
     iconUrl: '/icons/markdown.svg',
     packageName: '@codegraphy-dev/plugin-markdown',
@@ -99,15 +99,15 @@ export const pluginContent = [
     href: `${pluginsHref}#particles`,
     name: 'Particles',
     summary:
-      'Visual graph background effects and plugin-provided webview assets for customizing the graph stage.',
-    supported: ['effects', 'presets', 'webview assets', 'plugin API'],
+      'Visual Relationship Graph background effects and Plugin-provided webview assets for customizing the graph stage.',
+    supported: ['effects', 'presets', 'webview assets', 'Plugin API'],
     iconUrl: '/icons/shader.svg',
     packageName: '@codegraphy-dev/plugin-particles',
     pluginId: 'codegraphy.particles',
     sourceHref: `${githubTreeHref}/packages/plugin-particles`,
     npmHref: `${npmPackageRootHref}/@codegraphy-dev/plugin-particles`,
     media: {
-      alt: 'Animation of the CodeGraphy particles plugin rendering animated graph background effects',
+      alt: 'Animation of the CodeGraphy particles Plugin rendering animated Relationship Graph background effects',
       src: '/media/features/themes-particles.gif',
       posterSrc: '/media/features/posters/themes-particles.png',
     },

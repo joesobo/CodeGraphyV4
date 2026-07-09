@@ -1,4 +1,3 @@
-import { Code } from '@material-symbols-svg/react/rounded';
 import { Link } from '@/components/link';
 import { PageHeader, PageHeaderActions } from '@/components/page-header';
 import { buttonVariants } from '@/components/ui/button';
@@ -9,11 +8,10 @@ export function PluginsHeader(): React.ReactElement {
     <header>
       <PageHeader
         title="Plugins"
-        description="Plugins are npm packages consumed by @codegraphy-dev/core. They are not VS Code companion extensions; core loads enabled plugins during indexing and the extension renders the resulting graph."
+        description="Plugins are headless npm packages loaded by @codegraphy-dev/core — not companion VS Code extensions. The Core Package runs enabled Plugins during Indexing; the extension renders the Relationship Graph they help build."
       />
       <PageHeaderActions>
-        <Link className={buttonVariants()} href={githubHref}>
-          <Code aria-hidden="true" />
+        <Link className={buttonVariants()} href={githubHref} icon="github">
           Source
         </Link>
         <Link className={buttonVariants({ variant: 'outline' })} href={`${docsHref}#plugin-api`}>

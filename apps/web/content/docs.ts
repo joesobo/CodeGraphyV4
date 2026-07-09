@@ -11,10 +11,10 @@ interface DocsGroup {
   }[];
 }
 
-export const docsGroups = [
+export const docsGroups: readonly DocsGroup[] = [
   {
     title: 'Product guides',
-    summary: 'Day-to-day usage of the extension — commands, graph interactions, and settings.',
+    summary: 'Day-to-day usage of the extension — commands, Graph View interactions, and settings.',
     links: [
       {
         id: 'overview',
@@ -26,19 +26,19 @@ export const docsGroups = [
         id: 'commands',
         title: 'Commands',
         href: `${githubBlobHref}/docs/COMMANDS.md`,
-        summary: 'VS Code command coverage and command behavior notes.',
+        summary: 'Every command and keybinding the extension contributes, and what each one does.',
       },
       {
         id: 'interactions',
         title: 'Interactions',
         href: `${githubBlobHref}/docs/INTERACTIONS.md`,
-        summary: 'Graph interaction behavior, controls, and product semantics.',
+        summary: 'How selection, dragging, hovering, and context actions behave in the Graph View.',
       },
       {
         id: 'settings',
         title: 'Settings',
         href: `${githubBlobHref}/docs/SETTINGS.md`,
-        summary: 'Extension settings, theme-related options, and configuration notes.',
+        summary: 'The .codegraphy/settings.json reference — Filters, physics, colors, and theming.',
       },
       {
         id: 'timeline',
@@ -50,37 +50,43 @@ export const docsGroups = [
         id: 'mcp',
         title: 'MCP server',
         href: `${githubBlobHref}/docs/MCP.md`,
-        summary: 'Headless indexing and Graph Query tools so agents can read the same graph.',
+        summary: 'Headless Indexing and Graph Query tools so agents can read the same Graph Cache.',
+      },
+      {
+        id: 'examples',
+        title: 'Examples',
+        href: `${githubBlobHref}/examples/README.md`,
+        summary: 'Runnable CodeGraphy Workspaces that show language and Plugin Relationship Graph coverage.',
       },
     ],
   },
   {
     title: 'Plugin authors',
-    summary: 'The plugin model and the typed contracts for building your own plugin.',
+    summary: 'The Plugin model and the typed contracts for building your own Plugin.',
     links: [
       {
         id: 'plugins',
         title: 'Plugins',
         href: `${githubBlobHref}/docs/PLUGINS.md`,
-        summary: 'Plugin model, plugin behavior, and language coverage notes.',
+        summary: 'How Plugins are registered, enabled, and run, plus built-in language coverage.',
       },
       {
         id: 'plugin-api',
         title: 'Plugin API lifecycle',
         href: `${githubBlobHref}/docs/plugin-api/LIFECYCLE.md`,
-        summary: 'Plugin authoring lifecycle and how plugins participate in CodeGraphy.',
+        summary: 'The hooks a Plugin implements and when the Core Package calls them during Indexing.',
       },
       {
         id: 'plugin-api-types',
         title: 'Plugin API types',
         href: `${githubBlobHref}/docs/plugin-api/TYPES.md`,
-        summary: 'Type contracts for plugin authors.',
+        summary: 'The typed contracts exported by @codegraphy-dev/plugin-api.',
       },
       {
         id: 'plugin-api-events',
         title: 'Plugin API events',
         href: `${githubBlobHref}/docs/plugin-api/EVENTS.md`,
-        summary: 'Event system reference for plugin integrations.',
+        summary: 'The event system Plugins use to react to Indexing and workspace changes.',
       },
     ],
   },
@@ -92,7 +98,7 @@ export const docsGroups = [
         id: 'core-package',
         title: 'Core package',
         href: `${githubBlobHref}/packages/core/README.md`,
-        summary: 'Core package entry point for discovery, indexing, and graph concepts.',
+        summary: 'Core Package entry point for discovery, Indexing, and Relationship Graph concepts.',
       },
       {
         id: 'extension-package',
@@ -102,4 +108,4 @@ export const docsGroups = [
       },
     ],
   },
-] satisfies readonly DocsGroup[];
+];

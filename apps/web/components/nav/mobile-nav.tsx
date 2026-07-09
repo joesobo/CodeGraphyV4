@@ -70,6 +70,7 @@ export function MobileNav(): React.ReactElement {
           <Link
             className={cn(buttonVariants({ variant: 'outline' }), 'w-full')}
             href={siteNavigation.github.href}
+            icon="github"
             onClick={closeMenu}
           >
             {siteNavigation.github.label}
@@ -77,6 +78,7 @@ export function MobileNav(): React.ReactElement {
           <Link
             className={cn(buttonVariants(), 'w-full')}
             href={siteNavigation.install.href}
+            icon="vscode"
             onClick={closeMenu}
           >
             {siteNavigation.install.label}

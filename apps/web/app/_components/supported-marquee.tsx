@@ -11,21 +11,27 @@ interface SupportedMarqueeItem {
   href: string;
   iconUrl: string;
   label: string;
+  labelMode: SupportedMarqueeLabelMode;
 }
+
+type SupportedMarqueeLabelMode = 'icon-only' | 'icon-with-label';
 
 const edgeFadeClassName =
   'pointer-events-none absolute inset-y-0 z-10 w-12 from-background to-transparent sm:w-20';
 
-const supportedItems = exampleContent.map((example) => ({
+const iconOnlyExampleIds: readonly string[] = ['csharp', 'go', 'php', 'c', 'cpp'];
+
+const supportedItems: readonly SupportedMarqueeItem[] = exampleContent.map((example) => ({
   href: example.href,
   iconUrl: example.iconUrl,
   label: example.name,
-})) satisfies readonly SupportedMarqueeItem[];
+  labelMode: iconOnlyExampleIds.includes(example.id) ? 'icon-only' : 'icon-with-label',
+}));
 
 export function SupportedMarquee(): React.ReactElement {
   return (
-    <section className="grid gap-6">
-      <SectionHeader title="Supported" />
+    <section className="mx-auto grid w-full max-w-7xl gap-6 px-6 sm:px-8 lg:px-12">
+      <SectionHeader title="Supported languages and tools" />
       <SupportedMarqueeTrack items={supportedItems} />
     </section>
   );
@@ -78,19 +84,45 @@ function SupportedMarqueeSequence({
     >
       {items.map((item) => (
         <li className="shrink-0" key={item.label}>
-          <Link
-            aria-label={`Open ${item.label} example`}
-            className="flex items-center gap-3 text-foreground transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={item.href}
-            tabIndex={isHidden ? -1 : undefined}
-          >
-            <Icon className="size-8 text-current sm:size-9" src={item.iconUrl} variant="mono" />
-            <span className="text-xl font-semibold leading-none sm:text-2xl">
-              {item.label}
-            </span>
-          </Link>
+          <SupportedMarqueeLink item={item} tabIndex={isHidden ? -1 : undefined} />
         </li>
       ))}
     </ul>
+  );
+}
+
+function SupportedMarqueeLink({
+  item,
+  tabIndex,
+}: {
+  item: SupportedMarqueeItem;
+  tabIndex?: -1;
+}): React.ReactElement {
+  const iconOnly = item.labelMode === 'icon-only';
+
+  return (
+    <Link
+      aria-label={`Open ${item.label} example`}
+      className={cn(
+        'flex items-center text-foreground transition-opacity hover:opacity-70',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        iconOnly ? 'justify-center' : 'gap-3',
+      )}
+      href={item.href}
+      tabIndex={tabIndex}
+    >
+      <Icon
+        className="size-8 text-current sm:size-9"
+        src={item.iconUrl}
+        variant="mono"
+      />
+      {iconOnly ? (
+        <span className="sr-only">{item.label}</span>
+      ) : (
+        <span className="text-xl font-semibold leading-none sm:text-2xl">
+          {item.label}
+        </span>
+      )}
+    </Link>
   );
 }

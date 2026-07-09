@@ -39,11 +39,11 @@ export function ExampleCard({
           <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
             {pluginHref ? (
               <Link href={pluginHref} variant="text">
-                {example.name} plugin
+                {example.name} Plugin
               </Link>
             ) : null}
-            <Link href={`${githubTreeHref}/${example.workspace}`} variant="text">
-              Workspace
+            <Link href={`${githubTreeHref}/${example.workspace}`} icon="github" variant="text">
+              Example
             </Link>
           </div>
         </CardContent>

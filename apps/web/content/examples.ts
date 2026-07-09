@@ -45,7 +45,7 @@ export const exampleContent = [
       dark: '/media/examples/dark/javascript.png',
       light: '/media/examples/light/javascript.png',
     },
-    summary: 'Small JavaScript workspace mirroring the TypeScript graph story with imports, calls, and inheritance.',
+    summary: 'Small JavaScript workspace mirroring the TypeScript Relationship Graph story with imports, calls, and inheritance.',
     supported: ['imports', 'calls', 'inheritance', 'symbols'],
   },
   {
@@ -273,7 +273,7 @@ export const exampleContent = [
       dark: '/media/examples/dark/c.png',
       light: '/media/examples/light/c.png',
     },
-    summary: 'Tiny logger with local includes, file-level calls, and C-native symbol nodes.',
+    summary: 'Tiny logger with local includes, file-level calls, and C-native symbol Nodes.',
     supported: ['includes', 'calls', 'structs', 'typedefs'],
   },
   {
@@ -357,7 +357,7 @@ export const exampleContent = [
       dark: '/media/examples/dark/markdown.png',
       light: '/media/examples/light/markdown.png',
     },
-    summary: 'Obsidian-style notes linking to other notes and source files for mixed docs/code graph checks.',
+    summary: 'Obsidian-style notes linking to other notes and source files for mixed docs/code Relationship Graph checks.',
     supported: ['links', 'wikilinks', 'docs/code graph'],
     plugin: { id: 'markdown', packageName: '@codegraphy-dev/plugin-markdown' },
   },

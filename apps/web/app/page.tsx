@@ -8,7 +8,7 @@ import { Why } from './_components/why';
 
 export default function HomePage(): React.ReactElement {
   return (
-    <div className="flex flex-col gap-24 sm:gap-32">
+    <div className="flex min-w-0 flex-col gap-24 sm:gap-32 [&>*]:min-w-0">
       <Header />
       <HowItWorks />
       <Features />

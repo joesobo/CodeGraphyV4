@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function DocsPage(): React.ReactElement {
   return (
-    <div className="min-w-0 space-y-12">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-12 px-6 pb-24 sm:px-8 sm:pb-32 lg:px-12">
       <DocsHeader />
       <DocList />
     </div>

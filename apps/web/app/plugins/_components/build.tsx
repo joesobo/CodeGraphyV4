@@ -1,4 +1,3 @@
-import { OpenInNew } from '@material-symbols-svg/react/rounded';
 import { Link } from '@/components/link';
 import { SectionHeader } from '@/components/section-header';
 import { buttonVariants } from '@/components/ui/button';
@@ -8,15 +7,15 @@ import { docsHref, npmPackageRootHref } from '@/content/links';
 const buildSteps = [
   {
     title: 'Start with the Plugin API package',
-    body: 'Install @codegraphy-dev/plugin-api as a development dependency and use type-only imports for the public plugin contracts.',
+    body: 'Install @codegraphy-dev/plugin-api as a development dependency and use type-only imports for the public Plugin contracts.',
   },
   {
     title: 'Describe package metadata before runtime code',
-    body: 'Core validates package.json#codegraphy and codegraphy.json before importing a plugin runtime, so registration can stay safe and deterministic.',
+    body: 'The Core Package validates package.json#codegraphy and codegraphy.json before importing a Plugin runtime, so registration can stay safe and deterministic.',
   },
   {
-    title: 'Keep the plugin headless',
-    body: 'Plugins communicate with @codegraphy-dev/core. The VS Code extension handles VS Code lifecycle, editor integration, and UI rendering.',
+    title: 'Keep the Plugin headless',
+    body: 'Plugins communicate with @codegraphy-dev/core. The VS Code extension handles VS Code lifecycle, editor integration, and Relationship Graph rendering.',
   },
 ] as const;
 
@@ -32,12 +31,11 @@ export function Build(): React.ReactElement {
         <div className="max-w-xl">
           <SectionHeader
             title="Build your own"
-            description="Plugins are headless npm packages. Start from the typed contracts in the Plugin API package, describe your metadata, and let core handle loading, indexing, and rendering."
+            description="Plugins are headless npm packages. Start from the typed contracts in the Plugin API package, describe your metadata, and let the Core Package handle loading, Indexing, and rendering."
           />
           <div className="mt-6 flex flex-wrap gap-3">
             <Link className={buttonVariants()} href={`${docsHref}#plugin-api`}>
               Plugin API docs
-              <OpenInNew aria-hidden="true" />
             </Link>
             <Link className={buttonVariants({ variant: 'outline' })} href={pluginApiPackageHref}>
               @codegraphy-dev/plugin-api
