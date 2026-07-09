@@ -4,6 +4,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { launchPerfSession, type RunVSCodeTestsOptions } from './launch';
+import { createPerfRunEnvironment } from './environment';
 
 async function countTypeScriptFiles(directory: string): Promise<number> {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -49,7 +50,10 @@ describe('performance VS Code launcher', () => {
         fixture: 'small',
         runId: 'small-1',
         scenario: 'cold-open',
-        metrics: [{ metric: 'coldOpenMs', unit: 'ms', value: 20 }],
+        metrics: [
+          { metric: 'graphBuildMs', unit: 'ms', value: 5, dimension: 'cold-analysis' },
+          { metric: 'coldOpenMs', unit: 'ms', value: 20 },
+        ],
       }));
       return 0;
     });
@@ -63,6 +67,7 @@ describe('performance VS Code launcher', () => {
     }, { runTests });
 
     expect(result.metrics).toEqual([
+      { metric: 'graphBuildMs', unit: 'ms', value: 5, dimension: 'cold-analysis' },
       { metric: 'coldOpenMs', unit: 'ms', value: 20 },
     ]);
     expect(runTests).toHaveBeenCalledOnce();
@@ -72,5 +77,90 @@ describe('performance VS Code launcher', () => {
     }
     await expect(access(temporaryRoot!)).rejects.toThrow();
     expect(JSON.parse(await readFile(resultPath, 'utf8'))).toEqual(result);
+  });
+
+  it('passes a warm-open scenario to the in-window suite', async () => {
+    const resultRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-warm-'));
+    onTestFinished(() => rm(resultRoot, { recursive: true, force: true }));
+    const resultPath = join(resultRoot, 'warm.json');
+    const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+    const runTests = vi.fn(async (options: RunVSCodeTestsOptions) => {
+      expect(options.extensionTestsEnv.CODEGRAPHY_PERF_SCENARIO).toBe('warm-open');
+      await writeFile(resultPath, JSON.stringify({
+        schemaVersion: 1,
+        fixture: 'small',
+        runId: 'small-warm-1',
+        scenario: 'warm-open',
+        metrics: [{ metric: 'warmOpenMs', unit: 'ms', value: 12 }],
+      }));
+      return 0;
+    });
+
+    const result = await launchPerfSession({
+      fixture: 'small',
+      repoRoot,
+      resultPath,
+      runId: 'small-warm-1',
+      scenario: 'warm-open',
+      vscodeVersion: '1.128.0',
+    }, { runTests });
+
+    expect(result.metrics[0]?.metric).toBe('warmOpenMs');
+  });
+
+  it('reuses a provided workspace for cold and warm launches', async () => {
+    const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+    const environment = await createPerfRunEnvironment({ fixture: 'small', repoRoot });
+    const resultRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-pair-'));
+    onTestFinished(async () => {
+      await Promise.all([
+        environment.dispose(),
+        rm(resultRoot, { recursive: true, force: true }),
+      ]);
+    });
+    const markerName = 'warm-cache-marker';
+    let launchNumber = 0;
+    const runTests = vi.fn(async (options: RunVSCodeTestsOptions) => {
+      launchNumber += 1;
+      const workspacePath = options.launchArgs[0];
+      const markerPath = join(workspacePath, markerName);
+      if (launchNumber === 1) {
+        await writeFile(markerPath, 'preserved');
+      } else {
+        expect(await readFile(markerPath, 'utf8')).toBe('preserved');
+      }
+      const scenario = launchNumber === 1 ? 'cold-open' : 'warm-open';
+      const metric = launchNumber === 1 ? 'coldOpenMs' : 'warmOpenMs';
+      await writeFile(options.extensionTestsEnv.CODEGRAPHY_PERF_RESULT_PATH, JSON.stringify({
+        schemaVersion: 1,
+        fixture: 'small',
+        runId: `small-${launchNumber}`,
+        scenario,
+        metrics: [{ metric, unit: 'ms', value: 10 }],
+      }));
+      return 0;
+    });
+
+    await launchPerfSession({
+      environment,
+      fixture: 'small',
+      repoRoot,
+      resultPath: join(resultRoot, 'cold.json'),
+      runId: 'small-1',
+      scenario: 'cold-open',
+      vscodeVersion: '1.128.0',
+    }, { runTests });
+    await launchPerfSession({
+      environment,
+      fixture: 'small',
+      repoRoot,
+      resultPath: join(resultRoot, 'warm.json'),
+      runId: 'small-2',
+      scenario: 'warm-open',
+      vscodeVersion: '1.128.0',
+    }, { runTests });
+
+    expect(runTests).toHaveBeenCalledTimes(2);
+    expect(await readFile(join(environment.workspacePath, markerName), 'utf8')).toBe('preserved');
   });
 });

@@ -1,9 +1,11 @@
 import { createRequire } from 'node:module';
-import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { z } from 'zod';
-import { generateFixture } from '../fixtures/generate';
+import {
+  createPerfRunEnvironment,
+  type PerfRunEnvironment,
+} from './environment';
 
 export interface RunVSCodeTestsOptions {
   extensionDevelopmentPath: string;
@@ -16,10 +18,12 @@ export interface RunVSCodeTestsOptions {
 export type RunVSCodeTests = (options: RunVSCodeTestsOptions) => Promise<number>;
 
 export interface LaunchPerfSessionOptions {
+  environment?: PerfRunEnvironment;
   fixture: 'small' | 'medium' | 'large' | 'huge' | 'giant';
   repoRoot: string;
   resultPath: string;
   runId: string;
+  scenario?: 'cold-open' | 'warm-open';
   symbols?: boolean;
   vscodeVersion: string;
 }
@@ -28,18 +32,74 @@ export interface LaunchPerfSessionDependencies {
   runTests?: RunVSCodeTests;
 }
 
+const coreMetricNameSchema = z.enum([
+  'coldOpenMs',
+  'warmOpenMs',
+  'incrementalRefreshMs',
+  'payloadBytes',
+  'watcherToGraphMs',
+  'fileOpRoundtripMs',
+  'layoutResets',
+  'cacheSaveMs',
+  'cacheBytes',
+  'treeSitterParseMs',
+  'graphBuildMs',
+  'scopeToggleMs',
+  'settleTimeMs',
+  'idleCpuPct',
+  'simTicksAfterSettle',
+]);
+const metricUnitSchema = z.enum(['ms', 'bytes', 'count', 'fps', 'percent']);
+type CoreMetricName = z.infer<typeof coreMetricNameSchema>;
+type MetricUnit = z.infer<typeof metricUnitSchema>;
+const expectedMetricUnits: Readonly<Record<CoreMetricName, MetricUnit>> = {
+  coldOpenMs: 'ms',
+  warmOpenMs: 'ms',
+  incrementalRefreshMs: 'ms',
+  payloadBytes: 'bytes',
+  watcherToGraphMs: 'ms',
+  fileOpRoundtripMs: 'ms',
+  layoutResets: 'count',
+  cacheSaveMs: 'ms',
+  cacheBytes: 'bytes',
+  treeSitterParseMs: 'ms',
+  graphBuildMs: 'ms',
+  scopeToggleMs: 'ms',
+  settleTimeMs: 'ms',
+  idleCpuPct: 'percent',
+  simTicksAfterSettle: 'count',
+};
 const smokeMetricSchema = z.strictObject({
-  metric: z.literal('coldOpenMs'),
-  unit: z.literal('ms'),
+  dimension: z.string().min(1).optional(),
+  metric: coreMetricNameSchema,
+  operationId: z.string().min(1).optional(),
+  unit: metricUnitSchema,
   value: z.number().finite().nonnegative(),
+}).superRefine((metric, issues) => {
+  if (metric.unit !== expectedMetricUnits[metric.metric]) {
+    issues.addIssue({
+      code: 'custom',
+      path: ['unit'],
+      message: `${metric.metric} must use ${expectedMetricUnits[metric.metric]}`,
+    });
+  }
 });
 
 const perfSmokeResultSchema = z.strictObject({
   schemaVersion: z.literal(1),
   fixture: z.enum(['small', 'medium', 'large', 'huge', 'giant']),
   runId: z.string().min(1),
-  scenario: z.literal('cold-open'),
+  scenario: z.enum(['cold-open', 'warm-open']),
   metrics: z.array(smokeMetricSchema).min(1),
+}).superRefine((result, issues) => {
+  const expectedMetric = result.scenario === 'cold-open' ? 'coldOpenMs' : 'warmOpenMs';
+  if (!result.metrics.some(metric => metric.metric === expectedMetric)) {
+    issues.addIssue({
+      code: 'custom',
+      path: ['metrics'],
+      message: `${result.scenario} requires ${expectedMetric}`,
+    });
+  }
 });
 
 export type PerfSmokeResult = z.infer<typeof perfSmokeResultSchema>;
@@ -82,32 +142,28 @@ export async function launchPerfSession(
   options: LaunchPerfSessionOptions,
   dependencies: LaunchPerfSessionDependencies = {},
 ): Promise<PerfSmokeResult> {
-  const temporaryRoot = await mkdtemp(join(
-    process.platform === 'darwin' ? '/tmp' : tmpdir(),
-    'cgp-',
-  ));
-  const workspacePath = join(temporaryRoot, 'workspace');
-  const profilePath = join(temporaryRoot, 'profile');
-  const homePath = join(profilePath, 'home');
-  const userDataPath = join(profilePath, 'user-data');
-  const extensionsPath = join(profilePath, 'extensions');
+  const ownsEnvironment = options.environment === undefined;
+  const environment = options.environment ?? await createPerfRunEnvironment({
+    fixture: options.fixture,
+    repoRoot: options.repoRoot,
+    symbols: options.symbols,
+  });
+  if (
+    environment.fixture !== options.fixture
+    || environment.symbols !== (options.symbols === true)
+  ) {
+    if (ownsEnvironment) await environment.dispose();
+    throw new Error('Performance run environment does not match the requested fixture variant');
+  }
   const originalHome = process.env.HOME;
 
   try {
     await Promise.all([
-      generateFixture({
-        fixture: options.fixture,
-        outputRoot: workspacePath,
-        symbols: options.symbols === true,
-      }),
-      mkdir(homePath, { recursive: true }),
-      mkdir(userDataPath, { recursive: true }),
-      mkdir(extensionsPath, { recursive: true }),
       mkdir(dirname(options.resultPath), { recursive: true }),
       rm(options.resultPath, { force: true }),
     ]);
 
-    process.env.HOME = homePath;
+    process.env.HOME = environment.homePath;
     const runTests = dependencies.runTests ?? loadRunTests(options.repoRoot);
     const exitCode = await runTests({
       extensionDevelopmentPath: options.repoRoot,
@@ -120,10 +176,15 @@ export async function launchPerfSession(
         CODEGRAPHY_PERF_FIXTURE: options.fixture,
         CODEGRAPHY_PERF_RESULT_PATH: options.resultPath,
         CODEGRAPHY_PERF_RUN_ID: options.runId,
+        CODEGRAPHY_PERF_SCENARIO: options.scenario ?? 'cold-open',
         CODEGRAPHY_PERF_SYMBOLS: options.symbols === true ? '1' : '0',
-        HOME: homePath,
+        HOME: environment.homePath,
       },
-      launchArgs: createLaunchArguments(workspacePath, userDataPath, extensionsPath),
+      launchArgs: createLaunchArguments(
+        environment.workspacePath,
+        environment.userDataPath,
+        environment.extensionsPath,
+      ),
       version: options.vscodeVersion,
     });
     if (exitCode !== 0) {
@@ -139,6 +200,8 @@ export async function launchPerfSession(
     } else {
       process.env.HOME = originalHome;
     }
-    await rm(temporaryRoot, { recursive: true, force: true });
+    if (ownsEnvironment) {
+      await environment.dispose();
+    }
   }
 }

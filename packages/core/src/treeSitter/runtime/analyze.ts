@@ -1,5 +1,9 @@
 import type Parser from 'tree-sitter';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import {
+  emitActivePerfMetric,
+  isPerfMetricCollectionActive,
+} from '../../diagnostics/perfMetrics';
 import { analyzeCFile } from './analyzeC/file';
 import { analyzeCppFile } from './analyzeCpp/file';
 import { analyzeCSharpFile } from './analyzeCSharp/file';
@@ -57,6 +61,26 @@ function shouldAnalyzeHeaderAsObjectiveC(filePath: string, content: string): boo
     && /^\s*@(interface|protocol|implementation)\b/m.test(content);
 }
 
+function parseTreeSitterContent(
+  parser: Parser,
+  content: string,
+  languageKind: string,
+): Parser.Tree {
+  if (!isPerfMetricCollectionActive()) {
+    return parser.parse(content);
+  }
+
+  const startedAt = performance.now();
+  const tree = parser.parse(content);
+  emitActivePerfMetric({
+    metric: 'treeSitterParseMs',
+    value: performance.now() - startedAt,
+    unit: 'ms',
+    dimension: languageKind,
+  });
+  return tree;
+}
+
 export async function analyzeFileWithTreeSitter(
   filePath: string,
   content: string,
@@ -74,7 +98,7 @@ export async function analyzeFileWithTreeSitter(
     return null;
   }
 
-  const tree = runtime.parser.parse(content);
+  const tree = parseTreeSitterContent(runtime.parser, content, runtime.languageKind);
   return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind, options);
 }
 

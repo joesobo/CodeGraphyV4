@@ -19,23 +19,35 @@ function createProvider() {
   };
 }
 
-function createRuntime(): PerfScenarioRuntime {
-  let extensionMessageHandler: ((message: unknown) => void) | undefined;
-  return {
-    emitMetric: vi.fn(),
-    now: vi.fn(() => 25),
+function createScenarioProvider() {
+  const extensionMessageHandlers = new Set<(message: unknown) => void>();
+  const provider = {
+    dispatchWebviewMessage: vi.fn(async (message: unknown) => {
+      if ((message as { type?: unknown }).type === 'INDEX_GRAPH') {
+        for (const handler of extensionMessageHandlers) {
+          handler({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+          handler({
+            type: 'GRAPH_INDEX_STATUS_UPDATED',
+            payload: { hasIndex: true, freshness: 'fresh', detail: 'Graph Cache is fresh' },
+          });
+        }
+      }
+    }),
+    emitExtensionMessage(message: unknown): void {
+      for (const handler of extensionMessageHandlers) {
+        handler(message);
+      }
+    },
     onExtensionMessage: vi.fn((handler: (message: unknown) => void) => {
-      extensionMessageHandler = handler;
-      return { dispose: vi.fn() };
+      extensionMessageHandlers.add(handler);
+      return { dispose: () => { extensionMessageHandlers.delete(handler); } };
     }),
     onWebviewMessage: vi.fn((handler: (message: unknown) => void) => {
       handler({ type: 'PHYSICS_STABILIZED' });
       return { dispose: vi.fn() };
     }),
-    openGraph: vi.fn(async () => {
-      extensionMessageHandler?.({ type: 'APP_BOOTSTRAP_COMPLETE' });
-    }),
   };
+  return provider;
 }
 
 describe('performance scenario command', () => {
@@ -69,8 +81,30 @@ describe('performance scenario command', () => {
     expect(context.subscriptions).toContain(disposable);
   });
 
+  it('routes cold indexing through the production webview message path', async () => {
+    process.env.CODEGRAPHY_PERF = '1';
+    const provider = createScenarioProvider();
+    vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+      provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    registerPerfScenarioCommand(createContext(), provider as never);
+    const command = vi.mocked(vscode.commands.registerCommand).mock.calls[0]?.[1] as
+      | ((request: unknown) => Promise<unknown>)
+      | undefined;
+
+    await expect(command?.({
+      runId: 'run-production-path',
+      scenario: 'cold-open',
+      startedAt: 0,
+    })).resolves.toBeDefined();
+    expect(vscode.commands.executeCommand).toHaveBeenCalledWith('codegraphy.open');
+    expect(provider.dispatchWebviewMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
+  });
+
   it('rejects unknown scenario request fields', async () => {
-    const runtime = createRuntime();
+    const openGraph = vi.fn();
+    const runtime = { openGraph } as unknown as PerfScenarioRuntime;
 
     await expect(runPerfScenario({
       runId: 'run-1',
@@ -78,28 +112,6 @@ describe('performance scenario command', () => {
       startedAt: 5,
       unexpected: true,
     }, runtime)).rejects.toThrow();
-    expect(runtime.openGraph).not.toHaveBeenCalled();
-  });
-
-  it('measures cold open through webview bootstrap', async () => {
-    const runtime = createRuntime();
-
-    await expect(runPerfScenario({
-      runId: 'run-1',
-      scenario: 'cold-open',
-      startedAt: 5,
-    }, runtime)).resolves.toEqual({
-      runId: 'run-1',
-      scenario: 'cold-open',
-      metrics: [{ metric: 'coldOpenMs', unit: 'ms', value: 20 }],
-    });
-    expect(runtime.emitMetric).toHaveBeenCalledWith({
-      runId: 'run-1',
-      scenario: 'cold-open',
-      metric: 'coldOpenMs',
-      unit: 'ms',
-      value: 20,
-    });
-    expect(runtime.onWebviewMessage).toHaveBeenCalledOnce();
+    expect(openGraph).not.toHaveBeenCalled();
   });
 });

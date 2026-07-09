@@ -3,6 +3,7 @@ import type {
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
+import { captureActivePerfMetricEmitter } from '../diagnostics/perfMetrics';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphData, buildWorkspaceGraphDataFromAnalysis } from './data';
 
@@ -37,7 +38,8 @@ export interface WorkspacePipelineGraphAnalysisDependencies extends Omit<Workspa
 export function buildWorkspacePipelineGraph(
   dependencies: WorkspacePipelineGraphDependencies,
 ): IGraphData {
-  return buildWorkspaceGraphData({
+  const emitPerfMetric = captureActivePerfMetricEmitter();
+  const graphDependencies = {
     cacheFiles: dependencies.cacheFiles,
     churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
@@ -47,13 +49,27 @@ export function buildWorkspacePipelineGraph(
     showOrphans: dependencies.showOrphans,
     workspaceRoot: dependencies.workspaceRoot,
     getPluginForFile: dependencies.getPluginForFile,
+  };
+  if (!emitPerfMetric) {
+    return buildWorkspaceGraphData(graphDependencies);
+  }
+
+  const startedAt = performance.now();
+  const graph = buildWorkspaceGraphData(graphDependencies);
+  emitPerfMetric({
+    metric: 'graphBuildMs',
+    unit: 'ms',
+    value: performance.now() - startedAt,
+    dimension: 'workspace-pipeline-connections',
   });
+  return graph;
 }
 
 export function buildWorkspacePipelineGraphFromAnalysis(
   dependencies: WorkspacePipelineGraphAnalysisDependencies,
 ): IGraphData {
-  return buildWorkspaceGraphDataFromAnalysis({
+  const emitPerfMetric = captureActivePerfMetricEmitter();
+  const graphDependencies = {
     cacheFiles: dependencies.cacheFiles,
     churnCounts: dependencies.churnCounts,
     directoryPaths: dependencies.directoryPaths ?? [],
@@ -64,7 +80,20 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     showOrphans: dependencies.showOrphans,
     workspaceRoot: dependencies.workspaceRoot,
     getPluginForFile: dependencies.getPluginForFile,
+  };
+  if (!emitPerfMetric) {
+    return buildWorkspaceGraphDataFromAnalysis(graphDependencies);
+  }
+
+  const startedAt = performance.now();
+  const graph = buildWorkspaceGraphDataFromAnalysis(graphDependencies);
+  emitPerfMetric({
+    metric: 'graphBuildMs',
+    unit: 'ms',
+    value: performance.now() - startedAt,
+    dimension: 'workspace-pipeline-analysis',
   });
+  return graph;
 }
 
 export function buildWorkspacePipelineGraphForSource(

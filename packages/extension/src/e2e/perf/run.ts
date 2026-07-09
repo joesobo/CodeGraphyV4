@@ -8,10 +8,27 @@ const scenarioCommandId = 'codegraphy.perf.runScenario';
 
 interface PerfScenarioResult {
   runId: string;
-  scenario: 'cold-open';
+  scenario: 'cold-open' | 'warm-open';
   metrics: Array<{
-    metric: 'coldOpenMs';
-    unit: 'ms';
+    dimension?: string;
+    metric:
+      | 'coldOpenMs'
+      | 'warmOpenMs'
+      | 'incrementalRefreshMs'
+      | 'payloadBytes'
+      | 'watcherToGraphMs'
+      | 'fileOpRoundtripMs'
+      | 'layoutResets'
+      | 'cacheSaveMs'
+      | 'cacheBytes'
+      | 'treeSitterParseMs'
+      | 'graphBuildMs'
+      | 'scopeToggleMs'
+      | 'settleTimeMs'
+      | 'idleCpuPct'
+      | 'simTicksAfterSettle';
+    operationId?: string;
+    unit: 'ms' | 'bytes' | 'count' | 'fps' | 'percent';
     value: number;
   }>;
 }
@@ -44,6 +61,10 @@ export async function run(): Promise<void> {
   const fixture = requireEnvironmentVariable('CODEGRAPHY_PERF_FIXTURE');
   const resultPath = requireEnvironmentVariable('CODEGRAPHY_PERF_RESULT_PATH');
   const runId = requireEnvironmentVariable('CODEGRAPHY_PERF_RUN_ID');
+  const scenario = requireEnvironmentVariable('CODEGRAPHY_PERF_SCENARIO');
+  if (scenario !== 'cold-open' && scenario !== 'warm-open') {
+    throw new Error(`Unsupported open performance scenario: ${scenario}`);
+  }
   const extension = vscode.extensions.getExtension(extensionId);
   if (!extension) {
     throw new Error(`CodeGraphy extension ${extensionId} is not available`);
@@ -52,7 +73,7 @@ export async function run(): Promise<void> {
   await extension.activate();
   const scenarioResult = await vscode.commands.executeCommand<PerfScenarioResult>(
     scenarioCommandId,
-    { runId, scenario: 'cold-open', startedAt },
+    { runId, scenario, startedAt },
   );
   if (!scenarioResult) {
     throw new Error(`Performance command ${scenarioCommandId} returned no result`);

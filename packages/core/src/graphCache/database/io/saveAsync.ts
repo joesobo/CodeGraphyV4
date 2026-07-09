@@ -1,7 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { performance } from 'node:perf_hooks';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
+import { captureActivePerfMetricEmitter } from '../../../diagnostics/perfMetrics';
 import { runStatementAsync, withConnectionAsync } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
@@ -16,11 +18,20 @@ import {
 } from '../query/write';
 import type { WorkspaceAnalysisDatabaseSaveOptions } from './save';
 
+function getPersistedCacheBytes(databasePath: string): number {
+  const databaseBytes = fs.statSync(databasePath).size;
+  const walPath = `${databasePath}.wal`;
+  const walBytes = fs.existsSync(walPath) ? fs.statSync(walPath).size : 0;
+  return databaseBytes + walBytes;
+}
+
 export async function saveWorkspaceAnalysisDatabaseCacheAsync(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
   options: WorkspaceAnalysisDatabaseSaveOptions = {},
 ): Promise<void> {
+  const emitPerfMetric = captureActivePerfMetricEmitter();
+  const startedAt = emitPerfMetric ? performance.now() : undefined;
   ensureDatabaseDirectory(workspaceRoot);
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
   if (!fs.existsSync(path.dirname(databasePath))) {
@@ -57,6 +68,12 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       }
     });
     replaceDatabaseCache(tempDatabasePath, databasePath);
+    if (emitPerfMetric && startedAt !== undefined) {
+      const durationMs = performance.now() - startedAt;
+      const cacheBytes = getPersistedCacheBytes(databasePath);
+      emitPerfMetric({ metric: 'cacheSaveMs', value: durationMs, unit: 'ms' });
+      emitPerfMetric({ metric: 'cacheBytes', value: cacheBytes, unit: 'bytes' });
+    }
   } catch (error) {
     cleanupTemporaryDatabase(tempDatabasePath);
     throw error;

@@ -5,6 +5,11 @@ import {
   type LaunchPerfSessionOptions,
   type PerfSmokeResult,
 } from './runner/launch';
+import {
+  runPerfOpenPair,
+  type PerfOpenPairOptions,
+  type PerfOpenPairResult,
+} from './runner/openPair';
 
 const fixtureNames = ['small', 'medium', 'large', 'huge', 'giant'] as const;
 type GeneratedFixtureName = typeof fixtureNames[number];
@@ -20,6 +25,7 @@ export interface PerfCliOptions {
 interface PerfRunDependencies {
   launchSession(options: LaunchPerfSessionOptions): Promise<PerfSmokeResult>;
   repoRoot: string;
+  runOpenPair(options: PerfOpenPairOptions): Promise<PerfOpenPairResult>;
   vscodeVersion: string;
 }
 
@@ -51,7 +57,7 @@ export function parsePerfCliArguments(arguments_: string[]): PerfCliOptions {
     fixture: 'small',
     noBudget: false,
     runs: 1,
-    smoke: true,
+    smoke: false,
     symbols: false,
   };
 
@@ -93,6 +99,19 @@ export async function runPerf(
   const variant = options.symbols ? '-symbols' : '';
 
   for (let runNumber = 1; runNumber <= options.runs; runNumber += 1) {
+    if (!options.smoke) {
+      const pair = await dependencies.runOpenPair({
+        fixture: options.fixture,
+        repoRoot: dependencies.repoRoot,
+        resultDirectory: join(dependencies.repoRoot, 'perf', 'results'),
+        runNumber,
+        symbols: options.symbols,
+        vscodeVersion: dependencies.vscodeVersion,
+      });
+      results.push(pair.cold, pair.warm);
+      continue;
+    }
+
     const runId = `${options.fixture}${variant}-${runNumber}`;
     results.push(await dependencies.launchSession({
       fixture: options.fixture,
@@ -113,6 +132,7 @@ async function main(): Promise<void> {
   const results = await runPerf(options, {
     launchSession: launchPerfSession,
     repoRoot,
+    runOpenPair: runPerfOpenPair,
     vscodeVersion: process.env.CODEGRAPHY_VSCODE_TEST_VERSION ?? '1.128.0',
   });
   process.stdout.write(`${JSON.stringify(results, null, 2)}\n`);

@@ -1,4 +1,24 @@
+import {
+  captureActivePerfMetricEmitter,
+  type ActivePerfMetricEmitter,
+} from '@codegraphy-dev/core';
 import type { GraphViewProvider } from '../../graphViewProvider';
+import {
+  interruptWorkspaceRefreshQuietWindow,
+  markWorkspaceRefreshScheduled,
+  markWorkspaceRefreshStarted,
+  settleWorkspaceRefreshIdle,
+  trackWorkspaceRefresh,
+  trackWorkspaceRefreshFollowUp,
+} from './drain';
+
+export { waitForWorkspaceRefreshIdle } from './drain';
+
+interface WatcherMetricTiming {
+  emit: ActivePerfMetricEmitter;
+  now: () => number;
+  startedAt: number;
+}
 
 interface PendingWorkspaceRefresh {
   filePaths: Set<string>;
@@ -7,6 +27,14 @@ interface PendingWorkspaceRefresh {
   gitignoreRefresh: boolean;
   logMessage: string;
   timeout: ReturnType<typeof setTimeout>;
+  watcherMetricTiming?: WatcherMetricTiming;
+}
+
+interface ScheduleWorkspaceRefreshOptions {
+  followUpDelayMs?: number;
+  fullRefresh?: boolean;
+  gitignoreRefresh?: boolean;
+  now?: () => number;
 }
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
@@ -34,8 +62,14 @@ export function scheduleWorkspaceRefresh(
   logMessage: string,
   filePaths: readonly string[] = [],
   delayMs: number = 500,
-  options: { followUpDelayMs?: number; fullRefresh?: boolean; gitignoreRefresh?: boolean } = {},
+  options: ScheduleWorkspaceRefreshOptions = {},
 ): void {
+  interruptWorkspaceRefreshQuietWindow(provider);
+  const now = options.now ?? (() => performance.now());
+  const emitMetric = captureActivePerfMetricEmitter();
+  let watcherMetricTiming = emitMetric
+    ? { emit: emitMetric, now, startedAt: now() }
+    : undefined;
   const nextFilePaths = new Set(filePaths);
   let followUpDelayMs = options.followUpDelayMs;
   let fullRefresh = options.fullRefresh === true;
@@ -45,15 +79,26 @@ export function scheduleWorkspaceRefresh(
     markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths], {
       gitignoreRefresh,
     });
+    settleWorkspaceRefreshIdle(provider);
     return;
   }
 
+  markWorkspaceRefreshScheduled(provider);
   const pending = pendingWorkspaceRefreshes.get(provider);
   if (pending) {
     clearTimeout(pending.timeout);
     followUpDelayMs = maxFollowUpDelay(followUpDelayMs, pending.followUpDelayMs);
     fullRefresh = fullRefresh || pending.fullRefresh;
     gitignoreRefresh = gitignoreRefresh || pending.gitignoreRefresh;
+    if (
+      pending.watcherMetricTiming
+      && (
+        !watcherMetricTiming
+        || pending.watcherMetricTiming.startedAt < watcherMetricTiming.startedAt
+      )
+    ) {
+      watcherMetricTiming = pending.watcherMetricTiming;
+    }
     for (const filePath of pending.filePaths) {
       nextFilePaths.add(filePath);
     }
@@ -67,6 +112,7 @@ export function scheduleWorkspaceRefresh(
     logMessage,
     timeout: setTimeout(() => {
       pendingWorkspaceRefreshes.delete(provider);
+      markWorkspaceRefreshStarted(provider);
       if (!isGraphOpen(provider)) {
         markWorkspaceRefreshPending(
           provider,
@@ -74,18 +120,29 @@ export function scheduleWorkspaceRefresh(
           [...nextPending.filePaths],
           { gitignoreRefresh: nextPending.gitignoreRefresh },
         );
+        settleWorkspaceRefreshIdle(provider);
         return;
       }
 
       console.log(nextPending.logMessage);
       if (nextPending.gitignoreRefresh) {
         if (provider.refreshGitignoreMetadata) {
-          void provider.refreshGitignoreMetadata();
+          trackWatcherToGraph(
+            provider,
+            provider.refreshGitignoreMetadata(),
+            nextPending.watcherMetricTiming,
+            'gitignore-metadata',
+          );
           scheduleWorkspaceRefreshFollowUp(provider, nextPending);
           return;
         }
         if (provider.refreshIndex) {
-          void provider.refreshIndex();
+          trackWatcherToGraph(
+            provider,
+            provider.refreshIndex(),
+            nextPending.watcherMetricTiming,
+            'gitignore-index',
+          );
           scheduleWorkspaceRefreshFollowUp(provider, nextPending);
           return;
         }
@@ -93,28 +150,67 @@ export function scheduleWorkspaceRefresh(
 
       if (nextPending.fullRefresh) {
         if (provider.refreshIndex) {
-          void provider.refreshIndex();
+          trackWatcherToGraph(
+            provider,
+            provider.refreshIndex(),
+            nextPending.watcherMetricTiming,
+            'full-refresh-index',
+          );
           scheduleWorkspaceRefreshFollowUp(provider, nextPending);
           return;
         }
-        void provider.refresh();
+        trackWatcherToGraph(
+          provider,
+          provider.refresh(),
+          nextPending.watcherMetricTiming,
+          'full-refresh',
+        );
         scheduleWorkspaceRefreshFollowUp(provider, nextPending);
         return;
       }
 
       if (provider.refreshChangedFiles) {
-        void provider.refreshChangedFiles([...nextPending.filePaths]);
+        trackWatcherToGraph(
+          provider,
+          provider.refreshChangedFiles([...nextPending.filePaths]),
+          nextPending.watcherMetricTiming,
+          'changed-files',
+        );
         scheduleWorkspaceRefreshFollowUp(provider, nextPending);
         return;
       }
 
       provider.invalidateWorkspaceFiles?.([...nextPending.filePaths]);
-      void provider.refresh();
+      trackWatcherToGraph(
+        provider,
+        provider.refresh(),
+        nextPending.watcherMetricTiming,
+        'fallback-refresh',
+      );
       scheduleWorkspaceRefreshFollowUp(provider, nextPending);
     }, delayMs),
+    watcherMetricTiming,
   };
 
   pendingWorkspaceRefreshes.set(provider, nextPending);
+}
+
+function trackWatcherToGraph(
+  provider: GraphViewProvider,
+  refresh: Promise<unknown>,
+  timing: WatcherMetricTiming | undefined,
+  dimension: string,
+): void {
+  trackWorkspaceRefresh(provider, refresh, () => {
+    if (timing) {
+      timing.emit({
+        metric: 'watcherToGraphMs',
+        value: timing.now() - timing.startedAt,
+        unit: 'ms',
+        dimension,
+      });
+    }
+  });
 }
 
 function maxFollowUpDelay(
@@ -134,7 +230,7 @@ function scheduleWorkspaceRefreshFollowUp(
     return;
   }
 
-  setTimeout(() => {
+  trackWorkspaceRefreshFollowUp(provider, pending.followUpDelayMs, () => {
     scheduleWorkspaceRefresh(
       provider,
       pending.logMessage,
@@ -145,5 +241,5 @@ function scheduleWorkspaceRefreshFollowUp(
         gitignoreRefresh: pending.gitignoreRefresh,
       },
     );
-  }, pending.followUpDelayMs);
+  });
 }

@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
+import { captureActivePerfMetricEmitter } from '@codegraphy-dev/core';
 import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
 import { getCachedGitHistoryChurnCounts } from '../../gitHistory/cache/state';
 import { createGitHistoryPluginSignature } from '../../gitHistory/pluginSignature';
@@ -8,6 +9,26 @@ import type { RefreshFacadeContext } from './refresh/context';
 import { refreshGitignoreMetadataForFacade } from './refresh/modes/gitignoreMetadata';
 import { patchGraphDataNodeMetrics } from './refresh/metrics';
 import { refreshPluginFilesForFacade } from './refresh/modes/pluginFiles';
+
+function runMeasuredIncrementalRefresh(
+  dimension: string,
+  refresh: () => Promise<IGraphData>,
+): Promise<IGraphData> {
+  const emitMetric = captureActivePerfMetricEmitter();
+  if (!emitMetric) {
+    return refresh();
+  }
+
+  const startedAt = performance.now();
+  return refresh().finally(() => {
+    emitMetric({
+      metric: 'incrementalRefreshMs',
+      value: performance.now() - startedAt,
+      unit: 'ms',
+      dimension,
+    });
+  });
+}
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
   protected _patchGraphDataNodeMetrics(
@@ -32,12 +53,13 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    return refreshAnalysisScopeForFacade(this as unknown as RefreshFacadeContext, {
-      disabledPlugins,
-      filterPatterns,
-      onProgress,
-      signal,
-    });
+    return runMeasuredIncrementalRefresh('analysis-scope', () =>
+      refreshAnalysisScopeForFacade(this as unknown as RefreshFacadeContext, {
+        disabledPlugins,
+        filterPatterns,
+        onProgress,
+        signal,
+      }));
   }
 
   async refreshPluginFiles(
@@ -47,13 +69,14 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    return refreshPluginFilesForFacade(this as unknown as RefreshFacadeContext, {
-      disabledPlugins,
-      filterPatterns,
-      onProgress,
-      pluginIds,
-      signal,
-    });
+    return runMeasuredIncrementalRefresh('plugin-files', () =>
+      refreshPluginFilesForFacade(this as unknown as RefreshFacadeContext, {
+        disabledPlugins,
+        filterPatterns,
+        onProgress,
+        pluginIds,
+        signal,
+      }));
   }
 
   async refreshChangedFiles(
@@ -63,13 +86,14 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    return refreshChangedFilesForFacade(this as unknown as RefreshFacadeContext, {
-      disabledPlugins,
-      filePaths,
-      filterPatterns,
-      onProgress,
-      signal,
-    });
+    return runMeasuredIncrementalRefresh('changed-files', () =>
+      refreshChangedFilesForFacade(this as unknown as RefreshFacadeContext, {
+        disabledPlugins,
+        filePaths,
+        filterPatterns,
+        onProgress,
+        signal,
+      }));
   }
 
   async refreshGitignoreMetadata(
@@ -77,11 +101,12 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
-    return refreshGitignoreMetadataForFacade(this as unknown as RefreshFacadeContext, {
-      disabledPlugins,
-      filterPatterns,
-      signal,
-    });
+    return runMeasuredIncrementalRefresh('gitignore-metadata', () =>
+      refreshGitignoreMetadataForFacade(this as unknown as RefreshFacadeContext, {
+        disabledPlugins,
+        filterPatterns,
+        signal,
+      }));
   }
 
   abstract invalidateWorkspaceFiles(

@@ -15,22 +15,29 @@ export {
   formatDiagnosticEventLine,
 } from './diagnostics/events';
 export type {
+  ActivePerfMetric,
+  ActivePerfMetricEmitter,
   PerfMetricContext,
   PerfMetricDiagnosticEvent,
   PerfMetricListener,
   PerfMetricName,
   PerfMetricSubscription,
+  PerfMetricSessionContext,
   PerfMetricUnit,
   PerfScenario,
 } from './diagnostics/perfMetrics';
 export {
+  captureActivePerfMetricEmitter,
+  emitActivePerfMetric,
   emitPerfMetric,
+  isPerfMetricCollectionActive,
   onPerfMetric,
   perfMetricContextSchema,
   perfMetricDiagnosticEventSchema,
   perfMetricNameSchema,
   perfMetricUnitSchema,
   perfScenarioSchema,
+  startPerfMetricSession,
 } from './diagnostics/perfMetrics';
 export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';

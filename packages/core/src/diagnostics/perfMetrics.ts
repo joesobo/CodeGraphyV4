@@ -88,12 +88,27 @@ export const perfMetricDiagnosticEventSchema = z.strictObject({
 export type PerfMetricContext = z.infer<typeof perfMetricContextSchema>;
 export type PerfMetricDiagnosticEvent = z.infer<typeof perfMetricDiagnosticEventSchema>;
 export type PerfMetricListener = (event: PerfMetricDiagnosticEvent) => void;
+export type PerfMetricSessionContext = Pick<
+  PerfMetricContext,
+  'runId' | 'scenario' | 'operationId' | 'dimension'
+>;
+export type ActivePerfMetric = Pick<
+  PerfMetricContext,
+  'metric' | 'value' | 'unit' | 'dimension'
+>;
+export type ActivePerfMetricEmitter = (
+  metric: ActivePerfMetric,
+) => PerfMetricDiagnosticEvent | undefined;
 
 export interface PerfMetricSubscription {
   dispose(): void;
 }
 
 const perfMetricListeners = new Set<PerfMetricListener>();
+let activePerfMetricSession: {
+  context: PerfMetricSessionContext;
+  identity: object;
+} | undefined;
 
 export function emitPerfMetric(
   context: PerfMetricContext,
@@ -123,4 +138,54 @@ export function onPerfMetric(listener: PerfMetricListener): PerfMetricSubscripti
       perfMetricListeners.delete(listener);
     },
   };
+}
+
+export function startPerfMetricSession(
+  context: PerfMetricSessionContext,
+): PerfMetricSubscription {
+  const identity = {};
+  activePerfMetricSession = { context, identity };
+
+  return {
+    dispose(): void {
+      if (activePerfMetricSession?.identity === identity) {
+        activePerfMetricSession = undefined;
+      }
+    },
+  };
+}
+
+export function isPerfMetricCollectionActive(): boolean {
+  return activePerfMetricSession !== undefined && perfMetricListeners.size > 0;
+}
+
+export function captureActivePerfMetricEmitter(): ActivePerfMetricEmitter | undefined {
+  if (!activePerfMetricSession) {
+    return undefined;
+  }
+  if (perfMetricListeners.size === 0) {
+    return undefined;
+  }
+
+  const capturedContext = { ...activePerfMetricSession.context };
+  return metric => emitPerfMetric({
+    ...capturedContext,
+    ...metric,
+  });
+}
+
+export function emitActivePerfMetric(
+  metric: ActivePerfMetric,
+): PerfMetricDiagnosticEvent | undefined {
+  if (!activePerfMetricSession) {
+    return undefined;
+  }
+  if (perfMetricListeners.size === 0) {
+    return undefined;
+  }
+
+  return emitPerfMetric({
+    ...activePerfMetricSession.context,
+    ...metric,
+  });
 }

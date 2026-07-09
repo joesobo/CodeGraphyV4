@@ -1,6 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, posix, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { fixtureImportSpecifier, fixtureSourcePath } from './paths';
 
 const filesPerDirectory = 5;
 const concurrentDirectoryWrites = 128;
@@ -34,23 +35,6 @@ export async function readFixtureManifest(): Promise<FixtureManifest> {
   return JSON.parse(await readFile(manifestPath, 'utf8')) as FixtureManifest;
 }
 
-function sourcePath(fileIndex: number): string {
-  const groupIndex = Math.floor(fileIndex / filesPerDirectory);
-  return posix.join(
-    'src',
-    `group-${groupIndex.toString().padStart(5, '0')}`,
-    `file-${fileIndex.toString().padStart(6, '0')}.ts`,
-  );
-}
-
-function importSpecifier(fromIndex: number, toIndex: number): string {
-  const relativePath = posix.relative(
-    posix.dirname(sourcePath(fromIndex)),
-    sourcePath(toIndex).replace(/\.ts$/, ''),
-  );
-  return relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
-}
-
 function parentIndexes(fileIndex: number): number[] {
   if (fileIndex === 0) {
     return [];
@@ -64,7 +48,7 @@ function parentIndexes(fileIndex: number): number[] {
 
 function renderSource(fileIndex: number, symbols: boolean): string {
   const imports = parentIndexes(fileIndex)
-    .map(parentIndex => `import '${importSpecifier(fileIndex, parentIndex)}';`);
+    .map(parentIndex => `import '${fixtureImportSpecifier(fileIndex, parentIndex)}';`);
   const declarations = [
     `export const file_${fileIndex.toString().padStart(6, '0')} = ${fileIndex};`,
   ];
@@ -94,12 +78,12 @@ async function writeDirectoryGroup(
 ): Promise<void> {
   const firstIndex = groupIndex * filesPerDirectory;
   const lastIndex = Math.min(firstIndex + filesPerDirectory, fileCount);
-  const directoryPath = resolve(outputRoot, dirname(sourcePath(firstIndex)));
+  const directoryPath = resolve(outputRoot, dirname(fixtureSourcePath(firstIndex)));
   await mkdir(directoryPath, { recursive: true });
   await Promise.all(
     Array.from({ length: lastIndex - firstIndex }, (_, offset) => firstIndex + offset)
       .map(fileIndex => writeFile(
-        resolve(outputRoot, sourcePath(fileIndex)),
+        resolve(outputRoot, fixtureSourcePath(fileIndex)),
         renderSource(fileIndex, symbols),
         'utf8',
       )),
