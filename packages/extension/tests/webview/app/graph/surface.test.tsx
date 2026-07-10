@@ -14,14 +14,14 @@ vi.mock('../../../../src/webview/perf/graph/commit', () => ({
 vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: ({
     data,
-    projectionRevision,
+    scopeVisibility,
   }: {
     data: { nodes: Array<{ id: string }> };
-    projectionRevision?: object;
+    scopeVisibility?: object;
   }) => (
     <div
       data-testid="graph-surface-graph"
-      data-projection-revision={projectionRevision ? 'present' : 'absent'}
+      data-scope-visibility={scopeVisibility ? 'present' : 'absent'}
     >
       {data.nodes.map((node) => node.id).join(',')}
     </div>
@@ -42,12 +42,15 @@ describe('app/graph/surface', () => {
       nodes: [{ id: 'base-node', label: 'Base', color: '#111111' }],
       edges: [],
     };
-    const projectionRevision = {};
+    const scopeVisibility = {
+      edgeVisibility: { import: true },
+      nodeVisibility: { file: true },
+    };
     render(
       <GraphSurface
         graphData={graphData}
         coloredData={{ nodes: [{ id: 'colored-node', label: 'Colored', color: '#222222' }], edges: [] }}
-        projectionRevision={projectionRevision}
+        scopeVisibility={scopeVisibility}
         showOrphans
         depthMode={false}
         timelineActive={false}
@@ -62,26 +65,29 @@ describe('app/graph/surface', () => {
 
     expect(screen.getByTestId('graph-surface-graph')).toHaveTextContent('colored-node');
     expect(screen.getByTestId('graph-surface-graph'))
-      .toHaveAttribute('data-projection-revision', 'present');
+      .toHaveAttribute('data-scope-visibility', 'present');
     expect(screen.getByTestId('depth-controls')).toBeInTheDocument();
     expect(perfHarness.useGraphPerfCommit).toHaveBeenCalledWith({
       edgeCount: 0,
       enabled: false,
       layoutKey: undefined,
       nodeCount: 0,
-      projectionRevision,
       revision: graphData,
+      scopeVisibility,
     });
   });
 
   it('renders the empty hint when the graph has no nodes', () => {
     const graphData = { nodes: [], edges: [] };
-    const projectionRevision = {};
+    const scopeVisibility = {
+      edgeVisibility: { import: true },
+      nodeVisibility: { file: true },
+    };
     render(
       <GraphSurface
         graphData={graphData}
         coloredData={null}
-        projectionRevision={projectionRevision}
+        scopeVisibility={scopeVisibility}
         showOrphans={false}
         depthMode={false}
         timelineActive={false}
@@ -100,8 +106,8 @@ describe('app/graph/surface', () => {
       enabled: true,
       layoutKey: undefined,
       nodeCount: 0,
-      projectionRevision,
       revision: graphData,
+      scopeVisibility,
     });
   });
 

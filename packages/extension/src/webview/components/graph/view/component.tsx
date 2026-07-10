@@ -7,6 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { PerfScopeVisibilitySnapshot } from '../../../../shared/perf/protocol';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 import {
   useGraphAutoFit,
@@ -37,7 +38,7 @@ interface GraphProps {
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
-  projectionRevision?: object;
+  scopeVisibility?: PerfScopeVisibilitySnapshot;
 }
 
 function hasGraphViewContributions(
@@ -92,7 +93,7 @@ export default function Graph({
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
-  projectionRevision,
+  scopeVisibility,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const appearance = useGraphAppearance(theme);
@@ -123,8 +124,8 @@ export default function Graph({
     edgeCount: graphRuntime.renderer.graphData.links.length,
     layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
     nodeCount: graphNodeCount,
-    projectionRevision,
     revision: data,
+    scopeVisibility,
   });
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 

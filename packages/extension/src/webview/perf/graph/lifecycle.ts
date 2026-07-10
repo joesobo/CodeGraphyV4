@@ -1,6 +1,7 @@
 import type {
   PerfEventInput,
   PerfOperation,
+  PerfScopeVisibilitySnapshot,
 } from '../../../shared/perf/protocol';
 import { webviewPerfBridge } from '../bridge';
 
@@ -14,6 +15,7 @@ export interface GraphCommitInput {
   edgeCount: number;
   layoutKey: string | undefined;
   nodeCount: number;
+  scopeVisibility?: PerfScopeVisibilitySnapshot;
 }
 
 export interface PreparedGraphCommit extends GraphCommitInput {
@@ -42,7 +44,6 @@ export function createGraphPerfLifecycle({
   bridge,
   now,
 }: GraphPerfLifecycleOptions): GraphPerfLifecycle {
-  let hasObservedLayout = false;
   let previousLayoutKey: string | undefined;
   let pendingSettle: PendingSettle | undefined;
 
@@ -79,12 +80,10 @@ export function createGraphPerfLifecycle({
     prepareCommit(input): PreparedGraphCommit | undefined {
       const operation = bridge.getArmedOperation();
       const layoutChanged = input.layoutKey !== undefined
-        && (!hasObservedLayout || input.layoutKey !== previousLayoutKey);
-
-      hasObservedLayout = true;
-      previousLayoutKey = input.layoutKey;
+        && input.layoutKey !== previousLayoutKey;
 
       if (!operation) {
+        previousLayoutKey = input.layoutKey;
         return undefined;
       }
 
@@ -96,11 +95,15 @@ export function createGraphPerfLifecycle({
     },
 
     publishCommit(commit): boolean {
+      previousLayoutKey = commit.layoutKey;
       const emitted = bridge.emitFor(commit.operation, {
         kind: 'graph-applied',
         layoutChanged: commit.layoutChanged,
         nodeCount: commit.nodeCount,
         edgeCount: commit.edgeCount,
+        ...(commit.scopeVisibility
+          ? { scopeVisibility: commit.scopeVisibility }
+          : {}),
       });
       if (!emitted) {
         return false;

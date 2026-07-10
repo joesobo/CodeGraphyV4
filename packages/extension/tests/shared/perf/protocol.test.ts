@@ -178,6 +178,46 @@ describe('shared/perf/protocol', () => {
     expect(perfEventMessageSchema.parse(message)).toEqual(message);
   });
 
+  it('parses a graph application with its strict applied scope visibility', () => {
+    const message = {
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        kind: 'graph-applied',
+        layoutChanged: false,
+        nodeCount: 100,
+        edgeCount: 75,
+        scopeVisibility: {
+          nodeVisibility: { file: true, folder: false },
+          edgeVisibility: { import: true },
+        },
+      },
+    } as const;
+
+    expect(perfEventMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it.each([
+    { nodeVisibility: { file: true } },
+    {
+      edgeVisibility: {},
+      nodeVisibility: { file: true },
+      unexpected: true,
+    },
+  ])('rejects an incomplete or extended applied scope visibility', scopeVisibility => {
+    expect(perfEventMessageSchema.safeParse({
+      type: 'PERF_EVENT',
+      payload: {
+        ...operation,
+        kind: 'graph-applied',
+        layoutChanged: false,
+        nodeCount: 100,
+        edgeCount: 75,
+        scopeVisibility,
+      },
+    }).success).toBe(false);
+  });
+
   it.each([
     ['payloadBytes', 'bytes'],
     ['layoutResets', 'count'],

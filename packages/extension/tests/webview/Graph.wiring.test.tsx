@@ -2,6 +2,7 @@ import React from 'react';
 import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../src/shared/graph/contracts';
+import type { PerfScopeVisibilitySnapshot } from '../../src/shared/perf/protocol';
 import Graph from '../../src/webview/components/graph/view/component';
 import type { GraphRuntime } from '../../src/webview/components/graph/runtime/use/state';
 import { graphStore } from '../../src/webview/store/state';
@@ -244,7 +245,10 @@ describe('Graph wiring', () => {
 
 	it('passes store-backed runtime settings into the graph state, interaction runtime, and viewport shell', () => {
 		const favorites = new Set(['src/app.ts']);
-		const projectionRevision = {};
+		const scopeVisibility: PerfScopeVisibilitySnapshot = {
+			edgeVisibility: { import: true },
+			nodeVisibility: { file: true },
+		};
 		setStoreState({
 			bidirectionalMode: 'line',
 			depthMode: true,
@@ -262,7 +266,7 @@ describe('Graph wiring', () => {
 		render(
 			<Graph
 				data={baseData}
-				projectionRevision={projectionRevision}
+				scopeVisibility={scopeVisibility}
 				theme="light"
 			/>,
 		);
@@ -312,8 +316,8 @@ describe('Graph wiring', () => {
 			edgeCount: 1,
 			layoutKey: 'file-size::src/app.ts|src/lib.ts::src/app.ts->src/lib.ts',
 			nodeCount: 2,
-			projectionRevision,
 			revision: baseData,
+			scopeVisibility,
 		});
 		expect(harness.useGraphPerfScenarios).toHaveBeenCalledWith(expect.objectContaining({
 			getContainer: expect.any(Function),

@@ -4,6 +4,7 @@ import { DepthViewControls } from '../../components/depthViewControls';
 import { EmptyState } from '../shell/states';
 import { getNoDataHint } from '../shell/messages';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import type { PerfScopeVisibilitySnapshot } from '../../../shared/perf/protocol';
 import { useGraphPerfCommit } from '../../perf/graph/commit';
 
 type GraphComponentProps = React.ComponentProps<typeof Graph>;
@@ -11,7 +12,7 @@ type GraphComponentProps = React.ComponentProps<typeof Graph>;
 export interface GraphSurfaceProps {
   graphData: IGraphData;
   coloredData: IGraphData | null | undefined;
-  projectionRevision?: object;
+  scopeVisibility?: PerfScopeVisibilitySnapshot;
   showOrphans: boolean;
   depthMode: boolean;
   timelineActive: boolean;
@@ -26,7 +27,7 @@ export interface GraphSurfaceProps {
 export function GraphSurface({
   graphData,
   coloredData,
-  projectionRevision,
+  scopeVisibility,
   showOrphans,
   depthMode,
   timelineActive,
@@ -43,8 +44,8 @@ export function GraphSurface({
     enabled: graphIsEmpty,
     layoutKey: undefined,
     nodeCount: 0,
-    projectionRevision,
     revision: graphData,
+    scopeVisibility,
   });
 
   if (graphIsEmpty) {
@@ -60,7 +61,7 @@ export function GraphSurface({
     <>
       <Graph
         data={coloredData || graphData}
-        projectionRevision={projectionRevision}
+        scopeVisibility={scopeVisibility}
         theme={theme}
         nodeDecorations={nodeDecorations}
         edgeDecorations={edgeDecorations}

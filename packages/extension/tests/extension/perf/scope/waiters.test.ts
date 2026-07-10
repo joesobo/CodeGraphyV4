@@ -60,17 +60,98 @@ describe('extension/perf/scope/waiters', () => {
       layoutChanged: false,
       nodeCount: 1,
       edgeCount: 0,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: false },
+      },
     }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: false,
       nodeCount: 2,
       edgeCount: 0,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: false },
+      },
     }));
     waiter.receive(event({ kind: 'scope-persist-complete', ...fileEntry }));
 
     await expect(waiter.promise).resolves.toBe(5);
     expect(now).toHaveBeenCalledOnce();
+  });
+
+  it('ignores current-operation graph commits without the expected scope projection', async () => {
+    const now = vi.fn().mockReturnValue(30);
+    const waiter = createToggleWaiter(fileEntry, now, 10);
+    let completed = false;
+    void waiter.promise.then(() => { completed = true; });
+
+    waiter.receive(event({ kind: 'scope-toggle-complete', ...fileEntry }));
+    waiter.receive(event({ kind: 'scope-persist-complete', ...fileEntry }));
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: false,
+      nodeCount: 2,
+      edgeCount: 0,
+    }));
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: false,
+      nodeCount: 2,
+      edgeCount: 0,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: true },
+      },
+    }));
+    await Promise.resolve();
+
+    expect(completed).toBe(false);
+    expect(waiter.pendingDescription()).toBe('graph-applied');
+
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: false,
+      nodeCount: 1,
+      edgeCount: 0,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: false },
+      },
+    }));
+
+    await expect(waiter.promise).resolves.toBe(20);
+    expect(now).toHaveBeenCalledOnce();
+  });
+
+  it('requires a matching applied edge-scope projection', async () => {
+    const importsEntry: PerfScopeEntry = {
+      scopeKind: 'edge',
+      scopeId: 'import',
+      enabled: false,
+    };
+    const waiter = createToggleWaiter(importsEntry, () => 30, 10);
+    waiter.receive(event({ kind: 'scope-toggle-complete', ...importsEntry }));
+    waiter.receive(event({ kind: 'scope-persist-complete', ...importsEntry }));
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: false,
+      nodeCount: 1,
+      edgeCount: 0,
+    }));
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: false,
+      nodeCount: 1,
+      edgeCount: 0,
+      scopeVisibility: {
+        edgeVisibility: { import: false },
+        nodeVisibility: {},
+      },
+    }));
+
+    await expect(waiter.promise).resolves.toBe(20);
   });
 
   it('requires physics only when the applied projection changed layout', async () => {
@@ -85,6 +166,10 @@ describe('extension/perf/scope/waiters', () => {
       layoutChanged: true,
       nodeCount: 1,
       edgeCount: 0,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: false },
+      },
     }));
     await Promise.resolve();
     expect(completed).toBe(false);

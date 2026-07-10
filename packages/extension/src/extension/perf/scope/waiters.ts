@@ -58,10 +58,15 @@ function receivePersistence(
 function receiveGraphCommit(
   state: ToggleWaiterState,
   event: PerfEventPayload,
+  expected: PerfScopeEntry,
   now: () => number,
   startedAt: number,
 ): void {
   if (event.kind !== 'graph-applied' || state.graphApplied) return;
+  const visibility = expected.scopeKind === 'node'
+    ? event.scopeVisibility?.nodeVisibility
+    : event.scopeVisibility?.edgeVisibility;
+  if (visibility?.[expected.scopeId] !== expected.enabled) return;
   state.graphApplied = event;
   state.graphAppliedElapsedMs = Math.max(0, now() - startedAt);
 }
@@ -149,7 +154,7 @@ export function createToggleWaiter(
       receiveToggleComplete(state, event, expected);
       receiveToggleRejection(event, expected, reject);
       receivePersistence(state, event, expected);
-      receiveGraphCommit(state, event, now, startedAt);
+      receiveGraphCommit(state, event, expected, now, startedAt);
       receivePhysicsSettle(state, event);
       completeToggleWhenReady(state, resolve);
     },

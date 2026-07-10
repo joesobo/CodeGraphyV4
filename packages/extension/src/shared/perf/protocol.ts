@@ -22,6 +22,11 @@ const scopeEntryShape = {
   enabled: z.boolean(),
 } as const;
 
+export const perfScopeVisibilitySnapshotSchema = z.strictObject({
+  edgeVisibility: z.record(identifierSchema, z.boolean()),
+  nodeVisibility: z.record(identifierSchema, z.boolean()),
+});
+
 const perfOperationShape = {
   operationId: identifierSchema,
   runId: identifierSchema,
@@ -146,6 +151,7 @@ export const perfEventPayloadSchema = z.discriminatedUnion('kind', [
     layoutChanged: z.boolean(),
     nodeCount: nonnegativeIntegerSchema,
     edgeCount: nonnegativeIntegerSchema,
+    scopeVisibility: perfScopeVisibilitySnapshotSchema.optional(),
   }),
   z.strictObject({
     ...perfEventContextShape,
@@ -207,6 +213,9 @@ export type PerfControlMessage = z.infer<typeof perfControlMessageSchema>;
 export type PerfEventPayload = z.infer<typeof perfEventPayloadSchema>;
 export type PerfEventMessage = z.infer<typeof perfEventMessageSchema>;
 export type PerfScopeEntry = z.infer<z.ZodObject<typeof scopeEntryShape>>;
+export type PerfScopeVisibilitySnapshot = z.infer<
+  typeof perfScopeVisibilitySnapshotSchema
+>;
 
 type WithoutOperationContext<Event> = Event extends PerfEventPayload
   ? Event extends { kind: 'metric'; metric: 'scopeToggleMs' }

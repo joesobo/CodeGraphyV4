@@ -199,7 +199,7 @@ export default function App(): React.ReactElement {
         <GraphSurface
           graphData={graphData}
           coloredData={coloredData}
-          projectionRevision={renderGraphScopeVisibility}
+          scopeVisibility={renderGraphScopeVisibility}
           showOrphans={effectiveShowOrphans}
           depthMode={depthMode}
           timelineActive={timelineActive}

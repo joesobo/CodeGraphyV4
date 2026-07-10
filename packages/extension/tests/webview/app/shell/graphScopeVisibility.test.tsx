@@ -124,4 +124,77 @@ describe('useDebouncedGraphScopeVisibility', () => {
     });
     expect(result.current).not.toBe(initialProjectionRevision);
   });
+
+  it('does not restart a pending projection for an equivalent visibility echo', () => {
+    vi.useFakeTimers();
+    const initialNodeVisibility = { file: true };
+    const initialEdgeVisibility = { include: true };
+    const nextNodeVisibility = { file: false };
+
+    const { result, rerender } = renderHook(
+      ({ nodeVisibility, edgeVisibility }) => useDebouncedGraphScopeVisibility(
+        nodeVisibility,
+        edgeVisibility,
+      ),
+      {
+        initialProps: {
+          edgeVisibility: initialEdgeVisibility,
+          nodeVisibility: initialNodeVisibility,
+        },
+      },
+    );
+
+    rerender({
+      edgeVisibility: initialEdgeVisibility,
+      nodeVisibility: nextNodeVisibility,
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
+    });
+
+    rerender({
+      edgeVisibility: { include: true },
+      nodeVisibility: { file: false },
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
+    });
+
+    expect(result.current).toEqual({
+      edgeVisibility: initialEdgeVisibility,
+      nodeVisibility: nextNodeVisibility,
+    });
+  });
+
+  it('coalesces rapid scope changes into the original render deadline', () => {
+    vi.useFakeTimers();
+    const initialNodeVisibility = { file: true };
+    const initialEdgeVisibility = { include: true };
+    const nextNodeVisibility = { file: false };
+    const finalNodeVisibility = { file: false, 'symbol:function': true };
+
+    const { result, rerender } = renderHook(
+      ({ nodeVisibility }) => useDebouncedGraphScopeVisibility(
+        nodeVisibility,
+        initialEdgeVisibility,
+      ),
+      { initialProps: { nodeVisibility: initialNodeVisibility } },
+    );
+
+    rerender({ nodeVisibility: nextNodeVisibility });
+    act(() => {
+      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
+    });
+    rerender({ nodeVisibility: finalNodeVisibility });
+    act(() => {
+      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
+    });
+
+    expect(result.current).toEqual({
+      edgeVisibility: initialEdgeVisibility,
+      nodeVisibility: finalNodeVisibility,
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type {
   GraphPerfLifecycle,
   GraphCommitInput,
@@ -7,7 +7,6 @@ import { webviewGraphPerfLifecycle } from './lifecycle';
 
 interface GraphPerfCommitInput extends GraphCommitInput {
   enabled?: boolean;
-  projectionRevision?: object;
   revision: object;
 }
 
@@ -23,31 +22,63 @@ const defaultDependencies: GraphPerfCommitDependencies = {
   requestFrame: callback => requestAnimationFrame(callback),
 };
 
+interface PendingGraphCommit {
+  commit: ReturnType<GraphPerfLifecycle['prepareCommit']> & object;
+  frame: number;
+}
+
 export function useGraphPerfCommit(
   {
     edgeCount,
     enabled = true,
     layoutKey,
     nodeCount,
-    projectionRevision,
     revision,
+    scopeVisibility,
   }: GraphPerfCommitInput,
   dependencies: GraphPerfCommitDependencies = defaultDependencies,
 ): void {
   const { cancelFrame, lifecycle, requestFrame } = dependencies;
+  const pendingRef = useRef<PendingGraphCommit | undefined>(undefined);
 
   useEffect(() => {
     if (!enabled) {
-      return undefined;
+      const pending = pendingRef.current;
+      if (pending) {
+        pendingRef.current = undefined;
+        cancelFrame(pending.frame);
+      }
+      return;
     }
 
-    const commit = lifecycle.prepareCommit({ edgeCount, layoutKey, nodeCount });
+    const commit = lifecycle.prepareCommit({
+      edgeCount,
+      layoutKey,
+      nodeCount,
+      ...(scopeVisibility ? { scopeVisibility } : {}),
+    });
     if (!commit) {
-      return undefined;
+      const pending = pendingRef.current;
+      if (pending) {
+        pendingRef.current = undefined;
+        cancelFrame(pending.frame);
+      }
+      return;
     }
 
-    const frame = requestFrame(() => lifecycle.publishCommit(commit));
-    return () => cancelFrame(frame);
+    const pending = pendingRef.current;
+    if (pending) {
+      pending.commit = commit;
+      return;
+    }
+
+    const next: PendingGraphCommit = { commit, frame: -1 };
+    pendingRef.current = next;
+    next.frame = requestFrame(() => {
+      if (pendingRef.current !== next) return;
+      pendingRef.current = undefined;
+      lifecycle.publishCommit(next.commit);
+    });
   }, [
     cancelFrame,
     edgeCount,
@@ -55,8 +86,15 @@ export function useGraphPerfCommit(
     layoutKey,
     lifecycle,
     nodeCount,
-    projectionRevision,
     requestFrame,
     revision,
+    scopeVisibility,
   ]);
+
+  useEffect(() => () => {
+    const pending = pendingRef.current;
+    if (!pending) return;
+    pendingRef.current = undefined;
+    cancelFrame(pending.frame);
+  }, [cancelFrame]);
 }

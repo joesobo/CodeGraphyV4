@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { PerfOperation } from '../../../../src/shared/perf/protocol';
+import type {
+  PerfOperation,
+  PerfScopeVisibilitySnapshot,
+} from '../../../../src/shared/perf/protocol';
 import { createGraphPerfLifecycle } from '../../../../src/webview/perf/graph/lifecycle';
 
 const operation: PerfOperation = {
@@ -8,6 +11,10 @@ const operation: PerfOperation = {
   runId: 'run-1',
   scenario: 'single-save',
   dimension: 'medium',
+};
+const scopeVisibility: PerfScopeVisibilitySnapshot = {
+  edgeVisibility: { import: true },
+  nodeVisibility: { file: true, folder: false },
 };
 
 function setup(now = vi.fn(() => 100)) {
@@ -43,6 +50,23 @@ describe('webview/perf/graph/lifecycle', () => {
     })).toMatchObject({ layoutChanged: true });
   });
 
+  it('keeps a layout change pending when its prepared frame is cancelled', () => {
+    const { lifecycle } = setup();
+    const input = {
+      edgeCount: 1,
+      layoutKey: 'uniform::a::edge-a',
+      nodeCount: 1,
+    };
+
+    expect(lifecycle.prepareCommit(input)).toMatchObject({ layoutChanged: true });
+    const replacementCommit = lifecycle.prepareCommit(input);
+    expect(replacementCommit).toMatchObject({ layoutChanged: true });
+
+    lifecycle.publishCommit(replacementCommit!);
+
+    expect(lifecycle.prepareCommit(input)).toMatchObject({ layoutChanged: false });
+  });
+
   it('does not mark a new payload with the same layout key as changed', () => {
     const { bridge, lifecycle } = setup();
     bridge.getArmedOperation.mockReturnValueOnce(undefined).mockReturnValue(operation);
@@ -55,12 +79,29 @@ describe('webview/perf/graph/lifecycle', () => {
     })).toMatchObject({ layoutChanged: false });
   });
 
+  it('marks a different layout key as changed after the previous key is applied', () => {
+    const { lifecycle } = setup();
+    const firstCommit = lifecycle.prepareCommit({
+      edgeCount: 1,
+      layoutKey: 'uniform::a::edge-a',
+      nodeCount: 1,
+    });
+    lifecycle.publishCommit(firstCommit!);
+
+    expect(lifecycle.prepareCommit({
+      edgeCount: 1,
+      layoutKey: 'uniform::b::edge-b',
+      nodeCount: 1,
+    })).toMatchObject({ layoutChanged: true });
+  });
+
   it('publishes graph application with the captured operation', () => {
     const { bridge, lifecycle } = setup();
     const commit = lifecycle.prepareCommit({
       edgeCount: 7,
       layoutKey: 'uniform::a::edge-a',
       nodeCount: 11,
+      scopeVisibility,
     });
 
     expect(lifecycle.publishCommit(commit!)).toBe(true);
@@ -69,6 +110,7 @@ describe('webview/perf/graph/lifecycle', () => {
       layoutChanged: true,
       nodeCount: 11,
       edgeCount: 7,
+      scopeVisibility,
     });
   });
 
@@ -103,6 +145,34 @@ describe('webview/perf/graph/lifecycle', () => {
       }],
       [operation, { kind: 'physics-settled' }],
     ]);
+  });
+
+  it('does not publish a physics ack when the settle metric is rejected', () => {
+    const { bridge, lifecycle } = setup();
+    const commit = lifecycle.prepareCommit({
+      edgeCount: 1,
+      layoutKey: 'uniform::a::edge-a',
+      nodeCount: 1,
+    });
+    lifecycle.publishCommit(commit!);
+    bridge.emitFor.mockClear();
+    bridge.emitFor.mockReturnValueOnce(false);
+
+    expect(lifecycle.engineStopped()).toBe(false);
+    expect(bridge.emitFor).toHaveBeenCalledOnce();
+  });
+
+  it('does not wait for physics when graph application cannot be published', () => {
+    const { bridge, lifecycle } = setup();
+    const commit = lifecycle.prepareCommit({
+      edgeCount: 1,
+      layoutKey: 'uniform::a::edge-a',
+      nodeCount: 1,
+    });
+    bridge.emitFor.mockReturnValueOnce(false);
+
+    expect(lifecycle.publishCommit(commit!)).toBe(false);
+    expect(lifecycle.engineStopped()).toBe(false);
   });
 
   it('does not publish physics for a graph application without a layout change', () => {

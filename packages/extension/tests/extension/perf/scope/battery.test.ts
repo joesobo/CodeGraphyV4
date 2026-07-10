@@ -13,7 +13,9 @@ import type {
 interface HarnessOptions {
   afterToggle?: (entry: PerfScopeEntry, state: Map<string, PerfScopeEntry>) => void;
   duplicateGraphBeforePersist?: boolean;
+  emitBridgeMetricsOnToggle?: boolean;
   emitPreviousGraphOnRearm?: boolean;
+  emitStaleScopeProjectionOnToggle?: boolean;
   failFirstPhysics?: boolean;
   layoutChanged?: (entry: PerfScopeEntry, toggleIndex: number) => boolean;
   rejectInventory?: boolean;
@@ -35,6 +37,16 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
   let previousToggleOperation: PerfOperation | undefined;
   let toggleIndex = 0;
   let failedPhysics = false;
+
+  const scopeVisibility = () => {
+    const edgeVisibility: Record<string, boolean> = {};
+    const nodeVisibility: Record<string, boolean> = {};
+    for (const entry of state.values()) {
+      const visibility = entry.scopeKind === 'node' ? nodeVisibility : edgeVisibility;
+      visibility[entry.scopeId] = entry.enabled;
+    }
+    return { edgeVisibility, nodeVisibility };
+  };
 
   const emitFor = (operation: PerfOperation, event: PerfEventInput): void => {
     const message = {
@@ -71,6 +83,7 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
             layoutChanged: false,
             nodeCount: 999,
             edgeCount: 999,
+            scopeVisibility: scopeVisibility(),
           });
           previousToggleOperation = undefined;
         }
@@ -109,16 +122,31 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
         });
         return;
       }
+      if (options.emitStaleScopeProjectionOnToggle) {
+        emit({
+          kind: 'graph-applied',
+          layoutChanged: true,
+          nodeCount: 999,
+          edgeCount: 999,
+          scopeVisibility: scopeVisibility(),
+        });
+      }
       state.set(`${entry.scopeKind}:${entry.scopeId}`, entry);
       options.afterToggle?.(entry, state);
       previousToggleOperation = armedOperation;
       const layoutChanged = options.layoutChanged?.(entry, toggleIndex) ?? false;
+      if (options.emitBridgeMetricsOnToggle) {
+        emit({ kind: 'metric', metric: 'layoutResets', unit: 'count', value: 1 });
+        emit({ kind: 'metric', metric: 'settleTimeMs', unit: 'ms', value: 10 });
+        emit({ kind: 'metric', metric: 'simTicksAfterSettle', unit: 'count', value: 0 });
+      }
       emit({ kind: 'scope-toggle-complete', ...entry });
       emit({
         kind: 'graph-applied',
         layoutChanged,
         nodeCount: 1,
         edgeCount: 0,
+        scopeVisibility: scopeVisibility(),
       });
       if (options.duplicateGraphBeforePersist) {
         emit({
@@ -126,6 +154,7 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
           layoutChanged,
           nodeCount: 2,
           edgeCount: 0,
+          scopeVisibility: scopeVisibility(),
         });
       }
       emit({ kind: 'scope-persist-complete', ...entry });
@@ -148,7 +177,7 @@ const input = {
 } as const;
 
 describe('extension/perf/scope/battery', () => {
-  it('correlates each sequential toggle while measuring every row away and back three times', async () => {
+  it('preconditions each row immediately before measuring it away and back three times', async () => {
     const entries: PerfScopeEntry[] = [
       { scopeKind: 'node', scopeId: 'file', enabled: true },
       { scopeKind: 'edge', scopeId: 'imports', enabled: false },
@@ -171,11 +200,24 @@ describe('extension/perf/scope/battery', () => {
     });
 
     const kinds = harness.controls.map(message => message.payload.kind);
-    expect(kinds.filter(kind => kind === 'toggle-scope')).toHaveLength(12);
+    const actualToggles = harness.controls.filter(message =>
+      message.payload.kind === 'toggle-scope'
+    );
+    expect(actualToggles).toHaveLength(16);
+    expect(actualToggles.map(message => message.payload)).toEqual([
+      ...Array.from({ length: 4 }, () => [
+        expect.objectContaining({ scopeId: 'imports', enabled: true }),
+        expect.objectContaining({ scopeId: 'imports', enabled: false }),
+      ]).flat(),
+      ...Array.from({ length: 4 }, () => [
+        expect.objectContaining({ scopeId: 'file', enabled: false }),
+        expect.objectContaining({ scopeId: 'file', enabled: true }),
+      ]).flat(),
+    ]);
     const toggleOperationIds = harness.controls.flatMap(message =>
       message.payload.kind === 'toggle-scope' ? [message.payload.operationId] : []
     );
-    expect(new Set(toggleOperationIds).size).toBe(12);
+    expect(new Set(toggleOperationIds).size).toBe(16);
     const armedOperationIds = new Set(harness.controls.flatMap(message =>
       message.payload.kind === 'arm-graph' ? [message.payload.operation.operationId] : []
     ));
@@ -183,18 +225,27 @@ describe('extension/perf/scope/battery', () => {
     expect(kinds.at(-1)).toBe('disarm-graph');
     expect([...harness.state.values()]).toEqual(expect.arrayContaining(entries));
     expect(harness.emitMetric).toHaveBeenCalledTimes(12);
-    expect(harness.emitMetric.mock.calls.map(([metric]) => metric)).toEqual([
-      ...Array.from({ length: 6 }, () => expect.objectContaining({
-        dimension: 'edge:imports',
-        metric: 'scopeToggleMs',
-        value: 5,
-      })),
-      ...Array.from({ length: 6 }, () => expect.objectContaining({
-        dimension: 'node:file',
-        metric: 'scopeToggleMs',
-        value: 5,
-      })),
+    const emittedMetrics = harness.emitMetric.mock.calls.map(([metric]) => metric);
+    expect(emittedMetrics.map(metric => metric.dimension)).toEqual([
+      'edge:imports:enabled',
+      'edge:imports:disabled',
+      'edge:imports:enabled',
+      'edge:imports:disabled',
+      'edge:imports:enabled',
+      'edge:imports:disabled',
+      'node:file:disabled',
+      'node:file:enabled',
+      'node:file:disabled',
+      'node:file:enabled',
+      'node:file:disabled',
+      'node:file:enabled',
     ]);
+    expect(emittedMetrics).toEqual(
+      Array.from({ length: 12 }, () => expect.objectContaining({
+        metric: 'scopeToggleMs',
+        value: 5,
+      })),
+    );
     expect(harness.metricSession.dispose).toHaveBeenCalledOnce();
     expect(harness.subscription.dispose).toHaveBeenCalledOnce();
   });
@@ -211,6 +262,17 @@ describe('extension/perf/scope/battery', () => {
     expect(harness.emitMetric.mock.calls.map(([metric]) => metric.value)).toEqual([
       5, 5, 5, 5, 5, 5,
     ]);
+  });
+
+  it('ignores a stale current-operation commit for the opposite scope projection', async () => {
+    const harness = createHarness([
+      { scopeKind: 'node', scopeId: 'file', enabled: true },
+    ], { emitStaleScopeProjectionOnToggle: true });
+
+    await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
+      .resolves.toMatchObject({ toggleCount: 6 });
+
+    expect(harness.emitMetric).toHaveBeenCalledTimes(6);
   });
 
   it('latches the first graph commit when persistence arrives after duplicate commits', async () => {
@@ -260,12 +322,61 @@ describe('extension/perf/scope/battery', () => {
       message.payload.kind === 'toggle-scope'
       && message.payload.scopeId === 'variable'
     );
-    expect(variableToggles).toHaveLength(7);
+    expect(variableToggles).toHaveLength(9);
     expect(variableToggles[0]?.payload).toMatchObject({
       enabled: false,
       kind: 'toggle-scope',
     });
     expect(harness.emitMetric).toHaveBeenCalledTimes(12);
+  });
+
+  it('forwards bridge metrics only for measured toggles across every unmeasured phase', async () => {
+    const entries: PerfScopeEntry[] = [
+      { scopeKind: 'node', scopeId: 'symbol:constant', enabled: false },
+      { scopeKind: 'node', scopeId: 'variable', enabled: false },
+    ];
+    const harness = createHarness(entries, {
+      emitBridgeMetricsOnToggle: true,
+      afterToggle(entry, state) {
+        if (entry.scopeId === 'symbol:constant' && entry.enabled) {
+          state.set('node:variable', {
+            scopeKind: 'node',
+            scopeId: 'variable',
+            enabled: true,
+          });
+        }
+        if (entry.scopeId === 'variable' && entry.enabled) {
+          state.set('node:symbol:constant', {
+            scopeKind: 'node',
+            scopeId: 'symbol:constant',
+            enabled: true,
+          });
+        }
+      },
+    });
+
+    await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
+      .resolves.toMatchObject({ toggleCount: 12 });
+
+    const actualToggles = harness.controls.filter(message =>
+      message.payload.kind === 'toggle-scope'
+    );
+    expect(actualToggles).toHaveLength(18);
+
+    const metrics = harness.emitMetric.mock.calls.map(([metric]) => metric);
+    const scopeMetrics = metrics.filter(metric => metric.metric === 'scopeToggleMs');
+    expect(scopeMetrics).toHaveLength(12);
+    const measuredOperationIds = new Set(scopeMetrics.map(metric => metric.operationId));
+    const bridgeMetrics = metrics.filter(metric => metric.metric !== 'scopeToggleMs');
+    expect(bridgeMetrics).toHaveLength(36);
+    expect(new Set(bridgeMetrics.map(metric => metric.operationId))).toEqual(
+      measuredOperationIds,
+    );
+    expect(bridgeMetrics.map(metric => metric.metric).sort()).toEqual([
+      ...Array.from({ length: 12 }, () => 'layoutResets'),
+      ...Array.from({ length: 12 }, () => 'settleTimeMs'),
+      ...Array.from({ length: 12 }, () => 'simTicksAfterSettle'),
+    ].sort());
   });
 
   it('restores and verifies original values when a changed layout never settles', async () => {
