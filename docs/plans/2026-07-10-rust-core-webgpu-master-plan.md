@@ -208,15 +208,25 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
   cutoff; collapse indicators/badges layer; directional arrows and
   GPU-animated particles on curved links; `onRenderFramePost`-equivalent
   overlay pass (marquee rect); accessibility projector, tooltips, and debug
-  snapshot fed from the renderer's position/camera data; DAG mode decision
-  executed (port as constraint force, or remove the setting — decide at phase
-  start, record in this doc).
+  snapshot fed from the renderer's position/camera data; DAG modes ported
+  (decided): all current directions (td/bu/lr/rl/radial) implemented as
+  constraint forces in the custom engine — per-node depth is computed from
+  the directed graph (cycles broken deterministically, matching current
+  behavior), and a positional force pulls each node toward its
+  depth × `dagLevelDistance` coordinate on the mode's axis.
+- Timeline replay parity: the timeline data path (`ITimelineData` messages,
+  timeline cooldown behavior) works on the WebGPU renderer + custom engine.
 - WebGPU renderer becomes default-on where supported; fallback demoted to
   probe-failure path.
 
 **Checkpoints**
 
 - [ ] Full acceptance suite green with WebGPU as default renderer.
+- [ ] DAG modes: each direction renders a layered/radial layout on a seeded
+      DAG fixture; a cyclic fixture degrades deterministically without error
+      (matching current behavior).
+- [ ] Timeline replay runs visually correctly on the WebGPU renderer
+      (existing timeline acceptance scenarios pass).
 - [ ] Parity checklist derived from the parity spec §2–§7 completed in the
       phase PR (every line: done / explicitly dropped with reason).
 - [ ] Platform matrix run recorded: macOS (Metal), Windows (D3D12), Linux
@@ -280,7 +290,9 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
 - Tree-sitter parsing (start: TypeScript/JavaScript + Markdown — the near-core
   languages), SQLite schema (WAL, migrations table), files/symbols/relations
   tables, FTS index for symbol search; `codegraphy index`, `codegraphy
-  status`.
+  status`. This subsumes and eventually replaces the existing
+  `packages/core/src/graphCache` database layer — study its records/query
+  modules for the fact model before designing the schema.
 - **Differential harness** (the phase's centerpiece): index the fixture/example
   repos (`examples/`) with both the current TS core and the Rust core; diff
   emitted nodes/edges; report format committed.
@@ -325,6 +337,17 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
   struct-of-arrays binary frames (format doc committed — this format is the
   C1 contract, co-designed with Track A's buffer layout); `getGraphDiff`
   between revisions; node/edge detail lookup.
+- Feature semantics that must be first-class in the projection model (all
+  exist in the extension today and are easy to forget): collapse/folder-view
+  state (collapsed groups change the visible projection, not just styling);
+  timeline data (`ITimelineData` — decide whether timeline frames are served
+  by core or remain extension-computed, and record it); persisted layout
+  positions keyed by stable node identity, with a defined rename/move policy
+  (content-assisted identity or explicit position migration on rename —
+  positions must survive common refactors).
+- Settings ownership split, documented: settings that affect indexed data or
+  projections (filters, scopes, plugin enablement) live in/flow through core;
+  purely visual settings stay extension/webview-side.
 
 **Checkpoints**
 
@@ -343,7 +366,9 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
   lifecycle (restart on crash, version handshake surfacing); extension data
   layer swapped to protocol client behind its existing interface; web
   environment detection → "requires desktop VS Code" notice; Windows
-  binary-lock update workaround.
+  binary-lock update workaround; diagnostics: core stderr/log stream surfaced
+  in a VS Code output channel, `codegraphy status --json` wired into an
+  extension "doctor" command for bug reports.
 
 **Checkpoints**
 
@@ -360,9 +385,14 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
 - Wasmtime component-model host; WIT interface exposing parse-once AST/query
   access, fact emission, and manifest-declared UI contribution descriptors;
   fuel/epoch limits; `codegraphy plugin install/list/enable`.
-- Per-plugin migration (decided at phase start per plugin): typescript +
-  markdown fold into core as built-ins; godot/unity/vue/svelte → wasm or JS
-  compat host (evaluate then); particles stays webview-only.
+- Per-plugin migration (decided): **no JS compatibility host in this
+  program.** All plugins are first-party and in-repo, so embedding a JS
+  engine in the Rust core to run four of our own plugins is a large subsystem
+  with no payoff. typescript + markdown fold into core as built-ins;
+  godot/unity/vue/svelte are rewritten as Rust→wasm plugins, validated by the
+  differential harness; particles stays webview-only. An Oxc-style JS host
+  remains a documented future option if a third-party TS plugin ecosystem
+  materializes — it is explicitly out of scope here.
 
 **Checkpoints**
 
@@ -421,6 +451,24 @@ A4/A5's GPU buffers.
       matrix + telemetry if available).
 
 ---
+
+## Shipping Strategy During Migration
+
+Phases ship to users continuously; nothing waits for the end state.
+
+- Track A phases ship behind a renderer setting: `experimental` (opt-in,
+  A4) → `default-on with fallback setting` (A5) → `only` (A7). The old
+  renderer is never broken while it is reachable.
+- Track B ships dark first: B4 can ship with a `useRustCore` experimental
+  setting, running the differential harness in CI on every release until
+  cutover confidence is earned.
+- CI grows two new legs when B0 lands: a Rust workspace job (fmt, clippy,
+  `cargo test`) and a cross-platform binary build matrix feeding the
+  platform VSIXes; A4 adds a WebGPU-capable browser bench job (or a
+  documented local-only bench policy if CI GPUs are unavailable).
+- Version discipline: extension and binary versions are released in lockstep
+  while bundled; the protocol handshake makes any drift a clean error, not
+  silent corruption.
 
 ## Risk Register (watch these; each has a checkpoint above)
 

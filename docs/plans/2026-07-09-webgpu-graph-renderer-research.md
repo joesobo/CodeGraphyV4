@@ -794,8 +794,10 @@ Rust core computes compact graph projection/diffs
   jiggle) and Obsidian's four-knob force model are the study material; the
   engine itself is CodeGraphy's, typed-array-native and GPU-portable. The
   react-force-graph adapter remains only as the migration comparison rail.
-- How much of DAG mode is essential? Needs usage data; if kept, DAG is a layout
-  adapter, which the interface split already accommodates.
+- How much of DAG mode is essential? Decided: port all current DAG modes
+  (td/bu/lr/rl/radial) as constraint forces in the custom engine — depth
+  assignment from the directed graph plus a positional force toward
+  depth × level distance on the mode's axis.
 - Plugin Canvas renderers: remove raw hooks, keep DOM slots, add declarative
   styling later (per the plugin sections above). A compatibility Canvas overlay
   layered on the WebGPU canvas is a plausible bridge if a real plugin needs it.
