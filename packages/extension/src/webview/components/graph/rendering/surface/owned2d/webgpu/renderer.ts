@@ -18,6 +18,7 @@ export interface OwnedWebGpuFrame {
   getLinkWidth(this: void, link: FGLink): number;
   links: readonly FGLink[];
   nodes: readonly FGNode[];
+  positionVersion: number;
 }
 
 export interface OwnedWebGpuRendererOptions {
@@ -88,6 +89,8 @@ function blendState(): GPUBlendState {
 }
 
 export class OwnedWebGpuRenderer {
+  private readonly cameraBuffer: GPUBuffer;
+  private readonly cameraValues = new Float32Array(8);
   private coloredNodes: readonly FGNode[] | undefined;
   private linkBuffer: GPUBuffer;
   private linkBufferSize = 256;
@@ -96,10 +99,17 @@ export class OwnedWebGpuRenderer {
   private linkStyles = new Float32Array();
   private linkValues = new Float32Array();
   private linkWidthAccessor: OwnedWebGpuFrame['getLinkWidth'] | undefined;
+  private readonly linkCameraBindGroup: GPUBindGroup;
   private nodeBuffer: GPUBuffer;
   private nodeBufferSize = 256;
   private nodeColors = new Float32Array();
+  private readonly nodeCameraBindGroup: GPUBindGroup;
   private nodeValues = new Float32Array();
+  private renderedLinkCount = 0;
+  private uploadedEdgeStride = 1;
+  private uploadedLinks: readonly FGLink[] | undefined;
+  private uploadedNodes: readonly FGNode[] | undefined;
+  private uploadedPositionVersion = -1;
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -108,6 +118,21 @@ export class OwnedWebGpuRenderer {
     private readonly linkPipeline: GPURenderPipeline,
     private readonly nodePipeline: GPURenderPipeline,
   ) {
+    this.cameraBuffer = device.createBuffer({
+      label: 'CodeGraphy camera uniform',
+      size: this.cameraValues.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    this.linkCameraBindGroup = device.createBindGroup({
+      label: 'CodeGraphy link camera bind group',
+      layout: linkPipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
+    });
+    this.nodeCameraBindGroup = device.createBindGroup({
+      label: 'CodeGraphy node camera bind group',
+      layout: nodePipeline.getBindGroupLayout(0),
+      entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
+    });
     this.linkBuffer = device.createBuffer({
       label: 'CodeGraphy link instances',
       size: this.linkBufferSize,
@@ -239,9 +264,11 @@ export class OwnedWebGpuRenderer {
     });
   }
 
-  private updateStyleCaches(frame: OwnedWebGpuFrame): void {
+  private updateStyleCaches(frame: OwnedWebGpuFrame): boolean {
+    let changed = false;
     if (this.coloredNodes !== frame.nodes || this.nodeColors.length !== frame.nodes.length * 4) {
       this.coloredNodes = frame.nodes;
+      changed = true;
       this.nodeColors = new Float32Array(frame.nodes.length * 4);
       for (let index = 0; index < frame.nodes.length; index += 1) {
         this.nodeColors.set(cachedWebGpuColor(frame.nodes[index].color), index * 4);
@@ -252,7 +279,8 @@ export class OwnedWebGpuRenderer {
       && this.linkColorAccessor === frame.getLinkColor
       && this.linkWidthAccessor === frame.getLinkWidth
       && this.linkStyles.length === frame.links.length * 5
-    ) return;
+    ) return changed;
+    changed = true;
     this.linkStyleLinks = frame.links;
     this.linkColorAccessor = frame.getLinkColor;
     this.linkWidthAccessor = frame.getLinkWidth;
@@ -263,10 +291,11 @@ export class OwnedWebGpuRenderer {
       this.linkStyles[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);
       this.linkStyles.set(cachedWebGpuColor(frame.getLinkColor(link)), offset + 1);
     }
+    return changed;
   }
 
   render(frame: OwnedWebGpuFrame): void {
-    this.updateStyleCaches(frame);
+    const stylesChanged = this.updateStyleCaches(frame);
     const pixelWidth = Math.max(1, Math.round(frame.cssWidth * frame.devicePixelRatio));
     const pixelHeight = Math.max(1, Math.round(frame.cssHeight * frame.devicePixelRatio));
     const maxDimension = this.device.limits.maxTextureDimension2D;
@@ -275,68 +304,82 @@ export class OwnedWebGpuRenderer {
     if (this.canvas.width !== width) this.canvas.width = width;
     if (this.canvas.height !== height) this.canvas.height = height;
 
-    const requiredNodeFloats = frame.nodes.length * NODE_FLOATS;
-    if (this.nodeValues.length !== requiredNodeFloats) {
-      this.nodeValues = new Float32Array(requiredNodeFloats);
-    }
-    const nodeValues = this.nodeValues;
-    const graphToClipX = frame.camera.zoom * 2 / frame.cssWidth;
-    const graphToClipY = frame.camera.zoom * 2 / frame.cssHeight;
-    for (let index = 0; index < frame.nodes.length; index += 1) {
-      const node = frame.nodes[index];
-      const offset = index * NODE_FLOATS;
-      const radius = Math.max(1, node.size ?? 4) * frame.camera.zoom;
-      nodeValues[offset] = ((node.x ?? 0) - frame.camera.centerX) * graphToClipX;
-      nodeValues[offset + 1] = -((node.y ?? 0) - frame.camera.centerY) * graphToClipY;
-      nodeValues[offset + 2] = (radius / frame.cssWidth) * 2;
-      nodeValues[offset + 3] = (radius / frame.cssHeight) * 2;
-      const colorOffset = index * 4;
-      nodeValues[offset + 4] = this.nodeColors[colorOffset];
-      nodeValues[offset + 5] = this.nodeColors[colorOffset + 1];
-      nodeValues[offset + 6] = this.nodeColors[colorOffset + 2];
-      nodeValues[offset + 7] = this.nodeColors[colorOffset + 3];
-    }
+    this.cameraValues[0] = frame.camera.centerX;
+    this.cameraValues[1] = frame.camera.centerY;
+    this.cameraValues[2] = frame.camera.zoom * 2 / frame.cssWidth;
+    this.cameraValues[3] = frame.camera.zoom * 2 / frame.cssHeight;
+    this.cameraValues[4] = 2 / frame.cssWidth;
+    this.cameraValues[5] = 2 / frame.cssHeight;
+    this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
 
-    const requiredLinkFloats = frame.links.length * LINK_FLOATS;
-    if (this.linkValues.length !== requiredLinkFloats) {
-      this.linkValues = new Float32Array(requiredLinkFloats);
-    }
-    const linkValues = this.linkValues;
-    let renderedLinkCount = 0;
-    for (let linkIndex = 0; linkIndex < frame.links.length; linkIndex += 1) {
-      const link = frame.links[linkIndex];
-      const source = endpointNode(link.source);
-      const target = endpointNode(link.target);
-      if (!source || !target) continue;
-      const offset = renderedLinkCount * LINK_FLOATS;
-      const styleOffset = linkIndex * 5;
-      const halfWidth = this.linkStyles[styleOffset];
-      linkValues[offset] = ((source.x ?? 0) - frame.camera.centerX) * graphToClipX;
-      linkValues[offset + 1] = -((source.y ?? 0) - frame.camera.centerY) * graphToClipY;
-      linkValues[offset + 2] = ((target.x ?? 0) - frame.camera.centerX) * graphToClipX;
-      linkValues[offset + 3] = -((target.y ?? 0) - frame.camera.centerY) * graphToClipY;
-      linkValues[offset + 4] = (halfWidth / frame.cssWidth) * 2;
-      linkValues[offset + 5] = (halfWidth / frame.cssHeight) * 2;
-      linkValues[offset + 6] = this.linkStyles[styleOffset + 1];
-      linkValues[offset + 7] = this.linkStyles[styleOffset + 2];
-      linkValues[offset + 8] = this.linkStyles[styleOffset + 3];
-      linkValues[offset + 9] = this.linkStyles[styleOffset + 4];
-      renderedLinkCount += 1;
-    }
+    const edgeStride = frame.links.length > 250_000 && frame.camera.zoom < 0.5 ? 2 : 1;
+    const graphChanged = stylesChanged
+      || this.uploadedEdgeStride !== edgeStride
+      || this.uploadedPositionVersion !== frame.positionVersion
+      || this.uploadedNodes !== frame.nodes
+      || this.uploadedLinks !== frame.links;
+    if (graphChanged) {
+      const requiredNodeFloats = frame.nodes.length * NODE_FLOATS;
+      if (this.nodeValues.length !== requiredNodeFloats) {
+        this.nodeValues = new Float32Array(requiredNodeFloats);
+      }
+      for (let index = 0; index < frame.nodes.length; index += 1) {
+        const node = frame.nodes[index];
+        const offset = index * NODE_FLOATS;
+        this.nodeValues[offset] = node.x ?? 0;
+        this.nodeValues[offset + 1] = node.y ?? 0;
+        this.nodeValues[offset + 2] = Math.max(1, node.size ?? 4);
+        this.nodeValues[offset + 3] = 0;
+        const colorOffset = index * 4;
+        this.nodeValues[offset + 4] = this.nodeColors[colorOffset];
+        this.nodeValues[offset + 5] = this.nodeColors[colorOffset + 1];
+        this.nodeValues[offset + 6] = this.nodeColors[colorOffset + 2];
+        this.nodeValues[offset + 7] = this.nodeColors[colorOffset + 3];
+      }
 
-    const nodeBytes = nodeValues.byteLength;
-    const linkBytes = renderedLinkCount * LINK_FLOATS * FLOAT_BYTES;
-    this.ensureNodeBuffer(nodeBytes);
-    this.ensureLinkBuffer(linkBytes);
-    if (nodeBytes > 0) this.device.queue.writeBuffer(this.nodeBuffer, 0, nodeValues);
-    if (linkBytes > 0) {
-      this.device.queue.writeBuffer(
-        this.linkBuffer,
-        0,
-        linkValues.buffer,
-        linkValues.byteOffset,
-        linkBytes,
-      );
+      const requiredLinkFloats = frame.links.length * LINK_FLOATS;
+      if (this.linkValues.length !== requiredLinkFloats) {
+        this.linkValues = new Float32Array(requiredLinkFloats);
+      }
+      this.renderedLinkCount = 0;
+      for (let linkIndex = 0; linkIndex < frame.links.length; linkIndex += edgeStride) {
+        const link = frame.links[linkIndex];
+        const source = endpointNode(link.source);
+        const target = endpointNode(link.target);
+        if (!source || !target) continue;
+        const offset = this.renderedLinkCount * LINK_FLOATS;
+        const styleOffset = linkIndex * 5;
+        this.linkValues[offset] = source.x ?? 0;
+        this.linkValues[offset + 1] = source.y ?? 0;
+        this.linkValues[offset + 2] = target.x ?? 0;
+        this.linkValues[offset + 3] = target.y ?? 0;
+        this.linkValues[offset + 4] = this.linkStyles[styleOffset];
+        this.linkValues[offset + 5] = 0;
+        this.linkValues[offset + 6] = this.linkStyles[styleOffset + 1];
+        this.linkValues[offset + 7] = this.linkStyles[styleOffset + 2];
+        this.linkValues[offset + 8] = this.linkStyles[styleOffset + 3];
+        this.linkValues[offset + 9] = this.linkStyles[styleOffset + 4];
+        this.renderedLinkCount += 1;
+      }
+
+      const nodeBytes = this.nodeValues.byteLength;
+      const linkBytes = this.renderedLinkCount * LINK_FLOATS * FLOAT_BYTES;
+      this.ensureNodeBuffer(nodeBytes);
+      this.ensureLinkBuffer(linkBytes);
+      if (nodeBytes > 0) this.device.queue.writeBuffer(this.nodeBuffer, 0, this.nodeValues);
+      if (linkBytes > 0) {
+        this.device.queue.writeBuffer(
+          this.linkBuffer,
+          0,
+          this.linkValues.buffer,
+          this.linkValues.byteOffset,
+          linkBytes,
+        );
+      }
+      this.uploadedEdgeStride = edgeStride;
+      this.uploadedPositionVersion = frame.positionVersion;
+      this.uploadedNodes = frame.nodes;
+      this.uploadedLinks = frame.links;
     }
 
     const encoder = this.device.createCommandEncoder({ label: 'CodeGraphy graph frame' });
@@ -349,13 +392,15 @@ export class OwnedWebGpuRenderer {
         view: this.context.getCurrentTexture().createView(),
       }],
     });
-    if (renderedLinkCount > 0) {
+    if (this.renderedLinkCount > 0) {
       pass.setPipeline(this.linkPipeline);
+      pass.setBindGroup(0, this.linkCameraBindGroup);
       pass.setVertexBuffer(0, this.linkBuffer);
-      pass.draw(6, renderedLinkCount);
+      pass.draw(6, this.renderedLinkCount);
     }
     if (frame.nodes.length > 0) {
       pass.setPipeline(this.nodePipeline);
+      pass.setBindGroup(0, this.nodeCameraBindGroup);
       pass.setVertexBuffer(0, this.nodeBuffer);
       pass.draw(6, frame.nodes.length);
     }
@@ -364,6 +409,7 @@ export class OwnedWebGpuRenderer {
   }
 
   dispose(): void {
+    this.cameraBuffer.destroy();
     this.linkBuffer.destroy();
     this.nodeBuffer.destroy();
     this.context.unconfigure();

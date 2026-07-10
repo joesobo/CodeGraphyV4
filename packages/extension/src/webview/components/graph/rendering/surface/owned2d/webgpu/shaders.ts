@@ -1,4 +1,15 @@
+const CAMERA_UNIFORM = /* wgsl */ `
+struct CameraUniform {
+  center: vec2f,
+  graphToClip: vec2f,
+  pixelToClip: vec2f,
+  _padding: vec2f,
+};
+@group(0) @binding(0) var<uniform> camera: CameraUniform;
+`;
+
 export const NODE_SHADER = /* wgsl */ `
+${CAMERA_UNIFORM}
 struct VertexOutput {
   @builtin(position) position: vec4f,
   @location(0) local: vec2f,
@@ -8,8 +19,8 @@ struct VertexOutput {
 @vertex
 fn vertexMain(
   @builtin(vertex_index) vertexIndex: u32,
-  @location(0) center: vec2f,
-  @location(1) radius: vec2f,
+  @location(0) graphCenter: vec2f,
+  @location(1) graphRadius: vec2f,
   @location(2) color: vec4f,
 ) -> VertexOutput {
   let corners = array<vec2f, 6>(
@@ -17,6 +28,8 @@ fn vertexMain(
     vec2f(-1.0, 1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0),
   );
   let local = corners[vertexIndex];
+  let center = (graphCenter - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
+  let radius = graphRadius.x * camera.graphToClip;
   var output: VertexOutput;
   output.position = vec4f(center + local * radius, 0.0, 1.0);
   output.local = local;
@@ -36,6 +49,7 @@ fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
 `;
 
 export const LINK_SHADER = /* wgsl */ `
+${CAMERA_UNIFORM}
 struct VertexOutput {
   @builtin(position) position: vec4f,
   @location(0) color: vec4f,
@@ -44,17 +58,20 @@ struct VertexOutput {
 @vertex
 fn vertexMain(
   @builtin(vertex_index) vertexIndex: u32,
-  @location(0) source: vec2f,
-  @location(1) destination: vec2f,
+  @location(0) graphSource: vec2f,
+  @location(1) graphDestination: vec2f,
   @location(2) halfWidth: vec2f,
   @location(3) color: vec4f,
 ) -> VertexOutput {
   let along = array<f32, 6>(0.0, 1.0, 0.0, 0.0, 1.0, 1.0);
   let side = array<f32, 6>(-1.0, -1.0, 1.0, 1.0, -1.0, 1.0);
+  let source = (graphSource - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
+  let destination = (graphDestination - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
   let delta = destination - source;
   let lengthSquared = max(dot(delta, delta), 0.0000001);
   let normal = vec2f(-delta.y, delta.x) * inverseSqrt(lengthSquared);
-  let position = mix(source, destination, along[vertexIndex]) + normal * halfWidth * side[vertexIndex];
+  let width = halfWidth.x * camera.pixelToClip;
+  let position = mix(source, destination, along[vertexIndex]) + normal * width * side[vertexIndex];
   var output: VertexOutput;
   output.position = vec4f(position, 0.0, 1.0);
   output.color = color;

@@ -63,6 +63,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const engineStopNotifiedRef = useRef(false);
+  const positionVersionRef = useRef(0);
   const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
   const [rendererKind, setRendererKind] = useState<'canvas2d' | 'webgpu'>('canvas2d');
   propsRef.current = props;
@@ -122,6 +123,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       const tick = skipPhysics
         ? { moving: !layout.engine.settled, settled: layout.engine.settled, steps: 0 }
         : layout.engine.tick(elapsedMs);
+      if (tick.steps > 0) positionVersionRef.current += 1;
       const physicsEndedAt = perfSamples ? performance.now() : 0;
       syncOwnedLayoutNodes(layout);
       const syncEndedAt = perfSamples ? performance.now() : 0;
@@ -153,6 +155,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
             getLinkWidth: currentProps.getLinkWidth,
             links: layout.links,
             nodes: layout.nodes,
+            positionVersion: positionVersionRef.current,
           });
           gpuRendered = true;
         } catch (error) {
@@ -290,9 +293,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       nodes,
       links,
       props.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
-      () => requestFrameRef.current(),
+      () => {
+        positionVersionRef.current += 1;
+        requestFrameRef.current();
+      },
     );
     layoutRef.current = layout;
+    positionVersionRef.current += 1;
     setLayoutKind(layout.kind);
     syncOwnedLayoutNodes(layout);
     const canvas = canvasRef.current;
@@ -378,6 +385,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       ) > 3;
       session.lastWorld = world;
       layout.engine.setNodePosition(session.index, world.x, world.y);
+      positionVersionRef.current += 1;
       layout.engine.pin(session.index);
       layout.engine.reheat();
       node.x = world.x;
