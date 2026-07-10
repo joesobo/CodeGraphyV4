@@ -27,8 +27,12 @@ export interface GraphDebugControls {
 }
 
 export interface GraphDebugApi {
+  clearRenderedFrameTimes(this: void): void;
   fitView(this: void): void;
   fitViewWithPadding(this: void, padding: number): void;
+  getNodeScreenPosition(this: void, nodeId: string): { x: number; y: number } | null;
+  getRenderedFrameTimes(this: void): number[];
   getSnapshot(this: void): GraphDebugSnapshot;
   openNodeContextMenu(this: void, nodeId: string): void;
+  recordRenderedFrame(this: void, timestamp: number): void;
 }

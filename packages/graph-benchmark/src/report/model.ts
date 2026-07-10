@@ -63,6 +63,14 @@ export interface GraphBenchmarkReport {
   environment: BenchmarkEnvironment;
 }
 
+interface CompletedBenchmarkReportOptions {
+  fixture: BenchmarkFixture;
+  renderer: BenchmarkRenderer;
+  scenario: GraphBenchmarkReport['scenario'];
+  metrics: BenchmarkMetrics;
+  environment: BenchmarkEnvironment;
+}
+
 interface FailedBenchmarkReportOptions {
   fixture: BenchmarkFixture;
   renderer: BenchmarkRenderer;
@@ -81,6 +89,20 @@ function fixtureIdentity(fixture: BenchmarkFixture): GraphBenchmarkReport['fixtu
     nodeCount: fixture.summary.nodeCount,
     edgeCount: fixture.summary.edgeCount,
     hash: fixture.fixtureHash,
+  };
+}
+
+export function createCompletedBenchmarkReport(
+  options: CompletedBenchmarkReportOptions,
+): GraphBenchmarkReport {
+  return {
+    schemaVersion: 1,
+    status: 'complete',
+    renderer: options.renderer,
+    fixture: fixtureIdentity(options.fixture),
+    scenario: options.scenario,
+    metrics: options.metrics,
+    environment: options.environment,
   };
 }
 

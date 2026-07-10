@@ -67,12 +67,41 @@ describe('webview/graph/debug/install', () => {
 
     win.__CODEGRAPHY_GRAPH_DEBUG__?.fitView();
     win.__CODEGRAPHY_GRAPH_DEBUG__?.fitViewWithPadding(24);
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(10);
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(26.7);
 
     expect(fitView).toHaveBeenCalledOnce();
     expect(zoomToFit).toHaveBeenCalledWith(300, 24);
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getRenderedFrameTimes()).toEqual([10, 26.7]);
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.clearRenderedFrameTimes();
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getRenderedFrameTimes()).toEqual([]);
 
     cleanup?.();
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeUndefined();
+  });
+
+  it('returns one node screen position without building a full snapshot', () => {
+    const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
+
+    installGraphDebugApi({
+      containerRef: { current: null },
+      fitView: vi.fn(),
+      fg2dRef: {
+        current: {
+          graph2ScreenCoords: (x, y) => ({ x: x + 10, y: y + 20 }),
+        },
+      },
+      fg3dRef: { current: undefined },
+      graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2 }] } },
+      graphMode: '2d',
+      win,
+    });
+
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getNodeScreenPosition('a.ts')).toEqual({
+      x: 11,
+      y: 22,
+    });
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getNodeScreenPosition('missing.ts')).toBeNull();
   });
 
   it('opens a node context menu through the graph debug api', () => {

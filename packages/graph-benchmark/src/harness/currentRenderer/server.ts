@@ -4,18 +4,9 @@ import http, { type ServerResponse } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { Page } from '@playwright/test';
 import type { IGraphData } from '@codegraphy-dev/plugin-api';
 
-import type { BenchmarkFixture } from '../fixture/presets';
-
-export interface CurrentRendererSettlement {
-  renderer: 'current';
-  fixtureHash: string;
-  nodeCount: number;
-  edgeCount: number;
-  settleTimeMs: number;
-}
+import type { BenchmarkFixture } from '../../fixture/presets';
 
 export interface GraphBenchmarkServer {
   url: string;
@@ -24,7 +15,7 @@ export interface GraphBenchmarkServer {
 
 const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../../../..',
+  '../../../../..',
 );
 const webviewDist = path.join(repositoryRoot, 'dist', 'webview');
 
@@ -51,8 +42,19 @@ function benchmarkHtml(fixture: BenchmarkFixture): string {
       (() => {
         window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ = true;
         const identity = ${identity};
-        const state = { error: null, result: null, startedAt: null };
+        const state = {
+          error: null,
+          hoverLatencies: [],
+          lastPointerMoveAt: null,
+          ready: false,
+          result: null,
+          start: null,
+          startedAt: null,
+        };
         window.__CODEGRAPHY_GRAPH_BENCHMARK__ = state;
+        window.addEventListener('pointermove', (event) => {
+          state.lastPointerMoveAt = event.timeStamp;
+        }, true);
 
         const postToWebview = (message) => window.postMessage(message, '*');
         const publishGraph = async () => {
@@ -76,17 +78,26 @@ function benchmarkHtml(fixture: BenchmarkFixture): string {
           }
         };
 
+        state.start = publishGraph;
         window.acquireVsCodeApi = () => ({
           getState: () => null,
           postMessage: (message) => {
             if (message?.type === 'WEBVIEW_READY') {
-              void publishGraph();
+              state.ready = true;
             }
             if (message?.type === 'PHYSICS_STABILIZED' && state.startedAt !== null) {
               state.result = {
                 ...identity,
                 settleTimeMs: performance.now() - state.startedAt,
               };
+            }
+            if (
+              message?.type === 'GRAPH_INTERACTION'
+              && message.payload?.event === 'graph:nodeHover'
+              && message.payload?.data?.node
+              && state.lastPointerMoveAt !== null
+            ) {
+              state.hoverLatencies.push(performance.now() - state.lastPointerMoveAt);
             }
           },
           setState: () => {},
@@ -176,31 +187,4 @@ export async function startGraphBenchmarkServer(
       server.close((error) => error ? reject(error) : resolve());
     }),
   };
-}
-
-export async function waitForCurrentRendererSettlement(
-  page: Page,
-  url: string,
-  timeoutMs: number,
-): Promise<CurrentRendererSettlement> {
-  await page.goto(url);
-  await page.waitForFunction(() => {
-    const bridge = (window as typeof window & {
-      __CODEGRAPHY_GRAPH_BENCHMARK__?: { error: string | null; result: unknown };
-    }).__CODEGRAPHY_GRAPH_BENCHMARK__;
-    return Boolean(bridge?.result || bridge?.error);
-  }, undefined, { timeout: timeoutMs });
-
-  return page.evaluate(() => {
-    const bridge = (window as typeof window & {
-      __CODEGRAPHY_GRAPH_BENCHMARK__?: {
-        error: string | null;
-        result: CurrentRendererSettlement | null;
-      };
-    }).__CODEGRAPHY_GRAPH_BENCHMARK__;
-    if (!bridge) throw new Error('Graph benchmark bridge was not installed');
-    if (bridge.error) throw new Error(bridge.error);
-    if (!bridge.result) throw new Error('Graph benchmark did not produce a result');
-    return bridge.result;
-  });
 }

@@ -1,6 +1,7 @@
 import type { MutableRefObject, RefObject } from 'react';
 import './window';
 import type { GraphDebugControls } from './contracts/protocol';
+import { createRenderedFrameRecorder } from './frameTimes';
 import { buildGraphDebugSnapshot, type DebugNode } from './snapshot';
 
 type GraphDebugApiOptions = {
@@ -88,8 +89,10 @@ export function installGraphDebugApi({
     openNodeContextMenu,
     win,
   };
+  const renderedFrames = createRenderedFrameRecorder();
 
   win.__CODEGRAPHY_GRAPH_DEBUG__ = {
+    clearRenderedFrameTimes: renderedFrames.clear,
     fitView,
     fitViewWithPadding: (padding: number) => {
       getActiveGraphDebugControls(options)?.zoomToFit?.(300, padding);
@@ -100,7 +103,15 @@ export function installGraphDebugApi({
       graphMode,
       nodes: graphDataRef.current.nodes,
     }),
+    getNodeScreenPosition: (nodeId: string) => {
+      const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
+      return node
+        ? getGraphDebugNodeScreenPosition(node, getActiveGraphDebugControls(options))
+        : null;
+    },
+    getRenderedFrameTimes: renderedFrames.read,
     openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
+    recordRenderedFrame: renderedFrames.record,
   };
 
   return () => {

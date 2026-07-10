@@ -125,14 +125,14 @@ horizontal batch.
 - [x] Add a failing real-export normalization test; implement deterministic,
       sanitized snapshot import and commit 2–3 public real-repo fixtures with
       source revisions and licenses recorded.
-- [ ] Add failing CLI/report contract tests; implement `--fixture`,
+- [x] Add failing CLI/report contract tests; implement `--fixture`,
       `--renderer`, `--seed`, output-path, timeout/failure reporting, and the
       stable JSON schema behind `pnpm bench:graph`.
 - [x] Add a failing standalone smoke test; serve the built webview, install
       the `acquireVsCodeApi` mock before its bundle loads, inject
       `GRAPH_DATA_UPDATED`, and report current-renderer settle time from
       `PHYSICS_STABILIZED`.
-- [ ] Add failing metric tests one at a time for percentile math, the scripted
+- [x] Add failing metric tests one at a time for percentile math, the scripted
       pan/zoom scenario, rendered FPS/frame times, hover hit-test latency, and
       a separate forced-GC Chromium heap pass; verify each through the CLI.
 - [ ] Add a failing scenario-schema test; implement the shared deterministic
