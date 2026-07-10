@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { NavDropdown } from '@/components/nav/nav-dropdown';
-import { NavSection } from '@/components/nav/nav-section';
+import { NavGroupView } from '@/components/nav/nav-group-view';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import type { NavGroup } from '@/content/navigation';
 import { useScrollSpy } from '@/hooks/use-scroll-spy';
@@ -14,18 +13,7 @@ export function PageSidebar({ nav }: { nav: readonly NavGroup[] }): React.ReactE
   return (
     <Sidebar aria-label="On this page">
       <SidebarContent>
-        {nav.map((group, index) => {
-          const Group = group.collapsible ? NavDropdown : NavSection;
-
-          return (
-            <Group
-              activeHref={activeHref}
-              group={group}
-              key={group.title ?? index}
-              onNavigate={setActiveHref}
-            />
-          );
-        })}
+        <NavGroupView activeHref={activeHref} groups={nav} onNavigate={setActiveHref} />
       </SidebarContent>
     </Sidebar>
   );

@@ -4,9 +4,8 @@ import { Menu } from '@material-symbols-svg/react/rounded';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Link } from '@/components/link';
-import { NavDropdown } from '@/components/nav/nav-dropdown';
+import { NavGroupView } from '@/components/nav/nav-group-view';
 import { NavDisclosureTrigger, NavLink } from '@/components/nav/nav-link';
-import { NavSection } from '@/components/nav/nav-section';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Collapsible,
@@ -119,11 +118,7 @@ function MobileNavItem({
     <Collapsible className="py-0.5" onOpenChange={setOpen} open={open}>
       <NavDisclosureTrigger active={active}>{item.label}</NavDisclosureTrigger>
       <CollapsibleContent className="pt-0.5 pl-2">
-        {item.nav.map((group, index) => {
-          const Group = group.collapsible ? NavDropdown : NavSection;
-
-          return <Group group={group} key={group.title ?? index} onNavigate={onNavigate} />;
-        })}
+        <NavGroupView groups={item.nav} onNavigate={onNavigate} />
       </CollapsibleContent>
     </Collapsible>
   );

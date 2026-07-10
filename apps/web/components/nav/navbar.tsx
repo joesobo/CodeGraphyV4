@@ -3,9 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { Link } from '@/components/link';
 import { MobileNav } from '@/components/nav/mobile-nav';
-import { NavDropdown } from '@/components/nav/nav-dropdown';
+import { NavGroupView } from '@/components/nav/nav-group-view';
 import { NavMenuLink } from '@/components/nav/nav-link';
-import { NavSection } from '@/components/nav/nav-section';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { buttonVariants } from '@/components/ui/button';
 import {
@@ -112,22 +111,7 @@ function NavbarPrimaryItem({
       <NavigationMenuContent>
         <div className="w-72">
           <div className="grid max-h-[min(24rem,calc(100vh-10rem))] gap-0.5 overflow-y-auto pr-1">
-            {item.nav.map((group, index) =>
-              group.collapsible ? (
-                <NavDropdown
-                  group={group}
-                  initialOpen={false}
-                  itemLink={NavMenuLink}
-                  key={group.title ?? index}
-                />
-              ) : (
-                <NavSection
-                  group={group}
-                  itemLink={NavMenuLink}
-                  key={group.title ?? index}
-                />
-              ),
-            )}
+            <NavGroupView groups={item.nav} initialOpen={false} itemLink={NavMenuLink} />
           </div>
         </div>
       </NavigationMenuContent>
