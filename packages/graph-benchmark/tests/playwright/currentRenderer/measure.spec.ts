@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { createSyntheticFixture } from '../../../src/fixture/presets';
 import {
-  measureCurrentRendererHeap,
+  measureCurrentRendererHeapAfterSettlement,
   measureCurrentRendererHover,
   runCurrentRendererPanZoom,
   waitForCurrentRendererSettlement,
@@ -33,7 +33,15 @@ test('measures retained Chromium heap in a separate pass', async ({ page }) => {
   const server = await startGraphBenchmarkServer(fixture);
 
   try {
-    const heap = await measureCurrentRendererHeap(page, server.url, 120_000);
+    await waitForCurrentRendererSettlement(page, server.url, 120_000);
+    const emptyPage = await page.context().newPage();
+    const heap = await measureCurrentRendererHeapAfterSettlement(
+      page,
+      emptyPage,
+      server.url,
+      120_000,
+    );
+    await emptyPage.close();
 
     expect(heap.emptyUsed).toBeGreaterThan(0);
     expect(heap.settledUsed).toBeGreaterThan(0);

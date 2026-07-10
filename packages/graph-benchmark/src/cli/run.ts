@@ -8,7 +8,7 @@ import { chromium, type Browser } from '@playwright/test';
 import type { BenchmarkArguments } from './arguments';
 import { createSyntheticFixture } from '../fixture/presets';
 import {
-  measureCurrentRendererHeap,
+  measureCurrentRendererHeapAfterSettlement,
   measureCurrentRendererHover,
   runCurrentRendererPanZoom,
   waitForCurrentRendererSettlement,
@@ -116,25 +116,22 @@ export async function runGraphBenchmark(
     const hoverLatencies = await measureCurrentRendererHover(
       interactionPage,
       fixture.graph.nodes[0].id,
-      20,
+      fixture.summary.nodeCount >= 50_000 ? 5 : 20,
+      Math.min(options.timeoutMs, 30_000),
     );
 
     stage = 'pan-zoom';
     const frames = await runCurrentRendererPanZoom(interactionPage);
-    await interactionContext.close();
 
     stage = 'heap';
-    const heapContext = await browser.newContext({
-      deviceScaleFactor: viewport.deviceScaleFactor,
-      viewport: { width: viewport.width, height: viewport.height },
-    });
-    const heapPage = await heapContext.newPage();
-    const heapBytes = await measureCurrentRendererHeap(
-      heapPage,
+    const emptyPage = await interactionContext.newPage();
+    const heapBytes = await measureCurrentRendererHeapAfterSettlement(
+      interactionPage,
+      emptyPage,
       server.url,
       options.timeoutMs,
     );
-    await heapContext.close();
+    await interactionContext.close();
 
     const frameMetrics = summarizeRenderedFrames(frames.frameTimesMs, frames.durationMs);
     const report = createCompletedBenchmarkReport({

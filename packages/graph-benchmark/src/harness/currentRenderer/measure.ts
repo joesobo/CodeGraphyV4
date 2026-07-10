@@ -91,8 +91,9 @@ async function readChromiumHeap(page: Page): Promise<ChromiumHeapUsage> {
   }
 }
 
-export async function measureCurrentRendererHeap(
-  page: Page,
+export async function measureCurrentRendererHeapAfterSettlement(
+  settledPage: Page,
+  emptyPage: Page,
   url: string,
   timeoutMs: number,
 ): Promise<{
@@ -102,11 +103,9 @@ export async function measureCurrentRendererHeap(
   embedderUsed: number;
   backingStorage: number;
 }> {
-  await openBenchmarkPage(page, url, timeoutMs);
-  const empty = await readChromiumHeap(page);
-  await startBenchmark(page);
-  await waitForSettlementResult(page, timeoutMs);
-  const settled = await readChromiumHeap(page);
+  await openBenchmarkPage(emptyPage, url, timeoutMs);
+  const empty = await readChromiumHeap(emptyPage);
+  const settled = await readChromiumHeap(settledPage);
 
   return {
     emptyUsed: empty.usedSize,
@@ -121,6 +120,7 @@ export async function measureCurrentRendererHover(
   page: Page,
   nodeId: string,
   sampleCount: number,
+  timeoutMs = 2_000,
 ): Promise<number[]> {
   await page.evaluate(() => {
     (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.fitView();
@@ -147,7 +147,7 @@ export async function measureCurrentRendererHover(
     await page.waitForFunction((expectedCount) => {
       const bridge = (window as BenchmarkPageWindow).__CODEGRAPHY_GRAPH_BENCHMARK__;
       return (bridge?.hoverLatencies.length ?? 0) >= expectedCount;
-    }, sample + 1, { timeout: 2_000 });
+    }, sample + 1, { timeout: timeoutMs });
   }
 
   return page.evaluate(() =>
