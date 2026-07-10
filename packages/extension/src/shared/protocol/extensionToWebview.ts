@@ -15,7 +15,10 @@ import type {
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
 import type { ITimelineData } from '../timeline/contracts';
-import type { PerfControlMessage } from '../perf/protocol';
+import type {
+  PerfControlMessage,
+  PerfRenderReadyRequestMessage,
+} from '../perf/protocol';
 
 export interface IPluginFilterPatternGroup {
   pluginId: string;
@@ -47,7 +50,8 @@ export interface IGraphNodeMetricsUpdate {
 
 export type ExtensionToWebviewMessage =
   | PerfControlMessage
-  | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
+  | PerfRenderReadyRequestMessage
+  | { type: 'GRAPH_DATA_UPDATED'; graphRevision?: number; payload: IGraphData }
   | { type: 'GRAPH_NODE_METRICS_UPDATED'; payload: { nodes: IGraphNodeMetricsUpdate[] } }
   | { type: 'APP_BOOTSTRAP_COMPLETE' }
   | {

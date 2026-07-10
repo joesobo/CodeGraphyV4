@@ -785,4 +785,168 @@ describe('graph/viewport/shell', () => {
 		expect(() => unmount()).not.toThrow();
 	});
 
+	it('invalidates render readiness when the graph layout changes', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const renderReadyControl = {
+			engineTick: vi.fn(),
+			graphChanged: vi.fn(),
+			renderFramePost: vi.fn(),
+		};
+		const shell = (
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::first"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				renderReadyControl={renderReadyControl}
+				theme="light"
+				viewState={createViewState()}
+			/>
+		);
+		const { rerender } = render(shell);
+
+		expect(renderReadyControl.graphChanged).toHaveBeenCalledWith(true);
+
+		rerender(React.cloneElement(shell, {
+			graphDataLayoutKey: 'connections::second',
+		}));
+
+		expect(renderReadyControl.graphChanged).toHaveBeenCalledTimes(2);
+		expect(renderReadyControl.graphChanged).toHaveBeenLastCalledWith(true);
+	});
+
+	it('invalidates render readiness when a same-membership graph payload commits', () => {
+		const graphState = createGraphState(createGraphData());
+		const renderReadyControl = {
+			engineTick: vi.fn(),
+			graphChanged: vi.fn(),
+			renderFramePost: vi.fn(),
+		};
+		const shell = (
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::same-membership"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				renderReadyControl={renderReadyControl}
+				theme="light"
+				viewState={createViewState()}
+			/>
+		);
+		const { rerender } = render(shell);
+
+		graphState.dataRef.current = {
+			...graphState.dataRef.current,
+			nodes: graphState.dataRef.current.nodes.map(node => ({
+				...node,
+				metadata: { refreshed: true },
+			})),
+		};
+		rerender(React.cloneElement(shell));
+
+		expect(renderReadyControl.graphChanged).toHaveBeenCalledTimes(2);
+	});
+
+	it('marks render readiness stopped when the node budget skips simulation', () => {
+		const renderReadyControl = {
+			engineTick: vi.fn(),
+			graphChanged: vi.fn(),
+			renderFramePost: vi.fn(),
+		};
+		const viewportModel = harness.useGraphViewportModel.getMockImplementation();
+		harness.useGraphViewportModel.mockImplementation((...args) => {
+			const model = viewportModel?.(...args) as ReturnType<NonNullable<typeof viewportModel>>;
+			return {
+				...model,
+				sharedProps: { ...model.sharedProps, cooldownTicks: 0 },
+			};
+		});
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::oversized"
+				graphState={createGraphState(createGraphData())}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				renderReadyControl={renderReadyControl}
+				theme="light"
+				viewState={createViewState()}
+			/>,
+		);
+
+		expect(renderReadyControl.graphChanged).toHaveBeenCalledWith(false);
+	});
+
+	it('invalidates render readiness on every engine tick', () => {
+		const onEngineTick = vi.fn();
+		const renderReadyControl = {
+			engineTick: vi.fn(),
+			graphChanged: vi.fn(),
+			renderFramePost: vi.fn(),
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::"
+				graphState={createGraphState(createGraphData())}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				onEngineTick={onEngineTick}
+				renderReadyControl={renderReadyControl}
+				theme="light"
+				viewState={createViewState()}
+			/>,
+		);
+
+		const viewportModelInput = harness.useGraphViewportModel.mock.calls.at(-1)?.[0] as {
+			onEngineTick(): void;
+		};
+		viewportModelInput.onEngineTick();
+
+		expect(renderReadyControl.engineTick).toHaveBeenCalledOnce();
+		expect(onEngineTick).toHaveBeenCalledOnce();
+	});
+
+	it('records current graph counts only after a 2d render frame', () => {
+		const renderReadyControl = {
+			engineTick: vi.fn(),
+			graphChanged: vi.fn(),
+			renderFramePost: vi.fn(),
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::"
+				graphState={createGraphState(createGraphData())}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				renderReadyControl={renderReadyControl}
+				theme="light"
+				viewState={{ ...createViewState(), graphMode: '2d' }}
+			/>,
+		);
+
+		expect(renderReadyControl.renderFramePost).not.toHaveBeenCalled();
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		viewportProps.surface2dProps.onRenderFramePost(
+			{} as CanvasRenderingContext2D,
+			1,
+		);
+
+		expect(renderReadyControl.renderFramePost).toHaveBeenCalledWith({
+			nodeCount: 2,
+			edgeCount: 1,
+		});
+	});
+
 });

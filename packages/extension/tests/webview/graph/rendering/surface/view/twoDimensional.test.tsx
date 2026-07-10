@@ -3,14 +3,17 @@ import ForceGraph2D from 'react-force-graph-2d';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Surface2d } from '../../../../../../src/webview/components/graph/rendering/surface/view/twoDimensional';
 
-function createSharedProps() {
+function createSharedProps(nodeCount = 0) {
   return {
     cooldownTicks: 20,
     d3AlphaDecay: 0.0228,
     d3VelocityDecay: 0.7,
     dagLevelDistance: undefined,
     dagMode: undefined,
-    graphData: { nodes: [], links: [] },
+    graphData: {
+      nodes: Array.from({ length: nodeCount }, (_, index) => ({ id: `node-${index}` })),
+      links: [],
+    },
     height: 400,
     nodeId: 'id' as const,
     onBackgroundClick: vi.fn(),
@@ -27,7 +30,7 @@ function createSharedProps() {
   };
 }
 
-function createDefaultProps() {
+function createDefaultProps(nodeCount = 0) {
   return {
     backgroundColor: '#1e1e1e',
     directionMode: 'arrows' as 'arrows' | 'particles' | 'none',
@@ -44,7 +47,7 @@ function createDefaultProps() {
     onRenderFramePost: vi.fn(),
     particleSize: 4,
     particleSpeed: 0.005,
-    sharedProps: createSharedProps(),
+    sharedProps: createSharedProps(nodeCount),
   };
 }
 
@@ -132,6 +135,22 @@ describe('Surface2d', () => {
       render(<Surface2d {...defaultProps} />);
       const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
       expect(props.autoPauseRedraw).toBe(false);
+    });
+
+
+
+    it('keeps pointer hit testing for interactive-size graphs', () => {
+      render(<Surface2d {...createDefaultProps(100_000)} />);
+      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
+      expect(props.enablePointerInteraction).toBe(true);
+    });
+
+
+
+    it('skips the full shadow hit-test paint when the visible overview exceeds its budget', () => {
+      render(<Surface2d {...createDefaultProps(100_001)} />);
+      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
+      expect(props.enablePointerInteraction).toBe(false);
     });
 
 

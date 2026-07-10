@@ -16,6 +16,10 @@ import {
   webviewGraphPerfControl,
   type WebviewGraphPerfControl,
 } from '../../perf/graph/control';
+import {
+  webviewRenderReadyControl,
+  type WebviewRenderReadyControl,
+} from '../../perf/renderReady/control';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -46,12 +50,27 @@ export function createMessageHandler(
     WebviewGraphPerfControl,
     'handleControl' | 'handleExtensionMessage'
   > = webviewGraphPerfControl,
+  renderReadyControl: Pick<
+    WebviewRenderReadyControl,
+    'graphDataReceived' | 'handleRequest'
+  > = webviewRenderReadyControl,
 ): (event: MessageEvent<unknown>) => void {
   const packagePluginIdsByPackageName = new Map<string, string>();
 
   return (event: MessageEvent<unknown>) => {
-    const raw = event.data as { type?: unknown; payload?: unknown; data?: unknown };
+    const raw = event.data as {
+      data?: unknown;
+      graphRevision?: unknown;
+      payload?: unknown;
+      type?: unknown;
+    };
     if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
+      return;
+    }
+    if (
+      raw.type === 'PERF_RENDER_READY_REQUEST'
+      && renderReadyControl.handleRequest(raw)
+    ) {
       return;
     }
     if (raw.type === 'PERF_CONTROL' && perfControl.handleControl(raw)) {
@@ -76,6 +95,15 @@ export function createMessageHandler(
     }
 
     removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
+    if (raw.type === 'GRAPH_DATA_UPDATED') {
+      renderReadyControl.graphDataReceived(
+        typeof raw.graphRevision === 'number'
+          && Number.isSafeInteger(raw.graphRevision)
+          && raw.graphRevision >= 0
+          ? raw.graphRevision
+          : undefined,
+      );
+    }
     graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
     if (raw.type === 'GRAPH_CONTROLS_UPDATED') {
       perfControl.handleExtensionMessage(raw);

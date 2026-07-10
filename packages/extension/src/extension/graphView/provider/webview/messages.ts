@@ -2,8 +2,26 @@ import type { GraphViewProviderWebviewMethodDependencies } from './defaultDepend
 import { getGraphViewProviderSidebarViews, type GraphViewProviderSidebarViewSource } from './sidebarViews';
 
 export interface GraphViewProviderWebviewMessageSource extends GraphViewProviderSidebarViewSource {
+  _graphMessageRevision?: number;
   _panels: import('vscode').WebviewPanel[];
   _notifyExtensionMessage(message: unknown): void;
+}
+
+function correlateGraphDataMessage(
+  source: GraphViewProviderWebviewMessageSource,
+  message: unknown,
+): unknown {
+  if (
+    !message
+    || typeof message !== 'object'
+    || (message as { type?: unknown }).type !== 'GRAPH_DATA_UPDATED'
+  ) {
+    return message;
+  }
+
+  const graphRevision = (source._graphMessageRevision ?? 0) + 1;
+  source._graphMessageRevision = graphRevision;
+  return { ...message, graphRevision };
 }
 
 export function sendGraphViewProviderWebviewMessage(
@@ -12,10 +30,11 @@ export function sendGraphViewProviderWebviewMessage(
   message: unknown,
 ): void {
   const sidebarViews = getGraphViewProviderSidebarViews(source);
+  const correlatedMessage = correlateGraphDataMessage(source, message);
   dependencies.sendWebviewMessage(
     sidebarViews,
     source._panels,
-    message,
+    correlatedMessage,
   );
-  source._notifyExtensionMessage(message);
+  source._notifyExtensionMessage(correlatedMessage);
 }

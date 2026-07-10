@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   perfControlMessageSchema,
   perfEventMessageSchema,
+  perfRenderReadyMessageSchema,
+  perfRenderReadyRequestMessageSchema,
 } from '../../../src/shared/perf/protocol';
 
 const operation = {
@@ -13,6 +15,82 @@ const operation = {
 } as const;
 
 describe('shared/perf/protocol', () => {
+  it('parses a strict correlated render-ready request', () => {
+    const message = {
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { graphRevision: 7, requestId: 'render-request-1' },
+    } as const;
+
+    expect(perfRenderReadyRequestMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it.each([
+    {
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { graphRevision: -1, requestId: 'render-request-1' },
+    },
+    {
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { requestId: '' },
+    },
+    {
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { requestId: 'render-request-1', unexpected: true },
+    },
+    {
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { requestId: 'render-request-1' },
+      unexpected: true,
+    },
+  ])('rejects an invalid render-ready request', message => {
+    expect(perfRenderReadyRequestMessageSchema.safeParse(message).success).toBe(false);
+  });
+
+  it('parses a strict correlated render-ready response', () => {
+    const message = {
+      type: 'PERF_RENDER_READY',
+      payload: {
+        graphRevision: 7,
+        requestId: 'render-request-1',
+        nodeCount: 100,
+        edgeCount: 75,
+      },
+    } as const;
+
+    expect(perfRenderReadyMessageSchema.parse(message)).toEqual(message);
+  });
+
+  it.each([
+    {
+      type: 'PERF_RENDER_READY',
+      payload: {
+        graphRevision: -1,
+        requestId: 'render-request-1',
+        nodeCount: 100,
+        edgeCount: 75,
+      },
+    },
+    {
+      type: 'PERF_RENDER_READY',
+      payload: { requestId: 'render-request-1', nodeCount: -1, edgeCount: 75 },
+    },
+    {
+      type: 'PERF_RENDER_READY',
+      payload: { requestId: 'render-request-1', nodeCount: 100.5, edgeCount: 75 },
+    },
+    {
+      type: 'PERF_RENDER_READY',
+      payload: {
+        requestId: 'render-request-1',
+        nodeCount: 100,
+        edgeCount: 75,
+        unexpected: true,
+      },
+    },
+  ])('rejects an invalid render-ready response', message => {
+    expect(perfRenderReadyMessageSchema.safeParse(message).success).toBe(false);
+  });
+
   it('parses an arm-graph control with deterministic operation context', () => {
     const message = {
       type: 'PERF_CONTROL',

@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactElement,
@@ -28,6 +29,10 @@ import {
   type GraphAccessibilityItems,
   type GraphScreenProjector,
 } from './accessibility';
+import {
+  webviewRenderReadyControl,
+  type WebviewRenderReadyControl,
+} from '../../../perf/renderReady/control';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -39,6 +44,10 @@ export interface GraphViewportShellProps {
   onEngineTick?: (this: void) => void;
   interactions: UseGraphInteractionRuntimeResult;
   pluginHost?: WebviewPluginHost;
+  renderReadyControl?: Pick<
+    WebviewRenderReadyControl,
+    'engineTick' | 'graphChanged' | 'renderFramePost'
+  >;
   theme: ThemeKind;
   viewState: GraphViewStoreState;
 }
@@ -53,6 +62,7 @@ export function GraphViewportShell({
   onEngineTick,
   interactions,
   pluginHost,
+  renderReadyControl = webviewRenderReadyControl,
   theme,
   viewState,
 }: GraphViewportShellProps): ReactElement {
@@ -64,6 +74,7 @@ export function GraphViewportShell({
     nodes: [],
     edges: [],
   });
+
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
     callbacks,
@@ -74,6 +85,11 @@ export function GraphViewportShell({
     theme,
     viewState,
   }));
+
+  const handleEngineTick = useCallback((): void => {
+    renderReadyControl.engineTick();
+    onEngineTick?.();
+  }, [onEngineTick, renderReadyControl]);
 
   useGraphEventEffects({
     containerRef: graphState.renderer.containerRef,
@@ -97,10 +113,20 @@ export function GraphViewportShell({
     graphViewContributions,
     handleEngineStop,
     interactions,
-    onEngineTick,
+    onEngineTick: handleEngineTick,
     viewportRuntime,
     viewState,
   });
+  const graphRevision = graphState.dataRef.current;
+
+  useLayoutEffect(() => {
+    renderReadyControl.graphChanged(viewportModel.sharedProps.cooldownTicks > 0);
+  }, [
+    graphDataLayoutKey,
+    graphRevision,
+    renderReadyControl,
+    viewportModel.sharedProps.cooldownTicks,
+  ]);
 
   const publishGraphViewportScale = (globalScale: number): void => {
     lastPublishedViewportScaleRef.current = publishGraphViewportScaleChange({
@@ -138,6 +164,11 @@ export function GraphViewportShell({
   };
 
   renderFramePostRef.current = (ctx, globalScale) => {
+    const graphData = graphState.renderer.graphDataRef.current;
+    renderReadyControl.renderFramePost({
+      nodeCount: graphData.nodes.length,
+      edgeCount: graphData.links.length,
+    });
     publishGraphViewportScale(globalScale);
     publishGraphViewViewportState(globalScale);
     publishGraphAccessibilityItems();

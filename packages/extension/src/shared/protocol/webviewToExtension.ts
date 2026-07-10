@@ -6,7 +6,10 @@ import type {
   NodeSizeMode,
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
-import type { PerfEventMessage } from '../perf/protocol';
+import type {
+  PerfEventMessage,
+  PerfRenderReadyMessage,
+} from '../perf/protocol';
 
 export interface GraphItemCreatePayload {
   directory: string;
@@ -24,6 +27,7 @@ export interface WebviewReadyPayload {
 
 export type WebviewToExtensionMessage =
   | PerfEventMessage
+  | PerfRenderReadyMessage
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
   | { type: 'CLEAR_FOCUSED_FILE' }

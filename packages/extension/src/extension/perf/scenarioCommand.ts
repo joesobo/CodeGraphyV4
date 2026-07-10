@@ -12,6 +12,8 @@ import * as vscode from 'vscode';
 import { z } from 'zod';
 import type { GraphViewProvider } from '../graphViewProvider';
 import {
+  perfRenderReadyMessageSchema,
+  perfRenderReadyRequestMessageSchema,
   perfScenarioSchema,
   type PerfScenario,
 } from '../../shared/perf/protocol';
@@ -58,6 +60,9 @@ export interface PerfScenarioRuntime {
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   openGraph(): Promise<void>;
+  requestRenderReady(
+    request: z.infer<typeof perfRenderReadyRequestMessageSchema>['payload'],
+  ): void;
   runScriptedScenario?(
     request: PerfScenarioRequest,
   ): Promise<PerfScenarioComparison | undefined>;
@@ -66,6 +71,17 @@ export interface PerfScenarioRuntime {
 
 interface PendingExtensionMessage {
   promise: Promise<void>;
+  dispose(): void;
+}
+
+interface GraphRenderCounts {
+  edgeCount: number;
+  graphRevision: number;
+  nodeCount: number;
+}
+
+interface PendingGraphRenderCounts {
+  promise: Promise<GraphRenderCounts>;
   dispose(): void;
 }
 
@@ -101,19 +117,90 @@ function isGraphCacheReady(message: unknown): boolean {
   return (message as { payload?: { hasIndex?: unknown } }).payload?.hasIndex === true;
 }
 
+function graphRenderCounts(message: unknown): GraphRenderCounts | undefined {
+  const candidate = message as {
+    graphRevision?: unknown;
+    type?: unknown;
+    payload?: { edges?: unknown; nodes?: unknown };
+  };
+  if (
+    candidate.type !== 'GRAPH_DATA_UPDATED'
+    || !Array.isArray(candidate.payload?.nodes)
+    || !Array.isArray(candidate.payload.edges)
+  ) {
+    return undefined;
+  }
+  return {
+    edgeCount: candidate.payload.edges.length,
+    graphRevision: typeof candidate.graphRevision === 'number'
+      && Number.isSafeInteger(candidate.graphRevision)
+      && candidate.graphRevision >= 0
+      ? candidate.graphRevision
+      : 0,
+    nodeCount: candidate.payload.nodes.length,
+  };
+}
+
+function waitForGraphRenderCounts(
+  runtime: PerfScenarioRuntime,
+): PendingGraphRenderCounts {
+  let subscription: vscode.Disposable | undefined;
+  let timer: NodeJS.Timeout | undefined;
+  const promise = new Promise<GraphRenderCounts>((resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error('Timed out waiting for GRAPH_DATA_UPDATED render counts'));
+    }, bootstrapTimeoutMs);
+    subscription = runtime.onExtensionMessage((message) => {
+      const counts = graphRenderCounts(message);
+      if (counts) resolve(counts);
+    });
+  });
+  return {
+    promise,
+    dispose(): void {
+      if (timer) clearTimeout(timer);
+      subscription?.dispose();
+    },
+  };
+}
+
+async function waitForCorrelatedRenderReady(
+  runtime: PerfScenarioRuntime,
+  requestId: string,
+  graphRevision: number,
+): Promise<void> {
+  const ready = waitForMessage(
+    handler => runtime.onWebviewMessage(handler),
+    'PERF_RENDER_READY',
+    (message) => {
+      const parsed = perfRenderReadyMessageSchema.safeParse(message);
+      return parsed.success
+        && parsed.data.payload.requestId === requestId
+        && parsed.data.payload.graphRevision >= graphRevision;
+    },
+  );
+  try {
+    runtime.requestRenderReady(
+      perfRenderReadyRequestMessageSchema.parse({
+        type: 'PERF_RENDER_READY_REQUEST',
+        payload: { graphRevision, requestId },
+      }).payload,
+    );
+    await ready.promise;
+  } finally {
+    ready.dispose();
+  }
+}
+
 function isOpenScenario(scenario: PerfScenario): scenario is 'cold-open' | 'warm-open' {
   return scenario === 'cold-open' || scenario === 'warm-open';
 }
 
-async function indexColdGraph(runtime: PerfScenarioRuntime): Promise<void> {
-  const graphUpdated = waitForMessage(
-    handler => runtime.onExtensionMessage(handler),
-    'GRAPH_DATA_UPDATED',
-  );
-  const stabilized = waitForMessage(
-    handler => runtime.onWebviewMessage(handler),
-    'PHYSICS_STABILIZED',
-  );
+async function indexColdGraph(
+  runtime: PerfScenarioRuntime,
+  runId: string,
+): Promise<void> {
+  const graphUpdated = waitForGraphRenderCounts(runtime);
   const graphCacheReady = waitForMessage(
     handler => runtime.onExtensionMessage(handler),
     'GRAPH_INDEX_STATUS_UPDATED',
@@ -129,12 +216,16 @@ async function indexColdGraph(runtime: PerfScenarioRuntime): Promise<void> {
       runtime.indexGraph(),
       graphUpdated.promise,
       graphCacheReady.promise,
-      stabilized.promise,
     ]);
+    const graph = await graphUpdated.promise;
+    await waitForCorrelatedRenderReady(
+      runtime,
+      `${runId}:indexed-render`,
+      graph.graphRevision,
+    );
   } finally {
     graphUpdated.dispose();
     graphCacheReady.dispose();
-    stabilized.dispose();
   }
 }
 
@@ -155,12 +246,7 @@ export async function runPerfScenario(
     handler => runtime.onExtensionMessage(handler),
     'APP_BOOTSTRAP_COMPLETE',
   );
-  const warmGraphUpdated = parsedRequest.scenario !== 'cold-open'
-    ? waitForMessage(
-        handler => runtime.onExtensionMessage(handler),
-        'GRAPH_DATA_UPDATED',
-      )
-    : undefined;
+  const initialGraphUpdated = waitForGraphRenderCounts(runtime);
   const warmGraphCacheReady = parsedRequest.scenario !== 'cold-open'
     ? waitForMessage(
         handler => runtime.onExtensionMessage(handler),
@@ -172,28 +258,25 @@ export async function runPerfScenario(
   try {
     try {
       await runtime.openGraph();
-      const stabilized = waitForMessage(
-        handler => runtime.onWebviewMessage(handler),
-        'PHYSICS_STABILIZED',
+      await Promise.all([
+        bootstrap.promise,
+        initialGraphUpdated.promise,
+        ...(warmGraphCacheReady ? [warmGraphCacheReady.promise] : []),
+      ]);
+      const graph = await initialGraphUpdated.promise;
+      await waitForCorrelatedRenderReady(
+        runtime,
+        `${parsedRequest.runId}:initial-render`,
+        graph.graphRevision,
       );
-      try {
-        await Promise.all([
-          bootstrap.promise,
-          ...(warmGraphUpdated ? [warmGraphUpdated.promise] : []),
-          ...(warmGraphCacheReady ? [warmGraphCacheReady.promise] : []),
-          stabilized.promise,
-        ]);
-      } finally {
-        stabilized.dispose();
-      }
     } finally {
       bootstrap.dispose();
-      warmGraphUpdated?.dispose();
+      initialGraphUpdated.dispose();
       warmGraphCacheReady?.dispose();
     }
 
     if (parsedRequest.scenario === 'cold-open') {
-      await indexColdGraph(runtime);
+      await indexColdGraph(runtime, parsedRequest.runId);
     }
 
     if (isOpenScenario(parsedRequest.scenario)) {
@@ -255,6 +338,12 @@ export function registerPerfScenarioCommand(
     onWebviewMessage: handler => provider.onWebviewMessage(handler),
     openGraph: async () => {
       provider.openInEditor(vscode.ViewColumn.Two);
+    },
+    requestRenderReady: (request) => {
+      provider.sendToWebview(perfRenderReadyRequestMessageSchema.parse({
+        type: 'PERF_RENDER_READY_REQUEST',
+        payload: request,
+      }));
     },
     runScriptedScenario: async (request) => {
       if (isOpenScenario(request.scenario)) {

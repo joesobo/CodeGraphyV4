@@ -4,7 +4,7 @@
  * @module webview/components/Graph
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { PerfScopeVisibilitySnapshot } from '../../../../shared/perf/protocol';
@@ -28,6 +28,7 @@ import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphPerfCommit } from '../../../perf/graph/commit';
 import { useGraphPerfScenarios } from '../../../perf/graph/useScenarios';
 import { useGraphAppearance } from '../appearance/use';
+import { projectGraphForRendering } from '../rendering/projection/model';
 
 interface GraphProps {
   data: IGraphData;
@@ -101,11 +102,12 @@ export default function Graph({
     graphViewContributions,
     pluginHost,
   );
+  const renderData = useMemo(() => projectGraphForRendering(data), [data]);
 
   const graphRuntime = useGraphRuntime({
     appearance,
     bidirectionalMode: viewState.bidirectionalMode,
-    data,
+    data: renderData,
     directionColor: appearance.linkHighlight,
     directionMode: viewState.directionMode,
     edgeDecorations,

@@ -65,6 +65,9 @@ export function GraphAccessibilityOverlay({
       className="absolute inset-0 pointer-events-none"
       data-codegraphy-layer="graph-accessibility"
     >
+      {accessibilityItems.summary ? (
+        <p className="sr-only">{accessibilityItems.summary}</p>
+      ) : null}
       {accessibilityItems.nodes.map(node => (
         <div
           key={node.id}

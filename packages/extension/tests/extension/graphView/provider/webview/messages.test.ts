@@ -28,4 +28,40 @@ describe('graphView/provider/webview/messages', () => {
     });
     expect(notifyExtensionMessage).toHaveBeenCalledWith({ type: 'PING' });
   });
+
+  it('assigns increasing revisions to full graph payloads before publishing them', () => {
+    const notifyExtensionMessage = vi.fn();
+    const sendWebviewMessage = vi.fn();
+    const source = {
+      _view: undefined,
+      _timelineView: undefined,
+      _panels: [],
+      _notifyExtensionMessage: notifyExtensionMessage,
+    };
+
+    sendGraphViewProviderWebviewMessage(source, { sendWebviewMessage }, {
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [], edges: [] },
+    });
+    sendGraphViewProviderWebviewMessage(source, { sendWebviewMessage }, {
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [], edges: [] },
+    });
+
+    expect(sendWebviewMessage).toHaveBeenNthCalledWith(1, [], [], {
+      type: 'GRAPH_DATA_UPDATED',
+      graphRevision: 1,
+      payload: { nodes: [], edges: [] },
+    });
+    expect(sendWebviewMessage).toHaveBeenNthCalledWith(2, [], [], {
+      type: 'GRAPH_DATA_UPDATED',
+      graphRevision: 2,
+      payload: { nodes: [], edges: [] },
+    });
+    expect(notifyExtensionMessage).toHaveBeenLastCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      graphRevision: 2,
+      payload: { nodes: [], edges: [] },
+    });
+  });
 });

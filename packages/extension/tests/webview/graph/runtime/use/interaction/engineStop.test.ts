@@ -37,4 +37,23 @@ describe('graph/runtime/use/interaction engine stop', () => {
 
     expect(calls).toEqual(['scenario', 'generic']);
   });
+
+  it('marks render readiness before the generic diagnostic message', () => {
+    const calls: string[] = [];
+    const sendMessage = vi.fn(() => calls.push('generic'));
+    const perfLifecycle = { engineStopped: vi.fn(() => false) };
+    const perfControl = { engineStopped: vi.fn() };
+    const renderReadyControl = {
+      engineStopped: vi.fn(() => calls.push('render-ready')),
+    };
+
+    postPhysicsStabilized(
+      sendMessage,
+      perfLifecycle,
+      perfControl,
+      renderReadyControl,
+    );
+
+    expect(calls).toEqual(['render-ready', 'generic']);
+  });
 });

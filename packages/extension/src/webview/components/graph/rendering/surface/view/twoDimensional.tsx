@@ -1,4 +1,4 @@
-import type { MutableRefObject, ReactElement } from 'react';
+import { useMemo, type MutableRefObject, type ReactElement } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type {
   ForceGraphMethods as FG2DMethods,
@@ -12,6 +12,7 @@ import {
   DIRECTIONAL_ARROW_LENGTH_2D,
 } from '../../link/contracts';
 import { getLinkCanvasObjectMode } from '../../link/metrics';
+import { createGraphRenderBudget } from '../renderBudget';
 import { getGraphNodeValue } from './nodeValue';
 
 type ForceGraph2DRef = MutableRefObject<FG2DMethods<NodeObject, LinkObject> | undefined>;
@@ -55,6 +56,12 @@ export function Surface2d({
 }: Surface2dProps): ReactElement {
   const arrowColor = getArrowColor({} as LinkObject);
   const arrowRelPos = getArrowRelPos({} as LinkObject);
+  const renderBudget = useMemo(
+    () => createGraphRenderBudget(
+      sharedProps.graphData as { nodes: FGNode[]; links: FGLink[] },
+    ),
+    [sharedProps.graphData],
+  );
 
   return (
     <ForceGraph2D
@@ -64,9 +71,11 @@ export function Surface2d({
       nodeCanvasObject={nodeCanvasObject}
       nodeCanvasObjectMode={() => 'replace'}
       nodePointerAreaPaint={nodePointerAreaPaint}
+      nodeVisibility={renderBudget.nodeVisibility}
       nodeVal={(node: NodeObject) => getGraphNodeValue(node as FGNode)}
       nodeRelSize={1}
       linkColor={getLinkColor}
+      linkVisibility={renderBudget.linkVisibility}
       linkWidth={getLinkWidth}
       linkDirectionalArrowLength={directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0}
       linkDirectionalArrowRelPos={arrowRelPos}
@@ -82,6 +91,7 @@ export function Surface2d({
       }
       onRenderFramePost={onRenderFramePost}
       autoPauseRedraw={directionMode !== 'particles'}
+      enablePointerInteraction={renderBudget.enablePointerInteraction}
       enablePanInteraction={false}
     />
   );

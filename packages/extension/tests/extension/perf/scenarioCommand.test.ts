@@ -57,6 +57,7 @@ function createProvider() {
 
 function createScenarioProvider() {
   const extensionMessageHandlers = new Set<(message: unknown) => void>();
+  const webviewMessageHandlers = new Set<(message: unknown) => void>();
   const provider = {
     dispatchWebviewMessage: vi.fn(async (message: unknown) => {
       if ((message as { type?: unknown }).type === 'INDEX_GRAPH') {
@@ -79,10 +80,33 @@ function createScenarioProvider() {
       return { dispose: () => { extensionMessageHandlers.delete(handler); } };
     }),
     onWebviewMessage: vi.fn((handler: (message: unknown) => void) => {
-      handler({ type: 'PHYSICS_STABILIZED' });
-      return { dispose: vi.fn() };
+      webviewMessageHandlers.add(handler);
+      return { dispose: () => { webviewMessageHandlers.delete(handler); } };
     }),
     openInEditor: vi.fn(),
+    sendToWebview: vi.fn((message: unknown) => {
+      const request = message as {
+        type?: unknown;
+        payload?: { graphRevision?: unknown; requestId?: unknown };
+      };
+      if (
+        request.type !== 'PERF_RENDER_READY_REQUEST'
+        || typeof request.payload?.requestId !== 'string'
+      ) {
+        return;
+      }
+      for (const handler of webviewMessageHandlers) {
+        handler({
+          type: 'PERF_RENDER_READY',
+          payload: {
+            graphRevision: request.payload.graphRevision,
+            requestId: request.payload.requestId,
+            nodeCount: 0,
+            edgeCount: 0,
+          },
+        });
+      }
+    }),
   };
   return provider;
 }
@@ -123,6 +147,10 @@ describe('performance scenario command', () => {
     process.env.CODEGRAPHY_PERF = '1';
     const provider = createScenarioProvider();
     provider.openInEditor.mockImplementation(() => {
+      provider.emitExtensionMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: { nodes: [], edges: [] },
+      });
       provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
@@ -140,6 +168,10 @@ describe('performance scenario command', () => {
     expect(provider.openInEditor).toHaveBeenCalledWith(vscode.ViewColumn.Two);
     expect(vscode.commands.executeCommand).not.toHaveBeenCalled();
     expect(provider.dispatchWebviewMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
+    expect(provider.sendToWebview).toHaveBeenCalledWith({
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { graphRevision: 0, requestId: expect.any(String) },
+    });
   });
 
   it('routes a scripted request through the production scenario runner', async () => {

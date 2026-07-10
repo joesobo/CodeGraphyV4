@@ -22,6 +22,7 @@ export interface GraphAccessibilityEdgeItem {
 export interface GraphAccessibilityItems {
   nodes: GraphAccessibilityNodeItem[];
   edges: GraphAccessibilityEdgeItem[];
+  summary?: string;
 }
 
 export function createGraphAccessibilityItems(

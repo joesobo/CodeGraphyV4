@@ -6,6 +6,7 @@ import {
 
 function createRuntime(): PerfScenarioRuntime {
   const extensionMessageHandlers = new Set<(message: unknown) => void>();
+  const webviewMessageHandlers = new Set<(message: unknown) => void>();
   let metricListener: ((event: {
     area: 'performance';
     event: 'metric';
@@ -38,8 +39,8 @@ function createRuntime(): PerfScenarioRuntime {
       return { dispose: () => { extensionMessageHandlers.delete(handler); } };
     }),
     onWebviewMessage: vi.fn((handler: (message: unknown) => void) => {
-      handler({ type: 'PHYSICS_STABILIZED' });
-      return { dispose: vi.fn() };
+      webviewMessageHandlers.add(handler);
+      return { dispose: () => { webviewMessageHandlers.delete(handler); } };
     }),
     openGraph: vi.fn(async () => {
       for (const handler of extensionMessageHandlers) {
@@ -72,6 +73,19 @@ function createRuntime(): PerfScenarioRuntime {
         });
       }
     }),
+    requestRenderReady: vi.fn((request: { graphRevision: number; requestId: string }) => {
+      for (const handler of webviewMessageHandlers) {
+        handler({
+          type: 'PERF_RENDER_READY',
+          payload: {
+            graphRevision: request.graphRevision,
+            requestId: request.requestId,
+            nodeCount: 1,
+            edgeCount: 1,
+          },
+        });
+      }
+    }),
     startMetricSession: vi.fn(() => ({ dispose: vi.fn() })),
   } as PerfScenarioRuntime;
 }
@@ -98,6 +112,7 @@ describe('performance open scenarios', () => {
       value: 20,
     });
     expect(runtime.onWebviewMessage).toHaveBeenCalledTimes(2);
+    expect(runtime.requestRenderReady).toHaveBeenCalledTimes(2);
     expect(runtime.indexGraph).toHaveBeenCalledOnce();
     expect(runtime.startMetricSession).toHaveBeenCalledWith({
       runId: 'run-1',
@@ -121,15 +136,25 @@ describe('performance open scenarios', () => {
     });
     runtime.openGraph = vi.fn(async () => {
       for (const handler of extensionMessageHandlers) {
+        handler({
+          type: 'GRAPH_DATA_UPDATED',
+          graphRevision: 10,
+          payload: { nodes: [], edges: [] },
+        });
         handler({ type: 'APP_BOOTSTRAP_COMPLETE' });
       }
     });
     runtime.indexGraph = vi.fn(async () => {
       for (const handler of extensionMessageHandlers) {
-        handler({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+        handler({
+          type: 'GRAPH_DATA_UPDATED',
+          graphRevision: 20,
+          payload: { nodes: [], edges: [] },
+        });
       }
     });
     runtime.startMetricSession = vi.fn(() => ({ dispose: disposeMetricSession }));
+    runtime.requestRenderReady = vi.fn();
 
     const result = runPerfScenario({
       runId: 'run-settle',
@@ -138,26 +163,63 @@ describe('performance open scenarios', () => {
       startedAt: 5,
     }, runtime);
     await vi.waitFor(() => {
-      expect(webviewMessageHandlers).toHaveLength(1);
+      expect(runtime.requestRenderReady).toHaveBeenCalledOnce();
     });
-
     webviewMessageHandlers[0]?.({ type: 'PHYSICS_STABILIZED' });
+    webviewMessageHandlers[0]?.({
+      type: 'PERF_RENDER_READY',
+      payload: { requestId: 'stale', nodeCount: 0, edgeCount: 0 },
+    });
+    await new Promise<void>(resolve => { setImmediate(resolve); });
+    expect(runtime.indexGraph).not.toHaveBeenCalled();
+
+    const initialRequest = vi.mocked(runtime.requestRenderReady).mock.calls[0]?.[0];
+    webviewMessageHandlers[0]?.({
+      type: 'PERF_RENDER_READY',
+      payload: {
+        graphRevision: 9,
+        requestId: initialRequest?.requestId,
+        nodeCount: 1,
+        edgeCount: 0,
+      },
+    });
+    await new Promise<void>(resolve => { setImmediate(resolve); });
+    expect(runtime.indexGraph).not.toHaveBeenCalled();
+
+    webviewMessageHandlers[0]?.({
+      type: 'PERF_RENDER_READY',
+      payload: {
+        graphRevision: 10,
+        requestId: initialRequest?.requestId,
+        nodeCount: 1,
+        edgeCount: 0,
+      },
+    });
     await vi.waitFor(() => {
       expect(runtime.indexGraph).toHaveBeenCalledOnce();
-      expect(webviewMessageHandlers).toHaveLength(2);
     });
-    expect(disposeMetricSession).not.toHaveBeenCalled();
-
-    webviewMessageHandlers[1]?.({ type: 'PHYSICS_STABILIZED' });
-    await new Promise<void>(resolve => { setImmediate(resolve); });
-    expect(disposeMetricSession).not.toHaveBeenCalled();
-
     for (const handler of extensionMessageHandlers) {
       handler({
         type: 'GRAPH_INDEX_STATUS_UPDATED',
         payload: { hasIndex: true, freshness: 'fresh', detail: 'Graph Cache is fresh' },
       });
     }
+    await vi.waitFor(() => {
+      expect(runtime.requestRenderReady).toHaveBeenCalledTimes(2);
+    });
+    expect(disposeMetricSession).not.toHaveBeenCalled();
+
+    const indexedRequest = vi.mocked(runtime.requestRenderReady).mock.calls[1]?.[0];
+    webviewMessageHandlers[1]?.({
+      type: 'PERF_RENDER_READY',
+      payload: {
+        graphRevision: 20,
+        requestId: indexedRequest?.requestId,
+        nodeCount: 0,
+        edgeCount: 0,
+      },
+    });
+    await new Promise<void>(resolve => { setImmediate(resolve); });
     await expect(result).resolves.toMatchObject({ runId: 'run-settle' });
     expect(disposeMetricSession).toHaveBeenCalledOnce();
   });
@@ -189,7 +251,13 @@ describe('performance open scenarios', () => {
     });
     runtime.openGraph = vi.fn(async () => {
       for (const handler of extensionMessageHandlers) {
-        handler({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+        handler({
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'src/index.ts' }],
+            edges: [{ source: 'src/index.ts', target: 'src/lib.ts' }],
+          },
+        });
         handler({
           type: 'GRAPH_INDEX_STATUS_UPDATED',
           payload: { hasIndex: false, freshness: 'missing', detail: 'Graph Cache is missing' },

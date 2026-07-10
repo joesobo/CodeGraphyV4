@@ -3,7 +3,10 @@ import type { FGLink, FGNode } from '../../../../src/webview/components/graph/mo
 import {
   buildSharedGraphProps,
   INTERACTIVE_COOLDOWN_TICKS,
+  MAX_INTERACTIVE_PHYSICS_EDGES,
+  MAX_INTERACTIVE_PHYSICS_NODES,
   normalizeGraphDimension,
+  resolveGraphCooldownTicks,
   TIMELINE_COOLDOWN_TICKS,
   type BuildSharedGraphPropsOptions,
 } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
@@ -117,6 +120,42 @@ describe('graph/rendering/surface/sharedProps', () => {
     }));
 
     expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
+  });
+
+  it('keeps giant file graphs within the interactive physics budget', () => {
+    expect(resolveGraphCooldownTicks(
+      MAX_INTERACTIVE_PHYSICS_NODES,
+      MAX_INTERACTIVE_PHYSICS_EDGES,
+      false,
+    ))
+      .toBe(INTERACTIVE_COOLDOWN_TICKS);
+  });
+
+  it('skips synchronous physics above the interactive node budget', () => {
+    const props = buildSharedGraphProps(createOptions({
+      graphData: {
+        links: [],
+        nodes: new Array<FGNode>(MAX_INTERACTIVE_PHYSICS_NODES + 1).fill(createNode()),
+      },
+    }));
+
+    expect(props.cooldownTicks).toBe(0);
+  });
+
+  it('skips synchronous timeline physics above the node budget', () => {
+    expect(resolveGraphCooldownTicks(
+      MAX_INTERACTIVE_PHYSICS_NODES + 1,
+      0,
+      true,
+    )).toBe(0);
+  });
+
+  it('skips synchronous physics above the interactive edge budget', () => {
+    expect(resolveGraphCooldownTicks(
+      2,
+      MAX_INTERACTIVE_PHYSICS_EDGES + 1,
+      false,
+    )).toBe(0);
   });
 
   it('normalizes width and height independently', () => {

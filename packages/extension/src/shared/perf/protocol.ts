@@ -14,6 +14,8 @@ export const perfScenarioSchema = z.enum([
 ]);
 
 const identifierSchema = z.string().trim().min(1);
+const nonnegativeFiniteNumberSchema = z.number().finite().nonnegative();
+const nonnegativeIntegerSchema = z.number().int().nonnegative();
 const scopeKindSchema = z.enum(['node', 'edge']);
 
 const scopeEntryShape = {
@@ -25,6 +27,26 @@ const scopeEntryShape = {
 export const perfScopeVisibilitySnapshotSchema = z.strictObject({
   edgeVisibility: z.record(identifierSchema, z.boolean()),
   nodeVisibility: z.record(identifierSchema, z.boolean()),
+});
+
+export const perfRenderReadyRequestMessageSchema = z.strictObject({
+  type: z.literal('PERF_RENDER_READY_REQUEST'),
+  payload: z.strictObject({
+    graphRevision: nonnegativeIntegerSchema.default(0),
+    requestId: identifierSchema,
+  }),
+});
+
+export const perfRenderReadyMessageSchema = z.strictObject({
+  type: z.literal('PERF_RENDER_READY'),
+  payload: z.strictObject({
+    graphRevision: nonnegativeIntegerSchema.default(0),
+    requestId: identifierSchema,
+    // Counts describe the projected graph painted by react-force-graph. The
+    // graph revision, not raw payload counts, correlates source updates.
+    nodeCount: nonnegativeIntegerSchema,
+    edgeCount: nonnegativeIntegerSchema,
+  }),
 });
 
 const perfOperationShape = {
@@ -69,8 +91,6 @@ export const perfControlMessageSchema = z.strictObject({
 });
 
 const perfEventContextShape = { ...perfOperationShape };
-const nonnegativeFiniteNumberSchema = z.number().finite().nonnegative();
-const nonnegativeIntegerSchema = z.number().int().nonnegative();
 const metricEventSchema = z.discriminatedUnion('metric', [
   z.strictObject({
     ...perfEventContextShape,
@@ -215,6 +235,12 @@ export type PerfEventMessage = z.infer<typeof perfEventMessageSchema>;
 export type PerfScopeEntry = z.infer<z.ZodObject<typeof scopeEntryShape>>;
 export type PerfScopeVisibilitySnapshot = z.infer<
   typeof perfScopeVisibilitySnapshotSchema
+>;
+export type PerfRenderReadyRequestMessage = z.infer<
+  typeof perfRenderReadyRequestMessageSchema
+>;
+export type PerfRenderReadyMessage = z.infer<
+  typeof perfRenderReadyMessageSchema
 >;
 
 type WithoutOperationContext<Event> = Event extends PerfEventPayload

@@ -1,11 +1,80 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { PerfControlMessage } from '../../../../src/shared/perf/protocol';
+import type {
+  PerfControlMessage,
+  PerfRenderReadyRequestMessage,
+} from '../../../../src/shared/perf/protocol';
 import { createMessageHandler, type InjectAssetsParams } from '../../../../src/webview/app/shell/messageListener';
 import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
 import { graphStore } from '../../../../src/webview/store/state';
 
 describe('app message listener performance controls', () => {
+  it('routes a render-ready request without forwarding it to the graph store', () => {
+    const handleExtensionMessage = vi.fn();
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+    const perfBridge = {
+      handleControl: vi.fn(() => false),
+      handleExtensionMessage: vi.fn(() => false),
+    };
+    const renderReadyControl = {
+      graphDataReceived: vi.fn(),
+      handleRequest: vi.fn(() => true),
+    };
+    const handler = createMessageHandler(
+      vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue(),
+      { deliverMessage: vi.fn() } as unknown as WebviewPluginHost,
+      undefined,
+      undefined,
+      perfBridge,
+      renderReadyControl,
+    );
+    const message: PerfRenderReadyRequestMessage = {
+      type: 'PERF_RENDER_READY_REQUEST',
+      payload: { graphRevision: 1, requestId: 'render-request-1' },
+    };
+
+    handler({ data: message } as MessageEvent<unknown>);
+
+    expect(renderReadyControl.handleRequest).toHaveBeenCalledWith(message);
+    expect(handleExtensionMessage).not.toHaveBeenCalled();
+  });
+
+  it('records a graph payload generation before forwarding it to the store', () => {
+    const callOrder: string[] = [];
+    const handleExtensionMessage = vi.fn(() => { callOrder.push('store'); });
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+    const perfBridge = {
+      handleControl: vi.fn(() => false),
+      handleExtensionMessage: vi.fn(() => false),
+    };
+    const renderReadyControl = {
+      graphDataReceived: vi.fn(() => { callOrder.push('render-ready'); }),
+      handleRequest: vi.fn(() => false),
+    };
+    const handler = createMessageHandler(
+      vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue(),
+      { deliverMessage: vi.fn() } as unknown as WebviewPluginHost,
+      undefined,
+      undefined,
+      perfBridge,
+      renderReadyControl,
+    );
+    const message = {
+      type: 'GRAPH_DATA_UPDATED' as const,
+      graphRevision: 17,
+      payload: { nodes: [], edges: [] },
+    };
+
+    handler({ data: message } as MessageEvent<unknown>);
+
+    expect(callOrder).toEqual(['render-ready', 'store']);
+    expect(renderReadyControl.graphDataReceived).toHaveBeenCalledWith(17);
+  });
+
   it('handles a performance control through the existing message listener', () => {
     const handleExtensionMessage = vi.fn();
     vi.spyOn(graphStore, 'getState').mockReturnValue({

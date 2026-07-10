@@ -4,6 +4,22 @@ import type { FGLink, FGNode } from '../../model/build';
 
 export const INTERACTIVE_COOLDOWN_TICKS = 60;
 export const TIMELINE_COOLDOWN_TICKS = 50;
+export const MAX_INTERACTIVE_PHYSICS_NODES = 50_000;
+export const MAX_INTERACTIVE_PHYSICS_EDGES = 100_000;
+
+export function resolveGraphCooldownTicks(
+  nodeCount: number,
+  edgeCount: number,
+  timelineActive: boolean,
+): number {
+  if (
+    nodeCount > MAX_INTERACTIVE_PHYSICS_NODES
+    || edgeCount > MAX_INTERACTIVE_PHYSICS_EDGES
+  ) {
+    return 0;
+  }
+  return timelineActive ? TIMELINE_COOLDOWN_TICKS : INTERACTIVE_COOLDOWN_TICKS;
+}
 
 export interface GraphContainerSize {
   height: number;
@@ -88,7 +104,11 @@ export function buildSharedGraphProps(
     d3VelocityDecay: options.damping,
     d3AlphaDecay: 0.0228,
     warmupTicks: 0,
-    cooldownTicks: options.timelineActive ? TIMELINE_COOLDOWN_TICKS : INTERACTIVE_COOLDOWN_TICKS,
+    cooldownTicks: resolveGraphCooldownTicks(
+      options.graphData.nodes.length,
+      options.graphData.links.length,
+      options.timelineActive,
+    ),
     nodeId: 'id',
     onNodeHover: (node) => options.onNodeHover(node as FGNode | null),
     dagMode: options.dagMode ?? undefined,

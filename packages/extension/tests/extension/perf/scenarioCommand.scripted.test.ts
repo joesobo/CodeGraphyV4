@@ -34,7 +34,7 @@ function createScriptedRuntime(
       if (options.webviewAvailableOnlyAfterOpen && !graphOpen) {
         return { dispose: vi.fn() };
       }
-      handler({ type: 'PHYSICS_STABILIZED' });
+      webviewHandlers.add(handler);
       return { dispose: () => { webviewHandlers.delete(handler); } };
     }),
     openGraph: vi.fn(async () => {
@@ -45,6 +45,19 @@ function createScriptedRuntime(
         handler({
           type: 'GRAPH_INDEX_STATUS_UPDATED',
           payload: { hasIndex: true },
+        });
+      }
+    }),
+    requestRenderReady: vi.fn((request: { graphRevision: number; requestId: string }) => {
+      for (const handler of webviewHandlers) {
+        handler({
+          type: 'PERF_RENDER_READY',
+          payload: {
+            graphRevision: request.graphRevision,
+            requestId: request.requestId,
+            nodeCount: 0,
+            edgeCount: 0,
+          },
         });
       }
     }),
@@ -72,7 +85,7 @@ function createScriptedRuntime(
 }
 
 describe('performance scripted scenarios', () => {
-  it('subscribes to physics after the graph webview becomes available', async () => {
+  it('requests render readiness after the graph webview becomes available', async () => {
     vi.useFakeTimers();
     const runtime = createScriptedRuntime({ webviewAvailableOnlyAfterOpen: true });
 
@@ -90,6 +103,7 @@ describe('performance scripted scenarios', () => {
     await vi.advanceTimersByTimeAsync(180_000);
     await assertion;
     expect(runtime.onWebviewMessage).toHaveBeenCalledOnce();
+    expect(runtime.requestRenderReady).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });
 

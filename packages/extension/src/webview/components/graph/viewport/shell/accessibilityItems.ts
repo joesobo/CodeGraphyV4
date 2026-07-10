@@ -11,6 +11,9 @@ import {
 } from '../accessibility';
 import type { FGLink, FGNode } from '../../model/build';
 
+export const MAX_GRAPH_ACCESSIBILITY_NODES = 1_000;
+export const MAX_GRAPH_ACCESSIBILITY_EDGES = 1_000;
+
 export function publishCurrentGraphAccessibilityItems({
   accessibilityDirtyRef,
   graph,
@@ -32,24 +35,55 @@ export function publishCurrentGraphAccessibilityItems({
     return;
   }
 
-  if (!areGraphAccessibilityNodePositionsReady(nodes)) {
+  const accessibleNodes = nodes.slice(0, MAX_GRAPH_ACCESSIBILITY_NODES);
+  const accessibleLinks = links.slice(0, MAX_GRAPH_ACCESSIBILITY_EDGES);
+  if (!areGraphAccessibilityNodePositionsReady(accessibleNodes)) {
     return;
   }
 
-  const signature = createGraphAccessibilitySignature(nodes, links);
+  const signature = createGraphAccessibilitySignature(
+    accessibleNodes,
+    accessibleLinks,
+    nodes.length,
+    links.length,
+  );
   if (signature === lastAccessibilitySignatureRef.current) {
     accessibilityDirtyRef.current = false;
     return;
   }
 
   lastAccessibilitySignatureRef.current = signature;
-  setAccessibilityItems(createGraphAccessibilityItems(nodes, links, graph));
+  const accessibilityItems = createGraphAccessibilityItems(
+    accessibleNodes,
+    accessibleLinks,
+    graph,
+  );
+  const omittedNodeCount = nodes.length - accessibleNodes.length;
+  const omittedLinkCount = links.length - accessibleLinks.length;
+  const omitted = [
+    omittedNodeCount > 0
+      ? `${omittedNodeCount} ${omittedNodeCount === 1 ? 'node' : 'nodes'}`
+      : undefined,
+    omittedLinkCount > 0
+      ? `${omittedLinkCount} ${omittedLinkCount === 1 ? 'edge' : 'edges'}`
+      : undefined,
+  ].filter((value): value is string => value !== undefined);
+  setAccessibilityItems({
+    ...accessibilityItems,
+    ...(omitted.length > 0
+      ? {
+          summary: `${omitted.join(' and ')} omitted. Use search or filters to narrow the graph.`,
+        }
+      : {}),
+  });
   accessibilityDirtyRef.current = false;
 }
 
 function createGraphAccessibilitySignature(
   nodes: readonly FGNode[],
   links: readonly FGLink[],
+  totalNodeCount: number,
+  totalLinkCount: number,
 ): string {
   const nodeSignature = nodes
     .map(node => `${node.id}:${node.size}:${Number.isFinite(node.x) && Number.isFinite(node.y) ? 'ready' : 'pending'}`)
@@ -58,7 +92,7 @@ function createGraphAccessibilitySignature(
     .map(link => `${link.id}:${resolveLinkEndpoint(link.source)}:${resolveLinkEndpoint(link.target)}`)
     .join('|');
 
-  return `${nodeSignature}::${linkSignature}`;
+  return `${totalNodeCount}:${totalLinkCount}::${nodeSignature}::${linkSignature}`;
 }
 
 function resolveLinkEndpoint(endpoint: string | FGNode): string {

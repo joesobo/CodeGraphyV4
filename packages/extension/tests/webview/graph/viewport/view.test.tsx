@@ -442,6 +442,18 @@ describe('Viewport', () => {
     expect(handleNodeContextMenu).toHaveBeenCalledWith('src/app.ts', expect.any(MouseEvent));
   });
 
+  it('announces when the accessibility overlay is a bounded subset', () => {
+    renderViewport({
+      accessibilityItems: {
+        nodes: [],
+        edges: [],
+        summary: '1 node and 1 edge omitted. Use search or filters to narrow the graph.',
+      },
+    });
+
+    expect(screen.getByText(/1 node and 1 edge omitted/)).toHaveClass('sr-only');
+  });
+
   it('opens the graph edge context menu from the accessible edge item', () => {
     const handleEdgeContextMenu = vi.fn();
     const edge = createGraphLink('edge-src-app-src-types', 'src/app.ts', 'src/types.ts');
