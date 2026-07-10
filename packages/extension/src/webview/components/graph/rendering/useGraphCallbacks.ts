@@ -1,8 +1,4 @@
 import { useRef } from 'react';
-import type {
-  LinkObject,
-  NodeObject,
-} from 'react-force-graph-2d';
 import {
   getGraphDirectionalColor,
   getGraphLinkColor,
@@ -35,23 +31,21 @@ export interface UseGraphCallbacksOptions {
     | 'showLabelsRef'
     | 'themeRef'
   > & {
-    meshesRef: GraphRuntime['renderCaches']['meshesRef'];
     selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
-    spritesRef: GraphRuntime['renderCaches']['spritesRef'];
   };
   triggerImageRerender(this: void): void;
 }
 
 export interface UseGraphCallbacksResult {
-  getArrowColor: (this: void, link: LinkObject) => string;
-  getArrowRelPos: (this: void, link: LinkObject) => number;
-  getLinkColor: (this: void, link: LinkObject) => string;
-  getLinkParticles: (this: void, link: LinkObject) => number;
-  getLinkWidth: (this: void, link: LinkObject) => number;
-  getParticleColor: (this: void, link: LinkObject) => string;
-  linkCanvasObject: (this: void, link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-  nodeCanvasObject: (this: void, node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-  nodePointerAreaPaint: (this: void, node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void;
+  getArrowColor: (this: void, link: FGLink) => string;
+  getArrowRelPos: (this: void, link: FGLink) => number;
+  getLinkColor: (this: void, link: FGLink) => string;
+  getLinkParticles: (this: void, link: FGLink) => number;
+  getLinkWidth: (this: void, link: FGLink) => number;
+  getParticleColor: (this: void, link: FGLink) => string;
+  linkCanvasObject: (this: void, link: FGLink, ctx: CanvasRenderingContext2D, globalScale: number) => void;
+  nodeCanvasObject: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
+  nodePointerAreaPaint: (this: void, node: FGNode, color: string, ctx: CanvasRenderingContext2D) => void;
 }
 
 type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];
@@ -114,27 +108,27 @@ export function useGraphCallbacks({
       nodeCanvasObject(node, ctx, globalScale) {
         renderNodeCanvas(
           getNodeCanvasContext(contextRef.current),
-          node as FGNode,
+          node,
           ctx,
           globalScale,
         );
       },
       nodePointerAreaPaint(node, color, ctx) {
-        paintNodePointerArea(node as FGNode, color, ctx);
+        paintNodePointerArea(node, color, ctx);
       },
       linkCanvasObject(link, ctx, globalScale) {
         renderBidirectionalLink(
           getLinkRenderingContext(contextRef.current.refs),
-          link as FGLink,
+          link,
           ctx,
           globalScale,
         );
       },
       getLinkColor(link) {
-        return getGraphLinkColor(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
+        return getGraphLinkColor(getLinkRenderingContext(contextRef.current.refs), link);
       },
       getLinkParticles(link) {
-        return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
+        return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link);
       },
       getArrowRelPos(_link) {
         return getGraphArrowRelPos();
@@ -146,7 +140,7 @@ export function useGraphCallbacks({
         return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
       },
       getLinkWidth(link) {
-        return getGraphLinkWidth(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
+        return getGraphLinkWidth(getLinkRenderingContext(contextRef.current.refs), link);
       },
     };
   }

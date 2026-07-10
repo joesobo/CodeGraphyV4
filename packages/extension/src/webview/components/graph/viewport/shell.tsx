@@ -64,10 +64,7 @@ export function GraphViewportShell({
   });
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
-    callbacks,
-    graphDataLayoutKey,
     graphState,
-    graphViewContributions,
     pluginHost,
     theme,
     viewState,
@@ -155,7 +152,7 @@ export function GraphViewportShell({
 
   useEffect(() => {
     accessibilityDirtyRef.current = true;
-  }, [graphDataLayoutKey, viewState.graphMode]);
+  }, [graphDataLayoutKey]);
 
   const surfaceProps = createGraphViewportSurfaceProps({
     callbacks,
@@ -172,7 +169,6 @@ export function GraphViewportShell({
       borderColor={viewportModel.borderColor}
       containerRef={graphState.renderer.containerRef}
       directionMode={viewState.directionMode}
-      graphMode={viewState.graphMode}
       handleContextMenu={interactions.handleContextMenu}
       handleMenuAction={interactions.handleMenuAction}
       handleMouseDownCapture={interactions.handleMouseDownCapture}
@@ -186,9 +182,7 @@ export function GraphViewportShell({
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
       surface2dProps={surfaceProps.surface2dProps}
-      surface3dProps={surfaceProps.surface3dProps}
       tooltipData={interactions.tooltipData}
-      onSurface3dError={viewportModel.onSurface3dError}
       pluginHost={pluginHost}
     />
   );

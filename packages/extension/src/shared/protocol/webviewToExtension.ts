@@ -120,10 +120,6 @@ export type WebviewToExtensionMessage =
         edgeIds: string[];
       };
     }
-  | {
-      type: 'GRAPH_3D_UNAVAILABLE';
-      payload: { message: string };
-    }
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   | {
       type: 'PLUGIN_CONTEXT_MENU_ACTION';

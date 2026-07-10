@@ -1,5 +1,4 @@
 import type { DagMode } from '../../../../../shared/settings/modes';
-import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../model/build';
 
 export const INTERACTIVE_COOLDOWN_TICKS = 60;
@@ -16,19 +15,19 @@ export interface GraphSurfaceSharedProps {
   d3VelocityDecay: number;
   dagLevelDistance: number | undefined;
   dagMode: Exclude<DagMode, null> | undefined;
-  graphData: { nodes: NodeObject[]; links: LinkObject[] };
+  graphData: { nodes: FGNode[]; links: FGLink[] };
   height: number | undefined;
   nodeId: 'id';
   onBackgroundClick(this: void, event?: MouseEvent): void;
   onBackgroundRightClick(this: void, event: MouseEvent): void;
   onEngineStop(this: void): void;
-  onLinkClick(this: void, link: LinkObject, event: MouseEvent): void;
-  onLinkRightClick(this: void, link: LinkObject, event: MouseEvent): void;
-  onNodeClick(this: void, node: NodeObject, event: MouseEvent): void;
-  onNodeDrag?(this: void, node: NodeObject, translate: { x: number; y: number }): void;
-  onNodeDragEnd?(this: void, node: NodeObject): void;
-  onNodeHover(this: void, node: NodeObject | null): void;
-  onNodeRightClick(this: void, node: NodeObject, event: MouseEvent): void;
+  onLinkClick(this: void, link: FGLink, event: MouseEvent): void;
+  onLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
+  onNodeClick(this: void, node: FGNode, event: MouseEvent): void;
+  onNodeDrag?(this: void, node: FGNode, translate: { x: number; y: number }): void;
+  onNodeDragEnd?(this: void, node: FGNode): void;
+  onNodeHover(this: void, node: FGNode | null): void;
+  onNodeRightClick(this: void, node: FGNode, event: MouseEvent): void;
   warmupTicks: number;
   width: number | undefined;
 }
@@ -59,24 +58,23 @@ export function buildSharedGraphProps(
   options: BuildSharedGraphPropsOptions,
 ): GraphSurfaceSharedProps {
   return {
-    graphData: options.graphData as unknown as { nodes: NodeObject[]; links: LinkObject[] },
+    graphData: options.graphData,
     width: normalizeGraphDimension(options.containerSize.width),
     height: normalizeGraphDimension(options.containerSize.height),
-    onNodeClick: (node, event) => options.onNodeClick(node as FGNode, event),
+    onNodeClick: options.onNodeClick,
     ...(options.onNodeDrag
       ? {
-          onNodeDrag: (node: NodeObject, translate: { x: number; y: number }) =>
-            options.onNodeDrag?.(node as FGNode, translate),
+          onNodeDrag: options.onNodeDrag,
         }
       : {}),
     ...(options.onNodeDragEnd
       ? {
-          onNodeDragEnd: (node: NodeObject) => options.onNodeDragEnd?.(node as FGNode),
+          onNodeDragEnd: options.onNodeDragEnd,
         }
       : {}),
-    onNodeRightClick: (node, event) => options.onNodeRightClick(node as FGNode, event),
-    onLinkClick: (link, event) => options.onLinkClick(link as FGLink, event),
-    onLinkRightClick: (link, event) => options.onLinkRightClick(link as FGLink, event),
+    onNodeRightClick: options.onNodeRightClick,
+    onLinkClick: options.onLinkClick,
+    onLinkRightClick: options.onLinkRightClick,
     onBackgroundClick: (event) => options.onBackgroundClick(event),
     onBackgroundRightClick: (event) => options.onBackgroundRightClick(event),
     onEngineStop: () => options.onEngineStop(),
@@ -85,7 +83,7 @@ export function buildSharedGraphProps(
     warmupTicks: 0,
     cooldownTicks: options.timelineActive ? TIMELINE_COOLDOWN_TICKS : INTERACTIVE_COOLDOWN_TICKS,
     nodeId: 'id',
-    onNodeHover: (node) => options.onNodeHover(node as FGNode | null),
+    onNodeHover: options.onNodeHover,
     dagMode: options.dagMode ?? undefined,
     dagLevelDistance: options.dagMode ? 60 : undefined,
   };

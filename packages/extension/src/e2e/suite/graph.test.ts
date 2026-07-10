@@ -1026,37 +1026,6 @@ suite('Graph: Webview Messaging', function () {
 
 });
 
-suite('Graph: 3D Mode', function () {
-  this.timeout(30_000);
-
-  test('toggle dimension switches the runtime into 3d without the webview reporting a fallback', async function() {
-    const api = await getAPI();
-    await ensureIndexedGraph(api);
-
-    const webviewMessages: unknown[] = [];
-    const subscription = api.onWebviewMessage((message: unknown) => {
-      webviewMessages.push(message);
-    });
-
-    await vscode.commands.executeCommand('codegraphy.toggleDimension');
-    await sleep(2_000);
-
-    const runtimeState = await requestGraphRuntimeState(api);
-    const nodeBounds = await requestNodeBounds(api);
-    subscription.dispose();
-
-    assert.strictEqual(runtimeState.graphMode, '3d');
-    assert.ok(runtimeState.nodeCount > 0, '3d mode should keep graph nodes loaded');
-    assert.strictEqual(nodeBounds.length, runtimeState.nodeCount);
-    assert.ok(
-      !webviewMessages.some(
-        (message) => (message as { type?: string }).type === 'GRAPH_3D_UNAVAILABLE',
-      ),
-      `Webview reported 3d fallback: ${JSON.stringify(webviewMessages)}`,
-    );
-  });
-});
-
 suite('Graph: Depth Mode', function () {
   this.timeout(60_000);
 

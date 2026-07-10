@@ -1,20 +1,19 @@
-import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { DirectionMode } from '../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../model/build';
 
 export interface OwnedGraphDrawingOptions {
   context: CanvasRenderingContext2D;
   directionMode: DirectionMode;
-  getArrowColor(this: void, link: LinkObject): string;
-  getLinkColor(this: void, link: LinkObject): string;
-  getLinkParticles(this: void, link: LinkObject): number;
-  getLinkWidth(this: void, link: LinkObject): number;
-  getParticleColor(this: void, link: LinkObject): string;
+  getArrowColor(this: void, link: FGLink): string;
+  getLinkColor(this: void, link: FGLink): string;
+  getLinkParticles(this: void, link: FGLink): number;
+  getLinkWidth(this: void, link: FGLink): number;
+  getParticleColor(this: void, link: FGLink): string;
   globalScale: number;
   links: readonly FGLink[];
-  linkCanvasObject(this: void, link: LinkObject, context: CanvasRenderingContext2D, globalScale: number): void;
+  linkCanvasObject(this: void, link: FGLink, context: CanvasRenderingContext2D, globalScale: number): void;
   nodes: readonly FGNode[];
-  nodeCanvasObject(this: void, node: NodeObject, context: CanvasRenderingContext2D, globalScale: number): void;
+  nodeCanvasObject(this: void, node: FGNode, context: CanvasRenderingContext2D, globalScale: number): void;
   particleSize: number;
   particleSpeed: number;
   timestamp: number;

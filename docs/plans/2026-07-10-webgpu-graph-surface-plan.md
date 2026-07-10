@@ -37,7 +37,12 @@ fallback via the react-force-graph adapter during migration.
 
 ## Global Constraints (locked decisions — do not relitigate)
 
-- **No d3-force dependency.** Custom engine; d3/Obsidian are study material.
+- **No d3-force dependency.** The engine stays CodeGraphy-owned, while
+  d3-force, Obsidian, and react-force-graph remain explicit architecture and
+  behavior references for force semantics, lifecycle, interaction, and LOD.
+- **Node collision is mandatory.** Every engine path must enforce node-radius
+  collision without NaN/Inf, including coincident-node and pinned-node cases;
+  WebGPU integration cannot regress the typed engine's collision pass.
 - **3D mode is removed** (`react-force-graph-3d` + Three.js deleted).
 - **The timeline view is removed entirely** (view, protocol message,
   contracts, physics branch).
@@ -81,7 +86,9 @@ graph and its product surfaces.
       Editor** with a seed-307 graph of 1,000 nodes and 3,090 edges. The
       committed screenshot, GIF, and interaction timings are under
       `packages/graph-benchmark/references/owned2d/open-editor-1k/`.
-- [ ] Remove 3D mode, timeline, and all remaining legacy graph dependencies.
+- [x] Remove the 3D renderer, toggle/command, legacy d3 physics runtime, and
+      all `react-force-graph`, Three.js, and d3-force package dependencies.
+- [ ] Remove the timeline view and its remaining product/state surfaces.
 - [ ] Add the WebGPU surface and scale the owned renderer/layout toward the
       target fixture sizes, validating each implementation in Open in Editor.
 

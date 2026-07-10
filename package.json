@@ -146,10 +146,6 @@
 			{
 				"command": "codegraphy.cycleLayout",
 				"title": "CodeGraphy: Cycle Layout"
-			},
-			{
-				"command": "codegraphy.toggleDimension",
-				"title": "CodeGraphy: Toggle 2D/3D"
 			}
 		],
 		"keybindings": [
@@ -198,11 +194,6 @@
 			{
 				"command": "codegraphy.cycleLayout",
 				"key": "l",
-				"when": "codegraphy.graphFocused"
-			},
-			{
-				"command": "codegraphy.toggleDimension",
-				"key": "t",
 				"when": "codegraphy.graphFocused"
 			}
 		],

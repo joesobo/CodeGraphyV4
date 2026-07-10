@@ -7,14 +7,12 @@ export type DisplayStoreState = {
   depthMode: boolean;
   directionMode: DirectionMode;
   graphHasIndex: boolean;
-  graphMode: '2d' | '3d';
   maxDepthLimit: number;
   particleSize: number;
   particleSpeed: number;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setDepthMode: (depthMode: boolean) => void;
   setDirectionMode: (mode: DirectionMode) => void;
-  setGraphMode: (mode: '2d' | '3d') => void;
   setParticleSize: (size: number) => void;
   setParticleSpeed: (speed: number) => void;
   setShowLabels: (showLabels: boolean) => void;
@@ -29,14 +27,12 @@ export function useDisplayStore(): DisplayStoreState {
   const depthMode = useGraphStore((state) => state.depthMode);
   const directionMode = useGraphStore((state) => state.directionMode);
   const graphHasIndex = useGraphStore((state) => state.graphHasIndex);
-  const graphMode = useGraphStore((state) => state.graphMode);
   const maxDepthLimit = useGraphStore((state) => state.maxDepthLimit);
   const particleSize = useGraphStore((state) => state.particleSize);
   const particleSpeed = useGraphStore((state) => state.particleSpeed);
   const setBidirectionalMode = useGraphStore((state) => state.setBidirectionalMode);
   const setDepthMode = useGraphStore((state) => state.setDepthMode);
   const setDirectionMode = useGraphStore((state) => state.setDirectionMode);
-  const setGraphMode = useGraphStore((state) => state.setGraphMode);
   const setParticleSize = useGraphStore((state) => state.setParticleSize);
   const setParticleSpeed = useGraphStore((state) => state.setParticleSpeed);
   const setShowLabels = useGraphStore((state) => state.setShowLabels);
@@ -50,14 +46,12 @@ export function useDisplayStore(): DisplayStoreState {
     depthMode,
     directionMode,
     graphHasIndex,
-    graphMode,
     maxDepthLimit,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
     setDepthMode,
     setDirectionMode,
-    setGraphMode,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,

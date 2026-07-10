@@ -8,10 +8,6 @@ import {
   type SetStateAction,
 } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
-import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
-import type * as THREE from 'three';
-import type SpriteText from 'three-spritetext';
 import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
@@ -26,9 +22,7 @@ import {
   type FGNode,
 } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
-import {
-  as2DExtMethods,
-} from '../../support/contracts/forceGraph';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
 
@@ -48,7 +42,6 @@ export interface GraphRuntimeOptions {
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
   graphViewContributions?: CoreGraphViewContributionSet;
-  graphMode?: '2d' | '3d';
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
@@ -64,8 +57,7 @@ export interface GraphRuntimeSelection {
 
 export interface GraphRuntimeRenderer {
   containerRef: MutableRefObject<HTMLDivElement | null>;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
   graphData: { links: FGLink[]; nodes: FGNode[] };
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
 }
@@ -83,8 +75,6 @@ export interface GraphRuntimeRenderCaches {
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   imageCacheVersion: number;
   invalidateImages(this: void): void;
-  meshesRef: MutableRefObject<Map<string, THREE.Mesh>>;
-  spritesRef: MutableRefObject<Map<string, SpriteText>>;
 }
 
 export interface GraphRuntime {
@@ -111,24 +101,12 @@ export interface GraphRuntime {
   timelineActiveRef: MutableRefObject<boolean>;
 }
 
-export interface TimelineAlphaGraph {
-  d3Alpha?: (value: number) => unknown;
-}
-
 export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[] } {
   return { links: [], nodes: [] };
 }
 
 export function incrementImageCacheVersion(previous: number): number {
   return previous + 1;
-}
-
-export function applyTimelineAlpha(graph: TimelineAlphaGraph | undefined, alpha: number = 0.05): void {
-  if (!graph || typeof graph.d3Alpha !== 'function') {
-    return;
-  }
-
-  graph.d3Alpha(alpha);
 }
 
 function getVisibleSelection(
@@ -148,7 +126,6 @@ export function useGraphRuntime({
   edgeDecorations,
   favorites,
   graphViewContributions,
-  graphMode,
   nodeDecorations,
   nodeSizeMode,
   showLabels,
@@ -159,8 +136,7 @@ export function useGraphRuntime({
   timelineActiveRef.current = timelineActive;
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
-  const fg3dRef = useRef<FG3DMethods<FGNode, FGLink> | undefined>(undefined);
+  const fg2dRef = useRef<OwnedGraph2dControls | undefined>(undefined);
   const highlightedNodeRef = useRef<string | null>(null);
   const highlightedNeighborsRef = useRef<Set<string>>(new Set());
   const selectedNodesSetRef = useRef<Set<string>>(new Set());
@@ -180,8 +156,6 @@ export function useGraphRuntime({
   const graphCursorRef = useRef<GraphCursorStyle>('default');
   const graphAppearanceRef = useRef(appearance);
   const showLabelsRef = useRef(showLabels);
-  const spritesRef = useRef<Map<string, SpriteText>>(new Map());
-  const meshesRef = useRef<Map<string, THREE.Mesh>>(new Map());
   const nodeDecorationsRef = useRef(nodeDecorations);
   const edgeDecorationsRef = useRef(edgeDecorations);
 
@@ -208,7 +182,6 @@ export function useGraphRuntime({
   }
 
   const graphData = useMemo(() => {
-    const resolvedGraphMode = graphMode ?? '2d';
     const nextGraphData = buildGraphData({
       data,
       appearance,
@@ -216,7 +189,7 @@ export function useGraphRuntime({
       theme: themeRef.current,
       favorites,
       graphViewContributions,
-      graphMode: resolvedGraphMode,
+      graphMode: '2d',
       bidirectionalMode,
       timelineActive,
       previousNodes: graphDataRef.current.nodes,
@@ -224,16 +197,7 @@ export function useGraphRuntime({
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, favorites, graphMode, graphViewContributions, timelineActive]);
-
-  useEffect(() => {
-    if (!timelineActive) return;
-    const graph = as2DExtMethods(fg2dRef.current);
-    if (!graph) return;
-    requestAnimationFrame(() => {
-      applyTimelineAlpha(graph);
-    });
-  }, [data, timelineActive]);
+  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions, timelineActive]);
 
   useEffect(() => {
     const visibleSelectedNodes = getVisibleSelection(selectedNodes, graphData.nodes);
@@ -270,7 +234,6 @@ export function useGraphRuntime({
     renderer: {
       containerRef,
       fg2dRef,
-      fg3dRef,
       graphData,
       graphDataRef,
     },
@@ -278,8 +241,6 @@ export function useGraphRuntime({
       fileInfoCacheRef,
       imageCacheVersion,
       invalidateImages: triggerImageRerender,
-      meshesRef,
-      spritesRef,
     },
     selection: {
       selectedNodeIds: selectedNodes,

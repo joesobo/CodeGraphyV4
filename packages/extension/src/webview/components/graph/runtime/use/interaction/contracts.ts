@@ -37,7 +37,6 @@ export interface UseGraphInteractionRuntimeOptions {
   refs: {
     containerRef: GraphRuntime['renderer']['containerRef'];
     fg2dRef: GraphRuntime['renderer']['fg2dRef'];
-    fg3dRef: GraphRuntime['renderer']['fg3dRef'];
     rightClickFallbackTimerRef: GraphRuntime['context']['rightClickFallbackTimerRef'];
     rightMouseDownRef: GraphRuntime['context']['rightMouseDownRef'];
     selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];

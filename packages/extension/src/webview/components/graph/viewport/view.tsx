@@ -5,7 +5,6 @@ import {
   ContextMenuTrigger,
 } from '../../ui/context/menu';
 import { NodeTooltip } from '../../nodeTooltip/view';
-import type { FGLink, FGNode } from '../model/build';
 import { GraphAccessibilityOverlay } from './accessibilityLayer/overlay';
 import {
   createMenuEntriesSignature,
@@ -34,7 +33,6 @@ export function Viewport({
   borderColor,
   containerRef,
   directionMode,
-  graphMode,
   handleContextMenu,
   handleMenuAction,
   handleMouseDownCapture,
@@ -48,9 +46,7 @@ export function Viewport({
   marqueeSelection,
   menuEntries,
   surface2dProps,
-  surface3dProps,
   tooltipData,
-  onSurface3dError,
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
@@ -82,18 +78,15 @@ export function Viewport({
           <MemoizedViewportSurface
             canvasBackgroundColor={canvasBackgroundColor}
             directionMode={directionMode}
-            graphMode={graphMode}
-            onSurface3dError={onSurface3dError}
             surface2dProps={surface2dProps}
-            surface3dProps={surface3dProps}
           />
           <ViewportPluginWorldOverlay pluginHost={pluginHost} />
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
           <GraphAccessibilityOverlay
             accessibilityItems={resolvedAccessibilityItems}
-            graphLinks={surface2dProps.sharedProps.graphData.links as FGLink[]}
-            graphNodes={surface2dProps.sharedProps.graphData.nodes as FGNode[]}
+            graphLinks={surface2dProps.sharedProps.graphData.links}
+            graphNodes={surface2dProps.sharedProps.graphData.nodes}
             onEdgeContextMenu={resolvedHandlers.handleEdgeContextMenu}
             onNodeClick={resolvedHandlers.handleNodeClick}
             onNodeContextMenu={resolvedHandlers.handleNodeContextMenu}

@@ -19,14 +19,12 @@ export function DisplaySection(): React.ReactElement {
     depthMode,
     directionMode,
     graphHasIndex,
-    graphMode,
     maxDepthLimit,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
     setDepthMode,
     setDirectionMode,
-    setGraphMode,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
@@ -38,12 +36,10 @@ export function DisplaySection(): React.ReactElement {
     bidirectionalOptions,
     directionOptions,
     displayParticleSpeed,
-    graphModeOptions,
     showParticleControls,
   } = getDisplayViewState({
     bidirectionalMode,
     directionMode,
-    graphMode,
     particleSpeed,
   });
   const {
@@ -64,10 +60,6 @@ export function DisplaySection(): React.ReactElement {
   const onDirectionModeChange = (mode: DirectionMode) => {
     setDirectionMode(mode);
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
-  };
-
-  const onGraphModeChange = (mode: '2d' | '3d') => {
-    setGraphMode(mode);
   };
 
   const onDepthModeChange = (checked: boolean) => {
@@ -92,14 +84,6 @@ export function DisplaySection(): React.ReactElement {
         data-testid="display-mode-controls"
         className="space-y-2"
       >
-        <div data-codegraphy-row="display-renderer" data-testid="display-renderer-row">
-          <ModeButtons
-            label="Renderer"
-            onSelect={onGraphModeChange}
-            options={graphModeOptions}
-          />
-        </div>
-
         <div data-codegraphy-row="display-direction" data-testid="display-direction-row">
           <ModeButtons
             label="Direction"

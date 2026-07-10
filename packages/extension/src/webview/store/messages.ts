@@ -41,7 +41,6 @@ import {
 import {
   handleToggleDepthMode,
   handleCycleLayout,
-  handleToggleDimension,
 } from './messageHandlers/toolbar';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 
@@ -141,5 +140,4 @@ export const MESSAGE_HANDLERS: Record<
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),
   TOGGLE_DEPTH_MODE: handleToggleDepthMode,
   CYCLE_LAYOUT: handleCycleLayout,
-  TOGGLE_DIMENSION: handleToggleDimension,
 };

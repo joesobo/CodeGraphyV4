@@ -26,7 +26,7 @@ export function buildGraphDebugOptions({
     containerRef: graphState.renderer.containerRef,
     fitView: interactions.interactionHandlers.fitView,
     fg2dRef: graphState.renderer.fg2dRef,
-    fg3dRef: graphState.renderer.fg3dRef,
+    fg3dRef: { current: undefined },
     graphDataRef: graphState.renderer.graphDataRef,
     graphMode,
     openNodeContextMenu: interactions.handleNodeContextMenuById,

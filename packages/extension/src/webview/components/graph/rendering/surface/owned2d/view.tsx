@@ -15,7 +15,7 @@ import {
   screenToGraph,
   type OwnedGraphCamera,
 } from './camera';
-import type { Surface2dProps } from './contracts';
+import type { OwnedGraph2dControls, Surface2dProps } from './contracts';
 import { drawOwnedGraph } from './drawing';
 import {
   applyOwnedPhysicsSettings,
@@ -30,19 +30,6 @@ interface PointerSession {
   lastWorld: { x: number; y: number };
   moved: boolean;
   startScreen: { x: number; y: number };
-}
-
-interface OwnedGraphControls {
-  centerAt(x: number, y: number, durationMs?: number): void;
-  d3ReheatSimulation(): void;
-  graph2ScreenCoords(x: number, y: number): { x: number; y: number };
-  pauseAnimation(): void;
-  refresh(): void;
-  resumeAnimation(): void;
-  screen2GraphCoords(x: number, y: number): { x: number; y: number };
-  zoom(): number;
-  zoom(scale: number, durationMs?: number): unknown;
-  zoomToFit(durationMs?: number, padding?: number): void;
 }
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
@@ -143,7 +130,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       }
     };
 
-    const controls: OwnedGraphControls = {
+    const controls: OwnedGraph2dControls = {
       centerAt: (x, y) => {
         cameraRef.current.centerX = x;
         cameraRef.current.centerY = y;
@@ -173,7 +160,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         cameraRef.current.zoom = clampOwnedGraphZoom(scale);
         requestFrameRef.current();
         return controls;
-      }) as OwnedGraphControls['zoom'],
+      }) as OwnedGraph2dControls['zoom'],
       zoomToFit: (_durationMs, padding) => {
         const size = canvasSize(canvas);
         fitOwnedGraphCamera(
@@ -186,7 +173,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         requestFrameRef.current();
       },
     };
-    props.fg2dRef.current = controls as unknown as Surface2dProps['fg2dRef']['current'];
+    props.fg2dRef.current = controls;
 
     const resizeObserver = new ResizeObserver(() => requestFrameRef.current());
     resizeObserver.observe(canvas);
@@ -199,7 +186,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         window.cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-      if (props.fg2dRef.current === (controls as unknown)) props.fg2dRef.current = undefined;
+      if (props.fg2dRef.current === controls) props.fg2dRef.current = undefined;
     };
   }, [props.fg2dRef]);
 

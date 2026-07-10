@@ -1,19 +1,16 @@
-import type {
-	ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
 import type { MutableRefObject } from 'react';
 import type {
 	GraphTooltipRect,
 } from '../../tooltip/model';
 import {
 	DEFAULT_NODE_SIZE,
-	type FGLink,
 	type FGNode,
 } from '../../model/build';
 
 interface GraphTooltipRectOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;
-	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+	fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
 }
 
 interface GraphTooltipGraph {

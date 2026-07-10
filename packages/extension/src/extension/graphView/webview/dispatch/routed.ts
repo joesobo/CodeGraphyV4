@@ -3,7 +3,6 @@ import { applyCommandMessage } from '../messages/commands/dispatch';
 import { applyExportMessage } from '../messages/exports';
 import { applyNodeFileMessage } from '../nodeFile/router';
 import { applyPhysicsMessage } from '../messages/physics';
-import { applySurfaceMessage } from '../messages/surface';
 import { applyTimelineMessage } from '../messages/timeline';
 import { createGraphViewPrimaryExportHandlers } from './exportHandlers';
 import type { GraphViewPrimaryMessageContext, GraphViewPrimaryMessageResult } from './primary';
@@ -30,10 +29,6 @@ export async function dispatchGraphViewPrimaryRouteMessage(
   }
 
   if (await applyPhysicsMessage(message, context)) {
-    return { handled: true };
-  }
-
-  if (await applySurfaceMessage(message)) {
     return { handled: true };
   }
 
