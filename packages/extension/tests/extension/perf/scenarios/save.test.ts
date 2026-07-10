@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 
 import {
   PERF_SAVE_MARKER,
@@ -103,6 +103,10 @@ function setup() {
   };
 }
 
+function createVisibleGraphProvider() {
+  return { isGraphOpen: vi.fn(() => true) };
+}
+
 describe('extension/perf/scenarios/save', () => {
   it('uses the self target and structural import marker for the self dimension', async () => {
     const harness = setup();
@@ -110,7 +114,7 @@ describe('extension/perf/scenarios/save', () => {
     const result = await runDocumentSaveScenario({
       dimension: 'self',
       ordinal: 0,
-      provider: {} as never,
+      provider: createVisibleGraphProvider() as never,
       runId: 'run-self',
       runOperation: async (_operation, action) => {
         await action();
@@ -149,7 +153,7 @@ describe('extension/perf/scenarios/save', () => {
     const result = await runDocumentSaveScenario({
       dimension: 'medium',
       ordinal: 2,
-      provider: {} as never,
+      provider: createVisibleGraphProvider() as never,
       runId: 'run-1',
       runOperation,
       workspaceFolderUri: uri('/workspace'),
@@ -167,6 +171,15 @@ describe('extension/perf/scenarios/save', () => {
       expect.objectContaining({
         fsPath: `/workspace/${PERF_SAVE_TARGET_RELATIVE_PATH}`,
       }),
+    );
+    expect(harness.dependencies.showTextDocument).toHaveBeenNthCalledWith(
+      1,
+      harness.document,
+      {
+        preserveFocus: false,
+        preview: false,
+        viewColumn: vscode.ViewColumn.One,
+      },
     );
     expect(harness.armWorkspaceRefreshIdleWait).toHaveBeenCalledTimes(2);
     expect(harness.armWorkspaceRefreshIdleWait).toHaveBeenNthCalledWith(
@@ -193,7 +206,7 @@ describe('extension/perf/scenarios/save', () => {
     await expect(runDocumentSaveScenario({
       dimension: 'small',
       ordinal: 0,
-      provider: {} as never,
+      provider: createVisibleGraphProvider() as never,
       runId: 'run-failure',
       runOperation,
       workspaceFolderUri: uri('/workspace'),
@@ -211,7 +224,7 @@ describe('extension/perf/scenarios/save', () => {
     await runDocumentSaveScenario({
       dimension: 'small',
       ordinal: 0,
-      provider: {} as never,
+      provider: createVisibleGraphProvider() as never,
       runId: 'run-ordering',
       runOperation: async (_operation, action) => {
         await action();
@@ -228,5 +241,26 @@ describe('extension/perf/scenarios/save', () => {
     expect(harness.refreshWaitDisposers).toHaveLength(2);
     expect(harness.refreshWaitDisposers.every(dispose => dispose.mock.calls.length === 1))
       .toBe(true);
+  });
+
+  it('refuses to save when opening the document hides the graph editor', async () => {
+    const harness = setup();
+    const provider = { isGraphOpen: vi.fn(() => false) };
+
+    await expect(runDocumentSaveScenario({
+      dimension: 'small',
+      ordinal: 0,
+      provider: provider as never,
+      runId: 'run-hidden-graph',
+      runOperation: async (_operation, action) => {
+        await action();
+        return { operation: 'complete' };
+      },
+      workspaceFolderUri: uri('/workspace'),
+    }, harness.dependencies)).rejects.toThrow(
+      'Save scenario requires the CodeGraphy graph to remain open',
+    );
+
+    expect(harness.saveDocument).not.toHaveBeenCalled();
   });
 });

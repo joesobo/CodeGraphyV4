@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 interface OpenGraphViewInEditorOptions {
+  column?: vscode.ViewColumn;
   viewType: string;
   extensionUri: vscode.Uri;
   getPanels: () => readonly vscode.WebviewPanel[];
@@ -18,6 +19,7 @@ interface OpenGraphViewInEditorOptions {
 }
 
 export function openGraphViewInEditor({
+  column = vscode.ViewColumn.Beside,
   viewType,
   extensionUri,
   getPanels,
@@ -30,11 +32,11 @@ export function openGraphViewInEditor({
 }: OpenGraphViewInEditorOptions): void {
   const existingPanel = getPanels()[0];
   if (existingPanel) {
-    existingPanel.reveal?.(vscode.ViewColumn.Beside);
+    existingPanel.reveal?.(column);
     return;
   }
 
-  const panel = createPanel(viewType, 'CodeGraphy', vscode.ViewColumn.Beside, {
+  const panel = createPanel(viewType, 'CodeGraphy', column, {
     enableScripts: true,
     localResourceRoots: getLocalResourceRoots(),
     retainContextWhenHidden: true,

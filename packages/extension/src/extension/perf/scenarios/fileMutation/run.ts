@@ -75,6 +75,7 @@ export async function runFileMutationScenario(
   input: RunFileMutationScenarioInput,
   dependencies: FileMutationScenarioDependencies = fileMutationScenarioRuntime,
 ): Promise<FileMutationScenarioResult> {
+  await dependencies.focusWorkspaceEditor();
   const target = createFileMutationTarget(input.scenario, input.dimension);
   const operation = createPerfOperation({
     runId: input.runId,

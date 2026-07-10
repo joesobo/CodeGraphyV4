@@ -18,6 +18,7 @@ describe('graph view editor panel helper', () => {
     const unregisterPanel = vi.fn();
 
     openGraphViewInEditor({
+      column: vscode.ViewColumn.Two,
       viewType: 'codegraphy.graphView',
       extensionUri: vscode.Uri.file('/extension'),
       getPanels: () => [],
@@ -33,7 +34,7 @@ describe('graph view editor panel helper', () => {
     expect(createPanel).toHaveBeenCalledWith(
       'codegraphy.graphView',
       'CodeGraphy',
-      vscode.ViewColumn.Beside,
+      vscode.ViewColumn.Two,
       {
         enableScripts: true,
         localResourceRoots: [vscode.Uri.file('/extension')],

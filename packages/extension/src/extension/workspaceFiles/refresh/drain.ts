@@ -7,6 +7,8 @@ interface WorkspaceRefreshIdleWaiter {
   quietTimeout?: ReturnType<typeof setTimeout>;
   reject: (error: unknown) => void;
   resolve: () => void;
+  settlementStarted?: boolean;
+  timeoutMs?: number;
 }
 
 interface WorkspaceRefreshActivity {
@@ -61,6 +63,27 @@ function clearWorkspaceRefreshIdleWaiter(
     waiter.quietTimeout = undefined;
   }
   activity.waiters.delete(waiter);
+}
+
+function armWorkspaceRefreshIdleDeadline(
+  provider: GraphViewProvider,
+  activity: WorkspaceRefreshActivity,
+  waiter: WorkspaceRefreshIdleWaiter,
+  message: string,
+): void {
+  if (waiter.timeoutMs === undefined) {
+    return;
+  }
+  if (waiter.deadlineTimeout !== undefined) {
+    clearTimeout(waiter.deadlineTimeout);
+  }
+  waiter.deadlineTimeout = setTimeout(() => {
+    clearWorkspaceRefreshIdleWaiter(activity, waiter);
+    waiter.reject(new Error(message));
+    if (activity.waiters.size === 0 && !isWorkspaceRefreshBusy(activity)) {
+      workspaceRefreshActivities.delete(provider);
+    }
+  }, waiter.timeoutMs);
 }
 
 export function settleWorkspaceRefreshIdle(provider: GraphViewProvider): void {
@@ -133,6 +156,22 @@ export function markWorkspaceRefreshScheduled(provider: GraphViewProvider): void
   activity.activityOrdinal += 1;
   activity.error = undefined;
   activity.pending = true;
+  for (const waiter of activity.waiters) {
+    if (
+      waiter.timeoutMs === undefined
+      || waiter.settlementStarted
+      || activity.activityOrdinal < waiter.activityOrdinal
+    ) {
+      continue;
+    }
+    waiter.settlementStarted = true;
+    armWorkspaceRefreshIdleDeadline(
+      provider,
+      activity,
+      waiter,
+      'Timed out waiting for workspace refresh activity to settle',
+    );
+  }
 }
 
 export function markWorkspaceRefreshStarted(provider: GraphViewProvider): void {
@@ -212,16 +251,16 @@ export function armWorkspaceRefreshIdleWait(
       quietMs: Math.max(0, options.quietMs ?? 0),
       reject,
       resolve,
+      timeoutMs: options.timeoutMs,
     };
   });
-  waiter.deadlineTimeout = setTimeout(() => {
-    clearWorkspaceRefreshIdleWaiter(activity, waiter);
-    waiter.reject(new Error('Timed out waiting for future workspace refresh activity to become idle'));
-    if (activity.waiters.size === 0 && !isWorkspaceRefreshBusy(activity)) {
-      workspaceRefreshActivities.delete(provider);
-    }
-  }, options.timeoutMs);
   activity.waiters.add(waiter);
+  armWorkspaceRefreshIdleDeadline(
+    provider,
+    activity,
+    waiter,
+    'Timed out waiting for future workspace refresh activity to begin',
+  );
 
   return {
     promise,

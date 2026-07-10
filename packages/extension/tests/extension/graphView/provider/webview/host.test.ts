@@ -512,6 +512,74 @@ describe('graphView/provider/webview/host', () => {
     expect(result).toBe(disposable);
   });
 
+  it('subscribes to the visible editor panel when no graph sidebar view exists', () => {
+    const hiddenPanel = { visible: false } as unknown as vscode.WebviewPanel;
+    const visiblePanel = { visible: true } as unknown as vscode.WebviewPanel;
+    const onWebviewMessage = vi.fn((
+      _surface: vscode.WebviewView | vscode.WebviewPanel | undefined,
+      _handler: (message: unknown) => void,
+    ) => ({ dispose: vi.fn() }));
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _panels: [hiddenPanel, visiblePanel],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => []),
+    };
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<html />'),
+      resolveWebviewView: vi.fn(),
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage,
+      setWebviewMessageListener: vi.fn(),
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+    });
+    const handler = vi.fn();
+
+    methods.onWebviewMessage(handler);
+
+    expect(onWebviewMessage.mock.calls[0]?.[0]).toBe(visiblePanel);
+    expect(onWebviewMessage.mock.calls[0]?.[1]).toBe(handler);
+  });
+
+  it('prefers the visible editor panel over the graph sidebar for message subscriptions', () => {
+    const sidebarView = { visible: true } as unknown as vscode.WebviewView;
+    const visiblePanel = { visible: true } as unknown as vscode.WebviewPanel;
+    const onWebviewMessage = vi.fn((
+      _surface: vscode.WebviewView | vscode.WebviewPanel | undefined,
+      _handler: (message: unknown) => void,
+    ) => ({ dispose: vi.fn() }));
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: sidebarView,
+      _timelineView: undefined,
+      _panels: [visiblePanel],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => []),
+    };
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<html />'),
+      resolveWebviewView: vi.fn(),
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage,
+      setWebviewMessageListener: vi.fn(),
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+    });
+    const handler = vi.fn();
+
+    methods.onWebviewMessage(handler);
+
+    expect(onWebviewMessage.mock.calls[0]?.[0]).toBe(visiblePanel);
+    expect(onWebviewMessage.mock.calls[0]?.[1]).toBe(handler);
+  });
+
   it('delegates listener wiring and html generation helpers', () => {
     const setWebviewMessageListener = vi.fn();
     const createHtml = vi.fn(() => '<html />');

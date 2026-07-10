@@ -27,7 +27,7 @@ export interface GraphViewProviderWebviewMethods {
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken,
   ): void;
-  openInEditor(): void;
+  openInEditor(column?: vscode.ViewColumn): void;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   _sendMessage(message: unknown): void;
@@ -63,16 +63,18 @@ export function createGraphViewProviderWebviewMethods(
     resolveGraphViewProviderWebviewView(source, resolvedDependencies, webviewView);
   };
 
-  const openInEditor = (): void => {
-    openGraphViewProviderWebviewInEditor(source, resolvedDependencies);
+  const openInEditor = (column?: vscode.ViewColumn): void => {
+    openGraphViewProviderWebviewInEditor(source, resolvedDependencies, column);
   };
 
   const sendToWebview = (message: unknown): void => {
     _sendMessage(message);
   };
 
-  const onWebviewMessage = (handler: (message: unknown) => void): vscode.Disposable =>
-    resolvedDependencies.onWebviewMessage(source._view, handler);
+  const onWebviewMessage = (handler: (message: unknown) => void): vscode.Disposable => {
+    const visibleEditorPanel = source._panels.find(panel => panel.visible);
+    return resolvedDependencies.onWebviewMessage(visibleEditorPanel ?? source._view, handler);
+  };
 
   return {
     resolveWebviewView,

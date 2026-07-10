@@ -254,7 +254,7 @@ export function registerPerfScenarioCommand(
     onExtensionMessage: handler => provider.onExtensionMessage(handler),
     onWebviewMessage: handler => provider.onWebviewMessage(handler),
     openGraph: async () => {
-      await vscode.commands.executeCommand('codegraphy.open');
+      provider.openInEditor(vscode.ViewColumn.Two);
     },
     runScriptedScenario: async (request) => {
       if (isOpenScenario(request.scenario)) {

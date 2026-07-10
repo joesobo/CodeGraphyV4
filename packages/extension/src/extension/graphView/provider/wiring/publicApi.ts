@@ -80,7 +80,7 @@ export interface GraphViewProviderPublicMethods {
   setFocusedFile: (filePath: string | undefined) => void;
   setDepthLimit: (depthLimit: number) => Promise<void>;
   getDepthLimit: () => number;
-  openInEditor: () => void;
+  openInEditor: (column?: vscode.ViewColumn) => void;
   sendToWebview: (message: unknown) => void;
   onWebviewMessage: (handler: (message: unknown) => void) => vscode.Disposable;
   dispatchWebviewMessage: (message: WebviewToExtensionMessage) => Promise<void>;
@@ -136,7 +136,7 @@ export function assignGraphViewProviderPublicMethods(
   target.setFocusedFile = filePath => target._methodContainers.viewSelection.setFocusedFile(filePath);
   target.setDepthLimit = depthLimit => target._methodContainers.viewSelection.setDepthLimit(depthLimit);
   target.getDepthLimit = () => target._methodContainers.viewSelection.getDepthLimit();
-  target.openInEditor = () => target._methodContainers.webview.openInEditor();
+  target.openInEditor = column => target._methodContainers.webview.openInEditor(column);
   target.sendToWebview = message => target._methodContainers.webview.sendToWebview(message);
   target.onWebviewMessage = handler => target._methodContainers.webview.onWebviewMessage(handler);
   target.dispatchWebviewMessage = message =>

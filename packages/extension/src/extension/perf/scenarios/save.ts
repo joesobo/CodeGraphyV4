@@ -111,6 +111,7 @@ async function restoreDocumentContent(
   const editor = await dependencies.showTextDocument(document, {
     preserveFocus: false,
     preview: false,
+    viewColumn: vscode.ViewColumn.One,
   });
   const changed = document.getText() !== originalContent;
 
@@ -153,6 +154,7 @@ async function restoreDocumentPresentation(
     await dependencies.showTextDocument(targetDocument, {
       preserveFocus: false,
       preview: false,
+      viewColumn: vscode.ViewColumn.One,
     });
     await dependencies.executeCommand('workbench.action.closeActiveEditor');
   }
@@ -203,7 +205,11 @@ export async function runDocumentSaveScenario(
     const editor = await dependencies.showTextDocument(document, {
       preserveFocus: false,
       preview: false,
+      viewColumn: vscode.ViewColumn.One,
     });
+    if (!input.provider.isGraphOpen()) {
+      throw new Error('Save scenario requires the CodeGraphy graph to remain open');
+    }
     await input.runOperation(operation, async () => {
       await saveDocumentMutation(
         document,

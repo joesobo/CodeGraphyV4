@@ -11,6 +11,23 @@ import { waitForIdleCpuDone } from './coordination';
 const extensionId = 'codegraphy.codegraphy';
 const scenarioCommandId = 'codegraphy.perf.runScenario';
 
+interface PerfEditorLayoutDependencies {
+  executeCommand(command: string): PromiseLike<unknown>;
+  now(): number;
+}
+
+const defaultEditorLayoutDependencies: PerfEditorLayoutDependencies = {
+  executeCommand: command => vscode.commands.executeCommand(command),
+  now: () => performance.now(),
+};
+
+export async function preparePerfEditorLayout(
+  dependencies: PerfEditorLayoutDependencies = defaultEditorLayoutDependencies,
+): Promise<number> {
+  await dependencies.executeCommand('workbench.action.files.newUntitledFile');
+  return dependencies.now();
+}
+
 function requireEnvironmentVariable(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -35,7 +52,6 @@ async function writeResultAtomically(resultPath: string, result: unknown): Promi
 }
 
 export async function run(): Promise<void> {
-  const startedAt = performance.now();
   const fixture = requireEnvironmentVariable('CODEGRAPHY_PERF_FIXTURE');
   const resultPath = requireEnvironmentVariable('CODEGRAPHY_PERF_RESULT_PATH');
   const runId = requireEnvironmentVariable('CODEGRAPHY_PERF_RUN_ID');
@@ -49,6 +65,7 @@ export async function run(): Promise<void> {
   const idleCpuDonePath = scenario === 'idle-watch'
     ? requireEnvironmentVariable('CODEGRAPHY_PERF_IDLE_DONE_PATH')
     : undefined;
+  const startedAt = await preparePerfEditorLayout();
   const extension = vscode.extensions.getExtension(extensionId);
   if (!extension) {
     throw new Error(`CodeGraphy extension ${extensionId} is not available`);

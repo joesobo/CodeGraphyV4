@@ -12,8 +12,10 @@ export function openGraphViewProviderWebviewInEditor(
     GraphViewProviderWebviewMethodDependencies,
     'createHtml' | 'createPanel' | 'openInEditor' | 'setWebviewMessageListener' | 'viewType'
   >,
+  column?: vscode.ViewColumn,
 ): void {
   dependencies.openInEditor({
+    column,
     viewType: dependencies.viewType,
     extensionUri: source._extensionUri,
     getPanels: () => source._panels,

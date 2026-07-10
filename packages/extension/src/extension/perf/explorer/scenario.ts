@@ -23,7 +23,7 @@ export type ExplorerComparableScenario = 'rename' | 'create' | 'delete';
 
 export interface RunExplorerScenarioComparisonInput {
   dimension: string;
-  provider: Pick<GraphViewProvider, 'dispatchWebviewMessage'>;
+  provider: Pick<GraphViewProvider, 'dispatchWebviewMessage' | 'isGraphOpen'>;
   scenario: ExplorerComparableScenario;
   timeoutMs?: number;
   waitForRefreshIdle: () => Promise<void>;
@@ -44,6 +44,14 @@ const defaultDependencies: ExplorerScenarioComparisonDependencies = {
   runtime: explorerComparisonRuntime,
 };
 
+function assertGraphRemainsOpen(
+  provider: Pick<GraphViewProvider, 'isGraphOpen'>,
+): void {
+  if (!provider.isGraphOpen()) {
+    throw new Error('Explorer comparison requires the CodeGraphy graph to remain open');
+  }
+}
+
 export async function runExplorerScenarioComparison(
   input: RunExplorerScenarioComparisonInput,
   dependencies: ExplorerScenarioComparisonDependencies = defaultDependencies,
@@ -51,6 +59,7 @@ export async function runExplorerScenarioComparison(
   const runtime = dependencies.runtime;
   await runtime.showExplorer();
   await runtime.waitForWorkbenchDispatchTurn();
+  assertGraphRemainsOpen(input.provider);
   const targets = createExplorerComparisonTargets(input.dimension);
   const neutralUri = runtime.joinPath(
     input.workspaceFolderUri,
@@ -63,18 +72,25 @@ export async function runExplorerScenarioComparison(
   );
   const revealComparison = input.scenario === 'rename'
     ? await sampleExplorerRevealComparisonMedians(
-      () => dependencies.measureCodeGraphyRevealComparison(
-        input.provider,
-        targets.revealPath,
-        neutralUri,
-        runtime,
-      ),
       async () => {
+        assertGraphRemainsOpen(input.provider);
+        const measurement = await dependencies.measureCodeGraphyRevealComparison(
+          input.provider,
+          targets.revealPath,
+          neutralUri,
+          runtime,
+        );
+        assertGraphRemainsOpen(input.provider);
+        return measurement;
+      },
+      async () => {
+        assertGraphRemainsOpen(input.provider);
         const measurement = await dependencies.measureExplorerRevealComparison(
           revealUri,
           neutralUri,
           runtime,
         );
+        assertGraphRemainsOpen(input.provider);
         return measurement.value;
       },
     )
@@ -82,6 +98,7 @@ export async function runExplorerScenarioComparison(
   const mutationMs = await sampleExplorerComparisonMedian(async () => {
     await runtime.revealInExplorer(neutralUri);
     await runtime.waitForWorkbenchDispatchTurn();
+    assertGraphRemainsOpen(input.provider);
     const measurement = await dependencies.runExplorerMutationComparison({
       dimension: input.dimension,
       scenario: input.scenario,
@@ -89,6 +106,7 @@ export async function runExplorerScenarioComparison(
       waitForRefreshIdle: input.waitForRefreshIdle,
       workspaceFolderUri: input.workspaceFolderUri,
     }, runtime);
+    assertGraphRemainsOpen(input.provider);
     return measurement.value;
   });
 

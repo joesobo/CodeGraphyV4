@@ -9,10 +9,14 @@ import {
 import {
   createFileMutationRefreshIdleArm,
   createFileMutationRefreshIdleWaiter,
+  focusFileMutationWorkspaceEditor,
   fileMutationScenarioRuntime,
 } from '../../../../../src/extension/perf/scenarios/fileMutation/runtime';
 
 vi.mock('vscode', () => ({
+  ViewColumn: {
+    One: 1,
+  },
   Uri: {
     joinPath: vi.fn((base: { fsPath: string }, path: string) => ({
       fsPath: `${base.fsPath}/${path}`,
@@ -23,6 +27,10 @@ vi.mock('vscode', () => ({
       readFile: vi.fn(),
       stat: vi.fn(),
     },
+  },
+  window: {
+    showTextDocument: vi.fn(),
+    visibleTextEditors: [],
   },
 }));
 
@@ -89,6 +97,33 @@ describe('extension/perf/scenarios/fileMutation/runtime', () => {
     await expect(fileMutationScenarioRuntime.undoLastMutation())
       .resolves.toBe('Create: new.ts');
     expect(undo).toHaveBeenCalledOnce();
+  });
+
+  it('focuses the workspace editor group before a production mutation', async () => {
+    const document = { uri: { fsPath: '/fixture/untitled' } } as vscode.TextDocument;
+    (vscode.window.visibleTextEditors as unknown as vscode.TextEditor[]) = [{
+      document,
+      viewColumn: vscode.ViewColumn.One,
+    } as vscode.TextEditor];
+    vi.mocked(vscode.window.showTextDocument).mockResolvedValue({} as vscode.TextEditor);
+
+    await focusFileMutationWorkspaceEditor();
+
+    expect(vscode.window.showTextDocument).toHaveBeenCalledWith(document, {
+      preserveFocus: false,
+      preview: false,
+      viewColumn: vscode.ViewColumn.One,
+    });
+  });
+
+  it('rejects a mutation when the workspace editor group is missing', async () => {
+    (vscode.window.visibleTextEditors as unknown as vscode.TextEditor[]) = [];
+
+    await expect(focusFileMutationWorkspaceEditor()).rejects.toThrow(
+      'Performance file mutation requires a visible workspace editor in column one',
+    );
+
+    expect(vscode.window.showTextDocument).not.toHaveBeenCalled();
   });
 
   it('creates the production 32ms refresh-idle waiter', async () => {

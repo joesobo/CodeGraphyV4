@@ -66,8 +66,10 @@ function setup(
     }
     return `Undo ${lastMutation.kind}`;
   });
+  const focusWorkspaceEditor = vi.fn(async () => undefined);
   const dependencies: FileMutationScenarioDependencies = {
     executeMutation,
+    focusWorkspaceEditor,
     readFile: async (_workspaceFolderUri, path) => {
       const contents = files.get(path);
       if (!contents) return undefined;
@@ -102,6 +104,7 @@ function setup(
     dependencies,
     executeMutation,
     files,
+    focusWorkspaceEditor,
     input,
     refreshGraph,
     refreshWaitDisposers,
@@ -181,6 +184,16 @@ describe('extension/perf/scenarios/fileMutation/run', () => {
 
     expect(harness.armRefreshIdle.mock.invocationCallOrder[0])
       .toBeLessThan(harness.executeMutation.mock.invocationCallOrder[0]);
+  });
+
+  it('focuses the workspace editor before measuring the mutation', async () => {
+    const harness = setup('create');
+
+    await runFileMutationScenario(harness.input, harness.dependencies);
+
+    expect(harness.focusWorkspaceEditor).toHaveBeenCalledOnce();
+    expect(harness.focusWorkspaceEditor.mock.invocationCallOrder[0])
+      .toBeLessThan(harness.armRefreshIdle.mock.invocationCallOrder[0]);
   });
 
   it('waits for delayed refresh work after UndoManager restoration', async () => {

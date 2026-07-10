@@ -82,6 +82,7 @@ function createScenarioProvider() {
       handler({ type: 'PHYSICS_STABILIZED' });
       return { dispose: vi.fn() };
     }),
+    openInEditor: vi.fn(),
   };
   return provider;
 }
@@ -121,7 +122,7 @@ describe('performance scenario command', () => {
   it('routes cold indexing through the production webview message path', async () => {
     process.env.CODEGRAPHY_PERF = '1';
     const provider = createScenarioProvider();
-    vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+    provider.openInEditor.mockImplementation(() => {
       provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
@@ -136,7 +137,8 @@ describe('performance scenario command', () => {
       dimension: 'small',
       startedAt: 0,
     })).resolves.toBeDefined();
-    expect(vscode.commands.executeCommand).toHaveBeenCalledWith('codegraphy.open');
+    expect(provider.openInEditor).toHaveBeenCalledWith(vscode.ViewColumn.Two);
+    expect(vscode.commands.executeCommand).not.toHaveBeenCalled();
     expect(provider.dispatchWebviewMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
   });
 
@@ -147,7 +149,7 @@ describe('performance scenario command', () => {
     (vscode.workspace as unknown as { workspaceFolders: unknown }).workspaceFolders = [{
       uri: workspaceFolderUri,
     }];
-    vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+    provider.openInEditor.mockImplementation(() => {
       provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
       provider.emitExtensionMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
       provider.emitExtensionMessage({
@@ -201,7 +203,7 @@ describe('performance scenario command', () => {
     (vscode.workspace as unknown as { workspaceFolders: unknown }).workspaceFolders = [{
       uri: workspaceFolderUri,
     }];
-    vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+    provider.openInEditor.mockImplementation(() => {
       provider.emitExtensionMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
       provider.emitExtensionMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
       provider.emitExtensionMessage({

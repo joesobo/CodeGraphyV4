@@ -17,12 +17,12 @@ export function sendGraphViewWebviewMessage(
 }
 
 export function onGraphViewWebviewMessage(
-  view: vscode.WebviewView | undefined,
+  surface: vscode.WebviewView | vscode.WebviewPanel | undefined,
   handler: (message: unknown) => void,
 ): vscode.Disposable {
-  if (!view) {
+  if (!surface) {
     return { dispose: () => {} };
   }
 
-  return view.webview.onDidReceiveMessage(handler);
+  return surface.webview.onDidReceiveMessage(handler);
 }

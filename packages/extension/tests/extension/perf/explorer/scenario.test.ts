@@ -20,6 +20,13 @@ const mutationSamples = {
   delete: Array.from({ length: 51 }, (_value, index) => 251 - index),
 };
 
+function createVisibleGraphProvider() {
+  return {
+    dispatchWebviewMessage: vi.fn(),
+    isGraphOpen: vi.fn(() => true),
+  };
+}
+
 function setupDependencies() {
   const order: string[] = [];
   let codeGraphyRevealIndex = 0;
@@ -79,7 +86,7 @@ describe('extension/perf/explorer/scenario', () => {
   it('returns same-session rename and reveal comparisons', async () => {
     const { dependencies, order } = setupDependencies();
     const waitForRefreshIdle = vi.fn(async () => undefined);
-    const provider = { dispatchWebviewMessage: vi.fn() };
+    const provider = createVisibleGraphProvider();
 
     await expect(runExplorerScenarioComparison({
       dimension: 'small',
@@ -128,7 +135,7 @@ describe('extension/perf/explorer/scenario', () => {
 
     await expect(runExplorerScenarioComparison({
       dimension: 'small',
-      provider: {} as never,
+      provider: createVisibleGraphProvider(),
       scenario: 'create',
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
@@ -150,7 +157,7 @@ describe('extension/perf/explorer/scenario', () => {
 
     await expect(runExplorerScenarioComparison({
       dimension: 'small',
-      provider: {} as never,
+      provider: createVisibleGraphProvider(),
       scenario: 'delete',
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
@@ -178,7 +185,7 @@ describe('extension/perf/explorer/scenario', () => {
 
     const pending = runExplorerScenarioComparison({
       dimension: 'small',
-      provider: {} as never,
+      provider: createVisibleGraphProvider(),
       scenario: 'create',
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
@@ -199,12 +206,38 @@ describe('extension/perf/explorer/scenario', () => {
     expect(dependencies.runExplorerMutationComparison).toHaveBeenCalledTimes(51);
   });
 
+  it('aborts before sampling when showing Explorer hides the graph', async () => {
+    const { dependencies } = setupDependencies();
+    let graphOpen = true;
+    vi.mocked(dependencies.runtime.showExplorer).mockImplementation(async () => {
+      graphOpen = false;
+    });
+    const provider = {
+      dispatchWebviewMessage: vi.fn(),
+      isGraphOpen: vi.fn(() => graphOpen),
+    };
+
+    await expect(runExplorerScenarioComparison({
+      dimension: 'small',
+      provider,
+      scenario: 'rename',
+      waitForRefreshIdle: vi.fn(async () => undefined),
+      workspaceFolderUri,
+    }, dependencies)).rejects.toThrow(
+      'Explorer comparison requires the CodeGraphy graph to remain open',
+    );
+
+    expect(dependencies.measureCodeGraphyRevealComparison).not.toHaveBeenCalled();
+    expect(dependencies.measureExplorerRevealComparison).not.toHaveBeenCalled();
+    expect(dependencies.runExplorerMutationComparison).not.toHaveBeenCalled();
+  });
+
   it('neutralizes Explorer selection before every mutation measurement', async () => {
     const { dependencies } = setupDependencies();
 
     await runExplorerScenarioComparison({
       dimension: 'small',
-      provider: {} as never,
+      provider: createVisibleGraphProvider(),
       scenario: 'delete',
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
@@ -218,7 +251,7 @@ describe('extension/perf/explorer/scenario', () => {
 
   it('passes self mutation and reveal targets through the same session', async () => {
     const { dependencies } = setupDependencies();
-    const provider = { dispatchWebviewMessage: vi.fn() };
+    const provider = createVisibleGraphProvider();
 
     await runExplorerScenarioComparison({
       dimension: 'self',

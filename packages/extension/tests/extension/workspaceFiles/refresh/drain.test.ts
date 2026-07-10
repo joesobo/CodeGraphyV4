@@ -172,10 +172,80 @@ describe('workspaceFiles/refresh/drain', () => {
       { quietMs: 32, timeoutMs: 50 },
     );
     const rejection = expect(armed.promise).rejects.toThrow(
-      'Timed out waiting for future workspace refresh activity to become idle',
+      'Timed out waiting for future workspace refresh activity to begin',
     );
 
     await vi.advanceTimersByTimeAsync(50);
     await rejection;
+  });
+
+  it('starts a fresh settlement window when future refresh activity arrives', async () => {
+    vi.useFakeTimers();
+    let resolveRefresh!: () => void;
+    const refreshDone = new Promise<void>(resolve => {
+      resolveRefresh = resolve;
+    });
+    const provider = makeProvider();
+    provider.refreshChangedFiles.mockReturnValue(refreshDone);
+    const armed = armWorkspaceRefreshIdleWait(
+      provider as never,
+      { quietMs: 10, timeoutMs: 50 },
+    );
+    let outcome: 'pending' | 'rejected' | 'resolved' = 'pending';
+    void armed.promise.then(
+      () => { outcome = 'resolved'; },
+      () => { outcome = 'rejected'; },
+    );
+
+    await vi.advanceTimersByTimeAsync(49);
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+      0,
+    );
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(outcome).toBe('pending');
+
+    resolveRefresh();
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(10);
+
+    await expect(armed.promise).resolves.toBeUndefined();
+    expect(outcome).toBe('resolved');
+  });
+
+  it('times out begun refresh activity from when that activity was observed', async () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    provider.refreshChangedFiles.mockReturnValue(new Promise<void>(() => {}));
+    const armed = armWorkspaceRefreshIdleWait(
+      provider as never,
+      { timeoutMs: 50 },
+    );
+    let rejection: unknown;
+    void armed.promise.catch((error: unknown) => {
+      rejection = error;
+    });
+
+    await vi.advanceTimersByTimeAsync(40);
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+      0,
+    );
+    await vi.advanceTimersByTimeAsync(49);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(rejection).toBeUndefined();
+
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(rejection).toEqual(
+      new Error('Timed out waiting for workspace refresh activity to settle'),
+    );
   });
 });

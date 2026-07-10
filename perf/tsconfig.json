@@ -8,6 +8,12 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@codegraphy-dev/core": ["../packages/core/src/index.ts"],
+      "@codegraphy-dev/plugin-api": ["../packages/plugin-api/src/index.ts"],
+      "@codegraphy-dev/plugin-markdown": ["../packages/plugin-markdown/src/plugin.ts"]
+    },
     "types": ["node", "vitest/globals"]
   },
   "include": ["**/*.ts"]
