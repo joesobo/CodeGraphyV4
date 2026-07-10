@@ -53,6 +53,10 @@ fallback via the react-force-graph adapter during migration.
 - Repo workflow rules apply to every phase: acceptance scenarios for
   user-visible behavior, CRAP ≤ 8, scoped differential mutation testing
   (never full-suite), pre-commit typecheck must pass.
+- Every new renderer/layout implementation must also be exercised locally in
+  the Extension Development Host's **Open in Editor** view against a larger
+  indexed graph. Standalone and sidebar-only checks are not sufficient;
+  record the graph size and result in the phase verification notes.
 
 ## Phase Sequence
 
@@ -104,6 +108,42 @@ Nothing else in this track can be validated without this.
 - [ ] Baseline report committed at `docs/plans/benchmarks/baseline-<date>.json`
       for 1k/10k/50k (100k allowed to fail/crawl on current renderer — record
       that fact; it is the motivation).
+
+**Task-level implementation plan (A0)**
+
+Public test seams are the versioned fixture/report interfaces, the
+`pnpm bench:graph` CLI, and the standalone built-webview handshake. Work in
+vertical red/green slices; do not build all tests or all implementation in a
+horizontal batch.
+
+- [ ] Add the private benchmark package and a failing determinism test; make
+      same seed/config produce the same graph identifiers and valid edge
+      endpoints, then run package test/typecheck/lint.
+- [ ] Add a failing canonical-hash test; implement a versioned streaming
+      SHA-256 fixture hash that ignores object key insertion order, then add
+      the 1k/10k/50k/100k named presets and topology-shape assertions.
+- [ ] Add a failing real-export normalization test; implement deterministic,
+      sanitized snapshot import and commit 2–3 public real-repo fixtures with
+      source revisions and licenses recorded.
+- [ ] Add failing CLI/report contract tests; implement `--fixture`,
+      `--renderer`, `--seed`, output-path, timeout/failure reporting, and the
+      stable JSON schema behind `pnpm bench:graph`.
+- [ ] Add a failing standalone smoke test; serve the built webview, install
+      the `acquireVsCodeApi` mock before its bundle loads, inject
+      `GRAPH_DATA_UPDATED`, and report current-renderer settle time from
+      `PHYSICS_STABILIZED`.
+- [ ] Add failing metric tests one at a time for percentile math, the scripted
+      pan/zoom scenario, rendered FPS/frame times, hover hit-test latency, and
+      a separate forced-GC Chromium heap pass; verify each through the CLI.
+- [ ] Add a failing scenario-schema test; implement the shared deterministic
+      feel-scenario format and the fixture-to-Obsidian-vault mirror command.
+- [ ] Capture and commit Obsidian reference recordings, motion strips, and
+      derived target bands for the standard scenarios, preserving the source
+      fixture hash and capture environment in metadata.
+- [ ] Run the current renderer twice on 10k to verify stable counts/hash, then
+      capture committed 1k/10k/50k baselines and a bounded 100k attempt. Run
+      the standalone Playwright suite, full local suite, quality gates, and
+      record A0 checkpoint evidence before checking off the phase.
 
 ### A1. Renderer/Layout Seam
 
