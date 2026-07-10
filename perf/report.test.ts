@@ -117,6 +117,21 @@ describe('performance report', () => {
     expect(() => parsePerfReport(reportWithEmptyMetadata)).toThrow();
   });
 
+  it.each([
+    '../escaped',
+    'linux/x64',
+    String.raw`linux\x64`,
+    'linux x64',
+    'con',
+  ])('rejects runner class %j when it is not a filename-safe slug', (runnerClass) => {
+    const invalidReport = structuredClone(validReport) as {
+      runner: { runnerClass: string };
+    };
+    invalidReport.runner.runnerClass = runnerClass;
+
+    expect(() => parsePerfReport(invalidReport)).toThrow(/runner class/i);
+  });
+
   it('rejects an empty scope-toggle measurement map', () => {
     const reportWithoutScopeMeasurements = structuredClone(validReport) as {
       metrics: { scopeToggleMs: Record<string, number> };

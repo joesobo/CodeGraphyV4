@@ -5,6 +5,18 @@ import { z } from 'zod';
 
 const measurementSchema = z.number().finite().nonnegative();
 const nonemptyStringSchema = z.string().min(1);
+const reservedFilenameSchema = /^(?:aux|con|nul|prn|com[1-9]|lpt[1-9])$/i;
+
+export const perfRunnerClassSchema = z.string()
+  .max(100, 'Performance runner class must be at most 100 characters')
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    'Performance runner class must be a filename-safe lowercase slug',
+  )
+  .refine(
+    runnerClass => !reservedFilenameSchema.test(runnerClass),
+    'Performance runner class must not be a reserved filename',
+  );
 
 const operationMetricsSchema = z.strictObject({
   save: measurementSchema,
@@ -31,7 +43,7 @@ export const perfReportSchema = z.strictObject({
     cpuModel: nonemptyStringSchema,
     nodeVersion: nonemptyStringSchema,
     vscodeVersion: nonemptyStringSchema,
-    runnerClass: nonemptyStringSchema,
+    runnerClass: perfRunnerClassSchema,
   }),
   metrics: z.strictObject({
     coldOpenMs: measurementSchema,

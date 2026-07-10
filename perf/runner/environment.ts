@@ -3,15 +3,14 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
-import { linkCodeGraphyInstalledPluginPackage } from '@codegraphy-dev/core';
-import { createDefaultCodeGraphyRepoSettings } from '../../packages/extension/src/extension/repoSettings/defaults';
-import { serializeSettings } from '../../packages/extension/src/extension/repoSettings/store/persistence/serialization';
 import { generateFixture, readFixtureManifest } from '../fixtures/generate';
 import {
   fixtureBatchSourcePaths,
   fixtureImportSpecifier,
 } from '../fixtures/paths';
 import type { PerfFixture } from '../report';
+import { serializePerfFixtureSettings } from './fixtureSettings';
+import { writeLinkedPluginCache } from './pluginCache';
 import { copySelfWorkspace, writeSelfBatchFiles } from './selfWorkspace';
 
 const execFileAsync = promisify(execFile);
@@ -45,26 +44,12 @@ async function generatedFixtureFileCount(fixture: GeneratedPerfFixture): Promise
   return entry.fileCount;
 }
 
-function enableSymbolScopes(nodeVisibility: Record<string, boolean>): void {
-  for (const key of Object.keys(nodeVisibility)) {
-    if (key === 'variable' || key.includes('symbol')) {
-      nodeVisibility[key] = true;
-    }
-  }
-}
-
 async function writeFixtureSettings(
   workspacePath: string,
   fileCount: number,
   symbols: boolean,
   include: string[] = ['src/**/*.ts'],
 ): Promise<void> {
-  const settings = createDefaultCodeGraphyRepoSettings();
-  settings.include = include;
-  settings.maxFiles = fileCount;
-  settings.plugins.push({ id: 'codegraphy.typescript', enabled: true });
-  if (symbols) enableSymbolScopes(settings.nodeVisibility);
-
   const settingsDirectory = join(workspacePath, '.codegraphy');
   await mkdir(settingsDirectory, { recursive: true });
   let gitignore = '';
@@ -80,7 +65,11 @@ async function writeFixtureSettings(
     : `${gitignore}${gitignore && !gitignore.endsWith('\n') ? '\n' : ''}${settingsIgnoreEntry}\n`;
   await Promise.all([
     writeFile(join(workspacePath, '.gitignore'), nextGitignore, 'utf8'),
-    writeFile(join(settingsDirectory, 'settings.json'), serializeSettings(settings), 'utf8'),
+    writeFile(
+      join(settingsDirectory, 'settings.json'),
+      serializePerfFixtureSettings({ fileCount, include, symbols }),
+      'utf8',
+    ),
   ]);
 }
 
@@ -173,8 +162,8 @@ export async function createPerfRunEnvironment(
       options.symbols === true,
       options.fixture === 'self' ? ['**/*.ts', '**/*.tsx'] : undefined,
     );
-    await linkCodeGraphyInstalledPluginPackage({
-      homeDir: homePath,
+    await writeLinkedPluginCache({
+      homePath,
       packageRoot: join(options.repoRoot, 'packages', 'plugin-typescript'),
     });
     await prepareFixtureBranches(workspacePath, fileCount, options.fixture);

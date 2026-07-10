@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  mergePerfBaselineReports,
   parsePerfBaselineDocument,
   selectPerfBaselineReport,
 } from './document';
@@ -72,5 +73,65 @@ describe('performance baseline documents', () => {
     }], current)).toThrow(
       'Missing baseline report small:default for runner class linux-x64',
     );
+  });
+
+  it('creates a deterministically keyed baseline document from reports', () => {
+    const small = createPerfReport();
+    const medium = createPerfReport();
+    medium.fixture = 'medium';
+
+    expect(mergePerfBaselineReports(undefined, [medium, small])).toEqual({
+      schemaVersion: 1,
+      runnerClass: 'linux-x64',
+      reports: {
+        'medium:default': medium,
+        'small:default': small,
+      },
+    });
+  });
+
+  it('merges new medians and replaces the same fixture without dropping others', () => {
+    const originalSmall = createPerfReport();
+    const medium = createPerfReport();
+    medium.fixture = 'medium';
+    const replacementSmall = structuredClone(originalSmall);
+    replacementSmall.metrics.coldOpenMs = 1_234;
+    const existing = mergePerfBaselineReports(undefined, [originalSmall, medium]);
+
+    expect(mergePerfBaselineReports(existing, [replacementSmall])).toEqual({
+      ...existing,
+      reports: {
+        'medium:default': medium,
+        'small:default': replacementSmall,
+      },
+    });
+  });
+
+  it('rejects duplicate fixture variants in one adoption', () => {
+    const first = createPerfReport();
+    const duplicate = structuredClone(first);
+
+    expect(() => mergePerfBaselineReports(undefined, [first, duplicate]))
+      .toThrow('Duplicate baseline report input small:default');
+  });
+
+  it('rejects reports from mixed runner classes', () => {
+    const linux = createPerfReport();
+    const local = createPerfReport();
+    local.fixture = 'medium';
+    local.runner.runnerClass = 'local-reference';
+
+    expect(() => mergePerfBaselineReports(undefined, [linux, local]))
+      .toThrow('Baseline reports must use one runner class');
+  });
+
+  it('rejects merging into a different runner class', () => {
+    const linux = createPerfReport();
+    const local = createPerfReport();
+    local.runner.runnerClass = 'local-reference';
+    const existing = mergePerfBaselineReports(undefined, [linux]);
+
+    expect(() => mergePerfBaselineReports(existing, [local]))
+      .toThrow('Cannot merge local-reference reports into linux-x64 baseline');
   });
 });
