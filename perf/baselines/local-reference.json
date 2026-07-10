@@ -86,6 +86,91 @@
         "deleteRatio": 90.8207599266016,
         "revealRatio": 1.1151909293804956
       }
+    },
+    "small:default": {
+      "schemaVersion": 1,
+      "fixture": "small",
+      "variant": "default",
+      "runner": {
+        "os": "darwin",
+        "arch": "arm64",
+        "cpuModel": "Apple M4",
+        "nodeVersion": "v26.0.0",
+        "vscodeVersion": "1.128.0",
+        "runnerClass": "local-reference"
+      },
+      "metrics": {
+        "coldOpenMs": 3069.498416,
+        "warmOpenMs": 1572.484375,
+        "incrementalRefreshMs": {
+          "save": 78.47924999999987,
+          "rename": 104.88845900000024,
+          "create": 86.21079199999986,
+          "delete": 93.33879200000001,
+          "batch100": 134.83745799999997
+        },
+        "payloadBytes": 65877,
+        "watcherToGraphMs": {
+          "save": 115.16599999999994,
+          "rename": 591.6745839999999,
+          "create": 590.6327920000003,
+          "delete": 598.2728750000001,
+          "batch100": 180.65437500000007
+        },
+        "fileOpRoundtripMs": {
+          "rename": 697.9516249999997,
+          "create": 699.5885830000002,
+          "delete": 714.5835830000001,
+          "reveal": 0.2696249999999054
+        },
+        "layoutResets": 32,
+        "cacheSaveMs": 468.15412500000093,
+        "cacheBytes": 2252800,
+        "treeSitterParseMs": 1.6563360000000102,
+        "graphBuildMs": 1.127375000000029,
+        "scopeToggleMs": {
+          "edge:call": 12.571999999999662,
+          "edge:codegraphy.typescript:alias-import": 14.868916999999783,
+          "edge:contains": 13.945666999999958,
+          "edge:import": 19.742165999999997,
+          "edge:inherit": 14.09020800000144,
+          "edge:reference": 14.309959000000163,
+          "edge:type-import": 12.120875000000524,
+          "node:file": 103.91933300000164,
+          "node:folder": 104.46362500000032,
+          "node:package": 100.14020799999707,
+          "node:symbol": 99.92450000000099,
+          "node:symbol:class": 100.1395420000008,
+          "node:symbol:constant": 109.05950000000303,
+          "node:symbol:enum": 99.86599999999453,
+          "node:symbol:function": 100.02533299999777,
+          "node:symbol:interface": 100.18204100000003,
+          "node:symbol:type": 100.00858400000288,
+          "node:variable": 100.04258299999492
+        },
+        "settleTimeMs": 1013.0999999996275,
+        "idleCpuPct": 4.716666666666667,
+        "simTicksAfterSettle": 0
+      },
+      "webview": {
+        "fpsIdle": 59.9984000426659,
+        "fpsDrag": 60.82108464244645,
+        "fpsSettle": 59.20663114266622,
+        "longTasksPerInteraction": 0,
+        "heapUsedBytes": 8539175
+      },
+      "explorer": {
+        "explorerRenameMs": 6.680499999999483,
+        "explorerCreateMs": 12.083916999999929,
+        "explorerDeleteMs": 7.874624999998559,
+        "explorerRevealMs": 0.23949999999967986
+      },
+      "ratios": {
+        "renameRatio": 104.70579178206033,
+        "createRatio": 58.964362274616946,
+        "deleteRatio": 88.49717707194024,
+        "revealRatio": 1.1168056744719053
+      }
     }
   }
 }
