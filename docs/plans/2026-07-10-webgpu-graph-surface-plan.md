@@ -96,8 +96,14 @@ graph and its product surfaces.
       in Open in Editor with 1,000 nodes / 3,090 edges; commit the composited
       and GPU-only captures plus interaction timing under
       `packages/graph-benchmark/references/webgpu/open-editor-1k/`.
-- [ ] Scale the owned renderer/layout toward the target fixture sizes,
-      validating each implementation in Open in Editor.
+- [x] Add dense-graph LOD, numeric-grid physics broad phase, a dedicated
+      iterative node-radius collision pass, camera-input frame budgeting, and
+      persistent GPU upload/style buffers; validate 10,000 nodes / 31,089
+      edges in Open in Editor at 142.13 requestAnimationFrame-paced camera
+      FPS (p95 12.6ms, active physics p50 11.3ms). Evidence is under
+      `packages/graph-benchmark/references/webgpu/open-editor-10k/`.
+- [ ] Scale the owned renderer/layout toward the 50k/100k target fixture
+      sizes, validating each implementation in Open in Editor.
 
 ### Rollout Gates
 

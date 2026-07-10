@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10T14:46:00-07:00",
+  "renderer": "webgpu",
+  "implementationCommit": "7e8af5c5d",
+  "surface": "Extension Development Host — Open in Editor",
+  "environment": {
+    "vscode": "1.128.0",
+    "platform": "darwin-arm64"
+  },
+  "fixture": {
+    "kind": "generated-typescript-workspace",
+    "seed": 307,
+    "hash": "sha256:e8cf16cff57cc934f1648f541981fc5e11244ce481e55eb4b70b4fd1f0f2c242",
+    "files": 10000,
+    "nodes": 10000,
+    "edges": 31089
+  },
+  "viewport": {
+    "width": 776,
+    "height": 727
+  },
+  "verification": {
+    "rendererAttribute": "webgpu",
+    "gpuOnlyCapture": true,
+    "denseGraphLod": "GPU nodes and links; Canvas decorations disabled above 5,000 nodes"
+  },
+  "cameraBenchmark": {
+    "scenario": "120 requestAnimationFrame-paced wheel zoom updates",
+    "durationMs": 928.7000002861023,
+    "renderedFrames": 133,
+    "fps": 142.1341659947616,
+    "frameTimeMs": {
+      "p50": 6.900000095367432,
+      "p95": 12.600000381469727,
+      "max": 21.5
+    },
+    "mainThreadSegmentP50Ms": {
+      "physicsDuringCameraInput": 0,
+      "positionSync": 0.19999980926513672,
+      "gpuFrameSubmission": 0.5999999046325684,
+      "canvasOverlay": 0
+    },
+    "activePhysicsP50Ms": 11.300000190734863
+  },
+  "productionBundle": {
+    "bytes": 683860,
+    "gzipBytes": 205430
+  },
+  "files": {
+    "screenshot": "screenshot.png",
+    "gpuOnlyScreenshot": "gpu-only.png",
+    "interactionDemo": "demo.gif"
+  }
+}
