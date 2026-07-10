@@ -5,12 +5,15 @@ import {
 } from '../../../../src/extension/perf/explorer/sampling';
 
 describe('extension/perf/explorer/sampling', () => {
-  it('returns the median from 51 independent mutation measurements', async () => {
-    const samples = Array.from({ length: 51 }, (_value, index) => 51 - index);
+  it('preconditions the mutation path before collecting 51 median samples', async () => {
+    const samples = [
+      ...Array.from({ length: 5 }, () => 1_000),
+      ...Array.from({ length: 51 }, (_value, index) => 51 - index),
+    ];
     const measure = vi.fn(async () => samples[measure.mock.calls.length - 1]);
 
     await expect(sampleExplorerComparisonMedian(measure)).resolves.toBe(26);
-    expect(measure).toHaveBeenCalledTimes(51);
+    expect(measure).toHaveBeenCalledTimes(56);
   });
 
   it('alternates 101 paired reveal measurements and returns both medians', async () => {

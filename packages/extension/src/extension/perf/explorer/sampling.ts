@@ -1,4 +1,5 @@
 const EXPLORER_COMPARISON_SAMPLE_COUNT = 51;
+const EXPLORER_COMPARISON_WARMUP_COUNT = 5;
 const EXPLORER_REVEAL_SAMPLE_COUNT = 101;
 
 function median(samples: readonly number[]): number {
@@ -20,7 +21,12 @@ async function sampleMedian(
 export function sampleExplorerComparisonMedian(
   measure: () => Promise<number>,
 ): Promise<number> {
-  return sampleMedian(measure, EXPLORER_COMPARISON_SAMPLE_COUNT);
+  return (async () => {
+    for (let index = 0; index < EXPLORER_COMPARISON_WARMUP_COUNT; index += 1) {
+      await measure();
+    }
+    return sampleMedian(measure, EXPLORER_COMPARISON_SAMPLE_COUNT);
+  })();
 }
 
 export async function sampleExplorerRevealComparisonMedians(
