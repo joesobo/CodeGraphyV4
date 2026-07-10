@@ -102,8 +102,14 @@ graph and its product surfaces.
       edges in Open in Editor at 142.13 requestAnimationFrame-paced camera
       FPS (p95 12.6ms, active physics p50 11.3ms). Evidence is under
       `packages/graph-benchmark/references/webgpu/open-editor-10k/`.
-- [ ] Scale the owned renderer/layout toward the 50k/100k target fixture
-      sizes, validating each implementation in Open in Editor.
+- [x] Move layouts of at least 10k nodes into an inline blob Web Worker with
+      transferable typed-array snapshots, pinned-node protection, CSP support,
+      and automatic main-thread fallback. Validate 50,000 nodes / 156,264
+      edges in Open in Editor at 116.86 camera FPS (p95 10.9ms, max 13.5ms)
+      with worker physics dispatch at 0.1ms p50 on the main thread. Evidence is
+      under `packages/graph-benchmark/references/webgpu/open-editor-50k/`.
+- [ ] Scale the owned renderer/layout to the 100k target fixture and validate
+      it in Open in Editor.
 
 ### Rollout Gates
 

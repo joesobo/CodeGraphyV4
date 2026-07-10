@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10T15:13:00-07:00",
+  "renderer": "webgpu",
+  "layout": "worker",
+  "implementationCommit": "4c50dedd5",
+  "surface": "Extension Development Host — Open in Editor",
+  "environment": {
+    "vscode": "1.128.0",
+    "platform": "darwin-arm64"
+  },
+  "fixture": {
+    "kind": "synthetic fixture injected into Open in Editor after opening the indexed 10k TypeScript workspace",
+    "name": "50k",
+    "seed": 307,
+    "hash": "sha256:0d4c1328b0d57c40ba74ebefe7de59f7c52fa748bc98deeaf15820d1cdbae3d6",
+    "nodes": 50000,
+    "edges": 156264
+  },
+  "viewport": {
+    "width": 776,
+    "height": 727
+  },
+  "verification": {
+    "rendererAttribute": "webgpu",
+    "layoutAttribute": "worker",
+    "gpuOnlyCapture": true,
+    "denseGraphLod": "GPU nodes and links; Canvas decorations disabled above 5,000 nodes"
+  },
+  "cameraBenchmark": {
+    "scenario": "120 requestAnimationFrame-paced wheel zoom updates",
+    "durationMs": 1155.1999998092651,
+    "renderedFrames": 136,
+    "fps": 116.8628809057218,
+    "frameTimeMs": {
+      "p50": 8.299999713897705,
+      "p95": 10.900000095367432,
+      "max": 13.5
+    },
+    "mainThreadSegmentP50Ms": {
+      "physicsDispatch": 0,
+      "positionSync": 1.0999999046325684,
+      "gpuFrameSubmission": 6.200000286102295,
+      "canvasOverlay": 0
+    },
+    "activeMainThreadPhysicsDispatchP50Ms": 0.09999990463256836
+  },
+  "files": {
+    "screenshot": "screenshot.png",
+    "gpuOnlyScreenshot": "gpu-only.png",
+    "interactionDemo": "demo.gif"
+  }
+}
