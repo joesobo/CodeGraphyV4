@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "source": "obsidian-reference-2026-07-10",
+  "targets": {
+    "settle": {
+      "oneThousandNodes": {
+        "settleTimeMs": { "minimum": 1000, "maximum": 3000 },
+        "secondaryEnergyBumpsMaximum": 1,
+        "postSettleRmsPixelsPerFrameMaximum": 0.05
+      },
+      "tenThousandNodes": {
+        "settleTimeMs": { "minimum": 800, "maximum": 4000 },
+        "postSettleRmsPixelsPerFrameMaximum": 0.05
+      }
+    },
+    "dragResponse": {
+      "neighbor63PercentTicks": { "minimum": 4, "maximum": 24 },
+      "twoHopToOneHopDisplacementRatioMaximum": 0.75,
+      "releaseSettleTicks": { "minimum": 30, "maximum": 180 },
+      "velocitySignFlipsMaximum": 2,
+      "visibleOvershootsMaximum": 1
+    },
+    "hubStability": {
+      "hubToDraggedLeafDisplacementRatioMaximum": 0.35
+    },
+    "sliderImmediacy": {
+      "responseTicksMaximum": 1,
+      "resettleTicksMaximum": 240,
+      "singleTickVelocityIncreaseMaximum": 4
+    },
+    "frameRateIndependence": {
+      "settledLayoutRmsDifferenceMaximum": 0.5
+    }
+  },
+  "observations": {
+    "coldLoadSettle1kMs": 2000,
+    "coldLoadSettle10kMs": 1050,
+    "dragReleaseDidNotReachTheStrictCalmThresholdWithinCapture": true,
+    "forceChangesReheatedTheGraphOnTheNextCapturedSample": true,
+    "filterSwapPreservedAVisibleTransitionInsteadOfBlankingTheView": true
+  }
+}

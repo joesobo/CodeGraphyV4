@@ -137,7 +137,7 @@ horizontal batch.
       a separate forced-GC Chromium heap pass; verify each through the CLI.
 - [x] Add a failing scenario-schema test; implement the shared deterministic
       feel-scenario format and the fixture-to-Obsidian-vault mirror command.
-- [ ] Capture and commit Obsidian reference recordings, motion strips, and
+- [x] Capture and commit Obsidian reference recordings, motion strips, and
       derived target bands for the standard scenarios, preserving the source
       fixture hash and capture environment in metadata.
 - [ ] Run the current renderer twice on 10k to verify stable counts/hash, then
