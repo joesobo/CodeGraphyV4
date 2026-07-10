@@ -39,8 +39,6 @@ describe('GraphStore', () => {
     });
     expect(store.getState().graphData).toEqual(data);
     expect(store.getState().isLoading).toBe(false);
-    expect(store.getState().isIndexing).toBe(false);
-    expect(store.getState().indexProgress).toBeNull();
   });
 
   it('handles GRAPH_INDEX_STATUS_UPDATED message', () => {
@@ -322,14 +320,6 @@ describe('GraphStore', () => {
   it('setDagMode updates dagMode', () => {
     store.getState().setDagMode('lr');
     expect(store.getState().dagMode).toBe('lr');
-  });
-
-  it('handles TOGGLE_DIMENSION message', () => {
-    expect(store.getState().graphMode).toBe('2d');
-    store.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
-    expect(store.getState().graphMode).toBe('3d');
-    store.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
-    expect(store.getState().graphMode).toBe('2d');
   });
 
   it('TOGGLE_DEPTH_MODE enables depth mode when an index exists', () => {

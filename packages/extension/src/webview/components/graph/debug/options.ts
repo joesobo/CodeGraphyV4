@@ -3,12 +3,10 @@ import type { GraphRuntime } from '../runtime/use/state';
 import type { GraphDebugControls } from './contracts/protocol';
 
 export function buildGraphDebugOptions({
-  graphMode,
   graphState,
   interactions,
   win,
 }: {
-  graphMode: '2d' | '3d';
   graphState: GraphRuntime;
   interactions: UseGraphInteractionRuntimeResult;
   win?: Window;
@@ -16,9 +14,7 @@ export function buildGraphDebugOptions({
   containerRef: GraphRuntime['renderer']['containerRef'];
   fitView(this: void): void;
   fg2dRef: { current: GraphDebugControls | undefined };
-  fg3dRef: { current: GraphDebugControls | undefined };
   graphDataRef: GraphRuntime['renderer']['graphDataRef'];
-  graphMode: '2d' | '3d';
   openNodeContextMenu: UseGraphInteractionRuntimeResult['handleNodeContextMenuById'];
   win?: Window;
 } {
@@ -26,9 +22,7 @@ export function buildGraphDebugOptions({
     containerRef: graphState.renderer.containerRef,
     fitView: interactions.interactionHandlers.fitView,
     fg2dRef: graphState.renderer.fg2dRef,
-    fg3dRef: { current: undefined },
     graphDataRef: graphState.renderer.graphDataRef,
-    graphMode,
     openNodeContextMenu: interactions.handleNodeContextMenuById,
     win,
   };

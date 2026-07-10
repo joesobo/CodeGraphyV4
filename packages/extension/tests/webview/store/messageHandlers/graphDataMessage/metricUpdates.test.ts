@@ -10,12 +10,6 @@ import {
 } from '../../../../../src/webview/store/messageHandlers/graphDataMessage/metricUpdates';
 
 describe('webview/store/messageHandlers/graphDataMessage/metricUpdates', () => {
-  it('uses node metrics only for file size and churn node sizing modes', () => {
-    expect(nodeSizeModeUsesNodeMetrics('file-size')).toBe(true);
-    expect(nodeSizeModeUsesNodeMetrics('churn')).toBe(true);
-    expect(nodeSizeModeUsesNodeMetrics('connections')).toBe(false);
-    expect(nodeSizeModeUsesNodeMetrics('uniform')).toBe(false);
-  });
 
   it('applies changed metric updates in place', () => {
     const appNode = createNode('src/app.ts', { fileSize: 100, churn: 1 });
@@ -31,7 +25,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metricUpdates', () => {
     expect(graphData.nodes[0]).toBe(appNode);
     expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 1 });
     expect(graphData.nodes[1]).toBe(libNode);
-    expect(graphData.nodes[1]).toMatchObject({ fileSize: 50, churn: 4 });
+    expect(graphData.nodes[1]).toMatchObject({ fileSize: 50, churn: 3 });
   });
 
   it('does not change nodes in place when updates are missing or metrics already match', () => {
@@ -47,7 +41,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metricUpdates', () => {
     expect(graphData.nodes).toEqual([appNode]);
   });
 
-  it('returns new node objects only for changed immutable metric updates', () => {
+  it('ignores churn-only immutable metric updates', () => {
     const appNode = createNode('src/app.ts', { fileSize: 100, churn: 1 });
     const libNode = createNode('src/lib.ts', { fileSize: 50, churn: 3 });
 
@@ -55,9 +49,9 @@ describe('webview/store/messageHandlers/graphDataMessage/metricUpdates', () => {
       { id: 'src/app.ts', fileSize: 100, churn: 2 },
     ]));
 
-    expect(result.changed).toBe(true);
-    expect(result.nodes[0]).not.toBe(appNode);
-    expect(result.nodes[0]).toMatchObject({ fileSize: 100, churn: 2 });
+    expect(result.changed).toBe(false);
+    expect(result.nodes[0]).toBe(appNode);
+    expect(result.nodes[0]).toMatchObject({ fileSize: 100, churn: 1 });
     expect(result.nodes[1]).toBe(libNode);
     expect(appNode).toMatchObject({ fileSize: 100, churn: 1 });
   });

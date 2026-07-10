@@ -19,44 +19,34 @@ function findItem(entries: GraphContextMenuEntry[], label: string) {
 
 describe('buildOpenBlock', () => {
   it('shows Open File for single target', () => {
-    const labels = itemLabels(buildOpenBlock(['a.ts'], false));
+    const labels = itemLabels(buildOpenBlock(['a.ts']));
     expect(labels).toContain('Open File');
   });
 
   it('shows Open N Files for multiple targets', () => {
-    const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts', 'c.ts'], false));
+    const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts', 'c.ts']));
     expect(labels).toContain('Open 3 Files');
   });
 
-  it('includes Reveal in Explorer for single target outside timeline', () => {
-    const labels = itemLabels(buildOpenBlock(['a.ts'], false));
-    expect(labels).toContain('Reveal in Explorer');
-  });
-
-  it('omits Reveal in Explorer when timeline is active', () => {
-    const labels = itemLabels(buildOpenBlock(['a.ts'], true));
-    expect(labels).not.toContain('Reveal in Explorer');
-  });
-
   it('omits Reveal in Explorer for multi-select', () => {
-    const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts'], false));
+    const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts']));
     expect(labels).not.toContain('Reveal in Explorer');
   });
 
   it('uses correct action for Open File', () => {
-    const entries = buildOpenBlock(['a.ts'], false);
+    const entries = buildOpenBlock(['a.ts']);
     const openEntry = findItem(entries, 'Open File');
     expect(openEntry?.action).toMatchObject({ kind: 'builtin', action: 'open' });
   });
 
   it('uses correct action for Reveal in Explorer', () => {
-    const entries = buildOpenBlock(['a.ts'], false);
+    const entries = buildOpenBlock(['a.ts']);
     const revealEntry = findItem(entries, 'Reveal in Explorer');
     expect(revealEntry?.action).toMatchObject({ kind: 'builtin', action: 'reveal' });
   });
 
   it('omits file actions for synthetic package nodes', () => {
-    expect(buildOpenBlock(['pkg:fs'], false)).toEqual([]);
+    expect(buildOpenBlock(['pkg:fs'])).toEqual([]);
   });
 });
 

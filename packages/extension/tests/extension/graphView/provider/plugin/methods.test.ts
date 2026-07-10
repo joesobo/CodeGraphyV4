@@ -49,7 +49,6 @@ function createSource(
     ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
-    _invalidateTimelineCache: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),
     refreshChangedFiles: vi.fn(async () => undefined),
     ...overrides,
@@ -280,7 +279,6 @@ describe('graphView/provider/plugin/methods', () => {
           sendPluginToolbarActions: expect.any(Function),
           sendGraphViewContributionStatuses: expect.any(Function),
           sendPluginWebviewInjections: expect.any(Function),
-          invalidateTimelineCache: expect.any(Function),
           reprocessPluginFiles: expect.any(Function),
         }),
       );
@@ -327,71 +325,5 @@ describe('graphView/provider/plugin/methods', () => {
     workspaceFolders = [{ uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder];
 
     expect(registrationHandlers.getWorkspaceRoot()).toBe('/workspace');
-  });
-
-  it('forwards external plugin registration callbacks to the current provider methods', async () => {
-    const registerExternalPlugin = vi.fn();
-    const sendPluginStatuses = vi.fn();
-    const sendContextMenuItems = vi.fn();
-    const sendPluginToolbarActions = vi.fn();
-    const sendGraphViewContributionStatuses = vi.fn();
-    const sendPluginWebviewInjections = vi.fn();
-    const sendDepthState = vi.fn();
-    const invalidatePluginFiles = vi.fn(() => ['/workspace/src/index.ts']);
-    const refreshChangedFiles = vi.fn(async () => undefined);
-    const invalidateTimelineCache = vi.fn(async () => undefined);
-    const source = createSource({
-      invalidatePluginFiles,
-      refreshChangedFiles,
-      _invalidateTimelineCache: invalidateTimelineCache,
-    });
-    const methods = createGraphViewProviderPluginMethods(
-      source,
-      {
-        sendDepthState,
-        sendPluginStatuses,
-        sendDecorations: vi.fn(),
-        sendContextMenuItems,
-        sendPluginToolbarActions,
-        sendGraphViewContributionStatuses,
-        sendPluginWebviewInjections,
-        sendGroupsUpdated: vi.fn(),
-        registerExternalPlugin,
-        getWorkspaceFolders: vi.fn(() => []),
-      },
-    );
-
-    methods.registerExternalPlugin({ id: 'plugin.test' });
-
-    const registrationHandlers = registerExternalPlugin.mock.calls[0]?.[3] as {
-      sendDepthState(): void;
-      sendPluginStatuses(): void;
-      sendContextMenuItems(): void;
-      sendPluginToolbarActions(): void;
-      sendGraphViewContributionStatuses(): void;
-      sendPluginWebviewInjections(): void;
-      invalidateTimelineCache(): Promise<void>;
-      reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
-    };
-
-    registrationHandlers.sendDepthState();
-    registrationHandlers.sendPluginStatuses();
-    registrationHandlers.sendContextMenuItems();
-    registrationHandlers.sendPluginToolbarActions();
-    registrationHandlers.sendGraphViewContributionStatuses();
-    registrationHandlers.sendPluginWebviewInjections();
-    await registrationHandlers.invalidateTimelineCache();
-    await registrationHandlers.reprocessPluginFiles(['plugin.test']);
-
-    expect(sendDepthState).toHaveBeenCalledOnce();
-    expect(sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(sendPluginToolbarActions).toHaveBeenCalledOnce();
-    expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(source._invalidateTimelineCache).toHaveBeenCalledOnce();
-    expect(invalidatePluginFiles).toHaveBeenCalledWith(['plugin.test']);
-    expect(refreshChangedFiles).toHaveBeenCalledWith(['/workspace/src/index.ts']);
-    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 });

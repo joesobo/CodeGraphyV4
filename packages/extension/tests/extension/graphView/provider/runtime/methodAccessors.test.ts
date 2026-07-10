@@ -13,7 +13,6 @@ describe('graphView/provider/runtime/methodAccessors', () => {
       pluginResource: { id: 'pluginResource' },
       refresh: { id: 'refresh' },
       settingsState: { id: 'settingsState' },
-      timeline: { id: 'timeline' },
       viewContext: { id: 'viewContext' },
       viewSelection: { id: 'viewSelection' },
       webview: { id: 'webview' },
@@ -51,9 +50,6 @@ describe('graphView/provider/runtime/methodAccessors', () => {
     expect(
       (target as typeof target & { _settingsStateMethods: unknown })._settingsStateMethods,
     ).toBe(methodContainers.settingsState);
-    expect((target as typeof target & { _timelineMethods: unknown })._timelineMethods).toBe(
-      methodContainers.timeline,
-    );
     expect((target as typeof target & { _viewContextMethods: unknown })._viewContextMethods).toBe(
       methodContainers.viewContext,
     );

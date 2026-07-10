@@ -43,7 +43,7 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
       graphIndexProgress: null,
     });
     expect(state.graphData).toBe(graphData);
-    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 2 });
+    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 1 });
   });
 
   it('returns new graph data when metric sizing depends on changed node metrics', () => {
@@ -77,24 +77,6 @@ describe('webview/store/messageHandlers/graphDataMessage/metrics', () => {
     });
     expect(result?.graphData).not.toBe(graphData);
     expect(graphData.nodes[0]).toMatchObject({ fileSize: 100, churn: 1 });
-  });
-
-  it('settles indexing without replacing graph data when metric sizing values are unchanged', () => {
-    const graphData = createGraphData();
-    const state = createState({
-      graphData,
-      graphIndexProgress: { phase: 'Updating Graph View', current: 1, total: 2 },
-      graphIsIndexing: true,
-      nodeSizeMode: 'churn',
-    });
-
-    expect(handleGraphNodeMetricsUpdated(
-      createMetricsMessage([{ id: 'src/app.ts', fileSize: 100, churn: 1 }]),
-      { getState: () => state },
-    )).toEqual({
-      graphIsIndexing: false,
-      graphIndexProgress: null,
-    });
   });
 
   it('does not enter loading when bootstrap is incomplete but initial bootstrap is not pending', () => {

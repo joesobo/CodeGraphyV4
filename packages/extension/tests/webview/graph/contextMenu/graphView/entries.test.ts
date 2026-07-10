@@ -46,7 +46,6 @@ describe('buildGraphViewContextMenuEntries', () => {
     expect(buildGraphViewContextMenuEntries({
       decision: { kind: 'background' },
       selection: { kind: 'background', targets: [] },
-      timelineActive: false,
     })).toEqual([]);
 
     const graphViewContributions = createContributions([{
@@ -63,7 +62,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       decision: { kind: 'background' },
       selection: { kind: 'background', targets: [] },
       graphViewContributions,
-      timelineActive: false,
     })).toEqual([]);
   });
 
@@ -81,7 +79,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       decision: { kind: 'background' as const },
       selection: { kind: 'background' as const, targets: [] },
       graphViewContributions,
-      timelineActive: false,
     };
 
     expect(buildGraphViewContextMenuEntries(options)[0]).toEqual({
@@ -115,7 +112,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       decision: { kind: 'background' as const },
       selection: { kind: 'background' as const, targets: [] },
       graphViewContributions,
-      timelineActive: false,
       includeSeparator: false,
     };
 
@@ -152,7 +148,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       graphMode: '3d',
       graphViewContributions,
       includeSeparator: false,
-      timelineActive: true,
     });
 
     expect(item(entries, 'Inspect Runtime Link')).toMatchObject({
@@ -166,7 +161,6 @@ describe('buildGraphViewContextMenuEntries', () => {
           selectedEdgeIds: ['source->target#runtime-link'],
           selectedNodeIds: [],
           target: { kind: 'runtimeEdgeType', runtimeEdgeTypes: ['runtime-link'] },
-          timelineActive: true,
         },
       },
     });
@@ -187,7 +181,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       selection: { kind: 'node' as const, targets: ['file-a'] },
       graphViewContributions,
       includeSeparator: false,
-      timelineActive: false,
     };
 
     expect(buildGraphViewContextMenuEntries({
@@ -221,7 +214,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       graphViewContributions,
       includeSeparator: false,
       selection,
-      timelineActive: false,
     };
 
     expect(buildGraphViewContextMenuEntries({
@@ -273,7 +265,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       },
       graphViewContributions,
       includeSeparator: false,
-      timelineActive: false,
     };
 
     expect(buildGraphViewContextMenuEntries({
@@ -307,7 +298,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       ],
       graphViewContributions,
       includeSeparator: false,
-      timelineActive: false,
     }))).toEqual(['Explain Runtime Edge']);
   });
 
@@ -336,7 +326,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       ],
       graphViewContributions,
       includeSeparator: false,
-      timelineActive: false,
     });
 
     expect(item(entries, 'Pin Selection').action).toMatchObject({
@@ -374,7 +363,6 @@ describe('buildGraphViewContextMenuEntries', () => {
       ],
       graphViewContributions,
       includeSeparator: false,
-      timelineActive: false,
     });
 
     expect(item(entries, 'Inspect Edge').action).toMatchObject({

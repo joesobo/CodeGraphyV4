@@ -10,13 +10,13 @@ describe('webview/graph/debug/snapshot', () => {
     } as never;
 
     const snapshot = buildGraphDebugSnapshot({
+      graphMode: '2d',
       containerRef,
       graph: {
         graph2ScreenCoords: (x, y) => ({ x: x + 10, y: y + 20 }),
         zoom: () => 1.5,
         zoomToFit: vi.fn(),
       },
-      graphMode: '2d',
       nodes: [{ id: 'a.ts', imageUrl: 'webview://icon.svg', size: 12, x: 5, y: 6 }],
     });
 
@@ -39,16 +39,16 @@ describe('webview/graph/debug/snapshot', () => {
 
   it('falls back to zero bounds and node coordinates when no container or graph helpers are available', () => {
     const snapshot = buildGraphDebugSnapshot({
+      graphMode: '2d',
       containerRef: { current: null },
       graph: undefined,
-      graphMode: '3d',
       nodes: [{ id: 'b.ts', size: 8, x: 3, y: 4 }],
     });
 
     expect(snapshot).toEqual({
       containerHeight: 0,
       containerWidth: 0,
-      graphMode: '3d',
+      graphMode: '2d',
       nodes: [{
         id: 'b.ts',
         screenX: 3,
@@ -61,33 +61,6 @@ describe('webview/graph/debug/snapshot', () => {
     });
   });
 
-  it('passes 3d z coordinates to the screen projection helper', () => {
-    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
-      x: x + z,
-      y: y + z,
-    }));
-
-    const snapshot = buildGraphDebugSnapshot({
-      containerRef: { current: null },
-      graph: {
-        graph2ScreenCoords,
-      },
-      graphMode: '3d',
-      nodes: [{ id: 'c.ts', size: 10, x: 1, y: 2, z: 5 }],
-    });
-
-    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 5);
-    expect(snapshot.nodes).toEqual([{
-      id: 'c.ts',
-      screenX: 6,
-      screenY: 7,
-      size: 10,
-      x: 1,
-      y: 2,
-    }]);
-    expect(snapshot.zoom).toBeNull();
-  });
-
   it('uses zero for missing coordinates and z values', () => {
     const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
       x: x + y + z,
@@ -95,11 +68,11 @@ describe('webview/graph/debug/snapshot', () => {
     }));
 
     const snapshot = buildGraphDebugSnapshot({
+      graphMode: '2d',
       containerRef: { current: null },
       graph: {
         graph2ScreenCoords,
       },
-      graphMode: '2d',
       nodes: [{ id: 'd.ts', size: 4 }],
     });
 
@@ -112,22 +85,6 @@ describe('webview/graph/debug/snapshot', () => {
       x: 0,
       y: 0,
     }]);
-    expect(snapshot.zoom).toBeNull();
-  });
-
-  it('keeps 3d snapshots at null zoom even when a zoom reader exists', () => {
-    const zoom = vi.fn(() => 9);
-
-    const snapshot = buildGraphDebugSnapshot({
-      containerRef: { current: null },
-      graph: {
-        zoom,
-      },
-      graphMode: '3d',
-      nodes: [],
-    });
-
-    expect(zoom).not.toHaveBeenCalled();
     expect(snapshot.zoom).toBeNull();
   });
 });

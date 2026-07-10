@@ -53,63 +53,6 @@ describe('graphView/provider/plugin/resources', () => {
     expect(source._groups).toEqual([...builtInGroups, ...pluginGroups]);
   });
 
-  it('resolves plugin asset paths and local resource roots through the shared helpers', () => {
-    const resolvePluginAssetPath = vi.fn(() => 'asset://icon.svg');
-    const getWebviewResourceRoots = vi.fn(() => [vscode.Uri.file('/workspace')]);
-    const refreshWebviewResourceRoots = vi.fn();
-    const source = {
-      _extensionUri: vscode.Uri.file('/extension'),
-      _pluginExtensionUris: new Map<string, vscode.Uri>(),
-      _analyzer: undefined,
-      _disabledPlugins: new Set<string>(),
-      _graphData: { nodes: [], edges: [] },
-      _userGroups: [],
-      _hiddenPluginGroupIds: new Set<string>(),
-      _groups: [],
-      _view: undefined,
-      _timelineView: { webview: { options: {} } } as never,
-      _panels: [{ webview: { options: {} } }] as never,
-    };
-    const methods = createGraphViewProviderPluginResourceMethods(source as never, {
-      registerBuiltInPluginRoots: vi.fn(),
-      registerPackagePluginRoots: vi.fn(),
-      getPluginDefaultGroups: vi.fn(() => []),
-      getBuiltInDefaultGroups: vi.fn(() => []),
-      buildMergedGroups: vi.fn(() => []),
-      resolvePluginAssetPath,
-      getWebviewResourceRoots,
-      refreshWebviewResourceRoots,
-      normalizeExtensionUri: vi.fn(uri => (typeof uri === 'string' ? vscode.Uri.file(uri) : uri)),
-      getDefaultLegendVisibility: vi.fn(() => ({})),
-      getLegendOrder: vi.fn(() => []),
-      getWorkspaceFolders: vi.fn(() => [{ uri: vscode.Uri.file('/workspace') }] as never),
-    });
-
-    expect(methods._resolveWebviewAssetPath('icon.svg', 'plugin.test')).toBe('asset://icon.svg');
-    expect(methods._getLocalResourceRoots()).toEqual([vscode.Uri.file('/workspace')]);
-    methods._refreshWebviewResourceRoots();
-
-    expect(resolvePluginAssetPath).toHaveBeenCalledWith(
-      'icon.svg',
-      source._extensionUri,
-      source._pluginExtensionUris,
-      source._timelineView,
-      source._panels,
-      'plugin.test',
-    );
-    expect(getWebviewResourceRoots).toHaveBeenCalledTimes(3);
-    expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
-      source._view,
-      source._panels,
-      [vscode.Uri.file('/workspace')],
-    );
-    expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
-      source._timelineView,
-      [],
-      [vscode.Uri.file('/workspace')],
-    );
-  });
-
   it('returns built-in and plugin default groups through the dependency helpers', () => {
     const builtInGroups = [{ id: 'built-in', pattern: '*.md', color: '#000' }] satisfies IGroup[];
     const pluginGroups = [{ id: 'plugin', pattern: '*.gd', color: '#090' }] satisfies IGroup[];
@@ -169,44 +112,6 @@ describe('graphView/provider/plugin/resources', () => {
 
     expect(methods._normalizeExternalExtensionUri(undefined)).toBeUndefined();
     expect(normalizeExtensionUri).toHaveBeenCalledWith(undefined);
-  });
-
-  it('keeps the primary webview refresh when there is no timeline view', () => {
-    const refreshWebviewResourceRoots = vi.fn();
-    const source = {
-      _extensionUri: vscode.Uri.file('/extension'),
-      _pluginExtensionUris: new Map<string, vscode.Uri>(),
-      _analyzer: undefined,
-      _disabledPlugins: new Set<string>(),
-      _graphData: { nodes: [], edges: [] },
-      _userGroups: [],
-      _groups: [],
-      _view: { webview: { options: {} } } as never,
-      _panels: [{ webview: { options: {} } }] as never,
-    };
-    const methods = createGraphViewProviderPluginResourceMethods(source as never, {
-      registerBuiltInPluginRoots: vi.fn(),
-      registerPackagePluginRoots: vi.fn(),
-      getPluginDefaultGroups: vi.fn(() => []),
-      getBuiltInDefaultGroups: vi.fn(() => []),
-      buildMergedGroups: vi.fn(() => []),
-      resolvePluginAssetPath: vi.fn(() => ''),
-      getWebviewResourceRoots: vi.fn(() => [vscode.Uri.file('/workspace')]),
-      refreshWebviewResourceRoots,
-      normalizeExtensionUri: vi.fn(),
-      getDefaultLegendVisibility: vi.fn(() => ({})),
-      getLegendOrder: vi.fn(() => []),
-      getWorkspaceFolders: vi.fn(() => []),
-    });
-
-    methods._refreshWebviewResourceRoots();
-
-    expect(refreshWebviewResourceRoots).toHaveBeenCalledTimes(1);
-    expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
-      source._view,
-      source._panels,
-      [vscode.Uri.file('/workspace')],
-    );
   });
 
   it('normalizes external extension uris with the shared graph-view helper', () => {

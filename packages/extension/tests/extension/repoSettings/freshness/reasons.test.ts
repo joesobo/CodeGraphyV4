@@ -39,25 +39,6 @@ describe('repoSettings/freshness/reasons', () => {
     ]);
   });
 
-  it('reports current commit unavailable only when an indexed commit exists', () => {
-    expect(collectStaleReasons({
-      meta: indexedMeta,
-      currentCommit: null,
-      pluginSignature: 'plugins',
-      settingsSignature: 'settings',
-    })).toEqual(['current-commit-unavailable']);
-
-    expect(collectStaleReasons({
-      meta: {
-        ...indexedMeta,
-        lastIndexedCommit: null,
-      },
-      currentCommit: null,
-      pluginSignature: 'plugins',
-      settingsSignature: 'settings',
-    })).toEqual([]);
-  });
-
   it('reports missing indexed commit when the workspace now has a commit', () => {
     expect(collectStaleReasons({
       meta: {

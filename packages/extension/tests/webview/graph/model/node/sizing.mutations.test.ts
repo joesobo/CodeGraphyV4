@@ -43,18 +43,6 @@ describe('nodeSizing (mutation targets)', () => {
       expect(sizes.get('hub.ts')).toBe(40);
     });
 
-    it('delegates to computeChurnSizes for churn mode', () => {
-      const sizes = calculateNodeSizes(
-        [
-          { id: 'a.ts', label: 'a.ts', color: '#fff', churn: 5 },
-          { id: 'b.ts', label: 'b.ts', color: '#fff', churn: 1 },
-        ],
-        [],
-        'churn'
-      );
-      expect(sizes.get('a.ts')).toBe(40);
-    });
-
     it('delegates to computeFileSizeSizes for file-size mode', () => {
       const sizes = calculateNodeSizes(
         [{ id: 'a.ts', label: 'a.ts', color: '#fff', fileSize: 9999 }],

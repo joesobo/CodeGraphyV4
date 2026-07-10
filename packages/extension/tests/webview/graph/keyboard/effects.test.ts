@@ -316,38 +316,6 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
-  it('maps lowercase t to the toggle-dimension store message', () => {
-    expect(getGraphKeyboardCommand({
-      key: 't',
-      isMod: false,
-      shiftKey: false,
-      graphMode: '2d',
-      selectedNodeIds: [],
-      allNodeIds: [],
-      targetIsEditable: false,
-    })).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DIMENSION' } }],
-    });
-  });
-
-  it('maps uppercase t to the toggle-dimension store message', () => {
-    expect(getGraphKeyboardCommand({
-      key: 'T',
-      isMod: false,
-      shiftKey: false,
-      graphMode: '2d',
-      selectedNodeIds: [],
-      allNodeIds: [],
-      targetIsEditable: false,
-    })).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DIMENSION' } }],
-    });
-  });
-
   it('ignores unsupported keys', () => {
     expect(getGraphKeyboardCommand({
       key: 'q',

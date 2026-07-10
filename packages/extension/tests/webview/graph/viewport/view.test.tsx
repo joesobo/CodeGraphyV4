@@ -172,23 +172,6 @@ function createSurface2dProps(
   };
 }
 
-function createSurface3dProps(
-  sharedProps = createSharedProps(),
-): React.ComponentProps<typeof Viewport>['surface3dProps'] {
-  return {
-    fg3dRef: { current: undefined },
-    getArrowColor: vi.fn(),
-    getLinkColor: vi.fn(),
-    getLinkParticles: vi.fn(),
-    getLinkWidth: vi.fn(),
-    getParticleColor: vi.fn(),
-    nodeThreeObjectContext: createNodeThreeObjectContext(),
-    particleSize: 2,
-    particleSpeed: 0.1,
-    sharedProps,
-  };
-}
-
 function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>> = {}): {
   handleMenuAction: ReturnType<typeof vi.fn>;
 } {
@@ -201,7 +184,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
-      graphMode="2d"
       handleContextMenu={vi.fn()}
       handleMenuAction={handleMenuAction}
       handleMouseDownCapture={vi.fn()}
@@ -210,7 +192,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       handleMouseUpCapture={vi.fn()}
       menuEntries={createMenuEntries()}
       surface2dProps={createSurface2dProps()}
-      surface3dProps={createSurface3dProps()}
       tooltipData={{
         visible: true,
         nodeRect: { x: 10, y: 20, radius: 30 },
@@ -231,23 +212,6 @@ describe('Viewport', () => {
     harness.surface2d.mockClear();
     harness.surface3d.mockClear();
     harness.throwSurface3d = false;
-  });
-
-  it('falls back to the 2d surface when the 3d surface throws', async () => {
-    harness.throwSurface3d = true;
-    const onSurface3dError = vi.fn();
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    renderViewport({ graphMode: '3d', onSurface3dError });
-
-    await waitFor(() => {
-      expect(onSurface3dError).toHaveBeenCalledWith(expect.any(Error));
-    });
-    expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
-    expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
-
-    harness.throwSurface3d = false;
-    consoleError.mockRestore();
   });
 
   it('renders the 2d graph surface and forwards tooltip data', () => {
@@ -272,7 +236,6 @@ describe('Viewport', () => {
 
   it('does not rerender the 2d graph surface when only viewport overlays change', () => {
     const surface2dProps = createSurface2dProps();
-    const surface3dProps = createSurface3dProps(surface2dProps.sharedProps);
     const { rerender } = render(
       <Viewport
         accessibilityItems={{ nodes: [], edges: [] }}
@@ -281,7 +244,6 @@ describe('Viewport', () => {
         borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
-        graphMode="2d"
         handleContextMenu={vi.fn()}
         handleMenuAction={vi.fn()}
         handleMouseDownCapture={vi.fn()}
@@ -290,7 +252,6 @@ describe('Viewport', () => {
         handleMouseUpCapture={vi.fn()}
         menuEntries={createMenuEntries()}
         surface2dProps={surface2dProps}
-        surface3dProps={surface3dProps}
         tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
       />,
     );
@@ -305,7 +266,6 @@ describe('Viewport', () => {
         borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
-        graphMode="2d"
         handleContextMenu={vi.fn()}
         handleMenuAction={vi.fn()}
         handleMouseDownCapture={vi.fn()}
@@ -314,7 +274,6 @@ describe('Viewport', () => {
         handleMouseUpCapture={vi.fn()}
         menuEntries={createMenuEntries()}
         surface2dProps={surface2dProps}
-        surface3dProps={surface3dProps}
         tooltipData={{ visible: true, nodeRect: { x: 1, y: 2, radius: 3 }, path: 'src/next.ts', info: null, pluginSections: [] }}
       />,
     );
@@ -324,15 +283,6 @@ describe('Viewport', () => {
       path: 'src/next.ts',
       visible: true,
     }));
-  });
-
-  it('renders the 3d graph surface when graphMode is 3d', async () => {
-    renderViewport({ graphMode: '3d' });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('surface-3d')).toBeInTheDocument();
-    });
-    expect(screen.queryByTestId('surface-2d')).not.toBeInTheDocument();
   });
 
   it('dispatches menu actions for item entries', () => {
@@ -367,7 +317,6 @@ describe('Viewport', () => {
         borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
-        graphMode="2d"
         handleContextMenu={vi.fn()}
         handleMenuAction={vi.fn()}
         handleMouseDownCapture={vi.fn()}
@@ -376,7 +325,6 @@ describe('Viewport', () => {
         handleMouseUpCapture={vi.fn()}
         menuEntries={[addFavoriteEntry]}
         surface2dProps={createSurface2dProps()}
-        surface3dProps={createSurface3dProps()}
         tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
       />,
     );
@@ -393,7 +341,6 @@ describe('Viewport', () => {
         borderColor="#222222"
         containerRef={{ current: document.createElement('div') }}
         directionMode="arrows"
-        graphMode="2d"
         handleContextMenu={vi.fn()}
         handleMenuAction={vi.fn()}
         handleMouseDownCapture={vi.fn()}
@@ -402,7 +349,6 @@ describe('Viewport', () => {
         handleMouseUpCapture={vi.fn()}
         menuEntries={[removeFavoriteEntry]}
         surface2dProps={createSurface2dProps()}
-        surface3dProps={createSurface3dProps()}
         tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
       />,
     );
@@ -412,62 +358,6 @@ describe('Viewport', () => {
       'node-toggle-favorite:Remove from Favorites',
     );
     expect(screen.getByRole('button', { name: 'Remove from Favorites' })).toBeInTheDocument();
-  });
-
-  it('opens the graph node context menu from the accessible node item', () => {
-    const handleNodeContextMenu = vi.fn();
-    const node = createGraphNode('src/app.ts');
-    const sharedProps = createSharedProps();
-    sharedProps.graphData = { nodes: [node], links: [] };
-
-    renderViewport({
-      accessibilityItems: {
-        nodes: [{
-          kind: 'node',
-          id: 'src/app.ts',
-          label: 'Graph node src/app.ts',
-          radius: 24,
-          x: 50,
-          y: 60,
-        }],
-        edges: [],
-      },
-      handleNodeContextMenu,
-      surface2dProps: createSurface2dProps(sharedProps),
-      surface3dProps: createSurface3dProps(sharedProps),
-    });
-
-    fireEvent.contextMenu(screen.getByRole('button', { name: 'Graph node src/app.ts' }));
-
-    expect(handleNodeContextMenu).toHaveBeenCalledWith('src/app.ts', expect.any(MouseEvent));
-  });
-
-  it('opens the graph edge context menu from the accessible edge item', () => {
-    const handleEdgeContextMenu = vi.fn();
-    const edge = createGraphLink('edge-src-app-src-types', 'src/app.ts', 'src/types.ts');
-    const sharedProps = createSharedProps();
-    sharedProps.graphData = {
-      nodes: [createGraphNode('src/app.ts'), createGraphNode('src/types.ts')],
-      links: [edge],
-    };
-
-    renderViewport({
-      accessibilityItems: {
-        nodes: [],
-        edges: [{
-          kind: 'edge',
-          id: 'edge-src-app-src-types',
-          label: 'Graph edge src/app.ts to src/types.ts',
-        }],
-      },
-      handleEdgeContextMenu,
-      surface2dProps: createSurface2dProps(sharedProps),
-      surface3dProps: createSurface3dProps(sharedProps),
-    });
-
-    fireEvent.contextMenu(screen.getByLabelText('Graph edge src/app.ts to src/types.ts'));
-
-    expect(handleEdgeContextMenu).toHaveBeenCalledWith(edge, expect.any(MouseEvent));
   });
 
   it('hosts Graph View stage slots separately for background, world, and viewport overlays', () => {

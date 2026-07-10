@@ -44,31 +44,6 @@ describe('calculateNodeSizes (mutation kill tests)', () => {
   });
 
   /**
-   * Kill L23:7 ConditionalExpression: true — mutant replaces
-   *   `if (mode === 'churn')` with `if (true)`.
-   * This means ANY mode after 'connections' would always dispatch to
-   * computeChurnSizes. If we call with 'file-size' mode and nodes
-   * with fileSize data, the result should differ from churn.
-   */
-  it('dispatches to file-size mode correctly, not churn', () => {
-    const sizes = calculateNodeSizes(
-      [
-        { id: 'small.ts', label: 'small.ts', color: '#fff', fileSize: 100, churn: 100 },
-        { id: 'large.ts', label: 'large.ts', color: '#fff', fileSize: 10000, churn: 1 },
-      ],
-      [],
-      'file-size'
-    );
-
-    // In file-size mode: large.ts (10000 bytes) should be bigger than small.ts (100 bytes)
-    // In churn mode: small.ts (100 touches) would be bigger than large.ts (1 touch)
-    // If the mutant (true) is active, churn would be used, giving wrong results
-    const smallSize = sizes.get('small.ts')!;
-    const largeSize = sizes.get('large.ts')!;
-    expect(largeSize).toBeGreaterThan(smallSize);
-  });
-
-  /**
    * Verify connections mode is dispatched distinctly from uniform.
    * Kill L20:7 by ensuring connections mode produces different results.
    */
@@ -87,26 +62,5 @@ describe('calculateNodeSizes (mutation kill tests)', () => {
     expect(connectionSizes.get('hub.ts')).toBe(40);
     expect(uniformSizes.get('hub.ts')).toBe(16);
     expect(connectionSizes.get('hub.ts')).not.toBe(uniformSizes.get('hub.ts'));
-  });
-
-  /**
-   * Verify churn mode dispatched correctly, not falling through.
-   * Formula: MIN + ((count - min) / range) * (MAX - MIN)
-   * With counts [10, 1]: min=0, max=10, range=10
-   * hot: 10 + ((10-0)/10) * 30 = 10 + 30 = 40
-   * cold: 10 + ((1-0)/10) * 30 = 10 + 3 = 13
-   */
-  it('dispatches churn mode correctly', () => {
-    const sizes = calculateNodeSizes(
-      [
-        { id: 'hot.ts', label: 'hot.ts', color: '#fff', churn: 10 },
-        { id: 'cold.ts', label: 'cold.ts', color: '#fff', churn: 1 },
-      ],
-      [],
-      'churn'
-    );
-
-    expect(sizes.get('hot.ts')).toBe(40);
-    expect(sizes.get('cold.ts')).toBe(13);
   });
 });

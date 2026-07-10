@@ -43,16 +43,6 @@ describe('extension/graphView/analysis/execution/publish/metrics/changedPaths', 
     ).toBe(true);
   });
 
-  it('detects churn metric differences for changed nodes', () => {
-    expect(
-      hasChangedNodeMetricDifference(
-        createGraph([createNode({ fileSize: 10, churn: 1 })]),
-        createGraph([createNode({ fileSize: 10, churn: 2 })]),
-        ['src/a.ts'],
-      ),
-    ).toBe(true);
-  });
-
   it('ignores changed paths when either graph is missing the node', () => {
     expect(
       hasChangedNodeMetricDifference(

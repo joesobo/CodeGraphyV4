@@ -47,7 +47,6 @@ describe('graph/viewport/shell/state', () => {
 			graph: undefined,
 			graphMode: '2d',
 			nodes: graphNodes as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 4, y: 8 });
@@ -61,7 +60,6 @@ describe('graph/viewport/shell/state', () => {
 			graph: {},
 			graphMode: '2d',
 			nodes: [{ id: 'src/app.ts' }] as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 4, y: 8 });
@@ -71,34 +69,6 @@ describe('graph/viewport/shell/state', () => {
 		expect(() => viewportState.reheatSimulation()).not.toThrow();
 	});
 
-	it('delegates coordinate transforms, animation controls, and zoom to the 2d graph', () => {
-		const reheatSimulation = vi.fn();
-		const resumeAnimation = vi.fn();
-		const viewportState = createGraphViewViewportState({
-			globalScale: 1,
-			graph: {
-				d3ReheatSimulation: reheatSimulation,
-				graph2ScreenCoords: (x: number, y: number) => ({ x: x + 10, y: y + 20 }),
-				resumeAnimation,
-				screen2GraphCoords: (x: number, y: number) => ({ x: x - 10, y: y - 20 }),
-				zoom: () => 2,
-			},
-			graphMode: '2d',
-			nodes: [{ id: 'src/app.ts' }] as never,
-			timelineActive: false,
-		});
-
-		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 14, y: 28 });
-		expect(viewportState.screenToGraph(14, 28)).toEqual({ x: 4, y: 8 });
-		expect(viewportState.timelineActive).toBe(false);
-		expect(viewportState.zoom).toBe(2);
-
-		viewportState.resumeAnimation();
-		viewportState.reheatSimulation();
-		expect(resumeAnimation).toHaveBeenCalledOnce();
-		expect(reheatSimulation).toHaveBeenCalledOnce();
-	});
-
 	it('mutates the matching live graph node for plugin viewport updates', () => {
 		const graphNodes = [{ id: 'src/app.ts', x: 1 }];
 		const viewportState = createGraphViewViewportState({
@@ -106,7 +76,6 @@ describe('graph/viewport/shell/state', () => {
 			graph: undefined,
 			graphMode: '2d',
 			nodes: graphNodes as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.updateNode('src/app.ts', { fx: 10, fy: 20 })).toBe(true);

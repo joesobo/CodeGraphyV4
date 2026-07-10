@@ -443,26 +443,6 @@ describe('extension/pipeline/service/internalBase', () => {
     );
   });
 
-  it('reads the current commit sha synchronously through the signature helper', () => {
-    const source = new TestInternalBase();
-
-    expect(source.getCurrentCommitShaSync('/workspace')).toBe('commit-sha');
-    expect(readWorkspacePipelineCurrentCommitShaSync).toHaveBeenCalledWith(
-      '/workspace',
-    );
-  });
-
-  it('reads the current commit sha asynchronously through the signature helper', async () => {
-    const source = new TestInternalBase();
-
-    await expect(source.getCurrentCommitSha('/workspace')).resolves.toBe(
-      'async-commit-sha',
-    );
-    expect(readWorkspacePipelineCurrentCommitSha).toHaveBeenCalledWith(
-      '/workspace',
-    );
-  });
-
   it('reads analysis files through the shared helper and discovery reader', async () => {
     const source = new TestInternalBase();
     const files = [{ absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' }];

@@ -41,22 +41,6 @@ describe('graph/model/node/sizing', () => {
     expect(sizes.get('leaf-b.ts')).toBe(25);
   });
 
-  it('scales churn node sizes from the observed range', () => {
-    const sizes = calculateNodeSizes(
-      [
-        { id: 'small.ts', label: 'small.ts', color: '#93C5FD', churn: 1 },
-        { id: 'medium.ts', label: 'medium.ts', color: '#67E8F9', churn: 2 },
-        { id: 'large.ts', label: 'large.ts', color: '#38BDF8', churn: 5 },
-      ],
-      [],
-      'churn'
-    );
-
-    expect(sizes.get('small.ts')).toBe(16);
-    expect(sizes.get('medium.ts')).toBe(22);
-    expect(sizes.get('large.ts')).toBe(40);
-  });
-
   it('returns default sizes when file-size mode has no positive file sizes', () => {
     const sizes = calculateNodeSizes(
       [

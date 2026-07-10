@@ -14,7 +14,6 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
-    getPlaybackSpeed: vi.fn(() => 2),
     getDepthMode: vi.fn(() => false),
     getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
@@ -32,7 +31,6 @@ function createContext(
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
-    sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginStatuses: vi.fn(),
@@ -47,44 +45,6 @@ function createContext(
 }
 
 describe('dispatchGraphViewPluginReadyMessage', () => {
-  it('sends ready payloads and notifies the first ready event', async () => {
-    const context = createContext();
-
-    await expect(
-      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
-    ).resolves.toBe(true);
-
-    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
-    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
-    expect(context.sendDepthState).toHaveBeenCalledOnce();
-    expect(context.sendGraphControls).toHaveBeenCalledOnce();
-    expect(context.sendFavorites).toHaveBeenCalledOnce();
-    expect(context.sendSettings).toHaveBeenCalledOnce();
-    expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
-    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect(context.sendCachedTimeline).toHaveBeenCalledOnce();
-    expect(context.sendDecorations).toHaveBeenCalledOnce();
-    expect(context.sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(context.sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(context.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(context.sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(context.sendActiveFile).toHaveBeenCalledOnce();
-    expect(context.notifyWebviewReady).toHaveBeenCalledOnce();
-    expect(context.sendMessage).toHaveBeenCalledWith({
-      type: 'FILTER_PATTERNS_UPDATED',
-      payload: {
-        patterns: ['src/**'],
-        pluginPatterns: ['plugin:test/**'],
-        pluginPatternGroups: [],
-        disabledCustomPatterns: [],
-        disabledPluginPatterns: [],
-      },
-    });
-    expect(context.sendMessage).toHaveBeenCalledWith({
-      type: 'DEPTH_MODE_UPDATED',
-      payload: { depthMode: false },
-    });
-  });
 
   it('skips duplicate notification without blocking on first workspace readiness', async () => {
     const context = createContext({

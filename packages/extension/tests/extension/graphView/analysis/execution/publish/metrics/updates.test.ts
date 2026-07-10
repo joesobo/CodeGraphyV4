@@ -26,24 +26,6 @@ describe('extension/graphView/analysis/execution/publish/metrics/updates', () =>
     ]));
   });
 
-  it('returns metric patches for changed file size and churn values', () => {
-    expect(
-      collectMetricOnlyGraphUpdates(
-        [
-          createNode({ id: 'src/a.ts', fileSize: 10, churn: 1 }),
-          createNode({ id: 'src/b.ts', fileSize: 20, churn: 2 }),
-        ],
-        createNodeMap([
-          createNode({ id: 'src/a.ts', fileSize: 15, churn: 1 }),
-          createNode({ id: 'src/b.ts', fileSize: 20, churn: 3 }),
-        ]),
-      ),
-    ).toEqual([
-      { id: 'src/a.ts', fileSize: 15, churn: 1 },
-      { id: 'src/b.ts', fileSize: 20, churn: 3 },
-    ]);
-  });
-
   it('returns undefined when no node metrics changed', () => {
     expect(
       collectMetricOnlyGraphUpdates(

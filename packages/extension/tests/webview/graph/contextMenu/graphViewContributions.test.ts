@@ -82,7 +82,6 @@ describe('Graph View context menu contributions', () => {
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'background', targets: [] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -90,7 +89,6 @@ describe('Graph View context menu contributions', () => {
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/app.ts'] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -99,7 +97,6 @@ describe('Graph View context menu contributions', () => {
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'edge', edgeId: 'src/app.ts->src/util.ts#import', targets: ['src/app.ts', 'src/util.ts'] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -108,7 +105,6 @@ describe('Graph View context menu contributions', () => {
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/app.ts', 'src/util.ts'] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -143,7 +139,6 @@ describe('Graph View context menu contributions', () => {
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['runtime:frontend'] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -156,7 +151,6 @@ describe('Graph View context menu contributions', () => {
         edgeId: 'runtime:frontend->src/app.ts#acme-link',
         targets: ['runtime:frontend', 'src/app.ts'],
       },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -183,7 +177,6 @@ describe('Graph View context menu contributions', () => {
     const nodes = [{ id: 'src/app.ts', nodeType: 'file' }];
     const entries = buildGraphContextMenuEntries({
       selection,
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -207,9 +200,9 @@ describe('Graph View context menu contributions', () => {
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'node', nodeTypes: ['file'] },
       graphMode: '2d',
-      timelineActive: false,
       selectedNodeIds: ['src/app.ts'],
       selectedEdgeIds: [],
+      timelineActive: false,
     });
   });
 
@@ -229,7 +222,6 @@ describe('Graph View context menu contributions', () => {
 
     const pinnedEntries = buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/pinned.ts'] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -239,7 +231,6 @@ describe('Graph View context menu contributions', () => {
 
     const multiSelectionEntries = buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/fixed.ts', 'src/app.ts'] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -250,32 +241,6 @@ describe('Graph View context menu contributions', () => {
     });
     expect(itemLabels(multiSelectionEntries)).not.toContain('Fix Position');
     expect(itemLabels(multiSelectionEntries)).not.toContain('Release Position');
-  });
-
-  it('passes graph mode and timeline state to graph view plugin visibility checks', () => {
-    const graphViewContributions = createContributions([{
-      pluginId: 'acme.graph-tools',
-      contribution: {
-        id: 'acme.live-2d-action',
-        label: 'Live 2D Action',
-        isVisible: context => context.graphMode === '2d' && context.timelineActive === false,
-        targets: [{ kind: 'background' }],
-        run: vi.fn(),
-      },
-    }]);
-    const buildEntries = (graphMode: '2d' | '3d', timelineActive: boolean): readonly GraphContextMenuEntry[] =>
-      buildGraphContextMenuEntries({
-        selection: { kind: 'background', targets: [] },
-        timelineActive,
-        graphMode,
-        favorites: new Set(),
-        pluginItems: [],
-        graphViewContributions,
-      });
-
-    expect(itemLabels(buildEntries('2d', false))).toContain('Live 2D Action');
-    expect(itemLabels(buildEntries('3d', false))).not.toContain('Live 2D Action');
-    expect(itemLabels(buildEntries('2d', true))).not.toContain('Live 2D Action');
   });
 
   it('passes background graph positions to graph view plugin menu actions', () => {
@@ -296,7 +261,6 @@ describe('Graph View context menu contributions', () => {
     };
     const entries = buildGraphContextMenuEntries({
       selection,
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -319,9 +283,9 @@ describe('Graph View context menu contributions', () => {
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'background' },
       graphMode: '2d',
-      timelineActive: false,
       selectedNodeIds: [],
       selectedEdgeIds: [],
+      timelineActive: false,
       graphPosition: { x: 120, y: 80 },
     });
   });
@@ -340,7 +304,6 @@ describe('Graph View context menu contributions', () => {
 
     const entries = buildGraphContextMenuEntries({
       selection: { kind: 'background', targets: [] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -367,7 +330,6 @@ describe('Graph View context menu contributions', () => {
     const selection = { kind: 'node' as const, targets: ['src/app.ts'] };
     const entries = buildGraphContextMenuEntries({
       selection,
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
@@ -391,9 +353,9 @@ describe('Graph View context menu contributions', () => {
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'node', nodeTypes: ['file'] },
       graphMode: '2d',
-      timelineActive: false,
       selectedNodeIds: ['src/app.ts'],
       selectedEdgeIds: [],
+      timelineActive: false,
       selectedNodePositions: {
         'src/app.ts': { x: 42, y: 24 },
       },

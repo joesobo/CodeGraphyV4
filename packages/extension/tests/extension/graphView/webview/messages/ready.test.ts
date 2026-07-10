@@ -6,81 +6,6 @@ import {
 import { createHandlers } from './ready/fixture';
 
 describe('graph view ready message', () => {
-  it('sends the initial webview payloads and notifies readiness', async () => {
-    const handlers = createHandlers();
-    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-
-    const readyNotified = await applyWebviewReady(
-      {
-        maxFiles: 500,
-        verboseDiagnostics: true,
-        playbackSpeed: 1,
-        dagMode: 'td',
-        nodeSizeMode: 'connections',
-        focusedFile: 'src/game/player.gd',
-        hasWorkspace: false,
-        firstAnalysis: false,
-        readyNotified: false,
-      },
-      handlers
-    );
-
-    expect(handlers.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
-    expect(handlers.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
-    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
-    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
-    expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
-    expect(handlers.sendFavorites).toHaveBeenCalledOnce();
-    expect(handlers.sendSettings).toHaveBeenCalledOnce();
-    expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
-    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();
-    expect(handlers.sendDecorations).toHaveBeenCalledOnce();
-    expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
-    expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
-    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(handlers.sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(handlers.sendActiveFile).toHaveBeenCalledOnce();
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'FILTER_PATTERNS_UPDATED',
-      payload: {
-        patterns: ['dist/**'],
-        pluginPatterns: ['venv/**'],
-        pluginPatternGroups: [],
-        disabledCustomPatterns: [],
-        disabledPluginPatterns: [],
-      },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'MAX_FILES_UPDATED',
-      payload: { maxFiles: 500 },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'VERBOSE_DIAGNOSTICS_UPDATED',
-      payload: { verboseDiagnostics: true },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'PLAYBACK_SPEED_UPDATED',
-      payload: { speed: 1 },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'td' },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'NODE_SIZE_MODE_UPDATED',
-      payload: { nodeSizeMode: 'connections' },
-    });
-    expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
-    expect(readyNotified).toBe(true);
-    expect(log.mock.calls.map(call => call[0])).toContain(
-      '[CodeGraphy] Webview ready replayed: hasWorkspace=false, firstAnalysis=false, readyNotified=false, maxFiles=500',
-    );
-    expect(log.mock.calls.map(call => call[0])).toContain(
-      '[CodeGraphy] Webview bootstrap complete: hasWorkspace=false, firstAnalysis=false, readyNotified=false',
-    );
-    log.mockRestore();
-  });
 
   it('sends available views before kicking off analysis', async () => {
     const callOrder: string[] = [];
@@ -101,7 +26,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -138,7 +62,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -166,7 +89,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -199,7 +121,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -254,7 +175,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -293,7 +213,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -330,7 +249,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -352,7 +270,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -373,7 +290,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -395,7 +311,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -417,35 +332,5 @@ describe('graph view ready message', () => {
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'APP_BOOTSTRAP_COMPLETE',
     });
-  });
-
-  it('waits for cached timeline replay before notifying readiness', async () => {
-    const events: string[] = [];
-    const handlers = createHandlers();
-    handlers.sendCachedTimeline.mockImplementation(async () => {
-      events.push('timeline:start');
-      await Promise.resolve();
-      events.push('timeline:end');
-    });
-    handlers.notifyWebviewReady.mockImplementation(() => {
-      events.push('ready');
-    });
-
-    await applyWebviewReady(
-      {
-        maxFiles: 500,
-        verboseDiagnostics: false,
-        playbackSpeed: 1,
-        dagMode: null,
-        nodeSizeMode: 'connections',
-        focusedFile: undefined,
-        hasWorkspace: false,
-        firstAnalysis: false,
-        readyNotified: false,
-      },
-      handlers
-    );
-
-    expect(events).toEqual(['timeline:start', 'timeline:end', 'ready']);
   });
 });

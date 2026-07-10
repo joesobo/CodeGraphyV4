@@ -45,9 +45,8 @@ describe('extension/repoSettings/store', () => {
     expect(store.workspaceRoot).toBe(workspaceRoot);
     expect(store.settingsPath).toBe(settingsPath);
     expect(store.get('showOrphans', true)).toBe(true);
-    expect(store.get('timeline.maxCommits', 0)).toBe(500);
+    expect(store.get('physics.linkDistance', 0)).toBe(80);
     expect(persisted.showOrphans).toBe(true);
-    expect(persisted.timeline).toEqual({ maxCommits: 500, playbackSpeed: 1 });
     expect(persisted.legend).toEqual([]);
     expect(warnSpy).not.toHaveBeenCalled();
   });
@@ -68,13 +67,10 @@ describe('extension/repoSettings/store', () => {
     tempDirectories.push(workspaceRoot);
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
-    await store.update('timeline.playbackSpeed', 2.5);
     await store.update('physics.chargeRange', 450);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('timeline.playbackSpeed', 0)).toBe(2.5);
     expect(store.get('physics.chargeRange', 0)).toBe(450);
-    expect(persisted.timeline).toEqual({ maxCommits: 500, playbackSpeed: 2.5 });
     expect(persisted.physics).toEqual({
       repelForce: 10,
       linkDistance: 80,
@@ -158,29 +154,6 @@ describe('extension/repoSettings/store', () => {
 
     expect(store.get('maxFiles', 0)).toBe(900);
     expect(changes).toEqual([['maxFiles']]);
-  });
-
-  it('emits nested keys for manual edits to nested settings', () => {
-    const workspaceRoot = createTempWorkspace();
-    tempDirectories.push(workspaceRoot);
-    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
-    const changes: string[][] = [];
-    store.onDidChange(event => {
-      changes.push(event.changedKeys);
-    });
-
-    fs.writeFileSync(
-      store.settingsPath,
-      JSON.stringify(createSettingsWithOverrides({
-        timeline: { maxCommits: 500, playbackSpeed: 2 },
-      }), null, 2),
-      'utf8',
-    );
-
-    store.reload();
-
-    expect(store.get('timeline.playbackSpeed', 0)).toBe(2);
-    expect(changes).toEqual([['timeline.playbackSpeed']]);
   });
 
   it('reads persisted legend and node colors without legacy key aliases', () => {
@@ -333,7 +306,7 @@ describe('extension/repoSettings/store', () => {
     });
 
     await store.update('legend', [{ id: 'legend-rule', pattern: 'src/**', color: '#abcdef' }]);
-    await store.update('timeline.playbackSpeed', 3);
+    await store.update('physics.chargeRange', 300);
     await store.update('nodeColors', { folder: '#123456' });
 
     expect(events[0].affectsConfiguration('codegraphy')).toBe(true);
@@ -341,8 +314,8 @@ describe('extension/repoSettings/store', () => {
     expect(events[0].affectsConfiguration('codegraphy.groups')).toBe(false);
     expect(events[0].affectsConfiguration('workbench.colorTheme')).toBe(false);
 
-    expect(events[1].affectsConfiguration('codegraphy.timeline')).toBe(true);
-    expect(events[1].affectsConfiguration('codegraphy.timeline.playbackSpeed')).toBe(true);
+    expect(events[1].affectsConfiguration('codegraphy.physics')).toBe(true);
+    expect(events[1].affectsConfiguration('codegraphy.physics.chargeRange')).toBe(true);
 
     expect(events[2].affectsConfiguration('codegraphy.folderNodeColor')).toBe(false);
     expect(events[2].affectsConfiguration('codegraphy.nodeColors')).toBe(true);
@@ -353,18 +326,18 @@ describe('extension/repoSettings/store', () => {
     tempDirectories.push(workspaceRoot);
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
-    expect(store.inspect<number>('timeline.playbackSpeed')).toEqual({
-      defaultValue: 1,
-      workspaceValue: 1,
+    expect(store.inspect<number>('physics.linkDistance')).toEqual({
+      defaultValue: 80,
+      workspaceValue: 80,
     });
 
-    await store.update('timeline.playbackSpeed', 3);
+    await store.update('physics.linkDistance', 120);
 
-    expect(store.inspect<number>('timeline.playbackSpeed')).toEqual({
-      defaultValue: 1,
-      workspaceValue: 3,
+    expect(store.inspect<number>('physics.linkDistance')).toEqual({
+      defaultValue: 80,
+      workspaceValue: 120,
     });
-    expect(store.inspect<string>('timeline.unknown')).toEqual({
+    expect(store.inspect<string>('physics.unknown')).toEqual({
       defaultValue: undefined,
       workspaceValue: undefined,
     });

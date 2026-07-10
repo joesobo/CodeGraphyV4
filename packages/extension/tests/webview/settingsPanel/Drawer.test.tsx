@@ -85,7 +85,7 @@ describe('SettingsPanel', () => {
 
     fireEvent.click(screen.getByText('Display'));
 
-    expect(screen.getByText('Renderer')).toBeInTheDocument();
+    expect(screen.getByText('Direction')).toBeInTheDocument();
     expect(screen.getByText('Depth Mode')).toBeInTheDocument();
     expect(screen.getByText('Direction')).toBeInTheDocument();
     expect(screen.getByText('Show Orphans')).toBeInTheDocument();

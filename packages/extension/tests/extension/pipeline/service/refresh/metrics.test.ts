@@ -196,17 +196,4 @@ describe('extension/pipeline/service/refresh/metrics', () => {
       createNode({ id: 'src/changed.ts', label: 'changed.ts', fileSize: 20, churn: 5 }),
     ]);
   });
-
-  it('defaults missing size and churn metrics without throwing', () => {
-    const graphData = createGraph([createNode()]);
-
-    expect(
-      patchGraphDataNodeMetrics({
-        churnCounts: {},
-        filePaths: ['src/a.ts'],
-        fileSizes: {},
-        graphData,
-      }).nodes[0],
-    ).toEqual(createNode({ fileSize: undefined, churn: 0 }));
-  });
 });

@@ -9,8 +9,6 @@ function makeProvider() {
     refreshGroupSettings: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     emitEvent: vi.fn(),
-    invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
-    sendPlaybackSpeed: vi.fn(),
     sendGraphLayout: vi.fn(),
   };
 }
@@ -63,61 +61,6 @@ describe('executeConfigAction', () => {
           } finally {
             logSpy.mockRestore();
           }
-        });
-
-
-
-        it('invalidates timeline cache when filterPatterns changes', () => {
-          const provider = makeProvider();
-          const event = makeEvent('codegraphy.filterPatterns');
-
-          executeConfigAction('general', event as never, provider as never);
-
-          expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
-        });
-
-
-
-        it('invalidates timeline cache when disabledCustomFilterPatterns changes', () => {
-          const provider = makeProvider();
-          const event = makeEvent('codegraphy.disabledCustomFilterPatterns');
-
-          executeConfigAction('general', event as never, provider as never);
-
-          expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
-        });
-
-
-
-        it('invalidates timeline cache when disabledPluginFilterPatterns changes', () => {
-          const provider = makeProvider();
-          const event = makeEvent('codegraphy.disabledPluginFilterPatterns');
-
-          executeConfigAction('general', event as never, provider as never);
-
-          expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
-        });
-
-
-
-        it('invalidates timeline cache when timeline.maxCommits changes', () => {
-          const provider = makeProvider();
-          const event = makeEvent('codegraphy.timeline.maxCommits');
-
-          executeConfigAction('general', event as never, provider as never);
-
-          expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
-        });
-
-
-
-        it('does not invalidate timeline cache when unrelated config changes', () => {
-          const provider = makeProvider();
-          const event = makeEvent();
-
-          executeConfigAction('general', event as never, provider as never);
-
-          expect(provider.invalidateTimelineCache).not.toHaveBeenCalled();
         });
   });
 });

@@ -10,9 +10,7 @@ describe('webview/graph/debug/install', () => {
         containerRef: { current: null },
         fitView: vi.fn(),
         fg2dRef: { current: undefined },
-        fg3dRef: { current: undefined },
         graphDataRef: { current: { nodes: [] } },
-        graphMode: '2d',
         win,
       }),
     ).toBeUndefined();
@@ -35,9 +33,7 @@ describe('webview/graph/debug/install', () => {
       containerRef: { current: null },
       fitView: vi.fn(),
       fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
       graphDataRef: { current: { nodes: [] } },
-      graphMode: '2d',
       win,
     });
 
@@ -59,9 +55,7 @@ describe('webview/graph/debug/install', () => {
           zoomToFit,
         },
       },
-      fg3dRef: { current: undefined },
       graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2 }] } },
-      graphMode: '2d',
       win,
     });
 
@@ -91,9 +85,7 @@ describe('webview/graph/debug/install', () => {
           graph2ScreenCoords: (x, y) => ({ x: x + 10, y: y + 20 }),
         },
       },
-      fg3dRef: { current: undefined },
       graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2 }] } },
-      graphMode: '2d',
       win,
     });
 
@@ -124,9 +116,7 @@ describe('webview/graph/debug/install', () => {
           graph2ScreenCoords,
         },
       },
-      fg3dRef: { current: undefined },
       graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2, z: 3 }] } },
-      graphMode: '2d',
       openNodeContextMenu,
       win,
     });
@@ -137,55 +127,6 @@ describe('webview/graph/debug/install', () => {
     expect(openNodeContextMenu.mock.calls[0]?.[0]).toBe('a.ts');
     expect(openNodeContextMenu.mock.calls[0]?.[1].clientX).toBe(14);
     expect(openNodeContextMenu.mock.calls[0]?.[1].clientY).toBe(25);
-    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 3);
-  });
-
-  it('uses the 3d graph ref for padding fit and snapshot generation', () => {
-    const fitView = vi.fn();
-    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
-      x: x + z,
-      y: y + z,
-    }));
-    const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
-
-    installGraphDebugApi({
-      containerRef: {
-        current: {
-          getBoundingClientRect: () => ({ height: 100, width: 200 }),
-        } as HTMLElement,
-      },
-      fitView,
-      fg2dRef: { current: undefined },
-      fg3dRef: {
-        current: {
-          graph2ScreenCoords,
-        },
-      },
-      graphDataRef: { current: { nodes: [{ baseOpacity: 0.45, color: '#525c6a', id: 'mesh', size: 6, x: 1, y: 2, z: 3 }] } },
-      graphMode: '3d',
-      win,
-    });
-
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.fitViewWithPadding(24);
-    const snapshot = win.__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot();
-
-    expect(fitView).not.toHaveBeenCalled();
-    expect(snapshot).toEqual({
-      containerHeight: 100,
-      containerWidth: 200,
-      graphMode: '3d',
-      nodes: [{
-        baseOpacity: 0.45,
-        color: '#525c6a',
-        id: 'mesh',
-        screenX: 4,
-        screenY: 5,
-        size: 6,
-        x: 1,
-        y: 2,
-      }],
-      zoom: null,
-    });
     expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 3);
   });
 
@@ -217,12 +158,6 @@ describe('webview/graph/debug/install', () => {
           zoomToFit: zoomToFit2d,
         },
       },
-      fg3dRef: {
-        current: {
-          graph2ScreenCoords: graph2ScreenCoords3d,
-          zoomToFit: zoomToFit3d,
-        },
-      },
       graphDataRef: {
         current: {
           nodes: [{
@@ -240,7 +175,6 @@ describe('webview/graph/debug/install', () => {
           }],
         },
       },
-      graphMode: '2d',
       win,
     });
 
@@ -282,9 +216,7 @@ describe('webview/graph/debug/install', () => {
       fg2dRef: {
         current: {},
       },
-      fg3dRef: { current: undefined },
       graphDataRef: { current: { nodes: [] } },
-      graphMode: '2d',
       win,
     });
 

@@ -22,7 +22,6 @@ describe('graph view provider listener primary actions', () => {
     await actions.openSelectedNode('src/app.ts');
     await actions.activateNode('src/app.ts');
     actions.setFocusedFile('src/app.ts');
-    await actions.previewFileAtCommit('sha-1', 'src/app.ts');
     await actions.openFile('src/app.ts');
     await actions.revealInExplorer('src/app.ts');
     await actions.copyToClipboard('src/app.ts');
@@ -37,7 +36,6 @@ describe('graph view provider listener primary actions', () => {
     expect(source._openSelectedNode).toHaveBeenCalledWith('src/app.ts');
     expect(source._activateNode).toHaveBeenCalledWith('src/app.ts');
     expect(source.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
-    expect(source._previewFileAtCommit).toHaveBeenCalledWith('sha-1', 'src/app.ts');
     expect(source._openFile).toHaveBeenCalledWith('src/app.ts');
     expect(source._revealInExplorer).toHaveBeenCalledWith('src/app.ts');
     expect(source._copyToClipboard).toHaveBeenCalledWith('src/app.ts');
@@ -59,43 +57,6 @@ describe('graph view provider listener primary actions', () => {
 
     expect(source._createFile).toHaveBeenCalledWith('.');
     expect(source._createFolder).toHaveBeenCalledWith('.');
-  });
-
-  it('delegates provider state and timeline actions', async () => {
-    const source = createSource();
-    const actions = createActions(source);
-
-    await actions.loadAndSendData();
-    await actions.indexAndSendData();
-    await actions.analyzeAndSendData();
-    await actions.refreshIndex();
-    await actions.clearCacheAndRefresh();
-    await actions.undo();
-    await actions.redo();
-    await actions.setDepthMode(true);
-    await actions.setDepthLimit(4);
-    await actions.indexRepository();
-    await actions.jumpToCommit('sha-1');
-    await actions.resetTimeline();
-    actions.sendPhysicsSettings();
-    await actions.updatePhysicsSetting('damping', 300);
-    await actions.resetPhysicsSettings();
-
-    expect(source._loadAndSendData).toHaveBeenCalledOnce();
-    expect(source._indexAndSendData).toHaveBeenCalledOnce();
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(source.refreshIndex).toHaveBeenCalledOnce();
-    expect(source.clearCacheAndRefresh).toHaveBeenCalledOnce();
-    expect(source.undo).toHaveBeenCalledOnce();
-    expect(source.redo).toHaveBeenCalledOnce();
-    expect(source.setDepthMode).toHaveBeenCalledWith(true);
-    expect(source.setDepthLimit).toHaveBeenCalledWith(4);
-    expect(source._indexRepository).toHaveBeenCalledOnce();
-    expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
-    expect(source._resetTimeline).toHaveBeenCalledOnce();
-    expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
-    expect(source._updatePhysicsSetting).toHaveBeenCalledWith('damping', 300);
-    expect(source._resetPhysicsSettings).toHaveBeenCalledOnce();
   });
 
   it('uses dependency-backed wrappers for group persistence and dialogs', async () => {

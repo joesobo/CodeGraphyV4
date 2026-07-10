@@ -62,7 +62,7 @@ describe('webview/store/messageHandlers/graph', () => {
     )).toEqual({
       graphData: {
         nodes: [
-          { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 120, churn: 2 },
+          { id: 'src/app.ts', label: 'App', color: '#fff', fileSize: 120, churn: 1 },
           graphData.nodes[1],
         ],
         edges: graphData.edges,
@@ -104,7 +104,7 @@ describe('webview/store/messageHandlers/graph', () => {
     });
 
     expect(state.graphData).toBe(graphData);
-    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 2 });
+    expect(graphData.nodes[0]).toMatchObject({ fileSize: 120, churn: 1 });
   });
 
   it('skips duplicate graph payloads after bootstrap has settled', () => {

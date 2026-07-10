@@ -45,100 +45,6 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(outside).toMatchObject({ x: 90, y: 90 });
   });
 
-  it('moves selected group followers by each force graph drag delta', () => {
-    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
-    const sibling = { id: 'sibling', vx: 1, vy: 2, x: 30, y: 40 } as FGNode;
-
-    const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
-      graphData: { nodes: [primary, sibling] },
-      graphMode: '2d',
-      selectedNodeIds: new Set(['primary', 'sibling']),
-    });
-    applyNodeDrag(primary, { x: 5, y: -3 }, {
-      graphData: { nodes: [primary, sibling] },
-      graphMode: '2d',
-      selectedNodeIds: new Set(['primary', 'sibling']),
-    }, firstSession);
-
-    expect(sibling).toMatchObject({
-      fx: 40,
-      fy: 34,
-      isDragging: true,
-      vx: 0,
-      vy: 0,
-      x: 40,
-      y: 34,
-    });
-  });
-
-  it('keeps a pinned primary node at the force graph live drag position in 2d', () => {
-    const primary = {
-      fx: 20,
-      fy: 9,
-      id: 'primary',
-      isPinned: true,
-      vx: 2,
-      vy: 4,
-      x: 20,
-      y: 9,
-    } as FGNode;
-
-    const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
-      graphData: { nodes: [primary] },
-      graphMode: '2d',
-      selectedNodeIds: new Set(),
-    });
-
-    expect(session).toBeNull();
-    expect(primary).toMatchObject({
-      fx: 20,
-      fy: 9,
-      isDragging: true,
-      vx: 0,
-      vy: 0,
-      x: 20,
-      y: 9,
-    });
-  });
-
-  it('does not move a pinned primary node beyond force graph live drag positions', () => {
-    const primary = {
-      fx: 20,
-      fy: 9,
-      id: 'primary',
-      isPinned: true,
-      vx: 2,
-      vy: 4,
-      x: 20,
-      y: 9,
-    } as FGNode;
-
-    const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
-      graphData: { nodes: [primary] },
-      graphMode: '2d',
-      selectedNodeIds: new Set(),
-    });
-    primary.x = 25;
-    primary.y = 6;
-    primary.fx = 25;
-    primary.fy = 6;
-    applyNodeDrag(primary, { x: 5, y: -3 }, {
-      graphData: { nodes: [primary] },
-      graphMode: '2d',
-      selectedNodeIds: new Set(),
-    }, firstSession);
-
-    expect(primary).toMatchObject({
-      fx: 25,
-      fy: 6,
-      isDragging: true,
-      vx: 0,
-      vy: 0,
-      x: 25,
-      y: 6,
-    });
-  });
-
   it('ignores missing nodes in a reused drag group session', () => {
     const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
     const sibling = { id: 'sibling', x: 30, y: 40 } as FGNode;
@@ -233,63 +139,14 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       graphMode: '2d',
+      timelineActive: false,
       node,
       nodes: [node],
-      timelineActive: false,
     });
     expect(node).toMatchObject({
       fx: 12,
       fy: 24,
       isDragging: false,
-    });
-  });
-
-  it('passes live graph nodes and timeline state to plugin drag policies', () => {
-    const node = {
-      id: 'node',
-      fx: 12,
-      fy: 24,
-      isDragging: true,
-      isPinned: true,
-      x: 12,
-      y: 24,
-    } as FGNode;
-    const pluginRuntimeNode = {
-      id: 'plugin-runtime-node',
-      ownerPluginId: 'acme.graph-tools',
-      runtimeNodeType: 'workspace-group',
-      workspaceGroupHeight: 100,
-      workspaceGroupWidth: 160,
-      x: 40,
-      y: 50,
-    } as unknown as FGNode;
-    const onNodeDragEnd = vi.fn(() => undefined);
-
-    postDraggedNodesDragEndMessages(
-      node,
-      null,
-      {
-        graphData: { nodes: [node, pluginRuntimeNode] },
-        graphMode: '2d',
-        graphViewContributions: {
-          nodeDragEnd: [{
-            pluginId: 'acme.graph-tools',
-            contribution: {
-              id: 'acme.graph-tools.drag-end',
-              label: 'Section Drag End',
-              onNodeDragEnd,
-            },
-          }],
-        },
-        timelineActive: true,
-      },
-    );
-
-    expect(onNodeDragEnd).toHaveBeenCalledWith({
-      graphMode: '2d',
-      node,
-      nodes: [node, pluginRuntimeNode],
-      timelineActive: true,
     });
   });
 

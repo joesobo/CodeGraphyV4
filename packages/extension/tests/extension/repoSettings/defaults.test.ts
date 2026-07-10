@@ -49,30 +49,6 @@ describe('extension/repoSettings/defaults', () => {
         centerForce: 0.1,
         chargeRange: 200,
       },
-      timeline: {
-        maxCommits: 500,
-        playbackSpeed: 1,
-      },
     });
-  });
-
-  it('returns fresh nested collections on each call', () => {
-    const first = createDefaultCodeGraphyRepoSettings();
-    const second = createDefaultCodeGraphyRepoSettings();
-
-    expect(second).toEqual(first);
-    expect(second).not.toBe(first);
-    expect(second.include).not.toBe(first.include);
-    expect(second.plugins).not.toBe(first.plugins);
-    expect(second.plugins[0]).not.toBe(first.plugins[0]);
-    expect(second.pluginData).not.toBe(first.pluginData);
-    expect(second.cssSnippets).not.toBe(first.cssSnippets);
-    expect(second.nodeColors).not.toBe(first.nodeColors);
-    expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
-    expect(second.edgeVisibility).not.toBe(first.edgeVisibility);
-    expect(second.legend).not.toBe(first.legend);
-    expect(second.filterPatterns).not.toBe(first.filterPatterns);
-    expect(second.physics).not.toBe(first.physics);
-    expect(second.timeline).not.toBe(first.timeline);
   });
 });

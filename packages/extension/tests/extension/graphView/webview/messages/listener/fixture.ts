@@ -9,9 +9,6 @@ export function createContext(
   overrides: Partial<GraphViewMessageListenerContext> = {},
 ): GraphViewMessageListenerContext {
   const context = {
-    getTimelineActive: vi.fn(() => false),
-    getCurrentCommitSha: vi.fn(() => undefined),
-    getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
@@ -20,7 +17,6 @@ export function createContext(
     setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
@@ -65,7 +61,6 @@ export function createContext(
     smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     getMaxFiles: vi.fn(() => 500),
-    getPlaybackSpeed: vi.fn(() => 1),
     getDagMode: vi.fn(() => null),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     hasWorkspace: vi.fn(() => false),
@@ -77,7 +72,6 @@ export function createContext(
     loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
-    sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),

@@ -119,23 +119,6 @@ describe('repoSettings/freshness/index', () => {
     }).detail).toBe('CodeGraphy index is stale: 2 pending changed files.');
   });
 
-  it('reports a stale index when the current commit changed', () => {
-    expect(evaluateCodeGraphyIndexStatus({
-      meta: {
-        ...indexedMeta,
-        lastIndexedCommit: 'old-commit',
-      },
-      currentCommit: 'new-commit',
-      pluginSignature: 'plugins',
-      settingsSignature: 'settings',
-    })).toMatchObject({
-      freshness: 'stale',
-      hasIndex: false,
-      staleReasons: ['commit-changed'],
-      detail: 'CodeGraphy index is stale: the workspace commit changed since the last index.',
-    });
-  });
-
   it('reports stale plugin and settings signatures in priority order', () => {
     expect(evaluateCodeGraphyIndexStatus({
       meta: indexedMeta,
@@ -175,19 +158,6 @@ describe('repoSettings/freshness/index', () => {
       freshness: 'stale',
       staleReasons: ['missing-indexed-commit'],
       detail: 'CodeGraphy index is stale: the workspace now has a commit, but the saved index does not.',
-    });
-  });
-
-  it('reports current commit unavailable when the indexed commit cannot be compared', () => {
-    expect(evaluateCodeGraphyIndexStatus({
-      meta: indexedMeta,
-      currentCommit: null,
-      pluginSignature: 'plugins',
-      settingsSignature: 'settings',
-    })).toMatchObject({
-      freshness: 'stale',
-      staleReasons: ['current-commit-unavailable'],
-      detail: 'CodeGraphy index is stale: the current workspace commit could not be resolved.',
     });
   });
 

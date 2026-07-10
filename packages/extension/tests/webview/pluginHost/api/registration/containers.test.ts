@@ -34,22 +34,6 @@ describe('pluginHost/api/registration/containers', () => {
     expect(slotHosts.has('toolbar')).toBe(false);
   });
 
-  it('reuses an existing slot container and can attach a host after the container already exists', () => {
-    const slotContainers = new Map<string, Map<GraphPluginSlot, HTMLDivElement>>();
-    const slotHosts = new Map<GraphPluginSlot, HTMLDivElement>();
-
-    const first = getOrCreateSlotContainer('plugin-a', 'toolbar', slotContainers as never, slotHosts as never);
-    const second = getOrCreateSlotContainer('plugin-a', 'toolbar', slotContainers as never, slotHosts as never);
-    const host = document.createElement('div');
-
-    attachSlotHost('toolbar', host, slotContainers as never, slotHosts as never);
-    getOrCreateSlotContainer('plugin-a', 'timeline-panel', slotContainers as never, slotHosts as never);
-
-    expect(first).toBe(second);
-    expect(host.contains(first)).toBe(true);
-    expect(slotContainers.get('plugin-a')).toBeDefined();
-  });
-
   it('attaches a slot host even when no matching slot container exists yet', () => {
     const slotContainers = new Map<string, Map<GraphPluginSlot, HTMLDivElement>>();
     const slotHosts = new Map<GraphPluginSlot, HTMLDivElement>();

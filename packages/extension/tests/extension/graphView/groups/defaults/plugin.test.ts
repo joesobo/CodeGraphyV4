@@ -205,44 +205,6 @@ describe('graphView/pluginDefaultGroups', () => {
     expect(pluginExtensionUris.has('codegraphy.unknown')).toBe(false);
   });
 
-  it('copies 3d shape metadata from plugin color definitions', () => {
-    const groups = getGraphViewPluginDefaultGroups(
-      {
-        registry: {
-          list: () => [
-            {
-              plugin: {
-                id: 'codegraphy.godot',
-                name: 'Godot',
-                fileColors: {
-                  '*.gd': {
-                    color: '#478CBF',
-                    shape3D: 'sphere',
-                  },
-                },
-              },
-            },
-          ],
-        },
-      },
-      new Set<string>(),
-      new Map<string, vscode.Uri>(),
-      vscode.Uri.file('/test/extension'),
-    );
-
-    expect(groups).toEqual([
-      {
-        id: 'plugin:codegraphy.godot:*.gd',
-        pattern: '*.gd',
-        color: '#478CBF',
-        isPluginDefault: true,
-        pluginId: 'codegraphy.godot',
-        pluginName: 'Godot',
-        shape3D: 'sphere',
-      },
-    ]);
-  });
-
   it('does not add optional metadata keys when a plugin color definition only provides a color', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {

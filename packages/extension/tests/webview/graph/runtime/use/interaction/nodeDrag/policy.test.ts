@@ -40,31 +40,12 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
       graphViewContributions: {
         nodeDragEnd: [nodeDragEndContribution(onNodeDragEnd)],
       },
-      timelineActive: true,
     })).toBe(true);
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       graphMode: '2d',
+      timelineActive: false,
       node: draggedNode,
       nodes: graphNodes,
-      timelineActive: true,
-    });
-  });
-
-  it('uses the dragged node and inactive timeline as default policy context', () => {
-    const draggedNode = node();
-    const onNodeDragEnd = vi.fn(() => undefined);
-
-    expect(shouldKeepFixedPosition(draggedNode, {
-      graphMode: '3d',
-      graphViewContributions: {
-        nodeDragEnd: [nodeDragEndContribution(onNodeDragEnd)],
-      },
-    })).toBe(false);
-    expect(onNodeDragEnd).toHaveBeenCalledWith({
-      graphMode: '3d',
-      node: draggedNode,
-      nodes: [draggedNode],
-      timelineActive: false,
     });
   });
 
@@ -93,19 +74,6 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
     const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
 
     releaseNodeDrag(draggedNode, '2d');
-
-    expect(draggedNode).toMatchObject({
-      fx: 1,
-      fy: 2,
-      fz: 3,
-      isDragging: false,
-    });
-  });
-
-  it('keeps 3d coordinates fixed where the user drops the node', () => {
-    const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
-
-    releaseNodeDrag(draggedNode, '3d');
 
     expect(draggedNode).toMatchObject({
       fx: 1,

@@ -76,7 +76,6 @@ describe('graph/model/runtimeContributions', () => {
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: false,
     });
 
     expect(graphData.nodes.find(node => node.id === 'runtime:frontend')).toMatchObject({
@@ -149,7 +148,6 @@ describe('graph/model/runtimeContributions', () => {
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: false,
     });
 
     expect(graphData.nodes).toEqual([
@@ -160,49 +158,5 @@ describe('graph/model/runtimeContributions', () => {
       }),
     ]);
     expect(graphData.links).toEqual([]);
-  });
-
-  it('passes live graph mode and timeline state to runtime and projection contributions', () => {
-    const createNodes = vi.fn(() => []);
-    const project = vi.fn(({ visibleGraph }) => visibleGraph);
-    const graphViewContributions: CoreGraphViewContributionSet = {
-      ...createEmptyContributions(),
-      runtimeNodes: [{
-        pluginId: 'acme.graph-tools',
-        contribution: {
-          id: 'acme.graph-tools.runtime-node',
-          label: 'Runtime Node',
-          createNodes,
-        },
-      }],
-      projections: [{
-        pluginId: 'acme.graph-tools',
-        contribution: {
-          id: 'acme.graph-tools.projection',
-          label: 'Runtime Projection',
-          project,
-        },
-      }],
-    };
-
-    buildGraphData({
-      data: { nodes: [], edges: [] },
-      graphViewContributions,
-      nodeSizeMode: 'uniform',
-      theme: 'dark',
-      favorites: new Set(),
-      bidirectionalMode: 'separate',
-      graphMode: '3d',
-      timelineActive: true,
-    });
-
-    expect(createNodes).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
-      timelineActive: true,
-    }));
-    expect(project).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
-      timelineActive: true,
-    }));
   });
 });

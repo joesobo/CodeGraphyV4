@@ -73,19 +73,6 @@ describe('main', () => {
     expect(rootElement.props.children.type.name).toBe('GraphApp');
   });
 
-  it('renders the timeline shell when the host marks the view as timeline', async () => {
-    const container = document.createElement('div');
-    document.body.dataset.codegraphyView = 'timeline';
-    vi.spyOn(document, 'getElementById').mockReturnValue(container);
-
-    await import('../../src/webview/main');
-
-    const rootElement = mocks.render.mock.calls[0]?.[0] as {
-      props: { children: { type: { name: string } } };
-    };
-    expect(rootElement.props.children.type.name).toBe('TimelineApp');
-  });
-
   it('skips root creation when the root element is missing', async () => {
     vi.spyOn(document, 'getElementById').mockReturnValue(null);
 
@@ -103,14 +90,5 @@ describe('main', () => {
     );
 
     expect(source).not.toContain("import './three/runtime'");
-  });
-
-  it('does not load 3d node rendering from shared graph callbacks', () => {
-    const source = fs.readFileSync(
-      path.resolve(__dirname, '../../src/webview/components/graph/rendering/useGraphCallbacks.ts'),
-      'utf8',
-    );
-
-    expect(source).not.toContain('nodes/canvas3d');
   });
 });

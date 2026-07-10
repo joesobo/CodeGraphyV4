@@ -48,24 +48,6 @@ describe('graph/selectionHandlers', () => {
     expect(incrementHighlightVersion(4)).toBe(5);
   });
 
-  it('tracks highlighted neighbors and bumps 3d highlight state', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-    });
-    const handlers = createSelectionHandlers(dependencies);
-    const setHighlightVersion = vi.mocked(dependencies.setHighlightVersion);
-
-    handlers.setHighlight('src/app.ts');
-
-    expect(dependencies.highlightedNodeRef.current).toBe('src/app.ts');
-    expect([...dependencies.highlightedNeighborsRef.current]).toEqual([
-      'src/utils.ts',
-      'src/other.ts',
-    ]);
-    expect(setHighlightVersion).toHaveBeenCalledWith(expect.any(Function));
-    expect(setHighlightVersion.mock.calls[0][0](4)).toBe(5);
-  });
-
   it('updates highlight neighbors in 2d mode without bumping highlight version', () => {
     const dependencies = createInteractionDependencies({
       graphDataRef: {

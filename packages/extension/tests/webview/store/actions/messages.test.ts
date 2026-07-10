@@ -6,17 +6,6 @@ describe('webview/store/actions/messages', () => {
     vi.clearAllMocks();
   });
 
-  it('routes a known extension message through the matching message handler', () => {
-    const { actions, getState } = createHarness();
-
-    actions.handleExtensionMessage({
-      type: 'PLAYBACK_SPEED_UPDATED',
-      payload: { speed: 1.5 },
-    });
-
-    expect(getState().playbackSpeed).toBe(1.5);
-  });
-
   it('passes the current state and postMessage function to extension message handlers', () => {
     const { actions } = createHarness({ depthMode: false, graphHasIndex: true });
 

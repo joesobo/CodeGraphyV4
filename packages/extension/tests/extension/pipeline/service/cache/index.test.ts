@@ -83,18 +83,6 @@ describe('pipeline/service/cache/index', () => {
     expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(true);
   });
 
-  it('still reports a saved index when the current commit cannot be resolved', () => {
-    const workspaceRoot = createWorkspaceRootWithDatabase();
-
-    vi.mocked(readCodeGraphyRepoMeta).mockReturnValueOnce(
-      meta({ lastIndexedCommit: null }),
-    );
-    expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(true);
-
-    vi.mocked(readCodeGraphyRepoMeta).mockReturnValueOnce(meta());
-    expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(true);
-  });
-
   it('reports a saved index when metadata and the repo database exist', () => {
     const workspaceRoot = createWorkspaceRootWithDatabase();
 
@@ -131,28 +119,6 @@ describe('pipeline/service/cache/index', () => {
     });
     expect(writeCodeGraphyRepoMeta).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
-  });
-
-  it('records the current commit when index metadata is persisted', async () => {
-    const persistIndexMetadata = vi.fn();
-    const dependencies = {
-      getCurrentCommitSha: vi.fn(() => 'def456'),
-      getPluginSignature: vi.fn(() => 'next-plugin-signature'),
-      getSettingsSignature: vi.fn(() => 'next-settings-signature'),
-      persistIndexMetadata,
-      warn: vi.fn(),
-    };
-
-    await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
-
-    expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
-      pluginSignature: 'next-plugin-signature',
-      settingsSignature: 'next-settings-signature',
-    });
-    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
-      ...meta(),
-      lastIndexedCommit: 'def456',
-    });
   });
 
   it('delegates pending changed file cleanup to core metadata persistence', async () => {

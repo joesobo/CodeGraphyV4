@@ -17,11 +17,7 @@ describe('graph/keyboardToolbarShortcutResolver', () => {
       stopPropagation: false,
       effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_LAYOUT' } }],
     });
-    expect(getToolbarShortcutCommand('t', false)).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DIMENSION' } }],
-    });
+    expect(getToolbarShortcutCommand('t', false)).toBeNull();
   });
 
   it('ignores toolbar shortcuts when a modifier is pressed', () => {

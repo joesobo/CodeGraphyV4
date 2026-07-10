@@ -9,19 +9,6 @@ describe('graph/keyboardShortcutResolvers', () => {
     expect(getZoomShortcutCommand('q', false, '2d')).toBeNull();
   });
 
-  it('creates zoom shortcuts in 3d mode', () => {
-    expect(getZoomShortcutCommand('+', false, '3d')).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'zoom', factor: 1.2 }],
-    });
-    expect(getZoomShortcutCommand('-', false, '3d')).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'zoom', factor: 1 / 1.2 }],
-    });
-  });
-
   it('returns null for unsupported history keys', () => {
     expect(getHistoryShortcutCommand('q', true, false)).toBeNull();
   });

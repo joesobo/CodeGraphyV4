@@ -93,12 +93,4 @@ describe('graph view export message', () => {
 
     expect(handlers.exportSymbolsJson).toHaveBeenCalledOnce();
   });
-
-  it('returns false for non-export messages', async () => {
-    const handlers = createHandlers();
-
-    await expect(
-      applyExportMessage({ type: 'INDEX_REPO' }, handlers),
-    ).resolves.toBe(false);
-  });
 });

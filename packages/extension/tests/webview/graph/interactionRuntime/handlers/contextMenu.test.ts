@@ -219,7 +219,7 @@ describe('graph/contextMenuHandlers', () => {
     );
     expect(dependencies.setContextSelection).toHaveBeenNthCalledWith(
       2,
-      { kind: 'background', targets: [] },
+      { kind: 'background', targets: [], graphPosition: { x: 0, y: 0 } },
     );
     expect(dispatchEvent).toHaveBeenCalledTimes(2);
   });

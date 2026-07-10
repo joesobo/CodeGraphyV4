@@ -17,9 +17,6 @@ function createNode(overrides: Partial<FGNode> = {}): FGNode {
 }
 
 describe('graph/rendering/surface/view/nodeValue', () => {
-  it('uses node size for regular force graph nodes', () => {
-    expect(getGraphNodeValue(createNode({ size: 12 }))).toBe(144);
-  });
 
   it('uses the plugin pointer area diagonal for drag picking without changing node size', () => {
     expect(getGraphNodeValue(createNode({

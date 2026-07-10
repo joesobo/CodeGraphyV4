@@ -25,12 +25,4 @@ describe('graph/contextMenu/targets', () => {
     expect(buildCopyRelativeLabel(['src/app.ts'])).toBe('Copy Relative Path');
     expect(buildCopyRelativeLabel(['a.ts', 'b.ts'])).toBe('Copy Relative Paths');
   });
-
-  it('shows reveal and absolute copy only for single non-timeline selections', () => {
-    expect(shouldShowRevealInExplorer(['src/app.ts'], false)).toBe(true);
-    expect(shouldShowRevealInExplorer(['src/app.ts'], true)).toBe(false);
-    expect(shouldShowRevealInExplorer(['a.ts', 'b.ts'], false)).toBe(false);
-    expect(shouldShowAbsoluteCopy(['src/app.ts'])).toBe(true);
-    expect(shouldShowAbsoluteCopy(['a.ts', 'b.ts'])).toBe(false);
-  });
 });

@@ -149,7 +149,6 @@ export default function Graph({
   });
 
   useGraphDebugApi(buildGraphDebugOptions({
-    graphMode: '2d',
     graphState: graphRuntime,
     interactions,
     win: getGraphWindow(),

@@ -8,17 +8,15 @@ type GraphDebugApiOptions = {
   containerRef: RefObject<HTMLElement | null>;
   fitView(this: void): void;
   fg2dRef: MutableRefObject<GraphDebugControls | undefined>;
-  fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
   graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
-  graphMode: '2d' | '3d';
   openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
   win: Window;
 };
 
 function getActiveGraphDebugControls(
-  options: Pick<GraphDebugApiOptions, 'fg2dRef' | 'fg3dRef' | 'graphMode'>,
+  options: Pick<GraphDebugApiOptions, 'fg2dRef'>,
 ): GraphDebugControls | undefined {
-  return options.graphMode === '2d' ? options.fg2dRef.current : options.fg3dRef.current;
+  return options.fg2dRef.current;
 }
 
 function getGraphDebugNodeScreenPosition(
@@ -70,9 +68,7 @@ export function installGraphDebugApi({
   containerRef,
   fitView,
   fg2dRef,
-  fg3dRef,
   graphDataRef,
-  graphMode,
   openNodeContextMenu,
   win,
 }: GraphDebugApiOptions): (() => void) | undefined {
@@ -83,9 +79,7 @@ export function installGraphDebugApi({
     containerRef,
     fitView,
     fg2dRef,
-    fg3dRef,
     graphDataRef,
-    graphMode,
     openNodeContextMenu,
     win,
   };
@@ -100,7 +94,7 @@ export function installGraphDebugApi({
     getSnapshot: () => buildGraphDebugSnapshot({
       containerRef,
       graph: getActiveGraphDebugControls(options),
-      graphMode,
+      graphMode: '2d',
       nodes: graphDataRef.current.nodes,
     }),
     getNodeScreenPosition: (nodeId: string) => {

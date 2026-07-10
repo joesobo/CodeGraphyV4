@@ -174,7 +174,6 @@ function resetStore(): void {
     nodeVisibility: {},
     edgeVisibility: {},
     activePanel: 'none',
-    timelineActive: false,
     nodeDecorations: {},
     edgeDecorations: {},
     maxFiles: 500,
@@ -241,25 +240,9 @@ describe('App behavior', () => {
 
 
 
-    it('renders empty state when graph has no nodes even if timelineActive is true', () => {
-      graphStore.setState({
-        graphData: { nodes: [], edges: [] },
-        timelineActive: true,
-      });
-
-      render(<App />);
-
-      expect(
-        screen.getByText(/No files found\. No graphable files exist in this commit\./),
-      ).toBeInTheDocument();
-    });
-
-
-
     it('renders empty state when graph has no nodes', () => {
       graphStore.setState({
         graphData: { nodes: [], edges: [] },
-        timelineActive: false,
       });
 
       render(<App />);
@@ -273,7 +256,6 @@ describe('App behavior', () => {
       graphStore.setState({
         graphData: { nodes: [], edges: [] },
         activePanel: 'none',
-        timelineActive: false,
       });
 
       render(<App />);

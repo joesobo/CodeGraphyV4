@@ -94,7 +94,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
-      graphMode="2d"
       handleContextMenu={handleContextMenu}
       handleMenuAction={handleMenuAction}
       handleMouseDownCapture={vi.fn()}
@@ -114,18 +113,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
         nodeCanvasObject: vi.fn(),
         nodePointerAreaPaint: vi.fn(),
         onRenderFramePost: vi.fn(),
-        particleSize: 2,
-        particleSpeed: 0.1,
-        sharedProps: createSharedProps(),
-      }}
-      surface3dProps={{
-        fg3dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        nodeThreeObjectContext: createNodeThreeObjectContext(),
         particleSize: 2,
         particleSpeed: 0.1,
         sharedProps: createSharedProps(),

@@ -70,7 +70,6 @@ describe('graphView/provider/runtime', () => {
     expect((provider as unknown as { _groups: unknown[] })._groups).toEqual([]);
     expect((provider as unknown as { _userGroups: unknown[] })._userGroups).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
-    expect((provider as unknown as { _timelineActive: boolean })._timelineActive).toBe(false);
     expect((provider as unknown as { _firstAnalysis: boolean })._firstAnalysis).toBe(true);
     expect(initializeGraphViewProviderServices).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -166,7 +165,6 @@ describe('graphView/provider/runtime', () => {
     expect(internals._physicsSettingsMethods).toBe(methodContainers.physicsSettings);
     expect(internals._refreshMethods).toBe(methodContainers.refresh);
     expect(internals._settingsStateMethods).toBe(methodContainers.settingsState);
-    expect(internals._timelineMethods).toBe(methodContainers.timeline);
     expect(internals._viewContextMethods).toBe(methodContainers.viewContext);
     expect(internals._viewSelectionMethods).toBe(methodContainers.viewSelection);
     expect(internals._webviewMethods).toBe(methodContainers.webview);

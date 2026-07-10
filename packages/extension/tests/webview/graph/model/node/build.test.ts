@@ -24,14 +24,12 @@ describe('graph/model/node/build', () => {
           imageUrl: 'https://example.test/favorite.png',
         },
       ],
-      edges: [],
       nodeSizes: new Map([
         ['focus.ts', 16],
         ['favorite.ts', 18],
       ]),
       theme: 'light',
       favorites: new Set(['favorite.ts']),
-      timelineActive: false,
     });
 
     expect(nodes.find(node => node.id === 'focus.ts')).toMatchObject({
@@ -64,11 +62,9 @@ describe('graph/model/node/build', () => {
           imageUrl: 'https://example.test/folder.svg',
         },
       ],
-      edges: [],
       nodeSizes: new Map([['src', 16]]),
       theme: 'light',
       favorites: new Set(),
-      timelineActive: false,
     });
 
     expect(nodes).toEqual([
@@ -79,103 +75,6 @@ describe('graph/model/node/build', () => {
         nodeType: 'folder',
       }),
     ]);
-  });
-
-  it('preserves previous positions and seeds new timeline nodes near connected neighbors', () => {
-    const nodes = buildGraphNodes({
-      nodes: [
-        { id: 'anchor.ts', label: 'anchor.ts', color: '#93C5FD' },
-        { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
-      ],
-      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
-      nodeSizes: new Map([
-        ['anchor.ts', 16],
-        ['new.ts', 16],
-      ]),
-      theme: 'dark',
-      favorites: new Set(),
-      timelineActive: true,
-      previousNodes: [{ id: 'anchor.ts', x: 100, y: 200 } satisfies Pick<FGNode, 'id' | 'x' | 'y'>],
-      random: () => 0.75,
-    });
-
-    expect(nodes.find(node => node.id === 'anchor.ts')).toMatchObject({ x: 100, y: 200 });
-    expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
-  });
-
-  it('leaves newly visible connected nodes unpositioned outside timeline mode', () => {
-    const nodes = buildGraphNodes({
-      nodes: [
-        { id: 'src/logger/logger.c', label: 'logger.c', color: '#93C5FD' },
-        { id: 'src/logger/logger.c#logger_write:function', label: 'logger_write', color: '#8B5CF6' },
-      ],
-      edges: [{
-        id: 'src/logger/logger.c->src/logger/logger.c#logger_write:function#contains',
-        from: 'src/logger/logger.c',
-        to: 'src/logger/logger.c#logger_write:function',
-        kind: 'contains',
-        sources: [],
-      }],
-      nodeSizes: new Map([
-        ['src/logger/logger.c', 16],
-        ['src/logger/logger.c#logger_write:function', 16],
-      ]),
-      theme: 'dark',
-      favorites: new Set(),
-      timelineActive: false,
-      previousNodes: [
-        { id: 'src/logger/logger.c', x: 100, y: 200 } satisfies Pick<FGNode, 'id' | 'x' | 'y'>,
-      ],
-      random: () => 0.75,
-    });
-
-    expect(nodes.find(node => node.id === 'src/logger/logger.c')).toMatchObject({ x: 100, y: 200 });
-    expect(nodes.find(node => node.id === 'src/logger/logger.c#logger_write:function')).toMatchObject({
-      x: undefined,
-      y: undefined,
-    });
-  });
-
-  it('preserves previous physics state outside timeline mode', () => {
-    const nodes = buildGraphNodes({
-      nodes: [
-        { id: 'survives.ts', label: 'survives.ts', color: '#93C5FD' },
-        { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
-      ],
-      edges: [],
-      nodeSizes: new Map([
-        ['survives.ts', 16],
-        ['new.ts', 16],
-      ]),
-      theme: 'dark',
-      favorites: new Set(),
-      timelineActive: false,
-      previousNodes: [
-        {
-          id: 'survives.ts',
-          x: 100,
-          y: 200,
-          z: 300,
-          vx: 1,
-          vy: 2,
-          vz: 3,
-        } satisfies Pick<FGNode, 'id' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>,
-      ],
-    });
-
-    expect(nodes.find(node => node.id === 'survives.ts')).toMatchObject({
-      vx: 1,
-      vy: 2,
-      vz: 3,
-      x: 100,
-      y: 200,
-      z: 300,
-    });
-    expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({
-      x: undefined,
-      y: undefined,
-      z: undefined,
-    });
   });
 
   it('starts gitignored filesystem nodes with subdued opacity and muted color', () => {
@@ -193,14 +92,12 @@ describe('graph/model/node/build', () => {
           color: '#67E8F9',
         },
       ],
-      edges: [],
       nodeSizes: new Map([
         ['generated/output.ts', 16],
         ['src/app.ts', 16],
       ]),
       theme: 'dark',
       favorites: new Set(),
-      timelineActive: false,
     });
 
     expect(nodes.find(node => node.id === 'generated/output.ts')).toMatchObject({
@@ -229,11 +126,9 @@ describe('graph/model/node/build', () => {
           y: 35,
         } as never,
       ],
-      edges: [],
       nodeSizes: new Map([['runtime-section', 16]]),
       theme: 'dark',
       favorites: new Set(),
-      timelineActive: false,
       previousNodes: [
         {
           id: 'runtime-section',

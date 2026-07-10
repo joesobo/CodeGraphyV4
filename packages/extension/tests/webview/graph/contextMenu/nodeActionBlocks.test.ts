@@ -19,27 +19,17 @@ function itemLabels(entries: GraphContextMenuEntry[]): string[] {
 describe('graph/contextMenu/node/openCopyBlocks', () => {
   describe('buildOpenBlock', () => {
     it('shows "Open File" for a single target', () => {
-      const labels = itemLabels(buildOpenBlock(['src/app.ts'], false));
+      const labels = itemLabels(buildOpenBlock(['src/app.ts']));
       expect(labels).toContain('Open File');
     });
 
     it('shows "Open N Files" for multiple targets', () => {
-      const labels = itemLabels(buildOpenBlock(['src/a.ts', 'src/b.ts'], false));
+      const labels = itemLabels(buildOpenBlock(['src/a.ts', 'src/b.ts']));
       expect(labels).toContain('Open 2 Files');
     });
 
-    it('includes "Reveal in Explorer" for single target outside timeline', () => {
-      const labels = itemLabels(buildOpenBlock(['src/app.ts'], false));
-      expect(labels).toContain('Reveal in Explorer');
-    });
-
-    it('omits "Reveal in Explorer" when timeline is active', () => {
-      const labels = itemLabels(buildOpenBlock(['src/app.ts'], true));
-      expect(labels).not.toContain('Reveal in Explorer');
-    });
-
     it('omits "Reveal in Explorer" for multi-select', () => {
-      const labels = itemLabels(buildOpenBlock(['src/a.ts', 'src/b.ts'], false));
+      const labels = itemLabels(buildOpenBlock(['src/a.ts', 'src/b.ts']));
       expect(labels).not.toContain('Reveal in Explorer');
     });
   });

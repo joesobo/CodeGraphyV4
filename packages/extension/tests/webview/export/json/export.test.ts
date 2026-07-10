@@ -24,10 +24,8 @@ import { graphStore } from '../../../../src/webview/store/state';
 
 const noLegends: IGroup[] = [];
 const initialStoreState = {
-  currentCommitSha: graphStore.getState().currentCommitSha,
   legends: graphStore.getState().legends,
   pluginStatuses: graphStore.getState().pluginStatuses,
-  timelineActive: graphStore.getState().timelineActive,
 };
 
 afterEach(() => {
@@ -37,30 +35,6 @@ afterEach(() => {
 });
 
 describe('buildExportData', () => {
-  it('returns labeled top-level sections for an empty graph', () => {
-    const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildExportData(data, noLegends);
-
-    expect(result.format).toBe('codegraphy-export');
-    expect(result.version).toBe('3.0');
-    expect(result.scope.graph).toBe('current-view');
-    expect(result.scope.timeline).toEqual({ active: false, commitSha: null });
-    expect(result.summary).toEqual({
-      totalNodes: 0,
-      totalEdges: 0,
-      totalLegendRules: 0,
-      totalImages: 0,
-    });
-    expect(result.legend).toEqual([]);
-    expect(result.nodes).toEqual([]);
-    expect(result.edges).toEqual([]);
-  });
-
-  it('uses timeline scope context when provided', () => {
-    const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildExportData(data, noLegends, [], { timelineActive: true, currentCommitSha: 'abc123' });
-    expect(result.scope.timeline).toEqual({ active: true, commitSha: 'abc123' });
-  });
 
   it('builds exported nodes and edges with source attribution', () => {
     const data: IGraphData = {
@@ -302,10 +276,8 @@ describe('buildExportData', () => {
       edges: [],
     };
     graphStore.setState({
-      currentCommitSha: 'abc123',
       legends: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
       pluginStatuses: [],
-      timelineActive: true,
     });
 
     exportAsJson(data);
@@ -326,10 +298,6 @@ describe('buildExportData', () => {
       exportedAt: expect.any(String),
       scope: {
         graph: 'current-view',
-        timeline: {
-          active: true,
-          commitSha: 'abc123',
-        },
       },
       summary: {
         totalNodes: 1,

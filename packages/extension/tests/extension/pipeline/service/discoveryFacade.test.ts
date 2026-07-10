@@ -43,6 +43,7 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
 }));
 
 vi.mock('node:child_process', () => ({
+  execFile: vi.fn(),
   spawnSync: vi.fn(),
 }));
 

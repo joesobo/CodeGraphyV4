@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appendSection, appendTimelineSummary } from '../../../../src/webview/export/markdown/summary';
+import { appendSection } from '../../../../src/webview/export/markdown/summary';
 import type { ExportData } from '../../../../src/webview/export/shared/contracts';
 
 function createExportData(overrides: Partial<ExportData> = {}): ExportData {
@@ -9,10 +9,6 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
     exportedAt: '2026-03-16T12:34:56.000Z',
     scope: {
       graph: 'current-view',
-      timeline: {
-        active: false,
-        commitSha: null,
-      },
     },
     summary: {
       totalNodes: 0,
@@ -34,41 +30,5 @@ describe('webview/export/markdown/summary', () => {
     appendSection(lines, '## Nodes');
 
     expect(lines).toEqual(['# CodeGraphy Export', '', '## Nodes', '']);
-  });
-
-  it('renders inactive and active timeline summaries', () => {
-    const inactiveLines: string[] = [];
-    const activeLines: string[] = [];
-    const unknownCommitLines: string[] = [];
-
-    appendTimelineSummary(inactiveLines, createExportData());
-    appendTimelineSummary(
-      activeLines,
-      createExportData({
-        scope: {
-          graph: 'current-view',
-          timeline: {
-            active: true,
-            commitSha: 'abc123',
-          },
-        },
-      }),
-    );
-    appendTimelineSummary(
-      unknownCommitLines,
-      createExportData({
-        scope: {
-          graph: 'current-view',
-          timeline: {
-            active: true,
-            commitSha: null,
-          },
-        },
-      }),
-    );
-
-    expect(inactiveLines).toEqual(['> timeline: inactive']);
-    expect(activeLines).toEqual(['> timeline commit: abc123']);
-    expect(unknownCommitLines).toEqual(['> timeline commit: unknown']);
   });
 });

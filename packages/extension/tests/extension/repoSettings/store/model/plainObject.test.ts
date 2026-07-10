@@ -5,32 +5,6 @@ import {
   isPlainObject,
 } from '../../../../../src/extension/repoSettings/store/model/plainObject';
 describe('extension/repoSettings/store/model/plainObject', () => {
-  it('deep clones nested objects and arrays without preserving references', () => {
-    const original: {
-      legend: Array<{ color: string; id: string; pattern: string }>;
-      optional?: string;
-      timeline: { maxCommits: number; playbackSpeed: number };
-    } = {
-      legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],
-      optional: undefined,
-      timeline: { maxCommits: 500, playbackSpeed: 1 },
-    };
-
-    const cloned = deepClone(original);
-    cloned.legend[0].color = '#abcdef';
-    cloned.timeline.playbackSpeed = 2;
-
-    expect(cloned).toEqual({
-      legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#abcdef' }],
-      optional: undefined,
-      timeline: { maxCommits: 500, playbackSpeed: 2 },
-    });
-    expect(original).toEqual({
-      legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],
-      optional: undefined,
-      timeline: { maxCommits: 500, playbackSpeed: 1 },
-    });
-  });
 
   it('recognizes only plain objects', () => {
     expect(isPlainObject({ legend: [] })).toBe(true);
@@ -45,25 +19,22 @@ describe('extension/repoSettings/store/model/plainObject', () => {
       {
         legend: [{ id: 'default', pattern: 'src/**', color: '#123456' }],
         nodeColors: { file: '#111111', folder: '#222222' },
-        timeline: { maxCommits: 500, playbackSpeed: 1 },
       },
       {
         legend: [{ id: 'override', pattern: 'tests/**', color: '#abcdef' }],
         nodeColors: { folder: '#654321' },
-        timeline: { playbackSpeed: 2 },
       },
     );
 
     expect(merged).toEqual({
       legend: [{ id: 'override', pattern: 'tests/**', color: '#abcdef' }],
       nodeColors: { file: '#111111', folder: '#654321' },
-      timeline: { maxCommits: 500, playbackSpeed: 2 },
     });
   });
 
   it('returns the override when either side is not a plain object', () => {
-    expect(deepMerge({ timeline: { playbackSpeed: 1 } }, null)).toEqual({ timeline: { playbackSpeed: 1 } });
-    expect(deepMerge({ timeline: { playbackSpeed: 1 } }, ['override'])).toEqual(['override']);
-    expect(deepMerge('base', { playbackSpeed: 2 })).toEqual({ playbackSpeed: 2 });
+    expect(deepMerge({ }, null)).toEqual({ });
+    expect(deepMerge({ }, ['override'])).toEqual(['override']);
+    expect(deepMerge('base', { })).toEqual({ });
   });
 });

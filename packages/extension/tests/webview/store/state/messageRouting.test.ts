@@ -13,15 +13,6 @@ describe('GraphStore message routing', () => {
     clearSentMessages();
   });
 
-  it('handles PLAYBACK_SPEED_UPDATED messages', () => {
-    store.getState().handleExtensionMessage({
-      type: 'PLAYBACK_SPEED_UPDATED',
-      payload: { speed: 1.75 },
-    });
-
-    expect(store.getState().playbackSpeed).toBe(1.75);
-  });
-
   it('handles DECORATIONS_UPDATED messages', () => {
     const nodeDecorations: Record<string, NodeDecorationPayload> = {
       'src/app.ts': { color: '#00ff00' },
@@ -219,106 +210,6 @@ describe('GraphStore message routing', () => {
     });
 
     expect(store.getState().pluginToolbarActions).toEqual(items);
-  });
-
-  it('ignores PLUGIN_WEBVIEW_INJECT messages without mutating state', () => {
-    store.setState({
-      pluginContextMenuItems: [
-        { label: 'Existing', when: 'both', pluginId: 'plugin.existing', index: 0 },
-      ],
-      pluginExporters: [
-        {
-          id: 'existing',
-          label: 'Existing Export',
-          pluginId: 'plugin.existing',
-          pluginName: 'Existing Plugin',
-          index: 0,
-        },
-      ],
-      pluginToolbarActions: [
-        {
-          id: 'wikilinks',
-          label: 'Docs',
-          pluginId: 'plugin.existing',
-          pluginName: 'Existing Plugin',
-          index: 0,
-          items: [
-            { id: 'docs-summary', label: 'Docs Summary', index: 0 },
-          ],
-        },
-      ],
-      playbackSpeed: 2,
-      dagMode: 'td',
-      nodeSizeMode: 'uniform',
-    });
-
-    store.getState().handleExtensionMessage({
-      type: 'PLUGIN_WEBVIEW_INJECT',
-      payload: {
-        pluginId: 'plugin.docs',
-        scripts: ['webview://plugin.js'],
-        styles: ['webview://plugin.css'],
-      },
-    });
-
-    expect(store.getState().pluginContextMenuItems).toEqual([
-      { label: 'Existing', when: 'both', pluginId: 'plugin.existing', index: 0 },
-    ]);
-    expect(store.getState().pluginExporters).toEqual([
-      {
-        id: 'existing',
-        label: 'Existing Export',
-        pluginId: 'plugin.existing',
-        pluginName: 'Existing Plugin',
-        index: 0,
-      },
-    ]);
-    expect(store.getState().pluginToolbarActions).toEqual([
-      {
-        id: 'wikilinks',
-        label: 'Docs',
-        pluginId: 'plugin.existing',
-        pluginName: 'Existing Plugin',
-        index: 0,
-        items: [
-          { id: 'docs-summary', label: 'Docs Summary', index: 0 },
-        ],
-      },
-    ]);
-    expect(store.getState().playbackSpeed).toBe(2);
-    expect(store.getState().dagMode).toBe('td');
-    expect(store.getState().nodeSizeMode).toBe('uniform');
-  });
-
-  it('handles NODE_SIZE_MODE_UPDATED messages', () => {
-    store.getState().handleExtensionMessage({
-      type: 'NODE_SIZE_MODE_UPDATED',
-      payload: { nodeSizeMode: 'churn' },
-    });
-
-    expect(store.getState().nodeSizeMode).toBe('churn');
-  });
-
-  it('CACHE_INVALIDATED clears indexing progress as well as timeline state', () => {
-    store.setState({
-      timelineActive: true,
-      timelineCommits: [
-        { sha: 'aaa', timestamp: 1, message: 'commit', author: 'a', parents: [] },
-      ],
-      currentCommitSha: 'aaa',
-      isPlaying: true,
-      isIndexing: true,
-      indexProgress: { phase: 'indexing', current: 1, total: 10 },
-    });
-
-    store.getState().handleExtensionMessage({ type: 'CACHE_INVALIDATED' });
-
-    expect(store.getState().timelineActive).toBe(false);
-    expect(store.getState().timelineCommits).toEqual([]);
-    expect(store.getState().currentCommitSha).toBeNull();
-    expect(store.getState().isPlaying).toBe(false);
-    expect(store.getState().isIndexing).toBe(false);
-    expect(store.getState().indexProgress).toBeNull();
   });
 
   it('CYCLE_LAYOUT falls back to free-form when dagMode is outside the cycle', () => {

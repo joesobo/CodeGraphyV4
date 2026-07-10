@@ -237,35 +237,4 @@ describe('graphView/provider/plugin/broadcasts', () => {
       payload: { exporters: ['markdown'] },
     });
   });
-
-  it('falls back to the timeline view when the main view is unavailable', () => {
-    const timelineView = {
-      webview: { cspSource: 'timeline' },
-      viewType: 'codegraphy.timelineView',
-      onDidDispose: vi.fn(),
-      visible: true,
-      onDidChangeVisibility: vi.fn(),
-      show: vi.fn(),
-    } as unknown as vscode.WebviewView;
-    const source = createPluginSource({
-      _view: undefined,
-      _timelineView: timelineView,
-    });
-    const sendGroupsUpdated = vi.fn();
-    const methods = createGraphViewProviderPluginBroadcastMethods(
-      source,
-      {
-        sendGroupsUpdated,
-      },
-      1,
-    );
-
-    methods._sendGroupsUpdated();
-
-    expect(sendGroupsUpdated).toHaveBeenCalledWith(
-      source._groups,
-      expect.objectContaining({ view: timelineView }),
-      expect.any(Function),
-    );
-  });
 });

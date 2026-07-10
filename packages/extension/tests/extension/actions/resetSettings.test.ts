@@ -35,7 +35,7 @@ const SNAPSHOT: ISettingsSnapshot = {
   showLabels: false,
   maxFiles: 321,
   verboseDiagnostics: true,
-  nodeSizeMode: 'churn',
+  nodeSizeMode: 'uniform',
 };
 
 describe('extension/actions/resetSettings', () => {
@@ -106,7 +106,7 @@ describe('extension/actions/resetSettings', () => {
       ['showLabels', false],
       ['maxFiles', 321],
       ['verboseDiagnostics', true],
-      ['nodeSizeMode', 'churn'],
+      ['nodeSizeMode', 'uniform'],
     ]);
   });
 });

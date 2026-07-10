@@ -27,7 +27,7 @@ describe('getNavCommands', () => {
     expect(ids).toContain('codegraphy.zoomOut');
     expect(ids).toContain('codegraphy.toggleDepthMode');
     expect(ids).toContain('codegraphy.cycleLayout');
-    expect(ids).toContain('codegraphy.toggleDimension');
+    expect(ids).not.toContain('codegraphy.toggleDimension');
   });
 
   describe('open command', () => {
@@ -116,18 +116,6 @@ describe('getNavCommands', () => {
       cmd.handler();
 
       expect(provider.sendCommand).toHaveBeenCalledWith('CYCLE_LAYOUT');
-    });
-  });
-
-  describe('toggleDimension command', () => {
-    it('sends TOGGLE_DIMENSION command to the provider', () => {
-      const provider = makeProvider();
-      const commands = getNavCommands(provider as never);
-      const cmd = commands.find((cmd) => cmd.id === 'codegraphy.toggleDimension')!;
-
-      cmd.handler();
-
-      expect(provider.sendCommand).toHaveBeenCalledWith('TOGGLE_DIMENSION');
     });
   });
 });

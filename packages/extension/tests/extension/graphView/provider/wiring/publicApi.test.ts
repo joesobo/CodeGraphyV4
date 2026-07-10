@@ -49,8 +49,6 @@ function createTarget() {
     })),
   };
   const timelineMethods = {
-    sendPlaybackSpeed: vi.fn(),
-    invalidateTimelineCache: vi.fn(async () => undefined),
   };
   const viewContextMethods = {
     updateGraphData: vi.fn(),
@@ -90,8 +88,6 @@ function createTarget() {
     resolveWebviewView: vi.fn(),
     updateGraphData: vi.fn(),
     getGraphData,
-    sendPlaybackSpeed: vi.fn(),
-    invalidateTimelineCache: vi.fn(async () => undefined),
     registerExternalPlugin: vi.fn(),
     queryGraph: vi.fn(),
     setDepthMode: vi.fn(async () => undefined),
@@ -106,7 +102,6 @@ function createTarget() {
       command: commandMethods,
       plugin: pluginMethods,
       query: queryMethods,
-      timeline: timelineMethods,
       viewContext: viewContextMethods,
       viewSelection: viewSelectionMethods,
       webview: webviewMethods,
@@ -166,56 +161,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
         duration: 1,
       },
     );
-  });
-
-  it('assigns graph, timeline, plugin, and selection delegates', async () => {
-    const {
-      target,
-      graphData: previousGraphData,
-      getGraphData,
-      queryMethods,
-    } = createTarget();
-    const graphData: IGraphData = {
-      nodes: [{ id: 'src/feature.ts', label: 'feature.ts', color: '#123456' }],
-      edges: [],
-    };
-    const query: GraphQueryRequest = { report: 'nodes', arguments: {} };
-
-    assignGraphViewProviderPublicMethods(target);
-
-    target.updateGraphData(graphData);
-    expect(target.getGraphData()).toBe(previousGraphData);
-    target.sendPlaybackSpeed();
-    await target.invalidateTimelineCache();
-    await target.refreshGitignoreMetadata();
-    await target.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
-    target.registerExternalPlugin({ id: 'plugin.test' });
-    expect(target.queryGraph(query)).toEqual({
-      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
-      page: { offset: 0, limit: 500, returned: 1, total: 1 },
-    });
-    await target.setDepthMode(true);
-    target.setFocusedFile('src/feature.ts');
-    await target.setDepthLimit(3);
-    expect(target.getDepthLimit()).toBe(7);
-
-    expect(target._methodContainers.viewContext.updateGraphData).toHaveBeenCalledWith(graphData);
-    expect(getGraphData).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.timeline.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.refresh.refreshGitignoreMetadata).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.refresh.refreshIndex).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
-      { id: 'plugin.test' },
-      undefined,
-    );
-    expect(queryMethods.queryGraph).toHaveBeenCalledWith(query);
-    expect(target._methodContainers.viewSelection.setDepthMode).toHaveBeenCalledWith(true);
-    expect(target._methodContainers.viewSelection.setFocusedFile).toHaveBeenCalledWith(
-      'src/feature.ts',
-    );
-    expect(target._methodContainers.viewSelection.setDepthLimit).toHaveBeenCalledWith(3);
-    expect(target._methodContainers.viewSelection.getDepthLimit).toHaveBeenCalledTimes(1);
   });
 
   it('assigns webview delegates', () => {

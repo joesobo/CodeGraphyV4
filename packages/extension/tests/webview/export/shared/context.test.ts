@@ -2,15 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createExportTimestamp,
   createImageExportDataUrl,
-  getExportContext,
   resolveDirectionColor,
 } from '../../../../src/webview/export/shared/context';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 
 const initialExportContext = {
-  timelineActive: graphStore.getState().timelineActive,
-  currentCommitSha: graphStore.getState().currentCommitSha,
 };
 
 afterEach(() => {
@@ -25,17 +22,6 @@ describe('createExportTimestamp', () => {
     vi.setSystemTime(new Date('2026-03-16T12:34:56.789Z'));
 
     expect(createExportTimestamp()).toBe('2026-03-16T12-34-56');
-  });
-});
-
-describe('getExportContext', () => {
-  it('returns the current timeline state from the graph store', () => {
-    graphStore.setState({ timelineActive: true, currentCommitSha: 'abc123' });
-
-    expect(getExportContext()).toEqual({
-      timelineActive: true,
-      currentCommitSha: 'abc123',
-    });
   });
 });
 

@@ -64,8 +64,6 @@ describe('DisplaySection', () => {
     it('renders direction mode buttons', () => {
       renderContent();
 
-      expect(screen.getByRole('button', { name: /^2D$/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /^3D$/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Arrows$/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^Particles$/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
@@ -73,26 +71,11 @@ describe('DisplaySection', () => {
 
 
 
-    it('renders renderer and direction controls on separate rows', () => {
+    it('renders direction controls without a renderer mode row', () => {
       renderContent();
 
-      const rendererRow = screen.getByTestId('display-renderer-row');
-      const directionRow = screen.getByTestId('display-direction-row');
-
-      expect(rendererRow).toHaveTextContent('Renderer');
-      expect(rendererRow).not.toHaveTextContent('Direction');
-      expect(directionRow).toHaveTextContent('Direction');
-      expect(directionRow).not.toHaveTextContent('Renderer');
-    });
-
-
-
-    it('updates renderer mode from Display settings', () => {
-      renderContent({ graphMode: '2d' });
-
-      fireEvent.click(screen.getByRole('button', { name: /^3D$/i }));
-
-      expect(graphStore.getState().graphMode).toBe('3d');
+      expect(screen.queryByTestId('display-renderer-row')).not.toBeInTheDocument();
+      expect(screen.getByTestId('display-direction-row')).toHaveTextContent('Direction');
     });
 
 

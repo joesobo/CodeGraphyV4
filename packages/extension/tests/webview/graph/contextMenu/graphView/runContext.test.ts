@@ -7,7 +7,6 @@ describe('graphView run context', () => {
       { kind: 'node' },
       { kind: 'node', targets: ['src/app.ts'], edgeId: 'not-an-edge' },
       '2d',
-      false,
       [],
     )).toMatchObject({
       selectedNodeIds: ['src/app.ts'],
@@ -20,7 +19,6 @@ describe('graphView run context', () => {
       { kind: 'edge' },
       { kind: 'edge', targets: ['source', 'target'] },
       '2d',
-      false,
       [],
     )).toMatchObject({
       selectedNodeIds: [],

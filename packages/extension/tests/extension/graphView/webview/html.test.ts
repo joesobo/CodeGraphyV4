@@ -40,20 +40,6 @@ describe('graphView/webview/html', () => {
     expect(html).toContain('<div id="root"></div>');
   });
 
-  it('marks the timeline webview html with the timeline view kind', () => {
-    const html = createGraphViewHtml(
-      vscode.Uri.file('/test/extension'),
-      {
-        cspSource: 'vscode-webview://test',
-        asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
-      } as unknown as vscode.Webview,
-      'nonce-value',
-      'timeline',
-    );
-
-    expect(html).toContain('data-codegraphy-view="timeline"');
-  });
-
   it('marks the graph debug bridge as enabled when requested', () => {
     const html = createGraphViewHtml(
       vscode.Uri.file('/test/extension'),
