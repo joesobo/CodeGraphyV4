@@ -1,0 +1,13 @@
+{
+  "name": "@codegraphy-dev/graph-benchmark",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint src tests vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@codegraphy-dev/plugin-api": "workspace:*"
+  }
+}

@@ -116,7 +116,7 @@ Public test seams are the versioned fixture/report interfaces, the
 vertical red/green slices; do not build all tests or all implementation in a
 horizontal batch.
 
-- [ ] Add the private benchmark package and a failing determinism test; make
+- [x] Add the private benchmark package and a failing determinism test; make
       same seed/config produce the same graph identifiers and valid edge
       endpoints, then run package test/typecheck/lint.
 - [ ] Add a failing canonical-hash test; implement a versioned streaming
