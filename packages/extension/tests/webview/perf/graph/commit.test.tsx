@@ -28,6 +28,7 @@ describe('webview/perf/graph/commit', () => {
       layoutKey: 'uniform::a::edge-a',
       nodeCount: 3,
       revision: {},
+      scopeProjectionRevision: 7,
       scopeVisibility,
     }, { cancelFrame, lifecycle, requestFrame }));
 
@@ -35,6 +36,7 @@ describe('webview/perf/graph/commit', () => {
       edgeCount: 2,
       layoutKey: 'uniform::a::edge-a',
       nodeCount: 3,
+      scopeProjectionRevision: 7,
       scopeVisibility,
     });
     expect(lifecycle.publishCommit).not.toHaveBeenCalled();
@@ -94,12 +96,51 @@ describe('webview/perf/graph/commit', () => {
     expect(lifecycle.publishCommit).not.toHaveBeenCalledWith(firstCommit);
   });
 
+  it('preserves a pending layout change when the latest coalesced commit reverts it', () => {
+    const firstCommit = { operation: {}, layoutChanged: true } as never;
+    const revertedCommit = { operation: {}, layoutChanged: false } as never;
+    const lifecycle = {
+      prepareCommit: vi.fn()
+        .mockReturnValueOnce(firstCommit)
+        .mockReturnValueOnce(revertedCommit),
+      publishCommit: vi.fn(),
+    };
+    let frameCallback: FrameRequestCallback | undefined;
+    const requestFrame = vi.fn((callback: FrameRequestCallback) => {
+      frameCallback = callback;
+      return 58;
+    });
+    const cancelFrame = vi.fn();
+    const { rerender } = renderHook(
+      ({ revision }) => useGraphPerfCommit({
+        edgeCount: 0,
+        layoutKey: undefined,
+        nodeCount: 0,
+        revision,
+      }, { cancelFrame, lifecycle, requestFrame }),
+      { initialProps: { revision: {} } },
+    );
+
+    rerender({ revision: {} });
+    expect(requestFrame).toHaveBeenCalledOnce();
+    act(() => frameCallback?.(16));
+
+    expect(lifecycle.publishCommit).toHaveBeenCalledWith({
+      operation: {},
+      layoutChanged: true,
+    });
+  });
+
   it('cancels an unpublished graph event when the observer unmounts', () => {
     const lifecycle = {
       prepareCommit: vi.fn(() => ({ operation: {}, layoutChanged: false }) as never),
       publishCommit: vi.fn(),
     };
-    const requestFrame = vi.fn(() => 59);
+    let frameCallback: FrameRequestCallback | undefined;
+    const requestFrame = vi.fn((callback: FrameRequestCallback) => {
+      frameCallback = callback;
+      return 59;
+    });
     const cancelFrame = vi.fn();
     const { unmount } = renderHook(() => useGraphPerfCommit({
       edgeCount: 0,
@@ -109,8 +150,65 @@ describe('webview/perf/graph/commit', () => {
     }, { cancelFrame, lifecycle, requestFrame }));
 
     unmount();
+    act(() => frameCallback?.(16));
 
     expect(cancelFrame).toHaveBeenCalledWith(59);
+    expect(lifecycle.publishCommit).not.toHaveBeenCalled();
+  });
+
+  it('cancels a prepared commit when capture becomes disarmed before its frame', () => {
+    const lifecycle = {
+      prepareCommit: vi.fn()
+        .mockReturnValueOnce({ operation: {}, layoutChanged: false } as never)
+        .mockReturnValueOnce(undefined),
+      publishCommit: vi.fn(),
+    };
+    let frameCallback: FrameRequestCallback | undefined;
+    const requestFrame = vi.fn((callback: FrameRequestCallback) => {
+      frameCallback = callback;
+      return 60;
+    });
+    const cancelFrame = vi.fn();
+    const { rerender } = renderHook(
+      ({ revision }) => useGraphPerfCommit({
+        edgeCount: 0,
+        layoutKey: undefined,
+        nodeCount: 0,
+        revision,
+      }, { cancelFrame, lifecycle, requestFrame }),
+      { initialProps: { revision: {} } },
+    );
+
+    rerender({ revision: {} });
+    act(() => frameCallback?.(16));
+
+    expect(cancelFrame).toHaveBeenCalledWith(60);
+    expect(lifecycle.publishCommit).not.toHaveBeenCalled();
+  });
+
+  it('cancels with the previous frame dependency when that dependency changes', () => {
+    const lifecycle = {
+      prepareCommit: vi.fn(() => ({ operation: {}, layoutChanged: false }) as never),
+      publishCommit: vi.fn(),
+    };
+    const requestFrame = vi.fn(() => 63);
+    const firstCancelFrame = vi.fn();
+    const nextCancelFrame = vi.fn();
+    const { rerender } = renderHook(
+      ({ cancelFrame }) => useGraphPerfCommit({
+        edgeCount: 0,
+        layoutKey: undefined,
+        nodeCount: 0,
+        revision: {},
+      }, { cancelFrame, lifecycle, requestFrame }),
+      { initialProps: { cancelFrame: firstCancelFrame } },
+    );
+
+    rerender({ cancelFrame: nextCancelFrame });
+
+    expect(firstCancelFrame).toHaveBeenCalledWith(63);
+    expect(nextCancelFrame).not.toHaveBeenCalled();
+    expect(requestFrame).toHaveBeenCalledTimes(2);
   });
 
   it('schedules a commit when only the applied scope visibility changes', () => {
@@ -126,31 +224,69 @@ describe('webview/perf/graph/commit', () => {
       nodeVisibility: { file: true },
     };
     const { rerender } = renderHook(
-      ({ scopeVisibility }) => useGraphPerfCommit({
+      ({ scopeProjectionRevision, scopeVisibility }) => useGraphPerfCommit({
         edgeCount: 2,
         layoutKey: 'uniform::stable',
         nodeCount: 3,
         revision: graphRevision,
+        scopeProjectionRevision,
         scopeVisibility,
       }, { cancelFrame, lifecycle, requestFrame }),
-      { initialProps: { scopeVisibility: firstScopeVisibility } },
+      {
+        initialProps: {
+          scopeProjectionRevision: 4,
+          scopeVisibility: firstScopeVisibility,
+        },
+      },
     );
 
     const nextScopeVisibility: PerfScopeVisibilitySnapshot = {
       edgeVisibility: { import: true },
       nodeVisibility: { file: false },
     };
-    rerender({ scopeVisibility: nextScopeVisibility });
+    rerender({ scopeProjectionRevision: 5, scopeVisibility: nextScopeVisibility });
 
     expect(lifecycle.prepareCommit).toHaveBeenCalledTimes(2);
     expect(lifecycle.prepareCommit).toHaveBeenLastCalledWith({
       edgeCount: 2,
       layoutKey: 'uniform::stable',
       nodeCount: 3,
+      scopeProjectionRevision: 5,
       scopeVisibility: nextScopeVisibility,
     });
     expect(requestFrame).toHaveBeenCalledTimes(1);
     expect(cancelFrame).not.toHaveBeenCalled();
+  });
+
+  it('schedules a commit when only the scope projection revision changes', () => {
+    const lifecycle = {
+      prepareCommit: vi.fn(() => ({ operation: {}, layoutChanged: false }) as never),
+      publishCommit: vi.fn(),
+    };
+    const requestFrame = vi.fn(() => 62);
+    const graphRevision = {};
+    const { rerender } = renderHook(
+      ({ scopeProjectionRevision }) => useGraphPerfCommit({
+        edgeCount: 2,
+        layoutKey: 'uniform::stable',
+        nodeCount: 3,
+        revision: graphRevision,
+        scopeProjectionRevision,
+        scopeVisibility,
+      }, { cancelFrame: vi.fn(), lifecycle, requestFrame }),
+      { initialProps: { scopeProjectionRevision: 4 } },
+    );
+
+    rerender({ scopeProjectionRevision: 5 });
+
+    expect(lifecycle.prepareCommit).toHaveBeenCalledTimes(2);
+    expect(lifecycle.prepareCommit).toHaveBeenLastCalledWith({
+      edgeCount: 2,
+      layoutKey: 'uniform::stable',
+      nodeCount: 3,
+      scopeProjectionRevision: 5,
+      scopeVisibility,
+    });
   });
 
   it('does not observe a non-empty parent fallback handled by the graph component', () => {

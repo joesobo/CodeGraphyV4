@@ -12,6 +12,7 @@ type GraphComponentProps = React.ComponentProps<typeof Graph>;
 export interface GraphSurfaceProps {
   graphData: IGraphData;
   coloredData: IGraphData | null | undefined;
+  scopeProjectionRevision: number;
   scopeVisibility?: PerfScopeVisibilitySnapshot;
   showOrphans: boolean;
   depthMode: boolean;
@@ -27,6 +28,7 @@ export interface GraphSurfaceProps {
 export function GraphSurface({
   graphData,
   coloredData,
+  scopeProjectionRevision,
   scopeVisibility,
   showOrphans,
   depthMode,
@@ -45,6 +47,7 @@ export function GraphSurface({
     layoutKey: undefined,
     nodeCount: 0,
     revision: graphData,
+    scopeProjectionRevision,
     scopeVisibility,
   });
 
@@ -61,6 +64,7 @@ export function GraphSurface({
     <>
       <Graph
         data={coloredData || graphData}
+        scopeProjectionRevision={scopeProjectionRevision}
         scopeVisibility={scopeVisibility}
         theme={theme}
         nodeDecorations={nodeDecorations}

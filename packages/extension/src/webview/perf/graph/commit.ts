@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type MutableRefObject } from 'react';
 import type {
   GraphPerfLifecycle,
   GraphCommitInput,
@@ -25,6 +25,47 @@ const defaultDependencies: GraphPerfCommitDependencies = {
 interface PendingGraphCommit {
   commit: ReturnType<GraphPerfLifecycle['prepareCommit']> & object;
   frame: number;
+  token: object;
+}
+
+function cancelPendingGraphCommit(
+  pendingRef: MutableRefObject<PendingGraphCommit | undefined>,
+  cancelFrame: GraphPerfCommitDependencies['cancelFrame'],
+): void {
+  const pending = pendingRef.current;
+  if (!pending) return;
+  pendingRef.current = undefined;
+  cancelFrame(pending.frame);
+}
+
+function enqueueGraphCommit(
+  commit: PendingGraphCommit['commit'],
+  pendingRef: MutableRefObject<PendingGraphCommit | undefined>,
+  dependencies: GraphPerfCommitDependencies,
+): void {
+  const pending = pendingRef.current;
+  if (pending) {
+    pending.commit = {
+      ...commit,
+      layoutChanged: pending.commit.layoutChanged || commit.layoutChanged,
+    };
+    return;
+  }
+  const token = {};
+  const frame = dependencies.requestFrame(() => {
+    const next = pendingRef.current;
+    if (next?.token !== token) return;
+    pendingRef.current = undefined;
+    dependencies.lifecycle.publishCommit(next.commit);
+  });
+  pendingRef.current = { commit, frame, token };
+}
+
+function prepareObservedGraphCommit(
+  input: GraphCommitInput,
+  lifecycle: GraphPerfCommitDependencies['lifecycle'],
+): PendingGraphCommit['commit'] | undefined {
+  return lifecycle.prepareCommit(input);
 }
 
 export function useGraphPerfCommit(
@@ -34,6 +75,7 @@ export function useGraphPerfCommit(
     layoutKey,
     nodeCount,
     revision,
+    scopeProjectionRevision,
     scopeVisibility,
   }: GraphPerfCommitInput,
   dependencies: GraphPerfCommitDependencies = defaultDependencies,
@@ -43,41 +85,25 @@ export function useGraphPerfCommit(
 
   useEffect(() => {
     if (!enabled) {
-      const pending = pendingRef.current;
-      if (pending) {
-        pendingRef.current = undefined;
-        cancelFrame(pending.frame);
-      }
+      cancelPendingGraphCommit(pendingRef, cancelFrame);
       return;
     }
 
-    const commit = lifecycle.prepareCommit({
+    const commit = prepareObservedGraphCommit({
       edgeCount,
       layoutKey,
       nodeCount,
+      scopeProjectionRevision,
       ...(scopeVisibility ? { scopeVisibility } : {}),
-    });
+    }, lifecycle);
     if (!commit) {
-      const pending = pendingRef.current;
-      if (pending) {
-        pendingRef.current = undefined;
-        cancelFrame(pending.frame);
-      }
+      cancelPendingGraphCommit(pendingRef, cancelFrame);
       return;
     }
-
-    const pending = pendingRef.current;
-    if (pending) {
-      pending.commit = commit;
-      return;
-    }
-
-    const next: PendingGraphCommit = { commit, frame: -1 };
-    pendingRef.current = next;
-    next.frame = requestFrame(() => {
-      if (pendingRef.current !== next) return;
-      pendingRef.current = undefined;
-      lifecycle.publishCommit(next.commit);
+    enqueueGraphCommit(commit, pendingRef, {
+      cancelFrame,
+      lifecycle,
+      requestFrame,
     });
   }, [
     cancelFrame,
@@ -88,13 +114,11 @@ export function useGraphPerfCommit(
     nodeCount,
     requestFrame,
     revision,
+    scopeProjectionRevision,
     scopeVisibility,
   ]);
 
   useEffect(() => () => {
-    const pending = pendingRef.current;
-    if (!pending) return;
-    pendingRef.current = undefined;
-    cancelFrame(pending.frame);
+    cancelPendingGraphCommit(pendingRef, cancelFrame);
   }, [cancelFrame]);
 }

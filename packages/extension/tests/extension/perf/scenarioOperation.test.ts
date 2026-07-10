@@ -24,6 +24,7 @@ function setup() {
       layoutChanged: false,
       nodeCount: 100,
       edgeCount: 75,
+      scopeProjectionRevision: 0,
     },
   }));
 

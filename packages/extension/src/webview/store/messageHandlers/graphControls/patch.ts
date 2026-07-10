@@ -18,6 +18,9 @@ export function createGraphControlsStatePatch(
   assignChangedGraphControl(next, 'nodeColors', state.nodeColors, payload.nodeColors);
   assignChangedGraphControl(next, 'nodeVisibility', state.nodeVisibility, payload.nodeVisibility);
   assignChangedGraphControl(next, 'edgeVisibility', state.edgeVisibility, payload.edgeVisibility);
+  if (next.nodeVisibility || next.edgeVisibility) {
+    next.graphScopeProjectionRevision = (state.graphScopeProjectionRevision ?? 0) + 1;
+  }
 
   return next;
 }

@@ -17,7 +17,7 @@ const operation: PerfOperation = {
   dimension: 'small',
 };
 
-function graphApplied(layoutChanged: boolean): PerfEventMessage {
+function graphApplied(layoutChanged: boolean, scopeProjectionRevision = 0): PerfEventMessage {
   return {
     type: 'PERF_EVENT',
     payload: {
@@ -26,16 +26,18 @@ function graphApplied(layoutChanged: boolean): PerfEventMessage {
       layoutChanged,
       nodeCount: 100,
       edgeCount: 75,
+      scopeProjectionRevision,
     },
   };
 }
 
-function physicsSettled(): PerfEventMessage {
+function physicsSettled(scopeProjectionRevision = 0): PerfEventMessage {
   return {
     type: 'PERF_EVENT',
     payload: {
       ...operation,
       kind: 'physics-settled',
+      scopeProjectionRevision,
     },
   };
 }
@@ -132,6 +134,41 @@ describe('extension/perf/operation', () => {
     expect(completed).toBe(true);
   });
 
+  it('waits for physics matching the applied scope projection revision', async () => {
+    const harness = setup();
+    let completed = false;
+    const pending = runCorrelatedGraphOperation(operation, async () => {
+      harness.emit(graphApplied(true, 5));
+    }, harness.runtime).then(() => { completed = true; });
+
+    await Promise.resolve();
+    expect(completed).toBe(false);
+
+    harness.emit(physicsSettled(4));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(completed).toBe(false);
+
+    harness.emit(physicsSettled(5));
+    await pending;
+    expect(completed).toBe(true);
+  });
+
+  it('ignores a matching physics event that preceded the applied graph commit', async () => {
+    const harness = setup();
+    let completed = false;
+    const pending = runCorrelatedGraphOperation(operation, async () => {
+      harness.emit(physicsSettled(5));
+      harness.emit(graphApplied(true, 5));
+    }, harness.runtime).then(() => { completed = true; });
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(completed).toBe(false);
+
+    harness.emit(physicsSettled(5));
+    await pending;
+    expect(completed).toBe(true);
+  });
+
   it('forwards armed webview metrics to the diagnostics runtime', async () => {
     const harness = setup();
 
@@ -192,6 +229,17 @@ describe('extension/perf/operation', () => {
       },
     });
     expect(harness.dispose).toHaveBeenCalledOnce();
+  });
+
+  it('rejects an operation that cannot be armed', async () => {
+    const harness = setup();
+    const invalidOperation = { ...operation, dimension: '' };
+
+    await expect(runCorrelatedGraphOperation(
+      invalidOperation,
+      async () => {},
+      harness.runtime,
+    )).rejects.toThrow(`Unable to arm graph operation ${operation.operationId}`);
   });
 
   it('times out a missing graph acknowledgement', async () => {

@@ -5,11 +5,14 @@ import type {
 import { createExtensionPerfBridge } from './bridge';
 import type {
   PerfControlMessage,
-  PerfEventPayload,
   PerfOperation,
 } from '../../shared/perf/protocol';
+import {
+  createGraphAcknowledgement,
+  type GraphAppliedEvent,
+} from './operation/acknowledgement';
+import { timeoutAfter } from './operation/timeout';
 
-type GraphAppliedEvent = Extract<PerfEventPayload, { kind: 'graph-applied' }>;
 
 export interface PerfOperationDisposable {
   dispose(): void;
@@ -33,79 +36,7 @@ export interface CorrelatedGraphOperationResult {
   graphApplied: GraphAppliedEvent;
 }
 
-interface GraphAcknowledgement {
-  promise: Promise<GraphAppliedEvent>;
-  receive(event: PerfEventPayload): void;
-}
-
 const defaultTimeoutMs = 180_000;
-
-function createGraphAcknowledgement(
-  emitMetric: (metric: PerfMetricContext) => void,
-  onGraphApplied: () => void,
-): GraphAcknowledgement {
-  let applied: GraphAppliedEvent | undefined;
-  let physicsSettled = false;
-  let resolve: (event: GraphAppliedEvent) => void = () => {};
-  const promise = new Promise<GraphAppliedEvent>((complete) => {
-    resolve = complete;
-  });
-
-  const completeWhenReady = (): void => {
-    if (applied && (!applied.layoutChanged || physicsSettled)) {
-      resolve(applied);
-    }
-  };
-
-  return {
-    promise,
-    receive(event): void {
-      if (event.kind === 'metric') {
-        emitMetric({
-          operationId: event.operationId,
-          runId: event.runId,
-          scenario: event.scenario,
-          dimension: event.dimension,
-          metric: event.metric,
-          value: event.value,
-          unit: event.unit,
-        });
-        return;
-      }
-      if (event.kind === 'graph-applied') {
-        onGraphApplied();
-        applied = event;
-        completeWhenReady();
-        return;
-      }
-      if (event.kind === 'physics-settled') {
-        physicsSettled = true;
-        completeWhenReady();
-      }
-    },
-  };
-}
-
-function timeoutAfter(operationId: string, timeoutMs: number): {
-  promise: Promise<never>;
-  dispose(): void;
-} {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const promise = new Promise<never>((_resolve, reject) => {
-    timer = setTimeout(() => {
-      reject(new Error(
-        `Timed out waiting for graph acknowledgement for ${operationId}`,
-      ));
-    }, timeoutMs);
-  });
-
-  return {
-    promise,
-    dispose(): void {
-      if (timer) clearTimeout(timer);
-    },
-  };
-}
 
 export async function runCorrelatedGraphOperation(
   operation: PerfOperation,

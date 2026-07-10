@@ -171,11 +171,13 @@ export const perfEventPayloadSchema = z.discriminatedUnion('kind', [
     layoutChanged: z.boolean(),
     nodeCount: nonnegativeIntegerSchema,
     edgeCount: nonnegativeIntegerSchema,
+    scopeProjectionRevision: nonnegativeIntegerSchema,
     scopeVisibility: perfScopeVisibilitySnapshotSchema.optional(),
   }),
   z.strictObject({
     ...perfEventContextShape,
     kind: z.literal('physics-settled'),
+    scopeProjectionRevision: nonnegativeIntegerSchema,
   }),
   z.strictObject({
     ...perfEventContextShape,
@@ -195,6 +197,7 @@ export const perfEventPayloadSchema = z.discriminatedUnion('kind', [
   z.strictObject({
     ...perfEventContextShape,
     kind: z.literal('scope-toggle-complete'),
+    scopeProjectionRevision: nonnegativeIntegerSchema,
     ...scopeEntryShape,
   }),
   z.strictObject({

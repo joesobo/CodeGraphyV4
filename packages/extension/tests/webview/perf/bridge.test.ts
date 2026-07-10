@@ -29,7 +29,10 @@ describe('webview/perf/bridge', () => {
   it('does not emit events before an arm-graph control', () => {
     const { bridge, postMessage } = setup();
 
-    expect(bridge.emit({ kind: 'physics-settled' })).toBe(false);
+    expect(bridge.emit({
+      kind: 'physics-settled',
+      scopeProjectionRevision: 0,
+    })).toBe(false);
     expect(postMessage).not.toHaveBeenCalled();
   });
 
@@ -97,6 +100,7 @@ describe('webview/perf/bridge', () => {
       layoutChanged: false,
       nodeCount: 100,
       edgeCount: 75,
+      scopeProjectionRevision: 0,
     })).toBe(true);
     expect(postMessage).toHaveBeenCalledWith({
       type: 'PERF_EVENT',
@@ -106,6 +110,7 @@ describe('webview/perf/bridge', () => {
         layoutChanged: false,
         nodeCount: 100,
         edgeCount: 75,
+        scopeProjectionRevision: 0,
       },
     });
   });
@@ -132,7 +137,10 @@ describe('webview/perf/bridge', () => {
       },
     });
 
-    expect(bridge.emitFor(capturedOperation, { kind: 'physics-settled' })).toBe(false);
+    expect(bridge.emitFor(capturedOperation, {
+      kind: 'physics-settled',
+      scopeProjectionRevision: 0,
+    })).toBe(false);
     expect(postMessage).not.toHaveBeenCalled();
   });
 
@@ -193,6 +201,7 @@ describe('webview/perf/bridge', () => {
       layoutChanged: false,
       nodeCount: -1,
       edgeCount: 75,
+      scopeProjectionRevision: 0,
     } as PerfEventInput)).toBe(false);
     expect(postMessage).not.toHaveBeenCalled();
   });

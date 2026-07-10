@@ -101,6 +101,7 @@ describe('webview/perf/graph/lifecycle', () => {
       edgeCount: 7,
       layoutKey: 'uniform::a::edge-a',
       nodeCount: 11,
+      scopeProjectionRevision: 7,
       scopeVisibility,
     });
 
@@ -110,12 +111,29 @@ describe('webview/perf/graph/lifecycle', () => {
       layoutChanged: true,
       nodeCount: 11,
       edgeCount: 7,
+      scopeProjectionRevision: 7,
       scopeVisibility,
     });
   });
 
   it('treats an empty graph as no layout so callers do not wait for physics', () => {
     const { lifecycle } = setup();
+
+    expect(lifecycle.prepareCommit({
+      edgeCount: 0,
+      layoutKey: undefined,
+      nodeCount: 0,
+    })).toMatchObject({ layoutChanged: false });
+  });
+
+  it('does not mark a transition from a rendered graph to an empty graph as changed', () => {
+    const { lifecycle } = setup();
+    const populated = lifecycle.prepareCommit({
+      edgeCount: 1,
+      layoutKey: 'uniform::a::edge-a',
+      nodeCount: 1,
+    });
+    lifecycle.publishCommit(populated!);
 
     expect(lifecycle.prepareCommit({
       edgeCount: 0,
@@ -131,6 +149,7 @@ describe('webview/perf/graph/lifecycle', () => {
       edgeCount: 1,
       layoutKey: 'uniform::a::edge-a',
       nodeCount: 1,
+      scopeProjectionRevision: 7,
     });
     lifecycle.publishCommit(commit!);
     bridge.emitFor.mockClear();
@@ -143,8 +162,12 @@ describe('webview/perf/graph/lifecycle', () => {
         unit: 'ms',
         value: 75,
       }],
-      [operation, { kind: 'physics-settled' }],
+      [operation, {
+        kind: 'physics-settled',
+        scopeProjectionRevision: 7,
+      }],
     ]);
+    expect(lifecycle.engineStopped()).toBe(false);
   });
 
   it('does not publish a physics ack when the settle metric is rejected', () => {

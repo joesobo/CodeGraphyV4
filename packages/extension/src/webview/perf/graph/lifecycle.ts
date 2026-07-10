@@ -4,6 +4,7 @@ import type {
   PerfScopeVisibilitySnapshot,
 } from '../../../shared/perf/protocol';
 import { webviewPerfBridge } from '../bridge';
+import { graphLayoutChanged } from './lifecycle/layout';
 
 interface GraphPerfBridge {
   emit(event: PerfEventInput): boolean;
@@ -15,12 +16,14 @@ export interface GraphCommitInput {
   edgeCount: number;
   layoutKey: string | undefined;
   nodeCount: number;
+  scopeProjectionRevision?: number;
   scopeVisibility?: PerfScopeVisibilitySnapshot;
 }
 
 export interface PreparedGraphCommit extends GraphCommitInput {
   layoutChanged: boolean;
   operation: PerfOperation;
+  scopeProjectionRevision: number;
 }
 
 export interface GraphPerfLifecycle {
@@ -37,87 +40,85 @@ interface GraphPerfLifecycleOptions {
 
 interface PendingSettle {
   operation: PerfOperation;
+  scopeProjectionRevision: number;
   startedAt: number;
 }
 
-export function createGraphPerfLifecycle({
-  bridge,
-  now,
-}: GraphPerfLifecycleOptions): GraphPerfLifecycle {
-  let previousLayoutKey: string | undefined;
-  let pendingSettle: PendingSettle | undefined;
+class DefaultGraphPerfLifecycle implements GraphPerfLifecycle {
+  private pendingSettle: PendingSettle | undefined;
+  private previousLayoutKey: string | undefined;
 
-  return {
-    engineStopped(): boolean {
-      const settle = pendingSettle;
-      pendingSettle = undefined;
-      if (!settle) {
-        return false;
-      }
+  constructor(private readonly options: GraphPerfLifecycleOptions) {}
 
-      const emittedDuration = bridge.emitFor(settle.operation, {
-        kind: 'metric',
-        metric: 'settleTimeMs',
-        unit: 'ms',
-        value: Math.max(0, now() - settle.startedAt),
-      });
-      if (!emittedDuration) {
-        return false;
-      }
+  engineStopped(): boolean {
+    const settle = this.pendingSettle;
+    this.pendingSettle = undefined;
+    if (!settle) return false;
+    const emittedDuration = this.options.bridge.emitFor(settle.operation, {
+      kind: 'metric',
+      metric: 'settleTimeMs',
+      unit: 'ms',
+      value: Math.max(0, this.options.now() - settle.startedAt),
+    });
+    if (!emittedDuration) return false;
+    return this.options.bridge.emitFor(settle.operation, {
+      kind: 'physics-settled',
+      scopeProjectionRevision: settle.scopeProjectionRevision,
+    });
+  }
 
-      return bridge.emitFor(settle.operation, { kind: 'physics-settled' });
-    },
+  layoutReset(): boolean {
+    return this.options.bridge.emit({
+      kind: 'metric',
+      metric: 'layoutResets',
+      unit: 'count',
+      value: 1,
+    });
+  }
 
-    layoutReset(): boolean {
-      return bridge.emit({
-        kind: 'metric',
-        metric: 'layoutResets',
-        unit: 'count',
-        value: 1,
-      });
-    },
+  prepareCommit(input: GraphCommitInput): PreparedGraphCommit | undefined {
+    const operation = this.options.bridge.getArmedOperation();
+    const layoutChanged = graphLayoutChanged(input.layoutKey, this.previousLayoutKey);
+    if (!operation) {
+      this.previousLayoutKey = input.layoutKey;
+      return undefined;
+    }
+    return {
+      ...input,
+      layoutChanged,
+      operation,
+      scopeProjectionRevision: input.scopeProjectionRevision ?? 0,
+    };
+  }
 
-    prepareCommit(input): PreparedGraphCommit | undefined {
-      const operation = bridge.getArmedOperation();
-      const layoutChanged = input.layoutKey !== undefined
-        && input.layoutKey !== previousLayoutKey;
+  publishCommit(commit: PreparedGraphCommit): boolean {
+    this.previousLayoutKey = commit.layoutKey;
+    const emitted = this.options.bridge.emitFor(commit.operation, {
+      kind: 'graph-applied',
+      layoutChanged: commit.layoutChanged,
+      nodeCount: commit.nodeCount,
+      edgeCount: commit.edgeCount,
+      scopeProjectionRevision: commit.scopeProjectionRevision,
+      ...(commit.scopeVisibility ? { scopeVisibility: commit.scopeVisibility } : {}),
+    });
+    if (!emitted) return false;
+    if (commit.layoutChanged) this.pendingSettle = this.createPendingSettle(commit);
+    return true;
+  }
 
-      if (!operation) {
-        previousLayoutKey = input.layoutKey;
-        return undefined;
-      }
+  private createPendingSettle(commit: PreparedGraphCommit): PendingSettle {
+    return {
+      operation: commit.operation,
+      scopeProjectionRevision: commit.scopeProjectionRevision,
+      startedAt: this.options.now(),
+    };
+  }
+}
 
-      return {
-        ...input,
-        layoutChanged,
-        operation,
-      };
-    },
-
-    publishCommit(commit): boolean {
-      previousLayoutKey = commit.layoutKey;
-      const emitted = bridge.emitFor(commit.operation, {
-        kind: 'graph-applied',
-        layoutChanged: commit.layoutChanged,
-        nodeCount: commit.nodeCount,
-        edgeCount: commit.edgeCount,
-        ...(commit.scopeVisibility
-          ? { scopeVisibility: commit.scopeVisibility }
-          : {}),
-      });
-      if (!emitted) {
-        return false;
-      }
-
-      if (commit.layoutChanged) {
-        pendingSettle = {
-          operation: commit.operation,
-          startedAt: now(),
-        };
-      }
-      return true;
-    },
-  };
+export function createGraphPerfLifecycle(
+  options: GraphPerfLifecycleOptions,
+): GraphPerfLifecycle {
+  return new DefaultGraphPerfLifecycle(options);
 }
 
 export const webviewGraphPerfLifecycle = createGraphPerfLifecycle({

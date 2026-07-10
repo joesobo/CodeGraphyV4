@@ -1,101 +1,75 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { GraphState } from '../../store/state';
+import {
+  createGraphScopeProjection,
+  selectEffectiveProjection,
+  type GraphScopeProjection,
+} from './graphScopeVisibility/projection';
+import { stabilizeVisibilityRecord } from './graphScopeVisibility/records';
+import {
+  cancelProjectionTimer,
+  synchronizeGraphScopeProjection,
+} from './graphScopeVisibility/scheduler';
 
-export const GRAPH_SCOPE_RENDER_DEBOUNCE_MS = 80;
-
-interface GraphScopeVisibility {
-  edgeVisibility: GraphState['edgeVisibility'];
-  nodeVisibility: GraphState['nodeVisibility'];
-}
-
-function hasVisibilityEntries(visibility: Record<string, boolean>): boolean {
-  return Object.keys(visibility).length > 0;
-}
-
-function visibilityRecordsMatch(
-  left: Record<string, boolean>,
-  right: Record<string, boolean>,
-): boolean {
-  if (left === right) return true;
-  const leftEntries = Object.entries(left);
-  if (leftEntries.length !== Object.keys(right).length) return false;
-  return leftEntries.every(([scopeId, enabled]) => right[scopeId] === enabled);
-}
+export { GRAPH_SCOPE_RENDER_DEBOUNCE_MS } from './graphScopeVisibility/scheduler';
+export type { GraphScopeProjection } from './graphScopeVisibility/projection';
 
 function useStableVisibilityRecord(
   visibility: Record<string, boolean>,
 ): Record<string, boolean> {
   const visibilityRef = useRef(visibility);
-  if (!visibilityRecordsMatch(visibilityRef.current, visibility)) {
-    visibilityRef.current = visibility;
-  }
+  visibilityRef.current = stabilizeVisibilityRecord(visibilityRef.current, visibility);
   return visibilityRef.current;
-}
-
-function isEmptyGraphScopeVisibility(visibility: GraphScopeVisibility): boolean {
-  return !hasVisibilityEntries(visibility.nodeVisibility)
-    && !hasVisibilityEntries(visibility.edgeVisibility);
-}
-
-function hasGraphScopeVisibilityEntries(visibility: GraphScopeVisibility): boolean {
-  return hasVisibilityEntries(visibility.nodeVisibility)
-    || hasVisibilityEntries(visibility.edgeVisibility);
 }
 
 export function useDebouncedGraphScopeVisibility(
   nodeVisibility: GraphState['nodeVisibility'],
   edgeVisibility: GraphState['edgeVisibility'],
-): GraphScopeVisibility {
+  revision: number,
+): GraphScopeProjection {
   const stableNodeVisibility = useStableVisibilityRecord(nodeVisibility);
   const stableEdgeVisibility = useStableVisibilityRecord(edgeVisibility);
-  const pendingVisibilityRef = useRef<GraphScopeVisibility | undefined>(undefined);
+  const pendingProjectionRef = useRef<GraphScopeProjection | undefined>(undefined);
   const renderTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [renderVisibility, setRenderVisibility] = useState<GraphScopeVisibility>({
-    edgeVisibility: stableEdgeVisibility,
-    nodeVisibility: stableNodeVisibility,
-  });
-  const incomingVisibility = {
-    edgeVisibility: stableEdgeVisibility,
-    nodeVisibility: stableNodeVisibility,
-  };
-  const effectiveRenderVisibility = isEmptyGraphScopeVisibility(renderVisibility)
-    && hasGraphScopeVisibilityEntries(incomingVisibility)
-    ? incomingVisibility
-    : renderVisibility;
-  const renderVisibilityRef = useRef(renderVisibility);
-  renderVisibilityRef.current = effectiveRenderVisibility;
+  const [renderProjection, setRenderProjection] = useState<GraphScopeProjection>(
+    createGraphScopeProjection(revision, stableNodeVisibility, stableEdgeVisibility),
+  );
+  const incomingProjection = createGraphScopeProjection(
+    revision,
+    stableNodeVisibility,
+    stableEdgeVisibility,
+  );
+  const effectiveRenderProjection = selectEffectiveProjection(
+    renderProjection,
+    incomingProjection,
+  );
+  const renderProjectionRef = useRef(renderProjection);
+  renderProjectionRef.current = effectiveRenderProjection;
 
   useEffect(() => {
-    const nextVisibility = {
-      edgeVisibility: stableEdgeVisibility,
-      nodeVisibility: stableNodeVisibility,
-    };
-    if (renderVisibilityRef.current.nodeVisibility === stableNodeVisibility) {
-      if (renderTimerRef.current !== undefined) {
-        clearTimeout(renderTimerRef.current);
-        renderTimerRef.current = undefined;
-      }
-      pendingVisibilityRef.current = undefined;
-      setRenderVisibility(nextVisibility);
-      return;
-    }
+    synchronizeGraphScopeProjection(createGraphScopeProjection(
+      revision,
+      stableNodeVisibility,
+      stableEdgeVisibility,
+    ), {
+      pendingRef: pendingProjectionRef,
+      renderedRef: renderProjectionRef,
+      setRendered: setRenderProjection,
+      timerRef: renderTimerRef,
+    });
+  }, [revision, stableEdgeVisibility, stableNodeVisibility]);
 
-    pendingVisibilityRef.current = nextVisibility;
-    if (renderTimerRef.current !== undefined) return;
+  // Stryker disable ArrayDeclaration: the empty dependency list is React's
+  // unmount-only contract; replacing it with another constant list is equivalent.
+  useEffect(
+    () => () => { cancelProjectionTimer(renderTimerRef); },
+    [],
+  );
+  // Stryker restore ArrayDeclaration
 
-    renderTimerRef.current = setTimeout(() => {
-      renderTimerRef.current = undefined;
-      const pendingVisibility = pendingVisibilityRef.current;
-      pendingVisibilityRef.current = undefined;
-      if (pendingVisibility) setRenderVisibility(pendingVisibility);
-    }, GRAPH_SCOPE_RENDER_DEBOUNCE_MS);
-  }, [stableEdgeVisibility, stableNodeVisibility]);
-
-  useEffect(() => () => {
-    if (renderTimerRef.current !== undefined) {
-      clearTimeout(renderTimerRef.current);
-    }
-  }, []);
-
-  return effectiveRenderVisibility;
+  return effectiveRenderProjection;
 }

@@ -309,7 +309,10 @@ describe('webview/store/messageHandlers/graph', () => {
     expect(handleGraphControlsUpdated(
       { type: 'GRAPH_CONTROLS_UPDATED', payload: echoedControls },
       { getState: () => state },
-    )).toEqual({ edgeVisibility: nextEdgeVisibility });
+    )).toEqual({
+      edgeVisibility: nextEdgeVisibility,
+      graphScopeProjectionRevision: 1,
+    });
   });
 
   it('maps settings and filter payloads', () => {

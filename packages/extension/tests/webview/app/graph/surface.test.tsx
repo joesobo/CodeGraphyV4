@@ -50,6 +50,7 @@ describe('app/graph/surface', () => {
       <GraphSurface
         graphData={graphData}
         coloredData={{ nodes: [{ id: 'colored-node', label: 'Colored', color: '#222222' }], edges: [] }}
+        scopeProjectionRevision={3}
         scopeVisibility={scopeVisibility}
         showOrphans
         depthMode={false}
@@ -73,6 +74,7 @@ describe('app/graph/surface', () => {
       layoutKey: undefined,
       nodeCount: 0,
       revision: graphData,
+      scopeProjectionRevision: 3,
       scopeVisibility,
     });
   });
@@ -87,6 +89,7 @@ describe('app/graph/surface', () => {
       <GraphSurface
         graphData={graphData}
         coloredData={null}
+        scopeProjectionRevision={3}
         scopeVisibility={scopeVisibility}
         showOrphans={false}
         depthMode={false}
@@ -107,6 +110,7 @@ describe('app/graph/surface', () => {
       layoutKey: undefined,
       nodeCount: 0,
       revision: graphData,
+      scopeProjectionRevision: 3,
       scopeVisibility,
     });
   });
@@ -116,6 +120,7 @@ describe('app/graph/surface', () => {
       <GraphSurface
         graphData={{ nodes: [], edges: [] }}
         coloredData={null}
+        scopeProjectionRevision={0}
         showOrphans
         depthMode={false}
         timelineActive

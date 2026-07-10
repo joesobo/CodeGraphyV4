@@ -79,6 +79,7 @@ export interface GraphState {
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
+  graphScopeProjectionRevision: number;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   verboseDiagnostics: boolean;

@@ -15,6 +15,7 @@ interface HarnessOptions {
   duplicateGraphBeforePersist?: boolean;
   emitBridgeMetricsOnToggle?: boolean;
   emitPreviousGraphOnRearm?: boolean;
+  emitStaleMatchingRevisionOnToggle?: boolean;
   emitStaleScopeProjectionOnToggle?: boolean;
   failFirstPhysics?: boolean;
   layoutChanged?: (entry: PerfScopeEntry, toggleIndex: number) => boolean;
@@ -35,6 +36,7 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
   let armedOperation: PerfOperation | undefined;
   let clock = 0;
   let previousToggleOperation: PerfOperation | undefined;
+  let projectionRevision = 0;
   let toggleIndex = 0;
   let failedPhysics = false;
 
@@ -83,6 +85,7 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
             layoutChanged: false,
             nodeCount: 999,
             edgeCount: 999,
+            scopeProjectionRevision: projectionRevision,
             scopeVisibility: scopeVisibility(),
           });
           previousToggleOperation = undefined;
@@ -128,10 +131,12 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
           layoutChanged: true,
           nodeCount: 999,
           edgeCount: 999,
+          scopeProjectionRevision: projectionRevision,
           scopeVisibility: scopeVisibility(),
         });
       }
       state.set(`${entry.scopeKind}:${entry.scopeId}`, entry);
+      projectionRevision += 1;
       options.afterToggle?.(entry, state);
       previousToggleOperation = armedOperation;
       const layoutChanged = options.layoutChanged?.(entry, toggleIndex) ?? false;
@@ -140,12 +145,27 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
         emit({ kind: 'metric', metric: 'settleTimeMs', unit: 'ms', value: 10 });
         emit({ kind: 'metric', metric: 'simTicksAfterSettle', unit: 'count', value: 0 });
       }
-      emit({ kind: 'scope-toggle-complete', ...entry });
+      emit({
+        kind: 'scope-toggle-complete',
+        scopeProjectionRevision: projectionRevision,
+        ...entry,
+      });
+      if (options.emitStaleMatchingRevisionOnToggle) {
+        emit({
+          kind: 'graph-applied',
+          layoutChanged: false,
+          nodeCount: 999,
+          edgeCount: 999,
+          scopeProjectionRevision: Math.max(0, projectionRevision - 1),
+          scopeVisibility: scopeVisibility(),
+        });
+      }
       emit({
         kind: 'graph-applied',
         layoutChanged,
         nodeCount: 1,
         edgeCount: 0,
+        scopeProjectionRevision: projectionRevision,
         scopeVisibility: scopeVisibility(),
       });
       if (options.duplicateGraphBeforePersist) {
@@ -154,12 +174,16 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
           layoutChanged,
           nodeCount: 2,
           edgeCount: 0,
+          scopeProjectionRevision: projectionRevision,
           scopeVisibility: scopeVisibility(),
         });
       }
       emit({ kind: 'scope-persist-complete', ...entry });
       if (layoutChanged && (!options.failFirstPhysics || failedPhysics)) {
-        emit({ kind: 'physics-settled' });
+        emit({
+          kind: 'physics-settled',
+          scopeProjectionRevision: projectionRevision,
+        });
       } else if (layoutChanged) {
         failedPhysics = true;
       }
@@ -273,6 +297,19 @@ describe('extension/perf/scope/battery', () => {
       .resolves.toMatchObject({ toggleCount: 6 });
 
     expect(harness.emitMetric).toHaveBeenCalledTimes(6);
+  });
+
+  it('ignores a stale same-value projection from an older rendered revision', async () => {
+    const harness = createHarness([
+      { scopeKind: 'node', scopeId: 'file', enabled: true },
+    ], { emitStaleMatchingRevisionOnToggle: true });
+
+    await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
+      .resolves.toMatchObject({ toggleCount: 6 });
+
+    expect(harness.emitMetric.mock.calls.map(([metric]) => metric.value)).toEqual([
+      10, 10, 10, 10, 10, 10,
+    ]);
   });
 
   it('latches the first graph commit when persistence arrives after duplicate commits', async () => {

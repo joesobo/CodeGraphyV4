@@ -54,12 +54,17 @@ describe('extension/perf/scope/waiters', () => {
       .mockReturnValueOnce(99);
     const waiter = createToggleWaiter(fileEntry, now, 10);
 
-    waiter.receive(event({ kind: 'scope-toggle-complete', ...fileEntry }));
+    waiter.receive(event({
+      kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 1,
+      ...fileEntry,
+    }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: false,
       nodeCount: 1,
       edgeCount: 0,
+      scopeProjectionRevision: 1,
       scopeVisibility: {
         edgeVisibility: {},
         nodeVisibility: { file: false },
@@ -70,6 +75,7 @@ describe('extension/perf/scope/waiters', () => {
       layoutChanged: false,
       nodeCount: 2,
       edgeCount: 0,
+      scopeProjectionRevision: 1,
       scopeVisibility: {
         edgeVisibility: {},
         nodeVisibility: { file: false },
@@ -87,19 +93,25 @@ describe('extension/perf/scope/waiters', () => {
     let completed = false;
     void waiter.promise.then(() => { completed = true; });
 
-    waiter.receive(event({ kind: 'scope-toggle-complete', ...fileEntry }));
+    waiter.receive(event({
+      kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 1,
+      ...fileEntry,
+    }));
     waiter.receive(event({ kind: 'scope-persist-complete', ...fileEntry }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: false,
       nodeCount: 2,
       edgeCount: 0,
+      scopeProjectionRevision: 0,
     }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: false,
       nodeCount: 2,
       edgeCount: 0,
+      scopeProjectionRevision: 0,
       scopeVisibility: {
         edgeVisibility: {},
         nodeVisibility: { file: true },
@@ -115,6 +127,7 @@ describe('extension/perf/scope/waiters', () => {
       layoutChanged: false,
       nodeCount: 1,
       edgeCount: 0,
+      scopeProjectionRevision: 1,
       scopeVisibility: {
         edgeVisibility: {},
         nodeVisibility: { file: false },
@@ -125,6 +138,59 @@ describe('extension/perf/scope/waiters', () => {
     expect(now).toHaveBeenCalledOnce();
   });
 
+  it('ignores a stale same-value projection until its exact revision is applied', async () => {
+    const now = vi.fn()
+      .mockReturnValueOnce(20)
+      .mockReturnValueOnce(30);
+    const waiter = createToggleWaiter(fileEntry, now, 10);
+    let completed = false;
+    void waiter.promise.then(() => { completed = true; });
+
+    waiter.receive(event({
+      kind: 'scope-toggle-complete',
+      ...fileEntry,
+      scopeProjectionRevision: 12,
+    }));
+    waiter.receive(event({ kind: 'scope-persist-complete', ...fileEntry }));
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: false,
+      nodeCount: 1,
+      edgeCount: 0,
+      scopeProjectionRevision: 10,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: false },
+      },
+    }));
+    await Promise.resolve();
+
+    expect(completed).toBe(false);
+    expect(waiter.pendingDescription()).toBe('graph-applied');
+
+    waiter.receive(event({
+      kind: 'graph-applied',
+      layoutChanged: true,
+      nodeCount: 1,
+      edgeCount: 0,
+      scopeProjectionRevision: 12,
+      scopeVisibility: {
+        edgeVisibility: {},
+        nodeVisibility: { file: false },
+      },
+    }));
+    await Promise.resolve();
+    expect(completed).toBe(false);
+    expect(waiter.pendingDescription()).toBe('physics-settled');
+
+    waiter.receive(event({
+      kind: 'physics-settled',
+      scopeProjectionRevision: 12,
+    }));
+    await expect(waiter.promise).resolves.toBe(20);
+    expect(now).toHaveBeenCalledTimes(2);
+  });
+
   it('requires a matching applied edge-scope projection', async () => {
     const importsEntry: PerfScopeEntry = {
       scopeKind: 'edge',
@@ -132,19 +198,25 @@ describe('extension/perf/scope/waiters', () => {
       enabled: false,
     };
     const waiter = createToggleWaiter(importsEntry, () => 30, 10);
-    waiter.receive(event({ kind: 'scope-toggle-complete', ...importsEntry }));
+    waiter.receive(event({
+      kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 1,
+      ...importsEntry,
+    }));
     waiter.receive(event({ kind: 'scope-persist-complete', ...importsEntry }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: false,
       nodeCount: 1,
       edgeCount: 0,
+      scopeProjectionRevision: 0,
     }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: false,
       nodeCount: 1,
       edgeCount: 0,
+      scopeProjectionRevision: 1,
       scopeVisibility: {
         edgeVisibility: { import: false },
         nodeVisibility: {},
@@ -159,13 +231,18 @@ describe('extension/perf/scope/waiters', () => {
     let completed = false;
     void waiter.promise.then(() => { completed = true; });
 
-    waiter.receive(event({ kind: 'scope-toggle-complete', ...fileEntry }));
+    waiter.receive(event({
+      kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 1,
+      ...fileEntry,
+    }));
     waiter.receive(event({ kind: 'scope-persist-complete', ...fileEntry }));
     waiter.receive(event({
       kind: 'graph-applied',
       layoutChanged: true,
       nodeCount: 1,
       edgeCount: 0,
+      scopeProjectionRevision: 1,
       scopeVisibility: {
         edgeVisibility: {},
         nodeVisibility: { file: false },
@@ -175,7 +252,10 @@ describe('extension/perf/scope/waiters', () => {
     expect(completed).toBe(false);
     expect(waiter.pendingDescription()).toBe('physics-settled');
 
-    waiter.receive(event({ kind: 'physics-settled' }));
+    waiter.receive(event({
+      kind: 'physics-settled',
+      scopeProjectionRevision: 1,
+    }));
     await expect(waiter.promise).resolves.toBe(10);
   });
 

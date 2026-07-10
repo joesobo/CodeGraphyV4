@@ -70,6 +70,7 @@ export interface IStoreFields {
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
+  graphScopeProjectionRevision: number;
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
   pluginContextMenuItems: IPluginContextMenuItem[];

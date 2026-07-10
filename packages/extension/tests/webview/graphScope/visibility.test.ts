@@ -4,6 +4,7 @@ import { graphStore } from '../../../src/webview/store/state';
 import {
   applyGraphScopeVisibility,
   getGraphScopeInventory,
+  getGraphScopeProjectionRevision,
 } from '../../../src/webview/components/graphScope/visibility';
 import {
   flushGraphScopeVisibilityMessages,
@@ -43,6 +44,7 @@ describe('graph scope visibility', () => {
           requiresEdgeType: 'reference',
         },
       ],
+      graphScopeProjectionRevision: 0,
       nodeVisibility: { symbol: false, folder: true },
       edgeVisibility: { reference: true },
     });
@@ -71,6 +73,8 @@ describe('graph scope visibility', () => {
       symbol: true,
       'symbol:function': true,
     });
+    expect(graphStore.getState().graphScopeProjectionRevision).toBe(1);
+    expect(getGraphScopeProjectionRevision()).toBe(1);
     expect(onPosted).not.toHaveBeenCalled();
 
     flushGraphScopeVisibilityMessages();
@@ -82,6 +86,23 @@ describe('graph scope visibility', () => {
     expect(onPosted).toHaveBeenCalledOnce();
   });
 
+  it('advances the projection revision for an edge toggle', () => {
+    expect(applyGraphScopeVisibility({
+      scopeKind: 'edge',
+      scopeId: 'reference',
+      enabled: false,
+    })).toBe(true);
+
+    expect(graphStore.getState().edgeVisibility).toMatchObject({ reference: false });
+    expect(getGraphScopeProjectionRevision()).toBe(1);
+
+    flushGraphScopeVisibilityMessages();
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH',
+      payload: { edgeVisibility: { reference: false } },
+    });
+  });
+
   it('rejects a toggle for a row that is not currently available', () => {
     graphStore.setState({ edgeVisibility: { reference: false } });
 
@@ -90,6 +111,7 @@ describe('graph scope visibility', () => {
       scopeId: 'overrides',
       enabled: true,
     })).toBe(false);
+    expect(graphStore.getState().graphScopeProjectionRevision).toBe(0);
     expect(sentMessages).toEqual([]);
   });
 });

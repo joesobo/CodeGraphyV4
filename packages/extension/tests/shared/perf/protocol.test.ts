@@ -208,8 +208,9 @@ describe('shared/perf/protocol', () => {
       layoutChanged: true,
       nodeCount: 100,
       edgeCount: 75,
+      scopeProjectionRevision: 0,
     },
-    { kind: 'physics-settled' },
+    { kind: 'physics-settled', scopeProjectionRevision: 0 },
     { kind: 'idle-started', durationMs: 60_000 },
     { kind: 'scope-inventory-rejected', reason: 'target-unavailable' },
     {
@@ -221,6 +222,7 @@ describe('shared/perf/protocol', () => {
     },
     {
       kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 4,
       scopeKind: 'node',
       scopeId: 'file',
       enabled: false,
@@ -256,6 +258,52 @@ describe('shared/perf/protocol', () => {
     expect(perfEventMessageSchema.parse(message)).toEqual(message);
   });
 
+  it.each([
+    { kind: 'graph-applied', layoutChanged: false, nodeCount: 1, edgeCount: 0 },
+    { kind: 'physics-settled' },
+    {
+      kind: 'scope-toggle-complete',
+      scopeKind: 'node',
+      scopeId: 'file',
+      enabled: false,
+    },
+  ] as const)('rejects a $kind event without its projection revision', event => {
+    expect(perfEventMessageSchema.safeParse({
+      type: 'PERF_EVENT',
+      payload: { ...operation, ...event },
+    }).success).toBe(false);
+  });
+
+  it.each([-1, 0.5])(
+    'rejects the invalid projection revision %s across correlated events',
+    scopeProjectionRevision => {
+      const events = [
+        {
+          kind: 'graph-applied',
+          layoutChanged: false,
+          nodeCount: 1,
+          edgeCount: 0,
+          scopeProjectionRevision,
+        },
+        { kind: 'physics-settled', scopeProjectionRevision },
+        {
+          kind: 'scope-toggle-complete',
+          scopeProjectionRevision,
+          scopeKind: 'node',
+          scopeId: 'file',
+          enabled: false,
+        },
+      ];
+
+      for (const event of events) {
+        expect(perfEventMessageSchema.safeParse({
+          type: 'PERF_EVENT',
+          payload: { ...operation, ...event },
+        }).success).toBe(false);
+      }
+    },
+  );
+
   it('parses a graph application with its strict applied scope visibility', () => {
     const message = {
       type: 'PERF_EVENT',
@@ -265,6 +313,7 @@ describe('shared/perf/protocol', () => {
         layoutChanged: false,
         nodeCount: 100,
         edgeCount: 75,
+        scopeProjectionRevision: 4,
         scopeVisibility: {
           nodeVisibility: { file: true, folder: false },
           edgeVisibility: { import: true },
@@ -291,6 +340,7 @@ describe('shared/perf/protocol', () => {
         layoutChanged: false,
         nodeCount: 100,
         edgeCount: 75,
+        scopeProjectionRevision: 4,
         scopeVisibility,
       },
     }).success).toBe(false);
@@ -341,6 +391,7 @@ describe('shared/perf/protocol', () => {
       payload: {
         ...operation,
         kind: 'physics-settled',
+        scopeProjectionRevision: 0,
         unexpected: true,
       },
     }).success).toBe(false);

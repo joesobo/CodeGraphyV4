@@ -45,6 +45,7 @@ export default function App(): React.ReactElement {
     nodeColors,
     nodeVisibility,
     edgeVisibility,
+    graphScopeProjectionRevision,
     graphNodeTypes,
     graphEdgeTypes,
     nodeDecorations,
@@ -82,11 +83,12 @@ export default function App(): React.ReactElement {
   const renderGraphScopeVisibility = useDebouncedGraphScopeVisibility(
     nodeVisibility,
     edgeVisibility,
+    graphScopeProjectionRevision,
   );
   const {
     edgeVisibility: renderEdgeVisibility,
     nodeVisibility: renderNodeVisibility,
-  } = renderGraphScopeVisibility;
+  } = renderGraphScopeVisibility.visibility;
   const visibleGraphInput = isLoading ? null : graphData;
   const {
     filteredData,
@@ -199,7 +201,8 @@ export default function App(): React.ReactElement {
         <GraphSurface
           graphData={graphData}
           coloredData={coloredData}
-          scopeVisibility={renderGraphScopeVisibility}
+          scopeProjectionRevision={renderGraphScopeVisibility.revision}
+          scopeVisibility={renderGraphScopeVisibility.visibility}
           showOrphans={effectiveShowOrphans}
           depthMode={depthMode}
           timelineActive={timelineActive}

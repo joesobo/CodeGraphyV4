@@ -29,11 +29,13 @@ function setup() {
     return true;
   });
   const getInventory = vi.fn(() => [fileEntry]);
+  const cancelFrame = vi.fn();
   const target = createScopePerfTarget({
     applyVisibility,
     bridge: { emitFor },
-    cancelFrame: vi.fn(),
+    cancelFrame,
     getInventory,
+    getProjectionRevision: vi.fn(() => 42),
     requestFrame: vi.fn((callback: FrameRequestCallback) => {
       frameCallback = callback;
       return 7;
@@ -41,6 +43,7 @@ function setup() {
   });
   return {
     applyVisibility,
+    cancelFrame,
     emitFor,
     frame: () => frameCallback?.(26),
     posted: () => postedCallback?.(),
@@ -71,6 +74,42 @@ describe('webview/perf/scope/target', () => {
     }));
     expect(emitFor).toHaveBeenCalledWith(operation, {
       kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 42,
+      ...fileEntry,
+    });
+  });
+
+  it('captures the projection revision after applying visibility', () => {
+    let projectionRevision = 10;
+    let frameCallback: FrameRequestCallback | undefined;
+    const emitFor = vi.fn(() => true);
+    const applyVisibility = vi.fn(() => {
+      projectionRevision = 11;
+      return true;
+    });
+    const getProjectionRevision = vi.fn(() => projectionRevision);
+    const target = createScopePerfTarget({
+      applyVisibility,
+      bridge: { emitFor },
+      cancelFrame: vi.fn(),
+      getInventory: () => [fileEntry],
+      getProjectionRevision,
+      requestFrame: callback => {
+        frameCallback = callback;
+        return 8;
+      },
+    });
+
+    expect(target.toggle(operation, fileEntry)).toBe(true);
+    frameCallback?.(26);
+
+    expect(getProjectionRevision).toHaveBeenCalledOnce();
+    expect(applyVisibility.mock.invocationCallOrder[0]).toBeLessThan(
+      getProjectionRevision.mock.invocationCallOrder[0]!,
+    );
+    expect(emitFor).toHaveBeenCalledWith(operation, {
+      kind: 'scope-toggle-complete',
+      scopeProjectionRevision: 11,
       ...fileEntry,
     });
   });
@@ -126,12 +165,46 @@ describe('webview/perf/scope/target', () => {
   });
 
   it('rejects overlapping toggles and unavailable rows', () => {
-    const { applyVisibility, target } = setup();
+    const { applyVisibility, cancelFrame, target } = setup();
 
     expect(target.toggle(operation, fileEntry)).toBe(true);
     expect(target.toggle(operation, { ...fileEntry, enabled: true })).toBe(false);
     vi.mocked(applyVisibility).mockReturnValueOnce(false);
     target.cancel();
+    expect(cancelFrame).toHaveBeenCalledWith(7);
     expect(target.toggle(operation, fileEntry)).toBe(false);
+  });
+
+  it('accepts the next toggle after both acknowledgements complete', () => {
+    const { frame, posted, target } = setup();
+    expect(target.toggle(operation, fileEntry)).toBe(true);
+    frame();
+    posted();
+    target.graphControlsUpdated({
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#fff', defaultVisible: true }],
+      edgeTypes: [],
+      nodeColors: {},
+      nodeVisibility: { file: false },
+      edgeVisibility: {},
+    });
+
+    expect(target.toggle(operation, fileEntry)).toBe(true);
+  });
+
+  it('keeps a persisted toggle pending until its render-frame acknowledgement', () => {
+    const { frame, posted, target } = setup();
+    expect(target.toggle(operation, fileEntry)).toBe(true);
+    posted();
+    target.graphControlsUpdated({
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#fff', defaultVisible: true }],
+      edgeTypes: [],
+      nodeColors: {},
+      nodeVisibility: { file: false },
+      edgeVisibility: {},
+    });
+    expect(target.toggle(operation, fileEntry)).toBe(false);
+
+    frame();
+    expect(target.toggle(operation, fileEntry)).toBe(true);
   });
 });

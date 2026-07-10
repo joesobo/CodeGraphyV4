@@ -49,6 +49,7 @@ export const INITIAL_STATE: GraphStateFields = {
   nodeColors: {},
   nodeVisibility: {},
   edgeVisibility: {},
+  graphScopeProjectionRevision: 0,
   nodeDecorations: {},
   edgeDecorations: {},
   pluginContextMenuItems: [],

@@ -21,6 +21,7 @@ const matchingEvent: PerfEventMessage = {
     layoutChanged: true,
     nodeCount: 100,
     edgeCount: 75,
+    scopeProjectionRevision: 0,
   },
 };
 
