@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "runnerClass": "linux-x64",
+  "reports": {
+    "medium:default": {
+      "schemaVersion": 1,
+      "fixture": "medium",
+      "variant": "default",
+      "runner": {
+        "os": "linux",
+        "arch": "x64",
+        "cpuModel": "AMD EPYC 7763 64-Core Processor",
+        "nodeVersion": "v22.22.0",
+        "vscodeVersion": "1.128.0",
+        "runnerClass": "linux-x64"
+      },
+      "metrics": {
+        "coldOpenMs": 11213.790233,
+        "warmOpenMs": 6419.270324,
+        "incrementalRefreshMs": {
+          "save": 314.04835000000094,
+          "rename": 345.3003430000008,
+          "create": 1041.2784460000003,
+          "delete": 337.77765999999974,
+          "batch100": 389.2834900000016
+        },
+        "payloadBytes": 497876,
+        "watcherToGraphMs": {
+          "save": 410.0623770000002,
+          "rename": 898.0131970000002,
+          "create": 1599.2874919999995,
+          "delete": 880.0838059999996,
+          "batch100": 453.17399900000237
+        },
+        "fileOpRoundtripMs": {
+          "rename": 1129.4966730000006,
+          "create": 2015.501674,
+          "delete": 1153.8479310000002,
+          "reveal": 1.3548489999993762
+        },
+        "layoutResets": 31,
+        "cacheSaveMs": 1153.2415190000029,
+        "cacheBytes": 5521408,
+        "treeSitterParseMs": 50.237976999997045,
+        "graphBuildMs": 17.103927999999996,
+        "scopeToggleMs": {
+          "edge:call": 316.64319199999954,
+          "edge:codegraphy.typescript:alias-import": 297.23239400000057,
+          "edge:contains": 287.5559659999999,
+          "edge:import": 81.53210799999943,
+          "edge:inherit": 282.1356980000055,
+          "edge:reference": 285.527016,
+          "edge:type-import": 281.05458100000396,
+          "node:file": 158.55935400000453,
+          "node:folder": 269.6204779999971,
+          "node:package": 471.5693370000081,
+          "node:symbol": 466.198092000006,
+          "node:symbol:class": 478.75507800000196,
+          "node:symbol:constant": 233.95397100000991,
+          "node:symbol:enum": 480.20526200000313,
+          "node:symbol:function": 465.7904049999779,
+          "node:symbol:interface": 485.21851700000116,
+          "node:symbol:type": 464.35588600000483,
+          "node:variable": 467.6564130000188
+        },
+        "settleTimeMs": 7476.800000000047,
+        "idleCpuPct": 3.1546204620462053,
+        "simTicksAfterSettle": 0
+      },
+      "webview": {
+        "fpsIdle": 59.98293344711033,
+        "fpsDrag": 13.701758392326287,
+        "fpsSettle": 17.838561022744166,
+        "longTasksPerInteraction": 71,
+        "heapUsedBytes": 12950926
+      },
+      "explorer": {
+        "explorerRenameMs": 11.706818000006024,
+        "explorerCreateMs": 28.55104500000016,
+        "explorerDeleteMs": 25.52547799999593,
+        "explorerRevealMs": 1.2735780000002705
+      },
+      "ratios": {
+        "renameRatio": 94.05022355343989,
+        "createRatio": 68.84919161452719,
+        "deleteRatio": 45.294309445678046,
+        "revealRatio": 1.0862911980261163
+      }
+    },
+    "small:default": {
+      "schemaVersion": 1,
+      "fixture": "small",
+      "variant": "default",
+      "runner": {
+        "os": "linux",
+        "arch": "x64",
+        "cpuModel": "AMD EPYC 7763 64-Core Processor",
+        "nodeVersion": "v22.22.0",
+        "vscodeVersion": "1.128.0",
+        "runnerClass": "linux-x64"
+      },
+      "metrics": {
+        "coldOpenMs": 3754.24969,
+        "warmOpenMs": 2479.5507310000003,
+        "incrementalRefreshMs": {
+          "save": 271.61607000000004,
+          "rename": 123.85702000000038,
+          "create": 333.5497949999999,
+          "delete": 111.3509839999997,
+          "batch100": 374.17603300000064
+        },
+        "payloadBytes": 65877,
+        "watcherToGraphMs": {
+          "save": 327.7649529999999,
+          "rename": 636.7071640000004,
+          "create": 862.096939,
+          "delete": 623.6057300000002,
+          "batch100": 424.71707700000024
+        },
+        "fileOpRoundtripMs": {
+          "rename": 747.4041090000001,
+          "create": 1200.662695,
+          "delete": 742.5667689999996,
+          "reveal": 1.089802000000418
+        },
+        "layoutResets": 31,
+        "cacheSaveMs": 176.8417069999996,
+        "cacheBytes": 2252800,
+        "treeSitterParseMs": 5.2080489999975725,
+        "graphBuildMs": 3.9517940000000635,
+        "scopeToggleMs": {
+          "edge:call": 22.58114099999966,
+          "edge:codegraphy.typescript:alias-import": 23.12760000000071,
+          "edge:contains": 23.29986800000006,
+          "edge:import": 21.878414000000703,
+          "edge:inherit": 22.1086379999997,
+          "edge:reference": 21.790510000000722,
+          "edge:type-import": 22.66544900000008,
+          "node:file": 103.69118600000002,
+          "node:folder": 110.16694399999687,
+          "node:package": 101.39328199999727,
+          "node:symbol": 100.16858000000138,
+          "node:symbol:class": 100.05001899999843,
+          "node:symbol:constant": 107.72423800000252,
+          "node:symbol:enum": 100.29091799999878,
+          "node:symbol:function": 99.90280100000382,
+          "node:symbol:interface": 100.08046199999808,
+          "node:symbol:type": 99.95366699999431,
+          "node:variable": 99.93628999999783
+        },
+        "settleTimeMs": 1082.5,
+        "idleCpuPct": 4.043069306930693,
+        "simTicksAfterSettle": 0
+      },
+      "webview": {
+        "fpsIdle": 59.99960000266628,
+        "fpsDrag": 60.85192697763015,
+        "fpsSettle": 59.3647966755878,
+        "longTasksPerInteraction": 0,
+        "heapUsedBytes": 8639010
+      },
+      "explorer": {
+        "explorerRenameMs": 10.190417000005255,
+        "explorerCreateMs": 21.14267600000312,
+        "explorerDeleteMs": 23.604524999995192,
+        "explorerRevealMs": 0.9954239999988204
+      },
+      "ratios": {
+        "renameRatio": 74.32515764562037,
+        "createRatio": 55.105216293331466,
+        "deleteRatio": 31.362461900849564,
+        "revealRatio": 1.1081383655361445
+      }
+    }
+  }
+}
