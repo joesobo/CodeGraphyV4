@@ -7,6 +7,7 @@ import type {
   LaunchPerfScenario,
   PerfSmokeResult,
 } from './launch';
+import { collectOperationMetrics } from './operationMetrics/model';
 import { scriptedPerfScenarios } from './scenarioSuite';
 
 interface ReportMetric {
@@ -27,14 +28,6 @@ const operationScenarios = new Set<LaunchPerfScenario>([
   'delete',
   'batch-100',
 ]);
-
-const operationMetricScenarios = {
-  save: 'single-save',
-  rename: 'rename',
-  create: 'create',
-  delete: 'delete',
-  batch100: 'batch-100',
-} as const satisfies Readonly<Record<string, LaunchPerfScenario>>;
 
 type WebviewMetric = keyof PerfReport['webview'];
 type ExplorerMetric = keyof PerfReport['explorer'];
@@ -187,56 +180,6 @@ function exactlyOneMetric(
     );
   }
   return matches[0].value;
-}
-
-function maxScenarioMetric(
-  metrics: ScenarioMetrics,
-  scenario: LaunchPerfScenario,
-  metricName: string,
-): number {
-  const values = metricsForScenario(metrics, scenario)
-    .filter(metric => metric.metric === metricName)
-    .map(metric => metric.value);
-  if (values.length === 0) {
-    throw new Error(
-      `Expected at least one ${metricName} metric for ${scenario}; found 0`,
-    );
-  }
-  return Math.max(...values);
-}
-
-function medianBatchOperationMaximum(
-  metrics: ScenarioMetrics,
-  metricName: string,
-): number {
-  const batchMetrics = metricsForScenario(metrics, 'batch-100');
-  const operationIds = [...new Set(
-    batchMetrics.flatMap(metric => metric.operationId ? [metric.operationId] : []),
-  )].sort();
-  const maxima = operationIds.map((operationId) => {
-    const values = batchMetrics
-      .filter(metric =>
-        metric.operationId === operationId
-        && metric.metric === metricName)
-      .map(metric => metric.value);
-    if (values.length === 0) {
-      throw new Error(
-        `Expected at least one ${metricName} metric for batch-100 operation ${operationId}; found 0`,
-      );
-    }
-    return Math.max(...values);
-  });
-  return median(maxima);
-}
-
-function reduceOperationScenarioMetric(
-  metrics: ScenarioMetrics,
-  scenario: LaunchPerfScenario,
-  metricName: string,
-): number {
-  return scenario === 'batch-100'
-    ? medianBatchOperationMaximum(metrics, metricName)
-    : maxScenarioMetric(metrics, scenario, metricName);
 }
 
 function allMetrics(metrics: ScenarioMetrics): ReportMetric[] {
@@ -426,6 +369,9 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
   const comparisons = collectComparisons(results);
   const measuredByScenario = collectScenarioMetrics(results);
   const measured = allMetrics(measuredByScenario);
+  const operationMetrics = collectOperationMetrics(
+    scenario => metricsForScenario(measuredByScenario, scenario),
+  );
 
   const webview = Object.fromEntries(
     (['fpsIdle', 'fpsDrag', 'fpsSettle', 'longTasksPerInteraction', 'heapUsedBytes'] as const)
@@ -460,27 +406,9 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
     metrics: {
       coldOpenMs: exactlyOneMetric(measuredByScenario, 'cold-open', 'coldOpenMs'),
       warmOpenMs: exactlyOneMetric(measuredByScenario, 'warm-open', 'warmOpenMs'),
-      incrementalRefreshMs: Object.fromEntries(
-        Object.entries(operationMetricScenarios).map(([reportKey, scenario]) => [
-          reportKey,
-          reduceOperationScenarioMetric(
-            measuredByScenario,
-            scenario,
-            'incrementalRefreshMs',
-          ),
-        ]),
-      ),
+      incrementalRefreshMs: operationMetrics.incrementalRefreshMs,
       payloadBytes: maxMetric(measured, 'payloadBytes'),
-      watcherToGraphMs: Object.fromEntries(
-        Object.entries(operationMetricScenarios).map(([reportKey, scenario]) => [
-          reportKey,
-          reduceOperationScenarioMetric(
-            measuredByScenario,
-            scenario,
-            'watcherToGraphMs',
-          ),
-        ]),
-      ),
+      watcherToGraphMs: operationMetrics.watcherToGraphMs,
       fileOpRoundtripMs,
       layoutResets: sumMetric(measured, 'layoutResets'),
       cacheSaveMs: maxMetric(measured, 'cacheSaveMs'),

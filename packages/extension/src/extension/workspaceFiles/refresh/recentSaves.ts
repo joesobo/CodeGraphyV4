@@ -10,17 +10,11 @@ export function rememberRecentSavedDocumentPath(filePath: string): void {
   );
 }
 
-export function consumeRecentSavedDocumentPath(filePath: string): boolean {
+export function isRecentSavedDocumentPath(filePath: string): boolean {
   const now = Date.now();
   pruneRecentSavedDocumentPaths(now);
   const normalizedPath = normalizeFileWatcherPath(filePath);
-  const expiresAt = recentSavedDocumentPaths.get(normalizedPath);
-  if (expiresAt === undefined) {
-    return false;
-  }
-
-  recentSavedDocumentPaths.delete(normalizedPath);
-  return now <= expiresAt;
+  return recentSavedDocumentPaths.has(normalizedPath);
 }
 
 export function normalizeFileWatcherPath(filePath: string): string {

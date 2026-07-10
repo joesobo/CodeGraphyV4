@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
 import {
-  shouldIgnoreSaveForGraphRefresh,
   shouldIgnoreWorkspaceFileWatcherRefresh,
 } from '../ignore';
 import { scheduleWorkspaceRefresh } from './scheduler';
@@ -10,7 +9,7 @@ import {
   getRenameFilePaths,
 } from './renameEvents';
 import {
-  consumeRecentSavedDocumentPath,
+  isRecentSavedDocumentPath,
   rememberRecentSavedDocumentPath,
 } from './recentSaves';
 import {
@@ -27,10 +26,6 @@ export function refreshWorkspaceSavedDocument(
   provider: GraphViewProvider,
   document: vscode.TextDocument,
 ): void {
-  if (shouldIgnoreSaveForGraphRefresh(document)) {
-    return;
-  }
-
   rememberRecentSavedDocumentPath(document.uri.fsPath);
   refreshWorkspaceChangedPath(
     provider,
@@ -44,7 +39,7 @@ export function refreshWorkspaceChangedFileWatcherPath(
   logMessage: string,
   filePath: string,
 ): void {
-  if (consumeRecentSavedDocumentPath(filePath)) {
+  if (isRecentSavedDocumentPath(filePath)) {
     return;
   }
 
@@ -68,6 +63,20 @@ export function refreshWorkspaceChangedPath(
     { gitignoreRefresh: isGitignorePath(filePath) },
   );
   provider.emitEvent('workspace:fileChanged', { filePath });
+}
+
+export function refreshWorkspaceFileWatcherOperation(
+  provider: GraphViewProvider,
+  logMessage: string,
+  files: readonly vscode.Uri[],
+  eventName: WorkspaceFileEventName,
+): void {
+  refreshWorkspaceFileOperation(
+    provider,
+    logMessage,
+    files.filter(uri => !isRecentSavedDocumentPath(uri.fsPath)),
+    eventName,
+  );
 }
 
 export function refreshWorkspaceFileOperation(

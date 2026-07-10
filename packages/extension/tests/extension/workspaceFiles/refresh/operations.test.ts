@@ -148,6 +148,28 @@ describe('workspaceFiles/refresh/operations', () => {
     });
   });
 
+  it('refreshes delete operations once without a create follow-up', async () => {
+    vi.useFakeTimers();
+    const provider = {
+      ...makeProvider(),
+      refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    };
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File deleted, refreshing graph',
+      [uri('/workspace/src/deleted.ts')],
+      'workspace:fileDeleted',
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    await vi.advanceTimersByTimeAsync(1_501);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
+      '/workspace/src/deleted.ts',
+    ]);
+  });
+
   it('runs a metadata-only graph refresh when gitignore is created or deleted', () => {
     vi.useFakeTimers();
     const provider = makeProvider();

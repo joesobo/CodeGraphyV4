@@ -214,6 +214,34 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
   });
 
+  it('suppresses an atomic-save watcher burst as one file change', async () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+    const triggerSave = captureSaveListener();
+    const target = uri('/workspace/src/atomic-save.ts');
+
+    registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    triggerSave({ uri: target } as vscode.TextDocument);
+    await vi.advanceTimersByTimeAsync(32);
+
+    watcherListeners.change?.(target);
+    watcherListeners.delete?.(target);
+    watcherListeners.create?.(target);
+    await vi.advanceTimersByTimeAsync(2_001);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledOnce();
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/workspace/src/atomic-save.ts',
+    ]);
+    expect(provider.emitEvent).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/src/atomic-save.ts',
+    });
+  });
+
   it('allows file-system changes after saved document suppression expires', () => {
     vi.useFakeTimers();
     const context = makeContext();
@@ -324,6 +352,7 @@ describe('workspaceFiles/refresh/watchers', () => {
 
   it('runs a metadata-only graph refresh when the dedicated gitignore watcher sees a change', () => {
     vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const context = makeContext();
     const provider = makeProvider();
 
@@ -338,6 +367,49 @@ describe('workspaceFiles/refresh/watchers', () => {
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
       filePath: '/workspace/.gitignore',
     });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] .gitignore changed, refreshing graph',
+    );
+  });
+
+  it('routes dedicated gitignore creates through metadata refresh', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const context = makeContext();
+    const provider = makeProvider();
+    const target = uri('/workspace/created/.gitignore');
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    gitignoreWatcherListeners.create?.(target);
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/created/.gitignore',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] .gitignore created, refreshing graph',
+    );
+  });
+
+  it('routes dedicated gitignore deletes through metadata refresh', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const context = makeContext();
+    const provider = makeProvider();
+    const target = uri('/workspace/deleted/.gitignore');
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+    gitignoreWatcherListeners.delete?.(target);
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileDeleted', {
+      filePath: '/workspace/deleted/.gitignore',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] .gitignore deleted, refreshing graph',
+    );
   });
 
   it('ignores file-system change events for graph cache writes', () => {

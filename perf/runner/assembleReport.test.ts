@@ -554,7 +554,21 @@ describe('performance report assembly', () => {
     save.metrics = save.metrics.filter(metric => metric.metric !== metricName);
 
     expect(() => assemblePerfReport(input)).toThrow(
-      `Expected at least one ${metricName} metric for single-save; found 0`,
+      `Expected exactly one ${metricName} metric for single-save; found 0`,
+    );
+  });
+
+  it.each([
+    'incrementalRefreshMs',
+    'watcherToGraphMs',
+  ] as const)('rejects duplicate correlated single-save %s metrics', (metricName) => {
+    const input = createInput();
+    const save = input.results.find(result => result.scenario === 'single-save')!;
+    const operationId = save.metrics.find(entry => entry.operationId)?.operationId;
+    save.metrics.push({ ...metric(metricName, 12), operationId });
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      `Expected exactly one ${metricName} metric for single-save; found 2`,
     );
   });
 
