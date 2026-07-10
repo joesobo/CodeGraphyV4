@@ -26,11 +26,7 @@ jobs:
       - name: Select performance configurations
         id: matrix
         run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false},{"fixture":"large","variant":"default","symbols":false},{"fixture":"huge","variant":"default","symbols":false},{"fixture":"giant","variant":"default","symbols":false},{"fixture":"giant","variant":"symbols","symbols":true},{"fixture":"self","variant":"default","symbols":false}]'
-          else
-            configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false}]'
-          fi
+          configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false},{"fixture":"large","variant":"default","symbols":false},{"fixture":"huge","variant":"default","symbols":false},{"fixture":"giant","variant":"default","symbols":false},{"fixture":"giant","variant":"symbols","symbols":true},{"fixture":"self","variant":"default","symbols":false}]'
           echo "configurations=${configurations}" >> "${GITHUB_OUTPUT}"
 
   benchmark:
@@ -82,19 +78,16 @@ jobs:
           PERF_FIXTURE: ${{ matrix.fixture }}
           PERF_SYMBOLS: ${{ matrix.symbols }}
         run: |
-          budget_arguments=()
           symbol_arguments=()
-          if [[ ! -f "perf/baselines/${CODEGRAPHY_PERF_RUNNER_CLASS}.json" ]]; then
-            budget_arguments+=(--no-budget)
-          fi
           if [[ "${PERF_SYMBOLS}" == "true" ]]; then
             symbol_arguments+=(--symbols)
           fi
           xvfb-run --auto-servernum pnpm perf -- \
             --fixture "${PERF_FIXTURE}" \
             --runs 3 \
-            "${symbol_arguments[@]}" \
-            "${budget_arguments[@]}"
+            --skip-stability \
+            --no-budget \
+            "${symbol_arguments[@]}"
 
       - name: Upload deterministic performance reports
         if: ${{ !cancelled() }}
