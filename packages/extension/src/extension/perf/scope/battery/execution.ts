@@ -12,6 +12,7 @@ export interface ScopeBatteryActions {
   operationId: string;
   requestInventory(): Promise<PerfScopeEntry[]>;
   toggle(entry: PerfScopeEntry, measured: boolean): Promise<void>;
+  waitForQuietWindow(): Promise<void>;
 }
 
 function asError(value: unknown): Error {
@@ -65,9 +66,12 @@ async function measureEntry(
 ): Promise<void> {
   await normalizeEntry(original, actions);
   await preconditionEntry(original, actions);
+  await actions.waitForQuietWindow();
   for (let repetition = 0; repetition < scopeToggleRepetitions; repetition += 1) {
     await actions.toggle({ ...original, enabled: !original.enabled }, true);
+    await actions.waitForQuietWindow();
     await actions.toggle(original, true);
+    await actions.waitForQuietWindow();
   }
 }
 

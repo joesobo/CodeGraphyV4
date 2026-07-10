@@ -7,34 +7,42 @@ import {
 import type { PerfScopeEntry } from '../../../../../src/shared/perf/protocol';
 
 describe('extension/perf/scope/battery/execution', () => {
-  it('preconditions once before exactly three measured away-and-back toggles', async () => {
+  it('separates preconditioning and measured toggles with quiet windows', async () => {
     const original: PerfScopeEntry = {
       scopeKind: 'node',
       scopeId: 'file',
       enabled: true,
     };
     let current = original;
-    const toggles: Array<{ enabled: boolean; measured: boolean }> = [];
+    const events: Array<{ enabled: boolean; measured: boolean } | 'quiet'> = [];
     const actions: ScopeBatteryActions = {
       operationId: 'scope-operation',
       requestInventory: vi.fn(async () => [{ ...current }]),
       toggle: vi.fn(async (entry, measured) => {
         current = entry;
-        toggles.push({ enabled: entry.enabled, measured });
+        events.push({ enabled: entry.enabled, measured });
       }),
+      waitForQuietWindow: vi.fn(async () => { events.push('quiet'); }),
     };
 
     await expect(executeScopeBattery(actions)).resolves.toEqual([original]);
 
-    expect(toggles).toEqual([
+    expect(events).toEqual([
       { enabled: false, measured: false },
       { enabled: true, measured: false },
+      'quiet',
       { enabled: false, measured: true },
+      'quiet',
       { enabled: true, measured: true },
+      'quiet',
       { enabled: false, measured: true },
+      'quiet',
       { enabled: true, measured: true },
+      'quiet',
       { enabled: false, measured: true },
+      'quiet',
       { enabled: true, measured: true },
+      'quiet',
     ]);
     expect(current).toEqual(original);
   });

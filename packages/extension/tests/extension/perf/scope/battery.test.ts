@@ -64,7 +64,9 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
     emitFor(armedOperation, event);
   };
 
-  const runtime: CorrelatedControlOperationRuntime = {
+  const runtime: CorrelatedControlOperationRuntime & {
+    waitForPerfQuietWindow(): Promise<void>;
+  } = {
     emitMetric,
     now: vi.fn(() => {
       clock += 5;
@@ -189,6 +191,7 @@ function createHarness(initialEntries: PerfScopeEntry[], options: HarnessOptions
       }
     },
     startMetricSession: vi.fn(() => metricSession),
+    waitForPerfQuietWindow: vi.fn(async () => undefined),
   };
 
   return { controls, emitMetric, metricSession, runtime, state, subscription };

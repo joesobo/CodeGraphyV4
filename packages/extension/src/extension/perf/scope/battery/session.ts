@@ -30,6 +30,16 @@ interface ScopeBatterySessionInput {
   runId: string;
 }
 
+interface ScopeBatteryRuntime extends CorrelatedControlOperationRuntime {
+  waitForPerfQuietWindow?(): Promise<void>;
+}
+
+const scopeToggleQuietWindowMs = 250;
+
+function waitForScopeToggleQuietWindow(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, scopeToggleQuietWindowMs));
+}
+
 export interface ScopeBatterySession {
   dispose(): void;
   execute(): Promise<PerfScopeEntry[]>;
@@ -47,7 +57,7 @@ class DefaultScopeBatterySession implements ScopeBatterySession {
   constructor(
     private readonly input: ScopeBatterySessionInput,
     private readonly operation: PerfOperation,
-    private readonly runtime: CorrelatedControlOperationRuntime,
+    private readonly runtime: ScopeBatteryRuntime,
     private readonly timeoutMs: number,
   ) {
     this.toggleOrdinal = input.ordinal + 1;
@@ -122,11 +132,18 @@ class DefaultScopeBatterySession implements ScopeBatterySession {
     }
   }
 
+  private waitForQuietWindow(): Promise<void> {
+    return this.runtime.waitForPerfQuietWindow
+      ? this.runtime.waitForPerfQuietWindow()
+      : waitForScopeToggleQuietWindow();
+  }
+
   async execute(): Promise<PerfScopeEntry[]> {
     return executeScopeBattery({
       operationId: this.operation.operationId,
       requestInventory: () => this.requestInventory(),
       toggle: (entry, measured) => this.toggle(entry, measured),
+      waitForQuietWindow: () => this.waitForQuietWindow(),
     });
   }
 
@@ -140,7 +157,7 @@ class DefaultScopeBatterySession implements ScopeBatterySession {
 export function createScopeBatterySession(
   input: ScopeBatterySessionInput,
   operation: PerfOperation,
-  runtime: CorrelatedControlOperationRuntime,
+  runtime: ScopeBatteryRuntime,
   timeoutMs: number,
 ): ScopeBatterySession {
   return new DefaultScopeBatterySession(input, operation, runtime, timeoutMs);
