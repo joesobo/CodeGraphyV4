@@ -10,20 +10,31 @@ export function refreshWorkspacePaths(
   provider: GraphViewProvider,
   logMessage: string,
   filePaths: readonly string[],
-  options: { followUpRefresh?: boolean } = {},
+  options: { followUpFilePaths?: readonly string[] } = {},
 ): string[] {
-  const refreshPaths = filePaths.filter(filePath =>
-    !shouldIgnoreWorkspaceFileWatcherRefresh(filePath),
-  );
+  const refreshPaths = filterWorkspaceRefreshPaths(filePaths);
+  const refreshPathSet = new Set(refreshPaths);
+  const followUpFilePaths = filterWorkspaceRefreshPaths(
+    options.followUpFilePaths ?? [],
+  ).filter(filePath => refreshPathSet.has(filePath));
 
   if (refreshPaths.length > 0) {
     scheduleWorkspaceRefresh(provider, logMessage, refreshPaths, WORKSPACE_FILE_OPERATION_REFRESH_DELAY_MS, {
-      followUpDelayMs: options.followUpRefresh ? WORKSPACE_CREATE_FOLLOW_UP_REFRESH_DELAY_MS : undefined,
+      followUpDelayMs: followUpFilePaths.length > 0
+        ? WORKSPACE_CREATE_FOLLOW_UP_REFRESH_DELAY_MS
+        : undefined,
+      followUpFilePaths,
       gitignoreRefresh: includesGitignorePath(refreshPaths),
     });
   }
 
   return refreshPaths;
+}
+
+export function filterWorkspaceRefreshPaths(filePaths: readonly string[]): string[] {
+  return filePaths.filter(filePath =>
+    !shouldIgnoreWorkspaceFileWatcherRefresh(filePath),
+  );
 }
 
 export function isGitignorePath(filePath: string): boolean {

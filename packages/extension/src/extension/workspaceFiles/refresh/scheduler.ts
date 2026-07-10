@@ -27,6 +27,7 @@ interface WatcherMetricTiming {
 interface PendingWorkspaceRefresh {
   filePaths: Set<string>;
   followUpDelayMs?: number;
+  followUpFilePaths: Set<string>;
   fullRefresh: boolean;
   gitignoreRefresh: boolean;
   logMessage: string;
@@ -36,6 +37,7 @@ interface PendingWorkspaceRefresh {
 
 interface ScheduleWorkspaceRefreshOptions {
   followUpDelayMs?: number;
+  followUpFilePaths?: readonly string[];
   fullRefresh?: boolean;
   gitignoreRefresh?: boolean;
   now?: () => number;
@@ -77,6 +79,11 @@ export function scheduleWorkspaceRefresh(
     : undefined;
   const nextFilePaths = new Set(filePaths);
   let followUpDelayMs = options.followUpDelayMs;
+  const followUpFilePaths = new Set(
+    followUpDelayMs === undefined
+      ? []
+      : (options.followUpFilePaths ?? filePaths),
+  );
   let fullRefresh = options.fullRefresh === true;
   let gitignoreRefresh = options.gitignoreRefresh === true;
 
@@ -95,6 +102,9 @@ export function scheduleWorkspaceRefresh(
       clearTimeout(pending.timeout);
     }
     followUpDelayMs = maxFollowUpDelay(followUpDelayMs, pending.followUpDelayMs);
+    for (const filePath of pending.followUpFilePaths) {
+      followUpFilePaths.add(filePath);
+    }
     fullRefresh = fullRefresh || pending.fullRefresh;
     gitignoreRefresh = gitignoreRefresh || pending.gitignoreRefresh;
     if (
@@ -114,6 +124,7 @@ export function scheduleWorkspaceRefresh(
   const nextPending: PendingWorkspaceRefresh = {
     filePaths: nextFilePaths,
     followUpDelayMs,
+    followUpFilePaths,
     fullRefresh,
     gitignoreRefresh,
     logMessage,
@@ -289,7 +300,7 @@ function scheduleWorkspaceRefreshFollowUp(
     scheduleWorkspaceRefresh(
       provider,
       pending.logMessage,
-      [...pending.filePaths],
+      [...pending.followUpFilePaths],
       0,
       {
         fullRefresh: pending.fullRefresh,

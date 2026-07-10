@@ -242,7 +242,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
   });
 
-  it('allows file-system changes after saved document suppression expires', () => {
+  it('allows file-system changes after saved document suppression expires', async () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
@@ -251,9 +251,9 @@ describe('workspaceFiles/refresh/watchers', () => {
     registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
     triggerSave({ uri: uri('/workspace/src/app.ts') } as vscode.TextDocument);
-    vi.advanceTimersByTime(1001);
+    await vi.advanceTimersByTimeAsync(1001);
     watcherListeners.change?.(uri('/workspace/src/app.ts'));
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refresh).toHaveBeenCalledTimes(2);
     expect(provider.emitEvent).toHaveBeenCalledTimes(2);
@@ -262,7 +262,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     });
   });
 
-  it('wires file-system create and delete watchers to workspace events', () => {
+  it('wires file-system create and delete watchers to workspace events', async () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const context = makeContext();
@@ -270,9 +270,9 @@ describe('workspaceFiles/refresh/watchers', () => {
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
     watcherListeners.create?.(uri('/workspace/src/new.ts'));
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
     watcherListeners.delete?.(uri('/workspace/src/old.ts'));
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
       filePath: '/workspace/src/new.ts',
@@ -284,17 +284,20 @@ describe('workspaceFiles/refresh/watchers', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');
   });
 
-  it('wires raw file-system nested creates to an initial and follow-up refresh', () => {
+  it('refreshes raw file-system creates once for ordinary files', async () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = {
       ...makeProvider(),
       refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
     };
+    vi.mocked(vscode.workspace.fs.stat).mockResolvedValue({
+      type: vscode.FileType.File,
+    } as vscode.FileStat);
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
     watcherListeners.create?.(uri('/workspace/src/core/menuCreated.ts'));
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
       '/workspace/src/core/menuCreated.ts',
@@ -303,12 +306,9 @@ describe('workspaceFiles/refresh/watchers', () => {
       filePath: '/workspace/src/core/menuCreated.ts',
     });
 
-    vi.advanceTimersByTime(1_501);
+    await vi.advanceTimersByTimeAsync(1_501);
 
-    expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
-    expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
-      '/workspace/src/core/menuCreated.ts',
-    ]);
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
   });
@@ -372,7 +372,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     );
   });
 
-  it('routes dedicated gitignore creates through metadata refresh', () => {
+  it('routes dedicated gitignore creates through metadata refresh', async () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const context = makeContext();
@@ -381,7 +381,7 @@ describe('workspaceFiles/refresh/watchers', () => {
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
     gitignoreWatcherListeners.create?.(target);
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
@@ -426,7 +426,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
-  it('wires workspace explorer create and delete events', () => {
+  it('wires workspace explorer create and delete events', async () => {
     vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const context = makeContext();
@@ -436,9 +436,9 @@ describe('workspaceFiles/refresh/watchers', () => {
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
     triggerCreateFiles({ files: [uri('/workspace/src/new.ts')] } as vscode.FileCreateEvent);
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
     triggerDeleteFiles({ files: [uri('/workspace/src/old.ts')] } as vscode.FileDeleteEvent);
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
       filePath: '/workspace/src/new.ts',
@@ -450,7 +450,7 @@ describe('workspaceFiles/refresh/watchers', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');
   });
 
-  it('wires VS Code Explorer nested creates to an initial and follow-up refresh', () => {
+  it('limits VS Code Explorer create follow-ups to directories', async () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = {
@@ -458,6 +458,11 @@ describe('workspaceFiles/refresh/watchers', () => {
       refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
     };
     const triggerCreateFiles = captureCreateFilesListener();
+    vi.mocked(vscode.workspace.fs.stat).mockImplementation(async target => ({
+      type: target.fsPath.endsWith('/generated')
+        ? vscode.FileType.Directory
+        : vscode.FileType.File,
+    } as vscode.FileStat));
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
     triggerCreateFiles({
@@ -466,7 +471,7 @@ describe('workspaceFiles/refresh/watchers', () => {
         uri('/workspace/src/features/generated'),
       ],
     } as vscode.FileCreateEvent);
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
       '/workspace/src/core/menuCreated.ts',
@@ -479,11 +484,10 @@ describe('workspaceFiles/refresh/watchers', () => {
       filePath: '/workspace/src/features/generated',
     });
 
-    vi.advanceTimersByTime(1_501);
+    await vi.advanceTimersByTimeAsync(1_501);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
     expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
-      '/workspace/src/core/menuCreated.ts',
       '/workspace/src/features/generated',
     ]);
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();

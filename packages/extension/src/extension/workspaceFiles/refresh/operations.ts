@@ -13,6 +13,7 @@ import {
   rememberRecentSavedDocumentPath,
 } from './recentSaves';
 import {
+  filterWorkspaceRefreshPaths,
   isGitignorePath,
   refreshWorkspacePaths,
 } from './paths';
@@ -85,16 +86,61 @@ export function refreshWorkspaceFileOperation(
   files: readonly vscode.Uri[],
   eventName: WorkspaceFileEventName,
 ): void {
+  if (eventName === 'workspace:fileCreated') {
+    refreshWorkspaceCreatedFiles(provider, logMessage, files);
+    return;
+  }
+
   const refreshPaths = refreshWorkspacePaths(
     provider,
     logMessage,
     files.map(uri => uri.fsPath),
-    { followUpRefresh: eventName === 'workspace:fileCreated' },
   );
 
   for (const filePath of refreshPaths) {
     provider.emitEvent(eventName, { filePath });
   }
+}
+
+function refreshWorkspaceCreatedFiles(
+  provider: GraphViewProvider,
+  logMessage: string,
+  files: readonly vscode.Uri[],
+): void {
+  const refreshPaths = filterWorkspaceRefreshPaths(files.map(uri => uri.fsPath));
+  const refreshPathSet = new Set(refreshPaths);
+
+  for (const filePath of refreshPaths) {
+    provider.emitEvent('workspace:fileCreated', { filePath });
+  }
+
+  void findCreatedDirectoryPaths(files, refreshPathSet).then((directoryPaths) => {
+    refreshWorkspacePaths(provider, logMessage, refreshPaths, {
+      followUpFilePaths: directoryPaths,
+    });
+  });
+}
+
+async function findCreatedDirectoryPaths(
+  files: readonly vscode.Uri[],
+  refreshPaths: ReadonlySet<string>,
+): Promise<string[]> {
+  const directoryPaths = await Promise.all(files.map(async (uri) => {
+    if (!refreshPaths.has(uri.fsPath)) {
+      return undefined;
+    }
+
+    try {
+      const stat = await vscode.workspace.fs.stat(uri);
+      return (stat.type & vscode.FileType.Directory) !== 0
+        ? uri.fsPath
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }));
+
+  return directoryPaths.filter((filePath): filePath is string => filePath !== undefined);
 }
 
 export function refreshWorkspaceRenameOperation(

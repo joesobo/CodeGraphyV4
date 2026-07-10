@@ -85,7 +85,7 @@ describe('workspaceFiles/refresh/operations', () => {
     expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
-  it('refreshes create operations and emits an event for each refreshable path', () => {
+  it('refreshes create operations and emits an event for each refreshable path', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();
 
@@ -95,7 +95,7 @@ describe('workspaceFiles/refresh/operations', () => {
       [uri('/workspace/src/a.ts'), uri('/workspace/src/b.ts')],
       'workspace:fileCreated',
     );
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith([
       '/workspace/src/a.ts',
@@ -109,12 +109,17 @@ describe('workspaceFiles/refresh/operations', () => {
     });
   });
 
-  it('schedules a follow-up create refresh so nested descendants are discovered after folder events', () => {
+  it('limits create follow-up refreshes to directories that may gain nested descendants', async () => {
     vi.useFakeTimers();
     const provider = {
       ...makeProvider(),
       refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
     };
+    vi.mocked(vscode.workspace.fs.stat).mockImplementation(async target => ({
+      type: target.fsPath.endsWith('/generated')
+        ? vscode.FileType.Directory
+        : vscode.FileType.File,
+    } as vscode.FileStat));
 
     refreshWorkspaceFileOperation(
       provider as never,
@@ -125,17 +130,15 @@ describe('workspaceFiles/refresh/operations', () => {
       ],
       'workspace:fileCreated',
     );
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
       '/workspace/src/core/menuCreated.ts',
       '/workspace/src/features/generated',
     ]);
-    vi.advanceTimersByTime(1_500);
-    vi.advanceTimersByTime(1);
+    await vi.advanceTimersByTimeAsync(1_501);
     expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
     expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
-      '/workspace/src/core/menuCreated.ts',
       '/workspace/src/features/generated',
     ]);
     expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
@@ -170,7 +173,7 @@ describe('workspaceFiles/refresh/operations', () => {
     ]);
   });
 
-  it('runs a metadata-only graph refresh when gitignore is created or deleted', () => {
+  it('runs a metadata-only graph refresh when gitignore is created or deleted', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();
 
@@ -180,7 +183,7 @@ describe('workspaceFiles/refresh/operations', () => {
       [uri('/workspace/.gitignore')],
       'workspace:fileCreated',
     );
-    vi.advanceTimersByTime(500);
+    await vi.advanceTimersByTimeAsync(500);
 
     expect(provider.refreshGitignoreMetadata).toHaveBeenCalledOnce();
     expect(provider.refreshIndex).not.toHaveBeenCalled();
