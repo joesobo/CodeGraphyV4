@@ -1,13 +1,13 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 import { Link } from '@/components/link';
 import { MobileNav } from '@/components/nav/mobile-nav';
-import { NavDisclosureTrigger, NavMenuLink } from '@/components/nav/nav-link';
+import { NavDropdown } from '@/components/nav/nav-dropdown';
+import { NavMenuLink } from '@/components/nav/nav-link';
+import { NavSection } from '@/components/nav/nav-section';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { buttonVariants } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,7 +16,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
-import { siteNavigation, type NavGroup, type NavItem } from '@/content/navigation';
+import { siteNavigation, type NavItem } from '@/content/navigation';
 import { cn, isRouteActive } from '@/lib/utils';
 
 const navbarItemClassName =
@@ -114,46 +114,23 @@ function NavbarPrimaryItem({
           <div className="grid max-h-[min(24rem,calc(100vh-10rem))] gap-0.5 overflow-y-auto pr-1">
             {item.nav.map((group, index) =>
               group.collapsible ? (
-                <NavbarDropdownGroup group={group} key={group.title ?? index} />
+                <NavDropdown
+                  group={group}
+                  initialOpen={false}
+                  itemLink={NavMenuLink}
+                  key={group.title ?? index}
+                />
               ) : (
-                <NavbarDropdownSection group={group} key={group.title ?? index} />
+                <NavSection
+                  group={group}
+                  itemLink={NavMenuLink}
+                  key={group.title ?? index}
+                />
               ),
             )}
           </div>
         </div>
       </NavigationMenuContent>
     </NavigationMenuItem>
-  );
-}
-
-function NavbarDropdownGroup({ group }: { group: NavGroup }): React.ReactElement {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Collapsible className="py-0.5" onOpenChange={setOpen} open={open}>
-      <NavDisclosureTrigger density="compact">{group.title}</NavDisclosureTrigger>
-      <CollapsibleContent className="pt-0.5 pl-2">
-        <ul className="grid gap-0.5">
-          {group.items.map((item) => (
-            <NavMenuLink item={item} key={item.href} />
-          ))}
-        </ul>
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
-function NavbarDropdownSection({ group }: { group: NavGroup }): React.ReactElement {
-  return (
-    <div className="grid gap-0.5 py-0.5">
-      {group.title ? (
-        <p className="px-2 pt-1 pb-0.5 text-xs font-semibold text-muted-foreground">{group.title}</p>
-      ) : null}
-      <ul className="grid gap-0.5">
-        {group.items.map((item) => (
-          <NavMenuLink item={item} key={item.href} />
-        ))}
-      </ul>
-    </div>
   );
 }

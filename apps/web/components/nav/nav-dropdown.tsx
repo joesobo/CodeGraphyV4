@@ -1,7 +1,12 @@
 'use client';
 
+import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
-import { NavDisclosureTrigger, NavLink } from '@/components/nav/nav-link';
+import {
+  NavDisclosureTrigger,
+  NavLink,
+  type NavItemLinkProps,
+} from '@/components/nav/nav-link';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import type { NavGroup } from '@/content/navigation';
 
@@ -13,12 +18,16 @@ export function NavDropdown({
   group,
   activeHref,
   onNavigate,
+  itemLink: ItemLink = NavLink,
+  initialOpen = group.defaultOpen ?? false,
 }: {
   group: NavGroup;
   activeHref?: string;
   onNavigate?: (href: string) => void;
+  itemLink?: ComponentType<NavItemLinkProps>;
+  initialOpen?: boolean;
 }): React.ReactElement {
-  const [open, setOpen] = useState(group.defaultOpen ?? false);
+  const [open, setOpen] = useState(initialOpen);
   const hasActiveItem = group.items.some((item) => item.href === activeHref);
 
   useEffect(() => {
@@ -33,7 +42,7 @@ export function NavDropdown({
       <CollapsibleContent className="pt-0.5 pl-2">
         <ul className="grid gap-0.5">
           {group.items.map((item) => (
-            <NavLink
+            <ItemLink
               active={item.href === activeHref}
               density="compact"
               item={item}

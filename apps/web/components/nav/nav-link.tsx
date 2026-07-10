@@ -13,6 +13,13 @@ import { cn } from '@/lib/utils';
 
 type NavDensity = 'default' | 'compact';
 
+export interface NavItemLinkProps {
+  item: NavItem;
+  active?: boolean;
+  density?: NavDensity;
+  onNavigate?: (href: string) => void;
+}
+
 const navRowClassName = cn(
   'flex min-h-9 w-full min-w-0 flex-row items-center gap-2 rounded-md',
   'cursor-pointer px-2 py-1.5 text-left text-sm font-semibold text-foreground',
@@ -27,12 +34,7 @@ export function NavLink({
   active = false,
   density = 'default',
   onNavigate,
-}: {
-  item: NavItem;
-  active?: boolean;
-  density?: NavDensity;
-  onNavigate?: (href: string) => void;
-}): React.ReactElement {
+}: NavItemLinkProps): React.ReactElement {
   const itemRef = useRef<HTMLLIElement>(null);
   useScrollActiveNavItemIntoView(itemRef, active);
 
@@ -60,11 +62,8 @@ export function NavMenuLink({
   item,
   active = false,
   density = 'compact',
-}: {
-  item: NavItem;
-  active?: boolean;
-  density?: NavDensity;
-}): React.ReactElement {
+  onNavigate,
+}: NavItemLinkProps): React.ReactElement {
   return (
     <li className="min-w-0">
       <NavigationMenuLink
@@ -73,7 +72,7 @@ export function NavMenuLink({
           density === 'compact' && compactNavRowClassName,
           active && 'bg-secondary',
         )}
-        render={<Link href={item.href} />}
+        render={<Link href={item.href} onClick={() => onNavigate?.(item.href)} />}
       >
         {item.iconUrl ? <Icon className="size-4.5 shrink-0" src={item.iconUrl} /> : null}
         <span className="min-w-0 flex-1 truncate">{item.label}</span>

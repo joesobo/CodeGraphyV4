@@ -1,4 +1,5 @@
-import { NavLink } from '@/components/nav/nav-link';
+import type { ComponentType } from 'react';
+import { NavLink, type NavItemLinkProps } from '@/components/nav/nav-link';
 import type { NavGroup } from '@/content/navigation';
 
 /** A plain group of navigation links with an optional label. */
@@ -6,10 +7,12 @@ export function NavSection({
   group,
   activeHref,
   onNavigate,
+  itemLink: ItemLink = NavLink,
 }: {
   group: NavGroup;
   activeHref?: string;
   onNavigate?: (href: string) => void;
+  itemLink?: ComponentType<NavItemLinkProps>;
 }): React.ReactElement {
   return (
     <div className="grid gap-0.5 py-0.5">
@@ -18,7 +21,7 @@ export function NavSection({
       ) : null}
       <ul className="grid gap-0.5">
         {group.items.map((item) => (
-          <NavLink
+          <ItemLink
             active={item.href === activeHref}
             density="compact"
             item={item}
