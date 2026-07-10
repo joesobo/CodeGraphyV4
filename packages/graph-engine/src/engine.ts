@@ -19,6 +19,7 @@ export interface GraphLayoutConfig {
   alphaDecay: number;
   alphaMinimum: number;
   centerForce: number;
+  collisionIterations: number;
   collisionPadding: number;
   collisionStrength: number;
   damping: number;
@@ -26,6 +27,7 @@ export interface GraphLayoutConfig {
   initializationSpacing: number;
   linkDistance: number;
   linkForce: number;
+  maximumCollisionNeighbors: number;
   maximumElapsedMs: number;
   maximumNeighbors: number;
   maximumSpeed: number;
@@ -72,6 +74,7 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   alphaDecay: 0.025,
   alphaMinimum: 0.001,
   centerForce: 0.12,
+  collisionIterations: 1,
   collisionPadding: 2,
   collisionStrength: 0.7,
   damping: 0.84,
@@ -79,10 +82,11 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   initializationSpacing: 12,
   linkDistance: 80,
   linkForce: 0.08,
+  maximumCollisionNeighbors: 64,
   maximumElapsedMs: 250,
-  maximumNeighbors: 96,
+  maximumNeighbors: 24,
   maximumSpeed: 80,
-  maximumSubSteps: 8,
+  maximumSubSteps: 1,
   repelForce: 1_200,
   settleSpeed: 0.02,
   settleSteps: 8,
@@ -117,6 +121,7 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
   private nodeIndexes = new Map<string, number>();
+  private collisionGrid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.initializationSpacing);
   private grid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.linkDistance);
   private alpha = 1;
   private accumulatorMs = 0;
@@ -182,6 +187,7 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
       }
     }
     this.grid = new UniformGrid(this.gridCellSize());
+    this.collisionGrid = new UniformGrid(this.collisionCellSize());
     this.rebuildGrid();
     this.reheat();
   }
@@ -199,6 +205,7 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
     }
     this.config = next;
     this.grid = new UniformGrid(this.gridCellSize());
+    this.collisionGrid = new UniformGrid(this.collisionCellSize());
   }
 
   tick(elapsedMs: number): GraphLayoutTickResult {
@@ -282,6 +289,7 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.rebuildGrid();
     this.applyLinkForces();
     this.applyLocalForces();
+    this.applyCollisionForces();
     const maximumVelocity = this.integrate();
     this.alpha = Math.max(0, this.alpha * (1 - this.config.alphaDecay));
 
@@ -341,15 +349,48 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
       this.config.maximumSpeed,
       (this.config.repelForce * this.alpha) / Math.max(distanceSquared, 25),
     );
-    let impulse = repelImpulse;
-    const collisionDistance = this.radii[first]
+    const forceX = (dx / distance) * repelImpulse;
+    const forceY = (dy / distance) * repelImpulse;
+    this.applyVelocityPair(first, second, -forceX, -forceY);
+  }
+
+  private applyCollisionForces(): void {
+    this.collisionGrid.rebuild(this.x, this.y, this.flags, GraphNodeFlag.Hidden);
+    for (let iteration = 0; iteration < this.config.collisionIterations; iteration += 1) {
+      for (let index = 0; index < this.x.length; index += 1) {
+        if (this.isHidden(index)) continue;
+        this.collisionGrid.forEachNearby(
+          index,
+          this.config.maximumCollisionNeighbors,
+          otherIndex => {
+            if (otherIndex <= index || this.isHidden(otherIndex)) return;
+            this.applyCollisionPair(index, otherIndex);
+          },
+        );
+      }
+    }
+  }
+
+  private applyCollisionPair(first: number, second: number): void {
+    let dx = this.x[second] - this.x[first];
+    let dy = this.y[second] - this.y[first];
+    let distanceSquared = dx * dx + dy * dy;
+    if (distanceSquared < 0.0001) {
+      const direction = deterministicDirection(first, second);
+      dx = direction.x * 0.01;
+      dy = direction.y * 0.01;
+      distanceSquared = dx * dx + dy * dy;
+    }
+    const distance = Math.sqrt(distanceSquared);
+    const minimumDistance = this.radii[first]
       + this.radii[second]
       + this.config.collisionPadding;
-    if (distance < collisionDistance) {
-      impulse += (collisionDistance - distance)
-        * this.config.collisionStrength
-        * this.alpha;
-    }
+    if (distance >= minimumDistance) return;
+    const collisionAlpha = Math.max(this.alpha, 0.2);
+    const impulse = (minimumDistance - distance)
+      * this.config.collisionStrength
+      * collisionAlpha
+      * 0.5;
     const forceX = (dx / distance) * impulse;
     const forceY = (dy / distance) * impulse;
     this.applyVelocityPair(first, second, -forceX, -forceY);
@@ -420,6 +461,12 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   private rebuildGrid(): void {
     this.grid.rebuild(this.x, this.y, this.flags, GraphNodeFlag.Hidden);
+  }
+
+  private collisionCellSize(): number {
+    let maximumRadius = 1;
+    for (const radius of this.radii) maximumRadius = Math.max(maximumRadius, radius);
+    return maximumRadius * 2 + this.config.collisionPadding;
   }
 
   private gridCellSize(): number {

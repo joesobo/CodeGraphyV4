@@ -35,6 +35,7 @@ interface PointerSession {
 }
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
+const CANVAS_DECORATION_NODE_LIMIT = 5_000;
 
 function canvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
   const bounds = canvas.getBoundingClientRect();
@@ -58,6 +59,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const cameraRef = useRef<OwnedGraphCamera>({ ...INITIAL_CAMERA });
   const animationFrameRef = useRef<number | null>(null);
   const requestFrameRef = useRef<() => void>(() => undefined);
+  const skipPhysicsFrameRef = useRef(false);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const engineStopNotifiedRef = useRef(false);
@@ -109,8 +111,19 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       if (!layout || !context) return;
       const elapsedMs = previousTimestamp === null ? 1000 / 60 : timestamp - previousTimestamp;
       previousTimestamp = timestamp;
-      const tick = layout.engine.tick(elapsedMs);
+      const perfWindow = window as typeof window & {
+        __CODEGRAPHY_WEBGPU_PERF__?: Array<Record<string, number>>;
+      };
+      const perfSamples = perfWindow.__CODEGRAPHY_WEBGPU_PERF__;
+      const physicsStartedAt = perfSamples ? performance.now() : 0;
+      const skipPhysics = skipPhysicsFrameRef.current;
+      skipPhysicsFrameRef.current = false;
+      const tick = skipPhysics
+        ? { moving: !layout.engine.settled, settled: layout.engine.settled, steps: 0 }
+        : layout.engine.tick(elapsedMs);
+      const physicsEndedAt = perfSamples ? performance.now() : 0;
       syncOwnedLayoutNodes(layout);
+      const syncEndedAt = perfSamples ? performance.now() : 0;
 
       const { width, height } = canvasSize(canvas);
       const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
@@ -124,6 +137,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
       const camera = cameraRef.current;
+      const gpuStartedAt = perfSamples ? performance.now() : 0;
       let gpuRendered = false;
       const gpuRenderer = gpuRendererRef.current;
       if (gpuRenderer) {
@@ -147,6 +161,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
           setRendererKind('canvas2d');
         }
       }
+      const gpuEndedAt = perfSamples ? performance.now() : 0;
       if (!gpuRendered) {
         context.fillStyle = currentProps.backgroundColor;
         context.fillRect(0, 0, width, height);
@@ -172,10 +187,22 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         particleSpeed: currentProps.particleSpeed,
         timestamp,
       };
-      if (gpuRendered) drawOwnedGraphOverlay(drawingOptions);
-      else drawOwnedGraph(drawingOptions);
+      if (gpuRendered && layout.nodes.length <= CANVAS_DECORATION_NODE_LIMIT) {
+        drawOwnedGraphOverlay(drawingOptions);
+      } else if (!gpuRendered) {
+        drawOwnedGraph(drawingOptions);
+      }
       currentProps.onRenderFramePost(context, camera.zoom);
       context.restore();
+      if (perfSamples) {
+        perfSamples.push({
+          gpuMs: gpuEndedAt - gpuStartedAt,
+          overlayMs: performance.now() - gpuEndedAt,
+          physicsMs: physicsEndedAt - physicsStartedAt,
+          syncMs: syncEndedAt - physicsEndedAt,
+        });
+        if (perfSamples.length > 240) perfSamples.shift();
+      }
 
       if (tick.settled && !engineStopNotifiedRef.current) {
         engineStopNotifiedRef.current = true;
@@ -196,6 +223,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       centerAt: (x, y) => {
         cameraRef.current.centerX = x;
         cameraRef.current.centerY = y;
+        skipPhysicsFrameRef.current = true;
         requestFrameRef.current();
       },
       d3ReheatSimulation: () => {
@@ -220,6 +248,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       zoom: ((scale?: number) => {
         if (scale === undefined) return cameraRef.current.zoom;
         cameraRef.current.zoom = clampOwnedGraphZoom(scale);
+        skipPhysicsFrameRef.current = true;
         requestFrameRef.current();
         return controls;
       }) as OwnedGraph2dControls['zoom'],
@@ -232,6 +261,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
           size.height,
           padding,
         );
+        skipPhysicsFrameRef.current = true;
         requestFrameRef.current();
       },
     };
@@ -421,6 +451,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     cameraRef.current.zoom = nextZoom;
     cameraRef.current.centerX = world.x - (screen.x - size.width / 2) / nextZoom;
     cameraRef.current.centerY = world.y - (screen.y - size.height / 2) / nextZoom;
+    skipPhysicsFrameRef.current = true;
     requestFrameRef.current();
   };
 

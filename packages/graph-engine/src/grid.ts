@@ -1,6 +1,6 @@
 export class UniformGrid {
   readonly cellSize: number;
-  private heads = new Map<string, number>();
+  private heads = new Map<number, number>();
   private next = new Int32Array();
   private cellX = new Int32Array();
   private cellY = new Int32Array();
@@ -52,11 +52,15 @@ export class UniformGrid {
 
     for (let yOffset = -1; yOffset <= 1 && visited < maximumNeighbors; yOffset += 1) {
       for (let xOffset = -1; xOffset <= 1 && visited < maximumNeighbors; xOffset += 1) {
-        let otherIndex = this.heads.get(
-          this.key(centerX + xOffset, centerY + yOffset),
-        ) ?? -1;
+        const targetX = centerX + xOffset;
+        const targetY = centerY + yOffset;
+        let otherIndex = this.heads.get(this.key(targetX, targetY)) ?? -1;
         while (otherIndex >= 0 && visited < maximumNeighbors) {
-          if (otherIndex !== index) {
+          if (
+            otherIndex !== index
+            && this.cellX[otherIndex] === targetX
+            && this.cellY[otherIndex] === targetY
+          ) {
             visit(otherIndex);
             visited += 1;
           }
@@ -66,7 +70,7 @@ export class UniformGrid {
     }
   }
 
-  private key(cellX: number, cellY: number): string {
-    return `${cellX},${cellY}`;
+  private key(cellX: number, cellY: number): number {
+    return Math.imul(cellX, 73_856_093) ^ Math.imul(cellY, 19_349_663);
   }
 }

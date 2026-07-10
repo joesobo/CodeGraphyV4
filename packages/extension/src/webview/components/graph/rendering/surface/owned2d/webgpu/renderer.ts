@@ -1,7 +1,7 @@
 /// <reference types="@webgpu/types" />
 
 import type { FGLink, FGNode } from '../../../../model/build';
-import { graphToScreen, type OwnedGraphCamera } from '../camera';
+import type { OwnedGraphCamera } from '../camera';
 import { LINK_SHADER, NODE_SHADER } from './shaders';
 
 const NODE_FLOATS = 8;
@@ -70,6 +70,16 @@ function endpointNode(endpoint: string | FGNode): FGNode | undefined {
   return typeof endpoint === 'string' ? undefined : endpoint;
 }
 
+const colorCache = new Map<string, readonly [number, number, number, number]>();
+
+function cachedWebGpuColor(color: string): readonly [number, number, number, number] {
+  const cached = colorCache.get(color);
+  if (cached) return cached;
+  const parsed = parseWebGpuColor(color);
+  colorCache.set(color, parsed);
+  return parsed;
+}
+
 function blendState(): GPUBlendState {
   return {
     color: { operation: 'add', srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha' },
@@ -78,10 +88,18 @@ function blendState(): GPUBlendState {
 }
 
 export class OwnedWebGpuRenderer {
+  private coloredNodes: readonly FGNode[] | undefined;
   private linkBuffer: GPUBuffer;
   private linkBufferSize = 256;
+  private linkColorAccessor: OwnedWebGpuFrame['getLinkColor'] | undefined;
+  private linkStyleLinks: readonly FGLink[] | undefined;
+  private linkStyles = new Float32Array();
+  private linkValues = new Float32Array();
+  private linkWidthAccessor: OwnedWebGpuFrame['getLinkWidth'] | undefined;
   private nodeBuffer: GPUBuffer;
   private nodeBufferSize = 256;
+  private nodeColors = new Float32Array();
+  private nodeValues = new Float32Array();
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -221,60 +239,88 @@ export class OwnedWebGpuRenderer {
     });
   }
 
+  private updateStyleCaches(frame: OwnedWebGpuFrame): void {
+    if (this.coloredNodes !== frame.nodes || this.nodeColors.length !== frame.nodes.length * 4) {
+      this.coloredNodes = frame.nodes;
+      this.nodeColors = new Float32Array(frame.nodes.length * 4);
+      for (let index = 0; index < frame.nodes.length; index += 1) {
+        this.nodeColors.set(cachedWebGpuColor(frame.nodes[index].color), index * 4);
+      }
+    }
+    if (
+      this.linkStyleLinks === frame.links
+      && this.linkColorAccessor === frame.getLinkColor
+      && this.linkWidthAccessor === frame.getLinkWidth
+      && this.linkStyles.length === frame.links.length * 5
+    ) return;
+    this.linkStyleLinks = frame.links;
+    this.linkColorAccessor = frame.getLinkColor;
+    this.linkWidthAccessor = frame.getLinkWidth;
+    this.linkStyles = new Float32Array(frame.links.length * 5);
+    for (let index = 0; index < frame.links.length; index += 1) {
+      const link = frame.links[index];
+      const offset = index * 5;
+      this.linkStyles[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);
+      this.linkStyles.set(cachedWebGpuColor(frame.getLinkColor(link)), offset + 1);
+    }
+  }
+
   render(frame: OwnedWebGpuFrame): void {
+    this.updateStyleCaches(frame);
     const pixelWidth = Math.max(1, Math.round(frame.cssWidth * frame.devicePixelRatio));
     const pixelHeight = Math.max(1, Math.round(frame.cssHeight * frame.devicePixelRatio));
     const maxDimension = this.device.limits.maxTextureDimension2D;
-    this.canvas.width = Math.min(pixelWidth, maxDimension);
-    this.canvas.height = Math.min(pixelHeight, maxDimension);
+    const width = Math.min(pixelWidth, maxDimension);
+    const height = Math.min(pixelHeight, maxDimension);
+    if (this.canvas.width !== width) this.canvas.width = width;
+    if (this.canvas.height !== height) this.canvas.height = height;
 
-    const nodeValues = new Float32Array(frame.nodes.length * NODE_FLOATS);
-    frame.nodes.forEach((node, index) => {
-      const screen = graphToScreen(
-        frame.camera,
-        frame.cssWidth,
-        frame.cssHeight,
-        node.x ?? 0,
-        node.y ?? 0,
-      );
+    const requiredNodeFloats = frame.nodes.length * NODE_FLOATS;
+    if (this.nodeValues.length !== requiredNodeFloats) {
+      this.nodeValues = new Float32Array(requiredNodeFloats);
+    }
+    const nodeValues = this.nodeValues;
+    const graphToClipX = frame.camera.zoom * 2 / frame.cssWidth;
+    const graphToClipY = frame.camera.zoom * 2 / frame.cssHeight;
+    for (let index = 0; index < frame.nodes.length; index += 1) {
+      const node = frame.nodes[index];
       const offset = index * NODE_FLOATS;
       const radius = Math.max(1, node.size ?? 4) * frame.camera.zoom;
-      nodeValues[offset] = (screen.x / frame.cssWidth) * 2 - 1;
-      nodeValues[offset + 1] = 1 - (screen.y / frame.cssHeight) * 2;
+      nodeValues[offset] = ((node.x ?? 0) - frame.camera.centerX) * graphToClipX;
+      nodeValues[offset + 1] = -((node.y ?? 0) - frame.camera.centerY) * graphToClipY;
       nodeValues[offset + 2] = (radius / frame.cssWidth) * 2;
       nodeValues[offset + 3] = (radius / frame.cssHeight) * 2;
-      nodeValues.set(parseWebGpuColor(node.color), offset + 4);
-    });
+      const colorOffset = index * 4;
+      nodeValues[offset + 4] = this.nodeColors[colorOffset];
+      nodeValues[offset + 5] = this.nodeColors[colorOffset + 1];
+      nodeValues[offset + 6] = this.nodeColors[colorOffset + 2];
+      nodeValues[offset + 7] = this.nodeColors[colorOffset + 3];
+    }
 
-    const linkValues = new Float32Array(frame.links.length * LINK_FLOATS);
+    const requiredLinkFloats = frame.links.length * LINK_FLOATS;
+    if (this.linkValues.length !== requiredLinkFloats) {
+      this.linkValues = new Float32Array(requiredLinkFloats);
+    }
+    const linkValues = this.linkValues;
     let renderedLinkCount = 0;
-    for (const link of frame.links) {
+    for (let linkIndex = 0; linkIndex < frame.links.length; linkIndex += 1) {
+      const link = frame.links[linkIndex];
       const source = endpointNode(link.source);
       const target = endpointNode(link.target);
       if (!source || !target) continue;
-      const sourceScreen = graphToScreen(
-        frame.camera,
-        frame.cssWidth,
-        frame.cssHeight,
-        source.x ?? 0,
-        source.y ?? 0,
-      );
-      const targetScreen = graphToScreen(
-        frame.camera,
-        frame.cssWidth,
-        frame.cssHeight,
-        target.x ?? 0,
-        target.y ?? 0,
-      );
       const offset = renderedLinkCount * LINK_FLOATS;
-      const halfWidth = Math.max(0.35, frame.getLinkWidth(link) / 2);
-      linkValues[offset] = (sourceScreen.x / frame.cssWidth) * 2 - 1;
-      linkValues[offset + 1] = 1 - (sourceScreen.y / frame.cssHeight) * 2;
-      linkValues[offset + 2] = (targetScreen.x / frame.cssWidth) * 2 - 1;
-      linkValues[offset + 3] = 1 - (targetScreen.y / frame.cssHeight) * 2;
+      const styleOffset = linkIndex * 5;
+      const halfWidth = this.linkStyles[styleOffset];
+      linkValues[offset] = ((source.x ?? 0) - frame.camera.centerX) * graphToClipX;
+      linkValues[offset + 1] = -((source.y ?? 0) - frame.camera.centerY) * graphToClipY;
+      linkValues[offset + 2] = ((target.x ?? 0) - frame.camera.centerX) * graphToClipX;
+      linkValues[offset + 3] = -((target.y ?? 0) - frame.camera.centerY) * graphToClipY;
       linkValues[offset + 4] = (halfWidth / frame.cssWidth) * 2;
       linkValues[offset + 5] = (halfWidth / frame.cssHeight) * 2;
-      linkValues.set(parseWebGpuColor(frame.getLinkColor(link)), offset + 6);
+      linkValues[offset + 6] = this.linkStyles[styleOffset + 1];
+      linkValues[offset + 7] = this.linkStyles[styleOffset + 2];
+      linkValues[offset + 8] = this.linkStyles[styleOffset + 3];
+      linkValues[offset + 9] = this.linkStyles[styleOffset + 4];
       renderedLinkCount += 1;
     }
 
@@ -297,7 +343,7 @@ export class OwnedWebGpuRenderer {
     const pass = encoder.beginRenderPass({
       label: 'CodeGraphy graph render pass',
       colorAttachments: [{
-        clearValue: parseWebGpuColor(frame.backgroundColor),
+        clearValue: cachedWebGpuColor(frame.backgroundColor),
         loadOp: 'clear',
         storeOp: 'store',
         view: this.context.getCurrentTexture().createView(),

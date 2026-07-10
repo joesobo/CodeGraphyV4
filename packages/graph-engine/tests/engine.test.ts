@@ -64,6 +64,39 @@ describe('graph layout engine', () => {
     expect(new Set(engine.x).size).toBeGreaterThan(1);
   });
 
+  it('separates coincident node radii with the collision pass', () => {
+    const nodeCount = 40;
+    const radius = 5;
+    const collisionPadding = 2;
+    const engine = createGraphLayoutEngine({
+      nodeIds: Array.from({ length: nodeCount }, (_, index) => `node-${index}`),
+      initialX: new Float32Array(nodeCount),
+      initialY: new Float32Array(nodeCount),
+      radii: new Float32Array(nodeCount).fill(radius),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centerForce: 0,
+      collisionIterations: 3,
+      collisionPadding,
+      collisionStrength: 1,
+      repelForce: 0,
+    });
+
+    for (let tick = 0; tick < 600; tick += 1) engine.tick(1000 / 60);
+
+    let closestDistance = Number.POSITIVE_INFINITY;
+    for (let first = 0; first < nodeCount; first += 1) {
+      for (let second = first + 1; second < nodeCount; second += 1) {
+        closestDistance = Math.min(
+          closestDistance,
+          Math.hypot(engine.x[second] - engine.x[first], engine.y[second] - engine.y[first]),
+        );
+      }
+    }
+    expect(closestDistance).toBeGreaterThanOrEqual(radius * 2 + collisionPadding - 0.5);
+  });
+
   it('keeps a pinned node fixed until release', () => {
     const engine = createGraphLayoutEngine(lineGraph(3));
     engine.setNodePosition(1, 25, -10);

@@ -81,10 +81,11 @@ export function createOwnedGraphLayout(
 }
 
 export function syncOwnedLayoutNodes(layout: OwnedGraphLayout): void {
-  layout.nodes.forEach((node, index) => {
+  for (let index = 0; index < layout.nodes.length; index += 1) {
+    const node = layout.nodes[index];
     node.x = layout.engine.x[index];
     node.y = layout.engine.y[index];
     node.vx = layout.engine.vx[index];
     node.vy = layout.engine.vy[index];
-  });
+  }
 }
