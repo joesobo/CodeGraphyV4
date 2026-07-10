@@ -62,7 +62,10 @@ test('measures current-renderer hover hit-test latency', async ({ page }) => {
 
     const latencies = await measureCurrentRendererHover(
       page,
-      'packages/package-0000/src/file-000000.ts',
+      [
+        'packages/package-0000/src/file-000000.ts',
+        'packages/package-0000/src/file-000001.ts',
+      ],
       5,
     );
 

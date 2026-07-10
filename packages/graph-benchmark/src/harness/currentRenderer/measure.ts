@@ -118,7 +118,7 @@ export async function measureCurrentRendererHeapAfterSettlement(
 
 export async function measureCurrentRendererHover(
   page: Page,
-  nodeId: string,
+  nodeIds: readonly string[],
   sampleCount: number,
   timeoutMs = 2_000,
 ): Promise<number[]> {
@@ -129,13 +129,24 @@ export async function measureCurrentRendererHover(
   });
   await page.waitForTimeout(500);
 
-  const nodePosition = await page.evaluate((targetNodeId) =>
-    (window as BenchmarkGraphDebugWindow)
-      .__CODEGRAPHY_GRAPH_DEBUG__?.getNodeScreenPosition(targetNodeId) ?? null,
-  nodeId);
-  if (!nodePosition) throw new Error(`Benchmark node is not rendered: ${nodeId}`);
   const graphBounds = await page.locator('.graph-container').boundingBox();
   if (!graphBounds) throw new Error('Graph benchmark container is not visible');
+  const nodePositions = await page.evaluate((targetNodeIds) => {
+    const debug = (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__;
+    return targetNodeIds.map((id) => ({ id, position: debug?.getNodeScreenPosition(id) ?? null }));
+  }, nodeIds);
+  const inset = 16;
+  const target = nodePositions.find(({ position }) =>
+    position
+    && position.x >= inset
+    && position.x <= graphBounds.width - inset
+    && position.y >= inset
+    && position.y <= graphBounds.height - inset,
+  );
+  if (!target?.position) {
+    throw new Error(`Benchmark nodes are not rendered in the viewport: ${nodeIds.join(', ')}`);
+  }
+  const nodePosition = target.position;
 
   for (let sample = 0; sample < sampleCount; sample += 1) {
     await page.mouse.move(graphBounds.x + 2, graphBounds.y + 2);

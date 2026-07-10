@@ -115,7 +115,7 @@ export async function runGraphBenchmark(
     stage = 'hover';
     const hoverLatencies = await measureCurrentRendererHover(
       interactionPage,
-      fixture.graph.nodes[0].id,
+      fixture.graph.nodes.slice(0, 32).map((node) => node.id),
       fixture.summary.nodeCount >= 50_000 ? 5 : 20,
       Math.min(options.timeoutMs, 30_000),
     );
