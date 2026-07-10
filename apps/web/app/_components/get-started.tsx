@@ -20,11 +20,10 @@ const mcpVersionUrl = `${npmRegistryRootUrl}/${encodeURIComponent(mcpPackageName
 const mcpInstallCommand = `npm install -g ${mcpPackageName}`;
 
 export async function GetStarted(): Promise<React.ReactElement> {
-  const extensionVersionPromise = getPackageVersion(extensionVersionUrl);
-  const mcpVersionPromise = getPackageVersion(mcpVersionUrl);
-
-  const extensionVersion = await extensionVersionPromise;
-  const mcpVersion = await mcpVersionPromise;
+  const [extensionVersion, mcpVersion] = await Promise.all([
+    getPackageVersion(extensionVersionUrl),
+    getPackageVersion(mcpVersionUrl),
+  ]);
 
   return (
     <section className="w-full border-y border-border bg-secondary/50 px-6 py-16 sm:px-8 sm:py-20 lg:px-12">
