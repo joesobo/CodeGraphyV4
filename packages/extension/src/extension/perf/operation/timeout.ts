@@ -3,14 +3,18 @@ export interface OperationTimeout {
   dispose(): void;
 }
 
-export function timeoutAfter(operationId: string, timeoutMs: number): OperationTimeout {
+export function timeoutAfter(
+  operationId: string,
+  timeoutMs: number,
+  describeWait: () => string = () => 'graph acknowledgement',
+): OperationTimeout {
   let rejectTimeout: (error: Error) => void = () => {};
   const promise = new Promise<never>((_resolve, reject) => {
     rejectTimeout = reject;
   });
   const timer = setTimeout(() => {
     rejectTimeout(new Error(
-      `Timed out waiting for graph acknowledgement for ${operationId}`,
+      `Timed out waiting for ${describeWait()} for ${operationId}`,
     ));
   }, timeoutMs);
 

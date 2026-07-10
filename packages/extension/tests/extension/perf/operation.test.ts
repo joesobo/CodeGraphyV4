@@ -253,11 +253,31 @@ describe('extension/perf/operation', () => {
     );
 
     const assertion = expect(pending).rejects.toThrow(
-      'Timed out waiting for graph acknowledgement for run-1:rename:small:0',
+      'Timed out waiting for graph application for run-1:rename:small:0',
     );
     await vi.advanceTimersByTimeAsync(50);
     await assertion;
     expect(harness.dispose).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it('identifies physics settlement as the missing acknowledgement phase', async () => {
+    vi.useFakeTimers();
+    const harness = setup();
+    const pending = runCorrelatedGraphOperation(
+      operation,
+      async () => {
+        harness.emit(graphApplied(true));
+      },
+      harness.runtime,
+      { timeoutMs: 50 },
+    );
+
+    const assertion = expect(pending).rejects.toThrow(
+      'Timed out waiting for physics settlement for run-1:rename:small:0',
+    );
+    await vi.advanceTimersByTimeAsync(50);
+    await assertion;
     vi.useRealTimers();
   });
 });

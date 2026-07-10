@@ -59,6 +59,9 @@ export async function runCorrelatedGraphOperation(
   const timeout = timeoutAfter(
     operation.operationId,
     options.timeoutMs ?? defaultTimeoutMs,
+    () => graphAppliedAt === undefined
+      ? 'graph application'
+      : 'physics settlement',
   );
   const startedAt = runtime.now();
 
