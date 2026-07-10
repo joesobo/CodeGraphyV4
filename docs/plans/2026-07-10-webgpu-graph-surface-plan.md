@@ -122,7 +122,7 @@ horizontal batch.
 - [x] Add a failing canonical-hash test; implement a versioned streaming
       SHA-256 fixture hash that ignores object key insertion order, then add
       the 1k/10k/50k/100k named presets and topology-shape assertions.
-- [ ] Add a failing real-export normalization test; implement deterministic,
+- [x] Add a failing real-export normalization test; implement deterministic,
       sanitized snapshot import and commit 2–3 public real-repo fixtures with
       source revisions and licenses recorded.
 - [ ] Add failing CLI/report contract tests; implement `--fixture`,
