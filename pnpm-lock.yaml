@@ -383,6 +383,9 @@ importers:
       '@vscode/test-electron':
         specifier: ^2.5.2
         version: 2.5.2
+      '@webgpu/types':
+        specifier: ^0.1.71
+        version: 0.1.71
       autoprefixer:
         specifier: ^10.4.17
         version: 10.4.27(postcss@8.5.15)
@@ -2514,6 +2517,9 @@ packages:
 
   '@vue/shared@3.5.35':
     resolution: {integrity: sha512-zSbjL7gRXwks2ZQLRGCajBtBXEOXW9Ddhn/HvSdrGkE2dqGnumzW8XtusRrxrE9LvqtiqDXQ+A60Hp6mvdYxfA==}
+
+  '@webgpu/types@0.1.71':
+    resolution: {integrity: sha512-mMy8/ODcKhab808co15eW+yN+HgXoQxRQHTiBV9Mrvl1r0ufnid7YOcI+gi4eUWSWl9ezD6TW2KXccrL8HCh2A==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -8220,6 +8226,8 @@ snapshots:
       vue: 3.5.35(typescript@5.9.3)
 
   '@vue/shared@3.5.35': {}
+
+  '@webgpu/types@0.1.71': {}
 
   accepts@2.0.0:
     dependencies:

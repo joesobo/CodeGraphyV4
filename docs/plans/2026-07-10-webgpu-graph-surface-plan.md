@@ -89,8 +89,15 @@ graph and its product surfaces.
 - [x] Remove the 3D renderer, toggle/command, legacy d3 physics runtime, and
       all `react-force-graph`, Three.js, and d3-force package dependencies.
 - [ ] Remove the timeline view and its remaining product/state surfaces.
-- [ ] Add the WebGPU surface and scale the owned renderer/layout toward the
-      target fixture sizes, validating each implementation in Open in Editor.
+- [x] Add the first WebGPU draw path: feature-detected device/context setup,
+      validated WGSL pipelines, instanced SDF circles and link quads, dynamic
+      `writeBuffer` uploads, device-loss fallback, and Canvas2D overlays.
+- [x] Validate the actual WebGPU path (`data-codegraphy-renderer="webgpu"`)
+      in Open in Editor with 1,000 nodes / 3,090 edges; commit the composited
+      and GPU-only captures plus interaction timing under
+      `packages/graph-benchmark/references/webgpu/open-editor-1k/`.
+- [ ] Scale the owned renderer/layout toward the target fixture sizes,
+      validating each implementation in Open in Editor.
 
 ### Rollout Gates
 

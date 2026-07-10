@@ -122,6 +122,35 @@ function drawParticles(
   }
 }
 
+export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
+  const { context, globalScale } = options;
+  for (const link of options.links) {
+    const geometry = linkGeometry(link);
+    if (!geometry) continue;
+    context.save();
+    if (options.directionMode === 'arrows') {
+      drawArrow(context, geometry, options.getArrowColor(link), globalScale);
+    } else if (options.directionMode === 'particles') {
+      drawParticles(
+        context,
+        geometry,
+        Math.max(1, options.getLinkParticles(link)),
+        options.getParticleColor(link),
+        options.particleSize,
+        options.particleSpeed,
+        options.timestamp,
+        globalScale,
+      );
+    }
+    options.linkCanvasObject(link, context, globalScale);
+    context.restore();
+  }
+
+  for (const node of options.nodes) {
+    options.nodeCanvasObject(node, context, globalScale);
+  }
+}
+
 export function drawOwnedGraph(options: OwnedGraphDrawingOptions): void {
   const { context, globalScale } = options;
   for (const link of options.links) {

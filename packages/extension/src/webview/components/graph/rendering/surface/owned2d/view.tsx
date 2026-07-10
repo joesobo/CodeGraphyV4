@@ -1,6 +1,7 @@
 import {
   useEffect,
   useRef,
+  useState,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
@@ -16,7 +17,7 @@ import {
   type OwnedGraphCamera,
 } from './camera';
 import type { OwnedGraph2dControls, Surface2dProps } from './contracts';
-import { drawOwnedGraph } from './drawing';
+import { drawOwnedGraph, drawOwnedGraphOverlay } from './drawing';
 import {
   applyOwnedPhysicsSettings,
   createOwnedGraphLayout,
@@ -24,6 +25,7 @@ import {
   type OwnedGraphLayout,
 } from './layout';
 import { pickOwnedGraphNode } from './picking';
+import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface PointerSession {
   index: number | null;
@@ -49,6 +51,8 @@ function localPointer(
 
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
+  const gpuRendererRef = useRef<OwnedWebGpuRenderer | null>(null);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
   const cameraRef = useRef<OwnedGraphCamera>({ ...INITIAL_CAMERA });
@@ -57,7 +61,38 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const engineStopNotifiedRef = useRef(false);
+  const [rendererKind, setRendererKind] = useState<'canvas2d' | 'webgpu'>('canvas2d');
   propsRef.current = props;
+
+  useEffect(() => {
+    const gpuCanvas = gpuCanvasRef.current;
+    if (!gpuCanvas) return;
+    let active = true;
+    void OwnedWebGpuRenderer.create(gpuCanvas, {
+      onDeviceLost: message => {
+        console.warn('[CodeGraphy] WebGPU device lost; using Canvas2D fallback.', message);
+        gpuRendererRef.current = null;
+        setRendererKind('canvas2d');
+        requestFrameRef.current();
+      },
+    }).then(renderer => {
+      if (!active) {
+        renderer?.dispose();
+        return;
+      }
+      if (!renderer) return;
+      gpuRendererRef.current = renderer;
+      setRendererKind('webgpu');
+      requestFrameRef.current();
+    }).catch(error => {
+      console.warn('[CodeGraphy] WebGPU initialization failed; using Canvas2D fallback.', error);
+    });
+    return () => {
+      active = false;
+      gpuRendererRef.current?.dispose();
+      gpuRendererRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,14 +123,39 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
 
       context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
-      context.fillStyle = currentProps.backgroundColor;
-      context.fillRect(0, 0, width, height);
       const camera = cameraRef.current;
+      let gpuRendered = false;
+      const gpuRenderer = gpuRendererRef.current;
+      if (gpuRenderer) {
+        try {
+          gpuRenderer.render({
+            backgroundColor: currentProps.backgroundColor,
+            camera,
+            cssHeight: height,
+            cssWidth: width,
+            devicePixelRatio,
+            getLinkColor: currentProps.getLinkColor,
+            getLinkWidth: currentProps.getLinkWidth,
+            links: layout.links,
+            nodes: layout.nodes,
+          });
+          gpuRendered = true;
+        } catch (error) {
+          console.warn('[CodeGraphy] WebGPU frame failed; using Canvas2D fallback.', error);
+          gpuRenderer.dispose();
+          gpuRendererRef.current = null;
+          setRendererKind('canvas2d');
+        }
+      }
+      if (!gpuRendered) {
+        context.fillStyle = currentProps.backgroundColor;
+        context.fillRect(0, 0, width, height);
+      }
       context.save();
       context.translate(width / 2, height / 2);
       context.scale(camera.zoom, camera.zoom);
       context.translate(-camera.centerX, -camera.centerY);
-      drawOwnedGraph({
+      const drawingOptions = {
         context,
         directionMode: currentProps.directionMode,
         getArrowColor: currentProps.getArrowColor,
@@ -111,7 +171,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         particleSize: currentProps.particleSize,
         particleSpeed: currentProps.particleSpeed,
         timestamp,
-      });
+      };
+      if (gpuRendered) drawOwnedGraphOverlay(drawingOptions);
+      else drawOwnedGraph(drawingOptions);
       currentProps.onRenderFramePost(context, camera.zoom);
       context.restore();
 
@@ -343,7 +405,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   };
 
   const handleWheel = (event: ReactWheelEvent<HTMLCanvasElement>): void => {
-    event.preventDefault();
     const canvas = event.currentTarget;
     const size = canvasSize(canvas);
     const screen = localPointer(canvas, event.nativeEvent);
@@ -364,23 +425,34 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   };
 
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className="absolute inset-0 h-full w-full"
-      onContextMenu={handleContextMenu}
-      onPointerDown={handlePointerDown}
-      onPointerLeave={() => {
-        if (!pointerSessionRef.current && hoveredNodeRef.current) {
-          hoveredNodeRef.current = null;
-          propsRef.current.sharedProps.onNodeHover(null);
-          requestFrameRef.current();
-        }
-      }}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onWheel={handleWheel}
-      style={{ backgroundColor: props.backgroundColor, touchAction: 'none' }}
-    />
+    <div
+      className="absolute inset-0"
+      data-codegraphy-renderer={rendererKind}
+      style={{ backgroundColor: props.backgroundColor }}
+    >
+      <canvas
+        ref={gpuCanvasRef}
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full"
+      />
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full"
+        onContextMenu={handleContextMenu}
+        onPointerDown={handlePointerDown}
+        onPointerLeave={() => {
+          if (!pointerSessionRef.current && hoveredNodeRef.current) {
+            hoveredNodeRef.current = null;
+            propsRef.current.sharedProps.onNodeHover(null);
+            requestFrameRef.current();
+          }
+        }}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onWheel={handleWheel}
+        style={{ touchAction: 'none' }}
+      />
+    </div>
   );
 }
