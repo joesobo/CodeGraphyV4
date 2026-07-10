@@ -12,6 +12,9 @@ export interface Media {
   src: string;
   /** Still frame shown at rest for animated media (GIFs play on hover). */
   posterSrc?: string;
+  /** Dark-theme variant; when set, MediaImage renders both and the theme picks one. */
+  darkSrc?: string;
+  darkPosterSrc?: string;
 }
 
 interface MediaImageProps
@@ -23,9 +26,32 @@ interface MediaImageProps
 
 /**
  * next/image with a loading skeleton. Animated media (GIFs) shows its poster
- * at rest and plays while hovered or focused.
+ * at rest and plays while hovered or focused. When `media.darkSrc` is set,
+ * the light and dark variants are both rendered and toggled by theme.
  */
-export function MediaImage({
+export function MediaImage({ media, ...props }: MediaImageProps): React.ReactElement {
+  const { darkSrc, darkPosterSrc, ...light } = media;
+
+  if (!darkSrc) {
+    return <SingleMediaImage media={light} {...props} />;
+  }
+
+  return (
+    <>
+      <div className="contents dark:hidden">
+        <SingleMediaImage media={light} {...props} />
+      </div>
+      <div className="hidden dark:contents">
+        <SingleMediaImage
+          media={{ alt: light.alt, src: darkSrc, posterSrc: darkPosterSrc }}
+          {...props}
+        />
+      </div>
+    </>
+  );
+}
+
+function SingleMediaImage({
   className,
   imageClassName,
   media,
@@ -40,63 +66,14 @@ export function MediaImage({
   const reduceMotion = usePrefersReducedMotion(animated);
 
   const playing = animated && hovered && !reduceMotion;
-  const renderedSrc = getRenderedSource(src, posterSrc, animated, playing);
-  const loaded = loadedSources.has(renderedSrc);
+  // The base image is the poster when one exists; the playing GIF overlays it.
+  const baseSrc = animated && posterSrc ? posterSrc : src;
+  const baseLoaded = loadedSources.has(baseSrc);
+  const overlaying = playing && baseSrc !== src;
 
   function markSourceLoaded(source: string): void {
     setLoadedSources((current) =>
       current.has(source) ? current : new Set(current).add(source),
-    );
-  }
-
-  if (animated && posterSrc) {
-    const posterLoaded = loadedSources.has(posterSrc);
-    const animationLoaded = loadedSources.has(src);
-
-    return (
-      <div
-        aria-describedby={descriptionId}
-        className={cn('relative overflow-hidden', className)}
-        onBlur={() => setHovered(false)}
-        onFocus={() => setHovered(true)}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
-        role="group"
-        tabIndex={0}
-      >
-        {posterLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
-        <span className="sr-only" id={descriptionId}>
-          {alt}.{' '}
-          {reduceMotion
-            ? 'Animation is paused because reduced motion is enabled.'
-            : 'Animation plays while this preview is hovered or focused.'}
-        </span>
-        <Image
-          alt={alt}
-          aria-hidden={playing ? 'true' : undefined}
-          className={cn(
-            'transition-opacity duration-300',
-            posterLoaded ? 'opacity-100' : 'opacity-0',
-            imageClassName,
-          )}
-          onLoad={() => markSourceLoaded(posterSrc)}
-          src={posterSrc}
-          {...imageProps}
-        />
-        {playing ? (
-          <Image
-            alt={alt}
-            className={cn(
-              'transition-opacity duration-150',
-              animationLoaded ? 'opacity-100' : 'opacity-0',
-              imageClassName,
-            )}
-            onLoad={() => markSourceLoaded(src)}
-            src={src}
-            {...imageProps}
-          />
-        ) : null}
-      </div>
     );
   }
 
@@ -111,7 +88,7 @@ export function MediaImage({
       role={animated ? 'group' : undefined}
       tabIndex={animated ? 0 : undefined}
     >
-      {loaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
+      {baseLoaded ? null : <Skeleton aria-hidden="true" className="absolute inset-0 rounded-none" />}
       {animated ? (
         <span className="sr-only" id={descriptionId}>
           {alt}.{' '}
@@ -122,24 +99,29 @@ export function MediaImage({
       ) : null}
       <Image
         alt={alt}
+        aria-hidden={overlaying ? 'true' : undefined}
         className={cn(
           'transition-opacity duration-300',
-          loaded ? 'opacity-100' : 'opacity-0',
+          baseLoaded ? 'opacity-100' : 'opacity-0',
           imageClassName,
         )}
-        onLoad={() => markSourceLoaded(renderedSrc)}
-        src={renderedSrc}
+        onLoad={() => markSourceLoaded(baseSrc)}
+        src={baseSrc}
         {...imageProps}
       />
+      {overlaying ? (
+        <Image
+          alt={alt}
+          className={cn(
+            'transition-opacity duration-150',
+            loadedSources.has(src) ? 'opacity-100' : 'opacity-0',
+            imageClassName,
+          )}
+          onLoad={() => markSourceLoaded(src)}
+          src={src}
+          {...imageProps}
+        />
+      ) : null}
     </div>
   );
-}
-
-function getRenderedSource(
-  src: string,
-  posterSrc: string | undefined,
-  animated: boolean,
-  playing: boolean,
-): string {
-  return animated && !playing ? (posterSrc ?? src) : src;
 }

@@ -28,21 +28,12 @@ export function Header(): React.ReactElement {
 
       <div className="w-full bg-graph-surface">
         <MediaImage
-          className="mx-auto flex w-full justify-center sm:h-96 md:h-[30rem] lg:h-[36rem] xl:h-[42rem] dark:hidden"
+          className="mx-auto flex w-full justify-center sm:h-96 md:h-[30rem] lg:h-[36rem] xl:h-[42rem]"
           imageClassName="block h-auto w-full sm:h-full sm:w-auto"
           media={{
             alt: 'CodeGraphy Relationship Graph with colorful file, folder, and symbol nodes',
             src: '/media/header-workspace-graph-light.png',
-          }}
-          height={1200}
-          width={1200}
-        />
-        <MediaImage
-          className="mx-auto hidden w-full justify-center sm:h-96 md:h-[30rem] lg:h-[36rem] xl:h-[42rem] dark:flex"
-          imageClassName="block h-auto w-full sm:h-full sm:w-auto"
-          media={{
-            alt: 'CodeGraphy Relationship Graph with colorful file, folder, and symbol nodes',
-            src: '/media/header-workspace-graph-dark.png',
+            darkSrc: '/media/header-workspace-graph-dark.png',
           }}
           height={1200}
           width={1200}

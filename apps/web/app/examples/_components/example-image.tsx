@@ -12,22 +12,13 @@ export function ExampleImage({
     <figure className="flex h-72 w-full shrink-0 flex-col border-t border-border bg-example-graph-surface sm:h-auto sm:w-[45%] sm:border-t-0 sm:transition-[width] sm:duration-500 sm:ease-in-out sm:group-hover:w-[60%]">
       <div className="relative min-h-0 flex-1">
         <MediaImage
-          className="absolute inset-0 dark:hidden"
+          className="absolute inset-0"
           fill
           imageClassName="bg-example-graph-surface object-contain"
           media={{
-            alt: `${example.name} example Relationship Graph in Quiet Light`,
+            alt: `${example.name} example Relationship Graph`,
             src: example.screenshots.light,
-          }}
-          sizes="(min-width: 640px) 560px, 100vw"
-        />
-        <MediaImage
-          className="absolute inset-0 hidden dark:block"
-          fill
-          imageClassName="bg-example-graph-surface object-contain"
-          media={{
-            alt: `${example.name} example Relationship Graph in GitHub Dark Dimmed`,
-            src: example.screenshots.dark,
+            darkSrc: example.screenshots.dark,
           }}
           sizes="(min-width: 640px) 560px, 100vw"
         />

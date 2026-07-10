@@ -6,25 +6,17 @@ import {
   Tune,
   type MaterialSymbolsComponent,
 } from '@material-symbols-svg/react/rounded';
-import { MediaImage } from '@/components/media-image';
+import { MediaImage, type Media } from '@/components/media-image';
 import { SectionHeader } from '@/components/section-header';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 type FeatureLayout = 'square' | 'wide';
 
-interface FeatureMediaSource {
-  alt: string;
-  darkSrc: string;
-  lightSrc: string;
-  darkPosterSrc?: string;
-  lightPosterSrc?: string;
-}
-
 interface Feature {
   icon: MaterialSymbolsComponent;
   layout: FeatureLayout;
-  media: FeatureMediaSource;
+  media: Media;
   summary: string;
   title: string;
 }
@@ -79,21 +71,21 @@ const features: Feature[] = [
   },
 ];
 
-function gifMedia(name: string, alt: string): FeatureMediaSource {
+function gifMedia(name: string, alt: string): Media {
   return {
     alt,
+    src: `/media/features/${name}-light.gif`,
+    posterSrc: `/media/features/posters/${name}-light.png`,
     darkSrc: `/media/features/${name}-dark.gif`,
-    lightSrc: `/media/features/${name}-light.gif`,
     darkPosterSrc: `/media/features/posters/${name}-dark.png`,
-    lightPosterSrc: `/media/features/posters/${name}-light.png`,
   };
 }
 
-function imageMedia(name: string, alt: string): FeatureMediaSource {
+function imageMedia(name: string, alt: string): Media {
   return {
     alt,
+    src: `/media/features/${name}-light.png`,
     darkSrc: `/media/features/${name}-dark.png`,
-    lightSrc: `/media/features/${name}-light.png`,
   };
 }
 
@@ -144,41 +136,22 @@ function FeatureMedia({
   media,
 }: {
   layout: FeatureLayout;
-  media: FeatureMediaSource;
+  media: Media;
 }): React.ReactElement {
-  const mediaClassName = cn(
-    'min-h-0 border-b border-border bg-graph-surface',
-    layout === 'wide' ? 'aspect-[20/7]' : 'aspect-square',
-  );
-  const mediaSizes =
-    layout === 'wide'
-      ? '(min-width: 1024px) 100vw, 100vw'
-      : '(min-width: 1024px) 50vw, (min-width: 768px) 50vw, 100vw';
-
   return (
-    <>
-      <MediaImage
-        className={cn(mediaClassName, 'dark:hidden')}
-        fill
-        imageClassName="bg-graph-surface object-contain object-center"
-        media={{
-          alt: media.alt,
-          src: media.lightSrc,
-          posterSrc: media.lightPosterSrc,
-        }}
-        sizes={mediaSizes}
-      />
-      <MediaImage
-        className={cn(mediaClassName, 'hidden dark:block')}
-        fill
-        imageClassName="bg-graph-surface object-contain object-center"
-        media={{
-          alt: media.alt,
-          src: media.darkSrc,
-          posterSrc: media.darkPosterSrc,
-        }}
-        sizes={mediaSizes}
-      />
-    </>
+    <MediaImage
+      className={cn(
+        'min-h-0 border-b border-border bg-graph-surface',
+        layout === 'wide' ? 'aspect-[20/7]' : 'aspect-square',
+      )}
+      fill
+      imageClassName="bg-graph-surface object-contain object-center"
+      media={media}
+      sizes={
+        layout === 'wide'
+          ? '(min-width: 1024px) 100vw, 100vw'
+          : '(min-width: 1024px) 50vw, (min-width: 768px) 50vw, 100vw'
+      }
+    />
   );
 }

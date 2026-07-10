@@ -21,21 +21,12 @@ export function ExamplesHeader(): React.ReactElement {
       </div>
       <ImageFrame>
         <MediaImage
-          className="w-full dark:hidden"
+          className="w-full"
           imageClassName="h-auto w-full"
           media={{
             alt: 'CodeGraphy Relationship Graph of the examples root workspace',
             src: '/media/examples-root-graph-light.png',
-          }}
-          height={1200}
-          width={1200}
-        />
-        <MediaImage
-          className="hidden w-full dark:block"
-          imageClassName="h-auto w-full"
-          media={{
-            alt: 'CodeGraphy Relationship Graph of the examples root workspace',
-            src: '/media/examples-root-graph-dark.png',
+            darkSrc: '/media/examples-root-graph-dark.png',
           }}
           height={1200}
           width={1200}
