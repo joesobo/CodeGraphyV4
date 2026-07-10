@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10T20:47:00.000Z",
+  "renderer": "webgpu",
+  "implementationCommit": "5655130db",
+  "surface": "Extension Development Host — Open in Editor",
+  "environment": {
+    "vscode": "1.128.0",
+    "platform": "darwin-arm64"
+  },
+  "fixture": {
+    "kind": "generated-markdown-workspace",
+    "seed": 307,
+    "nodes": 1000,
+    "edges": 3090
+  },
+  "viewport": {
+    "width": 776,
+    "height": 727
+  },
+  "verification": {
+    "rendererAttribute": "webgpu",
+    "gpuValidationWarnings": 0,
+    "gpuOnlyCapture": true
+  },
+  "interactionBenchmark": {
+    "scenario": "45 wheel-zoom inputs followed by a 45-step middle-button pan",
+    "durationMs": 2270,
+    "renderedFrames": 88,
+    "fps": 38.32599118942731,
+    "frameTimeMs": {
+      "p50": 22.299999713897705,
+      "p95": 29.09999990463257,
+      "max": 38.69999980926514
+    }
+  },
+  "productionBundle": {
+    "bytes": 682430,
+    "gzipBytes": 205000
+  },
+  "files": {
+    "compositedScreenshot": "screenshot.png",
+    "gpuOnlyScreenshot": "gpu-only.png",
+    "interactionDemo": "demo.gif"
+  }
+}
