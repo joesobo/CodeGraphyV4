@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10T20:08:00.000Z",
+  "renderer": "codegraphy-owned-canvas2d",
+  "commit": "6f224df3c82ce850004b05196a16a0b35786b397",
+  "surface": "Extension Development Host — Open in Editor",
+  "fixture": {
+    "kind": "generated-markdown-workspace",
+    "seed": 307,
+    "nodes": 1000,
+    "edges": 3090
+  },
+  "viewport": {
+    "width": 776,
+    "height": 727
+  },
+  "interactionBenchmark": {
+    "scenario": "45 wheel-zoom inputs followed by a 45-step middle-button pan",
+    "durationMs": 2279,
+    "renderedFrames": 92,
+    "fps": 39.92979376919702,
+    "frameTimeMs": {
+      "p50": 21.90000009536743,
+      "p95": 28.700000286102295,
+      "max": 36.19999980926514
+    }
+  },
+  "files": {
+    "screenshot": "screenshot.png",
+    "demo": "demo.gif"
+  }
+}

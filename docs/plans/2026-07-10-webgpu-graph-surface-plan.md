@@ -69,6 +69,22 @@ A0/A1 can start today, in parallel with the sibling plan's B0/B1. This track
 has no dependency on the Rust core; it runs entirely against the current
 extension data layer until the sibling plan's C1.
 
+### Current Execution Status
+
+The implementation is taking a vertical replacement slice before broadening
+benchmark coverage: get the CodeGraphy-owned graph in, then remove the old
+graph and its product surfaces.
+
+- [x] Make the custom typed-array engine the default 2D layout and replace the
+      legacy 2D surface with the CodeGraphy-owned Canvas fallback renderer.
+- [x] Validate the replacement in Extension Development Host **Open in
+      Editor** with a seed-307 graph of 1,000 nodes and 3,090 edges. The
+      committed screenshot, GIF, and interaction timings are under
+      `packages/graph-benchmark/references/owned2d/open-editor-1k/`.
+- [ ] Remove 3D mode, timeline, and all remaining legacy graph dependencies.
+- [ ] Add the WebGPU surface and scale the owned renderer/layout toward the
+      target fixture sizes, validating each implementation in Open in Editor.
+
 ### Rollout Gates
 
 Phases ship to users continuously behind a renderer setting: `experimental`
