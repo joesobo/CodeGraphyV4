@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
+    "@codegraphy-dev/graph-engine": "workspace:*",
     "@codegraphy-dev/plugin-api": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@floating-ui/react": "^0.27.19",

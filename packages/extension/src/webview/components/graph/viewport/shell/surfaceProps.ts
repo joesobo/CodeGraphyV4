@@ -8,7 +8,7 @@ export interface CreateGraphViewportSurfacePropsInput {
 	graphState: GraphRuntime;
 	onRenderFramePost: ViewportProps['surface2dProps']['onRenderFramePost'];
 	sharedProps: ViewportProps['surface2dProps']['sharedProps'];
-	viewState: Pick<GraphViewStoreState, 'particleSize' | 'particleSpeed'>;
+	viewState: Pick<GraphViewStoreState, 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings'>;
 }
 
 export function createGraphViewportSurfaceProps({
@@ -33,6 +33,8 @@ export function createGraphViewportSurfaceProps({
 			onRenderFramePost,
 			particleSize: viewState.particleSize,
 			particleSpeed: viewState.particleSpeed,
+			physicsPaused: viewState.physicsPaused,
+			physicsSettings: viewState.physicsSettings,
 			sharedProps,
 		},
 		surface3dProps: {

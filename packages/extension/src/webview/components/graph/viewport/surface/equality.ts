@@ -14,6 +14,8 @@ const SURFACE_2D_PROP_KEYS = [
   'onRenderFramePost',
   'particleSize',
   'particleSpeed',
+  'physicsPaused',
+  'physicsSettings',
   'sharedProps',
 ] as const;
 

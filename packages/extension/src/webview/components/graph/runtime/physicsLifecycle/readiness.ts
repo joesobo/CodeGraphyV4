@@ -24,10 +24,10 @@ export function isPhysicsGraphReady(
   graph: ActivePhysicsGraph | undefined,
 ): boolean {
   if (!graph) return false;
-  if (graphMode === '2d') return true;
 
   try {
     const readinessProbe = graph as PhysicsReadinessProbe;
+    if (graphMode === '2d') return typeof readinessProbe.d3Force === 'function';
     if (typeof readinessProbe.d3Force !== 'function') {
       return false;
     }
