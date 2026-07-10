@@ -60,18 +60,15 @@ export function NavLink({
 /** A navigation-menu link, used inside desktop dropdown popups. */
 export function NavMenuLink({
   item,
-  active = false,
-  density = 'compact',
   onNavigate,
-}: NavItemLinkProps): React.ReactElement {
+}: {
+  item: NavItem;
+  onNavigate?: (href: string) => void;
+}): React.ReactElement {
   return (
     <li className="min-w-0">
       <NavigationMenuLink
-        className={cn(
-          navRowClassName,
-          density === 'compact' && compactNavRowClassName,
-          active && 'bg-secondary',
-        )}
+        className={cn(navRowClassName, compactNavRowClassName)}
         render={<Link href={item.href} onClick={() => onNavigate?.(item.href)} />}
       >
         {item.iconUrl ? <Icon className="size-4.5 shrink-0" src={item.iconUrl} /> : null}
