@@ -97,6 +97,9 @@ jobs:
           - label: Packages
             turbo-cache: unit-packages
             command: pnpm exec turbo run test --filter='!@codegraphy-dev/extension'
+          - label: Performance harness
+            turbo-cache: unit-perf-harness
+            command: pnpm run test:perf
           - label: Extension node
             turbo-cache: unit-extension-node
             command: pnpm exec turbo run test:node --filter=@codegraphy-dev/extension
