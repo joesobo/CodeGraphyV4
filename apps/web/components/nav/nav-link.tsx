@@ -5,10 +5,10 @@ import type { ReactNode } from 'react';
 import { useRef } from 'react';
 import { Icon } from '@/components/icon';
 import { Link } from '@/components/link';
-import { useScrollActiveNavItemIntoView } from '@/components/nav/use-scroll-active-nav-item-into-view';
 import { CollapsibleTrigger } from '@/components/ui/collapsible';
 import { NavigationMenuLink } from '@/components/ui/navigation-menu';
 import type { NavItem } from '@/content/navigation';
+import { useScrollActiveNavItemIntoView } from '@/hooks/use-scroll-active-nav-item-into-view';
 import { cn } from '@/lib/utils';
 
 type NavDensity = 'default' | 'compact';
