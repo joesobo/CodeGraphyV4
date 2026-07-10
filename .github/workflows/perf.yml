@@ -80,16 +80,11 @@ jobs:
         env:
           PERF_FIXTURE: ${{ matrix.fixture }}
           PERF_SYMBOLS: ${{ matrix.symbols }}
+          PERF_VARIANT: ${{ matrix.variant }}
         run: |
-          symbol_arguments=()
-          if [[ "${PERF_SYMBOLS}" == "true" ]]; then
-            symbol_arguments+=(--symbols)
-          fi
-          xvfb-run --auto-servernum pnpm perf -- \
-            --fixture "${PERF_FIXTURE}" \
-            --runs 3 \
-            --skip-stability \
-            "${symbol_arguments[@]}"
+          perf_arguments_output="$(pnpm exec tsx perf/workflow/arguments.ts)"
+          mapfile -t perf_arguments <<< "${perf_arguments_output}"
+          xvfb-run --auto-servernum pnpm perf -- "${perf_arguments[@]}"
 
       - name: Upload deterministic performance reports
         if: ${{ !cancelled() }}
