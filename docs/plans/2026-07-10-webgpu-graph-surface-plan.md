@@ -209,7 +209,12 @@ Behind the seam, feature-detected, Canvas fallback intact.
       at DPR 1 and DPR 2, verified at 0.25×/1×/4× zoom in the screenshot
       harness (crops committed alongside the diff report).
 - [ ] Export: a screenshot/export call returns the current graph as a PNG
-      matching the on-screen frame (automated pixel-diff vs harness capture).
+      matching the on-screen frame **including labels** (the DOM label
+      overlay is not in the GPU frame — the export path must composite it) —
+      automated pixel-diff vs harness capture.
+- [ ] Degenerate inputs render without error: empty graph, single node,
+      self-loop, multi-edge pair, zero-length link (coincident endpoints),
+      and a 0×0 canvas (collapsed panel) — unit/harness tests for each.
 - [ ] Screenshot diff harness: seeded 1k fixture at 3 zoom levels renders
       within an agreed pixel-diff threshold of the fallback (layout pinned to
       identical positions for the comparison).
@@ -327,6 +332,86 @@ them:
   nodes ≈ 3.2MB; ~24B/edge × 500k edges ≈ 12MB — GPU memory is not a
   constraint at the committed tier; design for upload bandwidth and draw
   organization, not for compression.
+
+## Edge Cases And Failure Modes (design for these; don't discover them)
+
+Reviewed against the current codebase — each item names the phase that owns
+it.
+
+**Lifecycle and environment**
+
+- Webview hide/restore (A4): the graph panel currently uses
+  `retainContextWhenHidden: true` (`extension/graphView/editorPanel.ts`), so
+  webview destruction is rare — but the GPU device can still be lost while
+  retained (sleep, driver reset, GPU process kill). The renderer must
+  rebuild pipelines/buffers from CPU-side state on `device.lost` without
+  losing camera or positions. Separately: `retainContextWhenHidden` is
+  expensive per VS Code guidance — once positions/camera persist cheaply
+  through the renderer's own state, re-evaluate dropping it (decision point
+  in A5).
+- Live renderer toggle (A4): switching the renderer setting at runtime must
+  dispose one implementation and mount the other, preserving camera and
+  node positions — this is also the mechanism the screenshot-diff harness
+  relies on.
+- Theme changes (A5): VS Code theme switches at runtime, including
+  high-contrast themes. Colors arrive as CSS custom properties — resolve to
+  RGBA at upload time and re-upload style buffers on theme change; DOM label
+  overlay inherits theme for free.
+- Reduced motion (A5): respect `prefers-reduced-motion` — disable particles
+  and camera tweens (jump-cut instead), keep the simulation itself.
+- Fractional DPR (A4): editor zoom produces DPRs like 1.25/1.5 — round
+  backing-store sizes consistently so picking coordinates and CSS pixels
+  don't drift by a pixel.
+
+**Data and numeric**
+
+- Node removal and index reuse (A4, biggest structural one): instance
+  buffers are index-addressed; removing nodes/edges from a live graph needs
+  a compaction or freelist strategy, and the picking index, selection sets,
+  and flag buffers must remap atomically with it. Design this into the
+  buffer layout before diffs exist (it is also the C1 diff-application
+  contract).
+- Large projection swaps (A6): a filter change can replace ~100k nodes in
+  one message — stage uploads across frames under the frame budget instead
+  of one blocking upload + GC spike.
+- NaN/precision defense (A3/A4): the engine guards NaN via jiggle, but the
+  renderer must also refuse to upload non-finite positions (dev-mode
+  assert), and world coordinates should be soft-bounded — f32 precision
+  degrades far from origin if a simulation ever drifts.
+- Degenerate geometry (A4): self-loops (arc rendering), multi-edges
+  (existing per-link curvature), zero-length links (arrow/tangent math must
+  not NaN), single-node and empty graphs (`zoomToFit` on an empty/point
+  bbox must not divide by zero).
+
+**Interaction**
+
+- Pointer-capture drag (A4): dragging must use pointer capture so leaving
+  the canvas (or the webview iframe) mid-drag ends cleanly; define behavior
+  for right-click and marquee-start during an active drag (current library
+  ignores them — match it).
+- Drag-end pin policy is plugin-influenced (A5): plugins decide
+  `keepFixedPosition` via `nodeDragEnd` contributions
+  (`interaction/nodeDrag/policy.ts`) — the new engine's pin API must expose
+  the same post-drag hook, not hardcode release-on-drop.
+- Trackpad/gesture input (A4): VS Code webviews deliver pinch-zoom as
+  ctrl+wheel and high-resolution wheel deltas on macOS — zoom handling must
+  treat both; keyboard zoom/pan parity comes from the existing accessibility
+  work.
+- Camera never strands the user (A5): clamp zoom/pan so the graph cannot be
+  scrolled irrecoverably off-screen, and keep a fit-to-graph escape hatch
+  reachable (existing fit control).
+
+**Testing infrastructure**
+
+- jsdom has no WebGPU (A4): unit tests exercise the renderer through its
+  interface with a mock GPU device; real-GPU coverage lives in the
+  Playwright harness. Headless Chromium needs WebGPU flags on Linux CI
+  (`--enable-unsafe-webgpu`, SwiftShader fallback renders but does not
+  perf-test) — document the exact flags in the harness README, and treat
+  Linux CI as correctness-only, never performance.
+- Dispose hygiene (A4): repeated open/close of the graph view must not leak
+  GPU buffers, RAF loops, or listeners — harness test loops mount/dispose
+  50× and asserts stable memory.
 
 ## Risk Register
 
