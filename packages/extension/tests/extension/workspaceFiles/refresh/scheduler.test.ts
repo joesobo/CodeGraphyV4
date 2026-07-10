@@ -72,6 +72,52 @@ describe('workspaceFiles/refresh/scheduler', () => {
     consoleSpy.mockRestore();
   });
 
+  it('runs one changed-file refresh at a time and follows with the latest pending paths', async () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    let resolveFirstRefresh!: () => void;
+    const firstRefresh = new Promise<void>((resolve) => {
+      resolveFirstRefresh = resolve;
+    });
+    provider.refreshChangedFiles
+      .mockReturnValueOnce(firstRefresh)
+      .mockResolvedValueOnce(undefined);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] First change, refreshing graph',
+      ['/workspace/src/a.ts'],
+      0,
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] Second change, refreshing graph',
+      ['/workspace/src/b.ts'],
+      0,
+    );
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] Third change, refreshing graph',
+      ['/workspace/src/c.ts'],
+      0,
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+
+    resolveFirstRefresh();
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
+    expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
+      '/workspace/src/c.ts',
+      '/workspace/src/b.ts',
+    ]);
+  });
+
   it('queues a pending refresh instead of refreshing while the graph is closed', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
