@@ -128,7 +128,7 @@ horizontal batch.
 - [ ] Add failing CLI/report contract tests; implement `--fixture`,
       `--renderer`, `--seed`, output-path, timeout/failure reporting, and the
       stable JSON schema behind `pnpm bench:graph`.
-- [ ] Add a failing standalone smoke test; serve the built webview, install
+- [x] Add a failing standalone smoke test; serve the built webview, install
       the `acquireVsCodeApi` mock before its bundle loads, inject
       `GRAPH_DATA_UPDATED`, and report current-renderer settle time from
       `PHYSICS_STABILIZED`.
