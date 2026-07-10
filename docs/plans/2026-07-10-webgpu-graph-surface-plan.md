@@ -119,7 +119,7 @@ horizontal batch.
 - [x] Add the private benchmark package and a failing determinism test; make
       same seed/config produce the same graph identifiers and valid edge
       endpoints, then run package test/typecheck/lint.
-- [ ] Add a failing canonical-hash test; implement a versioned streaming
+- [x] Add a failing canonical-hash test; implement a versioned streaming
       SHA-256 fixture hash that ignores object key insertion order, then add
       the 1k/10k/50k/100k named presets and topology-shape assertions.
 - [ ] Add a failing real-export normalization test; implement deterministic,
