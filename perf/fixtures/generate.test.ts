@@ -34,6 +34,14 @@ describe('performance fixture generation', () => {
     { fixture: 'huge', fileCount: 10_000 },
     { fixture: 'giant', fileCount: 30_000 },
   ] as const;
+  const deterministicFixtureConfigurations = [
+    { fixture: 'small', variant: 'default', symbols: false },
+    { fixture: 'medium', variant: 'default', symbols: false },
+    { fixture: 'large', variant: 'default', symbols: false },
+    { fixture: 'huge', variant: 'default', symbols: false },
+    { fixture: 'giant', variant: 'default', symbols: false },
+    { fixture: 'giant', variant: '--symbols', symbols: true },
+  ] as const;
 
   it('identifies the monorepo as the self fixture', async () => {
     const manifest = await readFixtureManifest();
@@ -45,21 +53,27 @@ describe('performance fixture generation', () => {
     });
   });
 
-  it('recreates the giant fixture byte for byte', { timeout: 120_000 }, async () => {
-    const firstRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-fixture-first-'));
-    const secondRoot = await mkdtemp(join(tmpdir(), 'codegraphy-perf-fixture-second-'));
-    onTestFinished(async () => {
-      await Promise.all([
-        rm(firstRoot, { recursive: true, force: true }),
-        rm(secondRoot, { recursive: true, force: true }),
+  it.each(deterministicFixtureConfigurations)(
+    'regenerates the $fixture $variant fixture byte for byte',
+    { timeout: 120_000 },
+    async ({ fixture, symbols }) => {
+      const [firstRoot, secondRoot] = await Promise.all([
+        mkdtemp(join(tmpdir(), `codegraphy-perf-${fixture}-first-`)),
+        mkdtemp(join(tmpdir(), `codegraphy-perf-${fixture}-second-`)),
       ]);
-    });
+      onTestFinished(async () => {
+        await Promise.all([
+          rm(firstRoot, { recursive: true, force: true }),
+          rm(secondRoot, { recursive: true, force: true }),
+        ]);
+      });
 
-    await generateFixture({ fixture: 'giant', outputRoot: firstRoot });
-    await generateFixture({ fixture: 'giant', outputRoot: secondRoot });
+      await generateFixture({ fixture, outputRoot: firstRoot, symbols });
+      await generateFixture({ fixture, outputRoot: secondRoot, symbols });
 
-    expect(await hashTree(firstRoot)).toBe(await hashTree(secondRoot));
-  });
+      expect(await hashTree(secondRoot)).toBe(await hashTree(firstRoot));
+    },
+  );
 
   it.each(fixtureSizes)(
     'writes $fileCount source files for $fixture',
