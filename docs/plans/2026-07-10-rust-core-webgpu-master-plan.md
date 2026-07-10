@@ -122,19 +122,31 @@ Introduce the interfaces from the research docs; wrap the current library.
 - [ ] `grep -r "react-force-graph" packages/extension/src/webview` matches
       only inside the adapter directory.
 
-### A2. Remove 3D Mode
+### A2. Remove 3D Mode And Timeline View
+
+Both are product removals (owner decision): 3D is a gimmick next to the 2D
+graph's navigation value, and the timeline view is being cut entirely.
 
 **Deliverables**
 
-- Delete `threeDimensional.tsx`, the 2D/3D mode toggle setting + UI, 3D
+- 3D: delete `threeDimensional.tsx`, the 2D/3D mode toggle setting + UI, 3D
   branches (`graphMode: '3d'` paths), `react-force-graph-3d`,
   `three-spritetext` deps, and 3D test mocks.
-- Settings migration: persisted `3d` mode value falls back to `2d` silently.
+- Timeline: delete the timeline view/UI, `ITimelineData` and the
+  `TIMELINE_DATA` protocol message, timeline contracts
+  (`shared/timeline/`), the timeline cooldown branch
+  (`TIMELINE_COOLDOWN_TICKS` / `timelineActive`), timeline acceptance
+  scenarios, and any extension-side timeline data computation.
+- Settings migration: persisted `3d` mode value falls back to `2d` silently;
+  stale timeline settings/state are ignored without error.
 
 **Checkpoints**
 
-- [ ] `grep -ri "force-graph-3d\|three" packages/extension/package.json` → no
-      matches; `pnpm build:webview` bundle size recorded and reduced vs A1.
+- [ ] `grep -ri "force-graph-3d\|three-spritetext" packages/extension/package.json`
+      → no matches; `pnpm build:webview` bundle size recorded and reduced vs
+      A1.
+- [ ] `grep -rin "timeline" packages/extension/src` → no matches (or only
+      deliberate migration-shim lines, listed in the PR).
 - [ ] Acceptance suite green; a stored `3d` settings value loads as 2D
       without error (regression test exists).
 
@@ -214,8 +226,6 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
   the directed graph (cycles broken deterministically, matching current
   behavior), and a positional force pulls each node toward its
   depth × `dagLevelDistance` coordinate on the mode's axis.
-- Timeline replay parity: the timeline data path (`ITimelineData` messages,
-  timeline cooldown behavior) works on the WebGPU renderer + custom engine.
 - WebGPU renderer becomes default-on where supported; fallback demoted to
   probe-failure path.
 
@@ -225,8 +235,6 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
 - [ ] DAG modes: each direction renders a layered/radial layout on a seeded
       DAG fixture; a cyclic fixture degrades deterministically without error
       (matching current behavior).
-- [ ] Timeline replay runs visually correctly on the WebGPU renderer
-      (existing timeline acceptance scenarios pass).
 - [ ] Parity checklist derived from the parity spec §2–§7 completed in the
       phase PR (every line: done / explicitly dropped with reason).
 - [ ] Platform matrix run recorded: macOS (Metal), Windows (D3D12), Linux
@@ -337,14 +345,14 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
   struct-of-arrays binary frames (format doc committed — this format is the
   C1 contract, co-designed with Track A's buffer layout); `getGraphDiff`
   between revisions; node/edge detail lookup.
-- Feature semantics that must be first-class in the projection model (all
-  exist in the extension today and are easy to forget): collapse/folder-view
-  state (collapsed groups change the visible projection, not just styling);
-  timeline data (`ITimelineData` — decide whether timeline frames are served
-  by core or remain extension-computed, and record it); persisted layout
-  positions keyed by stable node identity, with a defined rename/move policy
-  (content-assisted identity or explicit position migration on rename —
-  positions must survive common refactors).
+- Visibility boundary (decided): the core serves graph facts and
+  query/filter/search results; it does not know about view-level visibility.
+  Collapse/folder-view grouping is an extension/webview feature applied to
+  core data before rendering — the core schema and protocol must not grow
+  collapse state.
+- Persisted layout positions keyed by stable node identity, with a defined
+  rename/move policy (content-assisted identity or explicit position
+  migration on rename — positions must survive common refactors).
 - Settings ownership split, documented: settings that affect indexed data or
   projections (filters, scopes, plugin enablement) live in/flow through core;
   purely visual settings stay extension/webview-side.
@@ -452,9 +460,11 @@ A4/A5's GPU buffers.
 
 ---
 
-## Shipping Strategy During Migration
+## Shipping And Release Plan
 
 Phases ship to users continuously; nothing waits for the end state.
+
+### Rollout Gates
 
 - Track A phases ship behind a renderer setting: `experimental` (opt-in,
   A4) → `default-on with fallback setting` (A5) → `only` (A7). The old
@@ -462,13 +472,157 @@ Phases ship to users continuously; nothing waits for the end state.
 - Track B ships dark first: B4 can ship with a `useRustCore` experimental
   setting, running the differential harness in CI on every release until
   cutover confidence is earned.
-- CI grows two new legs when B0 lands: a Rust workspace job (fmt, clippy,
-  `cargo test`) and a cross-platform binary build matrix feeding the
-  platform VSIXes; A4 adds a WebGPU-capable browser bench job (or a
-  documented local-only bench policy if CI GPUs are unavailable).
 - Version discipline: extension and binary versions are released in lockstep
   while bundled; the protocol handshake makes any drift a clean error, not
   silent corruption.
+
+### Distribution: Install The Extension, Get Everything
+
+The ideal path — user installs the CodeGraphy extension and the core is just
+there — is achievable, but not via an npm dependency. The core is a native
+binary per OS/architecture; npm dependencies of an extension are JS code
+bundled at packaging time and cannot deliver per-platform native executables
+cleanly. The VS Code-native mechanism that gives the same result is
+**platform-specific extensions**: the Marketplace lets one extension publish
+separate VSIX payloads per target, and VS Code automatically picks the right
+one at install time — including installing the matching build on the remote
+host in SSH/WSL/container sessions.
+
+```text
+vsce publish --target darwin-arm64    (VSIX contains bin/codegraphy, macOS arm64)
+vsce publish --target darwin-x64
+vsce publish --target win32-x64
+vsce publish --target win32-arm64
+vsce publish --target linux-x64
+vsce publish --target linux-arm64
+vsce publish --target alpine-x64      (musl build, for containers)
+```
+
+The repo already builds platform VSIXes for the Tree-sitter natives, so this
+pipeline exists — the Rust binary becomes one more per-platform artifact in
+it. Extension activation then does: use `codegraphy.path` if set → else use
+the bundled binary → verify with the protocol handshake → clear error UI on
+failure. No download step, works offline, one-click install. (Fallback
+option if VSIX size ever becomes a problem: download-on-first-activation
+with checksum verification, the rust-analyzer model — not needed initially.)
+
+Independent CLI installs (`cargo install codegraphy`, Homebrew, npm wrapper
+package with platform binaries à la esbuild/Biome) are optional extras for
+CLI/MCP users, published from the same release pipeline — the extension never
+depends on them.
+
+### Release Pipeline (CI)
+
+- On B0 landing, CI grows a Rust leg: `cargo fmt --check`, `cargo clippy --
+  -D warnings`, `cargo test` on the workspace, on Linux/macOS/Windows
+  runners.
+- Release builds cross-compile the target matrix above (GitHub Actions
+  matrix; `cross` or Zig-assisted linking for the musl/arm64 targets built
+  on x64 runners), strip the binaries, and hand them to the existing VSIX
+  packaging step.
+- The differential harness (B1) runs on every release build until the old TS
+  core is deleted (C3); a regression blocks release.
+- A4 adds a WebGPU bench job if CI GPU runners are available; otherwise the
+  bench is a documented pre-release local step with results committed to
+  `docs/plans/benchmarks/`.
+
+### Rust Setup Walkthrough (for a Rust newcomer)
+
+One-time machine setup:
+
+```bash
+# Installs rustc (compiler), cargo (build tool + package manager), rustup (toolchain manager)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup component add clippy rustfmt   # linter + formatter
+```
+
+Mental model, mapped to what you know: **cargo** is pnpm+turbo in one,
+**crates.io** is npm, **Cargo.toml** is package.json, **Cargo.lock** is the
+lockfile (committed), a **crate** is a package, and a cargo **workspace** is
+a pnpm monorepo. `clippy` is ESLint, `rustfmt` is Prettier, tests live next
+to the code (`#[cfg(test)]` modules) or in `tests/` for integration tests —
+no separate test-runner dependency.
+
+Repo layout (new top-level `crates/` directory beside `packages/`):
+
+```text
+crates/
+  Cargo.toml            # workspace root (below)
+  codegraphy-cli/       # binary crate → produces the `codegraphy` executable
+    Cargo.toml
+    src/main.rs
+  codegraphy-core/      # library crate: indexing, SQLite, query, plugins
+    Cargo.toml
+    src/lib.rs
+  codegraphy-protocol/  # library crate: request/response types, framing
+    Cargo.toml
+    src/lib.rs
+```
+
+Workspace root `crates/Cargo.toml`:
+
+```toml
+[workspace]
+members = ["codegraphy-cli", "codegraphy-core", "codegraphy-protocol"]
+resolver = "2"
+
+[workspace.dependencies]        # shared version pins, like pnpm catalog
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.31", features = ["bundled"] }  # compiles SQLite in — no system dep
+tree-sitter = "0.22"
+notify = "6"
+
+[profile.release]
+lto = "thin"
+strip = true                    # smaller binaries for the VSIX
+```
+
+A member crate, e.g. `codegraphy-cli/Cargo.toml`:
+
+```toml
+[package]
+name = "codegraphy-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "codegraphy"             # the executable's name, regardless of crate name
+path = "src/main.rs"
+
+[dependencies]
+codegraphy-core = { path = "../codegraphy-core" }
+codegraphy-protocol = { path = "../codegraphy-protocol" }
+serde_json = { workspace = true }
+```
+
+Daily commands (run from `crates/`):
+
+```bash
+cargo build                    # dev build → target/debug/codegraphy
+cargo run -- index             # build + run with args (the -- separates cargo's args from yours)
+cargo test                     # all workspace tests
+cargo test -p codegraphy-core  # one crate's tests (-p = --package)
+cargo clippy -- -D warnings    # lint, warnings as errors
+cargo fmt                      # format everything
+cargo build --release          # optimized build → target/release/codegraphy
+cargo add serde -p codegraphy-core   # add a dependency (like pnpm add)
+```
+
+Cross-compiling for the release matrix (CI does this; locally you mostly
+build your own platform):
+
+```bash
+rustup target add aarch64-apple-darwin   # one-time per target
+cargo build --release --target aarch64-apple-darwin
+```
+
+Gotchas worth knowing on day one: the borrow checker will fight you for the
+first weeks — prefer cloning small data over fighting lifetimes while
+learning; `target/` is the (large) build cache, gitignore it; `rusqlite`
+with the `bundled` feature avoids all system-SQLite version pain; and
+`cargo doc --open` renders every dependency's API docs locally, which is the
+idiomatic way to read Rust library documentation.
 
 ## Risk Register (watch these; each has a checkpoint above)
 

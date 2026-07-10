@@ -172,7 +172,6 @@ CodeGraphy equivalents worth thinking about:
 - search/query-backed visual filters;
 - zoom-dependent labels;
 - force controls that feel immediate;
-- time-travel or timeline graph replay from git/history;
 - hover/click/right-click as navigation, not decoration.
 
 Source:
@@ -489,7 +488,8 @@ Engine design requirements:
 - Pinning: fixed-position flags per node (drag grabs a node by pinning it;
   persisted layouts load as pinned-then-released or as initial positions).
 - Lifecycle parity with current behavior: warmup ticks, cooldown ticks (60
-  interactive / 50 timeline today), stabilization callback.
+  interactive today; the timeline variant is removed with the timeline view),
+  stabilization callback.
 - Plugin forces: the existing adapter contract (`initialize(nodes)` /
   `tick(alpha)` / `dispose()`) is object-based and cannot survive as-is —
   typed arrays are the new interface. Provide a small custom-force API
