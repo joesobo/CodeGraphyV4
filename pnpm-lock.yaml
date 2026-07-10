@@ -426,6 +426,8 @@ importers:
         specifier: ^1.58.2
         version: 1.58.2
 
+  packages/graph-engine: {}
+
   packages/mcp:
     dependencies:
       '@codegraphy-dev/core':
