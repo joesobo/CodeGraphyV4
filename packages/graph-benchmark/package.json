@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "bench:graph": "tsx src/cli/main.ts",
+    "bench:graph:vault": "tsx src/obsidian/main.ts",
     "lint": "eslint src tests playwright.config.ts vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
     "test:playwright": "pnpm --filter @codegraphy-dev/extension run build:webview && playwright test --config playwright.config.ts",

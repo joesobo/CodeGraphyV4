@@ -135,7 +135,7 @@ horizontal batch.
 - [x] Add failing metric tests one at a time for percentile math, the scripted
       pan/zoom scenario, rendered FPS/frame times, hover hit-test latency, and
       a separate forced-GC Chromium heap pass; verify each through the CLI.
-- [ ] Add a failing scenario-schema test; implement the shared deterministic
+- [x] Add a failing scenario-schema test; implement the shared deterministic
       feel-scenario format and the fixture-to-Obsidian-vault mirror command.
 - [ ] Capture and commit Obsidian reference recordings, motion strips, and
       derived target bands for the standard scenarios, preserving the source

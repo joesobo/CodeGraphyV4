@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "filter-swap",
+  "fixture": { "name": "1k", "seed": 307 },
+  "durationTicks": 540,
+  "actions": [
+    { "atTick": 0, "type": "load" },
+    { "atTick": 180, "type": "set-filter", "visibleFraction": 0.5, "seed": 307 },
+    { "atTick": 360, "type": "set-filter", "visibleFraction": 1, "seed": 307 }
+  ]
+}
