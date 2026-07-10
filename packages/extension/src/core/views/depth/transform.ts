@@ -14,7 +14,10 @@ export function getDepthGraphMaxDepthLimit(
     return fallbackMaxDepthLimit;
   }
 
-  const maxReachableDepth = Math.max(...depths.values());
+  let maxReachableDepth = 0;
+  for (const depth of depths.values()) {
+    maxReachableDepth = Math.max(maxReachableDepth, depth);
+  }
   return clampDepthLimit(maxReachableDepth, MAX_DEPTH_LIMIT);
 }
 

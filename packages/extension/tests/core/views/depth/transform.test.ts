@@ -43,6 +43,29 @@ describe('core/views/depth/transform', () => {
     ).toBe(2);
   });
 
+  it('finds the max depth of a giant shallow graph without overflowing the stack', () => {
+    const leafCount = 150_000;
+    const data: IGraphData = {
+      nodes: [
+        { id: 'root', label: 'root', color: '#93C5FD' },
+        ...Array.from({ length: leafCount }, (_, index) => ({
+          id: `leaf-${index}`,
+          label: `leaf-${index}`,
+          color: '#93C5FD',
+        })),
+      ],
+      edges: Array.from({ length: leafCount }, (_, index) => ({
+        id: `root->leaf-${index}`,
+        from: 'root',
+        to: `leaf-${index}`,
+        kind: 'import',
+        sources: [],
+      })),
+    };
+
+    expect(getDepthGraphMaxDepthLimit(data, 'root')).toBe(1);
+  });
+
   it('returns the full graph when the focused file is missing from the graph', () => {
     expect(
       filterDepthGraph(sampleData, context({ focusedFile: 'src/missing.ts', depthLimit: 3 })),
