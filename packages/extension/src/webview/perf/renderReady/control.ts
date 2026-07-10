@@ -30,18 +30,19 @@ export function createWebviewRenderReadyControl({
   let graphVersion = 0;
   let committedGraphVersion = 0;
   let pendingRequest: { graphVersion: number; requestId: string } | undefined;
-  let postStopFrame: (RenderReadyGraphCounts & { graphVersion: number }) | undefined;
+  let latestFrame: (RenderReadyGraphCounts & { graphVersion: number }) | undefined;
 
   const invalidate = (): void => {
     engineStopped = false;
-    postStopFrame = undefined;
+    latestFrame = undefined;
   };
 
   const publishIfReady = (): void => {
     if (
-      !pendingRequest
-      || !postStopFrame
-      || postStopFrame.graphVersion < pendingRequest.graphVersion
+      !engineStopped
+      || !pendingRequest
+      || !latestFrame
+      || latestFrame.graphVersion < pendingRequest.graphVersion
     ) {
       return;
     }
@@ -49,10 +50,10 @@ export function createWebviewRenderReadyControl({
     const response = perfRenderReadyMessageSchema.safeParse({
       type: 'PERF_RENDER_READY',
       payload: {
-        graphRevision: postStopFrame.graphVersion,
+        graphRevision: latestFrame.graphVersion,
         requestId: pendingRequest.requestId,
-        nodeCount: postStopFrame.nodeCount,
-        edgeCount: postStopFrame.edgeCount,
+        nodeCount: latestFrame.nodeCount,
+        edgeCount: latestFrame.edgeCount,
       },
     });
     if (!response.success) {
@@ -66,7 +67,7 @@ export function createWebviewRenderReadyControl({
   return {
     engineStopped(): void {
       engineStopped = true;
-      postStopFrame = undefined;
+      publishIfReady();
     },
 
     engineTick: invalidate,
@@ -101,11 +102,7 @@ export function createWebviewRenderReadyControl({
     },
 
     renderFramePost(counts): void {
-      if (!engineStopped) {
-        return;
-      }
-
-      postStopFrame = { ...counts, graphVersion: committedGraphVersion };
+      latestFrame = { ...counts, graphVersion: committedGraphVersion };
       publishIfReady();
     },
   };

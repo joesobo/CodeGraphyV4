@@ -226,27 +226,28 @@ describe('webview/perf/renderReady/control', () => {
     });
   });
 
-  it('does not reuse a frame rendered before the engine stopped', () => {
+  it('uses the final painted frame when the engine stops without another frame', () => {
     const postMessage = vi.fn();
     const control = createWebviewRenderReadyControl({ postMessage });
 
+    control.graphDataReceived(41);
+    control.graphChanged(true);
+    control.renderFramePost({ nodeCount: 5_000, edgeCount: 9_996 });
     control.handleRequest({
       type: 'PERF_RENDER_READY_REQUEST',
-      payload: { requestId: 'render-request-5' },
+      payload: { graphRevision: 41, requestId: 'render-request-5' },
     });
-    control.renderFramePost({ nodeCount: 99, edgeCount: 74 });
-    control.engineStopped();
     expect(postMessage).not.toHaveBeenCalled();
 
-    control.renderFramePost({ nodeCount: 100, edgeCount: 75 });
+    control.engineStopped();
 
     expect(postMessage).toHaveBeenCalledWith({
       type: 'PERF_RENDER_READY',
       payload: {
-        graphRevision: 0,
+        graphRevision: 41,
         requestId: 'render-request-5',
-        nodeCount: 100,
-        edgeCount: 75,
+        nodeCount: 5_000,
+        edgeCount: 9_996,
       },
     });
   });
