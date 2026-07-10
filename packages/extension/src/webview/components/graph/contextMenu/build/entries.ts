@@ -77,7 +77,7 @@ function buildBaseGraphContextMenuEntries(
   decision: GraphContextMenuDecision,
   options: Pick<
     BuildGraphContextMenuOptions,
-    'favorites' | 'mutationAvailability' | 'timelineActive'
+    'favorites' | 'mutationAvailability'
   >,
 ): GraphContextMenuEntry[] {
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
@@ -102,7 +102,6 @@ function buildBaseGraphContextMenuEntries(
 
   return buildNodeEntries(
     getNodeTargetIds(decision),
-    options.timelineActive,
     mutationAvailability,
     options.favorites,
   );
@@ -114,7 +113,6 @@ export function buildGraphContextMenuEntries(
   const {
     selection,
     graphMode = '2d',
-    timelineActive,
     favorites,
     pluginItems,
     graphViewContributions,
@@ -125,7 +123,6 @@ export function buildGraphContextMenuEntries(
   const baseEntries = buildBaseGraphContextMenuEntries(decision, {
     favorites,
     mutationAvailability: options.mutationAvailability,
-    timelineActive,
   });
   const graphViewCreateEntries = decision.kind === 'background'
     ? buildGraphViewContextMenuEntries({
@@ -137,7 +134,6 @@ export function buildGraphContextMenuEntries(
       nodes,
       placement: 'create',
       selection,
-      timelineActive,
     })
     : [];
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
@@ -151,7 +147,6 @@ export function buildGraphContextMenuEntries(
       graphViewContributions,
       nodes,
       selection,
-      timelineActive,
     }),
   ], selection);
 }

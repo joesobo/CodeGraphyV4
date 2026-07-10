@@ -3,7 +3,6 @@ import { attachMutableAccessors, attachReadonlyAccessors } from './accessors';
 
 const MUTABLE_STATE_KEYS = [
   '_view',
-  '_timelineView',
   '_panels',
   '_graphData',
   '_analyzer',
@@ -20,9 +19,6 @@ const MUTABLE_STATE_KEYS = [
   '_userGroups',
   '_filterPatterns',
   '_disabledPlugins',
-  '_gitAnalyzer',
-  '_currentCommitSha',
-  '_timelineActive',
   '_firstAnalysis',
   '_resolveFirstWorkspaceReady',
   '_webviewReadyNotified',

@@ -11,7 +11,7 @@ export function shouldKeepFixedPosition(
         graphMode: options.graphMode,
         node,
         nodes: options.graphData?.nodes ?? [node],
-        timelineActive: options.timelineActive ?? false,
+        timelineActive: false,
       });
       if (result?.keepFixedPosition === true) {
         return true;

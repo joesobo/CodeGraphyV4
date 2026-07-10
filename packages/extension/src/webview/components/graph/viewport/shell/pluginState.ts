@@ -9,14 +9,12 @@ export function publishPluginGraphViewViewportState({
   graphMode,
   nodes,
   pluginHost,
-  timelineActive,
 }: {
   globalScale: number;
   graph: GraphViewport2dControls | undefined;
   graphMode: GraphViewStoreState['graphMode'];
   nodes: readonly FGNode[];
   pluginHost: WebviewPluginHost | undefined;
-  timelineActive: boolean;
 }): void {
   if (!pluginHost || pluginHost.hasGraphViewViewportConsumers?.() === false) {
     return;
@@ -27,6 +25,5 @@ export function publishPluginGraphViewViewportState({
     graph,
     graphMode,
     nodes: [...nodes],
-    timelineActive,
   }));
 }

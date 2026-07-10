@@ -20,7 +20,6 @@ export function useAppState() {
   const disabledCustomFilterPatterns = useGraphStore(s => s.disabledCustomFilterPatterns);
   const disabledPluginFilterPatterns = useGraphStore(s => s.disabledPluginFilterPatterns);
   const showOrphans = useGraphStore(s => s.showOrphans);
-  const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
   const depthMode = useGraphStore(s => s.depthMode);
   const nodeColors = useGraphStore(s => s.nodeColors);
@@ -46,7 +45,6 @@ export function useAppState() {
     disabledCustomFilterPatterns,
     disabledPluginFilterPatterns,
     showOrphans,
-    timelineActive,
     activePanel,
     depthMode,
     nodeColors,

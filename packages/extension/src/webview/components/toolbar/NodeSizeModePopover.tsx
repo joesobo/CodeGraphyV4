@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  mdiChartLine,
   mdiCheck,
   mdiCircleMultipleOutline,
   mdiFileOutline,
@@ -19,13 +18,11 @@ type NodeSizeModeOption = {
   mode: NodeSizeMode;
   label: string;
   icon: string;
-  requiresGitHistory?: boolean;
 };
 
 const NODE_SIZE_MODES: NodeSizeModeOption[] = [
   { mode: 'connections', label: 'Connections', icon: mdiHubOutline },
   { mode: 'file-size', label: 'File Size', icon: mdiFileOutline },
-  { mode: 'churn', label: 'Churn', icon: mdiChartLine, requiresGitHistory: true },
   { mode: 'uniform', label: 'Uniform', icon: mdiCircleMultipleOutline },
 ];
 
@@ -35,7 +32,6 @@ function getActiveNodeSizeMode(mode: NodeSizeMode): NodeSizeModeOption {
 
 export function NodeSizeModePopover(): React.ReactElement {
   const nodeSizeMode = useGraphStore((state) => state.nodeSizeMode);
-  const hasGitHistoryIndex = useGraphStore((state) => state.timelineCommits.length > 0);
   const activeMode = getActiveNodeSizeMode(nodeSizeMode);
 
   const handleSelect = (mode: NodeSizeMode, disabled: boolean): void => {
@@ -66,10 +62,10 @@ export function NodeSizeModePopover(): React.ReactElement {
       </Tooltip>
       <PopoverContent side="right" align="start" className="w-48 p-1">
         <div className="space-y-1" data-testid="node-size-mode-popover">
-          {NODE_SIZE_MODES.map(({ mode, label, icon, requiresGitHistory }) => {
-            const disabled = Boolean(requiresGitHistory && !hasGitHistoryIndex);
+          {NODE_SIZE_MODES.map(({ mode, label, icon }) => {
+            const disabled = false;
             const active = nodeSizeMode === mode;
-            const title = disabled ? `${label} requires indexed git history` : label;
+            const title = label;
 
             return (
               <Button

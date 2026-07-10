@@ -12,7 +12,6 @@ export interface GraphSurfaceProps {
   coloredData: IGraphData | null | undefined;
   showOrphans: boolean;
   depthMode: boolean;
-  timelineActive: boolean;
   theme: GraphComponentProps['theme'];
   nodeDecorations: GraphComponentProps['nodeDecorations'];
   edgeDecorations: GraphComponentProps['edgeDecorations'];
@@ -26,7 +25,6 @@ export function GraphSurface({
   coloredData,
   showOrphans,
   depthMode,
-  timelineActive,
   theme,
   nodeDecorations,
   edgeDecorations,
@@ -37,7 +35,7 @@ export function GraphSurface({
   if (graphData.nodes.length === 0) {
     return (
       <EmptyState
-        hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)}
+        hint={getNoDataHint(graphData, showOrphans, depthMode)}
         fullScreen={false}
       />
     );

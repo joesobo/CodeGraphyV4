@@ -1,4 +1,3 @@
-import { graphStore } from '../../store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../shared/fileColors';
 
 const EXPORT_BACKGROUND_COLOR = '#18181b';
@@ -10,11 +9,6 @@ interface CanvasExportOptions {
 
 export function createExportTimestamp(): string {
   return new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-}
-
-export function getExportContext(): { timelineActive: boolean; currentCommitSha: string | null } {
-  const { timelineActive, currentCommitSha } = graphStore.getState();
-  return { timelineActive, currentCommitSha };
 }
 
 export function resolveDirectionColor(directionColor: string): string {

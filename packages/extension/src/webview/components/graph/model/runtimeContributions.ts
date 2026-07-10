@@ -3,7 +3,6 @@ import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/grap
 
 export interface GraphViewRuntimeContributionContext {
   graphMode?: '2d' | '3d';
-  timelineActive?: boolean;
 }
 
 function appendUniqueNodes(

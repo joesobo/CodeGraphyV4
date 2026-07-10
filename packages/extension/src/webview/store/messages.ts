@@ -21,14 +21,6 @@ import {
   handleAppBootstrapComplete,
 } from './messageHandlers/graph';
 import {
-  handleIndexProgress,
-  handleTimelineData,
-  handleCommitGraphData,
-  handlePlaybackSpeedUpdated,
-  handleCacheInvalidated,
-  handlePlaybackEnded,
-} from './messageHandlers/timeline';
-import {
   handlePluginsUpdated,
   handleDecorationsUpdated,
   handleContextMenuItems,
@@ -110,16 +102,6 @@ export const MESSAGE_HANDLERS: Record<
     ),
   ACTIVE_FILE_UPDATED: (msg) =>
     handleActiveFileUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'ACTIVE_FILE_UPDATED' }>),
-  INDEX_PROGRESS: (msg) =>
-    handleIndexProgress(msg as Extract<ExtensionToWebviewMessage, { type: 'INDEX_PROGRESS' }>),
-  TIMELINE_DATA: (msg) =>
-    handleTimelineData(msg as Extract<ExtensionToWebviewMessage, { type: 'TIMELINE_DATA' }>),
-  COMMIT_GRAPH_DATA: (msg) =>
-    handleCommitGraphData(msg as Extract<ExtensionToWebviewMessage, { type: 'COMMIT_GRAPH_DATA' }>),
-  PLAYBACK_SPEED_UPDATED: (msg) =>
-    handlePlaybackSpeedUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLAYBACK_SPEED_UPDATED' }>),
-  CACHE_INVALIDATED: () => handleCacheInvalidated(),
-  PLAYBACK_ENDED: () => handlePlaybackEnded(),
   DECORATIONS_UPDATED: (msg, ctx) =>
     handleDecorationsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>,

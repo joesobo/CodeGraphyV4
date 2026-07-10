@@ -17,7 +17,6 @@ export interface CreateGraphViewViewportStateOptions {
 	graph: GraphViewport2dControls | undefined;
 	graphMode: '2d' | '3d';
 	nodes: GraphRuntime['renderer']['graphData']['nodes'];
-	timelineActive: boolean;
 }
 
 function readViewportBoolean(value: unknown): boolean | undefined {
@@ -72,7 +71,6 @@ export function createGraphViewViewportState({
 	graph,
 	graphMode,
 	nodes,
-	timelineActive,
 }: CreateGraphViewViewportStateOptions): GraphViewViewportState {
 	return {
 		graphMode,
@@ -89,7 +87,6 @@ export function createGraphViewViewportState({
 			}
 		},
 		screenToGraph: (x, y) => graph?.screen2GraphCoords ? graph.screen2GraphCoords(x, y) : { x, y },
-		timelineActive,
 		updateNode: (nodeId, updates) => updateGraphViewViewportNode(nodes, nodeId, updates),
 		zoom: graph?.zoom ? graph.zoom() : globalScale,
 	};

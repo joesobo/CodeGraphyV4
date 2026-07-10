@@ -60,11 +60,4 @@ export const INITIAL_STATE: GraphStateFields = {
   maxFiles: DEFAULT_MAX_FILES,
   verboseDiagnostics: false,
   activeFilePath: null,
-  timelineActive: false,
-  timelineCommits: [],
-  currentCommitSha: null,
-  isIndexing: false,
-  indexProgress: null,
-  isPlaying: false,
-  playbackSpeed: 1.0,
 };

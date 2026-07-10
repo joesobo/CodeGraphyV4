@@ -1,4 +1,4 @@
-export type NodeSizeMode = 'connections' | 'file-size' | 'churn' | 'uniform';
+export type NodeSizeMode = 'connections' | 'file-size' | 'uniform';
 
 export type NodeShape2D = 'circle' | 'square' | 'rectangle' | 'diamond' | 'triangle' | 'hexagon' | 'star';
 

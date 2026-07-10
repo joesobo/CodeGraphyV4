@@ -14,12 +14,11 @@ export { buildSingleSymbolNodeEntries } from './symbolEntries';
 
 export function buildNodeEntries(
   targets: readonly string[],
-  timelineActive: boolean,
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [
-    ...buildOpenBlock(targets, timelineActive),
+    ...buildOpenBlock(targets),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
     ...buildFilterBlock(targets),

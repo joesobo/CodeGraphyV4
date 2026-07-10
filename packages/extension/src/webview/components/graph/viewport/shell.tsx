@@ -112,7 +112,6 @@ export function GraphViewportShell({
       graphMode: viewState.graphMode,
       nodes: graphState.renderer.graphDataRef.current.nodes,
       pluginHost,
-      timelineActive: viewState.timelineActive,
     });
   };
 

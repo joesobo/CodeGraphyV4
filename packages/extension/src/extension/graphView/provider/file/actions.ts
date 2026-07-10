@@ -35,6 +35,8 @@ export interface GraphViewProviderFileActionMethodsSource {
 }
 
 export interface GraphViewProviderFileActionMethods {
+  _openSelectedNode(nodeId: string): Promise<void>;
+  _activateNode(nodeId: string): Promise<void>;
   _openFile(filePath: string, behavior?: EditorOpenBehavior): Promise<void>;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
@@ -231,7 +233,15 @@ export function createGraphViewProviderFileActionMethods(
     });
   };
 
+  const _openSelectedNode = (nodeId: string): Promise<void> =>
+    _openFile(nodeId, { preview: true, preserveFocus: false });
+
+  const _activateNode = (nodeId: string): Promise<void> =>
+    _openFile(nodeId, { preview: false, preserveFocus: false });
+
   return {
+    _openSelectedNode,
+    _activateNode,
     _openFile,
     _revealInExplorer,
     _copyToClipboard,

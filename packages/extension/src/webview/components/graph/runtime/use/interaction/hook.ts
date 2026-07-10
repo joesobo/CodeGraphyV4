@@ -55,7 +55,6 @@ export function useGraphInteractionRuntime({
   setContextSelection,
   setHighlightVersion,
   setSelectedNodes,
-  timelineActive = false,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
   const graphContextSelectionRef = useRef(graphContextSelection);
@@ -158,7 +157,6 @@ export function useGraphInteractionRuntime({
       graphData: graphDataRef.current,
       graphViewContributions,
       graphMode,
-      timelineActive,
     });
     nodeDragGroupRef.current = null;
   }

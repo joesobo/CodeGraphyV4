@@ -60,10 +60,10 @@ interface RestoreGraphViewProviderStateOptions {
   fallbackNodeSizeMode: NodeSizeMode;
 }
 
-type PersistedNodeSizeMode = NodeSizeMode | 'access-count';
+type PersistedNodeSizeMode = NodeSizeMode | 'access-count' | 'churn';
 
 function normalizeNodeSizeMode(mode: PersistedNodeSizeMode): NodeSizeMode {
-  return mode === 'access-count' ? 'churn' : mode;
+  return mode === 'access-count' || mode === 'churn' ? 'connections' : mode;
 }
 
 export function initializeGraphViewProviderServices({

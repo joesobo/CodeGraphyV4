@@ -5,7 +5,6 @@ export function createGraphViewProviderRuntimeFlagState(): {
   _analysisRequestId: number;
   _depthMode: boolean;
   _dagMode: DagMode;
-  _timelineActive: boolean;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
   _installedPluginActivationPromise: Promise<void>;
@@ -15,7 +14,6 @@ export function createGraphViewProviderRuntimeFlagState(): {
     _analysisRequestId: 0,
     _depthMode: false,
     _dagMode: null,
-    _timelineActive: false,
     _firstAnalysis: true,
     _webviewReadyNotified: false,
     _installedPluginActivationPromise: Promise.resolve(),

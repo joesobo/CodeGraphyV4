@@ -12,14 +12,13 @@ export function createRunContext(
   selector: GraphViewContextMenuTargetSelector,
   selection: GraphContextSelection,
   graphMode: '2d' | '3d',
-  timelineActive: boolean,
   nodes: readonly GraphContextMenuNode[] | undefined,
 ): GraphViewContextMenuRunContext {
   const selectedNodePositions = createSelectedNodePositions(selection, nodes);
   return {
     target: selector,
     graphMode,
-    timelineActive,
+    timelineActive: false,
     selectedNodeIds: selection.kind === 'node' ? selection.targets : [],
     selectedEdgeIds: selection.kind === 'edge' && selection.edgeId ? [selection.edgeId] : [],
     ...(selection.graphPosition ? { graphPosition: selection.graphPosition } : {}),

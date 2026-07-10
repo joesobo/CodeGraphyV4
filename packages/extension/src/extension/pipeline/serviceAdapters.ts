@@ -6,8 +6,6 @@ import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/contracts';
-import { getCachedGitHistoryChurnCounts } from '../gitHistory/cache/state';
-import { createGitHistoryPluginSignature } from '../gitHistory/pluginSignature';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
@@ -104,7 +102,7 @@ export function analyzeWorkspacePipelineFiles(
 
 export function buildWorkspacePipelineGraphData(
   cache: IWorkspaceAnalysisCache,
-  context: vscode.ExtensionContext,
+  _context: vscode.ExtensionContext,
   registry: PluginRegistry,
   fileConnections: Map<string, IProjectedConnection[]>,
   workspaceRoot: string,
@@ -128,18 +126,13 @@ export function buildWorkspacePipelineGraphData(
     _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
-  const churnCounts = getCachedGitHistoryChurnCounts(
-    context.workspaceState,
-    createGitHistoryPluginSignature(registry),
-  ) ?? {};
-
   return buildWorkspacePipelineGraphForSource(
     source,
     fileConnections,
     workspaceRoot,
     showOrphans,
     effectiveDisabledPlugins,
-    churnCounts,
+    {},
   );
 }
 
@@ -222,7 +215,7 @@ function filterWorkspacePipelineAnalysisByActivePlugins(
 
 export function buildWorkspacePipelineGraphDataFromAnalysis(
   cache: IWorkspaceAnalysisCache,
-  context: vscode.ExtensionContext,
+  _context: vscode.ExtensionContext,
   registry: PluginRegistry,
   fileAnalysis: Map<string, IFileAnalysisResult>,
   workspaceRoot: string,
@@ -244,14 +237,9 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
-  const churnCounts = getCachedGitHistoryChurnCounts(
-    context.workspaceState,
-    createGitHistoryPluginSignature(registry),
-  ) ?? {};
-
   return buildWorkspacePipelineGraphFromAnalysis({
     cacheFiles: source._cache.files,
-    churnCounts,
+    churnCounts: {},
     directoryPaths: source._lastDiscoveredDirectories ?? [],
     gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,

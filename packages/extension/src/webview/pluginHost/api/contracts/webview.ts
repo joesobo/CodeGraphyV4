@@ -23,7 +23,6 @@ export type GraphPluginSlot =
   | 'graph.stage.viewportOverlay'
   | 'node-details'
   | 'tooltip'
-  | 'timeline-panel'
   | 'graph-overlay';
 
 export interface NodeRenderContext {
@@ -63,7 +62,6 @@ export interface GraphViewViewportState {
   reheatSimulation(): void;
   resumeAnimation(): void;
   screenToGraph(x: number, y: number): GraphViewPoint2D;
-  timelineActive: boolean;
   updateNode(nodeId: string, updates: GraphViewViewportNodeUpdate): boolean;
   zoom: number;
 }

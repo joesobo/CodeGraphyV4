@@ -94,10 +94,6 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'UPDATE_VERBOSE_DIAGNOSTICS'; payload: { verboseDiagnostics: boolean } }
-  | { type: 'INDEX_REPO' }
-  | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
-  | { type: 'RESET_TIMELINE' }
-  | { type: 'PREVIEW_FILE_AT_COMMIT'; payload: { sha: string; filePath: string } }
   | {
       type: 'NODE_BOUNDS_RESPONSE';
       payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> };

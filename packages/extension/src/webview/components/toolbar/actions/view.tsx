@@ -55,7 +55,6 @@ export function ToolbarActions({
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
-  const timelineActive = useGraphStore(s => s.timelineActive);
 
   return (
     <div className="flex flex-col items-center gap-2" data-codegraphy-region="toolbar-actions" data-testid="toolbar-actions">
@@ -74,7 +73,6 @@ export function ToolbarActions({
         <CreateToolbarAction
           graphMode={graphMode}
           graphViewContributions={graphViewContributions}
-          timelineActive={timelineActive}
         />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons

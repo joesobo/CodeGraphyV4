@@ -27,12 +27,10 @@ export interface NodeDragEndOptions {
   graphData: NodeDragGraphData;
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
   graphMode: GraphMode;
-  timelineActive?: boolean;
 }
 
 export interface NodeDragPolicyContext {
   graphData?: NodeDragGraphData;
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
   graphMode: GraphMode;
-  timelineActive?: boolean;
 }

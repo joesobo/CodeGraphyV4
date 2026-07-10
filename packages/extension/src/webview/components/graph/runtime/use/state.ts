@@ -46,7 +46,6 @@ export interface GraphRuntimeOptions {
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
   theme: ThemeKind;
-  timelineActive: boolean;
 }
 
 export interface GraphRuntimeSelection {
@@ -98,7 +97,6 @@ export interface GraphRuntime {
   setHighlightVersion: Dispatch<SetStateAction<number>>;
   showLabelsRef: MutableRefObject<boolean>;
   themeRef: MutableRefObject<ThemeKind>;
-  timelineActiveRef: MutableRefObject<boolean>;
 }
 
 export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[] } {
@@ -130,11 +128,7 @@ export function useGraphRuntime({
   nodeSizeMode,
   showLabels,
   theme,
-  timelineActive,
 }: GraphRuntimeOptions): GraphRuntime {
-  const timelineActiveRef = useRef(timelineActive);
-  timelineActiveRef.current = timelineActive;
-
   const containerRef = useRef<HTMLDivElement>(null);
   const fg2dRef = useRef<OwnedGraph2dControls | undefined>(undefined);
   const highlightedNodeRef = useRef<string | null>(null);
@@ -191,13 +185,12 @@ export function useGraphRuntime({
       graphViewContributions,
       graphMode: '2d',
       bidirectionalMode,
-      timelineActive,
       previousNodes: graphDataRef.current.nodes,
     });
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions, timelineActive]);
+  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions]);
 
   useEffect(() => {
     const visibleSelectedNodes = getVisibleSelection(selectedNodes, graphData.nodes);
@@ -250,6 +243,5 @@ export function useGraphRuntime({
     setHighlightVersion,
     showLabelsRef,
     themeRef,
-    timelineActiveRef,
   };
 }

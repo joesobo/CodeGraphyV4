@@ -10,7 +10,6 @@ export function buildGraphSharedPropsOptions({
   graphData,
   handleEngineStop,
   interactions,
-  timelineActive,
 }: {
   containerSize: { width: number; height: number };
   dagMode: DagMode;
@@ -18,7 +17,6 @@ export function buildGraphSharedPropsOptions({
   graphData: GraphRuntime['renderer']['graphData'];
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
-  timelineActive: boolean;
 }): BuildSharedGraphPropsOptions {
   return {
     containerSize,
@@ -35,6 +33,5 @@ export function buildGraphSharedPropsOptions({
     onNodeDragEnd: interactions.handleNodeDragEnd,
     onNodeHover: interactions.handleNodeHover,
     onNodeRightClick: interactions.handleNodeRightClick,
-    timelineActive,
   };
 }

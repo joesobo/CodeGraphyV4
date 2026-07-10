@@ -2,7 +2,6 @@ import type { DagMode } from '../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../model/build';
 
 export const INTERACTIVE_COOLDOWN_TICKS = 60;
-export const TIMELINE_COOLDOWN_TICKS = 50;
 
 export interface GraphContainerSize {
   height: number;
@@ -47,7 +46,6 @@ export interface BuildSharedGraphPropsOptions {
   onNodeHover(this: void, node: FGNode | null): void;
   onNodeRightClick(this: void, node: FGNode, event: MouseEvent): void;
   damping: number;
-  timelineActive: boolean;
 }
 
 export function normalizeGraphDimension(value: number): number | undefined {
@@ -81,7 +79,7 @@ export function buildSharedGraphProps(
     d3VelocityDecay: options.damping,
     d3AlphaDecay: 0.0228,
     warmupTicks: 0,
-    cooldownTicks: options.timelineActive ? TIMELINE_COOLDOWN_TICKS : INTERACTIVE_COOLDOWN_TICKS,
+    cooldownTicks: INTERACTIVE_COOLDOWN_TICKS,
     nodeId: 'id',
     onNodeHover: options.onNodeHover,
     dagMode: options.dagMode ?? undefined,

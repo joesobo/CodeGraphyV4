@@ -88,7 +88,9 @@ graph and its product surfaces.
       `packages/graph-benchmark/references/owned2d/open-editor-1k/`.
 - [x] Remove the 3D renderer, toggle/command, legacy d3 physics runtime, and
       all `react-force-graph`, Three.js, and d3-force package dependencies.
-- [ ] Remove the timeline view and its remaining product/state surfaces.
+- [x] Remove the timeline UI, protocol, provider/indexing/playback, cache,
+      git-history/churn implementation, settings, and runtime state; preserve
+      ordinary preview/double-click file opening outside timeline modules.
 - [x] Add the first WebGPU draw path: feature-detected device/context setup,
       validated WGSL pipelines, instanced SDF circles and link quads, dynamic
       `writeBuffer` uploads, device-loss fallback, and Canvas2D overlays.
@@ -108,8 +110,9 @@ graph and its product surfaces.
       edges in Open in Editor at 116.86 camera FPS (p95 10.9ms, max 13.5ms)
       with worker physics dispatch at 0.1ms p50 on the main thread. Evidence is
       under `packages/graph-benchmark/references/webgpu/open-editor-50k/`.
-- [ ] Scale the owned renderer/layout to the 100k target fixture and validate
-      it in Open in Editor.
+- [x] Cap performance testing at 10k nodes per the owner decision on
+      2026-07-10; do not run further 50k/100k performance suites. The earlier
+      50k checkpoint remains as historical implementation evidence.
 
 ### Rollout Gates
 

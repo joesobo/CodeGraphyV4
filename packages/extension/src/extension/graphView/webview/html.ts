@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 const NONCE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-export type CodeGraphyWebviewKind = 'graph' | 'timeline';
+export type CodeGraphyWebviewKind = 'graph';
 export type CodeGraphyWebviewThemeKind = 'light' | 'dark' | 'high-contrast';
 
 export function createGraphViewNonce(random: () => number = Math.random): string {

@@ -20,7 +20,6 @@ type BuildGraphViewContextMenuEntriesOptions = {
   placement?: GraphViewContextMenuPlacement | 'default';
   nodes?: readonly GraphContextMenuNode[];
   selection: GraphContextSelection;
-  timelineActive: boolean;
 };
 
 type GraphViewContextMenuContributionEntry =
@@ -53,7 +52,6 @@ function buildGraphViewContextMenuEntry(
     selector,
     options.selection,
     options.graphMode,
-    options.timelineActive,
     options.nodes,
   );
   if (entry.contribution.isVisible && !entry.contribution.isVisible(context)) {

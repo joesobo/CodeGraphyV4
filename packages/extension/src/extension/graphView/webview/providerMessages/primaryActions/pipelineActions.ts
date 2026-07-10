@@ -16,14 +16,10 @@ type PipelineActions = Pick<
 
 export function createPipelineActions(
   source: GraphViewProviderMessageListenerSource,
-  options: GraphViewProviderMessageListenerOptions = {},
+  _options: GraphViewProviderMessageListenerOptions = {},
 ): PipelineActions {
   return {
-    loadAndSendData: () => (
-      options.viewKind === 'timeline'
-        ? Promise.resolve()
-        : source._loadAndSendData()
-    ),
+    loadAndSendData: () => source._loadAndSendData(),
     indexAndSendData: () => source._indexAndSendData(),
     analyzeAndSendData: () => source._analyzeAndSendData(),
     refreshIndex: () => source.refreshIndex(),

@@ -1,13 +1,10 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 
 export interface GraphViewNodeFileOpenHandlers {
-  timelineActive: boolean;
-  currentCommitSha?: string;
   canOpenPath?(filePath: string): boolean;
   setFocusedFile(filePath: string | undefined): void;
   openSelectedNode(nodeId: string): Promise<void>;
   activateNode(nodeId: string): Promise<void>;
-  previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
 }
 
@@ -34,16 +31,8 @@ function ignoreClosedPath(
   return true;
 }
 
-function openPathForCurrentTimeline(
-  handlers: GraphViewNodeFileOpenHandlers,
-  filePath: string,
-): void {
+function openPath(handlers: GraphViewNodeFileOpenHandlers, filePath: string): void {
   handlers.setFocusedFile(filePath);
-  if (handlers.timelineActive && handlers.currentCommitSha) {
-    void handlers.previewFileAtCommit(handlers.currentCommitSha, filePath);
-    return;
-  }
-
   void handlers.openFile(filePath);
 }
 
@@ -78,7 +67,7 @@ export async function applyNodeFileOpenMessage(
         return true;
       }
 
-      openPathForCurrentTimeline(handlers, message.payload.path);
+      openPath(handlers, message.payload.path);
       return true;
 
     default:

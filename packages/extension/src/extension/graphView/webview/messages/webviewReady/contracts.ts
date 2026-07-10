@@ -5,7 +5,6 @@ import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes
 export interface GraphViewReadyState {
   maxFiles: number;
   verboseDiagnostics: boolean;
-  playbackSpeed: number;
   depthMode?: boolean;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
@@ -31,7 +30,6 @@ export interface GraphViewReadyHandlers {
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: { type: string; payload?: unknown }): void;
-  sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginStatuses?(): void;

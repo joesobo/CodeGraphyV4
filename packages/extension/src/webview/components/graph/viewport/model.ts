@@ -37,14 +37,11 @@ export interface GraphViewportModelOptions {
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
   viewState: Pick<
     GraphViewStoreState,
-    | 'currentCommitSha'
     | 'dagMode'
     | 'favorites'
     | 'graphMode'
     | 'physicsSettings'
     | 'pluginContextMenuItems'
-    | 'timelineActive'
-    | 'timelineCommits'
   >;
 }
 
@@ -65,7 +62,6 @@ export function useGraphViewportModel({
       graphData: graphState.graphData,
       handleEngineStop,
       interactions,
-      timelineActive: viewState.timelineActive,
     })),
     [
       graphState.graphData,
@@ -74,15 +70,13 @@ export function useGraphViewportModel({
       viewportRuntime.containerSize,
       viewState.dagMode,
       viewState.physicsSettings.damping,
-      viewState.timelineActive,
     ],
   );
 
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
     graphMode: viewState.graphMode,
-    timelineActive: viewState.timelineActive,
-    mutationAvailability: getGraphContextMutationAvailability(viewState),
+    mutationAvailability: getGraphContextMutationAvailability(),
     favorites: viewState.favorites,
     pluginItems: viewState.pluginContextMenuItems,
     graphViewContributions,

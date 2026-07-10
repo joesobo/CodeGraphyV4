@@ -97,7 +97,6 @@ export interface GraphContextMenuEdge {
 export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
   graphMode?: '2d' | '3d';
-  timelineActive: boolean;
   mutationAvailability?: GraphContextMutationAvailability;
   favorites: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];
