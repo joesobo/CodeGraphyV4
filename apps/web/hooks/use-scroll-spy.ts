@@ -14,10 +14,13 @@ const observerOptions: IntersectionObserverInit = {
 // intersects the band, e.g. between widely spaced sections.
 const passedSectionOffsetPx = 160;
 
+interface ScrollSpy {
+  activeHref: string | undefined;
+  setActiveFromNavigation: (href: string) => void;
+}
+
 /** Tracks which section href is active while the page scrolls. */
-export function useScrollSpy(
-  sectionHrefs: readonly string[],
-): [string | undefined, (href: string) => void] {
+export function useScrollSpy(sectionHrefs: readonly string[]): ScrollSpy {
   const [activeHref, setActiveHref] = useState<string | undefined>(sectionHrefs[0]);
 
   useEffect(() => {
@@ -74,7 +77,7 @@ export function useScrollSpy(
     return () => observer.disconnect();
   }, [sectionHrefs]);
 
-  return [activeHref, setActiveHref];
+  return { activeHref, setActiveFromNavigation: setActiveHref };
 }
 
 function getSectionElement(href: string): HTMLElement | null {

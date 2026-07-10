@@ -8,12 +8,16 @@ import { useScrollSpy } from '@/hooks/use-scroll-spy';
 
 export function PageSidebar({ nav }: { nav: readonly NavGroup[] }): React.ReactElement {
   const sectionHrefs = useMemo(() => getSectionHrefs(nav), [nav]);
-  const [activeHref, setActiveHref] = useScrollSpy(sectionHrefs);
+  const { activeHref, setActiveFromNavigation } = useScrollSpy(sectionHrefs);
 
   return (
     <Sidebar aria-label="On this page">
       <SidebarContent>
-        <NavGroupView activeHref={activeHref} groups={nav} onNavigate={setActiveHref} />
+        <NavGroupView
+          activeHref={activeHref}
+          groups={nav}
+          onNavigate={setActiveFromNavigation}
+        />
       </SidebarContent>
     </Sidebar>
   );
