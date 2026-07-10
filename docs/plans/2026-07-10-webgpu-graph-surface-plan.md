@@ -91,6 +91,10 @@ Nothing else in this track can be validated without this.
   interaction latency (hover hit-test), and heap usage.
 - A committed baseline report for the current react-force-graph renderer at
   each fixture size.
+- Feel groundwork (see "Feel Engineering" below): the scripted scenario
+  format, the Obsidian vault mirror script (one note per fixture node, one
+  wikilink per edge), and the committed Obsidian reference recordings +
+  derived target bands.
 
 **Checkpoints (deterministic)**
 
@@ -168,17 +172,28 @@ Headless typed-array engine per the parity spec §1. No renderer coupling.
     (positions in, velocity deltas out, temperature-scaled).
 - Worker host wrapper (single-file bundle, blob-URL loading per VS Code
   webview worker rules) — may land in A6 if A4 needs to start sooner.
+- Feel harness per the "Feel Engineering" section: headless scenario runner
+  computing the §1 motion metrics against `feel-targets.json`; visual layer
+  producing motion strips/GIFs per standard scenario; parameter-sweep tuning
+  tool emitting ranked metric tables.
 - Tuning bench: side-by-side run against the old engine on fixtures.
 
 **Checkpoints**
+
+- [ ] Feel metrics: every standard scenario passes its committed target band
+      in the headless harness (CI test); motion strips for the chosen config
+      committed next to the Obsidian reference strips.
+- [ ] Frame-rate independence: the same scenario at 30fps and 120fps tick
+      cadence settles to the same layout (test).
 
 - [ ] Determinism: same seed + fixed timestep ⇒ identical position buffer
       hash across two runs (unit test).
 - [ ] Stability: 10k-node fixture with 100 coincident nodes settles with no
       NaN/Inf and bounded energy (unit test asserts).
 - [ ] Settle time on 10k fixture ≤ current engine's baseline from A0.
-- [ ] Blind feel check: owner cannot reliably distinguish old vs new engine
-      on the 1k fixture (or prefers the new one) — recorded in the PR.
+- [ ] Human feel gate: the structured rubric session from "Feel Engineering"
+      §5 (side-by-side with old renderer and Obsidian, fixed action script)
+      scores ≥ 4 on every rubric line — recorded in the PR.
 - [ ] Plugin-force API: existing graph-view force contributions re-expressed
       on the new API in a spike, behavior verified on their fixture.
 
@@ -332,6 +347,107 @@ them:
   nodes ≈ 3.2MB; ~24B/edge × 500k edges ≈ 12MB — GPU memory is not a
   constraint at the committed tier; design for upload bandwidth and draw
   organization, not for compression.
+
+## Feel Engineering: How An Agent Builds Obsidian-Like Physics
+
+"Feels like Obsidian" is not testable as stated, and an agent cannot perceive
+motion. This section turns feel into things an agent can measure, see, and
+iterate on — with humans gating only the subjective residue. It governs A3
+(engine) and A4/A5 (interaction), and its harness pieces are A0/A3
+deliverables.
+
+### 1. Decompose "feel" into measurable properties
+
+Feel is the sum of a small number of motion behaviors. Each gets a metric
+computed from position time-series, and a target band committed as JSON
+(`packages/graph-engine/feel-targets.json`):
+
+- **Settle**: from load, total kinetic energy decays monotonically after an
+  initial peak; settle time (energy < 0.1% of peak) within band (e.g. 1–3s
+  on the 1k fixture); at most one visible overshoot (energy curve may have
+  ≤ 1 secondary bump). No residual jitter: post-settle per-node position
+  RMS < 0.05px/frame at 1× zoom.
+- **Drag response**: the dragged node tracks the pointer exactly (it is
+  pinned — zero lag by construction). Its 1-hop neighbors follow with
+  visible elastic lag: neighbor displacement reaches ~63% of its final value
+  within a band of ticks; 2-hop neighbors move less than 1-hop (monotonic
+  falloff). On release, the neighborhood re-settles within band with ≤ 1
+  overshoot and no oscillation ping-pong (sign of velocity along the
+  displacement axis flips ≤ 2 times).
+- **Hub stability**: during a leaf-node drag, high-degree nodes' displacement
+  stays below a fraction of the leaf's (this is what degree bias buys —
+  the graph should feel anchored, not soupy).
+- **Slider immediacy**: changing repel/link/distance/center mid-simulation
+  changes node motion on the next tick, with bounded max velocity (no
+  explosion frame) and re-settle within band. This is Obsidian's signature
+  behavior — force sliders feel like a live material, not a restart.
+- **Frame-rate independence**: identical scenario at simulated 30fps and
+  120fps tick cadence produces the same settled layout (fixed physics
+  timestep with accumulator) — feel must not depend on the user's monitor.
+
+### 2. Capture the Obsidian reference once
+
+Build an Obsidian vault from the 1k fixture (script: one note per node, one
+wikilink per edge — an A0 deliverable). Screen-record Obsidian's graph for
+the standard scenarios below, and extract the target bands from the
+recording (settle time by counting frames to visual rest; drag-lag
+qualitatively from frame strips). Commit the recordings and the derived
+numbers with the fixture. This makes "like Obsidian" a measured reference,
+not a vibe — and the agent can re-consult the frame strips at any time.
+
+### 3. The feel harness (agent-runnable, deterministic)
+
+Two layers, both driven by the same **scripted scenario format** (JSON:
+initial fixture + timed inputs — `at t=120 ticks, pointerdown node 42, move
+along path P over 60 ticks, release; at t=400, set repel to 2×`):
+
+- **Headless layer** (unit-test speed): runs scenarios against the engine
+  alone, records position/velocity time-series, computes every metric in §1,
+  and asserts against the committed bands. This is the inner tuning loop —
+  milliseconds per run, runs in CI, no GPU needed.
+- **Visual layer** (harness): replays the same scenarios in the real webview
+  via Playwright with synthesized pointer events, capturing a screenshot
+  every N frames. Output is a **motion strip** (filmstrip PNG of 12–20
+  frames laid side by side) plus an encoded GIF/video per scenario. The
+  agent reads motion strips directly — motion is legible as differences
+  between adjacent frames (trail length ∝ speed, ghosting = jitter,
+  overshoot visible as direction reversal across frames). Golden strips are
+  committed; regressions show up as strip diffs a human can also eyeball in
+  the PR.
+
+Standard scenarios (minimum set): cold load → settle; drag-leaf-and-release;
+drag-hub-and-release; rapid drag shake; each force slider swept mid-sim;
+filter swap (half the nodes appear/disappear); pin two nodes and drag the
+graph between them; 10k version of load → settle.
+
+### 4. The tuning loop protocol
+
+All engine parameters live in one typed config object (no magic constants in
+force code). Tuning is a sweep, not guesswork: the harness accepts a
+parameter grid (`repel × linkStrength × damping …`), runs the headless layer
+on every combination, and emits a ranked table of metric results. The agent's
+loop is: sweep → pick candidates inside all bands → generate motion strips
+for the top 3 → compare against the Obsidian reference strips → commit the
+chosen config with its metric report. Every tuning PR includes the before/
+after strips and the metric table — the human reviews pictures and numbers,
+not adjectives.
+
+### 5. Human feel gates (the subjective residue)
+
+Metrics get a candidate into range; a human decides it feels right. At the
+end of A3 and again at A5 default-on, the owner runs a structured session:
+
+- side-by-side windows (old renderer / new / Obsidian on the mirrored
+  vault), same fixture, unlabeled where possible;
+- a fixed script of actions (the standard scenarios, performed by hand);
+- a rubric scored 1–5 per property: drag elasticity, settle calm, slider
+  liveliness, anchoredness, "would I ship this";
+- any score ≤ 3 converts into a new or tightened metric band (the complaint
+  must be translated into a number before tuning resumes — this is how
+  subjective feedback compounds instead of looping).
+
+The A3 "blind feel check" checkpoint is this session; it passes when every
+rubric line scores ≥ 4.
 
 ## Edge Cases And Failure Modes (design for these; don't discover them)
 
