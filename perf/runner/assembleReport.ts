@@ -2,6 +2,7 @@ import {
   perfReportSchema,
   type PerfReport,
 } from '../report';
+import { median } from '../baselines/statistics';
 import type {
   LaunchPerfScenario,
   PerfSmokeResult,
@@ -120,6 +121,28 @@ function getResultMetrics(result: PerfSmokeResult): readonly ReportMetric[] {
   return result.metrics as readonly ReportMetric[];
 }
 
+function validateMeasuredOperationIds(
+  scenario: LaunchPerfScenario,
+  operationIds: readonly string[],
+): void {
+  if (operationIds.length === 0) {
+    throw new Error(`Scenario ${scenario} has no measured operation-ID metrics`);
+  }
+  if (scenario === 'batch-100') {
+    if (operationIds.length !== 3) {
+      throw new Error(
+        `Scenario batch-100 requires exactly 3 measured operation IDs; found ${operationIds.length}`,
+      );
+    }
+    return;
+  }
+  if (operationIds.length > 1) {
+    throw new Error(
+      `Scenario ${scenario} has multiple measured operation IDs: ${operationIds.join(', ')}`,
+    );
+  }
+}
+
 function selectMeasuredMetrics(result: PerfSmokeResult): readonly ReportMetric[] {
   const metrics = getResultMetrics(result);
   if (!operationScenarios.has(result.scenario)) return metrics;
@@ -127,19 +150,14 @@ function selectMeasuredMetrics(result: PerfSmokeResult): readonly ReportMetric[]
   const operationIds = [...new Set(
     metrics.flatMap(metric => metric.operationId ? [metric.operationId] : []),
   )].sort();
+  validateMeasuredOperationIds(result.scenario, operationIds);
 
-  if (operationIds.length === 0) {
-    throw new Error(
-      `Scenario ${result.scenario} has no measured operation-ID metrics`,
-    );
-  }
-  if (operationIds.length > 1) {
-    throw new Error(
-      `Scenario ${result.scenario} has multiple measured operation IDs: ${operationIds.join(', ')}`,
-    );
-  }
-
-  return metrics.filter(metric => metric.operationId === operationIds[0]);
+  const measuredOperationIds = result.scenario === 'batch-100'
+    ? new Set(operationIds)
+    : new Set(operationIds.slice(0, 1));
+  return metrics.filter(metric =>
+    metric.operationId !== undefined
+    && measuredOperationIds.has(metric.operationId));
 }
 
 function collectScenarioMetrics(results: ScenarioResults): ScenarioMetrics {
@@ -187,6 +205,40 @@ function maxScenarioMetric(
   return Math.max(...values);
 }
 
+function medianBatchOperationMaximum(
+  metrics: ScenarioMetrics,
+  metricName: string,
+): number {
+  const batchMetrics = metricsForScenario(metrics, 'batch-100');
+  const operationIds = [...new Set(
+    batchMetrics.flatMap(metric => metric.operationId ? [metric.operationId] : []),
+  )].sort();
+  const maxima = operationIds.map((operationId) => {
+    const values = batchMetrics
+      .filter(metric =>
+        metric.operationId === operationId
+        && metric.metric === metricName)
+      .map(metric => metric.value);
+    if (values.length === 0) {
+      throw new Error(
+        `Expected at least one ${metricName} metric for batch-100 operation ${operationId}; found 0`,
+      );
+    }
+    return Math.max(...values);
+  });
+  return median(maxima);
+}
+
+function reduceOperationScenarioMetric(
+  metrics: ScenarioMetrics,
+  scenario: LaunchPerfScenario,
+  metricName: string,
+): number {
+  return scenario === 'batch-100'
+    ? medianBatchOperationMaximum(metrics, metricName)
+    : maxScenarioMetric(metrics, scenario, metricName);
+}
+
 function allMetrics(metrics: ScenarioMetrics): ReportMetric[] {
   return scriptedPerfScenarios.flatMap(
     scenario => [...metricsForScenario(metrics, scenario)],
@@ -228,29 +280,110 @@ function maxMetric(
   return Math.max(...values);
 }
 
+type ScopeToggleDirection = 'disabled' | 'enabled';
+
+interface ScopeToggleSamples {
+  disabled: ScopeToggleSample[];
+  enabled: ScopeToggleSample[];
+}
+
+interface ScopeToggleSample {
+  operationId: string;
+  ordinal: number;
+  value: number;
+}
+
+function parseScopeToggleDimension(dimension: string): {
+  direction: ScopeToggleDirection;
+  row: string;
+} {
+  for (const direction of ['disabled', 'enabled'] as const) {
+    const suffix = `:${direction}`;
+    if (dimension.endsWith(suffix) && dimension.length > suffix.length) {
+      return { direction, row: dimension.slice(0, -suffix.length) };
+    }
+  }
+  throw new Error(
+    `scopeToggleMs dimension must end with :enabled or :disabled: ${dimension}`,
+  );
+}
+
+function scopeOperationOrdinal(
+  row: string,
+  operationId: string | undefined,
+): number {
+  if (!operationId) {
+    throw new Error(`scopeToggleMs row ${row} requires an operation ID`);
+  }
+  const ordinal = Number(operationId.slice(operationId.lastIndexOf(':') + 1));
+  if (!Number.isSafeInteger(ordinal) || ordinal < 0) {
+    throw new Error(`scopeToggleMs row ${row} has an invalid operation ID: ${operationId}`);
+  }
+  return ordinal;
+}
+
+function orderedScopeDirectionSamples(
+  row: string,
+  direction: ScopeToggleDirection,
+  samples: readonly ScopeToggleSample[],
+): ScopeToggleSample[] {
+  if (samples.length !== 3) {
+    throw new Error(
+      `scopeToggleMs row ${row} requires exactly 3 ${direction} measurements; found ${samples.length}`,
+    );
+  }
+  return [...samples].sort((left, right) => left.ordinal - right.ordinal);
+}
+
+function scopeRepetitionMedian(
+  row: string,
+  samples: ScopeToggleSamples,
+): number {
+  const enabled = orderedScopeDirectionSamples(row, 'enabled', samples.enabled);
+  const disabled = orderedScopeDirectionSamples(row, 'disabled', samples.disabled);
+  const operationIds = new Set([...enabled, ...disabled].map(sample => sample.operationId));
+  if (operationIds.size !== 6) {
+    throw new Error(`scopeToggleMs row ${row} requires 6 distinct operation IDs`);
+  }
+
+  return median(enabled.map((sample, index) => {
+    const paired = disabled[index];
+    if (Math.abs(sample.ordinal - paired.ordinal) !== 1) {
+      throw new Error(`scopeToggleMs row ${row} measurements are not paired repetitions`);
+    }
+    return Math.max(sample.value, paired.value);
+  }));
+}
+
 function collectScopeMetrics(metrics: ScenarioMetrics): Record<string, number> {
   const measurements = metricsForScenario(metrics, 'scope-toggle')
     .filter(metric => metric.metric === 'scopeToggleMs');
   requireValues(measurements.map(metric => metric.value), 'scopeToggleMs');
 
-  const byDimension = new Map<string, number>();
+  const byRow = new Map<string, ScopeToggleSamples>();
   for (const measurement of measurements) {
     if (!measurement.dimension) {
       throw new Error(
         'scopeToggleMs metrics for scope-toggle require a row dimension',
       );
     }
-    const current = byDimension.get(measurement.dimension);
-    byDimension.set(
-      measurement.dimension,
-      current === undefined
-        ? measurement.value
-        : Math.max(current, measurement.value),
-    );
+    const { direction, row } = parseScopeToggleDimension(measurement.dimension);
+    const samples = byRow.get(row) ?? { disabled: [], enabled: [] };
+    samples[direction].push({
+      operationId: measurement.operationId ?? '',
+      ordinal: scopeOperationOrdinal(row, measurement.operationId),
+      value: measurement.value,
+    });
+    byRow.set(row, samples);
   }
 
   return Object.fromEntries(
-    [...byDimension.entries()].sort(([left], [right]) => left.localeCompare(right)),
+    [...byRow.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([row, samples]) => [
+        row,
+        scopeRepetitionMedian(row, samples),
+      ]),
   );
 }
 
@@ -330,14 +463,22 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       incrementalRefreshMs: Object.fromEntries(
         Object.entries(operationMetricScenarios).map(([reportKey, scenario]) => [
           reportKey,
-          maxScenarioMetric(measuredByScenario, scenario, 'incrementalRefreshMs'),
+          reduceOperationScenarioMetric(
+            measuredByScenario,
+            scenario,
+            'incrementalRefreshMs',
+          ),
         ]),
       ),
       payloadBytes: maxMetric(measured, 'payloadBytes'),
       watcherToGraphMs: Object.fromEntries(
         Object.entries(operationMetricScenarios).map(([reportKey, scenario]) => [
           reportKey,
-          maxScenarioMetric(measuredByScenario, scenario, 'watcherToGraphMs'),
+          reduceOperationScenarioMetric(
+            measuredByScenario,
+            scenario,
+            'watcherToGraphMs',
+          ),
         ]),
       ),
       fileOpRoundtripMs,

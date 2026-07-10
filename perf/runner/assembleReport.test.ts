@@ -61,13 +61,36 @@ function result(
   };
 }
 
+function scopeToggleMetrics(metrics: SmokeMetric[]): SmokeMetric[] {
+  return metrics.map((entry, ordinal) => ({
+    ...entry,
+    operationId: `run-scope-toggle:scope-toggle:small:${ordinal}`,
+  }));
+}
+
 function operationResult(
-  scenario: 'single-save' | 'rename' | 'create' | 'delete' | 'batch-100',
+  scenario: 'single-save' | 'rename' | 'create' | 'delete',
   metrics: SmokeMetric[],
 ): PerfSmokeResult {
   const operationId = `run-${scenario}:${scenario}:small:0`;
   return result(scenario, [
     ...metrics.map(entry => ({ ...entry, operationId })),
+    metric('incrementalRefreshMs', 999, 'cleanup'),
+    metric('watcherToGraphMs', 999, 'cleanup'),
+    metric('payloadBytes', 99_999, 'cleanup'),
+    metric('layoutResets', 100, 'cleanup'),
+  ]);
+}
+
+function batchOperationResult(
+  metrics: SmokeMetric[],
+  operationCount = 3,
+): PerfSmokeResult {
+  return result('batch-100', [
+    ...Array.from({ length: operationCount }, (_value, ordinal) => {
+      const operationId = `run-batch-100:batch-100:small:${ordinal}`;
+      return metrics.map(entry => ({ ...entry, operationId }));
+    }).flat(),
     metric('incrementalRefreshMs', 999, 'cleanup'),
     metric('watcherToGraphMs', 999, 'cleanup'),
     metric('payloadBytes', 99_999, 'cleanup'),
@@ -118,16 +141,25 @@ function createResults(): PerfSmokeResult[] {
       metric('watcherToGraphMs', 41),
       metric('fileOpRoundtripMs', 45),
     ]),
-    operationResult('batch-100', [
+    batchOperationResult([
       metric('incrementalRefreshMs', 50),
       metric('watcherToGraphMs', 51),
     ]),
     result('interaction-burst', [metric('settleTimeMs', 280)]),
-    result('scope-toggle', [
-      metric('scopeToggleMs', 8, 'files'),
-      metric('scopeToggleMs', 9, 'files'),
-      metric('scopeToggleMs', 12, 'symbols'),
-    ]),
+    result('scope-toggle', scopeToggleMetrics([
+      metric('scopeToggleMs', 8, 'files:enabled'),
+      metric('scopeToggleMs', 4, 'files:disabled'),
+      metric('scopeToggleMs', 9, 'files:enabled'),
+      metric('scopeToggleMs', 5, 'files:disabled'),
+      metric('scopeToggleMs', 10, 'files:enabled'),
+      metric('scopeToggleMs', 6, 'files:disabled'),
+      metric('scopeToggleMs', 10, 'symbols:enabled'),
+      metric('scopeToggleMs', 7, 'symbols:disabled'),
+      metric('scopeToggleMs', 12, 'symbols:enabled'),
+      metric('scopeToggleMs', 8, 'symbols:disabled'),
+      metric('scopeToggleMs', 14, 'symbols:enabled'),
+      metric('scopeToggleMs', 9, 'symbols:disabled'),
+    ])),
     result('idle-watch', [
       metric('simTicksAfterSettle', 0),
       metric('simTicksAfterSettle', 2),
@@ -236,7 +268,7 @@ describe('performance report assembly', () => {
     expect(assemblePerfReport(second)).toEqual(assemblePerfReport(first));
   });
 
-  it('uses the slowest correlated refresh cycle for each operation scenario', () => {
+  it('uses the slowest correlated refresh cycle for each single-operation scenario', () => {
     const input = createInput();
     const rename = input.results.find(result => result.scenario === 'rename')!;
     const create = input.results.find(result => result.scenario === 'create')!;
@@ -267,6 +299,122 @@ describe('performance report assembly', () => {
       create: 44,
       rename: 33,
     });
+  });
+
+  it('uses the median operation maximum for batch refresh metrics', () => {
+    const input = createInput();
+    const batch = input.results.find(result => result.scenario === 'batch-100')!;
+    const correlated = (
+      operationOrdinal: number,
+      incrementalRefreshMs: readonly number[],
+      watcherToGraphMs: readonly number[],
+    ): SmokeMetric[] => {
+      const operationId = `run-batch-100:batch-100:small:${operationOrdinal}`;
+      return [
+        ...incrementalRefreshMs.map(value => ({
+          ...metric('incrementalRefreshMs', value),
+          operationId,
+        })),
+        ...watcherToGraphMs.map(value => ({
+          ...metric('watcherToGraphMs', value),
+          operationId,
+        })),
+      ];
+    };
+    batch.metrics = [
+      ...correlated(0, [40, 100], [41, 110]),
+      ...correlated(1, [50, 60], [51, 70]),
+      ...correlated(2, [30, 80], [31, 90]),
+      metric('incrementalRefreshMs', 999, 'restoration'),
+      metric('watcherToGraphMs', 999, 'restoration'),
+    ];
+
+    const report = assemblePerfReport(input);
+
+    expect(report.metrics.incrementalRefreshMs.batch100).toBe(80);
+    expect(report.metrics.watcherToGraphMs.batch100).toBe(90);
+  });
+
+  it.each([1, 4])(
+    'requires exactly three measured batch operations instead of %i',
+    (operationCount) => {
+      const input = createInput();
+      const batch = input.results.find(result => result.scenario === 'batch-100')!;
+      batch.metrics = batchOperationResult([
+        metric('incrementalRefreshMs', 50),
+        metric('watcherToGraphMs', 51),
+      ], operationCount).metrics;
+
+      expect(() => assemblePerfReport(input)).toThrow(
+        `Scenario batch-100 requires exactly 3 measured operation IDs; found ${operationCount}`,
+      );
+    },
+  );
+
+  it('uses the slower directional median for each scope row', () => {
+    const input = createInput();
+    const scope = input.results.find(result => result.scenario === 'scope-toggle')!;
+    scope.metrics = scopeToggleMetrics([
+      metric('scopeToggleMs', 100, 'node:folder:enabled'),
+      metric('scopeToggleMs', 3, 'node:folder:disabled'),
+      metric('scopeToggleMs', 1, 'node:folder:enabled'),
+      metric('scopeToggleMs', 7, 'node:folder:disabled'),
+      metric('scopeToggleMs', 9, 'node:folder:enabled'),
+      metric('scopeToggleMs', 5, 'node:folder:disabled'),
+    ]);
+
+    const report = assemblePerfReport(input);
+
+    expect(report.metrics.scopeToggleMs).toEqual({ 'node:folder': 9 });
+  });
+
+  it('uses the median slower direction from each paired scope repetition', () => {
+    const input = createInput();
+    const scope = input.results.find(result => result.scenario === 'scope-toggle')!;
+    scope.metrics = scopeToggleMetrics([
+      metric('scopeToggleMs', 200, 'node:folder:enabled'),
+      metric('scopeToggleMs', 130, 'node:folder:disabled'),
+      metric('scopeToggleMs', 130, 'node:folder:enabled'),
+      metric('scopeToggleMs', 200, 'node:folder:disabled'),
+      metric('scopeToggleMs', 130, 'node:folder:enabled'),
+      metric('scopeToggleMs', 130, 'node:folder:disabled'),
+    ]);
+
+    const report = assemblePerfReport(input);
+
+    expect(report.metrics.scopeToggleMs).toEqual({ 'node:folder': 200 });
+  });
+
+  it('rejects a scope row without measurements in both directions', () => {
+    const input = createInput();
+    const scope = input.results.find(result => result.scenario === 'scope-toggle')!;
+    scope.metrics = scopeToggleMetrics([
+      metric('scopeToggleMs', 1, 'node:folder:enabled'),
+      metric('scopeToggleMs', 2, 'node:folder:enabled'),
+      metric('scopeToggleMs', 3, 'node:folder:enabled'),
+    ]);
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'scopeToggleMs row node:folder requires exactly 3 disabled measurements; found 0',
+    );
+  });
+
+  it('rejects extra scope-direction measurements', () => {
+    const input = createInput();
+    const scope = input.results.find(result => result.scenario === 'scope-toggle')!;
+    scope.metrics = scopeToggleMetrics([
+      metric('scopeToggleMs', 1, 'node:folder:enabled'),
+      metric('scopeToggleMs', 2, 'node:folder:enabled'),
+      metric('scopeToggleMs', 3, 'node:folder:enabled'),
+      metric('scopeToggleMs', 4, 'node:folder:enabled'),
+      metric('scopeToggleMs', 5, 'node:folder:disabled'),
+      metric('scopeToggleMs', 6, 'node:folder:disabled'),
+      metric('scopeToggleMs', 7, 'node:folder:disabled'),
+    ]);
+
+    expect(() => assemblePerfReport(input)).toThrow(
+      'scopeToggleMs row node:folder requires exactly 3 enabled measurements; found 4',
+    );
   });
 
   it('uses normal result metrics before explicit webview and Explorer fallbacks', () => {

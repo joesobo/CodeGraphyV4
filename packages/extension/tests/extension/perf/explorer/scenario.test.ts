@@ -6,39 +6,59 @@ import {
 } from '../../../../src/extension/perf/explorer/scenario';
 
 const workspaceFolderUri = { fsPath: '/fixture' } as vscode.Uri;
+const codeGraphyRevealSamples = Array.from(
+  { length: 101 },
+  (_value, index) => 101 - index,
+);
+const explorerRevealSamples = Array.from(
+  { length: 101 },
+  (_value, index) => index + 1,
+);
+const mutationSamples = {
+  rename: Array.from({ length: 51 }, (_value, index) => 51 - index),
+  create: Array.from({ length: 51 }, (_value, index) => 151 - index),
+  delete: Array.from({ length: 51 }, (_value, index) => 251 - index),
+};
 
 function setupDependencies() {
   const order: string[] = [];
+  let codeGraphyRevealIndex = 0;
+  let explorerRevealIndex = 0;
+  let mutationIndex = 0;
   const dependencies = {
     measureCodeGraphyRevealComparison: vi.fn(async () => {
       order.push('codegraphy-reveal');
-      return 7;
+      return codeGraphyRevealSamples[codeGraphyRevealIndex++];
     }),
     measureExplorerRevealComparison: vi.fn(async () => {
       order.push('explorer-reveal');
       return {
         metric: 'explorerRevealMs' as const,
         observation: "commands.executeCommand('revealInExplorer')" as const,
-        value: 5,
+        value: explorerRevealSamples[explorerRevealIndex++],
       };
     }),
     runExplorerMutationComparison: vi.fn(async (input: { scenario: string }) => {
       order.push(`explorer-${input.scenario}`);
+      const samples = mutationSamples[
+        input.scenario as keyof typeof mutationSamples
+      ];
+      const value = samples[mutationIndex++];
       const byScenario = {
         rename: {
           metric: 'explorerRenameMs' as const,
           observation: 'workspace.onDidRenameFiles' as const,
-          value: 11,
+          value,
         },
         create: {
           metric: 'explorerCreateMs' as const,
           observation: 'workspace.onDidCreateFiles' as const,
-          value: 12,
+          value,
         },
         delete: {
           metric: 'explorerDeleteMs' as const,
           observation: 'workspace.onDidDeleteFiles' as const,
-          value: 13,
+          value,
         },
       };
       return byScenario[input.scenario as keyof typeof byScenario];
@@ -47,6 +67,7 @@ function setupDependencies() {
       joinPath: vi.fn((_workspace: vscode.Uri, path: string) => ({
         fsPath: `/fixture/${path}`,
       }) as vscode.Uri),
+      revealInExplorer: vi.fn(async () => undefined),
       showExplorer: vi.fn(async () => { order.push('show-explorer'); }),
       waitForWorkbenchDispatchTurn: vi.fn(async () => { order.push('dispatch-turn'); }),
     },
@@ -67,16 +88,20 @@ describe('extension/perf/explorer/scenario', () => {
       waitForRefreshIdle,
       workspaceFolderUri,
     }, dependencies)).resolves.toEqual({
-      codeGraphyRevealMs: 7,
-      explorer: { explorerRenameMs: 11, explorerRevealMs: 5 },
+      codeGraphyRevealMs: 51,
+      explorer: { explorerRenameMs: 26, explorerRevealMs: 51 },
     });
 
     expect(order).toEqual([
       'show-explorer',
       'dispatch-turn',
-      'codegraphy-reveal',
-      'explorer-rename',
-      'explorer-reveal',
+      ...Array.from({ length: 101 }, (_value, index) => index % 2 === 0
+        ? ['codegraphy-reveal', 'explorer-reveal']
+        : ['explorer-reveal', 'codegraphy-reveal']).flat(),
+      ...Array.from({ length: 51 }, () => [
+        'dispatch-turn',
+        'explorer-rename',
+      ]).flat(),
     ]);
     expect(dependencies.measureCodeGraphyRevealComparison).toHaveBeenCalledWith(
       provider,
@@ -108,12 +133,15 @@ describe('extension/perf/explorer/scenario', () => {
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
     }, dependencies)).resolves.toEqual({
-      explorer: { explorerCreateMs: 12 },
+      explorer: { explorerCreateMs: 126 },
     });
     expect(order).toEqual([
       'show-explorer',
       'dispatch-turn',
-      'explorer-create',
+      ...Array.from({ length: 51 }, () => [
+        'dispatch-turn',
+        'explorer-create',
+      ]).flat(),
     ]);
   });
 
@@ -127,12 +155,15 @@ describe('extension/perf/explorer/scenario', () => {
       waitForRefreshIdle: vi.fn(async () => undefined),
       workspaceFolderUri,
     }, dependencies)).resolves.toEqual({
-      explorer: { explorerDeleteMs: 13 },
+      explorer: { explorerDeleteMs: 226 },
     });
     expect(order).toEqual([
       'show-explorer',
       'dispatch-turn',
-      'explorer-delete',
+      ...Array.from({ length: 51 }, () => [
+        'dispatch-turn',
+        'explorer-delete',
+      ]).flat(),
     ]);
   });
 
@@ -161,9 +192,28 @@ describe('extension/perf/explorer/scenario', () => {
     expect(dependencies.runtime.waitForWorkbenchDispatchTurn).toHaveBeenCalledOnce();
     expect(dependencies.runExplorerMutationComparison).not.toHaveBeenCalled();
     finishDispatch?.();
+    vi.mocked(dependencies.runtime.waitForWorkbenchDispatchTurn)
+      .mockResolvedValue(undefined);
     await pending;
 
-    expect(dependencies.runExplorerMutationComparison).toHaveBeenCalledOnce();
+    expect(dependencies.runExplorerMutationComparison).toHaveBeenCalledTimes(51);
+  });
+
+  it('neutralizes Explorer selection before every mutation measurement', async () => {
+    const { dependencies } = setupDependencies();
+
+    await runExplorerScenarioComparison({
+      dimension: 'small',
+      provider: {} as never,
+      scenario: 'delete',
+      waitForRefreshIdle: vi.fn(async () => undefined),
+      workspaceFolderUri,
+    }, dependencies);
+
+    expect(dependencies.runtime.revealInExplorer).toHaveBeenCalledTimes(51);
+    expect(dependencies.runtime.revealInExplorer).toHaveBeenCalledWith({
+      fsPath: '/fixture/src/group-00000/file-000001.ts',
+    });
   });
 
   it('passes self mutation and reveal targets through the same session', async () => {

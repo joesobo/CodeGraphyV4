@@ -8,6 +8,10 @@ import {
 import { measureExplorerRevealComparison } from './reveal';
 import { runExplorerMutationComparison } from './run';
 import {
+  sampleExplorerComparisonMedian,
+  sampleExplorerRevealComparisonMedians,
+} from './sampling';
+import {
   explorerComparisonRuntime,
   type ExplorerComparisonRuntime,
 } from './runtime';
@@ -53,37 +57,50 @@ export async function runExplorerScenarioComparison(
     targets.neutralPath,
   );
 
-  const codeGraphyRevealMs = input.scenario === 'rename'
-      ? await dependencies.measureCodeGraphyRevealComparison(
+  const revealUri = runtime.joinPath(
+    input.workspaceFolderUri,
+    targets.revealPath,
+  );
+  const revealComparison = input.scenario === 'rename'
+    ? await sampleExplorerRevealComparisonMedians(
+      () => dependencies.measureCodeGraphyRevealComparison(
         input.provider,
         targets.revealPath,
         neutralUri,
         runtime,
-      )
+      ),
+      async () => {
+        const measurement = await dependencies.measureExplorerRevealComparison(
+          revealUri,
+          neutralUri,
+          runtime,
+        );
+        return measurement.value;
+      },
+    )
     : undefined;
-  const mutation = await dependencies.runExplorerMutationComparison({
-    dimension: input.dimension,
-    scenario: input.scenario,
-    timeoutMs: input.timeoutMs,
-    waitForRefreshIdle: input.waitForRefreshIdle,
-    workspaceFolderUri: input.workspaceFolderUri,
-  }, runtime);
+  const mutationMs = await sampleExplorerComparisonMedian(async () => {
+    await runtime.revealInExplorer(neutralUri);
+    await runtime.waitForWorkbenchDispatchTurn();
+    const measurement = await dependencies.runExplorerMutationComparison({
+      dimension: input.dimension,
+      scenario: input.scenario,
+      timeoutMs: input.timeoutMs,
+      waitForRefreshIdle: input.waitForRefreshIdle,
+      workspaceFolderUri: input.workspaceFolderUri,
+    }, runtime);
+    return measurement.value;
+  });
 
   if (input.scenario === 'rename') {
-    const revealUri = runtime.joinPath(
-      input.workspaceFolderUri,
-      targets.revealPath,
-    );
-    const reveal = await dependencies.measureExplorerRevealComparison(
-      revealUri,
-      neutralUri,
-      runtime,
-    );
+    if (!revealComparison) {
+      throw new Error('Rename comparison requires paired reveal measurements');
+    }
     return parsePerfScenarioComparison(input.scenario, {
-      codeGraphyRevealMs,
+      codeGraphyRevealMs: revealComparison.codeGraphyRevealMs,
       explorer: {
-        explorerRenameMs: mutation.value,
-        explorerRevealMs: reveal.value,
+        explorerRenameMs: mutationMs,
+        explorerRevealMs: revealComparison.explorerRevealMs,
       },
     });
   }
@@ -92,6 +109,6 @@ export async function runExplorerScenarioComparison(
     ? 'explorerCreateMs'
     : 'explorerDeleteMs';
   return parsePerfScenarioComparison(input.scenario, {
-    explorer: { [metricName]: mutation.value },
+    explorer: { [metricName]: mutationMs },
   });
 }

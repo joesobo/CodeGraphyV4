@@ -10,6 +10,11 @@ import type { PerfScenarioOperationRunner } from './contracts';
 
 export const PERF_BATCH_BASE_BRANCH = 'perf-base';
 export const PERF_BATCH_TARGET_BRANCH = 'perf-batch-100';
+const measuredBranchSequence = [
+  PERF_BATCH_TARGET_BRANCH,
+  PERF_BATCH_BASE_BRANCH,
+  PERF_BATCH_TARGET_BRANCH,
+] as const;
 const workspaceRefreshTimeoutMs = 30_000;
 
 interface BranchHead {
@@ -44,7 +49,7 @@ export interface BatchBranchScenarioDependencies {
 export interface BatchBranchScenarioResult {
   baseBranch: string;
   dimension: string;
-  operationId: string;
+  operationIds: string[];
   restored: true;
   scenario: 'batch-100';
   targetBranch: string;
@@ -146,12 +151,13 @@ export async function runBatchBranchScenario(
   input: RunBatchBranchScenarioInput,
   dependencies: BatchBranchScenarioDependencies = defaultDependencies,
 ): Promise<BatchBranchScenarioResult> {
-  const operation = createPerfOperation({
-    runId: input.runId,
-    scenario: 'batch-100',
-    dimension: input.dimension,
-    ordinal: input.ordinal,
-  });
+  const operations = measuredBranchSequence.map((_branch, index) =>
+    createPerfOperation({
+      runId: input.runId,
+      scenario: 'batch-100',
+      dimension: input.dimension,
+      ordinal: input.ordinal + index,
+    }));
   const originalHead = await readGitHead(
     input.workspaceFolderUri.fsPath,
     (arguments_, workspaceRoot) => dependencies.execGit(arguments_, workspaceRoot),
@@ -165,9 +171,11 @@ export async function runBatchBranchScenario(
       await switchToBranch(PERF_BATCH_BASE_BRANCH, input, dependencies);
     }
 
-    await input.runOperation(operation, async () => {
-      await switchToBranch(PERF_BATCH_TARGET_BRANCH, input, dependencies);
-    });
+    for (const [index, branch] of measuredBranchSequence.entries()) {
+      await input.runOperation(operations[index], async () => {
+        await switchToBranch(branch, input, dependencies);
+      });
+    }
   } finally {
     await restoreGitHead(originalHead, input, dependencies);
   }
@@ -175,7 +183,7 @@ export async function runBatchBranchScenario(
   return {
     baseBranch: PERF_BATCH_BASE_BRANCH,
     dimension: input.dimension,
-    operationId: operation.operationId,
+    operationIds: operations.map(operation => operation.operationId),
     restored: true,
     scenario: 'batch-100',
     targetBranch: PERF_BATCH_TARGET_BRANCH,

@@ -50,18 +50,28 @@ function setup(originalBranch = 'feature/original') {
 }
 
 describe('extension/perf/scenarios/batch', () => {
-  it('switches through deterministic fixture branches inside the correlated operation', async () => {
+  it('measures three alternating fixture branch switches with unique operations', async () => {
     const harness = setup();
+    const expectedBranches = [
+      PERF_BATCH_TARGET_BRANCH,
+      PERF_BATCH_BASE_BRANCH,
+      PERF_BATCH_TARGET_BRANCH,
+    ];
+    let operationIndex = 0;
     const runOperation: PerfScenarioOperationRunner = vi.fn(async (operation, action) => {
-      expect(harness.currentBranch()).toBe(PERF_BATCH_BASE_BRANCH);
+      const expectedOrigin = operationIndex === 1
+        ? PERF_BATCH_TARGET_BRANCH
+        : PERF_BATCH_BASE_BRANCH;
+      expect(harness.currentBranch()).toBe(expectedOrigin);
       expect(operation).toEqual({
-        operationId: 'run-1:batch-100:medium:4',
+        operationId: `run-1:batch-100:medium:${operationIndex + 4}`,
         runId: 'run-1',
         scenario: 'batch-100',
         dimension: 'medium',
       });
       await action();
-      expect(harness.currentBranch()).toBe(PERF_BATCH_TARGET_BRANCH);
+      expect(harness.currentBranch()).toBe(expectedBranches[operationIndex]);
+      operationIndex += 1;
       return { operation: 'complete' };
     });
 
@@ -77,17 +87,28 @@ describe('extension/perf/scenarios/batch', () => {
     expect(result).toEqual({
       baseBranch: PERF_BATCH_BASE_BRANCH,
       dimension: 'medium',
-      operationId: 'run-1:batch-100:medium:4',
+      operationIds: [
+        'run-1:batch-100:medium:4',
+        'run-1:batch-100:medium:5',
+        'run-1:batch-100:medium:6',
+      ],
       restored: true,
       scenario: 'batch-100',
       targetBranch: PERF_BATCH_TARGET_BRANCH,
     });
+    expect(runOperation).toHaveBeenCalledTimes(3);
     expect(harness.gitCalls.filter(arguments_ => arguments_[0] === 'switch')).toEqual([
+      ['switch', '--quiet', PERF_BATCH_BASE_BRANCH],
+      ['switch', '--quiet', PERF_BATCH_TARGET_BRANCH],
       ['switch', '--quiet', PERF_BATCH_BASE_BRANCH],
       ['switch', '--quiet', PERF_BATCH_TARGET_BRANCH],
       ['switch', '--quiet', 'feature/original'],
     ]);
     expect(harness.refreshOrdering).toEqual([
+      'arm',
+      `switch:${PERF_BATCH_BASE_BRANCH}`,
+      'arm',
+      `switch:${PERF_BATCH_TARGET_BRANCH}`,
       'arm',
       `switch:${PERF_BATCH_BASE_BRANCH}`,
       'arm',
