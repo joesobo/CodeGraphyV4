@@ -65,6 +65,7 @@ export interface GraphLayoutEngine {
   reheat(alpha?: number): void;
   pause(): void;
   resume(): void;
+  dispose?(): void;
 }
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));

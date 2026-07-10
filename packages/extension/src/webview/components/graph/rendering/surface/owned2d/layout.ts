@@ -4,9 +4,13 @@ import {
 } from '@codegraphy-dev/graph-engine';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
+import { createWorkerHostedGraphLayoutEngine } from './worker/host';
+
+const WORKER_LAYOUT_NODE_THRESHOLD = 10_000;
 
 export interface OwnedGraphLayout {
   engine: GraphLayoutEngine;
+  kind: 'main-thread' | 'worker';
   links: FGLink[];
   nodes: FGNode[];
 }
@@ -36,6 +40,7 @@ export function createOwnedGraphLayout(
   nodes: FGNode[],
   links: FGLink[],
   settings: IPhysicsSettings,
+  onWorkerUpdate: () => void = () => undefined,
 ): OwnedGraphLayout {
   const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]));
   const initialX = new Float32Array(nodes.length);
@@ -66,18 +71,22 @@ export function createOwnedGraphLayout(
     edgeTargets.push(targetIndex);
   }
 
-  const engine = createGraphLayoutEngine({
+  const input = {
     nodeIds: nodes.map((node) => node.id),
     initialX,
     initialY,
     radii,
     edgeSources: Uint32Array.from(edgeSources),
     edgeTargets: Uint32Array.from(edgeTargets),
-  });
+  };
+  const useWorker = nodes.length >= WORKER_LAYOUT_NODE_THRESHOLD && typeof Worker !== 'undefined';
+  const engine = useWorker
+    ? createWorkerHostedGraphLayoutEngine(input, onWorkerUpdate)
+    : createGraphLayoutEngine(input);
   applyOwnedPhysicsSettings(engine, settings);
   engine.reheat();
 
-  return { engine, links: resolvedLinks, nodes };
+  return { engine, kind: useWorker ? 'worker' : 'main-thread', links: resolvedLinks, nodes };
 }
 
 export function syncOwnedLayoutNodes(layout: OwnedGraphLayout): void {

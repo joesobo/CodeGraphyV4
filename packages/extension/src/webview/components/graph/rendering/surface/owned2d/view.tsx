@@ -63,6 +63,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const engineStopNotifiedRef = useRef(false);
+  const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
   const [rendererKind, setRendererKind] = useState<'canvas2d' | 'webgpu'>('canvas2d');
   propsRef.current = props;
 
@@ -289,8 +290,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       nodes,
       links,
       props.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
+      () => requestFrameRef.current(),
     );
     layoutRef.current = layout;
+    setLayoutKind(layout.kind);
     syncOwnedLayoutNodes(layout);
     const canvas = canvasRef.current;
     if (canvas) {
@@ -300,6 +303,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     if (props.physicsPaused) layout.engine.pause();
     engineStopNotifiedRef.current = false;
     requestFrameRef.current();
+    return () => layout.engine.dispose?.();
   }, [props.sharedProps.graphData]);
 
   useEffect(() => {
@@ -458,6 +462,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   return (
     <div
       className="absolute inset-0"
+      data-codegraphy-layout={layoutKind}
       data-codegraphy-renderer={rendererKind}
       style={{ backgroundColor: props.backgroundColor }}
     >
