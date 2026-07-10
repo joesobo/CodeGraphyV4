@@ -15,11 +15,7 @@ export function ExampleImage({
           className="absolute inset-0"
           fill
           imageClassName="bg-example-graph-surface object-contain"
-          media={{
-            alt: `${example.name} example Relationship Graph`,
-            src: example.screenshots.light,
-            darkSrc: example.screenshots.dark,
-          }}
+          media={example.screenshots}
           sizes="(min-width: 640px) 560px, 100vw"
         />
       </div>

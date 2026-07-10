@@ -1,3 +1,4 @@
+import type { Media } from '@/components/media-image';
 import { examplesHref } from './links';
 
 export interface ExampleContent {
@@ -7,10 +8,7 @@ export interface ExampleContent {
   category: 'language' | 'plugin';
   iconUrl: string;
   workspace: string;
-  screenshots: {
-    dark: string;
-    light: string;
-  };
+  screenshots: Media;
   summary: string;
   supported: readonly string[];
   plugin?: {
@@ -28,8 +26,9 @@ export const exampleContent = [
     iconUrl: '/icons/typescript.svg',
     workspace: 'examples/example-typescript',
     screenshots: {
-      dark: '/media/examples/dark/typescript.png',
-      light: '/media/examples/light/typescript.png',
+      alt: 'TypeScript example Relationship Graph',
+      src: '/media/examples/light/typescript.png',
+      darkSrc: '/media/examples/dark/typescript.png',
     },
     summary: 'Runnable palette generator with imports, type imports, exports, dynamic imports, and path aliases.',
     supported: ['imports', 'exports', 'aliases', 'symbols'],
@@ -42,8 +41,9 @@ export const exampleContent = [
     iconUrl: '/icons/javascript.svg',
     workspace: 'examples/example-javascript',
     screenshots: {
-      dark: '/media/examples/dark/javascript.png',
-      light: '/media/examples/light/javascript.png',
+      alt: 'JavaScript example Relationship Graph',
+      src: '/media/examples/light/javascript.png',
+      darkSrc: '/media/examples/dark/javascript.png',
     },
     summary: 'Small JavaScript workspace mirroring the TypeScript Relationship Graph story with imports, calls, and inheritance.',
     supported: ['imports', 'calls', 'inheritance', 'symbols'],
@@ -56,8 +56,9 @@ export const exampleContent = [
     iconUrl: '/icons/vue.svg',
     workspace: 'examples/example-vue',
     screenshots: {
-      dark: '/media/examples/dark/vue.png',
-      light: '/media/examples/light/vue.png',
+      alt: 'Vue example Relationship Graph',
+      src: '/media/examples/light/vue.png',
+      darkSrc: '/media/examples/dark/vue.png',
     },
     summary: 'Vue 3 single-file component workspace with script setup, type imports, and async components.',
     supported: ['SFCs', 'components', 'type imports', 'lazy imports'],
@@ -71,8 +72,9 @@ export const exampleContent = [
     iconUrl: '/icons/svelte.svg',
     workspace: 'examples/example-svelte',
     screenshots: {
-      dark: '/media/examples/dark/svelte.png',
-      light: '/media/examples/light/svelte.png',
+      alt: 'Svelte example Relationship Graph',
+      src: '/media/examples/light/svelte.png',
+      darkSrc: '/media/examples/dark/svelte.png',
     },
     summary: 'Svelte component fixture with module scripts, instance scripts, type imports, and lazy modules.',
     supported: ['components', 'module scripts', 'type imports'],
@@ -86,8 +88,9 @@ export const exampleContent = [
     iconUrl: '/icons/godot.svg',
     workspace: 'examples/example-godot',
     screenshots: {
-      dark: '/media/examples/dark/godot.png',
-      light: '/media/examples/light/godot.png',
+      alt: 'Godot example Relationship Graph',
+      src: '/media/examples/light/godot.png',
+      darkSrc: '/media/examples/dark/godot.png',
     },
     summary: 'Runnable Godot project with scenes, resources, autoloads, GDScript inheritance, and class_name symbols.',
     supported: ['scenes', 'resources', 'autoloads', 'GDScript'],
@@ -101,8 +104,9 @@ export const exampleContent = [
     iconUrl: '/icons/unity.svg',
     workspace: 'examples/example-unity',
     screenshots: {
-      dark: '/media/examples/dark/unity.png',
-      light: '/media/examples/light/unity.png',
+      alt: 'Unity example Relationship Graph',
+      src: '/media/examples/light/unity.png',
+      darkSrc: '/media/examples/dark/unity.png',
     },
     summary: 'Unity sample with scenes, prefabs, GameObjects, Components, ScriptableObjects, and C# scripts.',
     supported: ['scenes', 'prefabs', 'components', 'references'],
@@ -116,8 +120,9 @@ export const exampleContent = [
     iconUrl: '/icons/python.svg',
     workspace: 'examples/example-python',
     screenshots: {
-      dark: '/media/examples/dark/python.png',
-      light: '/media/examples/light/python.png',
+      alt: 'Python example Relationship Graph',
+      src: '/media/examples/light/python.png',
+      darkSrc: '/media/examples/dark/python.png',
     },
     summary: 'Import-resolution workspace with config, services, namespace imports, and inheritance.',
     supported: ['imports', 'members', 'inheritance', 'symbols'],
@@ -130,8 +135,9 @@ export const exampleContent = [
     iconUrl: '/icons/csharp.svg',
     workspace: 'examples/example-csharp',
     screenshots: {
-      dark: '/media/examples/dark/csharp.png',
-      light: '/media/examples/light/csharp.png',
+      alt: 'C# example Relationship Graph',
+      src: '/media/examples/light/csharp.png',
+      darkSrc: '/media/examples/dark/csharp.png',
     },
     summary: 'Task dispatch workspace with types, members, variables, inheritance, interfaces, and events.',
     supported: ['types', 'members', 'variables', 'inheritance'],
@@ -144,8 +150,9 @@ export const exampleContent = [
     iconUrl: '/icons/java.svg',
     workspace: 'examples/example-java',
     screenshots: {
-      dark: '/media/examples/dark/java.png',
-      light: '/media/examples/light/java.png',
+      alt: 'Java example Relationship Graph',
+      src: '/media/examples/light/java.png',
+      darkSrc: '/media/examples/dark/java.png',
     },
     summary: 'Compact Java import and inheritance example with classes, interfaces, and method symbols.',
     supported: ['imports', 'classes', 'methods', 'inheritance'],
@@ -158,8 +165,9 @@ export const exampleContent = [
     iconUrl: '/icons/kotlin.svg',
     workspace: 'examples/example-kotlin',
     screenshots: {
-      dark: '/media/examples/dark/kotlin.png',
-      light: '/media/examples/light/kotlin.png',
+      alt: 'Kotlin example Relationship Graph',
+      src: '/media/examples/light/kotlin.png',
+      darkSrc: '/media/examples/dark/kotlin.png',
     },
     summary: 'Gradle/Kotlin project for imports, simple inheritance, and symbol navigation.',
     supported: ['imports', 'classes', 'interfaces', 'symbols'],
@@ -172,8 +180,9 @@ export const exampleContent = [
     iconUrl: '/icons/scala.svg',
     workspace: 'examples/example-scala',
     screenshots: {
-      dark: '/media/examples/dark/scala.png',
-      light: '/media/examples/light/scala.png',
+      alt: 'Scala example Relationship Graph',
+      src: '/media/examples/light/scala.png',
+      darkSrc: '/media/examples/dark/scala.png',
     },
     summary: 'Scala app/service/repository/view workspace with import, inheritance, class, object, and trait coverage.',
     supported: ['imports', 'traits', 'objects', 'inheritance'],
@@ -186,8 +195,9 @@ export const exampleContent = [
     iconUrl: '/icons/php.svg',
     workspace: 'examples/example-php',
     screenshots: {
-      dark: '/media/examples/dark/php.png',
-      light: '/media/examples/light/php.png',
+      alt: 'PHP example Relationship Graph',
+      src: '/media/examples/light/php.png',
+      darkSrc: '/media/examples/dark/php.png',
     },
     summary: 'Namespace/use and inheritance fixture with class and function symbols.',
     supported: ['namespaces', 'use', 'classes', 'inheritance'],
@@ -200,8 +210,9 @@ export const exampleContent = [
     iconUrl: '/icons/ruby.svg',
     workspace: 'examples/example-ruby',
     screenshots: {
-      dark: '/media/examples/dark/ruby.png',
-      light: '/media/examples/light/ruby.png',
+      alt: 'Ruby example Relationship Graph',
+      src: '/media/examples/light/ruby.png',
+      darkSrc: '/media/examples/dark/ruby.png',
     },
     summary: 'Require-relative and inheritance fixture with module, class, and method symbols.',
     supported: ['requires', 'classes', 'methods', 'inheritance'],
@@ -214,8 +225,9 @@ export const exampleContent = [
     iconUrl: '/icons/swift.svg',
     workspace: 'examples/example-swift',
     screenshots: {
-      dark: '/media/examples/dark/swift.png',
-      light: '/media/examples/light/swift.png',
+      alt: 'Swift example Relationship Graph',
+      src: '/media/examples/light/swift.png',
+      darkSrc: '/media/examples/dark/swift.png',
     },
     summary: 'Swift Package module import example with class, protocol, and function symbols.',
     supported: ['modules', 'classes', 'protocols', 'symbols'],
@@ -228,8 +240,9 @@ export const exampleContent = [
     iconUrl: '/icons/dart.svg',
     workspace: 'examples/example-dart',
     screenshots: {
-      dark: '/media/examples/dark/dart.png',
-      light: '/media/examples/light/dart.png',
+      alt: 'Dart example Relationship Graph',
+      src: '/media/examples/light/dart.png',
+      darkSrc: '/media/examples/dark/dart.png',
     },
     summary: 'Dart package with relative/package imports, model types, runner contracts, and inheritance.',
     supported: ['imports', 'classes', 'mixins', 'inheritance'],
@@ -242,8 +255,9 @@ export const exampleContent = [
     iconUrl: '/icons/rust.svg',
     workspace: 'examples/example-rust',
     screenshots: {
-      dark: '/media/examples/dark/rust.png',
-      light: '/media/examples/light/rust.png',
+      alt: 'Rust example Relationship Graph',
+      src: '/media/examples/light/rust.png',
+      darkSrc: '/media/examples/dark/rust.png',
     },
     summary: 'Rust module/use example with functions, structs, enums, and traits.',
     supported: ['modules', 'use edges', 'structs', 'traits'],
@@ -256,8 +270,9 @@ export const exampleContent = [
     iconUrl: '/icons/go.svg',
     workspace: 'examples/example-go',
     screenshots: {
-      dark: '/media/examples/dark/go.png',
-      light: '/media/examples/light/go.png',
+      alt: 'Go example Relationship Graph',
+      src: '/media/examples/light/go.png',
+      darkSrc: '/media/examples/dark/go.png',
     },
     summary: 'Go package/import workspace with functions, receiver methods, structs, interfaces, and constants.',
     supported: ['packages', 'imports', 'methods', 'interfaces'],
@@ -270,8 +285,9 @@ export const exampleContent = [
     iconUrl: '/icons/c.svg',
     workspace: 'examples/example-c',
     screenshots: {
-      dark: '/media/examples/dark/c.png',
-      light: '/media/examples/light/c.png',
+      alt: 'C example Relationship Graph',
+      src: '/media/examples/light/c.png',
+      darkSrc: '/media/examples/dark/c.png',
     },
     summary: 'Tiny logger with local includes, file-level calls, and C-native symbol Nodes.',
     supported: ['includes', 'calls', 'structs', 'typedefs'],
@@ -284,8 +300,9 @@ export const exampleContent = [
     iconUrl: '/icons/cpp.svg',
     workspace: 'examples/example-cpp',
     screenshots: {
-      dark: '/media/examples/dark/cpp.png',
-      light: '/media/examples/light/cpp.png',
+      alt: 'C++ example Relationship Graph',
+      src: '/media/examples/light/cpp.png',
+      darkSrc: '/media/examples/dark/cpp.png',
     },
     summary: 'Task queue runner with namespaces, aliases, templates, inheritance, overrides, includes, and calls.',
     supported: ['includes', 'templates', 'inheritance', 'overrides'],
@@ -298,8 +315,9 @@ export const exampleContent = [
     iconUrl: '/icons/objective-c.svg',
     workspace: 'examples/example-objective-c',
     screenshots: {
-      dark: '/media/examples/dark/objective-c.png',
-      light: '/media/examples/light/objective-c.png',
+      alt: 'Objective-C example Relationship Graph',
+      src: '/media/examples/light/objective-c.png',
+      darkSrc: '/media/examples/dark/objective-c.png',
     },
     summary: 'UIKit-style controller/store/view example with imports, inheritance, and protocol conformance.',
     supported: ['imports', 'classes', 'protocols', 'inheritance'],
@@ -312,8 +330,9 @@ export const exampleContent = [
     iconUrl: '/icons/pascal.svg',
     workspace: 'examples/example-pascal',
     screenshots: {
-      dark: '/media/examples/dark/pascal.png',
-      light: '/media/examples/light/pascal.png',
+      alt: 'Pascal example Relationship Graph',
+      src: '/media/examples/light/pascal.png',
+      darkSrc: '/media/examples/dark/pascal.png',
     },
     summary: 'Runner/repository/service/view workspace with unit uses and inheritance.',
     supported: ['units', 'uses', 'classes', 'inheritance'],
@@ -326,8 +345,9 @@ export const exampleContent = [
     iconUrl: '/icons/haskell.svg',
     workspace: 'examples/example-haskell',
     screenshots: {
-      dark: '/media/examples/dark/haskell.png',
-      light: '/media/examples/light/haskell.png',
+      alt: 'Haskell example Relationship Graph',
+      src: '/media/examples/light/haskell.png',
+      darkSrc: '/media/examples/dark/haskell.png',
     },
     summary: 'Cabal/Haskell project showing module imports, data types, typeclasses, and functions.',
     supported: ['modules', 'data types', 'typeclasses', 'functions'],
@@ -340,8 +360,9 @@ export const exampleContent = [
     iconUrl: '/icons/lua.svg',
     workspace: 'examples/example-lua',
     screenshots: {
-      dark: '/media/examples/dark/lua.png',
-      light: '/media/examples/light/lua.png',
+      alt: 'Lua example Relationship Graph',
+      src: '/media/examples/light/lua.png',
+      darkSrc: '/media/examples/dark/lua.png',
     },
     summary: 'Lua require-chain example with table and function symbols.',
     supported: ['requires', 'tables', 'functions'],
@@ -354,8 +375,9 @@ export const exampleContent = [
     iconUrl: '/icons/markdown.svg',
     workspace: 'examples/example-markdown',
     screenshots: {
-      dark: '/media/examples/dark/markdown.png',
-      light: '/media/examples/light/markdown.png',
+      alt: 'Markdown example Relationship Graph',
+      src: '/media/examples/light/markdown.png',
+      darkSrc: '/media/examples/dark/markdown.png',
     },
     summary: 'Obsidian-style notes linking to other notes and source files for mixed docs/code Relationship Graph checks.',
     supported: ['links', 'wikilinks', 'docs/code graph'],
