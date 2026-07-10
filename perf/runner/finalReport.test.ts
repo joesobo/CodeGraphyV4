@@ -27,6 +27,7 @@ describe('final performance report', () => {
 
     await expect(finalizePerfReports({
       baselineDirectory: '/baselines',
+      enforceStability: true,
       noBudget: true,
       outputDirectory: '/results',
       reports: [report],
@@ -54,6 +55,7 @@ describe('final performance report', () => {
 
     await finalizePerfReports({
       baselineDirectory: '/baselines',
+      enforceStability: true,
       noBudget: false,
       outputDirectory: '/results',
       reports: [report],
@@ -69,6 +71,61 @@ describe('final performance report', () => {
       reports: [report],
     });
     expect(writeReport).toHaveBeenCalledWith('/results', report);
+  });
+
+  it('aggregates three-run CI samples without applying local CV limits', async () => {
+    const report = { fixture: 'small' } as PerfReport;
+    const assertStability = vi.fn(() => ({ medianReport: report }));
+    const assertBudget = vi.fn(() => ({ medianReport: report }));
+    const readBaselineDocuments = vi.fn(async () => [{ runnerClass: 'linux-x64' }]);
+
+    await finalizePerfReports({
+      baselineDirectory: '/baselines',
+      enforceStability: false,
+      noBudget: true,
+      outputDirectory: '/results',
+      reports: [report, report, report],
+    }, {
+      assertBudget,
+      assertStability,
+      readBaselineDocuments,
+      writeReport: vi.fn(async () => '/results/small.json'),
+    });
+
+    expect(assertStability).toHaveBeenCalledWith(
+      [report, report, report],
+      { ratio: Number.POSITIVE_INFINITY, timing: Number.POSITIVE_INFINITY },
+    );
+    expect(readBaselineDocuments).not.toHaveBeenCalled();
+    expect(assertBudget).not.toHaveBeenCalled();
+  });
+
+  it('applies only the regression budget to three-run CI samples', async () => {
+    const report = { fixture: 'small' } as PerfReport;
+    const baselineDocuments = [{ runnerClass: 'linux-x64' }];
+    const assertBudget = vi.fn(() => ({ medianReport: report }));
+
+    await finalizePerfReports({
+      baselineDirectory: '/baselines',
+      enforceStability: false,
+      noBudget: false,
+      outputDirectory: '/results',
+      reports: [report, report, report],
+    }, {
+      assertBudget,
+      assertStability: vi.fn(),
+      readBaselineDocuments: vi.fn(async () => baselineDocuments),
+      writeReport: vi.fn(async () => '/results/small.json'),
+    });
+
+    expect(assertBudget).toHaveBeenCalledWith({
+      baselineDocuments,
+      reports: [report, report, report],
+      stabilityLimits: {
+        ratio: Number.POSITIVE_INFINITY,
+        timing: Number.POSITIVE_INFINITY,
+      },
+    });
   });
 
   it('reads baseline JSON documents in deterministic filename order', async () => {

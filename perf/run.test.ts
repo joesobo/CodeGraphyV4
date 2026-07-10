@@ -17,6 +17,7 @@ import type {
 describe('performance CLI', () => {
   it('defaults to one small full run', () => {
     expect(parsePerfCliArguments([])).toEqual({
+      enforceStability: true,
       fixture: 'small',
       noBudget: false,
       runs: 1,
@@ -35,7 +36,9 @@ describe('performance CLI', () => {
       '3',
       '--symbols',
       '--no-budget',
+      '--skip-stability',
     ])).toEqual({
+      enforceStability: false,
       fixture: 'giant',
       noBudget: true,
       runs: 3,
@@ -52,6 +55,7 @@ describe('performance CLI', () => {
 
   it('accepts the isolated self workspace fixture', () => {
     expect(parsePerfCliArguments(['--fixture', 'self'])).toEqual({
+      enforceStability: true,
       fixture: 'self',
       noBudget: false,
       runs: 1,
@@ -79,6 +83,7 @@ describe('performance CLI', () => {
       metrics: [{ metric: 'coldOpenMs' as const, unit: 'ms' as const, value: 20 }],
     }));
     const options: PerfCliOptions = {
+      enforceStability: true,
       fixture: 'medium',
       noBudget: true,
       runs: 2,
@@ -124,6 +129,7 @@ describe('performance CLI', () => {
       report,
     }));
     const results = await runPerf({
+      enforceStability: false,
       fixture: 'medium',
       noBudget: true,
       runs: 2,
@@ -158,6 +164,7 @@ describe('performance CLI', () => {
     ]);
     expect(finalizeReports).toHaveBeenCalledWith({
       baselineDirectory: '/repo/perf/baselines',
+      enforceStability: false,
       noBudget: true,
       outputDirectory: '/repo/perf/results',
       reports: [report, report],
@@ -178,6 +185,7 @@ describe('performance CLI', () => {
     const finalizeReports = vi.fn();
 
     await runPerf({
+      enforceStability: true,
       fixture: 'small',
       noBudget: false,
       runs: 1,

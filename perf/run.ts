@@ -32,6 +32,7 @@ const fixtureNames = [
 ] as const satisfies readonly PerfFixture[];
 
 export interface PerfCliOptions {
+  enforceStability: boolean;
   fixture: PerfFixture;
   noBudget: boolean;
   runs: number;
@@ -76,6 +77,7 @@ function parseRuns(value: string): number {
 
 export function parsePerfCliArguments(arguments_: string[]): PerfCliOptions {
   const options: PerfCliOptions = {
+    enforceStability: true,
     fixture: 'small',
     noBudget: false,
     runs: 1,
@@ -104,6 +106,9 @@ export function parsePerfCliArguments(arguments_: string[]): PerfCliOptions {
         break;
       case '--no-budget':
         options.noBudget = true;
+        break;
+      case '--skip-stability':
+        options.enforceStability = false;
         break;
       default:
         throw new Error(`Unknown performance option: ${argument}`);
@@ -175,6 +180,7 @@ export async function runPerf(
   if (!options.smoke) {
     await finalizeReports({
       baselineDirectory: join(dependencies.repoRoot, 'perf', 'baselines'),
+      enforceStability: options.enforceStability,
       noBudget: options.noBudget,
       outputDirectory: join(dependencies.repoRoot, 'perf', 'results'),
       reports,
