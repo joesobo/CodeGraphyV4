@@ -128,6 +128,17 @@ async function restoreGitHead(
   input: RunBatchBranchScenarioInput,
   dependencies: BatchBranchScenarioDependencies,
 ): Promise<void> {
+  const currentHead = await readGitHead(
+    input.workspaceFolderUri.fsPath,
+    (arguments_, workspaceRoot) => dependencies.execGit(arguments_, workspaceRoot),
+  );
+  if (
+    currentHead.kind === originalHead.kind
+    && currentHead.value === originalHead.value
+  ) {
+    return;
+  }
+
   const arguments_ = originalHead.kind === 'branch'
     ? ['switch', '--quiet', originalHead.value]
     : ['switch', '--quiet', '--detach', originalHead.value];

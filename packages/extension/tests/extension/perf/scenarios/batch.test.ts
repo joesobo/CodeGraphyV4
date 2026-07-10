@@ -143,4 +143,34 @@ describe('extension/perf/scenarios/batch', () => {
     ]);
     expect(harness.currentBranch()).toBe(PERF_BATCH_BASE_BRANCH);
   });
+
+  it('preserves the operation failure when the failed switch already restored HEAD', async () => {
+    const harness = setup(PERF_BATCH_BASE_BRANCH);
+    let operationIndex = 0;
+    const runOperation: PerfScenarioOperationRunner = async (_operation, action) => {
+      const currentOperation = operationIndex;
+      operationIndex += 1;
+      await action();
+      if (currentOperation === 1) {
+        throw new Error('graph acknowledgement failed');
+      }
+      return { operation: 'complete' };
+    };
+
+    await expect(runBatchBranchScenario({
+      dimension: 'self',
+      ordinal: 0,
+      provider: {} as never,
+      runId: 'run-restored-failure',
+      runOperation,
+      workspaceFolderUri: uri('/workspace'),
+    }, harness.dependencies)).rejects.toThrow('graph acknowledgement failed');
+
+    expect(harness.gitCalls.filter(arguments_ => arguments_[0] === 'switch')).toEqual([
+      ['switch', '--quiet', PERF_BATCH_TARGET_BRANCH],
+      ['switch', '--quiet', PERF_BATCH_BASE_BRANCH],
+    ]);
+    expect(harness.armWorkspaceRefreshIdleWait).toHaveBeenCalledTimes(2);
+    expect(harness.currentBranch()).toBe(PERF_BATCH_BASE_BRANCH);
+  });
 });
