@@ -4,6 +4,7 @@ import type { FGLink, FGNode } from '../../model/build';
 
 export const INTERACTIVE_COOLDOWN_TICKS = 60;
 export const TIMELINE_COOLDOWN_TICKS = 50;
+export const PRESETTLE_WARMUP_TICKS = 20;
 export const MAX_INTERACTIVE_PHYSICS_NODES = 50_000;
 export const MAX_INTERACTIVE_PHYSICS_EDGES = 100_000;
 
@@ -76,6 +77,12 @@ export function normalizeGraphDimension(value: number): number | undefined {
 export function buildSharedGraphProps(
   options: BuildSharedGraphPropsOptions,
 ): GraphSurfaceSharedProps {
+  const cooldownTicks = resolveGraphCooldownTicks(
+    options.graphData.nodes.length,
+    options.graphData.links.length,
+    options.timelineActive,
+  );
+
   return {
     graphData: options.graphData as unknown as { nodes: NodeObject[]; links: LinkObject[] },
     width: normalizeGraphDimension(options.containerSize.width),
@@ -103,12 +110,8 @@ export function buildSharedGraphProps(
       : {}),
     d3VelocityDecay: options.damping,
     d3AlphaDecay: 0.0228,
-    warmupTicks: 0,
-    cooldownTicks: resolveGraphCooldownTicks(
-      options.graphData.nodes.length,
-      options.graphData.links.length,
-      options.timelineActive,
-    ),
+    warmupTicks: cooldownTicks === 0 ? 0 : PRESETTLE_WARMUP_TICKS,
+    cooldownTicks,
     nodeId: 'id',
     onNodeHover: (node) => options.onNodeHover(node as FGNode | null),
     dagMode: options.dagMode ?? undefined,

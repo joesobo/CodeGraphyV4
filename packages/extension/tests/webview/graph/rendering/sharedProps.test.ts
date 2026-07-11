@@ -5,6 +5,7 @@ import {
   INTERACTIVE_COOLDOWN_TICKS,
   MAX_INTERACTIVE_PHYSICS_EDGES,
   MAX_INTERACTIVE_PHYSICS_NODES,
+  PRESETTLE_WARMUP_TICKS,
   normalizeGraphDimension,
   resolveGraphCooldownTicks,
   TIMELINE_COOLDOWN_TICKS,
@@ -80,7 +81,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     expect(props.nodeId).toBe('id');
     expect(props.d3VelocityDecay).toBe(0.7);
     expect(props.d3AlphaDecay).toBe(0.0228);
-    expect(props.warmupTicks).toBe(0);
+    expect(props.warmupTicks).toBe(PRESETTLE_WARMUP_TICKS);
     expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
     expect(props.dagMode).toBe('td');
     expect(props.dagLevelDistance).toBe(60);
@@ -140,6 +141,7 @@ describe('graph/rendering/surface/sharedProps', () => {
     }));
 
     expect(props.cooldownTicks).toBe(0);
+    expect(props.warmupTicks).toBe(0);
   });
 
   it('skips synchronous timeline physics above the node budget', () => {
