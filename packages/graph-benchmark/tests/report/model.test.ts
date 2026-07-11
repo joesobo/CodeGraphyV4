@@ -21,7 +21,7 @@ const environment = {
 
 const targetNodeId = 'packages/package-0000/src/file-000000.ts';
 const configuration = {
-  scenarioId: 'synthetic-node-drag-v2' as const,
+  scenarioId: 'synthetic-node-drag-v3' as const,
   pathId: 'centered-node-sine-v1' as const,
   targetNodeId,
   viewport: { width: 1280, height: 720, deviceScaleFactor: 1 },

@@ -11,12 +11,15 @@ describe('resolveGraphBenchmarkDriver', () => {
     expect(resolveGraphBenchmarkDriver('current').renderer).toBe('current');
   });
 
-  it('selects one connected fixture-defined drag target independent of layout', () => {
+  it('selects the last connected fixture node independent of layout', () => {
     const fixture = createSyntheticFixture('1k', 307);
     const target = selectSyntheticDragTarget(fixture);
     const connectedIds = new Set(fixture.graph.edges.flatMap(edge => [edge.from, edge.to]));
+    const expectedTarget = [...fixture.graph.nodes]
+      .reverse()
+      .find(node => connectedIds.has(node.id));
 
-    expect(connectedIds.has(target)).toBe(true);
+    expect(target).toBe(expectedTarget?.id);
     expect(selectSyntheticDragTarget(createSyntheticFixture('1k', 307))).toBe(target);
   });
 
