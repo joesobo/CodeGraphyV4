@@ -70,6 +70,7 @@ export default defineConfig({
     alias: {
       '@codegraphy-dev/core': resolve(__dirname, '../core/src/index.ts'),
       '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
+      '@codegraphy-dev/plugin-material-icons': resolve(__dirname, '../plugin-material-icons/src/plugin.ts'),
       '@': resolve(__dirname, 'src'),
       react: resolve(extensionNodeModules, 'react'),
       'react-dom': resolve(extensionNodeModules, 'react-dom'),

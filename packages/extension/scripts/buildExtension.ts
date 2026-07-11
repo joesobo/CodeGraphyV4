@@ -11,6 +11,12 @@ const outputFilePath = path.resolve(scriptDirectoryPath, '../../../dist/extensio
 const outputDirectoryPath = path.dirname(outputFilePath);
 
 const buildOptions: esbuild.BuildOptions = {
+  alias: {
+    '@codegraphy-dev/plugin-material-icons': path.resolve(
+      scriptDirectoryPath,
+      '../../plugin-material-icons/src/plugin.ts',
+    ),
+  },
   entryPoints: {
     extension: path.resolve(scriptDirectoryPath, '../src/extension/activate.ts'),
     treeSitterColdWorker: path.resolve(

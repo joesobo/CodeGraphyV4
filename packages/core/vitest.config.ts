@@ -28,6 +28,7 @@ export default defineConfig({
     alias: {
       '@codegraphy-dev/plugin-api': resolve(__dirname, '../plugin-api/src/index.ts'),
       '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
+      '@codegraphy-dev/plugin-material-icons': resolve(__dirname, '../plugin-material-icons/src/plugin.ts'),
     },
   },
   test: {

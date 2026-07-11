@@ -21,6 +21,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@codegraphy-dev/plugin-material-icons': resolve(__dirname, '../plugin-material-icons/src/plugin.ts'),
       '@': resolve(__dirname, 'src'),
     },
   },

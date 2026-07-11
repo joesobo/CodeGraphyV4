@@ -8,6 +8,7 @@
       "@codegraphy-dev/core": ["../core/src/index.ts"],
       "@codegraphy-dev/plugin-api": ["../plugin-api/src/index.ts"],
       "@codegraphy-dev/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
+      "@codegraphy-dev/plugin-material-icons": ["../plugin-material-icons/src/plugin.ts"],
       "@/*": ["./src/*"],
       "react-force-graph-2d": ["./tests/types/react-force-graph-2d"],
       "react-force-graph-3d": ["./tests/types/react-force-graph-3d"]
