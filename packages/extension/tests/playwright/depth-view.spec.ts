@@ -12,28 +12,6 @@ interface GraphDebugSnapshot {
   }>;
   zoom: number | null;
 }
-
-async function disableWebgl(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const originalGetContext = HTMLCanvasElement.prototype.getContext;
-
-    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-      configurable: true,
-      value(this: HTMLCanvasElement, contextId: string, options?: unknown) {
-        if (
-          contextId === 'webgl'
-          || contextId === 'webgl2'
-          || contextId === 'experimental-webgl'
-        ) {
-          return null;
-        }
-
-        return originalGetContext.call(this, contextId, options as never);
-      },
-    });
-  });
-}
-
 async function waitForGraphDebugBridge(page: Page): Promise<void> {
   await expect.poll(async () =>
     page.evaluate(() => Boolean(window.__CODEGRAPHY_GRAPH_DEBUG__)),
@@ -76,69 +54,6 @@ async function toggleDepthModeFromSettings(page: Page): Promise<void> {
   await openDisplaySettings(page);
   await page.getByRole('switch', { name: 'Depth Mode' }).click();
 }
-
-async function selectRendererFromSettings(page: Page, renderer: '2D' | '3D'): Promise<void> {
-  await openDisplaySettings(page);
-  await page.getByRole('button', { name: renderer }).click();
-}
-
-async function countVisibleWebglSamples(page: Page): Promise<number> {
-  return page.evaluate(async () => {
-    const canvas = document.querySelector('.graph-container canvas');
-    if (!(canvas instanceof HTMLCanvasElement)) {
-      return 0;
-    }
-
-    return new Promise<number>((resolve) => {
-      requestAnimationFrame(() => {
-        const width = canvas.width;
-        const height = canvas.height;
-        if (width === 0 || height === 0) {
-          resolve(0);
-          return;
-        }
-
-        const snapshotCanvas = document.createElement('canvas');
-        snapshotCanvas.width = width;
-        snapshotCanvas.height = height;
-
-        const context = snapshotCanvas.getContext('2d');
-        if (!context) {
-          resolve(0);
-          return;
-        }
-
-        context.drawImage(canvas, 0, 0, width, height);
-
-        const samplePoints = [
-          [0.25, 0.25],
-          [0.5, 0.25],
-          [0.75, 0.25],
-          [0.25, 0.5],
-          [0.5, 0.5],
-          [0.75, 0.5],
-          [0.25, 0.75],
-          [0.5, 0.75],
-          [0.75, 0.75],
-        ];
-
-        let visibleSamples = 0;
-        for (const [xRatio, yRatio] of samplePoints) {
-          const x = Math.min(width - 1, Math.max(0, Math.floor(width * xRatio)));
-          const y = Math.min(height - 1, Math.max(0, Math.floor(height * yRatio)));
-          const [red, green, blue, alpha] = context.getImageData(x, y, 1, 1).data;
-          const isBackground = alpha === 255 && red === 24 && green === 24 && blue === 27;
-          if (!isBackground) {
-            visibleSamples += 1;
-          }
-        }
-
-        resolve(visibleSamples);
-      });
-    });
-  });
-}
-
 function expectNodesToFit(snapshot: GraphDebugSnapshot): void {
   expect(snapshot.zoom).not.toBeNull();
   const zoom = snapshot.zoom ?? 1;

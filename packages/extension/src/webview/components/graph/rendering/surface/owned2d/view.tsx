@@ -287,12 +287,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   }, [props.fg2dRef]);
 
   useEffect(() => {
-    const nodes = props.sharedProps.graphData.nodes as FGNode[];
-    const links = props.sharedProps.graphData.links as OwnedGraphLayout['links'];
+    const currentProps = propsRef.current;
+    const nodes = currentProps.sharedProps.graphData.nodes;
+    const links = currentProps.sharedProps.graphData.links;
     const layout = createOwnedGraphLayout(
       nodes,
       links,
-      props.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
+      currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
       () => {
         positionVersionRef.current += 1;
         requestFrameRef.current();
@@ -307,7 +308,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       const size = canvasSize(canvas);
       fitOwnedGraphCamera(cameraRef.current, nodes, size.width, size.height);
     }
-    if (props.physicsPaused) layout.engine.pause();
+    if (currentProps.physicsPaused) layout.engine.pause();
     engineStopNotifiedRef.current = false;
     requestFrameRef.current();
     return () => layout.engine.dispose?.();
@@ -316,11 +317,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useEffect(() => {
     const engine = layoutRef.current?.engine;
     if (!engine) return;
+    const currentProps = propsRef.current;
     applyOwnedPhysicsSettings(
       engine,
-      props.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
+      currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
     );
-    if (props.physicsPaused) {
+    if (currentProps.physicsPaused) {
       engine.pause();
     } else {
       engine.resume();

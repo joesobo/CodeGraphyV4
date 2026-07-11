@@ -6,7 +6,6 @@ import type {
 import {
   applyMetricUpdates,
   applyMetricUpdatesInPlace,
-  nodeSizeModeUsesNodeMetrics,
 } from '../../../../../src/webview/store/messageHandlers/graphDataMessage/metricUpdates';
 
 describe('webview/store/messageHandlers/graphDataMessage/metricUpdates', () => {

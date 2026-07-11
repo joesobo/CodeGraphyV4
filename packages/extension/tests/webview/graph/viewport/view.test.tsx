@@ -1,8 +1,11 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphSurfaceSharedProps } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
 
@@ -116,41 +119,6 @@ function createSharedProps(): GraphSurfaceSharedProps {
     width: 300,
   };
 }
-
-function createNodeThreeObjectContext() {
-  return {
-    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
-    meshesRef: { current: new Map() },
-    showLabelsRef: { current: true },
-    spritesRef: { current: new Map() },
-  };
-}
-
-function createGraphNode(id: string): FGNode {
-  return {
-    id,
-    label: id,
-    size: 24,
-    color: '#22c55e',
-    borderColor: '#111827',
-    borderWidth: 1,
-    baseOpacity: 1,
-    isFavorite: false,
-    isPinned: false,
-  };
-}
-
-function createGraphLink(id: string, source: string, target: string): FGLink {
-  return {
-    id,
-    from: source,
-    to: target,
-    source,
-    target,
-    bidirectional: false,
-  };
-}
-
 function createSurface2dProps(
   sharedProps = createSharedProps(),
 ): React.ComponentProps<typeof Viewport>['surface2dProps'] {

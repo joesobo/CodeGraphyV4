@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildGraphViewAllSettingsMessages,
   buildGraphViewSettingsMessages,
 } from '../../../../src/extension/graphView/settings/messages';
 import { captureGraphViewSettingsSnapshot } from '../../../../src/extension/graphView/settings/snapshot';

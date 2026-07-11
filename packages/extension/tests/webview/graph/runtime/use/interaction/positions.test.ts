@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
   createGraphNodePositionMap,
-  readNodePosition,
 } from '../../../../../../src/webview/components/graph/runtime/use/interaction/positions';
 
 describe('graph/runtime/use/interaction positions', () => {

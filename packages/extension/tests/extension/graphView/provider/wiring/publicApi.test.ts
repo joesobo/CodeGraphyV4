@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { GraphQueryRequest } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import {
   assignGraphViewProviderPublicMethods,
@@ -47,8 +46,6 @@ function createTarget() {
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
       page: { offset: 0, limit: 500, returned: 1, total: 1 },
     })),
-  };
-  const timelineMethods = {
   };
   const viewContextMethods = {
     updateGraphData: vi.fn(),

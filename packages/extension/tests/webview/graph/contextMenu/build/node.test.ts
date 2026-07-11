@@ -16,34 +16,6 @@ function itemLabels(entries: readonly GraphContextMenuEntry[]): string[] {
     .filter(isItemEntry)
     .map(entry => entry.label);
 }
-
-function disabledLabels(entries: readonly GraphContextMenuEntry[]): string[] {
-  return entries
-    .filter((entry): entry is ItemEntry => isItemEntry(entry) && entry.disabled === true)
-    .map(entry => entry.label);
-}
-
-const immutableFolderLabels = [
-  'New File',
-  'New Folder',
-  'Reveal in Explorer',
-  'Copy Relative Path',
-  'Copy Absolute Path',
-  'Add to Favorites',
-  'Focus Node',
-  'Add Filter Pattern',
-  'Add Legend Group',
-  'Rename Folder',
-  'Delete Folder',
-];
-
-const immutableFolderDisabledLabels = [
-  'New File',
-  'New Folder',
-  'Rename Folder',
-  'Delete Folder',
-];
-
 describe('graph/contextMenu/build/node', () => {
 
   it('builds single-file node actions from inferred file targets', () => {

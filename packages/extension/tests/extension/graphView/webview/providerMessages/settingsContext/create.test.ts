@@ -3,7 +3,7 @@ import {
   createGraphViewProviderMessageSettingsContext,
 } from '../../../../../../src/extension/graphView/webview/providerMessages/settingsContext/create';
 import * as repoSettings from '../../../../../../src/extension/repoSettings/current';
-import { DEFAULT_MAX_FILES } from '../../../../../../src/shared/settings/defaults';
+
 
 vi.mock('../../../../../../src/extension/repoSettings/current', () => ({
   getCodeGraphyConfiguration: vi.fn(),

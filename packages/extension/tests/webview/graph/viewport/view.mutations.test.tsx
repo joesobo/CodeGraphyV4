@@ -72,16 +72,6 @@ function createSharedProps() {
     width: 300,
   };
 }
-
-function createNodeThreeObjectContext() {
-  return {
-    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
-    meshesRef: { current: new Map() },
-    showLabelsRef: { current: true },
-    spritesRef: { current: new Map() },
-  };
-}
-
 function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>> = {}) {
   const handleMenuAction = vi.fn();
   const handleContextMenu = vi.fn();

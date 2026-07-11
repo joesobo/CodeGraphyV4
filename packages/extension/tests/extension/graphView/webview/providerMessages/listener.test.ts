@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGraphData } from '@/shared/graph/contracts';
 import type { IGroup } from '@/shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
 import type { ISettingsSnapshot } from '../../../../../src/shared/settings/snapshot';
 import type { IViewContext } from '@/core/views/contracts';
 import type { IUndoableAction } from '../../../../../src/extension/undoManager';

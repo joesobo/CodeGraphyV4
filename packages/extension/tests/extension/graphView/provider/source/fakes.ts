@@ -88,15 +88,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     })),
     _sendAllSettings: vi.fn(),
   };
-  const timelineMethods = {
-    _indexRepository: vi.fn(async () => undefined),
-    _jumpToCommit: vi.fn(async () => undefined),
-    _resetTimeline: vi.fn(async () => undefined),
-    _openSelectedNode: vi.fn(async () => undefined),
-    _activateNode: vi.fn(async () => undefined),
-    _previewFileAtCommit: vi.fn(async () => undefined),
-    _sendCachedTimeline: vi.fn(),
-  };
   const viewContextMethods = {
     _sendDepthState: vi.fn(),
     _updateViewContext: vi.fn(),

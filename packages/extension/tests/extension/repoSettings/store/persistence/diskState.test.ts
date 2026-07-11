@@ -4,7 +4,6 @@ import * as path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultCodeGraphyRepoSettings } from '../../../../../src/extension/repoSettings/defaults';
 import {
-  createUpdatedSettings,
   readSettingsFromDisk,
   reloadSettingsFromDisk,
   writeSettingsToDisk,

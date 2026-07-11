@@ -96,7 +96,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 	};
 	const containerRef = { current: null };
 	const fg2dRef = { current: undefined };
-	const fg3dRef = { current: undefined };
 	const graphDataRef = { current: { links: graphData.links.map(link => ({ ...link })), nodes: graphData.nodes.map(node => ({ ...node })) } };
 	const fileInfoCacheRef = { current: new Map() };
 	const lastContainerContextMenuEventRef = { current: 0 };

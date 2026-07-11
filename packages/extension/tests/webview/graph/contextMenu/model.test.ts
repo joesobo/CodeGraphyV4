@@ -29,15 +29,6 @@ function builtInActions(entries: GraphContextMenuEntry[]): BuiltInContextMenuAct
   return actions;
 }
 
-function builtInMenuItems(
-  entries: GraphContextMenuEntry[],
-  actions: readonly BuiltInContextMenuAction[],
-): Extract<GraphContextMenuEntry, { kind: 'item' }>[] {
-  return menuItems(entries).filter(entry =>
-    entry.action.kind === 'builtin' && actions.includes(entry.action.action)
-  );
-}
-
 describe('graph/contextMenuModel', () => {
 
   it('builds single-folder-node menu with child creation actions', () => {

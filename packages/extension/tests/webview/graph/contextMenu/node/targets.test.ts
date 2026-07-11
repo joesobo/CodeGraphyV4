@@ -4,8 +4,6 @@ import {
   buildCopyRelativeLabel,
   buildOpenBlockLabel,
   isPackageNodeId,
-  shouldShowAbsoluteCopy,
-  shouldShowRevealInExplorer,
 } from '../../../../../src/webview/components/graph/contextMenu/node/targets';
 
 describe('graph/contextMenu/node/targets', () => {

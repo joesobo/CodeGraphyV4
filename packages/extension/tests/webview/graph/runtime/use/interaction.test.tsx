@@ -4,7 +4,7 @@ import type {
   GraphContextMenuAction,
   GraphContextSelection,
 } from '../../../../../src/webview/components/graph/contextMenu/contracts';
-import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
+import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { useGraphInteractionRuntime } from '../../../../../src/webview/components/graph/runtime/use/interaction';
 import type { UseGraphInteractionRuntimeOptions } from '../../../../../src/webview/components/graph/runtime/use/interaction/contracts';
 
@@ -103,11 +103,6 @@ function createMarqueeRuntime() {
 function createNode(id: string): FGNode {
   return { id } as FGNode;
 }
-
-function createLink(id: string): FGLink {
-  return { id } as FGLink;
-}
-
 function createSelection(targets: string[]): GraphContextSelection {
   return {
     kind: targets.length > 0 ? 'node' : 'background',

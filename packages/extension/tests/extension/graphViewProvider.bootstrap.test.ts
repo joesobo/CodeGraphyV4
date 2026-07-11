@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as VSCode from 'vscode';
-import { getGraphViewProviderInternals } from './graphViewProvider/internals';
+
 
 function createContext(vscodeModule: typeof import('vscode')) {
   return {

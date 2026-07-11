@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  deepClone,
   deepMerge,
   isPlainObject,
 } from '../../../../../src/extension/repoSettings/store/model/plainObject';
