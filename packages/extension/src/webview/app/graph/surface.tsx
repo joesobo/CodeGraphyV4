@@ -5,7 +5,6 @@ import { EmptyState } from '../shell/states';
 import { getNoDataHint } from '../shell/messages';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { PerfScopeVisibilitySnapshot } from '../../../shared/perf/protocol';
-import { useGraphPerfCommit } from '../../perf/graph/commit';
 
 type GraphComponentProps = React.ComponentProps<typeof Graph>;
 
@@ -41,29 +40,11 @@ export function GraphSurface({
   onAddLegendRequested,
 }: GraphSurfaceProps): React.ReactElement {
   const graphIsEmpty = graphData.nodes.length === 0;
-  useGraphPerfCommit({
-    edgeCount: 0,
-    enabled: graphIsEmpty,
-    layoutKey: undefined,
-    nodeCount: 0,
-    revision: graphData,
-    scopeProjectionRevision,
-    scopeVisibility,
-  });
-
-  if (graphIsEmpty) {
-    return (
-      <EmptyState
-        hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)}
-        fullScreen={false}
-      />
-    );
-  }
 
   return (
     <>
       <Graph
-        data={coloredData || graphData}
+        data={graphIsEmpty ? graphData : coloredData || graphData}
         scopeProjectionRevision={scopeProjectionRevision}
         scopeVisibility={scopeVisibility}
         theme={theme}
@@ -73,7 +54,16 @@ export function GraphSurface({
         onAddLegendRequested={onAddLegendRequested}
         pluginHost={pluginHost}
       />
-      <DepthViewControls />
+      {graphIsEmpty
+        ? (
+            <div className="absolute inset-0 z-10">
+              <EmptyState
+                hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)}
+                fullScreen={false}
+              />
+            </div>
+          )
+        : <DepthViewControls />}
     </>
   );
 }
