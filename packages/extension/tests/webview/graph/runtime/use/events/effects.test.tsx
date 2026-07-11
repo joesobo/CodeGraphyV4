@@ -20,6 +20,7 @@ const eventEffectsHarness = vi.hoisted(() => ({
   handleExtensionMessage: vi.fn(),
   postMessage: vi.fn(),
   runWebviewMessageEffects: vi.fn(),
+  setActivePanel: vi.fn(),
 }));
 
 vi.mock('../../../../../../src/webview/components/graph/effects/keyboard', () => ({
@@ -66,6 +67,7 @@ vi.mock('../../../../../../src/webview/store/state', () => ({
   graphStore: {
     getState: () => ({
       handleExtensionMessage: eventEffectsHarness.handleExtensionMessage,
+      setActivePanel: eventEffectsHarness.setActivePanel,
     }),
   },
 }));
@@ -161,6 +163,7 @@ describe('graph/runtime/useGraphEventEffects', () => {
     eventEffectsHarness.handleExtensionMessage.mockReset();
     eventEffectsHarness.postMessage.mockReset();
     eventEffectsHarness.runWebviewMessageEffects.mockReset();
+    eventEffectsHarness.setActivePanel.mockReset();
   });
 
   it('wires message effects to live refs and interaction handlers', () => {
@@ -208,6 +211,10 @@ describe('graph/runtime/useGraphEventEffects', () => {
 
     expect(addEventListenerSpy).toHaveBeenCalledWith('message', messageHandler);
     expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', keyboardHandler);
+
+    const keyboardOptions = eventEffectsHarness.createGraphKeyboardListener.mock.calls[0]?.[0];
+    keyboardOptions.closePanels();
+    expect(eventEffectsHarness.setActivePanel).toHaveBeenCalledWith('none');
 
     const messageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[0]?.[0];
     expect(messageOptions).toBeDefined();

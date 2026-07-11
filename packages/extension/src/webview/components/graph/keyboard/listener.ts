@@ -5,6 +5,7 @@ import type { GraphKeyboardEffectHandlers } from '../effects/keyboard';
 import type { GraphContextMutationAvailability } from '../contextMenu/contracts';
 
 export interface GraphKeyboardListenerOptions {
+  closePanels?: () => void;
   dispatchStoreMessage: (message: ExtensionToWebviewMessage) => void;
   fitView: () => void;
   getAllNodeIds: () => string[];
@@ -27,6 +28,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export function createGraphKeyboardListener({
+  closePanels = () => {},
   dispatchStoreMessage,
   fitView,
   getAllNodeIds,
@@ -60,6 +62,7 @@ export function createGraphKeyboardListener({
     runEffects(command.effects, {
       fitView,
       clearSelection: () => setSelection([]),
+      closePanels,
       openSelectedNodes: (nodeIds) => {
         nodeIds.forEach((nodeId) => {
           openNode(nodeId);

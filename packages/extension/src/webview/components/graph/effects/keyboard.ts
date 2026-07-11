@@ -5,6 +5,7 @@ import type { GraphKeyboardEffect } from '../keyboard/effects';
 export interface GraphKeyboardEffectHandlers {
   fitView(): void;
   clearSelection(): void;
+  closePanels(): void;
   openSelectedNodes(nodeIds: string[]): void;
   selectAll(nodeIds: string[]): void;
   zoomGraphView(factor: number): void;
@@ -22,6 +23,9 @@ function applyKeyboardEffect(
       return;
     case 'clearSelection':
       handlers.clearSelection();
+      return;
+    case 'closePanels':
+      handlers.closePanels();
       return;
     case 'openSelectedNodes':
       handlers.openSelectedNodes(effect.nodeIds);

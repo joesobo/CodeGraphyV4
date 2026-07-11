@@ -42,7 +42,7 @@ describe('graph/keyboard/effects', () => {
     })).toEqual({
       preventDefault: true,
       stopPropagation: false,
-      effects: [{ kind: 'clearSelection' }],
+      effects: [{ kind: 'clearSelection' }, { kind: 'closePanels' }],
     });
   });
 

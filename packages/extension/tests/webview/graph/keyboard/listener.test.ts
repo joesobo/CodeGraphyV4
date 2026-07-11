@@ -160,8 +160,10 @@ describe('graph/keyboardListener', () => {
     let effects: GraphKeyboardEffect[] | undefined;
     let handlers: GraphKeyboardEffectHandlers | undefined;
     const setSelection = vi.fn();
+    const closePanels = vi.fn();
     const handleKeyDown = createGraphKeyboardListener({
       dispatchStoreMessage: vi.fn(),
+      closePanels,
       fitView: vi.fn(),
       getAllNodeIds: () => ['a.ts'],
       graphMode: '2d',
@@ -181,9 +183,10 @@ describe('graph/keyboardListener', () => {
 
     expect(event.preventDefault).toHaveBeenCalledOnce();
     expect(event.stopPropagation).not.toHaveBeenCalled();
-    expect(effects).toEqual([{ kind: 'clearSelection' }]);
+    expect(effects).toEqual([{ kind: 'clearSelection' }, { kind: 'closePanels' }]);
     applyKeyboardEffects(effects ?? [], handlers as GraphKeyboardEffectHandlers);
     expect(setSelection).toHaveBeenCalledWith([]);
+    expect(closePanels).toHaveBeenCalledOnce();
   });
 
   it('does not prevent default when the resolved command allows native behavior', () => {

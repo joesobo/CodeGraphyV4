@@ -21,7 +21,11 @@ export function createFitViewCommand(): GraphKeyboardCommand {
 }
 
 export function createClearSelectionCommand(): GraphKeyboardCommand {
-  return createCommand({ kind: 'clearSelection' });
+  return {
+    preventDefault: true,
+    stopPropagation: false,
+    effects: [{ kind: 'clearSelection' }, { kind: 'closePanels' }],
+  };
 }
 
 export function createOpenSelectedNodesCommand(nodeIds: string[]): GraphKeyboardCommand {

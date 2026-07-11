@@ -6,6 +6,7 @@ import type { GraphContextMutationAvailability } from '../contextMenu/contracts'
 export type GraphKeyboardEffect =
   | { kind: 'fitView' }
   | { kind: 'clearSelection' }
+  | { kind: 'closePanels' }
   | { kind: 'openSelectedNodes'; nodeIds: string[] }
   | { kind: 'selectAll'; nodeIds: string[] }
   | { kind: 'zoom'; factor: number }

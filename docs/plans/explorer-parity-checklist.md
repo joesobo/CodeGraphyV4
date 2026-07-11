@@ -44,7 +44,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Cmd/Ctrl+Enter open to side | done(unit) | 2.3 / 2.4 | Selected workspace files post a dedicated open-beside message and use `ViewColumn.Beside`; synthetic packages are filtered. |
 | Cmd/Ctrl+A | done(unit) | 2.1 | Keyboard resolver, listener, and effect tests select every visible node. |
 | Escape clears selection | done(unit) | 2.1 | Keyboard resolver/listener/effect tests clear the graph selection. |
-| Escape closes panels | todo(P2) | 2.3 | Existing Escape handling does not prove the panel-close bug is fixed. |
+| Escape closes panels | done(unit) | 2.3 | Escape now clears selection and closes the active graph panel through the live store; effect/listener/runtime wiring tests pass. |
 | Cmd/Ctrl+Z / Shift+Z | done(unit) | 2.3 | Keyboard effect and listener tests post UNDO/REDO through the host undo manager route. |
 | Type-ahead find | waived(search bar equivalent) | — | Search bar is the graph-native equivalent. |
 | Arrow-key navigation | waived(owner) | — | Explicit owner decision. |

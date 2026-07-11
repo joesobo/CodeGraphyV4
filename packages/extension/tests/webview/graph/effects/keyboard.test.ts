@@ -6,6 +6,7 @@ function createHandlers() {
   return {
     fitView: vi.fn(),
     clearSelection: vi.fn(),
+    closePanels: vi.fn(),
     openSelectedNodes: vi.fn(),
     selectAll: vi.fn(),
     zoomGraphView: vi.fn(),
@@ -29,6 +30,14 @@ describe('graph effects keyboard', () => {
     applyKeyboardEffects([{ kind: 'clearSelection' }], handlers);
 
     expect(handlers.clearSelection).toHaveBeenCalledOnce();
+  });
+
+  it('closes graph panels', () => {
+    const handlers = createHandlers();
+
+    applyKeyboardEffects([{ kind: 'closePanels' }], handlers);
+
+    expect(handlers.closePanels).toHaveBeenCalledOnce();
   });
 
   it('opens selected nodes', () => {

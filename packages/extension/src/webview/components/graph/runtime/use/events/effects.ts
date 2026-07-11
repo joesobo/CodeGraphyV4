@@ -107,6 +107,7 @@ export function useGraphEventEffects({
           : '.';
       },
       fitView: () => interactionHandlers.fitView(),
+      closePanels: () => graphStore.getState().setActivePanel('none'),
       setSelection: nodeIds => interactionHandlers.setSelection(nodeIds),
       openNode: nodeId => interactionHandlers.requestNodeOpenById(nodeId),
       zoomGraphView: factor => interactionHandlers.zoomGraphView(factor),
