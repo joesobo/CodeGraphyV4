@@ -1,5 +1,11 @@
 import type { DirectionMode } from '../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../model/build';
+import {
+  ownedLinkGeometry,
+  pointOnOwnedLink,
+  traceOwnedLink,
+  type OwnedLinkGeometry,
+} from './linkGeometry';
 
 export interface OwnedGraphDrawingOptions {
   context: CanvasRenderingContext2D;
@@ -19,74 +25,13 @@ export interface OwnedGraphDrawingOptions {
   timestamp: number;
 }
 
-interface LinkGeometry {
-  controlX: number;
-  controlY: number;
-  source: FGNode;
-  target: FGNode;
-}
-
-function linkGeometry(link: FGLink): LinkGeometry | undefined {
-  if (typeof link.source === 'string' || typeof link.target === 'string') return undefined;
-  const source = link.source;
-  const target = link.target;
-  if (![source.x, source.y, target.x, target.y].every(Number.isFinite)) return undefined;
-  const dx = (target.x as number) - (source.x as number);
-  const dy = (target.y as number) - (source.y as number);
-  const distance = Math.hypot(dx, dy);
-  const curvature = link.curvature ?? 0;
-  const offset = distance * curvature;
-  return {
-    source,
-    target,
-    controlX: ((source.x as number) + (target.x as number)) / 2
-      + (distance === 0 ? 0 : (-dy / distance) * offset),
-    controlY: ((source.y as number) + (target.y as number)) / 2
-      + (distance === 0 ? 0 : (dx / distance) * offset),
-  };
-}
-
-function pointOnLink(geometry: LinkGeometry, position: number): {
-  x: number;
-  y: number;
-  angle: number;
-} {
-  const inverse = 1 - position;
-  const sourceX = geometry.source.x as number;
-  const sourceY = geometry.source.y as number;
-  const targetX = geometry.target.x as number;
-  const targetY = geometry.target.y as number;
-  const x = inverse * inverse * sourceX
-    + 2 * inverse * position * geometry.controlX
-    + position * position * targetX;
-  const y = inverse * inverse * sourceY
-    + 2 * inverse * position * geometry.controlY
-    + position * position * targetY;
-  const tangentX = 2 * inverse * (geometry.controlX - sourceX)
-    + 2 * position * (targetX - geometry.controlX);
-  const tangentY = 2 * inverse * (geometry.controlY - sourceY)
-    + 2 * position * (targetY - geometry.controlY);
-  return { x, y, angle: Math.atan2(tangentY, tangentX) };
-}
-
-function traceLink(context: CanvasRenderingContext2D, geometry: LinkGeometry): void {
-  context.beginPath();
-  context.moveTo(geometry.source.x as number, geometry.source.y as number);
-  context.quadraticCurveTo(
-    geometry.controlX,
-    geometry.controlY,
-    geometry.target.x as number,
-    geometry.target.y as number,
-  );
-}
-
 function drawArrow(
   context: CanvasRenderingContext2D,
-  geometry: LinkGeometry,
+  geometry: OwnedLinkGeometry,
   color: string,
   globalScale: number,
 ): void {
-  const point = pointOnLink(geometry, 0.72);
+  const point = pointOnOwnedLink(geometry, 0.72);
   const length = 8 / Math.max(globalScale, 0.01);
   context.save();
   context.translate(point.x, point.y);
@@ -103,7 +48,7 @@ function drawArrow(
 
 function drawParticles(
   context: CanvasRenderingContext2D,
-  geometry: LinkGeometry,
+  geometry: OwnedLinkGeometry,
   count: number,
   color: string,
   size: number,
@@ -114,7 +59,7 @@ function drawParticles(
   const radius = Math.max(0.75, size) / Math.max(globalScale, 0.01);
   for (let index = 0; index < count; index += 1) {
     const position = ((timestamp * speed * 0.001) + index / count) % 1;
-    const point = pointOnLink(geometry, position);
+    const point = pointOnOwnedLink(geometry, position);
     context.fillStyle = color;
     context.beginPath();
     context.arc(point.x, point.y, radius, 0, Math.PI * 2);
@@ -125,7 +70,7 @@ function drawParticles(
 export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
   const { context, globalScale } = options;
   for (const link of options.links) {
-    const geometry = linkGeometry(link);
+    const geometry = ownedLinkGeometry(link);
     if (!geometry) continue;
     context.save();
     if (options.directionMode === 'arrows') {
@@ -154,10 +99,10 @@ export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
 export function drawOwnedGraph(options: OwnedGraphDrawingOptions): void {
   const { context, globalScale } = options;
   for (const link of options.links) {
-    const geometry = linkGeometry(link);
+    const geometry = ownedLinkGeometry(link);
     if (!geometry) continue;
     context.save();
-    traceLink(context, geometry);
+    traceOwnedLink(context, geometry);
     context.strokeStyle = options.getLinkColor(link);
     context.lineWidth = Math.max(0.25, options.getLinkWidth(link)) / Math.max(globalScale, 0.01);
     context.stroke();

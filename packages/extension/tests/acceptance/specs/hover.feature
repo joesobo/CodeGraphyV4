@@ -15,3 +15,6 @@ And the information says "src/index.ts" at the top
 
 When I stop hovering the src/index.ts node
 Then I see information for the src/index.ts node goes away
+
+When I hover the edge from src/index.ts to src/types.ts
+Then I see information for the edge from src/index.ts to src/types.ts

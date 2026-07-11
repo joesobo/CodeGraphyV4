@@ -21,6 +21,7 @@ import {
   findNodeProbe,
   getGraphCounts,
   graphStage,
+  hoverEdge,
   hoverNode,
   modifierClickNode,
   readScreenDistanceBetweenNodes,
@@ -700,6 +701,16 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I stop hovering the (.+) node$/, async (context, _step, match) => {
     await stopHoverNode(context, match[1]);
+  }),
+
+  step(/^I hover the edge from (.+) to (.+)$/, async (context, _step, match) => {
+    await hoverEdge(context, match[1], match[2]);
+  }),
+
+  step(/^I see information for the edge from (.+) to (.+)$/, async (context, _step, match) => {
+    const tooltip = requireGraphFrame(context).getByTestId('graph-edge-tooltip');
+    await expect(tooltip).toContainText(match[1].split('/').at(-1) ?? match[1]);
+    await expect(tooltip).toContainText(match[2].split('/').at(-1) ?? match[2]);
   }),
 
   step(/^I see information for the (.+) node goes away$/, async (context, _step, match) => {

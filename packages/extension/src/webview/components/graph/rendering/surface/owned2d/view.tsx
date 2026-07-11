@@ -8,7 +8,7 @@ import {
   type WheelEvent as ReactWheelEvent,
 } from 'react';
 import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../shared/settings/physics';
-import type { FGNode } from '../../../model/build';
+import type { FGLink, FGNode } from '../../../model/build';
 import {
   clampOwnedGraphZoom,
   fitOwnedGraphCamera,
@@ -24,12 +24,14 @@ import {
   syncOwnedLayoutNodes,
   type OwnedGraphLayout,
 } from './layout';
+import { pickOwnedGraphLink } from './linkPicking';
 import { OwnedGraphNodePicker } from './picking';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface PointerSession {
   draggedIndexes: Set<number>;
   index: number | null;
+  link: FGLink | null;
   lastWorld: { x: number; y: number };
   moved: boolean;
   startScreen: { x: number; y: number };
@@ -63,12 +65,17 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const skipPhysicsFrameRef = useRef(false);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
+  const hoveredLinkRef = useRef<FGLink | null>(null);
   const engineStopNotifiedRef = useRef(false);
   const positionVersionRef = useRef(0);
   const pickerPositionVersionRef = useRef(-1);
   const pickerRef = useRef(new OwnedGraphNodePicker());
   const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
   const [rendererKind, setRendererKind] = useState<'canvas2d' | 'webgpu'>('canvas2d');
+  const [linkTooltip, setLinkTooltip] = useState<{
+    link: FGLink;
+    screen: { x: number; y: number };
+  } | null>(null);
   propsRef.current = props;
 
   useEffect(() => {
@@ -368,9 +375,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
     const picked = pickerRef.current.pick(world, cameraRef.current.zoom);
+    const pickedLink = picked ? undefined : pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom);
     pointerSessionRef.current = {
       draggedIndexes: new Set(picked ? [picked.index] : []),
       index: picked?.index ?? null,
+      link: pickedLink?.link ?? null,
       lastWorld: world,
       moved: false,
       startScreen: screen,
@@ -423,11 +432,28 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       return;
     }
 
+    if (session) {
+      session.moved ||= Math.hypot(
+        screen.x - session.startScreen.x,
+        screen.y - session.startScreen.y,
+      ) > 3;
+    }
     const hovered = pickerRef.current.pick(world, cameraRef.current.zoom)?.node ?? null;
+    const hoveredLink = hovered
+      ? null
+      : pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom)?.link ?? null;
     if (hovered !== hoveredNodeRef.current) {
       hoveredNodeRef.current = hovered;
       propsRef.current.sharedProps.onNodeHover(hovered);
       requestFrameRef.current();
+    }
+    if (hoveredLink !== hoveredLinkRef.current) {
+      hoveredLinkRef.current = hoveredLink;
+      setLinkTooltip(hoveredLink ? { link: hoveredLink, screen } : null);
+    } else if (hoveredLink) {
+      setLinkTooltip(current => current
+        ? { ...current, screen }
+        : { link: hoveredLink, screen });
     }
   };
 
@@ -437,7 +463,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     pointerSessionRef.current = null;
     if (!layout || !session) return;
     if (session.index === null) {
-      if (!session.moved) propsRef.current.sharedProps.onBackgroundClick(event.nativeEvent);
+      if (!session.moved && session.link) {
+        propsRef.current.sharedProps.onLinkClick(session.link, event.nativeEvent);
+      } else if (!session.moved) {
+        propsRef.current.sharedProps.onBackgroundClick(event.nativeEvent);
+      }
       return;
     }
 
@@ -469,7 +499,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
     const node = pickerRef.current.pick(world, cameraRef.current.zoom)?.node;
-    if (node) propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
+    if (node) {
+      propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
+      return;
+    }
+    const link = pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom)?.link;
+    if (link) propsRef.current.sharedProps.onLinkRightClick(link, event.nativeEvent);
     else propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
   };
 
@@ -518,12 +553,38 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
             propsRef.current.sharedProps.onNodeHover(null);
             requestFrameRef.current();
           }
+          hoveredLinkRef.current = null;
+          setLinkTooltip(null);
         }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onWheel={handleWheel}
         style={{ touchAction: 'none' }}
       />
+      {linkTooltip ? (
+        <div
+          className="pointer-events-none absolute max-w-72 rounded-md border border-border bg-popover px-3 py-2 text-[11px] text-popover-foreground shadow-md"
+          data-testid="graph-edge-tooltip"
+          style={{
+            left: Math.min(linkTooltip.screen.x + 12, Math.max(8, (props.sharedProps.width ?? 0) - 292)),
+            top: linkTooltip.screen.y + 12,
+            zIndex: 1000,
+          }}
+        >
+          <p className="font-semibold text-link break-all">
+            {typeof linkTooltip.link.source === 'string'
+              ? linkTooltip.link.source
+              : linkTooltip.link.source.label}
+            {' → '}
+            {typeof linkTooltip.link.target === 'string'
+              ? linkTooltip.link.target
+              : linkTooltip.link.target.label}
+          </p>
+          <p className="font-mono text-muted-foreground">
+            {linkTooltip.link.kind ?? linkTooltip.link.runtimeEdgeType ?? 'Connection'}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

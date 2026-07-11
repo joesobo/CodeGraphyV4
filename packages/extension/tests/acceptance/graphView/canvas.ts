@@ -254,14 +254,35 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
   const probe = await findNodeProbe(context, nodePath);
   const tooltipPath = frame.getByText(nodePath, { exact: true }).first();
 
-  await graphNode(frame, nodePath).dispatchEvent('mouseover', { bubbles: true });
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) throw new Error('Expected Graph Stage to have a bounding box');
+  await frame.page().mouse.move(stageBox.x + probe.center.x, stageBox.y + probe.center.y);
   await expect(tooltipPath).toBeVisible({ timeout: 10_000 });
   return probe;
 }
 
 export async function stopHoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
   const frame = requireGraphFrame(context);
-  await graphNode(frame, nodePath).dispatchEvent('mouseout', { bubbles: true });
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) throw new Error('Expected Graph Stage to have a bounding box');
+  await frame.page().mouse.move(stageBox.x + 4, stageBox.y + 4);
+}
+
+export async function hoverEdge(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+  targetPath: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const source = await findNodeProbe(context, sourcePath);
+  const target = await findNodeProbe(context, targetPath);
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) throw new Error('Expected Graph Stage to have a bounding box');
+  await frame.page().mouse.move(
+    stageBox.x + (source.center.x + target.center.x) / 2,
+    stageBox.y + (source.center.y + target.center.y) / 2,
+  );
+  await expect(frame.getByTestId('graph-edge-tooltip')).toBeVisible();
 }
 
 export async function clickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
@@ -328,9 +349,16 @@ export async function rightClickEdge(
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   await expectVisibleEdgeBetween(context, sourcePath, targetPath);
+  const source = await findNodeProbe(context, sourcePath);
+  const target = await findNodeProbe(context, targetPath);
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) throw new Error('Expected Graph Stage to have a bounding box');
   context.lastContextMenuTarget = { kind: 'edge', sourcePath, targetPath };
-  await frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })
-    .dispatchEvent('contextmenu', { bubbles: true, button: 2 });
+  await frame.page().mouse.click(
+    stageBox.x + (source.center.x + target.center.x) / 2,
+    stageBox.y + (source.center.y + target.center.y) / 2,
+    { button: 'right' },
+  );
 }
 
 export async function dragNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
