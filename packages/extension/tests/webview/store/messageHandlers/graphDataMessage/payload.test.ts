@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { handleGraphDataUpdated } from '../../../../../src/webview/store/messageHandlers/graphDataMessage/payload';
+import { createInlineRenameSession } from '../../../../../src/webview/components/graph/inlineEdit/model';
 import { createState } from '../graph/fixture';
 
 describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
@@ -27,6 +28,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       graphData: payload,
       ghostGraphVisible: false,
       pendingFileMutations: {},
+      inlineEdit: null,
       isLoading: false,
       graphIsIndexing: false,
       graphIndexProgress: null,
@@ -147,6 +149,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       ghostGraphVisible: false,
       graphResetVersion: 1,
       pendingFileMutations: {},
+      inlineEdit: null,
       isLoading: true,
       graphIsIndexing: false,
       graphIndexProgress: null,
@@ -172,11 +175,26 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       ghostGraphVisible: false,
       graphResetVersion: 1,
       pendingFileMutations: {},
+      inlineEdit: null,
       awaitingInitialBootstrap: false,
       isLoading: false,
       graphIsIndexing: false,
       graphIndexProgress: null,
     });
+  });
+
+  it('preserves a recovered inline editor during rollback graph refresh', () => {
+    const inlineEdit = {
+      ...createInlineRenameSession('src/app.ts'),
+      error: 'already exists',
+      pending: false,
+    };
+    const state = createState({ graphData: createGraphData(), inlineEdit });
+    const update = handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload: { ...createGraphData(), nodes: [] } },
+      { getState: () => state },
+    );
+    expect(update).toMatchObject({ inlineEdit });
   });
 });
 

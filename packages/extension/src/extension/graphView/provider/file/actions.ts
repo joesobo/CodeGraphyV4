@@ -229,9 +229,10 @@ export function createGraphViewProviderFileActionMethods(
         );
       },
       showErrorMessage: message => {
-        dependencies.showErrorMessage(message);
         if (newName !== undefined) {
           source._sendMessage({ type: 'INLINE_FILE_EDIT_FAILED', payload: { message } });
+        } else {
+          dependencies.showErrorMessage(message);
         }
       },
     };
@@ -250,9 +251,10 @@ export function createGraphViewProviderFileActionMethods(
         );
       },
       showErrorMessage: message => {
-        dependencies.showErrorMessage(message);
         if (name !== undefined) {
           source._sendMessage({ type: 'INLINE_FILE_EDIT_FAILED', payload: { message } });
+        } else {
+          dependencies.showErrorMessage(message);
         }
       },
     };
@@ -274,9 +276,10 @@ export function createGraphViewProviderFileActionMethods(
         await dependencies.executeUndoAction(action);
       },
       showErrorMessage: message => {
-        dependencies.showErrorMessage(message);
         if (name !== undefined) {
           source._sendMessage({ type: 'INLINE_FILE_EDIT_FAILED', payload: { message } });
+        } else {
+          dependencies.showErrorMessage(message);
         }
       },
     };

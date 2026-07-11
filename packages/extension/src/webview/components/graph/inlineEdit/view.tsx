@@ -91,7 +91,8 @@ export function GraphInlineEdit({
           : session.kind === 'createFile' ? 'New file name' : 'New folder name'}
         className="min-w-40 rounded-sm border border-[var(--vscode-input-border,var(--vscode-focusBorder))] bg-[var(--vscode-input-background)] px-1.5 py-0.5 text-[var(--vscode-input-foreground)] outline-none focus:border-[var(--vscode-focusBorder)]"
         value={session.value}
-        disabled={session.pending}
+        aria-busy={session.pending}
+        readOnly={session.pending}
         onBlur={() => {
           if (blurArmedRef.current) commit();
         }}

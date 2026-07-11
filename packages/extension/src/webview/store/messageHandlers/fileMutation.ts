@@ -28,7 +28,7 @@ export function handleFileMutationFailed(
   const previousGraphData = state.pendingFileMutations[message.payload.mutationId];
   if (!previousGraphData) {
     return {
-      fileMutationError: message.payload.message,
+      fileMutationError: state.inlineEdit ? null : message.payload.message,
       inlineEdit: state.inlineEdit
         ? { ...state.inlineEdit, error: message.payload.message, pending: false }
         : null,
@@ -37,7 +37,7 @@ export function handleFileMutationFailed(
   const pendingFileMutations = { ...state.pendingFileMutations };
   delete pendingFileMutations[message.payload.mutationId];
   return {
-    fileMutationError: message.payload.message,
+    fileMutationError: state.inlineEdit ? null : message.payload.message,
     graphData: previousGraphData,
     pendingFileMutations,
     inlineEdit: state.inlineEdit

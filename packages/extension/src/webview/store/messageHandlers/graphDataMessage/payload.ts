@@ -36,7 +36,7 @@ export function handleGraphDataUpdated(
     graphData: message.payload,
     ghostGraphVisible: false,
     pendingFileMutations: {},
-    inlineEdit: null,
+    inlineEdit: state?.inlineEdit?.pending === false ? state.inlineEdit : null,
     ...(state
       ? {
           graphResetVersion: state.graphResetVersion + (state.ghostGraphVisible ? 0 : 1),

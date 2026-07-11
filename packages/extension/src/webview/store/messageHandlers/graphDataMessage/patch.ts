@@ -41,7 +41,7 @@ export function handleGraphDataPatched(
   return {
     graphData: { ...authoritativeGraphData },
     pendingFileMutations: {},
-    inlineEdit: null,
+    inlineEdit: state.inlineEdit?.pending === false ? state.inlineEdit : null,
     graphRevision: validGraphRevision(message.graphRevision)
       ? message.graphRevision
       : state.graphRevision,

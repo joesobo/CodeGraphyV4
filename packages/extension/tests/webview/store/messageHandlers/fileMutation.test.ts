@@ -57,5 +57,6 @@ describe('file mutation messages', () => {
       pending: false,
       error: 'permission denied',
     });
+    expect(update.fileMutationError).toBeNull();
   });
 });
