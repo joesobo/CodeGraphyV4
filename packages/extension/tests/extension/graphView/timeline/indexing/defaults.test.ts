@@ -190,7 +190,7 @@ describe('graph view provider timeline default dependencies', () => {
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'sha-2', graphData },
+      payload: { sha: 'sha-2', patch: expect.any(Object) },
     });
   });
 });

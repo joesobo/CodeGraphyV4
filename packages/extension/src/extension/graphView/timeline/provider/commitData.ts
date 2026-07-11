@@ -1,3 +1,4 @@
+import { diffGraphData } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { GraphViewProviderTimelineDependencies } from './indexing';
@@ -34,6 +35,7 @@ export function applyTimelineCommitGraph(
   sha: string,
   graphData: IGraphData,
 ): void {
+  const previousGraphData = source._graphData;
   source._currentCommitSha = sha;
   source._rawGraphData = graphData;
   if (source._applyViewTransform) {
@@ -43,6 +45,6 @@ export function applyTimelineCommitGraph(
   }
   source._sendMessage({
     type: 'COMMIT_GRAPH_DATA',
-    payload: { sha, graphData: source._graphData },
+    payload: { sha, patch: diffGraphData(previousGraphData, source._graphData) },
   } satisfies ExtensionToWebviewMessage);
 }

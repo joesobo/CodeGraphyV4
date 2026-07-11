@@ -66,7 +66,16 @@ describe('timeline commit data', () => {
     expect(applyViewTransform).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'sha-1', graphData: transformedGraph },
+      payload: {
+        sha: 'sha-1',
+        patch: {
+          addedLinks: [],
+          addedNodes: transformedGraph.nodes,
+          removedLinkIds: [],
+          removedNodeIds: [],
+          updatedNodes: [],
+        },
+      },
     } satisfies ExtensionToWebviewMessage);
   });
 });

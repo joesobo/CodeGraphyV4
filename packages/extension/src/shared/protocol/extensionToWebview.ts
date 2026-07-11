@@ -139,7 +139,10 @@ export type ExtensionToWebviewMessage =
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
   | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'TIMELINE_DATA'; payload: ITimelineData }
-  | { type: 'COMMIT_GRAPH_DATA'; payload: { sha: string; graphData: IGraphData } }
+  | {
+      type: 'COMMIT_GRAPH_DATA';
+      payload: { sha: string; graphData: IGraphData } | { sha: string; patch: GraphDataPatch };
+    }
   | { type: 'PLAYBACK_SPEED_UPDATED'; payload: { speed: number } }
   | { type: 'CACHE_INVALIDATED' }
   | { type: 'PLAYBACK_ENDED' }

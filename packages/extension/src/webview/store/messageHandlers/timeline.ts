@@ -1,5 +1,6 @@
 import type { IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { applyGraphDataPatchInPlace } from '../../../shared/graph/patch';
 
 export function handleIndexProgress(
   message: Extract<ExtensionToWebviewMessage, { type: 'INDEX_PROGRESS' }>,
@@ -23,6 +24,18 @@ export function handleCommitGraphData(
   message: Extract<ExtensionToWebviewMessage, { type: 'COMMIT_GRAPH_DATA' }>,
   context: IHandlerContext,
 ): PartialState {
+  if ('patch' in message.payload) {
+    const graphData = context.getState().graphData;
+    if (!graphData) {
+      return { currentCommitSha: message.payload.sha, isLoading: false };
+    }
+    applyGraphDataPatchInPlace(graphData, message.payload.patch);
+    return {
+      currentCommitSha: message.payload.sha,
+      graphData: { ...graphData },
+      isLoading: false,
+    };
+  }
   return {
     currentCommitSha: message.payload.sha,
     graphData: message.payload.graphData,

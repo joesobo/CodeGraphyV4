@@ -168,7 +168,7 @@ describe('graph view provider timeline indexing', () => {
     expect(source._currentCommitSha).toBe('abc123');
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'abc123', graphData: { nodes: [], edges: [] } },
+      payload: { sha: 'abc123', patch: expect.any(Object) },
     } satisfies ExtensionToWebviewMessage);
   });
 
@@ -283,7 +283,7 @@ describe('graph view provider timeline indexing', () => {
     expect(sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'sha-1', graphData: transformedGraph },
+      payload: { sha: 'sha-1', patch: expect.any(Object) },
     } satisfies ExtensionToWebviewMessage);
   });
 
@@ -342,7 +342,7 @@ describe('graph view provider timeline indexing', () => {
     expect(deps.buildTimelineGraphData).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'sha-2', graphData },
+      payload: { sha: 'sha-2', patch: expect.any(Object) },
     } satisfies ExtensionToWebviewMessage);
   });
 
@@ -387,7 +387,7 @@ describe('graph view provider timeline indexing', () => {
     expect(sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'sha-2', graphData },
+      payload: { sha: 'sha-2', patch: expect.any(Object) },
     } satisfies ExtensionToWebviewMessage);
   });
 

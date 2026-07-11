@@ -152,6 +152,32 @@ describe('GraphStore: Timeline', () => {
     expect(store.getState().graphData).toEqual(newData);
   });
 
+  it('applies an adjacent commit patch without resetting the graph layout', () => {
+    const initialData: IGraphData = {
+      nodes: [{ id: 'old.ts', label: 'old.ts', color: '#fff' }],
+      edges: [],
+    };
+    store.setState({ graphData: initialData, graphResetVersion: 7 });
+
+    store.getState().handleExtensionMessage({
+      type: 'COMMIT_GRAPH_DATA',
+      payload: {
+        sha: 'next-sha',
+        patch: {
+          addedLinks: [],
+          addedNodes: [{ id: 'new.ts', label: 'new.ts', color: '#000' }],
+          removedLinkIds: [],
+          removedNodeIds: ['old.ts'],
+          updatedNodes: [],
+        },
+      },
+    } as never);
+
+    expect(store.getState().currentCommitSha).toBe('next-sha');
+    expect(store.getState().graphData?.nodes.map(node => node.id)).toEqual(['new.ts']);
+    expect(store.getState().graphResetVersion).toBe(7);
+  });
+
   // ── CACHE_INVALIDATED ────────────────────────────────────────────────────
 
   it('handles CACHE_INVALIDATED message', () => {
