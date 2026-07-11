@@ -1,8 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearWorkspacePipelineCache } from '../../../../../src/extension/pipeline/analysis/state';
-import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../../../../src/extension/pipeline/database/cache/storage.ts';
+import {
+  patchWorkspaceAnalysisDatabaseCacheAsync,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
+} from '../../../../../src/extension/pipeline/database/cache/storage.ts';
 import {
   clearWorkspacePipelineStoredCache,
+  hasPendingWorkspacePipelineCacheSave,
+  patchWorkspacePipelineCache,
   persistWorkspacePipelineCache,
 } from '../../../../../src/extension/pipeline/service/cache/storage';
 
@@ -11,12 +16,18 @@ vi.mock('../../../../../src/extension/pipeline/analysis/state', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
+  patchWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
   saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
 }));
 
 describe('pipeline/service/cache/storage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('delegates cache clearing to the shared workspace cache helper', () => {
@@ -37,12 +48,16 @@ describe('pipeline/service/cache/storage', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('persists the repo-local cache when a workspace root is available', () => {
+  it('persists the repo-local cache when a workspace root is available', async () => {
     const cache = { files: { 'src/a.ts': {} } };
     const warn = vi.fn();
 
     persistWorkspacePipelineCache('/workspace', cache as never, warn);
 
+    expect(hasPendingWorkspacePipelineCacheSave('/workspace')).toBe(true);
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
+    await vi.runAllTimersAsync();
+    expect(hasPendingWorkspacePipelineCacheSave('/workspace')).toBe(false);
     expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
     expect(warn).not.toHaveBeenCalled();
   });
@@ -58,9 +73,11 @@ describe('pipeline/service/cache/storage', () => {
 
     persistWorkspacePipelineCache('/workspace', cache as never, warn);
 
-    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
 
+    await vi.runAllTimersAsync();
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
     resolveSave();
     await savePromise;
   });
@@ -73,11 +90,35 @@ describe('pipeline/service/cache/storage', () => {
 
     persistWorkspacePipelineCache('/workspace', cache as never, warn);
 
+    await vi.runAllTimersAsync();
     await vi.waitFor(() => {
       expect(warn).toHaveBeenCalledWith(
         '[CodeGraphy] Failed to persist repo-local analysis cache.',
         error,
       );
     });
+  });
+
+  it('defers changed-file patches and writes only the selected cache entries', async () => {
+    const warn = vi.fn();
+    const cache = {
+      files: {
+        'src/changed.ts': { mtime: 2, analysis: {} },
+        'src/untouched.ts': { mtime: 1, analysis: {} },
+      },
+    };
+
+    patchWorkspacePipelineCache('/workspace', cache as never, {
+      deleteFilePaths: ['src/deleted.ts'],
+      upsertFilePaths: ['src/changed.ts'],
+    }, warn);
+
+    expect(patchWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
+    await vi.runAllTimersAsync();
+    expect(patchWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', {
+      deleteFilePaths: ['src/deleted.ts'],
+      upsertFiles: { 'src/changed.ts': { mtime: 2, analysis: {} } },
+    });
+    expect(warn).not.toHaveBeenCalled();
   });
 });

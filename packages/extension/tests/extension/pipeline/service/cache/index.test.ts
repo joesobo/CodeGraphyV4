@@ -11,10 +11,15 @@ import {
   writeCodeGraphyRepoMeta,
 } from '../../../../../src/extension/repoSettings/meta';
 import type { ICodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
+import { hasPendingWorkspacePipelineCacheSave } from '../../../../../src/extension/pipeline/service/cache/storage';
 
 vi.mock('../../../../../src/extension/repoSettings/meta', () => ({
   readCodeGraphyRepoMeta: vi.fn(),
   writeCodeGraphyRepoMeta: vi.fn(),
+}));
+
+vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
+  hasPendingWorkspacePipelineCacheSave: vi.fn(() => false),
 }));
 
 describe('pipeline/service/cache/index', () => {
@@ -50,6 +55,7 @@ describe('pipeline/service/cache/index', () => {
     vi.clearAllMocks();
     vi.useRealTimers();
     vi.mocked(readCodeGraphyRepoMeta).mockReturnValue(meta());
+    vi.mocked(hasPendingWorkspacePipelineCacheSave).mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -76,6 +82,13 @@ describe('pipeline/service/cache/index', () => {
     const workspaceRoot = createWorkspaceRootWithoutDatabase();
 
     expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(false);
+  });
+
+  it('reports an index while its full cache save is pending', () => {
+    const workspaceRoot = createWorkspaceRootWithoutDatabase();
+    vi.mocked(hasPendingWorkspacePipelineCacheSave).mockReturnValue(true);
+
+    expect(hasWorkspacePipelineIndex(workspaceRoot)).toBe(true);
   });
 
   it('still reports a saved index when persisted signatures do not match the current signatures', () => {

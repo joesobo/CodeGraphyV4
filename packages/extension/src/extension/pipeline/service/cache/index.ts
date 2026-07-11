@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import { persistCodeGraphyWorkspaceIndexMetadata } from '@codegraphy-dev/core';
 import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
 import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
+import { hasPendingWorkspacePipelineCacheSave } from './storage';
 
 interface WorkspacePipelineSignatureDependencies {
   getPluginSignature(): string | null;
@@ -28,7 +29,8 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  return fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
+  return hasPendingWorkspacePipelineCacheSave(workspaceRoot)
+    || fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
 }
 
 export async function persistWorkspacePipelineIndexMetadata(

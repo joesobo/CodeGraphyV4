@@ -5,6 +5,7 @@ export {
   loadWorkspaceAnalysisDatabaseCache,
   loadWorkspaceAnalysisDatabaseCacheAsync,
   patchWorkspaceAnalysisDatabaseCache,
+  patchWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,

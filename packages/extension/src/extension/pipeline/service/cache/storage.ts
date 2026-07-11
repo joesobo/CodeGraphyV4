@@ -1,9 +1,24 @@
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import { clearWorkspacePipelineCache } from '../../analysis/state';
 import {
-  patchWorkspaceAnalysisDatabaseCache,
+  patchWorkspaceAnalysisDatabaseCacheAsync,
   saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../database/cache/storage';
+import { createWorkspaceCachePersistenceScheduler } from '../../database/cache/scheduler';
+
+const persistenceScheduler = createWorkspaceCachePersistenceScheduler({
+  saveFull: saveWorkspaceAnalysisDatabaseCacheAsync,
+  savePatch: patchWorkspaceAnalysisDatabaseCacheAsync,
+  scheduleIdle: callback => setImmediate(callback),
+  warn: (message, error) => console.warn(message, error),
+});
+const pendingFullSaveWorkspaceRoots = new Set<string>();
+
+export function hasPendingWorkspacePipelineCacheSave(
+  workspaceRoot: string | undefined,
+): boolean {
+  return workspaceRoot ? pendingFullSaveWorkspaceRoots.has(workspaceRoot) : false;
+}
 
 export interface WorkspacePipelineCachePatch {
   deleteFilePaths: readonly string[];
@@ -21,15 +36,20 @@ export function persistWorkspacePipelineCache(
   workspaceRoot: string | undefined,
   cache: IWorkspaceAnalysisCache,
   warn: (message: string, error: unknown) => void,
+  onProgress?: (progress: { current: number; total: number }) => void,
 ): void {
   if (!workspaceRoot) {
     return;
   }
 
-  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache)
-    .catch((error: unknown) => {
-      warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
-    });
+  pendingFullSaveWorkspaceRoots.add(workspaceRoot);
+  persistenceScheduler.scheduleFull(
+    workspaceRoot,
+    cache,
+    onProgress,
+    warn,
+    () => pendingFullSaveWorkspaceRoots.delete(workspaceRoot),
+  );
 }
 
 export function patchWorkspacePipelineCache(
@@ -50,12 +70,8 @@ export function patchWorkspacePipelineCache(
     }
   }
 
-  try {
-    patchWorkspaceAnalysisDatabaseCache(workspaceRoot, {
-      deleteFilePaths: patch.deleteFilePaths,
-      upsertFiles,
-    });
-  } catch (error) {
-    warn('[CodeGraphy] Failed to patch repo-local analysis cache.', error);
-  }
+  persistenceScheduler.schedulePatch(workspaceRoot, {
+    deleteFilePaths: patch.deleteFilePaths,
+    upsertFiles,
+  }, warn);
 }
