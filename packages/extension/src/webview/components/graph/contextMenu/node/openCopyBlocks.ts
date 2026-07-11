@@ -25,6 +25,7 @@ export function buildOpenBlock(
   if (targets.length === 1) {
     entries.push(
       builtInItem('node-open-to-side', 'Open to the Side', 'openToSide'),
+      builtInItem('node-open-with', 'Open With…', 'openWith'),
       builtInItem('node-close-editor', 'Close Editor', 'closeEditor'),
     );
   }

@@ -19,6 +19,7 @@ function createHandlers(
     openFileToSide: vi.fn(() => Promise.resolve()),
     findInFolder: vi.fn(() => Promise.resolve()),
     closeFileEditor: vi.fn(() => Promise.resolve()),
+    openFileWith: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
@@ -128,6 +129,17 @@ describe('graph view node/file open message', () => {
     );
 
     expect(handlers.closeFileEditor).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('routes Open With requests', async () => {
+    const handlers = createHandlers();
+
+    await applyNodeFileOpenMessage(
+      { type: 'OPEN_FILE_WITH', payload: { path: 'src/app.ts' } },
+      handlers,
+    );
+
+    expect(handlers.openFileWith).toHaveBeenCalledWith('src/app.ts');
   });
 
   it('returns false for unrelated messages', async () => {

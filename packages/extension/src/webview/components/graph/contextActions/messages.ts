@@ -5,7 +5,8 @@ type SinglePathMessageType =
   | 'REVEAL_IN_EXPLORER'
   | 'RENAME_FILE'
   | 'FIND_IN_FOLDER'
-  | 'CLOSE_FILE_EDITOR';
+  | 'CLOSE_FILE_EDITOR'
+  | 'OPEN_FILE_WITH';
 type PathListMessageType =
   | 'DELETE_FILES'
   | 'TOGGLE_FAVORITE'

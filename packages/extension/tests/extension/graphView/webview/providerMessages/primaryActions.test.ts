@@ -67,6 +67,16 @@ describe('graph view provider listener primary actions', () => {
     expect(source._createFolder).toHaveBeenCalledWith('.');
   });
 
+  it('opens a file before showing the native editor picker', async () => {
+    const source = createSource();
+    const actions = createActions(source);
+
+    await actions.openFileWith('src/app.ts');
+
+    expect(source._openFile).toHaveBeenCalledWith('src/app.ts');
+    expect(vscode.commands.executeCommand).toHaveBeenCalledWith('workbench.action.reopenWith');
+  });
+
   it('delegates provider state and timeline actions', async () => {
     const source = createSource();
     const actions = createActions(source);

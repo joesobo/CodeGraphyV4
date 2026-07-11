@@ -36,6 +36,7 @@ export interface GraphViewPrimaryMessageContext {
   openFileToSide(filePath: string): Promise<void>;
   findInFolder(filePath: string): Promise<void>;
   closeFileEditor(filePath: string): Promise<void>;
+  openFileWith(filePath: string): Promise<void>;
   openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;

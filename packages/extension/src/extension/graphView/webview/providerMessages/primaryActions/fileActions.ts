@@ -16,6 +16,7 @@ type FileActions = Pick<
   | 'previewFileAtCommit'
   | 'openFile'
   | 'openFileToSide'
+  | 'openFileWith'
   | 'revealInExplorer'
   | 'copyToClipboard'
   | 'deleteFiles'
@@ -40,6 +41,10 @@ export function createFileActions(source: GraphViewProviderMessageListenerSource
       preview: false,
       viewColumn: vscode.ViewColumn.Beside,
     }),
+    openFileWith: async filePath => {
+      await source._openFile(resolveGraphOpenPath(source, filePath));
+      await vscode.commands.executeCommand('workbench.action.reopenWith');
+    },
     revealInExplorer: filePath => source._revealInExplorer(resolveGraphOpenPath(source, filePath)),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),

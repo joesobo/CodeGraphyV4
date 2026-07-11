@@ -85,6 +85,7 @@ describe('graph/contextMenu product scenarios', () => {
     expect(labels(entries)).toEqual([
       'Open File',
       'Open to the Side',
+      'Open With…',
       'Close Editor',
       'Cut',
       'Copy',

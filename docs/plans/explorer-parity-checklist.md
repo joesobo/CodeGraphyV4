@@ -12,7 +12,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
 | Open, including multi-file open | done(unit) | 2.1 | Entry builder covers `Open File` / `Open N Files`; provider action tests cover the host open path. |
-| Open to the Side / Open With… | partial | 2.4 | Open to the Side is wired through keyboard, context menu, and `ViewColumn.Beside`; Open With… remains. |
+| Open to the Side / Open With… | done(unit) | 2.4 | Open beside uses `ViewColumn.Beside`; Open With opens the target then invokes VS Code's native editor picker. |
 | Close Editor | done(unit) | 2.4 | Single-file context menus close every matching text tab through the stable tab-groups API while preserving focus. |
 | Reveal in Finder / Explorer | done(unit) | 2.1 | Entry, navigation, and provider action tests cover the built-in reveal path. |
 | Open in Integrated Terminal | todo(P2) | 2.4 | Not implemented. |

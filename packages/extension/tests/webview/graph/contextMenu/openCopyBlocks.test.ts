@@ -42,6 +42,15 @@ describe('buildOpenBlock', () => {
     });
   });
 
+  it('includes Open With for a single workspace file target', () => {
+    const entries = buildOpenBlock(['src/app.ts'], false);
+
+    expect(findItem(entries, 'Open With…')?.action).toEqual({
+      kind: 'builtin',
+      action: 'openWith',
+    });
+  });
+
   it('shows Open N Files for multiple targets', () => {
     const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts', 'c.ts'], false));
     expect(labels).toContain('Open 3 Files');

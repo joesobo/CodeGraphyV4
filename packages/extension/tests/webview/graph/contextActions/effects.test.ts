@@ -41,6 +41,13 @@ describe('graph/contextActions/effects', () => {
     }]);
   });
 
+  it('posts the selected file through the open-with host route', () => {
+    expect(getBuiltInContextActionEffects('openWith', nodeContext(['src/app.ts']))).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'OPEN_FILE_WITH', payload: { path: 'src/app.ts' } },
+    }]);
+  });
+
   it('uses the first selected path for reveal actions', () => {
     expect(getBuiltInContextActionEffects('reveal', nodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
       {

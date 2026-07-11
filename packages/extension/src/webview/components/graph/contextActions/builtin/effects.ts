@@ -27,6 +27,8 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createOptionalSinglePathMessageEffects(context.primaryTargetId, 'FIND_IN_FOLDER'),
   closeEditor: (context: GraphContextActionContext) =>
     createOptionalSinglePathMessageEffects(context.primaryTargetId, 'CLOSE_FILE_EDITOR'),
+  openWith: (context: GraphContextActionContext) =>
+    createOptionalSinglePathMessageEffects(context.primaryTargetId, 'OPEN_FILE_WITH'),
   openEdgeSource: (context: GraphContextActionContext) =>
     createOpenFileEffects(context.edgeSourceId ? [context.edgeSourceId] : []),
   openEdgeTarget: (context: GraphContextActionContext) =>

@@ -12,6 +12,7 @@ export interface GraphViewNodeFileOpenHandlers {
   openFileToSide(filePath: string): Promise<void>;
   findInFolder(filePath: string): Promise<void>;
   closeFileEditor(filePath: string): Promise<void>;
+  openFileWith(filePath: string): Promise<void>;
 }
 
 function canOpenPath(
@@ -96,6 +97,10 @@ export async function applyNodeFileOpenMessage(
 
     case 'CLOSE_FILE_EDITOR':
       await handlers.closeFileEditor(message.payload.path);
+      return true;
+
+    case 'OPEN_FILE_WITH':
+      await handlers.openFileWith(message.payload.path);
       return true;
 
     default:

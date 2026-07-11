@@ -83,6 +83,7 @@ describe('graph/contextMenuModel', () => {
     expect(menuLabels(liveEntries)).toEqual([
       'Open File',
       'Open to the Side',
+      'Open With…',
       'Close Editor',
       'Reveal in Explorer',
       'Cut',
@@ -107,6 +108,7 @@ describe('graph/contextMenuModel', () => {
     expect(menuLabels(timelineEntries)).toEqual([
       'Open File',
       'Open to the Side',
+      'Open With…',
       'Close Editor',
       'Cut',
       'Copy',
@@ -264,6 +266,7 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(singleSelectionEntries)).toEqual([
       'open',
       'openToSide',
+      'openWith',
       'closeEditor',
       'reveal',
       'cutFiles',
@@ -323,6 +326,7 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(singleLive)).toEqual([
       'open',
       'openToSide',
+      'openWith',
       'closeEditor',
       'reveal',
       'cutFiles',
@@ -347,6 +351,7 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(singleTimeline)).toEqual([
       'open',
       'openToSide',
+      'openWith',
       'closeEditor',
       'cutFiles',
       'copyFiles',
