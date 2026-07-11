@@ -25,6 +25,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       payload,
     })).toEqual({
       graphData: payload,
+      ghostGraphVisible: false,
       pendingFileMutations: {},
       isLoading: false,
       graphIsIndexing: false,
@@ -89,6 +90,21 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
     expect(state.graphData).toBe(graphData);
   });
 
+  it('removes the ghost treatment when the live graph is identical', () => {
+    const payload = createGraphData();
+    const state = createState({
+      bootstrapComplete: true,
+      graphData: cloneGraphData(payload),
+      ghostGraphVisible: true,
+      isLoading: false,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toEqual({ ghostGraphVisible: false });
+  });
+
   it('keeps loading while initial bootstrap is still waiting for app bootstrap completion', () => {
     const payload = createGraphData();
     const state = createState({
@@ -105,6 +121,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       { getState: () => state },
     )).toEqual({
       graphData: payload,
+      ghostGraphVisible: false,
       graphResetVersion: 1,
       pendingFileMutations: {},
       isLoading: true,
@@ -129,6 +146,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       { getState: () => state },
     )).toEqual({
       graphData: payload,
+      ghostGraphVisible: false,
       graphResetVersion: 1,
       pendingFileMutations: {},
       awaitingInitialBootstrap: false,

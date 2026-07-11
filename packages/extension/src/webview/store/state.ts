@@ -30,6 +30,7 @@ import type {
 export interface GraphState {
   autoReveal: AutoRevealMode;
   graphData: IGraphData | null;
+  ghostGraphVisible: boolean;
   graphRevision: number | null;
   graphResetVersion: number;
   pendingFileMutations: Record<string, IGraphData>;

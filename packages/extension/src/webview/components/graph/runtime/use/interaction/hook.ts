@@ -13,6 +13,7 @@ import { applyCursorToGraphSurface } from '../../../support/dom';
 import { useGraphTooltip } from '../tooltip/hook';
 import type { FGNode } from '../../../model/build';
 import { postMessage } from '../../../../../vscodeApi';
+import { getVsCodeApiInstance } from '../../../../../vscodeApiInstance';
 import type {
   UseGraphInteractionRuntimeOptions,
   UseGraphInteractionRuntimeResult,
@@ -32,6 +33,7 @@ import { useGraphViewportPanRuntime } from './viewportPan/hook';
 import { postPhysicsStabilized } from './engineStop';
 import { buildTooltipInteractionHandlers } from './tooltipAdapter';
 import { readGraphViewportScale } from './viewportScale';
+import { persistGhostGraph } from '../../../ghostGraph/persistence';
 
 export function useGraphInteractionRuntime({
   dataRef,
@@ -268,7 +270,10 @@ export function useGraphInteractionRuntime({
     ...contextMenuOpeningRuntime,
     handleBackgroundRightClick: suppressedContextMenuHandlers.handleBackgroundRightClick,
     handleContextMenu: suppressedContextMenuHandlers.handleContextMenu,
-    handleEngineStop: () => postPhysicsStabilized(postMessage),
+    handleEngineStop: () => {
+      persistGhostGraph(dataRef.current, graphDataRef.current.nodes, getVsCodeApiInstance());
+      postPhysicsStabilized(postMessage);
+    },
     handleLinkRightClick: suppressedContextMenuHandlers.handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
     handleNodeHover,

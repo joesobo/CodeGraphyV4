@@ -1,32 +1,14 @@
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
+import { getVsCodeApiInstance, type VsCodeApi } from './vscodeApiInstance';
 
-// Declare the VSCode API type
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-// Type for the vscode API
-export type VsCodeApi = ReturnType<typeof acquireVsCodeApi>;
-
-// Acquire the API exactly once at module load (VSCode requirement).
-// The try/catch handles environments where acquireVsCodeApi is missing
-// or has already been called (VSCode throws on double-acquire).
-let vscode: VsCodeApi | null = null;
-
-try {
-  vscode = acquireVsCodeApi();
-} catch {
-  // Not in VSCode context or already acquired
-}
+export type { VsCodeApi };
 
 /**
  * Get the VSCode API instance.
  * Returns null if not running in a VSCode webview context.
  */
 export function getVsCodeApi(): VsCodeApi | null {
-  return vscode;
+  return getVsCodeApiInstance();
 }
 
 /**
@@ -34,6 +16,7 @@ export function getVsCodeApi(): VsCodeApi | null {
  * No-op if not running in a VSCode webview context.
  */
 export function postMessage(message: WebviewToExtensionMessage): void {
+  const vscode = getVsCodeApiInstance();
   if (vscode) {
     vscode.postMessage(message);
   }

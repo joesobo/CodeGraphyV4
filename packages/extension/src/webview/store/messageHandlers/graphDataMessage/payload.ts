@@ -12,10 +12,15 @@ export function handleGraphDataUpdated(
 
   const state = ctx?.getState();
   if (state && shouldSkipDuplicateGraphData(state, message.payload)) {
-    return validGraphRevision(message.graphRevision)
+    const graphRevision = validGraphRevision(message.graphRevision)
       && message.graphRevision !== state.graphRevision
-      ? { graphRevision: message.graphRevision }
+      ? message.graphRevision
       : undefined;
+    if (!state.ghostGraphVisible && graphRevision === undefined) return undefined;
+    return {
+      ...(state.ghostGraphVisible ? { ghostGraphVisible: false } : {}),
+      ...(graphRevision === undefined ? {} : { graphRevision }),
+    };
   }
 
   const waitingForInitialBootstrap = Boolean(
@@ -29,6 +34,7 @@ export function handleGraphDataUpdated(
 
   return {
     graphData: message.payload,
+    ghostGraphVisible: false,
     pendingFileMutations: {},
     ...(state
       ? {

@@ -29,6 +29,7 @@ export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
   const {
     graphData,
+    ghostGraphVisible,
     isLoading,
     graphHasIndex,
     searchQuery,
@@ -176,8 +177,9 @@ export default function App(): React.ReactElement {
 
   return (
     <main
-      className="relative w-full h-screen flex flex-col"
+      className={`relative w-full h-screen flex flex-col${ghostGraphVisible ? ' opacity-45' : ''}`}
       data-codegraphy-surface="app"
+      data-codegraphy-ghost={ghostGraphVisible ? 'true' : undefined}
     >
       <SearchHeader
         searchQuery={searchQuery}

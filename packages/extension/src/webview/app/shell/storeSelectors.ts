@@ -7,6 +7,7 @@ import { useGraphStore } from '../../store/state';
 
 export function useAppState() {
   const graphData = useGraphStore(s => s.graphData);
+  const ghostGraphVisible = useGraphStore(s => s.ghostGraphVisible);
   const isLoading = useGraphStore(s => s.isLoading);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
@@ -37,6 +38,7 @@ export function useAppState() {
   const activeFilePath = useGraphStore(s => s.activeFilePath);
   return {
     graphData,
+    ghostGraphVisible,
     isLoading,
     graphHasIndex,
     graphIsIndexing,

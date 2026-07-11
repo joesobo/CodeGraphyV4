@@ -6,6 +6,7 @@ export function createState(
   return {
     autoReveal: true,
     graphData: null,
+    ghostGraphVisible: false,
     graphRevision: null,
     graphResetVersion: 0,
     pendingFileMutations: {},

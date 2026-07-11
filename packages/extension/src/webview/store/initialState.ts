@@ -2,10 +2,15 @@ import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
+import { getVsCodeApiInstance } from '../vscodeApiInstance';
+import { readPersistedGhostGraph } from '../components/graph/ghostGraph/persistence';
+
+const persistedGhostGraph = readPersistedGhostGraph(getVsCodeApiInstance());
 
 export const INITIAL_STATE: GraphStateFields = {
   autoReveal: true,
-  graphData: null,
+  graphData: persistedGhostGraph,
+  ghostGraphVisible: persistedGhostGraph !== null,
   graphRevision: null,
   graphResetVersion: 0,
   pendingFileMutations: {},
@@ -15,7 +20,7 @@ export const INITIAL_STATE: GraphStateFields = {
   graphIndexDetail: null,
   graphIsIndexing: false,
   graphIndexProgress: null,
-  isLoading: true,
+  isLoading: persistedGhostGraph === null,
   awaitingInitialBootstrap: false,
   bootstrapComplete: false,
   pendingPluginAssetLoads: 0,

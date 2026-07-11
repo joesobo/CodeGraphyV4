@@ -27,6 +27,7 @@ import type {
 export interface IStoreFields {
   autoReveal: AutoRevealMode;
   graphData: IGraphData | null;
+  ghostGraphVisible: boolean;
   graphRevision: number | null;
   graphResetVersion: number;
   pendingFileMutations: Record<string, IGraphData>;
