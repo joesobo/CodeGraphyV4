@@ -1,4 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import { fileComparisonMessageSchema } from '../../../../shared/protocol/fileComparison';
 
 export interface GraphViewNodeFileOpenHandlers {
   timelineActive: boolean;
@@ -109,9 +110,12 @@ export async function applyNodeFileOpenMessage(
       await handlers.openInTerminal(message.payload.path);
       return true;
 
-    case 'COMPARE_FILES':
-      await handlers.compareFiles(message.payload.leftPath, message.payload.rightPath);
+    case 'COMPARE_FILES': {
+      const parsed = fileComparisonMessageSchema.safeParse(message);
+      if (!parsed.success) return true;
+      await handlers.compareFiles(parsed.data.payload.leftPath, parsed.data.payload.rightPath);
       return true;
+    }
 
     default:
       return false;

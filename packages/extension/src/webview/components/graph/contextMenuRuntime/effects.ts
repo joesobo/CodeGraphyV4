@@ -4,6 +4,7 @@ import {
 } from '../contextActions/effects';
 import type { GraphContextActionContext } from '../contextActions/context';
 import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../contextMenu/contracts';
+import { classifyGraphContextNodeTarget } from '../contextMenu/decision/targets';
 import { applyContextEffects as runContextEffects } from '../effects/contextMenu';
 import type { GraphContextMenuRuntimeDependencies } from './controller';
 
@@ -64,6 +65,30 @@ function isFolderCreationContext(context: GraphContextActionContext): boolean {
   return context.selectionKind === 'background'
     || context.primaryTargetId === '(root)'
     || context.primaryNode?.nodeType === 'folder';
+}
+
+function isCompareActionValid(
+  action: Extract<BuiltInContextMenuAction, 'selectForCompare' | 'compareWithSelected'>,
+  menuAction: Extract<GraphContextMenuAction, { kind: 'builtin' }>,
+  context: GraphContextActionContext,
+): boolean {
+  if (
+    context.timelineActive
+    || context.selectionKind !== 'node'
+    || context.targetIds.length !== 1
+    || !context.primaryTargetId
+    || classifyGraphContextNodeTarget(context.primaryTargetId, context.primaryNode).nodeKind !== 'file'
+  ) {
+    return false;
+  }
+
+  if (action === 'selectForCompare') return true;
+  if (!menuAction.comparisonPath || !context.availableNodes) return false;
+  const comparisonNode = context.availableNodes.find(node => node.id === menuAction.comparisonPath);
+  return Boolean(
+    comparisonNode
+    && classifyGraphContextNodeTarget(menuAction.comparisonPath, comparisonNode).nodeKind === 'file'
+  );
 }
 
 function isBuiltInActionValid(
@@ -149,6 +174,9 @@ function isMenuActionValid(
   context: GraphContextActionContext,
 ): boolean {
   if (action.kind === 'builtin') {
+    if (action.action === 'selectForCompare' || action.action === 'compareWithSelected') {
+      return isCompareActionValid(action.action, action, context);
+    }
     return isBuiltInActionValid(action.action, context);
   }
 

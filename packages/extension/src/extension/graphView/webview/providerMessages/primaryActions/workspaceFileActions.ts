@@ -68,10 +68,20 @@ export function createWorkspaceFileActions(
     compareFiles: async (leftPath, rightPath) => {
       const workspaceUri = getWorkspaceUri();
       if (!workspaceUri) return;
+      const leftUri = vscode.Uri.joinPath(workspaceUri, leftPath);
+      const rightUri = vscode.Uri.joinPath(workspaceUri, rightPath);
+      try {
+        await Promise.all([
+          vscode.workspace.fs.stat(leftUri),
+          vscode.workspace.fs.stat(rightUri),
+        ]);
+      } catch {
+        return;
+      }
       await vscode.commands.executeCommand(
         'vscode.diff',
-        vscode.Uri.joinPath(workspaceUri, leftPath),
-        vscode.Uri.joinPath(workspaceUri, rightPath),
+        leftUri,
+        rightUri,
       );
     },
     cutFiles: async paths => {

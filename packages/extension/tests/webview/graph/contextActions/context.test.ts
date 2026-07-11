@@ -15,6 +15,8 @@ describe('graph/contextActions/context', () => {
       edgeSourceId: undefined,
       edgeTargetId: undefined,
       mutationDirectory: 'from.ts',
+      availableNodes: undefined,
+      timelineActive: false,
     });
   });
 

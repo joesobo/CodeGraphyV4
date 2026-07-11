@@ -151,8 +151,9 @@ export function useGraphInteractionRuntime({
     (selection: GraphContextSelection) => resolveGraphContextActionContext(selection, {
       graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
       nodes: graphDataRef.current.nodes,
+      timelineActive,
     }),
-    [graphDataRef, graphMode, refs.fg2dRef],
+    [graphDataRef, graphMode, refs.fg2dRef, timelineActive],
   );
 
   function handleNodeDragEnd(node: FGNode): void {

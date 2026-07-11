@@ -3,8 +3,15 @@ import type { GraphContextMenuRuntimeDependencies } from '../../../../src/webvie
 import { createContextMenuEffectRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/effects';
 import { resolveGraphContextActionContext } from '../../../../src/webview/components/graph/contextActions/context';
 
-function nodeContext(targets: string[]) {
-  return resolveGraphContextActionContext({ kind: 'node', targets });
+function nodeContext(
+  targets: string[],
+  options: { nodeType?: string; timelineActive?: boolean; nodes?: Array<{ id: string; nodeType: string }> } = {},
+) {
+  const nodes = options.nodes ?? targets.map(id => ({ id, nodeType: options.nodeType ?? 'file' }));
+  return resolveGraphContextActionContext({ kind: 'node', targets }, {
+    nodes,
+    timelineActive: options.timelineActive,
+  });
 }
 
 function createDependencies(
@@ -55,13 +62,36 @@ describe('graph/contextMenuRuntime/effects', () => {
         action: 'compareWithSelected',
         comparisonPath: 'src/app.ts',
       },
-      nodeContext(['src/next.ts']),
+      nodeContext(['src/next.ts'], {
+        nodes: [
+          { id: 'src/app.ts', nodeType: 'file' },
+          { id: 'src/next.ts', nodeType: 'file' },
+        ],
+      }),
     );
 
     expect(dependencies.postMessage).toHaveBeenCalledWith({
       type: 'COMPARE_FILES',
       payload: { leftPath: 'src/app.ts', rightPath: 'src/next.ts' },
     });
+  });
+
+  it.each([
+    ['a folder', nodeContext(['src'], { nodeType: 'folder' })],
+    ['multiple files', nodeContext(['src/a.ts', 'src/b.ts'])],
+    ['a historical Graph Revision', nodeContext(['src/next.ts'], { timelineActive: true })],
+    ['a stale armed file', nodeContext(['src/next.ts'])],
+  ])('rejects comparison actions for %s', (_label, context) => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction({
+      kind: 'builtin',
+      action: 'compareWithSelected',
+      comparisonPath: 'src/app.ts',
+    }, context);
+
+    expect(dependencies.postMessage).not.toHaveBeenCalled();
   });
 
   it('applies file clipboard actions for a node selection', () => {

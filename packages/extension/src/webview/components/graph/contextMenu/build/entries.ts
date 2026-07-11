@@ -16,6 +16,18 @@ import {
 import { buildGraphViewContextMenuEntries } from '../graphView/entries';
 import { buildPluginEntriesForDecision } from '../plugin/entries';
 import type { GraphContextMenuDecision } from '../decision/model';
+import { classifyGraphContextNodeTarget } from '../decision/targets';
+
+function resolveLiveCompareSelectedPath(
+  compareSelectedPath: string | null | undefined,
+  nodes: BuildGraphContextMenuOptions['nodes'],
+): string | null | undefined {
+  if (!compareSelectedPath || !nodes) return compareSelectedPath;
+  const node = nodes.find(candidate => candidate.id === compareSelectedPath);
+  return node && classifyGraphContextNodeTarget(compareSelectedPath, node).nodeKind === 'file'
+    ? compareSelectedPath
+    : null;
+}
 
 function getNodeTargetIds(
   decision: Extract<GraphContextMenuDecision, {
@@ -141,11 +153,12 @@ export function buildGraphContextMenuEntries(
     edges,
   } = options;
   const decision = decideGraphContextMenu(selection, nodes);
+  const liveCompareSelectedPath = resolveLiveCompareSelectedPath(compareSelectedPath, nodes);
   const baseEntries = buildBaseGraphContextMenuEntries(decision, {
     favorites,
     mutationAvailability: options.mutationAvailability,
     timelineActive,
-    compareSelectedPath,
+    compareSelectedPath: liveCompareSelectedPath,
   });
   const graphViewCreateEntries = decision.kind === 'background'
     ? buildGraphViewContextMenuEntries({

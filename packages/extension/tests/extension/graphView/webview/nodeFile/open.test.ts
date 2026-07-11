@@ -170,6 +170,18 @@ describe('graph view node/file open message', () => {
     expect(handlers.compareFiles).toHaveBeenCalledWith('src/app.ts', 'src/next.ts');
   });
 
+  it('ignores malformed compare-file payloads', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyNodeFileOpenMessage(
+      { type: 'COMPARE_FILES' } as never,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.compareFiles).not.toHaveBeenCalled();
+  });
+
   it('returns false for unrelated messages', async () => {
     const handlers = createHandlers();
 

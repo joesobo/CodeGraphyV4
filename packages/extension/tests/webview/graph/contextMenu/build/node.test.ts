@@ -112,6 +112,20 @@ describe('graph/contextMenu/build/node', () => {
     });
   });
 
+  it('does not offer comparison with an armed file missing from the live graph', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/next.ts', new Set()),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      compareSelectedPath: 'src/deleted.ts',
+      nodes: [{ id: 'src/next.ts', nodeType: 'file' }],
+    });
+
+    expect(itemLabels(entries)).toContain('Select for Compare');
+    expect(itemLabels(entries)).not.toContain('Compare with Selected');
+  });
+
   it('builds child creation actions from a single folder context', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),

@@ -3,6 +3,7 @@ import type { GraphContextMenuNode, GraphContextSelection } from '../contextMenu
 export interface ResolveGraphContextActionOptions {
   graphViewportScale?: number | null;
   nodes?: readonly GraphContextMenuNode[];
+  timelineActive?: boolean;
 }
 
 export interface GraphContextActionContext {
@@ -17,6 +18,8 @@ export interface GraphContextActionContext {
   graphViewportScale?: number | null;
   mutationDirectory: string;
   comparisonPath?: string;
+  availableNodes?: readonly GraphContextMenuNode[];
+  timelineActive: boolean;
 }
 
 export function resolveGraphContextActionContext(
@@ -37,6 +40,8 @@ export function resolveGraphContextActionContext(
     graphPosition: selection.graphPosition,
     graphViewportScale: options.graphViewportScale,
     mutationDirectory: resolveMutationDirectory(primaryTargetId),
+    availableNodes: options.nodes,
+    timelineActive: options.timelineActive ?? false,
   };
 }
 

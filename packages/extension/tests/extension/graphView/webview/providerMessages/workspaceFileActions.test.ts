@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as vscode from 'vscode';
 import * as vscodeRuntime from 'vscode';
 import { ClipboardFilesState } from '../../../../../src/extension/actions/clipboardFiles/state';
@@ -36,6 +36,10 @@ function createHarness(confirm: string | undefined = 'Move') {
 }
 
 describe('providerMessages/primaryActions/workspaceFileActions', () => {
+  beforeEach(() => {
+    vi.mocked(vscodeRuntime.commands.executeCommand).mockClear();
+    vi.mocked(vscodeRuntime.workspace.fs.stat).mockResolvedValue({} as vscode.FileStat);
+  });
   it('opens an integrated terminal in the selected folder', async () => {
     const harness = createHarness();
 
@@ -67,6 +71,20 @@ describe('providerMessages/primaryActions/workspaceFileActions', () => {
       'vscode.diff',
       expect.objectContaining({ fsPath: '/workspace/src/app.ts' }),
       expect.objectContaining({ fsPath: '/workspace/src/next.ts' }),
+    );
+  });
+
+  it('does not open a diff when the armed file no longer exists', async () => {
+    const harness = createHarness();
+    vi.mocked(vscodeRuntime.workspace.fs.stat)
+      .mockRejectedValueOnce(new Error('missing'));
+
+    await harness.actions.compareFiles('src/deleted.ts', 'src/next.ts');
+
+    expect(vscodeRuntime.commands.executeCommand).not.toHaveBeenCalledWith(
+      'vscode.diff',
+      expect.anything(),
+      expect.anything(),
     );
   });
 
