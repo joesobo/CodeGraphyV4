@@ -11,15 +11,15 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
-| Open, including multi-file open | verify(P2) | 2.1 | Verify node multi-selection through the primary-action host path in the Dev Host. |
+| Open, including multi-file open | done(unit) | 2.1 | Entry builder covers `Open File` / `Open N Files`; provider action tests cover the host open path. |
 | Open to the Side / Open With… | todo(P2) | 2.4 | Not implemented. |
-| Reveal in Finder / Explorer | verify(P2) | 2.1 | Verify the `reveal` built-in context action against a real file node. |
+| Reveal in Finder / Explorer | done(unit) | 2.1 | Entry, navigation, and provider action tests cover the built-in reveal path. |
 | Open in Integrated Terminal | todo(P2) | 2.4 | Not implemented. |
 | Select for Compare / Compare with Selected | todo(P2) | 2.4 | Not implemented. |
 | Open Timeline | waived(Graph Revision view) | — | Graph Revision is the graph-native timeline surface. |
 | Cut / Copy / Paste | todo(P2) | 2.2 | Not implemented. |
-| Copy Path / Copy Relative Path | verify(P2) | 2.1 | Verify both clipboard variants from a file node. |
-| Rename | verify(P2) | 2.1 / 6.2 | Prompt flow exists; inline editing remains Phase 6. |
+| Copy Path / Copy Relative Path | done(unit) | 2.1 | Single/multi relative-path and single absolute-path entry contracts plus clipboard host action pass. |
+| Rename | done(unit) | 2.1 / 6.2 | Prompt-based provider action is covered; inline editing remains Phase 6. |
 | Delete to trash | partial | 6.1 | Delete exists; `files.enableTrash` and Explorer confirmation parity remain. |
 | Share vscode.dev link | waived(web-only) | — | Desktop extension does not expose Explorer's web sharing surface. |
 
@@ -27,11 +27,11 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
-| New File / New Folder | verify(P2) | 2.1 | Verify file and folder nodes plus background creation in the Dev Host. |
+| New File / New Folder | done(unit) | 2.1 | Folder entry and provider host-action tests cover enabled, disabled, hidden, root, and nested contexts. |
 | Nested-path create (`a/b/c.ts`) | done(unit) | 2.1 | 120 focused tests pass across `createPath.test.ts`, graph-view `files/actions.test.ts`, and `createFile.test.ts`; real Dev Host screenshot remains part of the Phase 2.1 walkthrough. |
 | Find in Folder… | todo(P2) | 2.5 | Not implemented. |
 | Paste | todo(P2) | 2.2 | Not implemented. |
-| Reveal / copy paths / rename / delete | verify(P2) | 2.1 | Verify folder actions and root mutation protection together. |
+| Reveal / copy paths / rename / delete | done(unit) | 2.1 | Folder entries enforce mutation availability and synthetic-root protection; provider actions cover host dispatch. |
 
 ## Keyboard
 
@@ -79,8 +79,8 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 ## Phase 2-A accounting
 
 - `todo` / `partial`: 24
-- `verify`: 9
-- `done(unit)`: 4
+- `verify`: 3
+- `done(unit)`: 10
 - `waived`: 6
 - `deferred`: 1
 
