@@ -321,6 +321,8 @@ export async function launchPerfSession(
           metrics: [
             ...baseResult.metrics,
             { metric: 'idleCpuPct', unit: 'percent', value: idleCpu.idleCpuPct },
+            { dimension: 'renderer', metric: 'idleCpuPct', unit: 'percent', value: idleCpu.rendererIdleCpuPct },
+            { dimension: 'extension-host', metric: 'idleCpuPct', unit: 'percent', value: idleCpu.extensionHostIdleCpuPct },
           ],
         })
       : baseResult;

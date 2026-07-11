@@ -531,6 +531,8 @@ describe('performance report assembly', () => {
     };
     input.results.find(result => result.scenario === 'idle-watch')!.metrics.push(
       metric('idleCpuPct', 0.75),
+      { ...metric('idleCpuPct', 0.5), dimension: 'renderer' },
+      { ...metric('idleCpuPct', 0.25), dimension: 'extension-host' },
     );
     delete input.codeGraphyRevealMs;
     delete input.explorer;

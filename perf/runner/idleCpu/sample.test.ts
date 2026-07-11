@@ -76,7 +76,9 @@ describe('idle CPU sampling', () => {
       sampleIntervalMs: 60_000,
     }, dependencies)).resolves.toEqual({
       extensionHostPids: [102],
+      extensionHostIdleCpuPct: 0.25,
       idleCpuPct: 1,
+      rendererIdleCpuPct: 0.75,
       rendererPids: [101],
       targetPids: [101, 102],
     });
@@ -104,6 +106,8 @@ describe('idle CPU sampling', () => {
     expect(dependencies.sleep.mock.calls).toEqual([[1_000], [1_000], [500]]);
     expect(dependencies.sample).toHaveBeenCalledTimes(4);
     expect(result.idleCpuPct).toBe(2.6);
+    expect(result.rendererIdleCpuPct).toBe(1);
+    expect(result.extensionHostIdleCpuPct).toBe(1.6);
   });
 
   it('normalizes negative sampler noise to a nonnegative percentage', async () => {
@@ -118,6 +122,8 @@ describe('idle CPU sampling', () => {
     }, dependencies);
 
     expect(result.idleCpuPct).toBe(0.25);
+    expect(result.rendererIdleCpuPct).toBe(0);
+    expect(result.extensionHostIdleCpuPct).toBe(0.25);
   });
 
   it('clears sampler state when sampling fails', async () => {

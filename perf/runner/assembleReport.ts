@@ -358,7 +358,9 @@ function findMeasurement(
   metricName: string,
   fallback: number | undefined,
 ): number {
-  const matches = metrics.filter(metric => metric.metric === metricName);
+  const matches = metrics.filter(metric => (
+    metric.metric === metricName && metric.dimension === undefined
+  ));
   if (matches.length > 1) {
     throw new Error(`Duplicate measurement: ${metricName}`);
   }

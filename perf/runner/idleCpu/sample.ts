@@ -37,7 +37,15 @@ export interface IdleCpuSampleOptions {
 }
 
 export interface IdleCpuSampleResult extends VsCodeSessionProcesses {
+  extensionHostIdleCpuPct: number;
   idleCpuPct: number;
+  rendererIdleCpuPct: number;
+}
+
+interface IdleCpuAverages {
+  extensionHostIdleCpuPct: number;
+  idleCpuPct: number;
+  rendererIdleCpuPct: number;
 }
 
 const defaultDependencies: IdleCpuSampleDependencies = {
@@ -91,14 +99,16 @@ function aggregateCpuPct(
 }
 
 async function sampleAcrossIdleDuration(
-  pids: readonly number[],
+  session: VsCodeSessionProcesses,
   durationMs: number,
   sampleIntervalMs: number,
   clock: IdleCpuClock,
   sampler: IdleCpuSampler,
-): Promise<number> {
+): Promise<IdleCpuAverages> {
   let sampledDurationMs = 0;
   let weightedCpuPct = 0;
+  let weightedExtensionHostCpuPct = 0;
+  let weightedRendererCpuPct = 0;
 
   while (sampledDurationMs < durationMs) {
     const intervalDurationMs = Math.min(
@@ -111,13 +121,19 @@ async function sampleAcrossIdleDuration(
       throw new Error('Idle CPU sample clock did not advance');
     }
 
-    const stats = await sampler.sample(pids);
-    requireCpuStats(pids, stats);
-    weightedCpuPct += aggregateCpuPct(pids, stats) * intervalDurationMs;
+    const stats = await sampler.sample(session.targetPids);
+    requireCpuStats(session.targetPids, stats);
+    weightedCpuPct += aggregateCpuPct(session.targetPids, stats) * intervalDurationMs;
+    weightedRendererCpuPct += aggregateCpuPct(session.rendererPids, stats) * intervalDurationMs;
+    weightedExtensionHostCpuPct += aggregateCpuPct(session.extensionHostPids, stats) * intervalDurationMs;
     sampledDurationMs += intervalDurationMs;
   }
 
-  return Math.max(0, weightedCpuPct / sampledDurationMs);
+  return {
+    extensionHostIdleCpuPct: Math.max(0, weightedExtensionHostCpuPct / sampledDurationMs),
+    idleCpuPct: Math.max(0, weightedCpuPct / sampledDurationMs),
+    rendererIdleCpuPct: Math.max(0, weightedRendererCpuPct / sampledDurationMs),
+  };
 }
 
 export async function sampleVsCodeIdleCpu(
@@ -133,8 +149,8 @@ export async function sampleVsCodeIdleCpu(
 
     const baseline = await dependencies.sampler.sample(session.targetPids);
     requireCpuStats(session.targetPids, baseline);
-    const idleCpuPct = await sampleAcrossIdleDuration(
-      session.targetPids,
+    const averages = await sampleAcrossIdleDuration(
+      session,
       options.durationMs,
       sampleIntervalMs,
       dependencies.clock,
@@ -143,7 +159,7 @@ export async function sampleVsCodeIdleCpu(
 
     return {
       ...session,
-      idleCpuPct,
+      ...averages,
     };
   } finally {
     dependencies.sampler.clear();

@@ -130,7 +130,9 @@ describe('performance VS Code scenario launcher', () => {
       expect(testCompleted).toBe(false);
       return {
         extensionHostPids: [102],
+        extensionHostIdleCpuPct: 0.2,
         idleCpuPct: 0.5,
+        rendererIdleCpuPct: 0.3,
         rendererPids: [101],
         targetPids: [101, 102],
       };
@@ -154,6 +156,18 @@ describe('performance VS Code scenario launcher', () => {
       metric: 'idleCpuPct',
       unit: 'percent',
       value: 0.5,
+    });
+    expect(result.metrics).toContainEqual({
+      dimension: 'renderer',
+      metric: 'idleCpuPct',
+      unit: 'percent',
+      value: 0.3,
+    });
+    expect(result.metrics).toContainEqual({
+      dimension: 'extension-host',
+      metric: 'idleCpuPct',
+      unit: 'percent',
+      value: 0.2,
     });
     expect(JSON.parse(await readFile(resultPath, 'utf8'))).toEqual(result);
   });
