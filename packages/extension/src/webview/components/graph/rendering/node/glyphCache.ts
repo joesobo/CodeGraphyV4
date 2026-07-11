@@ -57,7 +57,8 @@ function createGlyph(
   scale: number,
 ): CachedGlyph | undefined {
   const bounds = getNodeBounds(options.node);
-  const padding = Math.max(4 / options.globalScale, options.node.borderWidth / options.globalScale + 2);
+  const logicalScale = scale / getDeviceScale();
+  const padding = Math.max(4 / logicalScale, options.node.borderWidth / logicalScale + 2);
   const width = bounds.width + padding * 2;
   const height = bounds.height + padding * 2;
   const canvas = createCanvas(Math.ceil(width * scale), Math.ceil(height * scale));
@@ -70,6 +71,7 @@ function createGlyph(
   renderNodeBody({
     ...options,
     ctx: context,
+    globalScale: logicalScale,
     node: {
       ...options.node,
       x: width / 2,
@@ -103,8 +105,11 @@ function getCanvasContext(canvas: CanvasImageSource): CanvasRenderingContext2D |
 }
 
 function getGlyphScale(globalScale: number): number {
-  const deviceScale = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
-  return Math.min(4, Math.max(0.5, Math.round(globalScale * deviceScale * 2) / 2));
+  return Math.min(4, Math.max(0.5, Math.round(globalScale * getDeviceScale() * 2) / 2));
+}
+
+function getDeviceScale(): number {
+  return typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
 }
 
 function getNodeBounds(node: FGNode): { height: number; width: number } {
@@ -116,13 +121,12 @@ function getNodeBounds(node: FGNode): { height: number; width: number } {
 }
 
 function getGlyphKey(options: RenderCachedNodeGlyphOptions, scale: number): string {
-  const { appearance, decoration, globalScale, isSelected, node, opacity } = options;
+  const { appearance, decoration, isSelected, node, opacity } = options;
   return JSON.stringify([
     appearance.nodeSelectionBorder,
     appearance.transparent,
     decoration?.border,
     decoration?.color,
-    globalScale,
     isSelected,
     node.borderColor,
     node.borderWidth,

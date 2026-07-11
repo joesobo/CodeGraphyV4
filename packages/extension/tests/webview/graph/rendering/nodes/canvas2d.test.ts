@@ -204,7 +204,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
     const node = createNode({ color: '#123456' });
 
     renderNodeCanvas(createDependencies(), node, first.ctx, 1);
-    renderNodeCanvas(createDependencies(), node, second.ctx, 1);
+    renderNodeCanvas(createDependencies(), node, second.ctx, 1.1);
 
     expect(drawShape).toHaveBeenCalledOnce();
     expect(drawShape).toHaveBeenCalledWith(spriteContext, 'circle', 20, 20, 16);
