@@ -8,6 +8,10 @@ import {
   updateOwnedGraphLayout,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import {
+  releaseOwnedDraggedNodes,
+  synchronizeOwnedDraggedNodes,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drag';
+import {
   createGraphLayoutEngine,
   GraphNodeFlag,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
@@ -180,6 +184,37 @@ describe('owned graph dynamic updates', () => {
     expect(Array.from(layout.engine.y)).toEqual([200, 400, 600]);
     expect(Array.from(layout.engine.vx)).toEqual([5, 7, 0]);
     expect(Array.from(layout.engine.vy)).toEqual([6, 8, 0]);
+  });
+});
+
+describe('owned graph group dragging', () => {
+  it('moves every selected drag participant through typed physics and releases only temporary pins', () => {
+    const nodes = [
+      node('primary', { x: 10, y: 20, isDragging: true }),
+      node('selected', { x: 30, y: 40, isDragging: true }),
+      node('permanent', { x: 50, y: 60, isDragging: true, isPinned: true }),
+    ];
+    const layout = createOwnedGraphLayout(nodes, [], DEFAULT_SETTINGS);
+    nodes[0].x = 110;
+    nodes[0].y = 120;
+    nodes[1].x = 130;
+    nodes[1].y = 140;
+    nodes[2].x = 150;
+    nodes[2].y = 160;
+    const draggedIndexes = new Set<number>();
+
+    synchronizeOwnedDraggedNodes(layout, draggedIndexes);
+    expect(Array.from(draggedIndexes)).toEqual([0, 1, 2]);
+    expect(Array.from(layout.engine.x)).toEqual([110, 130, 150]);
+    expect(Array.from(layout.engine.y)).toEqual([120, 140, 160]);
+    expect(Array.from(layout.engine.flags)).toEqual([
+      GraphNodeFlag.Pinned,
+      GraphNodeFlag.Pinned,
+      GraphNodeFlag.Pinned,
+    ]);
+
+    releaseOwnedDraggedNodes(layout, draggedIndexes);
+    expect(Array.from(layout.engine.flags)).toEqual([0, 0, GraphNodeFlag.Pinned]);
   });
 });
 

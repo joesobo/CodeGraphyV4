@@ -18,6 +18,7 @@ import {
 } from './camera';
 import type { OwnedGraph2dControls, OwnedGraphNodeStyle, Surface2dProps } from './contracts';
 import { drawOwnedGraph, drawOwnedGraphLabels, drawOwnedGraphOverlay } from './drawing';
+import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import {
   applyOwnedPhysicsSettings,
   createOwnedGraphLayout,
@@ -466,15 +467,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       node.fx = world.x;
       node.fy = world.y;
       propsRef.current.sharedProps.onNodeDrag?.(node, translate);
-      for (let index = 0; index < layout.nodes.length; index += 1) {
-        const draggedNode = layout.nodes[index];
-        if (draggedNode.isDragging !== true) continue;
-        if (Number.isFinite(draggedNode.x) && Number.isFinite(draggedNode.y)) {
-          layout.engine.setNodePosition(index, draggedNode.x as number, draggedNode.y as number);
-          layout.engine.pin(index);
-          session.draggedIndexes.add(index);
-        }
-      }
+      synchronizeOwnedDraggedNodes(layout, session.draggedIndexes);
       engineStopNotifiedRef.current = false;
       requestFrameRef.current();
       return;
@@ -525,13 +518,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     } else {
       propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
     }
-    for (const index of session.draggedIndexes) {
-      const draggedNode = layout.nodes[index];
-      if (draggedNode.isPinned === true) continue;
-      draggedNode.fx = undefined;
-      draggedNode.fy = undefined;
-      layout.engine.release(index);
-    }
+    releaseOwnedDraggedNodes(layout, session.draggedIndexes);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
