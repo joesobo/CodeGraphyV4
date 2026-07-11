@@ -45,10 +45,31 @@ interface ScheduleWorkspaceRefreshOptions {
   now?: () => number;
 }
 
+interface RecentLargeBurst {
+  expiresAt: number;
+  filePaths: Set<string>;
+}
+
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
 const activeWorkspaceRefreshes = new WeakMap<GraphViewProvider, Promise<unknown>>();
+const recentLargeBursts = new WeakMap<GraphViewProvider, RecentLargeBurst>();
 const LARGE_BURST_EVENT_THRESHOLD = 20;
 const LARGE_BURST_QUIET_WINDOW_MS = 250;
+const LARGE_BURST_RETENTION_MS = 30_000;
+
+function overlapsRecentLargeBurst(
+  provider: GraphViewProvider,
+  filePaths: ReadonlySet<string>,
+  scheduledAt: number,
+): boolean {
+  const recent = recentLargeBursts.get(provider);
+  if (!recent) return false;
+  if (recent.expiresAt < scheduledAt) {
+    recentLargeBursts.delete(provider);
+    return false;
+  }
+  return [...filePaths].some(filePath => recent.filePaths.has(filePath));
+}
 
 function isGraphOpen(provider: GraphViewProvider): boolean {
   return provider.isGraphOpen?.() ?? true;
@@ -77,9 +98,10 @@ export function scheduleWorkspaceRefresh(
 ): void {
   interruptWorkspaceRefreshQuietWindow(provider);
   const now = options.now ?? (() => performance.now());
+  const scheduledAt = now();
   const emitMetric = captureActivePerfMetricEmitter();
   let watcherMetricTiming = emitMetric
-    ? { emit: emitMetric, now, startedAt: now() }
+    ? { emit: emitMetric, now, startedAt: scheduledAt }
     : undefined;
   const nextFilePaths = new Set(filePaths);
   let followUpDelayMs = options.followUpDelayMs;
@@ -129,8 +151,17 @@ export function scheduleWorkspaceRefresh(
     }
   }
 
-  if (eventCount > LARGE_BURST_EVENT_THRESHOLD) {
+  if (
+    eventCount > LARGE_BURST_EVENT_THRESHOLD
+    || overlapsRecentLargeBurst(provider, nextFilePaths, scheduledAt)
+  ) {
     refreshDelayMs = Math.max(refreshDelayMs, LARGE_BURST_QUIET_WINDOW_MS);
+  }
+  if (eventCount > LARGE_BURST_EVENT_THRESHOLD) {
+    recentLargeBursts.set(provider, {
+      expiresAt: scheduledAt + LARGE_BURST_RETENTION_MS,
+      filePaths: new Set(nextFilePaths),
+    });
   }
 
   const nextPending: PendingWorkspaceRefresh = {

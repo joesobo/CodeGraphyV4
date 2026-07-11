@@ -139,6 +139,48 @@ describe('workspaceFiles/refresh/scheduler', () => {
     );
   });
 
+  it('extends a partial follow-on wave that overlaps a recent large burst', async () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    for (let index = 0; index < 100; index += 1) {
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File changed, refreshing graph',
+        [`/workspace/src/file-${index}.ts`],
+        32,
+      );
+    }
+    await vi.advanceTimersByTimeAsync(250);
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+
+    for (let index = 0; index < 13; index += 1) {
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File changed, refreshing graph',
+        [`/workspace/src/file-${index}.ts`],
+        32,
+      );
+    }
+    await vi.advanceTimersByTimeAsync(249);
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+
+    for (let index = 13; index < 100; index += 1) {
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File changed, refreshing graph',
+        [`/workspace/src/file-${index}.ts`],
+        32,
+      );
+    }
+    await vi.advanceTimersByTimeAsync(250);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
+    expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith(
+      Array.from({ length: 100 }, (_, index) => `/workspace/src/file-${99 - index}.ts`),
+    );
+  });
+
   it('keeps the file-operation debounce for a pure file-operation burst', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
