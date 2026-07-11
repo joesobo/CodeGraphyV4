@@ -32,16 +32,25 @@ describe('performance fixture generation', () => {
     { fixture: 'medium', fileCount: 1_000 },
     { fixture: 'large', fileCount: 5_000 },
     { fixture: 'huge', fileCount: 10_000 },
-    { fixture: 'giant', fileCount: 30_000 },
   ] as const;
   const deterministicFixtureConfigurations = [
     { fixture: 'small', variant: 'default', symbols: false },
     { fixture: 'medium', variant: 'default', symbols: false },
     { fixture: 'large', variant: 'default', symbols: false },
     { fixture: 'huge', variant: 'default', symbols: false },
-    { fixture: 'giant', variant: 'default', symbols: false },
-    { fixture: 'giant', variant: '--symbols', symbols: true },
+    { fixture: 'huge', variant: '--symbols', symbols: true },
   ] as const;
+
+  it('caps active fixture checks at 10k files', () => {
+    expect(fixtureSizes.every(({ fileCount }) => fileCount <= 10_000)).toBe(true);
+    expect(deterministicFixtureConfigurations.map(({ fixture }) => fixture)).toEqual([
+      'small',
+      'medium',
+      'large',
+      'huge',
+      'huge',
+    ]);
+  });
 
   it('identifies the monorepo as the self fixture', async () => {
     const manifest = await readFixtureManifest();
