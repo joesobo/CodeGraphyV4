@@ -458,9 +458,9 @@ The canvas behaves like a desktop (owner spec, 2026-07-09): background drag = ma
 
 ### Tasks
 
-- [ ] **5.1 Pointer routing:** background pointer-down router (marquee vs Ctrl-pan vs click-clear); update any onboarding/help copy that mentions drag-to-pan. Acceptance: all three background gestures.
-- [ ] **5.2 Physical group drag:** pin-to-pointer via fx/fy + local reheat during drag; measured `fpsDrag` at `large` with a 50-node selection; release settles and stops.
-- [ ] **5.3 Selection-context menus:** selection-wide entries + count header + disabled-with-reason rows; wire every Phase 2 multi-capable action; absorbs the two context-target bug cards.
+- [x] **5.1 Pointer routing:** background pointer-down router (marquee vs Ctrl-pan vs click-clear); update any onboarding/help copy that mentions drag-to-pan. Acceptance: all three background gestures.
+- [x] **5.2 Physical group drag:** pin-to-pointer via fx/fy + local reheat during drag; measured `fpsDrag` at `large` with a 50-node selection; release settles and stops.
+- [x] **5.3 Selection-context menus:** selection-wide entries + count header + disabled-with-reason rows; wire every Phase 2 multi-capable action; absorbs the two context-target bug cards.
 - [ ] **5.4 Interaction acceptance pack + Dev Host walkthrough** with screen recordings (these become Phase 8 material).
 
 ## Checkpoints
@@ -471,6 +471,13 @@ The canvas behaves like a desktop (owner spec, 2026-07-09): background drag = ma
 | 5-B | Physical drag | dragging 1 node with 10 neighbors on `medium`: neighbors displace ≥ some nonzero delta within 250ms (edges visibly tug — asserted on sim positions); `fpsDrag` ≥ 30 at `large` with 50-node selection; sim stops after release (3-F holds) |
 | 5-C | Selection menus | every multi-capable action executes against N selected nodes in one invocation (acceptance per action); menu header shows correct count; single-only actions disabled with tooltip at N > 1 |
 | 5-D | No perf regression | interaction-burst scenario ≥ Phase 3 numbers (no new long tasks from the pointer router) |
+
+### Phase 5 implementation checkpoint and large-drag blocker (2026-07-11)
+
+- The 2D surface keeps the library's native pan disabled and routes capture events through the existing desktop gesture runtimes: plain empty-background drag starts marquee selection, Shift extends it, Ctrl-left/middle/right drag uses the custom viewport pan, and an unmodified background click clears selection. The focused interaction runtime pack passes 88/88 tests; no onboarding copy still described plain drag as pan.
+- A drag now resumes and reheats the active simulation once at drag start. Every selected group member follows via fixed coordinates while link forces remain live, so an unselected linked neighbor moves in the deterministic force test. Drag end releases temporary `fx`/`fy`/`fz` coordinates for ordinary nodes while preserving explicit pins and plugin-owned fixed-position policies; settle-and-stop remains on the existing engine lifecycle.
+- Node context menus now show the exact target (`src/app.ts`) or a count header (`2 files selected`). Multi-selection executes Open, Open to the Side, Cut, Copy, Copy Relative Paths, favorites, filters, and Delete against the captured target set. Rename and compare stay visible but disabled with reason text when the selection is too broad. The context-menu plus marquee pack passes 361/361 tests.
+- The real-VS-Code `large` interaction workload now deterministically selects 50 nodes before running the production group-drag path. One initial isolated launch failed before the scenario while waiting for initial graph indexing and is retained as infrastructure evidence; after the standard cold-open preparation, five complete samples recorded `fpsDrag` values of `4.629`, `4.604`, `4.564`, `4.552`, and `4.532` FPS (median `4.564`, CV `0.77%`) with 71 long tasks in every sample. This fails the 30 FPS 5-B threshold and cannot satisfy 5-D; it is the same previously recorded large-render bottleneck, not an unstable drag measurement. Task 5.4 and the visual walkthrough remain open.
 
 ---
 
