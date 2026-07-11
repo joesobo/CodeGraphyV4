@@ -68,6 +68,14 @@ function prepareObservedGraphCommit(
   return lifecycle.prepareCommit(input);
 }
 
+function canPublishStableScopeCommit(
+  commit: PendingGraphCommit['commit'],
+): boolean {
+  return commit.operation.scenario === 'scope-toggle'
+    && !commit.layoutChanged
+    && commit.scopeVisibility !== undefined;
+}
+
 export function useGraphPerfCommit(
   {
     edgeCount,
@@ -98,6 +106,10 @@ export function useGraphPerfCommit(
     }, lifecycle);
     if (!commit) {
       cancelPendingGraphCommit(pendingRef, cancelFrame);
+      return;
+    }
+    if (!pendingRef.current && canPublishStableScopeCommit(commit)) {
+      lifecycle.publishCommit(commit);
       return;
     }
     enqueueGraphCommit(commit, pendingRef, {

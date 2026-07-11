@@ -10,6 +10,31 @@ const scopeVisibility: PerfScopeVisibilitySnapshot = {
 };
 
 describe('webview/perf/graph/commit', () => {
+  it('publishes a stable scope projection after React commits without another frame', () => {
+    const preparedCommit = {
+      operation: { scenario: 'scope-toggle' },
+      layoutChanged: false,
+      scopeVisibility,
+    } as never;
+    const lifecycle = {
+      prepareCommit: vi.fn(() => preparedCommit),
+      publishCommit: vi.fn(),
+    };
+    const requestFrame = vi.fn();
+
+    renderHook(() => useGraphPerfCommit({
+      edgeCount: 0,
+      layoutKey: 'uniform::stable',
+      nodeCount: 0,
+      revision: {},
+      scopeProjectionRevision: 8,
+      scopeVisibility,
+    }, { cancelFrame: vi.fn(), lifecycle, requestFrame }));
+
+    expect(requestFrame).not.toHaveBeenCalled();
+    expect(lifecycle.publishCommit).toHaveBeenCalledWith(preparedCommit);
+  });
+
   it('publishes a prepared graph event on the frame after React commits', () => {
     const preparedCommit = { operation: {}, layoutChanged: false } as never;
     const lifecycle = {
@@ -39,6 +64,36 @@ describe('webview/perf/graph/commit', () => {
       scopeProjectionRevision: 7,
       scopeVisibility,
     });
+    expect(lifecycle.publishCommit).not.toHaveBeenCalled();
+    act(() => frameCallback?.(16));
+    expect(lifecycle.publishCommit).toHaveBeenCalledWith(preparedCommit);
+  });
+
+  it('keeps a layout-changing scope projection on the next-frame path', () => {
+    const preparedCommit = {
+      operation: { scenario: 'scope-toggle' },
+      layoutChanged: true,
+      scopeVisibility,
+    } as never;
+    const lifecycle = {
+      prepareCommit: vi.fn(() => preparedCommit),
+      publishCommit: vi.fn(),
+    };
+    let frameCallback: FrameRequestCallback | undefined;
+    const requestFrame = vi.fn((callback: FrameRequestCallback) => {
+      frameCallback = callback;
+      return 42;
+    });
+
+    renderHook(() => useGraphPerfCommit({
+      edgeCount: 2,
+      layoutKey: 'uniform::changed',
+      nodeCount: 3,
+      revision: {},
+      scopeProjectionRevision: 9,
+      scopeVisibility,
+    }, { cancelFrame: vi.fn(), lifecycle, requestFrame }));
+
     expect(lifecycle.publishCommit).not.toHaveBeenCalled();
     act(() => frameCallback?.(16));
     expect(lifecycle.publishCommit).toHaveBeenCalledWith(preparedCommit);
