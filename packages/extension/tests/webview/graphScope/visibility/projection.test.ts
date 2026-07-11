@@ -9,10 +9,16 @@ import {
 } from '../../../../src/webview/components/graphScope/visibility/projection';
 import { resetGraphScopeVisibilityMessageQueueForTests } from '../../../../src/webview/components/graphScope/messages';
 
+const { flushSync } = vi.hoisted(() => ({
+  flushSync: vi.fn((apply: () => void) => { apply(); }),
+}));
+
+vi.mock('react-dom', () => ({ flushSync }));
 vi.mock('../../../../src/webview/vscodeApi', () => ({ postMessage: vi.fn() }));
 
 describe('webview/graphScope/visibility/projection', () => {
   beforeEach(() => {
+		flushSync.mockClear();
     resetGraphScopeVisibilityMessageQueueForTests();
     graphStore.setState({
       graphHasIndex: true,
@@ -41,6 +47,7 @@ describe('webview/graphScope/visibility/projection', () => {
 
     expect(graphStore.getState().nodeVisibility).toMatchObject({ child: true, parent: true });
     expect(getGraphScopeProjectionRevision()).toBe(5);
+		expect(flushSync).toHaveBeenCalledOnce();
   });
 
   it('increments the revision for an edge projection', () => {
@@ -48,6 +55,7 @@ describe('webview/graphScope/visibility/projection', () => {
 
     expect(graphStore.getState().edgeVisibility.import).toBe(false);
     expect(getGraphScopeProjectionRevision()).toBe(5);
+		expect(flushSync).toHaveBeenCalledOnce();
   });
 
   it('requires both the requested scope kind and id to exist', () => {

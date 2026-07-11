@@ -1,5 +1,6 @@
 import type { IGraphNodeTypeDefinition } from '../../../../shared/graphControls/contracts';
 import type { PerfScopeEntry } from '../../../../shared/perf/protocol';
+import { flushSync } from 'react-dom';
 import { graphStore } from '../../../store/state';
 import {
   scheduleEdgeVisibilityMessage,
@@ -15,14 +16,16 @@ export function applyNodeScopeVisibility(
   onPosted?: () => void,
 ): void {
   const parentUpdates = visible ? getParentNodeTypeUpdates(nodeTypes, nodeTypeId) : {};
-  graphStore.setState((state) => ({
-    graphScopeProjectionRevision: state.graphScopeProjectionRevision + 1,
-    nodeVisibility: {
-      ...state.nodeVisibility,
-      ...parentUpdates,
-      [nodeTypeId]: visible,
-    },
-  }));
+  flushSync(() => {
+    graphStore.setState((state) => ({
+      graphScopeProjectionRevision: state.graphScopeProjectionRevision + 1,
+      nodeVisibility: {
+        ...state.nodeVisibility,
+        ...parentUpdates,
+        [nodeTypeId]: visible,
+      },
+    }));
+  });
   scheduleNodeVisibilityMessage(nodeTypeId, visible, onPosted);
 }
 
@@ -31,13 +34,15 @@ export function applyEdgeScopeVisibility(
   visible: boolean,
   onPosted?: () => void,
 ): void {
-  graphStore.setState((state) => ({
-    edgeVisibility: {
-      ...state.edgeVisibility,
-      [edgeKind]: visible,
-    },
-    graphScopeProjectionRevision: state.graphScopeProjectionRevision + 1,
-  }));
+  flushSync(() => {
+    graphStore.setState((state) => ({
+      edgeVisibility: {
+        ...state.edgeVisibility,
+        [edgeKind]: visible,
+      },
+      graphScopeProjectionRevision: state.graphScopeProjectionRevision + 1,
+    }));
+  });
   scheduleEdgeVisibilityMessage(edgeKind, visible, onPosted);
 }
 
