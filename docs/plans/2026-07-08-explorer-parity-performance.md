@@ -308,7 +308,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 8. **Bridge trimming + watcher storms** — field-access-proxy test finds `IGraphData` fields the webview never reads → strip from wire format; `refresh/scheduler.ts` adaptive coalescing (32ms → 250ms when >20 events pending); 100-file burst = one diff.
 
 - [x] 3.1 diff protocol → gates 3-A
-- [ ] 3.2 layout resets → 3-B
+- [x] 3.2 layout resets → 3-B
 - [ ] 3.3 optimistic ops → 3-C
 - [ ] 3.4 tree-sitter (a)(b)(c) → 3-G
 - [ ] 3.5 ladybug scheduling → 3-G
@@ -332,7 +332,9 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - Exact-head deterministic `medium` capture used VS Code 1.128.0, the generated 1,000-file fixture, one prepared Graph Cache, an isolated profile/workspace, and five complete `single-save` samples without retries or discards.
 - Raw `layoutResets`: `0`, `0`, `0`, `0`, `0`. Raw `payloadBytes`: `383`, `383`, `383`, `383`, `383`.
 - Operation-scoped `incrementalRefreshMs`: `83.934`, `83.867`, `80.388`, `84.067`, `82.429` (median `83.867`, CV `1.90%`). Operation-scoped `watcherToGraphMs`: `128.017`, `126.000`, `120.655`, `126.233`, `125.447` (median `126.000`, CV `2.20%`).
-- The `medium` half of gate 3-B passes. Task 3.2 remains open pending the required five-run `large` capture and a real-render untouched-node drift assertion before reheat.
+- Exact-head deterministic `large` capture used the generated 5,000-file fixture under the same environment policy. Raw `layoutResets`: `0`, `0`, `0`, `0`, `0`; raw `payloadBytes`: `383`, `383`, `383`, `383`, `383`.
+- Large operation-scoped `incrementalRefreshMs`: `100.929`, `119.164`, `94.109`, `105.141`, `104.670` (median `104.670`, CV `8.74%`). Operation-scoped `watcherToGraphMs`: `165.681`, `176.641`, `158.196`, `168.322`, `170.087` (median `168.322`, CV `4.00%`).
+- The React runtime reconciliation assertion snapshots a retained node at `(10, 10)` with velocity and verifies the exact same object and coordinates are present before the physics effect receives the changed structure version. Together with zero full resets in all ten real VS Code samples, gate 3-B passes.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
