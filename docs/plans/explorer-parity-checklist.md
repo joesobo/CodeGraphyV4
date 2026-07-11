@@ -28,8 +28,8 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
-| New File / New Folder | done(unit) | 2.1 | Folder entry and provider host-action tests cover enabled, disabled, hidden, root, and nested contexts. |
-| Nested-path create (`a/b/c.ts`) | done(unit) | 2.1 | 120 focused tests pass across `createPath.test.ts`, graph-view `files/actions.test.ts`, and `createFile.test.ts`; real Dev Host screenshot remains part of the Phase 2.1 walkthrough. |
+| New File / New Folder | done(devhost) | 2.1 | Folder entry and provider host-action tests cover enabled, disabled, hidden, root, and nested contexts. Real VS Code verifies toolbar New File. |
+| Nested-path create (`a/b/c.ts`) | done(devhost) | 2.1 | 120 focused tests pass across `createPath.test.ts`, graph-view `files/actions.test.ts`, and `createFile.test.ts`; real VS Code creates `nested/deep/example.ts` and shows it in the graph. |
 | Find in Folder… | done(unit) | 2.5 | Concrete folder entries route to `workbench.action.findInFiles` with `filesToInclude`; synthetic root omits the action. |
 | Paste | done(devhost) | 2.2 | Folder, root, and background Paste routes through the undo manager; copied items retain clipboard state and cut items clear only after success. Real VS Code verifies a folder destination and collision suffix. |
 | Reveal / copy paths / rename / delete | done(unit) | 2.1 | Folder entries enforce mutation availability and synthetic-root protection; provider actions cover host dispatch. |
@@ -63,7 +63,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | File nesting / Open Editors / sort order | waived(tree-list concepts) | — | Not applicable to the graph surface. |
 | Canvas select / move / pan | todo(P5) | 5.x | Desktop interaction phase. |
 | Drag-to-move files / external OS drop | deferred(future epic) | 8.4 | Follow-up card required during publication. |
-| Inline input for new / rename | done(unit) | 6.2 | Node/background menus and the toolbar use a projected HTML input plus temporary ghost node; legacy prompts remain only for non-canvas callers. |
+| Inline input for new / rename | done(devhost) | 6.2 | Node/background menus and the toolbar use a projected HTML input plus temporary ghost node; real VS Code verifies the New File editor and host commit. Rename focus retention remains gate 6-B. |
 | Delete confirmation and trash settings | done(unit) | 6.1 | All eight setting × target-count cases pass with Explorer copy and persistent Do not ask me again. |
 
 ## Validation gates
@@ -72,7 +72,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | --- | --- | --- | --- | --- |
 | V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 2.1 / 6.2 | Canvas validation keeps the editor open and renders the error beneath the input. |
 | V2 | Existing-name collision uses Explorer-equivalent error shape | done(unit) | 2.2 / 6.2 | Host mutation failures, including occupied destinations, are routed back into the pending canvas editor. |
-| V3 | Path separators in New File create nested folders | done(unit) | 2.1 | Deep nested creation, parent creation, normalization, rollback, and undo have focused coverage; Dev Host proof remains. |
+| V3 | Path separators in New File create nested folders | done(devhost) | 2.1 | Deep nested creation, parent creation, normalization, rollback, and undo have focused coverage; real VS Code verifies the full toolbar-to-graph path. |
 | V4 | Paste collision uses ` copy`, ` copy 2`, … | done(devhost) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions are covered; real VS Code verifies the first repeated-paste suffix. |
 | V5 | Delete follows `files.enableTrash` | done(unit) | 6.1 | Invocation-time configuration is threaded through optimistic and undoable file/folder deletion. |
 | V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 | Not implemented. |
