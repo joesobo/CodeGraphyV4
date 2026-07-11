@@ -26,6 +26,7 @@ interface WatcherMetricTiming {
 
 interface PendingWorkspaceRefresh {
   delayMs: number;
+  eventCount: number;
   filePaths: Set<string>;
   followUpDelayMs?: number;
   followUpFilePaths: Set<string>;
@@ -46,6 +47,8 @@ interface ScheduleWorkspaceRefreshOptions {
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
 const activeWorkspaceRefreshes = new WeakMap<GraphViewProvider, Promise<unknown>>();
+const LARGE_BURST_EVENT_THRESHOLD = 20;
+const LARGE_BURST_QUIET_WINDOW_MS = 250;
 
 function isGraphOpen(provider: GraphViewProvider): boolean {
   return provider.isGraphOpen?.() ?? true;
@@ -88,6 +91,7 @@ export function scheduleWorkspaceRefresh(
   let fullRefresh = options.fullRefresh === true;
   let gitignoreRefresh = options.gitignoreRefresh === true;
   let refreshDelayMs = delayMs;
+  let eventCount = 1;
 
   if (!isGraphOpen(provider)) {
     markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths], {
@@ -104,6 +108,7 @@ export function scheduleWorkspaceRefresh(
       clearTimeout(pending.timeout);
     }
     refreshDelayMs = Math.min(refreshDelayMs, pending.delayMs);
+    eventCount += pending.eventCount;
     followUpDelayMs = maxFollowUpDelay(followUpDelayMs, pending.followUpDelayMs);
     for (const filePath of pending.followUpFilePaths) {
       followUpFilePaths.add(filePath);
@@ -124,8 +129,13 @@ export function scheduleWorkspaceRefresh(
     }
   }
 
+  if (eventCount > LARGE_BURST_EVENT_THRESHOLD) {
+    refreshDelayMs = Math.max(refreshDelayMs, LARGE_BURST_QUIET_WINDOW_MS);
+  }
+
   const nextPending: PendingWorkspaceRefresh = {
     delayMs: refreshDelayMs,
+    eventCount,
     filePaths: nextFilePaths,
     followUpDelayMs,
     followUpFilePaths,

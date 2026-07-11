@@ -116,6 +116,29 @@ describe('workspaceFiles/refresh/scheduler', () => {
     expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
   });
 
+  it('extends the quiet window for a large changed-file burst', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    for (let index = 0; index < 100; index += 1) {
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File changed, refreshing graph',
+        [`/workspace/src/file-${index}.ts`],
+        32,
+      );
+    }
+
+    vi.advanceTimersByTime(249);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith(
+      Array.from({ length: 100 }, (_, index) => `/workspace/src/file-${99 - index}.ts`),
+    );
+  });
+
   it('keeps the file-operation debounce for a pure file-operation burst', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
