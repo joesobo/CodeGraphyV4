@@ -8,12 +8,20 @@ import {
 
 const scriptDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const outputFilePath = path.resolve(scriptDirectoryPath, '../../../dist/extension.js');
+const outputDirectoryPath = path.dirname(outputFilePath);
 
 const buildOptions: esbuild.BuildOptions = {
-  entryPoints: [path.resolve(scriptDirectoryPath, '../src/extension/activate.ts')],
+  entryPoints: {
+    extension: path.resolve(scriptDirectoryPath, '../src/extension/activate.ts'),
+    treeSitterColdWorker: path.resolve(
+      scriptDirectoryPath,
+      '../../core/src/treeSitter/runtime/coldAnalysis/treeSitterColdWorker.ts',
+    ),
+  },
   bundle: true,
-  outfile: outputFilePath,
+  outdir: outputDirectoryPath,
   external: [...EXTENSION_EXTERNAL_PACKAGE_NAMES],
+  define: { 'import.meta.url': 'undefined' },
   format: 'cjs',
   platform: 'node',
 };

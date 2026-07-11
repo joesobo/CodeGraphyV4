@@ -7,6 +7,10 @@ import {
 } from '../../src/treeSitter/core';
 import { analyzeFileWithTreeSitter } from '../../src/treeSitter/runtime/analyze';
 import { preAnalyzeCSharpTreeSitterFiles } from '../../src/treeSitter/runtime/csharpIndex';
+import {
+  preAnalyzeColdTreeSitterFiles,
+  takeColdTreeSitterAnalysis,
+} from '../../src/treeSitter/runtime/coldAnalysis/cache';
 
 vi.mock('../../src/treeSitter/runtime/analyze', () => ({
   analyzeFileWithTreeSitter: vi.fn(),
@@ -22,9 +26,15 @@ vi.mock('../../src/treeSitter/runtime/csharpIndex', async () => {
   };
 });
 
+vi.mock('../../src/treeSitter/runtime/coldAnalysis/cache', () => ({
+  preAnalyzeColdTreeSitterFiles: vi.fn(),
+  takeColdTreeSitterAnalysis: vi.fn(),
+}));
+
 describe('core tree-sitter baseline analysis', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(takeColdTreeSitterAnalysis).mockReturnValue(undefined);
   });
 
   it('reports core Tree-sitter edge capabilities without plugin metadata', () => {
@@ -160,6 +170,22 @@ describe('core tree-sitter baseline analysis', () => {
     });
   });
 
+  it('uses a matching precomputed cold analysis without parsing again', async () => {
+    const coldResult = {
+      filePath: '/workspace/src/app.ts',
+      relations: [],
+    };
+    vi.mocked(takeColdTreeSitterAnalysis).mockReturnValue(coldResult);
+
+    await expect(analyzeFileWithCoreTreeSitter(
+      '/workspace/src/app.ts',
+      'export const app = true;',
+      '/workspace',
+    )).resolves.toBe(coldResult);
+
+    expect(analyzeFileWithTreeSitter).not.toHaveBeenCalled();
+  });
+
   it('delegates pre-analysis to the csharp pre-analysis helper', async () => {
     const files = [
       { absolutePath: '/workspace/src/App.cs', content: 'class App {}' },
@@ -168,5 +194,17 @@ describe('core tree-sitter baseline analysis', () => {
     await preAnalyzeCoreTreeSitterFiles(files as never, '/workspace');
 
     expect(preAnalyzeCSharpTreeSitterFiles).toHaveBeenCalledWith(files, '/workspace');
+    expect(preAnalyzeColdTreeSitterFiles).not.toHaveBeenCalled();
+  });
+
+  it('precomputes worker analysis only for an explicit cold index', async () => {
+    const files = [
+      { absolutePath: '/workspace/src/app.ts', content: 'export {}' },
+      { absolutePath: '/workspace/src/lib.ts', content: 'export {}' },
+    ];
+
+    await preAnalyzeCoreTreeSitterFiles(files as never, '/workspace', { cold: true });
+
+    expect(preAnalyzeColdTreeSitterFiles).toHaveBeenCalledWith(files, '/workspace');
   });
 });

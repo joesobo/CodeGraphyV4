@@ -31,4 +31,9 @@ await Promise.all([
       js: '#!/usr/bin/env node',
     },
   }),
+  build({
+    ...sharedOptions,
+    entryPoints: ['src/treeSitter/runtime/coldAnalysis/treeSitterColdWorker.ts'],
+    outfile: 'dist/treeSitterColdWorker.js',
+  }),
 ]);

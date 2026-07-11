@@ -35,6 +35,7 @@ export async function analyzeWorkspaceIndexFiles(input: {
   workspaceRoot: string;
 }) {
   const readContent = createCachedWorkspaceFileContentReader(input.discovery);
+  const coldTreeSitterIndex = Object.keys(input.cache.files).length === 0;
 
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
@@ -63,7 +64,9 @@ export async function analyzeWorkspaceIndexFiles(input: {
         rootPath,
         {
           notifyPreAnalyze: async (preAnalyzeFiles, preAnalyzeRootPath) => {
-            await preAnalyzeCoreTreeSitterFiles(preAnalyzeFiles, preAnalyzeRootPath);
+            await preAnalyzeCoreTreeSitterFiles(preAnalyzeFiles, preAnalyzeRootPath, {
+              cold: coldTreeSitterIndex,
+            });
             await input.registry.notifyPreAnalyze(
               preAnalyzeFiles,
               preAnalyzeRootPath,
