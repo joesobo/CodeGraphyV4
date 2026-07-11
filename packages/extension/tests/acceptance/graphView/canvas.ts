@@ -261,7 +261,7 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
   return probe;
 }
 
-export async function stopHoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+export async function stopHoverNode(context: GraphAcceptanceContext, _nodePath: string): Promise<void> {
   const frame = requireGraphFrame(context);
   const stageBox = await graphStage(frame).boundingBox();
   if (!stageBox) throw new Error('Expected Graph Stage to have a bounding box');

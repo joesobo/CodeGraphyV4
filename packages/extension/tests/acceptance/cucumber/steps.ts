@@ -95,6 +95,8 @@ Step(/^the (.+) node is visibly outlined in orange$/);
 Step(/^the (.+) node is no longer outlined$/);
 Step(/^I hover the (.+) node$/);
 Step(/^I stop hovering the (.+) node$/);
+Step(/^I hover the edge from (.+) to (.+)$/);
+Step(/^I see information for the edge from (.+) to (.+)$/);
 Step(/^I see information for the (.+) node goes away$/);
 Step(/^I click the "Fit to Screen" button$/);
 Step(/^all (\d+) graph nodes are visible in the graph viewport$/);

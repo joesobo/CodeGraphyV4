@@ -289,7 +289,7 @@ describe('graph/rendering/node/body', () => {
     expect(operations[0]?.kind).toBe('fillText');
     expect(operations[0]?.fillStyle).toBe('#facc15');
     expect(operations[0]?.font).toBe(`${12 / 1.4}px Sans-Serif`);
-    expect(operations[0]?.globalAlpha).toBeCloseTo(0.7);
+    expect(operations[0]?.globalAlpha).toBeCloseTo(0.8);
     expect(operations[0]?.text).toBe('Decorated Label');
     expect(operations[0]?.textAlign).toBe('center');
     expect(operations[0]?.textBaseline).toBe('top');
@@ -389,20 +389,20 @@ describe('graph/rendering/node/body', () => {
     ]);
   });
 
-  it('skips label rendering when the zoom level keeps label opacity near zero', () => {
+  it('keeps label rendering aligned when zoomed far out', () => {
     const { ctx, operations } = createContext();
 
     renderNodeLabel({
       ctx,
       decoration: undefined,
-      globalScale: 0.36,
+      globalScale: 0.005,
       isHighlighted: true,
       node: createNode(),
       opacity: 1,
     });
 
-    expect(ctx.fillText).not.toHaveBeenCalled();
-    expect(operations).toEqual([]);
+    expect(ctx.fillText).toHaveBeenCalledWith('app.ts', 24, 464);
+    expect(operations).toHaveLength(1);
   });
 
   it('renders the label when zoom moves just above the minimum opacity threshold', () => {
