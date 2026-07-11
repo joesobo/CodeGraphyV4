@@ -55,10 +55,6 @@ vi.mock('../../../../src/webview/components/plugins/Panel', () => ({
     isOpen ? <button data-testid="plugins-panel" onClick={onClose}>Close Plugins</button> : null,
 }));
 
-vi.mock('../../../../src/webview/components/timeline/panel', () => ({
-  default: () => <div data-testid="timeline" />,
-}));
-
 vi.mock('../../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));

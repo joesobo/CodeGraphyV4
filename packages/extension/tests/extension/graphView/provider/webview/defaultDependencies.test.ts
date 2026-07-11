@@ -97,7 +97,7 @@ describe('graphView/provider/webview/defaultDependencies', () => {
     const dependencies = createDefaultGraphViewProviderWebviewMethodDependencies();
     const nextWebview = { kind: 'next-webview' };
 
-    expect(dependencies.createHtml({ fsPath: '/test/extension' } as never, nextWebview as never, 'graph')).toBe(
+    expect(dependencies.createHtml({ fsPath: '/test/extension' } as never, nextWebview as never)).toBe(
       '<default html />',
     );
 
@@ -106,7 +106,6 @@ describe('graphView/provider/webview/defaultDependencies', () => {
       { fsPath: '/test/extension' },
       nextWebview,
       'nonce-123',
-      'graph',
       'light',
       false,
     );
