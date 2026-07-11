@@ -314,7 +314,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - [x] 3.5 ladybug scheduling → 3-G
 - [x] 3.6 sim/render budget → 3-F, 3-J
 - [x] 3.7 worker-sim decision: zero-main-thread-simulation upper bound still fails render gate; PixiJS discussion required before renderer work → 3-J
-- [ ] 3.8 bridge + storms → 3-D
+- [x] 3.8 bridge + storms → 3-D
 
 ### Task 3.1 evidence — graph diff protocol (2026-07-11)
 
@@ -376,6 +376,14 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - Valid exact-head main-thread `huge` interaction evidence: `fpsDrag = 2.281`, `fpsSettle = 2.378`, `longTasksPerInteraction = 47`. Gate 3-J fails decisively.
 - Worker-simulation upper-bound experiment: the exact same 10k build temporarily disabled all interactive main-thread simulation above 5,000 nodes/10,000 edges. Cold-open fell from `56,469ms` to `7,207ms` (including an `865ms` durable cache save), proving layout accounts for roughly 49 seconds and should move off the main thread. With simulation entirely absent, render-only interaction improved to `fpsDrag = 22.552`, `fpsSettle = 21.053`, `longTasksPerInteraction = 5`—still below the 30 FPS gate. The diagnostic cutoff was restored and not committed as product behavior.
 - This zero-simulation run is a stricter upper bound than either proposed worker handoff: a worker cannot remove more main-thread simulation work than removing it entirely. It proves a worker is necessary but cannot make 3-J pass while the current Canvas2D renderer remains. Per the plan's owner-decision boundary, no autonomous PixiJS migration was started; these measurements are the Task 3.7 blocker report.
+
+### Task 3.8 evidence — bridge trimming and watcher storms (2026-07-11)
+
+- The standard graph wire contract audit found one redundant field: `IGraphNode.favorite`. Favorites already arrive through the dedicated `FAVORITES_UPDATED` state path, so full and patch graph messages now omit the legacy node flag without cloning graphs or node arrays that do not contain it. All other standard fields remain because the webview reads them for rendering, physics, filtering, tooltips, plugins, or exports.
+- The watcher scheduler uses a 250ms quiet window after more than 20 pending events, preserves that delay when a refresh is already active, and temporarily remembers the paths from a large burst. The path memory closes the real checkout race where the next 100-file wave arrived as 13 files, then 87 files after the ordinary 32ms window.
+- The first five real-VS-Code attempts are retained as failure evidence: later branch switches produced separate 13/87 or 8/92 analyses and therefore more than one graph diff per 100-file operation. The corrected exact-head capture used VS Code 1.128.0, five fresh generated `medium` fixtures, cold-cache preparation, and five complete six-switch `batch-100` scenarios without retries or discarded samples.
+- Every accepted switch logged exactly one `Analysis: 0 cache hits, 100 misses` refresh and emitted one operation-scoped graph payload. Scenario watcher-to-graph medians were `425.067`, `411.793`, `423.505`, `427.540`, `427.203ms` (overall median `425.067ms`, CV `1.37%`), passing gate 3-D's 1,500ms 100-file threshold.
+- Scenario incremental-refresh medians were `81.384`, `73.787`, `79.422`, `80.115`, `83.235ms` (overall median `80.115ms`, CV `3.99%`). Seventeen scheduler tests cover synchronous bursts, staggered follow-on waves, active-refresh queues, ordinary 32ms saves, and 500ms file operations; the repository typecheck and pre-commit lint pass.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
