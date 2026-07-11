@@ -25,6 +25,7 @@ interface WatcherMetricTiming {
 }
 
 interface PendingWorkspaceRefresh {
+  delayMs: number;
   filePaths: Set<string>;
   followUpDelayMs?: number;
   followUpFilePaths: Set<string>;
@@ -86,6 +87,7 @@ export function scheduleWorkspaceRefresh(
   );
   let fullRefresh = options.fullRefresh === true;
   let gitignoreRefresh = options.gitignoreRefresh === true;
+  let refreshDelayMs = delayMs;
 
   if (!isGraphOpen(provider)) {
     markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths], {
@@ -101,6 +103,7 @@ export function scheduleWorkspaceRefresh(
     if (pending.timeout !== undefined) {
       clearTimeout(pending.timeout);
     }
+    refreshDelayMs = Math.min(refreshDelayMs, pending.delayMs);
     followUpDelayMs = maxFollowUpDelay(followUpDelayMs, pending.followUpDelayMs);
     for (const filePath of pending.followUpFilePaths) {
       followUpFilePaths.add(filePath);
@@ -122,6 +125,7 @@ export function scheduleWorkspaceRefresh(
   }
 
   const nextPending: PendingWorkspaceRefresh = {
+    delayMs: refreshDelayMs,
     filePaths: nextFilePaths,
     followUpDelayMs,
     followUpFilePaths,
@@ -133,7 +137,7 @@ export function scheduleWorkspaceRefresh(
 
   pendingWorkspaceRefreshes.set(provider, nextPending);
   if (!activeWorkspaceRefreshes.has(provider)) {
-    armPendingWorkspaceRefresh(provider, nextPending, delayMs);
+    armPendingWorkspaceRefresh(provider, nextPending, refreshDelayMs);
   }
 }
 

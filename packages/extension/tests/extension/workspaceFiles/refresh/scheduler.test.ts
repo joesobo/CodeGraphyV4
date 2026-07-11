@@ -72,6 +72,73 @@ describe('workspaceFiles/refresh/scheduler', () => {
     consoleSpy.mockRestore();
   });
 
+  it('retains the shorter debounce when a file operation follows a content change', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/a.ts'],
+      32,
+    );
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/src/b.ts'],
+      500,
+    );
+    vi.advanceTimersByTime(31);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+  });
+
+  it('uses the shorter debounce when a content change follows a file operation', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/src/a.ts'],
+      500,
+    );
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File changed, refreshing graph',
+      ['/workspace/src/b.ts'],
+      32,
+    );
+    vi.advanceTimersByTime(32);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the file-operation debounce for a pure file-operation burst', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/src/a.ts'],
+      500,
+    );
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File deleted, refreshing graph',
+      ['/workspace/src/b.ts'],
+      500,
+    );
+    vi.advanceTimersByTime(499);
+    expect(provider.refreshChangedFiles).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+  });
+
   it('runs one changed-file refresh at a time and follows with the latest pending paths', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();

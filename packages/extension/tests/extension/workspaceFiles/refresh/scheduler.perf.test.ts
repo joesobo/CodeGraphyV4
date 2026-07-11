@@ -134,6 +134,49 @@ describe('workspaceFiles/refresh/scheduler performance metrics', () => {
     }
   });
 
+  it('emits one correlated metric without a file-operation tail for a mixed burst', async () => {
+    const provider = makeProvider();
+    const received: PerfMetricDiagnosticEvent[] = [];
+    const subscription = onPerfMetric(event => received.push(event));
+    const session = startPerfMetricSession({
+      runId: 'mixed-burst-run',
+      scenario: 'batch-100',
+    });
+    const firstNow = vi.fn()
+      .mockReturnValueOnce(100)
+      .mockReturnValueOnce(160);
+
+    try {
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File changed, refreshing graph',
+        ['/workspace/src/a.ts'],
+        32,
+        { now: firstNow },
+      );
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File created, refreshing graph',
+        ['/workspace/src/b.ts'],
+        500,
+        { now: () => 120 },
+      );
+      await vi.advanceTimersByTimeAsync(32);
+
+      expect(received.map(event => event.context)).toEqual([{
+        runId: 'mixed-burst-run',
+        scenario: 'batch-100',
+        metric: 'watcherToGraphMs',
+        value: 60,
+        unit: 'ms',
+        dimension: 'changed-files',
+      }]);
+    } finally {
+      session.dispose();
+      subscription.dispose();
+    }
+  });
+
   it('reports watcher latency after a full index refresh settles', async () => {
     const contexts = await collectWatcherMetric({
       completedAt: 550,
