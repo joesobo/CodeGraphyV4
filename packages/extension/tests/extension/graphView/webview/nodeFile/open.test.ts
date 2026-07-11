@@ -21,6 +21,7 @@ function createHandlers(
     closeFileEditor: vi.fn(() => Promise.resolve()),
     openFileWith: vi.fn(() => Promise.resolve()),
     openInTerminal: vi.fn(() => Promise.resolve()),
+    compareFiles: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
@@ -152,6 +153,21 @@ describe('graph view node/file open message', () => {
     );
 
     expect(handlers.openInTerminal).toHaveBeenCalledWith('src');
+  });
+
+  it('routes compare-file requests', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyNodeFileOpenMessage(
+      {
+        type: 'COMPARE_FILES',
+        payload: { leftPath: 'src/app.ts', rightPath: 'src/next.ts' },
+      },
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.compareFiles).toHaveBeenCalledWith('src/app.ts', 'src/next.ts');
   });
 
   it('returns false for unrelated messages', async () => {

@@ -8,6 +8,7 @@ export type GraphContextEffect =
   | { kind: 'openFile'; path: string }
   | { kind: 'focusNode'; nodeId: string }
   | { kind: 'fitView' }
+  | { kind: 'setCompareSelectedPath'; path: string | null }
   | { kind: 'promptFilterPattern'; patterns: string[] }
   | { kind: 'promptLegendRule'; pattern: string; color: string; target: 'node' | 'edge' }
   | { kind: 'postMessage'; message: WebviewToExtensionMessage }
@@ -29,7 +30,10 @@ export function getGraphContextActionEffects(
   context: GraphContextActionContext
 ): GraphContextEffect[] {
   if (action.kind === 'builtin') {
-    return getBuiltInContextActionEffects(action.action, context);
+    return getBuiltInContextActionEffects(action.action, {
+      ...context,
+      comparisonPath: action.comparisonPath,
+    });
   }
 
   if (action.kind === 'graphViewPlugin') {

@@ -114,6 +114,7 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 function createViewState(): Pick<
 	GraphViewStoreState,
 	| 'currentCommitSha'
+	| 'compareSelectedPath'
 	| 'dagMode'
 	| 'favorites'
 	| 'graphMode'
@@ -132,6 +133,7 @@ function createViewState(): Pick<
 	};
 
 	return {
+		compareSelectedPath: null,
 		dagMode: 'td',
 		favorites: new Set(['src/app.ts']),
 		graphMode: '2d',
@@ -197,6 +199,7 @@ describe('graph/viewport/model', () => {
 			timelineActive: true,
 		}));
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
+			compareSelectedPath: null,
 			edges: graphData.links,
 			favorites: viewState.favorites,
 			graphMode: '2d',

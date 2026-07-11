@@ -93,6 +93,7 @@ function buildBaseGraphContextMenuEntries(
   options: Pick<
     BuildGraphContextMenuOptions,
     'favorites' | 'mutationAvailability' | 'timelineActive'
+    | 'compareSelectedPath'
   >,
 ): GraphContextMenuEntry[] {
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
@@ -121,6 +122,7 @@ function buildBaseGraphContextMenuEntries(
     mutationAvailability,
     options.favorites,
     supportsFileClipboard(decision),
+    decision.kind === 'singleFileNode' ? options.compareSelectedPath : undefined,
   );
 }
 
@@ -132,6 +134,7 @@ export function buildGraphContextMenuEntries(
     graphMode = '2d',
     timelineActive,
     favorites,
+    compareSelectedPath,
     pluginItems,
     graphViewContributions,
     nodes,
@@ -142,6 +145,7 @@ export function buildGraphContextMenuEntries(
     favorites,
     mutationAvailability: options.mutationAvailability,
     timelineActive,
+    compareSelectedPath,
   });
   const graphViewCreateEntries = decision.kind === 'background'
     ? buildGraphViewContextMenuEntries({

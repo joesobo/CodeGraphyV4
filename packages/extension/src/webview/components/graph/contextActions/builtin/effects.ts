@@ -31,6 +31,32 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createOptionalSinglePathMessageEffects(context.primaryTargetId, 'OPEN_FILE_WITH'),
   openInTerminal: (context: GraphContextActionContext) =>
     createOptionalSinglePathMessageEffects(context.primaryTargetId, 'OPEN_IN_TERMINAL'),
+  selectForCompare: (context: GraphContextActionContext) => context.primaryTargetId
+    ? [{ kind: 'setCompareSelectedPath', path: context.primaryTargetId }]
+    : [],
+  compareWithSelected: (context: GraphContextActionContext) => {
+    if (
+      !context.comparisonPath
+      || !context.primaryTargetId
+      || context.comparisonPath === context.primaryTargetId
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'COMPARE_FILES',
+          payload: {
+            leftPath: context.comparisonPath,
+            rightPath: context.primaryTargetId,
+          },
+        },
+      },
+      { kind: 'setCompareSelectedPath', path: null },
+    ];
+  },
   openEdgeSource: (context: GraphContextActionContext) =>
     createOpenFileEffects(context.edgeSourceId ? [context.edgeSourceId] : []),
   openEdgeTarget: (context: GraphContextActionContext) =>

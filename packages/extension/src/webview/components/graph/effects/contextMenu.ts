@@ -32,6 +32,9 @@ const EFFECT_APPLIERS: GraphContextEffectAppliers = {
   fitView: (_effect, handlers) => {
     handlers.fitView();
   },
+  setCompareSelectedPath: (effect) => {
+    graphStore.getState().setCompareSelectedPath(effect.path);
+  },
   promptFilterPattern: (effect, handlers) => {
     handlers.openFilterPatternPrompt?.(effect.patterns);
   },

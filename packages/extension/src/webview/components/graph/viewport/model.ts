@@ -42,6 +42,7 @@ export interface GraphViewportModelOptions {
   viewState: Pick<
     GraphViewStoreState,
     | 'currentCommitSha'
+    | 'compareSelectedPath'
     | 'dagMode'
     | 'favorites'
     | 'graphMode'
@@ -88,6 +89,7 @@ export function useGraphViewportModel({
 
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
+    compareSelectedPath: viewState.compareSelectedPath,
     graphMode: viewState.graphMode,
     timelineActive: viewState.timelineActive,
     mutationAvailability: getGraphContextMutationAvailability(viewState),

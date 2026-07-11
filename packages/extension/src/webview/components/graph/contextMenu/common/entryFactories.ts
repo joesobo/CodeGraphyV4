@@ -4,6 +4,7 @@ import type {
 } from '../contracts';
 
 interface BuiltInItemOptions {
+  comparisonPath?: string;
   destructive?: boolean;
   disabled?: boolean;
   shortcut?: string;
@@ -23,7 +24,11 @@ export function builtInItem(
     kind: 'item',
     id,
     label,
-    action: { kind: 'builtin', action },
+    action: {
+      kind: 'builtin',
+      action,
+      ...(options?.comparisonPath ? { comparisonPath: options.comparisonPath } : {}),
+    },
     destructive: options?.destructive,
     disabled: options?.disabled,
     shortcut: options?.shortcut,

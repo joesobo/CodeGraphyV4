@@ -16,6 +16,7 @@ export interface GraphContextActionContext {
   graphPosition?: { x: number; y: number };
   graphViewportScale?: number | null;
   mutationDirectory: string;
+  comparisonPath?: string;
 }
 
 export function resolveGraphContextActionContext(

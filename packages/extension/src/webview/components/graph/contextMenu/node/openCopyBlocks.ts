@@ -11,7 +11,8 @@ import {
 /** Builds the "open" block: Open File/Files and optionally Reveal in Explorer. */
 export function buildOpenBlock(
   targets: readonly string[],
-  timelineActive: boolean
+  timelineActive: boolean,
+  compareSelectedPath?: string | null,
 ): GraphContextMenuEntry[] {
   if (areOnlyPackageNodes(targets)) {
     return [];
@@ -28,6 +29,18 @@ export function buildOpenBlock(
       builtInItem('node-open-with', 'Open With…', 'openWith'),
       builtInItem('node-close-editor', 'Close Editor', 'closeEditor'),
     );
+    if (!timelineActive) {
+      const target = targets[0];
+      const canCompare = Boolean(compareSelectedPath && compareSelectedPath !== target);
+      entries.push(canCompare
+        ? builtInItem(
+          'node-compare-with-selected',
+          'Compare with Selected',
+          'compareWithSelected',
+          { comparisonPath: compareSelectedPath ?? undefined },
+        )
+        : builtInItem('node-select-for-compare', 'Select for Compare', 'selectForCompare'));
+    }
   }
 
   if (shouldShowRevealInExplorer(targets, timelineActive)) {

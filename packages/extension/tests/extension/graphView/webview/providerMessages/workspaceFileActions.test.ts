@@ -58,6 +58,18 @@ describe('providerMessages/primaryActions/workspaceFileActions', () => {
     );
   });
 
+  it('opens the selected files in the native diff editor', async () => {
+    const harness = createHarness();
+
+    await harness.actions.compareFiles('src/app.ts', 'src/next.ts');
+
+    expect(vscodeRuntime.commands.executeCommand).toHaveBeenCalledWith(
+      'vscode.diff',
+      expect.objectContaining({ fsPath: '/workspace/src/app.ts' }),
+      expect.objectContaining({ fsPath: '/workspace/src/next.ts' }),
+    );
+  });
+
   it('stages copied paths and executes an undoable paste without confirmation', async () => {
     const harness = createHarness();
 

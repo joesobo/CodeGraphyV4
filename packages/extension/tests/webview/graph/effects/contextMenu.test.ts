@@ -69,4 +69,18 @@ describe('graph effects context menu', () => {
       payload: { paths: ['src/app.ts'] },
     });
   });
+
+  it('stores and clears the armed comparison file', () => {
+    const handlers = createHandlers();
+
+    applyContextEffects([
+      { kind: 'setCompareSelectedPath', path: 'src/app.ts' },
+    ], handlers);
+    expect(graphStore.getState().compareSelectedPath).toBe('src/app.ts');
+
+    applyContextEffects([
+      { kind: 'setCompareSelectedPath', path: null },
+    ], handlers);
+    expect(graphStore.getState().compareSelectedPath).toBeNull();
+  });
 });

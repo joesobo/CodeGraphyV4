@@ -153,6 +153,33 @@ describe('graph/contextActions/effects', () => {
     }]);
   });
 
+  it('arms the selected file for comparison', () => {
+    expect(getBuiltInContextActionEffects(
+      'selectForCompare',
+      nodeContext(['src/app.ts']),
+    )).toEqual([{
+      kind: 'setCompareSelectedPath',
+      path: 'src/app.ts',
+    }]);
+  });
+
+  it('posts an armed file pair and clears the comparison state', () => {
+    expect(getGraphContextActionEffects({
+      kind: 'builtin',
+      action: 'compareWithSelected',
+      comparisonPath: 'src/app.ts',
+    }, nodeContext(['src/next.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'COMPARE_FILES',
+          payload: { leftPath: 'src/app.ts', rightPath: 'src/next.ts' },
+        },
+      },
+      { kind: 'setCompareSelectedPath', path: null },
+    ]);
+  });
+
   it('creates a filter prompt effect for multi-select add-to-filter', () => {
     expect(getBuiltInContextActionEffects('addToFilter', nodeContext(['a.ts', 'b.ts']))).toEqual([
       { kind: 'promptFilterPattern', patterns: ['a.ts', 'b.ts'] },

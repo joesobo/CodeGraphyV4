@@ -14,6 +14,8 @@ export type BuiltInContextMenuAction =
   | 'closeEditor'
   | 'openWith'
   | 'openInTerminal'
+  | 'selectForCompare'
+  | 'compareWithSelected'
   | 'openEdgeSource'
   | 'openEdgeTarget'
   | 'reveal'
@@ -39,7 +41,11 @@ export type BuiltInContextMenuAction =
   | 'createFolder';
 
 export type GraphContextMenuAction =
-  | { kind: 'builtin'; action: BuiltInContextMenuAction }
+  | {
+      kind: 'builtin';
+      action: BuiltInContextMenuAction;
+      comparisonPath?: string;
+    }
   | { kind: 'plugin'; pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' }
   | {
       kind: 'graphViewPlugin';
@@ -104,6 +110,7 @@ export interface GraphContextMenuEdge {
 
 export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
+  compareSelectedPath?: string | null;
   graphMode?: '2d' | '3d';
   timelineActive: boolean;
   mutationAvailability?: GraphContextMutationAvailability;

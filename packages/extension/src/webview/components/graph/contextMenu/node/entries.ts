@@ -19,9 +19,10 @@ export function buildNodeEntries(
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   supportsFileClipboard: boolean,
+  compareSelectedPath?: string | null,
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [
-    ...buildOpenBlock(targets, timelineActive),
+    ...buildOpenBlock(targets, timelineActive, compareSelectedPath),
     ...(supportsFileClipboard
       ? buildNodeClipboardEntries(targets, mutationAvailability, false)
       : []),

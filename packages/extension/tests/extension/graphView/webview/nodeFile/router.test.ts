@@ -21,6 +21,7 @@ function createHandlers(
     closeFileEditor: vi.fn(() => Promise.resolve()),
     openFileWith: vi.fn(() => Promise.resolve()),
     openInTerminal: vi.fn(() => Promise.resolve()),
+    compareFiles: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     cutFiles: vi.fn(() => Promise.resolve()),

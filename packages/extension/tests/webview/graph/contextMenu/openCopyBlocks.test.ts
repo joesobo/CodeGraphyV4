@@ -51,6 +51,32 @@ describe('buildOpenBlock', () => {
     });
   });
 
+  it('selects a single workspace file for comparison', () => {
+    const entries = buildOpenBlock(['src/app.ts'], false, null);
+
+    expect(findItem(entries, 'Select for Compare')?.action).toEqual({
+      kind: 'builtin',
+      action: 'selectForCompare',
+    });
+  });
+
+  it('compares a file with the armed workspace file', () => {
+    const entries = buildOpenBlock(['src/next.ts'], false, 'src/app.ts');
+
+    expect(findItem(entries, 'Compare with Selected')?.action).toEqual({
+      kind: 'builtin',
+      action: 'compareWithSelected',
+      comparisonPath: 'src/app.ts',
+    });
+  });
+
+  it('omits comparison actions for a historical Graph Revision', () => {
+    const labels = itemLabels(buildOpenBlock(['src/app.ts'], true, null));
+
+    expect(labels).not.toContain('Select for Compare');
+    expect(labels).not.toContain('Compare with Selected');
+  });
+
   it('shows Open N Files for multiple targets', () => {
     const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts', 'c.ts'], false));
     expect(labels).toContain('Open 3 Files');

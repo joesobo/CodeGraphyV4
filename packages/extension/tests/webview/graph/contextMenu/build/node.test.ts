@@ -79,6 +79,39 @@ describe('graph/contextMenu/build/node', () => {
     expect(itemLabels(entries)).toContain('Delete File');
   });
 
+  it('offers Select for Compare before a comparison file is armed', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/app.ts', new Set()),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      compareSelectedPath: null,
+    });
+
+    expect(itemLabels(entries)).toContain('Select for Compare');
+  });
+
+  it('offers Compare with Selected for a different armed file', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/next.ts', new Set()),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      compareSelectedPath: 'src/app.ts',
+    });
+    const compareEntry = entries.find(entry =>
+      entry.kind === 'item' && entry.label === 'Compare with Selected'
+    );
+
+    expect(compareEntry).toMatchObject({
+      action: {
+        kind: 'builtin',
+        action: 'compareWithSelected',
+        comparisonPath: 'src/app.ts',
+      },
+    });
+  });
+
   it('builds child creation actions from a single folder context', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),

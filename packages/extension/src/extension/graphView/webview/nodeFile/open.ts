@@ -14,6 +14,7 @@ export interface GraphViewNodeFileOpenHandlers {
   closeFileEditor(filePath: string): Promise<void>;
   openFileWith(filePath: string): Promise<void>;
   openInTerminal(filePath: string): Promise<void>;
+  compareFiles(leftPath: string, rightPath: string): Promise<void>;
 }
 
 function canOpenPath(
@@ -106,6 +107,10 @@ export async function applyNodeFileOpenMessage(
 
     case 'OPEN_IN_TERMINAL':
       await handlers.openInTerminal(message.payload.path);
+      return true;
+
+    case 'COMPARE_FILES':
+      await handlers.compareFiles(message.payload.leftPath, message.payload.rightPath);
       return true;
 
     default:

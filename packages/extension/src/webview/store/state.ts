@@ -84,6 +84,7 @@ export interface GraphState {
   maxFiles: number;
   verboseDiagnostics: boolean;
   activeFilePath: string | null;
+  compareSelectedPath: string | null;
   timelineActive: boolean;
   timelineCommits: ICommitInfo[];
   currentCommitSha: string | null;
@@ -96,6 +97,7 @@ export interface GraphState {
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
   setActivePanel: (panel: GraphState['activePanel']) => void;
+  setCompareSelectedPath: (path: string | null) => void;
   setGraphMode: (mode: '2d' | '3d') => void;
   setGraphViewportScale: (scale: number | null) => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;

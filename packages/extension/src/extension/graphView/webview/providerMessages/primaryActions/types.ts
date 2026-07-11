@@ -13,6 +13,7 @@ export type GraphViewProviderPrimaryActions = Pick<
   | 'closeFileEditor'
   | 'openFileWith'
   | 'openInTerminal'
+  | 'compareFiles'
   | 'openInEditor'
   | 'revealInExplorer'
   | 'copyToClipboard'

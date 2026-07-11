@@ -25,6 +25,15 @@ export interface GraphContextMenuEffectRuntime {
 
 const NODE_ACTIONS = new Set<BuiltInContextMenuAction>([
   'open',
+  'openToSide',
+  'findInFolder',
+  'closeEditor',
+  'openWith',
+  'openInTerminal',
+  'selectForCompare',
+  'compareWithSelected',
+  'cutFiles',
+  'copyFiles',
   'reveal',
   'copyRelative',
   'copyAbsolute',
@@ -65,7 +74,7 @@ function isBuiltInActionValid(
     return context.selectionKind === 'background';
   }
 
-  if (action === 'createFile' || action === 'createFolder') {
+  if (action === 'createFile' || action === 'createFolder' || action === 'pasteFiles') {
     return isFolderCreationContext(context);
   }
 

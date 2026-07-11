@@ -40,6 +40,7 @@ export type WebviewToExtensionMessage =
   | { type: 'CLOSE_FILE_EDITOR'; payload: { path: string } }
   | { type: 'OPEN_FILE_WITH'; payload: { path: string } }
   | { type: 'OPEN_IN_TERMINAL'; payload: { path: string } }
+  | { type: 'COMPARE_FILES'; payload: { leftPath: string; rightPath: string } }
   | { type: 'OPEN_IN_EDITOR' }
   | { type: 'REVEAL_IN_EXPLORER'; payload: { path: string } }
   | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }

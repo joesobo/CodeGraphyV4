@@ -7,6 +7,7 @@ export function createDisplayActions(set: SetState) {
     setSearchQuery: (query: string) => set({ searchQuery: query }),
     setSearchOptions: (options: GraphState['searchOptions']) => set({ searchOptions: options }),
     setActivePanel: (panel: GraphState['activePanel']) => set({ activePanel: panel }),
+    setCompareSelectedPath: (path: string | null) => set({ compareSelectedPath: path }),
     setGraphMode: (mode: GraphState['graphMode']) => set({ graphMode: mode }),
     setGraphViewportScale: (scale: GraphState['graphViewportScale']) => set({ graphViewportScale: scale }),
     setNodeSizeMode: (mode: GraphState['nodeSizeMode']) => set({ nodeSizeMode: mode }),

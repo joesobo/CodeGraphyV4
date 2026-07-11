@@ -45,6 +45,55 @@ describe('graph/contextMenuRuntime/effects', () => {
     });
   });
 
+  it('applies an armed comparison action for a node selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      {
+        kind: 'builtin',
+        action: 'compareWithSelected',
+        comparisonPath: 'src/app.ts',
+      },
+      nodeContext(['src/next.ts']),
+    );
+
+    expect(dependencies.postMessage).toHaveBeenCalledWith({
+      type: 'COMPARE_FILES',
+      payload: { leftPath: 'src/app.ts', rightPath: 'src/next.ts' },
+    });
+  });
+
+  it('applies file clipboard actions for a node selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'copyFiles' },
+      nodeContext(['src/app.ts']),
+    );
+
+    expect(dependencies.postMessage).toHaveBeenCalledWith({
+      type: 'COPY_FILES',
+      payload: { paths: ['src/app.ts'] },
+    });
+  });
+
+  it('applies paste for the synthetic root selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'pasteFiles' },
+      nodeContext(['(root)']),
+    );
+
+    expect(dependencies.postMessage).toHaveBeenCalledWith({
+      type: 'PASTE_FILES',
+      payload: { directory: '.' },
+    });
+  });
+
   it('posts plugin menu actions through context effects', () => {
     const dependencies = createDependencies();
     const runtime = createContextMenuEffectRuntime(dependencies);

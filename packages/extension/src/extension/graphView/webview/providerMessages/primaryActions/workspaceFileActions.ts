@@ -21,6 +21,7 @@ type WorkspaceFileActions = Pick<
   | 'findInFolder'
   | 'closeFileEditor'
   | 'openInTerminal'
+  | 'compareFiles'
 >;
 
 export function createWorkspaceFileActions(
@@ -63,6 +64,15 @@ export function createWorkspaceFileActions(
         cwd: vscode.Uri.joinPath(workspaceUri, filePath),
       });
       terminal.show();
+    },
+    compareFiles: async (leftPath, rightPath) => {
+      const workspaceUri = getWorkspaceUri();
+      if (!workspaceUri) return;
+      await vscode.commands.executeCommand(
+        'vscode.diff',
+        vscode.Uri.joinPath(workspaceUri, leftPath),
+        vscode.Uri.joinPath(workspaceUri, rightPath),
+      );
     },
     cutFiles: async paths => {
       const workspaceUri = getWorkspaceUri();
