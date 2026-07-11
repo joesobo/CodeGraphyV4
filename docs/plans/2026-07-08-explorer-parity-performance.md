@@ -7,7 +7,7 @@
 - Trello epic: [Epic: VS Code Explorer parity + native-feel performance](https://trello.com/c/hmVekNGe) — linked child cards are absorbed where noted.
 - Branch: `feat/explorer-parity-performance-plan`, base `main` at `6c5eb25a2`.
 
-**Goal:** Anything you can do in the built-in VS Code File Explorer, you can do from the CodeGraphy graph — with matching behavior and validation standards, measured in a real VS Code window. And the graph itself should feel **dynamic, physical, giant, and fast**: interactive beyond Obsidian's documented ~25k-node ceiling, with a desktop-grade selection/drag/pan model, scope toggles that never hiccup, and a plugin system modeled on the two best plugin ecosystems in this space (VS Code's and Obsidian's).
+**Goal:** Anything you can do in the built-in VS Code File Explorer, you can do from the CodeGraphy graph — with matching behavior and validation standards, measured in a real VS Code window. And the graph itself should feel **dynamic, physical, and fast** through the active 10k-file ceiling, with a desktop-grade selection/drag/pan model, scope toggles that never hiccup, and a plugin system modeled on the two best plugin ecosystems in this space (VS Code's and Obsidian's).
 
 **North-star comparisons (both deterministic):**
 1. **VS Code File Explorer** — measured live in the same VS Code window as CodeGraphy (ratio gates).
@@ -21,7 +21,7 @@
 | --- | --- | --- | --- |
 | 1 | In-window metrics harness & baselines | — | real-VS-Code `pnpm perf`, Explorer lane, baselines, CI gate |
 | 2 | Explorer feature parity | 1 | parity inventory: 0 todo rows |
-| 3 | Performance: pipeline + dependency maximization | 1 | ratio + absolute gates green; giant-graph gates green |
+| 3 | Performance: pipeline + dependency maximization | 1 | ratio + absolute gates green; 10k-file gates green |
 | 4 | Graph Scope & projection flow | 3 | any toggle ≤ frame-budget gates, no host round-trip on loaded evidence |
 | 5 | Desktop interaction model | 3 | marquee/drag/pan/multi-context semantics per spec |
 | 6 | Feel & polish | 2, 5 | Explorer-standard behavior gates |
@@ -60,6 +60,11 @@
 Executor rule: a task forcing changes outside its listed packages is a scope signal — flag it on the epic before proceeding.
 
 ## Testing strategy (applies to every phase)
+
+Performance execution is capped at 10,000 files. Prefer `small` → `medium` →
+`large`; use `huge` (10k) only for phase gates and final verification. The
+legacy 30k `giant` fixture is outside this plan's execution matrix: do not
+generate it or run giant / giant-symbol scenarios.
 
 1. **Unit (Vitest)** — pure logic; `*.test.ts` beside source; react-force-graph + ResizeObserver mocks exist (`tests/setup.ts`, `tests/__mocks__/`).
 2. **Acceptance scenarios** — required for every user-visible behavior; respect `pnpm check:acceptance-specs`.
@@ -198,7 +203,7 @@ Committed as `docs/plans/explorer-parity-checklist.md` in Task 2.1; gate 2-A cou
 
 **Vehicles:** unit.
 
-Seeded, zero-randomness generator (file *i* imports files *i/2*, *i/3*): `small` 100 · `medium` 1,000 · `large` 5,000 · `huge` 10,000 · **`giant` 30,000 files (~36k nodes — deliberately past Obsidian's ~25k documented ceiling)** · `self` = this monorepo. `giant` also gets a symbol-heavy variant flag (`--symbols`) that enables symbol/variable nodes for Phase 4 scenarios.
+Seeded, zero-randomness generator (file *i* imports files *i/2*, *i/3*): `small` 100 · `medium` 1,000 · `large` 5,000 · `huge` 10,000 · `self` = this monorepo. The symbol-heavy gate uses `huge --symbols`; the legacy 30k `giant` fixture is retained only for historical compatibility and is not generated or executed by this plan.
 
 - [x] `perf/fixtures/generate.ts` + `manifest.json`; unit test: regenerate twice → identical tree hash. Commit.
 
@@ -208,7 +213,7 @@ Seeded, zero-randomness generator (file *i* imports files *i/2*, *i/3*): `small`
 
 - [ ] Build on the existing `test:vscode` / `@vscode/test-electron@^2.5.2` setup: `perf/run.ts` launches VS Code per fixture; hidden command `codegraphy.perf.runScenario` (new `packages/extension/src/extension/perf/scenarioCommand.ts`) executes scenarios; metric events via `packages/core/src/diagnostics/perfMetrics.ts` (zod schemas) through the existing diagnostics bus (`indexing/phase-completed` pattern in `core/src/indexing/workspace/timing.ts`); `perf/report.ts` writes schema-validated JSON per fixture (missing key = failed run).
 - [ ] Emit sites: `core/src/indexing/engine.ts`, `extension/pipeline/service/refreshFacade.ts`, `extension/workspaceFiles/refresh/scheduler.ts`, `webview/store/messageHandlers/graphDataMessage/payload.ts`, `webview/components/graph/runtime/use/physics/hook/layout.ts`.
-- [ ] Scenarios: cold open · warm open · single-file save/rename/create/delete · 100-file batch (`git checkout` between fixture branches) · interaction burst (pan/zoom/drag) · **scope-toggle battery** (each Graph Scope row toggled on/off ×3) · **idle watch** (60s untouched after settle).
+- [ ] Scenarios: cold open · warm open · single-file save/rename/create/delete · 100-file batch (`git checkout` between fixture branches) · interaction burst (pan/zoom/drag) · **scope-toggle battery** (each Graph Scope row toggled away/back ×5) · **idle watch** (60s untouched after settle).
 - [ ] Keys: `coldOpenMs`, `warmOpenMs`, `incrementalRefreshMs`, `payloadBytes`, `watcherToGraphMs`, `fileOpRoundtripMs`, `layoutResets`, `cacheSaveMs`, `cacheBytes`, `treeSitterParseMs`, `graphBuildMs`, `scopeToggleMs` (per row), `settleTimeMs`, `idleCpuPct`, `simTicksAfterSettle`. Commit.
 
 ### Task 1.3: Explorer comparison lane (same window)
@@ -227,7 +232,7 @@ Seeded, zero-randomness generator (file *i* imports files *i/2*, *i/3*): `small`
 
 | # | Gate | Threshold |
 | --- | --- | --- |
-| 1-A | Fixture determinism | regenerate twice → 0 diff bytes (incl. `giant`) |
+| 1-A | Fixture determinism | regenerate twice → 0 diff bytes through `huge` (10k) |
 | 1-B | Report completeness | all **15 core + 5 webview + 4 Explorer keys + 4 ratios** present, schema-valid |
 | 1-C | Stability | 5 runs on `medium`: CV < 10% per timing key (< 15% for ratios) |
 | 1-D | Baselines | local-reference + CI baselines committed |
@@ -274,7 +279,7 @@ Template for every FS mutation: copy the `extension/actions/deleteFiles.ts` patt
 
 ## Goal
 
-Explorer-tree-like updates (incremental, local, immediate) and a graph that stays physical and fast at `giant` (30k files) — past Obsidian's documented ceiling — while the settled graph costs ~zero CPU (beating Obsidian's 8–20% idle problem). Every task commits before/after numbers.
+Explorer-tree-like updates (incremental, local, immediate) and a graph that stays physical and fast through `huge` (10k files), while the settled graph costs ~zero CPU (beating Obsidian's 8–20% idle problem). Every task commits before/after numbers.
 
 ## How — attack order
 
@@ -284,7 +289,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 4. **tree-sitter maximization** *(confirmed gaps)* — (a) **process-lifetime parser + compiled Query per language** — hoist the per-call `new Parser()` in `analyzeHaskell/file.ts:279`, `analyzeDart/file.ts:192`, `analyzeKotlin/file.ts:188`, `analyzeCpp/relation/include/traversal.ts:66` and every sibling analyzer into a language-keyed registry in `core/src/treeSitter/runtime/`; (b) **incremental re-parse** — retain previous `Tree` per open/changed file, `tree.edit(delta)` + `parser.parse(source, oldTree)` on change (currently entirely unused); (c) **worker-pool cold index** — `worker_threads` pool (`os.cpus()-1`, currently zero worker usage in the repo) parsing independent files during cold index; incremental path stays single-threaded and simple.
 5. **ladybugdb write scheduling** — hot path uses `patchWorkspaceAnalysisDatabaseCache` exclusively (full save only on re-index); persistence debounced to idle (`saveAsync`), never awaited by a user action; batch record/relation writes into single transactions (`graphCache/database/io/save*.ts`); implements — not contradicts — `docs/plans/2026-06-25-graph-cache-runtime-scheduler.md` (read it first).
 6. **Simulation & render budget (react-force-graph levers)** — sim must **stop** after settling (`cooldownTicks`/`onEngineStop` + alpha tuning; keep damping 0.7 defaults as the feel baseline); `warmupTicks` pre-settle on load; `autoPauseRedraw` confirmed; `pauseAnimation()` when the panel hides (`onDidChangeViewState`); glyph sprite cache (offscreen canvas keyed by node style — verify OffscreenCanvas availability in the VS Code webview, else plain hidden canvases); **label LOD** via `globalScale` in `nodeCanvasObject` (Obsidian's text-fade: don't render what can't be read); 3D: verify geometry/material reuse + three-spritetext label caching.
-7. **Worker-thread simulation (the beat-Obsidian move)** — if `giant` gates fail on the main thread after (6): run d3-force in a Web Worker; main thread sends structure diffs, worker posts `Float32Array` position buffers (transferables) at ≤ 60Hz; render consumes buffers directly. This stays within react-force-graph by driving it with externally-computed positions (fx/fy per frame or custom `d3Force` no-op + position injection — prototype both, keep the simpler). **This is the last rung before the PixiJS discussion; do not skip it.**
+7. **Worker-thread simulation** — if the 10k gates fail on the main thread after (6): run d3-force in a Web Worker; main thread sends structure diffs, worker posts `Float32Array` position buffers (transferables) at ≤ 60Hz; render consumes buffers directly. This stays within react-force-graph by driving it with externally-computed positions (fx/fy per frame or custom `d3Force` no-op + position injection — prototype both, keep the simpler). **This is the last rung before the PixiJS discussion; do not skip it.**
 8. **Bridge trimming + watcher storms** — field-access-proxy test finds `IGraphData` fields the webview never reads → strip from wire format; `refresh/scheduler.ts` adaptive coalescing (32ms → 250ms when >20 events pending); 100-file burst = one diff.
 
 - [ ] 3.1 diff protocol → gates 3-A
@@ -309,7 +314,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 | 3-G | Dependency wins | `medium`/`large` | incremental `treeSitterParseMs` ≤ 10% of that file's cold parse; cache-write blocking time in file-op scenarios = 0ms; cold index wall-clock on `large` ≥ 40% below baseline with worker pool |
 | 3-H | Memory | `huge` | `heapUsedBytes` ≤ 500 MB |
 | 3-I | No cold regression | `self` | `coldOpenMs` ≤ baseline +10% |
-| 3-J | **Beat Obsidian** | **`giant` (30k files)** | opens without freeze; `settleTimeMs` ≤ **15s**; `fpsDrag` ≥ **30**; `fpsIdle` ≥ **55** with sim stopped; no main-thread long task > **200ms** after first paint |
+| 3-J | **10k interaction gate** | **`huge` (10k files)** | opens without freeze; `settleTimeMs` ≤ **15s**; `fpsDrag` ≥ **30**; `fpsIdle` ≥ **60** with sim stopped; no main-thread long task > **200ms** after first paint |
 
 If 3-J is unreachable after Task 3.7: write the PixiJS blocker report (measurements, profiles, which rung failed) to PR #304 + the epic card and continue with other phases — **owner decision** territory.
 
@@ -329,18 +334,18 @@ Current flow (audited): a scope toggle posts to the host (`webview/components/gr
 
 - [ ] **4.1 Evidence/projection split:** define the loaded-evidence model in the webview store — the host ships the **superset** graph for the current view (files + symbols + all edge kinds the current settings could show) once; scope rows become webview-local predicate masks over it. Reuse `core/src/visibleGraph/` predicates by importing them into the webview bundle (they're pure core code — verify via `pnpm boundaries` that this respects module boundaries; if not, extract the predicates into a shared-safe module).
 - [ ] **4.2 Per-kind indexes:** on evidence load, build index maps once (`Map<nodeKind, Set<id>>`, `Map<edgeKind, Set<id>>`, symbol→file ownership) so any toggle = set-membership filter, O(visible), no re-derivation. Applied via the Phase 3 patch path (node/link add/remove on the live sim data, object identity preserved) — a toggle must not reset layout; newly revealed nodes enter near their owner (symbols spawn at their file's position) so the graph feels physical, not teleporting.
-- [ ] **4.3 Hydration protocol (the only allowed round-trip):** when a toggle needs evidence not loaded (e.g. symbols enabled for the first time on a huge workspace), the webview requests hydration; host streams the missing evidence class from Graph Cache as chunked `GraphDataPatched` messages (chunk size tuned so no single apply exceeds one frame budget); a subtle busy indicator on the toggle row until hydrated. Subsequent toggles of that row are local. Evidence eviction only on explicit workspace change — memory is gated by 3-H/4-D.
+- [ ] **4.3 Hydration protocol (the only allowed round-trip):** when a toggle needs evidence not loaded (e.g. symbols enabled for the first time on the 10k fixture), the webview requests hydration; host streams the missing evidence class from Graph Cache as chunked `GraphDataPatched` messages (chunk size tuned so no single apply exceeds one frame budget); a subtle busy indicator on the toggle row until hydrated. Subsequent toggles of that row are local. Evidence eviction only on explicit workspace change — memory is gated by 3-H/4-D.
 - [ ] **4.4 Diff edges (Graph Revision):** revision browsing ships diff evidence as its own edge class in the superset; toggling diff-edge visibility is a mask like any other row; switching revisions hydrates only the changed slice (diff between revision evidence sets, computed host-side with `graph/diff.ts`).
-- [ ] **4.5 Scope-toggle battery in `pnpm perf`:** scenario toggles every scope row on/off ×3 at `large` and `giant --symbols`, cold (hydration) and warm (local), recording `scopeToggleMs` per row + `layoutResets` + `cacheSaveMs` during the battery.
+- [ ] **4.5 Scope-toggle battery in `pnpm perf`:** scenario toggles every scope row away/back ×5 at `large` and `huge --symbols`, cold (hydration) and warm (local), recording `scopeToggleMs` per row + `layoutResets` + `cacheSaveMs` during the battery.
 
 ## Checkpoints
 
 | # | Gate | Threshold |
 | --- | --- | --- |
 | 4-A | Warm toggles are local | during warm battery: **0 host messages** carrying graph payloads (assert via message-count instrumentation), 0 cache writes, 0 layout resets |
-| 4-B | Warm toggle speed | `scopeToggleMs` warm ≤ **50ms** at `large`; ≤ **150ms** at `giant --symbols` (apply ≤ 1 frame per chunk) |
-| 4-C | Cold hydration | first symbol-enable on `giant --symbols` streams without any main-thread long task > 100ms; UI stays interactive (input events processed) throughout |
-| 4-D | Symbol scale | `giant --symbols` warm toggling keeps `heapUsedBytes` ≤ 3-H budget + 30% |
+| 4-B | Warm toggle speed | `scopeToggleMs` warm ≤ **50ms** at `large` and `huge --symbols` (apply ≤ 1 frame per chunk) |
+| 4-C | Cold hydration | first symbol-enable on `huge --symbols` streams without any main-thread long task > 100ms; UI stays interactive (input events processed) throughout |
+| 4-D | Symbol scale | `huge --symbols` warm toggling keeps `heapUsedBytes` ≤ 3-H budget + 30% |
 | 4-E | Revision diffs | switching adjacent revisions on `self` ships ≤ the changed slice (payload ≤ 10× the file-diff size, never the full graph) |
 
 ---
@@ -450,9 +455,9 @@ Publish reviewable proof: in-window numbers, Explorer side-by-side, Obsidian-lim
 
 ### Tasks
 
-- [ ] **8.1 Benchmark report:** full sweep on final branch AND pre-epic baseline commit, same machine; `docs/perf/2026-explorer-parity-report.md` — every Phase 3/4 gate: baseline → target → achieved (PR #294 table format). Include the **Obsidian comparison table**: our `giant` (30k) results vs Obsidian's documented ceiling (~25k, frozen at 130k, 8–20% idle CPU) with source links.
+- [ ] **8.1 Benchmark report:** capped sweep through `huge` (10k) on final branch AND pre-epic baseline commit, same machine; `docs/perf/2026-explorer-parity-report.md` — every Phase 3/4 gate: baseline → target → achieved (PR #294 table format). Include an **Obsidian context table** comparing our measured 10k results with Obsidian's documented ceiling and idle-CPU reports, without generating or running a 30k fixture.
 - [ ] **8.2 Explorer side-by-side:** one VS Code window, scripted: each op in Explorer then CodeGraphy (rename, nested create, multi-delete+undo, 100-file checkout absorption), screen-recorded with the same-session ratio table embedded.
-- [ ] **8.3 Reels:** (1) file-management tour (nested create → inline rename → cut/paste → multi-delete → undo); (2) snappiness reel (zero-reset save, optimistic rename, checkout as one patch, warm scope toggles on `giant --symbols`); (3) **physicality reel** (marquee → group drag with edges tugging neighbors → Ctrl-pan → settle-and-stop). Under `docs/assets/explorer-parity/`.
+- [ ] **8.3 Reels:** (1) file-management tour (nested create → inline rename → cut/paste → multi-delete → undo); (2) snappiness reel (zero-reset save, optimistic rename, checkout as one patch, warm scope toggles on `huge --symbols`); (3) **physicality reel** (marquee → group drag with edges tugging neighbors → Ctrl-pan → settle-and-stop). Under `docs/assets/explorer-parity/`.
 - [ ] **8.4 Publish:** media to PR #304 via the repo's Playwright PR-image workflow (`$PWCLI` GitHub profile flow); report + summary comment on the Trello epic; file the **drag-file-to-folder / external-drop follow-up card**; commit final checklist.
 - [ ] **8.5 Owner validation:** owner signs off on the epic card or files gap cards. **Phase 9 blocked until sign-off.**
 
@@ -494,7 +499,7 @@ Publish reviewable proof: in-window numbers, Explorer side-by-side, Obsidian-lim
 
 - **In-window variance:** medians, CV limits (1-C), same-session Explorer ratios, runner-class-scoped CI baselines. If a metric can't get CV < 10%, fix the scenario before gating on it.
 - **Pointer-routing conflicts (5.1):** inverting pan/marquee defaults may fight react-force-graph's internal handlers — confirm the interception surface against the README first; if the library can't yield background-drag cleanly, overlay a transparent capture layer that forwards to the library only for Ctrl-pan.
-- **Worker-sim ↔ react-force-graph integration (3.7):** two prototype routes named (fx/fy injection vs custom force no-op); if neither holds 60fps hand-off at `giant`, that's the PixiJS blocker report — **owner decision**, never autonomous migration.
+- **Worker-sim ↔ react-force-graph integration (3.7):** two prototype routes named (fx/fy injection vs custom force no-op); if neither holds 60fps hand-off at `huge` (10k), that's the PixiJS blocker report — **owner decision**, never autonomous migration.
 - **visibleGraph predicates in the webview bundle (4.1):** must pass `pnpm boundaries`; extraction into a shared-safe module is the sanctioned fallback.
 - **`vscode.git` API stability (2.7):** fallback `git status --porcelain` via core's git layer.
 - **OffscreenCanvas in VS Code webviews (3.6):** verify availability in the shipped Electron; hidden-canvas fallback specified.
