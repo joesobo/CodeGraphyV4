@@ -15,12 +15,27 @@ function withSymbolPluginProvenance(
   };
 }
 
+function withNodePluginProvenance(
+  node: NonNullable<IFileAnalysisResult['nodes']>[number],
+  plugin: IPlugin,
+): NonNullable<IFileAnalysisResult['nodes']>[number] {
+  return {
+    ...node,
+    metadata: {
+      ...node.metadata,
+      pluginId: node.metadata?.pluginId ?? plugin.id,
+      source: node.metadata?.source ?? plugin.id,
+    },
+  };
+}
+
 export function withPluginProvenance(
   plugin: IPlugin,
   result: IFileAnalysisResult,
 ): IFileAnalysisResult {
   return {
     ...result,
+    nodes: result.nodes?.map(node => withNodePluginProvenance(node, plugin)),
     relations: result.relations?.map((relation) => ({
       ...relation,
       pluginId: relation.pluginId ?? plugin.id,

@@ -1,0 +1,9 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "sample.marker",
+  "name": "Sample Marker",
+  "version": "0.1.0",
+  "apiVersion": "^2.1.0",
+  "minCoreVersion": "1.7.2",
+  "supportedExtensions": [".sample"]
+}

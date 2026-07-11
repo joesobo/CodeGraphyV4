@@ -1,0 +1,30 @@
+{
+  "name": "@codegraphy-dev/sample-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
+  "files": ["dist", "codegraphy.json"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js",
+    "lint": "eslint src tests",
+    "watch": "esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/plugin.js --sourcemap --external:@codegraphy-dev/plugin-api --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/plugin-api": "workspace:*"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.1.0",
+    "disclosures": []
+  }
+}

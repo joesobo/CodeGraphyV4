@@ -103,6 +103,24 @@ describe('plugins/routing', () => {
     ]);
   });
 
+  it('adds plugin provenance to custom analysis nodes', () => {
+    const analysis = withPluginProvenance(plugin('sample.marker', ['.sample']), {
+      filePath: 'demo.sample',
+      nodes: [{
+        id: 'sample-node',
+        label: 'Sample',
+        nodeType: 'sample:marker',
+      }],
+    });
+
+    expect(analysis.nodes).toEqual([expect.objectContaining({
+      metadata: {
+        pluginId: 'sample.marker',
+        source: 'sample.marker',
+      },
+    })]);
+  });
+
   it('merges core and plugin analysis while swallowing plugin failures', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const plugins = new Map<string, IRoutablePluginInfo>([

@@ -549,6 +549,8 @@ Lifecycle checkpoint (2026-07-11): `IPluginHostApi.registerDisposable` transfers
 
 Manifest checkpoint (2026-07-11): the public `IPluginManifest` and root `codegraphy.schema.json` now include semver `minCoreVersion`; installed-cache normalization preserves it, descriptor reads validate it, and package load checks it before resolving/importing runtime code. A deliberately stale `99.0.0` fixture is refused through the existing warning channel with required/current versions and proves its import marker was never created. The Core plugin pack passes **95/95**, plugin-api passes **8/8**, and both packages are lint- and typecheck-clean.
 
+Sample-plugin checkpoint (2026-07-11): `examples/sample-plugin` and the five-step Getting Started guide now build, typecheck, and pass their focused tests; the CLI path was rehearsed in an isolated home and successfully linked, enabled, listed, and disabled the package. That rehearsal exposed and fixed the previously missing Core projection of plugin-returned custom analysis nodes; a direct real-package Core index now produces the `demo.sample` file, `sample:marker` child, and containment edge. Gate 7-D remains open after three retained Dev Host attempts: attempt 1 exposed the existing `Saving Graph Cache 100%` progressbar that does not hide, attempt 2 showed that custom analysis nodes were absent from graph construction, and attempt 3 still showed only the file node after the Core projection fix. A later fresh desktop run must determine which extension-pipeline or visible-scope seam is dropping the otherwise validated node; no failed attempt is reported as passing.
+
 ## Checkpoints
 
 | # | Gate | Threshold |

@@ -13,6 +13,7 @@ import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis/cacheT
 import { DEFAULT_NODE_COLOR } from '../fileColors';
 import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import { filterDisabledPluginFileAnalysis } from '../plugins/activityState/analysisFacts';
+import { buildAnalysisNodesAndEdges } from './analysisNodes';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphEdges } from './edges';
 import { buildWorkspaceGraphNodes } from './nodes';
@@ -148,6 +149,7 @@ export function buildWorkspaceGraphDataFromAnalysis(
         gitIgnoredPaths: options.gitIgnoredPaths,
       })
     : { containingFileIds: new Set<string>(), edges: [], nodes: [] };
+  const analysisNodeGraph = buildAnalysisNodesAndEdges(fileAnalysis, options.workspaceRoot);
   const existingNodeIds = new Set(graphData.nodes.map(node => node.id));
   const connectedAnalysisFileIds = collectConnectedAnalysisFileIds(
     fileAnalysis,
@@ -155,12 +157,20 @@ export function buildWorkspaceGraphDataFromAnalysis(
     symbolGraph.containingFileIds,
     { includeSymbols: projectSymbolGraph },
   );
+  for (const fileId of analysisNodeGraph.containingFileIds) {
+    connectedAnalysisFileIds.add(fileId);
+  }
   const containingFileNodes = Array.from(connectedAnalysisFileIds)
     .filter(filePath => !existingNodeIds.has(filePath))
     .map(filePath => createContainingFileNode(filePath, options));
 
   return {
-    nodes: [...graphData.nodes, ...containingFileNodes, ...symbolGraph.nodes],
-    edges: [...graphData.edges, ...symbolGraph.edges],
+    nodes: [
+      ...graphData.nodes,
+      ...containingFileNodes,
+      ...analysisNodeGraph.nodes.filter(node => !existingNodeIds.has(node.id)),
+      ...symbolGraph.nodes,
+    ],
+    edges: [...graphData.edges, ...analysisNodeGraph.edges, ...symbolGraph.edges],
   };
 }
