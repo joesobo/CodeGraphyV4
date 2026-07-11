@@ -16,12 +16,15 @@ const VSCODE_TOKEN_PATTERN = /var\(--vscode-/g;
 const GRAPH_DATA_COLOR_ALLOW_LIST = new Set([
   'src/webview/app/rulePrompt/model.ts',
   'src/webview/components/graph/contextActions/builtin/effects.ts',
+  'src/webview/components/graph/rendering/node/decorationBadge.ts',
+  'src/webview/components/graph/runtime/use/indicators/nodeDecorations.ts',
   'src/webview/components/graph/model/link/build.ts',
   'src/webview/components/graph/model/node/display.ts',
   'src/webview/components/legends/panel/section/createRow.tsx',
   'src/webview/export/shared/context.ts',
   'src/webview/export/svg/link/document.ts',
   'src/webview/pluginHost/api/drawing.ts',
+  'src/webview/store/messageHandlers/fileMutation.ts',
 ]);
 
 function listSourceFiles(directory: string): string[] {

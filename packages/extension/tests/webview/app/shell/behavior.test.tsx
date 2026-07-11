@@ -22,6 +22,7 @@ vi.mock('../../../../src/webview/components/graph/view/component', () => ({
     return (
       <div data-testid="mock-graph">
         <span data-testid="graph-node-ids">{data.nodes.map((node) => node.id).join(',')}</span>
+        <span data-testid="graph-projection-node-ids">{(props.projectionData as typeof data).nodes.map((node) => node.id).join(',')}</span>
         <span data-testid="graph-node-colors">{data.nodes.map((node) => node.color ?? '').join(',')}</span>
         <span data-testid="graph-node-shapes">{data.nodes.map((node) => `${node.shape2D ?? 'none'}:${node.shape3D ?? 'none'}`).join(',')}</span>
         <span data-testid="graph-node-images">{data.nodes.map((node) => node.imageUrl ?? '').join(',')}</span>
@@ -352,7 +353,8 @@ describe('App behavior', () => {
 
       render(<App />);
 
-      expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('');
+      expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/App.ts');
+      expect(screen.getByTestId('graph-projection-node-ids')).toHaveTextContent('');
       expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-result-count', '0');
       expect(screen.getByTestId('mock-search-bar').getAttribute('data-regex-error')).toMatch(/unterminated|invalid|character/i);
     });

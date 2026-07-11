@@ -53,6 +53,9 @@
     --cg-error-foreground: var(--vscode-errorForeground, var(--cg-destructive-foreground));
     --cg-warning: var(--vscode-editorWarning-foreground, var(--cg-primary));
     --cg-shadow: var(--vscode-widget-shadow, transparent);
+    --cg-notification-background: var(--vscode-notifications-background, var(--cg-popover));
+    --cg-notification-foreground: var(--vscode-notifications-foreground, var(--cg-popover-foreground));
+    --cg-notification-error-border: var(--vscode-notificationsErrorIcon-foreground, var(--cg-error-foreground));
     --cg-transparent: transparent;
     --cg-overlay-background: color-mix(in srgb, var(--cg-background) 70%, transparent);
     --cg-popover-translucent: color-mix(in srgb, var(--cg-popover) 95%, transparent);

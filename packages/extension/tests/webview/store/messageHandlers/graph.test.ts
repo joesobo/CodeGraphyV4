@@ -30,9 +30,12 @@ describe('webview/store/messageHandlers/graph', () => {
 
     expect(handleGraphDataUpdated({ type: 'GRAPH_DATA_UPDATED', payload })).toEqual({
       graphData: payload,
+      ghostGraphVisible: false,
       isLoading: false,
       graphIsIndexing: false,
       graphIndexProgress: null,
+      inlineEdit: null,
+      pendingFileMutations: {},
     });
   });
 
@@ -159,9 +162,13 @@ describe('webview/store/messageHandlers/graph', () => {
     )).toEqual({
       graphData: payload,
       awaitingInitialBootstrap: false,
+      ghostGraphVisible: false,
       isLoading: false,
       graphIsIndexing: false,
       graphIndexProgress: null,
+      graphResetVersion: 1,
+      inlineEdit: null,
+      pendingFileMutations: {},
     });
   });
 

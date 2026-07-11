@@ -617,7 +617,7 @@ describe('App', () => {
 
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 enabled' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 excluded' }));
     expect(screen.getByText('1 excluded from graph')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Disable plugin Plugin One filters'));

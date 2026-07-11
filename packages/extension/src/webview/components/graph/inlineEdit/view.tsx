@@ -80,7 +80,7 @@ export function GraphInlineEdit({
       {session.kind !== 'rename' && (
         <div
           aria-hidden="true"
-          className="mx-auto mb-1 size-5 rounded-full border border-dashed border-[var(--vscode-focusBorder)] bg-[var(--vscode-editor-background)]"
+          className="mx-auto mb-1 size-5 rounded-full border border-dashed border-[var(--cg-focus-border)] bg-[var(--cg-background)]"
           data-codegraphy-ghost-node={session.kind}
         />
       )}
@@ -89,7 +89,7 @@ export function GraphInlineEdit({
         aria-label={session.kind === 'rename'
           ? 'Rename graph item'
           : session.kind === 'createFile' ? 'New file name' : 'New folder name'}
-        className="min-w-40 rounded-sm border border-[var(--vscode-input-border,var(--vscode-focusBorder))] bg-[var(--vscode-input-background)] px-1.5 py-0.5 text-[var(--vscode-input-foreground)] outline-none focus:border-[var(--vscode-focusBorder)]"
+        className="min-w-40 rounded-sm border border-[var(--cg-input-border)] bg-[var(--cg-input)] px-1.5 py-0.5 text-[var(--cg-input-foreground)] outline-none focus:border-[var(--cg-focus-border)]"
         value={session.value}
         aria-busy={session.pending}
         readOnly={session.pending}
@@ -103,7 +103,7 @@ export function GraphInlineEdit({
       {session.error && (
         <div
           role="alert"
-          className="mt-1 max-w-64 rounded-sm bg-[var(--vscode-inputValidation-errorBackground)] px-2 py-1 text-xs text-[var(--vscode-inputValidation-errorForeground,var(--vscode-foreground))]"
+          className="mt-1 max-w-64 rounded-sm bg-[var(--cg-input-error-background)] px-2 py-1 text-xs text-[var(--cg-error-foreground)]"
         >
           {session.error}
         </div>
