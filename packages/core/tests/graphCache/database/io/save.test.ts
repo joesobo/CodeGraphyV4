@@ -114,17 +114,26 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'BEGIN TRANSACTION',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'MATCH (entry:FileAnalysis) DELETE entry',
     );
     expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
       3,
       'connection',
+      'MATCH (entry:Symbol) DELETE entry',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenNthCalledWith(
+      4,
+      'connection',
       'MATCH (entry:Relation) DELETE entry',
+    );
+    expect(connectionModule.runStatementSync).toHaveBeenLastCalledWith(
+      'connection',
+      'COMMIT',
     );
     expect(writeModule.persistAnalysisEntry).toHaveBeenNthCalledWith(
       1,
@@ -276,17 +285,26 @@ describe('graphCache/database/io/save', () => {
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       1,
       'connection',
-      'MATCH (entry:FileAnalysis) DELETE entry',
+      'BEGIN TRANSACTION',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       2,
       'connection',
-      'MATCH (entry:Symbol) DELETE entry',
+      'MATCH (entry:FileAnalysis) DELETE entry',
     );
     expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
       3,
       'connection',
+      'MATCH (entry:Symbol) DELETE entry',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenNthCalledWith(
+      4,
+      'connection',
       'MATCH (entry:Relation) DELETE entry',
+    );
+    expect(connectionModule.runStatementAsync).toHaveBeenLastCalledWith(
+      'connection',
+      'COMMIT',
     );
     expect(writeModule.persistAnalysisEntryAsync).toHaveBeenCalledTimes(2);
     expect(waitForImmediate).toHaveBeenCalledTimes(2);
@@ -327,10 +345,12 @@ describe('graphCache/database/io/save', () => {
   });
 
   it('cleans up the temporary database when async saving fails', async () => {
-    vi.mocked(connectionModule.withConnectionAsync).mockRejectedValueOnce(new Error('async write failed'));
+    vi.mocked(writeModule.persistAnalysisEntryAsync).mockRejectedValueOnce(new Error('async write failed'));
 
     await expect(saveWorkspaceAnalysisDatabaseCacheAsync('/workspace', cache))
       .rejects.toThrow('async write failed');
+    expect(connectionModule.runStatementAsync).toHaveBeenCalledWith('connection', 'ROLLBACK');
+    expect(connectionModule.runStatementAsync).not.toHaveBeenCalledWith('connection', 'COMMIT');
     expect(temporaryModule.cleanupTemporaryDatabase).toHaveBeenCalledWith('/workspace/.codegraphy/graph.lbug.tmp');
     expect(temporaryModule.replaceDatabaseCache).not.toHaveBeenCalled();
   });

@@ -66,14 +66,16 @@ export function saveWorkspaceAnalysisDatabaseCache(
 
   try {
     withConnection(tempDatabasePath, (connection) => {
-      runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
+      runTransactionSync(connection, () => {
+        runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
+        runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
+        runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
 
-      const writer = createWorkspaceAnalysisCacheWriter(connection);
-      for (const [filePath, entry] of sortedCacheEntries(cache)) {
-        persistAnalysisEntry(writer, filePath, entry);
-      }
+        const writer = createWorkspaceAnalysisCacheWriter(connection);
+        for (const [filePath, entry] of sortedCacheEntries(cache)) {
+          persistAnalysisEntry(writer, filePath, entry);
+        }
+      });
     });
     replaceDatabaseCache(tempDatabasePath, databasePath);
   } catch (error) {

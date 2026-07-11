@@ -25,6 +25,29 @@ function getPersistedCacheBytes(databasePath: string): number {
   return databaseBytes + walBytes;
 }
 
+async function runTransactionAsync(
+  connection: Parameters<typeof runStatementAsync>[0],
+  write: () => Promise<void>,
+): Promise<void> {
+  await runStatementAsync(connection, 'BEGIN TRANSACTION');
+  let committed = false;
+
+  try {
+    await write();
+    await runStatementAsync(connection, 'COMMIT');
+    committed = true;
+  } catch (error) {
+    if (!committed) {
+      try {
+        await runStatementAsync(connection, 'ROLLBACK');
+      } catch {
+        // Keep the original write failure as the actionable error.
+      }
+    }
+    throw error;
+  }
+}
+
 export async function saveWorkspaceAnalysisDatabaseCacheAsync(
   workspaceRoot: string,
   cache: IWorkspaceAnalysisCache,
@@ -46,26 +69,28 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
 
   try {
     await withConnectionAsync(tempDatabasePath, async (connection) => {
-      await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
-      const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
+      await runTransactionAsync(connection, async () => {
+        await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
+        await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
+        await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
+        const writer = await createWorkspaceAnalysisCacheWriterAsync(connection);
 
-      let current = 0;
-      let statementsSinceYield = 0;
-      const yieldAfterStatement = async (): Promise<void> => {
-        statementsSinceYield += 1;
-        if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
-          statementsSinceYield = 0;
-          await waitForImmediate();
+        let current = 0;
+        let statementsSinceYield = 0;
+        const yieldAfterStatement = async (): Promise<void> => {
+          statementsSinceYield += 1;
+          if (yieldEvery > 0 && statementsSinceYield >= yieldEvery) {
+            statementsSinceYield = 0;
+            await waitForImmediate();
+          }
+        };
+
+        for (const [filePath, entry] of entries) {
+          await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
+          current += 1;
+          options.onProgress?.({ current, total });
         }
-      };
-
-      for (const [filePath, entry] of entries) {
-        await persistAnalysisEntryAsync(writer, filePath, entry, yieldAfterStatement);
-        current += 1;
-        options.onProgress?.({ current, total });
-      }
+      });
     });
     replaceDatabaseCache(tempDatabasePath, databasePath);
     if (emitPerfMetric && startedAt !== undefined) {
