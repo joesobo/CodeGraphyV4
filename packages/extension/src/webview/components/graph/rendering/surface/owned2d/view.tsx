@@ -24,7 +24,7 @@ import {
   syncOwnedLayoutNodes,
   type OwnedGraphLayout,
 } from './layout';
-import { pickOwnedGraphNode } from './picking';
+import { OwnedGraphNodePicker } from './picking';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface PointerSession {
@@ -64,6 +64,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const engineStopNotifiedRef = useRef(false);
   const positionVersionRef = useRef(0);
+  const pickerPositionVersionRef = useRef(-1);
+  const pickerRef = useRef(new OwnedGraphNodePicker());
   const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
   const [rendererKind, setRendererKind] = useState<'canvas2d' | 'webgpu'>('canvas2d');
   propsRef.current = props;
@@ -126,6 +128,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       if (tick.steps > 0) positionVersionRef.current += 1;
       const physicsEndedAt = perfSamples ? performance.now() : 0;
       syncOwnedLayoutNodes(layout);
+      if (pickerPositionVersionRef.current !== positionVersionRef.current) {
+        pickerRef.current.rebuild(layout.nodes);
+        pickerPositionVersionRef.current = positionVersionRef.current;
+      }
       const syncEndedAt = perfSamples ? performance.now() : 0;
 
       const { width, height } = canvasSize(canvas);
@@ -360,7 +366,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     if (!layout) return;
     const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
-    const picked = pickOwnedGraphNode(layout.nodes, world, cameraRef.current.zoom);
+    const picked = pickerRef.current.pick(world, cameraRef.current.zoom);
     pointerSessionRef.current = {
       index: picked?.index ?? null,
       lastWorld: world,
@@ -406,7 +412,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       return;
     }
 
-    const hovered = pickOwnedGraphNode(layout.nodes, world, cameraRef.current.zoom)?.node ?? null;
+    const hovered = pickerRef.current.pick(world, cameraRef.current.zoom)?.node ?? null;
     if (hovered !== hoveredNodeRef.current) {
       hoveredNodeRef.current = hovered;
       propsRef.current.sharedProps.onNodeHover(hovered);
@@ -449,7 +455,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     event.preventDefault();
     const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
-    const node = pickOwnedGraphNode(layout.nodes, world, cameraRef.current.zoom)?.node;
+    const node = pickerRef.current.pick(world, cameraRef.current.zoom)?.node;
     if (node) propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
     else propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
   };
