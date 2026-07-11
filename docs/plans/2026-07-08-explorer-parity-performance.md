@@ -344,6 +344,10 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 
 ### Task 3.3 implementation checkpoint — optimistic file operations (2026-07-11)
 
+- **Latest diagnostic checkpoint:** pending mutations now leave authoritative graph data and the filtered/styled caches unchanged. Rename feedback is projected as a label decoration, delete feedback as opacity, and create retains the inline ghost/saving state; authoritative full/patch messages clear the descriptors and failures remove only the pending projection.
+- One correctly seeded real-VS-Code `medium` diagnostic measured optimistic rename apply at `13.678ms`, down `73.16%` from the retained `50.954ms` smoke and below the `16ms` ceiling. The same-session Explorer control was `3.681ms`, so the total parity ratio still fails at `3.72×`. This is one diagnostic sample, not the required five-run acceptance median.
+- The rejected intermediate late-data projection measured `46.332ms` and was not committed because it still rebuilt the runtime graph and missed the target.
+
 - Confirmed rename/create/delete actions now publish a typed optimistic mutation only after the relevant input or confirmation resolves. Cancellation therefore leaves the graph untouched.
 - The webview applies file/folder renames, creates, and deletes synchronously, tracks the exact pre-mutation graph root as pending state, reconciles the next authoritative patch against that root, and clears pending state on either full or patch data.
 - Host failures restore the exact snapshot and display a VS Code-themed five-second error toast. Twenty-six focused host, store, reconciliation, rollback, and toast tests pass.

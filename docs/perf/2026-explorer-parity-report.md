@@ -1,6 +1,6 @@
 # Explorer parity and native-feel performance report
 
-Status: **provisional blocker report**, measurement checkpoint `686160e54` plus
+Status: **provisional blocker report**, measurement checkpoint `f07bebfec` plus
 the retained measurements cited below, captured on 2026-07-11.
 
 This is the Phase 8 report draft, not an acceptance declaration. The required
@@ -34,7 +34,7 @@ files.
 | --- | --- | --- | --- | --- |
 | 3-A Diff payload | 497,876 B, `medium` single save | ≤10 KB and ≥95% smaller | 383 / 383 / 383 / 383 / 383 B; median 383 B, CV 0%; 99.923% smaller | **Pass** |
 | 3-B Zero resets | 32 resets in the checked-in `medium` reference | 0 resets; 0 px untouched-node drift before reheat | `medium`: 0 ×5; `large`: 0 ×5. Retained objects and coordinates are asserted before physics receives the structure version. | **Pass** |
-| 3-C Explorer ratios | Checked-in `medium` rename ratio 201.78× | rename/create/delete ≤1.25×; optimistic apply ≤16 ms | Latest rename smoke: 50.954 ms versus Explorer 3.265 ms = 15.61×; one complete diagnostic sample | **Fail / blocker** |
+| 3-C Explorer ratios | Checked-in `medium` rename ratio 201.78× | rename/create/delete ≤1.25×; optimistic apply ≤16 ms | A lightweight decoration projection reduced one `medium` optimistic rename diagnostic from 50.954 ms to 13.678 ms (73.16%) and met the ≤16 ms feedback ceiling. Same-session Explorer was 3.681 ms, leaving the overall ratio at 3.72×. | **Optimistic threshold met diagnostically; parity ratio remains a blocker** |
 | 3-D Watcher storms | Checked-in `medium` batch watcher 188.582 ms, before deterministic six-switch coverage | single-file ≤1.5× Explorer refresh; 100 files ≤1,500 ms | Batch watcher medians 425.067 / 411.793 / 423.505 / 427.540 / 427.203 ms; overall median 425.067 ms, CV 1.37%. Refresh median 80.115 ms, CV 3.99%; exactly one refresh/payload per switch. Five single-save samples: watcher median 65.317 ms, CV 3.28%. | **Pass for absolute batch gate; Explorer-relative single-file comparison still needs final paired sweep** |
 | 3-E Warm startup | PR #294 same-machine anchor 4,614 ms | ≤2,307 ms | Checked-in local reference is 2,158.970 ms (53.2% below anchor), but this is not a final-branch five-sample recapture | **Pending final sweep** |
 | 3-F Settled is free | Checked-in `medium`: 0 ticks, 3.275% idle CPU | 0 ticks; <2% idle CPU | Before split, one `large` diagnostic measured 5.767% aggregate (5.733% renderer, 0.033% extension host). After pausing the settled renderer and bounding the FPS probe, the same 5,000-node fixture measured 1.500% aggregate (1.467% renderer, 0.033% extension host), 0 ticks, and 57.815 FPS. | **Threshold met diagnostically; pending five samples** |
