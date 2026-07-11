@@ -311,7 +311,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - [x] 3.2 layout resets → 3-B
 - [ ] 3.3 optimistic ops → 3-C
 - [x] 3.4 tree-sitter (a)(b)(c) → 3-G
-- [ ] 3.5 ladybug scheduling → 3-G
+- [x] 3.5 ladybug scheduling → 3-G
 - [ ] 3.6 sim/render budget → 3-F, 3-J
 - [ ] 3.7 worker sim (only if 3-J fails after 3.6; otherwise check the box with a note) → 3-J
 - [ ] 3.8 bridge + storms → 3-D
@@ -354,6 +354,16 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - The complete Core suite passed: 1,225 tests across 263 files. Both core and extension builds passed, and the packaged core CLI indexed the generated 100-file fixture successfully.
 - Exact-head real-VS-Code `medium` evidence recorded aggregate cold `treeSitterParseMs = 11.573ms` and operation-scoped changed-file `treeSitterParseMs = 0.150ms`. The current harness does not identify the matching file's cold parse, so this is retained as implementation evidence rather than an accepted same-file ratio.
 - The first exact-head real-VS-Code `large` cold attempt recorded `coldOpenMs = 43,847.948ms` against the prior five-run median `40,416.706ms` (8.49% slower), not the required 40% win. `cacheSaveMs = 20,458.676ms` remained blocking while aggregate parallel `treeSitterParseMs` was `49.744ms`. Gate 3-G therefore remains open and proceeds to Task 3.5's cache-write scheduling; this failed attempt is retained without retry or baseline adoption.
+
+### Task 3.5 evidence — Graph Cache transaction and idle scheduling (2026-07-11)
+
+- Full Graph Cache replacement now wraps all canonical deletes and file-entry writes in one LadybugDB transaction; the async and sync implementations roll back on failure. Changed-file cache patches have an async transactional API and preserve the existing delete-before-upsert semantics.
+- The extension schedules full saves and patches after yielding to the event loop, coalesces bursts by workspace into the latest full snapshot or patch, serializes one follow-up when state changes during an active save, and does not await persistence from the action path. Pending full saves count as an in-memory index until durable completion. Shutdown/tests can explicitly await the persistence-idle barrier without changing action semantics.
+- The first post-transaction `large` sample reduced `cacheSaveMs` from `20,458.676ms` to `438.420ms` (97.86% lower) and `coldOpenMs` from `43,847.948ms` to `23,015.769ms` (47.51% lower).
+- Exact-head five-run `pnpm perf -- --fixture large --runs 5 --smoke` raw `coldOpenMs`: `23,033.240`, `22,790.666`, `22,928.544`, `23,291.205`, `23,158.337` (median `23,033.240`, CV `0.76%`). This is 43.01% below the prior five-run baseline median `40,416.706ms`, passing the cold-index portion of gate 3-G. Raw `cacheSaveMs`: `432.394`, `427.336`, `483.002`, `433.086`, `425.400` (median `432.394`, CV `4.90%`).
+- Five complete exact-head `medium` single-save samples emitted zero action-scoped `cacheSaveMs` values. Operation-scoped `incrementalRefreshMs`: `27.051`, `27.197`, `22.774`, `23.487`, `23.059` (median `23.487`, CV `8.02%`); `watcherToGraphMs`: `69.499`, `68.777`, `64.174`, `65.317`, `64.804` (median `65.317`, CV `3.28%`).
+- Core passed 1,229 tests across 264 files. The scheduler, cache service, typecheck, and durable lifecycle suites pass. The full extension run still has 45 failures across earlier Phase 2/3 webview and watcher test drift; the cache lifecycle failure introduced by nonblocking persistence was corrected with the explicit durability barrier.
+- Gate 3-G's cache-blocking and large cold-index requirements pass. Its same-file incremental Tree-sitter ratio remains unclaimed because the current cold metric aggregates the fixture rather than reporting the matching file; that instrumentation gap remains attached to Task 3.4 evidence.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
