@@ -24,6 +24,7 @@ const unitByMetric: Record<SmokeMetric['metric'], SmokeMetric['unit']> = {
   cacheBytes: 'bytes',
   treeSitterParseMs: 'ms',
   graphBuildMs: 'ms',
+  pluginActivationMs: 'ms',
   scopeToggleMs: 'ms',
   settleTimeMs: 'ms',
   idleCpuPct: 'percent',
@@ -106,6 +107,8 @@ function createResults(): PerfSmokeResult[] {
       metric('treeSitterParseMs', 70, 'tree-sitter'),
       metric('graphBuildMs', 80, 'files'),
       metric('graphBuildMs', 100, 'symbols'),
+      metric('pluginActivationMs', 12, 'codegraphy.markdown'),
+      metric('pluginActivationMs', 8, 'codegraphy.typescript'),
       metric('payloadBytes', 2_048),
       metric('cacheSaveMs', 10),
       metric('cacheBytes', 4_000),
@@ -225,6 +228,10 @@ describe('performance report assembly', () => {
         coldOpenMs: 1_000,
         fileOpRoundtripMs: { create: 35, delete: 45, rename: 25, reveal: 15 },
         graphBuildMs: 180,
+        pluginActivationMs: {
+          'codegraphy.markdown': 12,
+          'codegraphy.typescript': 8,
+        },
         idleCpuPct: 0.5,
         incrementalRefreshMs: {
           batch100: 50,

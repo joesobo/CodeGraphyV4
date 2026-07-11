@@ -12,6 +12,7 @@ export const perfMetricNameSchema = z.enum([
   'cacheBytes',
   'treeSitterParseMs',
   'graphBuildMs',
+  'pluginActivationMs',
   'scopeToggleMs',
   'settleTimeMs',
   'idleCpuPct',

@@ -223,6 +223,25 @@ function maxMetric(
   return Math.max(...values);
 }
 
+function collectPluginActivationMetrics(
+  metrics: readonly ReportMetric[],
+): Record<string, number> {
+  const valuesByPlugin = new Map<string, number[]>();
+  for (const metric of metrics) {
+    if (metric.metric !== 'pluginActivationMs' || !metric.dimension) continue;
+    valuesByPlugin.set(metric.dimension, [
+      ...(valuesByPlugin.get(metric.dimension) ?? []),
+      metric.value,
+    ]);
+  }
+  if (valuesByPlugin.size === 0) {
+    throw new Error('Expected at least one pluginActivationMs metric; found 0');
+  }
+  return Object.fromEntries([...valuesByPlugin.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([pluginId, values]) => [pluginId, Math.max(...values)]));
+}
+
 type ScopeToggleDirection = 'disabled' | 'enabled';
 const scopeToggleRepetitions = 5;
 
@@ -422,6 +441,7 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       cacheBytes: maxMetric(measured, 'cacheBytes'),
       treeSitterParseMs: sumMetric(coldMetrics, 'treeSitterParseMs'),
       graphBuildMs: sumMetric(coldMetrics, 'graphBuildMs'),
+      pluginActivationMs: collectPluginActivationMetrics(coldMetrics),
       scopeToggleMs: collectScopeMetrics(measuredByScenario),
       settleTimeMs: maxMetric(measured, 'settleTimeMs'),
       idleCpuPct: findMeasurement(measured, 'idleCpuPct', input.idleCpuPct),

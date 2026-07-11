@@ -56,6 +56,7 @@ describe('diagnostics/perfMetrics', () => {
   });
 
   it.each([
+    ['pluginActivationMs', 'ms'],
     ['fpsIdle', 'fps'],
     ['fpsDrag', 'fps'],
     ['fpsSettle', 'fps'],

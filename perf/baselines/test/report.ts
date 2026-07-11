@@ -42,6 +42,9 @@ export function createPerfReport(): PerfReport {
       cacheBytes: 4_096,
       treeSitterParseMs: 120,
       graphBuildMs: 180,
+      pluginActivationMs: {
+        'codegraphy.markdown': 12,
+      },
       scopeToggleMs: { files: 8 },
       settleTimeMs: 300,
       idleCpuPct: 0.5,

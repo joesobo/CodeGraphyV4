@@ -12,6 +12,7 @@ import type {
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
 import { CODEGRAPHY_CORE_VERSION } from './api';
 import { compareSemver, parseSemver } from './apiVersion';
+import { captureActivePerfMetricEmitter } from '../diagnostics/perfMetrics';
 
 function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
   return record.pluginId ?? record.package;
@@ -51,6 +52,8 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   record: CodeGraphyInstalledPluginRecord,
   workspaceRoot?: string,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+  const emitPerfMetric = captureActivePerfMetricEmitter();
+  const activationStartedAt = performance.now();
   assertCoreVersionCompatibility(record);
   const packageJson = JSON.parse(
     await fs.readFile(path.join(record.packageRoot, 'package.json'), 'utf-8'),
@@ -60,6 +63,12 @@ export async function loadCodeGraphyWorkspacePluginPackage(
   const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
   const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
   validateRuntimePluginId(plugin.id, record);
+  emitPerfMetric?.({
+    metric: 'pluginActivationMs',
+    unit: 'ms',
+    value: performance.now() - activationStartedAt,
+    dimension: plugin.id,
+  });
 
   return {
     plugin,

@@ -57,6 +57,7 @@ export const perfReportSchema = z.strictObject({
     cacheBytes: measurementSchema,
     treeSitterParseMs: measurementSchema,
     graphBuildMs: measurementSchema,
+    pluginActivationMs: z.record(nonemptyStringSchema, measurementSchema),
     scopeToggleMs: z.record(nonemptyStringSchema, measurementSchema).refine(
       scopeMeasurements => Object.keys(scopeMeasurements).length > 0,
       'At least one scope-toggle measurement is required',

@@ -5,7 +5,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   loadCodeGraphyWorkspacePluginPackages,
+  onPerfMetric,
   readCodeGraphyWorkspaceSettings,
+  startPerfMetricSession,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src';
@@ -129,6 +131,61 @@ export default function createPlugin() {
 }
 
 describe('CodeGraphy package runtime', () => {
+  it('records package activation time by static plugin id', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-activation',
+    );
+    await createPluginPackageWithRuntimeMarkers(
+      packageRoot,
+      '@acme/codegraphy-plugin-activation',
+      'acme.activation',
+      'Activation Plugin',
+    );
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-activation',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.activation',
+        supportedExtensions: ['.disabled'],
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{ id: 'acme.activation', enabled: true }],
+    });
+    const events: Array<{ context: { dimension?: string; metric: string; value: number } }> = [];
+    const listener = onPerfMetric(event => events.push(event));
+    const session = startPerfMetricSession({ runId: 'activation-test', scenario: 'cold-open' });
+
+    try {
+      await loadCodeGraphyWorkspacePluginPackages({
+        settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+        homeDir,
+        workspaceRoot,
+      });
+    } finally {
+      session.dispose();
+      listener.dispose();
+    }
+
+    expect(events).toContainEqual(expect.objectContaining({
+      context: expect.objectContaining({
+        dimension: 'acme.activation',
+        metric: 'pluginActivationMs',
+        value: expect.any(Number),
+      }),
+    }));
+  });
+
   it('passes workspace plugin data host and options to package plugin factories', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
