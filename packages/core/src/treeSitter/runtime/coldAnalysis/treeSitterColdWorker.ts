@@ -19,6 +19,7 @@ export async function handleColdTreeSitterWorkerRequest(
     value: event.context.value,
     unit: event.context.unit,
     ...(event.context.dimension ? { dimension: event.context.dimension } : {}),
+    ...(event.context.filePath ? { filePath: event.context.filePath } : {}),
   }));
   const session = startPerfMetricSession({
     runId: `tree-sitter-worker-${request.id}`,

@@ -49,6 +49,7 @@ describe('pipeline/plugins/treesitter/runtime/coldAnalysis/treeSitterColdWorker'
         value: 4.5,
         unit: 'ms',
         dimension: 'typescript',
+        filePath: 'app.ts',
       });
       return { filePath, relations: [] };
     });
@@ -67,6 +68,7 @@ describe('pipeline/plugins/treesitter/runtime/coldAnalysis/treeSitterColdWorker'
         value: 4.5,
         unit: 'ms',
         dimension: 'typescript',
+        filePath: 'app.ts',
       }],
     }));
   });

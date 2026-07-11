@@ -64,6 +64,46 @@ describe('performance metric aggregation', () => {
     ]);
   });
 
+  it('retains a target-file parse dimension alongside language totals', () => {
+    const aggregation = createPerfMetricAggregation({
+      runId: 'run-1',
+      operationId: 'operation-1',
+      treeSitterTargetFilePath: 'src/target.ts',
+    });
+
+    aggregation.collect(metricEvent({
+      metric: 'treeSitterParseMs',
+      unit: 'ms',
+      value: 2,
+      dimension: 'typescript',
+      filePath: 'src/other.ts',
+    }));
+    aggregation.collect(metricEvent({
+      metric: 'treeSitterParseMs',
+      unit: 'ms',
+      value: 3,
+      dimension: 'typescript',
+      filePath: 'src/target.ts',
+    }));
+
+    expect(aggregation.metrics()).toEqual([
+      {
+        metric: 'treeSitterParseMs',
+        unit: 'ms',
+        value: 5,
+        dimension: 'typescript',
+        operationId: 'operation-1',
+      },
+      {
+        metric: 'treeSitterParseMs',
+        unit: 'ms',
+        value: 3,
+        dimension: 'typescript:src/target.ts',
+        operationId: 'operation-1',
+      },
+    ]);
+  });
+
   it('retains each non-parse metric measurement', () => {
     const aggregation = createPerfMetricAggregation({
       runId: 'run-1',

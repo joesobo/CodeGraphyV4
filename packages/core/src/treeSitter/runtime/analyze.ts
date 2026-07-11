@@ -1,4 +1,5 @@
 import type Parser from 'tree-sitter';
+import * as path from 'node:path';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import {
   emitActivePerfMetric,
@@ -67,6 +68,7 @@ function parseTreeSitterContent(
   filePath: string,
   content: string,
   languageKind: Parameters<typeof parseTreeSitterFile>[3],
+  workspaceRoot: string,
 ): Parser.Tree {
   if (!isPerfMetricCollectionActive()) {
     return parseTreeSitterFile(parser, filePath, content, languageKind);
@@ -79,6 +81,7 @@ function parseTreeSitterContent(
     value: performance.now() - startedAt,
     unit: 'ms',
     dimension: languageKind,
+    filePath: path.relative(workspaceRoot, filePath).split(path.sep).join('/'),
   });
   return tree;
 }
@@ -100,7 +103,13 @@ export async function analyzeFileWithTreeSitter(
     return null;
   }
 
-  const tree = parseTreeSitterContent(runtime.parser, filePath, content, runtime.languageKind);
+  const tree = parseTreeSitterContent(
+    runtime.parser,
+    filePath,
+    content,
+    runtime.languageKind,
+    workspaceRoot,
+  );
   return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind, options);
 }
 

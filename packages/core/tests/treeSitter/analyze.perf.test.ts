@@ -28,6 +28,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze performance metrics', () =
             metric: 'treeSitterParseMs',
             unit: 'ms',
             dimension: 'typescript',
+            filePath: 'app.ts',
             value: expect.any(Number),
           }),
         }),

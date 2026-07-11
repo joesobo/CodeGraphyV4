@@ -212,6 +212,14 @@ function sumMetric(
   return sum(values);
 }
 
+function sumAggregateTreeSitterMetrics(metrics: readonly ReportMetric[]): number {
+  const aggregateMetrics = metrics.filter(metric => (
+    metric.metric === 'treeSitterParseMs'
+    && !metric.dimension?.includes(':')
+  ));
+  return sumMetric(aggregateMetrics, 'treeSitterParseMs');
+}
+
 function maxMetric(
   metrics: readonly ReportMetric[],
   metricName: string,
@@ -441,7 +449,7 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       // The launcher does not retain emission timestamps, so max is the stable
       // cache-size reducer and remains independent of metric arrival order.
       cacheBytes: maxMetric(measured, 'cacheBytes'),
-      treeSitterParseMs: sumMetric(coldMetrics, 'treeSitterParseMs'),
+      treeSitterParseMs: sumAggregateTreeSitterMetrics(coldMetrics),
       graphBuildMs: sumMetric(coldMetrics, 'graphBuildMs'),
       pluginActivationMs: collectPluginActivationMetrics(coldMetrics),
       scopeToggleMs: collectScopeMetrics(measuredByScenario),

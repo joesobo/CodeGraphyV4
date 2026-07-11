@@ -104,6 +104,7 @@ function createResults(): PerfSmokeResult[] {
     result('cold-open', [
       metric('coldOpenMs', 1_000),
       metric('treeSitterParseMs', 50, 'typescript'),
+      metric('treeSitterParseMs', 11, 'typescript:src/save-target.ts'),
       metric('treeSitterParseMs', 70, 'tree-sitter'),
       metric('graphBuildMs', 80, 'files'),
       metric('graphBuildMs', 100, 'symbols'),

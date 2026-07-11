@@ -81,6 +81,7 @@ export const perfMetricContextSchema = z.strictObject({
   value: z.number().finite().nonnegative(),
   unit: perfMetricUnitSchema,
   dimension: z.string().optional(),
+  filePath: z.string().min(1).optional(),
 }).superRefine((context, issues) => {
   if (context.unit !== expectedUnitByMetric[context.metric]) {
     issues.addIssue({
@@ -106,7 +107,7 @@ export type PerfMetricSessionContext = Pick<
 >;
 export type ActivePerfMetric = Pick<
   PerfMetricContext,
-  'metric' | 'value' | 'unit' | 'dimension'
+  'metric' | 'value' | 'unit' | 'dimension' | 'filePath'
 >;
 export type ActivePerfMetricEmitter = (
   metric: ActivePerfMetric,

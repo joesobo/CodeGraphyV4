@@ -39,6 +39,7 @@ import {
   type PerfScenarioResult,
 } from './result';
 import { waitForWorkspacePipelineCachePersistence } from '../pipeline/service/cache/storage';
+import { createPerfFixtureTargets } from './fixtures/targets';
 
 export const PERF_SCENARIO_COMMAND_ID = 'codegraphy.perf.runScenario';
 const bootstrapTimeoutMs = 180_000;
@@ -246,7 +247,10 @@ export async function runPerfScenario(
 ): Promise<PerfScenarioResult> {
   const parsedRequest = perfScenarioRequestSchema.parse(request);
   let comparison: PerfScenarioComparison | undefined;
-  const metricAggregation = createPerfMetricAggregation({ runId: parsedRequest.runId });
+  const metricAggregation = createPerfMetricAggregation({
+    runId: parsedRequest.runId,
+    treeSitterTargetFilePath: createPerfFixtureTargets(parsedRequest.dimension).savePath,
+  });
   const metricSubscription = runtime.onMetric(event => metricAggregation.collect(event));
   const metricSession = runtime.startMetricSession({
     runId: parsedRequest.runId,

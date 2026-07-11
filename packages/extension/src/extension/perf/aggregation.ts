@@ -39,6 +39,7 @@ export interface PerfScenarioMetric {
 export interface PerfMetricAggregationScope {
   operationId?: string;
   runId: string;
+  treeSitterTargetFilePath?: string;
 }
 
 export interface PerfMetricAggregation {
@@ -66,6 +67,10 @@ export function createPerfMetricAggregation(
     string | undefined,
     Map<string | undefined, number>
   >();
+  const targetParseTotalsByOperation = new Map<
+    string | undefined,
+    Map<string, number>
+  >();
 
   return {
     collect(event): void {
@@ -90,6 +95,19 @@ export function createPerfMetricAggregation(
         (operationTotals.get(context.dimension) ?? 0) + context.value,
       );
       parseTotalsByOperation.set(context.operationId, operationTotals);
+      if (
+        scope.treeSitterTargetFilePath
+        && context.filePath === scope.treeSitterTargetFilePath
+        && context.dimension
+      ) {
+        const targetTotals = targetParseTotalsByOperation.get(context.operationId)
+          ?? new Map<string, number>();
+        targetTotals.set(
+          context.dimension,
+          (targetTotals.get(context.dimension) ?? 0) + context.value,
+        );
+        targetParseTotalsByOperation.set(context.operationId, targetTotals);
+      }
     },
     metrics(): PerfScenarioMetric[] {
       const parseMetrics: PerfScenarioMetric[] = [...parseTotalsByOperation.entries()]
@@ -101,9 +119,18 @@ export function createPerfMetricAggregation(
             ...(dimension ? { dimension } : {}),
             ...(operationId ? { operationId } : {}),
           })));
+      const targetParseMetrics: PerfScenarioMetric[] = [...targetParseTotalsByOperation.entries()]
+        .flatMap(([operationId, dimensionTotals]) =>
+          [...dimensionTotals.entries()].map(([dimension, value]) => ({
+            metric: 'treeSitterParseMs' as const,
+            unit: 'ms' as const,
+            value,
+            dimension: `${dimension}:${scope.treeSitterTargetFilePath}`,
+            ...(operationId ? { operationId } : {}),
+          })));
       // Async emitters can arrive in different orders. Sort by canonical
       // metric order, then dimension, operation, unit, and value so JSON is stable.
-      return [...distinctMetrics, ...parseMetrics].sort(compareMetrics);
+      return [...distinctMetrics, ...parseMetrics, ...targetParseMetrics].sort(compareMetrics);
     },
   };
 }
