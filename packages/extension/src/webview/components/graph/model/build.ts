@@ -59,13 +59,10 @@ export type FGNode = Record<string, unknown> & {
   isDragging?: boolean;
   fx?: number;
   fy?: number;
-  fz?: number;
   vx?: number;
   vy?: number;
-  vz?: number;
   x?: number;
   y?: number;
-  z?: number;
 };
 
 export type FGLink = Record<string, unknown> & {
@@ -93,9 +90,9 @@ export interface BuildGraphDataOptions {
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;
   favorites: Set<string>;
-  graphMode?: '2d' | '3d';
+  graphMode?: '2d';
   bidirectionalMode: BidirectionalEdgeMode;
-  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
+  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'vx' | 'vy' | 'x' | 'y'>>;
 }
 
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {

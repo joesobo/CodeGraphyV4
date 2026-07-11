@@ -19,7 +19,7 @@ import { postMessage } from '../../../vscodeApi';
 
 type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
 type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
-type GraphMode = '2d' | '3d';
+type GraphMode = '2d';
 
 function postRootFileCreation(): void {
   postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });

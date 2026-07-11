@@ -57,7 +57,7 @@ export function getFitViewEffects(): GraphWebviewMessageEffect[] {
 }
 
 export function getZoomEffects(
-  _graphMode: '2d' | '3d',
+  _graphMode: '2d',
   messageType: ZoomMessageType,
 ): GraphWebviewMessageEffect[] {
   return [{ kind: 'zoom', factor: ZOOM_FACTOR_BY_MESSAGE[messageType] }];
@@ -74,7 +74,7 @@ export function getNodeBoundsEffects(graphNodes: GraphNodeBounds[]): GraphWebvie
 }
 
 export function getGraphRuntimeStateEffects(
-  graphMode: '2d' | '3d',
+  graphMode: '2d',
   graphNodes: GraphNodeBounds[],
   graphLinks: readonly FGLink[],
 ): GraphWebviewMessageEffect[] {

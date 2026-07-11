@@ -2,7 +2,7 @@ import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 
 export interface GraphViewRuntimeContributionContext {
-  graphMode?: '2d' | '3d';
+  graphMode?: '2d';
 }
 
 function appendUniqueNodes(

@@ -21,7 +21,7 @@ export interface GraphKeyboardOptions {
   key: string;
   isMod: boolean;
   shiftKey: boolean;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   selectedNodeIds: string[];
   allNodeIds: string[];
   targetIsEditable: boolean;

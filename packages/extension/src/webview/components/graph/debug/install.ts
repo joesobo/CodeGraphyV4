@@ -26,7 +26,6 @@ function getGraphDebugNodeScreenPosition(
   return graph?.graph2ScreenCoords?.(
     node.x ?? 0,
     node.y ?? 0,
-    typeof node.z === 'number' ? node.z : 0,
   ) ?? {
     x: node.x ?? 0,
     y: node.y ?? 0,

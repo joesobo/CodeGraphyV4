@@ -50,7 +50,7 @@ export interface GraphState {
   physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
@@ -87,7 +87,7 @@ export interface GraphState {
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
   setActivePanel: (panel: GraphState['activePanel']) => void;
-  setGraphMode: (mode: '2d' | '3d') => void;
+  setGraphMode: (mode: '2d') => void;
   setGraphViewportScale: (scale: number | null) => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;

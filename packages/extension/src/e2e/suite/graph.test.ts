@@ -858,7 +858,7 @@ interface NodeBoundsResponse {
 
 interface GraphRuntimeStateResponse {
   payload: {
-    graphMode: '2d' | '3d';
+    graphMode: '2d';
     edgeCount: number;
     edgeIds: string[];
     nodeCount: number;

@@ -101,7 +101,7 @@ export type WebviewToExtensionMessage =
   | {
       type: 'GRAPH_RUNTIME_STATE_RESPONSE';
       payload: {
-        graphMode: '2d' | '3d';
+        graphMode: '2d';
         nodeCount: number;
         edgeCount: number;
         edgeIds: string[];

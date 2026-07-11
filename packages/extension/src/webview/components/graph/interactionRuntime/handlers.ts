@@ -23,7 +23,6 @@ export interface GraphInteractionHandlersDependencies {
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
-  graphMode: '2d' | '3d';
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
   isContextMenuSuppressed?(): boolean;
@@ -32,7 +31,6 @@ export interface GraphInteractionHandlersDependencies {
   lastGraphContextEventRef: MutableRefObject<number>;
   selectedNodesSetRef: MutableRefObject<Set<string>>;
   setContextSelection(selection: GraphContextSelection): void;
-  setHighlightVersion(updater: (previous: number) => number): void;
   setSelectedNodes(nodeIds: string[]): void;
 }
 

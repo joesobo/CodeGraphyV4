@@ -53,7 +53,6 @@ export function useGraphInteractionRuntime({
   pluginHost,
   refs,
   setContextSelection,
-  setHighlightVersion,
   setSelectedNodes,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
@@ -76,7 +75,6 @@ export function useGraphInteractionRuntime({
       fileInfoCacheRef,
       graphCursorRef,
       graphDataRef,
-      graphMode,
       highlightedNeighborsRef,
       highlightedNodeRef,
       isContextMenuSuppressed: contextMenuSuppression.isContextMenuSuppressed,
@@ -85,7 +83,6 @@ export function useGraphInteractionRuntime({
       lastGraphContextEventRef,
       selectedNodesSetRef: refs.selectedNodesSetRef,
       setContextSelection: setLiveContextSelection,
-      setHighlightVersion,
       setSelectedNodes,
     }),
     [
@@ -94,7 +91,6 @@ export function useGraphInteractionRuntime({
       fileInfoCacheRef,
       graphCursorRef,
       graphDataRef,
-      graphMode,
       highlightedNeighborsRef,
       highlightedNodeRef,
       contextMenuSuppression.isContextMenuSuppressed,
@@ -105,7 +101,6 @@ export function useGraphInteractionRuntime({
       refs.fg2dRef,
       refs.selectedNodesSetRef,
       setLiveContextSelection,
-      setHighlightVersion,
       setSelectedNodes,
     ],
   );
@@ -130,7 +125,6 @@ export function useGraphInteractionRuntime({
   const viewportPanRuntime = useGraphViewportPanRuntime({
     containerRef: refs.containerRef,
     fg2dRef: refs.fg2dRef,
-    graphMode,
     rightMouseDownRef: refs.rightMouseDownRef,
     suppressContextMenu: contextMenuSuppression.suppressContextMenu,
   });
@@ -138,7 +132,6 @@ export function useGraphInteractionRuntime({
     containerRef: refs.containerRef,
     fg2dRef: refs.fg2dRef,
     graphDataRef,
-    graphMode,
     hoveredNodeRef,
     interactionHandlers,
     selectedNodesSetRef: refs.selectedNodesSetRef,
@@ -146,10 +139,10 @@ export function useGraphInteractionRuntime({
 
   const getActionContext = useCallback(
     (selection: GraphContextSelection) => resolveGraphContextActionContext(selection, {
-      graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
+      graphViewportScale: readGraphViewportScale(refs.fg2dRef.current),
       nodes: graphDataRef.current.nodes,
     }),
-    [graphDataRef, graphMode, refs.fg2dRef],
+    [graphDataRef, refs.fg2dRef],
   );
 
   function handleNodeDragEnd(node: FGNode): void {

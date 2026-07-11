@@ -24,7 +24,7 @@ export interface UseGraphInteractionRuntimeOptions {
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: GraphRuntime['renderer']['graphDataRef'];
   graphViewContributions?: CoreGraphViewContributionSet;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   highlightedNeighborsRef: GraphRuntime['highlightedNeighborsRef'];
   highlightedNodeRef: GraphRuntime['highlightedNodeRef'];
   isMacPlatform: boolean;
@@ -42,7 +42,6 @@ export interface UseGraphInteractionRuntimeOptions {
     selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
   };
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
-  setHighlightVersion: Dispatch<SetStateAction<number>>;
   setSelectedNodes: Dispatch<SetStateAction<string[]>>;
 }
 

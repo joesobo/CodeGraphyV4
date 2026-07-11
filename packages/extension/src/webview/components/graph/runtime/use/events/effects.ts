@@ -23,7 +23,7 @@ export interface UseGraphEventEffectsOptions {
   directionColorRef: GraphRuntime['directionColorRef'];
   directionModeRef: GraphRuntime['directionModeRef'];
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   interactionHandlers: UseGraphInteractionRuntimeResult['interactionHandlers'];
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   selectedNodes: string[];

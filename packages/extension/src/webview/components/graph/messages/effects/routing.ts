@@ -27,7 +27,7 @@ export type GraphWebviewMessageEffect =
 
 export interface GraphWebviewMessageOptions {
   message: ExtensionToWebviewMessage;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   tooltipPath: string | null;
   graphLinks?: readonly FGLink[];
   graphNodes: Array<Pick<FGNode, 'id' | 'size' | 'x' | 'y'>>;

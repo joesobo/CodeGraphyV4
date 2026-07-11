@@ -47,7 +47,7 @@ export interface IStoreFields {
   physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   graphViewportScale: number | null;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;

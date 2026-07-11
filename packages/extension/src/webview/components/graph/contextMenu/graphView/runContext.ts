@@ -11,7 +11,7 @@ import { createSelectedNodePositions } from './selectedPositions';
 export function createRunContext(
   selector: GraphViewContextMenuTargetSelector,
   selection: GraphContextSelection,
-  graphMode: '2d' | '3d',
+  graphMode: '2d',
   nodes: readonly GraphContextMenuNode[] | undefined,
 ): GraphViewContextMenuRunContext {
   const selectedNodePositions = createSelectedNodePositions(selection, nodes);

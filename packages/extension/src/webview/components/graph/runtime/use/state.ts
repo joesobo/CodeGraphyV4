@@ -85,7 +85,6 @@ export interface GraphRuntime {
   favoritesRef: MutableRefObject<Set<string>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphAppearanceRef: MutableRefObject<GraphAppearance>;
-  highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
   lastClickRef: MutableRefObject<{ nodeId: string; time: number } | null>;
@@ -94,7 +93,6 @@ export interface GraphRuntime {
   renderer: GraphRuntimeRenderer;
   renderCaches: GraphRuntimeRenderCaches;
   selection: GraphRuntimeSelection;
-  setHighlightVersion: Dispatch<SetStateAction<number>>;
   showLabelsRef: MutableRefObject<boolean>;
   themeRef: MutableRefObject<ThemeKind>;
 }
@@ -169,7 +167,6 @@ export function useGraphRuntime({
     makeBackgroundContextSelection(),
   );
   const [imageCacheVersion, setImageCacheVersion] = useState(0);
-  const [highlightVersion, setHighlightVersion] = useState(0);
 
   function triggerImageRerender(): void {
     setImageCacheVersion(incrementImageCacheVersion);
@@ -218,7 +215,6 @@ export function useGraphRuntime({
     favoritesRef,
     graphCursorRef,
     graphAppearanceRef,
-    highlightVersion,
     highlightedNeighborsRef,
     highlightedNodeRef,
     lastClickRef,
@@ -240,7 +236,6 @@ export function useGraphRuntime({
       selectedNodeIdsRef: selectedNodesSetRef,
       setSelectedNodeIds: setSelectedNodes,
     },
-    setHighlightVersion,
     showLabelsRef,
     themeRef,
   };

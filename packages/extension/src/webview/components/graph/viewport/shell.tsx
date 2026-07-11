@@ -99,7 +99,6 @@ export function GraphViewportShell({
   const publishGraphViewportScale = (globalScale: number): void => {
     lastPublishedViewportScaleRef.current = publishGraphViewportScaleChange({
       globalScale,
-      graphMode: viewState.graphMode,
       previousScale: lastPublishedViewportScaleRef.current,
       publish: scale => graphStore.getState().setGraphViewportScale(scale),
     });
@@ -122,7 +121,6 @@ export function GraphViewportShell({
     publishCurrentGraphAccessibilityItems({
       accessibilityDirtyRef,
       graph: typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
-      graphMode: viewState.graphMode,
       lastAccessibilitySignatureRef,
       links,
       nodes,

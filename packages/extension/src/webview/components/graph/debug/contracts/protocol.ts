@@ -1,7 +1,7 @@
 export interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   nodes: Array<{
     baseOpacity?: number;
     color?: string;
@@ -21,7 +21,7 @@ export interface GraphDebugSnapshot {
 }
 
 export interface GraphDebugControls {
-  graph2ScreenCoords?(this: void, x: number, y: number, z?: number): { x: number; y: number };
+  graph2ScreenCoords?(this: void, x: number, y: number): { x: number; y: number };
   zoom?(this: void): number;
   zoomToFit?(this: void, durationMs?: number, padding?: number): void;
 }

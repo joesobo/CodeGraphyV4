@@ -20,13 +20,8 @@ export function markNodeDragging(node: FGNode): void {
   node.isDragging = true;
 }
 
-function stopPinned2dNodeMotion(
-  node: FGNode,
-  options: Pick<ApplyNodeDragOptions, 'graphMode'>,
-): void {
-  if (options.graphMode === '2d' && node.isPinned === true) {
-    stopNodeMotion(node);
-  }
+function stopPinnedNodeMotion(node: FGNode): void {
+  if (node.isPinned === true) stopNodeMotion(node);
 }
 
 function moveDraggedSessionNodes(
@@ -60,7 +55,7 @@ export function applyNodeDrag(
     return nextSession;
   }
 
-  stopPinned2dNodeMotion(primaryNode, options);
+  stopPinnedNodeMotion(primaryNode);
 
   if (!nextSession) {
     return nextSession;

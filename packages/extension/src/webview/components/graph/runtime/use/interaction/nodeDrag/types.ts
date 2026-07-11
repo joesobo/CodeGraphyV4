@@ -1,7 +1,7 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGNode } from '../../../../model/build';
 
-export type GraphMode = '2d' | '3d';
+export type GraphMode = '2d';
 
 export interface NodeDragTranslate {
   x: number;

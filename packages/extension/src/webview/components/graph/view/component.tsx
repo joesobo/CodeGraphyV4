@@ -140,7 +140,6 @@ export default function Graph({
       selectedNodesSetRef: graphRuntime.selection.selectedNodeIdsRef,
     },
     setContextSelection: graphRuntime.context.setSelection,
-    setHighlightVersion: graphRuntime.setHighlightVersion,
     setSelectedNodes: graphRuntime.selection.setSelectedNodeIds,
   });
 

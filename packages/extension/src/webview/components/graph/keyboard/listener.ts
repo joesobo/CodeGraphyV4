@@ -7,7 +7,7 @@ export interface GraphKeyboardListenerOptions {
   dispatchStoreMessage: (message: ExtensionToWebviewMessage) => void;
   fitView: () => void;
   getAllNodeIds: () => string[];
-  graphMode: '2d' | '3d';
+  graphMode: '2d';
   openNode: (nodeId: string) => void;
   postMessage: (message: WebviewToExtensionMessage) => void;
   runEffects: (

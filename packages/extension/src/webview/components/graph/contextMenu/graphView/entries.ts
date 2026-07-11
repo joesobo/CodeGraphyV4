@@ -14,7 +14,7 @@ import { selectorMatches } from './selectorMatching';
 type BuildGraphViewContextMenuEntriesOptions = {
   decision: GraphContextMenuDecision;
   edges?: readonly GraphContextMenuEdge[];
-  graphMode?: '2d' | '3d';
+  graphMode?: '2d';
   graphViewContributions?: CoreGraphViewContributionSet;
   includeSeparator?: boolean;
   placement?: GraphViewContextMenuPlacement | 'default';
