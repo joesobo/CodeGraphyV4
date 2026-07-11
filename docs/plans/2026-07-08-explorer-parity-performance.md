@@ -15,6 +15,12 @@
 
 **Rendering-stack policy (owner decision, standing):** stay on react-force-graph. The escalation ladder inside it (tuning → LOD/sprites → worker-thread simulation) is fully in scope. Migrating the renderer to PixiJS/WebGL is **not** authorized in this plan — if the ladder is exhausted and a gate is still unreachable, write up the blocker with measurements and stop that thread for owner discussion.
 
+### Execution checkpoint — 2026-07-10
+
+- `0e0355c1e` replaced the fixed 80ms node-scope render delay with latest-wins animation-frame coalescing while leaving settings persistence independently debounced.
+- `96c76be2f` retained the last nonempty force runtime through an empty visibility projection, kept the empty-state overlay opaque, and separated visible projection counts from retained runtime topology in performance telemetry.
+- One deterministic `medium` cold-open → scope-toggle checkpoint (real VS Code, same environment, no retries/discards) recorded node:file pairwise-worst median **46.74ms**, **0/10 layout resets**, and no settle metrics. This is implementation evidence only; Phase 4-B/4-C remain open until five complete same-machine runs satisfy the variance policy.
+
 ## Phase map
 
 | Phase | Name | Depends on | Exit summary |
@@ -41,7 +47,7 @@
   - tree-sitter incremental parsing is **unused** — no `oldTree`/`tree.edit()` anywhere in `packages/core/src`.
   - Parsers are constructed per call inside analyzers (e.g. `core/src/treeSitter/runtime/analyzeHaskell/file.ts:279`, `analyzeDart/file.ts:192`, `analyzeKotlin/file.ts:188`, `analyzeCpp/relation/include/traversal.ts:66`) — parser/language setup churn on every file.
   - **Zero `worker_threads` usage** in core or extension — indexing and everything else is main-thread.
-  - Graph Scope toggles round-trip to the extension host: `webview/components/graphScope/messages.ts` posts to the host, projection is applied host-side (`extension/graphView/controls/send.ts`) and a graph payload comes back. Projection logic itself lives in `core/src/visibleGraph/` (`scope.ts`, `scopeSymbolTypes.ts`, `filter.ts`, `collapse*.ts`, `search.ts`, `structuralProjection/`) and PR #294 made it fast (~12ms) — the round-trip + payload, not the math, is the hiccup.
+  - Warm Graph Scope projection is now webview-local: the store updates visibility immediately and rendering publishes node changes on the next animation frame. The separately debounced host message persists `.codegraphy/settings.json` and echoes control state; it does not send `GRAPH_DATA_UPDATED`, rewrite Graph Cache, or re-run analysis. First-time evidence hydration (notably symbols) remains a separate Phase 4 concern.
   - `webview/components/graph/view/layoutKey.ts` joins every node+link id into one string per render; any membership change forces a full physics layout reset (`runtime/use/physics/hook/layout.ts`).
   - Structural refreshes post the **entire `IGraphData`** to the webview (`webview/store/messageHandlers/graphDataMessage/payload.ts` replaces `state.graphData` wholesale); only metric updates (`metricUpdates.ts`) patch in place.
 
@@ -328,7 +334,7 @@ Graph Scope (symbols, variables, diff edges, per-plugin rows) toggles instantly 
 
 ## How
 
-Current flow (audited): a scope toggle posts to the host (`webview/components/graphScope/messages.ts`) → host applies projection (`extension/graphView/controls/send.ts`, logic in `core/src/visibleGraph/` — `scope.ts`, `scopeSymbolTypes.ts`, `scopeSymbolMatch.ts`, `filter.ts`, `collapse*.ts`, `structuralProjection/`) → graph payload returns. PR #294 made the projection math fast (~12ms); the round-trip and payload are the hiccup. Symbols/variables multiply node counts (a 1k-file workspace can carry 10k+ symbol nodes), and diff edges (Graph Revision) add another edge class — these are exactly the rows where the round-trip hurts.
+Current flow (re-audited 2026-07-10): a scope toggle updates the webview store immediately, the visible graph is projected locally, and node-visibility changes are coalesced to the next animation frame. A separate 80ms persistence batch posts `UPDATE_GRAPH_CONTROL_VISIBILITY_BATCH`; the host writes settings once and echoes control/legend state without a graph payload, Graph Cache write, analysis, or hydration. The remaining boundary is evidence not already loaded (notably first-time symbol enable), plus strict large/10k validation. Symbols/variables multiply node counts (a 1k-file workspace can carry 10k+ symbol nodes), and diff edges (Graph Revision) add another edge class.
 
 ### Tasks
 
