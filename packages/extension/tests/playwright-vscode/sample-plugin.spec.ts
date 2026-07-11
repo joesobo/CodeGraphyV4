@@ -24,7 +24,9 @@ test('the five-step sample plugin contributes its node in the Dev Host graph', a
       message: 'sample plugin marker is present in the live graph',
       timeout: 10_000,
     }).toBe(true);
-    await expect(frame.getByLabel('Hello from Sample Plugin')).toBeVisible();
+    await expect(frame.getByRole('button', {
+      name: 'Graph node demo.sample:sample-marker',
+    })).toBeVisible();
   } finally {
     await vscode.app.close().catch(() => {});
     fs.rmSync(vscode.tempRoot, { recursive: true, force: true });
