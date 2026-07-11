@@ -68,25 +68,26 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 ## Validation gates
 
-| Gate | Contract | Status | Owning task |
-| --- | --- | --- | --- |
-| V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 123 focused tests pass across `createPath`, graph file validation, rename, and create-action modules; inline-error presentation remains Phase 6. |
+| Gate | Contract | Status | Owning task | Current evidence / next proof |
+| --- | --- | --- | --- | --- |
+| V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 2.1 / 6.2 | 123 focused tests pass across `createPath`, graph file validation, rename, and create-action modules; inline-error presentation remains Phase 6. |
 | V2 | Existing-name collision uses Explorer-equivalent error shape | done(unit) | 2.2 / 6.2 | Redo rejects an occupied planned destination with the exact named error. |
-| V3 | Path separators in New File create nested folders | done(unit) | 2.1 |
-| V4 | Paste collision uses ` copy`, ` copy 2`, … | done(unit) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions covered. |
-| V5 | Delete follows `files.enableTrash` | todo(P6) | 6.1 |
-| V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 |
-| V7 | Every filesystem mutation is undoable | done(unit) | 124 focused create-file, create-folder, rename, delete, undo-manager, and chained file-action tests pass; keyboard bindings remain Task 2.3. |
+| V3 | Path separators in New File create nested folders | done(unit) | 2.1 | Deep nested creation, parent creation, normalization, rollback, and undo have focused coverage; Dev Host proof remains. |
+| V4 | Paste collision uses ` copy`, ` copy 2`, … | done(unit) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions are covered; the plan's explicit stepwise sequence assertion remains. |
+| V5 | Delete follows `files.enableTrash` | todo(P6) | 6.1 | Not implemented. |
+| V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 | Not implemented. |
+| V7 | Every filesystem mutation is undoable | done(unit) | 2.1 / 2.2 / 2.3 | Create, rename, delete, clipboard transactions, undo-manager chaining, and keyboard undo/redo routes have focused coverage; acceptance proof remains. |
 | V8 | Multi-select destructive operations confirm once with count | done(unit) | 2.2 | Multi-item cut-paste presents one modal count confirmation; cancellation preserves the staged clipboard. |
 
 ## Phase 2-A accounting
 
-- `todo` / `partial`: 25
+- `todo` / `partial`: 6
 - `verify`: 0
-- `done(unit)`: 14
+- `done(unit)`: 32
+- `done(visual)`: 2
 - `waived`: 6
 - `deferred`: 1
 
-The next Phase 2.1 step is to walk every `verify(P2)` row in the real Dev Host,
-attach screenshot/test evidence, and promote or re-status each row. This file does
-not claim those rows are already proven.
+Phase 2.1 still requires a real Dev Host walkthrough and screenshot evidence for
+the implemented Phase 2 rows. The remaining `todo` / `partial` rows belong to
+Phases 5 and 6; there are no unresolved `todo(P2)` or `verify(P2)` rows.

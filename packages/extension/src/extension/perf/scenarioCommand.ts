@@ -119,25 +119,34 @@ function isGraphCacheReady(message: unknown): boolean {
 
 function graphRenderCounts(message: unknown): GraphRenderCounts | undefined {
   const candidate = message as {
+    edgeCount?: unknown;
     graphRevision?: unknown;
+    nodeCount?: unknown;
     type?: unknown;
     payload?: { edges?: unknown; nodes?: unknown };
   };
-  if (
-    candidate.type !== 'GRAPH_DATA_UPDATED'
-    || !Array.isArray(candidate.payload?.nodes)
-    || !Array.isArray(candidate.payload.edges)
-  ) {
+  const fullCounts = candidate.type === 'GRAPH_DATA_UPDATED'
+    && Array.isArray(candidate.payload?.nodes)
+    && Array.isArray(candidate.payload.edges)
+    ? { edgeCount: candidate.payload.edges.length, nodeCount: candidate.payload.nodes.length }
+    : undefined;
+  const patchCounts = candidate.type === 'GRAPH_DATA_PATCHED'
+    && typeof candidate.nodeCount === 'number'
+    && typeof candidate.edgeCount === 'number'
+    ? { edgeCount: candidate.edgeCount, nodeCount: candidate.nodeCount }
+    : undefined;
+  const counts = fullCounts ?? patchCounts;
+  if (!counts) {
     return undefined;
   }
   return {
-    edgeCount: candidate.payload.edges.length,
+    edgeCount: counts.edgeCount,
     graphRevision: typeof candidate.graphRevision === 'number'
       && Number.isSafeInteger(candidate.graphRevision)
       && candidate.graphRevision >= 0
       ? candidate.graphRevision
       : 0,
-    nodeCount: candidate.payload.nodes.length,
+    nodeCount: counts.nodeCount,
   };
 }
 
@@ -148,7 +157,7 @@ function waitForGraphRenderCounts(
   let timer: NodeJS.Timeout | undefined;
   const promise = new Promise<GraphRenderCounts>((resolve, reject) => {
     timer = setTimeout(() => {
-      reject(new Error('Timed out waiting for GRAPH_DATA_UPDATED render counts'));
+      reject(new Error('Timed out waiting for graph render counts'));
     }, bootstrapTimeoutMs);
     subscription = runtime.onExtensionMessage((message) => {
       const counts = graphRenderCounts(message);

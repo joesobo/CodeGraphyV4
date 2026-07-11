@@ -1,4 +1,3 @@
-import type { IGraphData } from '../../shared/graph/contracts';
 import type { PerfEventInput } from '../../shared/perf/protocol';
 import { webviewPerfBridge } from './bridge';
 
@@ -10,7 +9,7 @@ interface PayloadPerfBridge {
 type Serialize = (value: unknown) => string | undefined;
 
 export function emitGraphPayloadBytes(
-  payload: IGraphData,
+  payload: unknown,
   bridge: PayloadPerfBridge = webviewPerfBridge,
   serialize: Serialize = JSON.stringify,
 ): boolean {

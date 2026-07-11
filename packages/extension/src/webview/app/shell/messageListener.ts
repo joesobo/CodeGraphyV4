@@ -95,7 +95,7 @@ export function createMessageHandler(
     }
 
     removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
-    if (raw.type === 'GRAPH_DATA_UPDATED') {
+    if (raw.type === 'GRAPH_DATA_UPDATED' || raw.type === 'GRAPH_DATA_PATCHED') {
       renderReadyControl.graphDataReceived(
         typeof raw.graphRevision === 'number'
           && Number.isSafeInteger(raw.graphRevision)

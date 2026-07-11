@@ -10,10 +10,12 @@ import { createMetricOnlyGraphUpdate } from './metrics/patch';
 import { areGraphDataPayloadsEqual } from './equality/payload';
 
 export interface GraphPublicationPlan {
+  currentGraphData: IGraphData | undefined;
   currentRawGraphData: IGraphData | undefined;
   metricOnlyUpdate: IGraphNodeMetricsUpdate[] | undefined;
   reuseCurrentGraphPublication: boolean;
   shouldSendMetricPatch: boolean;
+  shouldSendGraphPatch: boolean;
 }
 
 function canReuseCurrentGraphPublication(
@@ -41,6 +43,7 @@ export function createGraphPublicationPlan(
   freshness: CodeGraphyIndexFreshness,
 ): GraphPublicationPlan {
   const currentRawGraphData = handlers.getRawGraphData?.();
+  const currentGraphData = handlers.getGraphData?.();
   const metricOnlyUpdate = createMetricOnlyGraphUpdate(
     currentRawGraphData,
     rawGraphData,
@@ -48,6 +51,7 @@ export function createGraphPublicationPlan(
   );
 
   return {
+    currentGraphData,
     currentRawGraphData,
     metricOnlyUpdate,
     reuseCurrentGraphPublication: canReuseCurrentGraphPublication(
@@ -59,5 +63,10 @@ export function createGraphPublicationPlan(
     ),
     shouldSendMetricPatch: metricOnlyUpdate !== undefined
       && handlers.sendGraphNodeMetricsUpdated !== undefined,
+    shouldSendGraphPatch: state.mode === 'incremental'
+      && actualHasIndex
+      && freshness === 'fresh'
+      && currentGraphData !== undefined
+      && handlers.sendGraphDataPatched !== undefined,
   };
 }

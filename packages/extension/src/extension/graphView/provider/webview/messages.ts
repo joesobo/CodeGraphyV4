@@ -14,14 +14,19 @@ function correlateGraphDataMessage(
   if (
     !message
     || typeof message !== 'object'
-    || (message as { type?: unknown }).type !== 'GRAPH_DATA_UPDATED'
+    || !['GRAPH_DATA_UPDATED', 'GRAPH_DATA_PATCHED'].includes(
+      String((message as { type?: unknown }).type),
+    )
   ) {
     return message;
   }
 
-  const graphRevision = (source._graphMessageRevision ?? 0) + 1;
+  const baseGraphRevision = source._graphMessageRevision ?? 0;
+  const graphRevision = baseGraphRevision + 1;
   source._graphMessageRevision = graphRevision;
-  return { ...message, graphRevision };
+  return (message as { type?: unknown }).type === 'GRAPH_DATA_PATCHED'
+    ? { ...message, baseGraphRevision, graphRevision }
+    : { ...message, graphRevision };
 }
 
 export function sendGraphViewProviderWebviewMessage(

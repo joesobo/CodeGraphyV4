@@ -6,6 +6,7 @@ import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 export const INITIAL_STATE: GraphStateFields = {
   autoReveal: true,
   graphData: null,
+  graphRevision: null,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,
   graphIndexDetail: null,

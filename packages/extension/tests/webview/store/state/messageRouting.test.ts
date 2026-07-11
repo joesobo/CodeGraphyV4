@@ -13,6 +13,38 @@ describe('GraphStore message routing', () => {
     clearSentMessages();
   });
 
+  it('applies revision-matched graph patches through the store router', () => {
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_DATA_UPDATED',
+      graphRevision: 1,
+      payload: {
+        nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#111111' }],
+        edges: [],
+      },
+    });
+
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_DATA_PATCHED',
+      baseGraphRevision: 1,
+      graphRevision: 2,
+      nodeCount: 2,
+      edgeCount: 0,
+      payload: {
+        addedNodes: [{ id: 'src/new.ts', label: 'new.ts', color: '#111111' }],
+        removedNodeIds: [],
+        updatedNodes: [],
+        addedLinks: [],
+        removedLinkIds: [],
+      },
+    });
+
+    expect(store.getState().graphRevision).toBe(2);
+    expect(store.getState().graphData?.nodes.map(node => node.id)).toEqual([
+      'src/app.ts',
+      'src/new.ts',
+    ]);
+  });
+
   it('handles PLAYBACK_SPEED_UPDATED messages', () => {
     store.getState().handleExtensionMessage({
       type: 'PLAYBACK_SPEED_UPDATED',

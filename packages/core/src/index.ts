@@ -425,6 +425,8 @@ export type {
   WorkspacePathInput,
   WorkspaceStatusResult,
 } from './workspace/requestTypes';
+export { applyGraphDataPatchInPlace, diffGraphData, graphDataPatchSchema } from './graph/diff';
+export type { GraphDataPatch } from './graph/diff';
 export { requestCodeGraphyIndexWorkspace } from './workspace/requestIndexing';
 export { requestWorkspaceGraphQuery } from './workspace/requestQuery';
 export { readCodeGraphyWorkspaceStatusForCli } from './workspace/requestStatus';

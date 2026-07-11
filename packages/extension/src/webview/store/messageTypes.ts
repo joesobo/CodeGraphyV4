@@ -27,6 +27,7 @@ import type {
 export interface IStoreFields {
   autoReveal: AutoRevealMode;
   graphData: IGraphData | null;
+  graphRevision: number | null;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;

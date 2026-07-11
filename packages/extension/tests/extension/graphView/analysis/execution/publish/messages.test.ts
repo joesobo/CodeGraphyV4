@@ -80,10 +80,12 @@ function createHandlers(
 
 function createPlan(overrides: Partial<GraphPublicationPlan> = {}): GraphPublicationPlan {
   return {
+    currentGraphData: undefined,
     currentRawGraphData: undefined,
     metricOnlyUpdate: undefined,
     reuseCurrentGraphPublication: false,
     shouldSendMetricPatch: false,
+    shouldSendGraphPatch: false,
     ...overrides,
   };
 }
@@ -172,6 +174,31 @@ describe('extension/graphView/analysis/execution/publish/messages', () => {
 
     expect(sendGraphNodeMetricsUpdated).not.toHaveBeenCalled();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(graphData);
+  });
+
+  it('sends a graph patch for eligible incremental publications', () => {
+    const currentGraphData = createGraph({ edges: [] });
+    const nextGraphData = createGraph({
+      nodes: [createNode(), createNode({ id: 'src/b.ts', label: 'b.ts' })],
+      edges: [],
+    });
+    const sendGraphDataPatched = vi.fn();
+    const handlers = createHandlers({ sendGraphDataPatched });
+
+    publishGraphDataMessage(
+      handlers,
+      nextGraphData,
+      createPlan({ currentGraphData, shouldSendGraphPatch: true }),
+    );
+
+    expect(sendGraphDataPatched).toHaveBeenCalledWith({
+      addedNodes: [createNode({ id: 'src/b.ts', label: 'b.ts' })],
+      removedNodeIds: [],
+      updatedNodes: [],
+      addedLinks: [],
+      removedLinkIds: [],
+    });
+    expect(handlers.sendGraphDataUpdated).not.toHaveBeenCalled();
   });
 
   it('sends full graph data when metric patch publication is disabled', () => {

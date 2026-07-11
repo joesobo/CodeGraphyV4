@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import type { GraphDataPatch } from '../../../../../shared/graph/patch';
 import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
 import type { GraphViewProviderAnalysisHandlers } from '../../../analysis/lifecycle';
 import { sendGraphControlsUpdated } from '../../../controls/send';
@@ -12,15 +13,22 @@ export function sendGraphDataUpdated(
   source: GraphViewProviderAnalysisMethodsSource,
   graphData: IGraphData,
 ): void {
-  sendGraphControlsUpdated(
-    source._rawGraphData,
-    source._analyzer,
-    (message: ExtensionToWebviewMessage) => source._sendMessage(message),
-    undefined,
-    source._disabledPlugins,
-  );
-  sendFilesExcludeState(source._analyzer, message => source._sendMessage(message));
+  sendGraphPublicationState(source);
   source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
+}
+
+export function sendGraphDataPatched(
+  source: GraphViewProviderAnalysisMethodsSource,
+  patch: GraphDataPatch,
+): void {
+  sendGraphPublicationState(source);
+  source._sendMessage({
+    type: 'GRAPH_DATA_PATCHED',
+    baseGraphRevision: 0,
+    payload: patch,
+    nodeCount: source._graphData.nodes.length,
+    edgeCount: source._graphData.edges.length,
+  });
 }
 
 export function sendGraphNodeMetricsUpdated(
@@ -31,6 +39,17 @@ export function sendGraphNodeMetricsUpdated(
     type: 'GRAPH_NODE_METRICS_UPDATED',
     payload: { nodes: updates },
   });
+}
+
+function sendGraphPublicationState(source: GraphViewProviderAnalysisMethodsSource): void {
+  sendGraphControlsUpdated(
+    source._rawGraphData,
+    source._analyzer,
+    (message: ExtensionToWebviewMessage) => source._sendMessage(message),
+    undefined,
+    source._disabledPlugins,
+  );
+  sendFilesExcludeState(source._analyzer, message => source._sendMessage(message));
 }
 
 export const sendGraphIndexStatusUpdated: (

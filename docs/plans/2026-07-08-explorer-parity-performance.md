@@ -142,12 +142,12 @@ Committed as `docs/plans/explorer-parity-checklist.md` in Task 2.1; gate 2-A cou
 | Explorer feature | Status | Task |
 | --- | --- | --- |
 | Open (incl. multi "Open N Files") | done | |
-| Open to the Side / Open With… | todo(P2) | 2.4 |
+| Open to the Side / Open With… | done(unit) | 2.4 |
 | Reveal in Finder/Explorer | done | |
-| Open in Integrated Terminal | todo(P2) | 2.4 (Trello card) |
-| Select for Compare / Compare with Selected | todo(P2) | 2.4 (Trello card) |
+| Open in Integrated Terminal | done(unit) | 2.4 (Trello card) |
+| Select for Compare / Compare with Selected | done(unit) | 2.4 (Trello card) |
 | Open Timeline | waived (Graph Revision view covers it) | |
-| Cut / Copy / Paste | todo(P2) | 2.2 |
+| Cut / Copy / Paste | done(unit) | 2.2 |
 | Copy Path / Copy Relative Path | done | |
 | Rename | done (prompt) → inline in P6 | 6.2 |
 | Delete (to trash) | partial → todo(P6) | 6.1 |
@@ -158,21 +158,21 @@ Committed as `docs/plans/explorer-parity-checklist.md` in Task 2.1; gate 2-A cou
 | Explorer feature | Status | Task |
 | --- | --- | --- |
 | New File / New Folder | done | |
-| Nested-path create (`a/b/c.ts`) | verify(P2) | 2.1 (`extension/actions/createPath.ts`) |
-| Find in Folder… | todo(P2) | 2.5 |
-| Paste | todo(P2) | 2.2 |
+| Nested-path create (`a/b/c.ts`) | done(unit) | 2.1 (`extension/actions/createPath.ts`) |
+| Find in Folder… | done(unit) | 2.5 |
+| Paste | done(unit) | 2.2 |
 | Reveal / copy paths / rename / delete (root protected) | done | |
 
 ### Keyboard
 
 | Binding | Status | Task |
 | --- | --- | --- |
-| Enter = open (graph convention), F2 = rename | Enter done, F2 todo(P2) | 2.3 |
-| Delete / Cmd+Backspace delete | todo(P2) — currently explicit `null` in `keyboard/command/lookup.ts` | 2.3 |
-| Cmd/Ctrl+C, X, V | todo(P2) | 2.3 |
-| Cmd/Ctrl+Enter open to side | todo(P2) | 2.3 |
+| Enter = open (graph convention), F2 = rename | done(unit) | 2.3 |
+| Delete / Cmd+Backspace delete | done(unit) | 2.3 |
+| Cmd/Ctrl+C, X, V | done(unit) | 2.3 |
+| Cmd/Ctrl+Enter open to side | done(unit) | 2.3 |
 | Cmd/Ctrl+A · Escape | done (fold Escape-closes-panels bug card into 2.3) | |
-| Cmd/Ctrl+Z / Shift+Z undo/redo | todo(P2) — `undoManager` exists host-side | 2.3 |
+| Cmd/Ctrl+Z / Shift+Z undo/redo | done(unit) | 2.3 |
 | Type-ahead find | waived (search bar is the graph-native equivalent) | |
 | Arrow-key navigation | **waived (owner)** | |
 | Left/Right collapse/expand | waived (folderView click) | |
@@ -182,9 +182,9 @@ Committed as `docs/plans/explorer-parity-checklist.md` in Task 2.1; gate 2-A cou
 | Feature | Status | Task |
 | --- | --- | --- |
 | Multi-select (marquee + modifiers) | done — extended semantics in P5 | 5.x |
-| Auto-reveal active file (`explorer.autoReveal`) | todo(P2) — fixes outline bug card | 2.6 |
+| Auto-reveal active file (`explorer.autoReveal`) | done(unit) | 2.6 |
 | Git status decorations / problems decorations | done(visual) | 2.7 |
-| `files.exclude` respected | todo(P2) (Trello card) | 2.5 |
+| `files.exclude` respected | done(unit) | 2.5 (Trello card) |
 | File nesting / Open Editors / sort order | waived (tree-list concepts) | |
 | Drag semantics (canvas: select/move/pan) | todo(P5) — per owner spec | 5.x |
 | Drag-to-move-file-on-disk / external OS drop | **deferred (future epic)** — follow-up card in P8 | |
@@ -268,7 +268,7 @@ Template for every FS mutation: copy the `extension/actions/deleteFiles.ts` patt
 ### Tasks
 
 - [ ] **2.1 Checklist + prove `done` rows:** commit inventory to `docs/plans/explorer-parity-checklist.md`; walk every `done` row in the Dev Host on `medium` (screenshots); prove V3 nested-path create via `createPath.ts`; fix/re-status failures; add missing acceptance scenarios; regression-check plugin menu entries. Commit.
-- [ ] **2.2 Cut/Copy/Paste:** `extension/actions/clipboardFiles.ts`; pure `resolveCollisionName(name, siblings)` implementing V4 exactly (unit-test the sequence ` copy`, ` copy 2`, ` copy 3`); V2 error shape; V8 count-confirm; wire contracts + `node/entries.ts` + `node/folderEntries.ts` + `background/entries.ts` + `providerMessages/primaryActions/workspaceFileActions.ts`. Acceptance first, then implement, then quality-tool loop. Update Trello card. Commit.
+- [ ] **2.2 Cut/Copy/Paste:** `extension/actions/clipboardFiles.ts`; pure `resolveCollisionName(name, siblings)` implementing V4 exactly (unit-test the sequence ` copy`, ` copy 2`, ` copy 3`); V2 error shape; V8 count-confirm; wire contracts + `node/entries.ts` + `node/folderEntries.ts` + `background/entries.ts` + `providerMessages/primaryActions/workspaceFileActions.ts`. Acceptance first, then implement, then quality-tool loop. Update Trello card. Commits `0e33eb58f` and `058246d24` implement the undoable host actions, runtime validation, decision-aware menus, and keyboard bindings with focused coverage. Remaining: protected acceptance scenarios, Dev Host screenshots, scoped quality evidence, and external Trello verification.
 - [x] **2.3 Keyboard:** `keyboard/command/lookup.ts` — Delete/Cmd+Backspace (remove explicit `null`), F2 rename, Cmd/Ctrl+C|X|V, Cmd/Ctrl+Enter open-to-side, Cmd/Ctrl+Z / Shift+Z through `undoManager` (new message). Escape-closes-panels bug folded in. **No arrow keys.** Unit test per binding; destructive bindings respect `mutationAvailability`. Commit per group.
 - [x] **2.4 Open variants + compare + terminal + close editor:** Open to the Side (`ViewColumn.Beside`) · Open With… · Open in Integrated Terminal · Select for Compare / Compare with Selected (armed-state like Explorer) · Close editor for node. One commit + Trello update each.
 - [x] **2.5 Find in Folder + files.exclude:** `workbench.action.findInFiles` with `filesToInclude` preset; `files.exclude` → discovery exclusions (`core/src/discovery/`) + Graph Filters toggle (default on) + excluded-count in the Filters button (links to the "Filters button reports 0" bug card). Commit.
@@ -307,7 +307,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 7. **Worker-thread simulation** — if the 10k gates fail on the main thread after (6): run d3-force in a Web Worker; main thread sends structure diffs, worker posts `Float32Array` position buffers (transferables) at ≤ 60Hz; render consumes buffers directly. This stays within react-force-graph by driving it with externally-computed positions (fx/fy per frame or custom `d3Force` no-op + position injection — prototype both, keep the simpler). **This is the last rung before the PixiJS discussion; do not skip it.**
 8. **Bridge trimming + watcher storms** — field-access-proxy test finds `IGraphData` fields the webview never reads → strip from wire format; `refresh/scheduler.ts` adaptive coalescing (32ms → 250ms when >20 events pending); 100-file burst = one diff.
 
-- [ ] 3.1 diff protocol → gates 3-A
+- [x] 3.1 diff protocol → gates 3-A
 - [ ] 3.2 layout resets → 3-B
 - [ ] 3.3 optimistic ops → 3-C
 - [ ] 3.4 tree-sitter (a)(b)(c) → 3-G
@@ -315,6 +315,15 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - [ ] 3.6 sim/render budget → 3-F, 3-J
 - [ ] 3.7 worker sim (only if 3-J fails after 3.6; otherwise check the box with a note) → 3-J
 - [ ] 3.8 bridge + storms → 3-D
+
+### Task 3.1 evidence — graph diff protocol (2026-07-11)
+
+- Deterministic environment: VS Code 1.128.0, generated `medium` fixture (1,000 files), one prepared Graph Cache, isolated profile/workspace, `single-save` only.
+- Checked-in local baseline: `497,876` payload bytes. The first complete implementation iteration emitted `141,274` bytes because order-only edge differences replaced the edge collection; that iteration was rejected.
+- Accepted raw `payloadBytes`: `383`, `383`, `383`, `383`, `383`; median `383`; CV `0%`; `99.923%` below baseline. Gate 3-A passes (`≤ 10 KB` and `≥ 95%` below baseline).
+- Exact-head raw operation-scoped `incrementalRefreshMs`: `85.679`, `82.005`, `79.779`, `87.943`, `80.469` (median `82.005`, CV `3.77%`). Exact-head raw operation-scoped `watcherToGraphMs`: `127.984`, `127.902`, `122.852`, `130.486`, `123.348` (median `127.902`, CV `2.33%`).
+- `layoutResets` remained `1` in every sample. This is not accepted as a Task 3.1 improvement and remains the explicit Task 3.2 target.
+- The protocol validates patch shape, preserves retained source node/link identities, replaces changed same-ID links, treats array-order-only differences as semantic no-ops, revisions every patch, and requests a full replay on stale or malformed patch state.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 

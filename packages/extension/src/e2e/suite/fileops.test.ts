@@ -34,12 +34,12 @@ const scenario = getCurrentE2EScenario();
 function waitForGraphUpdate(api: CodeGraphyAPI, timeoutMs = 15_000): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(
-      () => reject(new Error('Timed out waiting for GRAPH_DATA_UPDATED')),
+      () => reject(new Error('Timed out waiting for a graph data update')),
       timeoutMs
     );
     const disposable = api.onExtensionMessage((msg: unknown) => {
       const message = msg as { type?: string };
-      if (message.type === 'GRAPH_DATA_UPDATED') {
+      if (message.type === 'GRAPH_DATA_UPDATED' || message.type === 'GRAPH_DATA_PATCHED') {
         clearTimeout(timer);
         disposable.dispose();
         resolve();

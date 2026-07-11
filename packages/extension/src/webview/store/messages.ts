@@ -1,6 +1,7 @@
 import type { PartialState, IHandlerContext } from './messageTypes';
 import {
   handleGraphDataUpdated,
+  handleGraphDataPatched,
   handleGraphIndexProgress,
   handleGraphIndexStatusUpdated,
   handleGraphControlsUpdated,
@@ -53,6 +54,8 @@ export const MESSAGE_HANDLERS: Record<
 > = {
   GRAPH_DATA_UPDATED: (msg, ctx) =>
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>, ctx),
+  GRAPH_DATA_PATCHED: (msg, ctx) =>
+    handleGraphDataPatched(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_PATCHED' }>, ctx),
   GRAPH_NODE_METRICS_UPDATED: (msg, ctx) =>
     handleGraphNodeMetricsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>,

@@ -31,6 +31,14 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
     });
   });
 
+  it('records a valid full-graph revision', () => {
+    expect(handleGraphDataUpdated({
+      type: 'GRAPH_DATA_UPDATED',
+      graphRevision: 7,
+      payload: createGraphData(),
+    })).toMatchObject({ graphRevision: 7 });
+  });
+
   it('skips duplicate graph payloads when duplicate-safe bootstrap state has settled', () => {
     const payload = createGraphData();
     const state = createState({
@@ -45,6 +53,25 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       { type: 'GRAPH_DATA_UPDATED', payload },
       { getState: () => state },
     )).toBeUndefined();
+  });
+
+  it('advances the revision for an identical full graph replay', () => {
+    const payload = createGraphData();
+    const state = createState({
+      graphRevision: 4,
+      awaitingInitialBootstrap: false,
+      bootstrapComplete: true,
+      graphData: cloneGraphData(payload),
+      graphIsIndexing: false,
+      isLoading: false,
+    });
+    const graphData = state.graphData;
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', graphRevision: 7, payload },
+      { getState: () => state },
+    )).toEqual({ graphRevision: 7 });
+    expect(state.graphData).toBe(graphData);
   });
 
   it('keeps loading while initial bootstrap is still waiting for app bootstrap completion', () => {

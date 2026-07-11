@@ -1,5 +1,6 @@
 import type { IFileInfo } from '../files/info';
 import type { IGraphData, IGraphNode } from '../graph/contracts';
+import type { GraphDataPatch } from '../graph/patch';
 import type { IPluginContextMenuItem } from '../plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/decorations';
 import type { IPluginExporterItem } from '../plugins/exporters';
@@ -53,6 +54,14 @@ export type ExtensionToWebviewMessage =
   | PerfControlMessage
   | PerfRenderReadyRequestMessage
   | { type: 'GRAPH_DATA_UPDATED'; graphRevision?: number; payload: IGraphData }
+  | {
+      type: 'GRAPH_DATA_PATCHED';
+      baseGraphRevision: number;
+      graphRevision?: number;
+      nodeCount: number;
+      edgeCount: number;
+      payload: GraphDataPatch;
+    }
   | { type: 'GRAPH_NODE_METRICS_UPDATED'; payload: { nodes: IGraphNodeMetricsUpdate[] } }
   | { type: 'APP_BOOTSTRAP_COMPLETE' }
   | {

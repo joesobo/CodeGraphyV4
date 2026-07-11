@@ -5,6 +5,7 @@ import type {
 } from '../../analysis/lifecycle';
 import {
   sendGraphDataUpdated,
+  sendGraphDataPatched,
   sendGraphIndexStatusUpdated,
   sendGraphNodeMetricsUpdated,
 } from './handlers/messages';
@@ -41,6 +42,7 @@ export function createGraphViewProviderAnalysisHandlers(
     getRawGraphData: () => source._rawGraphData,
     getGraphData: () => source._graphData,
     sendGraphDataUpdated: graphData => sendGraphDataUpdated(source, graphData),
+    sendGraphDataPatched: patch => sendGraphDataPatched(source, patch),
     sendGraphNodeMetricsUpdated: updates => sendGraphNodeMetricsUpdated(source, updates),
     sendDepthState: () => source._sendDepthState(),
     computeMergedGroups: () => source._computeMergedGroups(),

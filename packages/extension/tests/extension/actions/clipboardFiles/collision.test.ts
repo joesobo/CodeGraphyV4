@@ -15,6 +15,21 @@ describe('actions/clipboardFiles/collision', () => {
     expect(resolveCollisionName('app.ts', siblings)).toBe('app copy 3.ts');
   });
 
+  it('produces each Explorer copy suffix in sequence', () => {
+    const siblings = ['app.ts'];
+
+    const first = resolveCollisionName('app.ts', siblings);
+    siblings.push(first);
+    const second = resolveCollisionName('app.ts', siblings);
+    siblings.push(second);
+
+    expect([first, second, resolveCollisionName('app.ts', siblings)]).toEqual([
+      'app copy.ts',
+      'app copy 2.ts',
+      'app copy 3.ts',
+    ]);
+  });
+
   it('increments Explorer-style copy suffixes for extensionless names', () => {
     const siblings = ['assets', 'assets copy', 'assets copy 2'];
 

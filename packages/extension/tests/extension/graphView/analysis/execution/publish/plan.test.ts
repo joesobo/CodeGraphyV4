@@ -68,10 +68,30 @@ describe('extension/graphView/analysis/execution/publish/plan', () => {
       true,
       'fresh',
     )).toMatchObject({
+      currentGraphData: undefined,
       currentRawGraphData: currentGraph,
       metricOnlyUpdate: undefined,
       reuseCurrentGraphPublication: true,
       shouldSendMetricPatch: false,
+    });
+  });
+
+  it('captures the current transformed graph and enables structural patches for fresh incremental updates', () => {
+    const currentGraphData = createGraph();
+
+    expect(createGraphPublicationPlan(
+      createState('incremental', { changedFilePaths: ['src/b.ts'] }),
+      createHandlers({
+        getGraphData: () => currentGraphData,
+        getRawGraphData: () => createGraph(),
+        sendGraphDataPatched: () => {},
+      }),
+      createGraph({ nodes: [createNode(), createNode({ id: 'src/b.ts' })] }),
+      true,
+      'fresh',
+    )).toMatchObject({
+      currentGraphData,
+      shouldSendGraphPatch: true,
     });
   });
 

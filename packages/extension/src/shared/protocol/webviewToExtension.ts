@@ -36,6 +36,7 @@ export type WebviewToExtensionMessage =
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
   | { type: 'CLEAR_FOCUSED_FILE' }
   | { type: 'WEBVIEW_READY'; payload: WebviewReadyPayload | null }
+  | { type: 'REQUEST_GRAPH_DATA' }
   | { type: 'OPEN_FILE'; payload: { path: string } }
   | { type: 'OPEN_FILES_TO_SIDE'; payload: { paths: string[] } }
   | { type: 'FIND_IN_FOLDER'; payload: { path: string } }

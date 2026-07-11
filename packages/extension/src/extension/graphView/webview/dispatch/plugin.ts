@@ -87,6 +87,13 @@ export async function dispatchGraphViewPluginMessage(
         readyNotified: await dispatchGraphViewPluginReadyMessage(message, context),
       };
 
+    case 'REQUEST_GRAPH_DATA':
+      context.sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: context.getGraphData(),
+      });
+      return { handled: true };
+
     case 'GRAPH_INTERACTION':
       applyPluginInteraction(message.payload, {
         getPluginApi: pluginId => context.getInteractionPluginApi(pluginId),

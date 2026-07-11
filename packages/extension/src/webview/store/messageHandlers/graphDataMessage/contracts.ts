@@ -5,6 +5,10 @@ export type GraphDataUpdatedMessage = Extract<
   ExtensionToWebviewMessage,
   { type: 'GRAPH_DATA_UPDATED' }
 >;
+export type GraphDataPatchedMessage = Extract<
+  ExtensionToWebviewMessage,
+  { type: 'GRAPH_DATA_PATCHED' }
+>;
 export type GraphNodeMetricsUpdateMessage = Extract<
   ExtensionToWebviewMessage,
   { type: 'GRAPH_NODE_METRICS_UPDATED' }

@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import { diffGraphData } from '@codegraphy-dev/core';
 import type {
   GraphViewAnalysisExecutionHandlers,
   GraphViewAnalysisExecutionState,
@@ -62,6 +63,11 @@ export function publishGraphDataMessage(
 
   if (plan.shouldSendMetricPatch && plan.metricOnlyUpdate) {
     handlers.sendGraphNodeMetricsUpdated?.(plan.metricOnlyUpdate);
+    return;
+  }
+
+  if (plan.shouldSendGraphPatch && plan.currentGraphData && handlers.sendGraphDataPatched) {
+    handlers.sendGraphDataPatched(diffGraphData(plan.currentGraphData, graphData));
     return;
   }
 

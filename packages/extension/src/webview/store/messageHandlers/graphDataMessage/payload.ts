@@ -12,7 +12,10 @@ export function handleGraphDataUpdated(
 
   const state = ctx?.getState();
   if (state && shouldSkipDuplicateGraphData(state, message.payload)) {
-    return undefined;
+    return validGraphRevision(message.graphRevision)
+      && message.graphRevision !== state.graphRevision
+      ? { graphRevision: message.graphRevision }
+      : undefined;
   }
 
   const waitingForInitialBootstrap = Boolean(
@@ -26,9 +29,16 @@ export function handleGraphDataUpdated(
 
   return {
     graphData: message.payload,
+    ...(validGraphRevision(message.graphRevision)
+      ? { graphRevision: message.graphRevision }
+      : {}),
     ...(initialBootstrapFinished ? { awaitingInitialBootstrap: false } : {}),
     isLoading: waitingForInitialBootstrap,
     graphIsIndexing: false,
     graphIndexProgress: null,
   };
+}
+
+function validGraphRevision(value: number | undefined): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }

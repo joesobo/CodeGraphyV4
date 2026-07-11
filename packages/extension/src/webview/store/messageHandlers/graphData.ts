@@ -3,16 +3,25 @@ import { handleAppBootstrapComplete as handleAppBootstrapCompleteImpl } from './
 import type {
   AppBootstrapCompleteMessage,
   GraphDataUpdatedMessage,
+  GraphDataPatchedMessage,
   GraphNodeMetricsUpdateMessage,
 } from './graphDataMessage/contracts';
 import { handleGraphNodeMetricsUpdated as handleGraphNodeMetricsUpdatedImpl } from './graphDataMessage/metrics';
 import { handleGraphDataUpdated as handleGraphDataUpdatedImpl } from './graphDataMessage/payload';
+import { handleGraphDataPatched as handleGraphDataPatchedImpl } from './graphDataMessage/patch';
 
 export function handleGraphDataUpdated(
   message: GraphDataUpdatedMessage,
   ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState | void {
   return handleGraphDataUpdatedImpl(message, ctx);
+}
+
+export function handleGraphDataPatched(
+  message: GraphDataPatchedMessage,
+  ctx?: Pick<IHandlerContext, 'getState'>,
+): PartialState | void {
+  return handleGraphDataPatchedImpl(message, ctx);
 }
 
 export function handleGraphNodeMetricsUpdated(

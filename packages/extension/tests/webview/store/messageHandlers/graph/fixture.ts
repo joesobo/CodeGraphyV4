@@ -6,6 +6,7 @@ export function createState(
   return {
     autoReveal: true,
     graphData: null,
+    graphRevision: null,
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,

@@ -94,6 +94,13 @@ describe('graphView/provider/analysis/handlers', () => {
     });
     handlers.setGraphData(graphData);
     handlers.sendGraphDataUpdated(graphData);
+    handlers.sendGraphDataPatched?.({
+      addedNodes: [],
+      removedNodeIds: [],
+      updatedNodes: [],
+      addedLinks: [],
+      removedLinkIds: [],
+    });
     handlers.sendDepthState();
     handlers.computeMergedGroups();
     handlers.sendGroupsUpdated();
@@ -115,6 +122,19 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: graphData,
+    });
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_PATCHED',
+      baseGraphRevision: 0,
+      nodeCount: 1,
+      edgeCount: 0,
+      payload: {
+        addedNodes: [],
+        removedNodeIds: [],
+        updatedNodes: [],
+        addedLinks: [],
+        removedLinkIds: [],
+      },
     });
     expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
       source._rawGraphData,

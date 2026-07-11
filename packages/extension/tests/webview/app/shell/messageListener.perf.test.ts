@@ -75,6 +75,45 @@ describe('app message listener performance controls', () => {
     expect(renderReadyControl.graphDataReceived).toHaveBeenCalledWith(17);
   });
 
+  it('records a patched graph generation before forwarding it to the store', () => {
+    const callOrder: string[] = [];
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage: vi.fn(() => { callOrder.push('store'); }),
+    } as unknown as ReturnType<typeof graphStore.getState>);
+    const renderReadyControl = {
+      graphDataReceived: vi.fn(() => { callOrder.push('render-ready'); }),
+      handleRequest: vi.fn(() => false),
+    };
+    const handler = createMessageHandler(
+      vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue(),
+      { deliverMessage: vi.fn() } as unknown as WebviewPluginHost,
+      undefined,
+      undefined,
+      { handleControl: vi.fn(() => false), handleExtensionMessage: vi.fn(() => false) },
+      renderReadyControl,
+    );
+
+    handler({
+      data: {
+        type: 'GRAPH_DATA_PATCHED',
+        baseGraphRevision: 17,
+        graphRevision: 18,
+        nodeCount: 1,
+        edgeCount: 0,
+        payload: {
+          addedNodes: [],
+          removedNodeIds: [],
+          updatedNodes: [],
+          addedLinks: [],
+          removedLinkIds: [],
+        },
+      },
+    } as MessageEvent<unknown>);
+
+    expect(callOrder).toEqual(['render-ready', 'store']);
+    expect(renderReadyControl.graphDataReceived).toHaveBeenCalledWith(18);
+  });
+
   it('handles a performance control through the existing message listener', () => {
     const handleExtensionMessage = vi.fn();
     vi.spyOn(graphStore, 'getState').mockReturnValue({

@@ -75,6 +75,26 @@ describe('graph view plugin message dispatch', () => {
     expect(context.notifyWebviewReady).toHaveBeenCalledOnce();
   });
 
+  it('always replays full graph data for an explicit recovery request', async () => {
+    const graphData = {
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
+    const context = createContext({
+      getGraphData: vi.fn(() => graphData),
+      isWebviewReadyNotified: vi.fn(() => true),
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage({ type: 'REQUEST_GRAPH_DATA' }, context),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: graphData,
+    });
+  });
+
   it('forwards plugin interaction events through the event bus bridge', async () => {
     const context = createContext();
 

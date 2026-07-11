@@ -64,4 +64,38 @@ describe('graphView/provider/webview/messages', () => {
       payload: { nodes: [], edges: [] },
     });
   });
+
+  it('assigns a graph revision to patch payloads', () => {
+    const notifyExtensionMessage = vi.fn();
+    const sendWebviewMessage = vi.fn();
+    const message = {
+      type: 'GRAPH_DATA_PATCHED',
+      nodeCount: 1,
+      edgeCount: 0,
+      payload: {
+        addedNodes: [],
+        removedNodeIds: [],
+        updatedNodes: [],
+        addedLinks: [],
+        removedLinkIds: [],
+      },
+    };
+
+    sendGraphViewProviderWebviewMessage(
+      {
+        _view: undefined,
+        _timelineView: undefined,
+        _panels: [],
+        _notifyExtensionMessage: notifyExtensionMessage,
+      },
+      { sendWebviewMessage },
+      message,
+    );
+
+    expect(sendWebviewMessage).toHaveBeenCalledWith([], [], {
+      ...message,
+      baseGraphRevision: 0,
+      graphRevision: 1,
+    });
+  });
 });
