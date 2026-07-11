@@ -312,8 +312,8 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - [ ] 3.3 optimistic ops → 3-C
 - [x] 3.4 tree-sitter (a)(b)(c) → 3-G
 - [x] 3.5 ladybug scheduling → 3-G
-- [ ] 3.6 sim/render budget → 3-F, 3-J
-- [ ] 3.7 worker sim (only if 3-J fails after 3.6; otherwise check the box with a note) → 3-J
+- [x] 3.6 sim/render budget → 3-F, 3-J
+- [x] 3.7 worker-sim decision: zero-main-thread-simulation upper bound still fails render gate; PixiJS discussion required before renderer work → 3-J
 - [ ] 3.8 bridge + storms → 3-D
 
 ### Task 3.1 evidence — graph diff protocol (2026-07-11)
@@ -364,6 +364,18 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - Five complete exact-head `medium` single-save samples emitted zero action-scoped `cacheSaveMs` values. Operation-scoped `incrementalRefreshMs`: `27.051`, `27.197`, `22.774`, `23.487`, `23.059` (median `23.487`, CV `8.02%`); `watcherToGraphMs`: `69.499`, `68.777`, `64.174`, `65.317`, `64.804` (median `65.317`, CV `3.28%`).
 - Core passed 1,229 tests across 264 files. The scheduler, cache service, typecheck, and durable lifecycle suites pass. The full extension run still has 45 failures across earlier Phase 2/3 webview and watcher test drift; the cache lifecycle failure introduced by nonblocking persistence was corrected with the explicit durability barrier.
 - Gate 3-G's cache-blocking and large cold-index requirements pass. Its same-file incremental Tree-sitter ratio remains unclaimed because the current cold metric aggregates the fixture rather than reporting the matching file; that instrumentation gap remains attached to Task 3.4 evidence.
+
+### Tasks 3.6–3.7 evidence — simulation/render budget and renderer blocker (2026-07-11)
+
+- Simulation now has a bounded 20-tick pre-settle and finite cooldown while preserving the `0.7` damping default. Oversized graphs skip both synchronous warmup and cooldown work. The existing 2D surface keeps `autoPauseRedraw` enabled outside particle mode, and labels are omitted below the existing zoom-opacity cutoff.
+- Editor panels publish `onDidChangeViewState`; sidebar views publish visibility changes. The webview combines host visibility with the user's pause setting, so hidden views pause without overwriting the user's preference and resume only when both states allow it.
+- 2D node bodies use a bounded 2,048-entry raster glyph cache keyed by visual style and a half-step zoom/device-pixel bucket. It prefers `OffscreenCanvas`, falls back to a detached HTML canvas, and retains vector rendering when neither context is available. Dynamic labels, images, plugin overlays, badges, and selection decorations remain live.
+- 3D unchanged-node calls reuse the complete `THREE.Group`, including mesh geometry/material, image sprite, and `three-spritetext` label. Signature changes rebuild the object; cache hits refresh label visibility and theme color.
+- Performance lifecycle gaps exposed by the 10k fixture are fixed: commands arriving before the graph target attaches are replayed, zero-tick graphs report settled state, zero-tick graph commits settle their correlated operation, interaction bursts do not request impossible reheats, and cold-open waits for deferred Graph Cache persistence before the next isolated session.
+- Valid exact-head `huge` idle evidence: `simTicksAfterSettle = 0`, `fpsIdle = 59.914`, `heapUsedBytes = 26,808,635`, `idleCpuPct = 9.983%`. Tick and memory requirements pass; literal 60 FPS and <2% CPU do not. Gate 3-F therefore remains failed on CPU, and 3-H passes in this sample.
+- Valid exact-head main-thread `huge` interaction evidence: `fpsDrag = 2.281`, `fpsSettle = 2.378`, `longTasksPerInteraction = 47`. Gate 3-J fails decisively.
+- Worker-simulation upper-bound experiment: the exact same 10k build temporarily disabled all interactive main-thread simulation above 5,000 nodes/10,000 edges. Cold-open fell from `56,469ms` to `7,207ms` (including an `865ms` durable cache save), proving layout accounts for roughly 49 seconds and should move off the main thread. With simulation entirely absent, render-only interaction improved to `fpsDrag = 22.552`, `fpsSettle = 21.053`, `longTasksPerInteraction = 5`—still below the 30 FPS gate. The diagnostic cutoff was restored and not committed as product behavior.
+- This zero-simulation run is a stricter upper bound than either proposed worker handoff: a worker cannot remove more main-thread simulation work than removing it entirely. It proves a worker is necessary but cannot make 3-J pass while the current Canvas2D renderer remains. Per the plan's owner-decision boundary, no autonomous PixiJS migration was started; these measurements are the Task 3.7 blocker report.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
