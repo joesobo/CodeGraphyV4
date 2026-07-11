@@ -71,6 +71,29 @@ export async function createWorkspaceAnalysisCacheWriterAsync(
   };
 }
 
+export async function createWorkspaceAnalysisCachePatchWriterAsync(
+  connection: lb.Connection,
+): Promise<WorkspaceAnalysisCachePatchWriter> {
+  const [
+    fileAnalysisStatement,
+    deleteFileAnalysisStatement,
+    deleteSymbolStatement,
+    deleteRelationStatement,
+  ] = await Promise.all([
+    prepareStatementAsync(connection, CREATE_FILE_ANALYSIS_STATEMENT),
+    prepareStatementAsync(connection, DELETE_FILE_ANALYSIS_STATEMENT),
+    prepareStatementAsync(connection, DELETE_SYMBOL_STATEMENT),
+    prepareStatementAsync(connection, DELETE_RELATION_STATEMENT),
+  ]);
+  return {
+    connection,
+    fileAnalysisStatement,
+    deleteFileAnalysisStatement,
+    deleteSymbolStatement,
+    deleteRelationStatement,
+  };
+}
+
 export function persistAnalysisEntry(
   writer: WorkspaceAnalysisCacheWriter,
   filePath: string,
@@ -87,6 +110,16 @@ export function deleteAnalysisEntry(
   executeStatementSync(writer.connection, writer.deleteFileAnalysisStatement, params);
   executeStatementSync(writer.connection, writer.deleteSymbolStatement, params);
   executeStatementSync(writer.connection, writer.deleteRelationStatement, params);
+}
+
+export async function deleteAnalysisEntryAsync(
+  writer: WorkspaceAnalysisCachePatchWriter,
+  filePath: string,
+): Promise<void> {
+  const params = { filePath };
+  await executeStatementAsync(writer.connection, writer.deleteFileAnalysisStatement, params);
+  await executeStatementAsync(writer.connection, writer.deleteSymbolStatement, params);
+  await executeStatementAsync(writer.connection, writer.deleteRelationStatement, params);
 }
 
 async function executeStatementAndYield(

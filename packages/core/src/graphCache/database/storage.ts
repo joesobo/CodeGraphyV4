@@ -16,6 +16,7 @@ import {
   type WorkspaceAnalysisDatabasePatch,
   type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
+import { patchWorkspaceAnalysisDatabaseCacheAsync as patchWorkspaceAnalysisDatabaseCacheAsyncImpl } from './io/patchAsync';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
 export type { WorkspaceAnalysisDatabaseLoadOptions };
@@ -64,6 +65,13 @@ export function patchWorkspaceAnalysisDatabaseCache(
   patch: WorkspaceAnalysisDatabasePatch,
 ): void {
   patchWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, patch);
+}
+
+export function patchWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  patch: WorkspaceAnalysisDatabasePatch,
+): Promise<void> {
+  return patchWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot, patch);
 }
 
 export function saveWorkspaceAnalysisDatabaseCacheAsync(
