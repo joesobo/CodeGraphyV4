@@ -86,7 +86,7 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
   it('keeps coordinates when release is owned by a drag policy', () => {
     const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
 
-    releaseNodeDrag(draggedNode, '3d', {
+    releaseNodeDrag(draggedNode, '2d', {
       graphViewContributions: {
         nodeDragEnd: [nodeDragEndContribution(() => ({ keepFixedPosition: true }))],
       },

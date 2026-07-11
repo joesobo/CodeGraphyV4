@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   collectHighlightedNeighborIds,
   createSelectionHandlers,
-  incrementHighlightVersion,
   resolveSelectionLinkEndpointId,
 } from '../../../../../src/webview/components/graph/interactionRuntime/handlers/selection';
 import { createInteractionDependencies } from '../testUtils';
@@ -43,11 +42,6 @@ describe('graph/selectionHandlers', () => {
     expect([...collectHighlightedNeighborIds(links, 'src/app.ts')]).toEqual([]);
   });
 
-  it('incrementHighlightVersion increases the previous version by one', () => {
-    expect(incrementHighlightVersion(0)).toBe(1);
-    expect(incrementHighlightVersion(4)).toBe(5);
-  });
-
   it('updates highlight neighbors in 2d mode without bumping highlight version', () => {
     const dependencies = createInteractionDependencies({
       graphDataRef: {
@@ -68,7 +62,6 @@ describe('graph/selectionHandlers', () => {
       'src/object.ts',
       'src/incoming.ts',
     ]);
-    expect(dependencies.setHighlightVersion).not.toHaveBeenCalled();
   });
 
   it('clears highlight and selection state', () => {

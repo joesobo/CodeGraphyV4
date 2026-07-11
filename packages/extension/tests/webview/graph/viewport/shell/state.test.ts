@@ -10,7 +10,6 @@ describe('graph/viewport/shell/state', () => {
 			customRuntimeState: { owner: 'plugin-a' },
 			fx: 'bad',
 			fy: 24,
-			fz: Number.POSITIVE_INFINITY,
 			id: 'src/app.ts',
 			isDragging: 'true',
 			isPinned: false,
@@ -19,14 +18,12 @@ describe('graph/viewport/shell/state', () => {
 			vy: 2,
 			x: 42,
 			y: undefined,
-			z: -4,
 		} as never]);
 
 		expect(nodes).toEqual([expect.objectContaining({
 			customRuntimeState: { owner: 'plugin-a' },
 			fx: undefined,
 			fy: 24,
-			fz: undefined,
 			id: 'src/app.ts',
 			isDragging: undefined,
 			isPinned: false,
@@ -35,7 +32,6 @@ describe('graph/viewport/shell/state', () => {
 			vy: 2,
 			x: 42,
 			y: undefined,
-			z: -4,
 		})]);
 	});
 

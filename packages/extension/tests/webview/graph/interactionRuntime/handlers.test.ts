@@ -33,7 +33,6 @@ function createDependencies(
   const container = document.createElement('div');
   const setSelectedNodes = vi.fn();
   const setContextSelection = vi.fn();
-  const setHighlightVersion = vi.fn();
   const fg2d = {
     centerAt: vi.fn(),
     d3ReheatSimulation: vi.fn(),
@@ -62,7 +61,6 @@ function createDependencies(
         target: edge.to,
       }) as unknown as FGLink),
     }),
-    graphMode: '2d',
     highlightedNeighborsRef: createRef(new Set<string>()),
     highlightedNodeRef: createRef<string | null>(null),
     isMacPlatform: false,
@@ -70,7 +68,6 @@ function createDependencies(
     lastGraphContextEventRef: createRef(0),
     selectedNodesSetRef: createRef(new Set<string>()),
     setContextSelection,
-    setHighlightVersion,
     setSelectedNodes,
     ...overrides,
   };

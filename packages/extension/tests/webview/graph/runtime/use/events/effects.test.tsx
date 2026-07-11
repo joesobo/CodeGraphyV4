@@ -84,7 +84,7 @@ interface MessageEffectHandlers {
 }
 
 interface GraphEventHookProps {
-  graphMode: '2d' | '3d';
+  graphMode: '2d' | '2d';
   interactionHandlers: GraphInteractionHandlers;
   selectedNodes: string[];
   tooltipPath: string;
@@ -321,7 +321,7 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const updatedInteractionHandlers = createInteractionHandlers();
 
     rerender({
-      graphMode: '3d' as '2d' | '3d',
+      graphMode: '2d' as '2d' | '2d',
       interactionHandlers: updatedInteractionHandlers,
       selectedNodes: ['src/two.ts'],
       tooltipPath: 'src/two.ts',
@@ -335,10 +335,10 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const messageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[1]?.[0];
     const keyboardOptions = eventEffectsHarness.createGraphKeyboardListener.mock.calls[1]?.[0];
 
-    expect(messageOptions.graphMode).toBe('3d');
+    expect(messageOptions.graphMode).toBe('2d');
     expect(messageOptions.tooltipPath).toBe('src/two.ts');
     expect(messageOptions.getGraphNodes()).toEqual(graphDataRef.current.nodes);
-    expect(keyboardOptions.graphMode).toBe('3d');
+    expect(keyboardOptions.graphMode).toBe('2d');
     expect(keyboardOptions.selectedNodeIds).toEqual(['src/two.ts']);
     expect(keyboardOptions.getAllNodeIds()).toEqual(['src/two.ts']);
     expect(keyboardOptions.runEffects).toBe(eventEffectsHarness.applyKeyboardEffects);

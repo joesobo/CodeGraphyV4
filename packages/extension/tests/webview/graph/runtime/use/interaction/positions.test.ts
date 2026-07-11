@@ -12,7 +12,7 @@ describe('graph/runtime/use/interaction positions', () => {
       { id: 'a', x: 1, y: 2 },
       { id: 'b', x: 3, y: Number.POSITIVE_INFINITY },
       { id: 'c', x: 4, y: 5 },
-    ] as FGNode[], '2d');
+    ] as FGNode[]);
 
     expect([...positions.entries()]).toEqual([
       ['a', { x: 1, y: 2 }],

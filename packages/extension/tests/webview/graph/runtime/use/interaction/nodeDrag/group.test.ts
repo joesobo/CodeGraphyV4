@@ -35,16 +35,11 @@ describe('graph/runtime/use/interaction/nodeDrag/group', () => {
     });
   });
 
-  it('does not create a drag group outside selected multi-node 2d drags', () => {
+  it('does not create a drag group outside selected multi-node drags', () => {
     const primary = node('primary');
     const sibling = node('sibling');
     const graphData = { nodes: [primary, sibling] };
 
-    expect(createDragGroupSession(primary, {
-      graphData,
-      graphMode: '3d',
-      selectedNodeIds: new Set(['primary', 'sibling']),
-    })).toBeNull();
     expect(createDragGroupSession(primary, {
       graphData,
       graphMode: '2d',

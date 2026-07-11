@@ -61,10 +61,10 @@ describe('webview/graph/debug/snapshot', () => {
     });
   });
 
-  it('uses zero for missing coordinates and z values', () => {
-    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
-      x: x + y + z,
-      y: x + y + z,
+  it('uses zero for missing coordinates', () => {
+    const graph2ScreenCoords = vi.fn((x: number, y: number) => ({
+      x: x + y,
+      y: x + y,
     }));
 
     const snapshot = buildGraphDebugSnapshot({
@@ -76,7 +76,7 @@ describe('webview/graph/debug/snapshot', () => {
       nodes: [{ id: 'd.ts', size: 4 }],
     });
 
-    expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0, 0);
+    expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0);
     expect(snapshot.nodes).toEqual([{
       id: 'd.ts',
       screenX: 0,

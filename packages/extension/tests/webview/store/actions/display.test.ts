@@ -21,7 +21,7 @@ describe('webview/store/actions/display', () => {
     actions.setSearchQuery('needle');
     actions.setSearchOptions({ matchCase: true, wholeWord: true, regex: true });
     actions.setActivePanel('legends');
-    actions.setGraphMode('3d');
+    actions.setGraphMode('2d');
     actions.setGraphViewportScale(1.5);
     actions.setNodeSizeMode('uniform');
     actions.setPhysicsSettings(physicsSettings);
@@ -38,7 +38,7 @@ describe('webview/store/actions/display', () => {
       disabledPluginFilterPatterns: ['*.md'],
       expandedGroupId: 'group-a',
       filterPatterns: ['src/**'],
-      graphMode: '3d',
+      graphMode: '2d',
       graphViewportScale: 1.5,
       legends,
       nodeSizeMode: 'uniform',

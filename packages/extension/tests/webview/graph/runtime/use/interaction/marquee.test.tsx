@@ -25,7 +25,7 @@ function createEvent(
 function createMarqueeRuntime(options: {
   containerRect?: Partial<DOMRect>;
   graph?: { graph2ScreenCoords?: (x: number, y: number) => { x: number; y: number } } | null;
-  graphMode?: '2d' | '3d';
+  graphMode?: '2d' | '2d';
   hoveredNode?: FGNode | null;
   selectedNodeIds?: string[];
 } = {}) {
@@ -59,7 +59,6 @@ function createMarqueeRuntime(options: {
     containerRef: { current: container } as never,
     fg2dRef: { current: graph } as never,
     graphDataRef: { current: { links: [], nodes } } as never,
-    graphMode: options.graphMode ?? '2d',
     hoveredNodeRef: { current: options.hoveredNode ?? null },
     interactionHandlers: {
       setHighlight,

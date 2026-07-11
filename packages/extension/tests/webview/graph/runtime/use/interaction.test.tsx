@@ -150,7 +150,6 @@ function createRuntimeOptions(
       ...overrideRefs,
     },
     setContextSelection: vi.fn(),
-    setHighlightVersion: vi.fn(),
     setSelectedNodes: vi.fn(),
     ...rest,
   };
@@ -200,7 +199,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     expect(interactionRuntimeHarness.useGraphViewportPanRuntime).toHaveBeenCalledWith(expect.objectContaining({
       containerRef: refs.containerRef,
       fg2dRef: refs.fg2dRef,
-      graphMode: '2d',
       rightMouseDownRef: refs.rightMouseDownRef,
       suppressContextMenu: expect.any(Function),
     }));
@@ -212,7 +210,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
           nodes: [expect.objectContaining({ id: 'src/app.ts' })],
         }),
       }),
-      graphMode: '2d',
       hoveredNodeRef: tooltipRuntime.hoveredNodeRef,
       interactionHandlers,
       selectedNodesSetRef: refs.selectedNodesSetRef,
@@ -288,7 +285,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
         initialProps: {
           graphContextSelection: createSelection(['src/one.ts']),
           graphDataRef: { current: { links: [], nodes: [createNode('src/one.ts')] } } as never,
-          graphMode: '3d' as '2d' | '3d',
+          graphMode: '2d' as '2d' | '2d',
         },
       },
     );
@@ -375,12 +372,12 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       ({ graphMode }) => useGraphInteractionRuntime(createRuntimeOptions({ graphMode })),
       {
         initialProps: {
-          graphMode: '2d' as '2d' | '3d',
+          graphMode: '2d' as '2d' | '2d',
         },
       },
     );
 
-    rerender({ graphMode: '3d' });
+    rerender({ graphMode: '2d' });
 
     expect(firstContextMenuRuntime.clearRightClickFallbackTimer).toHaveBeenCalledTimes(1);
     expect(secondContextMenuRuntime.clearRightClickFallbackTimer).not.toHaveBeenCalled();

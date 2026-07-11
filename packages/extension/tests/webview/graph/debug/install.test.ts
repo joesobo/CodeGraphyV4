@@ -98,9 +98,9 @@ describe('webview/graph/debug/install', () => {
 
   it('opens a node context menu through the graph debug api', () => {
     const openNodeContextMenu = vi.fn();
-    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
-      x: x + z,
-      y: y + z,
+    const graph2ScreenCoords = vi.fn((x: number, y: number) => ({
+      x: x + 3,
+      y: y + 3,
     }));
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
 
@@ -116,7 +116,7 @@ describe('webview/graph/debug/install', () => {
           graph2ScreenCoords,
         },
       },
-      graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2, z: 3 }] } },
+      graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2 }] } },
       openNodeContextMenu,
       win,
     });
@@ -127,19 +127,14 @@ describe('webview/graph/debug/install', () => {
     expect(openNodeContextMenu.mock.calls[0]?.[0]).toBe('a.ts');
     expect(openNodeContextMenu.mock.calls[0]?.[1].clientX).toBe(14);
     expect(openNodeContextMenu.mock.calls[0]?.[1].clientY).toBe(25);
-    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 3);
+    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2);
   });
 
   it('uses the 2d graph ref for padding fit and snapshot generation', () => {
     const zoomToFit2d = vi.fn();
-    const zoomToFit3d = vi.fn();
     const graph2ScreenCoords2d = vi.fn((x: number, y: number) => ({
       x: x + 1,
       y: y + 1,
-    }));
-    const graph2ScreenCoords3d = vi.fn((x: number, y: number, z: number) => ({
-      x: x + z,
-      y: y + z,
     }));
     const zoomGraphView = vi.fn(() => 3);
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
@@ -171,7 +166,6 @@ describe('webview/graph/debug/install', () => {
             size: 5,
             x: 2,
             y: 3,
-            z: 9,
           }],
         },
       },
@@ -182,9 +176,7 @@ describe('webview/graph/debug/install', () => {
     const snapshot = win.__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot();
 
     expect(zoomToFit2d).toHaveBeenCalledWith(300, 18);
-    expect(zoomToFit3d).not.toHaveBeenCalled();
-    expect(graph2ScreenCoords2d).toHaveBeenCalledWith(2, 3, 9);
-    expect(graph2ScreenCoords3d).not.toHaveBeenCalled();
+    expect(graph2ScreenCoords2d).toHaveBeenCalledWith(2, 3);
     expect(snapshot).toEqual({
       containerHeight: 40,
       containerWidth: 80,

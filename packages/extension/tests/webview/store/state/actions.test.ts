@@ -23,9 +23,9 @@ describe('GraphStore actions', () => {
   });
 
   it('setGraphMode updates the graph mode', () => {
-    store.getState().setGraphMode('3d');
+    store.getState().setGraphMode('2d');
 
-    expect(store.getState().graphMode).toBe('3d');
+    expect(store.getState().graphMode).toBe('2d');
   });
 
   it('setNodeSizeMode updates the node size mode', () => {

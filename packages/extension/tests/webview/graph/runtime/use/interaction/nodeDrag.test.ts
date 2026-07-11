@@ -86,7 +86,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       isPinned: false,
     } as unknown as FGNode;
 
-    postNodeDragEndMessages(node, '3d');
+    postNodeDragEndMessages(node, '2d');
 
     expect(node).toMatchObject({
       fx: 12,
@@ -106,7 +106,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       isPinned: true,
     } as unknown as FGNode;
 
-    postNodeDragEndMessages(node, '3d');
+    postNodeDragEndMessages(node, '2d');
 
     expect(node).toMatchObject({
       fx: 12,

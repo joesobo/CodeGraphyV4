@@ -21,7 +21,7 @@ type PanGraph = {
 function createPanRuntime(options: {
   container?: HTMLDivElement | null;
   graph?: PanGraph | null;
-  graphMode?: '2d' | '3d';
+  graphMode?: '2d' | '2d';
   rightMouseDown?: {
     ctrlKey: boolean;
     moved: boolean;
@@ -64,7 +64,6 @@ function createPanRuntime(options: {
   const { result } = renderHook(() => useGraphViewportPanRuntime({
     containerRef: { current: container } as never,
     fg2dRef: { current: graph } as never,
-    graphMode: options.graphMode ?? '2d',
     rightMouseDownRef: rightMouseDownRef as never,
     suppressContextMenu,
   }));

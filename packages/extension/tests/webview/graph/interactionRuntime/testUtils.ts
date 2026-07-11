@@ -51,7 +51,6 @@ export function createInteractionDependencies(
         target: edge.to,
       }) as unknown as FGLink),
     }),
-    graphMode: '2d',
     highlightedNeighborsRef: createRef(new Set<string>()),
     highlightedNodeRef: createRef<string | null>(null),
     isMacPlatform: false,
@@ -59,7 +58,6 @@ export function createInteractionDependencies(
     lastGraphContextEventRef: createRef(0),
     selectedNodesSetRef: createRef(new Set<string>()),
     setContextSelection: vi.fn(),
-    setHighlightVersion: vi.fn(),
     setSelectedNodes: vi.fn(),
     ...overrides,
   };
