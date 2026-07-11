@@ -62,7 +62,7 @@ export interface CompletedBenchmarkRun {
 }
 
 export interface BenchmarkConfiguration {
-  scenarioId: 'synthetic-node-drag-v2';
+  scenarioId: 'synthetic-node-drag-v3';
   pathId: 'centered-node-sine-v1';
   targetNodeId: string;
   viewport: {
