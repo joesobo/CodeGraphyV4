@@ -310,7 +310,7 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - [x] 3.1 diff protocol → gates 3-A
 - [x] 3.2 layout resets → 3-B
 - [ ] 3.3 optimistic ops → 3-C
-- [ ] 3.4 tree-sitter (a)(b)(c) → 3-G
+- [x] 3.4 tree-sitter (a)(b)(c) → 3-G
 - [ ] 3.5 ladybug scheduling → 3-G
 - [ ] 3.6 sim/render budget → 3-F, 3-J
 - [ ] 3.7 worker sim (only if 3-J fails after 3.6; otherwise check the box with a note) → 3-J
@@ -345,6 +345,15 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - The first corrected real-VS-Code `medium` rename smoke sample (performance path routed through the same optimistic seam as production) was rejected: optimistic graph apply was `51.788ms` versus Explorer's public-event/reveal measurement `4.218ms` (`12.28×`), followed by 114 watcher refresh cycles, a `479,276`-byte full replay, and one layout reset. This sample is retained as failure evidence; no retry or baseline was adopted. The feedback loop and full-replay cause must be removed before the five-run battery.
 - The full replay was traced to the mutation action's unconditional full `refresh()` / `_analyzeAndSendData()` callback. Production and performance mutation seams now route the exact affected paths through `refreshChangedFiles`, while retaining the optimistic start/failure protocol in the shared mutation executor. A new exact-head smoke capture is still required before this is accepted.
 - The next complete smoke sample removed the full replay and layout reset, but still measured `50.954ms` optimistic graph apply against Explorer `3.265ms` (`15.61×`). Duplicate operation watcher events fell from 114 refreshes to eight after absolute-path suppression and redundant idle-wait removal; the remaining change-event path is now suppressed by the same mutation window. Gate 3-C remains open: three distinct iterations have not reached 16ms or the 1.25 ratio, so subsequent work must target webview projection/render cost or revise the Explorer comparator to a paint-equivalent public signal rather than its current workspace-event/reveal proxy.
+
+### Task 3.4 implementation checkpoint — Tree-sitter runtime maximization (2026-07-11)
+
+- One process-lifetime parser is now retained per language in each runtime thread. The five sibling analyzers that constructed parsers directly use the same registry; the runtime currently contains no compiled Tree-sitter `Query` objects to hoist.
+- The main-thread changed-file path retains the previous syntax tree by file and language. Unchanged content reuses it directly; changed content computes one byte/point-correct edit, calls `tree.edit(delta)`, and reparses with the edited tree. Unicode, multiline, unchanged, language-change, and native-tree behavior are covered.
+- A fresh empty-cache full index precomputes eligible built-in Tree-sitter results through a `worker_threads` pool sized to `os.cpus() - 1`. Plugins and incremental changes remain sequential on the main thread; C# remains on the main thread because its pre-analysis index is process-local. Core ESM, core CLI, and extension CJS worker locations were built and exercised with native TypeScript analysis.
+- The complete Core suite passed: 1,225 tests across 263 files. Both core and extension builds passed, and the packaged core CLI indexed the generated 100-file fixture successfully.
+- Exact-head real-VS-Code `medium` evidence recorded aggregate cold `treeSitterParseMs = 11.573ms` and operation-scoped changed-file `treeSitterParseMs = 0.150ms`. The current harness does not identify the matching file's cold parse, so this is retained as implementation evidence rather than an accepted same-file ratio.
+- The first exact-head real-VS-Code `large` cold attempt recorded `coldOpenMs = 43,847.948ms` against the prior five-run median `40,416.706ms` (8.49% slower), not the required 40% win. `cacheSaveMs = 20,458.676ms` remained blocking while aggregate parallel `treeSitterParseMs` was `49.744ms`. Gate 3-G therefore remains open and proceeds to Task 3.5's cache-write scheduling; this failed attempt is retained without retry or baseline adoption.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
