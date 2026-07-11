@@ -12,11 +12,8 @@ import {
   revealGraphViewProviderFileInExplorer,
   type GraphViewProviderFileNavigationSource,
 } from './navigation';
-import { executeWorkspaceFileMutation } from './mutations';
-import type {
-  ExtensionToWebviewMessage,
-  OptimisticFileMutationPayload,
-} from '../../../../shared/protocol/extensionToWebview';
+import { executeWorkspaceFileMutation, workspaceFileMutationPaths } from './mutations';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 
 type EditorOpenBehavior = Pick<
   vscode.TextDocumentShowOptions,
@@ -38,9 +35,8 @@ export interface GraphViewProviderFileActionMethodsSource {
   _sendFavorites(favorites?: string[]): void;
   _setFocusedFile(filePath: string | undefined): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
+  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
 }
-
-let fileMutationOrdinal = 0;
 
 export interface GraphViewProviderFileActionMethods {
   _openFile(filePath: string, behavior?: EditorOpenBehavior): Promise<void>;
@@ -115,34 +111,14 @@ export function createGraphViewProviderFileActionMethods(
   source: GraphViewProviderFileActionMethodsSource,
   dependencies: GraphViewProviderFileActionMethodDependencies = DEFAULT_DEPENDENCIES,
 ): GraphViewProviderFileActionMethods {
-  const executeOptimisticMutation = async (
-    mutation: OptimisticFileMutationPayload,
+  const executeOptimisticMutation = (
+    mutation: Parameters<typeof executeWorkspaceFileMutation>[0],
     workspaceFolderUri: vscode.Uri,
-  ): Promise<void> => {
-    const mutationId = `file-mutation-${++fileMutationOrdinal}`;
-    source._sendMessage({
-      type: 'FILE_MUTATION_STARTED',
-      payload: { mutationId, mutation },
-    });
-    try {
-      await dependencies.executeWorkspaceFileMutation(
-        mutation,
-        {
-          workspaceFolderUri,
-          refreshGraph: () => source._analyzeAndSendData(),
-        },
-      );
-    } catch (error) {
-      source._sendMessage({
-        type: 'FILE_MUTATION_FAILED',
-        payload: {
-          mutationId,
-          message: error instanceof Error ? error.message : String(error),
-        },
-      });
-      throw error;
-    }
-  };
+  ): Promise<void> => dependencies.executeWorkspaceFileMutation(mutation, {
+    workspaceFolderUri,
+    refreshGraph: () => source.refreshChangedFiles(workspaceFileMutationPaths(mutation)),
+    sendMessage: message => source._sendMessage(message),
+  });
   const _openFile = async (
     filePath: string,
     behavior: EditorOpenBehavior = { preview: false, preserveFocus: false },

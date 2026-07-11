@@ -10,6 +10,8 @@ import {
 } from './fileMutation/runtime';
 import { runDocumentSaveScenario } from './save';
 import { runExplorerScenarioComparison } from '../explorer/scenario';
+import { createFileMutationTarget } from './fileMutation/targets';
+import { workspaceFileMutationPaths } from '../../graphView/provider/file/mutations';
 
 export type NonOpenPerfScenario = Exclude<
   PerfScenario,
@@ -95,15 +97,21 @@ export async function runNonOpenPerfScenario(
     case 'rename':
     case 'create':
     case 'delete': {
+      const fileMutationScenario = input.scenario;
       const waitForRefreshIdle = createFileMutationRefreshIdleWaiter(input.provider);
       const mutation = await dependencies.runFileMutationScenario({
         armRefreshIdle: createFileMutationRefreshIdleArm(input.provider),
         dimension: input.dimension,
         ordinal: 0,
-        refreshGraph: () => input.provider.refresh(),
+        refreshGraph: () => input.provider.refreshChangedFiles(
+          workspaceFileMutationPaths(
+            createFileMutationTarget(fileMutationScenario, input.dimension).mutation,
+          ),
+        ),
         runId: input.runId,
         runOperation,
         scenario: input.scenario,
+        sendMessage: message => input.provider.sendToWebview(message),
         workspaceFolderUri: input.workspaceFolderUri,
       });
       const comparison = await dependencies.runExplorerScenarioComparison({

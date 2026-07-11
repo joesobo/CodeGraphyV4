@@ -15,6 +15,7 @@ function setupInput(
     dimension: 'medium',
     provider: {
       refresh: vi.fn(async () => undefined),
+      refreshChangedFiles: vi.fn(async () => undefined),
     } as never,
     runId: 'run-1',
     scenario,
@@ -93,13 +94,14 @@ describe('extension/perf/scenarios/run', () => {
         runId: input.runId,
         runOperation,
         scenario,
+        sendMessage: expect.any(Function),
         workspaceFolderUri: input.workspaceFolderUri,
       });
 
       const routedInput = vi.mocked(dependencies.runFileMutationScenario)
         .mock.calls[0][0];
       await routedInput.refreshGraph();
-      expect(input.provider.refresh).toHaveBeenCalledOnce();
+      expect(input.provider.refreshChangedFiles).toHaveBeenCalledOnce();
       expect(dependencies.runExplorerScenarioComparison).toHaveBeenCalledWith({
         dimension: input.dimension,
         provider: input.provider,

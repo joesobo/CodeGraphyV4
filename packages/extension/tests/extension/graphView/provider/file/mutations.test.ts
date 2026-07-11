@@ -130,4 +130,45 @@ describe('graphView/provider/file/mutations', () => {
     expect(execute).toHaveBeenCalledOnce();
     expect(refreshGraph).toHaveBeenCalledOnce();
   });
+
+  it('publishes optimistic start and rollback messages around a failed action', async () => {
+    const failure = new Error('rename failed');
+    const execute = vi.fn(async () => { throw failure; });
+    const RenameFileAction = vi.fn(function (
+      this: { execute(): Promise<void>; undo(): Promise<void>; description: string },
+    ) {
+      this.description = 'rename';
+      this.execute = vi.fn(async () => undefined);
+      this.undo = vi.fn(async () => undefined);
+    });
+    vi.doMock('../../../../../src/extension/actions/renameFile', () => ({ RenameFileAction }));
+    vi.doMock('../../../../../src/extension/undoManager', () => ({
+      getUndoManager: () => ({ execute }),
+    }));
+    const { executeWorkspaceFileMutation } = await import(
+      '../../../../../src/extension/graphView/provider/file/mutations'
+    );
+    const sendMessage = vi.fn();
+
+    await expect(executeWorkspaceFileMutation(
+      { kind: 'rename', oldPath: 'src/app.ts', newPath: 'src/main.ts' },
+      {
+        workspaceFolderUri: { fsPath: '/workspace' } as never,
+        refreshGraph: vi.fn(async () => undefined),
+        sendMessage,
+      },
+    )).rejects.toThrow('rename failed');
+
+    expect(sendMessage).toHaveBeenNthCalledWith(1, {
+      type: 'FILE_MUTATION_STARTED',
+      payload: {
+        mutationId: expect.any(String),
+        mutation: { kind: 'rename', oldPath: 'src/app.ts', newPath: 'src/main.ts' },
+      },
+    });
+    expect(sendMessage).toHaveBeenNthCalledWith(2, {
+      type: 'FILE_MUTATION_FAILED',
+      payload: { mutationId: expect.any(String), message: 'rename failed' },
+    });
+  });
 });

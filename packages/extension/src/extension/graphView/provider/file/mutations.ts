@@ -4,6 +4,7 @@ import { DeleteFilesAction } from '../../../actions/deleteFiles';
 import { RenameFileAction } from '../../../actions/renameFile';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 
 export interface RenameWorkspaceFileMutation {
   kind: 'rename';
@@ -26,15 +27,37 @@ export type WorkspaceFileMutation =
   | CreateWorkspaceFileMutation
   | DeleteWorkspaceFileMutation;
 
+export function workspaceFileMutationPaths(
+  mutation: WorkspaceFileMutation,
+): string[] {
+  switch (mutation.kind) {
+    case 'rename': return [mutation.oldPath, mutation.newPath];
+    case 'create': return [mutation.filePath];
+    case 'delete': return [...mutation.paths];
+  }
+}
+
 export interface WorkspaceFileMutationContext {
   workspaceFolderUri: vscode.Uri;
   refreshGraph: () => Promise<void>;
+  sendMessage?: (message: ExtensionToWebviewMessage) => void;
 }
+
+let mutationOrdinal = 0;
 
 export async function executeWorkspaceFileMutation(
   mutation: WorkspaceFileMutation,
   context: WorkspaceFileMutationContext,
 ): Promise<void> {
+  const mutationId = context.sendMessage
+    ? `file-mutation-${++mutationOrdinal}`
+    : undefined;
+  if (mutationId) {
+    context.sendMessage?.({
+      type: 'FILE_MUTATION_STARTED',
+      payload: { mutationId, mutation },
+    });
+  }
   let action: IUndoableAction;
   switch (mutation.kind) {
     case 'rename':
@@ -60,5 +83,18 @@ export async function executeWorkspaceFileMutation(
       );
       break;
   }
-  await getUndoManager().execute(action);
+  try {
+    await getUndoManager().execute(action);
+  } catch (error) {
+    if (mutationId) {
+      context.sendMessage?.({
+        type: 'FILE_MUTATION_FAILED',
+        payload: {
+          mutationId,
+          message: error instanceof Error ? error.message : String(error),
+        },
+      });
+    }
+    throw error;
+  }
 }

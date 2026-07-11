@@ -342,6 +342,8 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - The webview applies file/folder renames, creates, and deletes synchronously, tracks the exact pre-mutation graph root as pending state, reconciles the next authoritative patch against that root, and clears pending state on either full or patch data.
 - Host failures restore the exact snapshot and display a VS Code-themed five-second error toast. Twenty-six focused host, store, reconciliation, rollback, and toast tests pass.
 - Task 3.3 remains open until the exact-head `medium` rename/create/delete battery proves ratios ≤1.25 and the optimistic apply path ≤16ms.
+- The first corrected real-VS-Code `medium` rename smoke sample (performance path routed through the same optimistic seam as production) was rejected: optimistic graph apply was `51.788ms` versus Explorer's public-event/reveal measurement `4.218ms` (`12.28×`), followed by 114 watcher refresh cycles, a `479,276`-byte full replay, and one layout reset. This sample is retained as failure evidence; no retry or baseline was adopted. The feedback loop and full-replay cause must be removed before the five-run battery.
+- The full replay was traced to the mutation action's unconditional full `refresh()` / `_analyzeAndSendData()` callback. Production and performance mutation seams now route the exact affected paths through `refreshChangedFiles`, while retaining the optimistic start/failure protocol in the shared mutation executor. A new exact-head smoke capture is still required before this is accepted.
 
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 

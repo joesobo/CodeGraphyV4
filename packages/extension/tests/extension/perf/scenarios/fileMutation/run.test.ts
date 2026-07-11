@@ -96,6 +96,7 @@ function setup(
     runId: 'run-7',
     runOperation,
     scenario,
+    sendMessage: vi.fn(),
     workspaceFolderUri,
   } as RunFileMutationScenarioInput;
 
@@ -162,6 +163,7 @@ describe('extension/perf/scenarios/fileMutation/run', () => {
         {
           workspaceFolderUri,
           refreshGraph: harness.refreshGraph,
+          sendMessage: harness.input.sendMessage,
         },
       );
       expect(result).toMatchObject({

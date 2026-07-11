@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { WorkspaceFileMutation } from '../../../graphView/provider/file/mutations';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { ArmedWorkspaceRefreshIdleWait } from '../../../workspaceFiles/refresh/scheduler';
 import { createPerfOperation } from '../../operationId';
 import type { PerfScenarioOperationRunner } from '../contracts';
@@ -26,6 +27,7 @@ export interface RunFileMutationScenarioInput {
   runId: string;
   runOperation: PerfScenarioOperationRunner;
   scenario: FileMutationPerfScenario;
+  sendMessage: (message: ExtensionToWebviewMessage) => void;
   workspaceFolderUri: vscode.Uri;
 }
 
@@ -99,6 +101,7 @@ export async function runFileMutationScenario(
         await dependencies.executeMutation(target.mutation, {
           workspaceFolderUri: input.workspaceFolderUri,
           refreshGraph: input.refreshGraph,
+          sendMessage: input.sendMessage,
         });
         mutationCompleted = true;
         await refreshIdle.promise;
