@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
-import { isSafeGraphViewBasename } from './validation';
+import {
+  createGraphViewRenameInput,
+  planGraphViewRename,
+} from './rename/model';
 
 interface GraphViewWorkspaceFolderRef {
   uri: vscode.Uri;
@@ -22,26 +25,24 @@ export async function renameGraphViewFile(
 ): Promise<void> {
   if (!handlers.workspaceFolder) return;
 
-  const oldName = filePath.split('/').pop() || filePath;
-  const extensionIndex = oldName.lastIndexOf('.');
-  const selectionEnd = extensionIndex > 0 ? extensionIndex : oldName.length;
+  const input = createGraphViewRenameInput(filePath);
   const newName = await handlers.showInputBox({
     prompt: 'Enter new file name',
-    value: oldName,
-    valueSelection: [0, selectionEnd],
+    value: input.value,
+    valueSelection: input.selection,
     ignoreFocusOut: true,
   });
 
-  if (newName === undefined || newName === oldName) return;
-  if (!isSafeGraphViewBasename(newName)) {
-    handlers.showErrorMessage('Enter a file name without folder separators.');
+  if (newName === undefined) return;
+  const plan = planGraphViewRename(filePath, newName);
+  if (plan.kind === 'unchanged') return;
+  if (plan.kind === 'invalid') {
+    handlers.showErrorMessage(plan.message);
     return;
   }
 
-  const newPath = filePath.replace(/[^/]+$/, newName);
-
   try {
-    await handlers.executeRenameAction(filePath, newPath, handlers.workspaceFolder.uri);
+    await handlers.executeRenameAction(filePath, plan.newPath, handlers.workspaceFolder.uri);
   } catch (error) {
     handlers.showErrorMessage(`Failed to rename: ${toErrorMessage(error)}`);
   }
