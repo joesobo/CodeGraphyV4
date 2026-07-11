@@ -20,6 +20,14 @@ export function hasPendingWorkspacePipelineCacheSave(
   return workspaceRoot ? pendingFullSaveWorkspaceRoots.has(workspaceRoot) : false;
 }
 
+export function waitForWorkspacePipelineCachePersistence(
+  workspaceRoot: string | undefined,
+): Promise<void> {
+  return workspaceRoot
+    ? persistenceScheduler.whenIdle(workspaceRoot)
+    : Promise.resolve();
+}
+
 export interface WorkspacePipelineCachePatch {
   deleteFilePaths: readonly string[];
   upsertFilePaths: readonly string[];

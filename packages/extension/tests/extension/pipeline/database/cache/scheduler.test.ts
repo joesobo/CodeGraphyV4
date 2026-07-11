@@ -113,4 +113,23 @@ describe('extension/pipeline/database/cache/scheduler', () => {
       upsertFiles: {},
     });
   });
+
+  it('exposes a durability barrier without making schedule calls awaitable', async () => {
+    const { idleCallbacks, scheduler } = createHarness();
+    let settled = false;
+
+    scheduler.schedulePatch('/workspace', {
+      deleteFilePaths: ['src/app.ts'],
+      upsertFiles: {},
+    });
+    const idle = scheduler.whenIdle('/workspace').then(() => {
+      settled = true;
+    });
+
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    await runNextIdle(idleCallbacks);
+    await idle;
+    expect(settled).toBe(true);
+  });
 });

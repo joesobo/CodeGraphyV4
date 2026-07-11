@@ -10,6 +10,7 @@ import {
   getWorkspaceAnalysisDatabasePath,
   readWorkspaceAnalysisDatabaseSnapshot,
 } from '../../src/extension/pipeline/database/cache/storage';
+import { waitForWorkspacePipelineCachePersistence } from '../../src/extension/pipeline/service/cache/storage';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -163,6 +164,7 @@ describe('GraphViewProvider lifecycle', () => {
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
 
     await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
+    await waitForWorkspacePipelineCachePersistence(workspaceRoot);
     expect(provider.getGraphData().edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
     expect(await pathExists(databasePath)).toBe(true);
 
@@ -172,6 +174,7 @@ describe('GraphViewProvider lifecycle', () => {
     expect(await pathExists(databasePath)).toBe(false);
 
     await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
+    await waitForWorkspacePipelineCachePersistence(workspaceRoot);
 
     expect(provider.getGraphData().edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
     expect(await pathExists(databasePath)).toBe(true);

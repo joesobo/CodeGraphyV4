@@ -23,6 +23,7 @@ interface WorkspacePersistenceState {
   full?: PendingFullSave;
   patch?: PendingPatch;
   scheduled: boolean;
+  waiters: Set<() => void>;
 }
 
 export interface WorkspaceCachePersistenceSchedulerDependencies {
@@ -49,6 +50,7 @@ export interface WorkspaceCachePersistenceScheduler {
     patch: WorkspaceCachePatch,
     warn?: (message: string, error: unknown) => void,
   ): void;
+  whenIdle(workspaceRoot: string): Promise<void>;
 }
 
 function snapshotCache(cache: IWorkspaceAnalysisCache): IWorkspaceAnalysisCache {
@@ -85,7 +87,7 @@ export function createWorkspaceCachePersistenceScheduler(
     if (existing) {
       return existing;
     }
-    const created = { active: false, scheduled: false };
+    const created = { active: false, scheduled: false, waiters: new Set<() => void>() };
     stateByWorkspace.set(workspaceRoot, created);
     return created;
   };
@@ -154,6 +156,9 @@ export function createWorkspaceCachePersistenceScheduler(
         requestFlush(workspaceRoot, state);
       } else {
         stateByWorkspace.delete(workspaceRoot);
+        for (const resolve of state.waiters) {
+          resolve();
+        }
       }
     }
   };
@@ -174,6 +179,15 @@ export function createWorkspaceCachePersistenceScheduler(
       const state = readState(workspaceRoot);
       state.patch = mergePatch(state.patch, patch, warn);
       requestFlush(workspaceRoot, state);
+    },
+    whenIdle(workspaceRoot): Promise<void> {
+      const state = stateByWorkspace.get(workspaceRoot);
+      if (!state) {
+        return Promise.resolve();
+      }
+      return new Promise((resolve) => {
+        state.waiters.add(resolve);
+      });
     },
   };
 }
