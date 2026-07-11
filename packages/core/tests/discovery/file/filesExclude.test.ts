@@ -49,4 +49,10 @@ describe('discovery/file/filesExclude', () => {
       new Set(['client.ts']),
     )).toBe(true);
   });
+
+  it('treats leading exclamation and hash characters as literal glob text', () => {
+    expect(isFilesExcludedPath('!important.ts', [{ pattern: '!important.ts' }], new Set())).toBe(true);
+    expect(isFilesExcludedPath('#draft.ts', [{ pattern: '#draft.ts' }], new Set())).toBe(true);
+    expect(isFilesExcludedPath('src/app.ts', [{ pattern: '!important.ts' }], new Set())).toBe(false);
+  });
 });

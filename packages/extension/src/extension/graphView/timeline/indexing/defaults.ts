@@ -9,6 +9,7 @@ import {
 } from './filtering';
 import { indexGraphViewRepository } from './repository';
 import { sendCachedGraphViewTimeline } from '../playback';
+import { readFilesExcludeRules } from '../../../config/filesExclude/model';
 
 export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewProviderTimelineDependencies {
   return {
@@ -28,7 +29,15 @@ export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewP
       await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd });
     },
     createGitAnalyzer: (context, registry, workspaceRoot, mergedExclude) =>
-      new GitHistoryAnalyzer(context, registry as PluginRegistry, workspaceRoot, mergedExclude),
+      new GitHistoryAnalyzer(
+        context,
+        registry as PluginRegistry,
+        workspaceRoot,
+        mergedExclude,
+        getCodeGraphyConfiguration().get<boolean>('respectFilesExclude', true)
+          ? readFilesExcludeRules(vscode.workspace, vscode.Uri.file(workspaceRoot))
+          : [],
+      ),
     showErrorMessage: message => {
       vscode.window.showErrorMessage(message);
     },

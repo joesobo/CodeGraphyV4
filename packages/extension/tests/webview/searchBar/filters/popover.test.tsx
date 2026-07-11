@@ -46,7 +46,7 @@ describe('searchBar/filters/popover', () => {
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
     expect(screen.getByText('VS Code files.exclude')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Filters, 3 enabled' }).className).toContain('bg-secondary');
+    expect(screen.getByRole('button', { name: 'Filters, 4 excluded' }).className).toContain('bg-secondary');
   });
 
   it('persists the VS Code files.exclude source toggle', () => {
@@ -66,11 +66,11 @@ describe('searchBar/filters/popover', () => {
 
     expect(screen.queryByText('Filters')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Filters, 3 enabled' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 4 excluded' }));
     expect(screen.getByText('Filters')).toBeInTheDocument();
     expect(props.onOpenChange).toHaveBeenCalledWith(true);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Filters, 3 enabled' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 4 excluded' }));
     expect(screen.queryByText('Filters')).not.toBeInTheDocument();
     expect(props.onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -78,7 +78,7 @@ describe('searchBar/filters/popover', () => {
   it('opens uncontrolled without an open-change callback', () => {
     renderPopover({ onOpenChange: undefined, open: undefined });
 
-    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Filters, 3 enabled' }))).not.toThrow();
+    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Filters, 4 excluded' }))).not.toThrow();
     expect(screen.getByText('Filters')).toBeInTheDocument();
   });
 
@@ -91,9 +91,10 @@ describe('searchBar/filters/popover', () => {
       pluginGroups: [],
       pluginPatterns: [],
       respectFilesExclude: false,
+      excludedCount: 0,
     });
 
-    const trigger = screen.getByRole('button', { name: 'Filters, 0 enabled' });
+    const trigger = screen.getByRole('button', { name: 'Filters, 0 excluded' });
     expect(trigger.className).toContain('border');
     expect(trigger.className).not.toContain('bg-secondary');
     expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
@@ -248,7 +249,7 @@ describe('searchBar/filters/popover', () => {
   it('counts disabled rows as not enabled', () => {
     renderPopover({ disabledPluginPatterns: ['plugin/**'] });
 
-    expect(screen.getByRole('button', { name: 'Filters, 2 enabled' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters, 4 excluded' })).toBeInTheDocument();
     expect(screen.getByText('2 enabled')).toBeInTheDocument();
   });
 

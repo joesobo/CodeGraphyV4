@@ -24,6 +24,7 @@ function shouldInvalidateTimelineCache(event: CodeGraphyConfigurationChangeLike)
     event.affectsConfiguration('codegraphy.filterPatterns')
     || event.affectsConfiguration('codegraphy.disabledCustomFilterPatterns')
     || event.affectsConfiguration('codegraphy.disabledPluginFilterPatterns')
+    || event.affectsConfiguration('codegraphy.respectFilesExclude')
     || event.affectsConfiguration('codegraphy.timeline.maxCommits')
   );
 }

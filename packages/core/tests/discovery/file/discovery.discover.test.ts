@@ -54,6 +54,34 @@ describe('FileDiscovery discover', () => {
     );
   });
 
+  it('prunes excluded directories and reports the hidden directory once', async () => {
+    createFile('generated/deep/client.ts');
+    createFile('src/app.ts');
+    const readdirSpy = vi.spyOn(fs.promises, 'readdir');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filesExclude: [{ pattern: 'generated' }],
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+    expect(result.filesExcludedPaths).toEqual(['generated']);
+    expect(readdirSpy.mock.calls.some(([directory]) => String(directory).includes('generated'))).toBe(false);
+  });
+
+  it('uses parent siblings for conditional directory exclusions', async () => {
+    createDir('generated');
+    createFile('generated.marker');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filesExclude: [{ pattern: 'generated', when: '$(basename).marker' }],
+    });
+
+    expect(result.filesExcludedPaths).toContain('generated');
+    expect(result.directories).not.toContain('generated');
+  });
+
   it('includes file metadata', async () => {
     createFile('src/app.ts');
 
@@ -154,7 +182,7 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
     expect(result.filesExcludedPaths).toEqual([
       path.join('src', 'app.test.ts'),
-      path.join('src', 'generated', 'client.ts'),
+      path.join('src', 'generated'),
     ]);
     expect(result.filesExcludedCount).toBe(2);
     expect(result.directories).not.toContain(path.join('src', 'generated'));

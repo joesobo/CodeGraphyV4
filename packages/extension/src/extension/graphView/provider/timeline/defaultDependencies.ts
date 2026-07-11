@@ -17,6 +17,7 @@ import {
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { GraphViewProviderTimelineMethodDependencies } from './contracts';
+import { readFilesExcludeRules } from '../../../config/filesExclude/model';
 
 export function createDefaultGraphViewProviderTimelineMethodDependencies(): GraphViewProviderTimelineMethodDependencies {
   return {
@@ -27,7 +28,15 @@ export function createDefaultGraphViewProviderTimelineMethodDependencies(): Grap
     previewFileAtCommit: previewGraphViewFileAtCommit,
     sendCachedTimeline: sendCachedGraphViewTimeline,
     createGitAnalyzer: (context, registry, workspaceRoot, mergedExclude) =>
-      new GitHistoryAnalyzer(context, registry as PluginRegistry, workspaceRoot, mergedExclude),
+      new GitHistoryAnalyzer(
+        context,
+        registry as PluginRegistry,
+        workspaceRoot,
+        mergedExclude,
+        getCodeGraphyConfiguration().get<boolean>('respectFilesExclude', true)
+          ? readFilesExcludeRules(vscode.workspace, vscode.Uri.file(workspaceRoot))
+          : [],
+      ),
     sendPlaybackSpeed: sendGraphViewPlaybackSpeed,
     invalidateTimelineCache: invalidateGraphViewTimelineCache,
     getPlaybackSpeed: () =>

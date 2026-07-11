@@ -8,17 +8,21 @@ import * as path from 'path';
 import { throwIfAborted } from '../abort';
 import { shouldSkipKnownDirectory } from '../pathMatching';
 
-type WalkDirectoryCallback = (
+type WalkFileCallback = (
   relativePath: string,
   absolutePath: string,
   siblingNames: ReadonlySet<string>,
 ) => boolean;
-type WalkDirectoryListener = (relativePath: string, absolutePath: string) => void;
+type WalkDirectoryListener = (
+  relativePath: string,
+  absolutePath: string,
+  siblingNames: ReadonlySet<string>,
+) => boolean | void;
 type DirectoryListenerOrSignal = WalkDirectoryListener | AbortSignal;
 
 interface WalkDirectoryContext {
   onDirectory?: WalkDirectoryListener;
-  onFile: WalkDirectoryCallback;
+  onFile: WalkFileCallback;
   rootPath: string;
   signal?: AbortSignal;
 }
@@ -60,12 +64,15 @@ function resolveDirectoryEntryPaths(
 async function walkChildDirectory(
   context: WalkDirectoryContext,
   entry: WalkDirectoryEntry,
+  siblingNames: ReadonlySet<string>,
 ): Promise<boolean> {
   if (shouldSkipKnownDirectory(entry.relativePath)) {
     return true;
   }
 
-  context.onDirectory?.(entry.relativePath, entry.absolutePath);
+  if (context.onDirectory?.(entry.relativePath, entry.absolutePath, siblingNames) === false) {
+    return true;
+  }
   return walkDirectory(
     context.rootPath,
     entry.absolutePath,
@@ -85,7 +92,7 @@ async function walkEntry(
 
   const walkEntryPaths = resolveDirectoryEntryPaths(context.rootPath, currentPath, entry);
   if (entry.isDirectory()) {
-    return walkChildDirectory(context, walkEntryPaths);
+    return walkChildDirectory(context, walkEntryPaths, siblingNames);
   }
 
   return entry.isFile()
@@ -100,7 +107,7 @@ async function walkEntry(
 export async function walkDirectory(
   rootPath: string,
   currentPath: string,
-  onFile: WalkDirectoryCallback,
+  onFile: WalkFileCallback,
   onDirectoryOrSignal?: DirectoryListenerOrSignal,
   nextSignal?: AbortSignal,
 ): Promise<boolean> {

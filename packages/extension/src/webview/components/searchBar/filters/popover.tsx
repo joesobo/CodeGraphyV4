@@ -113,12 +113,12 @@ export function FilterPopover({
         size="sm"
         className="h-7 px-2 text-xs"
         aria-expanded={isOpen}
-        aria-label={`Filters, ${enabledCount} enabled`}
+        aria-label={`Filters, ${excludedCount} excluded`}
         title={formatExcludedCount(excludedCount)}
         onClick={() => setOpen(!isOpen)}
       >
         <MdiIcon path={mdiFilterVariant} size={14} />
-        {enabledCount}
+        {excludedCount}
       </Button>
       {isOpen ? (
         <div

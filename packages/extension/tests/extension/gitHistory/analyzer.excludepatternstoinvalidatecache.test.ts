@@ -229,6 +229,32 @@ describe('GitHistoryAnalyzer', () => {
 
 
 
+        it('applies conditional native files.exclude rules to commit siblings', async () => {
+          const analyzerWithNativeExcludes = new GitHistoryAnalyzer(
+            context as never,
+            registry,
+            workspaceRoot,
+            [],
+            [{ pattern: '**/*.js', when: '$(basename).ts' }],
+          );
+
+          mockGitCommands([
+            { match: 'rev-parse', stdout: 'main\n' },
+            { match: 'log', stdout: 'sha1|1|first|A|\n' },
+            { match: 'ls-tree', stdout: 'src/app.js\nsrc/app.ts\nsrc/standalone.js\n' },
+            { match: /show sha1:/, stdout: '' },
+          ]);
+
+          await analyzerWithNativeExcludes.indexHistory(vi.fn(), liveAbortSignal());
+
+          const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
+          const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
+          const nodeIds = graph.nodes.map(node => node.id);
+          expect(nodeIds).not.toContain('src/app.js');
+          expect(nodeIds).toContain('src/app.ts');
+          expect(nodeIds).toContain('src/standalone.js');
+        });
+
         it('should skip excluded files when handling Added in diff', async () => {
           const analyzerWithExcludes = new GitHistoryAnalyzer(
             context as never,

@@ -80,7 +80,25 @@ describe('walkDirectory', () => {
 
     await walkDirectory('/root', '/root', onFile, onDirectory);
 
-    expect(onDirectory).toHaveBeenCalledWith('src', '/root/src');
+    expect(onDirectory).toHaveBeenCalledWith('src', '/root/src', new Set(['src']));
+  });
+
+  it('prunes a directory when its listener returns false', async () => {
+    mockReaddir.mockResolvedValueOnce([
+      makeDirent('generated', true),
+      makeDirent('app.ts', false),
+    ] as fs.Dirent<NonSharedBuffer>[]);
+    const onFile = vi.fn().mockReturnValue(true);
+    const onDirectory = vi.fn().mockReturnValue(false);
+
+    await walkDirectory('/root', '/root', onFile, onDirectory);
+
+    expect(mockReaddir).toHaveBeenCalledTimes(1);
+    expect(onFile).toHaveBeenCalledWith(
+      'app.ts',
+      '/root/app.ts',
+      new Set(['generated', 'app.ts']),
+    );
   });
 
   it('skips node_modules directory', async () => {

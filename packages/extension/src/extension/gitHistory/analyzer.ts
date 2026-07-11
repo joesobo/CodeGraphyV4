@@ -6,7 +6,9 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'node:path';
 import { minimatch } from 'minimatch';
+import { isFilesExcludedPath, type IFilesExcludeRule } from '@codegraphy-dev/core';
 import { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { ICommitInfo } from '../../shared/timeline/contracts';
@@ -44,25 +46,40 @@ export class GitHistoryAnalyzer {
   private readonly _registry: PluginRegistry;
   private readonly _workspaceRoot: string;
   private readonly _excludePatterns: string[];
+  private readonly _filesExcludeRules: IFilesExcludeRule[];
 
   constructor(
     context: vscode.ExtensionContext,
     registry: PluginRegistry,
     workspaceRoot: string,
-    excludePatterns: string[] = []
+    excludePatterns: string[] = [],
+    filesExcludeRules: IFilesExcludeRule[] = [],
   ) {
     this._context = context;
     this._registry = registry;
     this._workspaceRoot = workspaceRoot;
     this._excludePatterns = excludePatterns;
+    this._filesExcludeRules = filesExcludeRules;
   }
 
   /**
    * Tests whether a file path should be excluded based on configured patterns.
    */
-  private _shouldExclude(filePath: string): boolean {
-    return this._excludePatterns.some((pattern) =>
+  private _createShouldExclude(allFiles: readonly string[]): (filePath: string) => boolean {
+    const siblingsByDirectory = new Map<string, Set<string>>();
+    for (const filePath of allFiles) {
+      const directory = path.posix.dirname(filePath);
+      const siblings = siblingsByDirectory.get(directory) ?? new Set<string>();
+      siblings.add(path.posix.basename(filePath));
+      siblingsByDirectory.set(directory, siblings);
+    }
+
+    return (filePath: string): boolean => this._excludePatterns.some((pattern) =>
       minimatch(filePath, pattern, { matchBase: true })
+    ) || isFilesExcludedPath(
+      filePath,
+      this._filesExcludeRules,
+      siblingsByDirectory.get(path.posix.dirname(filePath)) ?? new Set(),
     );
   }
 
@@ -176,17 +193,19 @@ export class GitHistoryAnalyzer {
    * Fully analyzes a commit by listing all files in its tree.
    */
   private async _analyzeFullCommit(sha: string, signal: AbortSignal): Promise<IGraphData> {
+    const allFiles = await getCommitTreeFiles(
+      (args, abortSignal) => this._execGit(args, abortSignal),
+      sha,
+      signal,
+    );
+    const shouldExclude = this._createShouldExclude(allFiles);
     return analyzeFullCommitGraph({
-      allFiles: await getCommitTreeFiles(
-        (args, abortSignal) => this._execGit(args, abortSignal),
-        sha,
-        signal
-      ),
+      allFiles,
       getFileAtCommit: (commitSha, filePath, abortSignal) =>
         this._getFileAtCommit(commitSha, filePath, abortSignal),
       registry: this._registry,
       sha,
-      shouldExclude: (filePath) => this._shouldExclude(filePath),
+      shouldExclude,
       signal,
       supportedExtensions: new Set(this._registry.getSupportedExtensions()),
       workspaceRoot: this._workspaceRoot,
@@ -209,19 +228,20 @@ export class GitHistoryAnalyzer {
       sha,
       signal
     );
+    const commitFiles = await getCommitTreeFiles(
+      (args, abortSignal) => this._execGit(args, abortSignal),
+      sha,
+      signal,
+    );
     const graphData = await analyzeDiffCommitGraph({
       diffOutput,
-      commitFiles: await getCommitTreeFiles(
-        (args, abortSignal) => this._execGit(args, abortSignal),
-        sha,
-        signal,
-      ),
+      commitFiles,
       getFileAtCommit: (commitSha, filePath, abortSignal) =>
         this._getFileAtCommit(commitSha, filePath, abortSignal),
       previousGraph,
       registry: this._registry,
       sha,
-      shouldExclude: (filePath) => this._shouldExclude(filePath),
+      shouldExclude: this._createShouldExclude(commitFiles),
       signal,
       workspaceRoot: this._workspaceRoot,
     });

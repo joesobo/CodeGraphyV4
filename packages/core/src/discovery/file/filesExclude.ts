@@ -4,7 +4,11 @@ import type { IFilesExcludeRule } from '../contracts';
 import { normalizeDiscoveryPath } from '../pathMatching';
 
 function matchesFilesExcludePattern(relativePath: string, pattern: string): boolean {
-  return minimatch(normalizeDiscoveryPath(relativePath), pattern, { dot: true });
+  return minimatch(normalizeDiscoveryPath(relativePath), pattern, {
+    dot: true,
+    nocomment: true,
+    nonegate: true,
+  });
 }
 
 function getPathAndAncestorDirectories(relativePath: string): string[] {

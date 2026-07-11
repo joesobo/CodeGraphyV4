@@ -167,6 +167,15 @@ describe('executeConfigAction', () => {
       expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
     });
 
+    it('invalidates timeline cache when respectFilesExclude changes', () => {
+      const provider = makeProvider();
+      const event = makeEvent('codegraphy.respectFilesExclude');
+
+      executeConfigAction('general', event as never, provider as never);
+
+      expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
+    });
+
     it('does not invalidate timeline cache when unrelated config changes', () => {
       const provider = makeProvider();
       const event = makeEvent();

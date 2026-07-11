@@ -137,6 +137,7 @@ export type {
 } from './discovery/contracts';
 export { createAbortError, throwIfAborted } from './discovery/abort';
 export { FileDiscovery } from './discovery/file/service';
+export { isFilesExcludedPath } from './discovery/file/filesExclude';
 export {
   DEFAULT_EXCLUDE,
   matchesAnyPattern,

@@ -140,14 +140,17 @@ export class FileDiscovery {
         totalFound++;
         return true;
       },
-      relativePath => {
-        if (!isFilesExcludedPath(
+      (relativePath, _absolutePath, siblingNames) => {
+        if (isFilesExcludedPath(
           relativePath,
           filesExcludeRules,
-          new Set([path.basename(relativePath)]),
+          siblingNames,
         )) {
-          directories.push(relativePath);
+          filesExcludedPaths.push(relativePath);
+          return false;
         }
+        directories.push(relativePath);
+        return true;
       },
       signal,
     );
