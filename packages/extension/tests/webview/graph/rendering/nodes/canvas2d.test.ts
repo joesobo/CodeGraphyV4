@@ -16,6 +16,7 @@ import type { WebviewPluginHost } from '../../../../../src/webview/pluginHost/ma
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../../src/webview/components/graph/appearance/model';
 import {
+  getNodeCanvasStyle,
   paintNodePointerArea,
   renderNodeCanvas,
 } from '../../../../../src/webview/components/graph/rendering/nodes/canvas2d';
@@ -151,6 +152,30 @@ function createContext(): {
 }
 
 describe('graph/rendering/nodes/canvas2d', () => {
+  it('resolves themed selection, decoration, opacity, and shape state for WebGPU', () => {
+    const style = getNodeCanvasStyle(createDependencies({
+      graphAppearance: { ...TEST_GRAPH_APPEARANCE, nodeSelectionBorder: '#abcdef' },
+      highlightedNodeId: 'src/other.ts',
+      nodeDecoration: { color: '#fedcba', opacity: 0.8 },
+      selectedNodeIds: new Set(['src/app.ts']),
+    }), createNode({
+      borderWidth: 1,
+      fillOpacity2D: 0.5,
+      shape2D: 'rectangle',
+      shapeSize2D: { width: 60, height: 20 },
+    }));
+
+    expect(style).toEqual({
+      borderColor: '#abcdef',
+      borderWidth: 3,
+      fillColor: '#fedcba',
+      fillOpacity: 0.5,
+      height: 20,
+      opacity: 0.15,
+      shape: 'rectangle',
+      width: 60,
+    });
+  });
   beforeEach(() => {
     vi.clearAllMocks();
   });

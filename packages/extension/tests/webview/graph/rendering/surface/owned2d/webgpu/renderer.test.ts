@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { parseWebGpuColor } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
+import {
+  parseWebGpuColor,
+  webGpuNodeShapeCode,
+} from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
 
 function expectColor(actual: readonly number[], expected: readonly number[]): void {
   expect(actual).toHaveLength(expected.length);
@@ -21,5 +24,18 @@ describe('owned WebGPU renderer color parsing', () => {
 
   it('uses opaque black for unsupported CSS colors', () => {
     expect(parseWebGpuColor('not-a-color')).toEqual([0, 0, 0, 1]);
+  });
+
+  it('encodes every supported node shape for the GPU SDF shader', () => {
+    expect([
+      'circle',
+      'square',
+      'rectangle',
+      'diamond',
+      'triangle',
+      'hexagon',
+      'star',
+    ].map(shape => webGpuNodeShapeCode(shape as Parameters<typeof webGpuNodeShapeCode>[0])))
+      .toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
 });

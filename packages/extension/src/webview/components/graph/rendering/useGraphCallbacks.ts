@@ -10,12 +10,15 @@ import {
 } from './link/metrics';
 import { renderBidirectionalLink } from './bidirectional/link';
 import {
+  getNodeCanvasStyle,
   paintNodePointerArea,
   renderNodeCanvas,
+  renderNodeCanvasLabel,
 } from './nodes/canvas2d';
 import type { GraphRuntime } from '../runtime/use/state';
 import type { FGLink, FGNode } from '../model/build';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import type { OwnedGraphNodeStyle } from './surface/owned2d/contracts';
 
 export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;
@@ -42,9 +45,11 @@ export interface UseGraphCallbacksResult {
   getLinkColor: (this: void, link: FGLink) => string;
   getLinkParticles: (this: void, link: FGLink) => number;
   getLinkWidth: (this: void, link: FGLink) => number;
+  getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getParticleColor: (this: void, link: FGLink) => string;
   linkCanvasObject: (this: void, link: FGLink, ctx: CanvasRenderingContext2D, globalScale: number) => void;
   nodeCanvasObject: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
+  nodeLabelCanvasObject?: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
   nodePointerAreaPaint: (this: void, node: FGNode, color: string, ctx: CanvasRenderingContext2D) => void;
 }
 
@@ -105,8 +110,19 @@ export function useGraphCallbacks({
 
   if (callbacksRef.current === null) {
     callbacksRef.current = {
+      getNodeStyle(node) {
+        return getNodeCanvasStyle(getNodeCanvasContext(contextRef.current), node);
+      },
       nodeCanvasObject(node, ctx, globalScale) {
         renderNodeCanvas(
+          getNodeCanvasContext(contextRef.current),
+          node,
+          ctx,
+          globalScale,
+        );
+      },
+      nodeLabelCanvasObject(node, ctx, globalScale) {
+        renderNodeCanvasLabel(
           getNodeCanvasContext(contextRef.current),
           node,
           ctx,

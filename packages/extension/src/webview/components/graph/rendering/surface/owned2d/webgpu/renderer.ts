@@ -1,11 +1,15 @@
 /// <reference types="@webgpu/types" />
 
+import type { DirectionMode, NodeShape2D } from '../../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../../model/build';
+import type { OwnedGraphNodeStyle } from '../contracts';
 import type { OwnedGraphCamera } from '../camera';
 import { LINK_SHADER, NODE_SHADER } from './shaders';
 
-const NODE_FLOATS = 8;
-const LINK_FLOATS = 10;
+const NODE_FLOATS = 14;
+const NODE_STYLE_FLOATS = 12;
+const LINK_FLOATS = 14;
+const LINK_STYLE_FLOATS = 9;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
 
 export interface OwnedWebGpuFrame {
@@ -14,11 +18,15 @@ export interface OwnedWebGpuFrame {
   cssHeight: number;
   cssWidth: number;
   devicePixelRatio: number;
+  directionMode: DirectionMode;
+  getArrowColor(this: void, link: FGLink): string;
   getLinkColor(this: void, link: FGLink): string;
   getLinkWidth(this: void, link: FGLink): number;
+  getNodeStyle(this: void, node: FGNode): OwnedGraphNodeStyle;
   links: readonly FGLink[];
   nodes: readonly FGNode[];
   positionVersion: number;
+  styleVersion: number;
 }
 
 export interface OwnedWebGpuRendererOptions {
@@ -67,6 +75,18 @@ export function parseWebGpuColor(color: string): [number, number, number, number
   return [0, 0, 0, 1];
 }
 
+export function webGpuNodeShapeCode(shape: NodeShape2D): number {
+  switch (shape) {
+    case 'circle': return 0;
+    case 'square': return 1;
+    case 'rectangle': return 2;
+    case 'diamond': return 3;
+    case 'triangle': return 4;
+    case 'hexagon': return 5;
+    case 'star': return 6;
+  }
+}
+
 function endpointNode(endpoint: string | FGNode): FGNode | undefined {
   return typeof endpoint === 'string' ? undefined : endpoint;
 }
@@ -91,8 +111,9 @@ function blendState(): GPUBlendState {
 export class OwnedWebGpuRenderer {
   private readonly cameraBuffer: GPUBuffer;
   private readonly cameraValues = new Float32Array(8);
-  private coloredNodes: readonly FGNode[] | undefined;
+  private styledNodes: readonly FGNode[] | undefined;
   private linkBuffer: GPUBuffer;
+  private linkArrowColorAccessor: OwnedWebGpuFrame['getArrowColor'] | undefined;
   private linkBufferSize = 256;
   private linkColorAccessor: OwnedWebGpuFrame['getLinkColor'] | undefined;
   private linkStyleLinks: readonly FGLink[] | undefined;
@@ -102,7 +123,7 @@ export class OwnedWebGpuRenderer {
   private readonly linkCameraBindGroup: GPUBindGroup;
   private nodeBuffer: GPUBuffer;
   private nodeBufferSize = 256;
-  private nodeColors = new Float32Array();
+  private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
   private nodeValues = new Float32Array();
   private renderedLinkCount = 0;
@@ -110,6 +131,7 @@ export class OwnedWebGpuRenderer {
   private uploadedLinks: readonly FGLink[] | undefined;
   private uploadedNodes: readonly FGNode[] | undefined;
   private uploadedPositionVersion = -1;
+  private uploadedStyleVersion = -1;
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -188,6 +210,8 @@ export class OwnedWebGpuRenderer {
             { shaderLocation: 0, offset: 0, format: 'float32x2' },
             { shaderLocation: 1, offset: 2 * FLOAT_BYTES, format: 'float32x2' },
             { shaderLocation: 2, offset: 4 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 3, offset: 8 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 4, offset: 12 * FLOAT_BYTES, format: 'float32x2' },
           ],
         }],
       },
@@ -212,6 +236,7 @@ export class OwnedWebGpuRenderer {
             { shaderLocation: 1, offset: 2 * FLOAT_BYTES, format: 'float32x2' },
             { shaderLocation: 2, offset: 4 * FLOAT_BYTES, format: 'float32x2' },
             { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x4' },
           ],
         }],
       },
@@ -265,33 +290,46 @@ export class OwnedWebGpuRenderer {
   }
 
   private updateStyleCaches(frame: OwnedWebGpuFrame): boolean {
-    let changed = false;
-    if (this.coloredNodes !== frame.nodes || this.nodeColors.length !== frame.nodes.length * 4) {
-      this.coloredNodes = frame.nodes;
-      changed = true;
-      this.nodeColors = new Float32Array(frame.nodes.length * 4);
-      for (let index = 0; index < frame.nodes.length; index += 1) {
-        this.nodeColors.set(cachedWebGpuColor(frame.nodes[index].color), index * 4);
-      }
-    }
     if (
-      this.linkStyleLinks === frame.links
+      this.uploadedStyleVersion === frame.styleVersion
+      && this.styledNodes === frame.nodes
+      && this.linkStyleLinks === frame.links
+      && this.linkArrowColorAccessor === frame.getArrowColor
       && this.linkColorAccessor === frame.getLinkColor
       && this.linkWidthAccessor === frame.getLinkWidth
-      && this.linkStyles.length === frame.links.length * 5
-    ) return changed;
-    changed = true;
+    ) return false;
+
+    this.uploadedStyleVersion = frame.styleVersion;
+    this.styledNodes = frame.nodes;
+    this.nodeStyles = new Float32Array(frame.nodes.length * NODE_STYLE_FLOATS);
+    for (let index = 0; index < frame.nodes.length; index += 1) {
+      const style = frame.getNodeStyle(frame.nodes[index]);
+      const offset = index * NODE_STYLE_FLOATS;
+      const fill = cachedWebGpuColor(style.fillColor);
+      const border = cachedWebGpuColor(style.borderColor);
+      this.nodeStyles[offset] = Math.max(0.5, style.width / 2);
+      this.nodeStyles[offset + 1] = Math.max(0.5, style.height / 2);
+      this.nodeStyles.set(fill, offset + 2);
+      this.nodeStyles[offset + 5] *= style.opacity * style.fillOpacity;
+      this.nodeStyles.set(border, offset + 6);
+      this.nodeStyles[offset + 9] *= style.opacity;
+      this.nodeStyles[offset + 10] = webGpuNodeShapeCode(style.shape);
+      this.nodeStyles[offset + 11] = Math.max(0, style.borderWidth);
+    }
+
     this.linkStyleLinks = frame.links;
+    this.linkArrowColorAccessor = frame.getArrowColor;
     this.linkColorAccessor = frame.getLinkColor;
     this.linkWidthAccessor = frame.getLinkWidth;
-    this.linkStyles = new Float32Array(frame.links.length * 5);
+    this.linkStyles = new Float32Array(frame.links.length * LINK_STYLE_FLOATS);
     for (let index = 0; index < frame.links.length; index += 1) {
       const link = frame.links[index];
-      const offset = index * 5;
+      const offset = index * LINK_STYLE_FLOATS;
       this.linkStyles[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);
       this.linkStyles.set(cachedWebGpuColor(frame.getLinkColor(link)), offset + 1);
+      this.linkStyles.set(cachedWebGpuColor(frame.getArrowColor(link)), offset + 5);
     }
-    return changed;
+    return true;
   }
 
   render(frame: OwnedWebGpuFrame): void {
@@ -328,13 +366,11 @@ export class OwnedWebGpuRenderer {
         const offset = index * NODE_FLOATS;
         this.nodeValues[offset] = node.x ?? 0;
         this.nodeValues[offset + 1] = node.y ?? 0;
-        this.nodeValues[offset + 2] = Math.max(1, node.size ?? 4);
-        this.nodeValues[offset + 3] = 0;
-        const colorOffset = index * 4;
-        this.nodeValues[offset + 4] = this.nodeColors[colorOffset];
-        this.nodeValues[offset + 5] = this.nodeColors[colorOffset + 1];
-        this.nodeValues[offset + 6] = this.nodeColors[colorOffset + 2];
-        this.nodeValues[offset + 7] = this.nodeColors[colorOffset + 3];
+        const styleOffset = index * NODE_STYLE_FLOATS;
+        this.nodeValues.set(
+          this.nodeStyles.subarray(styleOffset, styleOffset + NODE_STYLE_FLOATS),
+          offset + 2,
+        );
       }
 
       const requiredLinkFloats = frame.links.length * LINK_FLOATS;
@@ -348,7 +384,7 @@ export class OwnedWebGpuRenderer {
         const target = endpointNode(link.target);
         if (!source || !target) continue;
         const offset = this.renderedLinkCount * LINK_FLOATS;
-        const styleOffset = linkIndex * 5;
+        const styleOffset = linkIndex * LINK_STYLE_FLOATS;
         this.linkValues[offset] = source.x ?? 0;
         this.linkValues[offset + 1] = source.y ?? 0;
         this.linkValues[offset + 2] = target.x ?? 0;
@@ -359,6 +395,10 @@ export class OwnedWebGpuRenderer {
         this.linkValues[offset + 7] = this.linkStyles[styleOffset + 2];
         this.linkValues[offset + 8] = this.linkStyles[styleOffset + 3];
         this.linkValues[offset + 9] = this.linkStyles[styleOffset + 4];
+        this.linkValues[offset + 10] = this.linkStyles[styleOffset + 5];
+        this.linkValues[offset + 11] = this.linkStyles[styleOffset + 6];
+        this.linkValues[offset + 12] = this.linkStyles[styleOffset + 7];
+        this.linkValues[offset + 13] = this.linkStyles[styleOffset + 8];
         this.renderedLinkCount += 1;
       }
 
@@ -396,7 +436,7 @@ export class OwnedWebGpuRenderer {
       pass.setPipeline(this.linkPipeline);
       pass.setBindGroup(0, this.linkCameraBindGroup);
       pass.setVertexBuffer(0, this.linkBuffer);
-      pass.draw(24, this.renderedLinkCount);
+      pass.draw(frame.directionMode === 'arrows' ? 27 : 24, this.renderedLinkCount);
     }
     if (frame.nodes.length > 0) {
       pass.setPipeline(this.nodePipeline);

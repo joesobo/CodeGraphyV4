@@ -20,9 +20,11 @@ export interface OwnedGraphDrawingOptions {
   linkCanvasObject(this: void, link: FGLink, context: CanvasRenderingContext2D, globalScale: number): void;
   nodes: readonly FGNode[];
   nodeCanvasObject(this: void, node: FGNode, context: CanvasRenderingContext2D, globalScale: number): void;
+  nodeLabelCanvasObject(this: void, node: FGNode, context: CanvasRenderingContext2D, globalScale: number): void;
   particleSize: number;
   particleSpeed: number;
   timestamp: number;
+  viewport: { maximumX: number; maximumY: number; minimumX: number; minimumY: number };
 }
 
 function drawArrow(
@@ -93,6 +95,23 @@ export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
 
   for (const node of options.nodes) {
     options.nodeCanvasObject(node, context, globalScale);
+  }
+}
+
+export function drawOwnedGraphLabels(options: OwnedGraphDrawingOptions): void {
+  const visibleNodes = options.nodes.filter(node => Number.isFinite(node.x)
+    && Number.isFinite(node.y)
+    && (node.x as number) >= options.viewport.minimumX
+    && (node.x as number) <= options.viewport.maximumX
+    && (node.y as number) >= options.viewport.minimumY
+    && (node.y as number) <= options.viewport.maximumY);
+  const stride = Math.max(1, Math.ceil(visibleNodes.length / 400));
+  for (let index = 0; index < visibleNodes.length; index += stride) {
+    options.nodeLabelCanvasObject(
+      visibleNodes[index],
+      options.context,
+      options.globalScale,
+    );
   }
 }
 

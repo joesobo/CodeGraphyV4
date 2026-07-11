@@ -16,8 +16,8 @@ import {
   screenToGraph,
   type OwnedGraphCamera,
 } from './camera';
-import type { OwnedGraph2dControls, Surface2dProps } from './contracts';
-import { drawOwnedGraph, drawOwnedGraphOverlay } from './drawing';
+import type { OwnedGraph2dControls, OwnedGraphNodeStyle, Surface2dProps } from './contracts';
+import { drawOwnedGraph, drawOwnedGraphLabels, drawOwnedGraphOverlay } from './drawing';
 import {
   applyOwnedPhysicsSettings,
   createOwnedGraphLayout,
@@ -46,6 +46,19 @@ function canvasSize(canvas: HTMLCanvasElement): { width: number; height: number 
   return { width: Math.max(1, bounds.width), height: Math.max(1, bounds.height) };
 }
 
+function defaultNodeStyle(node: FGNode): OwnedGraphNodeStyle {
+  return {
+    borderColor: node.borderColor,
+    borderWidth: node.borderWidth,
+    fillColor: node.color,
+    fillOpacity: node.fillOpacity2D ?? 1,
+    height: node.shapeSize2D?.height ?? node.size * 2,
+    opacity: node.baseOpacity,
+    shape: node.shape2D ?? 'circle',
+    width: node.shapeSize2D?.width ?? node.size * 2,
+  };
+}
+
 function localPointer(
   canvas: HTMLCanvasElement,
   event: Pick<PointerEvent | WheelEvent | MouseEvent, 'clientX' | 'clientY'>,
@@ -70,6 +83,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const engineStopNotifiedRef = useRef(false);
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
+  const styleVersionRef = useRef(0);
   const pickerPositionVersionRef = useRef(-1);
   const pickerRef = useRef(new OwnedGraphNodePicker());
   const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
@@ -79,6 +93,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     screen: { x: number; y: number };
   } | null>(null);
   propsRef.current = props;
+  styleVersionRef.current += 1;
 
   useEffect(() => {
     const gpuCanvas = gpuCanvasRef.current;
@@ -167,11 +182,15 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
             cssHeight: height,
             cssWidth: width,
             devicePixelRatio,
+            directionMode: currentProps.directionMode,
+            getArrowColor: currentProps.getArrowColor,
             getLinkColor: currentProps.getLinkColor,
             getLinkWidth: currentProps.getLinkWidth,
+            getNodeStyle: currentProps.getNodeStyle ?? defaultNodeStyle,
             links: layout.links,
             nodes: layout.nodes,
             positionVersion: positionVersionRef.current,
+            styleVersion: styleVersionRef.current,
           });
           gpuRendered = true;
         } catch (error) {
@@ -203,13 +222,22 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         linkCanvasObject: currentProps.linkCanvasObject,
         nodes: layout.nodes,
         nodeCanvasObject: currentProps.nodeCanvasObject,
+        nodeLabelCanvasObject: currentProps.nodeLabelCanvasObject ?? (() => undefined),
         particleSize: currentProps.particleSize,
         particleSpeed: currentProps.particleSpeed,
         timestamp,
+        viewport: {
+          maximumX: camera.centerX + width / (2 * camera.zoom),
+          maximumY: camera.centerY + height / (2 * camera.zoom),
+          minimumX: camera.centerX - width / (2 * camera.zoom),
+          minimumY: camera.centerY - height / (2 * camera.zoom),
+        },
       };
       if (gpuRendered && layout.nodes.length <= CANVAS_DECORATION_NODE_LIMIT) {
         drawOwnedGraphOverlay(drawingOptions);
-      } else if (!gpuRendered) {
+      } else if (gpuRendered) {
+        drawOwnedGraphLabels(drawingOptions);
+      } else {
         drawOwnedGraph(drawingOptions);
       }
       currentProps.onRenderFramePost(context, camera.zoom);
