@@ -7,6 +7,7 @@ export const INITIAL_STATE: GraphStateFields = {
   autoReveal: true,
   graphData: null,
   graphRevision: null,
+  graphResetVersion: 0,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,
   graphIndexDetail: null,

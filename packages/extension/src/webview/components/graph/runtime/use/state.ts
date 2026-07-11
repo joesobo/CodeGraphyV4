@@ -32,6 +32,7 @@ import {
 } from '../../support/contracts/forceGraph';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
+import { reconcileRuntimeGraphData } from '../data/reconcile';
 
 export interface GraphMouseState {
   ctrlKey: boolean;
@@ -50,6 +51,7 @@ export interface GraphRuntimeOptions {
   favorites: Set<string>;
   graphViewContributions?: CoreGraphViewContributionSet;
   graphMode?: '2d' | '3d';
+  graphResetVersion: number;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
@@ -71,6 +73,8 @@ export interface GraphRuntimeRenderer {
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   graphData: { links: FGLink[]; nodes: FGNode[] };
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
+  resetVersion: number;
+  structureVersion: number;
 }
 
 export interface GraphRuntimeContextSelection {
@@ -152,6 +156,7 @@ export function useGraphRuntime({
   favorites,
   graphViewContributions,
   graphMode,
+  graphResetVersion,
   nodeDecorations,
   nodeSizeMode,
   showLabels,
@@ -172,6 +177,8 @@ export function useGraphRuntime({
   const directionColorRef = useRef(directionColor);
   const favoritesRef = useRef(favorites);
   const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>(createEmptyRuntimeGraphData());
+  const resetVersionRef = useRef(graphResetVersion);
+  const structureVersionRef = useRef(0);
   const dataRef = useRef(data);
   const nodeSizeModeRef = useRef(nodeSizeMode);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
@@ -212,7 +219,7 @@ export function useGraphRuntime({
 
   const graphData = useMemo(() => {
     const resolvedGraphMode = graphMode ?? '2d';
-    const nextGraphData = buildGraphData({
+    const desiredGraphData = buildGraphData({
       data,
       appearance,
       nodeSizeMode: nodeSizeModeRef.current,
@@ -224,10 +231,18 @@ export function useGraphRuntime({
       timelineActive,
       previousNodes: graphDataRef.current.nodes,
     });
-
+    const initialGraph = graphDataRef.current.nodes.length === 0
+      && graphDataRef.current.links.length === 0;
+    const fullReset = resetVersionRef.current !== graphResetVersion;
+    resetVersionRef.current = graphResetVersion;
+    const reconciliation = initialGraph || fullReset
+      ? { graphData: desiredGraphData, structureChanged: true }
+      : reconcileRuntimeGraphData(graphDataRef.current, desiredGraphData);
+    if (reconciliation.structureChanged) structureVersionRef.current += 1;
+    const nextGraphData = reconciliation.graphData;
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, favorites, graphMode, graphViewContributions, timelineActive]);
+  }, [appearance, bidirectionalMode, data, favorites, graphMode, graphResetVersion, graphViewContributions, timelineActive]);
 
   useNodeDecorationIndicators({
     decorations: nodeDecorations ?? EMPTY_NODE_DECORATIONS,
@@ -285,6 +300,8 @@ export function useGraphRuntime({
       fg3dRef,
       graphData,
       graphDataRef,
+      resetVersion: graphResetVersion,
+      structureVersion: structureVersionRef.current,
     },
     renderCaches: {
       fileInfoCacheRef,

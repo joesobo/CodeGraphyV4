@@ -27,7 +27,11 @@ describe('webview/store/messageHandlers/graphDataMessage/patch', () => {
       nodes: [retained, updated, { id: 'src/remove.ts', label: 'remove.ts', color: '#111111' }],
       edges: [],
     };
-    const state = createState({ graphData, graphRevision: 0, graphIsIndexing: true });
+    const state = createState({
+      graphData,
+      graphRevision: 0,
+      graphIsIndexing: true,
+    });
 
     const result = handleGraphDataPatched(patchMessage(), { getState: () => state });
 

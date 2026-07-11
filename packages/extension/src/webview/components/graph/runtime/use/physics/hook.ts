@@ -28,6 +28,8 @@ interface UsePhysicsRuntimeProps {
   graphViewContributions?: CoreGraphViewContributionSet;
   graphMode: '2d' | '3d';
   layoutKey: string;
+  resetVersion?: number;
+  structureVersion?: number;
   physicsPaused?: boolean;
   physicsSettings: IPhysicsSettings;
   timelineActive?: boolean;
@@ -40,6 +42,8 @@ export function usePhysicsRuntime({
   graphViewContributions,
   graphMode,
   layoutKey,
+  resetVersion,
+  structureVersion,
   physicsPaused = false,
   physicsSettings,
   timelineActive = false,
@@ -49,6 +53,7 @@ export function usePhysicsRuntime({
   const pendingThreeDimensionalInitRef = useRef(graphMode === '3d');
   const previousPhysicsRef = useRef<IPhysicsSettings | null>(null);
   const previousLayoutKeyRef = useRef<string | null>(null);
+  const previousResetVersionRef = useRef<number | null>(null);
   const forceAdapterStateRef = useRef(createGraphViewForceAdapterState());
 
   physicsSettingsRef.current = physicsSettings;
@@ -75,6 +80,7 @@ export function usePhysicsRuntime({
     physicsInitialisedRef,
     pendingThreeDimensionalInitRef,
     previousLayoutKeyRef,
+    previousResetVersionRef,
     previousPhysicsRef,
   });
 
@@ -94,10 +100,13 @@ export function usePhysicsRuntime({
     fg3dRef,
     graphMode,
     layoutKey,
+    resetVersion,
+    structureVersion,
     physicsPaused,
     physicsInitialisedRef,
     physicsSettingsRef,
     previousLayoutKeyRef,
+    previousResetVersionRef,
   });
 
   useEffect(() => {

@@ -325,6 +325,15 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - `layoutResets` remained `1` in every sample. This is not accepted as a Task 3.1 improvement and remains the explicit Task 3.2 target.
 - The protocol validates patch shape, preserves retained source node/link identities, replaces changed same-ID links, treats array-order-only differences as semantic no-ops, revisions every patch, and requests a full replay on stale or malformed patch state.
 
+### Task 3.2 evidence — stable runtime graph identity (2026-07-11)
+
+- Runtime reconciliation now preserves retained node and link objects, including node position, velocity, fixed-position, and simulation-index fields. Same-ID links are retained only while their topology is unchanged.
+- The O(n) joined-ID layout key is replaced by an O(1) structure-version key. Patch membership changes and node-size changes locally reheat the existing simulation; only authoritative `GRAPH_DATA_UPDATED`, timeline snapshots, and graph-mode changes take the full-reset path.
+- Exact-head deterministic `medium` capture used VS Code 1.128.0, the generated 1,000-file fixture, one prepared Graph Cache, an isolated profile/workspace, and five complete `single-save` samples without retries or discards.
+- Raw `layoutResets`: `0`, `0`, `0`, `0`, `0`. Raw `payloadBytes`: `383`, `383`, `383`, `383`, `383`.
+- Operation-scoped `incrementalRefreshMs`: `83.934`, `83.867`, `80.388`, `84.067`, `82.429` (median `83.867`, CV `1.90%`). Operation-scoped `watcherToGraphMs`: `128.017`, `126.000`, `120.655`, `126.233`, `125.447` (median `126.000`, CV `2.20%`).
+- The `medium` half of gate 3-B passes. Task 3.2 remains open pending the required five-run `large` capture and a real-render untouched-node drift assertion before reheat.
+
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
 | # | Gate | Fixture / scenario | Threshold |

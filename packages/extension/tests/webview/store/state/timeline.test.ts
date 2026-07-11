@@ -126,6 +126,7 @@ describe('GraphStore: Timeline', () => {
     const state = store.getState();
     expect(state.currentCommitSha).toBe('abc123');
     expect(state.graphData).toEqual(graphData);
+    expect(state.graphResetVersion).toBe(1);
     expect(state.isLoading).toBe(false);
   });
 

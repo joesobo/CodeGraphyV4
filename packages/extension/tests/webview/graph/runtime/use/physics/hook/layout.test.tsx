@@ -115,6 +115,70 @@ describe('webview/graph/runtime/use/physics/layout', () => {
     expect(onLayoutReset).not.toHaveBeenCalled();
   });
 
+  it('reheats a structural patch without recording a full layout reset', () => {
+    const graph = { d3ReheatSimulation: vi.fn() };
+    const onLayoutReset = vi.fn();
+    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
+    const previousLayoutKeyRef = { current: 'uniform::1' as string | null };
+    const previousResetVersionRef = { current: 4 as number | null };
+
+    const { rerender } = renderHook(
+      ({ layoutKey, structureVersion }) => usePhysicsRuntimeLayoutKey({
+        fg2dRef: { current: graph },
+        fg3dRef: { current: undefined },
+        graphMode: '2d',
+        layoutKey,
+        onLayoutReset,
+        physicsPaused: false,
+        physicsInitialisedRef: { current: true },
+        physicsSettingsRef: { current: SETTINGS },
+        previousLayoutKeyRef,
+        previousResetVersionRef,
+        resetVersion: 4,
+        structureVersion,
+      }),
+      { initialProps: { layoutKey: 'uniform::1', structureVersion: 1 } },
+    );
+
+    rerender({ layoutKey: 'uniform::2', structureVersion: 2 });
+
+    expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
+    expect(onLayoutReset).not.toHaveBeenCalled();
+    expect(physicsHarness.applyPhysicsSettings).not.toHaveBeenCalled();
+  });
+
+  it('records a full reset when the reset version changes', () => {
+    const graph = { d3ReheatSimulation: vi.fn() };
+    const onLayoutReset = vi.fn();
+    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
+    const previousLayoutKeyRef = { current: 'uniform::1' as string | null };
+    const previousResetVersionRef = { current: 4 as number | null };
+
+    const { rerender } = renderHook(
+      ({ layoutKey, resetVersion }) => usePhysicsRuntimeLayoutKey({
+        fg2dRef: { current: graph },
+        fg3dRef: { current: undefined },
+        graphMode: '2d',
+        layoutKey,
+        onLayoutReset,
+        physicsPaused: false,
+        physicsInitialisedRef: { current: true },
+        physicsSettingsRef: { current: SETTINGS },
+        previousLayoutKeyRef,
+        previousResetVersionRef,
+        resetVersion,
+        structureVersion: 2,
+      }),
+      { initialProps: { layoutKey: 'uniform::1', resetVersion: 4 } },
+    );
+
+    rerender({ layoutKey: 'uniform::2', resetVersion: 5 });
+
+    expect(onLayoutReset).toHaveBeenCalledOnce();
+    expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledWith(graph, SETTINGS);
+    expect(graph.d3ReheatSimulation).not.toHaveBeenCalled();
+  });
+
   it('reapplies settings without pausing when physics is not paused', () => {
     const graph = {} as never;
     physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);

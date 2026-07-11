@@ -84,6 +84,7 @@ function createOptions(
     directionMode: 'arrows',
     edgeDecorations: undefined,
     favorites: new Set<string>(['src/alpha.ts']),
+    graphResetVersion: 0,
     nodeDecorations: undefined,
     nodeSizeMode: 'uniform',
     showLabels: true,
@@ -178,8 +179,42 @@ describe('graph/runtime/useGraphRuntime', () => {
       favorites: nextFavorites,
       previousNodes: firstGraph.nodes,
     }));
-    expect(result.current.renderer.graphData).toBe(secondGraph);
+    expect(result.current.renderer.graphData).not.toBe(secondGraph);
+    expect(result.current.renderer.graphData.nodes[0]).toBe(firstGraph.nodes[0]);
+    expect(result.current.renderer.graphData.nodes[0]?.x).toBe(10);
     expect(result.current.favoritesRef.current).toBe(nextFavorites);
+  });
+
+  it('reconciles patch-like updates without replacing retained runtime nodes', () => {
+    const firstGraph = createBuiltGraph('alpha', 10);
+    firstGraph.nodes[0].vx = 3;
+    const desiredGraph = createBuiltGraph('alpha', 99);
+    desiredGraph.nodes[0].color = '#ffffff';
+    desiredGraph.links.push({
+      id: 'edge-added',
+      from: 'src/alpha.ts',
+      to: 'src/other.ts',
+      source: 'src/alpha.ts',
+      target: 'src/other.ts',
+      kind: 'import',
+      bidirectional: false,
+    } as FGLink);
+    graphStateHarness.buildGraphData
+      .mockReturnValueOnce(firstGraph)
+      .mockReturnValueOnce(desiredGraph);
+    const initialOptions = createOptions();
+
+    const { result, rerender } = renderHook(
+      (options: GraphRuntimeOptions) => useGraphRuntime(options),
+      { initialProps: initialOptions },
+    );
+    const retainedNode = result.current.renderer.graphData.nodes[0];
+
+    rerender(createOptions({ data: createData('changed') }));
+
+    expect(result.current.renderer.graphData.nodes[0]).toBe(retainedNode);
+    expect(retainedNode).toMatchObject({ color: '#ffffff', x: 10, vx: 3 });
+    expect(result.current.renderer.structureVersion).toBe(2);
   });
 
   it('updates mutable refs across rerender without rebuilding graph data for non-memo inputs', () => {
@@ -251,8 +286,9 @@ describe('graph/runtime/useGraphRuntime', () => {
       data: secondData,
       previousNodes: firstGraph.nodes,
     }));
-    expect(result.current.renderer.graphData).toBe(secondGraph);
-    expect(result.current.renderer.graphDataRef.current).toBe(secondGraph);
+    expect(result.current.renderer.graphData).toEqual(secondGraph);
+    expect(result.current.renderer.graphData).not.toBe(secondGraph);
+    expect(result.current.renderer.graphDataRef.current).toBe(result.current.renderer.graphData);
   });
 
   it('clears selected nodes that are no longer visible after graph data changes', () => {

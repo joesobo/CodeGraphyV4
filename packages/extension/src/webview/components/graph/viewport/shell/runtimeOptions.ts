@@ -43,6 +43,8 @@ export function buildRenderingRuntimeOptions({
 		graphDataRef: graphState.renderer.graphDataRef,
 		graphViewContributions,
 		graphDataLayoutKey,
+		graphResetVersion: graphState.renderer.resetVersion,
+		graphStructureVersion: graphState.renderer.structureVersion,
 		graphMode: viewState.graphMode,
 		highlightVersion: graphState.highlightVersion,
 		highlightedNeighborsRef: graphState.highlightedNeighborsRef,

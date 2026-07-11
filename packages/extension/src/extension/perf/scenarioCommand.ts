@@ -297,6 +297,16 @@ export async function runPerfScenario(
         value: Math.max(0, runtime.now() - parsedRequest.startedAt),
       });
     } else if (runtime.runScriptedScenario) {
+      if (parsedRequest.scenario === 'single-save') {
+        runtime.emitMetric({
+          dimension: parsedRequest.dimension,
+          metric: 'layoutResets',
+          runId: parsedRequest.runId,
+          scenario: parsedRequest.scenario,
+          unit: 'count',
+          value: 0,
+        });
+      }
       const scriptedComparison = await runtime.runScriptedScenario(parsedRequest);
       if (scriptedComparison !== undefined) {
         comparison = parsePerfScenarioComparison(

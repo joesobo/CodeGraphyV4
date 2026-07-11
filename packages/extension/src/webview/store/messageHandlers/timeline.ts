@@ -1,4 +1,4 @@
-import type { PartialState } from '../messageTypes';
+import type { IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
 export function handleIndexProgress(
@@ -21,10 +21,12 @@ export function handleTimelineData(
 
 export function handleCommitGraphData(
   message: Extract<ExtensionToWebviewMessage, { type: 'COMMIT_GRAPH_DATA' }>,
+  context: IHandlerContext,
 ): PartialState {
   return {
     currentCommitSha: message.payload.sha,
     graphData: message.payload.graphData,
+    graphResetVersion: context.getState().graphResetVersion + 1,
     isLoading: false,
   };
 }

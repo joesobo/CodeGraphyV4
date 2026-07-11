@@ -122,8 +122,8 @@ export const MESSAGE_HANDLERS: Record<
     handleIndexProgress(msg as Extract<ExtensionToWebviewMessage, { type: 'INDEX_PROGRESS' }>),
   TIMELINE_DATA: (msg) =>
     handleTimelineData(msg as Extract<ExtensionToWebviewMessage, { type: 'TIMELINE_DATA' }>),
-  COMMIT_GRAPH_DATA: (msg) =>
-    handleCommitGraphData(msg as Extract<ExtensionToWebviewMessage, { type: 'COMMIT_GRAPH_DATA' }>),
+  COMMIT_GRAPH_DATA: (msg, ctx) =>
+    handleCommitGraphData(msg as Extract<ExtensionToWebviewMessage, { type: 'COMMIT_GRAPH_DATA' }>, ctx),
   PLAYBACK_SPEED_UPDATED: (msg) =>
     handlePlaybackSpeedUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLAYBACK_SPEED_UPDATED' }>),
   CACHE_INVALIDATED: () => handleCacheInvalidated(),

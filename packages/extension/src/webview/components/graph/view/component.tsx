@@ -105,6 +105,7 @@ export default function Graph({
   const viewState = useGraphViewStoreState();
   const activeFilePath = useGraphStore(state => state.activeFilePath);
   const autoReveal = useGraphStore(state => state.autoReveal);
+  const graphResetVersion = useGraphStore(state => state.graphResetVersion);
   const appearance = useGraphAppearance(theme);
   const resolvedGraphViewContributions = useResolvedGraphViewContributions(
     graphViewContributions,
@@ -122,13 +123,17 @@ export default function Graph({
     favorites: viewState.favorites,
     graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
+    graphResetVersion,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
     showLabels: viewState.showLabels,
     theme,
     timelineActive: viewState.timelineActive,
   });
-  const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
+  const graphDataLayoutKey = buildGraphDataLayoutKey(
+    graphRuntime.renderer.structureVersion,
+    viewState.nodeSizeMode,
+  );
   const graphNodeCount = graphRuntime.renderer.graphData.nodes.length;
   const observedNodeCount = projectionData?.nodes.length ?? graphNodeCount;
   useGraphPerfCommit({

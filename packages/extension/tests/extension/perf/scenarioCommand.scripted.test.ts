@@ -138,6 +138,24 @@ describe('performance scripted scenarios', () => {
     });
   });
 
+  it('records an explicit zero-reset baseline for a single save', async () => {
+    const runtime = createScriptedRuntime();
+
+    const result = await runPerfScenario({
+      runId: 'run-save',
+      scenario: 'single-save',
+      dimension: 'medium',
+      startedAt: 5,
+    }, runtime);
+
+    expect(result.metrics).toContainEqual({
+      dimension: 'medium',
+      metric: 'layoutResets',
+      unit: 'count',
+      value: 0,
+    });
+  });
+
   it('does not signal process sampling before correlated idle work starts', async () => {
     const runtime = createScriptedRuntime();
     const notifyScenarioReady = vi.fn(async () => {});

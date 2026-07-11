@@ -29,6 +29,11 @@ export function handleGraphDataUpdated(
 
   return {
     graphData: message.payload,
+    ...(state
+      ? {
+          graphResetVersion: state.graphResetVersion + 1,
+        }
+      : {}),
     ...(validGraphRevision(message.graphRevision)
       ? { graphRevision: message.graphRevision }
       : {}),

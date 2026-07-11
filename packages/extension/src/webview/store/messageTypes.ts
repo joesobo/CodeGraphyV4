@@ -28,6 +28,7 @@ export interface IStoreFields {
   autoReveal: AutoRevealMode;
   graphData: IGraphData | null;
   graphRevision: number | null;
+  graphResetVersion: number;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;

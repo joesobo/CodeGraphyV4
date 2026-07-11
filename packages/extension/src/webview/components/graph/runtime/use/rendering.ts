@@ -42,6 +42,8 @@ export interface UseGraphRenderingRuntimeOptions {
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphViewContributions?: CoreGraphViewContributionSet;
   graphDataLayoutKey: string;
+  graphResetVersion: number;
+  graphStructureVersion: number;
   graphMode: '2d' | '3d';
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
@@ -80,6 +82,8 @@ export function useGraphRenderingRuntime({
   graphDataRef,
   graphViewContributions,
   graphDataLayoutKey,
+  graphResetVersion,
+  graphStructureVersion,
   graphMode,
   highlightVersion,
   highlightedNeighborsRef,
@@ -146,6 +150,8 @@ export function useGraphRenderingRuntime({
     graphViewContributions,
     graphMode,
     layoutKey: graphDataLayoutKey,
+    resetVersion: graphResetVersion,
+    structureVersion: graphStructureVersion,
     physicsPaused,
     physicsSettings,
     timelineActive,

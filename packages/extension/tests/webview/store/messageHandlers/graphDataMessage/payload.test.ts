@@ -39,6 +39,20 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
     })).toMatchObject({ graphRevision: 7 });
   });
 
+  it('advances the reset version for a changed full graph', () => {
+    const state = createState({
+      graphData: { nodes: [], edges: [] },
+      graphResetVersion: 2,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload: createGraphData() },
+      { getState: () => state },
+    )).toMatchObject({
+      graphResetVersion: 3,
+    });
+  });
+
   it('skips duplicate graph payloads when duplicate-safe bootstrap state has settled', () => {
     const payload = createGraphData();
     const state = createState({
@@ -90,6 +104,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       { getState: () => state },
     )).toEqual({
       graphData: payload,
+      graphResetVersion: 1,
       isLoading: true,
       graphIsIndexing: false,
       graphIndexProgress: null,
@@ -112,6 +127,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       { getState: () => state },
     )).toEqual({
       graphData: payload,
+      graphResetVersion: 1,
       awaitingInitialBootstrap: false,
       isLoading: false,
       graphIsIndexing: false,
