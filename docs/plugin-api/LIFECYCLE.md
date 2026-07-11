@@ -65,6 +65,8 @@ const plugin: IPlugin = {
 
 Core rejects plugins with incompatible `apiVersion` ranges or a runtime `plugin.id` that does not match `codegraphy.json#id` before analysis runs.
 
+The host API follows semver: additive registration and lifecycle surfaces increment the minor version, while removals or contract changes require a major version. The current host is **2.1.0**. A plugin may keep a broad compatible range such as `^2.0.0`; code that calls a surface introduced in 2.1 should declare `^2.1.0` so an older host refuses it cleanly.
+
 ### 3. Initialize
 
 `initialize(workspaceRoot, context?)` runs once for each enabled plugin before file analysis. Use it to prepare parser state, read workspace-local configuration through `context.fileSystem`, or normalize `context.options`.
@@ -76,6 +78,19 @@ async initialize(workspaceRoot, context) {
   this.config = configText ? JSON.parse(configText) : {};
 }
 ```
+
+## Host-Owned Resource Disposal
+
+Every registration method on `IPluginHostApi` returns a `Disposable` and is automatically scoped to the plugin. For timers, watchers, parser workers, or third-party subscriptions created outside those helpers, transfer ownership explicitly:
+
+```typescript
+onLoad(api) {
+  const watcher = createWatcher();
+  api.registerDisposable(watcher);
+}
+```
+
+The host disposes registered resources in reverse order when a plugin is disabled, reloaded, or the workspace pipeline shuts down. `onUnload` remains available for synchronous plugin-state cleanup, but resources registered with the host do not need to be manually disposed there.
 
 ## Recurring Analysis Hooks
 

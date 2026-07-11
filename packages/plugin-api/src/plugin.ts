@@ -88,6 +88,11 @@ export interface IPluginToolbarAction {
 }
 
 export interface IPluginHostApi {
+  /**
+   * Transfer ownership of an arbitrary plugin resource to the host lifecycle.
+   * The handle is disposed automatically when the plugin unloads or reloads.
+   */
+  registerDisposable<T extends Disposable>(disposable: T): T;
   getGraph(): IGraphData;
   sendToWebview(message: IPluginWebviewMessage): void;
   onWebviewMessage(handler: (message: IPluginWebviewMessage) => void): Disposable;

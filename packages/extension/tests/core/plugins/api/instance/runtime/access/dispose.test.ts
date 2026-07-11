@@ -38,4 +38,16 @@ describe('CodeGraphyAPIImpl cleanup', () => {
     expect(decorationManager.getMergedEdgeDecorations().has('a.ts->b.ts')).toBe(false);
     expect(() => api.on('analysis:started', vi.fn())).toThrow('already been disposed');
   });
+
+  it('disposes arbitrary plugin-owned handles registered with the host', () => {
+    const { api } = createTestAPI('plugin-a');
+    const dispose = vi.fn();
+    const handle = { dispose };
+
+    expect(api.registerDisposable(handle)).toBe(handle);
+    api.disposeAll();
+
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(() => api.registerDisposable({ dispose: vi.fn() })).toThrow('already been disposed');
+  });
 });

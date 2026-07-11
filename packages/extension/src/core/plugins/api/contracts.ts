@@ -52,6 +52,8 @@ export interface IContextMenuItem {
 export interface CodeGraphyAPI {
   version: string;
 
+  registerDisposable<T extends Disposable>(disposable: T): T;
+
   on<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): Disposable;
   once<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): Disposable;
   off<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): void;

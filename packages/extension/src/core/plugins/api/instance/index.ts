@@ -57,9 +57,10 @@ import type {
   IExporter,
   IToolbarAction,
 } from '../contracts';
+import { CORE_PLUGIN_API_VERSION } from '../../versioning/apiVersions';
 
 export class CodeGraphyAPIImpl implements CodeGraphyAPI {
-  readonly version = '2.0.0';
+  readonly version = CORE_PLUGIN_API_VERSION;
   private readonly _context: ApiContext;
 
   constructor(
@@ -152,6 +153,10 @@ export class CodeGraphyAPIImpl implements CodeGraphyAPI {
 
   findPath(fromId: string, toId: string): IGraphNode[] | null {
     return findNodePath(fromId, toId, this._context);
+  }
+
+  registerDisposable<T extends Disposable>(disposable: T): T {
+    return this._context.disposables.add(disposable);
   }
 
   registerView(view: IView): Disposable {

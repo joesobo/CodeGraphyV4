@@ -36,6 +36,18 @@ describe('PluginRegistry unregister', () => {
     expect(onUnload).toHaveBeenCalled();
   });
 
+  it('leaves no registered external handle active after unload', () => {
+    const registry = createConfiguredRegistry();
+    const plugin = createMockPlugin();
+    const dispose = vi.fn();
+    registry.register(plugin);
+    registry.getPluginAPI(plugin.id)?.registerDisposable({ dispose });
+
+    registry.unregister(plugin.id);
+
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
   it('removes plugin from extension map', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin({ supportedExtensions: ['.ts'] });

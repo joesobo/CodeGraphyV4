@@ -538,12 +538,14 @@ CodeGraphy's plugin system adopts the proven patterns from both ecosystems: Obsi
 
 ### Tasks
 
-- [ ] **7.1 Lifecycle + disposal:** add the register/dispose surface to plugin-api (additive; bump `apiVersion` policy documented); runtime enforces disposal on unload/reload; unit tests: leaked-handle detection after unload.
+- [x] **7.1 Lifecycle + disposal:** add the register/dispose surface to plugin-api (additive; bump `apiVersion` policy documented); runtime enforces disposal on unload/reload; unit tests: leaked-handle detection after unload.
 - [ ] **7.2 Manifest + compatibility:** manifest schema + load-time validation + clean refusal path; acceptance: stale-`minCoreVersion` plugin refuses politely.
 - [ ] **7.3 Activation discipline:** lazy activation by declared file globs/graph events; per-plugin `pluginActivationMs` metric wired into `pnpm perf`; first-party plugins migrated.
 - [ ] **7.4 Sample plugin template + docs:** `examples/sample-plugin` + `docs/plugins/GETTING_STARTED.md` (scaffold → watch → see node in Dev Host graph); the doc's step count is a gate.
 - [ ] **7.5 Dogfood — Material Icon Theme as plugin:** extract using only public plugin-api (the sufficiency proof); default-enabled; visual regression via Playwright. Update the Ideas card.
 - [ ] **7.6 Crash isolation:** plugin throw during analysis/menu/render contribution → plugin disabled + notification, graph unaffected; acceptance test with a deliberately-throwing fixture plugin.
+
+Lifecycle checkpoint (2026-07-11): `IPluginHostApi.registerDisposable` transfers arbitrary watcher/worker/subscription ownership into the existing per-plugin LIFO `DisposableStore`; unregister, reload synchronization, and pipeline shutdown already converge through `disposeAll`. The host API is now **2.1.0**, with the additive-minor/major-breaking range policy documented and a dual-package changeset. Focused API/registry tests pass **35/35**, plugin-api passes **8/8**, and both plugin-api and extension typechecks are clean. The unload regression explicitly proves a registered external handle is disposed once and cannot remain active after registry removal.
 
 ## Checkpoints
 
