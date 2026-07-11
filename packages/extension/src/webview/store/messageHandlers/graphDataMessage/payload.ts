@@ -38,7 +38,7 @@ export function handleGraphDataUpdated(
     pendingFileMutations: {},
     ...(state
       ? {
-          graphResetVersion: state.graphResetVersion + 1,
+          graphResetVersion: state.graphResetVersion + (state.ghostGraphVisible ? 0 : 1),
         }
       : {}),
     ...(validGraphRevision(message.graphRevision)

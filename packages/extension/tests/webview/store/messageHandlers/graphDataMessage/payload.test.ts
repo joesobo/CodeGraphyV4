@@ -105,6 +105,29 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
     )).toEqual({ ghostGraphVisible: false });
   });
 
+  it('reconciles changed live data into the ghost layout without a reset', () => {
+    const state = createState({
+      bootstrapComplete: true,
+      graphData: createGraphData(),
+      ghostGraphVisible: true,
+      graphResetVersion: 3,
+      isLoading: false,
+    });
+    const payload: IGraphData = {
+      nodes: [{ id: 'src/main.ts', label: 'Main', color: '#94a3b8' }],
+      edges: [],
+    };
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toMatchObject({
+      ghostGraphVisible: false,
+      graphData: payload,
+      graphResetVersion: 3,
+    });
+  });
+
   it('keeps loading while initial bootstrap is still waiting for app bootstrap completion', () => {
     const payload = createGraphData();
     const state = createState({
