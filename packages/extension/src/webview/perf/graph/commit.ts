@@ -27,8 +27,11 @@ const defaultDependencies: GraphPerfCommitDependencies = {
 interface PendingGraphCommit {
   commit: ReturnType<GraphPerfLifecycle['prepareCommit']> & object;
   frame: number;
+  timer: ReturnType<typeof setTimeout>;
   token: object;
 }
+
+const GRAPH_COMMIT_FRAME_BUDGET_MS = 16;
 
 function cancelPendingGraphCommit(
   pendingRef: MutableRefObject<PendingGraphCommit | undefined>,
@@ -38,6 +41,7 @@ function cancelPendingGraphCommit(
   if (!pending) return;
   pendingRef.current = undefined;
   cancelFrame(pending.frame);
+  clearTimeout(pending.timer);
 }
 
 function enqueueGraphCommit(
@@ -55,16 +59,20 @@ function enqueueGraphCommit(
     return;
   }
   const token = {};
-  const frame = dependencies.requestFrame(() => {
+  const publish = () => {
     const next = pendingRef.current;
     if (next?.token !== token) return;
     pendingRef.current = undefined;
+    dependencies.cancelFrame(next.frame);
+    clearTimeout(next.timer);
     const published = dependencies.lifecycle.publishCommit(next.commit);
     if (published && next.commit.layoutChanged && !simulationEnabled) {
       dependencies.lifecycle.engineStopped?.();
     }
-  });
-  pendingRef.current = { commit, frame, token };
+  };
+  const frame = dependencies.requestFrame(publish);
+  const timer = setTimeout(publish, GRAPH_COMMIT_FRAME_BUDGET_MS);
+  pendingRef.current = { commit, frame, timer, token };
 }
 
 function prepareObservedGraphCommit(

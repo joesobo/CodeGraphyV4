@@ -10,6 +10,34 @@ const scopeVisibility: PerfScopeVisibilitySnapshot = {
 };
 
 describe('webview/perf/graph/commit', () => {
+	it('publishes within one frame budget when the commit frame is throttled', () => {
+		vi.useFakeTimers();
+		const preparedCommit = { operation: {}, layoutChanged: true } as never;
+		const lifecycle = {
+			prepareCommit: vi.fn(() => preparedCommit),
+			publishCommit: vi.fn(),
+		};
+		const cancelFrame = vi.fn();
+
+		renderHook(() => useGraphPerfCommit({
+			edgeCount: 1,
+			layoutKey: 'uniform::throttled',
+			nodeCount: 2,
+			revision: {},
+		}, {
+			cancelFrame,
+			lifecycle,
+			requestFrame: vi.fn(() => 71),
+		}));
+
+		vi.advanceTimersByTime(15);
+		expect(lifecycle.publishCommit).not.toHaveBeenCalled();
+		vi.advanceTimersByTime(1);
+		expect(lifecycle.publishCommit).toHaveBeenCalledWith(preparedCommit);
+		expect(cancelFrame).toHaveBeenCalledWith(71);
+		vi.useRealTimers();
+	});
+
   it('publishes a stable scope projection after React commits without another frame', () => {
     const preparedCommit = {
       operation: { scenario: 'scope-toggle' },
