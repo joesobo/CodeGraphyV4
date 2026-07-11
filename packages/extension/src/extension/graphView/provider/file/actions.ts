@@ -13,6 +13,10 @@ import {
   type GraphViewProviderFileNavigationSource,
 } from './navigation';
 import { executeWorkspaceFileMutation } from './mutations';
+import type {
+  ExtensionToWebviewMessage,
+  OptimisticFileMutationPayload,
+} from '../../../../shared/protocol/extensionToWebview';
 
 type EditorOpenBehavior = Pick<
   vscode.TextDocumentShowOptions,
@@ -33,7 +37,10 @@ export interface GraphViewProviderFileActionMethodsSource {
   _analyzeAndSendData(): Promise<void>;
   _sendFavorites(favorites?: string[]): void;
   _setFocusedFile(filePath: string | undefined): void;
+  _sendMessage(message: ExtensionToWebviewMessage): void;
 }
+
+let fileMutationOrdinal = 0;
 
 export interface GraphViewProviderFileActionMethods {
   _openFile(filePath: string, behavior?: EditorOpenBehavior): Promise<void>;
@@ -108,6 +115,34 @@ export function createGraphViewProviderFileActionMethods(
   source: GraphViewProviderFileActionMethodsSource,
   dependencies: GraphViewProviderFileActionMethodDependencies = DEFAULT_DEPENDENCIES,
 ): GraphViewProviderFileActionMethods {
+  const executeOptimisticMutation = async (
+    mutation: OptimisticFileMutationPayload,
+    workspaceFolderUri: vscode.Uri,
+  ): Promise<void> => {
+    const mutationId = `file-mutation-${++fileMutationOrdinal}`;
+    source._sendMessage({
+      type: 'FILE_MUTATION_STARTED',
+      payload: { mutationId, mutation },
+    });
+    try {
+      await dependencies.executeWorkspaceFileMutation(
+        mutation,
+        {
+          workspaceFolderUri,
+          refreshGraph: () => source._analyzeAndSendData(),
+        },
+      );
+    } catch (error) {
+      source._sendMessage({
+        type: 'FILE_MUTATION_FAILED',
+        payload: {
+          mutationId,
+          message: error instanceof Error ? error.message : String(error),
+        },
+      });
+      throw error;
+    }
+  };
   const _openFile = async (
     filePath: string,
     behavior: EditorOpenBehavior = { preview: false, preserveFocus: false },
@@ -136,12 +171,9 @@ export function createGraphViewProviderFileActionMethods(
           typeof deleteAction | undefined
         >,
       executeDeleteAction: async (nextPaths, workspaceFolderUri) => {
-        await dependencies.executeWorkspaceFileMutation(
+        await executeOptimisticMutation(
           { kind: 'delete', paths: nextPaths },
-          {
-            workspaceFolderUri,
-            refreshGraph: () => source._analyzeAndSendData(),
-          },
+          workspaceFolderUri,
         );
       },
     });
@@ -152,12 +184,9 @@ export function createGraphViewProviderFileActionMethods(
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeRenameAction: async (oldPath, newPath, workspaceFolderUri) => {
-        await dependencies.executeWorkspaceFileMutation(
+        await executeOptimisticMutation(
           { kind: 'rename', oldPath, newPath },
-          {
-            workspaceFolderUri,
-            refreshGraph: () => source._analyzeAndSendData(),
-          },
+          workspaceFolderUri,
         );
       },
       showErrorMessage: message => {
@@ -171,12 +200,9 @@ export function createGraphViewProviderFileActionMethods(
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeCreateAction: async (filePath, workspaceFolderUri) => {
-        await dependencies.executeWorkspaceFileMutation(
+        await executeOptimisticMutation(
           { kind: 'create', filePath },
-          {
-            workspaceFolderUri,
-            refreshGraph: () => source._analyzeAndSendData(),
-          },
+          workspaceFolderUri,
         );
       },
       showErrorMessage: message => {

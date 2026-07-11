@@ -336,6 +336,13 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 - Large operation-scoped `incrementalRefreshMs`: `100.929`, `119.164`, `94.109`, `105.141`, `104.670` (median `104.670`, CV `8.74%`). Operation-scoped `watcherToGraphMs`: `165.681`, `176.641`, `158.196`, `168.322`, `170.087` (median `168.322`, CV `4.00%`).
 - The React runtime reconciliation assertion snapshots a retained node at `(10, 10)` with velocity and verifies the exact same object and coordinates are present before the physics effect receives the changed structure version. Together with zero full resets in all ten real VS Code samples, gate 3-B passes.
 
+### Task 3.3 implementation checkpoint — optimistic file operations (2026-07-11)
+
+- Confirmed rename/create/delete actions now publish a typed optimistic mutation only after the relevant input or confirmation resolves. Cancellation therefore leaves the graph untouched.
+- The webview applies file/folder renames, creates, and deletes synchronously, tracks the exact pre-mutation graph root as pending state, reconciles the next authoritative patch against that root, and clears pending state on either full or patch data.
+- Host failures restore the exact snapshot and display a VS Code-themed five-second error toast. Twenty-six focused host, store, reconciliation, rollback, and toast tests pass.
+- Task 3.3 remains open until the exact-head `medium` rename/create/delete battery proves ratios ≤1.25 and the optimistic apply path ≤16ms.
+
 ## Checkpoints (in-window `pnpm perf`, median of 5; ratios are machine-portable, absolutes are machine-independent or same-machine-relative)
 
 | # | Gate | Fixture / scenario | Threshold |

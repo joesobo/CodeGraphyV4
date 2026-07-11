@@ -72,6 +72,30 @@ describe('graphView/provider/file/actions workspace mutations', () => {
     );
     expect(harness.source._analyzeAndSendData).toHaveBeenCalledOnce();
   });
+
+  it('rolls back an optimistic mutation when the workspace action fails', async () => {
+    const failure = new Error('rename failed');
+    const harness = createMutationRouteHarness({
+      renameFile: async (_filePath, handlers) => {
+        await handlers.executeRenameAction('src/app.ts', 'src/main.ts', WORKSPACE_URI as never);
+      },
+      executeWorkspaceFileMutation: vi.fn(async () => { throw failure; }),
+    });
+
+    await expect(harness.methods._renameFile('src/app.ts')).rejects.toThrow('rename failed');
+
+    expect(harness.source._sendMessage).toHaveBeenNthCalledWith(1, {
+      type: 'FILE_MUTATION_STARTED',
+      payload: {
+        mutationId: expect.any(String),
+        mutation: { kind: 'rename', oldPath: 'src/app.ts', newPath: 'src/main.ts' },
+      },
+    });
+    expect(harness.source._sendMessage).toHaveBeenNthCalledWith(2, {
+      type: 'FILE_MUTATION_FAILED',
+      payload: { mutationId: expect.any(String), message: 'rename failed' },
+    });
+  });
 });
 
 function createMutationRouteHarness(
@@ -81,6 +105,7 @@ function createMutationRouteHarness(
     _getFocusedFile: () => undefined,
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
+    _sendMessage: vi.fn(),
     _setFocusedFile: vi.fn(),
   };
   const executeWorkspaceFileMutation = vi.fn(async (

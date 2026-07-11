@@ -29,6 +29,7 @@ export function handleGraphDataUpdated(
 
   return {
     graphData: message.payload,
+    pendingFileMutations: {},
     ...(state
       ? {
           graphResetVersion: state.graphResetVersion + 1,

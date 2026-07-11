@@ -116,4 +116,27 @@ describe('webview/store/messageHandlers/graphDataMessage/patch', () => {
 
     expect(emitPayloadBytes).toHaveBeenCalledWith(message.payload);
   });
+
+  it('reconciles a host patch against the pre-optimistic snapshot', () => {
+    const authoritativeGraph = {
+      nodes: [
+        { id: 'src/update.ts', label: 'update.ts', color: '#111111' },
+        { id: 'src/remove.ts', label: 'remove.ts', color: '#111111' },
+      ],
+      edges: [],
+    };
+    const state = createState({
+      graphRevision: 0,
+      graphData: { nodes: [], edges: [] },
+      pendingFileMutations: { 'mutation-1': authoritativeGraph },
+    });
+
+    const result = handleGraphDataPatched(patchMessage(), { getState: () => state });
+
+    expect(result?.graphData?.nodes.map(node => node.id)).toEqual([
+      'src/update.ts',
+      'src/add.ts',
+    ]);
+    expect(result?.pendingFileMutations).toEqual({});
+  });
 });

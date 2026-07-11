@@ -17,6 +17,7 @@ import { buildGraphCallbackOptions } from './callbackOptions';
 import { useGraphDebugApi } from '../debug/api';
 import { buildGraphDebugOptions } from '../debug/options';
 import { buildGraphDataLayoutKey } from './layoutKey';
+import { FileMutationToast } from '../fileMutationToast/view';
 import { detectMacPlatform } from '../environment/platform';
 import { useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
@@ -221,7 +222,8 @@ export default function Graph({
   const callbacks = useGraphCallbacks(buildGraphCallbackOptions({ graphState: graphRuntime, pluginHost }));
 
   return (
-    <GraphViewportShell
+    <>
+      <GraphViewportShell
       appearance={appearance}
       callbacks={callbacks}
       graphDataLayoutKey={graphDataLayoutKey}
@@ -232,7 +234,9 @@ export default function Graph({
       onEngineTick={onEngineTick}
       pluginHost={pluginHost}
       theme={theme}
-      viewState={viewState}
-    />
+        viewState={viewState}
+      />
+      <FileMutationToast />
+    </>
   );
 }

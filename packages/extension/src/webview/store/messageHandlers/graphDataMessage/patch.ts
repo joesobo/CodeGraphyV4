@@ -25,8 +25,10 @@ export function handleGraphDataPatched(
     return undefined;
   }
 
+  const authoritativeGraphData = Object.values(state.pendingFileMutations)[0]
+    ?? state.graphData;
   try {
-    applyGraphDataPatchInPlace(state.graphData, parsed.data);
+    applyGraphDataPatchInPlace(authoritativeGraphData, parsed.data);
   } catch {
     requestFullGraphReplay(context);
     return undefined;
@@ -37,7 +39,8 @@ export function handleGraphDataPatched(
     && !state.bootstrapComplete,
   );
   return {
-    graphData: { ...state.graphData },
+    graphData: { ...authoritativeGraphData },
+    pendingFileMutations: {},
     graphRevision: validGraphRevision(message.graphRevision)
       ? message.graphRevision
       : state.graphRevision,

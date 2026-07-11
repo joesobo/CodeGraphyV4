@@ -47,6 +47,7 @@ import {
   handleToggleDimension,
 } from './messageHandlers/toolbar';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
+import { handleFileMutationFailed, handleFileMutationStarted } from './messageHandlers/fileMutation';
 
 export const MESSAGE_HANDLERS: Record<
   string,
@@ -56,6 +57,16 @@ export const MESSAGE_HANDLERS: Record<
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>, ctx),
   GRAPH_DATA_PATCHED: (msg, ctx) =>
     handleGraphDataPatched(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_PATCHED' }>, ctx),
+  FILE_MUTATION_STARTED: (msg, ctx) =>
+    handleFileMutationStarted(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'FILE_MUTATION_STARTED' }>,
+      ctx,
+    ),
+  FILE_MUTATION_FAILED: (msg, ctx) =>
+    handleFileMutationFailed(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'FILE_MUTATION_FAILED' }>,
+      ctx,
+    ),
   GRAPH_NODE_METRICS_UPDATED: (msg, ctx) =>
     handleGraphNodeMetricsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_NODE_METRICS_UPDATED' }>,

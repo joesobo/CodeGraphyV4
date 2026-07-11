@@ -8,6 +8,8 @@ export function createState(
     graphData: null,
     graphRevision: null,
     graphResetVersion: 0,
+    pendingFileMutations: {},
+    fileMutationError: null,
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,

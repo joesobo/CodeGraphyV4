@@ -29,6 +29,8 @@ export interface IStoreFields {
   graphData: IGraphData | null;
   graphRevision: number | null;
   graphResetVersion: number;
+  pendingFileMutations: Record<string, IGraphData>;
+  fileMutationError: string | null;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;

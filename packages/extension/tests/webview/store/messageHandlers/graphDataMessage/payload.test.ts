@@ -25,6 +25,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
       payload,
     })).toEqual({
       graphData: payload,
+      pendingFileMutations: {},
       isLoading: false,
       graphIsIndexing: false,
       graphIndexProgress: null,
@@ -105,6 +106,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
     )).toEqual({
       graphData: payload,
       graphResetVersion: 1,
+      pendingFileMutations: {},
       isLoading: true,
       graphIsIndexing: false,
       graphIndexProgress: null,
@@ -128,6 +130,7 @@ describe('webview/store/messageHandlers/graphDataMessage/payload', () => {
     )).toEqual({
       graphData: payload,
       graphResetVersion: 1,
+      pendingFileMutations: {},
       awaitingInitialBootstrap: false,
       isLoading: false,
       graphIsIndexing: false,

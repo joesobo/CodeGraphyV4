@@ -50,6 +50,11 @@ export interface IGraphNodeMetricsUpdate {
   churn: IGraphNode['churn'];
 }
 
+export type OptimisticFileMutationPayload =
+  | { kind: 'create'; filePath: string }
+  | { kind: 'delete'; paths: string[] }
+  | { kind: 'rename'; oldPath: string; newPath: string };
+
 export type ExtensionToWebviewMessage =
   | PerfControlMessage
   | PerfRenderReadyRequestMessage
@@ -63,6 +68,11 @@ export type ExtensionToWebviewMessage =
       payload: GraphDataPatch;
     }
   | { type: 'GRAPH_NODE_METRICS_UPDATED'; payload: { nodes: IGraphNodeMetricsUpdate[] } }
+  | {
+      type: 'FILE_MUTATION_STARTED';
+      payload: { mutationId: string; mutation: OptimisticFileMutationPayload };
+    }
+  | { type: 'FILE_MUTATION_FAILED'; payload: { mutationId: string; message: string } }
   | { type: 'APP_BOOTSTRAP_COMPLETE' }
   | {
       type: 'GRAPH_INDEX_STATUS_UPDATED';

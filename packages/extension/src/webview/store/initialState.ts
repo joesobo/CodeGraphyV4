@@ -8,6 +8,8 @@ export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
   graphRevision: null,
   graphResetVersion: 0,
+  pendingFileMutations: {},
+  fileMutationError: null,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,
   graphIndexDetail: null,
