@@ -144,7 +144,6 @@ describe('graph/runtime/useGraphRuntime', () => {
     }));
     expect(result.current.renderer.containerRef.current).toBeNull();
     expect(result.current.renderer.fg2dRef.current).toBeUndefined();
-    expect(result.current.renderer.fg3dRef.current).toBeUndefined();
     expect(result.current.graphCursorRef.current).toBe('default');
     expect(result.current.renderer.graphDataRef.current).toBe(result.current.renderer.graphData);
     expect(result.current.renderCaches.imageCacheVersion).toBe(0);

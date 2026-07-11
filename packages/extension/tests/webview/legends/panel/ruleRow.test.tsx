@@ -144,7 +144,6 @@ describe('webview/components/legends/ruleRow', () => {
           target: 'node',
           imageUrl: 'webview://typescript.svg',
           shape2D: 'hexagon',
-          shape3D: 'cube',
           isPluginDefault: true,
         }}
         index={1}
@@ -180,7 +179,6 @@ describe('webview/components/legends/ruleRow', () => {
       color: '#123456',
       target: 'node',
       shape2D: 'hexagon',
-      shape3D: 'dodecahedron',
     });
   });
 

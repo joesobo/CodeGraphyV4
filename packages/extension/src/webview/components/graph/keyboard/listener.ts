@@ -7,7 +7,6 @@ export interface GraphKeyboardListenerOptions {
   dispatchStoreMessage: (message: ExtensionToWebviewMessage) => void;
   fitView: () => void;
   getAllNodeIds: () => string[];
-  graphMode: '2d' | '3d';
   openNode: (nodeId: string) => void;
   postMessage: (message: WebviewToExtensionMessage) => void;
   runEffects: (
@@ -27,7 +26,6 @@ export function createGraphKeyboardListener({
   dispatchStoreMessage,
   fitView,
   getAllNodeIds,
-  graphMode,
   openNode,
   postMessage,
   runEffects,
@@ -40,7 +38,6 @@ export function createGraphKeyboardListener({
       key: event.key,
       isMod: event.ctrlKey || event.metaKey,
       shiftKey: event.shiftKey,
-      graphMode,
       selectedNodeIds,
       allNodeIds: getAllNodeIds(),
       targetIsEditable: isEditableTarget(event.target),

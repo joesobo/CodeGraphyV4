@@ -114,7 +114,6 @@ describe('ToolbarActions', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
       dagMode: null,
-      graphMode: '2d',
       nodeSizeMode: 'connections',
       timelineActive: false,
       timelineCommits: [],
@@ -285,7 +284,6 @@ describe('ToolbarActions', () => {
     fireEvent.click(screen.getByText('New Plugin Node...'));
 
     expect(run).toHaveBeenCalledWith({
-      graphMode: '2d',
       target: { kind: 'background' },
       selectedNodeIds: [],
       selectedEdgeIds: [],
@@ -343,7 +341,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByText('New Folder...').closest('button')).toBeEnabled();
 
     act(() => {
-      graphStore.setState({ graphMode: '3d', timelineActive: false });
     });
     rerender(
       <TooltipProvider>

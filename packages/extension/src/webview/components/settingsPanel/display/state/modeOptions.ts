@@ -2,28 +2,6 @@ import type { BidirectionalEdgeMode, DirectionMode } from '../../../../../shared
 import type { ModeButtonOption } from '../ModeButtons';
 import { getSettingsToggleButtonState } from './model';
 
-export function createGraphModeOptions(
-  graphMode: '2d' | '3d',
-): ModeButtonOption<'2d' | '3d'>[] {
-  const twoDimensionalButton = getSettingsToggleButtonState(graphMode, '2d');
-  const threeDimensionalButton = getSettingsToggleButtonState(graphMode, '3d');
-
-  return [
-    {
-      value: '2d',
-      label: '2D',
-      pressed: twoDimensionalButton.pressed,
-      variant: twoDimensionalButton.variant,
-    },
-    {
-      value: '3d',
-      label: '3D',
-      pressed: threeDimensionalButton.pressed,
-      variant: threeDimensionalButton.variant,
-    },
-  ];
-}
-
 export function createDirectionOptions(
   directionMode: DirectionMode,
 ): ModeButtonOption<DirectionMode>[] {

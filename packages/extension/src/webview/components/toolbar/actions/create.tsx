@@ -19,7 +19,6 @@ import { postMessage } from '../../../vscodeApi';
 
 type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
 type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
-type GraphMode = '2d' | '3d';
 
 function postRootFileCreation(): void {
   postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
@@ -45,12 +44,10 @@ function isGraphViewCreateContribution(
 }
 
 function createGraphViewCreateContext(
-  graphMode: GraphMode,
   timelineActive: boolean,
 ): GraphViewCreateContext {
   return {
     target: { kind: 'background' },
-    graphMode,
     timelineActive,
     selectedNodeIds: [],
     selectedEdgeIds: [],
@@ -58,15 +55,13 @@ function createGraphViewCreateContext(
 }
 
 export function resolveGraphViewCreateContributions({
-  graphMode,
   graphViewContributions,
   timelineActive,
 }: {
-  graphMode: GraphMode;
   graphViewContributions?: CoreGraphViewContributionSet;
   timelineActive: boolean;
 }): ResolvedGraphViewCreateContribution[] {
-  const context = createGraphViewCreateContext(graphMode, timelineActive);
+  const context = createGraphViewCreateContext(timelineActive);
   return graphViewContributions?.contextMenu
     .filter(entry => isGraphViewCreateContribution(entry, context))
     .map(entry => ({
@@ -83,16 +78,13 @@ function runGraphViewCreateContribution(
 }
 
 export function CreateToolbarAction({
-  graphMode,
   graphViewContributions,
   timelineActive,
 }: {
-  graphMode: GraphMode;
   graphViewContributions?: CoreGraphViewContributionSet;
   timelineActive: boolean;
 }): React.ReactElement {
   const graphViewCreateContributions = resolveGraphViewCreateContributions({
-    graphMode,
     graphViewContributions,
     timelineActive,
   });

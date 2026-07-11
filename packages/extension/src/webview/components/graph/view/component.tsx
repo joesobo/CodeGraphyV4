@@ -1,6 +1,6 @@
 /**
  * @fileoverview Graph component that renders the dependency visualization.
- * Uses react-force-graph-2d (2D canvas) or react-force-graph-3d (WebGL) based on graphMode prop.
+ * Uses the 2D graph surface.
  * @module webview/components/Graph
  */
 
@@ -106,7 +106,6 @@ export default function Graph({
     edgeDecorations,
     favorites: viewState.favorites,
     graphViewContributions: resolvedGraphViewContributions,
-    graphMode: viewState.graphMode,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
     showLabels: viewState.showLabels,
@@ -124,7 +123,6 @@ export default function Graph({
     graphCursorRef: graphRuntime.graphCursorRef,
     graphDataRef: graphRuntime.renderer.graphDataRef,
     graphViewContributions: resolvedGraphViewContributions,
-    graphMode: viewState.graphMode,
     highlightedNeighborsRef: graphRuntime.highlightedNeighborsRef,
     highlightedNodeRef: graphRuntime.highlightedNodeRef,
     isMacPlatform,
@@ -137,13 +135,11 @@ export default function Graph({
     refs: {
       containerRef: graphRuntime.renderer.containerRef,
       fg2dRef: graphRuntime.renderer.fg2dRef,
-      fg3dRef: graphRuntime.renderer.fg3dRef,
       rightClickFallbackTimerRef: graphRuntime.context.rightClickFallbackTimerRef,
       rightMouseDownRef: graphRuntime.context.rightMouseDownRef,
       selectedNodesSetRef: graphRuntime.selection.selectedNodeIdsRef,
     },
     setContextSelection: graphRuntime.context.setSelection,
-    setHighlightVersion: graphRuntime.setHighlightVersion,
     setSelectedNodes: graphRuntime.selection.setSelectedNodeIds,
     timelineActive: viewState.timelineActive,
   });
@@ -153,7 +149,6 @@ export default function Graph({
   });
 
   useGraphDebugApi(buildGraphDebugOptions({
-    graphMode: viewState.graphMode,
     graphState: graphRuntime,
     interactions,
     win: getGraphWindow(),

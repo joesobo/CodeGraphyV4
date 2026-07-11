@@ -15,8 +15,6 @@ const harness = vi.hoisted(() => ({
 		containerBackgroundColor: 'var(--cg-popover-translucent)',
 		borderColor: '#d4d4d4',
 	})),
-	handleGraphSurface3dError: vi.fn(),
-	postMessage: vi.fn(),
 }));
 
 vi.mock('../../../../src/webview/components/graph/contextMenu/build/entries', () => ({
@@ -31,16 +29,8 @@ vi.mock('../../../../src/webview/components/graph/view/sharedPropsOptions', () =
 	buildGraphSharedPropsOptions: harness.buildGraphSharedPropsOptions,
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/error', () => ({
-	handleGraphSurface3dError: harness.handleGraphSurface3dError,
-}));
-
 vi.mock('../../../../src/webview/components/graph/rendering/surface/colors', () => ({
 	getGraphSurfaceColors: harness.getGraphSurfaceColors,
-}));
-
-vi.mock('../../../../src/webview/vscodeApi', () => ({
-	postMessage: harness.postMessage,
 }));
 
 function createGraphData(): GraphRuntime['renderer']['graphData'] {
@@ -116,10 +106,8 @@ function createViewState(): Pick<
 	| 'currentCommitSha'
 	| 'dagMode'
 	| 'favorites'
-	| 'graphMode'
 	| 'physicsSettings'
 	| 'pluginContextMenuItems'
-	| 'setGraphMode'
 	| 'timelineActive'
 	| 'timelineCommits'
 > {
@@ -134,10 +122,8 @@ function createViewState(): Pick<
 	return {
 		dagMode: 'td',
 		favorites: new Set(['src/app.ts']),
-		graphMode: '2d',
 		physicsSettings,
 		pluginContextMenuItems: [],
-		setGraphMode: vi.fn(),
 		timelineActive: true,
 		timelineCommits: [
 			{ sha: 'old', timestamp: 1, message: 'old', author: 'Ada', parents: [] },
@@ -153,11 +139,9 @@ describe('graph/viewport/model', () => {
 		harness.buildGraphSharedPropsOptions.mockClear();
 		harness.buildSharedGraphProps.mockClear();
 		harness.getGraphSurfaceColors.mockClear();
-		harness.handleGraphSurface3dError.mockClear();
-		harness.postMessage.mockClear();
 	});
 
-	it('builds shared props, menu entries, colors, and 3d fallback handling from the current graph state', () => {
+	it('builds shared props, menu entries, and colors from the current graph state', () => {
 		const graphData = createGraphData();
 		const interactions = createInteractions();
 		const handleEngineStop = vi.fn();
@@ -196,7 +180,6 @@ describe('graph/viewport/model', () => {
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
 			edges: graphData.links,
 			favorites: viewState.favorites,
-			graphMode: '2d',
 			graphViewContributions: undefined,
 			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,
@@ -209,14 +192,6 @@ describe('graph/viewport/model', () => {
 		expect(result.current.canvasBackgroundColor).toBe('transparent');
 		expect(result.current.containerBackgroundColor).toBe('var(--cg-popover-translucent)');
 		expect(result.current.borderColor).toBe('#d4d4d4');
-
-		result.current.onSurface3dError(new Error('WebGL failed'));
-
-		expect(harness.handleGraphSurface3dError).toHaveBeenCalledWith({
-			error: expect.any(Error),
-			postGraphMessage: harness.postMessage,
-			setGraphMode: viewState.setGraphMode,
-		});
 	});
 
 	it('recomputes shared props when the graph layout inputs change', () => {

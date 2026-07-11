@@ -17,8 +17,6 @@ describe('webview/graph/theme', () => {
       labelMutedForeground: 'LabelMutedForeground',
       linkHighlight: 'LinkHighlight',
       linkMuted: 'LinkMuted',
-      meshDimmed: 'MeshDimmed',
-      meshSelected: 'MeshSelected',
       nodeSelectionBorder: 'NodeSelectionBorder',
       stageBackground: 'EditorSurface',
       stageBorder: 'PanelBorder',

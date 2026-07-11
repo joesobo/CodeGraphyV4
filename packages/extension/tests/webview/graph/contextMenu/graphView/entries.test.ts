@@ -96,7 +96,6 @@ describe('buildGraphViewContextMenuEntries', () => {
     expect(entriesWithoutSeparator[0]?.kind).toBe('item');
     expect(item(entriesWithoutSeparator, 'Create Runtime Item').action).toMatchObject({
       kind: 'graphViewPlugin',
-      context: { graphMode: '2d' },
     });
   });
 
@@ -149,7 +148,6 @@ describe('buildGraphViewContextMenuEntries', () => {
         targets: ['source', 'target'],
       },
       edges: [{ id: 'source->target#runtime-link', runtimeEdgeType: 'runtime-link' }],
-      graphMode: '3d',
       graphViewContributions,
       includeSeparator: false,
       timelineActive: true,
@@ -162,7 +160,6 @@ describe('buildGraphViewContextMenuEntries', () => {
         pluginId: 'acme.tools',
         contributionId: 'inspect-runtime-link',
         context: {
-          graphMode: '3d',
           selectedEdgeIds: ['source->target#runtime-link'],
           selectedNodeIds: [],
           target: { kind: 'runtimeEdgeType', runtimeEdgeTypes: ['runtime-link'] },
@@ -311,7 +308,7 @@ describe('buildGraphViewContextMenuEntries', () => {
     }))).toEqual(['Explain Runtime Edge']);
   });
 
-  it('passes finite selected node positions with z coordinates', () => {
+  it('passes finite selected node positions', () => {
     const graphViewContributions = createContributions([{
       pluginId: 'acme.tools',
       contribution: {
@@ -331,8 +328,8 @@ describe('buildGraphViewContextMenuEntries', () => {
       },
       selection: { kind: 'node', targets: ['a.ts', 'b.ts'] },
       nodes: [
-        { id: 'a.ts', nodeType: 'file', x: 1, y: 2, z: 3 },
-        { id: 'b.ts', nodeType: 'file', x: Number.NaN, y: 4, z: 5 },
+        { id: 'a.ts', nodeType: 'file', x: 1, y: 2 },
+        { id: 'b.ts', nodeType: 'file', x: Number.NaN, y: 4 },
       ],
       graphViewContributions,
       includeSeparator: false,
@@ -344,7 +341,7 @@ describe('buildGraphViewContextMenuEntries', () => {
       context: {
         selectedNodeIds: ['a.ts', 'b.ts'],
         selectedNodePositions: {
-          'a.ts': { x: 1, y: 2, z: 3 },
+          'a.ts': { x: 1, y: 2 },
         },
       },
     });

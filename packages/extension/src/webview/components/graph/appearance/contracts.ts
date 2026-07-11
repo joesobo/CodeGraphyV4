@@ -4,8 +4,6 @@ export interface GraphAppearance {
   labelMutedForeground: string;
   linkHighlight: string;
   linkMuted: string;
-  meshDimmed: string;
-  meshSelected: string;
   nodeSelectionBorder: string;
   stageBackground: string;
   stageBorder: string;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, act, screen, waitFor } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
@@ -38,7 +38,6 @@ function setStore(overrides: Record<string, unknown> = {}) {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    graphMode: '2d',
     ...overrides,
   });
 }
@@ -240,20 +239,5 @@ describe('Graph: force-graph rendering', () => {
   it('provides zoomToFit method on the ref', () => {
     render(<Graph data={mockData} />);
     expect(mockMethods.zoomToFit).toBeDefined();
-  });
-});
-
-describe('Graph: 3D mode', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    setStore({ graphMode: '3d' });
-  });
-
-  it('renders ForceGraph3D when graphMode is 3d', async () => {
-    render(<Graph data={mockData} />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
-    });
   });
 });

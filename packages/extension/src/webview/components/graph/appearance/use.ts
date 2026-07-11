@@ -10,8 +10,6 @@ const GRAPH_APPEARANCE_KEYS = [
   'labelMutedForeground',
   'linkHighlight',
   'linkMuted',
-  'meshDimmed',
-  'meshSelected',
   'nodeSelectionBorder',
   'stageBackground',
   'stageBorder',

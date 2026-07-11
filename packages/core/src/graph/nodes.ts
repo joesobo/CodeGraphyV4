@@ -111,7 +111,6 @@ export function buildWorkspaceGraphNodes(
         color: DEFAULT_PACKAGE_NODE_COLOR,
         nodeType: 'package',
         shape2D: 'hexagon',
-        shape3D: 'cube',
       });
       continue;
     }

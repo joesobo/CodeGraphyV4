@@ -55,7 +55,6 @@ const baseData: IGraphData = {
 function createGraphState(graphData: IGraphData = baseData) {
 	const containerRef = { current: null };
 	const fg2dRef = { current: undefined };
-	const fg3dRef = { current: undefined } as GraphRuntime['renderer']['fg3dRef'];
 	const graphDataRuntime = {
 		nodes: graphData.nodes.map(node => ({ ...node })),
 		links: graphData.edges.map(edge => ({ ...edge })),
@@ -69,13 +68,11 @@ function createGraphState(graphData: IGraphData = baseData) {
 	const fileInfoCacheRef = { current: new Map() };
 	const lastContainerContextMenuEventRef = { current: 0 };
 	const lastGraphContextEventRef = { current: 0 };
-	const meshesRef = { current: new Map() };
 	const rightClickFallbackTimerRef = { current: null };
 	const rightMouseDownRef = { current: null };
 	const selectedNodesSetRef = { current: new Set() };
 	const setContextSelection = vi.fn();
 	const setSelectedNodes = vi.fn();
-	const spritesRef = { current: new Map() };
 	const triggerImageRerender = vi.fn();
 
 	return {
@@ -93,7 +90,6 @@ function createGraphState(graphData: IGraphData = baseData) {
 		edgeDecorationsRef: { current: {} },
 		graphCursorRef: { current: 'default' },
 		graphAppearanceRef: { current: {} },
-		highlightVersion: 0,
 		highlightedNeighborsRef: { current: new Set() },
 		highlightedNodeRef: { current: null },
 		lastClickRef: { current: 0 },
@@ -101,7 +97,6 @@ function createGraphState(graphData: IGraphData = baseData) {
 		renderer: {
 			containerRef,
 			fg2dRef,
-			fg3dRef,
 			graphData: graphDataRuntime,
 			graphDataRef,
 		},
@@ -109,15 +104,12 @@ function createGraphState(graphData: IGraphData = baseData) {
 			fileInfoCacheRef,
 			imageCacheVersion: 0,
 			invalidateImages: triggerImageRerender,
-			meshesRef,
-			spritesRef,
 		},
 		selection: {
 			selectedNodeIds: [],
 			selectedNodeIdsRef: selectedNodesSetRef,
 			setSelectedNodeIds: setSelectedNodes,
 		},
-		setHighlightVersion: vi.fn(),
 		showLabelsRef: { current: true },
 		themeRef: { current: 'dark' },
 		timelineActiveRef: { current: false },
@@ -176,7 +168,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
 		directionColor: '#22c55e',
 		directionMode: 'arrows',
 		favorites: new Set<string>(),
-		graphMode: '2d',
 		nodeSizeMode: 'connections',
 		particleSize: 2,
 		particleSpeed: 0.1,
@@ -211,8 +202,6 @@ describe('Graph wiring', () => {
 			labelMutedForeground: '#94a3b8',
 			linkHighlight: '#38bdf8',
 			linkMuted: '#64748b',
-			meshDimmed: '#475569',
-			meshSelected: '#e2e8f0',
 			nodeSelectionBorder: '#0ea5e9',
 			stageBackground: 'var(--cg-popover-translucent)',
 			stageBorder: 'transparent',
@@ -236,7 +225,6 @@ describe('Graph wiring', () => {
 			directionColor: '#ef4444',
 			directionMode: 'particles',
 			favorites,
-			graphMode: '3d',
 			nodeSizeMode: 'file-size',
 			particleSize: 7,
 			particleSpeed: 0.35,
@@ -257,7 +245,6 @@ describe('Graph wiring', () => {
 		}));
 		expect(harness.useGraphInteractionRuntime).toHaveBeenCalledWith(expect.objectContaining({
 			depthMode: true,
-			graphMode: '3d',
 			isMacPlatform: expect.any(Boolean),
 		}));
 		expect(harness.graphViewportShell.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
@@ -279,7 +266,6 @@ describe('Graph wiring', () => {
 			pluginHost: undefined,
 			theme: 'light',
 			viewState: expect.objectContaining({
-				graphMode: '3d',
 				nodeSizeMode: 'file-size',
 				particleSize: 7,
 				particleSpeed: 0.35,
@@ -333,26 +319,4 @@ describe('Graph wiring', () => {
 		}));
 	});
 
-	it('does not auto-fit after switching into 3d mode when the graph ref is ready', () => {
-		vi.useFakeTimers();
-		const graphState = createGraphState();
-		graphState.renderer.fg3dRef.current = {
-			d3Force: vi.fn().mockReturnValue({}),
-			getGraphBbox: vi.fn().mockReturnValue({ x: [0, 1], y: [0, 1], z: [0, 1] }),
-			zoomToFit: vi.fn(),
-		} as unknown as NonNullable<GraphRuntime['renderer']['fg3dRef']['current']>;
-		const interactionRuntime = createInteractionRuntime();
-		setStoreState({ graphMode: '3d' });
-		harness.useGraphRuntime.mockReturnValue(graphState);
-		harness.useGraphInteractionRuntime.mockReturnValue(interactionRuntime);
-
-		render(<Graph data={baseData} />);
-		expect(interactionRuntime.interactionHandlers.fitView).not.toHaveBeenCalled();
-
-		act(() => {
-			vi.runAllTimers();
-		});
-
-		expect(interactionRuntime.interactionHandlers.fitView).not.toHaveBeenCalled();
-	});
 });

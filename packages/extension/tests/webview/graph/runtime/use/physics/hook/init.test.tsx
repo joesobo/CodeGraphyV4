@@ -41,47 +41,7 @@ describe('webview/graph/runtime/use/physics/init', () => {
     physicsHarness.syncPhysicsAnimation.mockReset();
   });
 
-  it('defers the first 3d init by two frames and then initializes the graph', () => {
-    const graph = createGraph();
-    const frames: FrameRequestCallback[] = [];
-
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      frames.push(callback);
-      return frames.length;
-    }));
-    vi.stubGlobal('cancelAnimationFrame', vi.fn());
-
-    physicsHarness.resolvePhysicsInitAction.mockReturnValue({
-      instance: graph,
-      type: 'init',
-    });
-
-    renderHook(() => usePhysicsRuntimeInit({
-      fg2dRef: { current: undefined },
-      fg3dRef: { current: graph },
-      graphMode: '3d',
-      physicsInitialisedRef: { current: false },
-      physicsPaused: true,
-      physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: true },
-      previousPhysicsRef: { current: null },
-    }));
-
-    expect(physicsHarness.initPhysics).not.toHaveBeenCalled();
-    expect(frames).toHaveLength(1);
-
-    frames.shift()?.(0);
-
-    expect(physicsHarness.initPhysics).not.toHaveBeenCalled();
-    expect(frames).toHaveLength(1);
-
-    frames.shift()?.(0);
-
-    expect(physicsHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
-    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
-  });
-
-  it('initializes immediately in 2d mode and stores the current physics settings', () => {
+  it('initializes immediately and stores the current physics settings', () => {
     const graph = createGraph();
     const requestAnimationFrame = vi.fn();
     const cancelAnimationFrame = vi.fn();
@@ -100,19 +60,14 @@ describe('webview/graph/runtime/use/physics/init', () => {
 
     const { unmount } = renderHook(() => usePhysicsRuntimeInit({
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef,
       physicsPaused: false,
       physicsSettingsRef,
-      pendingThreeDimensionalInitRef: { current: false },
       previousPhysicsRef,
     }));
 
     expect(physicsHarness.resolvePhysicsInitAction).toHaveBeenCalledWith({
       fg2d: graph,
-      fg3d: undefined,
-      graphMode: '2d',
       physicsInitialised: false,
     });
     expect(physicsHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
@@ -136,12 +91,9 @@ describe('webview/graph/runtime/use/physics/init', () => {
 
     renderHook(() => usePhysicsRuntimeInit({
       fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef: { current: false },
       physicsPaused: false,
       physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
       previousPhysicsRef: { current: null },
     }));
 
@@ -150,8 +102,6 @@ describe('webview/graph/runtime/use/physics/init', () => {
     expect(requestAnimationFrame).not.toHaveBeenCalled();
     expect(physicsHarness.resolvePhysicsInitAction).toHaveBeenCalledWith({
       fg2d: undefined,
-      fg3d: undefined,
-      graphMode: '2d',
       physicsInitialised: false,
     });
   });
@@ -165,12 +115,9 @@ describe('webview/graph/runtime/use/physics/init', () => {
 
     const { unmount } = renderHook(() => usePhysicsRuntimeInit({
       fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef: { current: false },
       physicsPaused: false,
       physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
       previousPhysicsRef: { current: null },
     }));
 

@@ -30,17 +30,8 @@ const SETTINGS: IPhysicsSettings = {
 
 type UsePhysicsRuntimeOptions = Parameters<typeof usePhysicsRuntime>[0];
 type Graph2DCurrent = UsePhysicsRuntimeOptions['fg2dRef']['current'];
-type Graph3DCurrent = UsePhysicsRuntimeOptions['fg3dRef']['current'];
-
 function create2DGraph(): Graph2DCurrent {
   return {} as Graph2DCurrent;
-}
-
-function create3DGraph(): Graph3DCurrent {
-  return {
-    d3Force: vi.fn().mockReturnValue({}),
-    getGraphBbox: vi.fn().mockReturnValue({ x: [0, 1], y: [0, 1], z: [0, 1] }),
-  } as Graph3DCurrent;
 }
 
 function createForceGraph(): Graph2DCurrent & {
@@ -108,8 +99,6 @@ describe('usePhysicsRuntime', () => {
   it('does not check for setting changes before initialization completes', () => {
     renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: create2DGraph() },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
     }));
@@ -122,8 +111,6 @@ describe('usePhysicsRuntime', () => {
 
     renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
     }));
@@ -145,8 +132,6 @@ describe('usePhysicsRuntime', () => {
     const { rerender } = renderHook(
       ({ physicsSettings }) => usePhysicsRuntime({
         fg2dRef,
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey: 'layout:a',
         physicsSettings,
       }),
@@ -187,8 +172,6 @@ describe('usePhysicsRuntime', () => {
 
     const { unmount } = renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
     }));
@@ -206,8 +189,6 @@ describe('usePhysicsRuntime', () => {
 
     const { unmount } = renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: create2DGraph() },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
     }));
@@ -223,8 +204,6 @@ describe('usePhysicsRuntime', () => {
     const { rerender } = renderHook(
       ({ physicsSettings }) => usePhysicsRuntime({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey: 'layout:a',
         physicsSettings,
       }),
@@ -253,8 +232,6 @@ describe('usePhysicsRuntime', () => {
     const { rerender } = renderHook(
       ({ physicsSettings }) => usePhysicsRuntime({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey: 'layout:a',
         physicsSettings,
       }),
@@ -290,8 +267,6 @@ describe('usePhysicsRuntime', () => {
     const { rerender } = renderHook(
       ({ physicsSettings }) => usePhysicsRuntime({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey: 'layout:a',
         physicsSettings,
       }),
@@ -307,52 +282,12 @@ describe('usePhysicsRuntime', () => {
     expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledWith(graph, updatedSettings);
   });
 
-  it('reinitializes physics when the graph mode changes', () => {
-    const graph2D = create2DGraph();
-    const graph3D = create3DGraph();
-    const frames: FrameRequestCallback[] = [];
-
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      frames.push(callback);
-      return frames.length;
-    }));
-    vi.stubGlobal('cancelAnimationFrame', vi.fn());
-
-    const { rerender } = renderHook(
-      ({ graphMode }: { graphMode: '2d' | '3d' }) => usePhysicsRuntime({
-        fg2dRef: { current: graph2D },
-        fg3dRef: { current: graph3D },
-        graphMode,
-        layoutKey: 'layout:a',
-        physicsSettings: SETTINGS,
-      }),
-      { initialProps: { graphMode: '2d' as const } },
-    );
-
-    rerender({ graphMode: '3d' as never });
-
-    expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(1, graph2D, SETTINGS);
-    expect(physicsHarness.initPhysics).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      frames.shift()?.(16);
-    });
-
-    act(() => {
-      frames.shift()?.(32);
-    });
-
-    expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(2, graph3D, SETTINGS);
-  });
-
   it('syncs pause and resume requests to the active graph', () => {
     const graph = create2DGraph();
 
     const { rerender } = renderHook(
       ({ physicsPaused }: { physicsPaused: boolean }) => usePhysicsRuntime({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey: 'layout:a',
         physicsPaused,
         physicsSettings: SETTINGS,
@@ -386,9 +321,7 @@ describe('usePhysicsRuntime', () => {
 
     renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
       graphDataRef: { current: { nodes: [], links: [] } },
-      graphMode: '2d',
       graphViewContributions,
       layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
@@ -397,49 +330,12 @@ describe('usePhysicsRuntime', () => {
     expect(forcePhysicsSettings).toEqual([SETTINGS]);
   });
 
-  it('syncs the active graph immediately when initialization completes in a paused state', () => {
-    const graph = create3DGraph();
-    const frames: FrameRequestCallback[] = [];
-
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      frames.push(callback);
-      return frames.length;
-    }));
-    vi.stubGlobal('cancelAnimationFrame', vi.fn());
-
-    renderHook(() => usePhysicsRuntime({
-      fg2dRef: { current: undefined },
-      fg3dRef: { current: graph },
-      graphMode: '3d',
-      layoutKey: 'layout:a',
-      physicsPaused: true,
-      physicsSettings: SETTINGS,
-    }));
-
-    expect(physicsHarness.initPhysics).not.toHaveBeenCalled();
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-
-    act(() => {
-      frames.shift()?.(16);
-    });
-
-    act(() => {
-      frames.shift()?.(32);
-    });
-
-    expect(physicsHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
-    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledOnce();
-    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
-  });
-
   it('reheats the graph when the layout key changes', () => {
     const graph = create2DGraph();
 
     const { rerender } = renderHook(
       ({ layoutKey }: { layoutKey: string }) => usePhysicsRuntime({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey,
         physicsSettings: SETTINGS,
       }),

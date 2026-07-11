@@ -48,7 +48,6 @@ describe('search filtering', () => {
         pattern: 'src/**',
         color: '#ff0000',
         shape2D: 'diamond',
-        shape3D: 'cube',
       },
     ];
 
@@ -57,7 +56,6 @@ describe('search filtering', () => {
     expect(result?.nodes[0]).toMatchObject({
       color: '#00ff00',
       shape2D: 'diamond',
-      shape3D: 'cube',
       imageUrl: 'icon.png',
     });
   });

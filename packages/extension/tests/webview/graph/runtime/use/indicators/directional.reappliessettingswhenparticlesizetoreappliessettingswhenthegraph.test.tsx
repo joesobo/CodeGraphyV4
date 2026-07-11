@@ -49,7 +49,6 @@ function createHookOptions(
   return {
     ...createDirectionalOptions(),
     fg2dRef: createRef(createGraph()),
-    graphMode: '2d',
     ...overrides,
   };
 }

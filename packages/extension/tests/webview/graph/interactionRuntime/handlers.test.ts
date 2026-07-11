@@ -2,9 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   ForceGraphMethods as FG2DMethods,
 } from 'react-force-graph-2d';
-import type {
-  ForceGraphMethods as FG3DMethods,
-} from 'react-force-graph-3d';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
@@ -38,21 +35,15 @@ function createDependencies(
   const container = document.createElement('div');
   const setSelectedNodes = vi.fn();
   const setContextSelection = vi.fn();
-  const setHighlightVersion = vi.fn();
   const fg2d = {
     centerAt: vi.fn(),
     zoom: vi.fn(() => 1),
   } as unknown as FG2DMethods<FGNode, FGLink>;
-  const fg3d = {
-    zoomToFit: vi.fn(),
-  } as unknown as FG3DMethods<FGNode, FGLink>;
-
   return {
     containerRef: createRef(container),
     dataRef: createRef(graphData),
     depthMode: false,
     fg2dRef: createRef(fg2d),
-    fg3dRef: createRef(fg3d),
     fileInfoCacheRef: createRef(new Map()),
     graphCursorRef: createRef<'default' | 'pointer'>('default'),
     graphDataRef: createRef({
@@ -64,7 +55,6 @@ function createDependencies(
         target: edge.to,
       }) as unknown as FGLink),
     }),
-    graphMode: '2d',
     highlightedNeighborsRef: createRef(new Set<string>()),
     highlightedNodeRef: createRef<string | null>(null),
     isMacPlatform: false,
@@ -72,7 +62,6 @@ function createDependencies(
     lastGraphContextEventRef: createRef(0),
     selectedNodesSetRef: createRef(new Set<string>()),
     setContextSelection,
-    setHighlightVersion,
     setSelectedNodes,
     ...overrides,
   };
@@ -111,10 +100,8 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(dependencies.graphCursorRef.current).toBe('pointer');
   });
 
-  it('tracks highlighted neighbors and bumps 3d highlight state', () => {
-    const dependencies = createDependencies({
-      graphMode: '3d',
-    });
+  it('tracks highlighted neighbors', () => {
+    const dependencies = createDependencies();
     const handlers = createGraphInteractionHandlers(dependencies);
 
     handlers.setHighlight('src/app.ts');
@@ -124,7 +111,6 @@ describe('graph/interactionRuntime/handlers', () => {
       'src/utils.ts',
       'src/other.ts',
     ]);
-    expect(dependencies.setHighlightVersion).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it('updates node selection and opens the node context menu', () => {
@@ -152,29 +138,14 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(dependencies.lastGraphContextEventRef.current).toBeGreaterThan(0);
   });
 
-  it('focuses nodes in 2d and 3d graph modes', () => {
-    const twoDimensional = createDependencies({
-      graphMode: '2d',
-    });
-    const twoDimensionalHandlers = createGraphInteractionHandlers(twoDimensional);
+  it('focuses nodes in the 2d graph', () => {
+    const dependencies = createDependencies();
+    const handlers = createGraphInteractionHandlers(dependencies);
 
-    twoDimensionalHandlers.focusNodeById('src/app.ts');
+    handlers.focusNodeById('src/app.ts');
 
-    expect(twoDimensional.fg2dRef.current?.centerAt).toHaveBeenCalledWith(0, 0, 300);
-    expect(twoDimensional.fg2dRef.current?.zoom).toHaveBeenCalledWith(1.5, 300);
-
-    const threeDimensional = createDependencies({
-      graphMode: '3d',
-    });
-    const threeDimensionalHandlers = createGraphInteractionHandlers(threeDimensional);
-
-    threeDimensionalHandlers.focusNodeById('src/app.ts');
-
-    expect(threeDimensional.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(
-      300,
-      20,
-      expect.any(Function),
-    );
+    expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(0, 0, 300);
+    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenCalledWith(1.5, 300);
   });
 
   it('handles node clicks through the interaction model and effect runner', () => {

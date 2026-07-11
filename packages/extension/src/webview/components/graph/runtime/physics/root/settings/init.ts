@@ -9,7 +9,7 @@ import { getRootGraphCenterStrength, getRootGraphCollisionRadius } from '../coll
 export function initPhysics(
 	instance: GraphPhysicsInstance,
 	settings: IPhysicsSettings,
-	options: GraphPhysicsOptions = { graphMode: '2d' },
+	options: GraphPhysicsOptions = {},
 ): void {
 	const graph = instance as GraphPhysicsControls;
 	applyPhysicsSettings(instance, settings, options);

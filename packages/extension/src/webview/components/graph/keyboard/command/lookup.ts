@@ -27,7 +27,7 @@ function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardComma
 
 function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {
   return (
-    getZoomShortcutCommand(options.key, options.isMod, options.graphMode) ??
+    getZoomShortcutCommand(options.key, options.isMod) ??
     getHistoryShortcutCommand(options.key, options.isMod, options.shiftKey) ??
     getToolbarShortcutCommand(options.key, options.isMod)
   );

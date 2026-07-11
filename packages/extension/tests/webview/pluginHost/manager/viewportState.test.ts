@@ -24,7 +24,16 @@ describe('webview/pluginHost/manager/viewportState', () => {
       { listener: first },
       { listener: second, pluginId: 'plugin.two' },
     ]);
-    const state = { graphMode: '3d' as const };
+    const state = {
+      graphToScreen: vi.fn(),
+      nodes: [],
+      reheatSimulation: vi.fn(),
+      resumeAnimation: vi.fn(),
+      screenToGraph: vi.fn(),
+      timelineActive: false,
+      updateNode: vi.fn(),
+      zoom: 1,
+    };
 
     notifyGraphViewViewportStateListeners(entries, state as never);
 

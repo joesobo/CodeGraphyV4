@@ -12,18 +12,15 @@ import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { GraphRuntime } from '../runtime/use/state';
 import { buildSharedGraphProps } from '../rendering/surface/sharedProps';
 import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
-import { handleGraphSurface3dError } from '../rendering/surface/error';
 import { getGraphSurfaceColors } from '../rendering/surface/colors';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
-import { postMessage } from '../../../vscodeApi';
 
 export interface GraphViewportModel {
   canvasBackgroundColor: string;
   containerBackgroundColor: string;
   borderColor: string;
   menuEntries: GraphContextMenuEntry[];
-  onSurface3dError(this: void, error: Error): void;
   sharedProps: ReturnType<typeof buildSharedGraphProps>;
 }
 
@@ -43,10 +40,8 @@ export interface GraphViewportModelOptions {
     | 'currentCommitSha'
     | 'dagMode'
     | 'favorites'
-    | 'graphMode'
     | 'physicsSettings'
     | 'pluginContextMenuItems'
-    | 'setGraphMode'
     | 'timelineActive'
     | 'timelineCommits'
   >;
@@ -84,7 +79,6 @@ export function useGraphViewportModel({
 
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
-    graphMode: viewState.graphMode,
     timelineActive: viewState.timelineActive,
     mutationAvailability: getGraphContextMutationAvailability(viewState),
     favorites: viewState.favorites,
@@ -95,20 +89,12 @@ export function useGraphViewportModel({
   });
 
   const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);
-  const onSurface3dError = (error: Error): void => {
-    handleGraphSurface3dError({
-      error,
-      postGraphMessage: postMessage,
-      setGraphMode: viewState.setGraphMode,
-    });
-  };
 
   return {
     canvasBackgroundColor,
     containerBackgroundColor,
     borderColor,
     menuEntries,
-    onSurface3dError,
     sharedProps,
   };
 }

@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/physics';
 import {
   usePhysicsRuntimeLayoutKey,
-  usePhysicsRuntimeLayoutReset,
 } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/layout';
 
 const physicsHarness = vi.hoisted(() => ({
@@ -45,13 +44,10 @@ describe('webview/graph/runtime/use/physics/layout', () => {
 
     const refs = {
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
       layoutKey: 'layout:a',
       physicsPaused: true,
       physicsInitialisedRef: { current: true },
       physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
       previousLayoutKeyRef: { current: null as string | null },
       previousPhysicsRef: { current: null as IPhysicsSettings | null },
     };
@@ -76,13 +72,10 @@ describe('webview/graph/runtime/use/physics/layout', () => {
 
     const refs = {
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
       layoutKey: 'layout:a',
       physicsPaused: false,
       physicsInitialisedRef: { current: true },
       physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
       previousLayoutKeyRef: { current: null as string | null },
       previousPhysicsRef: { current: null as IPhysicsSettings | null },
     };
@@ -107,13 +100,10 @@ describe('webview/graph/runtime/use/physics/layout', () => {
 
     const refs = {
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
       layoutKey: 'layout:a',
       physicsPaused: false,
       physicsInitialisedRef: { current: true },
       physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
       previousLayoutKeyRef: { current: null as string | null },
       previousPhysicsRef: { current: null as IPhysicsSettings | null },
     };
@@ -131,13 +121,10 @@ describe('webview/graph/runtime/use/physics/layout', () => {
 
     const refs = {
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
       layoutKey: 'layout:a',
       physicsPaused: false,
       physicsInitialisedRef: { current: true },
       physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
       previousLayoutKeyRef: { current: 'layout:a' as string | null },
       previousPhysicsRef: { current: null as IPhysicsSettings | null },
     };
@@ -156,63 +143,12 @@ describe('webview/graph/runtime/use/physics/layout', () => {
     expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
   });
 
-  it('resets runtime state when the graph mode changes', () => {
-    const refs = {
-      fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsInitialisedRef: { current: true },
-      physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: false },
-      previousLayoutKeyRef: { current: 'layout:a' as string | null },
-      previousPhysicsRef: { current: SETTINGS as IPhysicsSettings | null },
-    };
-
-    const { rerender } = renderHook(
-      ({ graphMode }: { graphMode: '2d' | '3d' }) => usePhysicsRuntimeLayoutReset({
-        ...refs,
-        graphMode,
-      }),
-      { initialProps: { graphMode: '2d' as '2d' | '3d' } },
-    );
-
-    rerender({ graphMode: '3d' });
-
-    expect(refs.physicsInitialisedRef.current).toBe(false);
-    expect(refs.pendingThreeDimensionalInitRef.current).toBe(true);
-    expect(refs.previousLayoutKeyRef.current).toBeNull();
-    expect(refs.previousPhysicsRef.current).toBeNull();
-  });
-
-  it('keeps deferred 3d init disabled in 2d mode', () => {
-    const refs = {
-      fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsInitialisedRef: { current: true },
-      physicsSettingsRef: { current: SETTINGS },
-      pendingThreeDimensionalInitRef: { current: true },
-      previousLayoutKeyRef: { current: 'layout:a' as string | null },
-      previousPhysicsRef: { current: SETTINGS as IPhysicsSettings | null },
-    };
-
-    renderHook(() => usePhysicsRuntimeLayoutReset(refs));
-
-    expect(refs.pendingThreeDimensionalInitRef.current).toBe(false);
-  });
-
   it('does not reapply settings when the graph is present but not initialized', () => {
     const graph = {} as never;
     physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
 
     const refs = {
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d' as const,
       layoutKey: 'layout:a',
       physicsPaused: false,
       physicsInitialisedRef: { current: false },

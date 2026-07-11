@@ -3,7 +3,6 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { GraphViewStoreState } from '../../view/store';
 import {
   createGraphAccessibilityItems,
   type GraphAccessibilityItems,
@@ -14,7 +13,6 @@ import type { FGLink, FGNode } from '../../model/build';
 export function publishCurrentGraphAccessibilityItems({
   accessibilityDirtyRef,
   graph,
-  graphMode,
   lastAccessibilitySignatureRef,
   links,
   nodes,
@@ -22,13 +20,12 @@ export function publishCurrentGraphAccessibilityItems({
 }: {
   accessibilityDirtyRef: MutableRefObject<boolean>;
   graph: GraphScreenProjector | undefined;
-  graphMode: GraphViewStoreState['graphMode'];
   lastAccessibilitySignatureRef: MutableRefObject<string>;
   links: readonly FGLink[];
   nodes: readonly FGNode[];
   setAccessibilityItems: Dispatch<SetStateAction<GraphAccessibilityItems>>;
 }): void {
-  if (graphMode !== '2d' || !accessibilityDirtyRef.current) {
+  if (!accessibilityDirtyRef.current) {
     return;
   }
 

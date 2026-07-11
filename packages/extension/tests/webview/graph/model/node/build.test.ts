@@ -20,7 +20,6 @@ describe('graph/model/node/build', () => {
           id: 'favorite.ts',
           label: 'favorite.ts',
           color: '#80c0ff',
-          shape3D: 'cube',
           imageUrl: 'https://example.test/favorite.png',
         },
       ],
@@ -48,7 +47,6 @@ describe('graph/model/node/build', () => {
       borderWidth: 3,
       imageUrl: 'https://example.test/favorite.png',
       isFavorite: true,
-      shape3D: 'cube',
       size: 18,
     });
   });
@@ -155,26 +153,21 @@ describe('graph/model/node/build', () => {
           id: 'survives.ts',
           x: 100,
           y: 200,
-          z: 300,
           vx: 1,
           vy: 2,
-          vz: 3,
-        } satisfies Pick<FGNode, 'id' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>,
+        } satisfies Pick<FGNode, 'id' | 'vx' | 'vy' | 'x' | 'y'>,
       ],
     });
 
     expect(nodes.find(node => node.id === 'survives.ts')).toMatchObject({
       vx: 1,
       vy: 2,
-      vz: 3,
       x: 100,
       y: 200,
-      z: 300,
     });
     expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({
       x: undefined,
       y: undefined,
-      z: undefined,
     });
   });
 

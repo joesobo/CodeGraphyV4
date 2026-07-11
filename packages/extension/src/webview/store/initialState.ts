@@ -27,7 +27,6 @@ export const INITIAL_STATE: GraphStateFields = {
   physicsPaused: false,
   showLabels: true,
   cssSnippets: {},
-  graphMode: '2d' as const,
   graphViewportScale: null,
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,

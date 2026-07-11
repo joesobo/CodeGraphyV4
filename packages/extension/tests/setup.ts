@@ -13,9 +13,8 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
-// Mock react-force-graph-2d / react-force-graph-3d (require canvas/WebGL which jsdom doesn't support)
+// react-force-graph requires Canvas APIs that jsdom does not support.
 vi.mock('react-force-graph-2d', () => import('./__mocks__/react-force-graph-2d'));
-vi.mock('react-force-graph-3d', () => import('./__mocks__/react-force-graph-3d'));
 
 // Track messages sent to extension — globally accessible for tests via helpers/sentMessages.ts
 (globalThis as unknown as VscodeSentMessagesGlobal).__vscodeSentMessages = [];

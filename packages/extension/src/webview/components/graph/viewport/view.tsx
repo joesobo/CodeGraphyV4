@@ -34,7 +34,6 @@ export function Viewport({
   borderColor,
   containerRef,
   directionMode,
-  graphMode,
   handleContextMenu,
   handleMenuAction,
   handleMouseDownCapture,
@@ -48,9 +47,7 @@ export function Viewport({
   marqueeSelection,
   menuEntries,
   surface2dProps,
-  surface3dProps,
   tooltipData,
-  onSurface3dError,
   pluginHost,
 }: ViewportProps): ReactElement {
   const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
@@ -82,10 +79,7 @@ export function Viewport({
           <MemoizedViewportSurface
             canvasBackgroundColor={canvasBackgroundColor}
             directionMode={directionMode}
-            graphMode={graphMode}
-            onSurface3dError={onSurface3dError}
             surface2dProps={surface2dProps}
-            surface3dProps={surface3dProps}
           />
           <ViewportPluginWorldOverlay pluginHost={pluginHost} />
           <ViewportPluginOverlay pluginHost={pluginHost} />

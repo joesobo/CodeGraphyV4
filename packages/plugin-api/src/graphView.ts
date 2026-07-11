@@ -26,7 +26,6 @@ export interface IGraphViewContributionBase {
 
 export interface IGraphViewContributionContext {
   visibleGraph: IGraphData;
-  graphMode?: '2d' | '3d';
   timelineActive?: boolean;
   workspaceRoot?: string;
 }
@@ -34,13 +33,10 @@ export interface IGraphViewContributionContext {
 export interface IGraphViewRuntimeNodePositionState {
   x?: number | undefined;
   y?: number | undefined;
-  z?: number | undefined;
   fx?: number | undefined;
   fy?: number | undefined;
-  fz?: number | undefined;
   vx?: number | undefined;
   vy?: number | undefined;
-  vz?: number | undefined;
 }
 
 export interface IGraphViewRuntimeNode extends IGraphNode, IGraphViewRuntimeNodePositionState {
@@ -95,7 +91,6 @@ export interface IGraphViewNodeDragState extends IGraphViewRuntimeNode {
 }
 
 export interface IGraphViewNodeDragEndContext {
-  graphMode: '2d' | '3d';
   node: IGraphViewNodeDragState;
   nodes: readonly IGraphViewNodeDragState[];
   timelineActive: boolean;
@@ -149,12 +144,11 @@ export type GraphViewContextMenuTargetSelector =
 
 export interface IGraphViewContextMenuRunContext {
   target: GraphViewContextMenuTargetSelector;
-  graphMode: '2d' | '3d';
   timelineActive: boolean;
   selectedNodeIds: readonly string[];
   selectedEdgeIds: readonly string[];
   graphPosition?: { x: number; y: number };
-  selectedNodePositions?: Readonly<Record<string, { x: number; y: number; z?: number }>>;
+  selectedNodePositions?: Readonly<Record<string, { x: number; y: number }>>;
 }
 
 export interface IGraphViewContextMenuContribution extends IGraphViewContributionBase {

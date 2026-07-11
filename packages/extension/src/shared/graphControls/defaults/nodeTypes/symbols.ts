@@ -188,7 +188,7 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       matchSymbolKinds: ['type'],
       description: {
         description: 'Type aliases and named type definitions.',
-        examples: [{ code: 'type GraphMode = "2d" | "3d";' }],
+        examples: [{ code: 'type LayoutMode = "free" | "layered";' }],
       },
     },
     {
@@ -224,7 +224,7 @@ export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       matchSymbolKinds: ['enum'],
       description: {
         description: 'Enum declarations that define a named set of values.',
-        examples: [{ code: 'enum GraphMode { TwoD, ThreeD }' }],
+        examples: [{ code: 'enum LayoutMode { Free, Layered }' }],
       },
     },
     {

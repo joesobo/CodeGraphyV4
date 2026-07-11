@@ -23,7 +23,6 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary, sibling, outside] },
-      graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
     });
 
@@ -51,12 +50,10 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary, sibling] },
-      graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
     });
     applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary, sibling] },
-      graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
     }, firstSession);
 
@@ -85,7 +82,6 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary] },
-      graphMode: '2d',
       selectedNodeIds: new Set(),
     });
 
@@ -115,7 +111,6 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary] },
-      graphMode: '2d',
       selectedNodeIds: new Set(),
     });
     primary.x = 25;
@@ -124,7 +119,6 @@ describe('graph/runtime/use/interaction node drag', () => {
     primary.fy = 6;
     applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary] },
-      graphMode: '2d',
       selectedNodeIds: new Set(),
     }, firstSession);
 
@@ -145,7 +139,6 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     expect(() => applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary, sibling] },
-      graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
     }, {
       draggedNodeIds: new Set(['primary', 'missing', 'sibling']),
@@ -160,7 +153,6 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     const session = applyNodeDrag(primary, { x: Number.NaN, y: -3 }, {
       graphData: { nodes: [primary, sibling] },
-      graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
     });
 
@@ -175,17 +167,15 @@ describe('graph/runtime/use/interaction node drag', () => {
       id: 'node',
       fx: 12,
       fy: 24,
-      fz: 36,
       isDragging: true,
       isPinned: false,
-    } as unknown as FGNode;
+    } as FGNode;
 
-    postNodeDragEndMessages(node, '3d');
+    postNodeDragEndMessages(node);
 
     expect(node).toMatchObject({
       fx: 12,
       fy: 24,
-      fz: 36,
       isDragging: false,
     });
   });
@@ -195,17 +185,15 @@ describe('graph/runtime/use/interaction node drag', () => {
       id: 'node',
       fx: 12,
       fy: 24,
-      fz: 36,
       isDragging: true,
       isPinned: true,
-    } as unknown as FGNode;
+    } as FGNode;
 
-    postNodeDragEndMessages(node, '3d');
+    postNodeDragEndMessages(node);
 
     expect(node).toMatchObject({
       fx: 12,
       fy: 24,
-      fz: 36,
       isDragging: false,
     });
   });
@@ -220,7 +208,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     } as FGNode;
     const onNodeDragEnd = vi.fn(() => ({ keepFixedPosition: true }));
 
-    postNodeDragEndMessages(node, '2d', {
+    postNodeDragEndMessages(node, {
       nodeDragEnd: [{
         pluginId: 'acme.graph-tools',
         contribution: {
@@ -232,7 +220,6 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
 
     expect(onNodeDragEnd).toHaveBeenCalledWith({
-      graphMode: '2d',
       node,
       nodes: [node],
       timelineActive: false,
@@ -270,7 +257,6 @@ describe('graph/runtime/use/interaction node drag', () => {
       null,
       {
         graphData: { nodes: [node, pluginRuntimeNode] },
-        graphMode: '2d',
         graphViewContributions: {
           nodeDragEnd: [{
             pluginId: 'acme.graph-tools',
@@ -286,7 +272,6 @@ describe('graph/runtime/use/interaction node drag', () => {
     );
 
     expect(onNodeDragEnd).toHaveBeenCalledWith({
-      graphMode: '2d',
       node,
       nodes: [node, pluginRuntimeNode],
       timelineActive: true,
@@ -305,7 +290,6 @@ describe('graph/runtime/use/interaction node drag', () => {
       },
       {
         graphData: { nodes: [primary, sibling] },
-        graphMode: '2d',
       },
     );
 

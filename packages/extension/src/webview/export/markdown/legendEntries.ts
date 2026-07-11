@@ -15,7 +15,6 @@ export function appendLegendLines(lines: string[], data: ExportData): void {
     lines.push(
       `- \`${rule.pattern}\` (${rule.color})${joinLegendExtras([
         rule.shape2D,
-        rule.shape3D,
         rule.imagePath ? `image: ${rule.imagePath}` : undefined,
         rule.pluginName ? `plugin: ${rule.pluginName}` : undefined,
       ])}`,

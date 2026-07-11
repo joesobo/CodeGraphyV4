@@ -20,7 +20,6 @@ describe('GraphStore initial state', () => {
     expect(state.particleSpeed).toBe(0.005);
     expect(state.particleSize).toBe(4);
     expect(state.showLabels).toBe(true);
-    expect(state.graphMode).toBe('2d');
     expect(state.nodeSizeMode).toBe('connections');
   });
 

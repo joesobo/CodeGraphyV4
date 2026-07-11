@@ -3,7 +3,6 @@ import { expect, test, type Page } from '@playwright/test';
 interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
-  graphMode: '2d' | '3d';
   nodes: Array<{
     id: string;
     screenX: number;
@@ -11,27 +10,6 @@ interface GraphDebugSnapshot {
     size: number;
   }>;
   zoom: number | null;
-}
-
-async function disableWebgl(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const originalGetContext = HTMLCanvasElement.prototype.getContext;
-
-    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-      configurable: true,
-      value(this: HTMLCanvasElement, contextId: string, options?: unknown) {
-        if (
-          contextId === 'webgl'
-          || contextId === 'webgl2'
-          || contextId === 'experimental-webgl'
-        ) {
-          return null;
-        }
-
-        return originalGetContext.call(this, contextId, options as never);
-      },
-    });
-  });
 }
 
 async function waitForGraphDebugBridge(page: Page): Promise<void> {
@@ -68,75 +46,12 @@ async function refitGraphForVisualAssertion(page: Page, padding = 176): Promise<
 async function openDisplaySettings(page: Page): Promise<void> {
   await page.getByTitle('Settings').click();
   await page.getByRole('button', { name: 'Display' }).click();
-  await expect(page.getByRole('button', { name: '2D' })).toBeVisible();
   await expect(page.getByRole('switch', { name: 'Depth Mode' })).toBeVisible();
 }
 
 async function toggleDepthModeFromSettings(page: Page): Promise<void> {
   await openDisplaySettings(page);
   await page.getByRole('switch', { name: 'Depth Mode' }).click();
-}
-
-async function selectRendererFromSettings(page: Page, renderer: '2D' | '3D'): Promise<void> {
-  await openDisplaySettings(page);
-  await page.getByRole('button', { name: renderer }).click();
-}
-
-async function countVisibleWebglSamples(page: Page): Promise<number> {
-  return page.evaluate(async () => {
-    const canvas = document.querySelector('.graph-container canvas');
-    if (!(canvas instanceof HTMLCanvasElement)) {
-      return 0;
-    }
-
-    return new Promise<number>((resolve) => {
-      requestAnimationFrame(() => {
-        const width = canvas.width;
-        const height = canvas.height;
-        if (width === 0 || height === 0) {
-          resolve(0);
-          return;
-        }
-
-        const snapshotCanvas = document.createElement('canvas');
-        snapshotCanvas.width = width;
-        snapshotCanvas.height = height;
-
-        const context = snapshotCanvas.getContext('2d');
-        if (!context) {
-          resolve(0);
-          return;
-        }
-
-        context.drawImage(canvas, 0, 0, width, height);
-
-        const samplePoints = [
-          [0.25, 0.25],
-          [0.5, 0.25],
-          [0.75, 0.25],
-          [0.25, 0.5],
-          [0.5, 0.5],
-          [0.75, 0.5],
-          [0.25, 0.75],
-          [0.5, 0.75],
-          [0.75, 0.75],
-        ];
-
-        let visibleSamples = 0;
-        for (const [xRatio, yRatio] of samplePoints) {
-          const x = Math.min(width - 1, Math.max(0, Math.floor(width * xRatio)));
-          const y = Math.min(height - 1, Math.max(0, Math.floor(height * yRatio)));
-          const [red, green, blue, alpha] = context.getImageData(x, y, 1, 1).data;
-          const isBackground = alpha === 255 && red === 24 && green === 24 && blue === 27;
-          if (!isBackground) {
-            visibleSamples += 1;
-          }
-        }
-
-        resolve(visibleSamples);
-      });
-    });
-  });
 }
 
 function expectNodesToFit(snapshot: GraphDebugSnapshot): void {
@@ -198,104 +113,4 @@ test.describe('webview depth view', () => {
     expectNodesToFit(await refitGraphForVisualAssertion(page));
   });
 
-  test('falls back to 2d when 3d mode cannot create a WebGL context', async ({ page }) => {
-    await disableWebgl(page);
-    await page.goto('/depth-view');
-
-    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-
-    await selectRendererFromSettings(page, '3D');
-
-    await expect.poll(async () => page.locator('.graph-container canvas').count()).toBeGreaterThan(0);
-    await expect.poll(async () => {
-      const snapshot = await getGraphDebugSnapshot(page);
-      return snapshot.graphMode;
-    }).toBe('2d');
-  });
-
-  test('keeps the app alive when 3d mode falls back to 2d', async ({ page }) => {
-    await disableWebgl(page);
-    const pageErrors: string[] = [];
-    const consoleErrors: string[] = [];
-
-    page.on('pageerror', error => {
-      pageErrors.push(error.message);
-    });
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        consoleErrors.push(message.text());
-      }
-    });
-
-    await page.goto('/depth-view');
-    await waitForGraphDebugBridge(page);
-
-    await selectRendererFromSettings(page, '3D');
-
-    await expect.poll(async () => {
-      const snapshot = await getGraphDebugSnapshot(page);
-      return snapshot.graphMode;
-    }).toBe('2d');
-
-    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-
-    expect(pageErrors).toEqual([]);
-    expect(consoleErrors).not.toContain(
-      expect.stringContaining('Cannot read properties of undefined (reading \'tick\')'),
-    );
-  });
-
-  test('renders a working 3d graph without falling back or throwing runtime errors', async ({ page }) => {
-    const pageErrors: string[] = [];
-    const consoleErrors: string[] = [];
-
-    page.on('pageerror', error => {
-      pageErrors.push(error.message);
-    });
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        consoleErrors.push(message.text());
-      }
-    });
-
-    await page.goto('/depth-view');
-    await waitForGraphDebugBridge(page);
-
-    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-    await selectRendererFromSettings(page, '3D');
-
-    await expect.poll(async () => countVisibleWebglSamples(page)).toBeGreaterThan(0);
-
-    expect(pageErrors).toEqual([]);
-    expect(consoleErrors).not.toContain(
-      expect.stringContaining('Cannot read properties of undefined (reading \'tick\')'),
-    );
-  });
-
-  test('recovers 3d rendering after the graph container briefly reports zero size during toggle', async ({
-    page,
-  }) => {
-    await page.goto('/depth-view');
-    await waitForGraphDebugBridge(page);
-
-    await page.locator('.graph-container').evaluate((container: HTMLElement) => {
-      container.dataset.originalWidth = container.style.width;
-      container.dataset.originalHeight = container.style.height;
-      container.style.width = '0px';
-      container.style.height = '0px';
-    });
-
-    await selectRendererFromSettings(page, '3D');
-    await page.waitForFunction(() => {
-      const container = document.querySelector('.graph-container');
-      return container instanceof HTMLElement && container.clientWidth === 0 && container.clientHeight === 0;
-    });
-
-    await page.locator('.graph-container').evaluate((container: HTMLElement) => {
-      container.style.width = container.dataset.originalWidth ?? '';
-      container.style.height = container.dataset.originalHeight ?? '';
-    });
-
-    await expect.poll(async () => countVisibleWebglSamples(page)).toBeGreaterThan(0);
-  });
 });

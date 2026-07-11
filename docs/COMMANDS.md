@@ -18,7 +18,6 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | `CodeGraphy: Export Graph as Markdown` | Save the current graph data as markdown |
 | `CodeGraphy: Toggle Depth Mode` | Toggle Depth Mode on the Visible Graph |
 | `CodeGraphy: Cycle Layout` | Cycle through DAG layouts (Default → Radial → Top Down → Left to Right) |
-| `CodeGraphy: Toggle 2D/3D` | Switch between 2D canvas and 3D WebGL rendering |
 | `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and force graph data to rebuild |
 
 ## Command IDs
@@ -41,7 +40,6 @@ For keybinding customization or extension integration:
 | `codegraphy.exportMarkdown` | Export Graph as Markdown |
 | `codegraphy.toggleDepthMode` | Toggle Depth Mode |
 | `codegraphy.cycleLayout` | Cycle Layout |
-| `codegraphy.toggleDimension` | Toggle 2D/3D |
 | `codegraphy.clearCache` | Clear Cache and Refresh |
 
 See [Keybindings](./KEYBINDINGS.md) for default shortcuts and customization.

@@ -5,7 +5,6 @@ import { filterSyntheticPackageNodes } from '../../../../src/extension/graphView
 const graphData: IGraphData = {
   nodes: [
     { id: 'src/app.ts', label: 'app.ts', color: '#ffffff' },
-    { id: 'pkg:fs', label: 'fs', color: '#F59E0B', nodeType: 'package', shape2D: 'hexagon', shape3D: 'cube' },
   ],
   edges: [
     {

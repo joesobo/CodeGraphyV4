@@ -1,9 +1,8 @@
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import type { IPhysicsSettings } from '../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../model/build';
 
-export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
+export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink>;
 
 export const DEFAULT_CHARGE_RANGE = 1000;
 export const COLLISION_PADDING = 4;
@@ -22,7 +21,6 @@ export interface GraphCollisionForceControls {
 }
 
 export interface GraphPhysicsOptions {
-	graphMode: '2d' | '3d';
 	settings?: IPhysicsSettings;
 }
 

@@ -1,7 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import type { GraphViewCommandHandlers } from './dispatch';
 
-export async function applyGraphModeCommand(
+export async function applyGraphDisplayCommand(
   message: WebviewToExtensionMessage,
   handlers: GraphViewCommandHandlers,
 ): Promise<boolean> {

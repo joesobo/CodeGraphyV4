@@ -50,7 +50,6 @@ export function ToolbarActions({
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphViewContributions = useGraphViewContributions(pluginHost);
-  const graphMode = useGraphStore(s => s.graphMode);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
@@ -72,7 +71,6 @@ export function ToolbarActions({
         <LayoutModePopover />
         <NodeSizeModePopover />
         <CreateToolbarAction
-          graphMode={graphMode}
           graphViewContributions={graphViewContributions}
           timelineActive={timelineActive}
         />

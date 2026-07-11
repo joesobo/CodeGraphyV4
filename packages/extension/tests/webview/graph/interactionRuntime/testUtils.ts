@@ -2,9 +2,6 @@ import { vi } from 'vitest';
 import type {
   ForceGraphMethods as FG2DMethods,
 } from 'react-force-graph-2d';
-import type {
-  ForceGraphMethods as FG3DMethods,
-} from 'react-force-graph-3d';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlersDependencies } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
@@ -33,16 +30,11 @@ export function createInteractionDependencies(
     zoom: vi.fn(() => 1),
     zoomToFit: vi.fn(),
   } as unknown as FG2DMethods<FGNode, FGLink>;
-  const fg3d = {
-    zoomToFit: vi.fn(),
-  } as unknown as FG3DMethods<FGNode, FGLink>;
-
   return {
     containerRef: createRef(container),
     dataRef: createRef(graphData),
     depthMode: false,
     fg2dRef: createRef(fg2d),
-    fg3dRef: createRef(fg3d),
     fileInfoCacheRef: createRef(new Map()),
     graphCursorRef: createRef<'default' | 'pointer'>('default'),
     graphDataRef: createRef({
@@ -54,7 +46,6 @@ export function createInteractionDependencies(
         target: edge.to,
       }) as unknown as FGLink),
     }),
-    graphMode: '2d',
     highlightedNeighborsRef: createRef(new Set<string>()),
     highlightedNodeRef: createRef<string | null>(null),
     isMacPlatform: false,
@@ -62,7 +53,6 @@ export function createInteractionDependencies(
     lastGraphContextEventRef: createRef(0),
     selectedNodesSetRef: createRef(new Set<string>()),
     setContextSelection: vi.fn(),
-    setHighlightVersion: vi.fn(),
     setSelectedNodes: vi.fn(),
     ...overrides,
   };

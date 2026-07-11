@@ -10,8 +10,7 @@ export function createDragGroupSession(
   options: ApplyNodeDragOptions,
 ): NodeDragGroupSession | null {
   if (
-    options.graphMode !== '2d'
-    || !options.selectedNodeIds.has(primaryNode.id)
+    !options.selectedNodeIds.has(primaryNode.id)
     || options.selectedNodeIds.size < 2
   ) {
     return null;

@@ -192,16 +192,13 @@ describe('graph/model/runtimeContributions', () => {
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      graphMode: '3d',
       timelineActive: true,
     });
 
     expect(createNodes).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
       timelineActive: true,
     }));
     expect(project).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
       timelineActive: true,
     }));
   });

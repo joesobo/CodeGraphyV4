@@ -10,7 +10,6 @@ export type {
   GraphMetadata,
   GraphMetadataValue,
   GraphNodeShape2D,
-  GraphNodeShape3D,
   IAccessProvider,
   IAnalysisFile,
   IAnalysisNode,

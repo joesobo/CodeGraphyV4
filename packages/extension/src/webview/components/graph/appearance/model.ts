@@ -17,8 +17,6 @@ export function resolveGraphAppearance(): GraphAppearance {
     ),
     linkHighlight: resolveCssToken(GRAPH_APPEARANCE_TOKENS.linkHighlight, DEFAULT_GRAPH_APPEARANCE.linkHighlight),
     linkMuted: resolveCssToken(GRAPH_APPEARANCE_TOKENS.linkMuted, DEFAULT_GRAPH_APPEARANCE.linkMuted),
-    meshDimmed: resolveCssToken(GRAPH_APPEARANCE_TOKENS.meshDimmed, DEFAULT_GRAPH_APPEARANCE.meshDimmed),
-    meshSelected: resolveCssToken(GRAPH_APPEARANCE_TOKENS.meshSelected, DEFAULT_GRAPH_APPEARANCE.meshSelected),
     nodeSelectionBorder: resolveCssToken(
       GRAPH_APPEARANCE_TOKENS.nodeSelectionBorder,
       DEFAULT_GRAPH_APPEARANCE.nodeSelectionBorder,

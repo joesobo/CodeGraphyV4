@@ -1,6 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ForceGraph2D from 'react-force-graph-2d';
-import ForceGraph3D from 'react-force-graph-3d';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import Graph from '../../../../../../src/webview/components/graph/view/component';
@@ -12,7 +11,7 @@ import {
 } from '../../../../../helpers/sentMessages';
 
 export { act, fireEvent, render, screen, waitFor };
-export { ForceGraph2D, ForceGraph3D };
+export { ForceGraph2D };
 export { clearSentMessages, findMessage, getSentMessages };
 export { Graph, graphStore };
 
@@ -71,10 +70,8 @@ export function setupGraphContextMenuTest(): void {
   beforeEach(() => {
     clearSentMessages();
     ForceGraph2D.clearAllHandlers();
-    ForceGraph3D.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      graphMode: '2d',
       timelineActive: false,
       pluginContextMenuItems: [],
       graphViewContributionStatuses: [],
@@ -87,7 +84,6 @@ export function setupGraphContextMenuTest(): void {
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        graphMode: '2d',
         timelineActive: false,
         pluginContextMenuItems: [],
         graphViewContributionStatuses: [],
@@ -104,12 +100,6 @@ export function getGraphContainer(container: HTMLElement): HTMLElement {
   const graphContainer = container.querySelector('[tabindex="0"]');
   expect(graphContainer).toBeTruthy();
   return graphContainer as HTMLElement;
-}
-
-export async function waitForThreeDimensionalSurface(): Promise<void> {
-  await waitFor(() => {
-    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
-  });
 }
 
 export async function openNodeMenu(

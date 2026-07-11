@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, act, screen, waitFor } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
-import ForceGraph3D from 'react-force-graph-3d';
 
 import { clearSentMessages, findMessage, getSentMessages } from '../../helpers/sentMessages';
 
@@ -16,19 +15,12 @@ const graphData: IGraphData = {
   edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
 };
 
-async function waitForThreeDimensionalSurface(): Promise<void> {
-  await waitFor(() => {
-    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
-  });
-}
 
 describe('Graph double-click behavior', () => {
   beforeEach(() => {
     clearSentMessages();
     ForceGraph2D.clearAllHandlers();
-    ForceGraph3D.clearAllHandlers();
     graphStore.setState({
-      graphMode: '2d',
       timelineActive: false,
       favorites: new Set<string>(),
       pluginContextMenuItems: [],
@@ -66,32 +58,6 @@ describe('Graph double-click behavior', () => {
     expect(nodeDoubleClickInteraction).toBeTruthy();
   });
 
-  it('focuses and opens node in 3d on double-click', async () => {
-    await act(async () => {
-      graphStore.setState({ graphMode: '3d' });
-    });
-
-    const methods = ForceGraph3D.getMockMethods();
-    methods.zoomToFit.mockClear();
-
-    render(<Graph data={graphData} />);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 120, clientY: 120 });
-      ForceGraph3D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 120, clientY: 120 });
-    });
-
-    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
-    const openMsg = findMessage('NODE_DOUBLE_CLICKED');
-    expect(openMsg).toBeTruthy();
-    expect(openMsg!.payload.nodeId).toBe('src/app.ts');
-
-    const nodeDoubleClickInteraction = getSentMessages().find(
-      msg => msg.type === 'GRAPH_INTERACTION' && msg.payload.event === 'graph:nodeDoubleClick'
-    );
-    expect(nodeDoubleClickInteraction).toBeTruthy();
-  });
 
   it('selects and preview-opens on single click without focus animation', async () => {
     const methods = ForceGraph2D.getMockMethods();

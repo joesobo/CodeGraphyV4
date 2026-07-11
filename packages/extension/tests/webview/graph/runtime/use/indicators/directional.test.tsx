@@ -49,7 +49,6 @@ function createHookOptions(
   return {
     ...createDirectionalOptions(),
     fg2dRef: createRef(createGraph()),
-    graphMode: '2d',
     ...overrides,
   };
 }
@@ -109,33 +108,6 @@ describe('useDirectional', () => {
       expect(() => {
         applyDirectionalSettings(graph, createDirectionalOptions({ directionMode: 'none' }));
       }).not.toThrow();
-      expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
-    });
-
-
-
-    it('skips directional updates until graph mode becomes 2d', () => {
-      const graph = createGraph();
-      const options = createHookOptions({
-        fg2dRef: createRef(graph),
-        graphMode: '3d',
-      });
-
-      const { rerender } = renderHook(
-        (props: Parameters<typeof useDirectional>[0]) => useDirectional(props),
-        { initialProps: options },
-      );
-
-      expect(graph.linkDirectionalArrowLength).not.toHaveBeenCalled();
-      expect(graph.d3ReheatSimulation).not.toHaveBeenCalled();
-
-      vi.clearAllMocks();
-      rerender({
-        ...options,
-        graphMode: '2d',
-      });
-
-      expect(graph.linkDirectionalArrowLength).toHaveBeenCalledWith(0);
       expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
     });
 

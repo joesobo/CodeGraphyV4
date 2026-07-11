@@ -26,7 +26,6 @@ export interface ViewportPanDragState {
 export interface GraphViewportPanRuntimeOptions {
   containerRef: GraphRuntime['renderer']['containerRef'];
   fg2dRef: GraphRuntime['renderer']['fg2dRef'];
-  graphMode: '2d' | '3d';
   rightMouseDownRef: GraphRuntime['context']['rightMouseDownRef'];
   suppressContextMenu(this: void): void;
 }
@@ -79,7 +78,6 @@ export function clearViewportPanDrag(
 
 export function canStartViewportPanDrag(
   event: ReactMouseEvent<HTMLDivElement>,
-  options: GraphViewportPanRuntimeOptions,
 ): boolean {
-  return options.graphMode === '2d' && isViewportPanButton(event);
+  return isViewportPanButton(event);
 }

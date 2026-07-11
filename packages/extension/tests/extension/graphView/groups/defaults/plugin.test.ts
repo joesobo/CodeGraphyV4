@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NodeShape2D, NodeShape3D } from '@/shared/settings/modes';
+import type { NodeShape2D } from '@/shared/settings/modes';
 import * as vscode from 'vscode';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
@@ -11,7 +11,7 @@ describe('graphView/pluginDefaultGroups', () => {
       name: string;
       fileColors?: Record<
         string,
-        string | { color: string; shape2D?: NodeShape2D; shape3D?: NodeShape3D; imagePath?: string }
+        string | { color: string; shape2D?: NodeShape2D; imagePath?: string }
       >;
     };
   };
@@ -137,7 +137,6 @@ describe('graphView/pluginDefaultGroups', () => {
                   '*.unity': {
                     color: '#F97316',
                     shape2D: 'hexagon',
-                    shape3D: 'dodecahedron',
                     imagePath: 'assets/unity.svg',
                   },
                 },
@@ -160,7 +159,6 @@ describe('graphView/pluginDefaultGroups', () => {
         pluginId: 'codegraphy.unity',
         pluginName: 'Unity',
         shape2D: 'hexagon',
-        shape3D: 'dodecahedron',
         imagePath: 'assets/unity.svg',
       },
     ]);
@@ -217,7 +215,6 @@ describe('graphView/pluginDefaultGroups', () => {
                 fileColors: {
                   '*.gd': {
                     color: '#478CBF',
-                    shape3D: 'sphere',
                   },
                 },
               },
@@ -238,7 +235,6 @@ describe('graphView/pluginDefaultGroups', () => {
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
-        shape3D: 'sphere',
       },
     ]);
   });
@@ -277,7 +273,6 @@ describe('graphView/pluginDefaultGroups', () => {
       pluginName: 'Rust',
     });
     expect(groups[0]).not.toHaveProperty('shape2D');
-    expect(groups[0]).not.toHaveProperty('shape3D');
     expect(groups[0]).not.toHaveProperty('imagePath');
   });
 
@@ -339,7 +334,6 @@ describe('graphView/pluginDefaultGroups', () => {
                 fileColors: {
                   '*.gd': {
                     color: '#478CBF',
-                    shape3D: 'sphere',
                   },
                   '*.godot': {
                     color: '#6A9FB5',
@@ -376,7 +370,6 @@ describe('graphView/pluginDefaultGroups', () => {
         isPluginDefault: true,
         pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
-        shape3D: 'sphere',
       },
       {
         id: 'plugin:codegraphy.godot:*.godot',

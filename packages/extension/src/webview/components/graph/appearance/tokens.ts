@@ -6,8 +6,6 @@ export const GRAPH_APPEARANCE_TOKENS = {
   labelMutedForeground: '--cg-graph-label-muted-foreground',
   linkHighlight: '--cg-graph-link-highlight',
   linkMuted: '--cg-graph-link-muted',
-  meshDimmed: '--cg-graph-mesh-dimmed',
-  meshSelected: '--cg-graph-mesh-selected',
   nodeSelectionBorder: '--cg-graph-node-selection-border',
   stageBackground: '--cg-graph-background',
   stageBorder: '--cg-graph-border',

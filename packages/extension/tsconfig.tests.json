@@ -9,8 +9,7 @@
       "@codegraphy-dev/plugin-api": ["../plugin-api/src/index.ts"],
       "@codegraphy-dev/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
       "@/*": ["./src/*"],
-      "react-force-graph-2d": ["./tests/types/react-force-graph-2d"],
-      "react-force-graph-3d": ["./tests/types/react-force-graph-3d"]
+      "react-force-graph-2d": ["./tests/types/react-force-graph-2d"]
     }
   },
   "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "vitest.includes.ts"],

@@ -15,7 +15,6 @@ import { Viewport } from '../../../../src/webview/components/graph/viewport/view
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
   surface2d: vi.fn(),
-  surface3d: vi.fn(),
 }));
 
 vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
@@ -29,13 +28,6 @@ vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDime
   Surface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
-  },
-}));
-
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDimensional', () => ({
-  DeferredSurface3d: (props: Record<string, unknown>) => {
-    harness.surface3d(props);
-    return <div data-testid="surface-3d" />;
   },
 }));
 
@@ -79,15 +71,6 @@ function createSharedProps() {
   };
 }
 
-function createNodeThreeObjectContext() {
-  return {
-    graphAppearanceRef: { current: { labelForeground: '#f8fafc' } },
-    meshesRef: { current: new Map() },
-    showLabelsRef: { current: true },
-    spritesRef: { current: new Map() },
-  };
-}
-
 function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>> = {}) {
   const handleContextMenu = vi.fn();
   const handleMouseLeave = vi.fn();
@@ -103,7 +86,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
-      graphMode="2d"
       handleContextMenu={handleContextMenu}
       handleMenuAction={handleMenuAction}
       handleMouseDownCapture={handleMouseDownCapture}
@@ -123,18 +105,6 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
         nodeCanvasObject: vi.fn(),
         nodePointerAreaPaint: vi.fn(),
         onRenderFramePost: vi.fn(),
-        particleSize: 2,
-        particleSpeed: 0.1,
-        sharedProps: createSharedProps(),
-      }}
-      surface3dProps={{
-        fg3dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        nodeThreeObjectContext: createNodeThreeObjectContext(),
         particleSize: 2,
         particleSpeed: 0.1,
         sharedProps: createSharedProps(),

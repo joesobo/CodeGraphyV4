@@ -22,7 +22,6 @@ describe('GraphStore', () => {
     expect(state.particleSpeed).toBe(0.005);
     expect(state.particleSize).toBe(4);
     expect(state.showLabels).toBe(true);
-    expect(state.graphMode).toBe('2d');
     expect(state.activePanel).toBe('none');
     expect(state.graphHasIndex).toBe(false);
     expect(state.graphViewContributionStatuses).toEqual([]);
@@ -322,14 +321,6 @@ describe('GraphStore', () => {
   it('setDagMode updates dagMode', () => {
     store.getState().setDagMode('lr');
     expect(store.getState().dagMode).toBe('lr');
-  });
-
-  it('handles TOGGLE_DIMENSION message', () => {
-    expect(store.getState().graphMode).toBe('2d');
-    store.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
-    expect(store.getState().graphMode).toBe('3d');
-    store.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
-    expect(store.getState().graphMode).toBe('2d');
   });
 
   it('TOGGLE_DEPTH_MODE enables depth mode when an index exists', () => {

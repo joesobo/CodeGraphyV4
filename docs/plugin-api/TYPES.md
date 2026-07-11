@@ -170,7 +170,7 @@ Headless plugins should express analysis through `IPlugin` hooks and `IFileAnaly
 ### Relationship Provenance (`connection.ts`)
 
 - `IConnectionSource`
-- `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
+- `IPluginFileColorDefinition` with `color`, optional `shape2D`, and optional `imagePath`
 
 `connection.ts` is now only about source metadata: the relationship families a plugin declares in `sources` so the host can preserve Relationship Source provenance in graph edges, inspectors, and exports.
 
@@ -223,7 +223,7 @@ Plugin id implies storage ownership. Hosts persist plugin data under the plugin 
 
 Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
 
-Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
 
 ### Webview (`webview.ts`)
 
@@ -235,9 +235,9 @@ Graph View contributions run from a live host context. `visibleGraph` is the cur
 
 Webview assets are package-owned scripts/styles declared through `IPlugin.webviewContributions`. They can register ordered UI with `api.registerSlotContribution(slot, { id, order, render })`, exchange plugin-scoped messages, read and write plugin-owned webview state through `getPluginData()` and `setPluginData(data)`, and return cleanup work that the host runs when the plugin is disabled or reset.
 
-Runtime node contributions may supply D3 coordinate state (`x`/`y`/`z`), fixed coordinate state (`fx`/`fy`/`fz`), and velocity state (`vx`/`vy`/`vz`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
+Runtime node contributions may supply D3 coordinate state (`x`/`y`), fixed coordinate state (`fx`/`fy`), and velocity state (`vx`/`vy`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
 
-Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy`/`fz` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
+Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 
 Context menu contributions render in the normal graph context menu by default. Contributions that set `placement: { menu: 'create' }` join the graph background create actions instead, so the same action appears beside `New File...` and `New Folder...` in the background context menu and in the toolbar `New...` popup while the plugin is enabled.
 
@@ -248,7 +248,7 @@ The current public API already supports a file-theme style plugin through `fileC
 - extension matches like `.ts`
 - exact file names like `package.json`
 - glob patterns like `**/*.stories.tsx`
-- optional `shape2D`, `shape3D`, and `imagePath`
+- optional `shape2D` and `imagePath`
 
 Those plugin defaults sit above core defaults and below custom Legend Entries, so a user can treat them like an installable theme layer for File Nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom entries still win last.
 
