@@ -167,15 +167,18 @@ describe('graph/contextMenu product scenarios', () => {
 
     expect(labels(entries)).toEqual([
       'Open 2 Files',
+      'Open to the Side',
+      'Select for Compare',
       'Cut',
       'Copy',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
+      'Rename',
       'Delete 2 Files',
     ]);
     expect(labels(entries)).not.toContain('Focus Node');
-    expect(labels(entries)).not.toContain('Rename');
+    expectBuiltInDisabled(entries, 'rename', true);
     expect(labels(entries)).not.toContain('Add Legend Group');
     expectBuiltInDisabled(entries, 'delete', true);
   });

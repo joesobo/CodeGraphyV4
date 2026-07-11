@@ -111,10 +111,16 @@ describe('graph/contextMenu/node/openCopyBlocks', () => {
       expect(labels).toContain('Delete File');
     });
 
-    it('shows plural labels and omits Rename for multi-select', () => {
-      const labels = itemLabels(buildDestructiveBlock(['src/a.ts', 'src/b.ts']));
+    it('shows plural labels and disables Rename for multi-select', () => {
+      const entries = buildDestructiveBlock(['src/a.ts', 'src/b.ts']);
+      const labels = itemLabels(entries);
       expect(labels).toContain('Delete 2 Files');
-      expect(labels).not.toContain('Rename');
+      expect(entries).toContainEqual(expect.objectContaining({
+        kind: 'item',
+        label: 'Rename',
+        disabled: true,
+        disabledReason: 'Select one file to rename.',
+      }));
     });
 
     it('marks the delete entry as destructive', () => {

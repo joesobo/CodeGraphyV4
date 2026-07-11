@@ -28,6 +28,7 @@ describe('Graph node context menu file actions', () => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
     });
 
+    expect(screen.getByText('src/app.ts')).toBeInTheDocument();
     expect(screen.getByText('Reveal in Explorer')).toBeInTheDocument();
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();

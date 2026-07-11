@@ -22,10 +22,10 @@ export function buildOpenBlock(
 
   entries.push(
     builtInItem('node-open', buildOpenBlockLabel(targets), 'open'),
+    builtInItem('node-open-to-side', 'Open to the Side', 'openToSide'),
   );
   if (targets.length === 1) {
     entries.push(
-      builtInItem('node-open-to-side', 'Open to the Side', 'openToSide'),
       builtInItem('node-open-with', 'Open With…', 'openWith'),
       builtInItem('node-close-editor', 'Close Editor', 'closeEditor'),
     );
@@ -41,6 +41,16 @@ export function buildOpenBlock(
         )
         : builtInItem('node-select-for-compare', 'Select for Compare', 'selectForCompare'));
     }
+  } else {
+    entries.push(builtInItem(
+      'node-select-for-compare',
+      'Select for Compare',
+      'selectForCompare',
+      {
+        disabled: true,
+        disabledReason: 'Select one file to compare.',
+      },
+    ));
   }
 
   if (shouldShowRevealInExplorer(targets, timelineActive)) {

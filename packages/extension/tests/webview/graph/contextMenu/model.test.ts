@@ -201,11 +201,14 @@ describe('graph/contextMenuModel', () => {
     });
     expect(menuLabels(entries)).toEqual([
       'Open 2 Files',
+      'Open to the Side',
+      'Select for Compare',
       'Cut',
       'Copy',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
+      'Rename',
       'Delete 2 Files',
     ]);
   });
@@ -292,11 +295,14 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(selectionEntries)).toEqual([
       'open',
+      'openToSide',
+      'selectForCompare',
       'cutFiles',
       'copyFiles',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
+      'rename',
       'delete',
     ]);
   });
@@ -378,11 +384,14 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(multiLive)).toEqual([
       'open',
+      'openToSide',
+      'selectForCompare',
       'cutFiles',
       'copyFiles',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
+      'rename',
       'delete',
     ]);
 
@@ -395,11 +404,14 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(multiTimeline)).toEqual([
       'open',
+      'openToSide',
+      'selectForCompare',
       'cutFiles',
       'copyFiles',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
+      'rename',
       'delete',
     ]);
 

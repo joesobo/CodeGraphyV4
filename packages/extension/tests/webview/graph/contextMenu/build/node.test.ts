@@ -147,14 +147,17 @@ describe('graph/contextMenu/build/node', () => {
       pluginItems: [],
     });
 
-    expect(itemLabels(entries)).toHaveLength(7);
+    expect(itemLabels(entries)).toHaveLength(10);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',
+      'Open to the Side',
+      'Select for Compare',
       'Cut',
       'Copy',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
+      'Rename',
       'Delete 2 Files',
     ]);
   });
@@ -174,9 +177,12 @@ describe('graph/contextMenu/build/node', () => {
 
     expect(itemLabels(entries)).toEqual([
       'Open 3 Files',
+      'Open to the Side',
+      'Select for Compare',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
+      'Rename',
       'Delete 3 Files',
     ]);
   });

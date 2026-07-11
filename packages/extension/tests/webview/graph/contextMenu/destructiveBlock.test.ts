@@ -27,8 +27,12 @@ describe('destructive block', () => {
     expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Rename');
   });
 
-  it('omits Rename for multi-select', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Rename');
+  it('disables Rename with a reason for multi-select', () => {
+    const entry = findItem(buildDestructiveBlock(['a.ts', 'b.ts']), 'Rename');
+    expect(entry).toMatchObject({
+      disabled: true,
+      disabledReason: 'Select one file to rename.',
+    });
   });
 
   it('shows Delete File for single target', () => {

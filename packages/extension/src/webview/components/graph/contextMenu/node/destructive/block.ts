@@ -35,9 +35,12 @@ export function buildDestructiveBlock(
   const isMultiSelect = targets.length > 1;
   const entries: GraphContextMenuEntry[] = [separator('node-separator-destructive')];
 
-  if (!isMultiSelect) {
-    entries.push(builtInItem('node-rename', 'Rename', 'rename', { disabled }));
-  }
+  entries.push(builtInItem('node-rename', 'Rename', 'rename', {
+    disabled: disabled || isMultiSelect,
+    disabledReason: isMultiSelect
+      ? 'Select one file to rename.'
+      : disabled ? 'Graph revisions are read-only.' : undefined,
+  }));
 
   entries.push(
     builtInItem('node-delete', isMultiSelect ? `Delete ${targets.length} Files` : 'Delete File', 'delete', {

@@ -69,6 +69,7 @@ export type GraphContextMenuEntry =
       contextSelection?: GraphContextSelection;
       destructive?: boolean;
       disabled?: boolean;
+      disabledReason?: string;
       shortcut?: string;
     }
   | {

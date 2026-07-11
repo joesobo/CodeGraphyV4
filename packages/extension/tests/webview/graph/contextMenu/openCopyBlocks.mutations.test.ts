@@ -73,9 +73,18 @@ describe('buildOpenBlock (mutation kill tests)', () => {
     const entries = buildOpenBlock(['a.ts', 'b.ts'], false);
     const items = getItems(entries);
 
-    expect(items).toHaveLength(1);
+    expect(items).toHaveLength(3);
     expect(items[0].label).toBe('Open 2 Files');
     expect(items[0].action).toEqual({ kind: 'builtin', action: 'open' });
+    expect(items[1]).toMatchObject({
+      label: 'Open to the Side',
+      action: { kind: 'builtin', action: 'openToSide' },
+    });
+    expect(items[2]).toMatchObject({
+      label: 'Select for Compare',
+      disabled: true,
+      disabledReason: 'Select one file to compare.',
+    });
   });
 });
 

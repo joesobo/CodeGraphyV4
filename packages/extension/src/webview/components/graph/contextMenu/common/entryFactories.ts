@@ -7,6 +7,7 @@ interface BuiltInItemOptions {
   comparisonPath?: string;
   destructive?: boolean;
   disabled?: boolean;
+  disabledReason?: string;
   shortcut?: string;
 }
 
@@ -31,6 +32,7 @@ export function builtInItem(
     },
     destructive: options?.destructive,
     disabled: options?.disabled,
+    disabledReason: options?.disabledReason,
     shortcut: options?.shortcut,
   };
 }
