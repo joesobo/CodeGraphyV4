@@ -8,11 +8,13 @@ import { webviewGraphPerfLifecycle } from './lifecycle';
 interface GraphPerfCommitInput extends GraphCommitInput {
   enabled?: boolean;
   revision: object;
+  simulationEnabled?: boolean;
 }
 
 interface GraphPerfCommitDependencies {
   cancelFrame: (frame: number) => void;
-  lifecycle: Pick<GraphPerfLifecycle, 'prepareCommit' | 'publishCommit'>;
+  lifecycle: Pick<GraphPerfLifecycle, 'prepareCommit' | 'publishCommit'>
+    & Partial<Pick<GraphPerfLifecycle, 'engineStopped'>>;
   requestFrame: (callback: FrameRequestCallback) => number;
 }
 
@@ -42,6 +44,7 @@ function enqueueGraphCommit(
   commit: PendingGraphCommit['commit'],
   pendingRef: MutableRefObject<PendingGraphCommit | undefined>,
   dependencies: GraphPerfCommitDependencies,
+  simulationEnabled: boolean,
 ): void {
   const pending = pendingRef.current;
   if (pending) {
@@ -56,7 +59,10 @@ function enqueueGraphCommit(
     const next = pendingRef.current;
     if (next?.token !== token) return;
     pendingRef.current = undefined;
-    dependencies.lifecycle.publishCommit(next.commit);
+    const published = dependencies.lifecycle.publishCommit(next.commit);
+    if (published && next.commit.layoutChanged && !simulationEnabled) {
+      dependencies.lifecycle.engineStopped?.();
+    }
   });
   pendingRef.current = { commit, frame, token };
 }
@@ -85,6 +91,7 @@ export function useGraphPerfCommit(
     revision,
     scopeProjectionRevision,
     scopeVisibility,
+    simulationEnabled = true,
   }: GraphPerfCommitInput,
   dependencies: GraphPerfCommitDependencies = defaultDependencies,
 ): void {
@@ -116,7 +123,7 @@ export function useGraphPerfCommit(
       cancelFrame,
       lifecycle,
       requestFrame,
-    });
+    }, simulationEnabled);
   }, [
     cancelFrame,
     edgeCount,
@@ -128,6 +135,7 @@ export function useGraphPerfCommit(
     revision,
     scopeProjectionRevision,
     scopeVisibility,
+    simulationEnabled,
   ]);
 
   useEffect(() => () => {

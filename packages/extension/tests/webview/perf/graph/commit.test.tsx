@@ -99,6 +99,42 @@ describe('webview/perf/graph/commit', () => {
     expect(lifecycle.publishCommit).toHaveBeenCalledWith(preparedCommit);
   });
 
+  it('settles a layout-changing commit immediately when simulation is disabled', () => {
+    const preparedCommit = {
+      operation: { scenario: 'scope-toggle' },
+      layoutChanged: true,
+      scopeVisibility,
+    } as never;
+    const lifecycle = {
+      engineStopped: vi.fn(),
+      prepareCommit: vi.fn(() => preparedCommit),
+      publishCommit: vi.fn(() => true),
+    };
+    let frameCallback: FrameRequestCallback | undefined;
+
+    renderHook(() => useGraphPerfCommit({
+      edgeCount: 2,
+      layoutKey: 'uniform::oversized',
+      nodeCount: 10_000,
+      revision: {},
+      scopeProjectionRevision: 10,
+      scopeVisibility,
+      simulationEnabled: false,
+    }, {
+      cancelFrame: vi.fn(),
+      lifecycle,
+      requestFrame: vi.fn((callback: FrameRequestCallback) => {
+        frameCallback = callback;
+        return 43;
+      }),
+    }));
+
+    act(() => frameCallback?.(16));
+
+    expect(lifecycle.publishCommit).toHaveBeenCalledWith(preparedCommit);
+    expect(lifecycle.engineStopped).toHaveBeenCalledOnce();
+  });
+
   it('does not request a frame while capture is disarmed', () => {
     const lifecycle = {
       prepareCommit: vi.fn(() => undefined),

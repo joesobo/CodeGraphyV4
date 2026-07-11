@@ -138,6 +138,11 @@ export default function Graph({
   );
   const graphNodeCount = graphRuntime.renderer.graphData.nodes.length;
   const observedNodeCount = projectionData?.nodes.length ?? graphNodeCount;
+  const simulationEnabled = resolveGraphCooldownTicks(
+    graphRuntime.renderer.graphDataRef.current.nodes.length,
+    graphRuntime.renderer.graphDataRef.current.links.length,
+    viewState.timelineActive,
+  ) > 0;
   useGraphPerfCommit({
     edgeCount: projectionData?.edges.length ?? graphRuntime.renderer.graphData.links.length,
     layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
@@ -145,6 +150,7 @@ export default function Graph({
     revision: projectionData ?? data,
     scopeProjectionRevision,
     scopeVisibility,
+    simulationEnabled,
   });
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
@@ -206,11 +212,7 @@ export default function Graph({
     graphMode: viewState.graphMode,
     handleNodeDrag: interactions.handleNodeDrag,
     handleNodeDragEnd: interactions.handleNodeDragEnd,
-    simulationEnabled: resolveGraphCooldownTicks(
-      graphRuntime.renderer.graphDataRef.current.nodes.length,
-      graphRuntime.renderer.graphDataRef.current.links.length,
-      viewState.timelineActive,
-    ) > 0,
+    simulationEnabled,
     zoomGraphView: interactions.interactionHandlers.zoomGraphView,
   });
 
