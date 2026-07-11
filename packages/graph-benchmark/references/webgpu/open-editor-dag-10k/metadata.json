@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10T17:38:00-07:00",
+  "renderer": "webgpu",
+  "layout": "worker-dag-td",
+  "implementationCommit": "300d40d27",
+  "surface": "Extension Development Host — Open in Editor",
+  "fixture": {
+    "kind": "indexed generated TypeScript workspace",
+    "seed": 307,
+    "hash": "sha256:e8cf16cff57cc934f1648f541981fc5e11244ce481e55eb4b70b4fd1f0f2c242",
+    "nodes": 10000,
+    "edges": 31089
+  },
+  "dag": {
+    "mode": "td",
+    "levelDistance": 60,
+    "levels": 21,
+    "cyclePolicy": "deterministically promote the lowest remaining node to a root"
+  },
+  "cameraBenchmark": {
+    "scenario": "120 requestAnimationFrame-paced wheel zoom updates",
+    "durationMs": 935.5,
+    "renderedFrames": 136,
+    "fps": 144.30785676109033,
+    "frameTimeMs": {
+      "p50": 6.900000095367432,
+      "p95": 8.300000190734863,
+      "max": 8.699999809265137
+    },
+    "mainThreadSegmentP50Ms": {
+      "physicsDispatch": 0,
+      "positionSync": 0.19999980926513672,
+      "gpuFrameSubmission": 0.10000038146972656,
+      "canvasOverlay": 0
+    }
+  },
+  "files": {
+    "screenshot": "screenshot.png",
+    "gpuOnlyScreenshot": "gpu-only.png",
+    "interactionDemo": "demo.gif"
+  }
+}

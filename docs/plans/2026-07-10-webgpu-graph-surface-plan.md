@@ -113,6 +113,10 @@ graph and its product surfaces.
 - [x] Cap performance testing at 10k nodes per the owner decision on
       2026-07-10; do not run further 50k/100k performance suites. The earlier
       50k checkpoint remains as historical implementation evidence.
+- [x] Add deterministic cycle-tolerant `td`, `lr`, and `radialout` DAG
+      constraint targets to the typed engine and worker protocol; validate the
+      10k top-down layout in Open in Editor. Evidence is under
+      `packages/graph-benchmark/references/webgpu/open-editor-dag-10k/`.
 
 ### Rollout Gates
 
