@@ -10,6 +10,7 @@ import {
 } from './renameEvents';
 import {
   isRecentSavedDocumentPath,
+  isRecentWorkspaceMutationPath,
   rememberRecentSavedDocumentPath,
 } from './recentSaves';
 import {
@@ -40,7 +41,10 @@ export function refreshWorkspaceChangedFileWatcherPath(
   logMessage: string,
   filePath: string,
 ): void {
-  if (isRecentSavedDocumentPath(filePath)) {
+  if (
+    isRecentSavedDocumentPath(filePath)
+    || isRecentWorkspaceMutationPath(filePath)
+  ) {
     return;
   }
 
@@ -75,7 +79,10 @@ export function refreshWorkspaceFileWatcherOperation(
   refreshWorkspaceFileOperation(
     provider,
     logMessage,
-    files.filter(uri => !isRecentSavedDocumentPath(uri.fsPath)),
+    files.filter(uri =>
+      !isRecentSavedDocumentPath(uri.fsPath)
+      && !isRecentWorkspaceMutationPath(uri.fsPath)
+    ),
     eventName,
   );
 }
@@ -86,15 +93,16 @@ export function refreshWorkspaceFileOperation(
   files: readonly vscode.Uri[],
   eventName: WorkspaceFileEventName,
 ): void {
+  const refreshableFiles = files.filter(uri => !isRecentWorkspaceMutationPath(uri.fsPath));
   if (eventName === 'workspace:fileCreated') {
-    refreshWorkspaceCreatedFiles(provider, logMessage, files);
+    refreshWorkspaceCreatedFiles(provider, logMessage, refreshableFiles);
     return;
   }
 
   const refreshPaths = refreshWorkspacePaths(
     provider,
     logMessage,
-    files.map(uri => uri.fsPath),
+    refreshableFiles.map(uri => uri.fsPath),
   );
 
   for (const filePath of refreshPaths) {
@@ -147,13 +155,17 @@ export function refreshWorkspaceRenameOperation(
   provider: GraphViewProvider,
   files: WorkspaceRenameFiles,
 ): void {
+  const refreshableFiles = files.filter(file =>
+    !isRecentWorkspaceMutationPath(file.oldUri.fsPath)
+    && !isRecentWorkspaceMutationPath(file.newUri.fsPath)
+  );
   const refreshPaths = refreshWorkspacePaths(
     provider,
     '[CodeGraphy] File renamed, refreshing graph',
-    getRenameFilePaths(files),
+    getRenameFilePaths(refreshableFiles),
   );
 
   if (refreshPaths.length > 0) {
-    emitWorkspaceRenameEvents(provider, files);
+    emitWorkspaceRenameEvents(provider, refreshableFiles);
   }
 }

@@ -45,7 +45,7 @@ describe('graphView/provider/file/mutations', () => {
       'src/app.ts',
       'src/main.ts',
       workspaceFolderUri,
-      refreshGraph,
+      expect.any(Function),
     );
     expect(execute).toHaveBeenCalledOnce();
     expect(refreshGraph).toHaveBeenCalledOnce();
@@ -85,7 +85,7 @@ describe('graphView/provider/file/mutations', () => {
     expect(CreateFileAction).toHaveBeenCalledWith(
       'src/new.ts',
       workspaceFolderUri,
-      refreshGraph,
+      expect.any(Function),
     );
     expect(execute).toHaveBeenCalledOnce();
     expect(refreshGraph).toHaveBeenCalledOnce();
@@ -125,7 +125,7 @@ describe('graphView/provider/file/mutations', () => {
     expect(DeleteFilesAction).toHaveBeenCalledWith(
       ['src/app.ts', 'src/main.ts'],
       workspaceFolderUri,
-      refreshGraph,
+      expect.any(Function),
     );
     expect(execute).toHaveBeenCalledOnce();
     expect(refreshGraph).toHaveBeenCalledOnce();

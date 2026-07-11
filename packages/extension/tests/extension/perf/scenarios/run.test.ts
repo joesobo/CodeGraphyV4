@@ -87,7 +87,6 @@ describe('extension/perf/scenarios/run', () => {
         comparison: comparisonByScenario[scenario],
       });
       expect(dependencies.runFileMutationScenario).toHaveBeenCalledWith({
-        armRefreshIdle: expect.any(Function),
         dimension: input.dimension,
         ordinal: 0,
         refreshGraph: expect.any(Function),

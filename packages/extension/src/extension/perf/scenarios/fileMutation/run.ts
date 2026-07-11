@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import type { WorkspaceFileMutation } from '../../../graphView/provider/file/mutations';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { ArmedWorkspaceRefreshIdleWait } from '../../../workspaceFiles/refresh/scheduler';
 import { createPerfOperation } from '../../operationId';
 import type { PerfScenarioOperationRunner } from '../contracts';
 import {
@@ -20,7 +19,6 @@ import {
 } from './runtime';
 
 export interface RunFileMutationScenarioInput {
-  armRefreshIdle: () => ArmedWorkspaceRefreshIdleWait;
   dimension: string;
   ordinal: number;
   refreshGraph: () => Promise<void>;
@@ -52,17 +50,11 @@ async function restoreMutation(
   dependencies: FileMutationScenarioDependencies,
 ): Promise<void> {
   if (mutationCompleted) {
-    const refreshIdle = input.armRefreshIdle();
-    try {
-      const description = await dependencies.undoLastMutation();
-      if (!description) {
-        throw new Error(
-          `Performance ${input.scenario} scenario was not recorded by UndoManager`,
-        );
-      }
-      await refreshIdle.promise;
-    } finally {
-      refreshIdle.dispose();
+    const description = await dependencies.undoLastMutation();
+    if (!description) {
+      throw new Error(
+        `Performance ${input.scenario} scenario was not recorded by UndoManager`,
+      );
     }
   }
   await assertRestoredFileStates(
@@ -96,18 +88,12 @@ export async function runFileMutationScenario(
 
   try {
     await input.runOperation(operation, async () => {
-      const refreshIdle = input.armRefreshIdle();
-      try {
-        await dependencies.executeMutation(target.mutation, {
-          workspaceFolderUri: input.workspaceFolderUri,
-          refreshGraph: input.refreshGraph,
-          sendMessage: input.sendMessage,
-        });
-        mutationCompleted = true;
-        await refreshIdle.promise;
-      } finally {
-        refreshIdle.dispose();
-      }
+      await dependencies.executeMutation(target.mutation, {
+        workspaceFolderUri: input.workspaceFolderUri,
+        refreshGraph: input.refreshGraph,
+        sendMessage: input.sendMessage,
+      });
+      mutationCompleted = true;
     });
   } catch (error) {
     operationFailure = toError(error);

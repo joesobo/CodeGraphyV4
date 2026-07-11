@@ -1,10 +1,11 @@
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import { CreateFileAction } from '../../../actions/createFile';
 import { DeleteFilesAction } from '../../../actions/deleteFiles';
 import { RenameFileAction } from '../../../actions/renameFile';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import { rememberRecentWorkspaceMutationPaths } from '../../../workspaceFiles/refresh/recentSaves';
 
 export interface RenameWorkspaceFileMutation {
   kind: 'rename';
@@ -49,6 +50,15 @@ export async function executeWorkspaceFileMutation(
   mutation: WorkspaceFileMutation,
   context: WorkspaceFileMutationContext,
 ): Promise<void> {
+  const affectedPaths = workspaceFileMutationPaths(mutation);
+  const affectedFileSystemPaths = affectedPaths.map(filePath =>
+    vscode.Uri.joinPath(context.workspaceFolderUri, filePath).fsPath
+  );
+  const refreshGraph = async (): Promise<void> => {
+    rememberRecentWorkspaceMutationPaths(affectedFileSystemPaths);
+    await context.refreshGraph();
+  };
+  rememberRecentWorkspaceMutationPaths(affectedFileSystemPaths);
   const mutationId = context.sendMessage
     ? `file-mutation-${++mutationOrdinal}`
     : undefined;
@@ -65,21 +75,21 @@ export async function executeWorkspaceFileMutation(
         mutation.oldPath,
         mutation.newPath,
         context.workspaceFolderUri,
-        context.refreshGraph,
+        refreshGraph,
       );
       break;
     case 'create':
       action = new CreateFileAction(
         mutation.filePath,
         context.workspaceFolderUri,
-        context.refreshGraph,
+        refreshGraph,
       );
       break;
     case 'delete':
       action = new DeleteFilesAction(
         mutation.paths,
         context.workspaceFolderUri,
-        context.refreshGraph,
+        refreshGraph,
       );
       break;
   }

@@ -78,18 +78,11 @@ function setup(
     undoLastMutation,
   };
   const refreshGraph = vi.fn(async () => undefined);
-  const refreshWaitDisposers: Array<ReturnType<typeof vi.fn>> = [];
-  const armRefreshIdle = vi.fn(() => {
-    const dispose = vi.fn();
-    refreshWaitDisposers.push(dispose);
-    return { dispose, promise: Promise.resolve() };
-  });
   const runOperation = vi.fn(async (_operation, action) => {
     await action();
     return { elapsedMs: 12 };
   });
   const input: RunFileMutationScenarioInput = {
-    armRefreshIdle,
     dimension,
     ordinal: 2,
     refreshGraph,
@@ -101,14 +94,12 @@ function setup(
   } as RunFileMutationScenarioInput;
 
   return {
-    armRefreshIdle,
     dependencies,
     executeMutation,
     files,
     focusWorkspaceEditor,
     input,
     refreshGraph,
-    refreshWaitDisposers,
     runOperation,
     undoLastMutation,
   };
@@ -175,19 +166,6 @@ describe('extension/perf/scenarios/fileMutation/run', () => {
     },
   );
 
-  it('arms delayed refresh work before the measured mutation', async () => {
-    const harness = setup('rename');
-    harness.input.runOperation = async (_operation, action) => {
-      await action();
-      expect(harness.armRefreshIdle).toHaveBeenCalledOnce();
-    };
-
-    await runFileMutationScenario(harness.input, harness.dependencies);
-
-    expect(harness.armRefreshIdle.mock.invocationCallOrder[0])
-      .toBeLessThan(harness.executeMutation.mock.invocationCallOrder[0]);
-  });
-
   it('focuses the workspace editor before measuring the mutation', async () => {
     const harness = setup('create');
 
@@ -195,19 +173,7 @@ describe('extension/perf/scenarios/fileMutation/run', () => {
 
     expect(harness.focusWorkspaceEditor).toHaveBeenCalledOnce();
     expect(harness.focusWorkspaceEditor.mock.invocationCallOrder[0])
-      .toBeLessThan(harness.armRefreshIdle.mock.invocationCallOrder[0]);
-  });
-
-  it('waits for delayed refresh work after UndoManager restoration', async () => {
-    const harness = setup('delete');
-
-    await runFileMutationScenario(harness.input, harness.dependencies);
-
-    expect(harness.armRefreshIdle).toHaveBeenCalledTimes(2);
-    expect(harness.undoLastMutation.mock.invocationCallOrder[0])
-      .toBeGreaterThan(harness.armRefreshIdle.mock.invocationCallOrder[1]);
-    expect(harness.refreshWaitDisposers.every(dispose => dispose.mock.calls.length === 1))
-      .toBe(true);
+      .toBeLessThan(harness.executeMutation.mock.invocationCallOrder[0]);
   });
 
   it.each(['rename', 'create', 'delete'] as const)(

@@ -5,7 +5,6 @@ import { runBatchBranchScenario } from './batch';
 import type { PerfScenarioOperationRunner } from './contracts';
 import { runFileMutationScenario } from './fileMutation/run';
 import {
-  createFileMutationRefreshIdleArm,
   createFileMutationRefreshIdleWaiter,
 } from './fileMutation/runtime';
 import { runDocumentSaveScenario } from './save';
@@ -100,7 +99,6 @@ export async function runNonOpenPerfScenario(
       const fileMutationScenario = input.scenario;
       const waitForRefreshIdle = createFileMutationRefreshIdleWaiter(input.provider);
       const mutation = await dependencies.runFileMutationScenario({
-        armRefreshIdle: createFileMutationRefreshIdleArm(input.provider),
         dimension: input.dimension,
         ordinal: 0,
         refreshGraph: () => input.provider.refreshChangedFiles(
