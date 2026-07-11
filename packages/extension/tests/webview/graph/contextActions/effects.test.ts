@@ -21,6 +21,19 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('posts selected paths through the open-to-side host route', () => {
+    expect(getBuiltInContextActionEffects(
+      'openToSide',
+      nodeContext(['src/app.ts', 'src/utils.ts']),
+    )).toEqual([{
+      kind: 'postMessage',
+      message: {
+        type: 'OPEN_FILES_TO_SIDE',
+        payload: { paths: ['src/app.ts', 'src/utils.ts'] },
+      },
+    }]);
+  });
+
   it('uses the first selected path for reveal actions', () => {
     expect(getBuiltInContextActionEffects('reveal', nodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
       {

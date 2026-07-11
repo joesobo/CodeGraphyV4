@@ -2,7 +2,12 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { GraphContextEffect } from './effects';
 
 type SinglePathMessageType = 'REVEAL_IN_EXPLORER' | 'RENAME_FILE';
-type PathListMessageType = 'DELETE_FILES' | 'TOGGLE_FAVORITE' | 'CUT_FILES' | 'COPY_FILES';
+type PathListMessageType =
+  | 'DELETE_FILES'
+  | 'TOGGLE_FAVORITE'
+  | 'CUT_FILES'
+  | 'COPY_FILES'
+  | 'OPEN_FILES_TO_SIDE';
 
 function createPostMessageEffect(message: WebviewToExtensionMessage): GraphContextEffect {
   return { kind: 'postMessage', message };

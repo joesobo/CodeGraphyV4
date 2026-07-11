@@ -21,6 +21,8 @@ import {
 
 const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   open: (context: GraphContextActionContext) => createOpenFileEffects(context.targetIds),
+  openToSide: (context: GraphContextActionContext) =>
+    createPathListMessageEffects('OPEN_FILES_TO_SIDE', context.targetIds),
   openEdgeSource: (context: GraphContextActionContext) =>
     createOpenFileEffects(context.edgeSourceId ? [context.edgeSourceId] : []),
   openEdgeTarget: (context: GraphContextActionContext) =>

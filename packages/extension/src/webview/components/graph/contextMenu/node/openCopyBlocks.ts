@@ -20,8 +20,11 @@ export function buildOpenBlock(
   const entries: GraphContextMenuEntry[] = [];
 
   entries.push(
-    builtInItem('node-open', buildOpenBlockLabel(targets), 'open')
+    builtInItem('node-open', buildOpenBlockLabel(targets), 'open'),
   );
+  if (targets.length === 1) {
+    entries.push(builtInItem('node-open-to-side', 'Open to the Side', 'openToSide'));
+  }
 
   if (shouldShowRevealInExplorer(targets, timelineActive)) {
     entries.push(builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'));

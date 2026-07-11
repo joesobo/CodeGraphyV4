@@ -12,7 +12,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
 | Open, including multi-file open | done(unit) | 2.1 | Entry builder covers `Open File` / `Open N Files`; provider action tests cover the host open path. |
-| Open to the Side / Open With… | todo(P2) | 2.4 | Not implemented. |
+| Open to the Side / Open With… | partial | 2.4 | Open to the Side is wired through keyboard, context menu, and `ViewColumn.Beside`; Open With… remains. |
 | Reveal in Finder / Explorer | done(unit) | 2.1 | Entry, navigation, and provider action tests cover the built-in reveal path. |
 | Open in Integrated Terminal | todo(P2) | 2.4 | Not implemented. |
 | Select for Compare / Compare with Selected | todo(P2) | 2.4 | Not implemented. |

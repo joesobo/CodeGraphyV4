@@ -82,6 +82,7 @@ describe('graph/contextMenuModel', () => {
 
     expect(menuLabels(liveEntries)).toEqual([
       'Open File',
+      'Open to the Side',
       'Reveal in Explorer',
       'Cut',
       'Copy',
@@ -104,6 +105,7 @@ describe('graph/contextMenuModel', () => {
     });
     expect(menuLabels(timelineEntries)).toEqual([
       'Open File',
+      'Open to the Side',
       'Cut',
       'Copy',
       'Copy Relative Path',
@@ -258,6 +260,7 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(singleSelectionEntries)).toEqual([
       'open',
+      'openToSide',
       'reveal',
       'cutFiles',
       'copyFiles',
@@ -315,6 +318,7 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(singleLive)).toEqual([
       'open',
+      'openToSide',
       'reveal',
       'cutFiles',
       'copyFiles',
@@ -337,6 +341,7 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(singleTimeline)).toEqual([
       'open',
+      'openToSide',
       'cutFiles',
       'copyFiles',
       'copyRelative',

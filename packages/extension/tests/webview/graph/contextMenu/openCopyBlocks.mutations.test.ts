@@ -45,8 +45,8 @@ describe('buildOpenBlock (mutation kill tests)', () => {
   it('produces only well-formed entries without extra items', () => {
     const entries = buildOpenBlock(['a.ts'], false);
 
-    // Should be exactly 2: Open File + Reveal in Explorer
-    expect(entries).toHaveLength(2);
+    // Should be exactly 3: Open File + Open to the Side + Reveal in Explorer
+    expect(entries).toHaveLength(3);
     for (const entry of entries) {
       expect(entry.kind).toBe('item');
       expect((entry as ItemEntry).label).not.toBe('');

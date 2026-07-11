@@ -23,6 +23,16 @@ describe('buildOpenBlock', () => {
     expect(labels).toContain('Open File');
   });
 
+  it('includes Open to the Side for workspace file targets', () => {
+    const entries = buildOpenBlock(['src/app.ts'], false);
+
+    expect(itemLabels(entries)).toContain('Open to the Side');
+    expect(findItem(entries, 'Open to the Side')?.action).toEqual({
+      kind: 'builtin',
+      action: 'openToSide',
+    });
+  });
+
   it('shows Open N Files for multiple targets', () => {
     const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts', 'c.ts'], false));
     expect(labels).toContain('Open 3 Files');
