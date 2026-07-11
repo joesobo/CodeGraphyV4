@@ -20,6 +20,7 @@
 - `0e0355c1e` replaced the fixed 80ms node-scope render delay with latest-wins animation-frame coalescing while leaving settings persistence independently debounced.
 - `96c76be2f` retained the last nonempty force runtime through an empty visibility projection, kept the empty-state overlay opaque, and separated visible projection counts from retained runtime topology in performance telemetry.
 - One deterministic `medium` cold-open → scope-toggle checkpoint (real VS Code, same environment, no retries/discards) recorded node:file pairwise-worst median **46.74ms**, **0/10 layout resets**, and no settle metrics. This is implementation evidence only; Phase 4-B/4-C remain open until five complete same-machine runs satisfy the variance policy.
+- `c3893450a` replaced the biased add/delete/add batch sequence with three balanced add/delete pairs. The report now takes each operation maximum, each pair's slower direction, then the median of three pair maxima; six consecutive correlated operation IDs are mandatory. A real `medium` checkpoint completed all six switches and recorded **152.17ms** incremental-refresh and **197.86ms** watcher-to-graph medians. Strict five-run validation remains pending.
 
 ## Phase map
 
