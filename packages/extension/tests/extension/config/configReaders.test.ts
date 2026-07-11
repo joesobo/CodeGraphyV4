@@ -56,6 +56,17 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
+  describe('respectFilesExclude', () => {
+    it('returns the configured value', () => {
+      mockConfig['respectFilesExclude'] = false;
+      expect(new Configuration().respectFilesExclude).toBe(false);
+    });
+
+    it('defaults to true', () => {
+      expect(new Configuration().respectFilesExclude).toBe(true);
+    });
+  });
+
   describe('showOrphans', () => {
     it('returns the configured value', () => {
       mockConfig['showOrphans'] = false;
@@ -172,6 +183,7 @@ describe('Configuration (configReaders)', () => {
       mockConfig['maxFiles'] = 100;
       mockConfig['include'] = ['src/**'];
       mockConfig['respectGitignore'] = false;
+      mockConfig['respectFilesExclude'] = false;
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
       mockConfig['filterPatterns'] = ['dist/**'];
@@ -182,6 +194,7 @@ describe('Configuration (configReaders)', () => {
       expect(all.maxFiles).toBe(100);
       expect(all.include).toEqual(['src/**']);
       expect(all.respectGitignore).toBe(false);
+      expect(all.respectFilesExclude).toBe(false);
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
       expect(all.filterPatterns).toEqual(['dist/**']);

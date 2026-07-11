@@ -22,6 +22,7 @@ export interface RefreshFacadeContext
   ): string[];
   _getWorkspaceRoot(): string | undefined;
   _lastGitIgnoredPaths: string[];
+  _lastFilesExcludedCount: number;
   _persistCache(): void;
   _persistCachePatch(patch: WorkspacePipelineCachePatch): void;
   _persistIndexMetadata(): Promise<void>;

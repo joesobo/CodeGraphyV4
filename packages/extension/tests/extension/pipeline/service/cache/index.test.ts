@@ -27,6 +27,7 @@ describe('pipeline/service/cache/index', () => {
     pluginSignature: 'plugin-signature',
     settingsSignature: 'settings-signature',
     pendingChangedFiles: [],
+    filesExcludedCount: 0,
     ...overrides,
   });
 
@@ -152,6 +153,23 @@ describe('pipeline/service/cache/index', () => {
     expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
       ...meta(),
       lastIndexedCommit: 'def456',
+    });
+  });
+
+  it('records the files.exclude count with index metadata', async () => {
+    const dependencies = {
+      getFilesExcludedCount: vi.fn(() => 7),
+      getPluginSignature: vi.fn(() => 'next-plugin-signature'),
+      getSettingsSignature: vi.fn(() => 'next-settings-signature'),
+      persistIndexMetadata: vi.fn(),
+      warn: vi.fn(),
+    };
+
+    await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
+
+    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
+      ...meta(),
+      filesExcludedCount: 7,
     });
   });
 

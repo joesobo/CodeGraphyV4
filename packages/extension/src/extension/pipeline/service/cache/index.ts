@@ -11,6 +11,7 @@ interface WorkspacePipelineSignatureDependencies {
 interface WorkspacePipelinePersistIndexDependencies
   extends WorkspacePipelineSignatureDependencies {
   getCurrentCommitSha?: () => Promise<string | null> | string | null;
+  getFilesExcludedCount?: () => number;
   persistIndexMetadata?: typeof persistCodeGraphyWorkspaceIndexMetadata;
   warn(message: string, error: unknown): void;
 }
@@ -40,14 +41,16 @@ export async function persistWorkspacePipelineIndexMetadata(
 
   try {
     const currentCommitSha = await dependencies.getCurrentCommitSha?.();
+    const filesExcludedCount = dependencies.getFilesExcludedCount?.();
     (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
     });
-    if (dependencies.getCurrentCommitSha) {
+    if (dependencies.getCurrentCommitSha || filesExcludedCount !== undefined) {
       writeCodeGraphyRepoMeta(workspaceRoot, {
         ...readCodeGraphyRepoMeta(workspaceRoot),
-        lastIndexedCommit: currentCommitSha ?? null,
+        ...(dependencies.getCurrentCommitSha ? { lastIndexedCommit: currentCommitSha ?? null } : {}),
+        ...(filesExcludedCount !== undefined ? { filesExcludedCount } : {}),
       });
     }
   } catch (error) {

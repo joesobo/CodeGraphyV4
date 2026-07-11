@@ -12,6 +12,7 @@ import { DEFAULT_EXCLUDE } from '../pathMatching';
 import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
+import { isFilesExcludedPath } from './filesExclude';
 
 function getDiscoveryConfig(options: IDiscoveryOptions) {
   return {
@@ -20,6 +21,7 @@ function getDiscoveryConfig(options: IDiscoveryOptions) {
     excludePatterns: options.exclude ?? EMPTY_PATTERNS,
     respectGitignore: options.respectGitignore ?? true,
     extensions: options.extensions ?? EMPTY_PATTERNS,
+    filesExcludeRules: options.filesExclude ?? [],
   };
 }
 
@@ -96,6 +98,7 @@ export class FileDiscovery {
       excludePatterns,
       respectGitignore,
       extensions,
+      filesExcludeRules,
     } = getDiscoveryConfig(options);
 
     throwIfAborted(signal);
@@ -103,13 +106,14 @@ export class FileDiscovery {
     const allExclude = [...DEFAULT_EXCLUDE, ...excludePatterns];
     const discoveredFiles: Array<{ absolutePath: string; relativePath: string }> = [];
     const directories: string[] = [];
+    const filesExcludedPaths: string[] = [];
     let totalFound = 0;
     let limitReached = false;
 
     await walkDirectory(
       rootPath,
       rootPath,
-      (relativePath, absolutePath) => {
+      (relativePath, absolutePath, siblingNames) => {
         throwIfAborted(signal);
 
         if (discoveredFiles.length >= maxFiles) {
@@ -127,12 +131,23 @@ export class FileDiscovery {
           return true;
         }
 
+        if (isFilesExcludedPath(relativePath, filesExcludeRules, siblingNames)) {
+          filesExcludedPaths.push(relativePath);
+          return true;
+        }
+
         discoveredFiles.push({ absolutePath, relativePath });
         totalFound++;
         return true;
       },
       relativePath => {
-        directories.push(relativePath);
+        if (!isFilesExcludedPath(
+          relativePath,
+          filesExcludeRules,
+          new Set([path.basename(relativePath)]),
+        )) {
+          directories.push(relativePath);
+        }
       },
       signal,
     );
@@ -157,6 +172,8 @@ export class FileDiscovery {
       files,
       directories,
       gitIgnoredPaths: [...gitIgnoredPaths],
+      filesExcludedPaths,
+      filesExcludedCount: filesExcludedPaths.length,
       limitReached,
       totalFound: limitReached ? totalFound : undefined,
       durationMs,

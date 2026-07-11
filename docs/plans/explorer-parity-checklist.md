@@ -59,7 +59,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Auto-reveal active file | todo(P2) | 2.6 | Not implemented. |
 | Git status decorations | todo(P2) | 2.7 | Not implemented. |
 | Problems decorations | todo(P2) | 2.7 | Not implemented. |
-| `files.exclude` respected | todo(P2) | 2.5 | Not implemented. |
+| `files.exclude` respected | done(unit) | 2.5 | Resource-scoped VS Code rules, including conditional sibling rules, feed discovery and cache signatures; a default-on Filters source reports pre-graph exclusions and can be disabled per repo. |
 | File nesting / Open Editors / sort order | waived(tree-list concepts) | — | Not applicable to the graph surface. |
 | Canvas select / move / pan | todo(P5) | 5.x | Desktop interaction phase. |
 | Drag-to-move files / external OS drop | deferred(future epic) | 8.4 | Follow-up card required during publication. |

@@ -68,6 +68,10 @@ describe('workspace/signatures', () => {
     })).not.toBe(first);
     expect(createCodeGraphyWorkspaceSettingsSignature({
       ...defaults,
+      respectFilesExclude: false,
+    })).not.toBe(first);
+    expect(createCodeGraphyWorkspaceSettingsSignature({
+      ...defaults,
       plugins: [{
         id: 'codegraphy.vue',
         enabled: true,

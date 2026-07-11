@@ -15,6 +15,14 @@ describe('settingsMessages/updates/simple', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('bidirectionalEdges', 'combined');
 
     await expect(
+      applySimpleSettingsUpdate(
+        { type: 'UPDATE_RESPECT_FILES_EXCLUDE', payload: { enabled: false } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('respectFilesExclude', false);
+
+    await expect(
       applySimpleSettingsUpdate({ type: 'TOGGLE_PLUGIN', payload: { pluginId: 'x', enabled: false } }, handlers),
     ).resolves.toBe(false);
   });

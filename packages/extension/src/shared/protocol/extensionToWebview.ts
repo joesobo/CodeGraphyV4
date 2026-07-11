@@ -95,6 +95,7 @@ export type ExtensionToWebviewMessage =
         disabledPluginPatterns: string[];
       };
     }
+  | { type: 'FILES_EXCLUDE_UPDATED'; payload: { enabled: boolean; excludedCount: number } }
   | {
       type: 'DIRECTION_SETTINGS_UPDATED';
       payload: {

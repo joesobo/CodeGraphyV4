@@ -42,6 +42,8 @@ export const INITIAL_STATE: GraphStateFields = {
   pluginFilterGroups: [],
   disabledCustomFilterPatterns: [],
   disabledPluginFilterPatterns: [],
+  respectFilesExclude: true,
+  filesExcludedCount: 0,
   dagMode: null,
   pluginStatuses: [],
   graphNodeTypes: [],

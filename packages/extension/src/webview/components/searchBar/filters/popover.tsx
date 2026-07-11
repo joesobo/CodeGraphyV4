@@ -6,6 +6,7 @@ import { Button } from '../../ui/button';
 import {
   commitFilterPatternGroupState,
   commitFilterPatternState,
+  commitRespectFilesExclude,
   getDisabledFilterPatternGroup,
   getDisabledFilterPatterns,
   getEnabledFilterCount,
@@ -16,6 +17,7 @@ import { CustomFiltersSection } from './popover/customSection';
 import { useFilterDraftState } from './popover/draftState';
 import { PluginFiltersSection } from './popover/pluginSection';
 import { useFilterSectionState } from './popover/sectionState';
+import { SectionHeader } from './popover/sectionHeader';
 import type { FilterPopoverProps } from './popover/types';
 
 export function FilterPopover({
@@ -27,10 +29,12 @@ export function FilterPopover({
   onDisabledPluginPatternsChange,
   onOpenChange,
   onPatternsChange,
+  onRespectFilesExcludeChange,
   open,
   pendingPatterns = [],
   pluginGroups,
   pluginPatterns,
+  respectFilesExclude,
 }: FilterPopoverProps): React.ReactElement {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open ?? internalOpen;
@@ -52,6 +56,7 @@ export function FilterPopover({
     disabledCustomPatterns,
     disabledPluginPatterns,
     pluginPatterns,
+    respectFilesExclude,
   });
   const {
     customSectionEnabled,
@@ -96,6 +101,11 @@ export function FilterPopover({
     commitFilterPatternGroupState('plugin', enabled);
   };
 
+  const handleFilesExcludeToggle = (enabled: boolean) => {
+    onRespectFilesExcludeChange(enabled);
+    commitRespectFilesExclude(enabled);
+  };
+
   return (
     <>
       <Button
@@ -125,6 +135,16 @@ export function FilterPopover({
           </header>
 
           <div className="max-h-[min(320px,35vh)] space-y-3 overflow-y-auto p-3" data-codegraphy-region="panel-body">
+            <SectionHeader
+              ariaLabel="VS Code files.exclude"
+              checked={respectFilesExclude}
+              count={respectFilesExclude ? excludedCount : 0}
+              label="VS Code files.exclude"
+              includeAllInAriaLabel={false}
+              onCheckedChange={handleFilesExcludeToggle}
+              subtext="Workspace-native file exclusions"
+            />
+
             <CustomFiltersSection
               canAdd={canAdd}
               customPatterns={customPatterns}

@@ -63,6 +63,8 @@ export interface IStoreFields {
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
+  respectFilesExclude: boolean;
+  filesExcludedCount: number;
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];

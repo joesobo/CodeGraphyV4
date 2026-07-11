@@ -18,3 +18,7 @@ export function commitFilterPatternGroupState(
 ): void {
 	postMessage({ type: 'UPDATE_FILTER_PATTERN_GROUP_STATE', payload: { source, enabled } });
 }
+
+export function commitRespectFilesExclude(enabled: boolean): void {
+	postMessage({ type: 'UPDATE_RESPECT_FILES_EXCLUDE', payload: { enabled } });
+}

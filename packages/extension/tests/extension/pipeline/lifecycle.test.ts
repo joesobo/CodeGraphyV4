@@ -343,6 +343,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       lastIndexedCommit: 'abc123',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
+      filesExcludedCount: 0,
       pendingChangedFiles: [],
     });
     vi.spyOn(
@@ -371,6 +372,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       lastIndexedCommit: null,
       pluginSignature: null,
       settingsSignature: null,
+      filesExcludedCount: 0,
       pendingChangedFiles: [],
     });
     expect(analyzer.hasIndex()).toBe(false);

@@ -38,6 +38,8 @@ export default function App(): React.ReactElement {
     pluginFilterGroups,
     disabledCustomFilterPatterns,
     disabledPluginFilterPatterns,
+    respectFilesExclude,
+    filesExcludedCount,
     showOrphans,
     timelineActive,
     activePanel,
@@ -61,6 +63,7 @@ export default function App(): React.ReactElement {
     setFilterPatterns,
     setDisabledCustomFilterPatterns,
     setDisabledPluginFilterPatterns,
+    setRespectFilesExclude,
   } = useAppActions();
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
   const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
@@ -157,6 +160,7 @@ export default function App(): React.ReactElement {
   const closeActivePanel = () => setActivePanel('none');
   const { countState, countTotal, excludedCount } = getShellGraphCountState({
     countBaseData,
+    filesExcludedCount,
     filterVisibleData,
     filteredData,
     graphData,
@@ -185,10 +189,12 @@ export default function App(): React.ReactElement {
           onDisabledPluginPatternsChange: setDisabledPluginFilterPatterns,
           onOpenChange: handleFilterPopoverOpenChange,
           onPatternsChange: setFilterPatterns,
+          onRespectFilesExcludeChange: setRespectFilesExclude,
           open: filterPopoverOpen,
           pendingPatterns: pendingFilterPatterns,
           pluginGroups: pluginFilterGroups,
           pluginPatterns: pluginFilterPatterns,
+          respectFilesExclude,
         }}
         regexError={regexError}
         onSearchQueryChange={setSearchQuery}

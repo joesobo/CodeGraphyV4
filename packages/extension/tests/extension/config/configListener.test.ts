@@ -12,6 +12,7 @@ function makeProvider() {
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
     sendPlaybackSpeed: vi.fn(),
+    clearCacheAndRefresh: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -43,6 +44,22 @@ describe('configListener', () => {
     listener({ affectsConfiguration: (key) => key === 'codegraphy.physics' });
 
     expect(provider.refreshPhysicsSettings).toHaveBeenCalledOnce();
+  });
+
+  it('invalidates discovery and timeline caches when native files.exclude changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const nativeListener = vi.mocked(vscode.workspace.onDidChangeConfiguration).mock.calls[1]?.[0];
+    nativeListener?.({
+      affectsConfiguration: (key: string) => key === 'files.exclude',
+    } as vscode.ConfigurationChangeEvent);
+
+    expect(provider.clearCacheAndRefresh).toHaveBeenCalledOnce();
+    expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
+    expect(context.subscriptions).toHaveLength(2);
   });
 
   it('calls refreshToggleSettings for plugin setting changes', () => {
@@ -219,6 +236,6 @@ describe('configListener', () => {
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
-    expect(context.subscriptions.length).toBe(1);
+    expect(context.subscriptions.length).toBe(2);
   });
 });

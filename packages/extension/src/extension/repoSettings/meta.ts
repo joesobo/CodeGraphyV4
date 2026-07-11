@@ -10,6 +10,7 @@ export interface ICodeGraphyRepoMeta {
   pluginSignature: string | null;
   settingsSignature: string | null;
   pendingChangedFiles: string[];
+  filesExcludedCount: number;
 }
 
 const META_FILE_NAME = 'meta.json';
@@ -22,12 +23,14 @@ const codeGraphyRepoMetaSchema = z.looseObject({
   pendingChangedFiles: looseStringArraySchema,
   pluginSignature: optionalNullableStringSchema,
   settingsSignature: optionalNullableStringSchema,
+  filesExcludedCount: z.number().int().nonnegative().optional().catch(undefined),
 }).transform((meta): ICodeGraphyRepoMeta => ({
   ...createDefaultCodeGraphyRepoMeta(),
   ...(meta.lastIndexedAt !== undefined ? { lastIndexedAt: meta.lastIndexedAt } : {}),
   ...(meta.lastIndexedCommit !== undefined ? { lastIndexedCommit: meta.lastIndexedCommit } : {}),
   ...(meta.pluginSignature !== undefined ? { pluginSignature: meta.pluginSignature } : {}),
   ...(meta.settingsSignature !== undefined ? { settingsSignature: meta.settingsSignature } : {}),
+  ...(meta.filesExcludedCount !== undefined ? { filesExcludedCount: meta.filesExcludedCount } : {}),
   pendingChangedFiles: meta.pendingChangedFiles,
   version: 1,
 }));
@@ -40,6 +43,7 @@ export function createDefaultCodeGraphyRepoMeta(): ICodeGraphyRepoMeta {
     pluginSignature: null,
     settingsSignature: null,
     pendingChangedFiles: [],
+    filesExcludedCount: 0,
   };
 }
 

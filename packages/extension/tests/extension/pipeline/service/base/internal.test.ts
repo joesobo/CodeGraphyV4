@@ -80,7 +80,9 @@ vi.mock('vscode', () => ({
     workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
     fs: {},
     getConfiguration: vi.fn(() => ({
-      get: vi.fn(),
+      get: vi.fn((key: string, defaultValue: unknown) => key === 'exclude'
+        ? { '**/generated': true }
+        : defaultValue),
       update: vi.fn(),
       inspect: vi.fn(),
     })),
@@ -112,6 +114,7 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
       version: 1,
       showOrphans: true,
       respectGitignore: true,
+      respectFilesExclude: true,
       filterPatterns: [],
       plugins: [],
     })),
@@ -440,6 +443,7 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(source.getSettingsSignature()).toBe('settings-signature');
     expect(createWorkspacePipelineSettingsSignature).toHaveBeenCalledWith(
       source._config,
+      [{ pattern: '**/generated' }],
     );
   });
 

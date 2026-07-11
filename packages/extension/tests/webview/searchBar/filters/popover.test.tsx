@@ -19,10 +19,12 @@ function renderPopover(overrides: Partial<React.ComponentProps<typeof FilterPopo
     onDisabledPluginPatternsChange: vi.fn(),
     onOpenChange: vi.fn(),
     onPatternsChange: vi.fn(),
+    onRespectFilesExcludeChange: vi.fn(),
     open: true,
     pendingPatterns: [],
     pluginGroups: [{ pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin/**'] }],
     pluginPatterns: ['plugin/**'],
+    respectFilesExclude: true,
     ...overrides,
   };
 
@@ -39,11 +41,24 @@ describe('searchBar/filters/popover', () => {
     renderPopover();
 
     expect(screen.getByText('Filters')).toBeInTheDocument();
-    expect(screen.getByText('2 enabled')).toBeInTheDocument();
+    expect(screen.getByText('3 enabled')).toBeInTheDocument();
     expect(screen.getByText('4 excluded from graph')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Filters, 2 enabled' }).className).toContain('bg-secondary');
+    expect(screen.getByText('VS Code files.exclude')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters, 3 enabled' }).className).toContain('bg-secondary');
+  });
+
+  it('persists the VS Code files.exclude source toggle', () => {
+    const props = renderPopover();
+
+    fireEvent.click(screen.getByLabelText('Disable VS Code files.exclude'));
+
+    expect(props.onRespectFilesExcludeChange).toHaveBeenCalledWith(false);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_RESPECT_FILES_EXCLUDE',
+      payload: { enabled: false },
+    });
   });
 
   it('opens and closes from its own trigger when uncontrolled', () => {
@@ -51,11 +66,11 @@ describe('searchBar/filters/popover', () => {
 
     expect(screen.queryByText('Filters')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Filters, 2 enabled' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 3 enabled' }));
     expect(screen.getByText('Filters')).toBeInTheDocument();
     expect(props.onOpenChange).toHaveBeenCalledWith(true);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Filters, 2 enabled' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 3 enabled' }));
     expect(screen.queryByText('Filters')).not.toBeInTheDocument();
     expect(props.onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -63,7 +78,7 @@ describe('searchBar/filters/popover', () => {
   it('opens uncontrolled without an open-change callback', () => {
     renderPopover({ onOpenChange: undefined, open: undefined });
 
-    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Filters, 2 enabled' }))).not.toThrow();
+    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Filters, 3 enabled' }))).not.toThrow();
     expect(screen.getByText('Filters')).toBeInTheDocument();
   });
 
@@ -75,6 +90,7 @@ describe('searchBar/filters/popover', () => {
       pendingPatterns: undefined,
       pluginGroups: [],
       pluginPatterns: [],
+      respectFilesExclude: false,
     });
 
     const trigger = screen.getByRole('button', { name: 'Filters, 0 enabled' });
@@ -232,8 +248,8 @@ describe('searchBar/filters/popover', () => {
   it('counts disabled rows as not enabled', () => {
     renderPopover({ disabledPluginPatterns: ['plugin/**'] });
 
-    expect(screen.getByRole('button', { name: 'Filters, 1 enabled' })).toBeInTheDocument();
-    expect(screen.getByText('1 enabled')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters, 2 enabled' })).toBeInTheDocument();
+    expect(screen.getByText('2 enabled')).toBeInTheDocument();
   });
 
   it('edits and deletes custom filter rows', () => {

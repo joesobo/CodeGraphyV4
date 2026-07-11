@@ -133,6 +133,7 @@ export type {
   IDiscoveredFile,
   IDiscoveryOptions,
   IDiscoveryResult,
+  IFilesExcludeRule,
 } from './discovery/contracts';
 export { createAbortError, throwIfAborted } from './discovery/abort';
 export { FileDiscovery } from './discovery/file/service';

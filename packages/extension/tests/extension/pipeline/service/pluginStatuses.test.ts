@@ -101,6 +101,7 @@ describe('pipeline/service plugin statuses', () => {
       maxFiles: 1000,
       include: ['**/*'],
       respectGitignore: true,
+      respectFilesExclude: true,
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],

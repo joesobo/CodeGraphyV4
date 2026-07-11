@@ -19,6 +19,10 @@ describe('pipeline/discovery', () => {
       { discover },
       '/workspace',
       {
+        filesExclude: [
+          { pattern: '**/*.js', when: '$(basename).ts' },
+          { pattern: '**/generated' },
+        ],
         include: ['**/*'],
         maxFiles: 25,
         respectGitignore: false,
@@ -38,6 +42,10 @@ describe('pipeline/discovery', () => {
           '**/*.dist.ts',
           '**/*.generated.ts',
         ]),
+      ],
+      filesExclude: [
+        { pattern: '**/*.js', when: '$(basename).ts' },
+        { pattern: '**/generated' },
       ],
       respectGitignore: false,
       signal,

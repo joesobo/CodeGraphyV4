@@ -1,6 +1,8 @@
 import { DEFAULT_EXCLUDE } from '../discovery/pathMatching';
+import type { IFilesExcludeRule } from '../discovery/contracts';
 
 export interface WorkspacePipelineDiscoveryConfig {
+  filesExclude?: IFilesExcludeRule[];
   include: string[];
   maxFiles: number;
   respectGitignore: boolean;
@@ -10,6 +12,8 @@ export interface WorkspacePipelineDiscoveryResult<TFile> {
   directories?: string[];
   durationMs: number;
   files: TFile[];
+  filesExcludedCount?: number;
+  filesExcludedPaths?: string[];
   gitIgnoredPaths?: string[];
   limitReached: boolean;
   totalFound: number;
@@ -18,6 +22,7 @@ export interface WorkspacePipelineDiscoveryResult<TFile> {
 export interface WorkspacePipelineDiscoveryDependencies<TFile> {
   discover(options: {
     exclude: string[];
+    filesExclude?: IFilesExcludeRule[];
     include: string[];
     maxFiles: number;
     respectGitignore: boolean;
@@ -45,6 +50,7 @@ export async function discoverWorkspacePipelineFiles<TFile>(
         ...filterPatterns,
       ]),
     ],
+    filesExclude: config.filesExclude,
     respectGitignore: config.respectGitignore,
     signal,
   });

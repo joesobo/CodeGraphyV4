@@ -76,6 +76,12 @@ describe('GraphStore actions', () => {
     expect(store.getState().disabledPluginFilterPatterns).toEqual(['plugin/**']);
   });
 
+  it('setRespectFilesExclude updates the native filter source', () => {
+    store.getState().setRespectFilesExclude(false);
+
+    expect(store.getState().respectFilesExclude).toBe(false);
+  });
+
   it('setShowOrphans updates the orphan visibility flag', () => {
     store.getState().setShowOrphans(false);
 

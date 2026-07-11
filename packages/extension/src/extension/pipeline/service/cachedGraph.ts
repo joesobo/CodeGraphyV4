@@ -22,6 +22,7 @@ import {
 } from './analysisFacade';
 import type { IWorkspaceAnalysisCache } from '../cache';
 import type { IPluginInfo } from '../../../core/plugins/types/contracts';
+import { readCodeGraphyRepoMeta } from '../../repoSettings/meta';
 
 export interface WorkspacePipelineCachedGraphLoadOptions {
   includeCurrentGitignoreMetadata?: boolean;
@@ -81,6 +82,7 @@ export abstract class WorkspacePipelineCachedGraphFacade extends WorkspacePipeli
     this._lastDiscoveredFiles = cachedDiscovery.files;
     this._lastDiscoveredDirectories = cachedDiscovery.directories;
     this._lastGitIgnoredPaths = cachedDiscovery.gitIgnoredPaths;
+    this._lastFilesExcludedCount = readCodeGraphyRepoMeta(workspaceRoot).filesExcludedCount;
     this._lastFileAnalysis = fileAnalysis;
     this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
     this._lastWorkspaceRoot = workspaceRoot;

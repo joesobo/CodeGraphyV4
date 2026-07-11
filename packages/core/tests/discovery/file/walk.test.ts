@@ -42,8 +42,16 @@ describe('walkDirectory', () => {
 
     expect(result).toBe(true);
     expect(onFile).toHaveBeenCalledTimes(2);
-    expect(onFile).toHaveBeenCalledWith('app.ts', '/root/app.ts');
-    expect(onFile).toHaveBeenCalledWith('index.ts', '/root/index.ts');
+    expect(onFile).toHaveBeenCalledWith(
+      'app.ts',
+      '/root/app.ts',
+      new Set(['app.ts', 'index.ts']),
+    );
+    expect(onFile).toHaveBeenCalledWith(
+      'index.ts',
+      '/root/index.ts',
+      new Set(['app.ts', 'index.ts']),
+    );
   });
 
   it('recursively walks subdirectories', async () => {
@@ -55,7 +63,11 @@ describe('walkDirectory', () => {
 
     await walkDirectory('/root', '/root', onFile);
 
-    expect(onFile).toHaveBeenCalledWith('src/main.ts', '/root/src/main.ts');
+    expect(onFile).toHaveBeenCalledWith(
+      'src/main.ts',
+      '/root/src/main.ts',
+      new Set(['main.ts']),
+    );
   });
 
   it('notifies callers when walking a refreshable subdirectory', async () => {
@@ -83,7 +95,11 @@ describe('walkDirectory', () => {
 
     // Should not recurse into node_modules
     expect(onFile).toHaveBeenCalledTimes(1);
-    expect(onFile).toHaveBeenCalledWith('app.ts', '/root/app.ts');
+    expect(onFile).toHaveBeenCalledWith(
+      'app.ts',
+      '/root/app.ts',
+      new Set(['node_modules', 'app.ts']),
+    );
     expect(mockReaddir).toHaveBeenCalledTimes(1);
   });
 
@@ -113,7 +129,11 @@ describe('walkDirectory', () => {
     await walkDirectory('/root', '/root', onFile, onDirectory);
 
     expect(onFile).toHaveBeenCalledTimes(1);
-    expect(onFile).toHaveBeenCalledWith('app.ts', '/root/app.ts');
+    expect(onFile).toHaveBeenCalledWith(
+      'app.ts',
+      '/root/app.ts',
+      new Set(['.codegraphy', 'app.ts']),
+    );
     expect(onDirectory).not.toHaveBeenCalledWith('.codegraphy', '/root/.codegraphy');
     expect(mockReaddir).toHaveBeenCalledTimes(1);
   });

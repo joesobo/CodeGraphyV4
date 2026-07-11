@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
@@ -7,6 +8,7 @@ import {
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspacePluginSettings,
+  type IFilesExcludeRule,
 } from '@codegraphy-dev/core';
 import type { Configuration } from '../../../config/reader';
 import { execGitCommand } from '../../../gitHistory/exec';
@@ -55,10 +57,20 @@ export function createWorkspacePipelinePluginSignature(
 
 export function createWorkspacePipelineSettingsSignature(
   config: Configuration,
+  filesExclude: readonly IFilesExcludeRule[] = [],
 ): string {
-  return createCodeGraphyWorkspaceSettingsSignature(
+  const settingsSignature = createCodeGraphyWorkspaceSettingsSignature(
     normalizeCodeGraphyWorkspaceSettings(config.getAll()),
   );
+  const normalizedFilesExclude = [...filesExclude]
+    .map(rule => ({ pattern: rule.pattern, ...(rule.when ? { when: rule.when } : {}) }))
+    .sort((left, right) => (
+      left.pattern.localeCompare(right.pattern)
+      || (left.when ?? '').localeCompare(right.when ?? '')
+    ));
+  return createHash('sha1')
+    .update(JSON.stringify({ settingsSignature, filesExclude: normalizedFilesExclude }))
+    .digest('hex');
 }
 
 export async function readWorkspacePipelineCurrentCommitSha(

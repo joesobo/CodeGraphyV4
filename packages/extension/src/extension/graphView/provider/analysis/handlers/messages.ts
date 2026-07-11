@@ -3,6 +3,7 @@ import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/e
 import type { GraphViewProviderAnalysisHandlers } from '../../../analysis/lifecycle';
 import { sendGraphControlsUpdated } from '../../../controls/send';
 import type { GraphViewProviderAnalysisMethodsSource } from '../methods';
+import { sendFilesExcludeState } from '../../../settings/filesExclude';
 
 type GraphNodeMetricUpdates = Parameters<NonNullable<GraphViewProviderAnalysisHandlers['sendGraphNodeMetricsUpdated']>>[0];
 type GraphIndexStatusUpdated = GraphViewProviderAnalysisHandlers['sendGraphIndexStatusUpdated'];
@@ -18,6 +19,7 @@ export function sendGraphDataUpdated(
     undefined,
     source._disabledPlugins,
   );
+  sendFilesExcludeState(source._analyzer, message => source._sendMessage(message));
   source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
 }
 

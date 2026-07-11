@@ -145,6 +145,7 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: Number.NaN,
       include: [42],
       respectGitignore: 'yes',
+      respectFilesExclude: 'yes',
       showOrphans: 'no',
     })).toEqual(defaults);
   });
@@ -155,6 +156,7 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: 25,
       include: ['src/**/*.ts', 42, 'packages/**/*.ts'],
       respectGitignore: false,
+      respectFilesExclude: false,
       showOrphans: false,
       filterPatterns: ['dist/**', 'dist/**', 7],
       disabledCustomFilterPatterns: ['generated/**', 'generated/**'],
@@ -172,6 +174,7 @@ describe('CodeGraphy Workspace settings', () => {
       maxFiles: 25,
       include: ['src/**/*.ts', 'packages/**/*.ts'],
       respectGitignore: false,
+      respectFilesExclude: false,
       showOrphans: false,
       filterPatterns: ['dist/**'],
       disabledCustomFilterPatterns: ['generated/**'],

@@ -8,7 +8,11 @@ import * as path from 'path';
 import { throwIfAborted } from '../abort';
 import { shouldSkipKnownDirectory } from '../pathMatching';
 
-type WalkDirectoryCallback = (relativePath: string, absolutePath: string) => boolean;
+type WalkDirectoryCallback = (
+  relativePath: string,
+  absolutePath: string,
+  siblingNames: ReadonlySet<string>,
+) => boolean;
 type WalkDirectoryListener = (relativePath: string, absolutePath: string) => void;
 type DirectoryListenerOrSignal = WalkDirectoryListener | AbortSignal;
 
@@ -75,6 +79,7 @@ async function walkEntry(
   context: WalkDirectoryContext,
   currentPath: string,
   entry: fs.Dirent,
+  siblingNames: ReadonlySet<string>,
 ): Promise<boolean> {
   throwIfAborted(context.signal);
 
@@ -84,7 +89,7 @@ async function walkEntry(
   }
 
   return entry.isFile()
-    ? context.onFile(walkEntryPaths.relativePath, walkEntryPaths.absolutePath)
+    ? context.onFile(walkEntryPaths.relativePath, walkEntryPaths.absolutePath, siblingNames)
     : true;
 }
 
@@ -109,8 +114,10 @@ export async function walkDirectory(
 
   throwIfAborted(signal);
 
-  for (const entry of await readDirectoryEntries(currentPath)) {
-    const shouldContinue = await walkEntry(context, currentPath, entry);
+  const entries = await readDirectoryEntries(currentPath);
+  const siblingNames = new Set(entries.map(entry => entry.name));
+  for (const entry of entries) {
+    const shouldContinue = await walkEntry(context, currentPath, entry, siblingNames);
     if (!shouldContinue) {
       return false;
     }

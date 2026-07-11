@@ -14,8 +14,9 @@ import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from 
 import { sendGraphControlsUpdated } from '../controls/send';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import { resolveCssSnippetStylesheets } from '../cssSnippets/resolve';
+import { sendFilesExcludeState, type FilesExcludeStateSource } from '../settings/filesExclude';
 
-interface GraphViewProviderSettingsAnalyzerLike {
+interface GraphViewProviderSettingsAnalyzerLike extends FilesExcludeStateSource {
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
   registry?: unknown;
@@ -169,6 +170,7 @@ export function createGraphViewProviderSettingsStateMethods(
       config,
       source._disabledPlugins,
     );
+    sendFilesExcludeState(source._analyzer, message => source._sendMessage(message));
   };
 
   const _sendAllSettings = (): void => {
@@ -210,6 +212,7 @@ export function createGraphViewProviderSettingsStateMethods(
       config,
       source._disabledPlugins,
     );
+    sendFilesExcludeState(source._analyzer, message => source._sendMessage(message));
 
     syncGroupStateToSource(state);
   };

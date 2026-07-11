@@ -3,6 +3,7 @@ import type { GraphViewProvider } from '../graphViewProvider';
 import { onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import { classifyConfigChange } from './classify';
 import { executeConfigAction } from './actions';
+import { registerFilesExcludeConfigHandler } from './filesExclude/listener';
 
 /**
  * Registers a configuration-change listener and routes each setting category
@@ -20,4 +21,5 @@ export function registerConfigHandler(
       }
     })
   );
+  registerFilesExcludeConfigHandler(context, provider);
 }

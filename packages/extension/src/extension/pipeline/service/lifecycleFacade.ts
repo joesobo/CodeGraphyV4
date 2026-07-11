@@ -14,6 +14,14 @@ import { readWorkspacePluginStatusContext } from '../plugins/statusContext';
 import { removeInvalidatedDiscoveredDirectories } from './directoryInvalidation';
 
 export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFacade {
+  getFilesExcludedCount(): number {
+    return this._lastFilesExcludedCount;
+  }
+
+  getRespectFilesExclude(): boolean {
+    return this._config.getAll().respectFilesExclude;
+  }
+
   getPluginStatuses(disabledPlugins: Set<string>): IPluginStatus[] {
     const pluginStatusContext = readWorkspacePluginStatusContext(this._getWorkspaceRoot());
     return getWorkspacePipelineStatusList(

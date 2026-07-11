@@ -5,7 +5,8 @@ type SettingsUpdateConfigKey =
   | 'showOrphans'
   | 'bidirectionalEdges'
   | 'maxFiles'
-  | 'verboseDiagnostics';
+  | 'verboseDiagnostics'
+  | 'respectFilesExclude';
 
 function getSimpleSettingsUpdateConfig(
   message: WebviewToExtensionMessage,
@@ -19,6 +20,8 @@ function getSimpleSettingsUpdateConfig(
       return { key: 'maxFiles', value: message.payload.maxFiles };
     case 'UPDATE_VERBOSE_DIAGNOSTICS':
       return { key: 'verboseDiagnostics', value: message.payload.verboseDiagnostics };
+    case 'UPDATE_RESPECT_FILES_EXCLUDE':
+      return { key: 'respectFilesExclude', value: message.payload.enabled };
     default:
       return undefined;
   }

@@ -35,6 +35,7 @@ export async function refreshAnalysisScopeForFacade(
     workspaceRoot,
   });
   facade._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
+  facade._lastFilesExcludedCount = discoveryResult.filesExcludedCount ?? 0;
 
   if (canReuseCurrentAnalysisForScope({
     activePluginIds: facade._getActiveAnalysisPluginIds(undefined, input.disabledPlugins),

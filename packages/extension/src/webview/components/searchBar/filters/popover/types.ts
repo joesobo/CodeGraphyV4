@@ -10,10 +10,12 @@ export interface FilterPopoverProps {
   onDisabledPluginPatternsChange: (patterns: string[]) => void;
   onOpenChange?: (open: boolean) => void;
   onPatternsChange: (patterns: string[]) => void;
+  onRespectFilesExcludeChange: (enabled: boolean) => void;
   open?: boolean;
   pendingPatterns?: string[];
   pluginGroups: IPluginFilterPatternGroup[];
   pluginPatterns: string[];
+  respectFilesExclude: boolean;
 }
 
 export interface FilterDraftState {

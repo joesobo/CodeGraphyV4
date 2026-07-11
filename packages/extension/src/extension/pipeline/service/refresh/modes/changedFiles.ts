@@ -101,5 +101,6 @@ async function getChangedFileDiscoveryState(
   };
   facade._lastDiscoveredDirectories = discoveryResult.directories;
   facade._lastGitIgnoredPaths = discovered.discoveryResult.gitIgnoredPaths ?? [];
+  facade._lastFilesExcludedCount = discovered.discoveryResult.filesExcludedCount ?? 0;
   return discoveryResult;
 }

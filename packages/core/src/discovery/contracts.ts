@@ -15,12 +15,19 @@ export interface IDiscoveryOptions {
   include?: string[];
   /** Glob patterns for files to exclude */
   exclude?: string[];
+  /** VS Code files.exclude rules applied separately so excluded counts remain attributable. */
+  filesExclude?: IFilesExcludeRule[];
   /** Whether to respect Git ignored state (default: true) */
   respectGitignore?: boolean;
   /** File extensions to include (e.g., ['.ts', '.js']). If empty, all extensions allowed. */
   extensions?: string[];
   /** Abort signal for cancelling long-running discovery */
   signal?: AbortSignal;
+}
+
+export interface IFilesExcludeRule {
+  pattern: string;
+  when?: string;
 }
 
 /**
@@ -49,6 +56,10 @@ export interface IDiscoveryResult {
   directories: string[];
   /** Discovered file and directory paths reported by Git as ignored */
   gitIgnoredPaths?: string[];
+  /** File paths omitted specifically by files.exclude rules. */
+  filesExcludedPaths?: string[];
+  /** Number of files omitted specifically by files.exclude rules. */
+  filesExcludedCount?: number;
   /** Whether the max file limit was hit */
   limitReached: boolean;
   /** Total files found before limit (if limit was reached) */

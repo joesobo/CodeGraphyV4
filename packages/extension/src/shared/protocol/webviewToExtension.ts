@@ -76,6 +76,7 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_LEGEND_ORDER'; payload: { legendIds: string[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
+  | { type: 'UPDATE_RESPECT_FILES_EXCLUDE'; payload: { enabled: boolean } }
   | {
       type: 'UPDATE_FILTER_PATTERN_STATE';
       payload: { source: 'custom' | 'plugin'; pattern: string; enabled: boolean };

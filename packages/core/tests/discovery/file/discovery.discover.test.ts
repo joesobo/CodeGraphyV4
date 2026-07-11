@@ -138,6 +138,45 @@ describe('FileDiscovery discover', () => {
     expect(result.files.map((file) => file.name)).not.toContain('app.test.ts');
   });
 
+  it('applies files.exclude rules and reports the excluded file paths', async () => {
+    createFile('src/app.ts');
+    createFile('src/app.test.ts');
+    createFile('src/generated/client.ts');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filesExclude: [
+        { pattern: '**/*.test.ts' },
+        { pattern: '**/generated' },
+      ],
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([path.join('src', 'app.ts')]);
+    expect(result.filesExcludedPaths).toEqual([
+      path.join('src', 'app.test.ts'),
+      path.join('src', 'generated', 'client.ts'),
+    ]);
+    expect(result.filesExcludedCount).toBe(2);
+    expect(result.directories).not.toContain(path.join('src', 'generated'));
+  });
+
+  it('applies conditional files.exclude rules only when the sibling exists', async () => {
+    createFile('src/app.js');
+    createFile('src/app.ts');
+    createFile('src/standalone.js');
+
+    const result = await discovery.discover({
+      rootPath: tempDir,
+      filesExclude: [{ pattern: '**/*.js', when: '$(basename).ts' }],
+    });
+
+    expect(result.files.map(file => file.relativePath)).toEqual([
+      path.join('src', 'app.ts'),
+      path.join('src', 'standalone.js'),
+    ]);
+    expect(result.filesExcludedPaths).toEqual([path.join('src', 'app.js')]);
+  });
+
   it('excludes node_modules by default', async () => {
     createFile('src/app.ts');
     createFile('node_modules/lodash/index.js');

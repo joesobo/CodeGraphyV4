@@ -18,6 +18,7 @@ export interface ICodeGraphyRepoSettings {
   verboseDiagnostics: boolean;
   include: string[];
   respectGitignore: boolean;
+  respectFilesExclude: boolean;
   showOrphans: boolean;
   cssSnippets: Record<string, boolean>;
   plugins: CodeGraphyWorkspacePluginSettings[];
@@ -63,6 +64,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     verboseDiagnostics: false,
     include: ['**/*'],
     respectGitignore: true,
+    respectFilesExclude: true,
     showOrphans: true,
     cssSnippets: {},
     plugins: [{

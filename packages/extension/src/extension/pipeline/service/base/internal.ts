@@ -34,6 +34,7 @@ import {
   preAnalyzeWorkspacePipelinePlugins,
 } from '../runtime/analysis';
 import { WorkspacePipelineStateBase } from './state';
+import { readFilesExcludeRules } from '../../../config/filesExclude/model';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected async _preAnalyzePlugins(
@@ -185,7 +186,15 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   }
 
   protected _getSettingsSignature(): string {
-    return createWorkspacePipelineSettingsSignature(this._config);
+    const config = this._config.getAll();
+    const workspaceRoot = this._getWorkspaceRoot();
+    const workspaceResource = workspaceRoot
+      ? vscode.workspace.workspaceFolders?.find(folder => folder.uri.fsPath === workspaceRoot)?.uri
+      : undefined;
+    const filesExclude = config.respectFilesExclude && workspaceResource
+      ? readFilesExcludeRules(vscode.workspace, workspaceResource)
+      : [];
+    return createWorkspacePipelineSettingsSignature(this._config, filesExclude);
   }
 
   protected async _getCurrentCommitSha(workspaceRoot: string): Promise<string | null> {
@@ -217,6 +226,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     await persistWorkspacePipelineIndexMetadata(workspaceRoot, {
       getCurrentCommitSha: () =>
         workspaceRoot ? this._getCurrentCommitShaSync(workspaceRoot) : null,
+      getFilesExcludedCount: () => this._lastFilesExcludedCount,
       getPluginSignature: () => this._getPluginSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
       warn: (message: string, error: unknown) => {

@@ -58,6 +58,7 @@ describe('extension/repoSettings/meta', () => {
       pluginSignature: 'codegraphy.markdown@1.0.0',
       settingsSignature: 'settings-sha',
       pendingChangedFiles: ['src/index.ts'],
+      filesExcludedCount: 3,
     };
 
     writeCodeGraphyRepoMeta(workspaceRoot, meta);
@@ -91,6 +92,7 @@ describe('extension/repoSettings/meta', () => {
       lastIndexedCommit: 'abc123',
       pluginSignature: null,
       settingsSignature: null,
+      filesExcludedCount: 0,
       pendingChangedFiles: ['src/app.ts'],
     });
   });
@@ -137,6 +139,7 @@ describe('extension/repoSettings/meta', () => {
       lastIndexedCommit: 'abc123',
       pluginSignature: null,
       settingsSignature: null,
+      filesExcludedCount: 0,
       pendingChangedFiles: ['src/app.ts', 'src/index.ts'],
     });
   });
@@ -163,6 +166,7 @@ describe('extension/repoSettings/meta', () => {
       pluginSignature: 'codegraphy.markdown@1.0.0',
       settingsSignature: 'settings-sha',
       pendingChangedFiles: ['src/index.ts'],
+      filesExcludedCount: 3,
     };
 
     expect(fs.existsSync(workspaceRoot)).toBe(false);

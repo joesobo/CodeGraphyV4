@@ -6,6 +6,7 @@ import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
 } from './runtime/discovery';
+import { readFilesExcludeRules } from '../../config/filesExclude/model';
 
 export abstract class WorkspacePipelineGraphDiscoveryFacade extends WorkspacePipelinePluginFacade {
   async discoverGraph(
@@ -20,10 +21,18 @@ export abstract class WorkspacePipelineGraphDiscoveryFacade extends WorkspacePip
     }
 
     const config = this._config.getAll();
+    const workspaceResource = vscode.workspace.workspaceFolders
+      ?.find(folder => folder.uri.fsPath === workspaceRoot)?.uri;
+    const discoveryConfig = {
+      ...config,
+      filesExclude: config.respectFilesExclude && workspaceResource
+        ? readFilesExcludeRules(vscode.workspace, workspaceResource)
+        : [],
+    };
     const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
       createWorkspacePipelineDiscoveryDependencies(this._discovery),
       workspaceRoot,
-      config,
+      discoveryConfig,
       this._getEffectiveCustomFilterPatterns(filterPatterns),
       this._getEffectivePluginFilterPatterns(disabledPlugins),
       signal,
@@ -38,6 +47,7 @@ export abstract class WorkspacePipelineGraphDiscoveryFacade extends WorkspacePip
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
     this._lastDiscoveredFiles = discoveryResult.files;
     this._lastGitIgnoredPaths = discoveryResult.gitIgnoredPaths ?? [];
+    this._lastFilesExcludedCount = discoveryResult.filesExcludedCount ?? 0;
     this._lastFileAnalysis = new Map();
     this._lastFileConnections = fileConnections;
     this._lastWorkspaceRoot = workspaceRoot;

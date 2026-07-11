@@ -46,6 +46,23 @@ describe('webview/app/shell/counts', () => {
     });
   });
 
+  it('includes files excluded before graph construction in totals', () => {
+    expect(getShellGraphCountState({
+      countBaseData: graphWithNodes(5),
+      filesExcludedCount: 2,
+      filterVisibleData: graphWithNodes(3),
+      filteredData: null,
+      graphData: graphWithNodes(5),
+      regexError: null,
+      searchQuery: '',
+    })).toEqual({
+      countState: { kind: 'filters-only', label: '3 of 7' },
+      countTotal: 7,
+      excludedCount: 4,
+      filterVisibleCount: 3,
+    });
+  });
+
   it('does not show a search count when the search query is blank', () => {
     expect(getShellGraphCountState({
       countBaseData: graphWithNodes(4),

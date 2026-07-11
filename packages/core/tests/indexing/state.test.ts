@@ -20,6 +20,7 @@ describe('indexing/state', () => {
     expect(state.fileConnections).toEqual(new Map());
     expect(state.discoveredDirectories).toEqual([]);
     expect(state.discoveredFiles).toEqual([]);
+    expect(state.filesExcludedCount).toBe(0);
     expect(state.workspaceRoot).toBe('');
     expect(state.graph).toEqual({ nodes: [], edges: [] });
   });

@@ -17,6 +17,7 @@ describe('extension/repoSettings/defaults', () => {
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,
+      respectFilesExclude: true,
       showOrphans: true,
       cssSnippets: {},
       plugins: [{ id: CODEGRAPHY_MARKDOWN_PLUGIN_ID, enabled: true }],

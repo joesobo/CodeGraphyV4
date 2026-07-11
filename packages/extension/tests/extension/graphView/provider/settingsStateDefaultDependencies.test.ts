@@ -198,7 +198,11 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
   it('sends settings through the default provider message bridge', () => {
     const source = createSource({
-      _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
+      _analyzer: {
+        getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
+        getFilesExcludedCount: vi.fn(() => 4),
+        getRespectFilesExclude: vi.fn(() => false),
+      },
     });
     const settingsMessage = {
       type: 'SETTINGS_UPDATED',
@@ -239,7 +243,7 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(mocks.sendProviderSettings).toHaveBeenCalledOnce();
     expect(mocks.sendProviderAllSettings).not.toHaveBeenCalled();
-    expect(source._sendMessage).toHaveBeenCalledTimes(3);
+    expect(source._sendMessage).toHaveBeenCalledTimes(4);
     expect(source._sendMessage).toHaveBeenNthCalledWith(1, settingsMessage);
     expect(source._sendMessage).toHaveBeenNthCalledWith(
       2,
@@ -249,11 +253,19 @@ describe('graphView/provider/settingsState default dependencies', () => {
       3,
       expect.objectContaining({ type: 'GRAPH_CONTROLS_UPDATED' }),
     );
+    expect(source._sendMessage).toHaveBeenNthCalledWith(4, {
+      type: 'FILES_EXCLUDE_UPDATED',
+      payload: { enabled: false, excludedCount: 4 },
+    });
   });
 
   it('sends all settings through the default snapshot bridge', () => {
     const source = createSource({
-      _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
+      _analyzer: {
+        getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
+        getFilesExcludedCount: vi.fn(() => 4),
+        getRespectFilesExclude: vi.fn(() => false),
+      },
     });
     const allSettingsMessage = {
       type: 'ALL_SETTINGS_UPDATED',
@@ -289,7 +301,7 @@ describe('graphView/provider/settingsState default dependencies', () => {
       { damping: 1 },
       'connections',
     );
-    expect(source._sendMessage).toHaveBeenCalledTimes(3);
+    expect(source._sendMessage).toHaveBeenCalledTimes(4);
     expect(source._sendMessage).toHaveBeenNthCalledWith(1, allSettingsMessage);
     expect(source._sendMessage).toHaveBeenNthCalledWith(
       2,
@@ -299,6 +311,10 @@ describe('graphView/provider/settingsState default dependencies', () => {
       3,
       expect.objectContaining({ type: 'GRAPH_CONTROLS_UPDATED' }),
     );
+    expect(source._sendMessage).toHaveBeenNthCalledWith(4, {
+      type: 'FILES_EXCLUDE_UPDATED',
+      payload: { enabled: false, excludedCount: 4 },
+    });
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);

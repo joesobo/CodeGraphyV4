@@ -19,7 +19,9 @@ vi.mock('vscode', () => ({
   workspace: {
     workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
     getConfiguration: vi.fn(() => ({
-      get: vi.fn(),
+      get: vi.fn((key: string, defaultValue: unknown) => key === 'exclude'
+        ? { '**/generated': true }
+        : defaultValue),
       inspect: vi.fn(),
       update: vi.fn(),
     })),
@@ -46,7 +48,11 @@ class TestGraphDiscoveryFacade extends WorkspacePipelineGraphDiscoveryFacade {
 
   _config = {
     get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
-    getAll: vi.fn(() => ({ respectGitignore: true, showOrphans: true })),
+    getAll: vi.fn(() => ({
+      respectFilesExclude: true,
+      respectGitignore: true,
+      showOrphans: true,
+    })),
   } as unknown as Configuration;
 
   _discovery = { kind: 'discovery' } as unknown as FileDiscovery;
@@ -69,6 +75,10 @@ class TestGraphDiscoveryFacade extends WorkspacePipelineGraphDiscoveryFacade {
 
   get gitIgnoredPaths(): string[] {
     return this._lastGitIgnoredPaths;
+  }
+
+  get filesExcludedCount(): number {
+    return this._lastFilesExcludedCount;
   }
 
   get workspaceRoot(): string {
@@ -124,6 +134,7 @@ describe('extension/pipeline/service/graphDiscovery', () => {
       directories: ['src'],
       files: [fileA, fileB],
       gitIgnoredPaths: ['dist/generated.ts'],
+      filesExcludedCount: 2,
     } as never);
   });
 
@@ -153,7 +164,12 @@ describe('extension/pipeline/service/graphDiscovery', () => {
     expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
       'discovery-deps',
       '/workspace',
-      { respectGitignore: true, showOrphans: true },
+      {
+        filesExclude: [{ pattern: '**/generated' }],
+        respectFilesExclude: true,
+        respectGitignore: true,
+        showOrphans: true,
+      },
       ['custom:dist/**'],
       ['plugin:plugin.disabled'],
       signal,
@@ -179,6 +195,7 @@ describe('extension/pipeline/service/graphDiscovery', () => {
     expect(facade.fileAnalysis).toEqual(new Map());
     expect(facade.fileConnections).toEqual(expectedConnections);
     expect(facade.gitIgnoredPaths).toEqual(['dist/generated.ts']);
+    expect(facade.filesExcludedCount).toBe(2);
     expect(facade.workspaceRoot).toBe('/workspace');
   });
 
@@ -193,7 +210,12 @@ describe('extension/pipeline/service/graphDiscovery', () => {
     expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
       'discovery-deps',
       '/workspace',
-      { respectGitignore: true, showOrphans: true },
+      {
+        filesExclude: [{ pattern: '**/generated' }],
+        respectFilesExclude: true,
+        respectGitignore: true,
+        showOrphans: true,
+      },
       [],
       [],
       undefined,

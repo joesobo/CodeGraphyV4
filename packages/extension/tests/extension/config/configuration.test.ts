@@ -25,6 +25,7 @@ describe('Configuration', () => {
       maxFiles: DEFAULT_MAX_FILES,
       include: ['**/*'],
       respectGitignore: true,
+      respectFilesExclude: true,
       showOrphans: true,
     };
 
@@ -50,6 +51,10 @@ describe('Configuration', () => {
     it('should return default respectGitignore as true', () => {
       const config = new Configuration();
       expect(config.respectGitignore).toBe(true);
+    });
+
+    it('should return default respectFilesExclude as true', () => {
+      expect(new Configuration().respectFilesExclude).toBe(true);
     });
 
     it('should return default showOrphans as true', () => {
@@ -78,6 +83,11 @@ describe('Configuration', () => {
       expect(config.respectGitignore).toBe(false);
     });
 
+    it('should return custom respectFilesExclude', () => {
+      mockConfig.respectFilesExclude = false;
+      expect(new Configuration().respectFilesExclude).toBe(false);
+    });
+
     it('should return custom showOrphans', () => {
       mockConfig.showOrphans = false;
       const config = new Configuration();
@@ -96,6 +106,7 @@ describe('Configuration', () => {
         maxFiles: DEFAULT_MAX_FILES,
         include: ['**/*'],
         respectGitignore: true,
+        respectFilesExclude: true,
         showOrphans: true,
         filterPatterns: [],
         bidirectionalEdges: 'separate',

@@ -8,6 +8,7 @@ export interface WorkspaceIndexEngineState {
   cache: IWorkspaceAnalysisCache;
   discoveredDirectories: string[];
   discoveredFiles: IDiscoveredFile[];
+  filesExcludedCount: number;
   gitIgnoredPaths: string[];
   fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IProjectedConnection[]>;
@@ -22,6 +23,7 @@ export function createWorkspaceIndexEngineState(
     cache,
     discoveredDirectories: [],
     discoveredFiles: [],
+    filesExcludedCount: 0,
     gitIgnoredPaths: [],
     fileAnalysis: new Map(),
     fileConnections: new Map(),

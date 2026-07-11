@@ -138,7 +138,11 @@ describe('graphView/provider/analysis/handlers', () => {
 
   it('forwards graph-control, index, and plugin broadcast messages through the source sender', () => {
     const source = createSource({
-      _analyzer: { id: 'analyzer' } as never,
+      _analyzer: {
+        id: 'analyzer',
+        getFilesExcludedCount: vi.fn(() => 4),
+        getRespectFilesExclude: vi.fn(() => false),
+      } as never,
       _sendPluginExporters: vi.fn(),
       _sendPluginToolbarActions: vi.fn(),
       _sendGraphViewContributionStatuses: vi.fn(),
@@ -213,6 +217,10 @@ describe('graphView/provider/analysis/handlers', () => {
       },
     });
     expect(source._sendMessage).toHaveBeenNthCalledWith(2, {
+      type: 'FILES_EXCLUDE_UPDATED',
+      payload: { enabled: false, excludedCount: 4 },
+    });
+    expect(source._sendMessage).toHaveBeenNthCalledWith(3, {
       type: 'GRAPH_DATA_UPDATED',
       payload: graphData,
     });

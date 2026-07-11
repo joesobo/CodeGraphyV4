@@ -66,6 +66,10 @@ export class Configuration {
     return this.config.get<boolean>('respectGitignore', true);
   }
 
+  get respectFilesExclude(): boolean {
+    return this.config.get<boolean>('respectFilesExclude', true);
+  }
+
   /**
    * Whether to show orphan nodes (files with no imports and not imported by others).
    * @default true
@@ -140,6 +144,7 @@ export class Configuration {
       maxFiles: this.maxFiles,
       include: this.include,
       respectGitignore: this.respectGitignore,
+      respectFilesExclude: this.respectFilesExclude,
       showOrphans: this.showOrphans,
       filterPatterns: this.filterPatterns,
       bidirectionalEdges: this.bidirectionalEdges,

@@ -33,6 +33,8 @@ describe('GraphStore initial state', () => {
     expect(state.pluginFilterGroups).toEqual([]);
     expect(state.disabledCustomFilterPatterns).toEqual([]);
     expect(state.disabledPluginFilterPatterns).toEqual([]);
+    expect(state.respectFilesExclude).toBe(true);
+    expect(state.filesExcludedCount).toBe(0);
     expect(state.depthLimit).toBe(1);
     expect(state.maxDepthLimit).toBe(10);
     expect(state.dagMode).toBeNull();

@@ -3,6 +3,7 @@ export interface FilterPatternSources {
 	disabledPluginPatterns: readonly string[];
 	customPatterns: readonly string[];
 	pluginPatterns: readonly string[];
+	respectFilesExclude?: boolean;
 }
 
 export function getEnabledFilterPatterns({
@@ -21,5 +22,5 @@ export function getEnabledFilterPatterns({
 }
 
 export function getEnabledFilterCount(sources: FilterPatternSources): number {
-	return getEnabledFilterPatterns(sources).length;
+	return getEnabledFilterPatterns(sources).length + (sources.respectFilesExclude ? 1 : 0);
 }

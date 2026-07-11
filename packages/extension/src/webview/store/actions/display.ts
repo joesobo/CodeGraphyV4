@@ -27,6 +27,7 @@ export function createDisplayActions(set: SetState) {
     }),
     setDisabledCustomFilterPatterns: (patterns: string[]) => set({ disabledCustomFilterPatterns: patterns }),
     setDisabledPluginFilterPatterns: (patterns: string[]) => set({ disabledPluginFilterPatterns: patterns }),
+    setRespectFilesExclude: (enabled: boolean) => set({ respectFilesExclude: enabled }),
     setShowOrphans: (show: boolean) => set({ showOrphans: show }),
     setShowLabels: (show: boolean) => set({ showLabels: show }),
     setCssSnippets: (snippets: Record<string, boolean>) => set({ cssSnippets: snippets }),

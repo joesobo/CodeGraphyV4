@@ -6,6 +6,7 @@ import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
 } from '../../runtime/discovery';
+import { readFilesExcludeRules } from '../../../../config/filesExclude/model';
 
 interface RefreshDiscoveryConfigReader {
   getAll(): ICodeGraphyConfig;
@@ -32,10 +33,18 @@ export async function discoverRefreshWorkspaceFiles(
   const config = input.configReader.getAll();
   const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns);
   const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns);
+  const workspaceResource = vscode.workspace.workspaceFolders
+    ?.find(folder => folder.uri.fsPath === input.workspaceRoot)?.uri;
+  const discoveryConfig = {
+    ...config,
+    filesExclude: config.respectFilesExclude && workspaceResource
+      ? readFilesExcludeRules(vscode.workspace, workspaceResource)
+      : [],
+  };
   const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
     createWorkspacePipelineDiscoveryDependencies(input.discovery),
     input.workspaceRoot,
-    config,
+    discoveryConfig,
     input.filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
     input.getPluginFilterPatterns(input.disabledPlugins)
       .filter(pattern => !disabledPluginPatterns.has(pattern)),

@@ -83,4 +83,14 @@ describe('searchBar/filters/model', () => {
       pluginPatterns: ['plugin/**', 'plugin-disabled/**'],
     })).toBe(2);
   });
+
+  it('counts enabled VS Code files.exclude as one filter source', () => {
+    expect(getEnabledFilterCount({
+      disabledCustomPatterns: [],
+      disabledPluginPatterns: [],
+      customPatterns: ['custom/**'],
+      pluginPatterns: [],
+      respectFilesExclude: true,
+    })).toBe(2);
+  });
 });

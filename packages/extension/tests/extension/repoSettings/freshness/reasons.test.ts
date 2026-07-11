@@ -8,6 +8,7 @@ const indexedMeta: ICodeGraphyRepoMeta = {
   lastIndexedCommit: 'abc123',
   pluginSignature: 'plugins',
   settingsSignature: 'settings',
+  filesExcludedCount: 0,
   pendingChangedFiles: [],
 };
 

@@ -115,6 +115,23 @@ describe('pipeline/service/cache/signatures', () => {
     } as never)).not.toThrow();
   });
 
+  it('includes normalized files.exclude rules in the settings signature', () => {
+    const config = {
+      getAll: () => ({ respectFilesExclude: true }),
+    } as never;
+    const base = createWorkspacePipelineSettingsSignature(config, []);
+    const withRules = createWorkspacePipelineSettingsSignature(config, [
+      { pattern: '**/generated' },
+      { pattern: '**/*.js', when: '$(basename).ts' },
+    ]);
+
+    expect(withRules).not.toBe(base);
+    expect(createWorkspacePipelineSettingsSignature(config, [
+      { pattern: '**/*.js', when: '$(basename).ts' },
+      { pattern: '**/generated' },
+    ])).toBe(withRules);
+  });
+
   it('reads and trims the current commit sha asynchronously', async () => {
     vi.mocked(execGitCommand).mockResolvedValue('abc123\n');
 

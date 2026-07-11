@@ -27,6 +27,8 @@ export interface ICodeGraphyConfig {
   include: string[];
   /** Whether to respect .gitignore patterns */
   respectGitignore: boolean;
+  /** Whether to respect VS Code's resource-scoped files.exclude rules. */
+  respectFilesExclude: boolean;
   /** Whether to show orphan nodes (files with no connections) */
   showOrphans: boolean;
   /** Repo-local custom filter patterns */

@@ -44,6 +44,7 @@ export function createCodeGraphyWorkspaceSettingsSignature(
     maxFiles: settings.maxFiles,
     include: settings.include,
     respectGitignore: settings.respectGitignore,
+    respectFilesExclude: settings.respectFilesExclude,
     showOrphans: settings.showOrphans,
     filterPatterns: settings.filterPatterns,
     disabledCustomFilterPatterns: settings.disabledCustomFilterPatterns,

@@ -16,6 +16,7 @@ import {
   createDefaultGraphViewProviderAnalysisMethodDependencies,
   type GraphViewProviderAnalysisMethodDependencies,
 } from './methods/dependencies';
+import type { FilesExcludeStateSource } from '../../settings/filesExclude';
 
 export {
   createDefaultGraphViewProviderAnalysisMethodDependencies,
@@ -29,7 +30,7 @@ export interface GraphViewProviderWorkspaceReadyRegistryLike {
   ): void;
 }
 
-interface GraphViewProviderAnalysisAnalyzerLike {
+interface GraphViewProviderAnalysisAnalyzerLike extends FilesExcludeStateSource {
   registry?: GraphViewProviderWorkspaceReadyRegistryLike;
 }
 

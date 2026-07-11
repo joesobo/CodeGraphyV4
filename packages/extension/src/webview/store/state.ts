@@ -66,6 +66,8 @@ export interface GraphState {
   pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
+  respectFilesExclude: boolean;
+  filesExcludedCount: number;
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
@@ -111,6 +113,7 @@ export interface GraphState {
   toggleFavoritesOptimistically: (paths: readonly string[]) => void;
   setDisabledCustomFilterPatterns: (patterns: string[]) => void;
   setDisabledPluginFilterPatterns: (patterns: string[]) => void;
+  setRespectFilesExclude: (enabled: boolean) => void;
   setShowOrphans: (show: boolean) => void;
   setDirectionMode: (mode: DirectionMode) => void;
   setDirectionColor: (color: string) => void;

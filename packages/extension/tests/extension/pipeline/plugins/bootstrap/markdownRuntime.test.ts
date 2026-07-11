@@ -25,6 +25,7 @@ describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
         maxFiles: 1000,
         include: ['**/*'],
         respectGitignore: true,
+        respectFilesExclude: true,
         showOrphans: true,
         filterPatterns: [],
         disabledCustomFilterPatterns: [],

@@ -80,3 +80,12 @@ export function handleFilterPatternsUpdated(
     disabledPluginFilterPatterns: message.payload.disabledPluginPatterns,
   };
 }
+
+export function handleFilesExcludeUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'FILES_EXCLUDE_UPDATED' }>,
+): PartialState {
+  return {
+    respectFilesExclude: message.payload.enabled,
+    filesExcludedCount: message.payload.excludedCount,
+  };
+}

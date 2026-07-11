@@ -4,6 +4,7 @@ export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'verboseDiagnostics',
   'include',
   'respectGitignore',
+  'respectFilesExclude',
   'showOrphans',
   'cssSnippets',
   'plugins',

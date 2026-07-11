@@ -11,6 +11,7 @@ export interface CodeGraphyWorkspaceSettings {
   maxFiles: number;
   include: string[];
   respectGitignore: boolean;
+  respectFilesExclude: boolean;
   showOrphans: boolean;
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];

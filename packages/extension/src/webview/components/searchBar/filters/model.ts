@@ -22,4 +22,5 @@ export {
   commitFilterPatternGroupState,
   commitFilterPatterns,
   commitFilterPatternState,
+  commitRespectFilesExclude,
 } from './model/commit';

@@ -130,6 +130,14 @@ export abstract class WorkspacePipelineStateBase {
     return this._engineState.gitIgnoredPaths;
   }
 
+  protected get _lastFilesExcludedCount(): number {
+    return this._engineState.filesExcludedCount;
+  }
+
+  protected set _lastFilesExcludedCount(count: number) {
+    this._engineState.filesExcludedCount = count;
+  }
+
   protected set _lastGitIgnoredPaths(gitIgnoredPaths: string[]) {
     this._engineState.gitIgnoredPaths = gitIgnoredPaths;
   }

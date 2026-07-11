@@ -14,6 +14,14 @@ const vscodeMock = vi.hoisted(() => ({
 }));
 
 vi.mock('vscode', () => ({
+  workspace: {
+    workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
+    getConfiguration: vi.fn(() => ({
+      get: vi.fn((key: string, defaultValue: unknown) => key === 'exclude'
+        ? { '**/*.js': { when: '$(basename).ts' } }
+        : defaultValue),
+    })),
+  },
   window: {
     showWarningMessage: vscodeMock.showWarningMessage,
   },
@@ -35,6 +43,7 @@ describe('extension/pipeline/service/refresh/discovery/workspace', () => {
       disabledCustomFilterPatterns: ['dist/**'],
       disabledPluginFilterPatterns: ['plugin.disabled/**'],
       maxFiles: 500,
+      respectFilesExclude: true,
     } as ICodeGraphyConfig;
     const discoveryResult = {
       directories: ['src'],
@@ -68,7 +77,10 @@ describe('extension/pipeline/service/refresh/discovery/workspace', () => {
     expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
       'discovery-deps',
       '/workspace',
-      config,
+      {
+        ...config,
+        filesExclude: [{ pattern: '**/*.js', when: '$(basename).ts' }],
+      },
       ['src/**', 'tests/**'],
       ['plugin.enabled/**'],
       signal,

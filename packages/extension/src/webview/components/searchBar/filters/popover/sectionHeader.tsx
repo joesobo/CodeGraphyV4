@@ -8,6 +8,7 @@ interface SectionHeaderProps {
   label: string;
   onCheckedChange: (checked: boolean) => void;
   subtext: string;
+  includeAllInAriaLabel?: boolean;
 }
 
 export function SectionHeader({
@@ -17,6 +18,7 @@ export function SectionHeader({
   label,
   onCheckedChange,
   subtext,
+  includeAllInAriaLabel = true,
 }: SectionHeaderProps): React.ReactElement {
   return (
     <div className="flex items-center justify-between gap-3">
@@ -29,7 +31,7 @@ export function SectionHeader({
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
-        aria-label={`${checked ? 'Disable' : 'Enable'} all ${ariaLabel}`}
+        aria-label={`${checked ? 'Disable' : 'Enable'} ${includeAllInAriaLabel ? 'all ' : ''}${ariaLabel}`}
       />
     </div>
   );

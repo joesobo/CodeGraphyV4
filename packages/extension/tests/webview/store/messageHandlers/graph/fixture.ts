@@ -42,6 +42,8 @@ export function createState(
     pluginFilterGroups: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
+    respectFilesExclude: true,
+    filesExcludedCount: 0,
     dagMode: null,
     pluginStatuses: [],
     graphNodeTypes: [],

@@ -17,6 +17,7 @@ import {
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
   handleSettingsUpdated,
+  handleFilesExcludeUpdated,
   handleShowLabelsUpdated,
   handleVerboseDiagnosticsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
@@ -322,6 +323,14 @@ describe('webview/store/messageHandlers/graph', () => {
     })).toEqual({
       bidirectionalMode: 'combined',
       showOrphans: false,
+    });
+
+    expect(handleFilesExcludeUpdated({
+      type: 'FILES_EXCLUDE_UPDATED',
+      payload: { enabled: true, excludedCount: 7 },
+    })).toEqual({
+      respectFilesExclude: true,
+      filesExcludedCount: 7,
     });
 
     expect(handleFilterPatternsUpdated({
