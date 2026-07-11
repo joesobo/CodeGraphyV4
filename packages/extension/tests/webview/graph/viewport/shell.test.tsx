@@ -355,7 +355,7 @@ describe('graph/viewport/shell', () => {
 				contextSelection: graphState.context.selection,
 				graphData,
 			},
-			handleEngineStop,
+			handleEngineStop: expect.any(Function),
 			interactions,
 			viewState,
 			viewportRuntime: expect.objectContaining({ containerSize: { height: 320, width: 480 } }),
@@ -507,7 +507,7 @@ describe('graph/viewport/shell', () => {
 
 		viewportState.resumeAnimation();
 		viewportState.reheatSimulation();
-		expect(resumeAnimation).toHaveBeenCalledOnce();
+		expect(resumeAnimation).toHaveBeenCalledTimes(2);
 		expect(reheatSimulation).toHaveBeenCalledOnce();
 	});
 

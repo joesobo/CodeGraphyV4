@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactElement,
@@ -37,6 +38,7 @@ import {
   webviewGraphPerfControl,
   type WebviewGraphPerfControl,
 } from '../../../perf/graph/control';
+import { createIdleGraphAnimationController } from './animation/idle';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -81,6 +83,14 @@ export function GraphViewportShell({
     nodes: [],
     edges: [],
   });
+  const idleAnimation = useMemo(
+    () => createIdleGraphAnimationController(() => (
+      viewState.graphMode === '2d'
+        ? graphState.renderer.fg2dRef.current
+        : graphState.renderer.fg3dRef.current
+    )),
+    [graphState.renderer.fg2dRef, graphState.renderer.fg3dRef, viewState.graphMode],
+  );
 
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
@@ -94,9 +104,15 @@ export function GraphViewportShell({
   }));
 
   const handleEngineTick = useCallback((): void => {
+    idleAnimation.engineTick();
     renderReadyControl.engineTick();
     onEngineTick?.();
-  }, [onEngineTick, renderReadyControl]);
+  }, [idleAnimation, onEngineTick, renderReadyControl]);
+
+  const handleSettled = useCallback((): void => {
+    idleAnimation.engineStopped();
+    handleEngineStop();
+  }, [handleEngineStop, idleAnimation]);
 
   useGraphEventEffects({
     containerRef: graphState.renderer.containerRef,
@@ -118,7 +134,7 @@ export function GraphViewportShell({
     appearance,
     graphState,
     graphViewContributions,
-    handleEngineStop,
+    handleEngineStop: handleSettled,
     interactions,
     onEngineTick: handleEngineTick,
     viewportRuntime,
@@ -128,15 +144,36 @@ export function GraphViewportShell({
 
   useLayoutEffect(() => {
     const simulationWillRun = viewportModel.sharedProps.cooldownTicks > 0;
+    idleAnimation.graphChanged(simulationWillRun);
     renderReadyControl.graphChanged(simulationWillRun);
     if (!simulationWillRun) perfControl.engineStopped();
   }, [
     graphDataLayoutKey,
     graphRevision,
+    idleAnimation,
     perfControl,
     renderReadyControl,
     viewportModel.sharedProps.cooldownTicks,
   ]);
+
+  useEffect(() => {
+    const activity = (): void => idleAnimation.activity();
+    const container = graphState.renderer.containerRef.current;
+    container?.addEventListener('pointermove', activity, { passive: true });
+    window.addEventListener('pointerdown', activity, { passive: true, capture: true });
+    window.addEventListener('wheel', activity, { passive: true, capture: true });
+    window.addEventListener('keydown', activity, { capture: true });
+    window.addEventListener('message', activity);
+
+    return () => {
+      container?.removeEventListener('pointermove', activity);
+      window.removeEventListener('pointerdown', activity, { capture: true });
+      window.removeEventListener('wheel', activity, { capture: true });
+      window.removeEventListener('keydown', activity, { capture: true });
+      window.removeEventListener('message', activity);
+      idleAnimation.dispose();
+    };
+  }, [graphState.renderer.containerRef, idleAnimation]);
 
   const publishGraphViewportScale = (globalScale: number): void => {
     lastPublishedViewportScaleRef.current = publishGraphViewportScaleChange({
