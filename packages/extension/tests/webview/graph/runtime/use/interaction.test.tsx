@@ -822,7 +822,34 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     });
   });
 
-  it('keeps the active drag group fixed and passes default timeline state to plugin drag policies', () => {
+  it('reheats the active 2d simulation once when a node drag starts', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+    const d3ReheatSimulation = vi.fn();
+    const resumeAnimation = vi.fn();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const primary = { id: 'src/app.ts', x: 15, y: 12 } as FGNode;
+    const { result } = renderHook(() => useGraphInteractionRuntime(createRuntimeOptions({
+      graphDataRef: { current: { links: [], nodes: [primary] } } as never,
+      refs: {
+        fg2dRef: { current: { d3ReheatSimulation, resumeAnimation } } as never,
+      },
+    })));
+
+    result.current.handleNodeDrag(primary, { x: 5, y: -3 });
+    result.current.handleNodeDrag(primary, { x: 2, y: 1 });
+
+    expect(resumeAnimation).toHaveBeenCalledTimes(1);
+    expect(d3ReheatSimulation).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases the active drag group and passes default timeline state to plugin drag policies', () => {
     const interactionHandlers = createInteractionHandlers();
     const contextMenuRuntime = createContextMenuRuntime();
     const tooltipRuntime = createTooltipRuntime();
@@ -867,8 +894,12 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       node: sibling,
       timelineActive: false,
     }));
-    expect(primary).toMatchObject({ fx: 15, fy: 12, isDragging: false });
-    expect(sibling).toMatchObject({ fx: 35, fy: 37, isDragging: false });
+    expect(primary).toMatchObject({ isDragging: false });
+    expect(sibling).toMatchObject({ isDragging: false });
+    expect(primary.fx).toBeUndefined();
+    expect(primary.fy).toBeUndefined();
+    expect(sibling.fx).toBeUndefined();
+    expect(sibling.fy).toBeUndefined();
   });
 
   it('clears marquee selection and tooltip tracking when the graph mouse leaves', () => {

@@ -58,6 +58,7 @@ export function useGraphInteractionRuntime({
   timelineActive = false,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
+  const nodeDragActiveRef = useRef(false);
   const graphContextSelectionRef = useRef(graphContextSelection);
   graphContextSelectionRef.current = graphContextSelection;
   const setLiveContextSelection = useCallback<typeof setContextSelection>((nextSelection) => {
@@ -164,9 +165,17 @@ export function useGraphInteractionRuntime({
       timelineActive,
     });
     nodeDragGroupRef.current = null;
+    nodeDragActiveRef.current = false;
   }
 
   function handleNodeDrag(node: FGNode, translate: NodeDragTranslate): void {
+    if (!nodeDragActiveRef.current) {
+      const graph = graphMode === '2d' ? refs.fg2dRef.current : refs.fg3dRef.current;
+      graph?.resumeAnimation?.();
+      graph?.d3ReheatSimulation?.();
+      nodeDragActiveRef.current = true;
+    }
+
     nodeDragGroupRef.current = applyNodeDrag(node, translate, {
       graphData: graphDataRef.current,
       graphMode,

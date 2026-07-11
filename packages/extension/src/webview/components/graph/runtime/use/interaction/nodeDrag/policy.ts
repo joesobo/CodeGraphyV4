@@ -31,5 +31,16 @@ export function releaseNodeDrag(
 ): void {
   node.isDragging = false;
 
-  shouldKeepFixedPosition(node, { ...options, graphMode });
+  const policyKeepsFixedPosition = shouldKeepFixedPosition(
+    node,
+    { ...options, graphMode },
+  );
+  const keepFixedPosition = node.isPinned === true || policyKeepsFixedPosition;
+  if (keepFixedPosition) {
+    return;
+  }
+
+  delete node.fx;
+  delete node.fy;
+  delete node.fz;
 }

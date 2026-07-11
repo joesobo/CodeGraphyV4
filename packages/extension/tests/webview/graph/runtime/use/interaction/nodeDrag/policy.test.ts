@@ -89,23 +89,32 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
     );
   });
 
-  it('keeps 2d coordinates fixed where the user drops the node', () => {
+  it('releases temporary 2d drag coordinates after the user drops the node', () => {
     const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
 
     releaseNodeDrag(draggedNode, '2d');
 
-    expect(draggedNode).toMatchObject({
-      fx: 1,
-      fy: 2,
-      fz: 3,
-      isDragging: false,
-    });
+    expect(draggedNode).toMatchObject({ isDragging: false });
+    expect(draggedNode.fx).toBeUndefined();
+    expect(draggedNode.fy).toBeUndefined();
+    expect(draggedNode.fz).toBeUndefined();
   });
 
-  it('keeps 3d coordinates fixed where the user drops the node', () => {
+  it('releases temporary 3d drag coordinates after the user drops the node', () => {
     const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
 
     releaseNodeDrag(draggedNode, '3d');
+
+    expect(draggedNode).toMatchObject({ isDragging: false });
+    expect(draggedNode.fx).toBeUndefined();
+    expect(draggedNode.fy).toBeUndefined();
+    expect(draggedNode.fz).toBeUndefined();
+  });
+
+  it('keeps coordinates for nodes in explicit pin mode', () => {
+    const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true, isPinned: true });
+
+    releaseNodeDrag(draggedNode, '2d');
 
     expect(draggedNode).toMatchObject({
       fx: 1,

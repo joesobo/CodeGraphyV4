@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { forceLink, forceSimulation, type SimulationNodeDatum } from 'd3-force';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
   applyNodeDrag,
@@ -69,6 +70,30 @@ describe('graph/runtime/use/interaction node drag', () => {
       x: 40,
       y: 34,
     });
+  });
+
+  it('lets link forces tug an unselected neighbor while the dragged node is fixed', () => {
+    type LinkedNode = SimulationNodeDatum & { id: string };
+    const dragged = { fx: 100, fy: 0, id: 'dragged', x: 100, y: 0 } as FGNode & LinkedNode;
+    const neighbor = { id: 'neighbor', x: 0, y: 0 } as FGNode & LinkedNode;
+    const initialNeighborX = neighbor.x ?? 0;
+
+    applyNodeDrag(dragged, { x: 100, y: 0 }, {
+      graphData: { nodes: [dragged, neighbor] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(),
+    });
+    const simulation = forceSimulation<LinkedNode>([dragged, neighbor])
+      .force('charge', null)
+      .force('center', null)
+      .force('link', forceLink<LinkedNode, { source: string | LinkedNode; target: string | LinkedNode }>([
+        { source: dragged, target: neighbor },
+      ]).id(node => node.id).distance(20).strength(1))
+      .stop();
+
+    simulation.alpha(1).tick(1);
+
+    expect(neighbor.x).toBeGreaterThan(initialNeighborX);
   });
 
   it('keeps a pinned primary node at the force graph live drag position in 2d', () => {
@@ -170,7 +195,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(sibling.isDragging).toBeUndefined();
   });
 
-  it('keeps unpinned nodes fixed where the user drops them', () => {
+  it('releases unpinned nodes where the user drops them', () => {
     const node = {
       id: 'node',
       fx: 12,
@@ -182,12 +207,10 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     postNodeDragEndMessages(node, '3d');
 
-    expect(node).toMatchObject({
-      fx: 12,
-      fy: 24,
-      fz: 36,
-      isDragging: false,
-    });
+    expect(node).toMatchObject({ isDragging: false });
+    expect(node.fx).toBeUndefined();
+    expect(node.fy).toBeUndefined();
+    expect(node.fz).toBeUndefined();
   });
 
   it('keeps pinned graph nodes fixed where the user drops them', () => {
@@ -293,7 +316,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
-  it('keeps every node in the active drag group fixed where the user drops them', () => {
+  it('releases every unpinned node in the active drag group', () => {
     const primary = { id: 'primary', fx: 1, fy: 2, isDragging: true } as FGNode;
     const sibling = { id: 'sibling', fx: 3, fy: 4, isDragging: true } as FGNode;
 
@@ -309,7 +332,11 @@ describe('graph/runtime/use/interaction node drag', () => {
       },
     );
 
-    expect(primary).toMatchObject({ fx: 1, fy: 2, isDragging: false });
-    expect(sibling).toMatchObject({ fx: 3, fy: 4, isDragging: false });
+    expect(primary).toMatchObject({ isDragging: false });
+    expect(sibling).toMatchObject({ isDragging: false });
+    expect(primary.fx).toBeUndefined();
+    expect(primary.fy).toBeUndefined();
+    expect(sibling.fx).toBeUndefined();
+    expect(sibling.fy).toBeUndefined();
   });
 });
