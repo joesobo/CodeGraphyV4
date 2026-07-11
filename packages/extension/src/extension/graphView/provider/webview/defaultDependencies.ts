@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import {
   createGraphViewHtml,
   createGraphViewNonce,
-  type CodeGraphyWebviewKind,
   type CodeGraphyWebviewThemeKind,
 } from '../../webview/html';
 import { openGraphViewInEditor } from '../../editorPanel';
@@ -18,11 +17,7 @@ import {
 
 export interface GraphViewProviderWebviewMethodDependencies {
   viewType: string;
-  createHtml(
-    extensionUri: vscode.Uri,
-    webview: vscode.Webview,
-    viewKind: CodeGraphyWebviewKind,
-  ): string;
+  createHtml(extensionUri: vscode.Uri, webview: vscode.Webview): string;
   resolveWebviewView: typeof resolveGraphViewWebviewView;
   openInEditor: typeof openGraphViewInEditor;
   sendWebviewMessage: typeof sendGraphViewWebviewMessage;
@@ -30,7 +25,6 @@ export interface GraphViewProviderWebviewMethodDependencies {
   setWebviewMessageListener(
     webview: vscode.Webview,
     source: GraphViewProviderMessageListenerSource,
-    viewKind?: CodeGraphyWebviewKind,
   ): void;
   executeCommand(command: string, key: string, value: boolean): Thenable<unknown>;
   createPanel: typeof vscode.window.createWebviewPanel;
@@ -68,12 +62,11 @@ function getActiveGraphViewThemeKind(): CodeGraphyWebviewThemeKind {
 export function createDefaultGraphViewProviderWebviewMethodDependencies(): GraphViewProviderWebviewMethodDependencies {
   return {
     viewType: 'codegraphy.graphView',
-    createHtml: (extensionUri, webview, viewKind) =>
+    createHtml: (extensionUri, webview) =>
       createGraphViewHtml(
         extensionUri,
         webview,
         createGraphViewNonce(),
-        viewKind,
         getActiveGraphViewThemeKind(),
         process.env.CODEGRAPHY_ACCEPTANCE === '1',
       ),
@@ -81,13 +74,8 @@ export function createDefaultGraphViewProviderWebviewMethodDependencies(): Graph
     openInEditor: openGraphViewInEditor,
     sendWebviewMessage: sendGraphViewWebviewMessage,
     onWebviewMessage: onGraphViewWebviewMessage,
-    setWebviewMessageListener: (webview, source, viewKind) =>
-      setGraphViewProviderMessageListener(
-        webview,
-        source,
-        undefined,
-        { viewKind },
-      ),
+    setWebviewMessageListener: (webview, source) =>
+      setGraphViewProviderMessageListener(webview, source),
     executeCommand: (command, key, value) => vscode.commands.executeCommand(command, key, value),
     createPanel: (viewType, title, column, options) =>
       vscode.window.createWebviewPanel(viewType, title, column, options),

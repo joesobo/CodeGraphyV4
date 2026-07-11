@@ -9,7 +9,6 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
-import type { CodeGraphyWebviewKind } from '../html';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
@@ -210,18 +209,13 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
   nodeSizeModeKey: 'nodeSizeMode',
 };
 
-export interface GraphViewProviderMessageListenerOptions {
-  viewKind?: CodeGraphyWebviewKind;
-}
-
 export function setGraphViewProviderMessageListener(
   webview: vscode.Webview,
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies = DEFAULT_DEPENDENCIES,
-  options: GraphViewProviderMessageListenerOptions = {},
 ): void {
   setGraphViewWebviewMessageListener(
     webview,
-    createGraphViewProviderMessageContext(source, dependencies, options),
+    createGraphViewProviderMessageContext(source, dependencies),
   );
 }

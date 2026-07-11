@@ -44,7 +44,6 @@ export interface GraphViewProviderPluginMethodsSource {
   _disabledPlugins: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
-  _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;

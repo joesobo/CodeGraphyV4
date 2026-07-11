@@ -24,12 +24,6 @@ vi.mock('../../src/webview/app/view', () => ({
   },
 }));
 
-vi.mock('../../src/webview/app/timeline/view', () => ({
-  default: function TimelineApp() {
-    return null;
-  },
-}));
-
 vi.mock('../../src/webview/index.css', () => ({}));
 
 vi.mock('../../src/webview/vscodeApi', () => ({
@@ -73,7 +67,7 @@ describe('main', () => {
     expect(rootElement.props.children.type.name).toBe('GraphApp');
   });
 
-  it('renders the timeline shell when the host marks the view as timeline', async () => {
+  it('always renders the graph shell when a stale host marker is present', async () => {
     const container = document.createElement('div');
     document.body.dataset.codegraphyView = 'timeline';
     vi.spyOn(document, 'getElementById').mockReturnValue(container);
@@ -83,7 +77,7 @@ describe('main', () => {
     const rootElement = mocks.render.mock.calls[0]?.[0] as {
       props: { children: { type: { name: string } } };
     };
-    expect(rootElement.props.children.type.name).toBe('TimelineApp');
+    expect(rootElement.props.children.type.name).toBe('GraphApp');
   });
 
   it('skips root creation when the root element is missing', async () => {

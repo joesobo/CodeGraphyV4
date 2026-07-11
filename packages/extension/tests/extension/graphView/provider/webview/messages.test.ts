@@ -5,7 +5,6 @@ import { sendGraphViewProviderWebviewMessage } from '../../../../../src/extensio
 describe('graphView/provider/webview/messages', () => {
   it('sends messages to sidebar views and editor panels and notifies the extension', () => {
     const graphView = { webview: { postMessage: vi.fn(() => true) } } as unknown as vscode.WebviewView;
-    const timelineView = { webview: { postMessage: vi.fn(() => true) } } as unknown as vscode.WebviewView;
     const panel = { webview: { postMessage: vi.fn(() => true) } } as unknown as vscode.WebviewPanel;
     const notifyExtensionMessage = vi.fn();
     const sendWebviewMessage = vi.fn();
@@ -13,7 +12,6 @@ describe('graphView/provider/webview/messages', () => {
     sendGraphViewProviderWebviewMessage(
       {
         _view: graphView,
-        _timelineView: timelineView,
         _panels: [panel],
         _notifyExtensionMessage: notifyExtensionMessage,
       },
@@ -23,7 +21,7 @@ describe('graphView/provider/webview/messages', () => {
       { type: 'PING' },
     );
 
-    expect(sendWebviewMessage).toHaveBeenCalledWith([graphView, timelineView], [panel], {
+    expect(sendWebviewMessage).toHaveBeenCalledWith([graphView], [panel], {
       type: 'PING',
     });
     expect(notifyExtensionMessage).toHaveBeenCalledWith({ type: 'PING' });

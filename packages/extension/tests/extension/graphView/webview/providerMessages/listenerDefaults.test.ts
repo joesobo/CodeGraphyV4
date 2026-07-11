@@ -136,7 +136,7 @@ describe('graph view provider listener defaults', () => {
 
     setGraphViewProviderMessageListener(webview as never, source as never, DEFAULT_DEPENDENCIES);
 
-    expect(createContext).toHaveBeenCalledWith(source, DEFAULT_DEPENDENCIES, {});
+    expect(createContext).toHaveBeenCalledWith(source, DEFAULT_DEPENDENCIES);
     expect(setListener).toHaveBeenCalledWith(webview, { id: 'listener-context' });
   });
 });

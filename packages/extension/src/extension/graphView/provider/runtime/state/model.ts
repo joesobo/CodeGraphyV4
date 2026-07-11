@@ -49,7 +49,6 @@ import {
 
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
-  protected _timelineView?: vscode.WebviewView;
   protected _panels!: vscode.WebviewPanel[];
   protected _graphData!: IGraphData;
   protected _analyzer?: WorkspacePipeline;
