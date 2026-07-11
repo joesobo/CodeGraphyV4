@@ -14,13 +14,15 @@ export const VSCODE_TEST_VERSION = process.env.CODEGRAPHY_VSCODE_TEST_VERSION ??
 
 interface LaunchVSCodeWithWorkspaceOptions {
   readonly pluginPackageRelativePaths?: readonly string[];
+  readonly profileRoot?: string;
 }
 
 export async function launchVSCodeWithWorkspace(
   workspacePath: string,
   options: LaunchVSCodeWithWorkspaceOptions = {},
 ): Promise<VSCodeFixture> {
-  const tempRoot = fs.mkdtempSync(path.join(selectVSCodeTempBaseDir(process.platform, os.tmpdir()), 'cgv-'));
+  const tempRoot = options.profileRoot
+    ?? fs.mkdtempSync(path.join(selectVSCodeTempBaseDir(process.platform, os.tmpdir()), 'cgv-'));
   const userDataPath = path.join(tempRoot, 'u');
   const extensionsPath = path.join(tempRoot, 'e');
   const homePath = path.join(tempRoot, 'h');
