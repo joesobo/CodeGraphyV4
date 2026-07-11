@@ -27,6 +27,7 @@ export interface GraphKeyboardOptions {
   allNodeIds: string[];
   targetIsEditable: boolean;
   mutationAvailability?: GraphContextMutationAvailability;
+  pasteDirectory?: string;
 }
 
 export function getGraphKeyboardCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {

@@ -168,6 +168,68 @@ describe('graph/keyboard/effects', () => {
     })).toBeNull();
   });
 
+  it('copies selected workspace files with modifier+c', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'c',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/a.ts', 'src/b.ts'],
+      allNodeIds: ['src/a.ts', 'src/b.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'enabled',
+    })?.effects).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'COPY_FILES', payload: { paths: ['src/a.ts', 'src/b.ts'] } },
+    }]);
+  });
+
+  it('cuts selected workspace files with modifier+x', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'x',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/a.ts'],
+      allNodeIds: ['src/a.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'enabled',
+    })?.effects).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'CUT_FILES', payload: { paths: ['src/a.ts'] } },
+    }]);
+  });
+
+  it('pastes into the resolved directory with modifier+v', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'v',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src'],
+      allNodeIds: ['src'],
+      targetIsEditable: false,
+      mutationAvailability: 'enabled',
+      pasteDirectory: 'src',
+    })?.effects).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'PASTE_FILES', payload: { directory: 'src' } },
+    }]);
+  });
+
+  it('blocks file clipboard shortcuts for an immutable Graph Revision', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'c',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/a.ts'],
+      allNodeIds: ['src/a.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'disabled',
+    })).toBeNull();
+  });
+
   it('selects all nodes for the modifier+a shortcut', () => {
     expect(getGraphKeyboardCommand({
       key: 'a',

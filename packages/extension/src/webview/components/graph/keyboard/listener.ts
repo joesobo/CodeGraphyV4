@@ -9,6 +9,7 @@ export interface GraphKeyboardListenerOptions {
   fitView: () => void;
   getAllNodeIds: () => string[];
   getMutationAvailability?: () => GraphContextMutationAvailability;
+  getPasteDirectory?: () => string;
   graphMode: '2d' | '3d';
   openNode: (nodeId: string) => void;
   postMessage: (message: WebviewToExtensionMessage) => void;
@@ -30,6 +31,7 @@ export function createGraphKeyboardListener({
   fitView,
   getAllNodeIds,
   getMutationAvailability = () => 'enabled',
+  getPasteDirectory = () => '.',
   graphMode,
   openNode,
   postMessage,
@@ -48,6 +50,7 @@ export function createGraphKeyboardListener({
       allNodeIds: getAllNodeIds(),
       targetIsEditable: isEditableTarget(event.target),
       mutationAvailability: getMutationAvailability(),
+      pasteDirectory: getPasteDirectory(),
     });
     if (!command) return;
 

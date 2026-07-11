@@ -99,6 +99,13 @@ export function useGraphEventEffects({
       selectedNodeIds: selectedNodes,
       getAllNodeIds: () => graphDataRef.current.nodes.map(node => node.id),
       getMutationAvailability: () => getGraphContextMutationAvailability(graphStore.getState()),
+      getPasteDirectory: () => {
+        if (selectedNodes.length !== 1) return '.';
+        const selectedNode = graphDataRef.current.nodes.find(node => node.id === selectedNodes[0]);
+        return selectedNode?.nodeType === 'folder' && selectedNode.id !== '(root)'
+          ? selectedNode.id
+          : '.';
+      },
       fitView: () => interactionHandlers.fitView(),
       setSelection: nodeIds => interactionHandlers.setSelection(nodeIds),
       openNode: nodeId => interactionHandlers.requestNodeOpenById(nodeId),

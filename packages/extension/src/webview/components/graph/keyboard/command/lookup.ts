@@ -28,10 +28,36 @@ function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardComma
 
 function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {
   return (
+    getFileClipboardShortcutCommand(options) ??
     getZoomShortcutCommand(options.key, options.isMod, options.graphMode) ??
     getHistoryShortcutCommand(options.key, options.isMod, options.shiftKey) ??
     getToolbarShortcutCommand(options.key, options.isMod)
   );
+}
+
+function getFileClipboardShortcutCommand(
+  options: GraphKeyboardOptions,
+): GraphKeyboardCommand | null {
+  if (!options.isMod || (options.mutationAvailability ?? 'enabled') !== 'enabled') return null;
+
+  const paths = options.selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId));
+  switch (options.key.toLowerCase()) {
+    case 'c':
+      return paths.length > 0
+        ? createFileMessageCommand({ type: 'COPY_FILES', payload: { paths } })
+        : null;
+    case 'x':
+      return paths.length > 0
+        ? createFileMessageCommand({ type: 'CUT_FILES', payload: { paths } })
+        : null;
+    case 'v':
+      return createFileMessageCommand({
+        type: 'PASTE_FILES',
+        payload: { directory: options.pasteDirectory ?? '.' },
+      });
+    default:
+      return null;
+  }
 }
 
 function getDirectGraphKeyboardCommand(

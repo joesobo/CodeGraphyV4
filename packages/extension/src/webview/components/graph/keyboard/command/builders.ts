@@ -41,7 +41,9 @@ export function createHistoryCommand(type: HistoryMessageType): GraphKeyboardCom
 }
 
 export function createFileMessageCommand(
-  message: Extract<WebviewToExtensionMessage, { type: 'DELETE_FILES' | 'RENAME_FILE' }>,
+  message: Extract<WebviewToExtensionMessage, {
+    type: 'DELETE_FILES' | 'RENAME_FILE' | 'CUT_FILES' | 'COPY_FILES' | 'PASTE_FILES';
+  }>,
 ): GraphKeyboardCommand {
   return createCommand({ kind: 'postMessage', message }, true);
 }
