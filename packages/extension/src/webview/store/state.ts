@@ -27,6 +27,7 @@ import type {
   PendingUserGroupsUpdate,
 } from './optimistic/groups/updates';
 import type { GraphInlineEditSession } from '../components/graph/inlineEdit/model';
+import type { OptimisticFileMutation } from './optimistic/files';
 
 export interface GraphState {
   autoReveal: AutoRevealMode;
@@ -34,7 +35,7 @@ export interface GraphState {
   ghostGraphVisible: boolean;
   graphRevision: number | null;
   graphResetVersion: number;
-  pendingFileMutations: Record<string, IGraphData>;
+  pendingFileMutations: Record<string, OptimisticFileMutation>;
   fileMutationError: string | null;
   inlineEdit: GraphInlineEditSession | null;
   graphHasIndex: boolean;

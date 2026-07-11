@@ -379,6 +379,32 @@ describe('App behavior', () => {
       expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/App.ts');
     });
 
+    it('projects optimistic renames without replacing authoritative graph data', async () => {
+      const graphData = {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      };
+      graphStore.setState({ graphData });
+
+      render(<App />);
+      await act(async () => {
+        sendAppMessage({
+          type: 'FILE_MUTATION_STARTED',
+          payload: {
+            mutationId: 'rename-1',
+            mutation: { kind: 'rename', oldPath: 'src/App.ts', newPath: 'src/Renamed.ts' },
+          },
+        });
+      });
+
+      expect(graphStore.getState().graphData).toBe(graphData);
+      expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/App.ts');
+      expect(screen.getByTestId('graph-projection-node-ids')).toHaveTextContent('src/App.ts');
+      expect(harness.graphProps?.nodeDecorations).toMatchObject({
+        'src/App.ts': { label: { text: 'Renamed.ts' } },
+      });
+    });
+
 
 
     it('updates search query and search options through SearchBar callbacks', async () => {

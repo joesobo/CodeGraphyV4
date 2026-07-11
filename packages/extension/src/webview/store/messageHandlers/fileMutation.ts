@@ -1,6 +1,6 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IHandlerContext, PartialState } from '../messageTypes';
-import { applyOptimisticFileMutation, type OptimisticFileMutation } from '../optimistic/files';
+import type { OptimisticFileMutation } from '../optimistic/files';
 
 export function handleFileMutationStarted(
   message: Extract<ExtensionToWebviewMessage, { type: 'FILE_MUTATION_STARTED' }>,
@@ -9,13 +9,11 @@ export function handleFileMutationStarted(
   const state = context.getState();
   if (!state.graphData) return {};
   const mutation = toOptimisticMutation(message.payload.mutation);
-  const result = applyOptimisticFileMutation(state.graphData, mutation);
   return {
     fileMutationError: null,
-    graphData: result.graphData,
     pendingFileMutations: {
       ...state.pendingFileMutations,
-      [message.payload.mutationId]: result.previousGraphData,
+      [message.payload.mutationId]: mutation,
     },
   };
 }
@@ -25,8 +23,8 @@ export function handleFileMutationFailed(
   context: IHandlerContext,
 ): PartialState {
   const state = context.getState();
-  const previousGraphData = state.pendingFileMutations[message.payload.mutationId];
-  if (!previousGraphData) {
+  const pendingMutation = state.pendingFileMutations[message.payload.mutationId];
+  if (!pendingMutation) {
     return {
       fileMutationError: state.inlineEdit ? null : message.payload.message,
       inlineEdit: state.inlineEdit
@@ -38,7 +36,6 @@ export function handleFileMutationFailed(
   delete pendingFileMutations[message.payload.mutationId];
   return {
     fileMutationError: state.inlineEdit ? null : message.payload.message,
-    graphData: previousGraphData,
     pendingFileMutations,
     inlineEdit: state.inlineEdit
       ? { ...state.inlineEdit, error: message.payload.message, pending: false }

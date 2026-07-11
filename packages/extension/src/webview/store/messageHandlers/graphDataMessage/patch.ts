@@ -25,8 +25,7 @@ export function handleGraphDataPatched(
     return undefined;
   }
 
-  const authoritativeGraphData = Object.values(state.pendingFileMutations)[0]
-    ?? state.graphData;
+  const authoritativeGraphData = state.graphData;
   try {
     applyGraphDataPatchInPlace(authoritativeGraphData, parsed.data);
   } catch {

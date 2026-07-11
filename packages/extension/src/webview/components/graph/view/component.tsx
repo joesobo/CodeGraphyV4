@@ -108,6 +108,7 @@ export default function Graph({
   const activeFilePath = useGraphStore(state => state.activeFilePath);
   const autoReveal = useGraphStore(state => state.autoReveal);
   const graphResetVersion = useGraphStore(state => state.graphResetVersion);
+  const pendingFileMutations = useGraphStore(state => state.pendingFileMutations);
   const appearance = useGraphAppearance(theme);
   const resolvedGraphViewContributions = useResolvedGraphViewContributions(
     graphViewContributions,
@@ -147,7 +148,9 @@ export default function Graph({
     edgeCount: projectionData?.edges.length ?? graphRuntime.renderer.graphData.links.length,
     layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
     nodeCount: observedNodeCount,
-    revision: projectionData ?? data,
+    revision: Object.keys(pendingFileMutations).length > 0
+      ? pendingFileMutations
+      : projectionData ?? data,
     scopeProjectionRevision,
     scopeVisibility,
     simulationEnabled,

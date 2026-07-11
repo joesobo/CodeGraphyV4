@@ -117,7 +117,7 @@ describe('webview/store/messageHandlers/graphDataMessage/patch', () => {
     expect(emitPayloadBytes).toHaveBeenCalledWith(message.payload);
   });
 
-  it('reconciles a host patch against the pre-optimistic snapshot', () => {
+  it('reconciles a host patch against authoritative graph data', () => {
     const authoritativeGraph = {
       nodes: [
         { id: 'src/update.ts', label: 'update.ts', color: '#111111' },
@@ -127,8 +127,10 @@ describe('webview/store/messageHandlers/graphDataMessage/patch', () => {
     };
     const state = createState({
       graphRevision: 0,
-      graphData: { nodes: [], edges: [] },
-      pendingFileMutations: { 'mutation-1': authoritativeGraph },
+      graphData: authoritativeGraph,
+      pendingFileMutations: {
+        'mutation-1': { kind: 'rename', oldPath: 'src/update.ts', newPath: 'src/renamed.ts' },
+      },
     });
 
     const result = handleGraphDataPatched(patchMessage(), { getState: () => state });

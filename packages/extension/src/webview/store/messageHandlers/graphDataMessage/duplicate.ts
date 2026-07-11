@@ -8,6 +8,7 @@ export function shouldSkipDuplicateGraphData(
   if (
     !state.graphData
     || state.graphIsIndexing
+    || Object.keys(state.pendingFileMutations).length > 0
     || areGraphDataPayloadsEqual(state.graphData, payload) === false
   ) {
     return false;

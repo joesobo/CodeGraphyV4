@@ -24,6 +24,7 @@ import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 import { webviewGraphPerfControl } from '../../perf/graph/control';
 import { webviewScopePerfTarget } from '../../perf/scope/target';
 import { mergeNodeDecorationMaps } from '../../nativeDecorations/model';
+import { applyPendingFileMutationDecorations } from '../../store/optimistic/decorations';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
@@ -58,6 +59,7 @@ export default function App(): React.ReactElement {
     activeFilePath,
     graphIsIndexing,
     graphIndexProgress,
+    pendingFileMutations,
   } = useAppState();
   const {
     setSearchQuery,
@@ -146,10 +148,14 @@ export default function App(): React.ReactElement {
 
   useEffect(() => webviewGraphPerfControl.attachScopeTarget(webviewScopePerfTarget), []);
 
-  const displayGraphData = coloredData || visibleGraphInput;
+  const displayGraphData = coloredData ?? visibleGraphInput;
   const mergedNodeDecorations = useMemo(
-    () => mergeNodeDecorationMaps(nodeDecorations, nativeNodeDecorations),
-    [nativeNodeDecorations, nodeDecorations],
+    () => applyPendingFileMutationDecorations(
+      mergeNodeDecorationMaps(nodeDecorations, nativeNodeDecorations),
+      displayGraphData,
+      pendingFileMutations,
+    ),
+    [displayGraphData, nativeNodeDecorations, nodeDecorations, pendingFileMutations],
   );
   useVisibleGraphStateResponse(displayGraphData);
 

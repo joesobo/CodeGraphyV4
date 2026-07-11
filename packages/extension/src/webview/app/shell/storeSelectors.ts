@@ -36,6 +36,7 @@ export function useAppState() {
   const nativeNodeDecorations = useGraphStore(s => s.nativeNodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
+  const pendingFileMutations = useGraphStore(s => s.pendingFileMutations);
   return {
     graphData,
     ghostGraphVisible,
@@ -67,6 +68,7 @@ export function useAppState() {
     nativeNodeDecorations,
     edgeDecorations,
     activeFilePath,
+    pendingFileMutations,
   };
 }
 

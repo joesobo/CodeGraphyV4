@@ -52,6 +52,21 @@ describe('webview/store/messageHandlers/graphDataMessage/duplicate', () => {
     expect(shouldSkipDuplicateGraphData(state, payload)).toBe(false);
   });
 
+  it('does not skip while an optimistic file mutation awaits reconciliation', () => {
+    const payload = createGraphData();
+    const state = createState({
+      awaitingInitialBootstrap: false,
+      bootstrapComplete: true,
+      graphData: cloneGraphData(payload),
+      isLoading: false,
+      pendingFileMutations: {
+        'mutation-1': { kind: 'delete', paths: ['src/app.ts'] },
+      },
+    });
+
+    expect(shouldSkipDuplicateGraphData(state, payload)).toBe(false);
+  });
+
   it('does not skip when bootstrap has not settled into a duplicate-safe state', () => {
     const payload = createGraphData();
 

@@ -13,7 +13,7 @@ const graphData: IGraphData = {
 };
 
 describe('file mutation messages', () => {
-  it('applies and tracks an optimistic mutation', () => {
+  it('tracks an optimistic mutation without replacing authoritative graph data', () => {
     const state = createState({ graphData });
     const update = handleFileMutationStarted({
       type: 'FILE_MUTATION_STARTED',
@@ -23,21 +23,27 @@ describe('file mutation messages', () => {
       },
     }, { getState: () => state, postMessage: () => undefined });
 
-    expect(update.graphData?.nodes[0]?.id).toBe('src/b.ts');
-    expect(update.pendingFileMutations?.['mutation-1']).toBe(graphData);
+    expect(update.graphData).toBeUndefined();
+    expect(update.pendingFileMutations?.['mutation-1']).toEqual({
+      kind: 'rename',
+      oldPath: 'src/a.ts',
+      newPath: 'src/b.ts',
+    });
   });
 
-  it('rolls back the exact snapshot when the host reports failure', () => {
+  it('removes the pending projection when the host reports failure', () => {
     const state = createState({
-      graphData: { nodes: [], edges: [] },
-      pendingFileMutations: { 'mutation-1': graphData },
+      graphData,
+      pendingFileMutations: {
+        'mutation-1': { kind: 'rename', oldPath: 'src/a.ts', newPath: 'src/b.ts' },
+      },
     });
     const update = handleFileMutationFailed({
       type: 'FILE_MUTATION_FAILED',
       payload: { mutationId: 'mutation-1', message: 'rename failed' },
     }, { getState: () => state, postMessage: () => undefined });
 
-    expect(update.graphData).toBe(graphData);
+    expect(update.graphData).toBeUndefined();
     expect(update.pendingFileMutations).toEqual({});
     expect(update.fileMutationError).toBe('rename failed');
   });
