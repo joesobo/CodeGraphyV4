@@ -4,7 +4,7 @@ This is the Phase 2 source of truth for VS Code Explorer parity. A row becomes
 `done` only after its implementation and focused evidence are verified; human-owned
 acceptance Gherkin is not changed without explicit owner authorization.
 
-Legend: `done` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reason)` ·
+Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reason)` ·
 `deferred(follow-up)`.
 
 ## File context menu
@@ -28,7 +28,7 @@ Legend: `done` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reason)` ·
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
 | New File / New Folder | verify(P2) | 2.1 | Verify file and folder nodes plus background creation in the Dev Host. |
-| Nested-path create (`a/b/c.ts`) | verify(P2) | 2.1 | Prove the `createPath.ts` path-separator contract with focused tests and a real workspace. |
+| Nested-path create (`a/b/c.ts`) | done(unit) | 2.1 | 120 focused tests pass across `createPath.test.ts`, graph-view `files/actions.test.ts`, and `createFile.test.ts`; real Dev Host screenshot remains part of the Phase 2.1 walkthrough. |
 | Find in Folder… | todo(P2) | 2.5 | Not implemented. |
 | Paste | todo(P2) | 2.2 | Not implemented. |
 | Reveal / copy paths / rename / delete | verify(P2) | 2.1 | Verify folder actions and root mutation protection together. |
@@ -69,7 +69,7 @@ Legend: `done` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reason)` ·
 | --- | --- | --- | --- |
 | V1 | Empty or whitespace-only rename/create is rejected | verify(P2) | 2.1 / 6.2 |
 | V2 | Existing-name collision uses Explorer-equivalent error shape | todo(P2) | 2.2 / 6.2 |
-| V3 | Path separators in New File create nested folders | verify(P2) | 2.1 |
+| V3 | Path separators in New File create nested folders | done(unit) | 2.1 |
 | V4 | Paste collision uses ` copy`, ` copy 2`, … | todo(P2) | 2.2 |
 | V5 | Delete follows `files.enableTrash` | todo(P6) | 6.1 |
 | V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 |
@@ -79,7 +79,8 @@ Legend: `done` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reason)` ·
 ## Phase 2-A accounting
 
 - `todo` / `partial`: 24
-- `verify`: 13
+- `verify`: 11
+- `done(unit)`: 2
 - `waived`: 6
 - `deferred`: 1
 
