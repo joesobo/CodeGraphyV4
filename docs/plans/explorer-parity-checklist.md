@@ -4,8 +4,8 @@ This is the Phase 2 source of truth for VS Code Explorer parity. A row becomes
 `done` only after its implementation and focused evidence are verified; human-owned
 acceptance Gherkin is not changed without explicit owner authorization.
 
-Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reason)` ·
-`deferred(follow-up)`.
+Legend: `done(unit)` · `done(devhost)` · `done(visual)` · `partial` ·
+`todo(P#)` · `verify(P2)` · `waived(reason)` · `deferred(follow-up)`.
 
 ## File context menu
 
@@ -75,19 +75,21 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | V3 | Path separators in New File create nested folders | done(devhost) | 2.1 | Deep nested creation, parent creation, normalization, rollback, and undo have focused coverage; real VS Code verifies the full toolbar-to-graph path. |
 | V4 | Paste collision uses ` copy`, ` copy 2`, … | done(devhost) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions are covered; real VS Code verifies the first repeated-paste suffix. |
 | V5 | Delete follows `files.enableTrash` | done(unit) | 6.1 | Invocation-time configuration is threaded through optimistic and undoable file/folder deletion. |
-| V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 | Not implemented. |
+| V6 | `explorer.confirmDelete` and persistent opt-out are honored | done(unit) | 6.1 | The eight-case settings matrix covers confirmation on/off, single/multi targets, Trash on/off, and persistent `Do not ask me again`. |
 | V7 | Every filesystem mutation is undoable | done(unit) | 2.1 / 2.2 / 2.3 | Create, rename, delete, clipboard transactions, undo-manager chaining, and keyboard undo/redo routes have focused coverage; acceptance proof remains. |
 | V8 | Multi-select destructive operations confirm once with count | done(unit) | 2.2 | Multi-item cut-paste presents one modal count confirmation; cancellation preserves the staged clipboard. |
 
 ## Phase 2-A accounting
 
-- `todo` / `partial`: 6
+- `todo` / `partial`: 1
 - `verify`: 0
-- `done(unit)`: 32
+- `done(unit)`: 30
+- `done(devhost)`: 7
 - `done(visual)`: 2
 - `waived`: 6
 - `deferred`: 1
 
-Phase 2.1 still requires a real Dev Host walkthrough and screenshot evidence for
-the implemented Phase 2 rows. The remaining `todo` / `partial` rows belong to
-Phases 5 and 6; there are no unresolved `todo(P2)` or `verify(P2)` rows.
+Phase 2.1 still requires the broad all-done-row Dev Host walkthrough. Targeted
+real-window proof already covers nested create, clipboard actions, inline create,
+and decoration rendering. The only remaining feature-status `todo` belongs to
+Phase 5; there are no unresolved `todo(P2)`, `todo(P6)`, or `verify(P2)` rows.
