@@ -14,6 +14,10 @@ export default defineConfig({
         __dirname,
         '../packages/plugin-markdown/src/plugin.ts',
       ),
+      '@codegraphy-dev/plugin-material-icons': resolve(
+        __dirname,
+        '../packages/plugin-material-icons/src/plugin.ts',
+      ),
     },
   },
   test: {
