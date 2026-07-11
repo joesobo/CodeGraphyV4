@@ -1,4 +1,4 @@
-import type { IGroup } from '../../../../../shared/settings/groups';
+import type { IGraphViewDefaultGroupDefinition as IGroup } from '@codegraphy-dev/plugin-api';
 import type { MaterialIconData, MaterialMatch } from './model';
 
 export const MATERIAL_TRANSPARENT_NODE_COLOR = 'rgba(0, 0, 0, 0)';
@@ -13,8 +13,6 @@ export function createMaterialGroup(
     pattern: match.kind === 'fileExtension' ? `*.${match.key}` : match.key,
     color,
     imageUrl: iconData.imageUrl,
-    isPluginDefault: true,
-    pluginName: 'Material Icon Theme',
   };
 }
 
@@ -28,8 +26,6 @@ export function createGenericFolderGroup(
     matchNodeType: 'folder',
     color: MATERIAL_TRANSPARENT_NODE_COLOR,
     imageUrl: iconData.imageUrl,
-    isPluginDefault: true,
-    pluginName: 'Material Icon Theme',
   };
 }
 
@@ -55,8 +51,6 @@ export function getManualGroups(): IGroup[] {
       id: 'default:fileName:.codegraphy/settings.json',
       pattern: '.codegraphy/settings.json',
       color: '#277ACC',
-      isPluginDefault: true,
-      pluginName: 'Material Icon Theme',
     },
   ];
 }

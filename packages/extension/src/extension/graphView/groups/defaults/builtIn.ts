@@ -3,7 +3,6 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 import { createDefaultNodeVisibility } from '../../../../shared/graphControls/defaults/maps';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
-import { getMaterialThemeDefaultGroups } from './materialTheme/view';
 import { getSymbolDefaultGroups } from './symbols';
 
 const builtInDefaultGroupsCache = new WeakMap<IGraphData, Map<string, IGroup[]>>();
@@ -34,9 +33,6 @@ export function getBuiltInGraphViewDefaultGroups(
   }
 
   const groups = [
-    ...getMaterialThemeDefaultGroups(graphData, extensionUri, {
-      includeFolderMatches,
-    }),
     ...getSymbolDefaultGroups(graphData),
   ];
 

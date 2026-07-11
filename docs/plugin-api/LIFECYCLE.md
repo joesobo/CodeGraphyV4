@@ -68,7 +68,7 @@ Core rejects plugins with incompatible `apiVersion` ranges or a runtime `plugin.
 
 `codegraphy.json` is validated before the plugin module is imported. When `minCoreVersion` is newer than the running Core, CodeGraphy leaves the plugin disabled and reports the required and current versions without executing plugin code.
 
-The host API follows semver: additive registration and lifecycle surfaces increment the minor version, while removals or contract changes require a major version. The current host is **2.1.0**. A plugin may keep a broad compatible range such as `^2.0.0`; code that calls a surface introduced in 2.1 should declare `^2.1.0` so an older host refuses it cleanly.
+The host API follows semver: additive registration and lifecycle surfaces increment the minor version, while removals or contract changes require a major version. The current host is **2.2.0**. A plugin may keep a broad compatible range such as `^2.0.0`; code that calls graph-aware default groups introduced in 2.2 should declare `^2.2.0` so an older host refuses it cleanly.
 
 ### 3. Initialize
 

@@ -15,6 +15,7 @@ import {
   resolveGraphViewPluginAssetPath,
 } from '../../webview/plugins/resources';
 import { normalizeGraphViewExtensionUri } from '../../resources';
+import { createDefaultNodeVisibility } from '../../../../shared/graphControls/defaults/maps';
 
 export interface GraphViewProviderPluginResourceMethodsSource {
   _extensionUri: vscode.Uri;
@@ -93,6 +94,9 @@ export function createGraphViewProviderPluginResourceMethods(
       source._disabledPlugins,
       source._pluginExtensionUris,
       source._extensionUri,
+      source._graphData,
+      (getCodeGraphyConfiguration().get<Record<string, boolean>>('nodeVisibility', {}) ?? {}).folder
+        ?? createDefaultNodeVisibility().folder,
     );
 
   const _getBuiltInDefaultGroups = (): IGroup[] =>

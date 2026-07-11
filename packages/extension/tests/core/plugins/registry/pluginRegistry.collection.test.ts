@@ -29,7 +29,7 @@ describe('PluginRegistry collection', () => {
     expect(registry.get('typescript')?.plugin).toBe(plugin);
     expect(registry.size).toBe(1);
     expect(registry.getPluginAPI('typescript')).toEqual(
-      expect.objectContaining({ version: '2.1.0' }),
+      expect.objectContaining({ version: '2.2.0' }),
     );
     expect(registry.supportsFile('src/app.ts')).toBe(true);
     expect(registry.supportsFile('src/app.py')).toBe(false);

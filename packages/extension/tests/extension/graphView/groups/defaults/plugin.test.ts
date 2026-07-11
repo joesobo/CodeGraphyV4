@@ -13,8 +13,75 @@ describe('graphView/pluginDefaultGroups', () => {
         string,
         string | { color: string; shape2D?: NodeShape2D; shape3D?: NodeShape3D; imagePath?: string }
       >;
+      graphView?: {
+        defaultGroups?: Array<{
+          id: string;
+          label: string;
+          createGroups(context: { visibleGraph: unknown; includeFolderMatches: boolean }): Array<{
+            id: string;
+            pattern: string;
+            color: string;
+            imageUrl?: string;
+            matchNodeType?: 'file' | 'folder';
+          }>;
+        }>;
+      };
     };
   };
+
+  it('adapts graph-aware default groups from the public plugin API', () => {
+    const graphData = { nodes: [{ id: 'src', nodeType: 'folder' }], edges: [] };
+    const groups = getGraphViewPluginDefaultGroups(
+      {
+        registry: {
+          list: () => [{
+            plugin: {
+              id: 'codegraphy.material-icons',
+              name: 'Material Icon Theme',
+              graphView: {
+                defaultGroups: [{
+                  id: 'material-icons',
+                  label: 'Material Icon Theme',
+                  createGroups: (context) => {
+                    expect(context).toEqual({
+                      visibleGraph: graphData,
+                      graphMode: undefined,
+                      timelineActive: undefined,
+                      workspaceRoot: undefined,
+                      includeFolderMatches: true,
+                    });
+                    return [{
+                      id: 'folder:src',
+                      pattern: 'src',
+                      color: 'rgba(0, 0, 0, 0)',
+                      imageUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+                      matchNodeType: 'folder',
+                    }];
+                  },
+                }],
+              },
+            },
+          }],
+        },
+      },
+      new Set<string>(),
+      new Map<string, vscode.Uri>(),
+      vscode.Uri.file('/test/extension'),
+      graphData as never,
+      true,
+    );
+
+    expect(groups).toEqual([{
+      id: 'folder:src',
+      pattern: 'src',
+      color: 'rgba(0, 0, 0, 0)',
+      imageUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+      matchNodeType: 'folder',
+      isPluginDefault: true,
+      pluginId: 'codegraphy.material-icons',
+      pluginName: 'Material Icon Theme',
+    }]);
+  });
 
   it('returns no plugin default groups when the analyzer is unavailable', () => {
     expect(

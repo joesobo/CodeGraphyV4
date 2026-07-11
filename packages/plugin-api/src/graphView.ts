@@ -7,11 +7,13 @@ import type { CodeGraphyAccessKey } from './access';
 import type {
   GraphEdgeKind,
   GraphMetadata,
+  CoreNodeType,
   IGraphData,
   IGraphEdge,
   IGraphNode,
   NodeType,
 } from './graph';
+import type { GraphNodeShape2D, GraphNodeShape3D } from './graph';
 
 export type GraphViewAccessRequirement =
   CodeGraphyAccessKey
@@ -29,6 +31,31 @@ export interface IGraphViewContributionContext {
   graphMode?: '2d' | '3d';
   timelineActive?: boolean;
   workspaceRoot?: string;
+}
+
+/** A declarative legend/style rule contributed by a plugin. */
+export interface IGraphViewDefaultGroupDefinition {
+  id: string;
+  pattern: string;
+  displayLabel?: string;
+  color: string;
+  matchNodeType?: CoreNodeType;
+  shape2D?: GraphNodeShape2D;
+  shape3D?: GraphNodeShape3D;
+  imagePath?: string;
+  imageUrl?: string;
+}
+
+export interface IGraphViewDefaultGroupContext extends IGraphViewContributionContext {
+  /** Whether folder nodes are visible and should receive styling rules. */
+  includeFolderMatches: boolean;
+}
+
+/** Produces graph-aware default styling without importing extension internals. */
+export interface IGraphViewDefaultGroupContribution extends IGraphViewContributionBase {
+  createGroups(
+    context: IGraphViewDefaultGroupContext,
+  ): readonly IGraphViewDefaultGroupDefinition[];
 }
 
 export interface IGraphViewRuntimeNodePositionState {
@@ -168,6 +195,7 @@ export interface IGraphViewContextMenuContribution extends IGraphViewContributio
 }
 
 export interface IGraphViewContributions {
+  defaultGroups?: readonly IGraphViewDefaultGroupContribution[];
   runtimeNodes?: readonly IGraphViewRuntimeNodeContribution[];
   runtimeEdges?: readonly IGraphViewRuntimeEdgeContribution[];
   projections?: readonly IGraphViewProjectionContribution[];

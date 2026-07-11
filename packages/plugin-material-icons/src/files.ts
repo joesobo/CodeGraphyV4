@@ -1,6 +1,6 @@
-import type { IGroup } from '../../../../../shared/settings/groups';
-import type { IGraphData } from '../../../../../shared/graph/contracts';
-import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
+import type { IGraphViewDefaultGroupDefinition as IGroup } from '@codegraphy-dev/plugin-api';
+import type { IGraphData } from '@codegraphy-dev/plugin-api';
+import { isExternalPackageNodeId } from './graph';
 import type { MaterialMatch, MaterialThemeCacheEntry } from './model';
 import { createMaterialGroup } from './groups';
 import { resolveIconData } from './icons';

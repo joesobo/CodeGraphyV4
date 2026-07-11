@@ -33,6 +33,10 @@ describe('pipeline/plugins/bootstrap Markdown runtime loading', () => {
         pluginData: {},
       },
       ['codegraphy.markdown'],
-    )).resolves.toEqual([]);
+    )).resolves.toEqual([
+      expect.objectContaining({
+        plugin: expect.objectContaining({ id: 'codegraphy.material-icons' }),
+      }),
+    ]);
   });
 });

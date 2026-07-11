@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchMaterialFileExtension } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/fileExtension';
+import { matchMaterialFileExtension } from '../src/fileExtension';
 
 describe('graphView/materialTheme/fileExtension', () => {
   it('matches dotted suffixes and exact extension names', () => {

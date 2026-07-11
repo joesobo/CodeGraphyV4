@@ -74,7 +74,7 @@ describe('PluginRegistry error handling', () => {
       });
 
       expect(() => registry.register(plugin)).toThrow(
-        "Plugin 'bad-range-plugin' declares invalid apiVersion 'latest'. Use '^2.1.0' or an exact semver string."
+        "Plugin 'bad-range-plugin' declares invalid apiVersion 'latest'. Use '^2.2.0' or an exact semver string."
       );
     });
 
@@ -87,7 +87,7 @@ describe('PluginRegistry error handling', () => {
       });
 
       expect(() => registry.register(plugin)).toThrow(
-        "Plugin 'future-plugin' requires future CodeGraphy Plugin API '^3.0.0', but host provides '2.1.0'."
+        "Plugin 'future-plugin' requires future CodeGraphy Plugin API '^3.0.0', but host provides '2.2.0'."
       );
     });
 
@@ -100,7 +100,7 @@ describe('PluginRegistry error handling', () => {
       });
 
       expect(() => registry.register(plugin)).toThrow(
-        "Plugin 'trimmed-future-plugin' requires future CodeGraphy Plugin API ' ^3.0.0 ', but host provides '2.1.0'."
+        "Plugin 'trimmed-future-plugin' requires future CodeGraphy Plugin API ' ^3.0.0 ', but host provides '2.2.0'."
       );
     });
 
@@ -113,7 +113,7 @@ describe('PluginRegistry error handling', () => {
       });
 
       expect(() => registry.register(plugin)).toThrow(
-        "Plugin 'legacy-plugin' targets unsupported CodeGraphy Plugin API '^1.0.0'. Host provides '2.1.0'."
+        "Plugin 'legacy-plugin' targets unsupported CodeGraphy Plugin API '^1.0.0'. Host provides '2.2.0'."
       );
     });
 
@@ -122,7 +122,7 @@ describe('PluginRegistry error handling', () => {
     it('accepts the current additive minor API range', () => {
       const registry = createConfiguredRegistry();
       const plugin = createPlugin('minor-ahead-plugin', {
-        apiVersion: '^2.1.0',
+        apiVersion: '^2.2.0',
       });
 
       expect(() => registry.register(plugin)).not.toThrow();

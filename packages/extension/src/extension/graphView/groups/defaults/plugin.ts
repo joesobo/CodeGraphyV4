@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { IPluginFileColorDefinition } from '../../../../core/plugins/types/contracts';
+import type {
+  IGraphData,
+  IGraphViewDefaultGroupDefinition,
+  IGraphViewDefaultGroupContribution,
+} from '@codegraphy-dev/plugin-api';
 import { getBuiltInGraphViewPluginDir } from './pluginRoots';
 
 interface GraphViewPluginInfoLike {
@@ -9,6 +14,22 @@ interface GraphViewPluginInfoLike {
     id: string;
     name: string;
     fileColors?: Record<string, string | IPluginFileColorDefinition>;
+    graphView?: {
+      defaultGroups?: readonly IGraphViewDefaultGroupContribution[];
+    };
+  };
+}
+
+function createDynamicPluginDefaultGroup(
+  pluginInfo: GraphViewPluginInfoLike,
+  definition: IGraphViewDefaultGroupDefinition,
+): IGroup {
+  return {
+    ...definition,
+    id: definition.id,
+    isPluginDefault: true,
+    pluginId: pluginInfo.plugin.id,
+    pluginName: pluginInfo.plugin.name,
   };
 }
 
@@ -67,6 +88,8 @@ export function getGraphViewPluginDefaultGroups(
   disabledPlugins: ReadonlySet<string>,
   pluginExtensionUris: Map<string, vscode.Uri>,
   extensionUri: vscode.Uri,
+  graphData?: IGraphData,
+  includeFolderMatches = false,
 ): IGroup[] {
   if (!analyzer?.registry?.list) return [];
 
@@ -77,16 +100,38 @@ export function getGraphViewPluginDefaultGroups(
     if (disabledPlugins.has(pluginInfo.plugin.id)) continue;
 
     const fileColors = pluginInfo.plugin.fileColors;
-    if (!fileColors) continue;
+    const defaultGroupContributions = pluginInfo.plugin.graphView?.defaultGroups ?? [];
+    if (!fileColors && defaultGroupContributions.length === 0) continue;
 
     ensurePluginExtensionUri(pluginInfo, pluginExtensionUris, extensionUri);
 
-    for (const [pattern, value] of Object.entries(fileColors)) {
+    for (const [pattern, value] of Object.entries(fileColors ?? {})) {
       const id = `plugin:${pluginInfo.plugin.id}:${pattern}`;
       if (addedIds.has(id)) continue;
 
       result.push(createPluginDefaultGroup(pluginInfo, pattern, value));
       addedIds.add(id);
+    }
+
+    if (graphData) {
+      for (const contribution of defaultGroupContributions) {
+        const definitions = contribution.createGroups({
+          visibleGraph: graphData,
+          graphMode: undefined,
+          timelineActive: undefined,
+          workspaceRoot: undefined,
+          includeFolderMatches,
+        });
+        for (const definition of definitions) {
+          const group = createDynamicPluginDefaultGroup(
+            pluginInfo,
+            definition,
+          );
+          if (addedIds.has(group.id)) continue;
+          result.push(group);
+          addedIds.add(group.id);
+        }
+      }
     }
   }
 

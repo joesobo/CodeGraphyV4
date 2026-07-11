@@ -1,6 +1,5 @@
-import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../../shared/graph/contracts';
-import type { IGroup } from '../../../../../shared/settings/groups';
+import type { IGraphData } from '@codegraphy-dev/plugin-api';
+import type { IGraphViewDefaultGroupDefinition as IGroup } from '@codegraphy-dev/plugin-api';
 import { createMaterialGroup, getManualGroups, getSpecificityScore, sortMaterialGroups } from './groups';
 import { collectMaterialFileGroups } from './files';
 import { collectMaterialFolderGroups } from './folders';
@@ -15,10 +14,10 @@ interface MaterialThemeDefaultOptions {
 
 export function getMaterialThemeDefaultGroups(
   graphData: IGraphData,
-  extensionUri: vscode.Uri,
+  extensionRoot?: string,
   options: MaterialThemeDefaultOptions = {},
 ): IGroup[] {
-  const theme = loadMaterialTheme(extensionUri);
+  const theme = loadMaterialTheme(extensionRoot);
   if (!theme) {
     return [];
   }

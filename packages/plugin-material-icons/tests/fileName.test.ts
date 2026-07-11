@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchMaterialFileName } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/fileName';
+import { matchMaterialFileName } from '../src/fileName';
 
 describe('graphView/materialTheme/fileName', () => {
   it('matches basename and nested suffix rules', () => {

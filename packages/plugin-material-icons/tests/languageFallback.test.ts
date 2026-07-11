@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchMaterialLanguageFallback } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/languageFallback';
+import { matchMaterialLanguageFallback } from '../src/languageFallback';
 
 describe('graphView/materialTheme/languageFallback', () => {
   it('uses language fallback rules when the manifest defines the language id', () => {

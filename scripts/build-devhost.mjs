@@ -17,6 +17,7 @@ const publicPluginPackageRoots = [
   path.join(repoRoot, 'packages/plugin-unity'),
   path.join(repoRoot, 'packages/plugin-godot'),
   path.join(repoRoot, 'packages/plugin-particles'),
+  path.join(repoRoot, 'packages/plugin-material-icons'),
   path.join(repoRoot, 'packages/plugin-vue'),
   path.join(repoRoot, 'packages/plugin-svelte'),
 ];
@@ -27,6 +28,7 @@ const buildFilters = [
   '@codegraphy-dev/plugin-unity...',
   '@codegraphy-dev/plugin-godot...',
   '@codegraphy-dev/plugin-particles...',
+  '@codegraphy-dev/plugin-material-icons...',
   '@codegraphy-dev/plugin-vue...',
   '@codegraphy-dev/plugin-svelte...',
 ];

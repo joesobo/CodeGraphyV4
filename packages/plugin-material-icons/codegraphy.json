@@ -1,0 +1,14 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.material-icons",
+  "name": "Material Icon Theme",
+  "version": "0.1.0",
+  "apiVersion": "^2.2.0",
+  "supportedExtensions": [],
+  "defaultFilters": [],
+  "updateImpact": {
+    "toggle": "projection-only",
+    "defaultSetting": "settings-only"
+  },
+  "fileColors": {}
+}

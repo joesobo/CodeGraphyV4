@@ -74,6 +74,11 @@ describe('graphView/provider/plugin/resources default dependencies', () => {
   it('reads legend visibility and legend order defaults from the CodeGraphy configuration', () => {
     getConfigValue
       .mockImplementationOnce((key: string, fallback: Record<string, boolean>) => {
+        expect(key).toBe('nodeVisibility');
+        expect(fallback).toEqual({});
+        return { folder: true };
+      })
+      .mockImplementationOnce((key: string, fallback: Record<string, boolean>) => {
         expect(key).toBe('legendVisibility');
         expect(fallback).toEqual({});
         return { plugin: false };
@@ -125,8 +130,9 @@ describe('graphView/provider/plugin/resources default dependencies', () => {
 
     methods._computeMergedGroups();
 
-    expect(getConfigValue).toHaveBeenNthCalledWith(1, 'legendVisibility', {});
-    expect(getConfigValue).toHaveBeenNthCalledWith(2, 'legendOrder', []);
+    expect(getConfigValue).toHaveBeenNthCalledWith(1, 'nodeVisibility', {});
+    expect(getConfigValue).toHaveBeenNthCalledWith(2, 'legendVisibility', {});
+    expect(getConfigValue).toHaveBeenNthCalledWith(3, 'legendOrder', []);
     expect(buildMergedGroups).toHaveBeenCalledWith([], [], [], {}, []);
   });
 });

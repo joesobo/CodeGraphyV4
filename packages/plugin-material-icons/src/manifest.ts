@@ -1,14 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
+import { createRequire } from 'node:module';
 import { z } from 'zod';
-import { unknownRecordSchema } from '../../../../../shared/values';
 import type { MaterialThemeCacheEntry, MaterialIconManifest } from './model';
 import { createMaterialExtensionMatcher } from './extensionMatch';
 import { createMaterialPathRuleMatcher } from './pathMatch';
 
 const materialThemeCache = new Map<string, MaterialThemeCacheEntry | null>();
 const materialIconThemePackageName = 'material-icon-theme';
+const require = createRequire(typeof __filename === 'string' ? __filename : import.meta.url);
+const unknownRecordSchema = z.record(z.string(), z.unknown());
 
 const materialStringRecordSchema = unknownRecordSchema.transform((record): Record<string, string> =>
   Object.fromEntries(
@@ -80,23 +81,29 @@ function readMaterialIconManifest(manifestPath: string): MaterialIconManifest | 
   }
 }
 
-export function resolveMaterialThemeRoot(extensionUri: vscode.Uri): string | undefined {
-  const candidates = [
-    path.join(extensionUri.fsPath, 'packages', 'extension', 'node_modules', materialIconThemePackageName),
-    path.join(extensionUri.fsPath, 'dist', 'node_modules', materialIconThemePackageName),
-  ];
-
-  return candidates.find((candidate) => fs.existsSync(path.join(candidate, 'package.json')));
+export function resolveMaterialThemeRoot(extensionRoot?: string): string | undefined {
+  if (extensionRoot) {
+    const candidates = [
+      path.join(extensionRoot, 'packages', 'extension', 'node_modules', materialIconThemePackageName),
+      path.join(extensionRoot, 'dist', 'node_modules', materialIconThemePackageName),
+    ];
+    return candidates.find((candidate) => fs.existsSync(path.join(candidate, 'package.json')));
+  }
+  try {
+    return path.dirname(require.resolve(`${materialIconThemePackageName}/package.json`));
+  } catch {
+    return undefined;
+  }
 }
 
-export function loadMaterialTheme(extensionUri: vscode.Uri): MaterialThemeCacheEntry | null {
-  const cacheKey = extensionUri.fsPath;
+export function loadMaterialTheme(extensionRoot?: string): MaterialThemeCacheEntry | null {
+  const packageRoot = resolveMaterialThemeRoot(extensionRoot);
+  const cacheKey = packageRoot ?? 'missing';
   const cached = materialThemeCache.get(cacheKey);
   if (cached !== undefined) {
     return cached;
   }
 
-  const packageRoot = resolveMaterialThemeRoot(extensionUri);
   if (!packageRoot) {
     materialThemeCache.set(cacheKey, null);
     return null;

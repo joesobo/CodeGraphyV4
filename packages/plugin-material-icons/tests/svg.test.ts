@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { describe, expect, it } from 'vitest';
-import { extractPrimaryColor, toSvgDataUrl, toWhiteSvgDataUrl } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/svg';
+import { extractPrimaryColor, toSvgDataUrl, toWhiteSvgDataUrl } from '../src/svg';
 
 describe('graphView/materialTheme/svg', () => {
   it('extracts the most common hex color and falls back when none exist', () => {

@@ -1,7 +1,6 @@
-import type { IGroup } from '../../../../../shared/settings/groups';
-import type { IGraphData } from '../../../../../shared/graph/contracts';
-import { collectFolderPaths } from '../../../../../shared/graphControls/nests/folders';
-import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
+import type { IGraphViewDefaultGroupDefinition as IGroup } from '@codegraphy-dev/plugin-api';
+import type { IGraphData } from '@codegraphy-dev/plugin-api';
+import { collectFolderPaths, isExternalPackageNodeId } from './graph';
 import type { MaterialThemeCacheEntry } from './model';
 import {
   createGenericFolderGroup,
@@ -50,7 +49,7 @@ export function collectMaterialFolderGroups(
   const fileNodes = graphData.nodes.filter(
     (node) => node.nodeType !== 'package' && node.nodeType !== 'folder' && !isExternalPackageNodeId(node.id),
   );
-  const folderPaths = collectFolderPaths(fileNodes).paths;
+  const folderPaths = collectFolderPaths(fileNodes);
   const groupsById = new Map<string, IGroup>();
   let defaultFolderGroup: IGroup | undefined;
 

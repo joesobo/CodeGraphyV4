@@ -2,6 +2,7 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   loadBundledMarkdownPlugin,
+  loadBundledMaterialIconsPlugin,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
@@ -24,6 +25,16 @@ export async function getBuiltInWorkspacePipelinePluginRegistrations(
 ): Promise<WorkspacePipelinePluginRegistration[]> {
   const disabledPlugins = new Set(disabledPluginsInput);
   const registrations: WorkspacePipelinePluginRegistration[] = [];
+
+  if (!disabledPlugins.has('codegraphy.material-icons')) {
+    registrations.push({
+      plugin: await loadBundledMaterialIconsPlugin() as IPlugin,
+      options: {
+        builtIn: true,
+        sourcePackage: '@codegraphy-dev/plugin-material-icons',
+      },
+    });
+  }
 
   if (
     shouldRegisterMarkdownPlugin(settings)

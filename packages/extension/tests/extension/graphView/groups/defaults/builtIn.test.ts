@@ -11,7 +11,7 @@ describe('graphView/builtInDefaultGroups', () => {
     } as never);
   });
 
-  it('materializes matching Material theme defaults for the current graph and keeps Material Icon Theme metadata', () => {
+  it('leaves file icon defaults to public plugins', () => {
     const groups = getBuiltInGraphViewDefaultGroups(
       {
         nodes: [
@@ -23,58 +23,9 @@ describe('graphView/builtInDefaultGroups', () => {
         ],
         edges: [],
       },
-      vscode.Uri.file(path.resolve(process.cwd(), '../..')),
+      vscode.Uri.file('/extension'),
     );
-
-    expect(groups).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'default:fileName:package.json',
-        pattern: 'package.json',
-        color: '#8BC34A',
-        isPluginDefault: true,
-        pluginName: 'Material Icon Theme',
-        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
-      }),
-      expect.objectContaining({
-        id: 'default:fileExtension:tsx',
-        pattern: '*.tsx',
-        color: '#0288D1',
-        isPluginDefault: true,
-        pluginName: 'Material Icon Theme',
-        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
-      }),
-      expect.objectContaining({
-        id: 'default:fileExtension:py',
-        pattern: '*.py',
-        color: '#0288D1',
-        isPluginDefault: true,
-        pluginName: 'Material Icon Theme',
-        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
-      }),
-      expect.objectContaining({
-        id: 'default:fileName:README.md',
-        pattern: 'README.md',
-        color: '#42A5F5',
-        isPluginDefault: true,
-        pluginName: 'Material Icon Theme',
-        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
-      }),
-      expect.objectContaining({
-        id: 'default:fileName:vite.config.ts',
-        pattern: 'vite.config.ts',
-        color: '#AA00FF',
-        isPluginDefault: true,
-        pluginName: 'Material Icon Theme',
-        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
-      }),
-      expect.objectContaining({
-        id: 'default:fileName:.codegraphy/settings.json',
-        pattern: '.codegraphy/settings.json',
-        color: '#277ACC',
-        isPluginDefault: true,
-        pluginName: 'Material Icon Theme',
-      }),
-    ]));
+    expect(groups).toEqual([]);
   });
 
   it('adds scoped symbol defaults for core symbol kinds and Godot class names', () => {

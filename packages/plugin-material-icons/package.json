@@ -1,0 +1,33 @@
+{
+  "name": "@codegraphy-dev/plugin-material-icons",
+  "version": "0.1.0",
+  "description": "Material Icon Theme graph styling plugin for CodeGraphy",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
+  "engines": { "node": ">=20" },
+  "files": ["dist", "codegraphy.json", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js",
+    "test": "vitest run",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/plugin-api": "workspace:*",
+    "material-icon-theme": "5.33.1",
+    "zod": "^4.3.6"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.2.0",
+    "disclosures": []
+  }
+}

@@ -2,10 +2,10 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
-import { collectMaterialFileGroups } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/files';
-import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
-import { createMaterialPathRuleMatcher } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/pathMatch';
+import type { IGraphData } from '@codegraphy-dev/plugin-api';
+import { collectMaterialFileGroups } from '../src/files';
+import type { MaterialThemeCacheEntry } from '../src/model';
+import { createMaterialPathRuleMatcher } from '../src/pathMatch';
 
 const tempDirs: string[] = [];
 

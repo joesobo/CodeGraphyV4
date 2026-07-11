@@ -3,7 +3,7 @@ import {
   createMaterialExtensionMatcher,
   findLongestExtensionMatch,
   findLongestExtensionMatchWithMatcher,
-} from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/extensionMatch';
+} from '../src/extensionMatch';
 
 describe('graphView/materialTheme/extensionMatch', () => {
   it('matches bare extension filenames', () => {

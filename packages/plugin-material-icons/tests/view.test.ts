@@ -1,16 +1,15 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
+import type { IGraphData } from '@codegraphy-dev/plugin-api';
 import {
   createMaterialGroup,
   findMaterialMatch,
   getMaterialThemeDefaultGroups,
   getSpecificityScore,
-} from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/view';
-import { clearMaterialThemeCache } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/manifest';
+} from '../src/view';
+import { clearMaterialThemeCache } from '../src/manifest';
 
 const tempDirs: string[] = [];
 
@@ -118,7 +117,7 @@ describe('graphView/materialTheme/view', () => {
       edges: [],
     } satisfies IGraphData;
 
-    const groups = getMaterialThemeDefaultGroups(graphData, vscode.Uri.file(extensionRoot));
+    const groups = getMaterialThemeDefaultGroups(graphData, extensionRoot);
 
     expect(groups.map((group) => group.id)).toEqual([
       'default:fileName:.codegraphy/settings.json',
@@ -130,16 +129,12 @@ describe('graphView/materialTheme/view', () => {
     expect(groups.find((group) => group.id === 'default:fileName:vite.config.ts')).toEqual(expect.objectContaining({
       pattern: 'vite.config.ts',
       color: '#AA00FF',
-      pluginName: 'Material Icon Theme',
-      isPluginDefault: true,
       imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
     }));
     expect(groups.find((group) => group.id === 'default:fileName:.codegraphy/settings.json')).toEqual({
       id: 'default:fileName:.codegraphy/settings.json',
       pattern: '.codegraphy/settings.json',
       color: '#277ACC',
-      isPluginDefault: true,
-      pluginName: 'Material Icon Theme',
     });
     expect(groups.some((group) => group.id === 'default:fileExtension:foo')).toBe(false);
     expect(groups.some((group) => group.id === 'default:fileName:package.json')).toBe(false);
@@ -147,7 +142,7 @@ describe('graphView/materialTheme/view', () => {
   });
 
   it('returns no theme groups when the runtime package is unavailable', () => {
-    expect(getMaterialThemeDefaultGroups({ nodes: [], edges: [] }, vscode.Uri.file(createTempDir()))).toEqual([]);
+    expect(getMaterialThemeDefaultGroups({ nodes: [], edges: [] }, createTempDir())).toEqual([]);
   });
 
   it('exposes group helpers for specificity ordering', () => {
@@ -166,8 +161,6 @@ describe('graphView/materialTheme/view', () => {
       pattern: '*.ts',
       color: '#3178C6',
       imageUrl: 'data:image/svg+xml;base64,abc',
-      isPluginDefault: true,
-      pluginName: 'Material Icon Theme',
     });
   });
 
@@ -196,7 +189,7 @@ describe('graphView/materialTheme/view', () => {
         { id: '.github/ISSUE_TEMPLATE/bug.md', label: 'bug.md', color: '#000000' },
       ],
       edges: [],
-    }, vscode.Uri.file(extensionRoot), {
+    }, extensionRoot, {
       includeFolderMatches: true,
     });
 
@@ -205,14 +198,12 @@ describe('graphView/materialTheme/view', () => {
         id: 'default:folderName:src',
         pattern: 'src',
         color: 'rgba(0, 0, 0, 0)',
-        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
         id: 'default:folderName:.github/ISSUE_TEMPLATE',
         pattern: '.github/ISSUE_TEMPLATE',
         color: 'rgba(0, 0, 0, 0)',
-        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
@@ -221,7 +212,6 @@ describe('graphView/materialTheme/view', () => {
         displayLabel: 'Folder',
         matchNodeType: 'folder',
         color: 'rgba(0, 0, 0, 0)',
-        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
     ]));
@@ -245,7 +235,7 @@ describe('graphView/materialTheme/view', () => {
         { id: 'src/main.ts', label: 'main.ts', color: '#000000' },
       ],
       edges: [],
-    }, vscode.Uri.file(extensionRoot), {
+    }, extensionRoot, {
       includeFolderMatches: false,
     });
 

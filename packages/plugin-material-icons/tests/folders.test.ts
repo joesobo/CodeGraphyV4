@@ -3,10 +3,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { Buffer } from 'node:buffer';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
-import { collectMaterialFolderGroups } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/folders';
-import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
-import { MATERIAL_TRANSPARENT_NODE_COLOR } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/groups';
+import type { IGraphData } from '@codegraphy-dev/plugin-api';
+import { collectMaterialFolderGroups } from '../src/folders';
+import type { MaterialThemeCacheEntry } from '../src/model';
+import { MATERIAL_TRANSPARENT_NODE_COLOR } from '../src/groups';
 
 const tempDirs: string[] = [];
 

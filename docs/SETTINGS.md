@@ -323,7 +323,7 @@ For node styling, the popup is split into these subsections from top to bottom:
 3. `Material Icon Theme`
 4. `Defaults`
 
-`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin entries sit above core. Custom Legend Entries sit above both.
+`Defaults` contains host entries such as `Files` and `Packages`. `Material Icon Theme` is a bundled, default-enabled plugin that provides file and folder theming through the public Plugin API. Other plugin entries sit above host defaults. Custom Legend Entries sit above both.
 
 Legend styling resolves in this order:
 

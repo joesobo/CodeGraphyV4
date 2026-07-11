@@ -3,8 +3,8 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { resolveIconData } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/icons';
-import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
+import { resolveIconData } from '../src/icons';
+import type { MaterialThemeCacheEntry } from '../src/model';
 
 const tempDirs: string[] = [];
 

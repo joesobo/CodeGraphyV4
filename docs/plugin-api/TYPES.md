@@ -243,16 +243,16 @@ Context menu contributions render in the normal graph context menu by default. C
 
 ## Theme-Style Plugins
 
-The current public API already supports a file-theme style plugin through `fileColors`:
+The public API supports static file-theme rules through `fileColors`:
 
 - extension matches like `.ts`
 - exact file names like `package.json`
 - glob patterns like `**/*.stories.tsx`
 - optional `shape2D`, `shape3D`, and `imagePath`
 
-Those plugin defaults sit above core defaults and below custom Legend Entries, so a user can treat them like an installable theme layer for File Nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom entries still win last.
+Graph-aware themes can additionally contribute `graphView.defaultGroups`. Each contribution receives the visible public `IGraphData` plus `includeFolderMatches`, and returns declarative rules with patterns, colors, shapes, and package-owned `imagePath` or self-contained `imageUrl` values. This is the public seam used by the bundled Material Icon Theme plugin for file-name, extension, path, and folder icons.
 
-Current limitation: folder icon theming is still core-only. The API does not yet expose a folder-name or folder-icon contract comparable to the built-in Material Icon Theme integration.
+Plugin defaults sit above core defaults and below custom Legend Entries. Stable definition IDs preserve Legend visibility and ordering preferences when a theme recomputes its graph-aware rules.
 
 ## Package Export Notes
 

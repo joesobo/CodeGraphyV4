@@ -163,6 +163,9 @@ importers:
       '@codegraphy-dev/plugin-markdown':
         specifier: workspace:*
         version: link:../plugin-markdown
+      '@codegraphy-dev/plugin-material-icons':
+        specifier: workspace:*
+        version: link:../plugin-material-icons
       '@driftlog/tree-sitter-dart':
         specifier: 1.0.4
         version: 1.0.4(node-addon-api@8.7.0)(tree-sitter@0.25.0(patch_hash=581e1c376edeabe3d25b64ea7bac59e14cc731627b17b97acccf0cce1dd051cb))
@@ -304,9 +307,6 @@ importers:
       ignore:
         specifier: ^7.0.5
         version: 7.0.5
-      material-icon-theme:
-        specifier: 5.33.1
-        version: 5.33.1
       minimatch:
         specifier: ^10.2.5
         version: 10.2.5
@@ -475,6 +475,18 @@ importers:
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+
+  packages/plugin-material-icons:
+    dependencies:
+      '@codegraphy-dev/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+      material-icon-theme:
+        specifier: 5.33.1
+        version: 5.33.1
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
 
   packages/plugin-particles:
     dependencies:

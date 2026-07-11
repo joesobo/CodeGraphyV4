@@ -331,6 +331,7 @@ export {
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
 export { loadBundledMarkdownPlugin } from './plugins/markdown/runtime';
+export { loadBundledMaterialIconsPlugin } from './plugins/materialIcons/runtime';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
 export { withWorkspacePluginAnalysisOptions } from './plugins/context/workspace';
 export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
