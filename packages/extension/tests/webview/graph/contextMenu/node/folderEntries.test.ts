@@ -96,6 +96,15 @@ describe('graph/contextMenu/node/folderEntries', () => {
     expect(clipboardItems.every((entry) => entry.disabled === false)).toBe(true);
   });
 
+  it('offers Find in Folder for concrete folders but not the synthetic root', () => {
+    expect(items(buildFolderEntries('enabled')).map(entry => entry.label)).toContain(
+      'Find in Folder…',
+    );
+    expect(items(buildFolderEntries('enabled', '(root)')).map(entry => entry.label)).not.toContain(
+      'Find in Folder…',
+    );
+  });
+
   it('hides file clipboard actions when folder mutations are hidden', () => {
     const labels = items(buildFolderEntries('hidden')).map((entry) => entry.label);
 

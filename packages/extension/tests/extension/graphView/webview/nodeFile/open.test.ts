@@ -17,6 +17,7 @@ function createHandlers(
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     openFileToSide: vi.fn(() => Promise.resolve()),
+    findInFolder: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
@@ -104,6 +105,17 @@ describe('graph view node/file open message', () => {
 
     expect(handlers.openFileToSide).toHaveBeenNthCalledWith(1, 'src/a.ts');
     expect(handlers.openFileToSide).toHaveBeenNthCalledWith(2, 'src/b.ts');
+  });
+
+  it('routes Find in Folder requests', async () => {
+    const handlers = createHandlers();
+
+    await applyNodeFileOpenMessage(
+      { type: 'FIND_IN_FOLDER', payload: { path: 'src' } },
+      handlers,
+    );
+
+    expect(handlers.findInFolder).toHaveBeenCalledWith('src');
   });
 
   it('returns false for unrelated messages', async () => {

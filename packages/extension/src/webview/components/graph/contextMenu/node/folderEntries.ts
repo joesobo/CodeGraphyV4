@@ -34,6 +34,10 @@ export function buildSingleFolderNodeEntries(
     ...buildFilterBlock(targets),
   );
 
+  if (target.id !== '(root)') {
+    entries.push(builtInItem('node-find-in-folder', 'Find in Folder…', 'findInFolder'));
+  }
+
   if (target.id !== '(root)' && mutationAvailability !== 'hidden') {
     entries.push(...buildFolderDestructiveBlock(mutationAvailability === 'disabled'));
   }

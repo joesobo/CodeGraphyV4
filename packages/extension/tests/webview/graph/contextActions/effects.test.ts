@@ -125,6 +125,13 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('posts the selected folder through the find-in-folder host route', () => {
+    expect(getBuiltInContextActionEffects('findInFolder', nodeContext(['src']))).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'FIND_IN_FOLDER', payload: { path: 'src' } },
+    }]);
+  });
+
   it('creates a filter prompt effect for multi-select add-to-filter', () => {
     expect(getBuiltInContextActionEffects('addToFilter', nodeContext(['a.ts', 'b.ts']))).toEqual([
       { kind: 'promptFilterPattern', patterns: ['a.ts', 'b.ts'] },

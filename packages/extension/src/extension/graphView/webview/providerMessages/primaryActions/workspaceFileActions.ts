@@ -17,6 +17,7 @@ type WorkspaceFileActions = Pick<
   | 'cutFiles'
   | 'copyFiles'
   | 'pasteFiles'
+  | 'findInFolder'
 >;
 
 export function createWorkspaceFileActions(
@@ -33,6 +34,12 @@ export function createWorkspaceFileActions(
     writeFile: (uri, content) => vscode.workspace.fs.writeFile(uri, content),
     copyFile: (sourceUri, destinationUri, options) =>
       vscode.workspace.fs.copy(sourceUri, destinationUri, options),
+    findInFolder: async filePath => {
+      await vscode.commands.executeCommand(
+        'workbench.action.findInFiles',
+        { filesToInclude: filePath },
+      );
+    },
     cutFiles: async paths => {
       const workspaceUri = getWorkspaceUri();
       if (workspaceUri) clipboardFiles.stage('cut', paths, workspaceUri);

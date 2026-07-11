@@ -10,6 +10,7 @@ export interface GraphViewNodeFileOpenHandlers {
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
   openFileToSide(filePath: string): Promise<void>;
+  findInFolder(filePath: string): Promise<void>;
 }
 
 function canOpenPath(
@@ -86,6 +87,10 @@ export async function applyNodeFileOpenMessage(
       await Promise.all(message.payload.paths
         .filter(filePath => canOpenPath(handlers, filePath))
         .map(filePath => handlers.openFileToSide(filePath)));
+      return true;
+
+    case 'FIND_IN_FOLDER':
+      await handlers.findInFolder(message.payload.path);
       return true;
 
     default:

@@ -10,6 +10,7 @@ export const DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY: GraphContextMutationAv
 export type BuiltInContextMenuAction =
   | 'open'
   | 'openToSide'
+  | 'findInFolder'
   | 'openEdgeSource'
   | 'openEdgeTarget'
   | 'reveal'

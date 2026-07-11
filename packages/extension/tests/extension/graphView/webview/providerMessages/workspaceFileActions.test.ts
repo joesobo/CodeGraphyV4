@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type * as vscode from 'vscode';
+import * as vscodeRuntime from 'vscode';
 import { ClipboardFilesState } from '../../../../../src/extension/actions/clipboardFiles/state';
 import { createWorkspaceFileActions } from '../../../../../src/extension/graphView/webview/providerMessages/primaryActions/workspaceFileActions';
 
@@ -26,6 +27,17 @@ function createHarness(confirm: string | undefined = 'Move') {
 }
 
 describe('providerMessages/primaryActions/workspaceFileActions', () => {
+  it('opens Find in Files with the selected folder included', async () => {
+    const harness = createHarness();
+
+    await harness.actions.findInFolder('src/features');
+
+    expect(vscodeRuntime.commands.executeCommand).toHaveBeenCalledWith(
+      'workbench.action.findInFiles',
+      { filesToInclude: 'src/features' },
+    );
+  });
+
   it('stages copied paths and executes an undoable paste without confirmation', async () => {
     const harness = createHarness();
 

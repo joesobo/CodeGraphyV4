@@ -9,6 +9,7 @@ export type GraphViewProviderPrimaryActions = Pick<
   | 'previewFileAtCommit'
   | 'openFile'
   | 'openFileToSide'
+  | 'findInFolder'
   | 'openInEditor'
   | 'revealInExplorer'
   | 'copyToClipboard'

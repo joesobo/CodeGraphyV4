@@ -29,7 +29,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | --- | --- | --- | --- |
 | New File / New Folder | done(unit) | 2.1 | Folder entry and provider host-action tests cover enabled, disabled, hidden, root, and nested contexts. |
 | Nested-path create (`a/b/c.ts`) | done(unit) | 2.1 | 120 focused tests pass across `createPath.test.ts`, graph-view `files/actions.test.ts`, and `createFile.test.ts`; real Dev Host screenshot remains part of the Phase 2.1 walkthrough. |
-| Find in Folder… | todo(P2) | 2.5 | Not implemented. |
+| Find in Folder… | done(unit) | 2.5 | Concrete folder entries route to `workbench.action.findInFiles` with `filesToInclude`; synthetic root omits the action. |
 | Paste | done(unit) | 2.2 | Folder, root, and background Paste routes through the undo manager; copied items retain clipboard state and cut items clear only after success. |
 | Reveal / copy paths / rename / delete | done(unit) | 2.1 | Folder entries enforce mutation availability and synthetic-root protection; provider actions cover host dispatch. |
 

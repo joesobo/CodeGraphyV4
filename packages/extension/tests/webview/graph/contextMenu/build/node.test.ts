@@ -36,6 +36,7 @@ const immutableFolderLabels = [
   'Focus Node',
   'Add Filter Pattern',
   'Add Legend Group',
+  'Find in Folder…',
   'Rename Folder',
   'Delete Folder',
 ];

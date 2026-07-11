@@ -1,7 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphContextEffect } from './effects';
 
-type SinglePathMessageType = 'REVEAL_IN_EXPLORER' | 'RENAME_FILE';
+type SinglePathMessageType = 'REVEAL_IN_EXPLORER' | 'RENAME_FILE' | 'FIND_IN_FOLDER';
 type PathListMessageType =
   | 'DELETE_FILES'
   | 'TOGGLE_FAVORITE'

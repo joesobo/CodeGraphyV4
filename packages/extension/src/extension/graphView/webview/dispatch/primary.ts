@@ -34,6 +34,7 @@ export interface GraphViewPrimaryMessageContext {
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
   openFileToSide(filePath: string): Promise<void>;
+  findInFolder(filePath: string): Promise<void>;
   openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;
