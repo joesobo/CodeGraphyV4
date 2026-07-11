@@ -489,7 +489,7 @@ Explorer conventions exactly: settings, dialogs, inline editing, loading states.
 
 ### Tasks
 
-- [ ] **6.1 Destructive-op settings:** `vscode.workspace.fs.delete(uri, {useTrash})` per `files.enableTrash` (V5); `explorer.confirmDelete` with Explorer's exact wording incl. "You can restore this file from the Trash." + persistent "Do not ask me again" (V6). 8 acceptance scenarios ({setting} × {on,off} × single/multi). Commit.
+- [x] **6.1 Destructive-op settings:** `vscode.workspace.fs.delete(uri, {useTrash})` per `files.enableTrash` (V5); `explorer.confirmDelete` with Explorer's exact wording incl. "You can restore this file from the Trash." + persistent "Do not ask me again" (V6). 8 acceptance scenarios ({setting} × {on,off} × single/multi). Commit.
 - [ ] **6.2 Inline rename/create on canvas:** HTML input overlay at node screen coords (`graph2ScreenCoords`); Enter commits, Escape cancels, blur commits; V1/V2 errors inline under the input like Explorer's red box; ghost node + inline input for New File/Folder replacing prompts. Commit.
 - [ ] **6.3 Cold-open ghost graph:** persist node positions via webview `setState` (cheap persistence — not `retainContextWhenHidden`); render dimmed ghost graph instantly, swap on first data without full re-layout. Pixel gate at t+100ms. Commit.
 - [ ] **6.4 Dialog copy audit:** table of every CodeGraphy dialog/toast string vs Explorer's (captured from a real VS Code instance); fix mismatches; unit test locks strings. Commit.
@@ -502,6 +502,11 @@ Explorer conventions exactly: settings, dialogs, inline editing, loading states.
 | 6-B | Inline editing | 0 focus departures; input ≤ 100ms after trigger; V1/V2 inline errors asserted |
 | 6-C | Cold open | non-blank canvas at 100ms; `layoutResets` ≤ 1 on cold open |
 | 6-D | Copy | 0 unexplained mismatches |
+
+### Phase 6.1 implementation checkpoint (2026-07-11)
+
+- Graph deletion reads the native `explorer.confirmDelete` and `files.enableTrash` settings at invocation time. Confirmation-disabled deletes proceed without a prompt; confirmation-enabled deletes use a modal warning with the Explorer restore detail (or irreversible detail when Trash is disabled), and choosing `Do not ask me again` persists `explorer.confirmDelete=false` at the global target before continuing.
+- `useTrash` is carried through the optimistic mutation seam into `DeleteFilesAction` and every file/folder `workspace.fs.delete` call while the existing content-backed undo path remains intact. The single/multi × confirm on/off and single/multi × Trash on/off matrix plus provider/action coverage passes 98/98 focused tests.
 
 ---
 
