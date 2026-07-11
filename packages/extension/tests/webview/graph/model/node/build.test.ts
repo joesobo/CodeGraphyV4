@@ -103,11 +103,21 @@ describe('graph/model/node/build', () => {
     expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
   });
 
-  it('leaves newly visible connected nodes unpositioned outside timeline mode', () => {
+  it('seeds a newly visible symbol at its containing file outside timeline mode', () => {
     const nodes = buildGraphNodes({
       nodes: [
         { id: 'src/logger/logger.c', label: 'logger.c', color: '#93C5FD' },
-        { id: 'src/logger/logger.c#logger_write:function', label: 'logger_write', color: '#8B5CF6' },
+        {
+          id: 'src/logger/logger.c#logger_write:function',
+          label: 'logger_write',
+          color: '#8B5CF6',
+          symbol: {
+            filePath: 'src/logger/logger.c',
+            id: 'src/logger/logger.c#logger_write:function',
+            kind: 'function',
+            name: 'logger_write',
+          },
+        },
       ],
       edges: [{
         id: 'src/logger/logger.c->src/logger/logger.c#logger_write:function#contains',
@@ -131,8 +141,8 @@ describe('graph/model/node/build', () => {
 
     expect(nodes.find(node => node.id === 'src/logger/logger.c')).toMatchObject({ x: 100, y: 200 });
     expect(nodes.find(node => node.id === 'src/logger/logger.c#logger_write:function')).toMatchObject({
-      x: undefined,
-      y: undefined,
+      x: 100,
+      y: 200,
     });
   });
 

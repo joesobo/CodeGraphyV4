@@ -194,6 +194,7 @@ function getNodeColor(
 function createGraphNodePositionState(
   node: IGraphNode,
   previous: PreviousNodeState | undefined,
+  ownerPrevious: PreviousNodeState | undefined,
 ): GraphNodePositionState {
   const runtimePosition = node as RuntimeGraphNodePositionState;
   const z = (node as { z?: unknown }).z;
@@ -204,9 +205,9 @@ function createGraphNodePositionState(
     vx: readPositionNumber(runtimePosition.vx, previous?.vx),
     vy: readPositionNumber(runtimePosition.vy, previous?.vy),
     vz: readPositionNumber(runtimePosition.vz, previous?.vz),
-    x: node.x ?? previous?.x,
-    y: node.y ?? previous?.y,
-    z: typeof z === 'number' ? z : previous?.z,
+    x: node.x ?? previous?.x ?? ownerPrevious?.x,
+    y: node.y ?? previous?.y ?? ownerPrevious?.y,
+    z: typeof z === 'number' ? z : previous?.z ?? ownerPrevious?.z,
   };
 }
 
@@ -226,8 +227,11 @@ function createGraphNode(
 ): FGNode {
   const runtimeNode = node as IGraphNode & RuntimeGraphNodePresentation;
   const previous = previousNodeStates.get(node.id);
+  const ownerPrevious = previous
+    ? undefined
+    : previousNodeStates.get(node.symbol?.filePath ?? '');
   const style = createGraphNodeStyle(node, options, isLight);
-  const position = createGraphNodePositionState(node, previous);
+  const position = createGraphNodePositionState(node, previous, ownerPrevious);
 
   return {
     ...runtimeNode,

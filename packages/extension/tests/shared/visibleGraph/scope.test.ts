@@ -7,6 +7,22 @@ import {
 import { edge, ids, node, symbolNode } from './scope/fixture';
 
 describe('shared/visibleGraph/scope', () => {
+	it('preserves the evidence graph identity when the requested masks hide nothing present', () => {
+		const graphData = {
+			nodes: [node('src/app.ts'), node('src/readme.md')],
+			edges: [edge('src/app.ts', 'src/readme.md', 'import')],
+		};
+
+		const result = applyGraphScope(graphData, {
+			nodes: [{ type: 'symbol:constant', enabled: false }],
+			edges: [{ type: 'call', enabled: false }],
+		});
+
+		expect(result).toBe(graphData);
+		expect(result.nodes).toBe(graphData.nodes);
+		expect(result.edges).toBe(graphData.edges);
+	});
+
 	it('filters disabled nodes, disabled edge kinds, and edges attached to hidden nodes', () => {
 		const result = applyGraphScope(
 			{
