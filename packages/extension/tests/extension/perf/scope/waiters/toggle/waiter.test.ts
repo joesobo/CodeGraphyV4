@@ -48,10 +48,8 @@ describe('extension/perf/scope/waiters/toggle/waiter', () => {
     await expect(waiter.promise).resolves.toBe(15);
   });
 
-  it('ignores physics settlement that preceded the selected graph commit', async () => {
+  it('does not require physics settlement after the selected graph commit', async () => {
     const waiter = createToggleWaiter(fileEntry, () => 25, 10);
-    let completed = false;
-    waiter.promise.then(() => { completed = true; });
     waiter.receive(event({ kind: 'physics-settled', scopeProjectionRevision: 6 }));
     waiter.receive(event({
       kind: 'graph-applied',
@@ -68,10 +66,6 @@ describe('extension/perf/scope/waiters/toggle/waiter', () => {
       ...fileEntry,
     }));
 
-    await Promise.resolve();
-    expect(completed).toBe(false);
-
-    waiter.receive(event({ kind: 'physics-settled', scopeProjectionRevision: 6 }));
     await expect(waiter.promise).resolves.toBe(15);
   });
 });

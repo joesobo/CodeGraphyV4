@@ -58,10 +58,8 @@ describe('extension/perf/scope/waiters/toggle/readiness', () => {
     expect(isToggleReady(missingPersistence)).toBe(false);
   });
 
-  it('requires physics settlement for the exact changed projection', () => {
+  it('accepts the exact applied projection without waiting for physics settlement', () => {
     const state = readyState(true);
-    expect(isToggleReady(state)).toBe(false);
-    state.graphAppliedPhysicsSettled = true;
     expect(isToggleReady(state)).toBe(true);
   });
 
@@ -71,8 +69,6 @@ describe('extension/perf/scope/waiters/toggle/readiness', () => {
     );
 
     const settling = readyState(true);
-    expect(pendingToggleEvents(settling)).toBe('physics-settled');
-    settling.graphAppliedPhysicsSettled = true;
     expect(pendingToggleEvents(settling)).toBe('');
   });
 

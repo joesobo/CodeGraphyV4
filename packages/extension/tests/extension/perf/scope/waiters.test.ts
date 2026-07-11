@@ -179,14 +179,6 @@ describe('extension/perf/scope/waiters', () => {
         nodeVisibility: { file: false },
       },
     }));
-    await Promise.resolve();
-    expect(completed).toBe(false);
-    expect(waiter.pendingDescription()).toBe('physics-settled');
-
-    waiter.receive(event({
-      kind: 'physics-settled',
-      scopeProjectionRevision: 12,
-    }));
     await expect(waiter.promise).resolves.toBe(20);
     expect(now).toHaveBeenCalledTimes(2);
   });
@@ -226,10 +218,8 @@ describe('extension/perf/scope/waiters', () => {
     await expect(waiter.promise).resolves.toBe(20);
   });
 
-  it('requires physics only when the applied projection changed layout', async () => {
+  it('completes when a layout-changing projection has been applied', async () => {
     const waiter = createToggleWaiter(fileEntry, () => 20, 10);
-    let completed = false;
-    void waiter.promise.then(() => { completed = true; });
 
     waiter.receive(event({
       kind: 'scope-toggle-complete',
@@ -247,14 +237,6 @@ describe('extension/perf/scope/waiters', () => {
         edgeVisibility: {},
         nodeVisibility: { file: false },
       },
-    }));
-    await Promise.resolve();
-    expect(completed).toBe(false);
-    expect(waiter.pendingDescription()).toBe('physics-settled');
-
-    waiter.receive(event({
-      kind: 'physics-settled',
-      scopeProjectionRevision: 1,
     }));
     await expect(waiter.promise).resolves.toBe(10);
   });

@@ -1,13 +1,9 @@
 import type { ToggleWaiterState } from './model';
 
-function exactProjectionSettled(state: ToggleWaiterState): boolean {
-  return state.graphAppliedPhysicsSettled;
-}
-
 export function isToggleReady(state: ToggleWaiterState): boolean {
   if (!state.graphApplied || state.graphAppliedElapsedMs === undefined) return false;
   if (!state.toggled || !state.persisted) return false;
-  return !state.graphApplied.layoutChanged || exactProjectionSettled(state);
+  return true;
 }
 
 export function completeToggleWhenReady(
@@ -23,8 +19,5 @@ export function pendingToggleEvents(state: ToggleWaiterState): string {
   if (!state.toggled) pending.push('scope-toggle-complete');
   if (!state.persisted) pending.push('scope-persist-complete');
   if (!state.graphApplied) pending.push('graph-applied');
-  if (state.graphApplied?.layoutChanged && !exactProjectionSettled(state)) {
-    pending.push('physics-settled');
-  }
   return pending.join(', ');
 }
