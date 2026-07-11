@@ -21,6 +21,7 @@ import {
   shouldIncludeTreeSitterSymbols,
   type TreeSitterAnalysisOptions,
 } from '../options';
+import { getOrCreateTreeSitterParser } from '../languages/parser';
 
 function visitDartNode(
   node: Parser.SyntaxNode,
@@ -189,8 +190,11 @@ export function analyzeDartFile(
 
 function readDartSymbols(filePath: string): Array<{ kind: string; name: string }> {
   try {
-    const parser = new Parser();
-    parser.setLanguage(DartLanguage as unknown as Parser.Language);
+    const parser = getOrCreateTreeSitterParser(
+      'dart',
+      Parser,
+      DartLanguage as unknown as Parser.Language,
+    );
     const rootNode = parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
     const symbols = new Map<string, string>();
     for (const node of rootNode.descendantsOfType([

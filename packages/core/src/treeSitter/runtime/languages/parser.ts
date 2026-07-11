@@ -12,6 +12,30 @@ export interface ITreeSitterRuntime {
   parser: Parser;
 }
 
+type TreeSitterParserConstructor = new () => Parser;
+
+const parserByLanguage = new Map<TreeSitterLanguageKind, Parser>();
+
+export function getOrCreateTreeSitterParser(
+  languageKind: TreeSitterLanguageKind,
+  ParserCtor: TreeSitterParserConstructor,
+  language: Parser.Language,
+): Parser {
+  const existing = parserByLanguage.get(languageKind);
+  if (existing) {
+    return existing;
+  }
+
+  const parser = new ParserCtor();
+  parser.setLanguage(language);
+  parserByLanguage.set(languageKind, parser);
+  return parser;
+}
+
+export function clearTreeSitterParserRegistry(): void {
+  parserByLanguage.clear();
+}
+
 async function getTreeSitterLanguageForFile(filePath: string): Promise<{
   ParserCtor: (new () => Parser);
   languageKind: TreeSitterLanguageKind;
@@ -43,9 +67,11 @@ function createParser(
     return null;
   }
 
-  const parser = new runtime.ParserCtor();
-  parser.setLanguage(runtime.language);
-  return parser;
+  return getOrCreateTreeSitterParser(
+    runtime.languageKind,
+    runtime.ParserCtor,
+    runtime.language,
+  );
 }
 
 export async function createTreeSitterParser(filePath: string): Promise<Parser | null> {

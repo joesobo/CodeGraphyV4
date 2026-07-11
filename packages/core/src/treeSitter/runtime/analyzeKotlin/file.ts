@@ -21,6 +21,7 @@ import {
   shouldIncludeTreeSitterSymbols,
   type TreeSitterAnalysisOptions,
 } from '../options';
+import { getOrCreateTreeSitterParser } from '../languages/parser';
 
 function visitKotlinNode(
   node: Parser.SyntaxNode,
@@ -185,8 +186,11 @@ function readKotlinPackageFiles(packageDirectory: string): string[] {
 
 function readKotlinRootNode(filePath: string): Parser.SyntaxNode | null {
   try {
-    const parser = new Parser();
-    parser.setLanguage(KotlinLanguage as unknown as Parser.Language);
+    const parser = getOrCreateTreeSitterParser(
+      'kotlin',
+      Parser,
+      KotlinLanguage as unknown as Parser.Language,
+    );
     return parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
   } catch {
     return null;

@@ -4,6 +4,7 @@ import Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { walkTree } from '../../../analyze/walk';
 import { handleCInclude } from '../../../analyzeCFamily/includes';
+import { getOrCreateTreeSitterParser } from '../../../languages/parser';
 
 export function readInitialIncludedPaths(relations: readonly IAnalysisRelation[]): string[] {
   const includedPaths: string[] = [];
@@ -63,8 +64,11 @@ function readResolvedCppIncludePaths(
 
 export function readIncludedCppRootNode(filePath: string): Parser.SyntaxNode | null {
   try {
-    const parser = new Parser();
-    parser.setLanguage(CppLanguage as unknown as Parser.Language);
+    const parser = getOrCreateTreeSitterParser(
+      'cpp',
+      Parser,
+      CppLanguage as unknown as Parser.Language,
+    );
     return parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
   } catch {
     return null;

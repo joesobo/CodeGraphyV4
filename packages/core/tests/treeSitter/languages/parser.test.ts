@@ -12,6 +12,7 @@ vi.mock(
 );
 
 import {
+  clearTreeSitterParserRegistry,
   createTreeSitterParser,
   createTreeSitterRuntime,
 } from '../../../src/treeSitter/runtime/languages/parser';
@@ -23,6 +24,20 @@ class MockParser {
 describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearTreeSitterParserRegistry();
+  });
+
+  it('reuses one configured parser for the process lifetime of a language', async () => {
+    loadTreeSitterLanguageBinding.mockResolvedValue({
+      ParserCtor: MockParser,
+      language: { id: 'typescript' },
+    });
+
+    const firstRuntime = await createTreeSitterRuntime('/workspace/src/first.ts');
+    const secondRuntime = await createTreeSitterRuntime('/workspace/src/second.ts');
+
+    expect(secondRuntime?.parser).toBe(firstRuntime?.parser);
+    expect((firstRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledTimes(1);
   });
 
   it('returns a configured parser for supported files when bindings are available', async () => {

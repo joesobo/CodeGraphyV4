@@ -28,6 +28,7 @@ import {
   shouldIncludeTreeSitterSymbols,
   type TreeSitterAnalysisOptions,
 } from '../options';
+import { getOrCreateTreeSitterParser } from '../languages/parser';
 
 interface HaskellImportList {
   callableNames: Set<string>;
@@ -276,8 +277,11 @@ function filterImportedHaskellTypeNames(
 
 function readImportedHaskellModuleNames(filePath: string): HaskellModuleNames {
   try {
-    const parser = new Parser();
-    parser.setLanguage(HaskellLanguage as unknown as Parser.Language);
+    const parser = getOrCreateTreeSitterParser(
+      'haskell',
+      Parser,
+      HaskellLanguage as unknown as Parser.Language,
+    );
     const rootNode = parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
     const callableNames = new Set<string>();
     const constructorNamesByType = new Map<string, Set<string>>();

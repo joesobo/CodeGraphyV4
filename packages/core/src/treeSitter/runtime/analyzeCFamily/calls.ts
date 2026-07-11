@@ -4,6 +4,7 @@ import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../analyze/model';
 import { addCallRelation, createSymbolId } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import { getOrCreateTreeSitterParser } from '../languages/parser';
 import { hasCallableFunctionDeclarator } from './names';
 
 type CallableDeclarationSymbolKind = 'function' | 'prototype';
@@ -80,8 +81,7 @@ export function addCFamilyCallRelation(
 
 function readIncludedRootNode(filePath: string, language: Parser.Language): Parser.SyntaxNode | null {
   try {
-    const parser = new Parser();
-    parser.setLanguage(language);
+    const parser = getOrCreateTreeSitterParser('c', Parser, language);
     return parser.parse(fs.readFileSync(filePath, 'utf8')).rootNode;
   } catch {
     return null;
