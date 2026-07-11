@@ -9,6 +9,7 @@ import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { PerfScopeVisibilitySnapshot } from '../../../../shared/perf/protocol';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
+import { useOptimisticFileMutationIndicators } from '../../../store/optimistic/indicators';
 import {
   useGraphAutoFit,
 } from '../viewport/autoFit';
@@ -144,15 +145,31 @@ export default function Graph({
     graphRuntime.renderer.graphDataRef.current.links.length,
     viewState.timelineActive,
   ) > 0;
-  useGraphPerfCommit({
+  const graphPerfCommitInput = useMemo(() => ({
     edgeCount: projectionData?.edges.length ?? graphRuntime.renderer.graphData.links.length,
     layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
     nodeCount: observedNodeCount,
+    scopeProjectionRevision,
+    scopeVisibility,
+  }), [
+    graphDataLayoutKey,
+    graphNodeCount,
+    graphRuntime.renderer.graphData.links.length,
+    observedNodeCount,
+    projectionData?.edges.length,
+    scopeProjectionRevision,
+    scopeVisibility,
+  ]);
+  useOptimisticFileMutationIndicators({
+    graphCommitInput: graphPerfCommitInput,
+    graphRef: graphRuntime.renderer.fg2dRef,
+    nodeDecorationsRef: graphRuntime.nodeDecorationsRef,
+  });
+  useGraphPerfCommit({
+    ...graphPerfCommitInput,
     revision: Object.keys(pendingFileMutations).length > 0
       ? pendingFileMutations
       : projectionData ?? data,
-    scopeProjectionRevision,
-    scopeVisibility,
     simulationEnabled,
   });
   const isMacPlatform = detectMacPlatform(getGraphNavigator());

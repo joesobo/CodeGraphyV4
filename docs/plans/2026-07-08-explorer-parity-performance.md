@@ -344,6 +344,21 @@ Explorer-tree-like updates (incremental, local, immediate) and a graph that stay
 
 ### Task 3.3 implementation checkpoint — optimistic file operations (2026-07-11)
 
+- **Verified rename checkpoint:** the mounted 2D graph now consumes an optimistic
+  descriptor before Zustand notifies React subscribers, updates its live decoration
+  ref, and requests an in-place redraw. React reconciliation remains the durable
+  fallback. Typed single-file operations avoid traversing unrelated graph nodes.
+- Five complete exact-head real-VS-Code `medium` rename samples measured CodeGraphy
+  at `2.2365`, `2.1825`, `2.1826`, `2.1946`, `2.1910ms` (median `2.1910ms`,
+  CV `0.91%`). Same-session Explorer samples were `3.9640`, `4.0518`, `4.2340`,
+  `4.0213`, `3.9518ms` (median `4.0213ms`, CV `2.51%`). Raw ratios were
+  `0.5642×`, `0.5386×`, `0.5155×`, `0.5458×`, `0.5544×` (median `0.5458×`,
+  CV `3.03%`). No sample emitted a layout-reset metric. Rename therefore passes
+  the `≤1.25×` and `≤16ms` gates; create and delete remain to be captured.
+- Two earlier five-sample imperative batteries were retained as invalid evidence,
+  not retried or discarded: medians passed, but timing/ratio CV reached
+  `20.76%`/`21.76%` and `31.48%`/`29.53%`. Moving invalidation before React
+  notification removed that scheduling variance.
 - **Latest diagnostic checkpoint:** pending mutations now leave authoritative graph data and the filtered/styled caches unchanged. Rename feedback is projected as a label decoration, delete feedback as opacity, and create retains the inline ghost/saving state; authoritative full/patch messages clear the descriptors and failures remove only the pending projection.
 - One correctly seeded real-VS-Code `medium` diagnostic measured optimistic rename apply at `13.678ms`, down `73.16%` from the retained `50.954ms` smoke and below the `16ms` ceiling. The same-session Explorer control was `3.681ms`, so the total parity ratio still fails at `3.72×`. This is one diagnostic sample, not the required five-run acceptance median.
 - The rejected intermediate late-data projection measured `46.332ms` and was not committed because it still rebuilt the runtime graph and missed the target.

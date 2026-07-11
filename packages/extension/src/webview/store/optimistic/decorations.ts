@@ -9,9 +9,19 @@ export function applyPendingFileMutationDecorations(
 ): Record<string, NodeDecorationPayload> {
   if (!graphData || Object.keys(pendingMutations).length === 0) return decorations;
 
+  const mutations = Object.values(pendingMutations);
+  if (mutations.length === 1) {
+    const direct = applySingleFileMutationDecoration(
+      decorations,
+      graphData,
+      mutations[0],
+    );
+    if (direct) return direct;
+  }
+
   let projected = decorations;
   for (const node of graphData.nodes) {
-    const display = projectNodeDisplay(node.id, Object.values(pendingMutations));
+    const display = projectNodeDisplay(node.id, mutations);
     if (display.path === node.id && !display.deleted) continue;
     if (projected === decorations) projected = { ...decorations };
     const current = projected[node.id];
@@ -27,6 +37,36 @@ export function applyPendingFileMutationDecorations(
             },
           }),
     };
+  }
+  return projected;
+}
+
+function applySingleFileMutationDecoration(
+  decorations: Record<string, NodeDecorationPayload>,
+  graphData: IGraphData,
+  mutation: OptimisticFileMutation,
+): Record<string, NodeDecorationPayload> | undefined {
+  if (mutation.kind === 'create') return decorations;
+  if (mutation.kind === 'rename') {
+    const node = graphData.nodes.find(candidate => candidate.id === mutation.oldPath);
+    if (node?.nodeType !== 'file') return undefined;
+    const current = decorations[node.id];
+    return {
+      ...decorations,
+      [node.id]: {
+        ...current,
+        label: {
+          ...current?.label,
+          text: mutation.newPath.split('/').pop() ?? mutation.newPath,
+        },
+      },
+    };
+  }
+  const projected = { ...decorations };
+  for (const path of mutation.paths) {
+    const node = graphData.nodes.find(candidate => candidate.id === path);
+    if (node?.nodeType !== 'file') return undefined;
+    projected[node.id] = { ...projected[node.id], opacity: 0.35 };
   }
   return projected;
 }

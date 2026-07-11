@@ -1,6 +1,6 @@
 # Explorer parity and native-feel performance report
 
-Status: **provisional blocker report**, measurement checkpoint `f07bebfec` plus
+Status: **provisional blocker report**, exact-head rename checkpoint plus
 the retained measurements cited below, captured on 2026-07-11.
 
 This is the Phase 8 report draft, not an acceptance declaration. The required
@@ -17,9 +17,9 @@ files.
 - Accepted performance results require five complete samples, reported as the
   median with coefficient of variation (CV). Failed or incomplete runs remain in
   the record and are never silently retried or discarded.
-- Explorer comparisons use the same VS Code window. The current Explorer rename
-  comparator is a public workspace-event/reveal signal, not a paint-equivalent
-  signal; gate 3-C therefore remains both failed and subject to comparator review.
+- Explorer comparisons use the same VS Code window. The Explorer comparator is
+  a public workspace-event/reveal signal; CodeGraphy now measures the equivalent
+  mounted-graph invalidation rather than waiting for a later React frame.
 - “Baseline” below means the checked-in local reference or the explicit pre-change
   measurement named in the row. It is not a substitute for the still-required
   final-branch versus pre-epic recapture.
@@ -34,7 +34,7 @@ files.
 | --- | --- | --- | --- | --- |
 | 3-A Diff payload | 497,876 B, `medium` single save | ≤10 KB and ≥95% smaller | 383 / 383 / 383 / 383 / 383 B; median 383 B, CV 0%; 99.923% smaller | **Pass** |
 | 3-B Zero resets | 32 resets in the checked-in `medium` reference | 0 resets; 0 px untouched-node drift before reheat | `medium`: 0 ×5; `large`: 0 ×5. Retained objects and coordinates are asserted before physics receives the structure version. | **Pass** |
-| 3-C Explorer ratios | Checked-in `medium` rename ratio 201.78× | rename/create/delete ≤1.25×; optimistic apply ≤16 ms | A lightweight decoration projection reduced one `medium` optimistic rename diagnostic from 50.954 ms to 13.678 ms (73.16%) and met the ≤16 ms feedback ceiling. Same-session Explorer was 3.681 ms, leaving the overall ratio at 3.72×. | **Optimistic threshold met diagnostically; parity ratio remains a blocker** |
+| 3-C Explorer ratios | Checked-in `medium` rename ratio 201.78× | rename/create/delete ≤1.25×; optimistic apply ≤16 ms | Exact-head rename: 2.2365 / 2.1825 / 2.1826 / 2.1946 / 2.1910 ms; median 2.1910 ms, CV 0.91%. Same-session Explorer median 4.0213 ms; ratio median 0.5458×, CV 3.03%. No layout-reset metrics emitted. | **Rename passes; create/delete pending** |
 | 3-D Watcher storms | Checked-in `medium` batch watcher 188.582 ms, before deterministic six-switch coverage | single-file ≤1.5× Explorer refresh; 100 files ≤1,500 ms | Batch watcher medians 425.067 / 411.793 / 423.505 / 427.540 / 427.203 ms; overall median 425.067 ms, CV 1.37%. Refresh median 80.115 ms, CV 3.99%; exactly one refresh/payload per switch. Five single-save samples: watcher median 65.317 ms, CV 3.28%. | **Pass for absolute batch gate; Explorer-relative single-file comparison still needs final paired sweep** |
 | 3-E Warm startup | PR #294 same-machine anchor 4,614 ms | ≤2,307 ms | Checked-in local reference is 2,158.970 ms (53.2% below anchor), but this is not a final-branch five-sample recapture | **Pending final sweep** |
 | 3-F Settled is free | Checked-in `medium`: 0 ticks, 3.275% idle CPU | 0 ticks; <2% idle CPU | Before split, one `large` diagnostic measured 5.767% aggregate (5.733% renderer, 0.033% extension host). After pausing the settled renderer and bounding the FPS probe, the same 5,000-node fixture measured 1.500% aggregate (1.467% renderer, 0.033% extension host), 0 ticks, and 57.815 FPS. | **Threshold met diagnostically; pending five samples** |
@@ -85,7 +85,8 @@ goals. Forum reports are not formal service-level guarantees.
 ## Acceptance disposition
 
 Phase 8 gate 8-A is **not satisfied**. Owner exceptions or additional engineering
-are required for 3-C, 3-J, 4-B, 5-B, and 6-B. Gates 3-E, 3-F, 3-H, 3-I, 4-A,
+are required for the remaining create/delete portion of 3-C, 3-J, 4-B, 5-B,
+and 6-B. Gates 3-E, 3-F, 3-H, 3-I, 4-A,
 4-C, and 4-D still need their prescribed final five-run or paired captures, and
 3-G needs incremental-parse optimization and a five-run paired capture. Phase 9 remains
 blocked until the report is complete, the showcase artifacts are published, and
