@@ -18,7 +18,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Open in Integrated Terminal | done(unit) | 2.4 | Concrete folders create and show a terminal with the folder URI as `cwd`; synthetic root remains protected. |
 | Select for Compare / Compare with Selected | done(unit) | 2.4 | A single live File Node can arm comparison state; a different File Node switches the action label and opens the pair through VS Code's native diff editor. |
 | Open Timeline | waived(Graph Revision view) | — | Graph Revision is the graph-native timeline surface. |
-| Cut / Copy / Paste | done(unit) | 2.2 | Runtime-validated host clipboard, transactional undoable paste, timeline gating, and decision-aware menus pass focused tests; Dev Host walk remains in 2-G. |
+| Cut / Copy / Paste | done(devhost) | 2.2 | Runtime-validated host clipboard, transactional undoable paste, timeline gating, and decision-aware menus pass focused tests. Real VS Code keyboard walkthrough covers copy, repeated-paste collision, and cut move. |
 | Copy Path / Copy Relative Path | done(unit) | 2.1 | Single/multi relative-path and single absolute-path entry contracts plus clipboard host action pass. |
 | Rename | done(unit) | 2.1 / 6.2 | F2 and node menus open the projected canvas input; basename selection, Enter/Escape/blur, named host routing, and inline failure recovery are covered. |
 | Delete to trash | done(unit) | 6.1 | The invocation-time `files.enableTrash` and `explorer.confirmDelete` matrix passes for single and multi-delete. |
@@ -31,7 +31,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | New File / New Folder | done(unit) | 2.1 | Folder entry and provider host-action tests cover enabled, disabled, hidden, root, and nested contexts. |
 | Nested-path create (`a/b/c.ts`) | done(unit) | 2.1 | 120 focused tests pass across `createPath.test.ts`, graph-view `files/actions.test.ts`, and `createFile.test.ts`; real Dev Host screenshot remains part of the Phase 2.1 walkthrough. |
 | Find in Folder… | done(unit) | 2.5 | Concrete folder entries route to `workbench.action.findInFiles` with `filesToInclude`; synthetic root omits the action. |
-| Paste | done(unit) | 2.2 | Folder, root, and background Paste routes through the undo manager; copied items retain clipboard state and cut items clear only after success. |
+| Paste | done(devhost) | 2.2 | Folder, root, and background Paste routes through the undo manager; copied items retain clipboard state and cut items clear only after success. Real VS Code verifies a folder destination and collision suffix. |
 | Reveal / copy paths / rename / delete | done(unit) | 2.1 | Folder entries enforce mutation availability and synthetic-root protection; provider actions cover host dispatch. |
 
 ## Keyboard
@@ -73,7 +73,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 2.1 / 6.2 | Canvas validation keeps the editor open and renders the error beneath the input. |
 | V2 | Existing-name collision uses Explorer-equivalent error shape | done(unit) | 2.2 / 6.2 | Host mutation failures, including occupied destinations, are routed back into the pending canvas editor. |
 | V3 | Path separators in New File create nested folders | done(unit) | 2.1 | Deep nested creation, parent creation, normalization, rollback, and undo have focused coverage; Dev Host proof remains. |
-| V4 | Paste collision uses ` copy`, ` copy 2`, … | done(unit) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions are covered; the plan's explicit stepwise sequence assertion remains. |
+| V4 | Paste collision uses ` copy`, ` copy 2`, … | done(devhost) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions are covered; real VS Code verifies the first repeated-paste suffix. |
 | V5 | Delete follows `files.enableTrash` | done(unit) | 6.1 | Invocation-time configuration is threaded through optimistic and undoable file/folder deletion. |
 | V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 | Not implemented. |
 | V7 | Every filesystem mutation is undoable | done(unit) | 2.1 / 2.2 / 2.3 | Create, rename, delete, clipboard transactions, undo-manager chaining, and keyboard undo/redo routes have focused coverage; acceptance proof remains. |
