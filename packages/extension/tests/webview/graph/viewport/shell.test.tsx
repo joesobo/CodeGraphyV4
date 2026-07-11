@@ -852,6 +852,7 @@ describe('graph/viewport/shell', () => {
 	});
 
 	it('marks render readiness stopped when the node budget skips simulation', () => {
+		const perfControl = { engineStopped: vi.fn() };
 		const renderReadyControl = {
 			engineTick: vi.fn(),
 			graphChanged: vi.fn(),
@@ -873,6 +874,7 @@ describe('graph/viewport/shell', () => {
 				graphState={createGraphState(createGraphData())}
 				handleEngineStop={vi.fn()}
 				interactions={createInteractions()}
+				perfControl={perfControl}
 				renderReadyControl={renderReadyControl}
 				theme="light"
 				viewState={createViewState()}
@@ -880,6 +882,7 @@ describe('graph/viewport/shell', () => {
 		);
 
 		expect(renderReadyControl.graphChanged).toHaveBeenCalledWith(false);
+		expect(perfControl.engineStopped).toHaveBeenCalledOnce();
 	});
 
 	it('invalidates render readiness on every engine tick', () => {

@@ -33,6 +33,10 @@ import {
   webviewRenderReadyControl,
   type WebviewRenderReadyControl,
 } from '../../../perf/renderReady/control';
+import {
+  webviewGraphPerfControl,
+  type WebviewGraphPerfControl,
+} from '../../../perf/graph/control';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -44,6 +48,7 @@ export interface GraphViewportShellProps {
   onEngineTick?: (this: void) => void;
   interactions: UseGraphInteractionRuntimeResult;
   pluginHost?: WebviewPluginHost;
+  perfControl?: Pick<WebviewGraphPerfControl, 'engineStopped'>;
   renderReadyControl?: Pick<
     WebviewRenderReadyControl,
     'engineTick' | 'graphChanged' | 'renderFramePost'
@@ -62,6 +67,7 @@ export function GraphViewportShell({
   onEngineTick,
   interactions,
   pluginHost,
+  perfControl = webviewGraphPerfControl,
   renderReadyControl = webviewRenderReadyControl,
   theme,
   viewState,
@@ -120,10 +126,13 @@ export function GraphViewportShell({
   const graphRevision = graphState.dataRef.current;
 
   useLayoutEffect(() => {
-    renderReadyControl.graphChanged(viewportModel.sharedProps.cooldownTicks > 0);
+    const simulationWillRun = viewportModel.sharedProps.cooldownTicks > 0;
+    renderReadyControl.graphChanged(simulationWillRun);
+    if (!simulationWillRun) perfControl.engineStopped();
   }, [
     graphDataLayoutKey,
     graphRevision,
+    perfControl,
     renderReadyControl,
     viewportModel.sharedProps.cooldownTicks,
   ]);

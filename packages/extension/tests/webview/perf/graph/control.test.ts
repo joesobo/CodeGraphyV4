@@ -95,6 +95,31 @@ describe('webview/perf/graph/control', () => {
     );
   });
 
+  it('starts an idle watch immediately when the oversized graph already stopped', () => {
+    const { control, target } = setup();
+    control.engineStopped();
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+    vi.mocked(target.engineStopped).mockClear();
+
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-idle-watch',
+        operationId: operation.operationId,
+        durationMs: 1_000,
+      },
+    });
+
+    expect(target.startIdleWatch).toHaveBeenCalledWith(
+      expect.objectContaining(operation),
+      1_000,
+    );
+    expect(target.engineStopped).toHaveBeenCalledOnce();
+  });
+
   it('dispatches explicit scope inventory and toggle commands', () => {
     const { control, scopeTarget } = setup();
     control.handleControl({

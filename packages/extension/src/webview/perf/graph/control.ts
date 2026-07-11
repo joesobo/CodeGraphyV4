@@ -46,6 +46,7 @@ export function createWebviewGraphPerfControl({
 }: WebviewGraphPerfControlOptions): WebviewGraphPerfControl {
   let target: GraphPerfScenarioTarget | undefined;
   let scopeTarget: ScopePerfScenarioTarget | undefined;
+  let graphSettled = false;
 
   return {
     attachScopeTarget(nextTarget): () => void {
@@ -75,6 +76,7 @@ export function createWebviewGraphPerfControl({
     },
 
     engineStopped(): void {
+      graphSettled = true;
       target?.engineStopped();
     },
 
@@ -114,6 +116,7 @@ export function createWebviewGraphPerfControl({
       }
 
       if (control.kind === 'run-interaction-burst') {
+        graphSettled = false;
         target?.startInteractionBurst(operation);
         return true;
       }
@@ -123,6 +126,7 @@ export function createWebviewGraphPerfControl({
           operation,
           control.durationMs ?? DEFAULT_IDLE_WATCH_DURATION_MS,
         );
+        if (graphSettled) target?.engineStopped();
         return true;
       }
 
