@@ -142,6 +142,7 @@ export type {
 // Plugin interface
 export type {
   IPlugin,
+  IPluginManifest,
   IPluginGraphScopeCapabilities,
   IPluginGraphScopeCapabilityContext,
   IPluginExportRequest,

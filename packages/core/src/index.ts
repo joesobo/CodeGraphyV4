@@ -254,6 +254,7 @@ export {
   CORE_PLUGIN_API_VERSION,
   CorePluginRegistry,
 } from './plugins/registry';
+export { CODEGRAPHY_CORE_VERSION } from './plugins/api';
 export type { CorePluginInfo } from './plugins/registry';
 export {
   buildWorkspaceIndexPluginStatuses,

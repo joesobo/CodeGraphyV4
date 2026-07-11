@@ -10,6 +10,8 @@ import type {
   PackageJsonWithEntrypoint,
 } from './packageRuntimeContracts';
 import type { CodeGraphyWorkspacePluginSettings } from '../workspace/settings';
+import { CODEGRAPHY_CORE_VERSION } from './api';
+import { compareSemver, parseSemver } from './apiVersion';
 
 function getStaticPluginId(record: CodeGraphyInstalledPluginRecord): string {
   return record.pluginId ?? record.package;
@@ -27,11 +29,29 @@ function validateRuntimePluginId(
   }
 }
 
+function assertCoreVersionCompatibility(record: CodeGraphyInstalledPluginRecord): void {
+  if (!record.minCoreVersion) return;
+  const host = parseSemver(CODEGRAPHY_CORE_VERSION);
+  const minimum = parseSemver(record.minCoreVersion);
+  if (!minimum) {
+    throw new Error(
+      `codegraphy.json declares invalid minCoreVersion '${record.minCoreVersion}'.`,
+    );
+  }
+  if (!host || compareSemver(host, minimum) < 0) {
+    throw new Error(
+      `requires CodeGraphy Core ${record.minCoreVersion} or newer; `
+      + `this host provides ${CODEGRAPHY_CORE_VERSION}.`,
+    );
+  }
+}
+
 export async function loadCodeGraphyWorkspacePluginPackage(
   settings: CodeGraphyWorkspacePluginSettings,
   record: CodeGraphyInstalledPluginRecord,
   workspaceRoot?: string,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
+  assertCoreVersionCompatibility(record);
   const packageJson = JSON.parse(
     await fs.readFile(path.join(record.packageRoot, 'package.json'), 'utf-8'),
   ) as PackageJsonWithEntrypoint;

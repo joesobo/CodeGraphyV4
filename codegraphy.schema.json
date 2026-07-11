@@ -27,6 +27,11 @@
       "type": "string",
       "description": "Semver range of the CodeGraphy API this plugin is compatible with"
     },
+    "minCoreVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Minimum CodeGraphy Core version required before this plugin runtime may load"
+    },
     "supportedExtensions": {
       "type": "array",
       "items": { "type": "string" },

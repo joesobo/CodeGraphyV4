@@ -8,7 +8,7 @@ import { looseStringArraySchema } from '../../values';
 
 type PluginPackageDisplayFields = Pick<
   CodeGraphyInstalledPluginRecord,
-  'pluginId' | 'pluginName' | 'supportedExtensions' | 'updateImpact'
+  'minCoreVersion' | 'pluginId' | 'pluginName' | 'supportedExtensions' | 'updateImpact'
 >;
 
 interface PluginPackageStaticDescriptor extends PluginPackageDisplayFields {
@@ -21,6 +21,7 @@ const packageDescriptorSchema = z.looseObject({
   supportedExtensions: looseStringArraySchema
     .transform(entries => entries.filter(entry => entry.length > 0)),
   updateImpact: z.unknown(),
+  minCoreVersion: z.string().regex(/^\d+\.\d+\.\d+$/).optional().catch(undefined),
 });
 
 async function readPluginPackageDisplayFields(
@@ -34,11 +35,12 @@ async function readPluginPackageDisplayFields(
       return null;
     }
 
-    const { id: pluginId, name: pluginName, supportedExtensions } = descriptor.data;
+    const { id: pluginId, minCoreVersion, name: pluginName, supportedExtensions } = descriptor.data;
     const updateImpact = readPluginUpdateImpact(descriptor.data.updateImpact);
 
     return {
       pluginId,
+      ...(minCoreVersion ? { minCoreVersion } : {}),
       ...(pluginName ? { pluginName } : {}),
       ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
       ...(updateImpact ? { updateImpact } : {}),

@@ -93,6 +93,7 @@ describe('CodeGraphy Plugin Registry', () => {
       `${JSON.stringify({
         id: 'acme.private',
         name: 'Acme Private',
+        minCoreVersion: '1.5.0',
         supportedExtensions: ['.acme'],
       }, null, 2)}\n`,
       'utf-8',
@@ -109,6 +110,7 @@ describe('CodeGraphy Plugin Registry', () => {
       apiVersion: '^2.0.0',
       pluginId: 'acme.private',
       pluginName: 'Acme Private',
+      minCoreVersion: '1.5.0',
       supportedExtensions: ['.acme'],
       disclosures: ['workspaceWrites'],
       packageRoot,

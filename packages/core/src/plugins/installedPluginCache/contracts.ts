@@ -5,6 +5,7 @@ export interface CodeGraphyInstalledPluginRecord extends CodeGraphyPluginPackage
   pluginId?: string;
   pluginName?: string;
   supportedExtensions?: string[];
+  minCoreVersion?: string;
 }
 
 export interface CodeGraphyInstalledPluginCache {

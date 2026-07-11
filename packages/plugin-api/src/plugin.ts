@@ -39,6 +39,16 @@ export interface IPluginWebviewAsset {
   metadata?: Record<string, unknown>;
 }
 
+/** Static `codegraphy.json` contract validated before runtime import. */
+export interface IPluginManifest {
+  id: string;
+  name: string;
+  version: string;
+  apiVersion: string;
+  minCoreVersion?: string;
+  supportedExtensions: string[];
+}
+
 export interface IPluginGraphScopeCapabilityContext {
   /**
    * File paths from the indexed workspace graph that made the plugin applicable.

@@ -15,6 +15,7 @@ const installedPluginRecordShapeSchema = z.looseObject({
   defaultOptions: unknownRecordSchema.optional().catch(undefined),
   pluginId: nonEmptyStringSchema.optional().catch(undefined),
   pluginName: nonEmptyStringSchema.optional().catch(undefined),
+  minCoreVersion: nonEmptyStringSchema.optional().catch(undefined),
   updateImpact: z.unknown(),
   supportedExtensions: looseStringArraySchema
     .transform(entries => entries.filter(entry => entry.length > 0)),
@@ -43,6 +44,9 @@ export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstal
   }
   if (shape.pluginName) {
     record.pluginName = shape.pluginName;
+  }
+  if (shape.minCoreVersion) {
+    record.minCoreVersion = shape.minCoreVersion;
   }
   const updateImpact = readPluginUpdateImpact(shape.updateImpact);
   if (updateImpact) {

@@ -409,4 +409,50 @@ describe('CodeGraphy package runtime', () => {
       "CodeGraphy plugin 'acme.static-id' could not be loaded: Package '@acme/codegraphy-plugin-id-mismatch' exported plugin id 'acme.runtime-id', but codegraphy.json declares 'acme.static-id'.",
     );
   });
+
+  it('refuses a stale minCoreVersion before importing the plugin runtime', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-future-core',
+    );
+    const markers = await createPluginPackageWithRuntimeMarkers(
+      packageRoot,
+      '@acme/codegraphy-plugin-future-core',
+      'acme.future-core',
+      'Future Core Plugin',
+    );
+    const warn = vi.fn();
+
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-future-core',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        minCoreVersion: '99.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.future-core',
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{ id: 'acme.future-core', enabled: true }],
+    });
+
+    await expect(loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+      warn,
+    })).resolves.toEqual([]);
+    expect(warn).toHaveBeenCalledWith(
+      "CodeGraphy plugin 'acme.future-core' could not be loaded: requires CodeGraphy Core 99.0.0 or newer; this host provides 1.7.2.",
+    );
+    await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
+  });
 });
