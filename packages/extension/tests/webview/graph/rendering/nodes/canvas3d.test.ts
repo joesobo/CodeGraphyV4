@@ -116,4 +116,20 @@ describe('graph/rendering/nodes/canvas3d', () => {
     expect(spriteInstance.offsetY).toBe(20);
     expect(spriteInstance.color).toBe('#ffffff');
   });
+
+  it('reuses the complete object for an unchanged node', () => {
+    const dependencies = {
+      meshesRef: { current: new Map() } as never,
+      showLabelsRef: { current: true },
+      spritesRef: { current: new Map() } as never,
+    };
+    const node = createNode();
+
+    const first = createNodeThreeObject(dependencies, node);
+    const second = createNodeThreeObject(dependencies, node);
+
+    expect(second).toBe(first);
+    expect(createNodeMesh).toHaveBeenCalledOnce();
+    expect(SpriteText).toHaveBeenCalledOnce();
+  });
 });
