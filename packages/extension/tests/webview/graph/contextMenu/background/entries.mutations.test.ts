@@ -53,17 +53,20 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
     const entries = buildBackgroundEntries('disabled');
     const items = getItems(entries);
 
-    expect(items).toHaveLength(4);
+    expect(items).toHaveLength(5);
     expect(items[0].label).toBe('New File');
     expect(items[0].action).toEqual({ kind: 'builtin', action: 'createFile' });
     expect(items[0].disabled).toBe(true);
     expect(items[1].label).toBe('New Folder');
     expect(items[1].action).toEqual({ kind: 'builtin', action: 'createFolder' });
     expect(items[1].disabled).toBe(true);
-    expect(items[2].label).toBe('Refresh');
-    expect(items[2].action).toEqual({ kind: 'builtin', action: 'refresh' });
-    expect(items[3].label).toBe('Fit All Nodes');
-    expect(items[3].action).toEqual({ kind: 'builtin', action: 'fitView' });
+    expect(items[2].label).toBe('Paste');
+    expect(items[2].action).toEqual({ kind: 'builtin', action: 'pasteFiles' });
+    expect(items[2].disabled).toBe(true);
+    expect(items[3].label).toBe('Refresh');
+    expect(items[3].action).toEqual({ kind: 'builtin', action: 'refresh' });
+    expect(items[4].label).toBe('Fit All Nodes');
+    expect(items[4].action).toEqual({ kind: 'builtin', action: 'fitView' });
   });
 
   it('uses non-empty id strings for all entries', () => {

@@ -43,6 +43,27 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('creates file clipboard messages for cut, copy, and paste', () => {
+    expect(getBuiltInContextActionEffects('cutFiles', nodeContext(['a.ts', 'b.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: { type: 'CUT_FILES', payload: { paths: ['a.ts', 'b.ts'] } },
+      },
+    ]);
+    expect(getBuiltInContextActionEffects('copyFiles', nodeContext(['a.ts', 'b.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: { type: 'COPY_FILES', payload: { paths: ['a.ts', 'b.ts'] } },
+      },
+    ]);
+    expect(getBuiltInContextActionEffects('pasteFiles', nodeContext(['src']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: { type: 'PASTE_FILES', payload: { directory: 'src' } },
+      },
+    ]);
+  });
+
   it('prefixes the first path for absolute path copies', () => {
     expect(getBuiltInContextActionEffects('copyAbsolute', nodeContext(['a.ts', 'b.ts']))).toEqual([
       {

@@ -52,7 +52,7 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Paste', 'Refresh', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createFile', false);
     expectBuiltInDisabled(entries, 'createFolder', false);
   });
@@ -66,7 +66,7 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Paste', 'Refresh', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createFile', true);
     expectBuiltInDisabled(entries, 'createFolder', true);
     expectBuiltInDisabled(entries, 'refresh', false);
@@ -84,6 +84,8 @@ describe('graph/contextMenu product scenarios', () => {
 
     expect(labels(entries)).toEqual([
       'Open File',
+      'Cut',
+      'Copy',
       'Copy Relative Path',
       'Copy Absolute Path',
       'Remove from Favorites',
@@ -162,6 +164,8 @@ describe('graph/contextMenu product scenarios', () => {
 
     expect(labels(entries)).toEqual([
       'Open 2 Files',
+      'Cut',
+      'Copy',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',

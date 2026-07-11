@@ -13,10 +13,11 @@ describe('graph/contextMenu/build/background', () => {
       pluginItems: [],
     });
 
-    expect(entries).toHaveLength(5);
+    expect(entries).toHaveLength(6);
     expect(entries).toMatchObject([
       { kind: 'item', label: 'New File', disabled: false },
       { kind: 'item', label: 'New Folder', disabled: false },
+      { kind: 'item', label: 'Paste', disabled: false },
       { kind: 'separator' },
       { kind: 'item', label: 'Refresh' },
       { kind: 'item', label: 'Fit All Nodes' },

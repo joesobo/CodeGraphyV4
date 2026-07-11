@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCollisionName } from '../../../../src/extension/actions/clipboardFiles/collision';
+import {
+  existingNameError,
+  resolveCollisionName,
+} from '../../../../src/extension/actions/clipboardFiles/collision';
 
 describe('actions/clipboardFiles/collision', () => {
   it('keeps the original name when no sibling collides', () => {
@@ -28,5 +31,11 @@ describe('actions/clipboardFiles/collision', () => {
 
   it('matches sibling names case-sensitively', () => {
     expect(resolveCollisionName('App.ts', ['app.ts'])).toBe('App.ts');
+  });
+
+  it('uses the Explorer-equivalent existing-name error shape', () => {
+    expect(existingNameError('app.ts').message).toBe(
+      'A file or folder app.ts already exists at this location.',
+    );
   });
 });

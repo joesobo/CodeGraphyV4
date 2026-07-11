@@ -40,8 +40,8 @@ interface GraphViewWindowLike {
   showWarningMessage?(
     message: string,
     options: vscode.MessageOptions,
-    deleteAction: string,
-  ): Thenable<'Delete' | undefined>;
+    action: string,
+  ): Thenable<string | undefined>;
   showOpenDialog(
     options: vscode.OpenDialogOptions,
   ): PromiseLike<readonly vscode.Uri[] | undefined>;

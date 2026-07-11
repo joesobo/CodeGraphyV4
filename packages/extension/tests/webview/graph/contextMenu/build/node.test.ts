@@ -27,6 +27,9 @@ const immutableFolderLabels = [
   'New File',
   'New Folder',
   'Reveal in Explorer',
+  'Cut',
+  'Copy',
+  'Paste',
   'Copy Relative Path',
   'Copy Absolute Path',
   'Add to Favorites',
@@ -40,6 +43,9 @@ const immutableFolderLabels = [
 const immutableFolderDisabledLabels = [
   'New File',
   'New Folder',
+  'Cut',
+  'Copy',
+  'Paste',
   'Rename Folder',
   'Delete Folder',
 ];
@@ -92,9 +98,11 @@ describe('graph/contextMenu/build/node', () => {
       pluginItems: [],
     });
 
-    expect(itemLabels(entries)).toHaveLength(5);
+    expect(itemLabels(entries)).toHaveLength(7);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',
+      'Cut',
+      'Copy',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
@@ -122,6 +130,22 @@ describe('graph/contextMenu/build/node', () => {
       'Add Filter Patterns',
       'Delete 3 Files',
     ]);
+  });
+
+  it('offers file clipboard actions for mixed file and folder selections', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src'])),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      nodes: [
+        { id: 'src/app.ts', nodeType: 'file' },
+        { id: 'src', nodeType: 'folder' },
+      ],
+    });
+
+    expect(itemLabels(entries)).toContain('Cut');
+    expect(itemLabels(entries)).toContain('Copy');
   });
 
   it('returns no entries for an empty node selection', () => {

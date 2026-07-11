@@ -25,7 +25,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     ...createMessageActions(dependencies),
     ...createTimelineActions(source),
     ...createLegendActions(source),
-    ...createWorkspaceFileActions(dependencies),
+    ...createWorkspaceFileActions(source, dependencies),
     ...createViewActions(source),
   };
 }

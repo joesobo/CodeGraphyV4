@@ -7,6 +7,7 @@ import {
   buildFilterBlock,
   buildFolderDestructiveBlock,
 } from './destructive/block';
+import { buildNodeClipboardEntries } from './clipboardEntries';
 
 export function buildSingleFolderNodeEntries(
   target: GraphContextNodeTarget,
@@ -27,6 +28,7 @@ export function buildSingleFolderNodeEntries(
 
   entries.push(
     builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'),
+    ...buildNodeClipboardEntries(target.id === '(root)' ? [] : targets, mutationAvailability, true),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
     ...buildFilterBlock(targets),

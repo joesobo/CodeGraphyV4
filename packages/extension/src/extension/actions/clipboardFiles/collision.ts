@@ -31,3 +31,7 @@ export function resolveCollisionName(
     copyNumber += 1;
   }
 }
+
+export function existingNameError(name: string): Error {
+  return new Error(`A file or folder ${name} already exists at this location.`);
+}

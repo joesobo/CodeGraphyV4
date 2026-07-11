@@ -15,24 +15,26 @@ function separatorCount(entries: GraphContextMenuEntry[]): number {
 describe('buildBackgroundEntries', () => {
   it('orders New File, New Folder, and separator when mutation is enabled', () => {
     const entries = buildBackgroundEntries('enabled');
-    expect(itemLabels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(itemLabels(entries)).toEqual(['New File', 'New Folder', 'Paste', 'Refresh', 'Fit All Nodes']);
     expect(separatorCount(entries)).toBe(1);
   });
 
-  it('disables New File and New Folder when mutation is disabled', () => {
+  it('disables New File, New Folder, and Paste when mutation is disabled', () => {
     const entries = buildBackgroundEntries('disabled');
     const items = entries.filter(
       (entry): entry is Extract<GraphContextMenuEntry, { kind: 'item' }> => entry.kind === 'item'
     );
     expect(items.find(item => item.label === 'New File')?.disabled).toBe(true);
     expect(items.find(item => item.label === 'New Folder')?.disabled).toBe(true);
+    expect(items.find(item => item.label === 'Paste')?.disabled).toBe(true);
     expect(separatorCount(entries)).toBe(1);
   });
 
-  it('omits New File, New Folder, and separator when mutation is hidden', () => {
+  it('omits New File, New Folder, Paste, and separator when mutation is hidden', () => {
     const entries = buildBackgroundEntries('hidden');
     expect(itemLabels(entries)).not.toContain('New File');
     expect(itemLabels(entries)).not.toContain('New Folder');
+    expect(itemLabels(entries)).not.toContain('Paste');
     expect(separatorCount(entries)).toBe(0);
   });
 
@@ -48,9 +50,9 @@ describe('buildBackgroundEntries', () => {
     expect(itemLabels(buildBackgroundEntries('hidden'))).toContain('Fit All Nodes');
   });
 
-  it('returns 5 entries when mutation actions are visible', () => {
+  it('returns 6 entries when mutation actions are visible', () => {
     const entries = buildBackgroundEntries('enabled');
-    expect(entries).toHaveLength(5);
+    expect(entries).toHaveLength(6);
   });
 
   it('returns 2 entries when mutation actions are hidden', () => {

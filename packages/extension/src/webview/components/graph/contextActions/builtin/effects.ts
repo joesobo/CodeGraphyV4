@@ -8,6 +8,7 @@ import {
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
+  createPasteFileEffects,
   createRefreshEffects,
 } from '../messages';
 import {
@@ -40,6 +41,12 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createOptionalClipboardEffects(context.edgeTargetId),
   copyEdgeBoth: (context: GraphContextActionContext) =>
     createClipboardEffects(context.targetIds.join('\n')),
+  cutFiles: (context: GraphContextActionContext) =>
+    createPathListMessageEffects('CUT_FILES', context.targetIds),
+  copyFiles: (context: GraphContextActionContext) =>
+    createPathListMessageEffects('COPY_FILES', context.targetIds),
+  pasteFiles: (context: GraphContextActionContext) =>
+    createPasteFileEffects(context.mutationDirectory),
   toggleFavorite: (context: GraphContextActionContext) =>
     createPathListMessageEffects('TOGGLE_FAVORITE', context.targetIds),
   focus: (context: GraphContextActionContext) => createFocusEffects(context.primaryTargetId),

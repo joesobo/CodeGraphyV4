@@ -10,6 +10,9 @@ function createHandlers(
   return {
     timelineActive: false,
     canMutateGraphRevision: true,
+    cutFiles: vi.fn(() => Promise.resolve()),
+    copyFiles: vi.fn(() => Promise.resolve()),
+    pasteFiles: vi.fn(() => Promise.resolve()),
     deleteFiles: vi.fn(() => Promise.resolve()),
     renameFile: vi.fn(() => Promise.resolve()),
     createFile: vi.fn(() => Promise.resolve()),
@@ -69,6 +72,50 @@ describe('graph view node/file edit message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.renameFile).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('routes validated cut, copy, and paste messages', async () => {
+    const handlers = createHandlers();
+
+    await applyNodeFileEditMessage(
+      { type: 'CUT_FILES', payload: { paths: ['src/a.ts', 'src/b.ts'] } },
+      handlers,
+    );
+    await applyNodeFileEditMessage(
+      { type: 'COPY_FILES', payload: { paths: ['src/a.ts'] } },
+      handlers,
+    );
+    await applyNodeFileEditMessage(
+      { type: 'PASTE_FILES', payload: { directory: 'dest' } },
+      handlers,
+    );
+
+    expect(handlers.cutFiles).toHaveBeenCalledWith(['src/a.ts', 'src/b.ts']);
+    expect(handlers.copyFiles).toHaveBeenCalledWith(['src/a.ts']);
+    expect(handlers.pasteFiles).toHaveBeenCalledWith('dest');
+  });
+
+  it('consumes malformed clipboard messages without invoking host actions', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyNodeFileEditMessage(
+      { type: 'COPY_FILES', payload: { paths: [] } },
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.copyFiles).not.toHaveBeenCalled();
+  });
+
+  it('blocks file clipboard actions for an immutable Graph Revision', async () => {
+    const handlers = createHandlers({ timelineActive: true, canMutateGraphRevision: false });
+
+    await applyNodeFileEditMessage(
+      { type: 'CUT_FILES', payload: { paths: ['src/a.ts'] } },
+      handlers,
+    );
+
+    expect(handlers.cutFiles).not.toHaveBeenCalled();
   });
 
   it('creates files outside timeline mode', async () => {

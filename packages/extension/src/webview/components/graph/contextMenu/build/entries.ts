@@ -42,15 +42,17 @@ function insertCreateMenuEntries(
     return baseEntries;
   }
 
+  const pasteIndex = baseEntries.findIndex(entry => entry.id === 'background-paste-files');
   const separatorIndex = baseEntries.findIndex(entry => entry.id === 'background-separator-primary');
-  if (separatorIndex === -1) {
+  const insertionIndex = pasteIndex === -1 ? separatorIndex : pasteIndex;
+  if (insertionIndex === -1) {
     return [...baseEntries, ...createEntries];
   }
 
   return [
-    ...baseEntries.slice(0, separatorIndex),
+    ...baseEntries.slice(0, insertionIndex),
     ...createEntries,
-    ...baseEntries.slice(separatorIndex),
+    ...baseEntries.slice(insertionIndex),
   ];
 }
 
@@ -62,6 +64,19 @@ function captureContextSelection(
   return entries.map(entry =>
     entry.kind === 'item' ? { ...entry, contextSelection } : entry
   );
+}
+
+function supportsFileClipboard(decision: GraphContextMenuDecision): boolean {
+  if (
+    decision.kind === 'singleFileNode'
+    || decision.kind === 'multiFileNodes'
+    || decision.kind === 'multiFolderNodes'
+  ) {
+    return true;
+  }
+
+  return decision.kind === 'mixedNodeSelection'
+    && decision.targets.every(target => target.nodeKind === 'file' || target.nodeKind === 'folder');
 }
 
 function cloneContextSelection(selection: GraphContextSelection): GraphContextSelection {
@@ -105,6 +120,7 @@ function buildBaseGraphContextMenuEntries(
     options.timelineActive,
     mutationAvailability,
     options.favorites,
+    supportsFileClipboard(decision),
   );
 }
 

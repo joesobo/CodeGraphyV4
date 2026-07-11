@@ -87,6 +87,23 @@ describe('graph/contextMenu/node/folderEntries', () => {
     expect(destructiveItems.every((entry) => entry.disabled === false)).toBe(true);
   });
 
+  it('offers cut, copy, and paste for a mutable folder', () => {
+    const clipboardItems = items(buildFolderEntries('enabled')).filter((entry) =>
+      ['Cut', 'Copy', 'Paste'].includes(entry.label)
+    );
+
+    expect(clipboardItems.map((entry) => entry.label)).toEqual(['Cut', 'Copy', 'Paste']);
+    expect(clipboardItems.every((entry) => entry.disabled === false)).toBe(true);
+  });
+
+  it('hides file clipboard actions when folder mutations are hidden', () => {
+    const labels = items(buildFolderEntries('hidden')).map((entry) => entry.label);
+
+    expect(labels).not.toContain('Cut');
+    expect(labels).not.toContain('Copy');
+    expect(labels).not.toContain('Paste');
+  });
+
   it('does not include folder destructive actions for the synthetic root folder', () => {
     const entries = buildFolderEntries('enabled', '(root)');
     const labels = items(entries).map((entry) => entry.label);
@@ -95,5 +112,8 @@ describe('graph/contextMenu/node/folderEntries', () => {
     expect(labels).toContain('New Folder');
     expect(labels).not.toContain('Rename Folder');
     expect(labels).not.toContain('Delete Folder');
+    expect(labels).toContain('Paste');
+    expect(labels).not.toContain('Cut');
+    expect(labels).not.toContain('Copy');
   });
 });

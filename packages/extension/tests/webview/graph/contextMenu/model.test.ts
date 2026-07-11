@@ -47,9 +47,10 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(liveEntries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual(['New File', 'New Folder', 'Paste', 'Refresh', 'Fit All Nodes']);
     selection.targets.push('src/late.ts');
     expect(menuItems(liveEntries).map(entry => entry.contextSelection)).toEqual([
+      { kind: 'background', targets: [] },
       { kind: 'background', targets: [] },
       { kind: 'background', targets: [] },
       { kind: 'background', targets: [] },
@@ -63,7 +64,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(historicalEntries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(historicalEntries)).toEqual(['New File', 'New Folder', 'Paste', 'Refresh', 'Fit All Nodes']);
     expect(
       builtInMenuItems(historicalEntries, ['createFile', 'createFolder'])
         .every(entry => entry.disabled)
@@ -82,6 +83,8 @@ describe('graph/contextMenuModel', () => {
     expect(menuLabels(liveEntries)).toEqual([
       'Open File',
       'Reveal in Explorer',
+      'Cut',
+      'Copy',
       'Copy Relative Path',
       'Copy Absolute Path',
       'Remove from Favorites',
@@ -101,6 +104,8 @@ describe('graph/contextMenuModel', () => {
     });
     expect(menuLabels(timelineEntries)).toEqual([
       'Open File',
+      'Cut',
+      'Copy',
       'Copy Relative Path',
       'Copy Absolute Path',
       'Remove from Favorites',
@@ -129,6 +134,9 @@ describe('graph/contextMenuModel', () => {
       'New File',
       'New Folder',
       'Reveal in Explorer',
+      'Cut',
+      'Copy',
+      'Paste',
       'Copy Relative Path',
       'Copy Absolute Path',
       'Add to Favorites',
@@ -184,6 +192,8 @@ describe('graph/contextMenuModel', () => {
     });
     expect(menuLabels(entries)).toEqual([
       'Open 2 Files',
+      'Cut',
+      'Copy',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns',
@@ -238,7 +248,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundEntries)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundEntries)).toEqual(['createFile', 'createFolder', 'pasteFiles', 'refresh', 'fitView']);
 
     const singleSelectionEntries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set<string>()),
@@ -249,6 +259,8 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(singleSelectionEntries)).toEqual([
       'open',
       'reveal',
+      'cutFiles',
+      'copyFiles',
       'copyRelative',
       'copyAbsolute',
       'toggleFavorite',
@@ -267,6 +279,8 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(selectionEntries)).toEqual([
       'open',
+      'cutFiles',
+      'copyFiles',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
@@ -281,7 +295,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'createFolder', 'pasteFiles', 'refresh', 'fitView']);
 
     const backgroundTimeline = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -290,7 +304,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundTimeline)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundTimeline)).toEqual(['createFile', 'createFolder', 'pasteFiles', 'refresh', 'fitView']);
 
     const singleSelection = makeNodeContextSelection('src/app.ts', new Set<string>());
     const singleLive = buildGraphContextMenuEntries({
@@ -302,6 +316,8 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(singleLive)).toEqual([
       'open',
       'reveal',
+      'cutFiles',
+      'copyFiles',
       'copyRelative',
       'copyAbsolute',
       'toggleFavorite',
@@ -321,6 +337,8 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(singleTimeline)).toEqual([
       'open',
+      'cutFiles',
+      'copyFiles',
       'copyRelative',
       'copyAbsolute',
       'toggleFavorite',
@@ -340,6 +358,8 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(multiLive)).toEqual([
       'open',
+      'cutFiles',
+      'copyFiles',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
@@ -355,6 +375,8 @@ describe('graph/contextMenuModel', () => {
     });
     expect(builtInActions(multiTimeline)).toEqual([
       'open',
+      'cutFiles',
+      'copyFiles',
       'copyRelative',
       'toggleFavorite',
       'addToFilter',

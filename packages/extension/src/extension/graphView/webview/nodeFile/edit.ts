@@ -1,8 +1,12 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import { clipboardFilesMessageSchema } from '../../../../shared/protocol/clipboardFiles';
 
 export interface GraphViewNodeFileEditHandlers {
   timelineActive: boolean;
   canMutateGraphRevision: boolean;
+  cutFiles(paths: string[]): Promise<void>;
+  copyFiles(paths: string[]): Promise<void>;
+  pasteFiles(directory: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;
   renameFile(filePath: string): Promise<void>;
   createFile(directory: string): Promise<string | void>;
@@ -14,6 +18,9 @@ export interface GraphViewNodeFileEditHandlers {
 function isTimelineBoundEditMessage(message: WebviewToExtensionMessage): boolean {
   return (
     message.type === 'DELETE_FILES'
+    || message.type === 'CUT_FILES'
+    || message.type === 'COPY_FILES'
+    || message.type === 'PASTE_FILES'
     || message.type === 'RENAME_FILE'
     || message.type === 'CREATE_FILE'
     || message.type === 'CREATE_FOLDER'
@@ -30,6 +37,20 @@ function applyTimelineBoundEditMessage(
   }
 
   switch (message.type) {
+    case 'CUT_FILES':
+    case 'COPY_FILES':
+    case 'PASTE_FILES': {
+      const parsed = clipboardFilesMessageSchema.safeParse(message);
+      if (!parsed.success) return true;
+      if (parsed.data.type === 'CUT_FILES') {
+        void handlers.cutFiles(parsed.data.payload.paths);
+      } else if (parsed.data.type === 'COPY_FILES') {
+        void handlers.copyFiles(parsed.data.payload.paths);
+      } else {
+        void handlers.pasteFiles(parsed.data.payload.directory);
+      }
+      return true;
+    }
     case 'DELETE_FILES':
       void handlers.deleteFiles(message.payload.paths);
       return true;

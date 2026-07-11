@@ -10,6 +10,7 @@ import type {
   PerfEventMessage,
   PerfRenderReadyMessage,
 } from '../perf/protocol';
+import type { ClipboardFilesMessage } from './clipboardFiles';
 
 export interface GraphItemCreatePayload {
   directory: string;
@@ -28,6 +29,7 @@ export interface WebviewReadyPayload {
 export type WebviewToExtensionMessage =
   | PerfEventMessage
   | PerfRenderReadyMessage
+  | ClipboardFilesMessage
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
   | { type: 'CLEAR_FOCUSED_FILE' }

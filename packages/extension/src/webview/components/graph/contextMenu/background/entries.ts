@@ -9,6 +9,7 @@ export function buildBackgroundEntries(
     const disabled = mutationAvailability === 'disabled';
     entries.push(builtInItem('background-create-file', 'New File', 'createFile', { disabled }));
     entries.push(builtInItem('background-create-folder', 'New Folder', 'createFolder', { disabled }));
+    entries.push(builtInItem('background-paste-files', 'Paste', 'pasteFiles', { disabled }));
     entries.push(separator('background-separator-primary'));
   }
   entries.push(

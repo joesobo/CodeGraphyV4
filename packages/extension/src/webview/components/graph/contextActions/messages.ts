@@ -2,7 +2,7 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { GraphContextEffect } from './effects';
 
 type SinglePathMessageType = 'REVEAL_IN_EXPLORER' | 'RENAME_FILE';
-type PathListMessageType = 'DELETE_FILES' | 'TOGGLE_FAVORITE';
+type PathListMessageType = 'DELETE_FILES' | 'TOGGLE_FAVORITE' | 'CUT_FILES' | 'COPY_FILES';
 
 function createPostMessageEffect(message: WebviewToExtensionMessage): GraphContextEffect {
   return { kind: 'postMessage', message };
@@ -51,6 +51,13 @@ export function createCreateFileEffects(directory = '.'): GraphContextEffect[] {
 export function createCreateFolderEffects(directory = '.'): GraphContextEffect[] {
   return [createPostMessageEffect({
     type: 'CREATE_FOLDER',
+    payload: { directory },
+  })];
+}
+
+export function createPasteFileEffects(directory = '.'): GraphContextEffect[] {
+  return [createPostMessageEffect({
+    type: 'PASTE_FILES',
     payload: { directory },
   })];
 }

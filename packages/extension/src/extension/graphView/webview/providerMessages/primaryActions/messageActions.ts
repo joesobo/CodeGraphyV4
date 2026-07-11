@@ -15,12 +15,13 @@ export function createMessageActions(
     showInformationMessage: detail => {
       dependencies.window.showInformationMessage(detail);
     },
-    showWarningMessage: (message, options, deleteAction) =>
+    showWarningMessage: (message, options, deleteAction) => (
       dependencies.window.showWarningMessage?.(message, options, deleteAction)
-      ?? (vscode.window.showWarningMessage(
+      ?? vscode.window.showWarningMessage(
         message,
         options,
         deleteAction,
-      ) as Thenable<'Delete' | undefined>),
+      )
+    ) as Thenable<'Delete' | undefined>,
   };
 }

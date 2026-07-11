@@ -36,6 +36,9 @@ export interface GraphViewPrimaryMessageContext {
   openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;
+  cutFiles(paths: string[]): Promise<void>;
+  copyFiles(paths: string[]): Promise<void>;
+  pasteFiles(directory: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;
   renameFile(filePath: string): Promise<void>;
   createFile(directory: string): Promise<string | void>;

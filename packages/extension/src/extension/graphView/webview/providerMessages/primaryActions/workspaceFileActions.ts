@@ -1,4 +1,10 @@
 import * as vscode from 'vscode';
+import { PasteClipboardFilesAction } from '../../../../actions/clipboardFiles/action';
+import {
+  graphClipboardFiles,
+  type ClipboardFilesState,
+} from '../../../../actions/clipboardFiles/state';
+import type { GraphViewProviderMessageListenerSource } from '../listener';
 import type { GraphViewProviderMessageListenerDependencies } from '../listener';
 import type { GraphViewProviderPrimaryActions } from './types';
 
@@ -8,16 +14,54 @@ type WorkspaceFileActions = Pick<
   | 'createDirectory'
   | 'writeFile'
   | 'copyFile'
+  | 'cutFiles'
+  | 'copyFiles'
+  | 'pasteFiles'
 >;
 
 export function createWorkspaceFileActions(
+  source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
+  clipboardFiles: ClipboardFilesState = graphClipboardFiles,
 ): WorkspaceFileActions {
+  const getWorkspaceUri = (): vscode.Uri | undefined =>
+    dependencies.workspace.workspaceFolders?.[0]?.uri;
+
   return {
     showOpenDialog: options => dependencies.window.showOpenDialog(options),
     createDirectory: uri => vscode.workspace.fs.createDirectory(uri),
     writeFile: (uri, content) => vscode.workspace.fs.writeFile(uri, content),
     copyFile: (sourceUri, destinationUri, options) =>
       vscode.workspace.fs.copy(sourceUri, destinationUri, options),
+    cutFiles: async paths => {
+      const workspaceUri = getWorkspaceUri();
+      if (workspaceUri) clipboardFiles.stage('cut', paths, workspaceUri);
+    },
+    copyFiles: async paths => {
+      const workspaceUri = getWorkspaceUri();
+      if (workspaceUri) clipboardFiles.stage('copy', paths, workspaceUri);
+    },
+    pasteFiles: async directory => {
+      const snapshot = clipboardFiles.read();
+      const workspaceUri = getWorkspaceUri();
+      if (!snapshot || !workspaceUri) return;
+
+      if (snapshot.mode === 'cut' && snapshot.paths.length > 1) {
+        const confirmation = await dependencies.window.showWarningMessage?.(
+          `Move ${snapshot.paths.length} items to "${directory}"?`,
+          { modal: true },
+          'Move',
+        );
+        if (confirmation !== 'Move') return;
+      }
+
+      await dependencies.executeUndoAction(new PasteClipboardFilesAction(
+        snapshot,
+        workspaceUri,
+        directory,
+        () => source._analyzeAndSendData(),
+      ));
+      clipboardFiles.completePaste(snapshot);
+    },
   };
 }
