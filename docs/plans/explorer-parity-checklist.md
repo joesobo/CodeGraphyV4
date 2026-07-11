@@ -73,14 +73,14 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | V4 | Paste collision uses ` copy`, ` copy 2`, … | todo(P2) | 2.2 |
 | V5 | Delete follows `files.enableTrash` | todo(P6) | 6.1 |
 | V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 |
-| V7 | Every filesystem mutation is undoable | verify(P2) | 2.1 / 2.3 |
+| V7 | Every filesystem mutation is undoable | done(unit) | 124 focused create-file, create-folder, rename, delete, undo-manager, and chained file-action tests pass; keyboard bindings remain Task 2.3. |
 | V8 | Multi-select destructive operations confirm once with count | todo(P2) | 2.2 |
 
 ## Phase 2-A accounting
 
 - `todo` / `partial`: 24
-- `verify`: 10
-- `done(unit)`: 3
+- `verify`: 9
+- `done(unit)`: 4
 - `waived`: 6
 - `deferred`: 1
 
