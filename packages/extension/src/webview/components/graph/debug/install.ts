@@ -8,28 +8,16 @@ type GraphDebugApiOptions = {
   containerRef: RefObject<HTMLElement | null>;
   fitView(this: void): void;
   fg2dRef: MutableRefObject<GraphDebugControls | undefined>;
-  fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
   graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
-  graphMode: '2d' | '3d';
   openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
   win: Window;
 };
-
-function getActiveGraphDebugControls(
-  options: Pick<GraphDebugApiOptions, 'fg2dRef' | 'fg3dRef' | 'graphMode'>,
-): GraphDebugControls | undefined {
-  return options.graphMode === '2d' ? options.fg2dRef.current : options.fg3dRef.current;
-}
 
 function getGraphDebugNodeScreenPosition(
   node: DebugNode,
   graph: GraphDebugControls | undefined,
 ): { x: number; y: number } {
-  return graph?.graph2ScreenCoords?.(
-    node.x ?? 0,
-    node.y ?? 0,
-    typeof node.z === 'number' ? node.z : 0,
-  ) ?? {
+  return graph?.graph2ScreenCoords?.(node.x ?? 0, node.y ?? 0) ?? {
     x: node.x ?? 0,
     y: node.y ?? 0,
   };
@@ -55,14 +43,10 @@ function openGraphDebugNodeContextMenu(
   options: GraphDebugApiOptions,
 ): void {
   const node = options.graphDataRef.current.nodes.find(entry => entry.id === nodeId);
-  if (!node || !options.openNodeContextMenu) {
-    return;
-  }
+  if (!node || !options.openNodeContextMenu) return;
 
-  const graph = getActiveGraphDebugControls(options);
-  const screen = getGraphDebugNodeScreenPosition(node, graph);
+  const screen = getGraphDebugNodeScreenPosition(node, options.fg2dRef.current);
   const event = createGraphDebugContextMenuEvent(screen, options.containerRef.current);
-
   options.openNodeContextMenu(nodeId, event);
 }
 
@@ -70,9 +54,7 @@ export function installGraphDebugApi({
   containerRef,
   fitView,
   fg2dRef,
-  fg3dRef,
   graphDataRef,
-  graphMode,
   openNodeContextMenu,
   win,
 }: GraphDebugApiOptions): (() => void) | undefined {
@@ -83,9 +65,7 @@ export function installGraphDebugApi({
     containerRef,
     fitView,
     fg2dRef,
-    fg3dRef,
     graphDataRef,
-    graphMode,
     openNodeContextMenu,
     win,
   };
@@ -94,7 +74,7 @@ export function installGraphDebugApi({
   win.__CODEGRAPHY_GRAPH_DEBUG__ = {
     centerNode: (nodeId: string, scale: number) => {
       const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
-      const graph = getActiveGraphDebugControls(options);
+      const graph = fg2dRef.current;
       if (!node || !graph?.centerAt || !graph.zoom) return false;
       const { x, y } = node;
       if (typeof x !== 'number'
@@ -108,18 +88,17 @@ export function installGraphDebugApi({
     },
     fitView,
     fitViewWithPadding: (padding: number) => {
-      getActiveGraphDebugControls(options)?.zoomToFit?.(300, padding);
+      fg2dRef.current?.zoomToFit?.(300, padding);
     },
     getNodeScreenPosition: (nodeId: string) => {
       const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
       return node
-        ? getGraphDebugNodeScreenPosition(node, getActiveGraphDebugControls(options))
+        ? getGraphDebugNodeScreenPosition(node, fg2dRef.current)
         : null;
     },
     getSnapshot: () => buildGraphDebugSnapshot({
       containerRef,
-      graph: getActiveGraphDebugControls(options),
-      graphMode,
+      graph: fg2dRef.current,
       nodes: graphDataRef.current.nodes,
     }),
     openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),

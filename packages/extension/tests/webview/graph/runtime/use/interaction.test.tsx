@@ -125,7 +125,6 @@ function createRuntimeOptions(
   const baseRefs: UseGraphInteractionRuntimeOptions['refs'] = {
     containerRef: { current: document.createElement('div') },
     fg2dRef: { current: undefined },
-    fg3dRef: { current: undefined },
     rightClickFallbackTimerRef: { current: null },
     rightMouseDownRef: { current: null },
     selectedNodesSetRef: { current: new Set() },
@@ -139,7 +138,6 @@ function createRuntimeOptions(
     graphContextSelection: createSelection([]),
     graphCursorRef: { current: 'pointer' as never },
     graphDataRef: { current: { links: [], nodes: [] } } as never,
-    graphMode: '2d',
     highlightedNeighborsRef: { current: new Set() },
     highlightedNodeRef: { current: null },
     isMacPlatform: false,
@@ -151,7 +149,6 @@ function createRuntimeOptions(
       ...overrideRefs,
     },
     setContextSelection: vi.fn(),
-    setHighlightVersion: vi.fn(),
     setSelectedNodes: vi.fn(),
     ...rest,
   };
@@ -198,7 +195,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       graphContextSelection: createSelection(['src/selected.ts']),
       graphCursorRef: { current: 'pointer' as never },
       graphDataRef: { current: { links: [createLink('edge-a')], nodes: [createNode('src/selected.ts')] } } as never,
-      graphMode: '2d',
       highlightedNeighborsRef: { current: new Set(['src/selected.ts']) },
       highlightedNodeRef: { current: 'src/selected.ts' },
       isMacPlatform: false,
@@ -208,13 +204,11 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       refs: {
         containerRef: { current: document.createElement('div') },
         fg2dRef: { current: undefined },
-        fg3dRef: { current: undefined },
         rightClickFallbackTimerRef: { current: null },
         rightMouseDownRef: { current: null },
         selectedNodesSetRef: { current: new Set(['src/selected.ts']) },
       },
       setContextSelection,
-      setHighlightVersion: vi.fn(),
       setSelectedNodes: vi.fn(),
     }));
 
@@ -259,7 +253,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     const refs = {
       containerRef: { current: document.createElement('div') },
       fg2dRef: { current: { zoom: vi.fn(() => 1) } as never },
-      fg3dRef: { current: undefined },
       rightClickFallbackTimerRef: { current: null },
       rightMouseDownRef: { current: null },
       selectedNodesSetRef: { current: new Set(['src/app.ts']) },
@@ -267,14 +260,12 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     renderHook(() => useGraphInteractionRuntime(createRuntimeOptions({
       graphDataRef: { current: { links: [], nodes: [createNode('src/app.ts')] } } as never,
-      graphMode: '2d',
       refs,
     })));
 
     expect(interactionRuntimeHarness.useGraphViewportPanRuntime).toHaveBeenCalledWith(expect.objectContaining({
       containerRef: refs.containerRef,
       fg2dRef: refs.fg2dRef,
-      graphMode: '2d',
       rightMouseDownRef: refs.rightMouseDownRef,
       suppressContextMenu: expect.any(Function),
     }));
@@ -286,7 +277,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
           nodes: [expect.objectContaining({ id: 'src/app.ts' })],
         }),
       }),
-      graphMode: '2d',
       hoveredNodeRef: tooltipRuntime.hoveredNodeRef,
       interactionHandlers,
       selectedNodesSetRef: refs.selectedNodesSetRef,
@@ -337,7 +327,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     });
   });
 
-  it('builds menu action context from the latest graph mode, scale, and graph nodes', () => {
+  it('builds menu action context from the latest scale and graph nodes', () => {
     const interactionHandlers = createInteractionHandlers();
     const contextMenuRuntime = createContextMenuRuntime();
     const tooltipRuntime = createTooltipRuntime();
@@ -350,10 +340,9 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
 
     const { result, rerender } = renderHook(
-      ({ graphContextSelection, graphDataRef, graphMode }) => useGraphInteractionRuntime(createRuntimeOptions({
+      ({ graphContextSelection, graphDataRef }) => useGraphInteractionRuntime(createRuntimeOptions({
         graphContextSelection,
         graphDataRef,
-        graphMode,
         refs: {
           fg2dRef: { current: graph as never },
         },
@@ -362,7 +351,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
         initialProps: {
           graphContextSelection: createSelection(['src/one.ts']),
           graphDataRef: { current: { links: [], nodes: [createNode('src/one.ts')] } } as never,
-          graphMode: '3d' as '2d' | '3d',
         },
       },
     );
@@ -370,7 +358,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     rerender({
       graphContextSelection: createSelection(['src/two.ts']),
       graphDataRef: { current: { links: [], nodes: [createNode('src/two.ts')] } } as never,
-      graphMode: '2d',
     });
 
     const action: GraphContextMenuAction = {
@@ -409,7 +396,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
         graphContextSelection,
         graphCursorRef: { current: 'pointer' as never },
         graphDataRef: { current: { links: [], nodes: [] } } as never,
-        graphMode: '2d',
         highlightedNeighborsRef: { current: new Set() },
         highlightedNodeRef: { current: null },
         isMacPlatform: false,
@@ -419,13 +405,11 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
         refs: {
           containerRef: { current: document.createElement('div') },
           fg2dRef: { current: undefined },
-          fg3dRef: { current: undefined },
           rightClickFallbackTimerRef: { current: null },
           rightMouseDownRef: { current: null },
           selectedNodesSetRef: { current: new Set() },
         },
         setContextSelection: vi.fn(),
-        setHighlightVersion: vi.fn(),
         setSelectedNodes: vi.fn(),
       }),
       {
@@ -524,14 +508,13 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
 
     const { result, rerender } = renderHook(
-      ({ graphMode }) => useGraphInteractionRuntime({
+      ({ depthMode }) => useGraphInteractionRuntime({
         dataRef: { current: { edges: [], nodes: [] } as never },
-        depthMode: false,
+        depthMode,
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection: createSelection(['src/one.ts']),
         graphCursorRef: { current: 'pointer' as never },
         graphDataRef: { current: { links: [], nodes: [] } } as never,
-        graphMode,
         highlightedNeighborsRef: { current: new Set() },
         highlightedNodeRef: { current: null },
         isMacPlatform: false,
@@ -541,23 +524,19 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
         refs: {
           containerRef: { current: document.createElement('div') },
           fg2dRef: { current: undefined },
-          fg3dRef: { current: undefined },
           rightClickFallbackTimerRef: { current: null },
           rightMouseDownRef: { current: null },
           selectedNodesSetRef: { current: new Set() },
         },
         setContextSelection: vi.fn(),
-        setHighlightVersion: vi.fn(),
         setSelectedNodes: vi.fn(),
       }),
       {
-        initialProps: {
-          graphMode: '2d' as '2d' | '3d',
-        },
+        initialProps: { depthMode: false },
       },
     );
 
-    rerender({ graphMode: '3d' as never });
+    rerender({ depthMode: true });
 
     const event = { type: 'contextmenu' } as never;
     result.current.handleBackgroundRightClick(event);
@@ -573,11 +552,11 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     expect(interactionRuntimeHarness.createGraphInteractionHandlers).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ graphMode: '2d' }),
+      expect.objectContaining({ depthMode: false }),
     );
     expect(interactionRuntimeHarness.createGraphInteractionHandlers).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ graphMode: '3d' }),
+      expect.objectContaining({ depthMode: true }),
     );
     expect(firstInteractionHandlers.openBackgroundContextMenu).not.toHaveBeenCalled();
     expect(secondInteractionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith(event);
@@ -617,7 +596,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       graphContextSelection: createSelection([]),
       graphCursorRef: { current: 'crosshair' as never },
       graphDataRef: { current: { links: [], nodes: [] } } as never,
-      graphMode: '3d',
       highlightedNeighborsRef: { current: new Set() },
       highlightedNodeRef: { current: null },
       isMacPlatform: false,
@@ -627,13 +605,11 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       refs: {
         containerRef: { current: container },
         fg2dRef: { current: undefined },
-        fg3dRef: { current: undefined },
         rightClickFallbackTimerRef: { current: null },
         rightMouseDownRef: { current: null },
         selectedNodesSetRef: { current: new Set() },
       },
       setContextSelection: vi.fn(),
-      setHighlightVersion: vi.fn(),
       setSelectedNodes: vi.fn(),
     }));
 
@@ -705,15 +681,13 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
 
     const { rerender, unmount } = renderHook(
-      ({ graphMode }) => useGraphInteractionRuntime(createRuntimeOptions({ graphMode })),
+      ({ depthMode }) => useGraphInteractionRuntime(createRuntimeOptions({ depthMode })),
       {
-        initialProps: {
-          graphMode: '2d' as '2d' | '3d',
-        },
+        initialProps: { depthMode: false },
       },
     );
 
-    rerender({ graphMode: '3d' });
+    rerender({ depthMode: true });
 
     expect(firstContextMenuRuntime.clearRightClickFallbackTimer).toHaveBeenCalledTimes(1);
     expect(secondContextMenuRuntime.clearRightClickFallbackTimer).not.toHaveBeenCalled();
@@ -745,7 +719,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       graphContextSelection: createSelection([]),
       graphCursorRef: { current: 'pointer' as never },
       graphDataRef: { current: { links: [], nodes: [] } } as never,
-      graphMode: '2d',
       highlightedNeighborsRef: { current: new Set() },
       highlightedNodeRef: { current: null },
       isMacPlatform: false,
@@ -755,13 +728,11 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       refs: {
         containerRef: { current: null },
         fg2dRef: { current: undefined },
-        fg3dRef: { current: undefined },
         rightClickFallbackTimerRef: { current: null },
         rightMouseDownRef: { current: null },
         selectedNodesSetRef: { current: new Set() },
       },
       setContextSelection: vi.fn(),
-      setHighlightVersion: vi.fn(),
       setSelectedNodes: vi.fn(),
     }));
 
@@ -790,7 +761,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       graphContextSelection: createSelection(['src/app.ts', 'src/util.ts']),
       graphCursorRef: { current: 'default' as never },
       graphDataRef: { current: { links: [], nodes: [primary, sibling] } } as never,
-      graphMode: '2d',
       highlightedNeighborsRef: { current: new Set() },
       highlightedNodeRef: { current: null },
       isMacPlatform: false,
@@ -800,13 +770,11 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       refs: {
         containerRef: { current: document.createElement('div') },
         fg2dRef: { current: undefined },
-        fg3dRef: { current: undefined },
         rightClickFallbackTimerRef: { current: null },
         rightMouseDownRef: { current: null },
         selectedNodesSetRef: { current: new Set(['src/app.ts', 'src/util.ts']) },
       },
       setContextSelection: vi.fn(),
-      setHighlightVersion: vi.fn(),
       setSelectedNodes: vi.fn(),
     }));
 
@@ -858,7 +826,6 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     result.current.handleNodeDragEnd(primary);
 
     expect(onNodeDragEnd).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '2d',
       node: primary,
       nodes: [primary, sibling],
       timelineActive: false,

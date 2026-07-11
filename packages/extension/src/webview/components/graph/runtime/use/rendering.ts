@@ -1,30 +1,18 @@
-import {
-  type MutableRefObject,
-} from 'react';
+import { type MutableRefObject } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type {
   ForceGraphMethods as FG2DMethods,
   LinkObject,
 } from 'react-force-graph-2d';
-import type {
-  ForceGraphMethods as FG3DMethods,
-} from 'react-force-graph-3d';
-import type * as THREE from 'three';
-import type SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../../shared/settings/physics';
 import { ThemeKind } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
-import {
-  type FGLink,
-  type FGNode,
-} from '../../model/build';
+import { type FGLink, type FGNode } from '../../model/build';
 import type { GraphContainerSize } from '../../rendering/surface/sharedProps';
 import { useContainerSize } from '../containerSize';
 import { useDirectional } from './indicators/directional';
-import { useLabelVisibility } from './indicators/labelVisibility';
-import { useMeshHighlights } from './indicators/meshHighlights';
 import { useNodeAppearance } from './indicators/nodeAppearance';
 import { usePhysicsRuntime } from './physics/hook';
 import { usePluginOverlays } from '../pluginOverlays';
@@ -34,7 +22,6 @@ export interface UseGraphRenderingRuntimeOptions {
   appearance?: GraphAppearance;
   dataRef: MutableRefObject<IGraphData>;
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   getArrowColor: (this: void, link: LinkObject) => string;
   getArrowRelPos: (this: void, link: LinkObject) => number;
   getLinkParticles: (this: void, link: LinkObject) => number;
@@ -42,20 +29,12 @@ export interface UseGraphRenderingRuntimeOptions {
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphViewContributions?: CoreGraphViewContributionSet;
   graphDataLayoutKey: string;
-  graphMode: '2d' | '3d';
-  highlightVersion: number;
-  highlightedNeighborsRef: MutableRefObject<Set<string>>;
-  highlightedNodeRef: MutableRefObject<string | null>;
-  meshesRef: MutableRefObject<Map<string, THREE.Mesh>>;
   nodeSizeMode: string;
   particleSize: number;
   particleSpeed: number;
   physicsPaused?: boolean;
   physicsSettings: IPhysicsSettings;
   pluginHost?: WebviewPluginHost;
-  selectedNodesSetRef: MutableRefObject<Set<string>>;
-  showLabels: boolean;
-  spritesRef: MutableRefObject<Map<string, SpriteText>>;
   theme: ThemeKind;
   timelineActive: boolean;
   favorites: Set<string>;
@@ -72,7 +51,6 @@ export function useGraphRenderingRuntime({
   appearance = DEFAULT_GRAPH_APPEARANCE,
   dataRef,
   fg2dRef,
-  fg3dRef,
   getArrowColor,
   getArrowRelPos,
   getLinkParticles,
@@ -80,20 +58,12 @@ export function useGraphRenderingRuntime({
   graphDataRef,
   graphViewContributions,
   graphDataLayoutKey,
-  graphMode,
-  highlightVersion,
-  highlightedNeighborsRef,
-  highlightedNodeRef,
-  meshesRef,
   nodeSizeMode,
   particleSize,
   particleSpeed,
   physicsPaused = false,
   physicsSettings,
   pluginHost,
-  selectedNodesSetRef,
-  showLabels,
-  spritesRef,
   theme,
   timelineActive,
   favorites,
@@ -101,16 +71,6 @@ export function useGraphRenderingRuntime({
 }: UseGraphRenderingRuntimeOptions): UseGraphRenderingRuntimeResult {
   const containerSize = useContainerSize(containerRef);
   const renderPluginOverlays = usePluginOverlays(pluginHost);
-
-  useMeshHighlights({
-    appearance,
-    graphDataRef,
-    highlightVersion,
-    highlightedNeighborsRef,
-    highlightedNodeRef,
-    meshesRef,
-    selectedNodesSetRef,
-  });
 
   useNodeAppearance({
     appearance,
@@ -121,11 +81,6 @@ export function useGraphRenderingRuntime({
     theme,
   });
 
-  useLabelVisibility({
-    showLabels,
-    spritesRef,
-  });
-
   useDirectional({
     directionMode,
     fg2dRef,
@@ -133,7 +88,6 @@ export function useGraphRenderingRuntime({
     getArrowRelPos,
     getLinkParticles,
     getParticleColor,
-    graphMode,
     particleSize,
     particleSpeed,
     physicsPaused,
@@ -141,10 +95,8 @@ export function useGraphRenderingRuntime({
 
   usePhysicsRuntime({
     fg2dRef,
-    fg3dRef,
     graphDataRef,
     graphViewContributions,
-    graphMode,
     layoutKey: graphDataLayoutKey,
     physicsPaused,
     physicsSettings,

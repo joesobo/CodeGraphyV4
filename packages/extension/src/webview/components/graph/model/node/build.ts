@@ -19,37 +19,30 @@ export interface BuildGraphNodesOptions {
   nodeSizes: Map<string, number>;
   theme: ThemeKind;
   favorites: Set<string>;
-  graphMode?: '2d' | '3d';
   timelineActive: boolean;
-  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
+  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'vx' | 'vy' | 'x' | 'y'>>;
   random?: () => number;
 }
 
 interface PreviousNodeState {
   fx: number | undefined;
   fy: number | undefined;
-  fz: number | undefined;
   vx: number | undefined;
   vy: number | undefined;
-  vz: number | undefined;
   x: number | undefined;
   y: number | undefined;
-  z: number | undefined;
 }
 
 function createPreviousNodeStateMap(
-  previousNodes: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>,
+  previousNodes: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'vx' | 'vy' | 'x' | 'y'>>,
 ): Map<string, PreviousNodeState> {
   return new Map(previousNodes.map(node => [node.id, {
     fx: node.fx,
     fy: node.fy,
-    fz: node.fz,
     vx: node.vx,
     vy: node.vy,
-    vz: node.vz,
     x: node.x,
     y: node.y,
-    z: node.z,
   }]));
 }
 
@@ -90,22 +83,17 @@ interface GraphNodeStyle {
 interface GraphNodePositionState {
   fx: number | undefined;
   fy: number | undefined;
-  fz: number | undefined;
   vx: number | undefined;
   vy: number | undefined;
-  vz: number | undefined;
   x: number | undefined;
   y: number | undefined;
-  z: number | undefined;
 }
 
 interface RuntimeGraphNodePositionState {
   fx?: unknown;
   fy?: unknown;
-  fz?: unknown;
   vx?: unknown;
   vy?: unknown;
-  vz?: unknown;
 }
 
 interface RuntimeGraphNodePresentation {
@@ -196,17 +184,13 @@ function createGraphNodePositionState(
   previous: PreviousNodeState | undefined,
 ): GraphNodePositionState {
   const runtimePosition = node as RuntimeGraphNodePositionState;
-  const z = (node as { z?: unknown }).z;
   return {
     fx: readPositionNumber(runtimePosition.fx, previous?.fx),
     fy: readPositionNumber(runtimePosition.fy, previous?.fy),
-    fz: readPositionNumber(runtimePosition.fz, previous?.fz),
     vx: readPositionNumber(runtimePosition.vx, previous?.vx),
     vy: readPositionNumber(runtimePosition.vy, previous?.vy),
-    vz: readPositionNumber(runtimePosition.vz, previous?.vz),
     x: node.x ?? previous?.x,
     y: node.y ?? previous?.y,
-    z: typeof z === 'number' ? z : previous?.z,
   };
 }
 
@@ -239,7 +223,6 @@ function createGraphNode(
     ownerPluginId: runtimeNode.ownerPluginId,
     runtimeNodeType: runtimeNode.runtimeNodeType,
     shape2D: node.shape2D,
-    shape3D: node.shape3D,
     imageUrl: node.imageUrl,
     metadata: node.metadata,
     isCollapsible: node.isCollapsible,

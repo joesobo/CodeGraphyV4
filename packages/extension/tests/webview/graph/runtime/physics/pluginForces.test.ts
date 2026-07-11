@@ -104,10 +104,10 @@ describe('Graph View plugin force adapters', () => {
     expect(graph.d3Force('link')).toEqual({ base: 'link' });
   });
 
-  it('passes graph mode and timeline state to force contributions', () => {
+  it('passes timeline state to force contributions', () => {
     const graph = createFakePhysicsGraph();
     const state = createGraphViewForceAdapterState();
-    const contexts: Array<{ graphMode: '2d' | '3d' | undefined; timelineActive: boolean | undefined }> = [];
+    const contexts: Array<{ timelineActive: boolean | undefined }> = [];
     const contributions: CoreGraphViewContributionSet = {
       ...createEmptyContributions(),
       forces: [{
@@ -116,10 +116,7 @@ describe('Graph View plugin force adapters', () => {
           id: 'acme.graph-tools.runtime-force',
           label: 'Runtime Force',
           create(context) {
-            contexts.push({
-              graphMode: context.graphMode,
-              timelineActive: context.timelineActive,
-            });
+            contexts.push({ timelineActive: context.timelineActive });
             return { dispose() {} };
           },
         },
@@ -131,9 +128,9 @@ describe('Graph View plugin force adapters', () => {
       state,
       contributions,
       { nodes: [], links: [] },
-      { graphMode: '3d', timelineActive: true },
+      { timelineActive: true },
     );
 
-    expect(contexts).toEqual([{ graphMode: '3d', timelineActive: true }]);
+    expect(contexts).toEqual([{ timelineActive: true }]);
   });
 });

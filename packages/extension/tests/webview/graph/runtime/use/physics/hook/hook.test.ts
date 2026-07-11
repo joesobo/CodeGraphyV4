@@ -41,52 +41,39 @@ describe('webview/graph/runtime/use/physics/hook', () => {
     vi.clearAllMocks();
   });
 
-  it('seeds the physics hook helpers with default paused state and 2d init flags', () => {
+  it('seeds the physics hook helpers with default paused state', () => {
     const fg2dRef = { current: undefined };
-    const fg3dRef = { current: undefined };
     const physicsSettings = { charge: -120 } as never;
 
     renderHook(() => usePhysicsRuntime({
       fg2dRef: fg2dRef as never,
-      fg3dRef: fg3dRef as never,
-      graphMode: '2d',
       layoutKey: 'layout',
       physicsSettings,
     }));
 
     expect(usePhysicsRuntimePause).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '2d',
       physicsPaused: false,
     }));
     expect(usePhysicsRuntimeInit).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '2d',
       physicsPaused: false,
-      pendingThreeDimensionalInitRef: expect.objectContaining({ current: false }),
       physicsSettingsRef: expect.objectContaining({ current: physicsSettings }),
     }));
   });
 
-  it('seeds 3d init flags and forwards explicit pause state', () => {
+  it('forwards explicit pause state', () => {
     const fg2dRef = { current: undefined };
-    const fg3dRef = { current: undefined };
 
     renderHook(() => usePhysicsRuntime({
       fg2dRef: fg2dRef as never,
-      fg3dRef: fg3dRef as never,
-      graphMode: '3d',
       layoutKey: 'layout',
       physicsPaused: true,
       physicsSettings: {} as never,
     }));
 
     expect(usePhysicsRuntimeUpdates).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
-    }));
-    expect(usePhysicsRuntimeLayoutReset).toHaveBeenCalledWith(expect.objectContaining({
-      pendingThreeDimensionalInitRef: expect.objectContaining({ current: true }),
+      fg2dRef,
     }));
     expect(usePhysicsRuntimeLayoutKey).toHaveBeenCalledWith(expect.objectContaining({
-      graphMode: '3d',
       physicsPaused: true,
     }));
   });

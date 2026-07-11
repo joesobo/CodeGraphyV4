@@ -96,18 +96,15 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 	};
 	const containerRef = { current: null };
 	const fg2dRef = { current: undefined };
-	const fg3dRef = { current: undefined };
 	const graphDataRef = { current: { links: graphData.links.map(link => ({ ...link })), nodes: graphData.nodes.map(node => ({ ...node })) } };
 	const fileInfoCacheRef = { current: new Map() };
 	const lastContainerContextMenuEventRef = { current: 0 };
 	const lastGraphContextEventRef = { current: 0 };
-	const meshesRef = { current: new Map() };
 	const rightClickFallbackTimerRef = { current: null };
 	const rightMouseDownRef = { current: null };
 	const selectedNodesSetRef = { current: new Set() };
 	const setContextSelection = vi.fn();
 	const setSelectedNodes = vi.fn();
-	const spritesRef = { current: new Map() };
 	const triggerImageRerender = vi.fn();
 
 	return {
@@ -130,7 +127,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 		renderer: {
 			containerRef,
 			fg2dRef,
-			fg3dRef,
 			graphData,
 			graphDataRef,
 		},
@@ -138,8 +134,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 			fileInfoCacheRef,
 			imageCacheVersion: 0,
 			invalidateImages: triggerImageRerender,
-			meshesRef,
-			spritesRef,
 		},
 		selection: {
 			selectedNodeIds: [],
@@ -212,7 +206,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphMode' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -229,7 +223,6 @@ function createViewState(): Pick<
 		depthMode: false,
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
-		graphMode: '3d',
 		graphViewContributionStatuses: [],
 		nodeSizeMode: 'connections',
 		particleSize: 3,
@@ -238,7 +231,6 @@ function createViewState(): Pick<
 		physicsSettings,
 		pluginContextMenuItems: [],
 		pluginStatuses: [],
-		setGraphMode: vi.fn(),
 		showLabels: true,
 		timelineActive: true,
 		timelineCommits: [
@@ -265,7 +257,6 @@ describe('graph/viewport/shell', () => {
 			containerBackgroundColor: 'var(--cg-popover-translucent)',
 			borderColor: 'rgb(63, 63, 70)',
 			menuEntries: [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }],
-			onSurface3dError: vi.fn(),
 			sharedProps: {
 				cooldownTicks: 500,
 				d3AlphaDecay: 0.0228,
@@ -325,7 +316,6 @@ describe('graph/viewport/shell', () => {
 			containerRef: graphState.renderer.containerRef,
 			dataRef: graphState.dataRef,
 			fg2dRef: graphState.renderer.fg2dRef,
-			fg3dRef: graphState.renderer.fg3dRef,
 			getArrowColor: callbacks.getArrowColor,
 			getArrowRelPos: callbacks.getArrowRelPos,
 			getLinkParticles: callbacks.getLinkParticles,
@@ -333,17 +323,12 @@ describe('graph/viewport/shell', () => {
 			graphDataRef: graphState.renderer.graphDataRef,
 			graphDataLayoutKey: 'connections::',
 			graphViewContributions: undefined,
-			graphMode: '3d',
-			meshesRef: graphState.renderCaches.meshesRef,
 			nodeSizeMode: 'connections',
 			particleSize: 3,
 			particleSpeed: 0.2,
 			physicsPaused: false,
 			physicsSettings: viewState.physicsSettings,
 			pluginHost,
-			selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
-			showLabels: true,
-			spritesRef: graphState.renderCaches.spritesRef,
 			theme: 'light',
 			favorites: viewState.favorites,
 			timelineActive: true,
@@ -365,7 +350,6 @@ describe('graph/viewport/shell', () => {
 			directionColorRef: graphState.directionColorRef,
 			directionModeRef: graphState.directionModeRef,
 			graphDataRef: graphState.renderer.graphDataRef,
-			graphMode: '3d',
 			interactionHandlers: interactions.interactionHandlers,
 			fileInfoCacheRef: graphState.renderCaches.fileInfoCacheRef,
 			selectedNodes: graphState.selection.selectedNodeIds,
@@ -380,7 +364,6 @@ describe('graph/viewport/shell', () => {
 			borderColor: 'rgb(63, 63, 70)',
 			containerRef: graphState.renderer.containerRef,
 			directionMode: 'arrows',
-			graphMode: '3d',
 			handleContextMenu: interactions.handleContextMenu,
 			handleMenuAction: interactions.handleMenuAction,
 			handleMouseDownCapture: interactions.handleMouseDownCapture,
@@ -388,7 +371,6 @@ describe('graph/viewport/shell', () => {
 			handleMouseMoveCapture: interactions.handleMouseMoveCapture,
 			handleMouseUpCapture: interactions.handleMouseUpCapture,
 			menuEntries: [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }],
-			onSurface3dError: expect.any(Function),
 			pluginHost,
 			surface2dProps: expect.objectContaining({
 				fg2dRef: graphState.renderer.fg2dRef,
@@ -396,21 +378,6 @@ describe('graph/viewport/shell', () => {
 				getLinkColor: callbacks.getLinkColor,
 				getParticleColor: callbacks.getParticleColor,
 				onRenderFramePost: expect.any(Function),
-				particleSize: 3,
-				particleSpeed: 0.2,
-				sharedProps: expect.objectContaining({ dagMode: 'td' }),
-			}),
-			surface3dProps: expect.objectContaining({
-				fg3dRef: graphState.renderer.fg3dRef,
-				getArrowColor: callbacks.getArrowColor,
-				getLinkColor: callbacks.getLinkColor,
-				getParticleColor: callbacks.getParticleColor,
-				nodeThreeObjectContext: {
-					graphAppearanceRef: graphState.graphAppearanceRef,
-					meshesRef: graphState.renderCaches.meshesRef,
-					showLabelsRef: graphState.showLabelsRef,
-					spritesRef: graphState.renderCaches.spritesRef,
-				},
 				particleSize: 3,
 				particleSpeed: 0.2,
 				sharedProps: expect.objectContaining({ dagMode: 'td' }),
@@ -427,7 +394,6 @@ describe('graph/viewport/shell', () => {
 			viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
 		});
 		expect(pluginHost.setGraphViewViewportState).toHaveBeenCalledWith(expect.objectContaining({
-			graphMode: '3d',
 			nodes: expect.arrayContaining([
 				expect.objectContaining({
 					customRuntimeState: { owner: 'plugin-a' },
@@ -442,6 +408,7 @@ describe('graph/viewport/shell', () => {
 	it('publishes mutable viewport controls for plugin-owned world overlays', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
 		const reheatSimulation = vi.fn();
 		const resumeAnimation = vi.fn();
 		graphState.renderer.fg2dRef.current = {
@@ -453,7 +420,6 @@ describe('graph/viewport/shell', () => {
 		} as never;
 		const interactions = createInteractions();
 		const callbacks = createCallbacks();
-		const viewState = { ...createViewState(), graphMode: '2d' as const };
 		const pluginHost = {
 			getOverlays: vi.fn(),
 			setGraphViewViewportState: vi.fn(),
@@ -513,9 +479,9 @@ describe('graph/viewport/shell', () => {
 	it('skips plugin viewport publication when the plugin host has no viewport consumers', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
 		const interactions = createInteractions();
 		const callbacks = createCallbacks();
-		const viewState = { ...createViewState(), graphMode: '2d' as const };
 		const pluginHost = {
 			getOverlays: vi.fn(() => []),
 			hasGraphViewViewportConsumers: vi.fn(() => false),
@@ -551,9 +517,9 @@ describe('graph/viewport/shell', () => {
 	it('publishes 2d graph viewport scale changes from render frames', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
 		const interactions = createInteractions();
 		const callbacks = createCallbacks();
-		const viewState = { ...createViewState(), graphMode: '2d' as const };
 
 		render(
 			<GraphViewportShell
@@ -585,6 +551,7 @@ describe('graph/viewport/shell', () => {
 
 	it('does not rerender the viewport for every moving graph frame', () => {
 		const graphData = createGraphData();
+		const viewState = createViewState();
 		graphData.nodes[0] = { ...graphData.nodes[0], x: 10, y: 20 };
 		graphData.nodes[1] = { ...graphData.nodes[1], x: 30, y: 40 };
 		const graphState = createGraphState(graphData);
@@ -600,7 +567,6 @@ describe('graph/viewport/shell', () => {
 		} as never;
 		const interactions = createInteractions();
 		const callbacks = createCallbacks();
-		const viewState = { ...createViewState(), graphMode: '2d' as const };
 
 		render(
 			<GraphViewportShell
@@ -641,6 +607,7 @@ describe('graph/viewport/shell', () => {
 	it('waits for graph coordinates before projecting accessibility nodes', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
 		const graph2ScreenCoords = vi.fn((x: number, y: number) => ({ x, y }));
 		graphState.renderer.fg2dRef.current = {
 			graph2ScreenCoords,
@@ -649,7 +616,6 @@ describe('graph/viewport/shell', () => {
 		} as never;
 		const interactions = createInteractions();
 		const callbacks = createCallbacks();
-		const viewState = { ...createViewState(), graphMode: '2d' as const };
 
 		render(
 			<GraphViewportShell

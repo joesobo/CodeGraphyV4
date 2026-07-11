@@ -5,7 +5,6 @@ import {
   findMessage,
   fireEvent,
   ForceGraph2D,
-  ForceGraph3D,
   getGraphContainer,
   Graph,
   graphStore,
@@ -15,7 +14,6 @@ import {
   screen,
   setupGraphContextMenuTest,
   waitFor,
-  waitForThreeDimensionalSurface,
 } from './harness';
 
 describe('Graph node context menu file actions', () => {
@@ -133,31 +131,6 @@ describe('Graph node context menu file actions', () => {
 
     expect(methods.centerAt).toHaveBeenCalledWith(12, -24, 300);
     expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
-  });
-
-  it('focuses a file node in 3d', async () => {
-    const methods = ForceGraph3D.getMockMethods();
-    methods.zoomToFit.mockClear();
-    graphStore.setState({ graphMode: '3d' });
-
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-    await waitForThreeDimensionalSurface();
-
-    await act(async () => {
-      ForceGraph3D.simulateNodeRightClick({ id: 'src/app.ts' });
-      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Focus Node')).toBeInTheDocument();
-    });
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Focus Node'));
-    });
-
-    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
   });
 
   it('opens filter popover requests for the selected file node', async () => {

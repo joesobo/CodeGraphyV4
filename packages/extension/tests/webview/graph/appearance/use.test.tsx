@@ -22,8 +22,6 @@ function createAppearance(stageBackground: string): GraphAppearance {
     labelMutedForeground: `muted-${stageBackground}`,
     linkHighlight: `link-${stageBackground}`,
     linkMuted: `link-muted-${stageBackground}`,
-    meshDimmed: `mesh-dimmed-${stageBackground}`,
-    meshSelected: `mesh-selected-${stageBackground}`,
     nodeSelectionBorder: `node-${stageBackground}`,
     stageBackground,
     stageBorder: `border-${stageBackground}`,

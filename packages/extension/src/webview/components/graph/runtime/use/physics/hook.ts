@@ -1,7 +1,6 @@
 import { useEffect, useRef, type MutableRefObject } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
 import {
@@ -10,23 +9,20 @@ import {
 } from '../../physics/pluginForces';
 import type { GraphPhysicsControls } from '../../physics/model';
 import { usePhysicsRuntimeInit } from './hook/init';
-import { usePhysicsRuntimeLayoutKey, usePhysicsRuntimeLayoutReset } from './hook/layout';
+import { usePhysicsRuntimeLayoutKey } from './hook/layout';
 import { usePhysicsRuntimePause } from './hook/pause';
 import { usePhysicsRuntimeUpdates } from './hook/updates';
-import { selectActivePhysicsGraph } from '../../physicsLifecycle/readiness';
 
 interface GraphPhysicsAnimationControls {
-	d3ReheatSimulation?(): void;
-	pauseAnimation?(): void;
-	resumeAnimation?(): void;
+  d3ReheatSimulation?(): void;
+  pauseAnimation?(): void;
+  resumeAnimation?(): void;
 }
 
 interface UsePhysicsRuntimeProps {
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   graphDataRef?: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphViewContributions?: CoreGraphViewContributionSet;
-  graphMode: '2d' | '3d';
   layoutKey: string;
   physicsPaused?: boolean;
   physicsSettings: IPhysicsSettings;
@@ -35,10 +31,8 @@ interface UsePhysicsRuntimeProps {
 
 export function usePhysicsRuntime({
   fg2dRef,
-  fg3dRef,
   graphDataRef,
   graphViewContributions,
-  graphMode,
   layoutKey,
   physicsPaused = false,
   physicsSettings,
@@ -46,7 +40,6 @@ export function usePhysicsRuntime({
 }: UsePhysicsRuntimeProps): void {
   const physicsInitialisedRef = useRef(false);
   const physicsSettingsRef = useRef(physicsSettings);
-  const pendingThreeDimensionalInitRef = useRef(graphMode === '3d');
   const previousPhysicsRef = useRef<IPhysicsSettings | null>(null);
   const previousLayoutKeyRef = useRef<string | null>(null);
   const forceAdapterStateRef = useRef(createGraphViewForceAdapterState());
@@ -55,44 +48,27 @@ export function usePhysicsRuntime({
 
   usePhysicsRuntimeUpdates({
     fg2dRef,
-    fg3dRef,
-    graphMode,
     physicsInitialisedRef,
     physicsSettings,
     previousPhysicsRef,
   });
 
-	  usePhysicsRuntimePause({
-	    fg2dRef,
-	    fg3dRef,
-	    graphMode,
-	    physicsInitialisedRef,
-	    physicsPaused,
-	  });
-
-  usePhysicsRuntimeLayoutReset({
-    graphMode,
+  usePhysicsRuntimePause({
+    fg2dRef,
     physicsInitialisedRef,
-    pendingThreeDimensionalInitRef,
-    previousLayoutKeyRef,
-    previousPhysicsRef,
+    physicsPaused,
   });
 
-	  usePhysicsRuntimeInit({
-	    fg2dRef,
-	    fg3dRef,
-	    graphMode,
+  usePhysicsRuntimeInit({
+    fg2dRef,
     physicsInitialisedRef,
     physicsPaused,
     physicsSettingsRef,
-    pendingThreeDimensionalInitRef,
     previousPhysicsRef,
   });
 
   usePhysicsRuntimeLayoutKey({
     fg2dRef,
-    fg3dRef,
-    graphMode,
     layoutKey,
     physicsPaused,
     physicsInitialisedRef,
@@ -101,32 +77,25 @@ export function usePhysicsRuntime({
   });
 
   useEffect(() => {
-    const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
-    if (!graph || !physicsInitialisedRef.current || typeof graph.d3Force !== 'function') {
-      return;
-    }
+    const graph = fg2dRef.current;
+    if (!graph || !physicsInitialisedRef.current || typeof graph.d3Force !== 'function') return;
 
     syncGraphViewForceAdapters(
       graph as GraphPhysicsControls,
       forceAdapterStateRef.current,
       graphViewContributions,
       graphDataRef?.current ?? { nodes: [], links: [] },
-      { graphMode, physicsSettings, timelineActive },
+      { physicsSettings, timelineActive },
     );
-  }, [fg2dRef, fg3dRef, graphDataRef, graphMode, graphViewContributions, layoutKey, physicsInitialisedRef, physicsSettings, timelineActive]);
+  }, [fg2dRef, graphDataRef, graphViewContributions, layoutKey, physicsSettings, timelineActive]);
 
   useEffect(() => {
-    const fg2d = fg2dRef.current;
-    const fg3d = fg3dRef.current;
+    const graph = fg2dRef.current;
     const forceAdapterState = forceAdapterStateRef.current;
     const graphData = graphDataRef?.current ?? { nodes: [], links: [] };
 
     return () => {
-      const graph = selectActivePhysicsGraph(graphMode, fg2d, fg3d);
-      if (!graph || typeof graph.d3Force !== 'function') {
-        return;
-      }
-
+      if (!graph || typeof graph.d3Force !== 'function') return;
       syncGraphViewForceAdapters(
         graph as GraphPhysicsControls,
         forceAdapterState,
@@ -134,19 +103,15 @@ export function usePhysicsRuntime({
         graphData,
       );
     };
-  }, [fg2dRef, fg3dRef, graphDataRef, graphMode]);
-
+  }, [fg2dRef, graphDataRef]);
 }
 
 export function syncPhysicsAnimation(
-	instance: GraphPhysicsAnimationControls,
-	physicsPaused: boolean,
+  instance: GraphPhysicsAnimationControls,
+  physicsPaused: boolean,
 ): void {
-	if (physicsPaused) {
-		instance.pauseAnimation?.();
-	} else {
-		instance.resumeAnimation?.();
-	}
+  if (physicsPaused) instance.pauseAnimation?.();
+  else instance.resumeAnimation?.();
 
-	instance.d3ReheatSimulation?.();
+  instance.d3ReheatSimulation?.();
 }

@@ -1,7 +1,6 @@
 export interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
-  graphMode: '2d' | '3d';
   nodes: Array<{
     baseOpacity?: number;
     collisionRadius: number;
@@ -24,7 +23,7 @@ export interface GraphDebugSnapshot {
 
 export interface GraphDebugControls {
   centerAt?(this: void, x?: number, y?: number, durationMs?: number): void;
-  graph2ScreenCoords?(this: void, x: number, y: number, z?: number): { x: number; y: number };
+  graph2ScreenCoords?(this: void, x: number, y: number): { x: number; y: number };
   zoom?(this: void, scale?: number, durationMs?: number): number;
   zoomToFit?(this: void, durationMs?: number, padding?: number): void;
 }

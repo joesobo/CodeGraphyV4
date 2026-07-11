@@ -57,7 +57,6 @@ export function getFitViewEffects(): GraphWebviewMessageEffect[] {
 }
 
 export function getZoomEffects(
-  _graphMode: '2d' | '3d',
   messageType: ZoomMessageType,
 ): GraphWebviewMessageEffect[] {
   return [{ kind: 'zoom', factor: ZOOM_FACTOR_BY_MESSAGE[messageType] }];
@@ -74,7 +73,6 @@ export function getNodeBoundsEffects(graphNodes: GraphNodeBounds[]): GraphWebvie
 }
 
 export function getGraphRuntimeStateEffects(
-  graphMode: '2d' | '3d',
   graphNodes: GraphNodeBounds[],
   graphLinks: readonly FGLink[],
 ): GraphWebviewMessageEffect[] {
@@ -83,7 +81,6 @@ export function getGraphRuntimeStateEffects(
     message: {
       type: 'GRAPH_RUNTIME_STATE_RESPONSE',
       payload: {
-        graphMode,
         nodeCount: graphNodes.length,
         edgeCount: graphLinks.length,
         edgeIds: graphLinks.map((link) => link.id).filter((id): id is string => typeof id === 'string'),

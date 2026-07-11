@@ -16,14 +16,6 @@ export type GraphNodeShape2D =
   | 'hexagon'
   | 'star';
 
-export type GraphNodeShape3D =
-  | 'sphere'
-  | 'cube'
-  | 'octahedron'
-  | 'cone'
-  | 'dodecahedron'
-  | 'icosahedron';
-
 export type CoreEdgeKind =
   | 'nests'
   | 'include'
@@ -152,9 +144,6 @@ export interface IGraphNode {
     height: number;
     width: number;
   };
-
-  /** Optional 3D shape override for the node. */
-  shape3D?: GraphNodeShape3D;
 
   /** Optional image override for the node. */
   imageUrl?: string;

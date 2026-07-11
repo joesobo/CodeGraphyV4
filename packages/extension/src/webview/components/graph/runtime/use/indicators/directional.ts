@@ -19,7 +19,6 @@ interface DirectionalOptions {
 
 interface UseDirectionalOptions extends DirectionalOptions {
 	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-	graphMode: '2d' | '3d';
 }
 
 export function applyDirectionalSettings(
@@ -58,14 +57,11 @@ export function useDirectional({
 	getArrowRelPos,
 	getLinkParticles,
 	getParticleColor,
-	graphMode,
 	particleSize,
 	particleSpeed,
 	physicsPaused,
 }: UseDirectionalOptions): void {
 	useEffect(() => {
-		if (graphMode !== '2d') return;
-
 		const graph = as2DExtMethods(fg2dRef.current);
 		if (!graph) return;
 
@@ -86,7 +82,6 @@ export function useDirectional({
 		getArrowRelPos,
 		getLinkParticles,
 		getParticleColor,
-		graphMode,
 		particleSize,
 		particleSpeed,
 		physicsPaused,

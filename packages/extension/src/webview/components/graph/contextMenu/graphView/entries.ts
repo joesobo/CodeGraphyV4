@@ -14,7 +14,6 @@ import { selectorMatches } from './selectorMatching';
 type BuildGraphViewContextMenuEntriesOptions = {
   decision: GraphContextMenuDecision;
   edges?: readonly GraphContextMenuEdge[];
-  graphMode?: '2d' | '3d';
   graphViewContributions?: CoreGraphViewContributionSet;
   includeSeparator?: boolean;
   placement?: GraphViewContextMenuPlacement | 'default';
@@ -35,7 +34,7 @@ function graphViewContextMenuPlacementMatches(
 
 function buildGraphViewContextMenuEntry(
   entry: GraphViewContextMenuContributionEntry,
-  options: Required<Pick<BuildGraphViewContextMenuEntriesOptions, 'graphMode' | 'placement'>>
+  options: Required<Pick<BuildGraphViewContextMenuEntriesOptions, 'placement'>>
     & BuildGraphViewContextMenuEntriesOptions,
 ): GraphContextMenuEntry | null {
   if (!graphViewContextMenuPlacementMatches(entry, options.placement)) {
@@ -52,7 +51,6 @@ function buildGraphViewContextMenuEntry(
   const context = createRunContext(
     selector,
     options.selection,
-    options.graphMode,
     options.timelineActive,
     options.nodes,
   );
@@ -79,8 +77,7 @@ export function buildGraphViewContextMenuEntries(
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [];
   const placement = options.placement ?? 'default';
-  const graphMode = options.graphMode ?? '2d';
-  const resolvedOptions = { ...options, graphMode, placement };
+  const resolvedOptions = { ...options, placement };
 
   for (const entry of options.graphViewContributions?.contextMenu ?? []) {
     const menuEntry = buildGraphViewContextMenuEntry(entry, resolvedOptions);

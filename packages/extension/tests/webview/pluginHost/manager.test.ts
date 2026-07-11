@@ -94,7 +94,6 @@ describe('WebviewPluginHost', () => {
     const api = host.createAPI('acme.plugin', vi.fn());
     const handler = vi.fn();
     const state = {
-      graphMode: '2d' as const,
       graphToScreen: (x: number, y: number) => ({ x: x + 1, y: y + 1 }),
       nodes: [{ id: 'src/app.ts', x: 10, y: 20 }],
       reheatSimulation: vi.fn(),
@@ -140,7 +139,6 @@ describe('WebviewPluginHost', () => {
     const api = host.createAPI('acme.plugin', vi.fn());
     const handler = vi.fn();
     const state = {
-      graphMode: '2d' as const,
       graphToScreen: (x: number, y: number) => ({ x, y }),
       nodes: [{ id: 'src/app.ts', x: 10, y: 20 }],
       reheatSimulation: vi.fn(),

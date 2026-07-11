@@ -11,7 +11,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
     directionColor: '#22c55e',
     directionMode: 'arrows',
     favorites: new Set<string>(['src/app.ts']),
-    graphMode: '2d',
     nodeSizeMode: 'connections',
     particleSize: 2,
     particleSpeed: 0.1,
@@ -42,7 +41,6 @@ describe('graph/store', () => {
       resetStore({
         depthMode: true,
         directionMode: 'particles',
-        graphMode: '3d',
         particleSize: 7,
         particleSpeed: 0.35,
         physicsPaused: true,
@@ -58,7 +56,6 @@ describe('graph/store', () => {
       dagMode: null,
       depthMode: true,
       directionMode: 'particles',
-      graphMode: '3d',
       nodeSizeMode: 'connections',
       particleSize: 7,
       particleSpeed: 0.35,
@@ -70,6 +67,5 @@ describe('graph/store', () => {
     expect(result.current.pluginContextMenuItems).toEqual([
       { index: 0, label: 'Copy Id', pluginId: 'test.plugin', when: 'node' },
     ]);
-    expect(result.current.setGraphMode).toBeTypeOf('function');
   });
 });

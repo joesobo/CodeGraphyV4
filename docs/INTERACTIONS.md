@@ -74,7 +74,6 @@ The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in 
 | Depth Mode toggle | Turns focused depth behavior on or off. |
 | Depth slider | Adjusts depth limit (1-5). Only visible when Depth Mode is active. |
 | DAG mode buttons | Switch layout: Default (free-form), Radial Out, Top Down, Left to Right. |
-| 2D/3D toggle | Switch between 2D canvas and 3D WebGL rendering. |
 | Node size buttons | Switch node sizing: Connections, File Size, Churn, or Uniform. |
 | Nodes | Opens Graph Scope settings for core and plugin-added Node Types. |
 | Edges | Opens Graph Scope settings for Edge Types and shows current edge colors. |

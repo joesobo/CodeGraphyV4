@@ -8,7 +8,7 @@ import { applyLinkSettings } from './linkForce';
 export function applyPhysicsSettings(
 	instance: GraphPhysicsInstance,
 	settings: IPhysicsSettings,
-	_options: GraphPhysicsOptions = { graphMode: '2d' },
+	_options: GraphPhysicsOptions = {},
 ): void {
 	const graph = instance as GraphPhysicsControls;
 	removeCentroidCenterForce(graph);

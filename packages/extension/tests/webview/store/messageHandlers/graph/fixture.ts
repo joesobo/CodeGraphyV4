@@ -27,7 +27,6 @@ export function createState(
     physicsPaused: false,
     showLabels: true,
     cssSnippets: {},
-    graphMode: '2d',
     graphViewportScale: null,
     nodeSizeMode: 'uniform',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },

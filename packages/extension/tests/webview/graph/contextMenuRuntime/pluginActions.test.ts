@@ -44,7 +44,6 @@ describe('graph/contextMenuRuntime/pluginActions', () => {
         pluginId: 'plugin.test',
         contributionId: 'background-action',
         context: {
-          graphMode: '2d',
           selectedEdgeIds: [],
           selectedNodeIds: [],
           target: { kind: 'background' },
@@ -68,7 +67,6 @@ describe('graph/contextMenuRuntime/pluginActions', () => {
         pluginId: 'plugin.test',
         contributionId: 'edge-action',
         context: {
-          graphMode: '2d',
           selectedEdgeIds: ['src/app.ts->src/util.ts'],
           selectedNodeIds: [],
           target: { kind: 'edge' },
@@ -92,7 +90,6 @@ describe('graph/contextMenuRuntime/pluginActions', () => {
         pluginId: 'plugin.test',
         contributionId: 'node-action',
         context: {
-          graphMode: '2d',
           selectedEdgeIds: [],
           selectedNodeIds: ['src/app.ts', 'src/util.ts'],
           target: { kind: 'node', nodeTypes: ['file'] },
@@ -116,7 +113,6 @@ describe('graph/contextMenuRuntime/pluginActions', () => {
         pluginId: 'plugin.test',
         contributionId: 'node-action',
         context: {
-          graphMode: '2d',
           selectedEdgeIds: [],
           selectedNodeIds: ['src/old.ts'],
           target: { kind: 'node', nodeTypes: ['file'] },

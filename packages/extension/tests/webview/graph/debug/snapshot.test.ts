@@ -16,14 +16,12 @@ describe('webview/graph/debug/snapshot', () => {
         zoom: () => 1.5,
         zoomToFit: vi.fn(),
       },
-      graphMode: '2d',
       nodes: [{ id: 'a.ts', imageUrl: 'webview://icon.svg', size: 12, x: 5, y: 6 }],
     });
 
     expect(snapshot).toEqual({
       containerHeight: 320,
       containerWidth: 480,
-      graphMode: '2d',
       nodes: [{
         collisionRadius: 16,
         id: 'a.ts',
@@ -43,14 +41,12 @@ describe('webview/graph/debug/snapshot', () => {
     const snapshot = buildGraphDebugSnapshot({
       containerRef: { current: null },
       graph: undefined,
-      graphMode: '3d',
       nodes: [{ id: 'b.ts', size: 8, x: 3, y: 4 }],
     });
 
     expect(snapshot).toEqual({
       containerHeight: 0,
       containerWidth: 0,
-      graphMode: '3d',
       nodes: [{
         collisionRadius: 12,
         id: 'b.ts',
@@ -65,22 +61,19 @@ describe('webview/graph/debug/snapshot', () => {
     });
   });
 
-  it('passes 3d z coordinates to the screen projection helper', () => {
-    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
-      x: x + z,
-      y: y + z,
+  it('passes 2d coordinates to the screen projection helper', () => {
+    const graph2ScreenCoords = vi.fn((x: number, y: number) => ({
+      x: x + 5,
+      y: y + 5,
     }));
 
     const snapshot = buildGraphDebugSnapshot({
       containerRef: { current: null },
-      graph: {
-        graph2ScreenCoords,
-      },
-      graphMode: '3d',
-      nodes: [{ id: 'c.ts', size: 10, x: 1, y: 2, z: 5 }],
+      graph: { graph2ScreenCoords },
+      nodes: [{ id: 'c.ts', size: 10, x: 1, y: 2 }],
     });
 
-    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 5);
+    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2);
     expect(snapshot.nodes).toEqual([{
       collisionRadius: 14,
       id: 'c.ts',
@@ -94,22 +87,19 @@ describe('webview/graph/debug/snapshot', () => {
     expect(snapshot.zoom).toBeNull();
   });
 
-  it('uses zero for missing coordinates and z values', () => {
-    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
-      x: x + y + z,
-      y: x + y + z,
+  it('uses zero for missing coordinates', () => {
+    const graph2ScreenCoords = vi.fn((x: number, y: number) => ({
+      x: x + y,
+      y: x + y,
     }));
 
     const snapshot = buildGraphDebugSnapshot({
       containerRef: { current: null },
-      graph: {
-        graph2ScreenCoords,
-      },
-      graphMode: '2d',
+      graph: { graph2ScreenCoords },
       nodes: [{ id: 'd.ts', size: 4 }],
     });
 
-    expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0, 0);
+    expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0);
     expect(snapshot.nodes).toEqual([{
       collisionRadius: 8,
       id: 'd.ts',
@@ -123,19 +113,16 @@ describe('webview/graph/debug/snapshot', () => {
     expect(snapshot.zoom).toBeNull();
   });
 
-  it('keeps 3d snapshots at null zoom even when a zoom reader exists', () => {
+  it('reads the 2d zoom level when available', () => {
     const zoom = vi.fn(() => 9);
 
     const snapshot = buildGraphDebugSnapshot({
       containerRef: { current: null },
-      graph: {
-        zoom,
-      },
-      graphMode: '3d',
+      graph: { zoom },
       nodes: [],
     });
 
-    expect(zoom).not.toHaveBeenCalled();
-    expect(snapshot.zoom).toBeNull();
+    expect(zoom).toHaveBeenCalledOnce();
+    expect(snapshot.zoom).toBe(9);
   });
 });

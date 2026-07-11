@@ -49,10 +49,6 @@ export function getBackgroundGraphPosition(
   dependencies: GraphInteractionHandlersDependencies,
   event: MouseEvent,
 ): { x: number; y: number } | undefined {
-  if (dependencies.graphMode !== '2d') {
-    return undefined;
-  }
-
   const container = dependencies.containerRef.current;
   const graph = dependencies.fg2dRef.current;
   if (!container || !graph?.screen2GraphCoords) {

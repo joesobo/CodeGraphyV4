@@ -75,7 +75,6 @@ export interface GraphContextMenuNode {
   color?: string;
   x?: number;
   y?: number;
-  z?: number;
   ownerPluginId?: string;
   nodeType?: string;
   runtimeNodeType?: string;
@@ -96,7 +95,6 @@ export interface GraphContextMenuEdge {
 
 export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
-  graphMode?: '2d' | '3d';
   timelineActive: boolean;
   mutationAvailability?: GraphContextMutationAvailability;
   favorites: ReadonlySet<string>;

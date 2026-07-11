@@ -25,7 +25,6 @@ export interface GraphMarqueeSelectionRuntimeOptions {
   containerRef: GraphRuntime['renderer']['containerRef'];
   fg2dRef: GraphRuntime['renderer']['fg2dRef'];
   graphDataRef: GraphRuntime['renderer']['graphDataRef'];
-  graphMode: '2d' | '3d';
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
   selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
@@ -41,12 +40,10 @@ export interface GraphMarqueeSelectionRuntime {
 
 export function canStartMarqueeSelection(
   event: ReactMouseEvent<HTMLDivElement>,
-  graphMode: '2d' | '3d',
   hoveredNode: FGNode | null,
 ): boolean {
   return event.button === 0
     && !event.ctrlKey
-    && graphMode === '2d'
     && !hoveredNode
     && !isIgnoredMarqueeTarget(event.target);
 }

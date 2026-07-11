@@ -22,6 +22,5 @@ export function getNavCommands(provider: GraphViewProvider): CommandDefinition[]
     { id: 'codegraphy.zoomOut', handler: () => { provider.sendCommand('ZOOM_OUT'); } },
     { id: 'codegraphy.toggleDepthMode', handler: () => { provider.sendCommand('TOGGLE_DEPTH_MODE'); } },
     { id: 'codegraphy.cycleLayout', handler: () => { provider.sendCommand('CYCLE_LAYOUT'); } },
-    { id: 'codegraphy.toggleDimension', handler: () => { provider.sendCommand('TOGGLE_DIMENSION'); } },
   ];
 }

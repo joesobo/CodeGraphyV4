@@ -27,7 +27,6 @@ describe('Graph', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ graphMode: '2d', timelineActive: false });
   });
 
   it('should render graph container', () => {

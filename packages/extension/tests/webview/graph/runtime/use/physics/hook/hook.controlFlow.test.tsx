@@ -87,8 +87,6 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
     const { rerender } = renderHook(
       ({ physicsSettings }) => usePhysicsRuntime({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         layoutKey: 'layout:a',
         physicsSettings,
       }),
@@ -97,8 +95,6 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
 
     expect(runtimeHarness.resolvePhysicsInitAction).toHaveBeenCalledWith({
       fg2d: graph,
-      fg3d: undefined,
-      graphMode: '2d',
       physicsInitialised: false,
     });
     expect(requestAnimationFrame).toHaveBeenCalled();
@@ -124,23 +120,19 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
 
     renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: create2DGraph() },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
     }));
 
     expect(runtimeHarness.resolvePhysicsInitAction).toHaveBeenCalledWith({
       fg2d: expect.any(Object),
-      fg3d: undefined,
-      graphMode: '2d',
       physicsInitialised: false,
     });
     expect(requestAnimationFrame).not.toHaveBeenCalled();
     expect(runtimeHarness.initPhysics).not.toHaveBeenCalled();
   });
 
-  it('does not sync animation before initialization finishes for a newly selected graph mode', () => {
+  it('does not sync animation before initialization finishes', () => {
     const graph = create2DGraph();
     const frames: FrameRequestCallback[] = [];
 
@@ -161,28 +153,12 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
     });
 
     renderHook(() => usePhysicsRuntime({
-      fg2dRef: { current: undefined },
-      fg3dRef: { current: graph },
-      graphMode: '3d',
+      fg2dRef: { current: graph },
       layoutKey: 'layout:a',
       physicsPaused: false,
       physicsSettings: SETTINGS,
     }));
 
-    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-
-    act(() => {
-      frames.shift()?.(0);
-    });
-
-    expect(runtimeHarness.initPhysics).not.toHaveBeenCalled();
-    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-
-    act(() => {
-      frames.shift()?.(0);
-    });
-
-    expect(runtimeHarness.initPhysics).not.toHaveBeenCalled();
     expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
 
     act(() => {

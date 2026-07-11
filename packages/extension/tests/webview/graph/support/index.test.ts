@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  as2DExtMethods,
-  setSpriteVisible,
-} from '../../../../src/webview/components/graph/support/contracts/forceGraph';
+import { as2DExtMethods } from '../../../../src/webview/components/graph/support/contracts/forceGraph';
 import {
   hasDistanceAndStrength,
   hasStrength,
@@ -15,7 +12,6 @@ import {
   applyCursorToGraphSurface,
   isMacControlContextClick,
 } from '../../../../src/webview/components/graph/support/dom';
-import type SpriteText from 'three-spritetext';
 
 describe('graph/support', () => {
   it('detects force objects with a strength function', () => {
@@ -50,16 +46,6 @@ describe('graph/support', () => {
     const instance = { zoom: () => 1 } as const;
 
     expect(as2DExtMethods(instance)).toBe(instance);
-  });
-
-  it('sets sprite visibility flags', () => {
-    const sprite = {} as SpriteText & { visible: boolean };
-
-    setSpriteVisible(sprite, true);
-    expect(sprite.visible).toBe(true);
-
-    setSpriteVisible(sprite, false);
-    expect(sprite.visible).toBe(false);
   });
 
   it('resolves link endpoint ids from strings and record objects', () => {

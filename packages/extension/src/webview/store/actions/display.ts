@@ -7,7 +7,6 @@ export function createDisplayActions(set: SetState) {
     setSearchQuery: (query: string) => set({ searchQuery: query }),
     setSearchOptions: (options: GraphState['searchOptions']) => set({ searchOptions: options }),
     setActivePanel: (panel: GraphState['activePanel']) => set({ activePanel: panel }),
-    setGraphMode: (mode: GraphState['graphMode']) => set({ graphMode: mode }),
     setGraphViewportScale: (scale: GraphState['graphViewportScale']) => set({ graphViewportScale: scale }),
     setNodeSizeMode: (mode: GraphState['nodeSizeMode']) => set({ nodeSizeMode: mode }),
     setPhysicsSettings: (settings: GraphState['physicsSettings']) => set({ physicsSettings: settings }),

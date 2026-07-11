@@ -20,32 +20,5 @@ export interface GraphView2dControls {
   zoomToFit(durationMs?: number, padding?: number): void;
 }
 
-export interface GraphView3dCoords {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface GraphView3dBounds {
-  x: [number, number];
-  y: [number, number];
-  z: [number, number];
-}
-
-export interface GraphView3dControls {
-  camera(): { position: GraphView3dCoords };
-  cameraPosition(
-    position: Partial<GraphView3dCoords>,
-    lookAt?: GraphView3dCoords,
-    durationMs?: number,
-  ): void;
-  controls(): { target?: GraphView3dCoords };
-  getGraphBbox(): GraphView3dBounds | null | undefined;
-  zoomToFit(
-    durationMs?: number,
-    padding?: number,
-    filter?: (candidate: unknown) => boolean,
-  ): void;
-}
 
 export type { FGNode };

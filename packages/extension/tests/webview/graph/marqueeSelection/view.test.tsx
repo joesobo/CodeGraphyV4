@@ -32,7 +32,6 @@ function setStore(overrides: Record<string, unknown> = {}): void {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    graphMode: '2d',
     ...overrides,
   });
 }

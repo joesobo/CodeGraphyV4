@@ -73,7 +73,6 @@ export function LegendRuleCreateRow({
               setVisualRule((currentRule) => ({
                 ...currentRule,
                 shape2D: nextRule.shape2D,
-                shape3D: nextRule.shape3D,
               }));
             }}
           />

@@ -17,7 +17,6 @@ export function createWorkspacePackageNodes(
   color: string;
   nodeType: 'package';
   shape2D: 'hexagon';
-  shape3D: 'cube';
 }> {
   return [...packageRoots]
     .sort((left, right) => left.localeCompare(right))
@@ -27,6 +26,5 @@ export function createWorkspacePackageNodes(
       color: packageNodeColor,
       nodeType: 'package',
       shape2D: 'hexagon',
-      shape3D: 'cube',
     }));
 }

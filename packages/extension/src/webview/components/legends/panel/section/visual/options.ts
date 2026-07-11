@@ -9,16 +9,15 @@ import {
 import type { IGroup } from '../../../../../../shared/settings/groups';
 import type { ShapeOption } from './types';
 
-export const DEFAULT_NODE_SHAPE: Pick<IGroup, 'shape2D' | 'shape3D'> = {
+export const DEFAULT_NODE_SHAPE: Pick<IGroup, 'shape2D'> = {
   shape2D: 'circle',
-  shape3D: 'sphere',
 };
 
 export const SHAPE_OPTIONS: ShapeOption[] = [
-  { label: 'Circle', icon: mdiCircle, shape2D: 'circle', shape3D: 'sphere' },
-  { label: 'Square', icon: mdiSquare, shape2D: 'square', shape3D: 'cube' },
-  { label: 'Diamond', icon: mdiRhombus, shape2D: 'diamond', shape3D: 'octahedron' },
-  { label: 'Triangle', icon: mdiTriangle, shape2D: 'triangle', shape3D: 'cone' },
-  { label: 'Hexagon', icon: mdiHexagon, shape2D: 'hexagon', shape3D: 'dodecahedron' },
-  { label: 'Star', icon: mdiStar, shape2D: 'star', shape3D: 'icosahedron' },
+  { label: 'Circle', icon: mdiCircle, shape2D: 'circle' },
+  { label: 'Square', icon: mdiSquare, shape2D: 'square' },
+  { label: 'Diamond', icon: mdiRhombus, shape2D: 'diamond' },
+  { label: 'Triangle', icon: mdiTriangle, shape2D: 'triangle' },
+  { label: 'Hexagon', icon: mdiHexagon, shape2D: 'hexagon' },
+  { label: 'Star', icon: mdiStar, shape2D: 'star' },
 ];

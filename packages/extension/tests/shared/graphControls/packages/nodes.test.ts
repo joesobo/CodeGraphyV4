@@ -13,7 +13,6 @@ describe('shared/graphControls/packages/nodes', () => {
         color: '#F59E0B',
         nodeType: 'package',
         shape2D: 'hexagon',
-        shape3D: 'cube',
       },
       {
         id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
@@ -21,7 +20,6 @@ describe('shared/graphControls/packages/nodes', () => {
         color: '#F59E0B',
         nodeType: 'package',
         shape2D: 'hexagon',
-        shape3D: 'cube',
       },
       {
         id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/webview`,
@@ -29,7 +27,6 @@ describe('shared/graphControls/packages/nodes', () => {
         color: '#F59E0B',
         nodeType: 'package',
         shape2D: 'hexagon',
-        shape3D: 'cube',
       },
     ]);
   });

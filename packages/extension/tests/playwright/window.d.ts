@@ -1,7 +1,6 @@
 interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
-  graphMode: '2d' | '3d';
   nodes: Array<{
     baseOpacity?: number;
     color?: string;

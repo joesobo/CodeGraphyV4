@@ -9,7 +9,6 @@ export interface ExportLegendRule {
   color: string;
   target: 'node' | 'edge' | 'both';
   shape2D?: string;
-  shape3D?: string;
   imagePath?: string;
   imageUrl?: string;
   disabled?: boolean;

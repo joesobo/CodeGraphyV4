@@ -47,8 +47,6 @@ describe('webview/graph/runtime/use/physics/updates', () => {
 
     renderHook(() => usePhysicsRuntimeUpdates({
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef: { current: true },
       physicsSettings: SETTINGS,
       previousPhysicsRef: { current: null },
@@ -69,8 +67,6 @@ describe('webview/graph/runtime/use/physics/updates', () => {
 
     renderHook(() => usePhysicsRuntimeUpdates({
       fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef: { current: false },
       physicsSettings: SETTINGS,
       previousPhysicsRef: { current: null },
@@ -94,8 +90,6 @@ describe('webview/graph/runtime/use/physics/updates', () => {
     const { rerender } = renderHook(
       ({ physicsSettings }: { physicsSettings: IPhysicsSettings }) => usePhysicsRuntimeUpdates({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         physicsInitialisedRef: { current: true },
         physicsSettings,
         previousPhysicsRef,

@@ -7,7 +7,6 @@ describe('graph/messageListener', () => {
     const graphNodesRef = { current: [{ id: 'a.ts', size: 4, x: 12, y: 24 }] };
     const handleMessage = createGraphMessageListener({
       applyEffects,
-      graphMode: '2d',
       getGraphLinks: () => [],
       getGraphNodes: () => graphNodesRef.current,
       tooltipPath: 'a.ts',
@@ -47,7 +46,6 @@ describe('graph/messageListener', () => {
     const graphNodesRef = { current: [{ id: 'a.ts', size: 4, x: 12, y: 24 }] };
     const handleMessage = createGraphMessageListener({
       applyEffects,
-      graphMode: '3d',
       getGraphLinks: () => [],
       getGraphNodes: () => graphNodesRef.current,
       tooltipPath: null,
@@ -76,7 +74,6 @@ describe('graph/messageListener', () => {
     };
     const handleMessage = createGraphMessageListener({
       applyEffects,
-      graphMode: '3d',
       getGraphLinks: () => graphLinksRef.current as never,
       getGraphNodes: () => [{ id: 'b.ts', size: 8, x: 5, y: 6 }],
       tooltipPath: null,
@@ -94,7 +91,6 @@ describe('graph/messageListener', () => {
         message: {
           type: 'GRAPH_RUNTIME_STATE_RESPONSE',
           payload: {
-            graphMode: '3d',
             edgeCount: 2,
             edgeIds: ['b.ts->c.ts#import', 'c.ts->d.ts#import'],
             nodeCount: 1,

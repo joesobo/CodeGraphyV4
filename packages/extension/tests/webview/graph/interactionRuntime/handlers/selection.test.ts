@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   collectHighlightedNeighborIds,
   createSelectionHandlers,
-  incrementHighlightVersion,
   resolveSelectionLinkEndpointId,
 } from '../../../../../src/webview/components/graph/interactionRuntime/handlers/selection';
 import { createInteractionDependencies } from '../testUtils';
@@ -43,30 +42,7 @@ describe('graph/selectionHandlers', () => {
     expect([...collectHighlightedNeighborIds(links, 'src/app.ts')]).toEqual([]);
   });
 
-  it('incrementHighlightVersion increases the previous version by one', () => {
-    expect(incrementHighlightVersion(0)).toBe(1);
-    expect(incrementHighlightVersion(4)).toBe(5);
-  });
-
-  it('tracks highlighted neighbors and bumps 3d highlight state', () => {
-    const dependencies = createInteractionDependencies({
-      graphMode: '3d',
-    });
-    const handlers = createSelectionHandlers(dependencies);
-    const setHighlightVersion = vi.mocked(dependencies.setHighlightVersion);
-
-    handlers.setHighlight('src/app.ts');
-
-    expect(dependencies.highlightedNodeRef.current).toBe('src/app.ts');
-    expect([...dependencies.highlightedNeighborsRef.current]).toEqual([
-      'src/utils.ts',
-      'src/other.ts',
-    ]);
-    expect(setHighlightVersion).toHaveBeenCalledWith(expect.any(Function));
-    expect(setHighlightVersion.mock.calls[0][0](4)).toBe(5);
-  });
-
-  it('updates highlight neighbors in 2d mode without bumping highlight version', () => {
+  it('updates highlighted neighbors', () => {
     const dependencies = createInteractionDependencies({
       graphDataRef: {
         current: {
@@ -86,7 +62,6 @@ describe('graph/selectionHandlers', () => {
       'src/object.ts',
       'src/incoming.ts',
     ]);
-    expect(dependencies.setHighlightVersion).not.toHaveBeenCalled();
   });
 
   it('clears highlight and selection state', () => {

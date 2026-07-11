@@ -357,7 +357,6 @@ describe('core/graph/data', () => {
           color: '#F59E0B',
           nodeType: 'package',
           shape2D: 'hexagon',
-          shape3D: 'cube',
         },
       ]);
       expect(graph.edges).toEqual([

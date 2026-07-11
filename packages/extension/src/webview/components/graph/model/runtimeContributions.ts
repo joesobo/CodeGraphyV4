@@ -2,7 +2,6 @@ import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 
 export interface GraphViewRuntimeContributionContext {
-  graphMode?: '2d' | '3d';
   timelineActive?: boolean;
 }
 

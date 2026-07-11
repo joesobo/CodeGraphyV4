@@ -54,50 +54,20 @@ function getSliderByRange(min: string, max: string, occurrence = 0): HTMLElement
 }
 
 describe('DisplaySection', () => {
+  beforeEach(() => {
+    sentMessages.length = 0;
+  });
 
-    beforeEach(() => {
-      sentMessages.length = 0;
-    });
+  it('renders direction mode buttons', () => {
+    renderContent();
 
+    expect(screen.getByRole('button', { name: /^Arrows$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Particles$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
+    expect(screen.queryByText('Renderer')).not.toBeInTheDocument();
+  });
 
-
-    it('renders direction mode buttons', () => {
-      renderContent();
-
-      expect(screen.getByRole('button', { name: /^2D$/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /^3D$/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /^Arrows$/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /^Particles$/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
-    });
-
-
-
-    it('renders renderer and direction controls on separate rows', () => {
-      renderContent();
-
-      const rendererRow = screen.getByTestId('display-renderer-row');
-      const directionRow = screen.getByTestId('display-direction-row');
-
-      expect(rendererRow).toHaveTextContent('Renderer');
-      expect(rendererRow).not.toHaveTextContent('Direction');
-      expect(directionRow).toHaveTextContent('Direction');
-      expect(directionRow).not.toHaveTextContent('Renderer');
-    });
-
-
-
-    it('updates renderer mode from Display settings', () => {
-      renderContent({ graphMode: '2d' });
-
-      fireEvent.click(screen.getByRole('button', { name: /^3D$/i }));
-
-      expect(graphStore.getState().graphMode).toBe('3d');
-    });
-
-
-
-    it('posts depth mode and depth limit updates from Display settings', () => {
+  it('posts depth mode and depth limit updates from Display settings', () => {
       renderContent({ graphHasIndex: true, depthMode: false, depthLimit: 2, maxDepthLimit: 5 });
 
       expect(screen.queryByRole('slider', { name: 'Depth limit' })).not.toBeInTheDocument();

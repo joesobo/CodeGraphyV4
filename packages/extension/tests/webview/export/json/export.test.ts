@@ -164,7 +164,6 @@ describe('buildExportData', () => {
         color: '#3B82F6',
         target: 'node',
         shape2D: undefined,
-        shape3D: undefined,
         imagePath: undefined,
         imageUrl: undefined,
         disabled: undefined,

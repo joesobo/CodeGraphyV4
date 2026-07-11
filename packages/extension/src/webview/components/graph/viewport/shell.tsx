@@ -79,7 +79,6 @@ export function GraphViewportShell({
     directionColorRef: graphState.directionColorRef,
     directionModeRef: graphState.directionModeRef,
     graphDataRef: graphState.renderer.graphDataRef,
-    graphMode: viewState.graphMode,
     interactionHandlers: interactions.interactionHandlers,
     fileInfoCacheRef: graphState.renderCaches.fileInfoCacheRef,
     selectedNodes: graphState.selection.selectedNodeIds,
@@ -102,7 +101,6 @@ export function GraphViewportShell({
   const publishGraphViewportScale = (globalScale: number): void => {
     lastPublishedViewportScaleRef.current = publishGraphViewportScaleChange({
       globalScale,
-      graphMode: viewState.graphMode,
       previousScale: lastPublishedViewportScaleRef.current,
       publish: scale => graphStore.getState().setGraphViewportScale(scale),
     });
@@ -112,7 +110,6 @@ export function GraphViewportShell({
     publishPluginGraphViewViewportState({
       globalScale,
       graph: graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined,
-      graphMode: viewState.graphMode,
       nodes: graphState.renderer.graphDataRef.current.nodes,
       pluginHost,
       timelineActive: viewState.timelineActive,
@@ -126,7 +123,6 @@ export function GraphViewportShell({
     publishCurrentGraphAccessibilityItems({
       accessibilityDirtyRef,
       graph: typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
-      graphMode: viewState.graphMode,
       lastAccessibilitySignatureRef,
       links,
       nodes,
@@ -155,7 +151,7 @@ export function GraphViewportShell({
 
   useEffect(() => {
     accessibilityDirtyRef.current = true;
-  }, [graphDataLayoutKey, viewState.graphMode]);
+  }, [graphDataLayoutKey]);
 
   const surfaceProps = createGraphViewportSurfaceProps({
     callbacks,
@@ -172,7 +168,6 @@ export function GraphViewportShell({
       borderColor={viewportModel.borderColor}
       containerRef={graphState.renderer.containerRef}
       directionMode={viewState.directionMode}
-      graphMode={viewState.graphMode}
       handleContextMenu={interactions.handleContextMenu}
       handleMenuAction={interactions.handleMenuAction}
       handleMouseDownCapture={interactions.handleMouseDownCapture}
@@ -186,9 +181,7 @@ export function GraphViewportShell({
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
       surface2dProps={surfaceProps.surface2dProps}
-      surface3dProps={surfaceProps.surface3dProps}
       tooltipData={interactions.tooltipData}
-      onSurface3dError={viewportModel.onSurface3dError}
       pluginHost={pluginHost}
     />
   );

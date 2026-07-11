@@ -53,7 +53,6 @@ describe('webview/components/legends/ruleControls', () => {
       color: '#123456',
       target: 'node',
       shape2D: 'hexagon',
-      shape3D: 'dodecahedron',
     });
   });
 
@@ -68,7 +67,6 @@ describe('webview/components/legends/ruleControls', () => {
           isPluginDefault: true,
           imageUrl: 'webview://typescript.svg',
           shape2D: 'hexagon',
-          shape3D: 'dodecahedron',
         }}
         index={0}
         onChange={vi.fn()}

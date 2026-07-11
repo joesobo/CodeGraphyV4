@@ -10,7 +10,6 @@ describe('graph/viewport/shell/state', () => {
 			customRuntimeState: { owner: 'plugin-a' },
 			fx: 'bad',
 			fy: 24,
-			fz: Number.POSITIVE_INFINITY,
 			id: 'src/app.ts',
 			isDragging: 'true',
 			isPinned: false,
@@ -19,14 +18,12 @@ describe('graph/viewport/shell/state', () => {
 			vy: 2,
 			x: 42,
 			y: undefined,
-			z: -4,
 		} as never]);
 
 		expect(nodes).toEqual([expect.objectContaining({
 			customRuntimeState: { owner: 'plugin-a' },
 			fx: undefined,
 			fy: 24,
-			fz: undefined,
 			id: 'src/app.ts',
 			isDragging: undefined,
 			isPinned: false,
@@ -35,7 +32,6 @@ describe('graph/viewport/shell/state', () => {
 			vy: 2,
 			x: 42,
 			y: undefined,
-			z: -4,
 		})]);
 	});
 
@@ -45,7 +41,6 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1.5,
 			graph: undefined,
-			graphMode: '2d',
 			nodes: graphNodes as never,
 			timelineActive: true,
 		});
@@ -59,7 +54,6 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1.5,
 			graph: {},
-			graphMode: '2d',
 			nodes: [{ id: 'src/app.ts' }] as never,
 			timelineActive: true,
 		});
@@ -83,7 +77,6 @@ describe('graph/viewport/shell/state', () => {
 				screen2GraphCoords: (x: number, y: number) => ({ x: x - 10, y: y - 20 }),
 				zoom: () => 2,
 			},
-			graphMode: '2d',
 			nodes: [{ id: 'src/app.ts' }] as never,
 			timelineActive: false,
 		});
@@ -104,7 +97,6 @@ describe('graph/viewport/shell/state', () => {
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1,
 			graph: undefined,
-			graphMode: '2d',
 			nodes: graphNodes as never,
 			timelineActive: true,
 		});

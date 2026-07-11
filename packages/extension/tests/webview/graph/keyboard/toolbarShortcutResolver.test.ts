@@ -17,16 +17,10 @@ describe('graph/keyboardToolbarShortcutResolver', () => {
       stopPropagation: false,
       effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_LAYOUT' } }],
     });
-    expect(getToolbarShortcutCommand('t', false)).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DIMENSION' } }],
-    });
   });
 
   it('ignores toolbar shortcuts when a modifier is pressed', () => {
     expect(getToolbarShortcutCommand('v', true)).toBeNull();
     expect(getToolbarShortcutCommand('L', true)).toBeNull();
-    expect(getToolbarShortcutCommand('t', true)).toBeNull();
   });
 });

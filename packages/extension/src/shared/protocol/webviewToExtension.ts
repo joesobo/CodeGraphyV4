@@ -105,7 +105,6 @@ export type WebviewToExtensionMessage =
   | {
       type: 'GRAPH_RUNTIME_STATE_RESPONSE';
       payload: {
-        graphMode: '2d' | '3d';
         nodeCount: number;
         edgeCount: number;
         edgeIds: string[];
@@ -119,10 +118,6 @@ export type WebviewToExtensionMessage =
         edgeCount: number;
         edgeIds: string[];
       };
-    }
-  | {
-      type: 'GRAPH_3D_UNAVAILABLE';
-      payload: { message: string };
     }
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   | {

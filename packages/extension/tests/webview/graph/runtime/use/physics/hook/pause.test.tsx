@@ -31,8 +31,6 @@ describe('webview/graph/runtime/use/physics/pause', () => {
     const { rerender } = renderHook(
       ({ physicsPaused }: { physicsPaused: boolean }) => usePhysicsRuntimePause({
         fg2dRef: { current: graph },
-        fg3dRef: { current: undefined },
-        graphMode: '2d',
         physicsInitialisedRef: { current: true },
         physicsPaused,
       }),
@@ -49,8 +47,6 @@ describe('webview/graph/runtime/use/physics/pause', () => {
 
     renderHook(() => usePhysicsRuntimePause({
       fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef: { current: false },
       physicsPaused: true,
     }));
@@ -64,8 +60,6 @@ describe('webview/graph/runtime/use/physics/pause', () => {
 
     renderHook(() => usePhysicsRuntimePause({
       fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphMode: '2d',
       physicsInitialisedRef: { current: false },
       physicsPaused: true,
     }));
