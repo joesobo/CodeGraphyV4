@@ -3,6 +3,7 @@ import {
   GraphNodeFlag,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
+  type GraphLayoutInput,
 } from './physics';
 import type { DagMode } from '../../../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
@@ -54,14 +55,17 @@ export function applyOwnedPhysicsSettings(
   engine.setConfig(toOwnedPhysicsConfig(settings));
 }
 
-export function createOwnedGraphLayout(
+interface OwnedGraphLayoutData {
+  input: GraphLayoutInput;
+  resolvedLinks: FGLink[];
+}
+
+function buildOwnedGraphLayoutData(
   nodes: FGNode[],
   links: FGLink[],
-  settings: IPhysicsSettings,
-  dagMode: DagMode = null,
-  dagLevelDistance = 60,
-  onWorkerUpdate: () => void = () => undefined,
-): OwnedGraphLayout {
+  dagMode: DagMode,
+  dagLevelDistance: number,
+): OwnedGraphLayoutData {
   const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]));
   const initialX = new Float32Array(nodes.length);
   const initialY = new Float32Array(nodes.length);
@@ -106,7 +110,7 @@ export function createOwnedGraphLayout(
     dagMode,
     dagLevelDistance,
   );
-  const input = {
+  const input: GraphLayoutInput = {
     nodeIds: nodes.map((node) => node.id),
     initialX,
     initialY,
@@ -119,7 +123,28 @@ export function createOwnedGraphLayout(
     targetX: dagTargets?.targetX,
     targetY: dagTargets?.targetY,
   };
-  const useWorker = nodes.length >= WORKER_LAYOUT_NODE_THRESHOLD && typeof Worker !== 'undefined';
+  return { input, resolvedLinks };
+}
+
+function shouldUseWorker(nodeCount: number): boolean {
+  return nodeCount >= WORKER_LAYOUT_NODE_THRESHOLD && typeof Worker !== 'undefined';
+}
+
+export function createOwnedGraphLayout(
+  nodes: FGNode[],
+  links: FGLink[],
+  settings: IPhysicsSettings,
+  dagMode: DagMode = null,
+  dagLevelDistance = 60,
+  onWorkerUpdate: () => void = () => undefined,
+): OwnedGraphLayout {
+  const { input, resolvedLinks } = buildOwnedGraphLayoutData(
+    nodes,
+    links,
+    dagMode,
+    dagLevelDistance,
+  );
+  const useWorker = shouldUseWorker(nodes.length);
   const engine = useWorker
     ? createWorkerHostedGraphLayoutEngine(input, onWorkerUpdate)
     : createGraphLayoutEngine(input);
@@ -127,6 +152,56 @@ export function createOwnedGraphLayout(
   engine.reheat();
 
   return { engine, kind: useWorker ? 'worker' : 'main-thread', links: resolvedLinks, nodes };
+}
+
+function sameBuffer(first: ArrayLike<number>, second: ArrayLike<number>): boolean {
+  if (first.length !== second.length) return false;
+  for (let index = 0; index < first.length; index += 1) {
+    if (!Object.is(first[index], second[index])) return false;
+  }
+  return true;
+}
+
+export function updateOwnedGraphLayout(
+  layout: OwnedGraphLayout,
+  nodes: FGNode[],
+  links: FGLink[],
+  settings: IPhysicsSettings,
+  dagMode: DagMode = null,
+  dagLevelDistance = 60,
+): boolean {
+  const nextKind = shouldUseWorker(nodes.length) ? 'worker' : 'main-thread';
+  if (nextKind !== layout.kind) return false;
+
+  const previousIndexes = new Map(layout.engine.nodeIds.map((id, index) => [id, index]));
+  for (const node of nodes) {
+    const index = previousIndexes.get(node.id);
+    if (index === undefined) continue;
+    node.x = layout.engine.x[index];
+    node.y = layout.engine.y[index];
+    node.vx = layout.engine.vx[index];
+    node.vy = layout.engine.vy[index];
+  }
+
+  const { input, resolvedLinks } = buildOwnedGraphLayoutData(nodes, links, dagMode, dagLevelDistance);
+  const topologyUnchanged = sameBuffer(layout.engine.edgeSources, input.edgeSources)
+    && sameBuffer(layout.engine.edgeTargets, input.edgeTargets)
+    && sameBuffer(layout.engine.targetX, input.targetX ?? new Float32Array(nodes.length).fill(Number.NaN))
+    && sameBuffer(layout.engine.targetY, input.targetY ?? new Float32Array(nodes.length).fill(Number.NaN))
+    && layout.engine.nodeIds.length === input.nodeIds.length
+    && layout.engine.nodeIds.every((id, index) => id === input.nodeIds[index]);
+  const physicsShapeUnchanged = sameBuffer(layout.engine.radii, input.radii)
+    && sameBuffer(layout.engine.flags, input.flags ?? new Uint8Array(nodes.length));
+
+  layout.nodes = nodes;
+  layout.links = resolvedLinks;
+  if (!topologyUnchanged || !physicsShapeUnchanged) {
+    layout.engine.setGraph(input);
+    applyOwnedPhysicsSettings(layout.engine, settings);
+    layout.engine.reheat();
+  }
+  syncOwnedLayoutNodes(layout);
+  return true;
 }
 
 export function syncOwnedLayoutNodes(layout: OwnedGraphLayout): void {

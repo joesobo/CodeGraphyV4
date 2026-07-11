@@ -62,6 +62,7 @@ export interface GraphLayoutEngine {
   getNodeIndex(nodeId: string): number | undefined;
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;
+  setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void;
   tick(elapsedMs: number): GraphLayoutTickResult;
   setNodePosition(index: number, x: number, y: number): void;
   pin(index: number): void;

@@ -97,6 +97,22 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     return { moving: !this.settled, settled: this.settled, steps };
   }
 
+  setKinematics(
+    x: Float32Array,
+    y: Float32Array,
+    vx: Float32Array,
+    vy: Float32Array,
+  ): void {
+    const nodeCount = this.x.length;
+    if ([x, y, vx, vy].some(buffer => buffer.length !== nodeCount)) {
+      throw new Error('Graph layout kinematics must match node count');
+    }
+    this.x.set(x);
+    this.y.set(y);
+    this.vx.set(vx);
+    this.vy.set(vy);
+  }
+
   setNodePosition(index: number, x: number, y: number): void {
     this.assertNodeIndex(index);
     if (!Number.isFinite(x) || !Number.isFinite(y)) {

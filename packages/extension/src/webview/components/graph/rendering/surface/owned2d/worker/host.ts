@@ -43,13 +43,6 @@ function inputTransfers(input: GraphLayoutInput): Transferable[] {
 }
 
 class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
-  readonly nodeIds: readonly string[];
-  readonly radii: Float32Array;
-  readonly flags: Uint8Array;
-  readonly edgeSources: Uint32Array;
-  readonly edgeTargets: Uint32Array;
-  readonly targetX: Float32Array;
-  readonly targetY: Float32Array;
   x: Float32Array;
   y: Float32Array;
   vx: Float32Array;
@@ -61,17 +54,11 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private disposed = false;
   private failed = false;
   private paused = false;
+  private revision = 0;
   private tickInFlight = false;
 
   constructor(input: GraphLayoutInput, private readonly onUpdate: () => void) {
     this.fallback = createGraphLayoutEngine(input);
-    this.nodeIds = this.fallback.nodeIds;
-    this.radii = this.fallback.radii;
-    this.flags = this.fallback.flags;
-    this.edgeSources = this.fallback.edgeSources;
-    this.edgeTargets = this.fallback.edgeTargets;
-    this.targetX = this.fallback.targetX;
-    this.targetY = this.fallback.targetY;
     this.x = new Float32Array(this.fallback.x);
     this.y = new Float32Array(this.fallback.y);
     this.vx = new Float32Array(this.fallback.vx);
@@ -80,8 +67,16 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.worker.onmessage = event => this.handleMessage(event.data as GraphLayoutWorkerMessage);
     this.worker.onerror = event => this.fail(event.message || 'Graph layout worker failed');
     const workerInput = transferableInput(input);
-    this.post({ type: 'init', input: workerInput }, inputTransfers(workerInput));
+    this.post({ type: 'init', input: workerInput, revision: this.revision }, inputTransfers(workerInput));
   }
+
+  get nodeIds(): readonly string[] { return this.fallback.nodeIds; }
+  get radii(): Float32Array { return this.fallback.radii; }
+  get flags(): Uint8Array { return this.fallback.flags; }
+  get edgeSources(): Uint32Array { return this.fallback.edgeSources; }
+  get edgeTargets(): Uint32Array { return this.fallback.edgeTargets; }
+  get targetX(): Float32Array { return this.fallback.targetX; }
+  get targetY(): Float32Array { return this.fallback.targetY; }
 
   getNodeIndex(nodeId: string): number | undefined {
     return this.fallback.getNodeIndex(nodeId);
@@ -90,13 +85,23 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   setGraph(input: GraphLayoutInput): void {
     this.fallback.setGraph(input);
     this.copyFallbackState();
+    this.revision += 1;
+    this.tickInFlight = false;
     const workerInput = transferableInput(input);
-    this.post({ type: 'init', input: workerInput }, inputTransfers(workerInput));
+    this.post({ type: 'init', input: workerInput, revision: this.revision }, inputTransfers(workerInput));
   }
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.fallback.setConfig(config);
     this.post({ type: 'setConfig', config });
+  }
+
+  setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void {
+    this.fallback.setKinematics(x, y, vx, vy);
+    this.x = new Float32Array(x);
+    this.y = new Float32Array(y);
+    this.vx = new Float32Array(vx);
+    this.vy = new Float32Array(vy);
   }
 
   tick(elapsedMs: number): GraphLayoutTickResult {
@@ -171,7 +176,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
 
   private postTick(elapsedMs: number): void {
     this.tickInFlight = true;
-    this.post({ type: 'tick', elapsedMs });
+    this.post({ type: 'tick', elapsedMs, revision: this.revision });
   }
 
   private handleMessage(message: GraphLayoutWorkerMessage): void {
@@ -180,6 +185,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
       this.fail(message.message);
       return;
     }
+    if (message.revision !== this.revision) return;
     const nextX = new Float32Array(message.x);
     const nextY = new Float32Array(message.y);
     const nextVx = new Float32Array(message.vx);
@@ -195,6 +201,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.y = nextY;
     this.vx = nextVx;
     this.vy = nextVy;
+    this.fallback.setKinematics(nextX, nextY, nextVx, nextVy);
     this.settled = message.result.settled;
     this.tickInFlight = false;
     this.onUpdate();

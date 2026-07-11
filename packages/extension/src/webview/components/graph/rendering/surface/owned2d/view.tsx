@@ -22,6 +22,7 @@ import {
   applyOwnedPhysicsSettings,
   createOwnedGraphLayout,
   syncOwnedLayoutNodes,
+  updateOwnedGraphLayout,
   type OwnedGraphLayout,
 } from './layout';
 import { pickOwnedGraphLink } from './linkPicking';
@@ -67,6 +68,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const hoveredLinkRef = useRef<FGLink | null>(null);
   const engineStopNotifiedRef = useRef(false);
+  const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
   const pickerPositionVersionRef = useRef(-1);
   const pickerRef = useRef(new OwnedGraphNodePicker());
@@ -304,35 +306,53 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     const currentProps = propsRef.current;
     const nodes = currentProps.sharedProps.graphData.nodes;
     const links = currentProps.sharedProps.graphData.links;
-    const layout = createOwnedGraphLayout(
+    const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
+    let layout = layoutRef.current;
+    const updated = layout && updateOwnedGraphLayout(
+      layout,
       nodes,
       links,
-      currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
+      settings,
       currentProps.sharedProps.dagMode ?? null,
       currentProps.sharedProps.dagLevelDistance ?? 60,
-      () => {
-        positionVersionRef.current += 1;
-        requestFrameRef.current();
-      },
     );
-    layoutRef.current = layout;
+    if (!layout || !updated) {
+      layout?.engine.dispose?.();
+      layout = createOwnedGraphLayout(
+        nodes,
+        links,
+        settings,
+        currentProps.sharedProps.dagMode ?? null,
+        currentProps.sharedProps.dagLevelDistance ?? 60,
+        () => {
+          positionVersionRef.current += 1;
+          requestFrameRef.current();
+        },
+      );
+      layoutRef.current = layout;
+    }
     positionVersionRef.current += 1;
     setLayoutKind(layout.kind);
     syncOwnedLayoutNodes(layout);
     const canvas = canvasRef.current;
-    if (canvas) {
+    if (canvas && !hasFittedCameraRef.current) {
       const size = canvasSize(canvas);
       fitOwnedGraphCamera(cameraRef.current, nodes, size.width, size.height);
+      hasFittedCameraRef.current = true;
     }
     if (currentProps.physicsPaused) layout.engine.pause();
     engineStopNotifiedRef.current = false;
     requestFrameRef.current();
-    return () => layout.engine.dispose?.();
   }, [
     props.sharedProps.dagLevelDistance,
     props.sharedProps.dagMode,
     props.sharedProps.graphData,
   ]);
+
+  useEffect(() => () => {
+    layoutRef.current?.engine.dispose?.();
+    layoutRef.current = null;
+  }, []);
 
   useEffect(() => {
     const engine = layoutRef.current?.engine;

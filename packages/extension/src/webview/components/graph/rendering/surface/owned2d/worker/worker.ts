@@ -8,6 +8,7 @@ import type {
 } from './protocol';
 
 let engine: GraphLayoutEngine | undefined;
+let revision = 0;
 
 function requireEngine(): GraphLayoutEngine {
   if (!engine) throw new Error('Graph layout worker is not initialized');
@@ -22,6 +23,7 @@ function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
   const vy = new Float32Array(current.vy);
   const message: GraphLayoutWorkerTickMessage = {
     type: 'tick',
+    revision,
     result,
     x: x.buffer,
     y: y.buffer,
@@ -34,10 +36,11 @@ function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
 function handleCommand(command: GraphLayoutWorkerCommand): void {
   switch (command.type) {
     case 'init':
+      revision = command.revision;
       engine = createGraphLayoutEngine(command.input);
       break;
     case 'tick':
-      postTick(requireEngine().tick(command.elapsedMs));
+      if (command.revision === revision) postTick(requireEngine().tick(command.elapsedMs));
       break;
     case 'setConfig':
       requireEngine().setConfig(command.config);

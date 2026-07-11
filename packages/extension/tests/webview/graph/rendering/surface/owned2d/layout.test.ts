@@ -5,6 +5,7 @@ import {
   createOwnedGraphLayout,
   ownedNodeCollisionRadius,
   toOwnedPhysicsConfig,
+  updateOwnedGraphLayout,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import {
   createGraphLayoutEngine,
@@ -125,6 +126,60 @@ describe('owned graph layout settings', () => {
 
     expect(radialDistance(maximumRepel)).toBeGreaterThan(radialDistance(noRepel));
     expect(radialDistance(maximumCenter)).toBeLessThan(radialDistance(noCenter));
+  });
+});
+
+describe('owned graph dynamic updates', () => {
+  it('patches metadata without rebuilding physics and preserves state across topology changes', () => {
+    const initialNodes = [
+      node('a', { x: 10, y: 20, vx: 1, vy: 2 }),
+      node('b', { x: 30, y: 40, vx: 3, vy: 4 }),
+    ];
+    const initialLinks = [{
+      id: 'a-b',
+      from: 'a',
+      to: 'b',
+      source: initialNodes[0],
+      target: initialNodes[1],
+      bidirectional: false,
+    }];
+    const layout = createOwnedGraphLayout(initialNodes, initialLinks, DEFAULT_SETTINGS);
+    const engine = layout.engine;
+    engine.setKinematics(
+      Float32Array.of(100, 300),
+      Float32Array.of(200, 400),
+      Float32Array.of(5, 7),
+      Float32Array.of(6, 8),
+    );
+
+    const recolored = [node('a', { color: '#ff0000' }), node('b')];
+    expect(updateOwnedGraphLayout(layout, recolored, [{
+      ...initialLinks[0],
+      source: recolored[0],
+      target: recolored[1],
+    }], DEFAULT_SETTINGS)).toBe(true);
+    expect(layout.engine).toBe(engine);
+    expect(layout.nodes[0].color).toBe('#ff0000');
+    expect(Array.from(layout.engine.x)).toEqual([100, 300]);
+
+    const added = [...recolored, node('c', { x: 500, y: 600 })];
+    expect(updateOwnedGraphLayout(layout, added, [{
+      ...initialLinks[0],
+      source: added[0],
+      target: added[1],
+    }, {
+      id: 'b-c',
+      from: 'b',
+      to: 'c',
+      source: added[1],
+      target: added[2],
+      bidirectional: false,
+    }], DEFAULT_SETTINGS)).toBe(true);
+    expect(layout.engine).toBe(engine);
+    expect(Array.from(layout.engine.x)).toEqual([100, 300, 500]);
+    expect(Array.from(layout.engine.y)).toEqual([200, 400, 600]);
+    expect(Array.from(layout.engine.vx)).toEqual([5, 7, 0]);
+    expect(Array.from(layout.engine.vy)).toEqual([6, 8, 0]);
   });
 });
 
