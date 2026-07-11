@@ -2,6 +2,7 @@ import type { FGNode } from '../../components/graph/model/build';
 import { moveNodeByTranslate } from '../../components/graph/runtime/use/interaction/nodeDrag/position';
 
 export const INTERACTION_DRAG_TRANSLATE = { x: 12, y: 8 } as const;
+export const INTERACTION_DRAG_SELECTION_SIZE = 50;
 const INTERACTION_ZOOM_FACTOR = 1.1;
 const PAN_START = { x: 80, y: 80 } as const;
 const PAN_END = { x: 96, y: 92 } as const;
@@ -17,6 +18,7 @@ export interface DeterministicInteractionBurstOptions {
   handleNodeDrag: (node: FGNode, translate: { x: number; y: number }) => void;
   handleNodeDragEnd: (node: FGNode) => void;
   nodes: readonly FGNode[];
+  selectNodeIds?: (nodeIds: string[]) => void;
   simulationEnabled?: boolean;
   zoomGraphView: (factor: number) => void;
 }
@@ -52,11 +54,11 @@ function dispatchDeterministicPan(container: HTMLDivElement | null, graphMode: '
   dispatchPanEvent(container, 'mouseup', PAN_END, 0);
 }
 
-function selectDeterministicNode(nodes: readonly FGNode[]): FGNode | undefined {
+function selectDeterministicNodes(nodes: readonly FGNode[]): FGNode[] {
   return [...nodes].sort((left, right) => {
     if (left.id === right.id) return 0;
     return left.id < right.id ? -1 : 1;
-  })[0];
+  }).slice(0, INTERACTION_DRAG_SELECTION_SIZE);
 }
 
 export function runDeterministicInteractionBurst({
@@ -66,14 +68,17 @@ export function runDeterministicInteractionBurst({
   handleNodeDrag,
   handleNodeDragEnd,
   nodes,
+  selectNodeIds,
   simulationEnabled = true,
   zoomGraphView,
 }: DeterministicInteractionBurstOptions): InteractionBurstResult {
   dispatchDeterministicPan(container, graphMode);
   zoomGraphView(INTERACTION_ZOOM_FACTOR);
 
-  const node = selectDeterministicNode(nodes);
+  const selectedNodes = selectDeterministicNodes(nodes);
+  const node = selectedNodes[0];
   if (node) {
+    selectNodeIds?.(selectedNodes.map(selectedNode => selectedNode.id));
     moveNodeByTranslate(node, INTERACTION_DRAG_TRANSLATE);
     handleNodeDrag(node, INTERACTION_DRAG_TRANSLATE);
     handleNodeDragEnd(node);

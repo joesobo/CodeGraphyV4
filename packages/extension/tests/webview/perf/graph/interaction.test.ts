@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
+  INTERACTION_DRAG_SELECTION_SIZE,
   INTERACTION_DRAG_TRANSLATE,
   runDeterministicInteractionBurst,
 } from '../../../../src/webview/perf/graph/interaction';
@@ -66,6 +67,34 @@ describe('webview/perf/graph/interaction', () => {
     });
 
     expect(result).toEqual({ waitForSettle: false });
+  });
+
+  it('prepares a deterministic 50-node selection before dragging', () => {
+    const nodes = Array.from(
+      { length: 60 },
+      (_, index) => createNode(`node-${String(59 - index).padStart(2, '0')}`, index, index),
+    );
+    const selectNodeIds = vi.fn();
+    const handleNodeDrag = vi.fn();
+
+    runDeterministicInteractionBurst({
+      container: null,
+      graph: {},
+      graphMode: '2d',
+      handleNodeDrag,
+      handleNodeDragEnd: vi.fn(),
+      nodes,
+      selectNodeIds,
+      zoomGraphView: vi.fn(),
+    });
+
+    expect(selectNodeIds).toHaveBeenCalledWith(
+      Array.from(
+        { length: INTERACTION_DRAG_SELECTION_SIZE },
+        (_, index) => `node-${String(index).padStart(2, '0')}`,
+      ),
+    );
+    expect(handleNodeDrag.mock.calls[0]?.[0].id).toBe('node-00');
   });
 
   it('does not reheat a graph whose render budget disables simulation', () => {

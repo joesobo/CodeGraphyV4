@@ -28,6 +28,7 @@ interface GraphPerfScenarioOptions {
   graphMode: '2d' | '3d';
   handleNodeDrag: (node: FGNode, translate: { x: number; y: number }) => void;
   handleNodeDragEnd: (node: FGNode) => void;
+  selectNodeIds?: (nodeIds: string[]) => void;
   simulationEnabled?: boolean;
   zoomGraphView: (factor: number) => void;
 }
@@ -84,6 +85,7 @@ export function useGraphPerfScenarios(
           handleNodeDrag: current.handleNodeDrag,
           handleNodeDragEnd: current.handleNodeDragEnd,
           nodes: current.getNodes(),
+          selectNodeIds: current.selectNodeIds,
           simulationEnabled: current.simulationEnabled !== false,
           zoomGraphView: current.zoomGraphView,
         };

@@ -212,6 +212,16 @@ export default function Graph({
     graphMode: viewState.graphMode,
     handleNodeDrag: interactions.handleNodeDrag,
     handleNodeDragEnd: interactions.handleNodeDragEnd,
+    selectNodeIds: (nodeIds) => {
+      const selectedNodeIds = graphRuntime.selection.selectedNodeIdsRef.current;
+      if (
+        selectedNodeIds.size === nodeIds.length
+        && nodeIds.every(nodeId => selectedNodeIds.has(nodeId))
+      ) {
+        return;
+      }
+      interactions.interactionHandlers.setSelection(nodeIds);
+    },
     simulationEnabled,
     zoomGraphView: interactions.interactionHandlers.zoomGraphView,
   });
