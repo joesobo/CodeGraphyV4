@@ -269,7 +269,7 @@ function startTrackedWorkspaceRefresh(
     activeWorkspaceRefreshes.delete(provider);
     const queued = pendingWorkspaceRefreshes.get(provider);
     if (queued && queued.timeout === undefined) {
-      armPendingWorkspaceRefresh(provider, queued, 0);
+      armPendingWorkspaceRefresh(provider, queued, queued.delayMs);
     }
   };
   void refresh.then(resumePendingRefresh, resumePendingRefresh);

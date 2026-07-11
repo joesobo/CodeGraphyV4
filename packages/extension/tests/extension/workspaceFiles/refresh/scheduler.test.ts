@@ -162,7 +162,7 @@ describe('workspaceFiles/refresh/scheduler', () => {
     expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
   });
 
-  it('runs one changed-file refresh at a time and follows with the latest pending paths', async () => {
+  it('runs one changed-file refresh at a time and preserves the large queued-burst window', async () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     let resolveFirstRefresh!: () => void;
@@ -181,30 +181,32 @@ describe('workspaceFiles/refresh/scheduler', () => {
     );
     await vi.advanceTimersByTimeAsync(0);
 
-    scheduleWorkspaceRefresh(
-      provider as never,
-      '[CodeGraphy] Second change, refreshing graph',
-      ['/workspace/src/b.ts'],
-      0,
-    );
-    scheduleWorkspaceRefresh(
-      provider as never,
-      '[CodeGraphy] Third change, refreshing graph',
-      ['/workspace/src/c.ts'],
-      0,
-    );
+    for (let index = 0; index < 100; index += 1) {
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] Queued change, refreshing graph',
+        [`/workspace/src/file-${index}.ts`],
+        32,
+      );
+    }
     await vi.advanceTimersByTimeAsync(0);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
 
     resolveFirstRefresh();
     await Promise.resolve();
-    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(249);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+
+    await vi.advanceTimersByTimeAsync(1);
 
     expect(provider.refreshChangedFiles).toHaveBeenCalledTimes(2);
     expect(provider.refreshChangedFiles).toHaveBeenLastCalledWith([
-      '/workspace/src/c.ts',
-      '/workspace/src/b.ts',
+      ...Array.from(
+        { length: 100 },
+        (_, index) => `/workspace/src/file-${99 - index}.ts`,
+      ),
     ]);
   });
 
