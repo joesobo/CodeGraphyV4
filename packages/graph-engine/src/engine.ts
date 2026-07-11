@@ -13,6 +13,8 @@ export interface GraphLayoutInput {
   edgeSources: Uint32Array;
   edgeTargets: Uint32Array;
   flags?: Uint8Array;
+  targetX?: Float32Array;
+  targetY?: Float32Array;
 }
 
 export interface GraphLayoutConfig {
@@ -22,6 +24,7 @@ export interface GraphLayoutConfig {
   collisionIterations: number;
   collisionPadding: number;
   collisionStrength: number;
+  constraintForce: number;
   damping: number;
   fixedTimeStepMs: number;
   initializationSpacing: number;
@@ -53,6 +56,8 @@ export interface GraphLayoutEngine {
   readonly flags: Uint8Array;
   readonly edgeSources: Uint32Array;
   readonly edgeTargets: Uint32Array;
+  readonly targetX: Float32Array;
+  readonly targetY: Float32Array;
   readonly settled: boolean;
   getNodeIndex(nodeId: string): number | undefined;
   setGraph(input: GraphLayoutInput): void;
@@ -78,6 +83,7 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   collisionIterations: 1,
   collisionPadding: 2,
   collisionStrength: 0.7,
+  constraintForce: 0.12,
   damping: 0.84,
   fixedTimeStepMs: BASE_FRAME_MS,
   initializationSpacing: 12,
@@ -119,6 +125,8 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
   flags = new Uint8Array();
   edgeSources = new Uint32Array();
   edgeTargets = new Uint32Array();
+  targetX = new Float32Array();
+  targetY = new Float32Array();
 
   private config: GraphLayoutConfig = { ...DEFAULT_GRAPH_LAYOUT_CONFIG };
   private nodeIndexes = new Map<string, number>();
@@ -145,6 +153,8 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
     assertBufferLength(input.initialY, nodeCount, 'initialY');
     assertBufferLength(input.radii, nodeCount, 'radii');
     assertBufferLength(input.flags, nodeCount, 'flags');
+    assertBufferLength(input.targetX, nodeCount, 'targetX');
+    assertBufferLength(input.targetY, nodeCount, 'targetY');
     if (input.edgeSources.length !== input.edgeTargets.length) {
       throw new Error('edge source and target buffers must have equal lengths');
     }
@@ -161,6 +171,12 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
     this.vy = new Float32Array(nodeCount);
     this.radii = new Float32Array(nodeCount);
     this.flags = input.flags ? new Uint8Array(input.flags) : new Uint8Array(nodeCount);
+    this.targetX = input.targetX
+      ? new Float32Array(input.targetX)
+      : new Float32Array(nodeCount).fill(Number.NaN);
+    this.targetY = input.targetY
+      ? new Float32Array(input.targetY)
+      : new Float32Array(nodeCount).fill(Number.NaN);
 
     for (let index = 0; index < nodeCount; index += 1) {
       const suppliedX = input.initialX?.[index];
@@ -425,6 +441,17 @@ class TypedGraphLayoutEngine implements GraphLayoutEngine {
       }
       this.vx[index] += -this.x[index] * this.config.centerForce * this.alpha * 0.001;
       this.vy[index] += -this.y[index] * this.config.centerForce * this.alpha * 0.001;
+      const constraintAlpha = Math.max(this.alpha, 0.1);
+      if (Number.isFinite(this.targetX[index])) {
+        this.vx[index] += (this.targetX[index] - this.x[index])
+          * this.config.constraintForce
+          * constraintAlpha;
+      }
+      if (Number.isFinite(this.targetY[index])) {
+        this.vy[index] += (this.targetY[index] - this.y[index])
+          * this.config.constraintForce
+          * constraintAlpha;
+      }
       this.vx[index] *= this.config.damping;
       this.vy[index] *= this.config.damping;
 

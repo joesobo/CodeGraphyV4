@@ -20,6 +20,8 @@ function transferableInput(input: GraphLayoutInput): GraphLayoutInput {
     edgeSources: new Uint32Array(input.edgeSources),
     edgeTargets: new Uint32Array(input.edgeTargets),
     flags: input.flags ? new Uint8Array(input.flags) : undefined,
+    targetX: input.targetX ? new Float32Array(input.targetX) : undefined,
+    targetY: input.targetY ? new Float32Array(input.targetY) : undefined,
   };
 }
 
@@ -31,6 +33,8 @@ function inputTransfers(input: GraphLayoutInput): Transferable[] {
     input.edgeSources.buffer,
     input.edgeTargets.buffer,
     input.flags?.buffer,
+    input.targetX?.buffer,
+    input.targetY?.buffer,
   ].filter((buffer): buffer is ArrayBuffer => buffer instanceof ArrayBuffer);
 }
 
@@ -40,6 +44,8 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   readonly flags: Uint8Array;
   readonly edgeSources: Uint32Array;
   readonly edgeTargets: Uint32Array;
+  readonly targetX: Float32Array;
+  readonly targetY: Float32Array;
   x: Float32Array;
   y: Float32Array;
   vx: Float32Array;
@@ -60,6 +66,8 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.flags = this.fallback.flags;
     this.edgeSources = this.fallback.edgeSources;
     this.edgeTargets = this.fallback.edgeTargets;
+    this.targetX = this.fallback.targetX;
+    this.targetY = this.fallback.targetY;
     this.x = new Float32Array(this.fallback.x);
     this.y = new Float32Array(this.fallback.y);
     this.vx = new Float32Array(this.fallback.vx);

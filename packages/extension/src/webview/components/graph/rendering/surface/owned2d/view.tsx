@@ -294,6 +294,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       nodes,
       links,
       currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS,
+      currentProps.sharedProps.dagMode ?? null,
+      currentProps.sharedProps.dagLevelDistance ?? 60,
       () => {
         positionVersionRef.current += 1;
         requestFrameRef.current();
@@ -312,7 +314,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     engineStopNotifiedRef.current = false;
     requestFrameRef.current();
     return () => layout.engine.dispose?.();
-  }, [props.sharedProps.graphData]);
+  }, [
+    props.sharedProps.dagLevelDistance,
+    props.sharedProps.dagMode,
+    props.sharedProps.graphData,
+  ]);
 
   useEffect(() => {
     const engine = layoutRef.current?.engine;

@@ -2,8 +2,10 @@ import {
   createGraphLayoutEngine,
   type GraphLayoutEngine,
 } from '@codegraphy-dev/graph-engine';
+import type { DagMode } from '../../../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
+import { createOwnedDagTargets } from './dag';
 import { createWorkerHostedGraphLayoutEngine } from './worker/host';
 
 const WORKER_LAYOUT_NODE_THRESHOLD = 10_000;
@@ -40,6 +42,8 @@ export function createOwnedGraphLayout(
   nodes: FGNode[],
   links: FGLink[],
   settings: IPhysicsSettings,
+  dagMode: DagMode = null,
+  dagLevelDistance = 60,
   onWorkerUpdate: () => void = () => undefined,
 ): OwnedGraphLayout {
   const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]));
@@ -71,6 +75,13 @@ export function createOwnedGraphLayout(
     edgeTargets.push(targetIndex);
   }
 
+  const dagTargets = createOwnedDagTargets(
+    nodes.length,
+    edgeSources,
+    edgeTargets,
+    dagMode,
+    dagLevelDistance,
+  );
   const input = {
     nodeIds: nodes.map((node) => node.id),
     initialX,
@@ -78,6 +89,8 @@ export function createOwnedGraphLayout(
     radii,
     edgeSources: Uint32Array.from(edgeSources),
     edgeTargets: Uint32Array.from(edgeTargets),
+    targetX: dagTargets?.targetX,
+    targetY: dagTargets?.targetY,
   };
   const useWorker = nodes.length >= WORKER_LAYOUT_NODE_THRESHOLD && typeof Worker !== 'undefined';
   const engine = useWorker

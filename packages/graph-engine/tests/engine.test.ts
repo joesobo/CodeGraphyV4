@@ -97,6 +97,24 @@ describe('graph layout engine', () => {
     expect(closestDistance).toBeGreaterThanOrEqual(radius * 2 + collisionPadding - 0.5);
   });
 
+  it('pulls nodes toward optional layout constraint targets', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['node-0'],
+      initialX: new Float32Array([0]),
+      initialY: new Float32Array([0]),
+      radii: new Float32Array([4]),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+      targetX: new Float32Array([100]),
+      targetY: new Float32Array([Number.NaN]),
+    }, { centerForce: 0, repelForce: 0 });
+
+    for (let tick = 0; tick < 30; tick += 1) engine.tick(1000 / 60);
+
+    expect(engine.x[0]).toBeGreaterThan(0);
+    expect(engine.y[0]).toBe(0);
+  });
+
   it('keeps a pinned node fixed until release', () => {
     const engine = createGraphLayoutEngine(lineGraph(3));
     engine.setNodePosition(1, 25, -10);
