@@ -25,6 +25,8 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createPathListMessageEffects('OPEN_FILES_TO_SIDE', context.targetIds),
   findInFolder: (context: GraphContextActionContext) =>
     createOptionalSinglePathMessageEffects(context.primaryTargetId, 'FIND_IN_FOLDER'),
+  closeEditor: (context: GraphContextActionContext) =>
+    createOptionalSinglePathMessageEffects(context.primaryTargetId, 'CLOSE_FILE_EDITOR'),
   openEdgeSource: (context: GraphContextActionContext) =>
     createOpenFileEffects(context.edgeSourceId ? [context.edgeSourceId] : []),
   openEdgeTarget: (context: GraphContextActionContext) =>

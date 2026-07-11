@@ -6,6 +6,7 @@ import {
 } from '../../../../actions/clipboardFiles/state';
 import type { GraphViewProviderMessageListenerSource } from '../listener';
 import type { GraphViewProviderMessageListenerDependencies } from '../listener';
+import { closeGraphViewFileEditor } from '../../../files/closeEditor';
 import type { GraphViewProviderPrimaryActions } from './types';
 
 type WorkspaceFileActions = Pick<
@@ -18,6 +19,7 @@ type WorkspaceFileActions = Pick<
   | 'copyFiles'
   | 'pasteFiles'
   | 'findInFolder'
+  | 'closeFileEditor'
 >;
 
 export function createWorkspaceFileActions(
@@ -39,6 +41,17 @@ export function createWorkspaceFileActions(
         'workbench.action.findInFiles',
         { filesToInclude: filePath },
       );
+    },
+    closeFileEditor: async filePath => {
+      const workspaceUri = getWorkspaceUri();
+      if (!workspaceUri) return;
+      await closeGraphViewFileEditor(filePath, {
+        closeTabs: (tabs, preserveFocus) => vscode.window.tabGroups.close(tabs, preserveFocus),
+        getTabUri: tab => tab.input instanceof vscode.TabInputText ? tab.input.uri : undefined,
+        joinPath: (base, path) => vscode.Uri.joinPath(base, path),
+        tabs: vscode.window.tabGroups.all.flatMap(group => group.tabs),
+        workspaceFolder: workspaceUri,
+      });
     },
     cutFiles: async paths => {
       const workspaceUri = getWorkspaceUri();

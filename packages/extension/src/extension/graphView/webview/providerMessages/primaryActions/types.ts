@@ -10,6 +10,7 @@ export type GraphViewProviderPrimaryActions = Pick<
   | 'openFile'
   | 'openFileToSide'
   | 'findInFolder'
+  | 'closeFileEditor'
   | 'openInEditor'
   | 'revealInExplorer'
   | 'copyToClipboard'

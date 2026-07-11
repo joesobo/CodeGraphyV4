@@ -11,6 +11,7 @@ export type BuiltInContextMenuAction =
   | 'open'
   | 'openToSide'
   | 'findInFolder'
+  | 'closeEditor'
   | 'openEdgeSource'
   | 'openEdgeTarget'
   | 'reveal'

@@ -18,6 +18,7 @@ function createHandlers(
     openFile: vi.fn(() => Promise.resolve()),
     openFileToSide: vi.fn(() => Promise.resolve()),
     findInFolder: vi.fn(() => Promise.resolve()),
+    closeFileEditor: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     cutFiles: vi.fn(() => Promise.resolve()),

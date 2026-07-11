@@ -33,6 +33,15 @@ describe('buildOpenBlock', () => {
     });
   });
 
+  it('includes Close Editor for a single workspace file target', () => {
+    const entries = buildOpenBlock(['src/app.ts'], false);
+
+    expect(findItem(entries, 'Close Editor')?.action).toEqual({
+      kind: 'builtin',
+      action: 'closeEditor',
+    });
+  });
+
   it('shows Open N Files for multiple targets', () => {
     const labels = itemLabels(buildOpenBlock(['a.ts', 'b.ts', 'c.ts'], false));
     expect(labels).toContain('Open 3 Files');

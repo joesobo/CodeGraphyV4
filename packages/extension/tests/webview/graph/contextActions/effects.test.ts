@@ -34,6 +34,13 @@ describe('graph/contextActions/effects', () => {
     }]);
   });
 
+  it('posts the selected file through the close-editor host route', () => {
+    expect(getBuiltInContextActionEffects('closeEditor', nodeContext(['src/app.ts']))).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'CLOSE_FILE_EDITOR', payload: { path: 'src/app.ts' } },
+    }]);
+  });
+
   it('uses the first selected path for reveal actions', () => {
     expect(getBuiltInContextActionEffects('reveal', nodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
       {

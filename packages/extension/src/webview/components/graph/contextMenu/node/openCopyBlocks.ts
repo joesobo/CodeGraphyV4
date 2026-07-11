@@ -23,7 +23,10 @@ export function buildOpenBlock(
     builtInItem('node-open', buildOpenBlockLabel(targets), 'open'),
   );
   if (targets.length === 1) {
-    entries.push(builtInItem('node-open-to-side', 'Open to the Side', 'openToSide'));
+    entries.push(
+      builtInItem('node-open-to-side', 'Open to the Side', 'openToSide'),
+      builtInItem('node-close-editor', 'Close Editor', 'closeEditor'),
+    );
   }
 
   if (shouldShowRevealInExplorer(targets, timelineActive)) {
