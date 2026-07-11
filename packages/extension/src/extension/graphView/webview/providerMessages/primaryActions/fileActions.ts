@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import type { GraphViewProviderMessageListenerSource } from '../listener';
 import {
   canOpenGraphPath,
@@ -14,6 +15,7 @@ type FileActions = Pick<
   | 'setFocusedFile'
   | 'previewFileAtCommit'
   | 'openFile'
+  | 'openFileToSide'
   | 'revealInExplorer'
   | 'copyToClipboard'
   | 'deleteFiles'
@@ -33,6 +35,11 @@ export function createFileActions(source: GraphViewProviderMessageListenerSource
     setFocusedFile: filePath => source.setFocusedFile(filePath),
     previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
     openFile: filePath => source._openFile(resolveGraphOpenPath(source, filePath)),
+    openFileToSide: filePath => source._openFile(resolveGraphOpenPath(source, filePath), {
+      preserveFocus: false,
+      preview: false,
+      viewColumn: vscode.ViewColumn.Beside,
+    }),
     revealInExplorer: filePath => source._revealInExplorer(resolveGraphOpenPath(source, filePath)),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),

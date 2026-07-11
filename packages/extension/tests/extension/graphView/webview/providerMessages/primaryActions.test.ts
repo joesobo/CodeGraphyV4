@@ -24,6 +24,7 @@ describe('graph view provider listener primary actions', () => {
     actions.setFocusedFile('src/app.ts');
     await actions.previewFileAtCommit('sha-1', 'src/app.ts');
     await actions.openFile('src/app.ts');
+    await actions.openFileToSide('src/app.ts');
     await actions.revealInExplorer('src/app.ts');
     await actions.copyToClipboard('src/app.ts');
     await actions.deleteFiles(['src/app.ts']);
@@ -39,6 +40,11 @@ describe('graph view provider listener primary actions', () => {
     expect(source.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(source._previewFileAtCommit).toHaveBeenCalledWith('sha-1', 'src/app.ts');
     expect(source._openFile).toHaveBeenCalledWith('src/app.ts');
+    expect(source._openFile).toHaveBeenCalledWith('src/app.ts', {
+      preserveFocus: false,
+      preview: false,
+      viewColumn: vscode.ViewColumn.Beside,
+    });
     expect(source._revealInExplorer).toHaveBeenCalledWith('src/app.ts');
     expect(source._copyToClipboard).toHaveBeenCalledWith('src/app.ts');
     expect(source._deleteFiles).toHaveBeenCalledWith(['src/app.ts']);

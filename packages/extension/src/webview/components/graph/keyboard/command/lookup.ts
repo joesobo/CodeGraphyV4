@@ -16,14 +16,18 @@ function isPackageNodeId(nodeId: string): boolean {
   return nodeId.startsWith('pkg:');
 }
 
-function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardCommand | null {
+function getEnterCommand(
+  selectedNodeIds: readonly string[],
+  openToSide: boolean,
+): GraphKeyboardCommand | null {
   if (selectedNodeIds.length === 0) {
     return null;
   }
 
-  return createOpenSelectedNodesCommand(
-    selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId)),
-  );
+  const nodeIds = selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId));
+  return openToSide
+    ? createFileMessageCommand({ type: 'OPEN_FILES_TO_SIDE', payload: { paths: nodeIds } })
+    : createOpenSelectedNodesCommand(nodeIds);
 }
 
 function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {
@@ -87,7 +91,7 @@ function getDirectGraphKeyboardCommand(
   };
 
   return options.key === 'Enter'
-    ? getEnterCommand(options.selectedNodeIds)
+    ? getEnterCommand(options.selectedNodeIds, options.isMod)
     : directCommands[options.key];
 }
 

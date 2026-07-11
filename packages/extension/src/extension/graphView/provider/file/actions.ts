@@ -14,7 +14,10 @@ import {
 } from './navigation';
 import { executeWorkspaceFileMutation } from './mutations';
 
-type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
+type EditorOpenBehavior = Pick<
+  vscode.TextDocumentShowOptions,
+  'preview' | 'preserveFocus' | 'viewColumn'
+>;
 
 function getCurrentWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
   return vscode.workspace.workspaceFolders?.[0]

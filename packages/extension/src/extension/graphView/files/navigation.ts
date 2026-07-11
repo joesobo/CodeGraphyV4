@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 export type GraphViewEditorOpenBehavior = Pick<
   vscode.TextDocumentShowOptions,
-  'preview' | 'preserveFocus'
+  'preview' | 'preserveFocus' | 'viewColumn'
 >;
 
 interface GraphViewWorkspaceFolderRef {

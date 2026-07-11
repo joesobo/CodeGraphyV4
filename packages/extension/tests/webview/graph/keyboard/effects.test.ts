@@ -62,6 +62,21 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
+  it('opens selected workspace files beside the active editor with modifier+Enter', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'Enter',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/app.ts', 'pkg:fs'],
+      allNodeIds: ['src/app.ts', 'pkg:fs'],
+      targetIsEditable: false,
+    })?.effects).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'OPEN_FILES_TO_SIDE', payload: { paths: ['src/app.ts'] } },
+    }]);
+  });
+
   it('ignores Enter when nothing is selected', () => {
     expect(getGraphKeyboardCommand({
       key: 'Enter',

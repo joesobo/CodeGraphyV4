@@ -9,6 +9,7 @@ export interface GraphViewNodeFileOpenHandlers {
   activateNode(nodeId: string): Promise<void>;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
+  openFileToSide(filePath: string): Promise<void>;
 }
 
 function canOpenPath(
@@ -79,6 +80,12 @@ export async function applyNodeFileOpenMessage(
       }
 
       openPathForCurrentTimeline(handlers, message.payload.path);
+      return true;
+
+    case 'OPEN_FILES_TO_SIDE':
+      await Promise.all(message.payload.paths
+        .filter(filePath => canOpenPath(handlers, filePath))
+        .map(filePath => handlers.openFileToSide(filePath)));
       return true;
 
     default:

@@ -41,7 +41,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | F2 rename | done(unit) | 2.3 | Single workspace selection posts the existing rename action; multi-select and immutable revisions are rejected. |
 | Delete / Cmd+Backspace | done(unit) | 2.3 | Both bindings post the existing count-confirmed delete action and dynamically respect mutation availability. |
 | Cmd/Ctrl+C, X, V | done(unit) | 2.3 | Clipboard shortcuts post runtime-validated host actions, respect mutation availability, and paste into a selected folder or workspace root. |
-| Cmd/Ctrl+Enter open to side | todo(P2) | 2.3 | Not implemented. |
+| Cmd/Ctrl+Enter open to side | done(unit) | 2.3 / 2.4 | Selected workspace files post a dedicated open-beside message and use `ViewColumn.Beside`; synthetic packages are filtered. |
 | Cmd/Ctrl+A | done(unit) | 2.1 | Keyboard resolver, listener, and effect tests select every visible node. |
 | Escape clears selection | done(unit) | 2.1 | Keyboard resolver/listener/effect tests clear the graph selection. |
 | Escape closes panels | todo(P2) | 2.3 | Existing Escape handling does not prove the panel-close bug is fixed. |

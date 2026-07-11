@@ -122,7 +122,7 @@ export interface GraphViewProviderMessageListenerSource {
   _activateNode(nodeId: string): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
   _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
-  _openFile(filePath: string): Promise<void>;
+  _openFile(filePath: string, behavior?: vscode.TextDocumentShowOptions): Promise<void>;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;

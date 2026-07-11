@@ -16,6 +16,7 @@ function createHandlers(
     activateNode: vi.fn(() => Promise.resolve()),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
+    openFileToSide: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
@@ -89,6 +90,20 @@ describe('graph view node/file open message', () => {
     expect(handlers.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.openFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.previewFileAtCommit).not.toHaveBeenCalled();
+  });
+
+  it('opens every requested workspace file to the side', async () => {
+    const handlers = createHandlers({
+      canOpenPath: vi.fn((path: string) => path !== 'src'),
+    });
+
+    await applyNodeFileOpenMessage(
+      { type: 'OPEN_FILES_TO_SIDE', payload: { paths: ['src/a.ts', 'src', 'src/b.ts'] } },
+      handlers,
+    );
+
+    expect(handlers.openFileToSide).toHaveBeenNthCalledWith(1, 'src/a.ts');
+    expect(handlers.openFileToSide).toHaveBeenNthCalledWith(2, 'src/b.ts');
   });
 
   it('returns false for unrelated messages', async () => {
