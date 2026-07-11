@@ -5,9 +5,17 @@ import { openGraphViewInEditor } from '../../../src/extension/graphView/editorPa
 describe('graph view editor panel helper', () => {
   it('opens a panel, sets its icon/html, and unregisters it on dispose', () => {
     let disposeHandler: (() => void) | undefined;
+    let viewStateHandler: (() => void) | undefined;
+    const postMessage = vi.fn();
     const panel = {
-      webview: { html: '', options: {} },
+      active: true,
+      visible: true,
+      webview: { html: '', options: {}, postMessage },
       iconPath: undefined,
+      onDidChangeViewState: vi.fn((handler: () => void) => {
+        viewStateHandler = handler;
+        return { dispose: () => {} };
+      }),
       onDidDispose: vi.fn((handler: () => void) => {
         disposeHandler = handler;
         return { dispose: () => {} };
@@ -29,6 +37,8 @@ describe('graph view editor panel helper', () => {
       registerPanel,
       unregisterPanel,
     });
+    panel.visible = false;
+    viewStateHandler?.();
     disposeHandler?.();
 
     expect(createPanel).toHaveBeenCalledWith(
@@ -48,6 +58,10 @@ describe('graph view editor panel helper', () => {
       light: vscode.Uri.file('/extension/assets/icon-light.svg'),
     });
     expect(unregisterPanel).toHaveBeenCalledWith(panel);
+    expect(postMessage).toHaveBeenCalledWith({
+      payload: { visible: false },
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+    });
   });
 
   it('reveals an existing editor panel instead of creating a duplicate', () => {

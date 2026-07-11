@@ -14,6 +14,7 @@ import { usePhysicsRuntimeLayoutKey, usePhysicsRuntimeLayoutReset } from './hook
 import { usePhysicsRuntimePause } from './hook/pause';
 import { usePhysicsRuntimeUpdates } from './hook/updates';
 import { selectActivePhysicsGraph } from '../../physicsLifecycle/readiness';
+import { useGraphViewVisible } from '../../physics/visibility';
 
 interface GraphPhysicsAnimationControls {
 	d3ReheatSimulation?(): void;
@@ -48,6 +49,8 @@ export function usePhysicsRuntime({
   physicsSettings,
   timelineActive = false,
 }: UsePhysicsRuntimeProps): void {
+  const graphViewVisible = useGraphViewVisible();
+  const simulationPaused = physicsPaused || !graphViewVisible;
   const physicsInitialisedRef = useRef(false);
   const physicsSettingsRef = useRef(physicsSettings);
   const pendingThreeDimensionalInitRef = useRef(graphMode === '3d');
@@ -72,7 +75,7 @@ export function usePhysicsRuntime({
 	    fg3dRef,
 	    graphMode,
 	    physicsInitialisedRef,
-	    physicsPaused,
+	    physicsPaused: simulationPaused,
 	  });
 
   usePhysicsRuntimeLayoutReset({
@@ -89,7 +92,7 @@ export function usePhysicsRuntime({
 	    fg3dRef,
 	    graphMode,
     physicsInitialisedRef,
-    physicsPaused,
+    physicsPaused: simulationPaused,
     physicsSettingsRef,
     pendingThreeDimensionalInitRef,
     previousPhysicsRef,
@@ -102,7 +105,7 @@ export function usePhysicsRuntime({
     layoutKey,
     resetVersion,
     structureVersion,
-    physicsPaused,
+    physicsPaused: simulationPaused,
     physicsInitialisedRef,
     physicsSettingsRef,
     previousLayoutKeyRef,

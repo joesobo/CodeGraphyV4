@@ -8,9 +8,14 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
 }));
 
 import { postMessage } from '../../../../src/webview/vscodeApi';
+import {
+  getGraphViewVisible,
+  setGraphViewVisible,
+} from '../../../../src/webview/components/graph/runtime/physics/visibility';
 
 describe('app message listener', () => {
   beforeEach(() => {
+    setGraphViewVisible(true);
     vi.restoreAllMocks();
     vi.clearAllMocks();
     delete (window as Window & {
@@ -21,6 +26,25 @@ describe('app message listener', () => {
       __codegraphyWebviewReadyPosted?: boolean;
       __codegraphyWebviewPageId?: string;
     }).__codegraphyWebviewPageId;
+  });
+
+  it('updates graph host visibility without forwarding the message to the graph store', () => {
+    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
+    const handleExtensionMessage = vi.fn();
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+    const handler = createMessageHandler(vi.fn().mockResolvedValue(undefined), pluginHost);
+
+    handler({
+      data: {
+        type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+        payload: { visible: false },
+      },
+    } as MessageEvent<unknown>);
+
+    expect(getGraphViewVisible()).toBe(false);
+    expect(handleExtensionMessage).not.toHaveBeenCalled();
   });
 
   it('ignores invalid window messages', () => {

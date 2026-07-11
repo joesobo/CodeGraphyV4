@@ -35,6 +35,12 @@ export function resolveGraphViewProviderWebviewView(
   });
 
   webviewView.onDidChangeVisibility(() => {
+    if (viewKind === 'graph') {
+      void webviewView.webview.postMessage({
+        type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+        payload: { visible: webviewView.visible },
+      });
+    }
     maybeFlushPendingWorkspaceRefresh(source, webviewView, viewKind);
   });
 

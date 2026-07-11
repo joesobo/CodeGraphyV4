@@ -74,6 +74,7 @@ export type ExtensionToWebviewMessage =
     }
   | { type: 'FILE_MUTATION_FAILED'; payload: { mutationId: string; message: string } }
   | { type: 'APP_BOOTSTRAP_COMPLETE' }
+  | { type: 'GRAPH_VIEW_VISIBILITY_UPDATED'; payload: { visible: boolean } }
   | {
       type: 'GRAPH_INDEX_STATUS_UPDATED';
       payload: {

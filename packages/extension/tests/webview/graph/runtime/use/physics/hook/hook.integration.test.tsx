@@ -5,6 +5,7 @@ import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/
 import {
   usePhysicsRuntime,
 } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook';
+import { setGraphViewVisible } from '../../../../../../../src/webview/components/graph/runtime/physics/visibility';
 
 const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
@@ -93,6 +94,7 @@ function havePhysicsChanged(
 
 describe('usePhysicsRuntime', () => {
   beforeEach(() => {
+    setGraphViewVisible(true);
     physicsHarness.applyPhysicsSettings.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.initPhysics.mockReset();
@@ -363,6 +365,23 @@ describe('usePhysicsRuntime', () => {
     rerender({ physicsPaused: true });
 
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledOnce();
+    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
+  });
+
+  it('pauses the active graph while its host view is hidden', () => {
+    const graph = create2DGraph();
+
+    renderHook(() => usePhysicsRuntime({
+      fg2dRef: { current: graph },
+      fg3dRef: { current: undefined },
+      graphMode: '2d',
+      layoutKey: 'layout:a',
+      physicsSettings: SETTINGS,
+    }));
+    physicsHarness.syncPhysicsAnimation.mockClear();
+
+    act(() => setGraphViewVisible(false));
+
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
   });
 

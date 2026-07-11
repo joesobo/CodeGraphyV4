@@ -49,6 +49,12 @@ export function openGraphViewInEditor({
   setWebviewMessageListener(panel.webview);
   panel.webview.html = getHtmlForWebview(panel.webview);
   registerPanel(panel);
+  panel.onDidChangeViewState(() => {
+    void panel.webview.postMessage({
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+      payload: { visible: panel.visible },
+    });
+  });
   panel.onDidDispose(() => {
     unregisterPanel(panel);
   });

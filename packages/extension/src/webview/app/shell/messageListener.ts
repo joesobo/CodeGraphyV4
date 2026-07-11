@@ -20,6 +20,7 @@ import {
   webviewRenderReadyControl,
   type WebviewRenderReadyControl,
 } from '../../perf/renderReady/control';
+import { setGraphViewVisible } from '../../components/graph/runtime/physics/visibility';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -81,6 +82,14 @@ export function createMessageHandler(
     }
 
     if (handleCssSnippetsUpdatedMessage(raw)) {
+      return;
+    }
+
+    if (
+      raw.type === 'GRAPH_VIEW_VISIBILITY_UPDATED'
+      && typeof (raw.payload as { visible?: unknown } | undefined)?.visible === 'boolean'
+    ) {
+      setGraphViewVisible((raw.payload as { visible: boolean }).visible);
       return;
     }
 

@@ -243,9 +243,11 @@ describe('graphView/provider/webview/resolve', () => {
 
   it('flushes pending refreshes when a resolved view becomes visible later', () => {
     let visibilityListener: (() => void) | undefined;
+    const postMessage = vi.fn();
     const webview = {
       options: {},
       html: '',
+      postMessage,
     } as unknown as vscode.Webview;
     const webviewView = {
       viewType: 'codegraphy.graphView',
@@ -278,6 +280,10 @@ describe('graphView/provider/webview/resolve', () => {
     visibilityListener?.();
 
     expect(source.flushPendingWorkspaceRefresh).toHaveBeenCalledOnce();
+    expect(postMessage).toHaveBeenCalledWith({
+      payload: { visible: true },
+      type: 'GRAPH_VIEW_VISIBILITY_UPDATED',
+    });
   });
 
   it('does not flush pending refreshes when the timeline view becomes visible later', () => {
