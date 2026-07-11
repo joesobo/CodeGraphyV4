@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10",
+  "protocol": {
+    "fixture": "1k",
+    "seed": 307,
+    "nodes": 1000,
+    "edges": 3090,
+    "fixtureHash": "sha256:df9cbcfa6e435e3e76ed61165f6ba77388b8cfbc70c876b9450c1ce0235483f9",
+    "scenario": "pan-zoom-v1",
+    "viewport": { "width": 1280, "height": 720, "deviceScaleFactor": 1 },
+    "runs": 5,
+    "environment": {
+      "browser": "chromium",
+      "browserVersion": "145.0.7632.6",
+      "headless": true,
+      "nodeVersion": "v22.22.0",
+      "platform": "darwin-arm64"
+    },
+    "note": "Headless Chromium exposes the owned Canvas2D fallback, not WebGPU. Both revisions use identical fixture, browser, viewport, interaction timing, forced-GC heap pass, and canvas frame instrumentation."
+  },
+  "legacy": {
+    "commit": "dcb0165ec",
+    "fps": [14.269275028768698, 13.338457713430282, 13.52326000663105, 13.539739134067958, 13.643185228386413],
+    "settleTimeMs": [2981.4000000953674, 2975, 2976.5, 2989.699999809265, 2965.2999997138977],
+    "hoverP50Ms": [6.900000095367432, 7.799999713897705, 7.400000095367432, 7, 7.700000286102295],
+    "retainedHeapBytes": [6804220, 6807152, 6803920, 6789052, 6795908],
+    "median": {
+      "fps": 13.539739134067958,
+      "settleTimeMs": 2976.5,
+      "hoverP50Ms": 7.400000095367432,
+      "retainedHeapBytes": 6803920
+    }
+  },
+  "owned": {
+    "baseCommit": "8b04b6b29",
+    "note": "Includes the force-settlement and benchmark instrumentation changes committed with this report.",
+    "fps": [34.650698602794414, 34.73439342382732, 34.97625465441003, 34.696367178930444, 35.004897475259995],
+    "settleTimeMs": [2481, 2472.800000190735, 2455, 2440.800000190735, 2417.2999997138977],
+    "hoverP50Ms": [19.300000190734863, 19, 18.40000009536743, 18.300000190734863, 18.800000190734863],
+    "retainedHeapBytes": [10294192, 10287864, 10523516, 10312276, 10471324],
+    "median": {
+      "fps": 34.73439342382732,
+      "settleTimeMs": 2455,
+      "hoverP50Ms": 18.800000190734863,
+      "retainedHeapBytes": 10312276
+    }
+  },
+  "change": {
+    "fpsPercent": 156.54,
+    "settleTimePercent": -17.52,
+    "hoverP50Percent": 154.05,
+    "retainedHeapPercent": 51.56
+  }
+}

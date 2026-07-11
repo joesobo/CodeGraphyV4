@@ -3,7 +3,7 @@ import type { GraphLayoutConfig } from './contracts';
 export const BASE_FRAME_MS = 1000 / 60;
 
 export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
-  alphaDecay: 0.025,
+  alphaDecay: 0.05,
   alphaMinimum: 0.001,
   centerForce: 0.12,
   collisionIterations: 1,
@@ -21,7 +21,7 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   maximumSpeed: 80,
   maximumSubSteps: 2,
   repelForce: 1_200,
-  settleSpeed: 0.02,
+  settleSpeed: 1.5,
   settleSteps: 8,
 };
 

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10",
+  "view": "VS Code Extension Development Host / Open in Editor",
+  "renderer": "webgpu",
+  "layout": "worker",
+  "fixture": { "seed": 307, "minimumNodes": 9000, "maximumNodes": 10000 },
+  "runs": 5,
+  "cameraZoomPreserved": true,
+  "add1000NodesMs": [352.7999997138977, 318.80000019073486, 316.40000009536743, 326.2000002861023, 331.59999990463257],
+  "remove1000NodesMs": [376.80000019073486, 346, 334.09999990463257, 345, 396.40000009536743],
+  "modify900NodeStylesMs": [178.7000002861023, 52.69999980926514, 49.299999713897705, 49, 42.700000286102295],
+  "median": {
+    "add1000NodesMs": 326.2000002861023,
+    "remove1000NodesMs": 346,
+    "modify900NodeStylesMs": 49.299999713897705
+  },
+  "notes": [
+    "Graphs were transferred into the page once before timing; timings exclude CDP serialization.",
+    "Topology updates preserve unchanged node positions, velocities, pins, worker ownership, and camera zoom.",
+    "Style-only updates preserve the physics engine and topology buffers."
+  ]
+}

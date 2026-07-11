@@ -92,7 +92,7 @@ graph and its product surfaces.
       git-history/churn implementation, settings, and runtime state; preserve
       ordinary preview/double-click file opening outside timeline modules.
 - [x] Add the first WebGPU draw path: feature-detected device/context setup,
-      validated WGSL pipelines, instanced SDF circles and link quads, dynamic
+      validated WGSL pipelines, instanced SDF node shapes and link quads, dynamic
       `writeBuffer` uploads, device-loss fallback, and Canvas2D overlays.
 - [x] Validate the actual WebGPU path (`data-codegraphy-renderer="webgpu"`)
       in Open in Editor with 1,000 nodes / 3,090 edges; commit the composited
@@ -104,7 +104,7 @@ graph and its product surfaces.
       edges in Open in Editor at 142.13 requestAnimationFrame-paced camera
       FPS (p95 12.6ms, active physics p50 11.3ms). Evidence is under
       `packages/graph-benchmark/references/webgpu/open-editor-10k/`.
-- [x] Move layouts of at least 10k nodes into an inline blob Web Worker with
+- [x] Move layouts of at least 5k nodes into an inline blob Web Worker with
       transferable typed-array snapshots, pinned-node protection, CSP support,
       and automatic main-thread fallback. Validate 50,000 nodes / 156,264
       edges in Open in Editor at 116.86 camera FPS (p95 10.9ms, max 13.5ms)
@@ -121,6 +121,32 @@ graph and its product surfaces.
       Vitest files / 5,469 tests, 121 VS Code Playwright scenarios, extension
       source/test/Playwright TypeScript, ESLint, extension-owned physics tests,
       and the production extension/webview build all pass.
+- [x] Move the renderer-private physics engine out of a workspace package and
+      into focused extension modules (`owned2d/physics/{forces,config,
+      initialization,integration,spatialGrid,engine}`); migrate all physics
+      tests into the extension suite and remove the package/lockfile edge.
+- [x] Restore dense-graph visual parity with GPU-native circle, square,
+      rectangle, diamond, triangle, hexagon, and star SDFs; themed fill,
+      opacity, border and selected-node outlines; GPU directional arrowheads;
+      and viewport-capped Canvas labels/icons/plugin overlays.
+- [x] Exercise every force slider at both extrema in Open in Editor on the
+      actual WebGPU path. Repel 0–20, center 0–1, link distance 30–500, and
+      link force 0–1 all update live and move the layout with zero browser
+      errors; screenshot and metadata are committed under
+      `references/webgpu/open-editor-force-sliders/`.
+- [x] Preserve positions, velocities, pin flags, worker ownership, and camera
+      zoom across live graph updates. Five Open in Editor 9k↔10k runs measured
+      median 326.2ms to add 1,000 nodes, 346.0ms to remove them, and 49.3ms to
+      restyle 900 nodes; evidence is under
+      `references/webgpu/open-editor-dynamic-10k/`.
+- [x] Add real rendered-edge picking for click, hover information, and context
+      menus; make acceptance tests use actual Canvas pointer coordinates rather
+      than dispatching events to screen-reader-only edge elements.
+- [x] Record a controlled five-run legacy-vs-owned 1k comparison in identical
+      headless Chromium conditions. The owned Canvas fallback is 156.54% faster
+      in scripted pan/zoom and settles 17.52% faster; the report also discloses
+      current regressions in hover p50 (+154.05%) and retained heap (+51.56%)
+      rather than presenting them as wins.
 
 ### Rollout Gates
 

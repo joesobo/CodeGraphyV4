@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-10",
+  "workspace": "examples/example-typescript (isolated copy)",
+  "view": "VS Code Extension Development Host / Open in Editor",
+  "renderer": "webgpu",
+  "nodes": 18,
+  "edges": 11,
+  "checks": {
+    "repelForce": { "minimum": 0, "maximum": 20, "layoutMoved": true },
+    "centerForce": { "minimum": 0, "maximum": 1, "layoutMoved": true },
+    "linkDistance": { "minimum": 30, "maximum": 500, "layoutMoved": true },
+    "linkForce": { "minimum": 0, "maximum": 1, "layoutMoved": true }
+  },
+  "browserErrors": [],
+  "visualChecks": [
+    "directional arrowheads remain visible",
+    "theme colors are applied to nodes, labels, links, and background",
+    "file icons and labels remain aligned after force changes",
+    "Fit to Screen remains operational after slider extremes"
+  ]
+}

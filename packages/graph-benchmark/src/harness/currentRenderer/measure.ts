@@ -9,6 +9,7 @@ export interface CurrentRendererSettlement {
 }
 
 interface BenchmarkGraphDebugWindow extends Window {
+  __CODEGRAPHY_BENCHMARK_CANVAS_FRAMES__?: number[];
   __CODEGRAPHY_GRAPH_DEBUG__?: {
     clearRenderedFrameTimes(): void;
     fitView(): void;
@@ -197,7 +198,22 @@ export async function runCurrentRendererPanZoom(page: Page): Promise<{
   }));
 
   const startedAt = await page.evaluate(() => {
-    (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_GRAPH_DEBUG__?.clearRenderedFrameTimes();
+    const benchmarkWindow = window as BenchmarkGraphDebugWindow;
+    benchmarkWindow.__CODEGRAPHY_GRAPH_DEBUG__?.clearRenderedFrameTimes();
+    benchmarkWindow.__CODEGRAPHY_BENCHMARK_CANVAS_FRAMES__ = [];
+    const prototype = CanvasRenderingContext2D.prototype as CanvasRenderingContext2D & {
+      __codegraphyBenchmarkClearRect?: CanvasRenderingContext2D['clearRect'];
+    };
+    if (!prototype.__codegraphyBenchmarkClearRect) {
+      prototype.__codegraphyBenchmarkClearRect = Object.getOwnPropertyDescriptor(
+        prototype,
+        'clearRect',
+      )?.value as CanvasRenderingContext2D['clearRect'];
+      prototype.clearRect = function (...args: Parameters<CanvasRenderingContext2D['clearRect']>): void {
+        (window as BenchmarkGraphDebugWindow).__CODEGRAPHY_BENCHMARK_CANVAS_FRAMES__?.push(performance.now());
+        prototype.__codegraphyBenchmarkClearRect?.apply(this, args);
+      };
+    }
     return performance.now();
   });
   await page.mouse.move(center.x, center.y);
@@ -217,8 +233,11 @@ export async function runCurrentRendererPanZoom(page: Page): Promise<{
   await page.waitForTimeout(100);
 
   return page.evaluate((scenarioStartedAt) => {
-    const timestamps = (window as BenchmarkGraphDebugWindow)
-      .__CODEGRAPHY_GRAPH_DEBUG__?.getRenderedFrameTimes() ?? [];
+    const benchmarkWindow = window as BenchmarkGraphDebugWindow;
+    const debugTimestamps = benchmarkWindow.__CODEGRAPHY_GRAPH_DEBUG__?.getRenderedFrameTimes() ?? [];
+    const timestamps = debugTimestamps.length > 1
+      ? debugTimestamps
+      : benchmarkWindow.__CODEGRAPHY_BENCHMARK_CANVAS_FRAMES__ ?? [];
     return {
       durationMs: performance.now() - scenarioStartedAt,
       frameTimesMs: timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index]),

@@ -11,7 +11,7 @@ import type { FGLink, FGNode } from '../../../model/build';
 import { createOwnedDagTargets } from './dag';
 import { createWorkerHostedGraphLayoutEngine } from './worker/host';
 
-const WORKER_LAYOUT_NODE_THRESHOLD = 10_000;
+const WORKER_LAYOUT_NODE_THRESHOLD = 5_000;
 
 export interface OwnedGraphLayout {
   engine: GraphLayoutEngine;
