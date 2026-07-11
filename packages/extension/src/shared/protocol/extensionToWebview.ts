@@ -133,6 +133,10 @@ export type ExtensionToWebviewMessage =
         edgeDecorations: Record<string, EdgeDecorationPayload>;
       };
     }
+  | {
+      type: 'NATIVE_DECORATIONS_UPDATED';
+      payload: { nodeDecorations: Record<string, NodeDecorationPayload> };
+    }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
   | { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED'; payload: { contributions: IGraphViewContributionStatus[] } }
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }

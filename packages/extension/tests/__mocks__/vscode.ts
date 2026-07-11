@@ -63,6 +63,11 @@ export const extensions = {
   all: [] as unknown[],
 };
 
+export const languages = {
+  getDiagnostics: vi.fn(() => []),
+  onDidChangeDiagnostics: vi.fn(() => ({ dispose: vi.fn() })),
+};
+
 export const ExtensionContext = class {
   subscriptions: { dispose: () => void }[] = [];
   extensionUri = Uri.file('/test/extension');

@@ -12,6 +12,7 @@ import { createExtensionDiagnosticLogger } from './diagnostics/logger';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 import { registerPerfScenarioCommand } from './perf/scenarioCommand';
+import { registerNativeDecorations } from './nativeDecorations/register';
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {
@@ -46,6 +47,11 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     context: { workspaceFolders: vscode.workspace.workspaceFolders?.length ?? 0 },
   });
   const provider = new GraphViewProvider(context.extensionUri, context);
+  const nativeDecorations = registerNativeDecorations(
+    context,
+    message => provider.sendToWebview(message),
+  );
+  provider.setNativeDecorationsReplay(() => nativeDecorations.replay());
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(

@@ -27,8 +27,9 @@ export function renderNodeBody({
   ctx.globalAlpha = opacity * getNodeFillOpacity(node);
   ctx.fill();
 
-  ctx.strokeStyle = getNodeBorderColor(node, isSelected, appearance);
-  ctx.lineWidth = getNodeBorderWidth(node.borderWidth, isSelected, globalScale);
+  ctx.strokeStyle = getNodeBorderColor(node, decoration, isSelected, appearance);
+  ctx.lineWidth = getNodeBorderWidth(node.borderWidth, decoration, isSelected, globalScale);
+  ctx.setLineDash(getNodeBorderDash(decoration, globalScale));
   ctx.globalAlpha = opacity;
   ctx.stroke();
 }
@@ -64,6 +65,7 @@ function getNodeFillOpacity(node: FGNode): number {
 
 function getNodeBorderColor(
   node: FGNode,
+  decoration: NodeDecorationPayload | undefined,
   isSelected: boolean,
   appearance: Pick<GraphAppearance, 'nodeSelectionBorder' | 'transparent'>,
 ): string {
@@ -71,15 +73,28 @@ function getNodeBorderColor(
     return appearance.nodeSelectionBorder;
   }
 
+  if (decoration?.border?.color) return decoration.border.color;
+
   return isTransparentFolderNode(node, appearance.transparent) ? appearance.transparent : node.borderColor;
 }
 
 function getNodeBorderWidth(
   borderWidth: number,
+  decoration: NodeDecorationPayload | undefined,
   isSelected: boolean,
   globalScale: number,
 ): number {
-  return (isSelected ? Math.max(borderWidth, 3) : borderWidth) / globalScale;
+  const decoratedWidth = decoration?.border?.width ?? borderWidth;
+  return (isSelected ? Math.max(decoratedWidth, 3) : decoratedWidth) / globalScale;
+}
+
+function getNodeBorderDash(
+  decoration: NodeDecorationPayload | undefined,
+  globalScale: number,
+): number[] {
+  if (decoration?.border?.style === 'dashed') return [4 / globalScale, 3 / globalScale];
+  if (decoration?.border?.style === 'dotted') return [1 / globalScale, 2 / globalScale];
+  return [];
 }
 
 function isTransparentFolderNode(node: FGNode, transparentColor: string): boolean {

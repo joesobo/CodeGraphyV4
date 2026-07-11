@@ -89,6 +89,16 @@ describe('graph/selectionHandlers', () => {
     expect(dependencies.setHighlightVersion).not.toHaveBeenCalled();
   });
 
+  it('requests a 2d redraw at the current scale when selection changes', () => {
+    const dependencies = createInteractionDependencies({ graphMode: '2d' });
+    const handlers = createSelectionHandlers(dependencies);
+
+    handlers.selectOnlyNode('src/app.ts');
+
+    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(1);
+    expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(2, 1, 0);
+  });
+
   it('clears highlight and selection state', () => {
     const dependencies = createInteractionDependencies();
     dependencies.selectedNodesSetRef.current = new Set(['src/app.ts']);

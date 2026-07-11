@@ -72,6 +72,7 @@ export interface GraphState {
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
+  nativeNodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];

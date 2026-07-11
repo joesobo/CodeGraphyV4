@@ -29,6 +29,15 @@ export function handleDecorationsUpdated(
   };
 }
 
+export function handleNativeDecorationsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'NATIVE_DECORATIONS_UPDATED' }>,
+  ctx: { getState: () => { nativeNodeDecorations: Record<string, NodeDecorationPayload> } },
+): PartialState | void {
+  const nativeNodeDecorations = message.payload.nodeDecorations;
+  if (arePlainValuesEqual(ctx.getState().nativeNodeDecorations, nativeNodeDecorations)) return;
+  return { nativeNodeDecorations };
+}
+
 export function handleContextMenuItems(
   message: Extract<ExtensionToWebviewMessage, { type: 'CONTEXT_MENU_ITEMS' }>,
 ): PartialState {

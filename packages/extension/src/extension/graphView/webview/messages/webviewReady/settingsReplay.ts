@@ -49,6 +49,7 @@ function replayWebviewReadySettingsMessages(
   }
   sendWebviewReadySettingValues(state, handlers);
   handlers.sendDecorations();
+  handlers.sendNativeDecorations?.();
   handlers.sendContextMenuItems();
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();

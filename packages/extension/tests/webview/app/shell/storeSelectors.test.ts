@@ -66,6 +66,7 @@ describe('app store selectors', () => {
     const setFilterPatterns = vi.fn();
     const setDisabledCustomFilterPatterns = vi.fn();
     const setDisabledPluginFilterPatterns = vi.fn();
+    const setRespectFilesExclude = vi.fn();
     act(() => {
       graphStore.setState({
         setSearchQuery,
@@ -74,6 +75,7 @@ describe('app store selectors', () => {
         setFilterPatterns,
         setDisabledCustomFilterPatterns,
         setDisabledPluginFilterPatterns,
+        setRespectFilesExclude,
       });
     });
 
@@ -85,6 +87,7 @@ describe('app store selectors', () => {
     result.current.setFilterPatterns(['**/generated.ts']);
     result.current.setDisabledCustomFilterPatterns(['**/generated.ts']);
     result.current.setDisabledPluginFilterPatterns(['plugin/**']);
+    result.current.setRespectFilesExclude(false);
 
     expect(result.current).toEqual({
       setSearchQuery,
@@ -93,8 +96,10 @@ describe('app store selectors', () => {
       setFilterPatterns,
       setDisabledCustomFilterPatterns,
       setDisabledPluginFilterPatterns,
+      setRespectFilesExclude,
     });
     expect(setSearchQuery).toHaveBeenCalledWith('next query');
+    expect(setRespectFilesExclude).toHaveBeenCalledWith(false);
     expect(setSearchOptions).toHaveBeenCalledWith({
       matchCase: true,
       wholeWord: false,

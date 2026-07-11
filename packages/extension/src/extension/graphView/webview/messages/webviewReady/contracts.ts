@@ -33,6 +33,7 @@ export interface GraphViewReadyHandlers {
   sendMessage(message: { type: string; payload?: unknown }): void;
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
+  sendNativeDecorations?(): void;
   sendContextMenuItems(): void;
   sendPluginStatuses?(): void;
   sendPluginExporters?(): void;

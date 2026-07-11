@@ -10,6 +10,7 @@ import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import type { ICodeGraphyConfig } from './defaults';
 import type { AutoRevealMode } from '../../shared/settings/modes';
+import { normalizeAutoRevealMode } from '../../shared/settings/autoReveal';
 
 interface CodeGraphyConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
@@ -52,7 +53,7 @@ export class Configuration {
   }
 
   get autoReveal(): AutoRevealMode {
-    return this.config.get<AutoRevealMode>('autoReveal', true);
+    return normalizeAutoRevealMode(this.config.get<unknown>('autoReveal', true));
   }
 
   /**

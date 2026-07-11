@@ -54,6 +54,7 @@ export const INITIAL_STATE: GraphStateFields = {
   edgeVisibility: {},
   graphScopeProjectionRevision: 0,
   nodeDecorations: {},
+  nativeNodeDecorations: {},
   edgeDecorations: {},
   pluginContextMenuItems: [],
   pluginExporters: [],

@@ -6,6 +6,7 @@ import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
+import { renderNodeDecorationBadge } from '../node/decorationBadge';
 
 function isNodeHighlighted(
   dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,
@@ -67,6 +68,7 @@ export function renderNodeCanvas(
   });
   ctx.globalAlpha = opacity;
   renderNodePluginOverlay(dependencies.pluginHost, node, ctx, globalScale, decoration);
+  renderNodeDecorationBadge(ctx, node, decoration, globalScale);
 
   ctx.restore();
 }

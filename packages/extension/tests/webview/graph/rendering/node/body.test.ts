@@ -100,6 +100,7 @@ function createContext(): {
     lineTo: vi.fn(),
     moveTo: vi.fn(),
     quadraticCurveTo: vi.fn(),
+    setLineDash: vi.fn(),
     strokeStyle: '',
     textAlign: 'left' as CanvasTextAlign,
     textBaseline: 'alphabetic' as CanvasTextBaseline,
@@ -144,6 +145,26 @@ describe('graph/rendering/node/body', () => {
         strokeStyle: '#1d4ed8',
       }),
     ]);
+  });
+
+  it('uses native decoration ring color, width, and dash style', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode(),
+      globalScale: 2,
+      decoration: { border: { color: '#e2c08d', width: 4, style: 'dashed' } },
+      opacity: 1,
+      isSelected: false,
+    });
+
+    expect(ctx.setLineDash).toHaveBeenCalledWith([2, 1.5]);
+    expect(operations).toContainEqual(expect.objectContaining({
+      kind: 'stroke',
+      lineWidth: 2,
+      strokeStyle: '#e2c08d',
+    }));
   });
 
   it('draws sized rectangle node bodies from plugin presentation data', () => {

@@ -76,6 +76,11 @@ describe('Configuration (configReaders)', () => {
     it('defaults to true', () => {
       expect(new Configuration().autoReveal).toBe(true);
     });
+
+    it('defaults malformed values to true', () => {
+      mockConfig['autoReveal'] = 'sideways';
+      expect(new Configuration().autoReveal).toBe(true);
+    });
   });
 
   describe('showOrphans', () => {

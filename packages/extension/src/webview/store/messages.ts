@@ -32,6 +32,7 @@ import {
 import {
   handlePluginsUpdated,
   handleDecorationsUpdated,
+  handleNativeDecorationsUpdated,
   handleContextMenuItems,
   handlePluginExportersUpdated,
   handlePluginToolbarActionsUpdated,
@@ -127,6 +128,11 @@ export const MESSAGE_HANDLERS: Record<
   DECORATIONS_UPDATED: (msg, ctx) =>
     handleDecorationsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>,
+      ctx,
+    ),
+  NATIVE_DECORATIONS_UPDATED: (msg, ctx) =>
+    handleNativeDecorationsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'NATIVE_DECORATIONS_UPDATED' }>,
       ctx,
     ),
   CONTEXT_MENU_ITEMS: (msg) =>

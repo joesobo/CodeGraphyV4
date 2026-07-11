@@ -183,7 +183,7 @@ Committed as `docs/plans/explorer-parity-checklist.md` in Task 2.1; gate 2-A cou
 | --- | --- | --- |
 | Multi-select (marquee + modifiers) | done — extended semantics in P5 | 5.x |
 | Auto-reveal active file (`explorer.autoReveal`) | todo(P2) — fixes outline bug card | 2.6 |
-| Git status decorations / problems decorations | todo(P2) | 2.7 |
+| Git status decorations / problems decorations | done(visual) | 2.7 |
 | `files.exclude` respected | todo(P2) (Trello card) | 2.5 |
 | File nesting / Open Editors / sort order | waived (tree-list concepts) | |
 | Drag semantics (canvas: select/move/pan) | todo(P5) — per owner spec | 5.x |
@@ -273,7 +273,7 @@ Template for every FS mutation: copy the `extension/actions/deleteFiles.ts` patt
 - [x] **2.4 Open variants + compare + terminal + close editor:** Open to the Side (`ViewColumn.Beside`) · Open With… · Open in Integrated Terminal · Select for Compare / Compare with Selected (armed-state like Explorer) · Close editor for node. One commit + Trello update each.
 - [x] **2.5 Find in Folder + files.exclude:** `workbench.action.findInFiles` with `filesToInclude` preset; `files.exclude` → discovery exclusions (`core/src/discovery/`) + Graph Filters toggle (default on) + excluded-count in the Filters button (links to the "Filters button reports 0" bug card). Commit.
 - [x] **2.6 Auto-reveal active file:** active-editor change → selected outline (fixes bug card); `codegraphy.autoReveal` mirroring `explorer.autoReveal` (`true` = outline+pan, `focusNoScroll` = outline only). Commit.
-- [ ] **2.7 Git + problems decorations:** host: `vscode.git` extension API (fallback `git status --porcelain` via core's git layer) + `onDidChangeDiagnostics`, debounced, shipped as in-place metric-style updates (`metricUpdates.ts` pattern — never a refresh). Webview: ring color per status, error/warning badge; check react-force-graph `nodeCanvasObject` examples first. Playwright visual test. Commit.
+- [x] **2.7 Git + problems decorations:** host: `vscode.git` extension API (fallback `git status --porcelain` via core's git layer) + `onDidChangeDiagnostics`, debounced, shipped as in-place metric-style updates (`metricUpdates.ts` pattern — never a refresh). Webview: ring color per status, error/warning badge; check react-force-graph `nodeCanvasObject` examples first. Playwright visual test. Commit. Evidence: focused host/webview tests cover collection, debounce, replay, merge precedence, 2D/3D rendering, and repaint; `native-decorations.spec.ts` verifies the Git ring and Problems badge pixels without changing graph node count.
 
 ## Checkpoints
 

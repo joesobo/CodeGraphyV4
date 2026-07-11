@@ -166,6 +166,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendSettings(): void;
   _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
+  _sendNativeDecorations?(): void;
   _sendContextMenuItems(): void;
   _sendPluginStatuses(): void;
   _sendPluginExporters?(): void;

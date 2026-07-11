@@ -32,6 +32,7 @@ export function useAppState() {
   const graphNodeTypes = useGraphStore(s => s.graphNodeTypes);
   const graphEdgeTypes = useGraphStore(s => s.graphEdgeTypes);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
+  const nativeNodeDecorations = useGraphStore(s => s.nativeNodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
   return {
@@ -61,6 +62,7 @@ export function useAppState() {
     graphNodeTypes,
     graphEdgeTypes,
     nodeDecorations,
+    nativeNodeDecorations,
     edgeDecorations,
     activeFilePath,
   };

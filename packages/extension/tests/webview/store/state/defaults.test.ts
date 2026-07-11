@@ -47,6 +47,7 @@ describe('GraphStore initial state', () => {
 
     expect(state.pluginStatuses).toEqual([]);
     expect(state.nodeDecorations).toEqual({});
+    expect(state.nativeNodeDecorations).toEqual({});
     expect(state.edgeDecorations).toEqual({});
     expect(state.pluginContextMenuItems).toEqual([]);
     expect(state.expandedGroupId).toBeNull();

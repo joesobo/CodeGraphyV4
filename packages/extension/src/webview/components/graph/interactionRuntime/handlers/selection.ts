@@ -42,6 +42,11 @@ export function createSelectionHandlers(
   const setSelection = (nodeIds: string[]): void => {
     dependencies.selectedNodesSetRef.current = new Set(nodeIds);
     dependencies.setSelectedNodes(nodeIds);
+    if (dependencies.graphMode === '2d') {
+      const graph = dependencies.fg2dRef.current;
+      const scale = graph?.zoom?.();
+      if (scale !== undefined) graph?.zoom?.(scale, 0);
+    }
   };
 
   const setHighlight = (nodeId: string | null): void => {

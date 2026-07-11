@@ -20,6 +20,7 @@ import type {
   GraphContextSelection,
 } from '../../contextMenu/contracts';
 import { makeBackgroundContextSelection } from '../../contextMenu/selection';
+import { useNodeDecorationIndicators } from './indicators/nodeDecorations';
 import {
   buildGraphData,
   type FGLink,
@@ -55,6 +56,8 @@ export interface GraphRuntimeOptions {
   theme: ThemeKind;
   timelineActive: boolean;
 }
+
+const EMPTY_NODE_DECORATIONS: Record<string, NodeDecorationPayload> = {};
 
 export interface GraphRuntimeSelection {
   selectedNodeIds: string[];
@@ -225,6 +228,15 @@ export function useGraphRuntime({
     graphDataRef.current = nextGraphData;
     return nextGraphData;
   }, [appearance, bidirectionalMode, data, favorites, graphMode, graphViewContributions, timelineActive]);
+
+  useNodeDecorationIndicators({
+    decorations: nodeDecorations ?? EMPTY_NODE_DECORATIONS,
+    fg2dRef,
+    graphMode: graphMode ?? '2d',
+    graphNodes: graphData.nodes,
+    meshesRef,
+    spritesRef,
+  });
 
   useEffect(() => {
     if (!timelineActive) return;

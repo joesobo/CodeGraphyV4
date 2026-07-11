@@ -54,6 +54,7 @@ export function createState(
     edgeVisibility: {},
     graphScopeProjectionRevision: 0,
     nodeDecorations: {},
+    nativeNodeDecorations: {},
     edgeDecorations: {},
     pluginContextMenuItems: [],
     pluginExporters: [],

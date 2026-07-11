@@ -33,6 +33,7 @@ export interface GraphViewPluginReadyContext {
   sendMessage(message: unknown): void;
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
+  sendNativeDecorations?(): void;
   sendContextMenuItems(): void;
   sendPluginStatuses?(): void;
   sendPluginExporters?(): void;
@@ -79,6 +80,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendMessage: message => context.sendMessage(message),
       sendCachedTimeline: () => context.sendCachedTimeline(),
       sendDecorations: () => context.sendDecorations(),
+      sendNativeDecorations: () => context.sendNativeDecorations?.(),
       sendContextMenuItems: () => context.sendContextMenuItems(),
       sendPluginStatuses: () => context.sendPluginStatuses?.(),
       sendPluginExporters: () => context.sendPluginExporters?.(),

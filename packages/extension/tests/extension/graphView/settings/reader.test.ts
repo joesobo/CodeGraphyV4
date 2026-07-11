@@ -74,4 +74,14 @@ describe('graphView/settings/reader', () => {
       showLabels: false,
     });
   });
+
+  it('defaults malformed auto reveal modes to true', () => {
+    const config = {
+      get<T>(section: string, defaultValue: T): T {
+        return (section === 'autoReveal' ? 'sideways' : defaultValue) as T;
+      },
+    };
+
+    expect(readGraphViewSettings(config).autoReveal).toBe(true);
+  });
 });

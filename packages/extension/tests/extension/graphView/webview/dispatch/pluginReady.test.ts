@@ -34,6 +34,7 @@ function createContext(
     sendMessage: vi.fn(),
     sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
+    sendNativeDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginStatuses: vi.fn(),
     sendPluginToolbarActions: vi.fn(),
@@ -64,6 +65,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(context.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(context.sendDecorations).toHaveBeenCalledOnce();
+    expect(context.sendNativeDecorations).toHaveBeenCalledOnce();
     expect(context.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(context.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(context.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();

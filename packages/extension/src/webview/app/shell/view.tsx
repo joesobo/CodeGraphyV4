@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../../theme/useTheme';
 import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
@@ -23,6 +23,7 @@ import { useShellVisibleGraphs } from './visibleGraphs';
 import { useDebouncedGraphScopeVisibility } from './graphScopeVisibility';
 import { webviewGraphPerfControl } from '../../perf/graph/control';
 import { webviewScopePerfTarget } from '../../perf/scope/target';
+import { mergeNodeDecorationMaps } from '../../nativeDecorations/model';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets, resetPluginAssets, updatePluginData } = usePluginManager();
@@ -51,6 +52,7 @@ export default function App(): React.ReactElement {
     graphNodeTypes,
     graphEdgeTypes,
     nodeDecorations,
+    nativeNodeDecorations = {},
     edgeDecorations,
     activeFilePath,
     graphIsIndexing,
@@ -144,6 +146,10 @@ export default function App(): React.ReactElement {
   useEffect(() => webviewGraphPerfControl.attachScopeTarget(webviewScopePerfTarget), []);
 
   const displayGraphData = coloredData || visibleGraphInput;
+  const mergedNodeDecorations = useMemo(
+    () => mergeNodeDecorationMaps(nodeDecorations, nativeNodeDecorations),
+    [nativeNodeDecorations, nodeDecorations],
+  );
   useVisibleGraphStateResponse(displayGraphData);
 
   if (isLoading) return <LoadingState />;
@@ -213,7 +219,7 @@ export default function App(): React.ReactElement {
           depthMode={depthMode}
           timelineActive={timelineActive}
           theme={theme}
-          nodeDecorations={nodeDecorations}
+          nodeDecorations={mergedNodeDecorations}
           edgeDecorations={graphEdgeDecorations}
           pluginHost={pluginHost}
           onAddFilterRequested={openFilterPopoverWithPatterns}

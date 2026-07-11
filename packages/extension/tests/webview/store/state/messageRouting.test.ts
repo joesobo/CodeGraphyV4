@@ -39,6 +39,36 @@ describe('GraphStore message routing', () => {
     expect(store.getState().edgeDecorations).toEqual(edgeDecorations);
   });
 
+  it('handles native decoration updates separately from plugin decorations', () => {
+    const pluginDecorations = { 'src/plugin.ts': { color: '#00ff00' } };
+    const nativeNodeDecorations = {
+      'src/app.ts': { border: { color: '#e2c08d', width: 2 } },
+    } satisfies Record<string, NodeDecorationPayload>;
+    store.setState({ nodeDecorations: pluginDecorations });
+
+    store.getState().handleExtensionMessage({
+      type: 'NATIVE_DECORATIONS_UPDATED',
+      payload: { nodeDecorations: nativeNodeDecorations },
+    });
+
+    expect(store.getState().nativeNodeDecorations).toEqual(nativeNodeDecorations);
+    expect(store.getState().nodeDecorations).toBe(pluginDecorations);
+  });
+
+  it('retains native decoration identity when a replay is unchanged', () => {
+    const nativeNodeDecorations = {
+      'src/app.ts': { badge: { text: '2', bgColor: '#f14c4c' } },
+    } satisfies Record<string, NodeDecorationPayload>;
+    store.setState({ nativeNodeDecorations });
+
+    store.getState().handleExtensionMessage({
+      type: 'NATIVE_DECORATIONS_UPDATED',
+      payload: { nodeDecorations: structuredClone(nativeNodeDecorations) },
+    });
+
+    expect(store.getState().nativeNodeDecorations).toBe(nativeNodeDecorations);
+  });
+
   it('ignores DECORATIONS_UPDATED messages when the payload is unchanged', () => {
     const nodeDecorations: Record<string, NodeDecorationPayload> = {
       'src/app.ts': {

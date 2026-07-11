@@ -75,7 +75,7 @@ const smokeHtml = `<!doctype html>
           window.postMessage(
             {
               type: 'SETTINGS_UPDATED',
-              payload: { bidirectionalEdges: 'separate', showOrphans: true },
+              payload: { autoReveal: true, bidirectionalEdges: 'separate', showOrphans: true },
             },
             '*'
           );
@@ -184,7 +184,7 @@ const depthHarnessScript = `
     const publishSettings = () => {
       postToWebview({
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'separate', showOrphans: false },
+        payload: { autoReveal: true, bidirectionalEdges: 'separate', showOrphans: false },
       });
     };
 
@@ -445,7 +445,7 @@ const packageGraphViewPluginHarnessScript = `
       });
       postToWebview({
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'separate', showOrphans: true },
+        payload: { autoReveal: true, bidirectionalEdges: 'separate', showOrphans: true },
       });
       postToWebview({
         type: 'GRAPH_DATA_UPDATED',
@@ -606,7 +606,7 @@ const particlesPluginHarnessScript = `
     const publishBaseState = () => {
       postToWebview({
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'separate', showOrphans: true },
+        payload: { autoReveal: true, bidirectionalEdges: 'separate', showOrphans: true },
       });
       postToWebview({
         type: 'GRAPH_DATA_UPDATED',

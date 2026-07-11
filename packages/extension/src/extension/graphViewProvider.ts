@@ -17,6 +17,16 @@ export class GraphViewProvider
 {
   public static readonly viewType = 'codegraphy.graphView';
   public static readonly timelineViewType = 'codegraphy.timelineView';
+
+  private nativeDecorationsReplay: () => void = () => undefined;
+
+  public setNativeDecorationsReplay(replay: () => void): void {
+    this.nativeDecorationsReplay = replay;
+  }
+
+  public _sendNativeDecorations(): void {
+    this.nativeDecorationsReplay();
+  }
 }
 
 // The public methods are assigned during runtime bootstrap, so the instance
