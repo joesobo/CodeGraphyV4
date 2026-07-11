@@ -79,22 +79,22 @@ describe('graph/contextActions/builders', () => {
     ]);
 
     expect(getBuiltInContextActionEffects('createFile', nodeContext(['src']))).toEqual([
-      { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: 'src' } } },
+      { kind: 'beginInlineCreate', itemKind: 'file', directory: 'src' },
     ]);
     expect(getBuiltInContextActionEffects('createFolder', nodeContext(['src']))).toEqual([
-      { kind: 'postMessage', message: { type: 'CREATE_FOLDER', payload: { directory: 'src' } } },
+      { kind: 'beginInlineCreate', itemKind: 'folder', directory: 'src' },
     ]);
     expect(getBuiltInContextActionEffects('createFile', nodeContext([]))).toEqual([
-      { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: '.' } } },
+      { kind: 'beginInlineCreate', itemKind: 'file', directory: '.' },
     ]);
   });
 
   it('maps the synthetic root folder node to the workspace root for creation effects', () => {
     expect(getBuiltInContextActionEffects('createFile', nodeContext(['(root)']))).toEqual([
-      { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: '.' } } },
+      { kind: 'beginInlineCreate', itemKind: 'file', directory: '.' },
     ]);
     expect(getBuiltInContextActionEffects('createFolder', nodeContext(['(root)']))).toEqual([
-      { kind: 'postMessage', message: { type: 'CREATE_FOLDER', payload: { directory: '.' } } },
+      { kind: 'beginInlineCreate', itemKind: 'folder', directory: '.' },
     ]);
   });
 });

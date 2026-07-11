@@ -74,6 +74,15 @@ describe('graph view node/file edit message', () => {
     expect(handlers.renameFile).toHaveBeenCalledWith('src/app.ts');
   });
 
+  it('routes a committed inline rename name', async () => {
+    const handlers = createHandlers();
+    await applyNodeFileEditMessage(
+      { type: 'RENAME_FILE', payload: { path: 'src/app.ts', newName: 'main.ts' } },
+      handlers,
+    );
+    expect(handlers.renameFile).toHaveBeenCalledWith('src/app.ts', 'main.ts');
+  });
+
   it('routes validated cut, copy, and paste messages', async () => {
     const handlers = createHandlers();
 
@@ -127,6 +136,15 @@ describe('graph view node/file edit message', () => {
     )).resolves.toBe(true);
 
     expect(handlers.createFile).toHaveBeenCalledWith('src');
+  });
+
+  it('routes a committed inline file name', async () => {
+    const handlers = createHandlers();
+    await applyNodeFileEditMessage(
+      { type: 'CREATE_FILE', payload: { directory: 'src', name: 'feature/view.tsx' } },
+      handlers,
+    );
+    expect(handlers.createFile).toHaveBeenCalledWith('src', 'feature/view.tsx');
   });
 
   it('creates files from the workspace root context', async () => {

@@ -17,7 +17,7 @@ import type { GraphRuntime } from '../runtime/use/state';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport, type ViewportProps } from './view';
-import { graphStore } from '../../../store/state';
+import { graphStore, useGraphStore } from '../../../store/state';
 import { publishGraphViewportScale as publishGraphViewportScaleChange } from './shell/scale';
 import { buildRenderingRuntimeOptions } from './shell/runtimeOptions';
 import { useGraphViewportModelOptions } from './shell/modelOptions';
@@ -72,6 +72,7 @@ export function GraphViewportShell({
   theme,
   viewState,
 }: GraphViewportShellProps): ReactElement {
+  const inlineEdit = useGraphStore(state => state.inlineEdit);
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const lastAccessibilitySignatureRef = useRef('');
   const accessibilityDirtyRef = useRef(true);
@@ -206,6 +207,17 @@ export function GraphViewportShell({
     sharedProps: viewportModel.sharedProps,
     viewState,
   });
+  const inlineEditNode = inlineEdit
+    ? accessibilityItems.nodes.find(node => node.id === inlineEdit.anchorNodeId)
+    : undefined;
+  const inlineEditPosition = inlineEditNode
+    ? { x: inlineEditNode.x, y: inlineEditNode.y }
+    : inlineEdit
+      ? {
+        x: (graphState.renderer.containerRef.current?.clientWidth ?? 0) / 2,
+        y: (graphState.renderer.containerRef.current?.clientHeight ?? 0) / 2,
+      }
+      : null;
   return (
     <Viewport
       accessibilityItems={accessibilityItems}
@@ -227,6 +239,7 @@ export function GraphViewportShell({
       handleNodeHover={interactions.handleNodeHover}
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
+      inlineEditPosition={inlineEditPosition}
       surface2dProps={surfaceProps.surface2dProps}
       surface3dProps={surfaceProps.surface3dProps}
       tooltipData={interactions.tooltipData}

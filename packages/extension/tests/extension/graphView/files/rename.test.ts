@@ -1,8 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { renameGraphViewFile } from '../../../../src/extension/graphView/files/rename';
+import {
+  renameGraphViewFile,
+  renameGraphViewFileTo,
+} from '../../../../src/extension/graphView/files/rename';
 
 describe('graphView/files/rename', () => {
+  it('renames to a committed name without opening an input box', async () => {
+    const executeRenameAction = vi.fn(async () => undefined);
+    const showInputBox = vi.fn();
+
+    await renameGraphViewFileTo('src/original.ts', 'renamed.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeRenameAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).not.toHaveBeenCalled();
+    expect(executeRenameAction).toHaveBeenCalledWith(
+      'src/original.ts',
+      'src/renamed.ts',
+      vscode.Uri.file('/workspace'),
+    );
+  });
   it('does nothing when no workspace folder is available', async () => {
     const showInputBox = vi.fn(async () => 'renamed.ts');
     const executeRenameAction = vi.fn(async () => undefined);

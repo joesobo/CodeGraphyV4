@@ -5,6 +5,7 @@ import {
   findMessage,
   fireEvent,
   folderData,
+  graphStore,
   openNodeMenu,
   screen,
   setupGraphContextMenuTest,
@@ -40,7 +41,9 @@ describe('Graph node context menu folder actions', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Rename Folder'));
     });
-    expect(findMessage('RENAME_FILE')?.payload.path).toBe('src');
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'rename', originalPath: 'src', pending: false,
+    });
 
     await openNodeMenu(folderData, 'src');
     clearSentMessages();
@@ -50,7 +53,7 @@ describe('Graph node context menu folder actions', () => {
     expect(findMessage('DELETE_FILES')?.payload.paths).toEqual(['src']);
   });
 
-  it('posts New Folder messages with the folder path', async () => {
+  it('starts New Folder inline editing at the folder path', async () => {
     await openNodeMenu(folderData, 'src');
     await waitFor(() => {
       expect(screen.getByText('New Folder')).toBeInTheDocument();
@@ -61,10 +64,12 @@ describe('Graph node context menu folder actions', () => {
       fireEvent.click(screen.getByText('New Folder'));
     });
 
-    expect(findMessage('CREATE_FOLDER')?.payload.directory).toBe('src');
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'createFolder', directory: 'src', pending: false,
+    });
   });
 
-  it('posts New File messages with the folder path', async () => {
+  it('starts New File inline editing at the folder path', async () => {
     await openNodeMenu(folderData, 'src');
     await waitFor(() => {
       expect(screen.getByText('New File')).toBeInTheDocument();
@@ -75,6 +80,8 @@ describe('Graph node context menu folder actions', () => {
       fireEvent.click(screen.getByText('New File'));
     });
 
-    expect(findMessage('CREATE_FILE')?.payload.directory).toBe('src');
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'createFile', directory: 'src', pending: false,
+    });
   });
 });

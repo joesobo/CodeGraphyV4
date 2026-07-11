@@ -47,7 +47,11 @@ import {
   handleToggleDimension,
 } from './messageHandlers/toolbar';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
-import { handleFileMutationFailed, handleFileMutationStarted } from './messageHandlers/fileMutation';
+import {
+  handleFileMutationFailed,
+  handleFileMutationStarted,
+  handleInlineFileEditFailed,
+} from './messageHandlers/fileMutation';
 import { handleGraphScopeHydrationUpdated } from './messageHandlers/graphScopeHydration';
 
 export const MESSAGE_HANDLERS: Record<
@@ -71,6 +75,11 @@ export const MESSAGE_HANDLERS: Record<
   FILE_MUTATION_FAILED: (msg, ctx) =>
     handleFileMutationFailed(
       msg as Extract<ExtensionToWebviewMessage, { type: 'FILE_MUTATION_FAILED' }>,
+      ctx,
+    ),
+  INLINE_FILE_EDIT_FAILED: (msg, ctx) =>
+    handleInlineFileEditFailed(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'INLINE_FILE_EDIT_FAILED' }>,
       ctx,
     ),
   GRAPH_NODE_METRICS_UPDATED: (msg, ctx) =>

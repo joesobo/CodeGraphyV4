@@ -26,6 +26,7 @@ import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
 } from './optimistic/groups/updates';
+import type { GraphInlineEditSession } from '../components/graph/inlineEdit/model';
 
 export interface GraphState {
   autoReveal: AutoRevealMode;
@@ -35,6 +36,7 @@ export interface GraphState {
   graphResetVersion: number;
   pendingFileMutations: Record<string, IGraphData>;
   fileMutationError: string | null;
+  inlineEdit: GraphInlineEditSession | null;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;
@@ -104,6 +106,10 @@ export interface GraphState {
   playbackSpeed: number;
   expandedGroupId: string | null;
   setExpandedGroupId: (id: string | null) => void;
+  beginInlineRename: (path: string) => void;
+  beginInlineCreate: (kind: 'file' | 'folder', directory: string) => void;
+  updateInlineEdit: (update: Partial<Pick<GraphInlineEditSession, 'value' | 'error' | 'pending'>>) => void;
+  clearInlineEdit: () => void;
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
   setActivePanel: (panel: GraphState['activePanel']) => void;

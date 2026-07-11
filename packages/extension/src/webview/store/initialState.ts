@@ -15,6 +15,7 @@ export const INITIAL_STATE: GraphStateFields = {
   graphResetVersion: 0,
   pendingFileMutations: {},
   fileMutationError: null,
+  inlineEdit: null,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,
   graphIndexDetail: null,

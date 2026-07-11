@@ -4,6 +4,7 @@ import {
   handleFileMutationFailed,
   handleFileMutationStarted,
 } from '../../../../src/webview/store/messageHandlers/fileMutation';
+import { createInlineRenameSession } from '../../../../src/webview/components/graph/inlineEdit/model';
 import { createState } from './graph/fixture';
 
 const graphData: IGraphData = {
@@ -39,5 +40,22 @@ describe('file mutation messages', () => {
     expect(update.graphData).toBe(graphData);
     expect(update.pendingFileMutations).toEqual({});
     expect(update.fileMutationError).toBe('rename failed');
+  });
+
+  it('restores a pending inline editor with the mutation error', () => {
+    const state = createState({
+      graphData,
+      inlineEdit: { ...createInlineRenameSession('src/a.ts'), pending: true },
+    });
+    const update = handleFileMutationFailed({
+      type: 'FILE_MUTATION_FAILED',
+      payload: { mutationId: 'missing', message: 'permission denied' },
+    }, { getState: () => state, postMessage: () => undefined });
+
+    expect(update.inlineEdit).toMatchObject({
+      value: 'a.ts',
+      pending: false,
+      error: 'permission denied',
+    });
   });
 });

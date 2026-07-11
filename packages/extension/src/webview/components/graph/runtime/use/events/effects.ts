@@ -95,6 +95,7 @@ export function useGraphEventEffects({
 
   useEffect(() => {
     const handleKeyDown = createGraphKeyboardListener({
+      beginInlineRename: path => graphStore.getState().beginInlineRename(path),
       graphMode,
       selectedNodeIds: selectedNodes,
       getAllNodeIds: () => graphDataRef.current.nodes.map(node => node.id),

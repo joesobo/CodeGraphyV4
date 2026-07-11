@@ -3,6 +3,7 @@ import { createBootstrapActions } from './bootstrap';
 import { createExtensionMessageActions } from './messages';
 import { createOptimisticLegendActions } from './optimisticLegends';
 import { createScalarActions } from './scalars';
+import { createInlineEditActions } from './inlineEdit';
 import type { GetState, SetState } from './types';
 
 export function createActions(set: SetState, get: GetState) {
@@ -11,6 +12,7 @@ export function createActions(set: SetState, get: GetState) {
     ...createScalarActions(set),
     ...createBootstrapActions(set),
     ...createOptimisticLegendActions(set),
+    ...createInlineEditActions(set),
     ...createExtensionMessageActions(set, get),
   };
 }

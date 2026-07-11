@@ -10,6 +10,7 @@ export type GraphKeyboardEffect =
   | { kind: 'openSelectedNodes'; nodeIds: string[] }
   | { kind: 'selectAll'; nodeIds: string[] }
   | { kind: 'zoom'; factor: number }
+  | { kind: 'beginInlineRename'; path: string }
   | { kind: 'postMessage'; message: WebviewToExtensionMessage }
   | { kind: 'dispatchStoreMessage'; message: ExtensionToWebviewMessage };
 

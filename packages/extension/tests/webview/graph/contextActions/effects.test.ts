@@ -200,6 +200,13 @@ describe('graph/contextActions/effects', () => {
     expect(getBuiltInContextActionEffects('rename', nodeContext([]))).toEqual([]);
   });
 
+  it('begins an inline rename for one selected path', () => {
+    expect(getBuiltInContextActionEffects('rename', nodeContext(['src/app.ts']))).toEqual([{
+      kind: 'beginInlineRename',
+      path: 'src/app.ts',
+    }]);
+  });
+
   it('creates a fit-view effect', () => {
     expect(getBuiltInContextActionEffects('fitView', nodeContext(['src/app.ts']))).toEqual([
       { kind: 'fitView' },

@@ -4,10 +4,47 @@ import {
   addGraphViewExcludePatterns,
   createGraphViewFile,
   createGraphViewFolder,
+  createNamedGraphViewFile,
+  createNamedGraphViewFolder,
   deleteGraphViewFiles,
 } from '../../../../src/extension/graphView/files/actions';
 
 describe('graphView/files/actions', () => {
+  it('creates a named file without opening an input box', async () => {
+    const executeCreateAction = vi.fn(async () => undefined);
+    const showInputBox = vi.fn();
+
+    await createNamedGraphViewFile('src', 'feature/view.tsx', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).not.toHaveBeenCalled();
+    expect(executeCreateAction).toHaveBeenCalledWith(
+      'src/feature/view.tsx',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it('creates a named folder without opening an input box', async () => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+    const showInputBox = vi.fn();
+
+    await createNamedGraphViewFolder('src', 'feature/views', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeCreateFolderAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).not.toHaveBeenCalled();
+    expect(executeCreateFolderAction).toHaveBeenCalledWith(
+      'src/feature/views',
+      vscode.Uri.file('/workspace'),
+    );
+  });
   it.each([
     { confirmDelete: true, paths: ['src/app.ts'] },
     { confirmDelete: true, paths: ['src/app.ts', 'src/lib.ts'] },

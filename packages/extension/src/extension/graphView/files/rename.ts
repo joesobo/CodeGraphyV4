@@ -34,6 +34,15 @@ export async function renameGraphViewFile(
   });
 
   if (newName === undefined) return;
+  await renameGraphViewFileTo(filePath, newName, handlers);
+}
+
+export async function renameGraphViewFileTo(
+  filePath: string,
+  newName: string,
+  handlers: GraphViewFileRenameHandlers,
+): Promise<void> {
+  if (!handlers.workspaceFolder) return;
   const plan = planGraphViewRename(filePath, newName);
   if (plan.kind === 'unchanged') return;
   if (plan.kind === 'invalid') {

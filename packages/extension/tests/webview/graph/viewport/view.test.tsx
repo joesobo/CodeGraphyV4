@@ -70,6 +70,7 @@ vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
     </button>
   ),
   ContextMenuSeparator: () => <hr data-testid="separator" />,
+  ContextMenuLabel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuShortcut: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
@@ -344,7 +345,7 @@ describe('Viewport', () => {
       action: { kind: 'builtin', action: 'open' },
       contextSelection: { kind: 'node', targets: ['src/app.ts'] },
     });
-    expect(screen.getByTestId('separator')).toBeInTheDocument();
+    expect(screen.getAllByTestId('separator')).toHaveLength(2);
   });
 
   it('changes the context menu signature when an entry label changes', () => {

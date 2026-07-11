@@ -3,8 +3,6 @@ import type { GraphContextActionContext } from '../context';
 import type { GraphContextEffect } from '../effects';
 import {
   createClipboardEffects,
-  createCreateFileEffects,
-  createCreateFolderEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
@@ -90,16 +88,19 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createPatternPromptEffects(context.targetIds),
   addNodeLegend: (context: GraphContextActionContext) =>
     createLegendPromptEffects(context.primaryTargetId, '#808080', 'node'),
-  rename: (context: GraphContextActionContext) =>
-    createOptionalSinglePathMessageEffects(context.primaryTargetId, 'RENAME_FILE'),
+  rename: (context: GraphContextActionContext) => context.primaryTargetId
+    ? [{ kind: 'beginInlineRename', path: context.primaryTargetId }]
+    : [],
   delete: (context: GraphContextActionContext) =>
     createPathListMessageEffects('DELETE_FILES', context.targetIds),
   refresh: () => createRefreshEffects(),
   fitView: () => createFitViewEffects(),
-  createFile: (context: GraphContextActionContext) =>
-    createCreateFileEffects(context.mutationDirectory),
-  createFolder: (context: GraphContextActionContext) =>
-    createCreateFolderEffects(context.mutationDirectory),
+  createFile: (context: GraphContextActionContext) => [{
+    kind: 'beginInlineCreate', itemKind: 'file', directory: context.mutationDirectory,
+  }],
+  createFolder: (context: GraphContextActionContext) => [{
+    kind: 'beginInlineCreate', itemKind: 'folder', directory: context.mutationDirectory,
+  }],
 } satisfies Record<BuiltInContextMenuAction, (context: GraphContextActionContext) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(

@@ -15,18 +15,18 @@ import {
   DropdownMenuTrigger,
 } from '../../ui/menus/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
-import { postMessage } from '../../../vscodeApi';
+import { graphStore } from '../../../store/state';
 
 type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
 type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
 type GraphMode = '2d' | '3d';
 
 function postRootFileCreation(): void {
-  postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
+  graphStore.getState().beginInlineCreate('file', '.');
 }
 
 function postRootFolderCreation(): void {
-  postMessage({ type: 'CREATE_FOLDER', payload: { directory: '.' } });
+  graphStore.getState().beginInlineCreate('folder', '.');
 }
 
 export interface ResolvedGraphViewCreateContribution {

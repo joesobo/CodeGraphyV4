@@ -5,6 +5,7 @@ import type { GraphKeyboardEffectHandlers } from '../effects/keyboard';
 import type { GraphContextMutationAvailability } from '../contextMenu/contracts';
 
 export interface GraphKeyboardListenerOptions {
+  beginInlineRename?: (path: string) => void;
   closePanels?: () => void;
   dispatchStoreMessage: (message: ExtensionToWebviewMessage) => void;
   fitView: () => void;
@@ -28,6 +29,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export function createGraphKeyboardListener({
+  beginInlineRename = () => {},
   closePanels = () => {},
   dispatchStoreMessage,
   fitView,
@@ -70,6 +72,7 @@ export function createGraphKeyboardListener({
       },
       selectAll: setSelection,
       zoomGraphView,
+      beginInlineRename,
       postMessage,
       dispatchStoreMessage,
     });

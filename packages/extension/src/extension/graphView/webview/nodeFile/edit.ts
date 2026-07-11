@@ -8,9 +8,9 @@ export interface GraphViewNodeFileEditHandlers {
   copyFiles(paths: string[]): Promise<void>;
   pasteFiles(directory: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;
-  renameFile(filePath: string): Promise<void>;
-  createFile(directory: string): Promise<string | void>;
-  createFolder(directory: string): Promise<string | void>;
+  renameFile(filePath: string, newName?: string): Promise<void>;
+  createFile(directory: string, name?: string): Promise<string | void>;
+  createFolder(directory: string, name?: string): Promise<string | void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
 }
@@ -55,12 +55,23 @@ function applyTimelineBoundEditMessage(
       void handlers.deleteFiles(message.payload.paths);
       return true;
     case 'RENAME_FILE':
-      void handlers.renameFile(message.payload.path);
+      if (message.payload.newName === undefined) void handlers.renameFile(message.payload.path);
+      else void handlers.renameFile(message.payload.path, message.payload.newName);
       return true;
     case 'CREATE_FILE':
-      return createGraphItemInContext(message.payload, directory => handlers.createFile(directory));
+      return createGraphItemInContext(
+        message.payload,
+        (directory, name) => name === undefined
+          ? handlers.createFile(directory)
+          : handlers.createFile(directory, name),
+      );
     case 'CREATE_FOLDER':
-      return createGraphItemInContext(message.payload, directory => handlers.createFolder(directory));
+      return createGraphItemInContext(
+        message.payload,
+        (directory, name) => name === undefined
+          ? handlers.createFolder(directory)
+          : handlers.createFolder(directory, name),
+      );
     case 'ADD_TO_EXCLUDE':
       void handlers.addToExclude(message.payload.patterns);
       return true;
@@ -70,10 +81,11 @@ function applyTimelineBoundEditMessage(
 }
 
 async function createGraphItemInContext(
-  payload: { directory: string },
-  createGraphItem: (directory: string) => Promise<string | void>,
+  payload: { directory: string; name?: string },
+  createGraphItem: (directory: string, name?: string) => Promise<string | void>,
 ): Promise<boolean> {
-  await createGraphItem(payload.directory);
+  if (payload.name === undefined) await createGraphItem(payload.directory);
+  else await createGraphItem(payload.directory, payload.name);
   return true;
 }
 

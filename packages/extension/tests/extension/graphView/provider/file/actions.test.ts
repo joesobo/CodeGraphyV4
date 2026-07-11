@@ -422,10 +422,13 @@ async function createDefaultDependencyHarness(
   vi.doMock('../../../../../src/extension/graphView/files/actions', () => ({
     createGraphViewFile: createFile,
     createGraphViewFolder: createFolder,
+    createNamedGraphViewFile: vi.fn(async () => undefined),
+    createNamedGraphViewFolder: vi.fn(async () => undefined),
     deleteGraphViewFiles: deleteFiles,
   }));
   vi.doMock('../../../../../src/extension/graphView/files/rename', () => ({
     renameGraphViewFile: renameFile,
+    renameGraphViewFileTo: vi.fn(async () => undefined),
   }));
   vi.doMock('../../../../../src/extension/graphView/favorites', () => ({
     toggleGraphViewFavorites: toggleFavorites,

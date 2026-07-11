@@ -11,6 +11,7 @@ export function createState(
     graphResetVersion: 0,
     pendingFileMutations: {},
     fileMutationError: null,
+    inlineEdit: null,
     graphHasIndex: false,
     graphIndexFreshness: 'missing',
     graphIndexDetail: null,

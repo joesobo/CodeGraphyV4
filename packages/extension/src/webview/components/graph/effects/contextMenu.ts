@@ -32,6 +32,12 @@ const EFFECT_APPLIERS: GraphContextEffectAppliers = {
   fitView: (_effect, handlers) => {
     handlers.fitView();
   },
+  beginInlineRename: effect => {
+    graphStore.getState().beginInlineRename(effect.path);
+  },
+  beginInlineCreate: effect => {
+    graphStore.getState().beginInlineCreate(effect.itemKind, effect.directory);
+  },
   setCompareSelectedPath: (effect) => {
     graphStore.getState().setCompareSelectedPath(effect.path);
   },

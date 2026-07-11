@@ -293,23 +293,21 @@ describe('ToolbarActions', () => {
     });
   });
 
-  it('posts root creation messages from the graph tool rail create menu', () => {
+  it('starts root inline editors from the graph tool rail create menu', () => {
     enableRuntimeGraphViewContributions();
     renderWithProviders();
     expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
 
     fireEvent.click(screen.getByText('New File...'));
 
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'CREATE_FILE',
-      payload: { directory: '.' },
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'createFile', directory: '.', pending: false,
     });
 
     fireEvent.click(screen.getByText('New Folder...'));
 
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'CREATE_FOLDER',
-      payload: { directory: '.' },
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'createFolder', directory: '.', pending: false,
     });
 
   });

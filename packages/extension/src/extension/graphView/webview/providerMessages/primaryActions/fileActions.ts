@@ -48,9 +48,15 @@ export function createFileActions(source: GraphViewProviderMessageListenerSource
     revealInExplorer: filePath => source._revealInExplorer(resolveGraphOpenPath(source, filePath)),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),
-    renameFile: filePath => source._renameFile(filePath),
-    createFile: directory => source._createFile(normalizeGraphMutationDirectory(directory)),
-    createFolder: directory => source._createFolder(normalizeGraphMutationDirectory(directory)),
+    renameFile: (filePath, newName) => source._renameFile(filePath, newName),
+    createFile: (directory, name) => source._createFile(
+      normalizeGraphMutationDirectory(directory),
+      name,
+    ),
+    createFolder: (directory, name) => source._createFolder(
+      normalizeGraphMutationDirectory(directory),
+      name,
+    ),
     toggleFavorites: paths => source._toggleFavorites(paths),
     addToExclude: patterns => source._addToExclude(patterns),
     getFileInfo: filePath => source._getFileInfo(resolveGraphOpenPath(source, filePath)),

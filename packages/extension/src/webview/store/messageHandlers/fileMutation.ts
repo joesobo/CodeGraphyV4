@@ -26,14 +26,34 @@ export function handleFileMutationFailed(
 ): PartialState {
   const state = context.getState();
   const previousGraphData = state.pendingFileMutations[message.payload.mutationId];
-  if (!previousGraphData) return { fileMutationError: message.payload.message };
+  if (!previousGraphData) {
+    return {
+      fileMutationError: message.payload.message,
+      inlineEdit: state.inlineEdit
+        ? { ...state.inlineEdit, error: message.payload.message, pending: false }
+        : null,
+    };
+  }
   const pendingFileMutations = { ...state.pendingFileMutations };
   delete pendingFileMutations[message.payload.mutationId];
   return {
     fileMutationError: message.payload.message,
     graphData: previousGraphData,
     pendingFileMutations,
+    inlineEdit: state.inlineEdit
+      ? { ...state.inlineEdit, error: message.payload.message, pending: false }
+      : null,
   };
+}
+
+export function handleInlineFileEditFailed(
+  message: Extract<ExtensionToWebviewMessage, { type: 'INLINE_FILE_EDIT_FAILED' }>,
+  context: IHandlerContext,
+): PartialState {
+  const inlineEdit = context.getState().inlineEdit;
+  return inlineEdit
+    ? { inlineEdit: { ...inlineEdit, error: message.payload.message, pending: false } }
+    : {};
 }
 
 function toOptimisticMutation(

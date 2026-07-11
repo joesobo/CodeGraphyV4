@@ -12,6 +12,7 @@ import type { Surface2dProps } from '../rendering/surface/view/twoDimensional';
 import type { Surface3dProps } from '../rendering/surface/view/threeDimensional';
 import type { GraphTooltipState } from '../tooltip/model';
 import type { GraphAccessibilityItems } from './accessibility';
+import type { GraphInlineEditPosition } from '../inlineEdit/view';
 
 export interface ViewportProps {
   accessibilityItems?: GraphAccessibilityItems;
@@ -32,6 +33,7 @@ export interface ViewportProps {
   handleNodeContextMenu?: (this: void, nodeId: string, event: MouseEvent) => void;
   handleNodeHover?: (this: void, node: FGNode | null) => void;
   marqueeSelection?: GraphMarqueeSelectionState | null;
+  inlineEditPosition?: GraphInlineEditPosition | null;
   menuEntries: GraphContextMenuEntry[];
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;

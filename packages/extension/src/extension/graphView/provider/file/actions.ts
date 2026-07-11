@@ -3,8 +3,20 @@ import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { CreateFolderAction } from '../../../actions/createFolder';
 import { ToggleFavoriteAction } from '../../../actions/toggleFavorite';
-import { createGraphViewFile, createGraphViewFolder, deleteGraphViewFiles } from '../../files/actions';
-import { renameGraphViewFile } from '../../files/rename';
+import {
+  createGraphViewFile,
+  createGraphViewFolder,
+  createNamedGraphViewFile,
+  createNamedGraphViewFolder,
+  deleteGraphViewFiles,
+  type GraphViewFileCreateHandlers,
+  type GraphViewFolderCreateHandlers,
+} from '../../files/actions';
+import {
+  renameGraphViewFile,
+  renameGraphViewFileTo,
+  type GraphViewFileRenameHandlers,
+} from '../../files/rename';
 import { toggleGraphViewFavorites } from '../../favorites';
 import {
   copyGraphViewProviderTextToClipboard,
@@ -43,9 +55,9 @@ export interface GraphViewProviderFileActionMethods {
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;
-  _renameFile(filePath: string): Promise<void>;
-  _createFile(directory: string): Promise<string | void>;
-  _createFolder(directory: string): Promise<string | void>;
+  _renameFile(filePath: string, newName?: string): Promise<void>;
+  _createFile(directory: string, name?: string): Promise<string | void>;
+  _createFolder(directory: string, name?: string): Promise<string | void>;
   _toggleFavorites(paths: string[]): Promise<void>;
 }
 
@@ -55,8 +67,11 @@ export interface GraphViewProviderFileActionMethodDependencies {
   copyText: typeof copyGraphViewProviderTextToClipboard;
   deleteFiles: typeof deleteGraphViewFiles;
   renameFile: typeof renameGraphViewFile;
+  renameFileTo?: typeof renameGraphViewFileTo;
   createFile: typeof createGraphViewFile;
+  createNamedFile?: typeof createNamedGraphViewFile;
   createFolder: typeof createGraphViewFolder;
+  createNamedFolder?: typeof createNamedGraphViewFolder;
   toggleFavorites: typeof toggleGraphViewFavorites;
   getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
   getDeleteSettings?(): { confirmDelete: boolean; useTrash: boolean };
@@ -84,8 +99,11 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
   copyText: copyGraphViewProviderTextToClipboard,
   deleteFiles: deleteGraphViewFiles,
   renameFile: renameGraphViewFile,
+  renameFileTo: renameGraphViewFileTo,
   createFile: createGraphViewFile,
+  createNamedFile: createNamedGraphViewFile,
   createFolder: createGraphViewFolder,
+  createNamedFolder: createNamedGraphViewFolder,
   toggleFavorites: toggleGraphViewFavorites,
   getWorkspaceFolder: getCurrentWorkspaceFolder,
   getDeleteSettings: () => ({
@@ -167,8 +185,8 @@ export function createGraphViewProviderFileActionMethods(
     });
   };
 
-  const _renameFile = async (filePath: string): Promise<void> => {
-    await dependencies.renameFile(filePath, {
+  const _renameFile = async (filePath: string, newName?: string): Promise<void> => {
+    const args: GraphViewFileRenameHandlers = {
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeRenameAction: async (oldPath, newPath, workspaceFolderUri) => {
@@ -179,12 +197,17 @@ export function createGraphViewProviderFileActionMethods(
       },
       showErrorMessage: message => {
         dependencies.showErrorMessage(message);
+        if (newName !== undefined) {
+          source._sendMessage({ type: 'INLINE_FILE_EDIT_FAILED', payload: { message } });
+        }
       },
-    });
+    };
+    if (newName === undefined) await dependencies.renameFile(filePath, args);
+    else await (dependencies.renameFileTo ?? renameGraphViewFileTo)(filePath, newName, args);
   };
 
-  const _createFile = async (directory: string): Promise<string | void> => {
-    return dependencies.createFile(directory, {
+  const _createFile = async (directory: string, name?: string): Promise<string | void> => {
+    const handlers: GraphViewFileCreateHandlers = {
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeCreateAction: async (filePath, workspaceFolderUri) => {
@@ -195,12 +218,18 @@ export function createGraphViewProviderFileActionMethods(
       },
       showErrorMessage: message => {
         dependencies.showErrorMessage(message);
+        if (name !== undefined) {
+          source._sendMessage({ type: 'INLINE_FILE_EDIT_FAILED', payload: { message } });
+        }
       },
-    });
+    };
+    return name === undefined
+      ? dependencies.createFile(directory, handlers)
+      : (dependencies.createNamedFile ?? createNamedGraphViewFile)(directory, name, handlers);
   };
 
-  const _createFolder = async (directory: string): Promise<string | void> => {
-    return dependencies.createFolder(directory, {
+  const _createFolder = async (directory: string, name?: string): Promise<string | void> => {
+    const handlers: GraphViewFolderCreateHandlers = {
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeCreateFolderAction: async (folderPath, workspaceFolderUri) => {
@@ -213,8 +242,14 @@ export function createGraphViewProviderFileActionMethods(
       },
       showErrorMessage: message => {
         dependencies.showErrorMessage(message);
+        if (name !== undefined) {
+          source._sendMessage({ type: 'INLINE_FILE_EDIT_FAILED', payload: { message } });
+        }
       },
-    });
+    };
+    return name === undefined
+      ? dependencies.createFolder(directory, handlers)
+      : (dependencies.createNamedFolder ?? createNamedGraphViewFolder)(directory, name, handlers);
   };
 
   const _toggleFavorites = async (paths: string[]): Promise<void> => {

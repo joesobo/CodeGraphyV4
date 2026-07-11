@@ -76,10 +76,11 @@ function getDirectGraphKeyboardCommand(
     })
     : null;
   const renameCommand = mutationsEnabled && selectedWorkspacePaths.length === 1
-    ? createFileMessageCommand({
-      type: 'RENAME_FILE',
-      payload: { path: selectedWorkspacePaths[0] },
-    })
+    ? {
+      preventDefault: true,
+      stopPropagation: true,
+      effects: [{ kind: 'beginInlineRename' as const, path: selectedWorkspacePaths[0] }],
+    }
     : null;
   const directCommands: Partial<Record<string, GraphKeyboardCommand | null>> = {
     '0': createFitViewCommand(),

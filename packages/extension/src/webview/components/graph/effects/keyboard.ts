@@ -11,6 +11,7 @@ export interface GraphKeyboardEffectHandlers {
   zoomGraphView(factor: number): void;
   postMessage(message: WebviewToExtensionMessage): void;
   dispatchStoreMessage(message: ExtensionToWebviewMessage): void;
+  beginInlineRename?(path: string): void;
 }
 
 function applyKeyboardEffect(
@@ -35,6 +36,9 @@ function applyKeyboardEffect(
       return;
     case 'zoom':
       handlers.zoomGraphView(effect.factor);
+      return;
+    case 'beginInlineRename':
+      handlers.beginInlineRename?.(effect.path);
       return;
     case 'postMessage':
       handlers.postMessage(effect.message);

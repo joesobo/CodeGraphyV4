@@ -22,6 +22,7 @@ import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
 } from './optimistic/groups/updates';
+import type { GraphInlineEditSession } from '../components/graph/inlineEdit/model';
 
 /** All fields that the store can hold — used to type partial state updates. */
 export interface IStoreFields {
@@ -32,6 +33,7 @@ export interface IStoreFields {
   graphResetVersion: number;
   pendingFileMutations: Record<string, IGraphData>;
   fileMutationError: string | null;
+  inlineEdit: GraphInlineEditSession | null;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';
   graphIndexDetail: string | null;

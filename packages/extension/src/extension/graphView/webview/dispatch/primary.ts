@@ -46,9 +46,9 @@ export interface GraphViewPrimaryMessageContext {
   copyFiles(paths: string[]): Promise<void>;
   pasteFiles(directory: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;
-  renameFile(filePath: string): Promise<void>;
-  createFile(directory: string): Promise<string | void>;
-  createFolder(directory: string): Promise<string | void>;
+  renameFile(filePath: string, newName?: string): Promise<void>;
+  createFile(directory: string, name?: string): Promise<string | void>;
+  createFolder(directory: string, name?: string): Promise<string | void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
   indexAndSendData(): Promise<void>;

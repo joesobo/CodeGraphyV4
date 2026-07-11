@@ -8,6 +8,8 @@ export type GraphContextEffect =
   | { kind: 'openFile'; path: string }
   | { kind: 'focusNode'; nodeId: string }
   | { kind: 'fitView' }
+  | { kind: 'beginInlineRename'; path: string }
+  | { kind: 'beginInlineCreate'; itemKind: 'file' | 'folder'; directory: string }
   | { kind: 'setCompareSelectedPath'; path: string | null }
   | { kind: 'promptFilterPattern'; patterns: string[] }
   | { kind: 'promptLegendRule'; pattern: string; color: string; target: 'node' | 'edge' }

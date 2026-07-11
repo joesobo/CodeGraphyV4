@@ -47,9 +47,9 @@ export type WebviewToExtensionMessage =
   | { type: 'REVEAL_IN_EXPLORER'; payload: { path: string } }
   | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
   | { type: 'DELETE_FILES'; payload: { paths: string[] } }
-  | { type: 'RENAME_FILE'; payload: { path: string } }
-  | { type: 'CREATE_FILE'; payload: GraphItemCreatePayload }
-  | { type: 'CREATE_FOLDER'; payload: GraphItemCreatePayload }
+  | { type: 'RENAME_FILE'; payload: { path: string; newName?: string } }
+  | { type: 'CREATE_FILE'; payload: GraphItemCreatePayload & { name?: string } }
+  | { type: 'CREATE_FOLDER'; payload: GraphItemCreatePayload & { name?: string } }
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }

@@ -224,7 +224,7 @@ describe('Graph context menu (background)', () => {
     expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
   });
 
-  it('sends CREATE_FILE message when clicking New File', async () => {
+  it('starts a root inline file editor when clicking New File', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -242,12 +242,12 @@ describe('Graph context menu (background)', () => {
       fireEvent.click(screen.getByText('New File'));
     });
 
-    const createMsg = findMessage('CREATE_FILE');
-    expect(createMsg).toBeTruthy();
-    expect(createMsg!.payload.directory).toBe('.');
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'createFile', directory: '.', pending: false,
+    });
   });
 
-  it('sends CREATE_FOLDER message when clicking New Folder', async () => {
+  it('starts a root inline folder editor when clicking New Folder', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -265,9 +265,9 @@ describe('Graph context menu (background)', () => {
       fireEvent.click(screen.getByText('New Folder'));
     });
 
-    const createMsg = findMessage('CREATE_FOLDER');
-    expect(createMsg).toBeTruthy();
-    expect(createMsg!.payload.directory).toBe('.');
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'createFolder', directory: '.', pending: false,
+    });
   });
 
   it('fits view in 2d when clicking Fit All Nodes', async () => {

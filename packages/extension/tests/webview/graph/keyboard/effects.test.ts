@@ -164,10 +164,7 @@ describe('graph/keyboard/effects', () => {
       allNodeIds: ['src/app.ts'],
       targetIsEditable: false,
       mutationAvailability: 'enabled',
-    })?.effects).toEqual([{
-      kind: 'postMessage',
-      message: { type: 'RENAME_FILE', payload: { path: 'src/app.ts' } },
-    }]);
+    })?.effects).toEqual([{ kind: 'beginInlineRename', path: 'src/app.ts' }]);
   });
 
   it('does not rename multiple selected files with F2', () => {

@@ -127,9 +127,9 @@ export interface GraphViewProviderMessageListenerSource {
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;
-  _renameFile(filePath: string): Promise<void>;
-  _createFile(directory: string): Promise<string | void>;
-  _createFolder(directory: string): Promise<string | void>;
+  _renameFile(filePath: string, newName?: string): Promise<void>;
+  _createFile(directory: string, name?: string): Promise<string | void>;
+  _createFolder(directory: string, name?: string): Promise<string | void>;
   _toggleFavorites(paths: string[]): Promise<void>;
   _addToExclude(patterns: string[]): Promise<void>;
   _loadAndSendData(): Promise<void>;

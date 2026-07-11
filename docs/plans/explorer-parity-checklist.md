@@ -20,8 +20,8 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Open Timeline | waived(Graph Revision view) | — | Graph Revision is the graph-native timeline surface. |
 | Cut / Copy / Paste | done(unit) | 2.2 | Runtime-validated host clipboard, transactional undoable paste, timeline gating, and decision-aware menus pass focused tests; Dev Host walk remains in 2-G. |
 | Copy Path / Copy Relative Path | done(unit) | 2.1 | Single/multi relative-path and single absolute-path entry contracts plus clipboard host action pass. |
-| Rename | done(unit) | 2.1 / 6.2 | Prompt-based provider action is covered; inline editing remains Phase 6. |
-| Delete to trash | partial | 6.1 | Delete exists; `files.enableTrash` and Explorer confirmation parity remain. |
+| Rename | done(unit) | 2.1 / 6.2 | F2 and node menus open the projected canvas input; basename selection, Enter/Escape/blur, named host routing, and inline failure recovery are covered. |
+| Delete to trash | done(unit) | 6.1 | The invocation-time `files.enableTrash` and `explorer.confirmDelete` matrix passes for single and multi-delete. |
 | Share vscode.dev link | waived(web-only) | — | Desktop extension does not expose Explorer's web sharing surface. |
 
 ## Folder context menu
@@ -63,18 +63,18 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | File nesting / Open Editors / sort order | waived(tree-list concepts) | — | Not applicable to the graph surface. |
 | Canvas select / move / pan | todo(P5) | 5.x | Desktop interaction phase. |
 | Drag-to-move files / external OS drop | deferred(future epic) | 8.4 | Follow-up card required during publication. |
-| Inline input for new / rename | todo(P6) | 6.2 | Prompt flow remains until Phase 6. |
-| Delete confirmation and trash settings | todo(P6) | 6.1 | Explorer settings/copy parity remains. |
+| Inline input for new / rename | done(unit) | 6.2 | Node/background menus and the toolbar use a projected HTML input plus temporary ghost node; legacy prompts remain only for non-canvas callers. |
+| Delete confirmation and trash settings | done(unit) | 6.1 | All eight setting × target-count cases pass with Explorer copy and persistent Do not ask me again. |
 
 ## Validation gates
 
 | Gate | Contract | Status | Owning task | Current evidence / next proof |
 | --- | --- | --- | --- | --- |
-| V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 2.1 / 6.2 | 123 focused tests pass across `createPath`, graph file validation, rename, and create-action modules; inline-error presentation remains Phase 6. |
-| V2 | Existing-name collision uses Explorer-equivalent error shape | done(unit) | 2.2 / 6.2 | Redo rejects an occupied planned destination with the exact named error. |
+| V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 2.1 / 6.2 | Canvas validation keeps the editor open and renders the error beneath the input. |
+| V2 | Existing-name collision uses Explorer-equivalent error shape | done(unit) | 2.2 / 6.2 | Host mutation failures, including occupied destinations, are routed back into the pending canvas editor. |
 | V3 | Path separators in New File create nested folders | done(unit) | 2.1 | Deep nested creation, parent creation, normalization, rollback, and undo have focused coverage; Dev Host proof remains. |
 | V4 | Paste collision uses ` copy`, ` copy 2`, … | done(unit) | 2.2 | Files, folders, multi-dot names, dotfiles, and sequential batch collisions are covered; the plan's explicit stepwise sequence assertion remains. |
-| V5 | Delete follows `files.enableTrash` | todo(P6) | 6.1 | Not implemented. |
+| V5 | Delete follows `files.enableTrash` | done(unit) | 6.1 | Invocation-time configuration is threaded through optimistic and undoable file/folder deletion. |
 | V6 | `explorer.confirmDelete` and persistent opt-out are honored | todo(P6) | 6.1 | Not implemented. |
 | V7 | Every filesystem mutation is undoable | done(unit) | 2.1 / 2.2 / 2.3 | Create, rename, delete, clipboard transactions, undo-manager chaining, and keyboard undo/redo routes have focused coverage; acceptance proof remains. |
 | V8 | Multi-select destructive operations confirm once with count | done(unit) | 2.2 | Multi-item cut-paste presents one modal count confirmation; cancellation preserves the staged clipboard. |

@@ -24,6 +24,7 @@ import {
 } from './overlays/plugins';
 import { MemoizedViewportSurface } from './surface/view';
 import { createNodeTooltipProps } from './tooltip/props';
+import { GraphInlineEdit } from '../inlineEdit/view';
 
 export type { ViewportProps } from './contracts';
 
@@ -46,6 +47,7 @@ export function Viewport({
   handleNodeContextMenu,
   handleNodeHover,
   marqueeSelection,
+  inlineEditPosition,
   menuEntries,
   surface2dProps,
   surface3dProps,
@@ -90,6 +92,7 @@ export function Viewport({
           <ViewportPluginWorldOverlay pluginHost={pluginHost} />
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
+          <GraphInlineEdit position={inlineEditPosition ?? null} />
           <GraphAccessibilityOverlay
             accessibilityItems={resolvedAccessibilityItems}
             graphLinks={surface2dProps.sharedProps.graphData.links as FGLink[]}

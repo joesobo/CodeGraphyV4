@@ -490,11 +490,13 @@ Explorer conventions exactly: settings, dialogs, inline editing, loading states.
 ### Tasks
 
 - [x] **6.1 Destructive-op settings:** `vscode.workspace.fs.delete(uri, {useTrash})` per `files.enableTrash` (V5); `explorer.confirmDelete` with Explorer's exact wording incl. "You can restore this file from the Trash." + persistent "Do not ask me again" (V6). 8 acceptance scenarios ({setting} × {on,off} × single/multi). Commit.
-- [ ] **6.2 Inline rename/create on canvas:** HTML input overlay at node screen coords (`graph2ScreenCoords`); Enter commits, Escape cancels, blur commits; V1/V2 errors inline under the input like Explorer's red box; ghost node + inline input for New File/Folder replacing prompts. Commit.
+- [x] **6.2 Inline rename/create on canvas:** HTML input overlay at node screen coords (`graph2ScreenCoords`); Enter commits, Escape cancels, blur commits; V1/V2 errors inline under the input like Explorer's red box; ghost node + inline input for New File/Folder replacing prompts. Commit.
 - [ ] **6.3 Cold-open ghost graph:** persist node positions via webview `setState` (cheap persistence — not `retainContextWhenHidden`); render dimmed ghost graph instantly, swap on first data without full re-layout. Pixel gate at t+100ms. Commit.
 - [ ] **6.4 Dialog copy audit:** table of every CodeGraphy dialog/toast string vs Explorer's (captured from a real VS Code instance); fix mismatches; unit test locks strings. Commit.
 
 ## Checkpoints
+
+Implementation checkpoint (2026-07-11): F2, node/background context actions, and the toolbar create menu now open a canvas-owned HTML editor projected from the target node. Rename selects the basename without its extension; Enter and blur commit, Escape cancels, and create uses a temporary dashed ghost node. Validation and host mutation failures remain beneath the input while the same session stays open; successful graph data clears it. Legacy prompt routes remain available to non-canvas callers. The focused inline/context/keyboard/viewport/toolbar/store/provider pack passes **348/348**, with extension lint and typecheck clean. The real-desktop focus-departure and trigger-to-input latency measurements for gate 6-B remain to be captured.
 
 | # | Gate | Threshold |
 | --- | --- | --- |

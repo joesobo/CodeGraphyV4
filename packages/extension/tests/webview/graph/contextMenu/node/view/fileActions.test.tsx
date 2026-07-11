@@ -101,7 +101,9 @@ describe('Graph node context menu file actions', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Rename'));
     });
-    expect(findMessage('RENAME_FILE')?.payload.path).toBe('src/app.ts');
+    expect(graphStore.getState().inlineEdit).toMatchObject({
+      kind: 'rename', originalPath: 'src/app.ts', pending: false,
+    });
 
     await openNodeMenu();
     clearSentMessages();
