@@ -88,6 +88,7 @@ export interface GraphState {
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   graphScopeProjectionRevision: number;
+  scopeHydrationPending: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   verboseDiagnostics: boolean;

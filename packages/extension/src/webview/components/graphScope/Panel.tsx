@@ -27,6 +27,7 @@ export default function GraphScopePanel({
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
   const graphHasIndex = useGraphStore((state) => state.graphHasIndex);
+  const scopeHydrationPending = useGraphStore((state) => state.scopeHydrationPending);
   const availableEdgeTypes = useMemo(
     () => resolveAvailableEdgeTypes(edgeTypes, edgeVisibility, graphHasIndex, nodeVisibility),
     [edgeTypes, edgeVisibility, graphHasIndex, nodeVisibility],
@@ -94,6 +95,7 @@ export default function GraphScopePanel({
                   nodeColors={nodeColors}
                   nodeTypes={nodeTypes}
                   nodeVisibility={nodeVisibility}
+                  scopeHydrationPending={scopeHydrationPending}
                 />
               ) : (
                   <EdgeTypeRows

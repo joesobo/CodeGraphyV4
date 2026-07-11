@@ -48,6 +48,7 @@ import {
 } from './messageHandlers/toolbar';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 import { handleFileMutationFailed, handleFileMutationStarted } from './messageHandlers/fileMutation';
+import { handleGraphScopeHydrationUpdated } from './messageHandlers/graphScopeHydration';
 
 export const MESSAGE_HANDLERS: Record<
   string,
@@ -57,6 +58,11 @@ export const MESSAGE_HANDLERS: Record<
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>, ctx),
   GRAPH_DATA_PATCHED: (msg, ctx) =>
     handleGraphDataPatched(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_PATCHED' }>, ctx),
+  GRAPH_SCOPE_HYDRATION_UPDATED: (msg, ctx) =>
+    handleGraphScopeHydrationUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_SCOPE_HYDRATION_UPDATED' }>,
+      ctx.getState().scopeHydrationPending,
+    ),
   FILE_MUTATION_STARTED: (msg, ctx) =>
     handleFileMutationStarted(
       msg as Extract<ExtensionToWebviewMessage, { type: 'FILE_MUTATION_STARTED' }>,

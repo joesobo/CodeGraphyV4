@@ -291,6 +291,14 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.hydrateGraphScope).toHaveBeenCalledOnce();
     expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.sendMessage).toHaveBeenNthCalledWith(1, {
+      type: 'GRAPH_SCOPE_HYDRATION_UPDATED',
+      payload: { hydrating: true, scopeIds: ['symbol:function'] },
+    });
+    expect(handlers.sendMessage).toHaveBeenNthCalledWith(2, {
+      type: 'GRAPH_SCOPE_HYDRATION_UPDATED',
+      payload: { hydrating: false, scopeIds: ['symbol:function'] },
+    });
   });
 
   it('keeps hydrated symbol evidence in memory for later off/on toggles', async () => {

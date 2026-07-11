@@ -37,12 +37,24 @@ async function applyGraphControlsUpdate(
 
 async function hydrateOrReprocessGraphScope(
   handlers: GraphViewSettingsMessageHandlers,
+  scopeIds: string[],
 ): Promise<void> {
-  if (await handlers.hydrateGraphScope()) {
-    return;
-  }
+  handlers.sendMessage({
+    type: 'GRAPH_SCOPE_HYDRATION_UPDATED',
+    payload: { hydrating: true, scopeIds },
+  });
+  try {
+    if (await handlers.hydrateGraphScope()) {
+      return;
+    }
 
-  await handlers.reprocessGraphScope();
+    await handlers.reprocessGraphScope();
+  } finally {
+    handlers.sendMessage({
+      type: 'GRAPH_SCOPE_HYDRATION_UPDATED',
+      payload: { hydrating: false, scopeIds },
+    });
+  }
 }
 
 function isSymbolDependentNodeType(nodeType: string): boolean {
@@ -90,7 +102,7 @@ async function applySymbolVisibilityUpdate(
     !requiresSymbolAnalysisCacheTier(previousVisibility)
     && requiresSymbolAnalysisCacheTier(nodeVisibility)
   ) {
-    await hydrateOrReprocessGraphScope(handlers);
+    await hydrateOrReprocessGraphScope(handlers, ['symbol']);
   }
   return true;
 }
@@ -123,7 +135,7 @@ async function applySymbolDependentVisibilityUpdate(
     !requiresSymbolAnalysisCacheTier(previousVisibility)
     && requiresSymbolAnalysisCacheTier(nodeVisibility)
   ) {
-    await hydrateOrReprocessGraphScope(handlers);
+    await hydrateOrReprocessGraphScope(handlers, [nodeType]);
   }
   return true;
 }
@@ -180,7 +192,10 @@ async function applyGraphControlVisibilityBatch(
       !requiresSymbolAnalysisCacheTier(previousVisibility)
       && requiresSymbolAnalysisCacheTier(prunedNodeVisibility)
     ) {
-      await hydrateOrReprocessGraphScope(handlers);
+      const scopeIds = Object.entries(nodeVisibilityUpdates)
+        .filter(([nodeType, visible]) => visible && isSymbolDependentNodeType(nodeType))
+        .map(([nodeType]) => nodeType);
+      await hydrateOrReprocessGraphScope(handlers, scopeIds);
     }
   }
 

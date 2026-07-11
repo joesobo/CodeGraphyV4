@@ -57,6 +57,7 @@ export function createState(
     nodeVisibility: {},
     edgeVisibility: {},
     graphScopeProjectionRevision: 0,
+    scopeHydrationPending: {},
     nodeDecorations: {},
     nativeNodeDecorations: {},
     edgeDecorations: {},

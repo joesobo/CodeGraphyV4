@@ -78,6 +78,7 @@ export interface IStoreFields {
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   graphScopeProjectionRevision: number;
+  scopeHydrationPending: Record<string, boolean>;
   nodeDecorations: Record<string, NodeDecorationPayload>;
   nativeNodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;

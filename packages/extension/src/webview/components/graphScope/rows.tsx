@@ -22,12 +22,14 @@ interface ScopeRowProps {
   onCheckedChange: (visible: boolean) => void;
   depth?: number;
   description?: IGraphTypeDescription;
+  hydrating?: boolean;
 }
 
 interface NodeTypeRowsProps {
   nodeColors: Record<string, string>;
   nodeTypes: IGraphNodeTypeDefinition[];
   nodeVisibility: Record<string, boolean>;
+  scopeHydrationPending?: Record<string, boolean>;
 }
 
 interface EdgeTypeRowsProps {
@@ -91,6 +93,7 @@ function ScopeRow({
   depth = 0,
   description,
   enabled,
+  hydrating = false,
   label,
   onCheckedChange,
 }: ScopeRowProps): React.ReactElement {
@@ -104,6 +107,7 @@ function ScopeRow({
       )}
       data-scope-row={label}
       data-scope-depth={depth}
+      data-scope-hydrating={hydrating}
     >
       {color ? (
         <span
@@ -118,7 +122,19 @@ function ScopeRow({
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-medium">{label}</div>
       </div>
-      <Switch checked={enabled} onCheckedChange={onCheckedChange} aria-label={`Toggle ${label}`} />
+      {hydrating ? (
+        <span
+          className="h-3 w-3 animate-spin rounded-full border border-muted-foreground border-t-transparent"
+          data-scope-hydration-indicator={label}
+          aria-hidden="true"
+        />
+      ) : null}
+      <Switch
+        checked={enabled}
+        disabled={hydrating}
+        onCheckedChange={onCheckedChange}
+        aria-label={`Toggle ${label}`}
+      />
     </div>
   );
 
@@ -146,6 +162,7 @@ export function NodeTypeRows({
   nodeColors,
   nodeTypes,
   nodeVisibility,
+  scopeHydrationPending = {},
 }: NodeTypeRowsProps): React.ReactElement {
   const nodeTypeById = new Map(nodeTypes.map((nodeType) => [nodeType.id, nodeType]));
   const parentIds = new Set(
@@ -181,6 +198,7 @@ export function NodeTypeRows({
             description={nodeType.description}
             depth={getDepth(nodeType)}
             enabled={enabled}
+            hydrating={scopeHydrationPending[nodeType.id] === true}
             label={nodeType.label}
             onCheckedChange={(visible) => {
               applyNodeScopeVisibility(nodeTypes, nodeType.id, visible);

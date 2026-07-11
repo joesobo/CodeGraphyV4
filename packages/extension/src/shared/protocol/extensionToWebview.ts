@@ -69,6 +69,10 @@ export type ExtensionToWebviewMessage =
     }
   | { type: 'GRAPH_NODE_METRICS_UPDATED'; payload: { nodes: IGraphNodeMetricsUpdate[] } }
   | {
+      type: 'GRAPH_SCOPE_HYDRATION_UPDATED';
+      payload: { hydrating: boolean; scopeIds: string[] };
+    }
+  | {
       type: 'FILE_MUTATION_STARTED';
       payload: { mutationId: string; mutation: OptimisticFileMutationPayload };
     }

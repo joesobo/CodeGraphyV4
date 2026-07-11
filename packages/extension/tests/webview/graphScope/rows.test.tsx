@@ -82,6 +82,23 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'File')).toHaveClass('opacity-65');
   });
 
+  it('shows and disables a node row while its evidence is hydrating', () => {
+    const { container } = render(
+      <NodeTypeRows
+        nodeColors={{}}
+        nodeTypes={[
+          { id: 'symbol:function', label: 'Function', defaultColor: '#111111', defaultVisible: false },
+        ]}
+        nodeVisibility={{ 'symbol:function': true }}
+        scopeHydrationPending={{ 'symbol:function': true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Function')).toHaveAttribute('data-scope-hydrating', 'true');
+    expect(screen.getByLabelText('Toggle Function')).toBeDisabled();
+    expect(container.querySelector('[data-scope-hydration-indicator="Function"]')).toBeInTheDocument();
+  });
+
   it('renders child rows even when parent categories are disabled', () => {
     const nodeTypes = [
       { id: 'symbol', label: 'Symbol', defaultColor: '#111111', defaultVisible: false },

@@ -57,6 +57,7 @@ export const INITIAL_STATE: GraphStateFields = {
   nodeVisibility: {},
   edgeVisibility: {},
   graphScopeProjectionRevision: 0,
+  scopeHydrationPending: {},
   nodeDecorations: {},
   nativeNodeDecorations: {},
   edgeDecorations: {},
