@@ -5,17 +5,23 @@ import { GraphSurface } from '../../../../src/webview/app/graph/surface';
 
 const graphLifecycle = vi.hoisted(() => ({
   mounted: vi.fn(),
+  projectionData: vi.fn(),
+  renderedData: vi.fn(),
   unmounted: vi.fn(),
 }));
 
 vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: function MockGraph({
     data,
+    projectionData,
     scopeVisibility,
   }: {
     data: { nodes: Array<{ id: string }> };
+    projectionData?: { nodes: Array<{ id: string }> };
     scopeVisibility?: object;
   }) {
+    graphLifecycle.renderedData(data);
+    graphLifecycle.projectionData(projectionData);
     React.useEffect(() => {
       graphLifecycle.mounted();
       return () => { graphLifecycle.unmounted(); };
@@ -38,6 +44,8 @@ vi.mock('../../../../src/webview/components/depthViewControls', () => ({
 describe('app/graph/surface', () => {
   beforeEach(() => {
     graphLifecycle.mounted.mockReset();
+    graphLifecycle.projectionData.mockReset();
+    graphLifecycle.renderedData.mockReset();
     graphLifecycle.unmounted.mockReset();
   });
 
@@ -125,13 +133,16 @@ describe('app/graph/surface', () => {
   });
 
   it('keeps the graph renderer mounted while an empty projection hint is visible', () => {
-    const nonEmpty = {
+    const graphData = {
+      nodes: [{ id: 'raw-file.ts', label: 'raw-file.ts', color: '#111111' }],
+      edges: [],
+    };
+    const nonEmptyProjection = {
       nodes: [{ id: 'file.ts', label: 'file.ts', color: '#111111' }],
       edges: [],
     };
-    const empty = { nodes: [], edges: [] };
+    const emptyProjection = { nodes: [], edges: [] };
     const props = {
-      coloredData: null,
       depthMode: false,
       edgeDecorations: {},
       nodeDecorations: {},
@@ -143,15 +154,38 @@ describe('app/graph/surface', () => {
       theme: 'light' as const,
       timelineActive: false,
     };
-    const { rerender } = render(<GraphSurface {...props} graphData={nonEmpty} />);
+    const { rerender } = render(
+      <GraphSurface {...props} graphData={graphData} coloredData={nonEmptyProjection} />,
+    );
 
-    rerender(<GraphSurface {...props} graphData={empty} scopeProjectionRevision={2} />);
+    rerender(
+      <GraphSurface
+        {...props}
+        graphData={graphData}
+        coloredData={emptyProjection}
+        scopeProjectionRevision={2}
+      />,
+    );
     expect(screen.getByText(/All files are hidden/)).toBeInTheDocument();
     expect(screen.getByTestId('graph-surface-graph')).toBeInTheDocument();
+    expect(screen.getByText(/All files are hidden/).parentElement?.parentElement)
+      .toHaveClass('bg-background');
+    expect(screen.queryByTestId('depth-controls')).not.toBeInTheDocument();
+    expect(graphLifecycle.renderedData).toHaveBeenLastCalledWith(nonEmptyProjection);
+    expect(graphLifecycle.projectionData).toHaveBeenLastCalledWith(emptyProjection);
 
-    rerender(<GraphSurface {...props} graphData={nonEmpty} scopeProjectionRevision={3} />);
+    rerender(
+      <GraphSurface
+        {...props}
+        graphData={graphData}
+        coloredData={nonEmptyProjection}
+        scopeProjectionRevision={3}
+      />,
+    );
     expect(graphLifecycle.mounted).toHaveBeenCalledOnce();
     expect(graphLifecycle.unmounted).not.toHaveBeenCalled();
+    expect(graphLifecycle.renderedData).toHaveBeenLastCalledWith(nonEmptyProjection);
+    expect(graphLifecycle.projectionData).toHaveBeenLastCalledWith(nonEmptyProjection);
     expect(screen.queryByText(/All files are hidden/)).not.toBeInTheDocument();
   });
 });

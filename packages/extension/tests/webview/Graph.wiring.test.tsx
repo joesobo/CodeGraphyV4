@@ -341,6 +341,35 @@ describe('Graph wiring', () => {
 		}));
 	});
 
+	it('reports visible projection counts while retaining nonempty runtime data', () => {
+		const emptyProjection: IGraphData = { nodes: [], edges: [] };
+		const scopeVisibility: PerfScopeVisibilitySnapshot = {
+			edgeVisibility: { import: true },
+			nodeVisibility: { file: false },
+		};
+
+		render(
+			<Graph
+				data={baseData}
+				projectionData={emptyProjection}
+				scopeProjectionRevision={7}
+				scopeVisibility={scopeVisibility}
+			/>,
+		);
+
+		expect(harness.useGraphRuntime).toHaveBeenCalledWith(expect.objectContaining({
+			data: baseData,
+		}));
+		expect(harness.useGraphPerfCommit).toHaveBeenCalledWith({
+			edgeCount: 0,
+			layoutKey: 'connections::src/app.ts|src/lib.ts::src/app.ts->src/lib.ts',
+			nodeCount: 0,
+			revision: emptyProjection,
+			scopeProjectionRevision: 7,
+			scopeVisibility,
+		});
+	});
+
 	it('uses graph-view contributions registered by the webview plugin host', () => {
 		const graphViewContributions = {
 			runtimeNodes: [

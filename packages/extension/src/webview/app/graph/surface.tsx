@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import Graph from '../../components/graph/view/component';
 import { DepthViewControls } from '../../components/depthViewControls';
 import { EmptyState } from '../shell/states';
@@ -39,12 +39,18 @@ export function GraphSurface({
   onAddFilterRequested,
   onAddLegendRequested,
 }: GraphSurfaceProps): React.ReactElement {
-  const graphIsEmpty = graphData.nodes.length === 0;
+  const visibleData = coloredData ?? graphData;
+  const graphIsEmpty = visibleData.nodes.length === 0;
+  const retainedDataRef = useRef(
+    graphIsEmpty && graphData.nodes.length > 0 ? graphData : visibleData,
+  );
+  if (!graphIsEmpty) retainedDataRef.current = visibleData;
 
   return (
     <>
       <Graph
-        data={graphIsEmpty ? graphData : coloredData || graphData}
+        data={graphIsEmpty ? retainedDataRef.current : visibleData}
+        projectionData={visibleData}
         scopeProjectionRevision={scopeProjectionRevision}
         scopeVisibility={scopeVisibility}
         theme={theme}
@@ -56,7 +62,7 @@ export function GraphSurface({
       />
       {graphIsEmpty
         ? (
-            <div className="absolute inset-0 z-10">
+            <div className="bg-background absolute inset-0 z-10">
               <EmptyState
                 hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)}
                 fullScreen={false}

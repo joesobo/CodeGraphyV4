@@ -39,6 +39,7 @@ interface GraphProps {
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
+  projectionData?: IGraphData;
   scopeProjectionRevision?: number;
   scopeVisibility?: PerfScopeVisibilitySnapshot;
 }
@@ -95,6 +96,7 @@ export default function Graph({
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
+  projectionData,
   scopeProjectionRevision,
   scopeVisibility,
 }: GraphProps): React.ReactElement {
@@ -124,11 +126,12 @@ export default function Graph({
   });
   const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
   const graphNodeCount = graphRuntime.renderer.graphData.nodes.length;
+  const observedNodeCount = projectionData?.nodes.length ?? graphNodeCount;
   useGraphPerfCommit({
-    edgeCount: graphRuntime.renderer.graphData.links.length,
+    edgeCount: projectionData?.edges.length ?? graphRuntime.renderer.graphData.links.length,
     layoutKey: graphNodeCount > 0 ? graphDataLayoutKey : undefined,
-    nodeCount: graphNodeCount,
-    revision: data,
+    nodeCount: observedNodeCount,
+    revision: projectionData ?? data,
     scopeProjectionRevision,
     scopeVisibility,
   });
