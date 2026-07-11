@@ -7,6 +7,7 @@ import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
 import { renderNodeDecorationBadge } from '../node/decorationBadge';
+import { renderCachedNodeGlyph } from '../node/glyphCache';
 
 function isNodeHighlighted(
   dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,
@@ -46,7 +47,7 @@ export function renderNodeCanvas(
 
   ctx.save();
   ctx.globalAlpha = opacity;
-  renderNodeBody({
+  const bodyOptions = {
     appearance,
     ctx,
     decoration,
@@ -54,7 +55,10 @@ export function renderNodeCanvas(
     isSelected,
     node,
     opacity,
-  });
+  };
+  if (!renderCachedNodeGlyph(bodyOptions)) {
+    renderNodeBody(bodyOptions);
+  }
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
   renderNodeCollapseIndicator(ctx, node, globalScale, appearance);
   renderNodeCanvasLabel(dependencies, {

@@ -124,6 +124,7 @@ function createContext(): {
     rect: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
+    setLineDash: vi.fn(),
     stroke: vi.fn(() => {
       operations.push({
         fillStyle: ctx.fillStyle,
@@ -153,9 +154,11 @@ function createContext(): {
 describe('graph/rendering/nodes/canvas2d', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -183,6 +186,30 @@ describe('graph/rendering/nodes/canvas2d', () => {
     ]));
     expect(ctx.save).toHaveBeenCalledOnce();
     expect(ctx.restore).toHaveBeenCalledOnce();
+  });
+
+  it('reuses an offscreen glyph for nodes with the same visual style', () => {
+    const spriteContext = createContext().ctx;
+    class TestOffscreenCanvas {
+      getContext = vi.fn(() => spriteContext);
+
+      constructor(
+        readonly width: number,
+        readonly height: number,
+      ) {}
+    }
+    vi.stubGlobal('OffscreenCanvas', TestOffscreenCanvas);
+    const first = createContext();
+    const second = createContext();
+    const node = createNode({ color: '#123456' });
+
+    renderNodeCanvas(createDependencies(), node, first.ctx, 1);
+    renderNodeCanvas(createDependencies(), node, second.ctx, 1);
+
+    expect(drawShape).toHaveBeenCalledOnce();
+    expect(drawShape).toHaveBeenCalledWith(spriteContext, 'circle', 20, 20, 16);
+    expect(first.ctx.drawImage).toHaveBeenCalledOnce();
+    expect(second.ctx.drawImage).toHaveBeenCalledOnce();
   });
 
   it('draws an image overlay when the node image is cached', () => {
