@@ -21,7 +21,7 @@ export function graphStage(frame: Frame): Locator {
 }
 
 export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
-  return graphStage(frame).locator('canvas').first().evaluate((canvas) => {
+  return graphStage(frame).locator('canvas').last().evaluate((canvas) => {
     if (!(canvas instanceof HTMLCanvasElement)) {
       return 0;
     }
@@ -215,7 +215,8 @@ async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: 
 
 async function dispatchCanvasDragBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
   await graphStage(frame).evaluate((stage, options) => {
-    const canvas = stage.querySelector('canvas');
+    const canvases = stage.querySelectorAll('canvas');
+    const canvas = canvases.item(canvases.length - 1);
     if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('Expected Graph Stage to contain a canvas');
     }
@@ -496,7 +497,8 @@ async function waitForNodeCenterToMove(
 
 async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {
   return graphStage(frame).evaluate((stage, options) => {
-    const canvas = stage.querySelector('canvas');
+    const canvases = stage.querySelectorAll('canvas');
+    const canvas = canvases.item(canvases.length - 1);
     if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('Expected Graph Stage to contain a canvas');
     }
