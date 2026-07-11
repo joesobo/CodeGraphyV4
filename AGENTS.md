@@ -1,42 +1,24 @@
 # AGENTS.md
 
-## Agent skills
+## Intent Over Literal Words
 
-### Issue tracker
+My requests are APPROXIMATE. I am not the one coding; you are. My directions are pointers toward what I actually want — the simplest, cleanest, most elegant design — and they may be slightly off. That goal ALWAYS outranks my literal words.
 
-Issues and PRDs live on the CodeGraphy Trello board. See `docs/agents/issue-tracker.md`.
+When you hit a wall — a case that doesn't fit, a spec that breaks, an assumption that fails — the wall is information: the design is wrong somewhere. STOP. Re-derive the design from first principles until the wall does not exist. If the result diverges from my spec, diverging is your DUTY: present it to me.
 
-### Triage labels
-
-Use Trello lists for workflow state and Trello labels for package or area ownership. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context repo: read root `CONTEXT.md` and `docs/adr/` when present. See `docs/agents/domain.md`.
+NEVER patch around the wall to comply with my words: a flag, a special case, a conversion shim, a parallel path, a test rewritten to dodge a broken rule. The patch IS the failure and will be rejected regardless of cost sunk. A blocker honestly reported is a good outcome; a jury-rigged "working" deliverable is the worst one.
 
 ## Commands
 
 ```bash
-pnpm install       # install dependencies
-pnpm run build     # build all packages
-pnpm run dev       # start dev mode
-pnpm run test      # run all tests
-pnpm run lint      # lint all packages
-pnpm run typecheck # type-check all packages
-```
-
-Targeted runs:
-
-```bash
-pnpm --filter @codegraphy-dev/extension test
+pnpm install / build / dev / test / lint / typecheck
+pnpm --filter @codegraphy-dev/extension test                  # one package
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
 ```
 
 ## Architecture
 
-Never create `architecture.md` in this repo. The monorepo is too large for a durable file-by-file architecture map.
-
-Package boundaries are the primary entry point.
+Never create `architecture.md`. Package boundaries are the map:
 
 - `packages/extension/src/extension/` — VS Code extension host
 - `packages/extension/src/core/` — discovery, registry, views, colors
@@ -45,198 +27,29 @@ Package boundaries are the primary entry point.
 - `packages/plugin-api/src/` — plugin API contracts
 - `packages/plugin-*/src/` — built-in language plugins
 
-## Development Workflow
+## Workflow
 
-### Task Setup
+Discuss and plan before implementing. Work in a dedicated branch/worktree, commit frequently, deliver via GitHub PR.
 
-1. **Discuss first** — review approach, risks, and open questions before implementation.
-2. **Plan** — create an implementation plan once aligned.
-3. **Branch + worktree isolation** — work in a dedicated branch/worktree. Split into parallel subagent tasks where safe.
-4. **Commit frequently** — at minimum when subagent work is merged.
-5. **Deliver via PR** — push and open a GitHub PR for human review.
+- Issues/PRDs live on the CodeGraphy Trello board (`docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md`).
+- Read root `CONTEXT.md` and `docs/adr/` when present.
+- The user's open worktree is **protected**: never `git switch`, `git checkout <branch>`, or `git rebase` there — do branch work in a separate agent worktree.
+- Refactors that change a contract: move fully to the new contract — update callers, tests, docs, changesets. One forward path, no legacy shims.
 
-### Refactors and migrations
+## Code Organization
 
-- When an intentional refactor changes a contract, move the codebase to the new canonical contract directly.
-- Update callers, tests, docs, and changesets to describe the new behavior and any required migration.
-- Prefer one clear forward path through the new domain model so future agents can reason from the current contract.
-
-## CodeGraphy MCP
-
-- When CodeGraphy MCP is available, use it first for repo structure, dependency, relationship, and impact questions before broad file search.
-- Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
-- Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
-- File-oriented MCP tools accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. If CodeGraphy returns `ambiguous-file-path`, retry with one of the candidate repo-relative paths.
-- Treat **Graph Cache** as the canonical term for `.codegraphy/graph.lbug`; CodeGraphy MCP reads the Graph Cache and does not own indexing.
-- Prefer **Graph Query** language for MCP graph results. Current implementation may still contain older `viewGraph` naming until the tracked cleanup is completed.
-
-### Worktree Safety
-
-- The user's open worktree is **protected** — never run `git switch`, `git checkout <branch>`, or `git rebase` there.
-- Create a separate agent worktree for all branch operations.
-- If the protected worktree's branch is changed by mistake, restore it immediately and report what happened.
-
-## General Monorepo Rules
-
-- External dependencies belong in the package that directly owns/imports them.
-- Keep a dependency in the root manifest when multiple internal packages use it, or when it is repo-level tooling/config owned at the workspace root.
-
-## Repo Organization
-
-Organize by feature and behavior, not by technical layer.
-
-### 1. Feature-first folder structure
-
-Group code by what it does, not what type it is.
-
-```
-src/webview/settingsPanel/
-src/webview/nodeSizeToggle/
-src/core/registry/
-src/core/discovery/
-```
-
-Avoid horizontal layers that scatter a single feature across many folders:
-
-```
-src/components/
-src/hooks/
-src/utils/
-src/helpers/
-```
-
-### 2. Path carries context; filename carries role
-
-Folder names communicate feature or business context. Filenames communicate the role within that context. Do not repeat the folder name in the filename.
-
-```
-webview/settingsPanel/model.ts    ✓
-webview/settingsPanel/view.tsx    ✓
-webview/settingsPanel/SettingsPanelModel.ts  ✗
-```
-
-### 3. Split by mutation site
-
-A file should have one clear reason to change. If a file contains independently changing behaviors, extract them.
-
-- Source file exceeds 50 mutation sites → split or refactor.
-- Test file exceeds ~200–300 lines → split by source module or behavior.
-
-### 4. File-to-test mapping
-
-Every source module must have a matching test module.
-
-```
-settingsPanel/model.ts        → settingsPanel/model.test.ts
-nodeSizeToggle/command.ts    → nodeSizeToggle/command.test.ts
-```
-
-If a source file covers multiple distinct concepts, split it before creating a large test file.
-
-### 5. Prefer local code over premature abstraction
-
-Keep code close to the feature that owns it. Duplicate small amounts first; extract only when the abstraction is proven.
-
-Extract shared code only when:
-- The shared behavior is real, not coincidental.
-- The name is obvious.
-- It is used in 3+ places or is clearly stable.
-- Extraction improves clarity more than it adds indirection.
-
-### 6. Naming
-
-Ban junk-drawer names: `utils`, `helpers`, `common`, `misc`, `base`, `temp`, `new`.
-
-Ban vague role names: `manager`, `processor`, `service`, `handler2`, `thing`.
-
-Prefer a consistent, minimal vocabulary for file roles:
-
-`model` · `view` · `command` · `registry` · `parser` · `serializer` · `protocol` · `types` · `test`
-
-A reader should be able to guess what a file does from its path alone, before opening it.
+- Feature-first folders (`src/webview/settingsPanel/`), never layer folders (`src/components/`, `src/hooks/`, `src/utils/`).
+- Path carries context, filename carries role: `webview/settingsPanel/model.ts`, not `SettingsPanelModel.ts`. Role vocabulary: `model` · `view` · `command` · `registry` · `parser` · `serializer` · `protocol` · `types`.
+- No junk-drawer or vague names: `utils`, `helpers`, `common`, `misc`, `manager`, `service`, `handler`.
+- One reason to change per file. Split source files over 50 mutation sites; split test files over ~300 lines.
+- Every source module gets a matching test file (`model.ts` → `model.test.ts`).
+- Duplicate small code before abstracting; extract only when shared behavior is real, well-named, and used in 3+ places.
+- Dependencies live in the package that imports them; root manifest only for shared deps and workspace tooling.
 
 ## Quality Gates
 
-### Human-Owned Acceptance Specs
-
-Files under `packages/extension/tests/acceptance/specs/**/*.feature` are the
-human-written acceptance contract. Agents may update step bindings, fixtures,
-generated artifacts, and tooling, but must not create, edit, rename, or
-delete acceptance spec Gherkin unless the user explicitly asks for that exact
-spec change. See `docs/agents/acceptance-specs.md`.
-
-### 1. TDD — Red → Green → Refactor
-
-Write acceptance scenarios for every new or changed behavior. Ask before changing existing scenarios.
-
-**Three Laws:**
-1. No production code without a failing test.
-2. No more test code than is sufficient to fail.
-3. No more production code than is sufficient to pass.
-
-Test locations: `packages/extension/tests/` (extension + webview), `packages/plugin-*/__tests__/` (plugins).
-
-Use targeted test runs while iterating. Run `pnpm run test` before finishing.
-
-### 2. Test Quality
-
-1. **One concept per test** — if the name needs "and", split it.
-2. **Arrange-Act-Assert** — if any section is long, the test is doing too much.
-3. **File-per-module** — each source file gets a matching test file.
-4. **Descriptive names** — no abbreviations in test code.
-5. **Test behavior, not implementation** — describe what the code does, not how.
-
-### 3. CRAP ≤ 8
-
-`CRAP = comp² × (1 - cov/100)³ + comp`. High complexity with low coverage produces a high score.
-
-```bash
-pnpm run crap                    # all packages
-pnpm run crap -- plugin-godot    # specific package
-```
-
-If a function exceeds 8: add tests to raise coverage or refactor to reduce complexity.
-
-### 4. Mutation Testing ≥ 90%
-
-Stryker injects small faults and verifies tests catch them. Run one module at a time — kill all survivors before moving on.
-
-```bash
-pnpm run mutate -- plugin-godot    # specific package
-pnpm run mutate -- packages/plugin-godot/src/gdscript/resources.ts # specific source file
-```
-
-Bare `pnpm run mutate` is intentionally invalid. CI owns all-package mutation seed refreshes.
-
-Thresholds: ≥90% required · ≥80% warning · <80% must fix. Report: `reports/quality-tools/mutation/mutation.html`.
-
-### 5. Lint + Typecheck
-
-Pre-commit hooks run automatically. Keep staged changes clean.
-
-```bash
-pnpm run lint
-pnpm run typecheck
-```
-
-### 6. Changesets
-
-Required for **user-facing changes** (features, fixes, behavior changes). Skip for refactors, tests, CI, and docs.
-
-```bash
-pnpm changeset
-```
-
-Or create manually in `.changeset/`:
-
-```md
----
-"@codegraphy-dev/extension": minor
----
-
-Add node size toggle to the toolbar with four sizing modes
-```
-
-Levels: `patch` (bug fix) · `minor` (feature) · `major` (breaking change).
-
-Write from the user's perspective, not implementation details.
+- **Acceptance specs are human-owned**: never create, edit, rename, or delete `packages/extension/tests/acceptance/specs/**/*.feature` unless explicitly asked. See `docs/agents/acceptance-specs.md`.
+- **TDD**: no production code without a failing test first. Tests live in `packages/extension/tests/` and `packages/plugin-*/__tests__/`. Test behavior, not implementation; one concept per test. Run `pnpm run test` before finishing.
+- **CRAP ≤ 8** per function (`pnpm run crap -- <package>`): add tests or reduce complexity.
+- **Mutation score ≥ 90%** (`pnpm run mutate -- <package|file>`, one module at a time; bare `pnpm run mutate` is invalid). Report: `reports/quality-tools/mutation/mutation.html`.
+- **Changeset** for user-facing changes only (`pnpm changeset`; skip for refactors/tests/CI/docs). Write it from the user's perspective.
