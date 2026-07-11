@@ -9,6 +9,7 @@ function createSnapshot(
   overrides: Partial<ISettingsSnapshot> = {},
 ): ISettingsSnapshot {
   return {
+    autoReveal: true,
     physics: {
       repelForce: 10,
       linkDistance: 80,

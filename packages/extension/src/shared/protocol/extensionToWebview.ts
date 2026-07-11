@@ -7,6 +7,7 @@ import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
 import type { IGraphControlsSnapshot } from '../graphControls/contracts';
 import type {
+  AutoRevealMode,
   BidirectionalEdgeMode,
   DagMode,
   DirectionMode,
@@ -72,7 +73,11 @@ export type ExtensionToWebviewMessage =
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | {
       type: 'SETTINGS_UPDATED';
-      payload: { bidirectionalEdges: BidirectionalEdgeMode; showOrphans: boolean };
+      payload: {
+        autoReveal: AutoRevealMode;
+        bidirectionalEdges: BidirectionalEdgeMode;
+        showOrphans: boolean;
+      };
     }
   | { type: 'REQUEST_EXPORT_PNG' }
   | { type: 'REQUEST_EXPORT_SVG' }

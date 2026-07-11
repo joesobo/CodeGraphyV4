@@ -51,6 +51,7 @@ export interface GraphInteractionHandlers {
   clearSelection: (this: void) => void;
   fitView: (this: void) => void;
   focusNodeById: (this: void, nodeId: string) => void;
+  panToNodeById: (this: void, nodeId: string) => void;
   handleBackgroundClick: (this: void, event?: MouseEvent) => void;
   handleLinkClick: (this: void, link: FGLink, event: MouseEvent) => void;
   handleNodeClick: (this: void, node: FGNode, event: MouseEvent) => void;
@@ -103,6 +104,7 @@ export function createGraphInteractionHandlers(
     clearSelection: selectionHandlers.clearSelection,
     fitView: viewHandlers.fitView,
     focusNodeById: viewHandlers.focusNodeById,
+    panToNodeById: viewHandlers.panToNodeById,
     handleBackgroundClick: clickHandlers.handleBackgroundClick,
     handleLinkClick: clickHandlers.handleLinkClick,
     handleNodeClick: clickHandlers.handleNodeClick,

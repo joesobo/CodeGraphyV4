@@ -4,6 +4,7 @@ export function createState(
   overrides: Partial<IStoreFields> = {},
 ): IStoreFields {
   return {
+    autoReveal: true,
     graphData: null,
     graphHasIndex: false,
     graphIndexFreshness: 'missing',

@@ -14,6 +14,7 @@ export function buildGraphViewSettingsMessages(
     {
       type: 'SETTINGS_UPDATED',
       payload: {
+        autoReveal: settings.autoReveal,
         bidirectionalEdges: settings.bidirectionalEdges,
         showOrphans: settings.showOrphans,
       },
@@ -46,6 +47,7 @@ export function buildGraphViewAllSettingsMessages(
     preGroupMessages: [
       { type: 'PHYSICS_SETTINGS_UPDATED', payload: snapshot.physics },
       ...buildGraphViewSettingsMessages({
+        autoReveal: snapshot.autoReveal,
         bidirectionalEdges: snapshot.bidirectionalMode,
         showOrphans: snapshot.showOrphans,
         directionMode: snapshot.directionMode,

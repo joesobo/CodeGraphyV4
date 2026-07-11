@@ -1,5 +1,6 @@
 export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'version',
+  'autoReveal',
   'maxFiles',
   'verboseDiagnostics',
   'include',

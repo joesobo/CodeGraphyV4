@@ -12,6 +12,7 @@ import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repo
 describe('extension/repoSettings/defaults', () => {
   it('builds the full repo settings defaults', () => {
     expect(createDefaultCodeGraphyRepoSettings()).toEqual({
+      autoReveal: true,
       version: 1,
       maxFiles: DEFAULT_MAX_FILES,
       verboseDiagnostics: false,

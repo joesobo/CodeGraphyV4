@@ -52,6 +52,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
   let settingsStore: Record<string, unknown>;
 
   const SNAPSHOT: ISettingsSnapshot = {
+    autoReveal: true,
     physics: { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 },
     legends: [],
     filterPatterns: [],

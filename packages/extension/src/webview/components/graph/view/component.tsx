@@ -4,7 +4,7 @@
  * @module webview/components/Graph
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { PerfScopeVisibilitySnapshot } from '../../../../shared/perf/protocol';
@@ -29,6 +29,8 @@ import { useGraphPerfCommit } from '../../../perf/graph/commit';
 import { useGraphPerfScenarios } from '../../../perf/graph/useScenarios';
 import { useGraphAppearance } from '../appearance/use';
 import { projectGraphForRendering } from '../rendering/projection/model';
+import { applyActiveFileAutoReveal } from '../autoReveal/model';
+import { useGraphStore } from '../../../store/state';
 
 interface GraphProps {
   data: IGraphData;
@@ -101,6 +103,8 @@ export default function Graph({
   scopeVisibility,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
+  const activeFilePath = useGraphStore(state => state.activeFilePath);
+  const autoReveal = useGraphStore(state => state.autoReveal);
   const appearance = useGraphAppearance(theme);
   const resolvedGraphViewContributions = useResolvedGraphViewContributions(
     graphViewContributions,
@@ -168,6 +172,23 @@ export default function Graph({
     setSelectedNodes: graphRuntime.selection.setSelectedNodeIds,
     timelineActive: viewState.timelineActive,
   });
+  const autoRevealHandlersRef = useRef(interactions.interactionHandlers);
+  autoRevealHandlersRef.current = interactions.interactionHandlers;
+  const autoRevealNodeIds = useMemo(
+    () => new Set(graphRuntime.renderer.graphData.nodes.map(node => node.id)),
+    [graphRuntime.renderer.graphData.nodes],
+  );
+
+  useEffect(() => {
+    const handlers = autoRevealHandlersRef.current;
+    applyActiveFileAutoReveal({
+      filePath: activeFilePath,
+      mode: autoReveal,
+      nodeIds: autoRevealNodeIds,
+      panToNodeById: handlers.panToNodeById,
+      selectOnlyNode: handlers.selectOnlyNode,
+    });
+  }, [activeFilePath, autoReveal, autoRevealNodeIds]);
 
   const onEngineTick = useGraphPerfScenarios({
     getContainer: () => graphRuntime.renderer.containerRef.current,

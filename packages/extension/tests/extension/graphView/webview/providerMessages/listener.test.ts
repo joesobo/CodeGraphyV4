@@ -27,6 +27,7 @@ function createUndoableAction(overrides: Partial<MockUndoableAction> = {}): Mock
 
 function createSettingsSnapshot(): ISettingsSnapshot {
   return {
+    autoReveal: true,
     legends: [],
     filterPatterns: [],
     disabledCustomFilterPatterns: [],

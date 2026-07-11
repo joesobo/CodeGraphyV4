@@ -127,10 +127,11 @@ describe('GraphStore', () => {
   it('handles SETTINGS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'SETTINGS_UPDATED',
-      payload: { bidirectionalEdges: 'combined', showOrphans: false },
+      payload: { autoReveal: 'focusNoScroll', bidirectionalEdges: 'combined', showOrphans: false },
     });
     expect(store.getState().bidirectionalMode).toBe('combined');
     expect(store.getState().showOrphans).toBe(false);
+    expect(store.getState().autoReveal).toBe('focusNoScroll');
   });
 
   it('handles DIRECTION_SETTINGS_UPDATED message', () => {

@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR, normalizeHexColor } from '../../../shared/fileColors';
-import type { BidirectionalEdgeMode, DirectionMode } from '../../../shared/settings/modes';
+import type { AutoRevealMode, BidirectionalEdgeMode, DirectionMode } from '../../../shared/settings/modes';
 
 export interface IGraphViewSettingsSnapshot {
+  autoReveal: AutoRevealMode;
   bidirectionalEdges: BidirectionalEdgeMode;
   showOrphans: boolean;
   directionMode: DirectionMode;
@@ -36,6 +37,7 @@ export function readGraphViewSettings(
   config: IGraphViewSettingsReader
 ): IGraphViewSettingsSnapshot {
   return {
+    autoReveal: config.get<AutoRevealMode>('autoReveal', true),
     bidirectionalEdges: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
     showOrphans: config.get<boolean>('showOrphans', true),
     directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,

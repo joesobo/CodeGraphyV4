@@ -34,6 +34,7 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
   }
 
   if (affectsAny(
+    'codegraphy.autoReveal',
     'codegraphy.showOrphans',
     'codegraphy.directionMode',
     'codegraphy.directionColor',

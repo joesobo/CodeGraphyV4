@@ -49,6 +49,7 @@ function createMockContext() {
 
 describe('ResetSettingsAction (config section mutant coverage)', () => {
   const SNAPSHOT: ISettingsSnapshot = {
+    autoReveal: true,
     physics: { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 },
     legends: [],
     filterPatterns: [],

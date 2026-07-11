@@ -4,6 +4,7 @@ import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 
 export const INITIAL_STATE: GraphStateFields = {
+  autoReveal: true,
   graphData: null,
   graphHasIndex: false,
   graphIndexFreshness: 'missing' as const,

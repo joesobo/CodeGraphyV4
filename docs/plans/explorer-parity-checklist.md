@@ -56,7 +56,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
 | Multi-select with modifiers | done(unit) | 2.1 / 5.x | Modifier-click, selection-model, and marquee-view tests pass; extended desktop behavior remains Phase 5. |
-| Auto-reveal active file | todo(P2) | 2.6 | Not implemented. |
+| Auto-reveal active file | done(unit) | 2.6 | Active editor updates select the visible graph node; repo-local `autoReveal` supports pan-without-zoom, `focusNoScroll`, and disabled modes in 2D/3D. |
 | Git status decorations | todo(P2) | 2.7 | Not implemented. |
 | Problems decorations | todo(P2) | 2.7 | Not implemented. |
 | `files.exclude` respected | done(unit) | 2.5 | Resource-scoped VS Code rules, including conditional sibling rules, feed discovery and cache signatures; a default-on Filters source reports pre-graph exclusions and can be disabled per repo. |

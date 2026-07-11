@@ -98,6 +98,7 @@ function createInteractionHandlers(): GraphInteractionHandlers {
     clearSelection: vi.fn(),
     fitView: vi.fn(),
     focusNodeById: vi.fn(),
+    panToNodeById: vi.fn(),
     getBackgroundGraphPosition: vi.fn(),
     handleBackgroundClick: vi.fn(),
     handleLinkClick: vi.fn(),

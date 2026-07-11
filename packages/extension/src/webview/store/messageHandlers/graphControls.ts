@@ -51,6 +51,7 @@ export function handleSettingsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>,
 ): PartialState {
   return {
+    autoReveal: message.payload.autoReveal,
     bidirectionalMode: message.payload.bidirectionalEdges,
     showOrphans: message.payload.showOrphans,
   };

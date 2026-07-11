@@ -1,8 +1,9 @@
 import type { IGroup } from './groups';
-import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from './modes';
+import type { AutoRevealMode, BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from './modes';
 import type { IPhysicsSettings } from './physics';
 
 export interface ISettingsSnapshot {
+  autoReveal: AutoRevealMode;
   physics: IPhysicsSettings;
   legends: IGroup[];
   filterPatterns: string[];

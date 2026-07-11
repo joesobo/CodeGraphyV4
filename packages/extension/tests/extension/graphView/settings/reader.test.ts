@@ -35,6 +35,7 @@ describe('graphView/settings/reader', () => {
     };
 
     expect(readGraphViewSettings(config)).toEqual({
+      autoReveal: true,
       bidirectionalEdges: 'separate',
       showOrphans: true,
       directionMode: 'arrows',
@@ -48,6 +49,7 @@ describe('graphView/settings/reader', () => {
   it('reads configured graph view settings and preserves valid colors', () => {
     const values = new Map<string, unknown>([
       ['bidirectionalEdges', 'combined'],
+      ['autoReveal', 'focusNoScroll'],
       ['showOrphans', false],
       ['directionMode', 'particles'],
       ['particleSpeed', 0.02],
@@ -62,6 +64,7 @@ describe('graphView/settings/reader', () => {
     };
 
     expect(readGraphViewSettings(config)).toEqual({
+      autoReveal: 'focusNoScroll',
       bidirectionalEdges: 'combined',
       showOrphans: false,
       directionMode: 'particles',

@@ -67,6 +67,17 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
+  describe('autoReveal', () => {
+    it('returns the configured mode', () => {
+      mockConfig['autoReveal'] = 'focusNoScroll';
+      expect(new Configuration().autoReveal).toBe('focusNoScroll');
+    });
+
+    it('defaults to true', () => {
+      expect(new Configuration().autoReveal).toBe(true);
+    });
+  });
+
   describe('showOrphans', () => {
     it('returns the configured value', () => {
       mockConfig['showOrphans'] = false;
@@ -181,6 +192,7 @@ describe('Configuration (configReaders)', () => {
   describe('getAll', () => {
     it('returns an object containing all standard configuration values', () => {
       mockConfig['maxFiles'] = 100;
+      mockConfig['autoReveal'] = 'focusNoScroll';
       mockConfig['include'] = ['src/**'];
       mockConfig['respectGitignore'] = false;
       mockConfig['respectFilesExclude'] = false;
@@ -192,6 +204,7 @@ describe('Configuration (configReaders)', () => {
       const all = new Configuration().getAll();
 
       expect(all.maxFiles).toBe(100);
+      expect(all.autoReveal).toBe('focusNoScroll');
       expect(all.include).toEqual(['src/**']);
       expect(all.respectGitignore).toBe(false);
       expect(all.respectFilesExclude).toBe(false);

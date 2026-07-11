@@ -43,6 +43,10 @@ describe('Configuration', () => {
       expect(config.maxFiles).toBe(DEFAULT_MAX_FILES);
     });
 
+    it('should return default autoReveal as true', () => {
+      expect(new Configuration().autoReveal).toBe(true);
+    });
+
     it('should return default include pattern', () => {
       const config = new Configuration();
       expect(config.include).toEqual(['**/*']);
@@ -102,6 +106,7 @@ describe('Configuration', () => {
       const all: ICodeGraphyConfig = config.getAll();
 
       expect(all).toEqual({
+        autoReveal: true,
         version: 1,
         maxFiles: DEFAULT_MAX_FILES,
         include: ['**/*'],

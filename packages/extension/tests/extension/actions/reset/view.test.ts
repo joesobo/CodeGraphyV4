@@ -60,6 +60,7 @@ describe('ResetSettingsAction', () => {
   let mockContext: vscode.ExtensionContext & { _state: Record<string, unknown> };
 
   const NON_DEFAULT_SNAPSHOT: ISettingsSnapshot = {
+    autoReveal: 'focusNoScroll',
     physics: { repelForce: 5, linkDistance: 200, linkForce: 0.5, damping: 0.3, centerForce: 0.5 },
     legends: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
     filterPatterns: ['**/*.test.ts'],

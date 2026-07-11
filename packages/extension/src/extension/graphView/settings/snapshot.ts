@@ -30,6 +30,7 @@ export function captureGraphViewSettingsSnapshot(
   const settings = readGraphViewSettings(config);
 
   return {
+    autoReveal: settings.autoReveal,
     physics,
     legends: readConfigList(config, 'legend'),
     filterPatterns: readConfigList(config, 'filterPatterns'),

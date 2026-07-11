@@ -27,7 +27,12 @@ describe('Graph', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ graphMode: '2d', timelineActive: false });
+    act(() => graphStore.setState({
+      activeFilePath: null,
+      autoReveal: true,
+      graphMode: '2d',
+      timelineActive: false,
+    }));
   });
 
   it('should render graph container', () => {
@@ -46,7 +51,7 @@ describe('Graph', () => {
   });
 
   it('should render ForceGraph2D on mount', () => {
-    render(<Graph data={mockData} />);
+    act(() => { render(<Graph data={mockData} />); });
     expect(screen.getByTestId('force-graph-2d')).toBeInTheDocument();
   });
 
@@ -75,6 +80,25 @@ describe('Graph', () => {
     };
     const { container } = render(<Graph data={dataWithPositions} />);
     expect(container.querySelector('div')).toBeInTheDocument();
+  });
+
+  it('pans to the active file without changing zoom when auto reveal is enabled', () => {
+    const methods = ForceGraph2D.getMockMethods();
+    act(() => graphStore.setState({ activeFilePath: 'a.ts', autoReveal: true }));
+
+    act(() => { render(<Graph data={mockData} />); });
+
+    expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
+    expect(methods.zoom).not.toHaveBeenCalledWith(1.5, 300);
+  });
+
+  it('does not pan to the active file in focusNoScroll mode', () => {
+    const methods = ForceGraph2D.getMockMethods();
+    act(() => graphStore.setState({ activeFilePath: 'a.ts', autoReveal: 'focusNoScroll' }));
+
+    act(() => { render(<Graph data={mockData} />); });
+
+    expect(methods.centerAt).not.toHaveBeenCalled();
   });
 
   it('does not fit a newly rendered graph after physics stabilizes', () => {

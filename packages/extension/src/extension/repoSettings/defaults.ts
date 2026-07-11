@@ -1,6 +1,6 @@
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { AutoRevealMode, DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
@@ -13,6 +13,7 @@ import {
 } from '../../shared/graphControls/defaults/maps';
 
 export interface ICodeGraphyRepoSettings {
+  autoReveal: AutoRevealMode;
   version: 1;
   maxFiles: number;
   verboseDiagnostics: boolean;
@@ -59,6 +60,7 @@ export interface ICodeGraphyRepoSettings {
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
   return {
+    autoReveal: true,
     version: 1,
     maxFiles: DEFAULT_MAX_FILES,
     verboseDiagnostics: false,

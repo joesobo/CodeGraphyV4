@@ -319,8 +319,9 @@ describe('webview/store/messageHandlers/graph', () => {
   it('maps settings and filter payloads', () => {
     expect(handleSettingsUpdated({
       type: 'SETTINGS_UPDATED',
-      payload: { bidirectionalEdges: 'combined', showOrphans: false },
+      payload: { autoReveal: 'focusNoScroll', bidirectionalEdges: 'combined', showOrphans: false },
     })).toEqual({
+      autoReveal: 'focusNoScroll',
       bidirectionalMode: 'combined',
       showOrphans: false,
     });

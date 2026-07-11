@@ -9,6 +9,7 @@ vi.mock('../../../src/extension/repoSettings/current', () => ({
 }));
 
 const SNAPSHOT: ISettingsSnapshot = {
+  autoReveal: true,
   physics: {
     repelForce: 11,
     linkDistance: 22,
@@ -55,6 +56,7 @@ describe('extension/actions/resetSettings', () => {
       ['physics.linkForce', undefined],
       ['physics.damping', undefined],
       ['physics.centerForce', undefined],
+      ['autoReveal', undefined],
       ['legend', undefined],
       ['filterPatterns', undefined],
       ['disabledCustomFilterPatterns', undefined],
@@ -88,6 +90,7 @@ describe('extension/actions/resetSettings', () => {
       ['physics.linkForce', 0.33],
       ['physics.damping', 0.44],
       ['physics.centerForce', 0.55],
+      ['autoReveal', true],
       ['legend', SNAPSHOT.legends],
       ['filterPatterns', SNAPSHOT.filterPatterns],
       ['disabledCustomFilterPatterns', SNAPSHOT.disabledCustomFilterPatterns],

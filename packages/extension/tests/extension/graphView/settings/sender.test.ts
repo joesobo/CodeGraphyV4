@@ -11,6 +11,7 @@ describe('graphView/settings/sender', () => {
       getConfiguration: () => ({
         get<T>(key: string, defaultValue: T): T {
           const values: Record<string, unknown> = {
+            autoReveal: 'focusNoScroll',
             bidirectionalEdges: 'combined',
             showOrphans: false,
             directionMode: 'particles',
@@ -29,7 +30,7 @@ describe('graphView/settings/sender', () => {
     expect(sendMessage).toHaveBeenCalledTimes(3);
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
-      payload: { bidirectionalEdges: 'combined', showOrphans: false },
+      payload: { autoReveal: 'focusNoScroll', bidirectionalEdges: 'combined', showOrphans: false },
     });
     expect(sendMessage).toHaveBeenNthCalledWith(3, {
       type: 'SHOW_LABELS_UPDATED',

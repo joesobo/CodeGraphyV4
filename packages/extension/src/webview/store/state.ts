@@ -19,7 +19,7 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
-import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
+import type { AutoRevealMode, BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
@@ -28,6 +28,7 @@ import type {
 } from './optimistic/groups/updates';
 
 export interface GraphState {
+  autoReveal: AutoRevealMode;
   graphData: IGraphData | null;
   graphHasIndex: boolean;
   graphIndexFreshness: 'fresh' | 'stale' | 'missing';

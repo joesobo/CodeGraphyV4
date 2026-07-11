@@ -9,6 +9,7 @@ import type { IGroup } from '../../shared/settings/groups';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import type { ICodeGraphyConfig } from './defaults';
+import type { AutoRevealMode } from '../../shared/settings/modes';
 
 interface CodeGraphyConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
@@ -48,6 +49,10 @@ export class Configuration {
    */
   get maxFiles(): number {
     return this.config.get<number>('maxFiles', DEFAULT_MAX_FILES);
+  }
+
+  get autoReveal(): AutoRevealMode {
+    return this.config.get<AutoRevealMode>('autoReveal', true);
   }
 
   /**
@@ -140,6 +145,7 @@ export class Configuration {
    */
   getAll(): ICodeGraphyConfig {
     return {
+      autoReveal: this.autoReveal,
       version: 1,
       maxFiles: this.maxFiles,
       include: this.include,

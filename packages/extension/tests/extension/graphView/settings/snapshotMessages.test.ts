@@ -30,6 +30,7 @@ describe('graphView/settings/snapshotMessages', () => {
     );
 
     expect(snapshot).toEqual({
+      autoReveal: true,
       physics: {
         repelForce: 10,
         linkDistance: 80,
@@ -63,6 +64,7 @@ describe('graphView/settings/snapshotMessages', () => {
   it('captures reset snapshots from configuration and normalized settings state', () => {
     const snapshot = captureGraphViewSettingsSnapshot(
       createConfig({
+        autoReveal: 'focusNoScroll',
         legend: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
         filterPatterns: ['dist/**'],
         showOrphans: false,
@@ -94,6 +96,7 @@ describe('graphView/settings/snapshotMessages', () => {
     );
 
     expect(snapshot).toEqual({
+      autoReveal: 'focusNoScroll',
       physics: {
         repelForce: 10,
         linkDistance: 80,
@@ -129,6 +132,7 @@ describe('graphView/settings/snapshotMessages', () => {
   it('builds the display-settings message set in webview sync order', () => {
     expect(
       buildGraphViewSettingsMessages({
+        autoReveal: 'focusNoScroll',
         bidirectionalEdges: 'combined',
         showOrphans: false,
         directionMode: 'particles',
@@ -140,7 +144,7 @@ describe('graphView/settings/snapshotMessages', () => {
     ).toEqual([
       {
         type: 'SETTINGS_UPDATED',
-        payload: { bidirectionalEdges: 'combined', showOrphans: false },
+        payload: { autoReveal: 'focusNoScroll', bidirectionalEdges: 'combined', showOrphans: false },
       },
       {
         type: 'DIRECTION_SETTINGS_UPDATED',
@@ -162,6 +166,7 @@ describe('graphView/settings/snapshotMessages', () => {
     expect(
       buildGraphViewAllSettingsMessages(
         {
+          autoReveal: true,
           physics: {
             repelForce: 10,
             linkDistance: 80,
@@ -208,7 +213,7 @@ describe('graphView/settings/snapshotMessages', () => {
         },
         {
           type: 'SETTINGS_UPDATED',
-          payload: { bidirectionalEdges: 'combined', showOrphans: false },
+          payload: { autoReveal: true, bidirectionalEdges: 'combined', showOrphans: false },
         },
         {
           type: 'DIRECTION_SETTINGS_UPDATED',
