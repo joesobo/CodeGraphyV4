@@ -1,6 +1,6 @@
 # Explorer parity and native-feel performance report
 
-Status: **provisional blocker report**, measurement checkpoint `ff9d4d909` plus
+Status: **provisional blocker report**, measurement checkpoint `401e4b515` plus
 the retained measurements cited below, captured on 2026-07-11.
 
 This is the Phase 8 report draft, not an acceptance declaration. The required
@@ -23,6 +23,10 @@ files.
 - “Baseline” below means the checked-in local reference or the explicit pre-change
   measurement named in the row. It is not a substitute for the still-required
   final-branch versus pre-epic recapture.
+- Idle CPU sampling now retains aggregate, renderer, and extension-host process
+  dimensions. The idle FPS probe is bounded to the first second so benchmark
+  instrumentation does not drive animation frames throughout the 60-second CPU
+  window.
 
 ## Phase 3 gates
 
@@ -33,7 +37,7 @@ files.
 | 3-C Explorer ratios | Checked-in `medium` rename ratio 201.78× | rename/create/delete ≤1.25×; optimistic apply ≤16 ms | Latest rename smoke: 50.954 ms versus Explorer 3.265 ms = 15.61×; one complete diagnostic sample | **Fail / blocker** |
 | 3-D Watcher storms | Checked-in `medium` batch watcher 188.582 ms, before deterministic six-switch coverage | single-file ≤1.5× Explorer refresh; 100 files ≤1,500 ms | Batch watcher medians 425.067 / 411.793 / 423.505 / 427.540 / 427.203 ms; overall median 425.067 ms, CV 1.37%. Refresh median 80.115 ms, CV 3.99%; exactly one refresh/payload per switch. Five single-save samples: watcher median 65.317 ms, CV 3.28%. | **Pass for absolute batch gate; Explorer-relative single-file comparison still needs final paired sweep** |
 | 3-E Warm startup | PR #294 same-machine anchor 4,614 ms | ≤2,307 ms | Checked-in local reference is 2,158.970 ms (53.2% below anchor), but this is not a final-branch five-sample recapture | **Pending final sweep** |
-| 3-F Settled is free | Checked-in `medium`: 0 ticks, 3.275% idle CPU | 0 ticks; <2% idle CPU | `huge` diagnostic: 0 ticks, 9.983% idle CPU, 59.914 idle FPS | **Fail / blocker** |
+| 3-F Settled is free | Checked-in `medium`: 0 ticks, 3.275% idle CPU | 0 ticks; <2% idle CPU | Before split, one `large` diagnostic measured 5.767% aggregate (5.733% renderer, 0.033% extension host). After pausing the settled renderer and bounding the FPS probe, the same 5,000-node fixture measured 1.500% aggregate (1.467% renderer, 0.033% extension host), 0 ticks, and 57.815 FPS. | **Threshold met diagnostically; pending five samples** |
 | 3-G Dependency wins | `large` cold median 40,416.706 ms; blocking cache write previously 20,458.676 ms | per-file incremental parse ≤10% of same file cold parse; 0 ms action-blocking cache write; cold index ≥40% faster | `large` cold 23,033.240 / 22,790.666 / 22,928.544 / 23,291.205 / 23,158.337 ms; median 23,033.240 ms, CV 0.76%, 43.01% faster. Cache save median 432.394 ms, CV 4.90%, scheduled off action path; five `medium` saves emitted 0 action-scoped cache time. Harness still lacks same-file cold parse identity. | **Partial pass; parse-ratio instrumentation gap** |
 | 3-H Memory | No accepted `huge` reference | ≤500 MB heap | One `huge` diagnostic: 26,808,635 B (25.57 MiB) | **Threshold met diagnostically; pending five samples** |
 | 3-I No cold regression | Pre-epic `self` measurement required | final `self` cold open ≤ baseline +10% | No accepted final/pre-epic same-machine pair | **Pending final sweep** |
@@ -75,13 +79,13 @@ goals. Forum reports are not formal service-level guarantees.
 | Topic | Public Obsidian evidence | CodeGraphy retained result | Interpretation |
 | --- | --- | --- | --- |
 | Large-vault scale | A 2020 Obsidian forum response says the graph had been tested on 30,000 notes. A 2025 team response says there is no hard limit but more than about 25,000 files is not practical on a modern desktop; the same thread reports a 130,000-note graph freezing with one CPU core saturated. ([30k report](https://forum.obsidian.md/t/question-about-the-vault-size/7039/2), [25k/130k thread](https://forum.obsidian.md/t/obsidian-graph-view-doesnt-work-for-a-large-vault/106287)) | At the plan's capped 10,000 files, CodeGraphy opens but achieves only 2.281 drag FPS; even the zero-simulation upper bound reaches only 22.552 FPS. | CodeGraphy has not earned a “beats Obsidian scale” claim. No 30k fixture was generated or run. |
-| Idle CPU | A historical user report described 8–20% idle CPU. An Obsidian team reply says graph rendering stops about one second after interaction and CPU/GPU should then stop, asking affected users for a trace. ([thread and team reply](https://forum.obsidian.md/t/graph-obsidian-consistently-eating-8-20-cpu-at-idle/2349/14)) | One `huge` diagnostic measured 0 simulation ticks but 9.983% process-side idle CPU. | The historical 8–20% report is anecdotal, not a current ceiling. CodeGraphy fails its own stricter <2% gate. |
+| Idle CPU | A historical user report described 8–20% idle CPU. An Obsidian team reply says graph rendering stops about one second after interaction and CPU/GPU should then stop, asking affected users for a trace. ([thread and team reply](https://forum.obsidian.md/t/graph-obsidian-consistently-eating-8-20-cpu-at-idle/2349/14)) | The latest `large` diagnostic measured 0 simulation ticks and 1.500% aggregate idle CPU after stopping the settled render cycle; this is one sample, not an accepted median. | The historical 8–20% report is anecdotal, not a current ceiling. CodeGraphy meets its stricter <2% gate diagnostically but still needs the prescribed five-run capture. |
 | Feature model | Obsidian documents filters, groups, display thresholds, force controls, and local graph depth. ([Graph view help](https://help.obsidian.md/plugins/graph)) | CodeGraphy now projects loaded evidence locally, supports per-kind scope masks and revision-diff evidence, but warm toggle speed fails. | The feature direction is comparable; the measured interaction quality is not yet accepted. |
 
 ## Acceptance disposition
 
 Phase 8 gate 8-A is **not satisfied**. Owner exceptions or additional engineering
-are required for 3-C, 3-F, 3-J, 4-B, 5-B, and 6-B. Gates 3-E, 3-H, 3-I, 4-A,
+are required for 3-C, 3-J, 4-B, 5-B, and 6-B. Gates 3-E, 3-F, 3-H, 3-I, 4-A,
 4-C, and 4-D still need their prescribed final five-run or paired captures, and
 3-G still needs same-file cold/incremental parse instrumentation. Phase 9 remains
 blocked until the report is complete, the showcase artifacts are published, and
