@@ -41,12 +41,30 @@ interface WebviewGraphPerfControlOptions {
   >;
 }
 
+type PendingGraphCommand =
+  | { kind: 'interaction'; operation: PerfOperation }
+  | { durationMs: number; kind: 'idle'; operation: PerfOperation };
+
 export function createWebviewGraphPerfControl({
   bridge,
 }: WebviewGraphPerfControlOptions): WebviewGraphPerfControl {
   let target: GraphPerfScenarioTarget | undefined;
   let scopeTarget: ScopePerfScenarioTarget | undefined;
   let graphSettled = false;
+  let pendingGraphCommand: PendingGraphCommand | undefined;
+
+  const runGraphCommand = (
+    nextTarget: GraphPerfScenarioTarget,
+    command: PendingGraphCommand,
+  ): void => {
+    if (command.kind === 'interaction') {
+      nextTarget.startInteractionBurst(command.operation);
+      return;
+    }
+
+    nextTarget.startIdleWatch(command.operation, command.durationMs);
+    if (graphSettled) nextTarget.engineStopped();
+  };
 
   return {
     attachScopeTarget(nextTarget): () => void {
@@ -65,6 +83,10 @@ export function createWebviewGraphPerfControl({
     attachTarget(nextTarget): () => void {
       target?.cancel();
       target = nextTarget;
+      if (pendingGraphCommand) {
+        runGraphCommand(nextTarget, pendingGraphCommand);
+        pendingGraphCommand = undefined;
+      }
 
       return () => {
         if (target !== nextTarget) {
@@ -95,6 +117,7 @@ export function createWebviewGraphPerfControl({
       if (control.kind === 'arm-graph') {
         target?.cancel();
         scopeTarget?.cancel();
+        pendingGraphCommand = undefined;
         return bridge.handleControl(message);
       }
 
@@ -102,6 +125,7 @@ export function createWebviewGraphPerfControl({
         if (currentOperation?.operationId === control.operationId) {
           target?.cancel();
           scopeTarget?.cancel();
+          pendingGraphCommand = undefined;
         }
         return bridge.handleControl(message);
       }
@@ -117,16 +141,20 @@ export function createWebviewGraphPerfControl({
 
       if (control.kind === 'run-interaction-burst') {
         graphSettled = false;
-        target?.startInteractionBurst(operation);
+        const command = { kind: 'interaction', operation } as const;
+        if (target) runGraphCommand(target, command);
+        else pendingGraphCommand = command;
         return true;
       }
 
       if (control.kind === 'run-idle-watch') {
-        target?.startIdleWatch(
+        const command = {
+          durationMs: control.durationMs ?? DEFAULT_IDLE_WATCH_DURATION_MS,
+          kind: 'idle',
           operation,
-          control.durationMs ?? DEFAULT_IDLE_WATCH_DURATION_MS,
-        );
-        if (graphSettled) target?.engineStopped();
+        } as const;
+        if (target) runGraphCommand(target, command);
+        else pendingGraphCommand = command;
         return true;
       }
 

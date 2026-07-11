@@ -57,6 +57,37 @@ describe('webview/perf/graph/control', () => {
     );
   });
 
+  it('replays a burst command that arrives before the graph target attaches', () => {
+    const bridge = createWebviewPerfBridge({ postMessage: vi.fn() });
+    const control = createWebviewGraphPerfControl({ bridge });
+    const target: GraphPerfScenarioTarget = {
+      cancel: vi.fn(),
+      engineStopped: vi.fn(),
+      engineTick: vi.fn(),
+      startIdleWatch: vi.fn(),
+      startInteractionBurst: vi.fn(),
+    };
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: { kind: 'arm-graph', operation },
+    });
+
+    control.handleControl({
+      type: 'PERF_CONTROL',
+      payload: {
+        kind: 'run-interaction-burst',
+        operationId: operation.operationId,
+      },
+    });
+    expect(target.startInteractionBurst).not.toHaveBeenCalled();
+
+    control.attachTarget(target);
+
+    expect(target.startInteractionBurst).toHaveBeenCalledWith(
+      expect.objectContaining(operation),
+    );
+  });
+
   it('does not dispatch a command for a different operation', () => {
     const { control, target } = setup();
     control.handleControl({
