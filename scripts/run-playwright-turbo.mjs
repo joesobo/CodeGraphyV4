@@ -89,6 +89,11 @@ export function splitScriptArgs(args) {
   };
 }
 
+export function selectPlaywrightPackagesForEnvironment(packageNames, environment) {
+  if (!environment.CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE) return packageNames;
+  return packageNames.filter(packageName => packageName === '@codegraphy-dev/extension');
+}
+
 export function buildTurboArgs({ packageNames, turboArgs, passthroughArgs }) {
   return [
     'exec',
@@ -102,7 +107,10 @@ export function buildTurboArgs({ packageNames, turboArgs, passthroughArgs }) {
 }
 
 function main() {
-  const packageNames = findPlaywrightPackages();
+  const packageNames = selectPlaywrightPackagesForEnvironment(
+    findPlaywrightPackages(),
+    process.env,
+  );
   const { turboArgs, passthroughArgs } = splitScriptArgs(process.argv.slice(2));
 
   if (packageNames.length === 0) {
