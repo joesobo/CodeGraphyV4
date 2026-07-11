@@ -3,6 +3,7 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { GraphViewProviderTimelineDependencies } from './indexing';
 import type { GraphViewProviderTimelineSource } from './contracts';
+import { withRevisionDiffEdges } from './revisionEdges';
 
 export async function buildTimelineCommitGraphData(
   source: Pick<
@@ -43,6 +44,7 @@ export function applyTimelineCommitGraph(
   } else {
     source._graphData = graphData;
   }
+  source._graphData = withRevisionDiffEdges(previousGraphData, source._graphData);
   source._sendMessage({
     type: 'COMMIT_GRAPH_DATA',
     payload: { sha, patch: diffGraphData(previousGraphData, source._graphData) },

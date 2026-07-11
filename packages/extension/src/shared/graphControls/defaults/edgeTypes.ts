@@ -1,6 +1,7 @@
 import type { IGraphEdgeTypeDefinition } from '../contracts';
 
 export const STRUCTURAL_NESTS_EDGE_KIND = 'nests' as const;
+export const REVISION_DIFF_EDGE_KIND = 'revision:diff' as const;
 
 export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
   return [
@@ -142,6 +143,15 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       description: {
         description: 'Shows methods or members replacing behavior from a parent type.',
         examples: [{ code: 'override run() {}' }],
+      },
+    },
+    {
+      id: REVISION_DIFF_EDGE_KIND,
+      label: 'Revision changes',
+      defaultColor: '#C084FC',
+      defaultVisible: false,
+      description: {
+        description: 'Shows relations added or removed between adjacent Graph Revisions.',
       },
     },
     {

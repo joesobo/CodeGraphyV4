@@ -36,6 +36,8 @@ When playing from the end of the timeline, playback automatically restarts from 
 
 Playback advances a smooth time cursor across the timeline. The graph updates each time the cursor crosses a commit boundary. At speed 1x, one real second covers two days of repo time.
 
+Adjacent Graph Revisions also carry a local **Revision changes** edge layer. Enable it in Graph Scope to show relations added or removed at the selected boundary. The toggle only projects evidence already in the webview; moving between revisions sends the changed graph slice rather than replaying the full snapshot.
+
 The graph preserves node positions across commits — existing nodes stay in place while new nodes animate in via the physics simulation.
 
 ## Scrubbing

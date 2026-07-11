@@ -93,4 +93,37 @@ describe('webview/search/visibleGraphConfig', () => {
     ]);
     expect(result.graphData.edges.map((edge) => edge.kind)).toEqual(['import']);
   });
+
+  it('projects revision diff evidence locally from its edge visibility row', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'a', label: 'a', color: '#fff' },
+        { id: 'b', label: 'b', color: '#fff' },
+      ],
+      edges: [{
+        id: 'revision-diff:added:a->b#import',
+        from: 'a',
+        to: 'b',
+        kind: 'revision:diff',
+        sources: [],
+      }],
+    };
+    const input = {
+      edgeTypes: [{
+        id: 'revision:diff' as const,
+        label: 'Revision changes',
+        defaultColor: '#C084FC',
+        defaultVisible: false,
+      }],
+      searchOptions: { matchCase: false, wholeWord: false, regex: false },
+      searchQuery: '',
+      showOrphans: true,
+    };
+
+    expect(deriveVisibleGraph(graphData, buildVisibleGraphConfig(input)).graphData.edges).toEqual([]);
+    expect(deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+      ...input,
+      edgeVisibility: { 'revision:diff': true },
+    })).graphData.edges).toEqual(graphData.edges);
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import type { IGraphData, IGraphEdge } from '../../../../../src/shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
 import {
   applyTimelineCommitGraph,
@@ -77,5 +77,86 @@ describe('timeline commit data', () => {
         },
       },
     } satisfies ExtensionToWebviewMessage);
+  });
+
+  it('ships adjacent revision relation evidence in the same changed-slice patch', () => {
+    const nodes = [createGraphNode('a'), createGraphNode('b')];
+    const previousEdge: IGraphEdge = { id: 'old', from: 'a', to: 'b', kind: 'import', sources: [] };
+    const nextEdge: IGraphEdge = { id: 'new', from: 'a', to: 'b', kind: 'call', sources: [] };
+    const source = {
+      _currentCommitSha: 'sha-1',
+      _rawGraphData: { nodes, edges: [previousEdge] },
+      _graphData: { nodes, edges: [previousEdge] },
+      _applyViewTransform: undefined,
+      _sendMessage: vi.fn(),
+    };
+
+    applyTimelineCommitGraph(source as never, 'sha-2', { nodes, edges: [nextEdge] });
+
+    expect(source._graphData.edges).toEqual([
+      nextEdge,
+      expect.objectContaining({ id: 'revision-diff:added:new', kind: 'revision:diff' }),
+      expect.objectContaining({ id: 'revision-diff:removed:old', kind: 'revision:diff' }),
+    ]);
+    expect(source._sendMessage).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({
+        sha: 'sha-2',
+        patch: expect.objectContaining({
+          addedLinks: expect.arrayContaining([
+            nextEdge,
+            expect.objectContaining({ id: 'revision-diff:added:new' }),
+            expect.objectContaining({ id: 'revision-diff:removed:old' }),
+          ]),
+          removedLinkIds: ['old'],
+        }),
+      }),
+    }));
+  });
+
+  it('bounds an adjacent revision payload to the changed slice', () => {
+    const nodes = Array.from({ length: 200 }, (_, index) => createGraphNode(`src/file-${index}.ts`));
+    const stableEdges = Array.from({ length: 198 }, (_, index) => ({
+      id: `edge-${index}`,
+      from: nodes[index]!.id,
+      to: nodes[index + 1]!.id,
+      kind: 'import' as const,
+      sources: [],
+    }));
+    const previousGraph = {
+      nodes,
+      edges: [...stableEdges, {
+        id: 'changed-edge',
+        from: nodes[198]!.id,
+        to: nodes[199]!.id,
+        kind: 'import' as const,
+        sources: [],
+      }],
+    };
+    const nextGraph = {
+      nodes,
+      edges: [...stableEdges, {
+        id: 'changed-edge',
+        from: nodes[198]!.id,
+        to: nodes[199]!.id,
+        kind: 'call' as const,
+        sources: [],
+      }],
+    };
+    const sendMessage = vi.fn();
+    const source = {
+      _currentCommitSha: 'sha-1',
+      _rawGraphData: previousGraph,
+      _graphData: previousGraph,
+      _applyViewTransform: undefined,
+      _sendMessage: sendMessage,
+    };
+
+    applyTimelineCommitGraph(source as never, 'sha-2', nextGraph);
+
+    const message = sendMessage.mock.calls[0]![0];
+    const payloadBytes = Buffer.byteLength(JSON.stringify(message.payload));
+    const fullGraphBytes = Buffer.byteLength(JSON.stringify(source._graphData));
+    expect(payloadBytes).toBeLessThanOrEqual(2_560);
+    expect(payloadBytes).toBeLessThan(fullGraphBytes);
   });
 });

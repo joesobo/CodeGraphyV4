@@ -96,6 +96,12 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultVisible: false,
       },
       {
+        id: 'revision:diff',
+        label: 'Revision changes',
+        defaultColor: '#C084FC',
+        defaultVisible: false,
+      },
+      {
         id: 'codegraphy.gdscript:signal-connection',
         label: 'Signal Connections',
         defaultColor: '#EF4444',
