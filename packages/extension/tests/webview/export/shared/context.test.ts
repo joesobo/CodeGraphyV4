@@ -120,6 +120,36 @@ describe('createImageExportDataUrl', () => {
     expect(toDataURL).toHaveBeenCalledWith('image/png');
   });
 
+  it('composites every graph canvas in DOM order', () => {
+    const gpuCanvas = document.createElement('canvas');
+    gpuCanvas.width = 640;
+    gpuCanvas.height = 360;
+    const overlayCanvas = document.createElement('canvas');
+    overlayCanvas.width = 640;
+    overlayCanvas.height = 360;
+    const container = document.createElement('div') as HTMLDivElement;
+    container.append(gpuCanvas, overlayCanvas);
+
+    const drawImage = vi.fn();
+    const exportCanvas = {
+      width: 0,
+      height: 0,
+      getContext: vi.fn(() => ({ fillStyle: '', fillRect: vi.fn(), drawImage })),
+      toDataURL: vi.fn(() => 'data:image/png;base64,exported'),
+    } as unknown as HTMLCanvasElement;
+    const originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation(((tagName: string, options?: ElementCreationOptions) =>
+      tagName === 'canvas' ? exportCanvas : originalCreateElement(tagName, options)
+    ) as typeof document.createElement);
+
+    expect(createImageExportDataUrl(container, { mimeType: 'image/png' }))
+      .toBe('data:image/png;base64,exported');
+    expect(drawImage.mock.calls).toEqual([
+      [gpuCanvas, 0, 0],
+      [overlayCanvas, 0, 0],
+    ]);
+  });
+
   it('passes through the requested quality when exporting a jpeg', () => {
     const sourceCanvas = document.createElement('canvas');
     sourceCanvas.width = 800;
