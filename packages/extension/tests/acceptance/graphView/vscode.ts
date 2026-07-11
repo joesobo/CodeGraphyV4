@@ -15,6 +15,7 @@ export const VSCODE_TEST_VERSION = process.env.CODEGRAPHY_VSCODE_TEST_VERSION ??
 interface LaunchVSCodeWithWorkspaceOptions {
   readonly pluginPackageRelativePaths?: readonly string[];
   readonly profileRoot?: string;
+  readonly recordVideoDir?: string;
 }
 
 export async function launchVSCodeWithWorkspace(
@@ -53,6 +54,7 @@ export async function launchVSCodeWithWorkspace(
         .join(path.delimiter),
       HOME: homePath,
     },
+    recordVideo: createVSCodeRecordVideo(options.recordVideoDir),
   });
 
   const page = await app.firstWindow({ timeout: 90_000 });
@@ -60,6 +62,15 @@ export async function launchVSCodeWithWorkspace(
   refocusConfiguredLocalApp();
 
   return { app, page, tempRoot };
+}
+
+export function createVSCodeRecordVideo(directory: string | undefined): {
+  dir: string;
+  size: { width: number; height: number };
+} | undefined {
+  return directory
+    ? { dir: directory, size: { width: 1280, height: 720 } }
+    : undefined;
 }
 
 export async function openGraphView(page: Page): Promise<void> {

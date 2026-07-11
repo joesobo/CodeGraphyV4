@@ -593,6 +593,12 @@ Publish reviewable proof: in-window numbers, Explorer side-by-side, Obsidian-lim
 - [ ] **8.4 Publish:** media to PR #304 via the repo's Playwright PR-image workflow (`$PWCLI` GitHub profile flow); report + summary comment on the Trello epic; file the **drag-file-to-folder / external-drop follow-up card**; commit final checklist.
 - [ ] **8.5 Owner validation:** owner signs off on the epic card or files gap cards. **Phase 9 blocked until sign-off.**
 
+### Showcase recording checkpoint (2026-07-11)
+
+- The real-VS-Code Electron launcher now has a unit-tested, opt-in 1280×720 video-recording seam. Ordinary acceptance runs do not record video.
+- Three retained file-management reel attempts did not produce publishable proof. Attempt 1 created the nested file but F2 did not mount the rename editor; attempt 2 used the context-menu route but the new node's accessible hit target was positioned beneath the graph tool rail; attempt 3 forced the pointer event and timed out without a valid completed interaction sequence. Failed media was deleted, and no attempt is counted toward 8-B/8-C.
+- This is a showcase-automation blocker, separate from the already recorded 6-B focus blocker. A later capture should first fit/recenter the graph or drive a visible node whose hit target is not occluded, then record one complete uninterrupted sequence.
+
 ## Checkpoints
 
 | # | Gate | Threshold |

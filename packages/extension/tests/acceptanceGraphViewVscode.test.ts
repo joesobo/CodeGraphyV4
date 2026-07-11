@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildMacOSAppActivationScript,
   createVSCodeLaunchArgs,
+  createVSCodeRecordVideo,
   OPEN_GRAPH_VIEW_COMMAND_PALETTE_ATTEMPTS,
   resolveRefocusAppName,
   selectVSCodeTempBaseDir,
@@ -9,6 +10,14 @@ import {
 } from './acceptance/graphView/vscode';
 
 describe('createVSCodeLaunchArgs', () => {
+  it('enables Electron video capture only when a directory is requested', () => {
+    expect(createVSCodeRecordVideo(undefined)).toBeUndefined();
+    expect(createVSCodeRecordVideo('/tmp/showcase')).toEqual({
+      dir: '/tmp/showcase',
+      size: { width: 1280, height: 720 },
+    });
+  });
+
   it('uses a mock keychain for macOS acceptance test launches', () => {
     const args = createVSCodeLaunchArgs({
       extensionPath: '/extension',
