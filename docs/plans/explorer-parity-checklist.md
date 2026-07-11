@@ -62,7 +62,7 @@ Legend: `done(unit)` · `done(devhost)` · `done(visual)` · `partial` ·
 | `files.exclude` respected | done(unit) | 2.5 | Resource-scoped VS Code rules, including conditional sibling rules, feed discovery and cache signatures; a default-on Filters source reports pre-graph exclusions and can be disabled per repo. |
 | File nesting / Open Editors / sort order | waived(tree-list concepts) | — | Not applicable to the graph surface. |
 | Canvas select / move / pan | todo(P5) | 5.x | Desktop interaction phase. |
-| Drag-to-move files / external OS drop | deferred(future epic) | 8.4 | Follow-up card required during publication. |
+| Drag-to-move files / external OS drop | deferred(future epic) | 8.4 | Follow-up filed: [Graph file drag-to-folder + external OS drop](https://trello.com/c/z907ZEa2/259-graph-file-drag-to-folder-external-os-drop). |
 | Inline input for new / rename | done(devhost) | 6.2 | Node/background menus and the toolbar use a projected HTML input plus temporary ghost node; real VS Code verifies the New File editor and host commit. Rename focus retention remains gate 6-B. |
 | Delete confirmation and trash settings | done(unit) | 6.1 | All eight setting × target-count cases pass with Explorer copy and persistent Do not ask me again. |
 

@@ -598,6 +598,7 @@ Publish reviewable proof: in-window numbers, Explorer side-by-side, Obsidian-lim
 - The real-VS-Code Electron launcher now has a unit-tested, opt-in 1280×720 video-recording seam. Ordinary acceptance runs do not record video.
 - Three retained file-management reel attempts did not produce publishable proof. Attempt 1 created the nested file but F2 did not mount the rename editor; attempt 2 used the context-menu route but the new node's accessible hit target was positioned beneath the graph tool rail; attempt 3 forced the pointer event and timed out without a valid completed interaction sequence. Failed media was deleted, and no attempt is counted toward 8-B/8-C.
 - This is a showcase-automation blocker, separate from the already recorded 6-B focus blocker. A later capture should first fit/recenter the graph or drive a visible node whose hit target is not occluded, then record one complete uninterrupted sequence.
+- The required deferred interaction follow-up is filed and linked from the epic: [Graph file drag-to-folder + external OS drop](https://trello.com/c/z907ZEa2/259-graph-file-drag-to-folder-external-os-drop). Task 8.4 remains open for the PR media comment and final Trello report.
 
 ## Checkpoints
 
