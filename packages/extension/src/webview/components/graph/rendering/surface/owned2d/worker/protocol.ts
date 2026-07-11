@@ -1,4 +1,4 @@
-import type { GraphLayoutConfig, GraphLayoutInput, GraphLayoutTickResult } from '@codegraphy-dev/graph-engine';
+import type { GraphLayoutConfig, GraphLayoutInput, GraphLayoutTickResult } from '../physics';
 
 export type GraphLayoutWorkerCommand =
   | { type: 'init'; input: GraphLayoutInput }

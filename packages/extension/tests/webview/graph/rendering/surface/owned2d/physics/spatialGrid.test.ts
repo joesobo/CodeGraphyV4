@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { UniformGrid } from '../src/grid';
+import { UniformGrid } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/spatialGrid';
 
 describe('UniformGrid', () => {
   it('visits nodes in the same or adjacent cells without scanning distant cells', () => {

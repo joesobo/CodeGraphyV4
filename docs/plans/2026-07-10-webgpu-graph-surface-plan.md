@@ -119,7 +119,7 @@ graph and its product surfaces.
       `packages/graph-benchmark/references/webgpu/open-editor-dag-10k/`.
 - [x] Complete local verification after removal/parity work: 926 extension
       Vitest files / 5,469 tests, 121 VS Code Playwright scenarios, extension
-      source/test/Playwright TypeScript, ESLint, graph-engine tests/typecheck,
+      source/test/Playwright TypeScript, ESLint, extension-owned physics tests,
       and the production extension/webview build all pass.
 
 ### Rollout Gates
@@ -253,7 +253,9 @@ Headless typed-array engine per the parity spec §1. No renderer coupling.
 
 **Deliverables**
 
-- New package `packages/graph-engine` (pure TS, zero DOM imports):
+- Extension-private module `owned2d/physics` (pure TS, zero DOM imports), split
+  into focused configuration, initialization, force, integration, grid, and
+  lifecycle modules:
   - state: `Float32Array` positions/velocities, `Uint32Array` edge endpoints,
     `Uint8Array` flags (pinned/hidden);
   - forces: grid- or quadtree-based repulsion (Barnes-Hut on CPU), link
@@ -473,7 +475,7 @@ deliverables.
 
 Feel is the sum of a small number of motion behaviors. Each gets a metric
 computed from position time-series, and a target band committed as JSON
-(`packages/graph-engine/feel-targets.json`):
+(`packages/graph-benchmark/references/obsidian/feel-targets.json`):
 
 - **Settle**: from load, total kinetic energy decays monotonically after an
   initial peak; settle time (energy < 0.1% of peak) within band (e.g. 1–3s

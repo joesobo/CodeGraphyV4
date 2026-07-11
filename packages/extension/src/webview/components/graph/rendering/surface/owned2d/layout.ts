@@ -1,7 +1,7 @@
 import {
   createGraphLayoutEngine,
   type GraphLayoutEngine,
-} from '@codegraphy-dev/graph-engine';
+} from './physics';
 import type { DagMode } from '../../../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';

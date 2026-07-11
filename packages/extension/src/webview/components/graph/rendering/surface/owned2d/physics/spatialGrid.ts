@@ -12,12 +12,7 @@ export class UniformGrid {
     this.cellSize = cellSize;
   }
 
-  rebuild(
-    x: Float32Array,
-    y: Float32Array,
-    flags: Uint8Array,
-    hiddenMask: number,
-  ): void {
+  rebuild(x: Float32Array, y: Float32Array, flags: Uint8Array, hiddenMask: number): void {
     if (x.length !== y.length || x.length !== flags.length) {
       throw new Error('Grid buffers must have equal lengths');
     }
@@ -41,11 +36,7 @@ export class UniformGrid {
     }
   }
 
-  forEachNearby(
-    index: number,
-    maximumNeighbors: number,
-    visit: (otherIndex: number) => void,
-  ): void {
+  forEachNearby(index: number, maximumNeighbors: number, visit: (otherIndex: number) => void): void {
     let visited = 0;
     const centerX = this.cellX[index];
     const centerY = this.cellY[index];
@@ -56,11 +47,7 @@ export class UniformGrid {
         const targetY = centerY + yOffset;
         let otherIndex = this.heads.get(this.key(targetX, targetY)) ?? -1;
         while (otherIndex >= 0 && visited < maximumNeighbors) {
-          if (
-            otherIndex !== index
-            && this.cellX[otherIndex] === targetX
-            && this.cellY[otherIndex] === targetY
-          ) {
+          if (otherIndex !== index && this.cellX[otherIndex] === targetX && this.cellY[otherIndex] === targetY) {
             visit(otherIndex);
             visited += 1;
           }

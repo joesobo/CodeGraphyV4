@@ -5,7 +5,7 @@ import {
   type GraphLayoutEngine,
   type GraphLayoutInput,
   type GraphLayoutTickResult,
-} from '@codegraphy-dev/graph-engine';
+} from '../physics';
 import GraphLayoutWorker from './worker?worker&inline';
 import type { GraphLayoutWorkerCommand, GraphLayoutWorkerMessage } from './protocol';
 

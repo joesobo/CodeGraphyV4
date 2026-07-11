@@ -6,7 +6,7 @@ import {
   createGraphLayoutEngine,
   GraphNodeFlag,
   type GraphLayoutInput,
-} from '../src/engine';
+} from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 
 function lineGraph(nodeCount: number): GraphLayoutInput {
   return {
