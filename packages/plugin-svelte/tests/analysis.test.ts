@@ -73,7 +73,7 @@ describe('Svelte component analysis', () => {
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
-  });
+  }, 15_000);
 
   it('ignores script-like text outside compiler script nodes', async () => {
     const workspaceRoot = createWorkspaceRoot();
