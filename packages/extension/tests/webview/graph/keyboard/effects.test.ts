@@ -90,7 +90,7 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
-  it('ignores Delete when no public keyboard deletion command applies', () => {
+  it('deletes selected workspace files with Delete', () => {
     expect(getGraphKeyboardCommand({
       key: 'Delete',
       isMod: false,
@@ -99,6 +99,72 @@ describe('graph/keyboard/effects', () => {
       selectedNodeIds: ['src/app.ts'],
       allNodeIds: ['src/app.ts'],
       targetIsEditable: false,
+      mutationAvailability: 'enabled',
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: true,
+      effects: [{
+        kind: 'postMessage',
+        message: { type: 'DELETE_FILES', payload: { paths: ['src/app.ts'] } },
+      }],
+    });
+  });
+
+  it('deletes selected workspace files with modifier+Backspace', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'Backspace',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/app.ts'],
+      allNodeIds: ['src/app.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'enabled',
+    })?.effects).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'DELETE_FILES', payload: { paths: ['src/app.ts'] } },
+    }]);
+  });
+
+  it('does not delete from an immutable Graph Revision', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'Delete',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/app.ts'],
+      allNodeIds: ['src/app.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'disabled',
+    })).toBeNull();
+  });
+
+  it('renames one selected workspace file with F2', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'F2',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/app.ts'],
+      allNodeIds: ['src/app.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'enabled',
+    })?.effects).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'RENAME_FILE', payload: { path: 'src/app.ts' } },
+    }]);
+  });
+
+  it('does not rename multiple selected files with F2', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'F2',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/a.ts', 'src/b.ts'],
+      allNodeIds: ['src/a.ts', 'src/b.ts'],
+      targetIsEditable: false,
+      mutationAvailability: 'enabled',
     })).toBeNull();
   });
 

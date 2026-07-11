@@ -2,6 +2,7 @@ import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../effects';
 import {
   createClearSelectionCommand,
   createFitViewCommand,
+  createFileMessageCommand,
   createOpenSelectedNodesCommand,
   createSelectAllCommand,
 } from './builders';
@@ -36,11 +37,26 @@ function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand
 function getDirectGraphKeyboardCommand(
   options: GraphKeyboardOptions,
 ): GraphKeyboardCommand | null | undefined {
+  const selectedWorkspacePaths = options.selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId));
+  const mutationsEnabled = (options.mutationAvailability ?? 'enabled') === 'enabled';
+  const deleteCommand = mutationsEnabled && selectedWorkspacePaths.length > 0
+    ? createFileMessageCommand({
+      type: 'DELETE_FILES',
+      payload: { paths: selectedWorkspacePaths },
+    })
+    : null;
+  const renameCommand = mutationsEnabled && selectedWorkspacePaths.length === 1
+    ? createFileMessageCommand({
+      type: 'RENAME_FILE',
+      payload: { path: selectedWorkspacePaths[0] },
+    })
+    : null;
   const directCommands: Partial<Record<string, GraphKeyboardCommand | null>> = {
     '0': createFitViewCommand(),
     Escape: createClearSelectionCommand(),
-    Delete: null,
-    Backspace: null,
+    Delete: deleteCommand,
+    Backspace: options.isMod ? deleteCommand : null,
+    F2: renameCommand,
     'a': options.isMod ? createSelectAllCommand(options.allNodeIds) : null,
   };
 

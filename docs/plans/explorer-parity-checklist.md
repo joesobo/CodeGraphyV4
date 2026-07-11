@@ -38,14 +38,14 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Binding | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
 | Enter opens selection | done(unit) | 2.1 | Keyboard resolver/effect/listener tests open all selected non-synthetic nodes. |
-| F2 rename | todo(P2) | 2.3 | Not implemented. |
-| Delete / Cmd+Backspace | todo(P2) | 2.3 | Explicitly unbound in `keyboard/command/lookup.ts`. |
+| F2 rename | done(unit) | 2.3 | Single workspace selection posts the existing rename action; multi-select and immutable revisions are rejected. |
+| Delete / Cmd+Backspace | done(unit) | 2.3 | Both bindings post the existing count-confirmed delete action and dynamically respect mutation availability. |
 | Cmd/Ctrl+C, X, V | todo(P2) | 2.3 | Not implemented. |
 | Cmd/Ctrl+Enter open to side | todo(P2) | 2.3 | Not implemented. |
 | Cmd/Ctrl+A | done(unit) | 2.1 | Keyboard resolver, listener, and effect tests select every visible node. |
 | Escape clears selection | done(unit) | 2.1 | Keyboard resolver/listener/effect tests clear the graph selection. |
 | Escape closes panels | todo(P2) | 2.3 | Existing Escape handling does not prove the panel-close bug is fixed. |
-| Cmd/Ctrl+Z / Shift+Z | todo(P2) | 2.3 | Host undo manager exists; graph bindings do not. |
+| Cmd/Ctrl+Z / Shift+Z | done(unit) | 2.3 | Keyboard effect and listener tests post UNDO/REDO through the host undo manager route. |
 | Type-ahead find | waived(search bar equivalent) | — | Search bar is the graph-native equivalent. |
 | Arrow-key navigation | waived(owner) | — | Explicit owner decision. |
 | Left / Right collapse-expand | waived(folder view click) | — | Folder View click is the graph-native equivalent. |

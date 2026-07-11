@@ -2,11 +2,13 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import { getGraphKeyboardCommand } from './effects';
 import type { GraphKeyboardEffectHandlers } from '../effects/keyboard';
+import type { GraphContextMutationAvailability } from '../contextMenu/contracts';
 
 export interface GraphKeyboardListenerOptions {
   dispatchStoreMessage: (message: ExtensionToWebviewMessage) => void;
   fitView: () => void;
   getAllNodeIds: () => string[];
+  getMutationAvailability?: () => GraphContextMutationAvailability;
   graphMode: '2d' | '3d';
   openNode: (nodeId: string) => void;
   postMessage: (message: WebviewToExtensionMessage) => void;
@@ -27,6 +29,7 @@ export function createGraphKeyboardListener({
   dispatchStoreMessage,
   fitView,
   getAllNodeIds,
+  getMutationAvailability = () => 'enabled',
   graphMode,
   openNode,
   postMessage,
@@ -44,6 +47,7 @@ export function createGraphKeyboardListener({
       selectedNodeIds,
       allNodeIds: getAllNodeIds(),
       targetIsEditable: isEditableTarget(event.target),
+      mutationAvailability: getMutationAvailability(),
     });
     if (!command) return;
 

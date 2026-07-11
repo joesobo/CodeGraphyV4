@@ -218,4 +218,25 @@ describe('graph/keyboardListener', () => {
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(event.stopPropagation).not.toHaveBeenCalled();
   });
+
+  it('reads current mutation availability before resolving destructive shortcuts', () => {
+    const runEffects = vi.fn();
+    const handleKeyDown = createGraphKeyboardListener({
+      dispatchStoreMessage: vi.fn(),
+      fitView: vi.fn(),
+      getAllNodeIds: () => ['a.ts'],
+      getMutationAvailability: () => 'disabled',
+      graphMode: '2d',
+      openNode: vi.fn(),
+      postMessage: vi.fn(),
+      runEffects: runEffects as never,
+      selectedNodeIds: ['a.ts'],
+      setSelection: vi.fn(),
+      zoomGraphView: vi.fn(),
+    });
+
+    handleKeyDown(createKeyboardEvent('Delete'));
+
+    expect(runEffects).not.toHaveBeenCalled();
+  });
 });

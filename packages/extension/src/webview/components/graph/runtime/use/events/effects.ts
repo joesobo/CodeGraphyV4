@@ -13,6 +13,7 @@ import { exportAsPng } from '../../../../../export/png';
 import { exportAsSvg } from '../../../../../export/svg/export';
 import { postMessage } from '../../../../../vscodeApi';
 import { graphStore } from '../../../../../store/state';
+import { getGraphContextMutationAvailability } from '../../../contextMenu/mutationAvailability';
 import type { FGLink, FGNode } from '../../../model/build';
 import type { GraphRuntime } from '../state';
 import type { UseGraphInteractionRuntimeResult } from '../interaction';
@@ -97,6 +98,7 @@ export function useGraphEventEffects({
       graphMode,
       selectedNodeIds: selectedNodes,
       getAllNodeIds: () => graphDataRef.current.nodes.map(node => node.id),
+      getMutationAvailability: () => getGraphContextMutationAvailability(graphStore.getState()),
       fitView: () => interactionHandlers.fitView(),
       setSelection: nodeIds => interactionHandlers.setSelection(nodeIds),
       openNode: nodeId => interactionHandlers.requestNodeOpenById(nodeId),

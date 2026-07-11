@@ -40,6 +40,12 @@ export function createHistoryCommand(type: HistoryMessageType): GraphKeyboardCom
   return createCommand({ kind: 'postMessage', message: { type } }, true);
 }
 
+export function createFileMessageCommand(
+  message: Extract<WebviewToExtensionMessage, { type: 'DELETE_FILES' | 'RENAME_FILE' }>,
+): GraphKeyboardCommand {
+  return createCommand({ kind: 'postMessage', message }, true);
+}
+
 export function createStoreMessageCommand(type: StoreMessageType): GraphKeyboardCommand {
   return createCommand({ kind: 'dispatchStoreMessage', message: { type } });
 }
