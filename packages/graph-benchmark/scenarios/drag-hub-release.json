@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "drag-hub-release",
+  "fixture": { "name": "1k", "seed": 307 },
+  "durationTicks": 480,
+  "actions": [
+    { "atTick": 0, "type": "load" },
+    { "atTick": 120, "type": "pointer-down", "nodeId": "packages/package-0000/src/file-000000.ts" },
+    { "atTick": 160, "type": "pointer-move", "x": 100, "y": 50 },
+    { "atTick": 200, "type": "pointer-move", "x": 200, "y": 100 },
+    { "atTick": 240, "type": "pointer-up" }
+  ]
+}

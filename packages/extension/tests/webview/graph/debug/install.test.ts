@@ -44,19 +44,60 @@ describe('webview/graph/debug/install', () => {
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeDefined();
   });
 
-  it('installs and cleans up the graph debug api when enabled', () => {
+  it('installs stable bounded measurement and deterministic camera controls', () => {
     const fitView = vi.fn();
+    const centerAt = vi.fn();
+    const zoom = vi.fn(() => 2);
     const zoomToFit = vi.fn();
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
 
-    const cleanup = installGraphDebugApi({
+    const install = () => installGraphDebugApi({
       containerRef: { current: null },
       fitView,
       fg2dRef: {
         current: {
+          centerAt,
           graph2ScreenCoords: (x, y) => ({ x, y }),
-          zoom: () => 2,
+          zoom,
           zoomToFit,
+        },
+      },
+      fg3dRef: { current: undefined },
+      graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2 }] } },
+      graphMode: '2d' as const,
+      win,
+    });
+    const cleanup = install();
+
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.fitView();
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.fitViewWithPadding(24);
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('a.ts', 1)).toBe(true);
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.centerNode('missing.ts', 1)).toBe(false);
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.startRenderedFrameRecording();
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(10);
+    cleanup?.();
+    install();
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(26.7);
+
+    expect(fitView).toHaveBeenCalledOnce();
+    expect(zoomToFit).toHaveBeenCalledWith(300, 24);
+    expect(zoom).toHaveBeenCalledWith(1, 0);
+    expect(centerAt).toHaveBeenCalledWith(1, 2, 0);
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);
+
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(40);
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.stopRenderedFrameRecording()).toEqual([10, 26.7]);
+  });
+
+  it('returns one node screen position without building a full snapshot', () => {
+    const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
+
+    installGraphDebugApi({
+      containerRef: { current: null },
+      fitView: vi.fn(),
+      fg2dRef: {
+        current: {
+          graph2ScreenCoords: (x, y) => ({ x: x + 10, y: y + 20 }),
         },
       },
       fg3dRef: { current: undefined },
@@ -65,14 +106,11 @@ describe('webview/graph/debug/install', () => {
       win,
     });
 
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.fitView();
-    win.__CODEGRAPHY_GRAPH_DEBUG__?.fitViewWithPadding(24);
-
-    expect(fitView).toHaveBeenCalledOnce();
-    expect(zoomToFit).toHaveBeenCalledWith(300, 24);
-
-    cleanup?.();
-    expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeUndefined();
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getNodeScreenPosition('a.ts')).toEqual({
+      x: 11,
+      y: 22,
+    });
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__?.getNodeScreenPosition('missing.ts')).toBeNull();
   });
 
   it('opens a node context menu through the graph debug api', () => {
@@ -147,8 +185,10 @@ describe('webview/graph/debug/install', () => {
       graphMode: '3d',
       nodes: [{
         baseOpacity: 0.45,
+        collisionRadius: 10,
         color: '#525c6a',
         id: 'mesh',
+        positionFinite: true,
         screenX: 4,
         screenY: 5,
         size: 6,
@@ -198,6 +238,7 @@ describe('webview/graph/debug/install', () => {
         current: {
           nodes: [{
             baseOpacity: 0.8,
+            collisionRadius2D: 24,
             color: '#123456',
             id: 'flat',
             shapeSize2D: {
@@ -228,8 +269,10 @@ describe('webview/graph/debug/install', () => {
       graphMode: '2d',
       nodes: [{
         baseOpacity: 0.8,
+        collisionRadius: 28,
         color: '#123456',
         id: 'flat',
+        positionFinite: true,
         screenX: 3,
         shapeSize2D: {
           height: 20,
