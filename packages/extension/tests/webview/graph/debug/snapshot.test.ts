@@ -25,8 +25,10 @@ describe('webview/graph/debug/snapshot', () => {
       containerWidth: 480,
       graphMode: '2d',
       nodes: [{
+        collisionRadius: 16,
         id: 'a.ts',
         imageUrl: 'webview://icon.svg',
+        positionFinite: true,
         screenX: 15,
         screenY: 26,
         size: 12,
@@ -50,7 +52,9 @@ describe('webview/graph/debug/snapshot', () => {
       containerWidth: 0,
       graphMode: '3d',
       nodes: [{
+        collisionRadius: 12,
         id: 'b.ts',
+        positionFinite: true,
         screenX: 3,
         screenY: 4,
         size: 8,
@@ -78,7 +82,9 @@ describe('webview/graph/debug/snapshot', () => {
 
     expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 5);
     expect(snapshot.nodes).toEqual([{
+      collisionRadius: 14,
       id: 'c.ts',
+      positionFinite: true,
       screenX: 6,
       screenY: 7,
       size: 10,
@@ -105,7 +111,9 @@ describe('webview/graph/debug/snapshot', () => {
 
     expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0, 0);
     expect(snapshot.nodes).toEqual([{
+      collisionRadius: 8,
       id: 'd.ts',
+      positionFinite: false,
       screenX: 0,
       screenY: 0,
       size: 4,

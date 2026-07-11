@@ -135,6 +135,7 @@ export function GraphViewportShell({
   };
 
   renderFramePostRef.current = (ctx, globalScale) => {
+    window.__CODEGRAPHY_GRAPH_DEBUG__?.recordRenderedFrame(performance.now());
     publishGraphViewportScale(globalScale);
     publishGraphViewViewportState(globalScale);
     publishGraphAccessibilityItems();

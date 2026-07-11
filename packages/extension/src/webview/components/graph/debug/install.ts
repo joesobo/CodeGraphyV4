@@ -1,6 +1,7 @@
 import type { MutableRefObject, RefObject } from 'react';
 import './window';
 import type { GraphDebugControls } from './contracts/protocol';
+import { getRenderedFrameRecorder } from './frameTimes';
 import { buildGraphDebugSnapshot, type DebugNode } from './snapshot';
 
 type GraphDebugApiOptions = {
@@ -88,11 +89,32 @@ export function installGraphDebugApi({
     openNodeContextMenu,
     win,
   };
+  const renderedFrames = getRenderedFrameRecorder(win);
 
   win.__CODEGRAPHY_GRAPH_DEBUG__ = {
+    centerNode: (nodeId: string, scale: number) => {
+      const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
+      const graph = getActiveGraphDebugControls(options);
+      if (!node || !graph?.centerAt || !graph.zoom) return false;
+      const { x, y } = node;
+      if (typeof x !== 'number'
+        || !Number.isFinite(x)
+        || typeof y !== 'number'
+        || !Number.isFinite(y)
+        || !Number.isFinite(scale)) return false;
+      graph.zoom(scale, 0);
+      graph.centerAt(x, y, 0);
+      return true;
+    },
     fitView,
     fitViewWithPadding: (padding: number) => {
       getActiveGraphDebugControls(options)?.zoomToFit?.(300, padding);
+    },
+    getNodeScreenPosition: (nodeId: string) => {
+      const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
+      return node
+        ? getGraphDebugNodeScreenPosition(node, getActiveGraphDebugControls(options))
+        : null;
     },
     getSnapshot: () => buildGraphDebugSnapshot({
       containerRef,
@@ -101,6 +123,9 @@ export function installGraphDebugApi({
       nodes: graphDataRef.current.nodes,
     }),
     openNodeContextMenu: (nodeId: string) => openGraphDebugNodeContextMenu(nodeId, options),
+    recordRenderedFrame: renderedFrames.record,
+    startRenderedFrameRecording: renderedFrames.start,
+    stopRenderedFrameRecording: renderedFrames.stop,
   };
 
   return () => {

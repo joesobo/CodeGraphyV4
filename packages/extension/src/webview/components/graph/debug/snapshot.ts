@@ -1,8 +1,10 @@
 import type { RefObject } from 'react';
 import type { GraphDebugControls, GraphDebugSnapshot } from './contracts/protocol';
+import { getGraphCollisionRadius } from '../runtime/physics/root/collision';
 
 export interface DebugNode {
   baseOpacity?: number;
+  collisionRadius2D?: number;
   color?: string;
   id: string;
   imageUrl?: string;
@@ -39,9 +41,14 @@ function buildDebugNodeSnapshot(
 
   return {
     ...(typeof node.baseOpacity === 'number' ? { baseOpacity: node.baseOpacity } : {}),
+    collisionRadius: getGraphCollisionRadius(node),
     ...(typeof node.color === 'string' ? { color: node.color } : {}),
     id: node.id,
     ...(typeof node.imageUrl === 'string' ? { imageUrl: node.imageUrl } : {}),
+    positionFinite: typeof node.x === 'number'
+      && Number.isFinite(node.x)
+      && typeof node.y === 'number'
+      && Number.isFinite(node.y),
     screenX: screen.x,
     ...(node.shapeSize2D ? { shapeSize2D: node.shapeSize2D } : {}),
     screenY: screen.y,

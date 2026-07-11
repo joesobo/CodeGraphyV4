@@ -9,6 +9,8 @@
 	"scripts": {
 		"build": "turbo run build",
 		"build:devhost": "node scripts/build-devhost.mjs",
+		"bench:graph": "pnpm --filter @codegraphy-dev/graph-benchmark run bench:graph",
+		"bench:graph:vault": "pnpm --filter @codegraphy-dev/graph-benchmark run bench:graph:vault",
 		"watch": "pnpm --filter @codegraphy-dev/extension run watch",
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
 		"test": "pnpm run test:unit && pnpm run test:playwright",
