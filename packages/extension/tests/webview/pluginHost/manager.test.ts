@@ -187,7 +187,8 @@ describe('WebviewPluginHost', () => {
     secondApi.registerNodeRenderer('.ts', secondRenderer);
     firstDisposable.dispose();
 
-    expect(host.getNodeRenderer('.ts')).toBe(secondRenderer);
+    host.getNodeRenderer('.ts')?.({} as never);
+    expect(secondRenderer).toHaveBeenCalledOnce();
   });
 
   it('returns type-specific node renderers with wildcard renderers', () => {
@@ -199,7 +200,11 @@ describe('WebviewPluginHost', () => {
     api.registerNodeRenderer('.ts', typeRenderer);
     api.registerNodeRenderer('*', wildcardRenderer);
 
-    expect(host.getNodeRenderers('.ts')).toEqual([typeRenderer, wildcardRenderer]);
+    const renderers = host.getNodeRenderers('.ts');
+    expect(renderers).toHaveLength(2);
+    for (const renderer of renderers) renderer({} as never);
+    expect(typeRenderer).toHaveBeenCalledOnce();
+    expect(wildcardRenderer).toHaveBeenCalledOnce();
   });
 
   it('returns qualified overlay ids and removes a plugin overlay on dispose', () => {
@@ -208,10 +213,40 @@ describe('WebviewPluginHost', () => {
     const overlay = vi.fn();
 
     const disposable = api.registerOverlay('heatmap', overlay);
-    expect(host.getOverlays()).toEqual([{ id: 'acme.plugin:heatmap', fn: overlay }]);
+    const overlays = host.getOverlays();
+    expect(overlays).toEqual([{ id: 'acme.plugin:heatmap', fn: expect.any(Function) }]);
+    overlays[0].fn({} as never);
+    expect(overlay).toHaveBeenCalledOnce();
 
     disposable.dispose();
     expect(host.getOverlays()).toEqual([]);
+  });
+
+  it('disables a node-renderer plugin without interrupting the graph render', () => {
+    const host = new WebviewPluginHost();
+    const postHostMessage = vi.fn();
+    const api = host.createAPI('fixture.throwing-renderer', vi.fn(), postHostMessage);
+    api.registerNodeRenderer('.ts', () => {
+      throw new Error('deliberate render failure');
+    });
+
+    expect(() => host.getNodeRenderer('.ts')?.({} as never)).not.toThrow();
+    expect(host.getNodeRenderer('.ts')).toBeUndefined();
+    expect(postHostMessage).toHaveBeenCalledWith({
+      type: 'PLUGIN_RUNTIME_FAILED',
+      payload: {
+        pluginId: 'fixture.throwing-renderer',
+        hook: 'node renderer',
+        message: 'deliberate render failure',
+      },
+    });
+    expect(postHostMessage).toHaveBeenCalledWith({
+      type: 'TOGGLE_PLUGIN',
+      payload: {
+        pluginId: 'fixture.throwing-renderer',
+        enabled: false,
+      },
+    });
   });
 
   it('registers graph-view contributions from scoped plugin APIs and removes them on dispose', () => {
@@ -269,7 +304,7 @@ describe('WebviewPluginHost', () => {
     expect(host.getGraphViewContributions()).toBe(emptySnapshot);
   });
 
-  it('aggregates tooltip sections and ignores failing providers', () => {
+  it('keeps healthy tooltip content when a failing provider disables its plugin', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const host = new WebviewPluginHost();
     const firstApi = host.createAPI('plugin.one', vi.fn());
@@ -289,10 +324,9 @@ describe('WebviewPluginHost', () => {
       actions: [],
       sections: [
         { title: 'One', content: 'First' },
-        { title: 'Two', content: 'Second' },
       ],
     });
-    expect(errorSpy).toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it('returns null when no tooltip providers contribute content', () => {

@@ -11,6 +11,7 @@ import type {
   CoreFileAnalysisResultProvider,
 } from '../../../routing/router/analyze';
 import type { IPluginGraphScopeCapabilities } from '../../../types/contracts';
+import { removeFromRegistry } from '../registration/unregister';
 
 export type CoreGraphScopeCapabilitiesProvider = (
   filePaths?: readonly string[],
@@ -31,6 +32,18 @@ export abstract class PluginRegistryState {
   protected _webviewReadyNotified = false;
   protected _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
   protected _coreGraphScopeCapabilitiesProvider?: CoreGraphScopeCapabilitiesProvider;
+
+  protected _disableFailedPlugin(pluginId: string, hook: string, error: unknown): void {
+    removeFromRegistry(
+      pluginId,
+      this._plugins,
+      this._extensionMap,
+      this._initializedPlugins,
+      this._eventBus,
+    );
+    this._v2Config.logFn('error', `[CodeGraphy] Disabled plugin ${pluginId} after ${hook} failed.`, error);
+    this._v2Config.notifyPluginFailure?.(pluginId, hook, error);
+  }
 
   protected _replayReadinessForPlugin(info: IPluginInfoV2): void {
     lifecycleReplayReadiness(

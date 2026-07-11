@@ -105,7 +105,7 @@ describe('PluginRegistry analysis', () => {
   });
 
   it('returns empty array on plugin error', async () => {
-    const { registry } = registerPlugin({
+    const { registry, plugin } = registerPlugin({
       supportedExtensions: ['.ts'],
       analyzeFile: vi.fn().mockRejectedValue(new Error('Parse error')),
     });
@@ -113,6 +113,26 @@ describe('PluginRegistry analysis', () => {
     const result = await registry.analyzeFile('/src/app.ts', 'content', '/workspace');
 
     expect(result).toEqual([]);
+    expect(registry.get(plugin.id)).toBeUndefined();
+  });
+
+  it('notifies once when analysis failure disables a plugin', async () => {
+    const notifyPluginFailure = vi.fn();
+    const registry = createConfiguredRegistry(notifyPluginFailure);
+    registry.register(createMockPlugin({
+      id: 'fixture.throwing',
+      supportedExtensions: ['.ts'],
+      analyzeFile: vi.fn().mockRejectedValue(new Error('deliberate fixture failure')),
+    }));
+
+    await expect(registry.analyzeFile('/src/app.ts', 'content', '/workspace')).resolves.toEqual([]);
+
+    expect(notifyPluginFailure).toHaveBeenCalledWith(
+      'fixture.throwing',
+      'analyzeFile',
+      expect.objectContaining({ message: 'deliberate fixture failure' }),
+    );
+    expect(registry.get('fixture.throwing')).toBeUndefined();
   });
 
   it('uses analyzeFile results directly', async () => {

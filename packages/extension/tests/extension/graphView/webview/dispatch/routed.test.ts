@@ -46,6 +46,23 @@ describe('graph view primary routed dispatch', () => {
     expect(context.updateDagMode).not.toHaveBeenCalled();
   });
 
+  it('notifies when a webview plugin runtime is disabled', async () => {
+    const context = createPrimaryMessageContext();
+
+    await expect(dispatchGraphViewPrimaryRouteMessage({
+      type: 'PLUGIN_RUNTIME_FAILED',
+      payload: {
+        pluginId: 'fixture.throwing-renderer',
+        hook: 'node renderer',
+        message: 'deliberate render failure',
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.showInformationMessage).toHaveBeenCalledWith(
+      "CodeGraphy disabled plugin 'fixture.throwing-renderer' after node renderer failed: deliberate render failure",
+    );
+  });
+
   it('returns false when no routed message family handles the input', async () => {
     await expect(
       dispatchGraphViewPrimaryRouteMessage({ type: 'UPDATE_LEGENDS', payload: { legends: [] } }, createPrimaryMessageContext()),

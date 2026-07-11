@@ -26,6 +26,7 @@ interface GraphViewAnalyzerLike {
       webviewSender: (message: unknown) => void;
       exportSaver: (request: unknown) => Promise<void>;
       workspaceRoot: string;
+      notifyPluginFailure?: (pluginId: string, hook: string, error: unknown) => void;
     }): void;
   };
 }
@@ -50,6 +51,7 @@ interface InitializeGraphViewProviderServicesOptions {
   sendMessage: (message: unknown) => void;
   workspaceRoot: string;
   onDecorationsChanged: () => void;
+  notifyPluginFailure?: (pluginId: string, hook: string, error: unknown) => void;
 }
 
 interface RestoreGraphViewProviderStateOptions {
@@ -78,6 +80,7 @@ export function initializeGraphViewProviderServices({
   sendMessage,
   workspaceRoot,
   onDecorationsChanged,
+  notifyPluginFailure = () => undefined,
 }: InitializeGraphViewProviderServicesOptions): void {
   for (const view of coreViews) {
     viewRegistry.register(view, {
@@ -102,6 +105,7 @@ export function initializeGraphViewProviderServices({
     },
     exportSaver: (request: unknown) => savePluginExport(request as Parameters<typeof savePluginExport>[0]),
     workspaceRoot,
+    notifyPluginFailure,
   });
 
   decorationManager.onDecorationsChanged(onDecorationsChanged);

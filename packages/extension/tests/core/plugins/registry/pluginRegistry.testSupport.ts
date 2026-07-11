@@ -20,7 +20,9 @@ export function createMockPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
   } as IPlugin;
 }
 
-export function createConfiguredRegistry(): PluginRegistry {
+export function createConfiguredRegistry(
+  notifyPluginFailure?: (pluginId: string, hook: string, error: unknown) => void,
+): PluginRegistry {
   const registry = new PluginRegistry();
   registry.configureV2({
     eventBus: new EventBus(),
@@ -30,6 +32,7 @@ export function createConfiguredRegistry(): PluginRegistry {
     commandRegistrar: () => ({ dispose: () => {} }),
     webviewSender: () => {},
     workspaceRoot: '/workspace',
+    ...(notifyPluginFailure ? { notifyPluginFailure } : {}),
   });
   return registry;
 }

@@ -179,4 +179,72 @@ describe('core/plugins/registry/runtime/state graph view contributions', () => {
       ui: [],
     });
   });
+
+  it('isolates a throwing contribution getter and retains healthy menus', async () => {
+    const throwingPlugin = createMockPlugin({ id: 'fixture.throwing-menu' });
+    Object.defineProperty(throwingPlugin, 'graphView', {
+      get: () => {
+        throw new Error('deliberate menu failure');
+      },
+    });
+    const menu = {
+      id: 'healthy-menu',
+      label: 'Healthy Menu',
+      targets: [{ kind: 'node' as const }],
+      run: vi.fn(),
+    };
+    const onPluginError = vi.fn();
+
+    const contributions = await listAvailableGraphViewContributionsForPlugins([
+      pluginInfo(throwingPlugin),
+      pluginInfo(createMockPlugin({
+        id: 'fixture.healthy-menu',
+        graphView: { contextMenu: [menu] },
+      })),
+    ], {}, onPluginError);
+
+    expect(contributions.contextMenu).toEqual([{
+      pluginId: 'fixture.healthy-menu',
+      contribution: expect.objectContaining({
+        id: menu.id,
+        label: menu.label,
+        targets: menu.targets,
+      }),
+    }]);
+    expect(onPluginError).toHaveBeenCalledWith(
+      'fixture.throwing-menu',
+      expect.objectContaining({ message: 'deliberate menu failure' }),
+    );
+  });
+
+  it('turns a throwing menu action into a plugin failure without rejecting the host action', async () => {
+    const onPluginError = vi.fn();
+    const contributions = await listAvailableGraphViewContributionsForPlugins([
+      pluginInfo(createMockPlugin({
+        id: 'fixture.throwing-menu-run',
+        graphView: {
+          contextMenu: [{
+            id: 'throwing-menu',
+            label: 'Throwing Menu',
+            targets: [{ kind: 'node' }],
+            run: () => {
+              throw new Error('deliberate menu run failure');
+            },
+          }],
+        },
+      })),
+    ], {}, onPluginError);
+
+    await expect(contributions.contextMenu[0].contribution.run({
+      target: { kind: 'node' },
+      graphMode: '2d',
+      timelineActive: false,
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
+    })).resolves.toBeUndefined();
+    expect(onPluginError).toHaveBeenCalledWith(
+      'fixture.throwing-menu-run',
+      expect.objectContaining({ message: 'deliberate menu run failure' }),
+    );
+  });
 });

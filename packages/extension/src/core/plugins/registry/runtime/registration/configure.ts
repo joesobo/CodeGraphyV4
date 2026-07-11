@@ -19,6 +19,7 @@ export interface ConfigureV2Options {
   exportSaver?: ExportSaver;
   workspaceRoot: string;
   logFn?: (level: string, ...args: unknown[]) => void;
+  notifyPluginFailure?: (pluginId: string, hook: string, error: unknown) => void;
 }
 
 export const DEFAULT_LOG_FN = (level: string, ...args: unknown[]): void => {
@@ -41,5 +42,6 @@ export function buildV2Config(options: ConfigureV2Options, currentLogFn: (level:
     exportSaver: options.exportSaver,
     workspaceRoot: options.workspaceRoot,
     logFn: options.logFn ?? currentLogFn,
+    notifyPluginFailure: options.notifyPluginFailure,
   };
 }

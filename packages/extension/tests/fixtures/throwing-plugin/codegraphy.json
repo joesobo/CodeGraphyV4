@@ -1,0 +1,8 @@
+{
+  "id": "fixture.throwing",
+  "name": "Throwing Fixture",
+  "version": "1.0.0",
+  "apiVersion": "^2.1.0",
+  "minCoreVersion": "1.7.2",
+  "supportedExtensions": [".throw"]
+}

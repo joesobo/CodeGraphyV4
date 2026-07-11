@@ -25,6 +25,7 @@ export interface RegistryV2Config {
   exportSaver?: ExportSaver;
   workspaceRoot?: string;
   logFn: (level: string, ...args: unknown[]) => void;
+  notifyPluginFailure?: (pluginId: string, hook: string, error: unknown) => void;
 }
 
 /**

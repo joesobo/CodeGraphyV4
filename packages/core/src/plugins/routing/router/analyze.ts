@@ -26,6 +26,7 @@ export type CoreFileAnalysisResultProvider = (
 
 export interface AnalyzeFileResultOptions {
   disabledPlugins?: ReadonlySet<string>;
+  onPluginError?: (pluginId: string, error: unknown, hook: 'analyzeFile') => void;
   pluginIds?: ReadonlySet<string>;
 }
 
@@ -114,7 +115,11 @@ export async function analyzeFileResult(
 
       mergedResult = mergeFileAnalysisResults(mergedResult, pluginResult);
     } catch (error) {
-      console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
+      if (options.onPluginError) {
+        options.onPluginError(plugin.id, error, 'analyzeFile');
+      } else {
+        console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
+      }
     }
   }
 

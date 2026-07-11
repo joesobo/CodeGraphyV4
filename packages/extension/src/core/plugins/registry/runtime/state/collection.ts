@@ -58,7 +58,11 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
   async listAvailableGraphViewContributions(
     context: CorePluginAccessContext = {},
   ): Promise<CoreGraphViewContributionSet> {
-    return listAvailableGraphViewContributionsForPlugins(this._plugins.values(), context);
+    return listAvailableGraphViewContributionsForPlugins(
+      this._plugins.values(),
+      context,
+      (pluginId, error) => this._disableFailedPlugin(pluginId, 'graphView contributions', error),
+    );
   }
 
   getPluginForFile(filePath: string): IPlugin | undefined {
@@ -84,7 +88,13 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
-      options,
+      {
+        ...options,
+        onPluginError: (pluginId, error, hook) => {
+          options.onPluginError?.(pluginId, error, hook);
+          this._disableFailedPlugin(pluginId, hook, error);
+        },
+      },
     );
   }
 
@@ -103,7 +113,13 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._extensionMap,
       this._coreAnalyzeFileResult,
       analysisContext,
-      options,
+      {
+        ...options,
+        onPluginError: (pluginId, error, hook) => {
+          options.onPluginError?.(pluginId, error, hook);
+          this._disableFailedPlugin(pluginId, hook, error);
+        },
+      },
     );
   }
 
@@ -126,6 +142,10 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       {
         ...options,
         pluginIds: new Set(pluginIds),
+        onPluginError: (pluginId, error, hook) => {
+          options.onPluginError?.(pluginId, error, hook);
+          this._disableFailedPlugin(pluginId, hook, error);
+        },
       },
     );
   }

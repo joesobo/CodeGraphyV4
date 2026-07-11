@@ -42,6 +42,12 @@ export function initializeGraphViewProviderRuntimeServices(
     onDecorationsChanged: () => {
       source.getMethodContainers().plugin._sendDecorations();
     },
+    notifyPluginFailure: (pluginId, hook, error) => {
+      const detail = error instanceof Error ? error.message : String(error);
+      void vscode.window.showWarningMessage(
+        `CodeGraphy disabled plugin '${pluginId}' after ${hook} failed: ${detail}`,
+      );
+    },
   });
 }
 

@@ -187,6 +187,41 @@ describe('plugins/routing', () => {
     consoleError.mockRestore();
   });
 
+  it('reports a failing plugin without discarding healthy graph facts', async () => {
+    const onPluginError = vi.fn();
+    const plugins = new Map<string, IRoutablePluginInfo>([
+      ['healthy', {
+        plugin: plugin('healthy', ['.ts'], async () => ({
+          filePath: 'src/app.ts',
+          nodes: [{ id: 'healthy-node', label: 'Healthy', nodeType: 'symbol' }],
+        })),
+      }],
+      ['throwing', {
+        plugin: plugin('throwing', ['.ts'], async () => {
+          throw new Error('fixture failure');
+        }),
+      }],
+    ]);
+
+    const result = await analyzeFileResult(
+      'src/app.ts',
+      'content',
+      '/workspace',
+      plugins,
+      new Map([['.ts', ['healthy', 'throwing']]]),
+      undefined,
+      undefined,
+      { onPluginError },
+    );
+
+    expect(result?.nodes).toEqual([expect.objectContaining({ id: 'healthy-node' })]);
+    expect(onPluginError).toHaveBeenCalledWith(
+      'throwing',
+      expect.objectContaining({ message: 'fixture failure' }),
+      'analyzeFile',
+    );
+  });
+
   it('limits plugin analysis to selected plugin ids when requested', async () => {
     const selected = plugin('selected', ['.ts'], vi.fn(async () => ({
       filePath: 'src/app.ts',

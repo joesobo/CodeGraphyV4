@@ -13,6 +13,13 @@ export async function dispatchGraphViewPrimaryRouteMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
+  if (message.type === 'PLUGIN_RUNTIME_FAILED') {
+    context.showInformationMessage(
+      `CodeGraphy disabled plugin '${message.payload.pluginId}' after ${message.payload.hook} failed: ${message.payload.message}`,
+    );
+    return { handled: true };
+  }
+
   if (await applyNodeFileMessage(message, createGraphViewPrimaryNodeFileHandlers(context))) {
     return { handled: true };
   }

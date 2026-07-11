@@ -1,0 +1,12 @@
+{
+  "name": "@codegraphy-dev/fixture-throwing-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./plugin.js",
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.1.0",
+    "disclosures": []
+  }
+}

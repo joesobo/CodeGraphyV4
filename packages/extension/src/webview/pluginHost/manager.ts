@@ -52,6 +52,7 @@ import {
   type GraphViewViewportStateListener,
   type GraphViewViewportStateListenerEntry,
 } from './manager/viewportState';
+import { createPluginRuntimeFailureReporter } from './failure';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
@@ -78,6 +79,11 @@ export class WebviewPluginHost {
     getHostState: () => Record<string, unknown> = () => ({}),
     getPluginData: (pluginId: string) => unknown = () => undefined,
   ): CodeGraphyWebviewAPI {
+    const reportFailure = createPluginRuntimeFailureReporter(
+      pluginId,
+      () => this.removePlugin(pluginId),
+      postHostMessage,
+    );
     return createPluginWebviewApi(
       pluginId, postMessage,
       postHostMessage,
@@ -87,9 +93,28 @@ export class WebviewPluginHost {
       (pid, slot) => getOrCreateSlotContainer(pid, slot, this._slotContainers, this._slotHosts),
       (pid, slot, contribution, context) =>
         registerSlotContribution(pid, slot, contribution, context, this._slotContributions, this._slotHosts),
-      (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),
-      (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
-      (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
+      (pid, type, fn) => registerNodeRenderer(pid, type, (context) => {
+        try {
+          fn(context);
+        } catch (error) {
+          reportFailure('node renderer', error);
+        }
+      }, this._nodeRenderers),
+      (pid, id, fn) => registerOverlay(pid, id, (context) => {
+        try {
+          fn(context);
+        } catch (error) {
+          reportFailure('overlay renderer', error);
+        }
+      }, this._overlays),
+      (pid, fn) => registerTooltipProvider(pid, (context) => {
+        try {
+          return fn(context);
+        } catch (error) {
+          reportFailure('tooltip provider', error);
+          return null;
+        }
+      }, this._tooltipProviders),
       (pid, contributions) => this._graphViewContributions.register(pid, contributions),
       () => this.getGraphViewViewportState(),
       (handler) => this.subscribeGraphViewViewportState(handler, pluginId),

@@ -56,6 +56,7 @@ async function appendAvailableGraphViewContributions(
   accessProviders: readonly IAccessProvider[],
   contributions: CoreGraphViewContributionSet,
   context: CorePluginAccessContext,
+  onPluginError?: (pluginId: string, error: unknown) => void,
 ): Promise<void> {
   const graphView = plugin.graphView;
   if (!graphView) {
@@ -100,7 +101,36 @@ async function appendAvailableGraphViewContributions(
   await pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(
     plugin,
     accessProviders,
-    graphView.contextMenu,
+    onPluginError ? graphView.contextMenu?.map(contribution => ({
+      ...contribution,
+      getLabel: contribution.getLabel
+        ? (runContext) => {
+            try {
+              return contribution.getLabel!(runContext);
+            } catch (error) {
+              onPluginError?.(plugin.id, error);
+              return contribution.label;
+            }
+          }
+        : undefined,
+      isVisible: contribution.isVisible
+        ? (runContext) => {
+            try {
+              return contribution.isVisible!(runContext);
+            } catch (error) {
+              onPluginError?.(plugin.id, error);
+              return false;
+            }
+          }
+        : undefined,
+      async run(runContext) {
+        try {
+          await contribution.run(runContext);
+        } catch (error) {
+          onPluginError?.(plugin.id, error);
+        }
+      },
+    })) : graphView.contextMenu,
     contributions.contextMenu,
     context,
   );
@@ -116,6 +146,7 @@ async function appendAvailableGraphViewContributions(
 export async function listAvailableGraphViewContributionsForPlugins(
   pluginInfos: Iterable<IPluginInfo>,
   context: CorePluginAccessContext = {},
+  onPluginError?: (pluginId: string, error: unknown) => void,
 ): Promise<CoreGraphViewContributionSet> {
   const pluginInfoList = Array.from(pluginInfos);
   const accessProviders = listPluginAccessProviders(pluginInfoList);
@@ -126,17 +157,22 @@ export async function listAvailableGraphViewContributionsForPlugins(
       continue;
     }
 
-    const pluginAccess = await resolvePluginAccess(info.plugin, accessProviders, context);
-    if (!pluginAccess.available) {
-      continue;
-    }
+    try {
+      const pluginAccess = await resolvePluginAccess(info.plugin, accessProviders, context);
+      if (!pluginAccess.available) {
+        continue;
+      }
 
-    await appendAvailableGraphViewContributions(
-      info.plugin,
-      accessProviders,
-      contributions,
-      context,
-    );
+      await appendAvailableGraphViewContributions(
+        info.plugin,
+        accessProviders,
+        contributions,
+        context,
+        onPluginError,
+      );
+    } catch (error) {
+      onPluginError?.(info.plugin.id, error);
+    }
   }
 
   return contributions;
