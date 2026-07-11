@@ -25,6 +25,7 @@ import { analyzeSwiftFile } from './analyzeSwift/file';
 import {
   createTreeSitterRuntime,
 } from './languages/parser';
+import { parseTreeSitterFile } from './incrementalParse';
 import type { TreeSitterAnalysisOptions } from './options';
 
 type TreeSitterFileAnalyzer = (
@@ -63,15 +64,16 @@ function shouldAnalyzeHeaderAsObjectiveC(filePath: string, content: string): boo
 
 function parseTreeSitterContent(
   parser: Parser,
+  filePath: string,
   content: string,
-  languageKind: string,
+  languageKind: Parameters<typeof parseTreeSitterFile>[3],
 ): Parser.Tree {
   if (!isPerfMetricCollectionActive()) {
-    return parser.parse(content);
+    return parseTreeSitterFile(parser, filePath, content, languageKind);
   }
 
   const startedAt = performance.now();
-  const tree = parser.parse(content);
+  const tree = parseTreeSitterFile(parser, filePath, content, languageKind);
   emitActivePerfMetric({
     metric: 'treeSitterParseMs',
     value: performance.now() - startedAt,
@@ -98,7 +100,7 @@ export async function analyzeFileWithTreeSitter(
     return null;
   }
 
-  const tree = parseTreeSitterContent(runtime.parser, content, runtime.languageKind);
+  const tree = parseTreeSitterContent(runtime.parser, filePath, content, runtime.languageKind);
   return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind, options);
 }
 
