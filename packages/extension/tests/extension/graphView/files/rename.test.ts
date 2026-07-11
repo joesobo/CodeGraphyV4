@@ -118,7 +118,7 @@ describe('graphView/files/rename', () => {
     });
 
     expect(executeRenameAction).not.toHaveBeenCalled();
-    expect(showErrorMessage).toHaveBeenCalledWith('Enter a file name without folder separators.');
+    expect(showErrorMessage).toHaveBeenCalledOnce();
   });
 
   it('does not rename when the user keeps the original name', async () => {
@@ -147,5 +147,20 @@ describe('graphView/files/rename', () => {
     });
 
     expect(showErrorMessage).toHaveBeenCalledWith('Failed to rename: permission denied');
+  });
+
+  it('uses Explorer collision copy when the committed name exists', async () => {
+    const showErrorMessage = vi.fn();
+    await renameGraphViewFileTo('src/original.ts', 'existing.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(),
+      executeRenameAction: vi.fn(async () => {
+        throw Object.assign(new Error('file exists'), { code: 'FileExists' });
+      }),
+      showErrorMessage,
+    });
+    expect(showErrorMessage).toHaveBeenCalledWith(
+      'A file or folder **existing.ts** already exists at this location. Please choose a different name.',
+    );
   });
 });

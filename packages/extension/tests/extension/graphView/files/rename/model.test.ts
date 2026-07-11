@@ -29,7 +29,7 @@ describe('graphView/files/rename/model', () => {
   it('rejects a path that escapes the inline filename field', () => {
     expect(planGraphViewRename('src/original.ts', '../outside.ts')).toEqual({
       kind: 'invalid',
-      message: 'Enter a file name without folder separators.',
+      message: 'The name **../outside.ts** is not valid as a file or folder name. Please choose a different name.',
     });
   });
 });

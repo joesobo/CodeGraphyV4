@@ -1,3 +1,5 @@
+import { existingItemNameMessage } from '../../../shared/files/messages';
+
 interface NameParts {
   extension: string;
   stem: string;
@@ -33,5 +35,5 @@ export function resolveCollisionName(
 }
 
 export function existingNameError(name: string): Error {
-  return new Error(`A file or folder ${name} already exists at this location.`);
+  return new Error(existingItemNameMessage(name));
 }

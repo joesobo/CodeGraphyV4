@@ -34,7 +34,7 @@ export function FileMutationToast(): React.ReactElement | null {
         zIndex: 100,
       }}
     >
-      File operation failed: {message}
+      {message}
     </div>
   );
 }

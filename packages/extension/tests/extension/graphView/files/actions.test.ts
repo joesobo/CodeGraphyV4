@@ -10,6 +10,31 @@ import {
 } from '../../../../src/extension/graphView/files/actions';
 
 describe('graphView/files/actions', () => {
+  it.each([
+    { paths: ['src/app.ts'], kinds: ['file'] as const, useTrash: true, expected: "Are you sure you want to delete 'src/app.ts'?" },
+    { paths: ['src'], kinds: ['directory'] as const, useTrash: true, expected: "Are you sure you want to delete 'src' and its contents?" },
+    { paths: ['src/app.ts'], kinds: ['file'] as const, useTrash: false, expected: "Are you sure you want to permanently delete 'src/app.ts'?" },
+    { paths: ['a.ts', 'b.ts'], kinds: ['file', 'file'] as const, useTrash: true, expected: 'Are you sure you want to delete the following 2 files?' },
+    { paths: ['a', 'b'], kinds: ['directory', 'directory'] as const, useTrash: true, expected: 'Are you sure you want to delete the following 2 directories and their contents?' },
+    { paths: ['a.ts', 'b'], kinds: ['file', 'directory'] as const, useTrash: true, expected: 'Are you sure you want to delete the following 2 files/directories and their contents?' },
+  ])('uses Explorer delete copy for $paths', async ({ paths, kinds, useTrash, expected }) => {
+    const showWarningMessage = vi.fn(async () => undefined);
+    await deleteGraphViewFiles([...paths], {
+      confirmDelete: true,
+      disableDeleteConfirmation: vi.fn(async () => undefined),
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showWarningMessage,
+      executeDeleteAction: vi.fn(async () => undefined),
+      targetKinds: [...kinds],
+      useTrash,
+    });
+    expect(showWarningMessage).toHaveBeenCalledWith(
+      expected,
+      expect.any(Object),
+      useTrash ? 'Move to Trash' : 'Delete Permanently',
+      'Do not ask me again',
+    );
+  });
   it('creates a named file without opening an input box', async () => {
     const executeCreateAction = vi.fn(async () => undefined);
     const showInputBox = vi.fn();
@@ -55,7 +80,7 @@ describe('graphView/files/actions', () => {
     paths,
   }) => {
     const executeDeleteAction = vi.fn(async () => undefined);
-    const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
+    const showWarningMessage = vi.fn(async () => 'Move to Trash' as const);
 
     await deleteGraphViewFiles(paths, {
       confirmDelete,
@@ -119,7 +144,7 @@ describe('graphView/files/actions', () => {
   });
 
   it('prompts but skips execution when no workspace folder is available for delete', async () => {
-    const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
+    const showWarningMessage = vi.fn(async () => 'Move to Trash' as const);
     const executeDeleteAction = vi.fn(async () => undefined);
 
     await deleteGraphViewFiles(['src/app.ts'], {
@@ -131,9 +156,9 @@ describe('graphView/files/actions', () => {
     });
 
     expect(showWarningMessage).toHaveBeenCalledWith(
-      'Are you sure you want to delete "src/app.ts"?',
+      "Are you sure you want to delete 'src/app.ts'?",
       { detail: 'You can restore this file from the Trash.', modal: true },
-      'Delete',
+      'Move to Trash',
       'Do not ask me again',
     );
     expect(executeDeleteAction).not.toHaveBeenCalled();
@@ -176,6 +201,21 @@ describe('graphView/files/actions', () => {
     expect(showErrorMessage).toHaveBeenCalledWith('Failed to create file: disk full');
   });
 
+  it('uses Explorer collision copy when a created file exists', async () => {
+    const showErrorMessage = vi.fn();
+    await createNamedGraphViewFile('src', 'existing.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(),
+      executeCreateAction: vi.fn(async () => {
+        throw Object.assign(new Error('file exists'), { code: 'FileExists' });
+      }),
+      showErrorMessage,
+    });
+    expect(showErrorMessage).toHaveBeenCalledWith(
+      'A file or folder **existing.ts** already exists at this location. Please choose a different name.',
+    );
+  });
+
   it('creates files in the workspace root without prefixing the current directory', async () => {
     const executeCreateAction = vi.fn(async () => undefined);
 
@@ -208,19 +248,20 @@ describe('graphView/files/actions', () => {
     );
   });
 
-  it('trims nested file paths before executing create actions', async () => {
+  it('rejects leading and trailing whitespace in file paths', async () => {
     const executeCreateAction = vi.fn(async () => undefined);
+    const showErrorMessage = vi.fn();
 
     await createGraphViewFile('.', {
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
       showInputBox: vi.fn(async () => '  src/core/menuCreated.ts  '),
       executeCreateAction,
-      showErrorMessage: vi.fn(),
+      showErrorMessage,
     });
 
-    expect(executeCreateAction).toHaveBeenCalledWith(
-      'src/core/menuCreated.ts',
-      vscode.Uri.file('/workspace'),
+    expect(executeCreateAction).not.toHaveBeenCalled();
+    expect(showErrorMessage).toHaveBeenCalledWith(
+      'Leading or trailing whitespace detected in file or folder name.',
     );
   });
 
@@ -274,7 +315,7 @@ describe('graphView/files/actions', () => {
     });
 
     expect(executeCreateAction).not.toHaveBeenCalled();
-    expect(showErrorMessage).toHaveBeenCalledWith('Enter a relative file path inside this folder.');
+    expect(showErrorMessage).toHaveBeenCalledOnce();
   });
 
   it('creates the folder selected in the input box', async () => {
@@ -338,19 +379,20 @@ describe('graphView/files/actions', () => {
     );
   });
 
-  it('trims nested folder paths before executing create actions', async () => {
+  it('rejects leading and trailing whitespace in folder paths', async () => {
     const executeCreateFolderAction = vi.fn(async () => undefined);
+    const showErrorMessage = vi.fn();
 
     await createGraphViewFolder('.', {
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
       showInputBox: vi.fn(async () => '  src/features/generated  '),
       executeCreateFolderAction,
-      showErrorMessage: vi.fn(),
+      showErrorMessage,
     });
 
-    expect(executeCreateFolderAction).toHaveBeenCalledWith(
-      'src/features/generated',
-      vscode.Uri.file('/workspace'),
+    expect(executeCreateFolderAction).not.toHaveBeenCalled();
+    expect(showErrorMessage).toHaveBeenCalledWith(
+      'Leading or trailing whitespace detected in file or folder name.',
     );
   });
 
@@ -381,7 +423,7 @@ describe('graphView/files/actions', () => {
     });
 
     expect(executeCreateFolderAction).not.toHaveBeenCalled();
-    expect(showErrorMessage).toHaveBeenCalledWith('Enter a relative folder path inside this folder.');
+    expect(showErrorMessage).toHaveBeenCalledOnce();
   });
 
   it('returns before prompting when no workspace folder is available for create', async () => {

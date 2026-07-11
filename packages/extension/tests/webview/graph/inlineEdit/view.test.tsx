@@ -42,7 +42,7 @@ describe('GraphInlineEdit', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     fireEvent.change(input, { target: { value: '../main.ts' } });
     fireEvent.blur(input);
-    expect(screen.getByRole('alert')).toHaveTextContent('without folder separators');
+    expect(screen.getByRole('alert')).toHaveTextContent('not valid as a file or folder name');
     expect(graphStore.getState().inlineEdit).not.toBeNull();
   });
 });

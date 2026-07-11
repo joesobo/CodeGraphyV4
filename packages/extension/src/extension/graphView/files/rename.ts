@@ -3,6 +3,7 @@ import {
   createGraphViewRenameInput,
   planGraphViewRename,
 } from './rename/model';
+import { existingItemNameMessage, isExistingItemError } from '../../../shared/files/messages';
 
 interface GraphViewWorkspaceFolderRef {
   uri: vscode.Uri;
@@ -53,7 +54,9 @@ export async function renameGraphViewFileTo(
   try {
     await handlers.executeRenameAction(filePath, plan.newPath, handlers.workspaceFolder.uri);
   } catch (error) {
-    handlers.showErrorMessage(`Failed to rename: ${toErrorMessage(error)}`);
+    handlers.showErrorMessage(isExistingItemError(error)
+      ? existingItemNameMessage(newName.trim())
+      : `Failed to rename: ${toErrorMessage(error)}`);
   }
 }
 

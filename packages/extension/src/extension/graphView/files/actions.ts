@@ -1,5 +1,13 @@
 import * as vscode from 'vscode';
 import { isSafeGraphViewChildPath } from './validation';
+import {
+  existingItemNameMessage,
+  invalidItemNameMessage,
+  isExistingItemError,
+  leadingSlashItemNameMessage,
+  missingItemNameMessage,
+  whitespaceItemNameMessage,
+} from '../../../shared/files/messages';
 
 interface GraphViewWorkspaceFolderRef {
   uri: vscode.Uri;
@@ -12,16 +20,21 @@ export interface GraphViewFileDeleteHandlers {
   showWarningMessage(
     message: string,
     options: { detail: string; modal: true },
-    deleteAction: 'Delete',
+    deleteAction: GraphViewDeleteAction,
     doNotAskAction: 'Do not ask me again',
-  ): PromiseLike<'Delete' | 'Do not ask me again' | undefined>;
+  ): PromiseLike<GraphViewDeleteAction | 'Do not ask me again' | undefined>;
   executeDeleteAction(
     paths: string[],
     workspaceFolderUri: vscode.Uri,
     useTrash: boolean,
   ): PromiseLike<void>;
   useTrash: boolean;
+  targetKinds?: Array<'file' | 'directory'>;
+  deleteAction?: GraphViewDeleteAction;
+  trashName?: 'Recycle Bin' | 'Trash';
 }
+
+export type GraphViewDeleteAction = 'Delete Permanently' | 'Move to Recycle Bin' | 'Move to Trash';
 
 export interface GraphViewFileCreateHandlers {
   workspaceFolder?: GraphViewWorkspaceFolderRef;
@@ -46,32 +59,56 @@ export async function deleteGraphViewFiles(
   handlers: GraphViewFileDeleteHandlers,
 ): Promise<void> {
   const count = paths.length;
-  const message =
-    count === 1
-      ? `Are you sure you want to delete "${paths[0]}"?`
-      : `Are you sure you want to delete ${count} files?`;
+  const message = createDeleteConfirmationMessage(
+    paths,
+    handlers.targetKinds ?? paths.map(() => 'file'),
+    handlers.useTrash,
+  );
 
+  const trashName = handlers.trashName ?? 'Trash';
   const detail = handlers.useTrash
     ? count === 1
-      ? 'You can restore this file from the Trash.'
-      : 'You can restore these files from the Trash.'
+      ? `You can restore this file from the ${trashName}.`
+      : `You can restore these files from the ${trashName}.`
     : 'This action is irreversible!';
+  const deleteAction: GraphViewDeleteAction = handlers.deleteAction
+    ?? (handlers.useTrash ? 'Move to Trash' : 'Delete Permanently');
   const confirmation = handlers.confirmDelete
     ? await handlers.showWarningMessage(
       message,
       { detail, modal: true },
-      'Delete',
+      deleteAction,
       'Do not ask me again',
     )
-    : 'Delete';
+    : deleteAction;
   if (!handlers.workspaceFolder) return;
 
   if (confirmation === 'Do not ask me again') {
     await handlers.disableDeleteConfirmation();
   }
-  if (confirmation === 'Delete' || confirmation === 'Do not ask me again') {
+  if (confirmation === deleteAction || confirmation === 'Do not ask me again') {
     await handlers.executeDeleteAction(paths, handlers.workspaceFolder.uri, handlers.useTrash);
   }
+}
+
+export function createDeleteConfirmationMessage(
+  paths: readonly string[],
+  kinds: ReadonlyArray<'file' | 'directory'>,
+  useTrash: boolean,
+): string {
+  const permanent = useTrash ? '' : 'permanently ';
+  if (paths.length === 1) {
+    const contents = kinds[0] === 'directory' ? ' and its contents' : '';
+    return `Are you sure you want to ${permanent}delete '${paths[0]}'${contents}?`;
+  }
+
+  const directoryCount = kinds.filter(kind => kind === 'directory').length;
+  const targets = directoryCount === 0
+    ? 'files'
+    : directoryCount === paths.length
+      ? 'directories and their contents'
+      : 'files/directories and their contents';
+  return `Are you sure you want to ${permanent}delete the following ${paths.length} ${targets}?`;
 }
 
 export async function createGraphViewFile(
@@ -95,9 +132,14 @@ export async function createNamedGraphViewFile(
   handlers: GraphViewFileCreateHandlers,
 ): Promise<string | void> {
   if (!handlers.workspaceFolder) return undefined;
-  const normalizedFileName = fileName.trim();
+  const inputError = validateCreateInput(fileName);
+  if (inputError) {
+    handlers.showErrorMessage(inputError);
+    return undefined;
+  }
+  const normalizedFileName = fileName;
   if (!isSafeGraphViewChildPath(normalizedFileName)) {
-    handlers.showErrorMessage('Enter a relative file path inside this folder.');
+    handlers.showErrorMessage(invalidItemNameMessage(normalizedFileName));
     return undefined;
   }
 
@@ -107,7 +149,9 @@ export async function createNamedGraphViewFile(
     await handlers.executeCreateAction(filePath, handlers.workspaceFolder.uri);
     return filePath;
   } catch (error) {
-    handlers.showErrorMessage(`Failed to create file: ${toErrorMessage(error)}`);
+    handlers.showErrorMessage(isExistingItemError(error)
+      ? existingItemNameMessage(normalizedFileName.split('/').pop() ?? normalizedFileName)
+      : `Failed to create file: ${toErrorMessage(error)}`);
     return undefined;
   }
 }
@@ -133,9 +177,14 @@ export async function createNamedGraphViewFolder(
   handlers: GraphViewFolderCreateHandlers,
 ): Promise<string | void> {
   if (!handlers.workspaceFolder) return undefined;
-  const normalizedFolderName = folderName.trim();
+  const inputError = validateCreateInput(folderName);
+  if (inputError) {
+    handlers.showErrorMessage(inputError);
+    return undefined;
+  }
+  const normalizedFolderName = folderName;
   if (!isSafeGraphViewChildPath(normalizedFolderName)) {
-    handlers.showErrorMessage('Enter a relative folder path inside this folder.');
+    handlers.showErrorMessage(invalidItemNameMessage(normalizedFolderName));
     return undefined;
   }
 
@@ -145,7 +194,9 @@ export async function createNamedGraphViewFolder(
     await handlers.executeCreateFolderAction(folderPath, handlers.workspaceFolder.uri);
     return folderPath;
   } catch (error) {
-    handlers.showErrorMessage(`Failed to create folder: ${toErrorMessage(error)}`);
+    handlers.showErrorMessage(isExistingItemError(error)
+      ? existingItemNameMessage(normalizedFolderName.split('/').pop() ?? normalizedFolderName)
+      : `Failed to create folder: ${toErrorMessage(error)}`);
     return undefined;
   }
 }
@@ -159,4 +210,11 @@ export async function addGraphViewExcludePatterns(
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function validateCreateInput(value: string): string | null {
+  if (!value.trim()) return missingItemNameMessage;
+  if (value.startsWith('/')) return leadingSlashItemNameMessage;
+  if (value !== value.trim()) return whitespaceItemNameMessage;
+  return null;
 }

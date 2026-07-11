@@ -492,7 +492,7 @@ Explorer conventions exactly: settings, dialogs, inline editing, loading states.
 - [x] **6.1 Destructive-op settings:** `vscode.workspace.fs.delete(uri, {useTrash})` per `files.enableTrash` (V5); `explorer.confirmDelete` with Explorer's exact wording incl. "You can restore this file from the Trash." + persistent "Do not ask me again" (V6). 8 acceptance scenarios ({setting} × {on,off} × single/multi). Commit.
 - [x] **6.2 Inline rename/create on canvas:** HTML input overlay at node screen coords (`graph2ScreenCoords`); Enter commits, Escape cancels, blur commits; V1/V2 errors inline under the input like Explorer's red box; ghost node + inline input for New File/Folder replacing prompts. Commit.
 - [ ] **6.3 Cold-open ghost graph:** persist node positions via webview `setState` (cheap persistence — not `retainContextWhenHidden`); render dimmed ghost graph instantly, swap on first data without full re-layout. Pixel gate at t+100ms. Commit.
-- [ ] **6.4 Dialog copy audit:** table of every CodeGraphy dialog/toast string vs Explorer's (captured from a real VS Code instance); fix mismatches; unit test locks strings. Commit.
+- [x] **6.4 Dialog copy audit:** table of every CodeGraphy dialog/toast string vs Explorer's (captured from a real VS Code instance); fix mismatches; unit test locks strings. Commit.
 
 ## Checkpoints
 

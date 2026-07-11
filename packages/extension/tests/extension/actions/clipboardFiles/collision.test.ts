@@ -50,7 +50,7 @@ describe('actions/clipboardFiles/collision', () => {
 
   it('uses the Explorer-equivalent existing-name error shape', () => {
     expect(existingNameError('app.ts').message).toBe(
-      'A file or folder app.ts already exists at this location.',
+      'A file or folder **app.ts** already exists at this location. Please choose a different name.',
     );
   });
 });

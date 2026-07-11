@@ -14,7 +14,7 @@ describe('file mutation toast', () => {
     graphStore.setState({ fileMutationError: 'rename failed' });
     render(<FileMutationToast />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('File operation failed: rename failed');
+    expect(screen.getByRole('alert')).toHaveTextContent('rename failed');
     act(() => vi.advanceTimersByTime(5_000));
     expect(screen.queryByRole('alert')).toBeNull();
   });

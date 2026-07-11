@@ -1,4 +1,10 @@
 import { isSafeGraphViewBasename } from '../validation';
+import {
+  invalidItemNameMessage,
+  leadingSlashItemNameMessage,
+  missingItemNameMessage,
+  whitespaceItemNameMessage,
+} from '../../../../shared/files/messages';
 
 export interface GraphViewRenameInput {
   selection: [number, number];
@@ -25,10 +31,17 @@ export function planGraphViewRename(
 ): GraphViewRenamePlan {
   const currentName = filePath.split('/').pop() || filePath;
   if (newName === currentName) return { kind: 'unchanged' };
+  if (!newName.trim()) return { kind: 'invalid', message: missingItemNameMessage };
+  if (newName.startsWith('/')) {
+    return { kind: 'invalid', message: leadingSlashItemNameMessage };
+  }
+  if (newName !== newName.trim()) {
+    return { kind: 'invalid', message: whitespaceItemNameMessage };
+  }
   if (!isSafeGraphViewBasename(newName)) {
     return {
       kind: 'invalid',
-      message: 'Enter a file name without folder separators.',
+      message: invalidItemNameMessage(newName),
     };
   }
   return {

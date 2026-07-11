@@ -34,7 +34,18 @@ describe('graph inline edit model', () => {
   it('keeps invalid rename input in the editor with a local error', () => {
     expect(planInlineFileEdit(createInlineRenameSession('src/app.ts'), '../app.ts')).toEqual({
       kind: 'invalid',
-      message: 'Enter a file name without folder separators.',
+      message: 'The name **../app.ts** is not valid as a file or folder name. Please choose a different name.',
+    });
+  });
+
+  it.each([
+    ['', 'A file or folder name must be provided.'],
+    ['/absolute.ts', 'A file or folder name cannot start with a slash.'],
+    [' app.ts ', 'Leading or trailing whitespace detected in file or folder name.'],
+  ])('uses Explorer validation copy for %j', (value, message) => {
+    expect(planInlineFileEdit(createInlineCreateSession('file', 'src'), value)).toEqual({
+      kind: 'invalid',
+      message,
     });
   });
 

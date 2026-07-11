@@ -1,4 +1,10 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import {
+  invalidItemNameMessage,
+  leadingSlashItemNameMessage,
+  missingItemNameMessage,
+  whitespaceItemNameMessage,
+} from '../../../../shared/files/messages';
 
 export type GraphInlineEditSession =
   | {
@@ -60,12 +66,14 @@ export function planInlineFileEdit(
   session: GraphInlineEditSession,
   input: string,
 ): GraphInlineEditPlan {
-  const value = input.trim();
+  const value = input;
+  const validationError = validateInputShape(value);
+  if (validationError) return { kind: 'invalid', message: validationError };
   if (session.kind === 'rename') {
     const currentName = session.originalPath.split('/').pop() || session.originalPath;
     if (value === currentName) return { kind: 'unchanged' };
     if (!isSafeBasename(value)) {
-      return { kind: 'invalid', message: 'Enter a file name without folder separators.' };
+      return { kind: 'invalid', message: invalidItemNameMessage(value) };
     }
     return {
       kind: 'commit',
@@ -79,9 +87,7 @@ export function planInlineFileEdit(
   if (!isSafeChildPath(value)) {
     return {
       kind: 'invalid',
-      message: session.kind === 'createFile'
-        ? 'Enter a relative file path inside this folder.'
-        : 'Enter a relative folder path inside this folder.',
+      message: invalidItemNameMessage(value),
     };
   }
   return {
@@ -91,6 +97,13 @@ export function planInlineFileEdit(
       payload: { directory: session.directory, name: value },
     },
   };
+}
+
+function validateInputShape(value: string): string | null {
+  if (!value.trim()) return missingItemNameMessage;
+  if (value.startsWith('/')) return leadingSlashItemNameMessage;
+  if (value !== value.trim()) return whitespaceItemNameMessage;
+  return null;
 }
 
 function parentDirectory(path: string): string {

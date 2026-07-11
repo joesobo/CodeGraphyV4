@@ -11,6 +11,7 @@ import {
   deleteGraphViewFiles,
   type GraphViewFileCreateHandlers,
   type GraphViewFolderCreateHandlers,
+  type GraphViewDeleteAction,
 } from '../../files/actions';
 import {
   renameGraphViewFile,
@@ -75,6 +76,8 @@ export interface GraphViewProviderFileActionMethodDependencies {
   toggleFavorites: typeof toggleGraphViewFavorites;
   getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
   getDeleteSettings?(): { confirmDelete: boolean; useTrash: boolean };
+  getDeleteAction?(useTrash: boolean): GraphViewDeleteAction;
+  getTrashName?(): 'Recycle Bin' | 'Trash';
   disableDeleteConfirmation?(): PromiseLike<void>;
   showWarningMessage(
     message: string,
@@ -91,6 +94,10 @@ export interface GraphViewProviderFileActionMethodDependencies {
   createToggleFavoriteAction(paths: string[], sendFavorites: (favorites: string[]) => void): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
   executeWorkspaceFileMutation: typeof executeWorkspaceFileMutation;
+  resolveDeleteTargetKinds?(
+    paths: readonly string[],
+    workspaceFolderUri: vscode.Uri,
+  ): Promise<Array<'file' | 'directory'>>;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
@@ -110,6 +117,10 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
     confirmDelete: vscode.workspace.getConfiguration('explorer').get('confirmDelete', true),
     useTrash: vscode.workspace.getConfiguration('files').get('enableTrash', true),
   }),
+  getDeleteAction: useTrash => useTrash
+    ? process.platform === 'win32' ? 'Move to Recycle Bin' : 'Move to Trash'
+    : 'Delete Permanently',
+  getTrashName: () => process.platform === 'win32' ? 'Recycle Bin' : 'Trash',
   disableDeleteConfirmation: () => vscode.workspace
     .getConfiguration('explorer')
     .update('confirmDelete', false, vscode.ConfigurationTarget.Global),
@@ -127,7 +138,22 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
     new ToggleFavoriteAction(paths, sendFavorites),
   executeUndoAction: action => getUndoManager().execute(action),
   executeWorkspaceFileMutation,
+  resolveDeleteTargetKinds: resolveWorkspaceDeleteTargetKinds,
 };
+
+export async function resolveWorkspaceDeleteTargetKinds(
+  paths: readonly string[],
+  workspaceFolderUri: vscode.Uri,
+): Promise<Array<'file' | 'directory'>> {
+  return Promise.all(paths.map(async path => {
+    try {
+      const stat = await vscode.workspace.fs.stat(vscode.Uri.joinPath(workspaceFolderUri, path));
+      return (stat.type & vscode.FileType.Directory) !== 0 ? 'directory' : 'file';
+    } catch {
+      return 'file';
+    }
+  }));
+}
 
 export function createGraphViewProviderFileActionMethods(
   source: GraphViewProviderFileActionMethodsSource,
@@ -166,14 +192,19 @@ export function createGraphViewProviderFileActionMethods(
       confirmDelete: true,
       useTrash: true,
     };
+    const targetKinds = workspaceFolder
+      ? await (dependencies.resolveDeleteTargetKinds?.(paths, workspaceFolder.uri)
+        ?? Promise.resolve(paths.map(() => 'file' as const)))
+      : paths.map(() => 'file' as const);
     await dependencies.deleteFiles(paths, {
       confirmDelete: deleteSettings.confirmDelete,
+      deleteAction: dependencies.getDeleteAction?.(deleteSettings.useTrash),
       disableDeleteConfirmation: () => dependencies.disableDeleteConfirmation?.()
         ?? Promise.resolve(),
       workspaceFolder,
       showWarningMessage: (message, options, ...actions) =>
         dependencies.showWarningMessage(message, options, ...actions) as PromiseLike<
-          'Delete' | 'Do not ask me again' | undefined
+          GraphViewDeleteAction | 'Do not ask me again' | undefined
         >,
       executeDeleteAction: async (nextPaths, workspaceFolderUri, useTrash) => {
         await executeOptimisticMutation(
@@ -181,6 +212,8 @@ export function createGraphViewProviderFileActionMethods(
           workspaceFolderUri,
         );
       },
+      targetKinds,
+      trashName: dependencies.getTrashName?.(),
       useTrash: deleteSettings.useTrash,
     });
   };

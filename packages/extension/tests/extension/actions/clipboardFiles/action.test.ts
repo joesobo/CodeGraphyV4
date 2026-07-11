@@ -153,7 +153,7 @@ describe('actions/clipboardFiles/action', () => {
     vi.mocked(operations.stat).mockResolvedValue({} as vscode.FileStat);
 
     await expect(action.execute()).rejects.toThrow(
-      'A file or folder app.ts already exists at this location.',
+      'A file or folder **app.ts** already exists at this location. Please choose a different name.',
     );
   });
 
