@@ -6,7 +6,8 @@ type SinglePathMessageType =
   | 'RENAME_FILE'
   | 'FIND_IN_FOLDER'
   | 'CLOSE_FILE_EDITOR'
-  | 'OPEN_FILE_WITH';
+  | 'OPEN_FILE_WITH'
+  | 'OPEN_IN_TERMINAL';
 type PathListMessageType =
   | 'DELETE_FILES'
   | 'TOGGLE_FAVORITE'

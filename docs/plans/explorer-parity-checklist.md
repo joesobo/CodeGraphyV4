@@ -15,7 +15,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 | Open to the Side / Open With… | done(unit) | 2.4 | Open beside uses `ViewColumn.Beside`; Open With opens the target then invokes VS Code's native editor picker. |
 | Close Editor | done(unit) | 2.4 | Single-file context menus close every matching text tab through the stable tab-groups API while preserving focus. |
 | Reveal in Finder / Explorer | done(unit) | 2.1 | Entry, navigation, and provider action tests cover the built-in reveal path. |
-| Open in Integrated Terminal | todo(P2) | 2.4 | Not implemented. |
+| Open in Integrated Terminal | done(unit) | 2.4 | Concrete folders create and show a terminal with the folder URI as `cwd`; synthetic root remains protected. |
 | Select for Compare / Compare with Selected | todo(P2) | 2.4 | Not implemented. |
 | Open Timeline | waived(Graph Revision view) | — | Graph Revision is the graph-native timeline surface. |
 | Cut / Copy / Paste | done(unit) | 2.2 | Runtime-validated host clipboard, transactional undoable paste, timeline gating, and decision-aware menus pass focused tests; Dev Host walk remains in 2-G. |

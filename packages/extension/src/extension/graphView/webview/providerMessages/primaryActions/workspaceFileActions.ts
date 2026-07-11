@@ -20,6 +20,7 @@ type WorkspaceFileActions = Pick<
   | 'pasteFiles'
   | 'findInFolder'
   | 'closeFileEditor'
+  | 'openInTerminal'
 >;
 
 export function createWorkspaceFileActions(
@@ -52,6 +53,16 @@ export function createWorkspaceFileActions(
         tabs: vscode.window.tabGroups.all.flatMap(group => group.tabs),
         workspaceFolder: workspaceUri,
       });
+    },
+    openInTerminal: async filePath => {
+      const workspaceUri = getWorkspaceUri();
+      if (!workspaceUri) return;
+      const terminal = dependencies.window.createTerminal?.({
+        cwd: vscode.Uri.joinPath(workspaceUri, filePath),
+      }) ?? vscode.window.createTerminal({
+        cwd: vscode.Uri.joinPath(workspaceUri, filePath),
+      });
+      terminal.show();
     },
     cutFiles: async paths => {
       const workspaceUri = getWorkspaceUri();

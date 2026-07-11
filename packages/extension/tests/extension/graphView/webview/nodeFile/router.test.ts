@@ -20,6 +20,7 @@ function createHandlers(
     findInFolder: vi.fn(() => Promise.resolve()),
     closeFileEditor: vi.fn(() => Promise.resolve()),
     openFileWith: vi.fn(() => Promise.resolve()),
+    openInTerminal: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     cutFiles: vi.fn(() => Promise.resolve()),

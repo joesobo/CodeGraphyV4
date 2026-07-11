@@ -35,7 +35,14 @@ export function buildSingleFolderNodeEntries(
   );
 
   if (target.id !== '(root)') {
-    entries.push(builtInItem('node-find-in-folder', 'Find in Folder…', 'findInFolder'));
+    entries.push(
+      builtInItem('node-find-in-folder', 'Find in Folder…', 'findInFolder'),
+      builtInItem(
+        'node-open-in-terminal',
+        'Open in Integrated Terminal',
+        'openInTerminal',
+      ),
+    );
   }
 
   if (target.id !== '(root)' && mutationAvailability !== 'hidden') {

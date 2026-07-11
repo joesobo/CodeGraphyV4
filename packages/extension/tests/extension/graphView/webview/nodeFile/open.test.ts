@@ -20,6 +20,7 @@ function createHandlers(
     findInFolder: vi.fn(() => Promise.resolve()),
     closeFileEditor: vi.fn(() => Promise.resolve()),
     openFileWith: vi.fn(() => Promise.resolve()),
+    openInTerminal: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
@@ -140,6 +141,17 @@ describe('graph view node/file open message', () => {
     );
 
     expect(handlers.openFileWith).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('routes integrated terminal requests', async () => {
+    const handlers = createHandlers();
+
+    await applyNodeFileOpenMessage(
+      { type: 'OPEN_IN_TERMINAL', payload: { path: 'src' } },
+      handlers,
+    );
+
+    expect(handlers.openInTerminal).toHaveBeenCalledWith('src');
   });
 
   it('returns false for unrelated messages', async () => {

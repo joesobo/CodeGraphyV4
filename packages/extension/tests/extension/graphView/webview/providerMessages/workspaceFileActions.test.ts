@@ -14,19 +14,39 @@ function createHarness(confirm: string | undefined = 'Move') {
   const clipboard = new ClipboardFilesState();
   const executeUndoAction = vi.fn(async () => undefined);
   const showWarningMessage = vi.fn(async () => confirm);
+  const showTerminal = vi.fn();
+  const createTerminal = vi.fn(() => ({ show: showTerminal }));
   const actions = createWorkspaceFileActions(
     { _analyzeAndSendData: vi.fn(async () => undefined) } as never,
     {
       workspace: { workspaceFolders: [{ uri: workspaceUri }] },
-      window: { showWarningMessage },
+      window: { createTerminal, showWarningMessage },
       executeUndoAction,
     } as never,
     clipboard,
   );
-  return { actions, clipboard, executeUndoAction, showWarningMessage };
+  return {
+    actions,
+    clipboard,
+    createTerminal,
+    executeUndoAction,
+    showTerminal,
+    showWarningMessage,
+  };
 }
 
 describe('providerMessages/primaryActions/workspaceFileActions', () => {
+  it('opens an integrated terminal in the selected folder', async () => {
+    const harness = createHarness();
+
+    await harness.actions.openInTerminal('src/features');
+
+    expect(harness.createTerminal).toHaveBeenCalledWith({
+      cwd: expect.objectContaining({ fsPath: '/workspace/src/features' }),
+    });
+    expect(harness.showTerminal).toHaveBeenCalledOnce();
+  });
+
   it('opens Find in Files with the selected folder included', async () => {
     const harness = createHarness();
 

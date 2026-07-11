@@ -36,6 +36,7 @@ interface GraphViewWorkspaceLike {
 }
 
 interface GraphViewWindowLike {
+  createTerminal?(options: vscode.TerminalOptions): Pick<vscode.Terminal, 'show'>;
   showInformationMessage(message: string): void;
   showWarningMessage?(
     message: string,

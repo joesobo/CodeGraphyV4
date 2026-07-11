@@ -105,6 +105,12 @@ describe('graph/contextMenu/node/folderEntries', () => {
     );
   });
 
+  it('offers Open in Integrated Terminal for concrete folders', () => {
+    expect(items(buildFolderEntries('enabled')).map(entry => entry.label)).toContain(
+      'Open in Integrated Terminal',
+    );
+  });
+
   it('hides file clipboard actions when folder mutations are hidden', () => {
     const labels = items(buildFolderEntries('hidden')).map((entry) => entry.label);
 

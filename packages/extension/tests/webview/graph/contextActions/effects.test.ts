@@ -146,6 +146,13 @@ describe('graph/contextActions/effects', () => {
     }]);
   });
 
+  it('posts the selected folder through the integrated-terminal host route', () => {
+    expect(getBuiltInContextActionEffects('openInTerminal', nodeContext(['src']))).toEqual([{
+      kind: 'postMessage',
+      message: { type: 'OPEN_IN_TERMINAL', payload: { path: 'src' } },
+    }]);
+  });
+
   it('creates a filter prompt effect for multi-select add-to-filter', () => {
     expect(getBuiltInContextActionEffects('addToFilter', nodeContext(['a.ts', 'b.ts']))).toEqual([
       { kind: 'promptFilterPattern', patterns: ['a.ts', 'b.ts'] },

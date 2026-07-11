@@ -150,6 +150,7 @@ describe('graph/contextMenuModel', () => {
       'Add Filter Pattern',
       'Add Legend Group',
       'Find in Folder…',
+      'Open in Integrated Terminal',
       'Rename Folder',
       'Delete Folder',
     ]);

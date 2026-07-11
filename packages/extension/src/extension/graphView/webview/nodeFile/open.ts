@@ -13,6 +13,7 @@ export interface GraphViewNodeFileOpenHandlers {
   findInFolder(filePath: string): Promise<void>;
   closeFileEditor(filePath: string): Promise<void>;
   openFileWith(filePath: string): Promise<void>;
+  openInTerminal(filePath: string): Promise<void>;
 }
 
 function canOpenPath(
@@ -101,6 +102,10 @@ export async function applyNodeFileOpenMessage(
 
     case 'OPEN_FILE_WITH':
       await handlers.openFileWith(message.payload.path);
+      return true;
+
+    case 'OPEN_IN_TERMINAL':
+      await handlers.openInTerminal(message.payload.path);
       return true;
 
     default:
