@@ -115,6 +115,7 @@ function createGraphState(graphData: IGraphData = baseData) {
 			fg3dRef,
 			graphData: graphDataRuntime,
 			graphDataRef,
+			structureVersion: 0,
 		},
 		renderCaches: {
 			fileInfoCacheRef,
@@ -314,10 +315,12 @@ describe('Graph wiring', () => {
 			}));
 		expect(harness.useGraphPerfCommit).toHaveBeenCalledWith({
 			edgeCount: 1,
-			layoutKey: 'file-size::src/app.ts|src/lib.ts::src/app.ts->src/lib.ts',
+			layoutKey: 'file-size::0',
 			nodeCount: 2,
 			revision: baseData,
+			scopeProjectionRevision: undefined,
 			scopeVisibility,
+			simulationEnabled: true,
 		});
 		expect(harness.useGraphPerfScenarios).toHaveBeenCalledWith(expect.objectContaining({
 			getContainer: expect.any(Function),
@@ -362,11 +365,12 @@ describe('Graph wiring', () => {
 		}));
 		expect(harness.useGraphPerfCommit).toHaveBeenCalledWith({
 			edgeCount: 0,
-			layoutKey: 'connections::src/app.ts|src/lib.ts::src/app.ts->src/lib.ts',
+			layoutKey: 'connections::0',
 			nodeCount: 0,
 			revision: emptyProjection,
 			scopeProjectionRevision: 7,
 			scopeVisibility,
+			simulationEnabled: true,
 		});
 	});
 

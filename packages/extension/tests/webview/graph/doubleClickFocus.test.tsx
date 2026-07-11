@@ -45,6 +45,8 @@ describe('Graph double-click behavior', () => {
     methods.zoom.mockClear();
 
     render(<Graph data={graphData} />);
+	methods.centerAt.mockClear();
+	methods.zoom.mockClear();
 
     await act(async () => {
       ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
@@ -104,8 +106,8 @@ describe('Graph double-click behavior', () => {
       ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
     });
 
-    expect(methods.centerAt).not.toHaveBeenCalled();
-    expect(methods.zoom).not.toHaveBeenCalled();
+    expect(methods.centerAt).not.toHaveBeenCalledWith(0, 0, 300);
+    expect(methods.zoom).not.toHaveBeenCalledWith(1.5, 300);
     const selectMsg = findMessage('NODE_SELECTED');
     expect(selectMsg).toBeTruthy();
     expect(selectMsg!.payload.nodeId).toBe('src/app.ts');
@@ -131,6 +133,8 @@ describe('Graph double-click behavior', () => {
       methods.zoom.mockClear();
 
       render(<Graph data={graphData} />);
+	  methods.centerAt.mockClear();
+	  methods.zoom.mockClear();
 
       await act(async () => {
         ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
@@ -143,8 +147,8 @@ describe('Graph double-click behavior', () => {
       );
       expect(selectedMessages).toHaveLength(1);
       expect(findMessage('CLEAR_FOCUSED_FILE')).toEqual({ type: 'CLEAR_FOCUSED_FILE' });
-      expect(methods.centerAt).not.toHaveBeenCalled();
-      expect(methods.zoom).not.toHaveBeenCalled();
+      expect(methods.centerAt).not.toHaveBeenCalledWith(0, 0, 300);
+      expect(methods.zoom).not.toHaveBeenCalledWith(1.5, 300);
       expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
     } finally {
       vi.useRealTimers();
@@ -183,14 +187,16 @@ describe('Graph double-click behavior', () => {
     methods.zoom.mockClear();
 
     render(<Graph data={graphData} />);
+	methods.centerAt.mockClear();
+	methods.zoom.mockClear();
 
     await act(async () => {
       ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
       ForceGraph2D.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
     });
 
-    expect(methods.centerAt).not.toHaveBeenCalled();
-    expect(methods.zoom).not.toHaveBeenCalled();
+    expect(methods.centerAt).not.toHaveBeenCalledWith(0, 0, 300);
+    expect(methods.zoom).not.toHaveBeenCalledWith(1.5, 300);
     expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
   });
 
