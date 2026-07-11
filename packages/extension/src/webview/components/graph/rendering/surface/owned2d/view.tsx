@@ -28,6 +28,7 @@ import { OwnedGraphNodePicker } from './picking';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 interface PointerSession {
+  draggedIndexes: Set<number>;
   index: number | null;
   lastWorld: { x: number; y: number };
   moved: boolean;
@@ -368,6 +369,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     const world = screenToWorld(event.currentTarget, screen);
     const picked = pickerRef.current.pick(world, cameraRef.current.zoom);
     pointerSessionRef.current = {
+      draggedIndexes: new Set(picked ? [picked.index] : []),
       index: picked?.index ?? null,
       lastWorld: world,
       moved: false,
@@ -407,6 +409,15 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       node.fx = world.x;
       node.fy = world.y;
       propsRef.current.sharedProps.onNodeDrag?.(node, translate);
+      for (let index = 0; index < layout.nodes.length; index += 1) {
+        const draggedNode = layout.nodes[index];
+        if (draggedNode.isDragging !== true) continue;
+        if (Number.isFinite(draggedNode.x) && Number.isFinite(draggedNode.y)) {
+          layout.engine.setNodePosition(index, draggedNode.x as number, draggedNode.y as number);
+          layout.engine.pin(index);
+          session.draggedIndexes.add(index);
+        }
+      }
       engineStopNotifiedRef.current = false;
       requestFrameRef.current();
       return;
@@ -436,10 +447,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     } else {
       propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
     }
-    if (node.isPinned !== true) {
-      node.fx = undefined;
-      node.fy = undefined;
-      layout.engine.release(session.index);
+    for (const index of session.draggedIndexes) {
+      const draggedNode = layout.nodes[index];
+      if (draggedNode.isPinned === true) continue;
+      draggedNode.fx = undefined;
+      draggedNode.fy = undefined;
+      layout.engine.release(index);
     }
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);

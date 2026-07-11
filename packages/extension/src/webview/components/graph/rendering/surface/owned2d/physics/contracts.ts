@@ -7,6 +7,8 @@ export interface GraphLayoutInput {
   nodeIds: readonly string[];
   initialX?: Float32Array;
   initialY?: Float32Array;
+  initialVx?: Float32Array;
+  initialVy?: Float32Array;
   radii: Float32Array;
   edgeSources: Uint32Array;
   edgeTargets: Uint32Array;

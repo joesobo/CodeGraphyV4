@@ -1,5 +1,7 @@
 import {
   createGraphLayoutEngine,
+  GraphNodeFlag,
+  type GraphLayoutConfig,
   type GraphLayoutEngine,
 } from './physics';
 import type { DagMode } from '../../../../../../shared/settings/modes';
@@ -17,8 +19,28 @@ export interface OwnedGraphLayout {
   nodes: FGNode[];
 }
 
-function nodeRadius(node: FGNode): number {
-  return Math.max(1, node.collisionRadius2D ?? node.size ?? 4);
+export function ownedNodeCollisionRadius(node: FGNode): number {
+  if (Number.isFinite(node.collisionRadius2D)) {
+    return Math.max(1, node.collisionRadius2D as number);
+  }
+  if (node.shapeSize2D) {
+    return Math.max(1, Math.hypot(node.shapeSize2D.width, node.shapeSize2D.height) / 2);
+  }
+  return Math.max(1, node.size ?? 4);
+}
+
+function normalizedSetting(value: number, minimum: number, maximum: number, fallback: number): number {
+  return Number.isFinite(value) ? Math.min(maximum, Math.max(minimum, value)) : fallback;
+}
+
+export function toOwnedPhysicsConfig(settings: IPhysicsSettings): Partial<GraphLayoutConfig> {
+  return {
+    centerForce: normalizedSetting(settings.centerForce, 0, 1, 0.1),
+    damping: 1 - normalizedSetting(settings.damping, 0, 1, 0.7),
+    linkDistance: normalizedSetting(settings.linkDistance, 30, 500, 80),
+    linkForce: normalizedSetting(settings.linkForce, 0, 1, 0.15),
+    repelForce: normalizedSetting(settings.repelForce, 0, 20, 10) * 120,
+  };
 }
 
 function endpointId(endpoint: string | FGNode): string {
@@ -29,13 +51,7 @@ export function applyOwnedPhysicsSettings(
   engine: GraphLayoutEngine,
   settings: IPhysicsSettings,
 ): void {
-  engine.setConfig({
-    centerForce: settings.centerForce,
-    damping: settings.damping,
-    linkDistance: Math.max(1, settings.linkDistance),
-    linkForce: settings.linkForce,
-    repelForce: Math.max(0, settings.repelForce) * 120,
-  });
+  engine.setConfig(toOwnedPhysicsConfig(settings));
 }
 
 export function createOwnedGraphLayout(
@@ -49,16 +65,24 @@ export function createOwnedGraphLayout(
   const nodeIndexes = new Map(nodes.map((node, index) => [node.id, index]));
   const initialX = new Float32Array(nodes.length);
   const initialY = new Float32Array(nodes.length);
+  const initialVx = new Float32Array(nodes.length);
+  const initialVy = new Float32Array(nodes.length);
   const radii = new Float32Array(nodes.length);
+  const flags = new Uint8Array(nodes.length);
   initialX.fill(Number.NaN);
   initialY.fill(Number.NaN);
 
   nodes.forEach((node, index) => {
-    if (Number.isFinite(node.x) && Number.isFinite(node.y)) {
-      initialX[index] = node.x as number;
-      initialY[index] = node.y as number;
+    const fixedX = Number.isFinite(node.fx) ? node.fx : node.x;
+    const fixedY = Number.isFinite(node.fy) ? node.fy : node.y;
+    if (Number.isFinite(fixedX) && Number.isFinite(fixedY)) {
+      initialX[index] = fixedX as number;
+      initialY[index] = fixedY as number;
     }
-    radii[index] = nodeRadius(node);
+    initialVx[index] = Number.isFinite(node.vx) ? node.vx as number : 0;
+    initialVy[index] = Number.isFinite(node.vy) ? node.vy as number : 0;
+    radii[index] = ownedNodeCollisionRadius(node);
+    if (node.isPinned === true) flags[index] |= GraphNodeFlag.Pinned;
   });
 
   const resolvedLinks: FGLink[] = [];
@@ -86,7 +110,10 @@ export function createOwnedGraphLayout(
     nodeIds: nodes.map((node) => node.id),
     initialX,
     initialY,
+    initialVx,
+    initialVy,
     radii,
+    flags,
     edgeSources: Uint32Array.from(edgeSources),
     edgeTargets: Uint32Array.from(edgeTargets),
     targetX: dagTargets?.targetX,

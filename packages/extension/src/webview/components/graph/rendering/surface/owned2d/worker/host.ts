@@ -16,6 +16,8 @@ function transferableInput(input: GraphLayoutInput): GraphLayoutInput {
     nodeIds: [...input.nodeIds],
     initialX: input.initialX ? new Float32Array(input.initialX) : undefined,
     initialY: input.initialY ? new Float32Array(input.initialY) : undefined,
+    initialVx: input.initialVx ? new Float32Array(input.initialVx) : undefined,
+    initialVy: input.initialVy ? new Float32Array(input.initialVy) : undefined,
     radii: new Float32Array(input.radii),
     edgeSources: new Uint32Array(input.edgeSources),
     edgeTargets: new Uint32Array(input.edgeTargets),
@@ -29,6 +31,8 @@ function inputTransfers(input: GraphLayoutInput): Transferable[] {
   return [
     input.initialX?.buffer,
     input.initialY?.buffer,
+    input.initialVx?.buffer,
+    input.initialVy?.buffer,
     input.radii.buffer,
     input.edgeSources.buffer,
     input.edgeTargets.buffer,

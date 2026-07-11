@@ -25,6 +25,8 @@ export function createGraphLayoutState(
   const nodeCount = input.nodeIds.length;
   assertBufferLength(input.initialX, nodeCount, 'initialX');
   assertBufferLength(input.initialY, nodeCount, 'initialY');
+  assertBufferLength(input.initialVx, nodeCount, 'initialVx');
+  assertBufferLength(input.initialVy, nodeCount, 'initialVy');
   assertBufferLength(input.radii, nodeCount, 'radii');
   assertBufferLength(input.flags, nodeCount, 'flags');
   assertBufferLength(input.targetX, nodeCount, 'targetX');
@@ -59,6 +61,10 @@ export function createGraphLayoutState(
     } else {
       setInitialPosition(state, index, config.initializationSpacing);
     }
+    const suppliedVx = input.initialVx?.[index];
+    const suppliedVy = input.initialVy?.[index];
+    state.vx[index] = Number.isFinite(suppliedVx) ? suppliedVx as number : 0;
+    state.vy[index] = Number.isFinite(suppliedVy) ? suppliedVy as number : 0;
     const suppliedRadius = input.radii[index];
     state.radii[index] = Number.isFinite(suppliedRadius) && suppliedRadius > 0
       ? suppliedRadius
