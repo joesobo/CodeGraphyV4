@@ -37,12 +37,14 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 | Binding | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
-| Enter opens selection | verify(P2) | 2.1 | Verify graph convention in the Dev Host. |
+| Enter opens selection | done(unit) | 2.1 | Keyboard resolver/effect/listener tests open all selected non-synthetic nodes. |
 | F2 rename | todo(P2) | 2.3 | Not implemented. |
 | Delete / Cmd+Backspace | todo(P2) | 2.3 | Explicitly unbound in `keyboard/command/lookup.ts`. |
 | Cmd/Ctrl+C, X, V | todo(P2) | 2.3 | Not implemented. |
 | Cmd/Ctrl+Enter open to side | todo(P2) | 2.3 | Not implemented. |
-| Cmd/Ctrl+A / Escape | verify(P2) | 2.1 / 2.3 | Verify select-all and panel-close behavior. |
+| Cmd/Ctrl+A | done(unit) | 2.1 | Keyboard resolver, listener, and effect tests select every visible node. |
+| Escape clears selection | done(unit) | 2.1 | Keyboard resolver/listener/effect tests clear the graph selection. |
+| Escape closes panels | todo(P2) | 2.3 | Existing Escape handling does not prove the panel-close bug is fixed. |
 | Cmd/Ctrl+Z / Shift+Z | todo(P2) | 2.3 | Host undo manager exists; graph bindings do not. |
 | Type-ahead find | waived(search bar equivalent) | — | Search bar is the graph-native equivalent. |
 | Arrow-key navigation | waived(owner) | — | Explicit owner decision. |
@@ -52,7 +54,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 | Explorer feature | Status | Plan task | Current evidence / next proof |
 | --- | --- | --- | --- |
-| Multi-select with modifiers | verify(P2) | 2.1 / 5.x | Verify current semantics; extended marquee/desktop behavior remains Phase 5. |
+| Multi-select with modifiers | done(unit) | 2.1 / 5.x | Modifier-click, selection-model, and marquee-view tests pass; extended desktop behavior remains Phase 5. |
 | Auto-reveal active file | todo(P2) | 2.6 | Not implemented. |
 | Git status decorations | todo(P2) | 2.7 | Not implemented. |
 | Problems decorations | todo(P2) | 2.7 | Not implemented. |
@@ -78,9 +80,9 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 ## Phase 2-A accounting
 
-- `todo` / `partial`: 24
-- `verify`: 3
-- `done(unit)`: 10
+- `todo` / `partial`: 25
+- `verify`: 0
+- `done(unit)`: 14
 - `waived`: 6
 - `deferred`: 1
 
