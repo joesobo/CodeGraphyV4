@@ -67,7 +67,7 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 
 | Gate | Contract | Status | Owning task |
 | --- | --- | --- | --- |
-| V1 | Empty or whitespace-only rename/create is rejected | verify(P2) | 2.1 / 6.2 |
+| V1 | Empty or whitespace-only rename/create is rejected | done(unit) | 123 focused tests pass across `createPath`, graph file validation, rename, and create-action modules; inline-error presentation remains Phase 6. |
 | V2 | Existing-name collision uses Explorer-equivalent error shape | todo(P2) | 2.2 / 6.2 |
 | V3 | Path separators in New File create nested folders | done(unit) | 2.1 |
 | V4 | Paste collision uses ` copy`, ` copy 2`, … | todo(P2) | 2.2 |
@@ -79,8 +79,8 @@ Legend: `done(unit)` · `partial` · `todo(P#)` · `verify(P2)` · `waived(reaso
 ## Phase 2-A accounting
 
 - `todo` / `partial`: 24
-- `verify`: 11
-- `done(unit)`: 2
+- `verify`: 10
+- `done(unit)`: 3
 - `waived`: 6
 - `deferred`: 1
 
