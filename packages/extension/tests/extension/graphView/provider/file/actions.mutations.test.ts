@@ -42,6 +42,7 @@ describe('graphView/provider/file/actions workspace mutations', () => {
         await handlers.executeDeleteAction(
           ['src/app.ts', 'src/main.ts'],
           WORKSPACE_URI as never,
+          true,
         );
       },
     });
@@ -49,7 +50,7 @@ describe('graphView/provider/file/actions workspace mutations', () => {
     await harness.methods._deleteFiles(['src/app.ts', 'src/main.ts']);
 
     expect(harness.executeWorkspaceFileMutation).toHaveBeenCalledWith(
-      { kind: 'delete', paths: ['src/app.ts', 'src/main.ts'] },
+      { kind: 'delete', paths: ['src/app.ts', 'src/main.ts'], useTrash: true },
       {
         workspaceFolderUri: WORKSPACE_URI,
         refreshGraph: expect.any(Function),

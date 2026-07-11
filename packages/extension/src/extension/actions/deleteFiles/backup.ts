@@ -37,17 +37,18 @@ export async function storePathForDeletion(
   filePath: string,
   storedDirectories: string[],
   storedFiles: StoredFile[],
+  useTrash = true,
 ): Promise<void> {
   const fileUri = vscode.Uri.joinPath(workspaceFolder, filePath);
   const stat = await vscode.workspace.fs.stat(fileUri);
 
   if (isDirectoryStat(stat)) {
     await storeDirectoryForDeletion(filePath, fileUri, storedDirectories, storedFiles);
-    await vscode.workspace.fs.delete(fileUri, { recursive: true, useTrash: true });
+    await vscode.workspace.fs.delete(fileUri, { recursive: true, useTrash });
     return;
   }
 
   const content = await vscode.workspace.fs.readFile(fileUri);
   storedFiles.push({ path: filePath, content });
-  await vscode.workspace.fs.delete(fileUri, { useTrash: true });
+  await vscode.workspace.fs.delete(fileUri, { useTrash });
 }

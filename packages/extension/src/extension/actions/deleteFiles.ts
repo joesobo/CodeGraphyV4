@@ -34,7 +34,8 @@ export class DeleteFilesAction implements IUndoableAction {
   constructor(
     private readonly _paths: string[],
     private readonly _workspaceFolder: vscode.Uri,
-    private readonly _refreshGraph: () => Promise<void>
+    private readonly _refreshGraph: () => Promise<void>,
+    private readonly _useTrash = true,
   ) {
     this.description =
       _paths.length === 1
@@ -61,6 +62,7 @@ export class DeleteFilesAction implements IUndoableAction {
           filePath,
           this._storedDirectories,
           this._storedFiles,
+          this._useTrash,
         );
       } catch (error) {
         console.error(`[CodeGraphy] Failed to delete ${filePath}:`, error);

@@ -21,6 +21,7 @@ export interface CreateWorkspaceFileMutation {
 export interface DeleteWorkspaceFileMutation {
   kind: 'delete';
   paths: string[];
+  useTrash?: boolean;
 }
 
 export type WorkspaceFileMutation =
@@ -90,6 +91,7 @@ export async function executeWorkspaceFileMutation(
         mutation.paths,
         context.workspaceFolderUri,
         refreshGraph,
+        mutation.useTrash ?? true,
       );
       break;
   }

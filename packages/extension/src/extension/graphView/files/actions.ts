@@ -6,13 +6,21 @@ interface GraphViewWorkspaceFolderRef {
 }
 
 export interface GraphViewFileDeleteHandlers {
+  confirmDelete: boolean;
+  disableDeleteConfirmation(): PromiseLike<void>;
   workspaceFolder?: GraphViewWorkspaceFolderRef;
   showWarningMessage(
     message: string,
-    options: { modal: true },
+    options: { detail: string; modal: true },
     deleteAction: 'Delete',
-  ): PromiseLike<'Delete' | undefined>;
-  executeDeleteAction(paths: string[], workspaceFolderUri: vscode.Uri): PromiseLike<void>;
+    doNotAskAction: 'Do not ask me again',
+  ): PromiseLike<'Delete' | 'Do not ask me again' | undefined>;
+  executeDeleteAction(
+    paths: string[],
+    workspaceFolderUri: vscode.Uri,
+    useTrash: boolean,
+  ): PromiseLike<void>;
+  useTrash: boolean;
 }
 
 export interface GraphViewFileCreateHandlers {
@@ -43,11 +51,26 @@ export async function deleteGraphViewFiles(
       ? `Are you sure you want to delete "${paths[0]}"?`
       : `Are you sure you want to delete ${count} files?`;
 
-  const confirm = await handlers.showWarningMessage(message, { modal: true }, 'Delete');
+  const detail = handlers.useTrash
+    ? count === 1
+      ? 'You can restore this file from the Trash.'
+      : 'You can restore these files from the Trash.'
+    : 'This action is irreversible!';
+  const confirmation = handlers.confirmDelete
+    ? await handlers.showWarningMessage(
+      message,
+      { detail, modal: true },
+      'Delete',
+      'Do not ask me again',
+    )
+    : 'Delete';
   if (!handlers.workspaceFolder) return;
 
-  if (confirm === 'Delete') {
-    await handlers.executeDeleteAction(paths, handlers.workspaceFolder.uri);
+  if (confirmation === 'Do not ask me again') {
+    await handlers.disableDeleteConfirmation();
+  }
+  if (confirmation === 'Delete' || confirmation === 'Do not ask me again') {
+    await handlers.executeDeleteAction(paths, handlers.workspaceFolder.uri, handlers.useTrash);
   }
 }
 

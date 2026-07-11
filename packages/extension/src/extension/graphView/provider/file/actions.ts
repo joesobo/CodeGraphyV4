@@ -59,11 +59,13 @@ export interface GraphViewProviderFileActionMethodDependencies {
   createFolder: typeof createGraphViewFolder;
   toggleFavorites: typeof toggleGraphViewFavorites;
   getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
+  getDeleteSettings?(): { confirmDelete: boolean; useTrash: boolean };
+  disableDeleteConfirmation?(): PromiseLike<void>;
   showWarningMessage(
     message: string,
     options: vscode.MessageOptions,
-    deleteAction: string,
-  ): Thenable<'Delete' | undefined>;
+    ...actions: string[]
+  ): Thenable<'Delete' | 'Do not ask me again' | undefined>;
   showInputBox: typeof vscode.window.showInputBox;
   showErrorMessage(message: string): void;
   createCreateFolderAction(
@@ -86,15 +88,17 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
   createFolder: createGraphViewFolder,
   toggleFavorites: toggleGraphViewFavorites,
   getWorkspaceFolder: getCurrentWorkspaceFolder,
-  showWarningMessage: (message, options, deleteAction) =>
-    options.modal
-      ? vscode.window.showQuickPick([deleteAction], {
-        title: message,
-        ignoreFocusOut: true,
-      }) as Thenable<'Delete' | undefined>
-      : vscode.window.showWarningMessage(message, options, deleteAction) as Thenable<
-        'Delete' | undefined
-      >,
+  getDeleteSettings: () => ({
+    confirmDelete: vscode.workspace.getConfiguration('explorer').get('confirmDelete', true),
+    useTrash: vscode.workspace.getConfiguration('files').get('enableTrash', true),
+  }),
+  disableDeleteConfirmation: () => vscode.workspace
+    .getConfiguration('explorer')
+    .update('confirmDelete', false, vscode.ConfigurationTarget.Global),
+  showWarningMessage: (message, options, ...actions) =>
+    vscode.window.showWarningMessage(message, options, ...actions) as Thenable<
+      'Delete' | 'Do not ask me again' | undefined
+    >,
   showInputBox: options => vscode.window.showInputBox(options),
   showErrorMessage: message => {
     vscode.window.showErrorMessage(message);
@@ -140,18 +144,26 @@ export function createGraphViewProviderFileActionMethods(
 
   const _deleteFiles = async (paths: string[]): Promise<void> => {
     const workspaceFolder = dependencies.getWorkspaceFolder();
+    const deleteSettings = dependencies.getDeleteSettings?.() ?? {
+      confirmDelete: true,
+      useTrash: true,
+    };
     await dependencies.deleteFiles(paths, {
+      confirmDelete: deleteSettings.confirmDelete,
+      disableDeleteConfirmation: () => dependencies.disableDeleteConfirmation?.()
+        ?? Promise.resolve(),
       workspaceFolder,
-      showWarningMessage: (message, options, deleteAction) =>
-        dependencies.showWarningMessage(message, options, deleteAction) as PromiseLike<
-          typeof deleteAction | undefined
+      showWarningMessage: (message, options, ...actions) =>
+        dependencies.showWarningMessage(message, options, ...actions) as PromiseLike<
+          'Delete' | 'Do not ask me again' | undefined
         >,
-      executeDeleteAction: async (nextPaths, workspaceFolderUri) => {
+      executeDeleteAction: async (nextPaths, workspaceFolderUri, useTrash) => {
         await executeOptimisticMutation(
-          { kind: 'delete', paths: nextPaths },
+          { kind: 'delete', paths: nextPaths, useTrash },
           workspaceFolderUri,
         );
       },
+      useTrash: deleteSettings.useTrash,
     });
   };
 

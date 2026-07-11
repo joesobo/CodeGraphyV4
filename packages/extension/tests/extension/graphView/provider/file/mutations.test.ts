@@ -126,6 +126,7 @@ describe('graphView/provider/file/mutations', () => {
       ['src/app.ts', 'src/main.ts'],
       workspaceFolderUri,
       expect.any(Function),
+      true,
     );
     expect(execute).toHaveBeenCalledOnce();
     expect(refreshGraph).toHaveBeenCalledOnce();

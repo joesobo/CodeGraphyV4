@@ -150,23 +150,26 @@ describe('graphView/provider/file/actions', () => {
   });
 
   it('uses vscode confirmation and undo manager defaults for delete actions', async () => {
-    const { source, methods, deleteFiles, showQuickPick, DeleteFilesAction, execute } =
+    const { source, methods, deleteFiles, showWarningMessage, DeleteFilesAction, execute } =
       await createDefaultDependencyHarness();
 
     await methods._deleteFiles(['src/app.ts']);
 
     expect(deleteFiles).toHaveBeenCalledOnce();
-    expect(showQuickPick).toHaveBeenCalledWith(['Delete'], {
-      title: 'Delete files?',
-      ignoreFocusOut: true,
-    });
+    expect(showWarningMessage).toHaveBeenCalledWith(
+      'Delete files?',
+      { detail: 'You can restore this file from the Trash.', modal: true },
+      'Delete',
+      'Do not ask me again',
+    );
     expect(DeleteFilesAction).toHaveBeenCalledWith(
       ['src/app.ts'],
       { fsPath: '/workspace' },
       expect.any(Function),
+      true,
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source.refreshChangedFiles).toHaveBeenCalledOnce();
   });
 
   it('uses vscode input and error defaults for rename actions', async () => {
@@ -184,7 +187,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source.refreshChangedFiles).toHaveBeenCalledOnce();
   });
 
   it('uses vscode input and error defaults for create actions', async () => {
@@ -202,7 +205,7 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source.refreshChangedFiles).toHaveBeenCalledOnce();
   });
 
   it('uses vscode input and error defaults for create folder actions', async () => {
@@ -262,14 +265,23 @@ async function createDefaultDependencyHarness(
     workspaceFolder: unknown;
     showWarningMessage(
       message: string,
-      options: { modal: boolean },
-      deleteAction: string,
+      options: { detail: string; modal: boolean },
+      ...actions: string[]
     ): PromiseLike<string | undefined>;
-    executeDeleteAction(paths: string[], workspaceFolderUri: { fsPath: string }): Promise<void>;
+    executeDeleteAction(
+      paths: string[],
+      workspaceFolderUri: { fsPath: string },
+      useTrash: boolean,
+    ): Promise<void>;
   }) => {
     expect(handlers.workspaceFolder).toEqual(workspaceFolder);
-    await handlers.showWarningMessage('Delete files?', { modal: true }, 'Delete');
-    await handlers.executeDeleteAction(['src/app.ts'], { fsPath: '/workspace' });
+    await handlers.showWarningMessage(
+      'Delete files?',
+      { detail: 'You can restore this file from the Trash.', modal: true },
+      'Delete',
+      'Do not ask me again',
+    );
+    await handlers.executeDeleteAction(['src/app.ts'], { fsPath: '/workspace' }, true);
   });
   const renameFile = vi.fn(async (_filePath: string, handlers: {
     workspaceFolder: unknown;
@@ -378,7 +390,21 @@ async function createDefaultDependencyHarness(
   });
 
   vi.doMock('vscode', () => ({
+    ConfigurationTarget: { Global: 1 },
+    Uri: {
+      joinPath: (base: { fsPath: string }, ...segments: string[]) => ({
+        fsPath: `${base.fsPath}/${segments.join('/')}`,
+      }),
+    },
     workspace: {
+      getConfiguration: vi.fn((section: string) => ({
+        get: vi.fn((key: string, fallback: unknown) => {
+          if (section === 'explorer' && key === 'confirmDelete') return true;
+          if (section === 'files' && key === 'enableTrash') return true;
+          return fallback;
+        }),
+        update: vi.fn(async () => undefined),
+      })),
       workspaceFolders: workspaceFolder === undefined ? undefined : [workspaceFolder],
     },
     window: {
@@ -430,7 +456,9 @@ async function createDefaultDependencyHarness(
   const source = {
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
+    _sendMessage: vi.fn(),
     _setFocusedFile: vi.fn(),
+    refreshChangedFiles: vi.fn(async () => undefined),
   };
 
   return {

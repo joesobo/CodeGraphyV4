@@ -8,43 +8,77 @@ import {
 } from '../../../../src/extension/graphView/files/actions';
 
 describe('graphView/files/actions', () => {
-  it('runs the delete action after confirmation', async () => {
+  it.each([
+    { confirmDelete: true, paths: ['src/app.ts'] },
+    { confirmDelete: true, paths: ['src/app.ts', 'src/lib.ts'] },
+    { confirmDelete: false, paths: ['src/app.ts'] },
+    { confirmDelete: false, paths: ['src/app.ts', 'src/lib.ts'] },
+  ])('honors explorer.confirmDelete=$confirmDelete for $paths.length target(s)', async ({
+    confirmDelete,
+    paths,
+  }) => {
     const executeDeleteAction = vi.fn(async () => undefined);
     const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
 
-    await deleteGraphViewFiles(['src/app.ts'], {
+    await deleteGraphViewFiles(paths, {
+      confirmDelete,
+      disableDeleteConfirmation: vi.fn(async () => undefined),
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
       showWarningMessage,
       executeDeleteAction,
+      useTrash: true,
     });
 
-    expect(showWarningMessage).toHaveBeenCalledWith(
-      'Are you sure you want to delete "src/app.ts"?',
-      { modal: true },
-      'Delete',
-    );
+    expect(showWarningMessage).toHaveBeenCalledTimes(confirmDelete ? 1 : 0);
     expect(executeDeleteAction).toHaveBeenCalledWith(
-      ['src/app.ts'],
+      paths,
       vscode.Uri.file('/workspace'),
+      true,
     );
   });
 
-  it('skips the delete action when confirmation is rejected', async () => {
+  it.each([
+    { paths: ['src/app.ts'], useTrash: true },
+    { paths: ['src/app.ts', 'src/lib.ts'], useTrash: true },
+    { paths: ['src/app.ts'], useTrash: false },
+    { paths: ['src/app.ts', 'src/lib.ts'], useTrash: false },
+  ])('honors files.enableTrash=$useTrash for $paths.length target(s)', async ({
+    paths,
+    useTrash,
+  }) => {
     const executeDeleteAction = vi.fn(async () => undefined);
-    const showWarningMessage = vi.fn(async () => undefined);
 
-    await deleteGraphViewFiles(['src/app.ts', 'src/lib.ts'], {
+    await deleteGraphViewFiles(paths, {
+      confirmDelete: false,
+      disableDeleteConfirmation: vi.fn(async () => undefined),
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
-      showWarningMessage,
+      showWarningMessage: vi.fn(async () => undefined),
       executeDeleteAction,
+      useTrash,
     });
 
-    expect(showWarningMessage).toHaveBeenCalledWith(
-      'Are you sure you want to delete 2 files?',
-      { modal: true },
-      'Delete',
+    expect(executeDeleteAction).toHaveBeenCalledWith(
+      paths,
+      vscode.Uri.file('/workspace'),
+      useTrash,
     );
-    expect(executeDeleteAction).not.toHaveBeenCalled();
+  });
+
+  it('uses Explorer trash copy and persists Do not ask me again', async () => {
+    const disableDeleteConfirmation = vi.fn(async () => undefined);
+    const executeDeleteAction = vi.fn(async () => undefined);
+
+    await deleteGraphViewFiles(['src/app.ts'], {
+      confirmDelete: true,
+      disableDeleteConfirmation,
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showWarningMessage: vi.fn(async () => 'Do not ask me again'),
+      executeDeleteAction,
+      useTrash: true,
+    } as never);
+
+    expect(disableDeleteConfirmation).toHaveBeenCalledOnce();
+    expect(executeDeleteAction).toHaveBeenCalledOnce();
   });
 
   it('prompts but skips execution when no workspace folder is available for delete', async () => {
@@ -52,14 +86,18 @@ describe('graphView/files/actions', () => {
     const executeDeleteAction = vi.fn(async () => undefined);
 
     await deleteGraphViewFiles(['src/app.ts'], {
+      confirmDelete: true,
+      disableDeleteConfirmation: vi.fn(async () => undefined),
       showWarningMessage,
       executeDeleteAction,
+      useTrash: true,
     });
 
     expect(showWarningMessage).toHaveBeenCalledWith(
       'Are you sure you want to delete "src/app.ts"?',
-      { modal: true },
+      { detail: 'You can restore this file from the Trash.', modal: true },
       'Delete',
+      'Do not ask me again',
     );
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });

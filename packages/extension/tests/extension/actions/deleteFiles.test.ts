@@ -96,6 +96,22 @@ describe('DeleteFilesAction', () => {
       );
     });
 
+    it('permanently deletes when files.enableTrash is disabled', async () => {
+      const action = new DeleteFilesAction(
+        ['src/app.ts'],
+        mockWorkspaceFolder,
+        mockRefreshGraph,
+        false,
+      );
+
+      await action.execute();
+
+      expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/src/app.ts' }),
+        { useTrash: false },
+      );
+    });
+
     it('handles multiple files', async () => {
       const action = new DeleteFilesAction(
         ['src/a.ts', 'src/b.ts', 'src/c.ts'],
