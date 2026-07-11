@@ -17,6 +17,7 @@ export interface DeterministicInteractionBurstOptions {
   handleNodeDrag: (node: FGNode, translate: { x: number; y: number }) => void;
   handleNodeDragEnd: (node: FGNode) => void;
   nodes: readonly FGNode[];
+  simulationEnabled?: boolean;
   zoomGraphView: (factor: number) => void;
 }
 
@@ -65,6 +66,7 @@ export function runDeterministicInteractionBurst({
   handleNodeDrag,
   handleNodeDragEnd,
   nodes,
+  simulationEnabled = true,
   zoomGraphView,
 }: DeterministicInteractionBurstOptions): InteractionBurstResult {
   dispatchDeterministicPan(container, graphMode);
@@ -77,7 +79,7 @@ export function runDeterministicInteractionBurst({
     handleNodeDragEnd(node);
   }
 
-  if (!node || typeof graph?.d3ReheatSimulation !== 'function') {
+  if (!simulationEnabled || !node || typeof graph?.d3ReheatSimulation !== 'function') {
     return { waitForSettle: false };
   }
 

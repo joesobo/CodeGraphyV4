@@ -30,6 +30,7 @@ import { useGraphPerfCommit } from '../../../perf/graph/commit';
 import { useGraphPerfScenarios } from '../../../perf/graph/useScenarios';
 import { useGraphAppearance } from '../appearance/use';
 import { projectGraphForRendering } from '../rendering/projection/model';
+import { resolveGraphCooldownTicks } from '../rendering/surface/sharedProps';
 import { applyActiveFileAutoReveal } from '../autoReveal/model';
 import { useGraphStore } from '../../../store/state';
 
@@ -205,6 +206,11 @@ export default function Graph({
     graphMode: viewState.graphMode,
     handleNodeDrag: interactions.handleNodeDrag,
     handleNodeDragEnd: interactions.handleNodeDragEnd,
+    simulationEnabled: resolveGraphCooldownTicks(
+      graphRuntime.renderer.graphDataRef.current.nodes.length,
+      graphRuntime.renderer.graphDataRef.current.links.length,
+      viewState.timelineActive,
+    ) > 0,
     zoomGraphView: interactions.interactionHandlers.zoomGraphView,
   });
 

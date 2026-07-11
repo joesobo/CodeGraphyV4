@@ -67,4 +67,22 @@ describe('webview/perf/graph/interaction', () => {
 
     expect(result).toEqual({ waitForSettle: false });
   });
+
+  it('does not reheat a graph whose render budget disables simulation', () => {
+    const reheat = vi.fn();
+
+    const result = runDeterministicInteractionBurst({
+      container: document.createElement('div'),
+      graph: { d3ReheatSimulation: reheat },
+      graphMode: '2d',
+      handleNodeDrag: vi.fn(),
+      handleNodeDragEnd: vi.fn(),
+      nodes: [createNode('a.ts', 0, 0)],
+      simulationEnabled: false,
+      zoomGraphView: vi.fn(),
+    });
+
+    expect(reheat).not.toHaveBeenCalled();
+    expect(result).toEqual({ waitForSettle: false });
+  });
 });
