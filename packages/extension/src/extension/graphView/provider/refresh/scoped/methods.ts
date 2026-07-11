@@ -12,6 +12,7 @@ import type {
 } from '../contracts';
 import { prepareRefreshInputs } from '../coordinator';
 import {
+  publishHydratedGraphDataIfPresent,
   publishGraphDataIfPresent,
   runScopedRefreshRequest,
 } from './lifecycle';
@@ -83,7 +84,7 @@ function createHydrateAnalysisCacheTiersMethod(
       return false;
     }
 
-    publishGraphDataIfPresent(source, graphData);
+    await publishHydratedGraphDataIfPresent(source, graphData);
     markHydratedAnalysisCacheTiers(state, tiers);
     return true;
   };

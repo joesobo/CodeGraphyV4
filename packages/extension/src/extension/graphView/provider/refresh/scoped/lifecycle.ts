@@ -1,3 +1,4 @@
+import { diffGraphData } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import { createGraphViewIndexProgressCoalescer } from '../../../analysis/execution/progress';
 import type {
@@ -5,6 +6,7 @@ import type {
   GraphViewScopedRefreshProgress,
   ScopedRefreshLifecycle,
 } from '../contracts';
+import { chunkGraphDataPatch } from './chunks';
 import { sendRefreshState } from '../run';
 
 export function createScopedRefreshLifecycle(): ScopedRefreshLifecycle {
@@ -78,6 +80,40 @@ export function publishScopedRefreshGraphData(
   source._analyzer?.registry.notifyGraphRebuild(source._graphData, source._disabledPlugins);
 }
 
+function yieldToWebview(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+export async function publishHydratedScopedRefreshGraphData(
+  source: GraphViewProviderRefreshMethodsSource,
+  graphData: IGraphData,
+): Promise<void> {
+  const previousGraphData = source._graphData;
+  source._rawGraphData = graphData;
+  source._updateViewContext();
+  source._applyViewTransform();
+  source._computeMergedGroups();
+  source._sendGroupsUpdated();
+
+  const chunks = chunkGraphDataPatch(diffGraphData(previousGraphData, source._graphData));
+  for (const chunk of chunks) {
+    source._sendMessage({
+      type: 'GRAPH_DATA_PATCHED',
+      baseGraphRevision: 0,
+      payload: chunk,
+      nodeCount: source._graphData.nodes.length,
+      edgeCount: source._graphData.edges.length,
+    });
+    await yieldToWebview();
+  }
+
+  source._sendDepthState();
+  source._sendGraphControls?.();
+  source._sendPluginStatuses();
+  source._sendDecorations();
+  source._analyzer?.registry.notifyGraphRebuild(source._graphData, source._disabledPlugins);
+}
+
 export function publishGraphDataIfPresent(
   source: GraphViewProviderRefreshMethodsSource,
   graphData: IGraphData | undefined,
@@ -87,6 +123,15 @@ export function publishGraphDataIfPresent(
   }
 
   publishScopedRefreshGraphData(source, graphData);
+  sendRefreshState(source);
+}
+
+export async function publishHydratedGraphDataIfPresent(
+  source: GraphViewProviderRefreshMethodsSource,
+  graphData: IGraphData | undefined,
+): Promise<void> {
+  if (!graphData) return;
+  await publishHydratedScopedRefreshGraphData(source, graphData);
   sendRefreshState(source);
 }
 

@@ -182,11 +182,30 @@ describe('graphView/provider/refresh targeted refreshes', () => {
   });
 
   it('hydrateGraphScope replays cached graph data without scoped analysis or warm analysis', async () => {
-    const source = createSource();
-    const graphData = {
-      nodes: [{ id: 'symbol-node', label: 'symbol-node', color: '#ffffff' }],
+    const initialGraph = {
+      nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#ffffff' }],
       edges: [],
     } satisfies IGraphData;
+    const source = createSource({
+      _graphData: initialGraph,
+      _rawGraphData: initialGraph,
+    });
+    const graphData = {
+      nodes: [
+        initialGraph.nodes[0],
+        { id: 'symbol-node', label: 'symbol-node', color: '#ffffff' },
+      ],
+      edges: [{
+        id: 'src/app.ts->symbol-node#contains',
+        from: 'src/app.ts',
+        to: 'symbol-node',
+        kind: 'contains',
+        sources: [],
+      }],
+    } satisfies IGraphData;
+    source._applyViewTransform.mockImplementation(() => {
+      source._graphData = source._rawGraphData;
+    });
     source._analyzer.loadCachedGraph.mockResolvedValueOnce(graphData);
     const rebuildGraphData = vi.fn();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
@@ -213,9 +232,34 @@ describe('graphView/provider/refresh targeted refreshes', () => {
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
     expect(rebuildGraphData).not.toHaveBeenCalled();
     expect(source._rawGraphData).toBe(graphData);
-    expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'GRAPH_DATA_UPDATED',
-      payload: source._graphData,
+    expect(source._sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'GRAPH_DATA_UPDATED' }),
+    );
+    expect(source._sendMessage).toHaveBeenNthCalledWith(1, {
+      type: 'GRAPH_DATA_PATCHED',
+      baseGraphRevision: 0,
+      edgeCount: 1,
+      nodeCount: 2,
+      payload: {
+        addedLinks: [],
+        addedNodes: [graphData.nodes[1]],
+        removedLinkIds: [],
+        removedNodeIds: [],
+        updatedNodes: [],
+      },
+    });
+    expect(source._sendMessage).toHaveBeenNthCalledWith(2, {
+      type: 'GRAPH_DATA_PATCHED',
+      baseGraphRevision: 0,
+      edgeCount: 1,
+      nodeCount: 2,
+      payload: {
+        addedLinks: graphData.edges,
+        addedNodes: [],
+        removedLinkIds: [],
+        removedNodeIds: [],
+        updatedNodes: [],
+      },
     });
   });
 
