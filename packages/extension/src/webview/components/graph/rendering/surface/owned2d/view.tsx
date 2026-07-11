@@ -361,7 +361,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
 
   useEffect(() => {
     requestFrameRef.current();
-  }, [props.backgroundColor, props.directionMode, props.particleSize, props.particleSpeed]);
+  });
 
   const screenToWorld = (canvas: HTMLCanvasElement, screen: { x: number; y: number }) => {
     const size = canvasSize(canvas);

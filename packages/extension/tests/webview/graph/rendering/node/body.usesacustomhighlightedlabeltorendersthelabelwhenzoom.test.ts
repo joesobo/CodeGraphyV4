@@ -164,20 +164,20 @@ describe('graph/rendering/node/body', () => {
 
 
 
-    it('skips label rendering when the zoom level keeps label opacity near zero', () => {
+    it('keeps label text mapped to its node at extreme zoom out', () => {
       const { ctx, operations } = createContext();
 
       renderNodeLabel({
         ctx,
         decoration: undefined,
-        globalScale: 0.36,
+        globalScale: 0.005,
         isHighlighted: true,
         node: createNode(),
         opacity: 1,
       });
 
-      expect(ctx.fillText).not.toHaveBeenCalled();
-      expect(operations).toEqual([]);
+      expect(ctx.fillText).toHaveBeenCalledWith('app.ts', 24, 464);
+      expect(operations).toHaveLength(1);
     });
 
 

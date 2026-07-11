@@ -22,10 +22,9 @@ export function renderNodeLabel({
   opacity,
 }: RenderNodeLabelOptions): void {
   const labelPx = 12 / globalScale;
-  const labelOpacity = Math.min(1, Math.max(0, (globalScale - 0.35) / 1.2));
-  if (labelOpacity <= 0.01) {
-    return;
-  }
+  const nodeHalfHeight = node.shapeSize2D?.height
+    ? node.shapeSize2D.height / 2
+    : node.size;
 
   ctx.font = `${labelPx}px Sans-Serif`;
   ctx.textAlign = 'center';
@@ -34,7 +33,11 @@ export function renderNodeLabel({
   const baseColor = isHighlighted
     ? appearance.labelForeground
     : appearance.labelMutedForeground;
-  ctx.globalAlpha = opacity * labelOpacity;
+  ctx.globalAlpha = opacity;
   ctx.fillStyle = decoration?.label?.color ?? baseColor;
-  ctx.fillText(decoration?.label?.text ?? node.label, node.x!, node.y! + node.size + 2 / globalScale);
+  ctx.fillText(
+    decoration?.label?.text ?? node.label,
+    node.x!,
+    node.y! + nodeHalfHeight + 2 / globalScale,
+  );
 }

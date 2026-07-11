@@ -1,7 +1,7 @@
 import type { FGNode } from '../../../model/build';
 
-const MINIMUM_ZOOM = 0.02;
-const MAXIMUM_ZOOM = 12;
+export const MINIMUM_OWNED_GRAPH_ZOOM = 0.005;
+export const MAXIMUM_OWNED_GRAPH_ZOOM = 64;
 
 export interface OwnedGraphCamera {
   centerX: number;
@@ -10,7 +10,7 @@ export interface OwnedGraphCamera {
 }
 
 export function clampOwnedGraphZoom(zoom: number): number {
-  return Math.min(MAXIMUM_ZOOM, Math.max(MINIMUM_ZOOM, zoom));
+  return Math.min(MAXIMUM_OWNED_GRAPH_ZOOM, Math.max(MINIMUM_OWNED_GRAPH_ZOOM, zoom));
 }
 
 export function graphToScreen(
@@ -54,11 +54,12 @@ export function fitOwnedGraphCamera(
   let maximumX = Number.NEGATIVE_INFINITY;
   let maximumY = Number.NEGATIVE_INFINITY;
   for (const node of positioned) {
-    const radius = Math.max(1, node.size ?? 4);
-    minimumX = Math.min(minimumX, (node.x as number) - radius);
-    minimumY = Math.min(minimumY, (node.y as number) - radius);
-    maximumX = Math.max(maximumX, (node.x as number) + radius);
-    maximumY = Math.max(maximumY, (node.y as number) + radius);
+    const halfWidth = Math.max(1, node.shapeSize2D?.width ? node.shapeSize2D.width / 2 : node.size ?? 4);
+    const halfHeight = Math.max(1, node.shapeSize2D?.height ? node.shapeSize2D.height / 2 : node.size ?? 4);
+    minimumX = Math.min(minimumX, (node.x as number) - halfWidth);
+    minimumY = Math.min(minimumY, (node.y as number) - halfHeight);
+    maximumX = Math.max(maximumX, (node.x as number) + halfWidth);
+    maximumY = Math.max(maximumY, (node.y as number) + halfHeight);
   }
 
   camera.centerX = (minimumX + maximumX) / 2;
