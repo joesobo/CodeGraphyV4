@@ -1,6 +1,14 @@
 import type { IFileAnalysisResult, IPlugin } from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
-import { analyzeSvelteComponent } from './analysis';
+
+type SvelteAnalysisRuntime = typeof import('./analysis.js');
+
+let svelteAnalysisRuntimePromise: Promise<SvelteAnalysisRuntime> | undefined;
+
+function loadSvelteAnalysisRuntime(): Promise<SvelteAnalysisRuntime> {
+  svelteAnalysisRuntimePromise ??= import('./analysis.js');
+  return svelteAnalysisRuntimePromise;
+}
 
 export function createSveltePlugin(): IPlugin {
   return {
@@ -15,8 +23,9 @@ export function createSveltePlugin(): IPlugin {
     contributeGraphScopeCapabilities: () => ({
       edgeTypes: ['import', 'type-import', 'call'],
     }),
-    analyzeFile(filePath: string, content: string): Promise<IFileAnalysisResult> {
-      return Promise.resolve(analyzeSvelteComponent(filePath, content));
+    async analyzeFile(filePath: string, content: string): Promise<IFileAnalysisResult> {
+      const runtime = await loadSvelteAnalysisRuntime();
+      return runtime.analyzeSvelteComponent(filePath, content);
     },
   };
 }

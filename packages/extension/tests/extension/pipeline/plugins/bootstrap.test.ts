@@ -699,6 +699,45 @@ describe('pipeline/plugins/bootstrap', () => {
     await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
   });
 
+  it('does not import an enabled package before its declared activation event', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-extension-global-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-extension-bootstrap',
+    );
+    const markers = await createPluginPackageWithRuntimeMarkers(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.extension-bootstrap',
+        supportedExtensions: ['.txt'],
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{ id: 'acme.extension-bootstrap', enabled: true }],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+      shouldActivatePlugin: async () => false,
+    });
+
+    expect(registry.register).not.toHaveBeenCalled();
+    await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(markers.factoryMarkerPath)).rejects.toThrow();
+  });
+
   it('syncs workspace plugin selection without unregistering core Tree-sitter analysis', async () => {
     const workspaceRoot = await createWorkspace();
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {

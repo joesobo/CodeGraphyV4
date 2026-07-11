@@ -9,6 +9,7 @@ export interface WorkspacePackagePluginRegistrationDependencies {
   bundledPluginPackageRoots?: Iterable<string>;
   disabledPlugins?: Iterable<string>;
   userHomeDir?: string;
+  shouldActivatePlugin?: Parameters<typeof loadCodeGraphyWorkspacePluginPackages>[0]['shouldActivatePlugin'];
   warn?: (message: string) => void;
 }
 
@@ -21,6 +22,7 @@ export async function loadWorkspacePackagePluginRegistrations(
     bundledPackageRoots: dependencies.bundledPluginPackageRoots,
     disabledPlugins: dependencies.disabledPlugins,
     settings,
+    shouldActivatePlugin: dependencies.shouldActivatePlugin,
     workspaceRoot,
     homeDir: dependencies.userHomeDir,
     warn: dependencies.warn,

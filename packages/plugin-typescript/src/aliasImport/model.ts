@@ -1,19 +1,9 @@
-import type { IFileAnalysisResult, IPluginEdgeType } from '@codegraphy-dev/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { clearTypeScriptAliasConfigCache, readTypeScriptAliasConfig } from './compilerOptions';
 import { collectTypeScriptFilePaths, isTypeScriptConfigFile, isTypeScriptSourceFile } from './files';
 import { resolveAliasImport } from './resolve';
 import { extractModuleSpecifiers } from './specifiers';
-
-export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE: IPluginEdgeType = {
-  id: 'codegraphy.typescript:alias-import',
-  label: 'TypeScript Alias Import',
-  defaultColor: '#38BDF8',
-  defaultVisible: true,
-  description: {
-    description: 'Shows imports resolved through TypeScript path aliases instead of relative paths.',
-    examples: [{ code: 'import { thing } from "@/module";' }],
-  },
-};
+import { TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE } from './contribution';
 
 const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
 

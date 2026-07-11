@@ -1,12 +1,16 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
-import {
-  analyzeTypeScriptAliasImports,
-  clearTypeScriptAliasConfigCache,
-  collectTypeScriptFilePaths,
-  isTypeScriptConfigFile,
-  TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE,
-} from './aliasImport/model';
+import { TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE } from './aliasImport/contribution';
+import { collectTypeScriptFilePaths, isTypeScriptConfigFile } from './aliasImport/files';
+
+type AliasImportRuntime = typeof import('./aliasImport/model.js');
+
+let aliasImportRuntimePromise: Promise<AliasImportRuntime> | undefined;
+
+function loadAliasImportRuntime(): Promise<AliasImportRuntime> {
+  aliasImportRuntimePromise ??= import('./aliasImport/model.js');
+  return aliasImportRuntimePromise;
+}
 
 /**
  * TypeScript/JavaScript metadata plugin.
@@ -30,7 +34,10 @@ export function createTypeScriptPlugin(): IPlugin {
     contributeGraphScopeCapabilities: () => ({
       edgeTypes: [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE.id],
     }),
-    analyzeFile: analyzeTypeScriptAliasImports,
+    async analyzeFile(filePath, content, workspaceRoot) {
+      const runtime = await loadAliasImportRuntime();
+      return runtime.analyzeTypeScriptAliasImports(filePath, content, workspaceRoot);
+    },
     async onPreAnalyze(files) {
       typeScriptFiles = collectTypeScriptFilePaths(files);
     },
@@ -39,7 +46,8 @@ export function createTypeScriptPlugin(): IPlugin {
         return undefined;
       }
 
-      clearTypeScriptAliasConfigCache();
+      const runtime = await loadAliasImportRuntime();
+      runtime.clearTypeScriptAliasConfigCache();
       return typeScriptFiles;
     },
   };

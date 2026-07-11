@@ -87,6 +87,9 @@ export async function loadCodeGraphyWorkspacePluginPackages(
     }
 
     try {
+      if (options.shouldActivatePlugin && !await options.shouldActivatePlugin(record)) {
+        continue;
+      }
       const loadedPlugin = await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record, options.workspaceRoot);
       loaded.push({
         ...loadedPlugin,

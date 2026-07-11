@@ -14,6 +14,9 @@ export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
   bundledPackageRoots?: Iterable<string>;
   disabledPlugins?: Iterable<string>;
   settings: CodeGraphyWorkspaceSettings;
+  shouldActivatePlugin?: (
+    record: CodeGraphyInstalledPluginRecord,
+  ) => boolean | Promise<boolean>;
   homeDir?: string;
   warn?: (message: string) => void;
   workspaceRoot?: string;

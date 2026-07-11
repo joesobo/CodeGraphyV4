@@ -1,6 +1,14 @@
 import type { IFileAnalysisResult, IPlugin } from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
-import { analyzeVueSfc } from './analysis';
+
+type VueAnalysisRuntime = typeof import('./analysis.js');
+
+let vueAnalysisRuntimePromise: Promise<VueAnalysisRuntime> | undefined;
+
+function loadVueAnalysisRuntime(): Promise<VueAnalysisRuntime> {
+  vueAnalysisRuntimePromise ??= import('./analysis.js');
+  return vueAnalysisRuntimePromise;
+}
 
 export function createVuePlugin(): IPlugin {
   return {
@@ -15,8 +23,9 @@ export function createVuePlugin(): IPlugin {
     contributeGraphScopeCapabilities: () => ({
       edgeTypes: ['import', 'type-import', 'call'],
     }),
-    analyzeFile(filePath: string, content: string): Promise<IFileAnalysisResult> {
-      return Promise.resolve(analyzeVueSfc(filePath, content));
+    async analyzeFile(filePath: string, content: string): Promise<IFileAnalysisResult> {
+      const runtime = await loadVueAnalysisRuntime();
+      return runtime.analyzeVueSfc(filePath, content);
     },
   };
 }

@@ -281,6 +281,54 @@ describe('CodeGraphy package runtime', () => {
     await expect(fs.access(factoryMarkerPath)).rejects.toThrow();
   });
 
+  it('leaves irrelevant file-type runtimes unloaded until their activation event', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));
+    const packageRoot = path.join(
+      await createPackageFixtureRoot('codegraphy-package-runtime-package-'),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-lazy-runtime',
+    );
+    const markers = await createPluginPackageWithRuntimeMarkers(
+      packageRoot,
+      '@acme/codegraphy-plugin-lazy-runtime',
+      'acme.lazy-runtime',
+      'Lazy Runtime Plugin',
+    );
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-lazy-runtime',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        pluginId: 'acme.lazy-runtime',
+        supportedExtensions: ['.disabled'],
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{ id: 'acme.lazy-runtime', enabled: true }],
+    });
+    const shouldActivatePlugin = vi.fn(async () => false);
+
+    await expect(loadCodeGraphyWorkspacePluginPackages({
+      settings: readCodeGraphyWorkspaceSettings(workspaceRoot),
+      homeDir,
+      workspaceRoot,
+      shouldActivatePlugin,
+    })).resolves.toEqual([]);
+
+    expect(shouldActivatePlugin).toHaveBeenCalledWith(expect.objectContaining({
+      pluginId: 'acme.lazy-runtime',
+      supportedExtensions: ['.disabled'],
+    }));
+    await expect(fs.access(markers.importMarkerPath)).rejects.toThrow();
+    await expect(fs.access(markers.factoryMarkerPath)).rejects.toThrow();
+  });
+
   it('leaves conflicting enabled package runtimes unloaded and warns from static metadata', async () => {
     const workspaceRoot = await createWorkspace();
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-runtime-home-'));

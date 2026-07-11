@@ -6,6 +6,8 @@ import {
   syncWorkspacePipelinePlugins,
 } from '../plugins/bootstrap';
 import { readBundledWorkspacePluginPackageRoots } from '../plugins/bootstrap/bundledPackages';
+import * as vscode from 'vscode';
+import { shouldActivateWorkspacePlugin } from '../plugins/bootstrap/activation';
 
 type WorkspacePipelinePluginRegistry = Parameters<typeof initializeWorkspacePipeline>[0] & {
   disposeAll(): void;
@@ -16,14 +18,28 @@ interface WorkspacePipelinePluginFilterConfig {
   disabledPluginFilterPatterns: readonly string[];
 }
 
+function createWorkspacePluginActivationPredicate(workspaceRoot: string | undefined) {
+  return (record: Parameters<typeof shouldActivateWorkspacePlugin>[0]) =>
+    shouldActivateWorkspacePlugin(
+      record,
+      (glob, maxResults) => vscode.workspace.findFiles(
+        workspaceRoot ? new vscode.RelativePattern(workspaceRoot, glob) : glob,
+        undefined,
+        maxResults,
+      ),
+    );
+}
+
 export async function initializeWorkspacePipelinePlugins(
   registry: WorkspacePipelinePluginRegistry,
   getWorkspaceRoot: () => string | undefined,
   extensionRoot?: string,
 ): Promise<void> {
+  const workspaceRoot = getWorkspaceRoot();
   await initializeWorkspacePipeline(registry, {
     bundledPluginPackageRoots: await readBundledWorkspacePluginPackageRoots(extensionRoot),
     getWorkspaceRoot,
+    shouldActivatePlugin: createWorkspacePluginActivationPredicate(workspaceRoot),
   });
 }
 
@@ -50,9 +66,11 @@ export function queueWorkspacePipelinePluginSync(
   extensionRoot?: string,
 ): { nextQueue: Promise<void>; sync: Promise<void> } {
   const sync = queue.then(async () => {
+    const workspaceRoot = getWorkspaceRoot();
     await syncWorkspacePipelinePlugins(registry, {
       bundledPluginPackageRoots: await readBundledWorkspacePluginPackageRoots(extensionRoot),
       getWorkspaceRoot,
+      shouldActivatePlugin: createWorkspacePluginActivationPredicate(workspaceRoot),
     });
   });
 
