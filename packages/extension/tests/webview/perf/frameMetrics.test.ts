@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { PerfOperation } from '../../../src/shared/perf/protocol';
 import {
@@ -76,6 +76,8 @@ function runNextFrame(frames: Map<number, FrameRequestCallback>, timestamp: numb
 }
 
 describe('webview/perf/frameMetrics', () => {
+  afterEach(() => vi.useRealTimers());
+
   it('allocates no observer or animation frame before an explicit sample starts', () => {
     const { createLongTaskObserver, requestFrame } = setup();
 
@@ -151,6 +153,26 @@ describe('webview/perf/frameMetrics', () => {
       unit: 'bytes',
       value: 1_048_576,
     });
+  });
+
+  it('bounds the idle FPS probe instead of driving frames for the full CPU window', () => {
+    vi.useFakeTimers();
+    const { emitFor, frames, metrics, setNow } = setup();
+    metrics.startIdle(idleOperation);
+    runNextFrame(frames, 16);
+    runNextFrame(frames, 32);
+    runNextFrame(frames, 48);
+    setNow(1_000);
+
+    vi.advanceTimersByTime(1_000);
+
+    expect(emitFor).toHaveBeenCalledWith(idleOperation, {
+      kind: 'metric',
+      metric: 'fpsIdle',
+      unit: 'fps',
+      value: 3,
+    });
+    expect(frames.size).toBe(0);
   });
 
   it('does not fabricate a long-task metric when the API is unsupported', () => {

@@ -10,6 +10,7 @@ export interface FrameLongTaskObserver {
 }
 
 type FpsMetric = 'fpsIdle' | 'fpsDrag' | 'fpsSettle';
+const idleFpsProbeDurationMs = 1_000;
 
 interface FrameMetricBridge {
   emitFor: (operation: PerfOperation, event: PerfEventInput) => boolean;
@@ -99,10 +100,19 @@ export function createFrameMetrics(
 ): FrameMetrics {
   let activeSample: ActiveSample | undefined;
   let fpsWindow: ActiveFpsWindow | undefined;
+  let idleFpsTimer: ReturnType<typeof setTimeout> | undefined;
   let longTaskCount = 0;
   let longTaskObserver: FrameLongTaskObserver | undefined;
 
+  const cancelIdleFpsTimer = (): void => {
+    if (idleFpsTimer !== undefined) {
+      clearTimeout(idleFpsTimer);
+      idleFpsTimer = undefined;
+    }
+  };
+
   const cancelFpsWindow = (): void => {
+    cancelIdleFpsTimer();
     if (!fpsWindow) {
       return;
     }
@@ -178,6 +188,7 @@ export function createFrameMetrics(
         return;
       }
 
+      cancelIdleFpsTimer();
       completeFpsWindow(operation, 'fpsIdle');
       const heapUsedBytes = dependencies.readHeapUsedBytes();
       if (heapUsedBytes !== undefined) {
@@ -225,6 +236,10 @@ export function createFrameMetrics(
       cancel();
       activeSample = { kind: 'idle', operation };
       startFpsWindow(operation, 'fpsIdle');
+      idleFpsTimer = setTimeout(() => {
+        idleFpsTimer = undefined;
+        completeFpsWindow(operation, 'fpsIdle');
+      }, idleFpsProbeDurationMs);
     },
 
     startInteraction(operation): void {
