@@ -224,6 +224,7 @@ function maxMetric(
 }
 
 type ScopeToggleDirection = 'disabled' | 'enabled';
+const scopeToggleRepetitions = 5;
 
 interface ScopeToggleSamples {
   disabled: ScopeToggleSample[];
@@ -270,9 +271,9 @@ function orderedScopeDirectionSamples(
   direction: ScopeToggleDirection,
   samples: readonly ScopeToggleSample[],
 ): ScopeToggleSample[] {
-  if (samples.length !== 3) {
+  if (samples.length !== scopeToggleRepetitions) {
     throw new Error(
-      `scopeToggleMs row ${row} requires exactly 3 ${direction} measurements; found ${samples.length}`,
+      `scopeToggleMs row ${row} requires exactly ${scopeToggleRepetitions} ${direction} measurements; found ${samples.length}`,
     );
   }
   return [...samples].sort((left, right) => left.ordinal - right.ordinal);
@@ -285,8 +286,11 @@ function scopeRepetitionMedian(
   const enabled = orderedScopeDirectionSamples(row, 'enabled', samples.enabled);
   const disabled = orderedScopeDirectionSamples(row, 'disabled', samples.disabled);
   const operationIds = new Set([...enabled, ...disabled].map(sample => sample.operationId));
-  if (operationIds.size !== 6) {
-    throw new Error(`scopeToggleMs row ${row} requires 6 distinct operation IDs`);
+  const expectedOperationIds = scopeToggleRepetitions * 2;
+  if (operationIds.size !== expectedOperationIds) {
+    throw new Error(
+      `scopeToggleMs row ${row} requires ${expectedOperationIds} distinct operation IDs`,
+    );
   }
 
   return median(enabled.map((sample, index) => {

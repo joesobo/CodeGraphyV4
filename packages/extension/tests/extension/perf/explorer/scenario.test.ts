@@ -15,9 +15,18 @@ const explorerRevealSamples = Array.from(
   (_value, index) => index + 1,
 );
 const mutationSamples = {
-  rename: Array.from({ length: 51 }, (_value, index) => 51 - index),
-  create: Array.from({ length: 51 }, (_value, index) => 151 - index),
-  delete: Array.from({ length: 51 }, (_value, index) => 251 - index),
+  rename: [
+    ...Array.from({ length: 5 }, () => 1_000),
+    ...Array.from({ length: 51 }, (_value, index) => 51 - index),
+  ],
+  create: [
+    ...Array.from({ length: 5 }, () => 1_000),
+    ...Array.from({ length: 51 }, (_value, index) => 151 - index),
+  ],
+  delete: [
+    ...Array.from({ length: 5 }, () => 1_000),
+    ...Array.from({ length: 51 }, (_value, index) => 251 - index),
+  ],
 };
 
 function createVisibleGraphProvider() {
@@ -76,6 +85,7 @@ function setupDependencies() {
       }) as vscode.Uri),
       revealInExplorer: vi.fn(async () => undefined),
       showExplorer: vi.fn(async () => { order.push('show-explorer'); }),
+      waitForComparisonQuietWindow: vi.fn(async () => { order.push('comparison-quiet'); }),
       waitForWorkbenchDispatchTurn: vi.fn(async () => { order.push('dispatch-turn'); }),
     },
   } as unknown as ExplorerScenarioComparisonDependencies;
@@ -105,6 +115,11 @@ describe('extension/perf/explorer/scenario', () => {
       ...Array.from({ length: 101 }, (_value, index) => index % 2 === 0
         ? ['codegraphy-reveal', 'explorer-reveal']
         : ['explorer-reveal', 'codegraphy-reveal']).flat(),
+      ...Array.from({ length: 5 }, () => [
+        'dispatch-turn',
+        'explorer-rename',
+      ]).flat(),
+      'comparison-quiet',
       ...Array.from({ length: 51 }, () => [
         'dispatch-turn',
         'explorer-rename',
@@ -145,6 +160,11 @@ describe('extension/perf/explorer/scenario', () => {
     expect(order).toEqual([
       'show-explorer',
       'dispatch-turn',
+      ...Array.from({ length: 5 }, () => [
+        'dispatch-turn',
+        'explorer-create',
+      ]).flat(),
+      'comparison-quiet',
       ...Array.from({ length: 51 }, () => [
         'dispatch-turn',
         'explorer-create',
@@ -167,6 +187,11 @@ describe('extension/perf/explorer/scenario', () => {
     expect(order).toEqual([
       'show-explorer',
       'dispatch-turn',
+      ...Array.from({ length: 5 }, () => [
+        'dispatch-turn',
+        'explorer-delete',
+      ]).flat(),
+      'comparison-quiet',
       ...Array.from({ length: 51 }, () => [
         'dispatch-turn',
         'explorer-delete',
@@ -203,7 +228,7 @@ describe('extension/perf/explorer/scenario', () => {
       .mockResolvedValue(undefined);
     await pending;
 
-    expect(dependencies.runExplorerMutationComparison).toHaveBeenCalledTimes(51);
+    expect(dependencies.runExplorerMutationComparison).toHaveBeenCalledTimes(56);
   });
 
   it('aborts before sampling when showing Explorer hides the graph', async () => {
@@ -243,7 +268,7 @@ describe('extension/perf/explorer/scenario', () => {
       workspaceFolderUri,
     }, dependencies);
 
-    expect(dependencies.runtime.revealInExplorer).toHaveBeenCalledTimes(51);
+    expect(dependencies.runtime.revealInExplorer).toHaveBeenCalledTimes(56);
     expect(dependencies.runtime.revealInExplorer).toHaveBeenCalledWith({
       fsPath: '/fixture/src/group-00000/file-000001.ts',
     });

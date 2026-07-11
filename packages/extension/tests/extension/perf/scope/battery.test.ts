@@ -204,7 +204,7 @@ const input = {
 } as const;
 
 describe('extension/perf/scope/battery', () => {
-  it('preconditions each row immediately before measuring it away and back three times', async () => {
+  it('preconditions each row immediately before measuring it away and back five times', async () => {
     const entries: PerfScopeEntry[] = [
       { scopeKind: 'node', scopeId: 'file', enabled: true },
       { scopeKind: 'edge', scopeId: 'imports', enabled: false },
@@ -223,20 +223,20 @@ describe('extension/perf/scope/battery', () => {
       entryCount: 2,
       operationId: 'run-1:scope-toggle:large:0',
       scenario: 'scope-toggle',
-      toggleCount: 12,
+      toggleCount: 20,
     });
 
     const kinds = harness.controls.map(message => message.payload.kind);
     const actualToggles = harness.controls.filter(message =>
       message.payload.kind === 'toggle-scope'
     );
-    expect(actualToggles).toHaveLength(16);
+    expect(actualToggles).toHaveLength(24);
     expect(actualToggles.map(message => message.payload)).toEqual([
-      ...Array.from({ length: 4 }, () => [
+      ...Array.from({ length: 6 }, () => [
         expect.objectContaining({ scopeId: 'imports', enabled: true }),
         expect.objectContaining({ scopeId: 'imports', enabled: false }),
       ]).flat(),
-      ...Array.from({ length: 4 }, () => [
+      ...Array.from({ length: 6 }, () => [
         expect.objectContaining({ scopeId: 'file', enabled: false }),
         expect.objectContaining({ scopeId: 'file', enabled: true }),
       ]).flat(),
@@ -244,14 +244,14 @@ describe('extension/perf/scope/battery', () => {
     const toggleOperationIds = harness.controls.flatMap(message =>
       message.payload.kind === 'toggle-scope' ? [message.payload.operationId] : []
     );
-    expect(new Set(toggleOperationIds).size).toBe(16);
+    expect(new Set(toggleOperationIds).size).toBe(24);
     const armedOperationIds = new Set(harness.controls.flatMap(message =>
       message.payload.kind === 'arm-graph' ? [message.payload.operation.operationId] : []
     ));
     expect(toggleOperationIds.every(operationId => armedOperationIds.has(operationId))).toBe(true);
     expect(kinds.at(-1)).toBe('disarm-graph');
     expect([...harness.state.values()]).toEqual(expect.arrayContaining(entries));
-    expect(harness.emitMetric).toHaveBeenCalledTimes(12);
+    expect(harness.emitMetric).toHaveBeenCalledTimes(20);
     const emittedMetrics = harness.emitMetric.mock.calls.map(([metric]) => metric);
     expect(emittedMetrics.map(metric => metric.dimension)).toEqual([
       'edge:imports:enabled',
@@ -260,6 +260,14 @@ describe('extension/perf/scope/battery', () => {
       'edge:imports:disabled',
       'edge:imports:enabled',
       'edge:imports:disabled',
+      'edge:imports:enabled',
+      'edge:imports:disabled',
+      'edge:imports:enabled',
+      'edge:imports:disabled',
+      'node:file:disabled',
+      'node:file:enabled',
+      'node:file:disabled',
+      'node:file:enabled',
       'node:file:disabled',
       'node:file:enabled',
       'node:file:disabled',
@@ -268,7 +276,7 @@ describe('extension/perf/scope/battery', () => {
       'node:file:enabled',
     ]);
     expect(emittedMetrics).toEqual(
-      Array.from({ length: 12 }, () => expect.objectContaining({
+      Array.from({ length: 20 }, () => expect.objectContaining({
         metric: 'scopeToggleMs',
         value: 5,
       })),
@@ -283,11 +291,11 @@ describe('extension/perf/scope/battery', () => {
     ], { emitPreviousGraphOnRearm: true });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
-      .resolves.toMatchObject({ toggleCount: 6 });
+      .resolves.toMatchObject({ toggleCount: 10 });
 
-    expect(harness.emitMetric).toHaveBeenCalledTimes(6);
+    expect(harness.emitMetric).toHaveBeenCalledTimes(10);
     expect(harness.emitMetric.mock.calls.map(([metric]) => metric.value)).toEqual([
-      5, 5, 5, 5, 5, 5,
+      5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
     ]);
   });
 
@@ -297,9 +305,9 @@ describe('extension/perf/scope/battery', () => {
     ], { emitStaleScopeProjectionOnToggle: true });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
-      .resolves.toMatchObject({ toggleCount: 6 });
+      .resolves.toMatchObject({ toggleCount: 10 });
 
-    expect(harness.emitMetric).toHaveBeenCalledTimes(6);
+    expect(harness.emitMetric).toHaveBeenCalledTimes(10);
   });
 
   it('ignores a stale same-value projection from an older rendered revision', async () => {
@@ -308,10 +316,10 @@ describe('extension/perf/scope/battery', () => {
     ], { emitStaleMatchingRevisionOnToggle: true });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
-      .resolves.toMatchObject({ toggleCount: 6 });
+      .resolves.toMatchObject({ toggleCount: 10 });
 
     expect(harness.emitMetric.mock.calls.map(([metric]) => metric.value)).toEqual([
-      10, 10, 10, 10, 10, 10,
+      10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
     ]);
   });
 
@@ -321,10 +329,10 @@ describe('extension/perf/scope/battery', () => {
     ], { duplicateGraphBeforePersist: true });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
-      .resolves.toMatchObject({ toggleCount: 6 });
+      .resolves.toMatchObject({ toggleCount: 10 });
 
     expect(harness.emitMetric.mock.calls.map(([metric]) => metric.value)).toEqual([
-      5, 5, 5, 5, 5, 5,
+      5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
     ]);
   });
 
@@ -334,7 +342,7 @@ describe('extension/perf/scope/battery', () => {
     ], { layoutChanged: () => false });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 })).resolves.toMatchObject({
-      toggleCount: 6,
+      toggleCount: 10,
     });
   });
 
@@ -356,18 +364,18 @@ describe('extension/perf/scope/battery', () => {
     });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
-      .resolves.toMatchObject({ toggleCount: 12 });
+      .resolves.toMatchObject({ toggleCount: 20 });
 
     const variableToggles = harness.controls.filter(message =>
       message.payload.kind === 'toggle-scope'
       && message.payload.scopeId === 'variable'
     );
-    expect(variableToggles).toHaveLength(9);
+    expect(variableToggles).toHaveLength(13);
     expect(variableToggles[0]?.payload).toMatchObject({
       enabled: false,
       kind: 'toggle-scope',
     });
-    expect(harness.emitMetric).toHaveBeenCalledTimes(12);
+    expect(harness.emitMetric).toHaveBeenCalledTimes(20);
   });
 
   it('forwards bridge metrics only for measured toggles across every unmeasured phase', async () => {
@@ -396,26 +404,26 @@ describe('extension/perf/scope/battery', () => {
     });
 
     await expect(runScopeToggleScenario(input, harness.runtime, { timeoutMs: 100 }))
-      .resolves.toMatchObject({ toggleCount: 12 });
+      .resolves.toMatchObject({ toggleCount: 20 });
 
     const actualToggles = harness.controls.filter(message =>
       message.payload.kind === 'toggle-scope'
     );
-    expect(actualToggles).toHaveLength(18);
+    expect(actualToggles).toHaveLength(26);
 
     const metrics = harness.emitMetric.mock.calls.map(([metric]) => metric);
     const scopeMetrics = metrics.filter(metric => metric.metric === 'scopeToggleMs');
-    expect(scopeMetrics).toHaveLength(12);
+    expect(scopeMetrics).toHaveLength(20);
     const measuredOperationIds = new Set(scopeMetrics.map(metric => metric.operationId));
     const bridgeMetrics = metrics.filter(metric => metric.metric !== 'scopeToggleMs');
-    expect(bridgeMetrics).toHaveLength(36);
+    expect(bridgeMetrics).toHaveLength(60);
     expect(new Set(bridgeMetrics.map(metric => metric.operationId))).toEqual(
       measuredOperationIds,
     );
     expect(bridgeMetrics.map(metric => metric.metric).sort()).toEqual([
-      ...Array.from({ length: 12 }, () => 'layoutResets'),
-      ...Array.from({ length: 12 }, () => 'settleTimeMs'),
-      ...Array.from({ length: 12 }, () => 'simTicksAfterSettle'),
+      ...Array.from({ length: 20 }, () => 'layoutResets'),
+      ...Array.from({ length: 20 }, () => 'settleTimeMs'),
+      ...Array.from({ length: 20 }, () => 'simTicksAfterSettle'),
     ].sort());
   });
 

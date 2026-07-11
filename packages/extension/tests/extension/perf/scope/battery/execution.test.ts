@@ -31,18 +31,12 @@ describe('extension/perf/scope/battery/execution', () => {
       { enabled: false, measured: false },
       { enabled: true, measured: false },
       'quiet',
-      { enabled: false, measured: true },
-      'quiet',
-      { enabled: true, measured: true },
-      'quiet',
-      { enabled: false, measured: true },
-      'quiet',
-      { enabled: true, measured: true },
-      'quiet',
-      { enabled: false, measured: true },
-      'quiet',
-      { enabled: true, measured: true },
-      'quiet',
+      ...Array.from({ length: 5 }, () => [
+        { enabled: false, measured: true },
+        'quiet' as const,
+        { enabled: true, measured: true },
+        'quiet' as const,
+      ]).flat(),
     ]);
     expect(current).toEqual(original);
   });

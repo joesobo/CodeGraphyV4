@@ -20,11 +20,13 @@ async function sampleMedian(
 
 export function sampleExplorerComparisonMedian(
   measure: () => Promise<number>,
+  waitForQuietWindow: () => Promise<void>,
 ): Promise<number> {
   return (async () => {
     for (let index = 0; index < EXPLORER_COMPARISON_WARMUP_COUNT; index += 1) {
       await measure();
     }
+    await waitForQuietWindow();
     return sampleMedian(measure, EXPLORER_COMPARISON_SAMPLE_COUNT);
   })();
 }

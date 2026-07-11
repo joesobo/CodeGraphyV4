@@ -153,12 +153,20 @@ function createResults(): PerfSmokeResult[] {
       metric('scopeToggleMs', 5, 'files:disabled'),
       metric('scopeToggleMs', 10, 'files:enabled'),
       metric('scopeToggleMs', 6, 'files:disabled'),
+      metric('scopeToggleMs', 11, 'files:enabled'),
+      metric('scopeToggleMs', 7, 'files:disabled'),
+      metric('scopeToggleMs', 12, 'files:enabled'),
+      metric('scopeToggleMs', 8, 'files:disabled'),
       metric('scopeToggleMs', 10, 'symbols:enabled'),
       metric('scopeToggleMs', 7, 'symbols:disabled'),
       metric('scopeToggleMs', 12, 'symbols:enabled'),
       metric('scopeToggleMs', 8, 'symbols:disabled'),
       metric('scopeToggleMs', 14, 'symbols:enabled'),
       metric('scopeToggleMs', 9, 'symbols:disabled'),
+      metric('scopeToggleMs', 16, 'symbols:enabled'),
+      metric('scopeToggleMs', 10, 'symbols:disabled'),
+      metric('scopeToggleMs', 18, 'symbols:enabled'),
+      metric('scopeToggleMs', 11, 'symbols:disabled'),
     ])),
     result('idle-watch', [
       metric('simTicksAfterSettle', 0),
@@ -227,7 +235,7 @@ describe('performance report assembly', () => {
         },
         layoutResets: 6,
         payloadBytes: 4_096,
-        scopeToggleMs: { files: 9, symbols: 12 },
+        scopeToggleMs: { files: 10, symbols: 14 },
         settleTimeMs: 300,
         simTicksAfterSettle: 2,
         treeSitterParseMs: 120,
@@ -361,11 +369,15 @@ describe('performance report assembly', () => {
       metric('scopeToggleMs', 7, 'node:folder:disabled'),
       metric('scopeToggleMs', 9, 'node:folder:enabled'),
       metric('scopeToggleMs', 5, 'node:folder:disabled'),
+      metric('scopeToggleMs', 8, 'node:folder:enabled'),
+      metric('scopeToggleMs', 6, 'node:folder:disabled'),
+      metric('scopeToggleMs', 7, 'node:folder:enabled'),
+      metric('scopeToggleMs', 4, 'node:folder:disabled'),
     ]);
 
     const report = assemblePerfReport(input);
 
-    expect(report.metrics.scopeToggleMs).toEqual({ 'node:folder': 9 });
+    expect(report.metrics.scopeToggleMs).toEqual({ 'node:folder': 8 });
   });
 
   it('uses the median slower direction from each paired scope repetition', () => {
@@ -378,11 +390,15 @@ describe('performance report assembly', () => {
       metric('scopeToggleMs', 200, 'node:folder:disabled'),
       metric('scopeToggleMs', 130, 'node:folder:enabled'),
       metric('scopeToggleMs', 130, 'node:folder:disabled'),
+      metric('scopeToggleMs', 130, 'node:folder:enabled'),
+      metric('scopeToggleMs', 130, 'node:folder:disabled'),
+      metric('scopeToggleMs', 130, 'node:folder:enabled'),
+      metric('scopeToggleMs', 130, 'node:folder:disabled'),
     ]);
 
     const report = assemblePerfReport(input);
 
-    expect(report.metrics.scopeToggleMs).toEqual({ 'node:folder': 200 });
+    expect(report.metrics.scopeToggleMs).toEqual({ 'node:folder': 130 });
   });
 
   it('rejects a scope row without measurements in both directions', () => {
@@ -392,10 +408,12 @@ describe('performance report assembly', () => {
       metric('scopeToggleMs', 1, 'node:folder:enabled'),
       metric('scopeToggleMs', 2, 'node:folder:enabled'),
       metric('scopeToggleMs', 3, 'node:folder:enabled'),
+      metric('scopeToggleMs', 4, 'node:folder:enabled'),
+      metric('scopeToggleMs', 5, 'node:folder:enabled'),
     ]);
 
     expect(() => assemblePerfReport(input)).toThrow(
-      'scopeToggleMs row node:folder requires exactly 3 disabled measurements; found 0',
+      'scopeToggleMs row node:folder requires exactly 5 disabled measurements; found 0',
     );
   });
 
@@ -407,13 +425,17 @@ describe('performance report assembly', () => {
       metric('scopeToggleMs', 2, 'node:folder:enabled'),
       metric('scopeToggleMs', 3, 'node:folder:enabled'),
       metric('scopeToggleMs', 4, 'node:folder:enabled'),
-      metric('scopeToggleMs', 5, 'node:folder:disabled'),
-      metric('scopeToggleMs', 6, 'node:folder:disabled'),
+      metric('scopeToggleMs', 5, 'node:folder:enabled'),
+      metric('scopeToggleMs', 6, 'node:folder:enabled'),
       metric('scopeToggleMs', 7, 'node:folder:disabled'),
+      metric('scopeToggleMs', 8, 'node:folder:disabled'),
+      metric('scopeToggleMs', 9, 'node:folder:disabled'),
+      metric('scopeToggleMs', 10, 'node:folder:disabled'),
+      metric('scopeToggleMs', 11, 'node:folder:disabled'),
     ]);
 
     expect(() => assemblePerfReport(input)).toThrow(
-      'scopeToggleMs row node:folder requires exactly 3 enabled measurements; found 4',
+      'scopeToggleMs row node:folder requires exactly 5 enabled measurements; found 6',
     );
   });
 

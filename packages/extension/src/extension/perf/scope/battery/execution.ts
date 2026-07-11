@@ -6,7 +6,7 @@ import {
   inventoriesMatch,
 } from '../entries';
 
-export const scopeToggleRepetitions = 3;
+export const scopeToggleRepetitions = 5;
 
 export interface ScopeBatteryActions {
   operationId: string;

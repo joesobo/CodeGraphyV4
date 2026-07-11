@@ -11,9 +11,20 @@ describe('extension/perf/explorer/sampling', () => {
       ...Array.from({ length: 51 }, (_value, index) => 51 - index),
     ];
     const measure = vi.fn(async () => samples[measure.mock.calls.length - 1]);
+    const waitForQuietWindow = vi.fn(async () => undefined);
 
-    await expect(sampleExplorerComparisonMedian(measure)).resolves.toBe(26);
+    await expect(sampleExplorerComparisonMedian(
+      measure,
+      waitForQuietWindow,
+    )).resolves.toBe(26);
     expect(measure).toHaveBeenCalledTimes(56);
+    expect(waitForQuietWindow).toHaveBeenCalledOnce();
+    expect(measure.mock.invocationCallOrder[4]).toBeLessThan(
+      waitForQuietWindow.mock.invocationCallOrder[0],
+    );
+    expect(waitForQuietWindow.mock.invocationCallOrder[0]).toBeLessThan(
+      measure.mock.invocationCallOrder[5],
+    );
   });
 
   it('alternates 101 paired reveal measurements and returns both medians', async () => {

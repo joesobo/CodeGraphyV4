@@ -95,20 +95,25 @@ export async function runExplorerScenarioComparison(
       },
     )
     : undefined;
-  const mutationMs = await sampleExplorerComparisonMedian(async () => {
-    await runtime.revealInExplorer(neutralUri);
-    await runtime.waitForWorkbenchDispatchTurn();
-    assertGraphRemainsOpen(input.provider);
-    const measurement = await dependencies.runExplorerMutationComparison({
-      dimension: input.dimension,
-      scenario: input.scenario,
-      timeoutMs: input.timeoutMs,
-      waitForRefreshIdle: input.waitForRefreshIdle,
-      workspaceFolderUri: input.workspaceFolderUri,
-    }, runtime);
-    assertGraphRemainsOpen(input.provider);
-    return measurement.value;
-  });
+  const mutationMs = await sampleExplorerComparisonMedian(
+    async () => {
+      await runtime.revealInExplorer(neutralUri);
+      await runtime.waitForWorkbenchDispatchTurn();
+      assertGraphRemainsOpen(input.provider);
+      const measurement = await dependencies.runExplorerMutationComparison({
+        dimension: input.dimension,
+        scenario: input.scenario,
+        timeoutMs: input.timeoutMs,
+        waitForRefreshIdle: input.waitForRefreshIdle,
+        workspaceFolderUri: input.workspaceFolderUri,
+      }, runtime);
+      assertGraphRemainsOpen(input.provider);
+      return measurement.value;
+    },
+    () => runtime.waitForComparisonQuietWindow
+      ? runtime.waitForComparisonQuietWindow()
+      : runtime.waitForWorkbenchDispatchTurn(),
+  );
 
   if (input.scenario === 'rename') {
     if (!revealComparison) {

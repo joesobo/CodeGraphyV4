@@ -20,6 +20,7 @@ export interface ExplorerComparisonRuntime {
   readFile: ReadWorkspaceFile;
   revealInExplorer: (uri: vscode.Uri) => Promise<void>;
   showExplorer: () => Promise<void>;
+  waitForComparisonQuietWindow?: () => Promise<void>;
   waitForWorkbenchDispatchTurn: () => Promise<void>;
   writeFile: (uri: vscode.Uri, contents: Uint8Array) => Promise<void>;
 }
@@ -66,6 +67,7 @@ export const explorerComparisonRuntime: ExplorerComparisonRuntime = {
   showExplorer: async () => {
     await vscode.commands.executeCommand('workbench.view.explorer');
   },
+  waitForComparisonQuietWindow: () => new Promise(resolve => setTimeout(resolve, 500)),
   waitForWorkbenchDispatchTurn: () => new Promise(resolve => setImmediate(resolve)),
   writeFile: async (uri, contents) => {
     await vscode.workspace.fs.writeFile(uri, contents);
