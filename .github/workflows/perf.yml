@@ -28,7 +28,7 @@ jobs:
         run: |
           configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false}]'
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false},{"fixture":"large","variant":"default","symbols":false},{"fixture":"huge","variant":"default","symbols":false},{"fixture":"giant","variant":"default","symbols":false},{"fixture":"giant","variant":"symbols","symbols":true},{"fixture":"self","variant":"default","symbols":false}]'
+            configurations='[{"fixture":"small","variant":"default","symbols":false},{"fixture":"medium","variant":"default","symbols":false},{"fixture":"large","variant":"default","symbols":false},{"fixture":"huge","variant":"default","symbols":false},{"fixture":"self","variant":"default","symbols":false}]'
           fi
           echo "configurations=${configurations}" >> "${GITHUB_OUTPUT}"
 

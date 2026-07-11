@@ -226,22 +226,24 @@ Seeded, zero-randomness generator (file *i* imports files *i/2*, *i/3*): `small`
 
 **Vehicles:** in-window perf.
 
-- [ ] Build on the existing `test:vscode` / `@vscode/test-electron@^2.5.2` setup: `perf/run.ts` launches VS Code per fixture; hidden command `codegraphy.perf.runScenario` (new `packages/extension/src/extension/perf/scenarioCommand.ts`) executes scenarios; metric events via `packages/core/src/diagnostics/perfMetrics.ts` (zod schemas) through the existing diagnostics bus (`indexing/phase-completed` pattern in `core/src/indexing/workspace/timing.ts`); `perf/report.ts` writes schema-validated JSON per fixture (missing key = failed run).
+- [x] Build on the existing `test:vscode` / `@vscode/test-electron@^2.5.2` setup: `perf/run.ts` launches VS Code per fixture; hidden command `codegraphy.perf.runScenario` (new `packages/extension/src/extension/perf/scenarioCommand.ts`) executes scenarios; metric events via `packages/core/src/diagnostics/perfMetrics.ts` (zod schemas) through the existing diagnostics bus (`indexing/phase-completed` pattern in `core/src/indexing/workspace/timing.ts`); `perf/report.ts` writes schema-validated JSON per fixture (missing key = failed run).
 - [x] Emit sites: `core/src/indexing/engine.ts`, `extension/pipeline/service/refreshFacade.ts`, `extension/workspaceFiles/refresh/scheduler.ts`, `webview/store/messageHandlers/graphDataMessage/payload.ts`, `webview/components/graph/runtime/use/physics/hook/layout.ts`.
 - [x] Scenarios: cold open · warm open · single-file save/rename/create/delete · 100-file batch (`git checkout` between fixture branches) · interaction burst (pan/zoom/drag) · **scope-toggle battery** (each Graph Scope row toggled away/back ×5) · **idle watch** (60s untouched after settle).
-- [ ] Keys: `coldOpenMs`, `warmOpenMs`, `incrementalRefreshMs`, `payloadBytes`, `watcherToGraphMs`, `fileOpRoundtripMs`, `layoutResets`, `cacheSaveMs`, `cacheBytes`, `treeSitterParseMs`, `graphBuildMs`, `scopeToggleMs` (per row), `settleTimeMs`, `idleCpuPct`, `simTicksAfterSettle`. Commit.
+- [x] Keys: `coldOpenMs`, `warmOpenMs`, `incrementalRefreshMs`, `payloadBytes`, `watcherToGraphMs`, `fileOpRoundtripMs`, `layoutResets`, `cacheSaveMs`, `cacheBytes`, `treeSitterParseMs`, `graphBuildMs`, `scopeToggleMs` (per row), `settleTimeMs`, `idleCpuPct`, `simTicksAfterSettle`. Commit.
 
 ### Task 1.3: Explorer comparison lane (same window)
 
-- [ ] Time the built-in path per comparable op: `explorerRenameMs`, `explorerCreateMs`, `explorerDeleteMs`, `explorerRevealMs` (user-gesture → visible update, honestly equivalent spans); report ratios `renameRatio` etc. Commit.
+- [x] Time the built-in path per comparable op: `explorerRenameMs`, `explorerCreateMs`, `explorerDeleteMs`, `explorerRevealMs` (user-gesture → visible update, honestly equivalent spans); report ratios `renameRatio` etc. Commit.
 
 ### Task 1.4: Webview FPS/CPU sampler
 
-- [ ] `webview/perf/frameMetrics.ts`: rAF FPS + PerformanceObserver long-tasks + heap, armed only by the scenario command, excluded from release bundles (verified Phase 9). Keys: `fpsIdle`, `fpsDrag`, `fpsSettle`, `longTasksPerInteraction`, `heapUsedBytes`. Idle CPU measured process-side by the runner (`pidusage` on the renderer + extension host across the 60s idle watch). Commit.
+- [x] `webview/perf/frameMetrics.ts`: rAF FPS + PerformanceObserver long-tasks + heap, armed only by the scenario command, excluded from release bundles (verified Phase 9). Keys: `fpsIdle`, `fpsDrag`, `fpsSettle`, `longTasksPerInteraction`, `heapUsedBytes`. Idle CPU measured process-side by the runner (`pidusage` on the renderer + extension host across the 60s idle watch). Commit.
 
 ### Task 1.5: Baselines + CI gate
 
-- [ ] 5 local runs → median baselines `perf/baselines/local-reference.json` (the Mac mini is the canonical local reference); CI runner-class baselines separate. `.github/workflows/perf.yml`: xvfb, `small`+`medium` per PR, median of 3, >20% fail. Prove the gate red with a throwaway `await sleep(500)` PR; revert. Commit.
+- [x] 5 local runs → median baselines `perf/baselines/local-reference.json` (the Mac mini is the canonical local reference); CI runner-class baselines separate. `.github/workflows/perf.yml`: xvfb, `small`+`medium` per PR, median of 3, >20% fail. Prove the gate red with a throwaway `await sleep(500)` PR; revert. Commit.
+
+Phase 1 audit checkpoint (2026-07-11): the real-window runner, hidden scenario command, operation-correlated diagnostics bridge, schema-strict report writer, same-session Explorer lane, rAF/long-task/heap sampler, and process-side `pidusage` sampler are all present and exercised by their focused suites. `perfReportSchema` requires every core, webview, Explorer, and ratio group; missing measurements fail report assembly. Runner-class baseline documents contain both `small:default` and `medium:default`; the budget suite proves no-op green and a synthetic +500ms regression red at the 20% threshold. The CI pull-request matrix runs three samples for small and medium under Xvfb. Manual CI coverage is capped at `huge` (10k) plus `self`; legacy `giant` parsing remains for historical artifacts, but the workflow no longer schedules a 30k run.
 
 ## Checkpoints
 
