@@ -93,7 +93,7 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   maximumElapsedMs: 250,
   maximumNeighbors: 24,
   maximumSpeed: 80,
-  maximumSubSteps: 1,
+  maximumSubSteps: 2,
   repelForce: 1_200,
   settleSpeed: 0.02,
   settleSteps: 8,

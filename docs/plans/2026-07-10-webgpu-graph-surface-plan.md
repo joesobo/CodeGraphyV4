@@ -117,6 +117,10 @@ graph and its product surfaces.
       constraint targets to the typed engine and worker protocol; validate the
       10k top-down layout in Open in Editor. Evidence is under
       `packages/graph-benchmark/references/webgpu/open-editor-dag-10k/`.
+- [x] Complete local verification after removal/parity work: 926 extension
+      Vitest files / 5,469 tests, 121 VS Code Playwright scenarios, extension
+      source/test/Playwright TypeScript, ESLint, graph-engine tests/typecheck,
+      and the production extension/webview build all pass.
 
 ### Rollout Gates
 
@@ -235,10 +239,10 @@ graph's navigation value, and the timeline view is being cut entirely.
 
 **Checkpoints**
 
-- [ ] `grep -ri "force-graph-3d\|three-spritetext" packages/extension/package.json`
+- [x] `grep -ri "force-graph-3d\|three-spritetext" packages/extension/package.json`
       → no matches; `pnpm build:webview` bundle size recorded and reduced vs
       A1.
-- [ ] `grep -rin "timeline" packages/extension/src` → no matches (or only
+- [x] `grep -rin "timeline" packages/extension/src` → no matches (or only
       deliberate migration-shim lines, listed in the PR).
 - [ ] Acceptance suite green; a stored `3d` settings value loads as 2D
       without error (regression test exists).
@@ -272,10 +276,10 @@ Headless typed-array engine per the parity spec §1. No renderer coupling.
 - [ ] Feel metrics: every standard scenario passes its committed target band
       in the headless harness (CI test); motion strips for the chosen config
       committed next to the Obsidian reference strips.
-- [ ] Frame-rate independence: the same scenario at 30fps and 120fps tick
+- [x] Frame-rate independence: the same scenario at 30fps and 120fps tick
       cadence settles to the same layout (test).
 
-- [ ] Determinism: same seed + fixed timestep ⇒ identical position buffer
+- [x] Determinism: same seed + fixed timestep ⇒ identical position buffer
       hash across two runs (unit test).
 - [ ] Stability: 10k-node fixture with 100 coincident nodes settles with no
       NaN/Inf and bounded energy (unit test asserts).
@@ -353,12 +357,32 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
 
 **Checkpoints**
 
-- [ ] Full acceptance suite green with WebGPU as default renderer.
+- [x] Full acceptance suite green with WebGPU as default renderer (121/121
+      local VS Code Playwright scenarios on 2026-07-10).
 - [ ] DAG modes: each direction renders a layered/radial layout on a seeded
       DAG fixture; a cyclic fixture degrades deterministically without error
       (matching current behavior).
-- [ ] Parity checklist derived from the parity spec §2–§7 completed in the
+- [x] Parity checklist derived from the parity spec §2–§7 completed in the
       phase PR (every line: done / explicitly dropped with reason).
+
+**Parity disposition (2026-07-10)**
+
+- Done: owned node bodies, straight/curved links, labels/icons/shapes through
+  the Canvas decoration layer, arrows, particles, camera/fit/zoom,
+  accessibility projection, tooltips, node picking, marquee/context-menu
+  interactions, pin/drag/reheat, filtering, deterministic DAG constraints,
+  debug coordinates, and composited PNG/JPEG export.
+- Done with dense-graph LOD: decoration Canvas is omitted above 5k nodes and
+  low-weight overview edges are deterministically sampled above 250k edges;
+  hovered/selected interaction data remains available through the owned model.
+- Done: Canvas2D fallback on failed WebGPU probe/device/pipeline, worker failure
+  fallback to main-thread typed physics, and device-loss renderer fallback.
+- Deliberately removed by owner decision: 3D and timeline/git-history/churn
+  product surfaces.
+- Deliberately not ported: the legacy object-mutating plugin force adapter. No
+  bundled plugin contributes one; a future plugin API revision must expose
+  typed-array velocity deltas rather than raw renderer/force objects.
+
 - [ ] Platform matrix run recorded: macOS (Metal), Windows (D3D12), Linux
       (may fall back — must do so cleanly), device-loss recovery (suspend or
       `device.destroy()` test) — manual checklist in the PR.
@@ -383,7 +407,7 @@ Work through the parity spec §2–§8 until the WebGPU renderer is the default.
 
 **Checkpoints**
 
-- [ ] `react-force-graph-2d` (and `d3-force`, if now unused) gone from
+- [x] `react-force-graph-2d` (and `d3-force`, if now unused) gone from
       `package.json`; adapter directory deleted; suite green; bundle size
       recorded.
 

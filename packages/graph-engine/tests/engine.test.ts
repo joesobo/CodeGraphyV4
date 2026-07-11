@@ -41,6 +41,16 @@ describe('graph layout engine', () => {
     expect(positionHash(first.x, first.y)).toBe(positionHash(second.x, second.y));
   });
 
+  it('produces the same fixed-step layout at 30fps and 120fps tick cadence', () => {
+    const at30Fps = createGraphLayoutEngine(lineGraph(64));
+    const at120Fps = createGraphLayoutEngine(lineGraph(64));
+
+    for (let frame = 0; frame < 60; frame += 1) at30Fps.tick(1000 / 30);
+    for (let frame = 0; frame < 240; frame += 1) at120Fps.tick(1000 / 120);
+
+    expect(positionHash(at30Fps.x, at30Fps.y)).toBe(positionHash(at120Fps.x, at120Fps.y));
+  });
+
   it('keeps coincident nodes finite with bounded energy', () => {
     const nodeCount = 100;
     const engine = createGraphLayoutEngine({
