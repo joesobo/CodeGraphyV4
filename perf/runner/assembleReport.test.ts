@@ -233,8 +233,8 @@ describe('performance report assembly', () => {
           rename: 20,
           save: 10,
         },
-        layoutResets: 6,
-        payloadBytes: 4_096,
+        layoutResets: 3,
+        payloadBytes: 3_000,
         scopeToggleMs: { files: 10, symbols: 14 },
         settleTimeMs: 300,
         simTicksAfterSettle: 2,
@@ -307,6 +307,13 @@ describe('performance report assembly', () => {
       create: 44,
       rename: 33,
     });
+  });
+
+  it('reports payload and layout resets from the correlated single-save operation', () => {
+    const report = assemblePerfReport(createInput());
+
+    expect(report.metrics.payloadBytes).toBe(3_000);
+    expect(report.metrics.layoutResets).toBe(3);
   });
 
   it('uses the median slower pair maximum for batch refresh metrics', () => {

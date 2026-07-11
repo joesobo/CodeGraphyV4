@@ -401,6 +401,7 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       ?? findMeasurement([], 'codeGraphyRevealMs', input.codeGraphyRevealMs),
   };
   const coldMetrics = metricsForScenario(measuredByScenario, 'cold-open');
+  const saveMetrics = metricsForScenario(measuredByScenario, 'single-save');
 
   return perfReportSchema.parse({
     schemaVersion: 1,
@@ -411,10 +412,10 @@ export function assemblePerfReport(input: AssemblePerfReportInput): PerfReport {
       coldOpenMs: exactlyOneMetric(measuredByScenario, 'cold-open', 'coldOpenMs'),
       warmOpenMs: exactlyOneMetric(measuredByScenario, 'warm-open', 'warmOpenMs'),
       incrementalRefreshMs: operationMetrics.incrementalRefreshMs,
-      payloadBytes: maxMetric(measured, 'payloadBytes'),
+      payloadBytes: maxMetric(saveMetrics, 'payloadBytes'),
       watcherToGraphMs: operationMetrics.watcherToGraphMs,
       fileOpRoundtripMs,
-      layoutResets: sumMetric(measured, 'layoutResets'),
+      layoutResets: sumMetric(saveMetrics, 'layoutResets'),
       cacheSaveMs: maxMetric(measured, 'cacheSaveMs'),
       // The launcher does not retain emission timestamps, so max is the stable
       // cache-size reducer and remains independent of metric arrival order.
