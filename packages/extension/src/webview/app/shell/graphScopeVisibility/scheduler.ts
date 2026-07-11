@@ -11,17 +11,23 @@ export interface GraphScopeProjectionRuntime {
   pendingRef: MutableRefObject<GraphScopeProjection | undefined>;
   renderedRef: MutableRefObject<GraphScopeProjection>;
   setRendered: Dispatch<SetStateAction<GraphScopeProjection>>;
+  timerRef: MutableRefObject<ReturnType<typeof setTimeout> | undefined>;
 }
+
+const PROJECTION_FRAME_BUDGET_MS = 16;
 
 export function cancelProjectionFrame(
   frameRef: MutableRefObject<number | undefined>,
+  timerRef?: MutableRefObject<ReturnType<typeof setTimeout> | undefined>,
 ): void {
   if (frameRef.current !== undefined) cancelAnimationFrame(frameRef.current);
   frameRef.current = undefined;
+  if (timerRef?.current !== undefined) clearTimeout(timerRef.current);
+  if (timerRef) timerRef.current = undefined;
 }
 
 function publishPendingProjection(runtime: GraphScopeProjectionRuntime): void {
-  runtime.frameRef.current = undefined;
+  cancelProjectionFrame(runtime.frameRef, runtime.timerRef);
   const pending = runtime.pendingRef.current!;
   runtime.pendingRef.current = undefined;
   runtime.setRendered(pending);
@@ -35,14 +41,18 @@ export function synchronizeGraphScopeProjection(
     runtime.renderedRef.current.visibility.nodeVisibility,
     next.visibility.nodeVisibility,
   )) {
-    cancelProjectionFrame(runtime.frameRef);
+    cancelProjectionFrame(runtime.frameRef, runtime.timerRef);
     runtime.pendingRef.current = undefined;
     runtime.setRendered(next);
     return;
   }
   runtime.pendingRef.current = next;
-  if (runtime.frameRef.current !== undefined) return;
+  if (runtime.frameRef.current !== undefined || runtime.timerRef.current !== undefined) return;
   runtime.frameRef.current = requestAnimationFrame(
     () => { publishPendingProjection(runtime); },
+  );
+  runtime.timerRef.current = setTimeout(
+    () => { publishPendingProjection(runtime); },
+    PROJECTION_FRAME_BUDGET_MS,
   );
 }
