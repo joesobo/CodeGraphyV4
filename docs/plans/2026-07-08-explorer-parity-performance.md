@@ -599,6 +599,7 @@ Publish reviewable proof: in-window numbers, Explorer side-by-side, Obsidian-lim
 - Three retained file-management reel attempts did not produce publishable proof. Attempt 1 created the nested file but F2 did not mount the rename editor; attempt 2 used the context-menu route but the new node's accessible hit target was positioned beneath the graph tool rail; attempt 3 forced the pointer event and timed out without a valid completed interaction sequence. Failed media was deleted, and no attempt is counted toward 8-B/8-C.
 - This is a showcase-automation blocker, separate from the already recorded 6-B focus blocker. A later capture should first fit/recenter the graph or drive a visible node whose hit target is not occluded, then record one complete uninterrupted sequence.
 - The required deferred interaction follow-up is filed and linked from the epic: [Graph file drag-to-folder + external OS drop](https://trello.com/c/z907ZEa2/259-graph-file-drag-to-folder-external-os-drop). Task 8.4 remains open for the PR media comment and final Trello report.
+- The provisional report and owner-decision summary are published on [PR #304](https://github.com/joesobo/CodeGraphyV4/pull/304#issuecomment-4947824599) and mirrored to the Trello epic. This is a blocker checkpoint, not the final media publication or owner sign-off.
 
 ## Checkpoints
 
