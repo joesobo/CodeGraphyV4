@@ -1,6 +1,6 @@
 # Explorer parity and native-feel performance report
 
-Status: **provisional blocker report**, measurement checkpoint `401e4b515` plus
+Status: **provisional blocker report**, measurement checkpoint `686160e54` plus
 the retained measurements cited below, captured on 2026-07-11.
 
 This is the Phase 8 report draft, not an acceptance declaration. The required
@@ -38,7 +38,7 @@ files.
 | 3-D Watcher storms | Checked-in `medium` batch watcher 188.582 ms, before deterministic six-switch coverage | single-file ≤1.5× Explorer refresh; 100 files ≤1,500 ms | Batch watcher medians 425.067 / 411.793 / 423.505 / 427.540 / 427.203 ms; overall median 425.067 ms, CV 1.37%. Refresh median 80.115 ms, CV 3.99%; exactly one refresh/payload per switch. Five single-save samples: watcher median 65.317 ms, CV 3.28%. | **Pass for absolute batch gate; Explorer-relative single-file comparison still needs final paired sweep** |
 | 3-E Warm startup | PR #294 same-machine anchor 4,614 ms | ≤2,307 ms | Checked-in local reference is 2,158.970 ms (53.2% below anchor), but this is not a final-branch five-sample recapture | **Pending final sweep** |
 | 3-F Settled is free | Checked-in `medium`: 0 ticks, 3.275% idle CPU | 0 ticks; <2% idle CPU | Before split, one `large` diagnostic measured 5.767% aggregate (5.733% renderer, 0.033% extension host). After pausing the settled renderer and bounding the FPS probe, the same 5,000-node fixture measured 1.500% aggregate (1.467% renderer, 0.033% extension host), 0 ticks, and 57.815 FPS. | **Threshold met diagnostically; pending five samples** |
-| 3-G Dependency wins | `large` cold median 40,416.706 ms; blocking cache write previously 20,458.676 ms | per-file incremental parse ≤10% of same file cold parse; 0 ms action-blocking cache write; cold index ≥40% faster | `large` cold 23,033.240 / 22,790.666 / 22,928.544 / 23,291.205 / 23,158.337 ms; median 23,033.240 ms, CV 0.76%, 43.01% faster. Cache save median 432.394 ms, CV 4.90%, scheduled off action path; five `medium` saves emitted 0 action-scoped cache time. Harness still lacks same-file cold parse identity. | **Partial pass; parse-ratio instrumentation gap** |
+| 3-G Dependency wins | `large` cold median 40,416.706 ms; blocking cache write previously 20,458.676 ms | per-file incremental parse ≤10% of same file cold parse; 0 ms action-blocking cache write; cold index ≥40% faster | `large` cold 23,033.240 / 22,790.666 / 22,928.544 / 23,291.205 / 23,158.337 ms; median 23,033.240 ms, CV 0.76%, 43.01% faster. Cache save median 432.394 ms, CV 4.90%, scheduled off action path; five `medium` saves emitted 0 action-scoped cache time. Same-file identity is now retained through cold workers and save aggregation. One `small` diagnostic measured the target file at 0.440 ms cold and 0.370 ms incremental, or 84.21% of cold; the unscoped restore parse was excluded. | **Partial pass; incremental parse ratio fails diagnostically** |
 | 3-H Memory | No accepted `huge` reference | ≤500 MB heap | One `huge` diagnostic: 26,808,635 B (25.57 MiB) | **Threshold met diagnostically; pending five samples** |
 | 3-I No cold regression | Pre-epic `self` measurement required | final `self` cold open ≤ baseline +10% | No accepted final/pre-epic same-machine pair | **Pending final sweep** |
 | 3-J 10k interaction | No accepted `huge` reference | settle ≤15 s; drag ≥30 FPS; idle ≥60 FPS; no >200 ms post-paint long task | Main-thread diagnostic: drag 2.281 FPS, settle 2.378 FPS, 47 long tasks. Zero-simulation upper bound: drag 22.552 FPS, settle 21.053 FPS, 5 long tasks. Removing all simulation still misses the render gate. | **Fail / renderer blocker** |
@@ -87,6 +87,6 @@ goals. Forum reports are not formal service-level guarantees.
 Phase 8 gate 8-A is **not satisfied**. Owner exceptions or additional engineering
 are required for 3-C, 3-J, 4-B, 5-B, and 6-B. Gates 3-E, 3-F, 3-H, 3-I, 4-A,
 4-C, and 4-D still need their prescribed final five-run or paired captures, and
-3-G still needs same-file cold/incremental parse instrumentation. Phase 9 remains
+3-G needs incremental-parse optimization and a five-run paired capture. Phase 9 remains
 blocked until the report is complete, the showcase artifacts are published, and
 the owner signs off or records explicit exceptions.
