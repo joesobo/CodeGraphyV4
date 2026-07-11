@@ -60,18 +60,34 @@ fn vertexMain(
   @builtin(vertex_index) vertexIndex: u32,
   @location(0) graphSource: vec2f,
   @location(1) graphDestination: vec2f,
-  @location(2) halfWidth: vec2f,
+  @location(2) halfWidthAndCurvature: vec2f,
   @location(3) color: vec4f,
 ) -> VertexOutput {
   let along = array<f32, 6>(0.0, 1.0, 0.0, 0.0, 1.0, 1.0);
   let side = array<f32, 6>(-1.0, -1.0, 1.0, 1.0, -1.0, 1.0);
-  let source = (graphSource - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
-  let destination = (graphDestination - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
-  let delta = destination - source;
-  let lengthSquared = max(dot(delta, delta), 0.0000001);
-  let normal = vec2f(-delta.y, delta.x) * inverseSqrt(lengthSquared);
-  let width = halfWidth.x * camera.pixelToClip;
-  let position = mix(source, destination, along[vertexIndex]) + normal * width * side[vertexIndex];
+  let segmentCount = 4.0;
+  let segment = f32(vertexIndex / 6u);
+  let corner = vertexIndex % 6u;
+  let t = (segment + along[corner]) / segmentCount;
+  let graphDelta = graphDestination - graphSource;
+  let graphDistance = length(graphDelta);
+  var control = mix(graphSource, graphDestination, 0.5);
+  if (graphDistance > 0.0001) {
+    control += vec2f(-graphDelta.y, graphDelta.x)
+      * halfWidthAndCurvature.y;
+  }
+  let inverse = 1.0 - t;
+  let graphPosition = inverse * inverse * graphSource
+    + 2.0 * inverse * t * control
+    + t * t * graphDestination;
+  let graphTangent = 2.0 * inverse * (control - graphSource)
+    + 2.0 * t * (graphDestination - control);
+  let tangent = graphTangent * camera.graphToClip * vec2f(1.0, -1.0);
+  let lengthSquared = max(dot(tangent, tangent), 0.0000001);
+  let normal = vec2f(-tangent.y, tangent.x) * inverseSqrt(lengthSquared);
+  let center = (graphPosition - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
+  let width = halfWidthAndCurvature.x * camera.pixelToClip;
+  let position = center + normal * width * side[corner];
   var output: VertexOutput;
   output.position = vec4f(position, 0.0, 1.0);
   output.color = color;

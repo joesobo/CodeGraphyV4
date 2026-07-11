@@ -354,7 +354,7 @@ export class OwnedWebGpuRenderer {
         this.linkValues[offset + 2] = target.x ?? 0;
         this.linkValues[offset + 3] = target.y ?? 0;
         this.linkValues[offset + 4] = this.linkStyles[styleOffset];
-        this.linkValues[offset + 5] = 0;
+        this.linkValues[offset + 5] = link.curvature ?? 0;
         this.linkValues[offset + 6] = this.linkStyles[styleOffset + 1];
         this.linkValues[offset + 7] = this.linkStyles[styleOffset + 2];
         this.linkValues[offset + 8] = this.linkStyles[styleOffset + 3];
@@ -396,7 +396,7 @@ export class OwnedWebGpuRenderer {
       pass.setPipeline(this.linkPipeline);
       pass.setBindGroup(0, this.linkCameraBindGroup);
       pass.setVertexBuffer(0, this.linkBuffer);
-      pass.draw(6, this.renderedLinkCount);
+      pass.draw(24, this.renderedLinkCount);
     }
     if (frame.nodes.length > 0) {
       pass.setPipeline(this.nodePipeline);
