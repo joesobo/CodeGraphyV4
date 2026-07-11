@@ -1,17 +1,21 @@
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  GRAPH_SCOPE_RENDER_DEBOUNCE_MS,
   useDebouncedGraphScopeVisibility,
 } from '../../../../src/webview/app/shell/graphScopeVisibility';
 
 describe('useDebouncedGraphScopeVisibility', () => {
+  beforeEach(() => {
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 91));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  });
+
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('renders the first populated graph scope immediately', () => {
-    vi.useFakeTimers();
     const initialNodeVisibility = {};
     const initialEdgeVisibility = {};
     const nextNodeVisibility = { file: true };
@@ -48,7 +52,6 @@ describe('useDebouncedGraphScopeVisibility', () => {
   });
 
   it('renders edge-only graph scope changes immediately', () => {
-    vi.useFakeTimers();
     const nodeVisibility = { file: true };
     const initialEdgeVisibility = { include: true };
     const nextEdgeVisibility = { include: false };
@@ -79,7 +82,6 @@ describe('useDebouncedGraphScopeVisibility', () => {
   });
 
   it('renders a revision-only projection update immediately', () => {
-    vi.useFakeTimers();
     const nodeVisibility = { file: true };
     const edgeVisibility = { include: true };
     const { result, rerender } = renderHook(
@@ -97,16 +99,20 @@ describe('useDebouncedGraphScopeVisibility', () => {
       revision: 6,
       visibility: { edgeVisibility, nodeVisibility },
     });
-    expect(vi.getTimerCount()).toBe(0);
+    expect(requestAnimationFrame).not.toHaveBeenCalled();
   });
 
-  it('keeps the current render visibility until rapid graph scope changes settle', () => {
-    vi.useFakeTimers();
+  it('keeps the current render visibility until the next animation frame', () => {
     const initialNodeVisibility = { file: true };
     const initialEdgeVisibility = { include: true };
     const nextNodeVisibility = { file: false };
     const finalNodeVisibility = { file: false, 'symbol:function': true };
     const finalEdgeVisibility = { include: false };
+    let publishFrame: FrameRequestCallback | undefined;
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      publishFrame = callback;
+      return 71;
+    }));
 
     const { result, rerender } = renderHook(
       ({ nodeVisibility, edgeVisibility, revision }) => useDebouncedGraphScopeVisibility(
@@ -138,10 +144,6 @@ describe('useDebouncedGraphScopeVisibility', () => {
       revision: 11,
     });
 
-    act(() => {
-      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS - 1);
-    });
-
     expect(result.current).toEqual({
       revision: 10,
       visibility: {
@@ -157,9 +159,7 @@ describe('useDebouncedGraphScopeVisibility', () => {
       revision: 12,
     });
 
-    act(() => {
-      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS);
-    });
+    act(() => { publishFrame?.(16); });
 
     expect(result.current).toEqual({
       revision: 12,
@@ -172,10 +172,14 @@ describe('useDebouncedGraphScopeVisibility', () => {
   });
 
   it('does not restart a pending projection for an equivalent visibility echo', () => {
-    vi.useFakeTimers();
     const initialNodeVisibility = { file: true };
     const initialEdgeVisibility = { include: true };
     const nextNodeVisibility = { file: false };
+    let publishFrame: FrameRequestCallback | undefined;
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      publishFrame = callback;
+      return 72;
+    }));
 
     const { result, rerender } = renderHook(
       ({ nodeVisibility, edgeVisibility, revision }) => useDebouncedGraphScopeVisibility(
@@ -198,19 +202,13 @@ describe('useDebouncedGraphScopeVisibility', () => {
       revision: 21,
     });
 
-    act(() => {
-      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
-    });
-
     rerender({
       edgeVisibility: { include: true },
       nodeVisibility: { file: false },
       revision: 21,
     });
 
-    act(() => {
-      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
-    });
+    act(() => { publishFrame?.(16); });
 
     expect(result.current).toEqual({
       revision: 21,
@@ -221,12 +219,16 @@ describe('useDebouncedGraphScopeVisibility', () => {
     });
   });
 
-  it('coalesces rapid scope changes into the original render deadline', () => {
-    vi.useFakeTimers();
+  it('coalesces rapid scope changes into the next animation frame', () => {
     const initialNodeVisibility = { file: true };
     const initialEdgeVisibility = { include: true };
     const nextNodeVisibility = { file: false };
     const finalNodeVisibility = { file: false, 'symbol:function': true };
+    let publishFrame: FrameRequestCallback | undefined;
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      publishFrame = callback;
+      return 73;
+    }));
 
     const { result, rerender } = renderHook(
       ({ nodeVisibility, revision }) => useDebouncedGraphScopeVisibility(
@@ -238,13 +240,8 @@ describe('useDebouncedGraphScopeVisibility', () => {
     );
 
     rerender({ nodeVisibility: nextNodeVisibility, revision: 31 });
-    act(() => {
-      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
-    });
     rerender({ nodeVisibility: finalNodeVisibility, revision: 32 });
-    act(() => {
-      vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
-    });
+    act(() => { publishFrame?.(16); });
 
     expect(result.current).toEqual({
       revision: 32,
@@ -253,11 +250,10 @@ describe('useDebouncedGraphScopeVisibility', () => {
         nodeVisibility: finalNodeVisibility,
       },
     });
-    expect(vi.getTimerCount()).toBe(0);
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
   });
 
   it('cancels a pending projection when visibility semantically reverts', () => {
-    vi.useFakeTimers();
     const initialNodeVisibility = { file: true };
     const edgeVisibility = { include: true };
     const { result, rerender } = renderHook(
@@ -270,7 +266,7 @@ describe('useDebouncedGraphScopeVisibility', () => {
     );
 
     rerender({ nodeVisibility: { file: false }, revision: 41 });
-    expect(vi.getTimerCount()).toBe(1);
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
     rerender({ nodeVisibility: { file: true }, revision: 42 });
 
     expect(result.current).toEqual({
@@ -280,11 +276,10 @@ describe('useDebouncedGraphScopeVisibility', () => {
         nodeVisibility: initialNodeVisibility,
       },
     });
-    expect(vi.getTimerCount()).toBe(0);
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(expect.any(Number));
   });
 
   it('cancels a pending projection when the observer unmounts', () => {
-    vi.useFakeTimers();
     const edgeVisibility = { include: true };
     const { rerender, unmount } = renderHook(
       ({ nodeVisibility, revision }) => useDebouncedGraphScopeVisibility(
@@ -296,9 +291,9 @@ describe('useDebouncedGraphScopeVisibility', () => {
     );
 
     rerender({ nodeVisibility: { file: false }, revision: 51 });
-    expect(vi.getTimerCount()).toBe(1);
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
     unmount();
 
-    expect(vi.getTimerCount()).toBe(0);
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(expect.any(Number));
   });
 });

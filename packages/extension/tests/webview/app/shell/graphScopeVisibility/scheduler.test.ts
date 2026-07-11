@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createGraphScopeProjection } from '../../../../../src/webview/app/shell/graphScopeVisibility/projection';
 import {
-  cancelProjectionTimer,
-  GRAPH_SCOPE_RENDER_DEBOUNCE_MS,
+  cancelProjectionFrame,
   synchronizeGraphScopeProjection,
   type GraphScopeProjectionRuntime,
 } from '../../../../../src/webview/app/shell/graphScopeVisibility/scheduler';
@@ -14,7 +13,7 @@ function setup() {
     pendingRef: { current: undefined },
     renderedRef: { current: rendered },
     setRendered: vi.fn(),
-    timerRef: { current: undefined },
+    frameRef: { current: undefined },
   };
   return { rendered, runtime };
 }
@@ -22,6 +21,7 @@ function setup() {
 describe('webview/app/shell/graphScopeVisibility/scheduler', () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('publishes a semantically matching node projection immediately', () => {
@@ -36,30 +36,36 @@ describe('webview/app/shell/graphScopeVisibility/scheduler', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('publishes the latest coalesced node projection at the original deadline', () => {
-    vi.useFakeTimers();
+  it('publishes the latest coalesced node projection on the next animation frame', () => {
     const { runtime } = setup();
     const pending = createGraphScopeProjection(2, { file: false }, { import: true });
     const latest = createGraphScopeProjection(3, { file: false, folder: true }, { import: false });
+    let publishFrame: FrameRequestCallback | undefined;
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      publishFrame = callback;
+      return 41;
+    }));
 
     synchronizeGraphScopeProjection(pending, runtime);
-    vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
     synchronizeGraphScopeProjection(latest, runtime);
-    vi.advanceTimersByTime(GRAPH_SCOPE_RENDER_DEBOUNCE_MS / 2);
+
+    expect(runtime.setRendered).not.toHaveBeenCalled();
+    expect(requestAnimationFrame).toHaveBeenCalledOnce();
+    publishFrame?.(16);
 
     expect(runtime.setRendered).toHaveBeenCalledOnce();
     expect(runtime.setRendered).toHaveBeenCalledWith(latest);
     expect(runtime.pendingRef.current).toBeUndefined();
-    expect(runtime.timerRef.current).toBeUndefined();
+    expect(runtime.frameRef.current).toBeUndefined();
   });
 
-  it('cancels and clears a scheduled projection timer', () => {
-    vi.useFakeTimers();
-    const timerRef = { current: setTimeout(() => {}, 100) as ReturnType<typeof setTimeout> | undefined };
+  it('cancels and clears a scheduled projection frame', () => {
+    const frameRef = { current: 42 as number | undefined };
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
 
-    cancelProjectionTimer(timerRef);
+    cancelProjectionFrame(frameRef);
 
-    expect(timerRef.current).toBeUndefined();
-    expect(vi.getTimerCount()).toBe(0);
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(42);
+    expect(frameRef.current).toBeUndefined();
   });
 });
