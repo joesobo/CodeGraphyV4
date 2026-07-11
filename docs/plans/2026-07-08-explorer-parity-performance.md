@@ -503,10 +503,11 @@ Explorer conventions exactly: settings, dialogs, inline editing, loading states.
 | 6-C | Cold open | non-blank canvas at 100ms; `layoutResets` ≤ 1 on cold open |
 | 6-D | Copy | 0 unexplained mismatches |
 
-### Phase 6.1 implementation checkpoint (2026-07-11)
+### Phase 6 implementation checkpoint (2026-07-11)
 
 - Graph deletion reads the native `explorer.confirmDelete` and `files.enableTrash` settings at invocation time. Confirmation-disabled deletes proceed without a prompt; confirmation-enabled deletes use a modal warning with the Explorer restore detail (or irreversible detail when Trash is disabled), and choosing `Do not ask me again` persists `explorer.confirmDelete=false` at the global target before continuing.
 - `useTrash` is carried through the optimistic mutation seam into `DeleteFilesAction` and every file/folder `workspace.fs.delete` call while the existing content-backed undo path remains intact. The single/multi × confirm on/off and single/multi × Trash on/off matrix plus provider/action coverage passes 98/98 focused tests.
+- Task 6.3 implementation is in place but its real-window pixel gate remains open: settled graph positions and evidence are versioned into webview state, restored as a dim graph before bootstrap, and reconciled with the first live payload without incrementing `graphResetVersion` (including the structurally-identical fast path). The persistence/bootstrap pack passes 60/60 focused tests. Task 6.3 stays unchecked until the t+100ms capture is measured in the Dev Host.
 
 ---
 
