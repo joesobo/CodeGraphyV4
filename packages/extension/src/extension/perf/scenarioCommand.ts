@@ -38,6 +38,7 @@ import {
   perfScenarioResultSchema,
   type PerfScenarioResult,
 } from './result';
+import { waitForWorkspacePipelineCachePersistence } from '../pipeline/service/cache/storage';
 
 export const PERF_SCENARIO_COMMAND_ID = 'codegraphy.perf.runScenario';
 const bootstrapTimeoutMs = 180_000;
@@ -67,6 +68,7 @@ export interface PerfScenarioRuntime {
     request: PerfScenarioRequest,
   ): Promise<PerfScenarioComparison | undefined>;
   startMetricSession(context: PerfMetricSessionContext): vscode.Disposable;
+  waitForCachePersistence?(): Promise<void>;
 }
 
 interface PendingExtensionMessage {
@@ -286,6 +288,7 @@ export async function runPerfScenario(
 
     if (parsedRequest.scenario === 'cold-open') {
       await indexColdGraph(runtime, parsedRequest.runId);
+      await runtime.waitForCachePersistence?.();
     }
 
     if (isOpenScenario(parsedRequest.scenario)) {
@@ -408,6 +411,9 @@ export function registerPerfScenarioCommand(
       );
     },
     startMetricSession: input => operationRuntime.startMetricSession(input),
+    waitForCachePersistence: () => waitForWorkspacePipelineCachePersistence(
+      vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+    ),
   };
   context.subscriptions.push(
     vscode.commands.registerCommand(

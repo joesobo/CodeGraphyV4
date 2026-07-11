@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 
 import * as vscode from 'vscode';
 
 const perfHarness = vi.hoisted(() => ({
+  waitForWorkspacePipelineCachePersistence: vi.fn(async () => undefined),
   runNonOpenPerfScenario: vi.fn<(...args: unknown[]) => Promise<unknown>>(
     async () => undefined,
   ),
@@ -25,6 +26,10 @@ const perfHarness = vi.hoisted(() => ({
     return undefined;
   }),
   runInteractionBurstScenario: vi.fn(async () => undefined),
+}));
+
+vi.mock('../../../src/extension/pipeline/service/cache/storage', () => ({
+  waitForWorkspacePipelineCachePersistence: perfHarness.waitForWorkspacePipelineCachePersistence,
 }));
 
 vi.mock('../../../src/extension/perf/scenarios/run', () => ({
@@ -168,6 +173,7 @@ describe('performance scenario command', () => {
     expect(provider.openInEditor).toHaveBeenCalledWith(vscode.ViewColumn.Two);
     expect(vscode.commands.executeCommand).not.toHaveBeenCalled();
     expect(provider.dispatchWebviewMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
+    expect(perfHarness.waitForWorkspacePipelineCachePersistence).toHaveBeenCalledOnce();
     expect(provider.sendToWebview).toHaveBeenCalledWith({
       type: 'PERF_RENDER_READY_REQUEST',
       payload: { graphRevision: 0, requestId: expect.any(String) },
