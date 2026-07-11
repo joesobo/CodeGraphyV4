@@ -84,7 +84,7 @@ function operationResult(
 
 function batchOperationResult(
   metrics: SmokeMetric[],
-  operationCount = 3,
+  operationCount = 6,
 ): PerfSmokeResult {
   return result('batch-100', [
     ...Array.from({ length: operationCount }, (_value, ordinal) => {
@@ -309,7 +309,7 @@ describe('performance report assembly', () => {
     });
   });
 
-  it('uses the median operation maximum for batch refresh metrics', () => {
+  it('uses the median slower pair maximum for batch refresh metrics', () => {
     const input = createInput();
     const batch = input.results.find(result => result.scenario === 'batch-100')!;
     const correlated = (
@@ -333,18 +333,21 @@ describe('performance report assembly', () => {
       ...correlated(0, [40, 100], [41, 110]),
       ...correlated(1, [50, 60], [51, 70]),
       ...correlated(2, [30, 80], [31, 90]),
+      ...correlated(3, [45, 55], [46, 65]),
+      ...correlated(4, [30, 40], [31, 50]),
+      ...correlated(5, [190, 200], [201, 210]),
       metric('incrementalRefreshMs', 999, 'restoration'),
       metric('watcherToGraphMs', 999, 'restoration'),
     ];
 
     const report = assemblePerfReport(input);
 
-    expect(report.metrics.incrementalRefreshMs.batch100).toBe(80);
-    expect(report.metrics.watcherToGraphMs.batch100).toBe(90);
+    expect(report.metrics.incrementalRefreshMs.batch100).toBe(100);
+    expect(report.metrics.watcherToGraphMs.batch100).toBe(110);
   });
 
-  it.each([1, 4])(
-    'requires exactly three measured batch operations instead of %i',
+  it.each([1, 5, 7])(
+    'requires exactly six measured batch operations instead of %i',
     (operationCount) => {
       const input = createInput();
       const batch = input.results.find(result => result.scenario === 'batch-100')!;
@@ -354,7 +357,7 @@ describe('performance report assembly', () => {
       ], operationCount).metrics;
 
       expect(() => assemblePerfReport(input)).toThrow(
-        `Scenario batch-100 requires exactly 3 measured operation IDs; found ${operationCount}`,
+        `Scenario batch-100 requires exactly 6 measured operation IDs; found ${operationCount}`,
       );
     },
   );

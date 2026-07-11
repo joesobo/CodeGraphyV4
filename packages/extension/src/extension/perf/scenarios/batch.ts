@@ -14,6 +14,9 @@ const measuredBranchSequence = [
   PERF_BATCH_TARGET_BRANCH,
   PERF_BATCH_BASE_BRANCH,
   PERF_BATCH_TARGET_BRANCH,
+  PERF_BATCH_BASE_BRANCH,
+  PERF_BATCH_TARGET_BRANCH,
+  PERF_BATCH_BASE_BRANCH,
 ] as const;
 const workspaceRefreshTimeoutMs = 30_000;
 

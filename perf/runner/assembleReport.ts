@@ -122,9 +122,9 @@ function validateMeasuredOperationIds(
     throw new Error(`Scenario ${scenario} has no measured operation-ID metrics`);
   }
   if (scenario === 'batch-100') {
-    if (operationIds.length !== 3) {
+    if (operationIds.length !== 6) {
       throw new Error(
-        `Scenario batch-100 requires exactly 3 measured operation IDs; found ${operationIds.length}`,
+        `Scenario batch-100 requires exactly 6 measured operation IDs; found ${operationIds.length}`,
       );
     }
     return;

@@ -19,7 +19,24 @@ export function reduceBatchOperationMetric(
         `Expected at least one ${metricName} metric for batch-100 operation ${operationId}; found 0`,
       );
     }
-    return Math.max(...values);
+    const ordinal = Number(operationId.match(/:(\d+)$/)?.[1]);
+    return { ordinal, value: Math.max(...values) };
   });
-  return median(maxima);
+  const ordered = maxima.sort((left, right) => left.ordinal - right.ordinal);
+  const ordinals = ordered.map(entry => entry.ordinal);
+  if (
+    ordered.length !== 6
+    || ordinals.some((ordinal, index) =>
+      !Number.isInteger(ordinal)
+      || ordinal !== ordinals[0] + index)
+  ) {
+    throw new Error(
+      `Batch operation ordinals must be six consecutive values; found ${ordinals.join(', ')}`,
+    );
+  }
+  const pairMaxima = [0, 2, 4].map(startIndex => Math.max(
+    ordered[startIndex].value,
+    ordered[startIndex + 1].value,
+  ));
+  return median(pairMaxima);
 }

@@ -40,15 +40,20 @@ function measurements(): Record<OperationScenario, OperationMetricSample[]> {
       sample('watcherToGraphMs', 27),
     ],
     'batch-100': [
-      sample('incrementalRefreshMs', 30, 'operation-0'),
-      sample('incrementalRefreshMs', 35, 'operation-0'),
-      sample('watcherToGraphMs', 40, 'operation-0'),
-      sample('watcherToGraphMs', 45, 'operation-0'),
-      sample('incrementalRefreshMs', 50, 'operation-1'),
-      sample('watcherToGraphMs', 60, 'operation-1'),
-      sample('watcherToGraphMs', 10, 'operation-1'),
-      sample('incrementalRefreshMs', 40, 'operation-2'),
-      sample('watcherToGraphMs', 50, 'operation-2'),
+      sample('incrementalRefreshMs', 30, 'run:batch:medium:0'),
+      sample('incrementalRefreshMs', 35, 'run:batch:medium:0'),
+      sample('watcherToGraphMs', 40, 'run:batch:medium:0'),
+      sample('watcherToGraphMs', 45, 'run:batch:medium:0'),
+      sample('incrementalRefreshMs', 50, 'run:batch:medium:1'),
+      sample('watcherToGraphMs', 60, 'run:batch:medium:1'),
+      sample('incrementalRefreshMs', 20, 'run:batch:medium:2'),
+      sample('watcherToGraphMs', 30, 'run:batch:medium:2'),
+      sample('incrementalRefreshMs', 40, 'run:batch:medium:3'),
+      sample('watcherToGraphMs', 50, 'run:batch:medium:3'),
+      sample('incrementalRefreshMs', 25, 'run:batch:medium:4'),
+      sample('watcherToGraphMs', 35, 'run:batch:medium:4'),
+      sample('incrementalRefreshMs', 45, 'run:batch:medium:5'),
+      sample('watcherToGraphMs', 55, 'run:batch:medium:5'),
       { metric: 'watcherToGraphMs', value: 999 },
     ],
   };
@@ -68,14 +73,14 @@ describe('operation metric collection', () => {
         rename: 15,
         create: 16,
         delete: 17,
-        batch100: 40,
+        batch100: 45,
       },
       watcherToGraphMs: {
         save: 20,
         rename: 25,
         create: 26,
         delete: 27,
-        batch100: 50,
+        batch100: 55,
       },
     });
   });
@@ -122,12 +127,12 @@ describe('operation metric collection', () => {
   it('requires a batch measurement for every operation', () => {
     const values = measurements();
     values['batch-100'] = values['batch-100'].filter(entry => !(
-      entry.operationId === 'operation-1'
+      entry.operationId === 'run:batch:medium:1'
       && entry.metric === 'watcherToGraphMs'
     ));
 
     expect(() => collectOperationMetrics(lookup(values))).toThrow(
-      'Expected at least one watcherToGraphMs metric for batch-100 operation operation-1; found 0',
+      'Expected at least one watcherToGraphMs metric for batch-100 operation run:batch:medium:1; found 0',
     );
   });
 
