@@ -98,4 +98,37 @@ describe('graphView/provider/webview/messages', () => {
       graphRevision: 1,
     });
   });
+
+  it('strips legacy favorite flags from full and patch node payloads', () => {
+    const sendWebviewMessage = vi.fn();
+    const source = {
+      _view: undefined,
+      _timelineView: undefined,
+      _panels: [],
+      _notifyExtensionMessage: vi.fn(),
+    };
+    const node = { id: 'src/app.ts', label: 'app.ts', color: '#fff', favorite: true };
+
+    sendGraphViewProviderWebviewMessage(source, { sendWebviewMessage }, {
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [node], edges: [] },
+    });
+    sendGraphViewProviderWebviewMessage(source, { sendWebviewMessage }, {
+      type: 'GRAPH_DATA_PATCHED',
+      nodeCount: 1,
+      edgeCount: 0,
+      payload: {
+        addedNodes: [node],
+        removedNodeIds: [],
+        updatedNodes: [node],
+        addedLinks: [],
+        removedLinkIds: [],
+      },
+    });
+
+    expect(sendWebviewMessage.mock.calls[0]?.[2].payload.nodes[0]).not.toHaveProperty('favorite');
+    expect(sendWebviewMessage.mock.calls[1]?.[2].payload.addedNodes[0]).not.toHaveProperty('favorite');
+    expect(sendWebviewMessage.mock.calls[1]?.[2].payload.updatedNodes[0]).not.toHaveProperty('favorite');
+    expect(node.favorite).toBe(true);
+  });
 });

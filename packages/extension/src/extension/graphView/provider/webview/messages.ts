@@ -1,5 +1,6 @@
 import type { GraphViewProviderWebviewMethodDependencies } from './defaultDependencies';
 import { getGraphViewProviderSidebarViews, type GraphViewProviderSidebarViewSource } from './sidebarViews';
+import { projectGraphMessageForWebview } from './wireProjection';
 
 export interface GraphViewProviderWebviewMessageSource extends GraphViewProviderSidebarViewSource {
   _graphMessageRevision?: number;
@@ -35,7 +36,10 @@ export function sendGraphViewProviderWebviewMessage(
   message: unknown,
 ): void {
   const sidebarViews = getGraphViewProviderSidebarViews(source);
-  const correlatedMessage = correlateGraphDataMessage(source, message);
+  const correlatedMessage = correlateGraphDataMessage(
+    source,
+    projectGraphMessageForWebview(message),
+  );
   dependencies.sendWebviewMessage(
     sidebarViews,
     source._panels,
