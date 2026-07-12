@@ -13,6 +13,7 @@ import * as os from 'os';
 import { createRequire } from 'module';
 import { e2eScenarios } from './scenarios';
 import { prepareScenarioWorkspacePlugins } from './workspacePlugins';
+import { webGpuCiLaunchArgs } from './webGpuLaunch';
 import type { runTests as runVSCodeTests } from '@vscode/test-electron';
 
 function findRepoRoot(startDir: string): string {
@@ -115,6 +116,7 @@ async function main(): Promise<void> {
         },
         launchArgs: [
           workspacePath,
+          ...webGpuCiLaunchArgs({ ci: process.env.CI === 'true', platform: process.platform }),
           '--user-data-dir',
           userDataPath,
           '--extensions-dir',
