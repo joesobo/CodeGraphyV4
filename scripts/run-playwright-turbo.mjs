@@ -74,6 +74,14 @@ function findPlaywrightPackages() {
     .sort();
 }
 
+export function selectPlaywrightPackages({ packageNames, vscodeSuite }) {
+  if (!vscodeSuite) {
+    return packageNames;
+  }
+
+  return packageNames.filter((packageName) => packageName === '@codegraphy-dev/extension');
+}
+
 export function splitScriptArgs(args) {
   const delimiterIndex = args.indexOf('--');
   if (delimiterIndex === -1) {
@@ -102,7 +110,10 @@ export function buildTurboArgs({ packageNames, turboArgs, passthroughArgs }) {
 }
 
 function main() {
-  const packageNames = findPlaywrightPackages();
+  const packageNames = selectPlaywrightPackages({
+    packageNames: findPlaywrightPackages(),
+    vscodeSuite: process.env.CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE,
+  });
   const { turboArgs, passthroughArgs } = splitScriptArgs(process.argv.slice(2));
 
   if (packageNames.length === 0) {
