@@ -11,6 +11,7 @@ import {
 describe('createVSCodeLaunchArgs', () => {
   it('uses a mock keychain for macOS acceptance test launches', () => {
     const args = createVSCodeLaunchArgs({
+      ci: false,
       extensionPath: '/extension',
       extensionsPath: '/tmp/extensions',
       platform: 'darwin',
@@ -20,6 +21,20 @@ describe('createVSCodeLaunchArgs', () => {
 
     expect(args).toContain('--use-inmemory-secretstorage');
     expect(args).toContain('--use-mock-keychain');
+  });
+
+  it('enables software WebGPU for Linux CI launches', () => {
+    const args = createVSCodeLaunchArgs({
+      ci: true,
+      extensionPath: '/extension',
+      extensionsPath: '/tmp/extensions',
+      platform: 'linux',
+      userDataPath: '/tmp/user-data',
+      workspacePath: '/workspace',
+    });
+
+    expect(args).toContain('--enable-unsafe-webgpu');
+    expect(args).toContain('--enable-unsafe-swiftshader');
   });
 
   it('uses a short temp base for macOS VS Code IPC sockets', () => {
