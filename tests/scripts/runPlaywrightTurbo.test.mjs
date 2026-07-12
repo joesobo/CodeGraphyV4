@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildTurboArgs,
+  selectPlaywrightPackages,
   splitScriptArgs,
 } from '../../scripts/run-playwright-turbo.mjs';
 
@@ -20,6 +21,19 @@ test('builds a filtered turbo command for Playwright-owning packages', () => {
       'test:playwright',
       '--filter=@codegraphy-dev/extension',
     ],
+  );
+});
+
+test('runs only the extension package for a VS Code Playwright suite', () => {
+  assert.deepEqual(
+    selectPlaywrightPackages({
+      packageNames: [
+        '@codegraphy-dev/extension',
+        '@codegraphy-dev/graph-benchmark',
+      ],
+      vscodeSuite: 'interactions',
+    }),
+    ['@codegraphy-dev/extension'],
   );
 });
 
