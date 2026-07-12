@@ -21,26 +21,88 @@ export function graphStage(frame: Frame): Locator {
 }
 
 export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
-  return graphStage(frame).locator('canvas').first().evaluate((canvas) => {
-    if (!(canvas instanceof HTMLCanvasElement)) {
-      return 0;
+  const stage = graphStage(frame);
+  const visual = await stage.evaluate((element) => {
+    if (!(element instanceof HTMLElement)) {
+      throw new Error('Expected Graph Stage to be an HTML element');
     }
+    const stageRect = element.getBoundingClientRect();
+    const colorProbe = document.createElement('canvas');
+    colorProbe.width = 1;
+    colorProbe.height = 1;
+    const colorContext = colorProbe.getContext('2d');
+    if (!colorContext) throw new Error('Expected color probe to expose a 2d context');
+    colorContext.fillStyle = getComputedStyle(element).backgroundColor;
+    colorContext.fillRect(0, 0, 1, 1);
+    const background = [...colorContext.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+    const snapshot = window.__CODEGRAPHY_GRAPH_DEBUG__?.getSnapshot();
+    const graphZoom = typeof snapshot?.zoom === 'number' && Number.isFinite(snapshot.zoom)
+      ? snapshot.zoom
+      : 1;
+    const debugNodes = snapshot?.nodes
+      .filter(node => node.positionFinite)
+      .slice(0, 64)
+      .map(node => ({
+        center: { x: node.screenX, y: node.screenY },
+        radius: (node.shapeSize2D
+          ? Math.max(node.shapeSize2D.width, node.shapeSize2D.height) / 2
+          : node.size) * graphZoom,
+      })) ?? [];
+    const nodes = debugNodes.length > 0 ? debugNodes : [...element.querySelectorAll('[aria-label^="Graph node "]')]
+      .slice(0, 64)
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          center: {
+            x: (rect.left - stageRect.left) + rect.width / 2,
+            y: (rect.top - stageRect.top) + rect.height / 2,
+          },
+          radius: Math.max(rect.width, rect.height) / 2,
+        };
+      });
+    return {
+      background,
+      nodes,
+      size: { height: stageRect.height, width: stageRect.width },
+    };
+  });
+  const screenshot = await stage.screenshot();
 
+  return frame.evaluate(async (options) => {
+    const source = new Image();
+    const loaded = new Promise<void>((resolve, reject) => {
+      source.onload = () => resolve();
+      source.onerror = () => reject(new Error('Failed to decode Graph Stage screenshot'));
+    });
+    source.src = `data:image/png;base64,${options.screenshotBase64}`;
+    await loaded;
+    const canvas = document.createElement('canvas');
+    canvas.width = source.naturalWidth;
+    canvas.height = source.naturalHeight;
     const context = canvas.getContext('2d');
-    if (!context) {
-      return 0;
-    }
-
+    if (!context) throw new Error('Expected visibility analysis canvas to expose a 2d context');
+    context.drawImage(source, 0, 0);
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
+    const scaleX = canvas.width / options.size.width;
+    const scaleY = canvas.height / options.size.height;
     let visiblePixels = 0;
-    for (let index = 3; index < image.data.length; index += 4) {
-      if (image.data[index] > 0) {
-        visiblePixels += 1;
+    for (const node of options.nodes) {
+      const centerX = Math.round(node.center.x * scaleX);
+      const centerY = Math.round(node.center.y * scaleY);
+      const radius = Math.max(2, Math.round(node.radius * Math.max(scaleX, scaleY)));
+      for (let y = Math.max(0, centerY - radius); y <= Math.min(canvas.height - 1, centerY + radius); y += 1) {
+        for (let x = Math.max(0, centerX - radius); x <= Math.min(canvas.width - 1, centerX + radius); x += 1) {
+          if (Math.hypot(x - centerX, y - centerY) > radius) continue;
+          const index = ((y * canvas.width) + x) * 4;
+          const difference = Math.abs(image.data[index] - options.background[0])
+            + Math.abs(image.data[index + 1] - options.background[1])
+            + Math.abs(image.data[index + 2] - options.background[2]);
+          if (image.data[index + 3] > 80 && difference > 60) visiblePixels += 1;
+        }
       }
     }
-
     return visiblePixels;
-  });
+  }, { ...visual, screenshotBase64: screenshot.toString('base64') });
 }
 
 export async function getGraphCounts(frame: Frame): Promise<{ nodes: number; edges: number }> {
@@ -197,7 +259,13 @@ async function readDebugNodeProbe(frame: Frame, nodePath: string): Promise<NodeP
         x: Math.round(node.screenX),
         y: Math.round(node.screenY),
       },
-      radius: Math.round(node.size / 2),
+      radius: Math.round((node.shapeSize2D
+        ? Math.max(node.shapeSize2D.width, node.shapeSize2D.height) / 2
+        : node.size) * (
+        typeof snapshot?.zoom === 'number' && Number.isFinite(snapshot.zoom)
+          ? snapshot.zoom
+          : 1
+      )),
     };
   }, nodePath);
 }
@@ -495,26 +563,33 @@ async function waitForNodeCenterToMove(
 }
 
 async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {
-  return graphStage(frame).evaluate((stage, options) => {
-    const canvas = stage.querySelector('canvas');
-    if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
-      throw new Error('Expected Graph Stage to contain a canvas');
-    }
+  const stage = graphStage(frame);
+  const screenshot = await stage.screenshot();
+  const stageBox = await stage.boundingBox();
+  if (!stageBox) throw new Error('Expected Graph Stage to expose a bounding box');
 
+  return frame.evaluate(async (options) => {
+    const source = new Image();
+    const loaded = new Promise<void>((resolve, reject) => {
+      source.onload = () => resolve();
+      source.onerror = () => reject(new Error('Failed to decode Graph Stage screenshot'));
+    });
+    source.src = `data:image/png;base64,${options.screenshotBase64}`;
+    await loaded;
+    const canvas = document.createElement('canvas');
+    canvas.width = source.naturalWidth;
+    canvas.height = source.naturalHeight;
     const context = canvas.getContext('2d');
-    if (!context) {
-      throw new Error('Expected Graph Stage canvas to expose a 2d context');
-    }
+    if (!context) throw new Error('Expected screenshot analysis canvas to expose a 2d context');
+    context.drawImage(source, 0, 0);
 
-    const stageRect = stage.getBoundingClientRect();
-    const canvasRect = canvas.getBoundingClientRect();
-    const toCanvasX = (x: number): number => Math.round(((x - (canvasRect.left - stageRect.left)) / canvasRect.width) * canvas.width);
-    const toCanvasY = (y: number): number => Math.round(((y - (canvasRect.top - stageRect.top)) / canvasRect.height) * canvas.height);
+    const scaleX = canvas.width / options.stageSize.width;
+    const scaleY = canvas.height / options.stageSize.height;
     const center = {
-      x: toCanvasX(options.probe.center.x),
-      y: toCanvasY(options.probe.center.y),
+      x: Math.round(options.probe.center.x * scaleX),
+      y: Math.round(options.probe.center.y * scaleY),
     };
-    const radius = Math.max(8, Math.round(options.probe.radius * (canvas.width / canvasRect.width)));
+    const radius = Math.max(8, Math.round(options.probe.radius * Math.max(scaleX, scaleY)));
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
     let bluePixelCount = 0;
     let whiteCenterPixelCount = 0;
@@ -532,33 +607,26 @@ async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<Canvas
         const dy = y - center.y;
         const distance = Math.hypot(dx, dy);
 
-        if (alpha < 80) {
-          continue;
-        }
-
-        if (distance <= radius && Math.abs(red - options.blue.red) < 70 && Math.abs(green - options.blue.green) < 80 && Math.abs(blue - options.blue.blue) < 80) {
-          bluePixelCount += 1;
-        }
-
-        if (distance <= radius * 0.65 && red > 210 && green > 210 && blue > 210) {
-          whiteCenterPixelCount += 1;
-        }
-
-        if (dy > radius + 1 && dy < radius + 24 && red > 140 && green > 140 && blue > 140) {
-          labelPixelCount += 1;
-        }
-
-        if (distance > radius * 0.6 && distance < radius + 20 && red > 170 && green > 170 && blue > 170) {
-          outlinePixelCount += 1;
-        }
+        if (alpha < 80) continue;
+        if (distance <= radius && Math.abs(red - options.blue.red) < 70 && Math.abs(green - options.blue.green) < 80 && Math.abs(blue - options.blue.blue) < 80) bluePixelCount += 1;
+        if (distance <= radius * 0.65 && red > 210 && green > 210 && blue > 210) whiteCenterPixelCount += 1;
+        if (
+          dy > radius + 1
+          && dy < radius + 24
+          && red > 80
+          && green > 80
+          && blue > 80
+          && Math.max(red, green, blue) - Math.min(red, green, blue) < 48
+        ) labelPixelCount += 1;
+        if (distance > radius * 0.6 && distance < radius + 20 && red > 170 && green > 170 && blue > 170) outlinePixelCount += 1;
       }
     }
 
-    return {
-      bluePixelCount,
-      whiteCenterPixelCount,
-      labelPixelCount,
-      outlinePixelCount,
-    };
-  }, { probe, blue: BLUE_NODE_RGB });
+    return { bluePixelCount, whiteCenterPixelCount, labelPixelCount, outlinePixelCount };
+  }, {
+    blue: BLUE_NODE_RGB,
+    probe,
+    screenshotBase64: screenshot.toString('base64'),
+    stageSize: { height: stageBox.height, width: stageBox.width },
+  });
 }
