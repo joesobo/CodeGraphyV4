@@ -36,6 +36,7 @@
     "test:playwright": {
       "env": [
         "CI",
+        "CODEGRAPHY_CI_SOFTWARE_WEBGPU",
         "CODEGRAPHY_VSCODE_PLAYWRIGHT_GREP",
         "CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE",
         "CODEGRAPHY_VSCODE_PLAYWRIGHT_WORKERS",
