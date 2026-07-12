@@ -98,15 +98,17 @@ function webGpuHarness() {
     getCurrentTexture: vi.fn(() => ({ createView: vi.fn(() => ({})) })),
     unconfigure: vi.fn(),
   };
+  const adapter = { requestDevice: vi.fn(async () => device) };
+  const requestAdapter = vi.fn(async (): Promise<typeof adapter | null> => adapter);
   const gpu = {
     getPreferredCanvasFormat: vi.fn(() => 'bgra8unorm'),
-    requestAdapter: vi.fn(async () => ({ requestDevice: vi.fn(async () => device) })),
+    requestAdapter,
   };
   vi.stubGlobal('GPUBufferUsage', { COPY_DST: 1, UNIFORM: 2, VERTEX: 4 });
   Object.defineProperty(navigator, 'gpu', { configurable: true, value: gpu });
   const canvas = document.createElement('canvas');
   Object.defineProperty(canvas, 'getContext', { value: () => context });
-  return { canvas, draw, writeBuffer };
+  return { adapter, canvas, draw, gpu, writeBuffer };
 }
 
 function rendererFrame() {
@@ -143,6 +145,26 @@ function rendererFrame() {
 }
 
 describe('OwnedWebGpuRenderer frame submission', () => {
+  it('requests a software WebGPU adapter when no native adapter is available', async () => {
+    const harness = webGpuHarness();
+    harness.gpu.requestAdapter
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(harness.adapter);
+
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+
+    expect(renderer).toBeDefined();
+    expect(harness.gpu.requestAdapter).toHaveBeenNthCalledWith(1, {
+      powerPreference: 'high-performance',
+    });
+    expect(harness.gpu.requestAdapter).toHaveBeenNthCalledWith(2, {
+      forceFallbackAdapter: true,
+    });
+  });
+
   it('packs and caches graph instances while submitting links before nodes', async () => {
     const harness = webGpuHarness();
     const onFrameComplete = vi.fn();
