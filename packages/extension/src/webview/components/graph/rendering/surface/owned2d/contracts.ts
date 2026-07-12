@@ -7,6 +7,7 @@ import type { GraphSurfaceSharedProps } from '../sharedProps';
 
 export interface OwnedGraphNodeStyle {
   borderColor: string;
+  cornerRadius: number;
   borderWidth: number;
   fillColor: string;
   fillOpacity: number;

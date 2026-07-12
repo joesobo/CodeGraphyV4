@@ -16,7 +16,7 @@ struct VertexOutput {
   @location(1) fillColor: vec4f,
   @location(2) borderColor: vec4f,
   @location(3) halfSize: vec2f,
-  @location(4) shapeAndBorder: vec2f,
+  @location(4) shapeBorderAndCorner: vec3f,
 };
 
 @vertex
@@ -26,7 +26,7 @@ fn vertexMain(
   @location(1) graphHalfSize: vec2f,
   @location(2) fillColor: vec4f,
   @location(3) borderColor: vec4f,
-  @location(4) shapeAndBorder: vec2f,
+  @location(4) shapeBorderAndCorner: vec3f,
 ) -> VertexOutput {
   let corners = array<vec2f, 6>(
     vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(-1.0, 1.0),
@@ -41,13 +41,23 @@ fn vertexMain(
   output.fillColor = fillColor;
   output.borderColor = borderColor;
   output.halfSize = halfSize;
-  output.shapeAndBorder = shapeAndBorder;
+  output.shapeBorderAndCorner = shapeBorderAndCorner;
   return output;
 }
 
-fn shapeDistance(point: vec2f, shape: f32) -> f32 {
+fn shapeDistance(point: vec2f, halfSize: vec2f, shapeAndCorner: vec2f) -> f32 {
+  let shape = shapeAndCorner.x;
+  let cornerRadius = min(shapeAndCorner.y, min(halfSize.x, halfSize.y));
   let absolute = abs(point);
   if (shape < 0.5) { return length(point) - 1.0; }
+  if (shape < 2.5 && cornerRadius > 0.0) {
+    let graphPoint = point * halfSize;
+    let rounded = abs(graphPoint) - (halfSize - vec2f(cornerRadius));
+    let graphDistance = length(max(rounded, vec2f(0.0)))
+      + min(max(rounded.x, rounded.y), 0.0)
+      - cornerRadius;
+    return graphDistance / max(min(halfSize.x, halfSize.y), 0.5);
+  }
   if (shape < 2.5) { return max(absolute.x, absolute.y) - 1.0; }
   if (shape < 3.5) { return absolute.x + absolute.y - 1.0; }
   if (shape < 4.5) {
@@ -64,12 +74,16 @@ fn shapeDistance(point: vec2f, shape: f32) -> f32 {
 
 @fragment
 fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
-  let distance = shapeDistance(input.local, input.shapeAndBorder.x);
+  let distance = shapeDistance(
+    input.local,
+    input.halfSize,
+    vec2f(input.shapeBorderAndCorner.x, input.shapeBorderAndCorner.z),
+  );
   let antialias = max(fwidth(distance), 0.002);
   let coverage = 1.0 - smoothstep(-antialias, antialias, distance);
   if (coverage <= 0.0) { discard; }
   let zoom = max(camera.graphToClip.x / camera.pixelToClip.x, 0.0001);
-  let borderDistance = input.shapeAndBorder.y / max(min(input.halfSize.x, input.halfSize.y) * zoom, 1.0);
+  let borderDistance = input.shapeBorderAndCorner.y / max(min(input.halfSize.x, input.halfSize.y) * zoom, 1.0);
   let innerCoverage = 1.0 - smoothstep(-antialias, antialias, distance + borderDistance);
   let color = mix(input.borderColor, input.fillColor, innerCoverage);
   return vec4f(color.rgb, color.a * coverage);
@@ -101,7 +115,7 @@ fn vertexMain(
   @location(2) halfWidthAndCurvature: vec2f,
   @location(3) color: vec4f,
   @location(4) arrowColor: vec4f,
-  @location(5) bidirectional: f32,
+  @location(5) arrowPositionAndBidirectional: vec2f,
 ) -> VertexOutput {
   let graphDelta = graphDestination - graphSource;
   let graphDistance = length(graphDelta);
@@ -116,7 +130,11 @@ fn vertexMain(
     let arrowSide = array<f32, 3>(0.0, 0.55, -0.55);
     let reverseArrow = vertexIndex >= 27u;
     let corner = (vertexIndex - 24u) % 3u;
-    let arrowPosition = select(0.72, 0.28, reverseArrow);
+    let arrowPosition = select(
+      arrowPositionAndBidirectional.x,
+      1.0 - arrowPositionAndBidirectional.x,
+      reverseArrow,
+    );
     let graphPosition = curvePoint(graphSource, graphDestination, control, arrowPosition);
     var graphTangent = curveTangent(graphSource, graphDestination, control, arrowPosition);
     if (reverseArrow) { graphTangent = -graphTangent; }
@@ -125,13 +143,13 @@ fn vertexMain(
     let normal = vec2f(-tangent.y, tangent.x);
     let center = (graphPosition - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
     output.position = vec4f(
-      center + tangent * camera.pixelToClip * 8.0 * arrowAlong[corner]
-        + normal * camera.pixelToClip * 8.0 * arrowSide[corner],
+      center + tangent * camera.pixelToClip * 12.0 * arrowAlong[corner]
+        + normal * camera.pixelToClip * 12.0 * arrowSide[corner],
       0.0,
       1.0,
     );
     output.color = arrowColor;
-    if (reverseArrow && bidirectional < 0.5) { output.color.a = 0.0; }
+    if (reverseArrow && arrowPositionAndBidirectional.y < 0.5) { output.color.a = 0.0; }
     return output;
   }
 

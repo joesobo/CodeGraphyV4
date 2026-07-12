@@ -66,6 +66,7 @@ function defaultNodeStyle(node: FGNode): OwnedGraphNodeStyle {
   return {
     borderColor: node.borderColor,
     borderWidth: node.borderWidth,
+    cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
     fillColor: node.color,
     fillOpacity: node.fillOpacity2D ?? 1,
     height: node.shapeSize2D?.height ?? node.size * 2,
@@ -249,6 +250,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
             devicePixelRatio,
             directionMode: currentProps.directionMode,
             getArrowColor: currentProps.getArrowColor,
+            getArrowRelPos: currentProps.getArrowRelPos,
             getLinkColor: currentProps.getLinkColor,
             getLinkWidth: currentProps.getLinkWidth,
             getNodeStyle: currentProps.getNodeStyle ?? defaultNodeStyle,

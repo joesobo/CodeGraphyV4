@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  normalizeOwnedArrowPosition,
   parseWebGpuColor,
   webGpuNodeShapeCode,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
@@ -35,6 +36,13 @@ describe('owned WebGPU renderer color parsing', () => {
 
   it('uses opaque black for unsupported CSS colors', () => {
     expect(parseWebGpuColor('not-a-color')).toEqual([0, 0, 0, 1]);
+  });
+
+  it('clamps directional-arrow positions to the public link contract', () => {
+    expect(normalizeOwnedArrowPosition(-1)).toBe(0);
+    expect(normalizeOwnedArrowPosition(0.65)).toBe(0.65);
+    expect(normalizeOwnedArrowPosition(2)).toBe(1);
+    expect(normalizeOwnedArrowPosition(Number.NaN)).toBe(1);
   });
 
   it('encodes every supported node shape for the GPU SDF shader', () => {

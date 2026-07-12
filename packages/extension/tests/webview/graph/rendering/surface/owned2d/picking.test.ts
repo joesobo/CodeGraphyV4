@@ -21,13 +21,16 @@ describe('owned graph spatial node picker', () => {
       id: 'plugin',
       x: 0,
       y: 0,
-      size: 4,
+      collisionRadius2D: 200,
       pointerArea2D: { width: 120, height: 80 },
+      shapeSize2D: { width: 300, height: 300 },
+      size: 100,
     } as FGNode;
     const picker = new OwnedGraphNodePicker();
     picker.rebuild([node]);
 
     expect(picker.pick({ x: 60, y: 40 }, 1)?.node.id).toBe('plugin');
+    expect(picker.pick({ x: 70, y: 0 }, 1)).toBeUndefined();
   });
 
   it('updates the index after layout positions change', () => {
