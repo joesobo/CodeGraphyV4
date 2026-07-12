@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import type { GraphDebugControls, GraphDebugSnapshot } from './contracts/protocol';
-import { getGraphCollisionRadius } from '../runtime/physics/root/collision';
+import { ownedNodeCollisionRadius } from '../rendering/surface/owned2d/collisionRadius';
 
 export interface DebugNode {
   baseOpacity?: number;
@@ -39,7 +39,7 @@ function buildDebugNodeSnapshot(
 
   return {
     ...(typeof node.baseOpacity === 'number' ? { baseOpacity: node.baseOpacity } : {}),
-    collisionRadius: getGraphCollisionRadius(node),
+    collisionRadius: ownedNodeCollisionRadius(node),
     ...(typeof node.color === 'string' ? { color: node.color } : {}),
     id: node.id,
     ...(typeof node.imageUrl === 'string' ? { imageUrl: node.imageUrl } : {}),

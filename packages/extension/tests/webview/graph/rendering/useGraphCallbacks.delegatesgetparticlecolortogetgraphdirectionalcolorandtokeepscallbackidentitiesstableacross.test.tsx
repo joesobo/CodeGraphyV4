@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react';
-import type { LinkObject,NodeObject } from 'react-force-graph-2d';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FGLink,FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
@@ -95,7 +94,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
       renderingHarness.getGraphDirectionalColor.mockReturnValue('#ccaa33');
       const { refs, result } = renderUseGraphCallbacks();
 
-      const color = result.current.getParticleColor({} as LinkObject);
+      const color = result.current.getParticleColor({} as FGLink);
 
       expect(color).toBe('#ccaa33');
       expect(renderingHarness.getGraphDirectionalColor).toHaveBeenCalledWith({
@@ -110,7 +109,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates getLinkWidth to getGraphLinkWidth and returns its result', () => {
-      const link = { source: 'node-1', target: 'node-2' } as FGLink as LinkObject;
+      const link = { source: 'node-1', target: 'node-2' } as FGLink;
       renderingHarness.getGraphLinkWidth.mockReturnValue(6);
       const { refs, result } = renderUseGraphCallbacks();
 
@@ -130,8 +129,8 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
     it('keeps callback identities stable across rerenders while using the latest inputs', () => {
       const initialCallbacks = renderUseGraphCallbacks();
-      const node = { id: 'node-2' } as FGNode as NodeObject;
-      const link = { source: 'node-1', target: 'node-2' } as FGLink as LinkObject;
+      const node = { id: 'node-2' } as FGNode;
+      const link = { source: 'node-1', target: 'node-2' } as FGLink;
       const ctx = { canvas: document.createElement('canvas') } as CanvasRenderingContext2D;
       const nextRefs = createRefs();
       const nextPluginHost = { name: 'next-plugin-host' } as never;

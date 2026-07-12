@@ -23,9 +23,7 @@ describe('resolveGraphBenchmarkDriver', () => {
     expect(selectSyntheticDragTarget(createSyntheticFixture('1k', 307))).toBe(target);
   });
 
-  it('fails before setup when a renderer driver is unavailable', () => {
-    expect(() => resolveGraphBenchmarkDriver('webgpu')).toThrow(
-      'Renderer is not available yet: webgpu',
-    );
+  it('selects the owned WebGPU renderer driver explicitly', () => {
+    expect(resolveGraphBenchmarkDriver('webgpu').renderer).toBe('webgpu');
   });
 });

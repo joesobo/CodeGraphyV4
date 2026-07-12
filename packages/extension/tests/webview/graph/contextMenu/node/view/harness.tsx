@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph2D from '../../../../../__mocks__/ownedGraphSurface';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import Graph from '../../../../../../src/webview/components/graph/view/component';

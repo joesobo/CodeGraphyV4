@@ -5,7 +5,6 @@ import {
   ContextMenuTrigger,
 } from '../../ui/context/menu';
 import { NodeTooltip } from '../../nodeTooltip/view';
-import type { FGLink, FGNode } from '../model/build';
 import { GraphAccessibilityOverlay } from './accessibilityLayer/overlay';
 import {
   createMenuEntriesSignature,
@@ -86,8 +85,8 @@ export function Viewport({
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
           <GraphAccessibilityOverlay
             accessibilityItems={resolvedAccessibilityItems}
-            graphLinks={surface2dProps.sharedProps.graphData.links as FGLink[]}
-            graphNodes={surface2dProps.sharedProps.graphData.nodes as FGNode[]}
+            graphLinks={surface2dProps.sharedProps.graphData.links}
+            graphNodes={surface2dProps.sharedProps.graphData.nodes}
             onEdgeContextMenu={resolvedHandlers.handleEdgeContextMenu}
             onNodeClick={resolvedHandlers.handleNodeClick}
             onNodeContextMenu={resolvedHandlers.handleNodeContextMenu}

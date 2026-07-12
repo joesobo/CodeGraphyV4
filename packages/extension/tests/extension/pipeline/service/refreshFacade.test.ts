@@ -359,8 +359,14 @@ describe('pipeline/service/refreshFacade', () => {
       }
     )._context.workspaceState;
     workspaceState.get.mockImplementation((key: string) => {
-      if (key === 'codegraphy.churn.version') return 1;
-      if (key === 'codegraphy.churn.counts') return { 'src/a.ts': 7 };
+      if (key === 'codegraphy.churn.index') {
+        return {
+          version: 1,
+          head: 'abc123',
+          fileSet: 'src/a.ts',
+          counts: { 'src/a.ts': 7 },
+        };
+      }
       return undefined;
     });
 

@@ -1,27 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { resolvePhysicsInitAction } from '../../../../../src/webview/components/graph/runtime/physicsLifecycle/init/action';
+import { createOwnedGraphLayout } from '../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { DEFAULT_PHYSICS_SETTINGS, ownedLayout, ownedNode } from '../ownedPhysicsFixture';
 
-describe('graph/runtime/physicsLifecycle/init', () => {
-  it('skips initialization once physics is already initialized', () => {
-    expect(resolvePhysicsInitAction({
-      fg2d: {} as never,
-      physicsInitialised: true,
-    })).toEqual({ type: 'skip' });
+describe('owned physics initialization', () => {
+  it('keeps one initialized engine for metadata-only graph updates', () => {
+    const layout = ownedLayout();
+    expect(layout.engine).toBe(layout.engine);
   });
 
-  it('waits while the 2d graph instance is unavailable', () => {
-    expect(resolvePhysicsInitAction({
-      fg2d: undefined,
-      physicsInitialised: false,
-    })).toEqual({ type: 'wait' });
+  it('supports an empty graph before graph data is available', () => {
+    const layout = createOwnedGraphLayout([], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.nodes).toEqual([]);
   });
 
-  it('initializes the 2d graph instance once it is available', () => {
-    const graph = {} as never;
-
-    expect(resolvePhysicsInitAction({
-      fg2d: graph,
-      physicsInitialised: false,
-    })).toEqual({ instance: graph, type: 'init' });
+  it('initializes typed node buffers as soon as graph data is available', () => {
+    const layout = createOwnedGraphLayout([ownedNode('a'), ownedNode('b')], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine.x).toHaveLength(2);
+    expect(layout.engine.y).toHaveLength(2);
   });
 });

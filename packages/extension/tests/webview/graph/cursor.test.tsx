@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph2D from '../../__mocks__/ownedGraphSurface';
 
 const graphData: IGraphData = {
   nodes: [
@@ -30,7 +30,7 @@ describe('Graph cursor behavior', () => {
   it('uses pointer over nodes and default over background in 2d mode', async () => {
     const { container } = render(<Graph data={graphData} />);
     const graphContainer = getGraphContainer(container);
-    const graphCanvas = screen.getByTestId('force-graph-2d') as HTMLCanvasElement;
+    const graphCanvas = screen.getByTestId('owned-webgpu-graph') as HTMLCanvasElement;
 
     await act(async () => {
       ForceGraph2D.simulateNodeHover({

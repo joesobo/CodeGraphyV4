@@ -8,7 +8,6 @@ import {
   type SetStateAction,
 } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
-import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
@@ -23,6 +22,7 @@ import {
   type FGNode,
 } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
+import type { OwnedGraph2dControls } from '../../rendering/surface/owned2d/contracts';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
 
@@ -56,7 +56,7 @@ export interface GraphRuntimeSelection {
 
 export interface GraphRuntimeRenderer {
   containerRef: MutableRefObject<HTMLDivElement | null>;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+  fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
   graphData: { links: FGLink[]; nodes: FGNode[] };
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
 }
@@ -128,7 +128,7 @@ export function useGraphRuntime({
   theme,
 }: GraphRuntimeOptions): GraphRuntime {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
+  const fg2dRef = useRef<OwnedGraph2dControls | undefined>(undefined);
   const highlightedNodeRef = useRef<string | null>(null);
   const highlightedNeighborsRef = useRef<Set<string>>(new Set());
   const selectedNodesSetRef = useRef<Set<string>>(new Set());

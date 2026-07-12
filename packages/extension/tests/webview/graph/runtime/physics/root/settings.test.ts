@@ -1,167 +1,98 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../src/shared/settings/physics';
+import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import { ownedNodeCollisionRadius } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/collisionRadius';
 import {
-  SETTINGS,
-  applyPhysicsSettings,
-  createCustomPhysicsInstance,
-  createPhysicsInstance,
-  getInstalledD3Force,
-  havePhysicsSettingsChanged,
-  initPhysics,
-  type FGNode,
-} from '../testSupport';
+  applyOwnedPhysicsSettings,
+  toOwnedPhysicsConfig,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import {
+  createGraphLayoutEngine,
+  DEFAULT_GRAPH_LAYOUT_CONFIG,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 
-describe('physics/root settings', () => {
-  it('treats missing previous settings as changed', () => {
-    expect(havePhysicsSettingsChanged(null, SETTINGS)).toBe(true);
-  });
+function engine() {
+  return createGraphLayoutEngine({
+    nodeIds: ['a'],
+    initialX: Float32Array.of(20),
+    initialY: Float32Array.of(0),
+    radii: Float32Array.of(4),
+    edgeSources: new Uint32Array(),
+    edgeTargets: new Uint32Array(),
+  }, { centralGravity: 0, gravitationalConstant: 0 });
+}
 
-  it('treats matching physics values as unchanged', () => {
-    expect(havePhysicsSettingsChanged({ ...SETTINGS }, { ...SETTINGS })).toBe(false);
+describe('owned physics settings', () => {
+  it('maps every persisted force setting into the typed engine', () => {
+    expect(toOwnedPhysicsConfig(DEFAULT_PHYSICS_SETTINGS)).toEqual({
+      centralGravity: 0.1,
+      damping: 0.7,
+      gravitationalConstant: -250,
+      springLength: 80,
+      springConstant: 0.15,
+    });
   });
 
   it.each([
-    ['repelForce', { repelForce: SETTINGS.repelForce + 1 }],
-    ['centerForce', { centerForce: SETTINGS.centerForce + 0.01 }],
-    ['linkDistance', { linkDistance: SETTINGS.linkDistance + 1 }],
-    ['linkForce', { linkForce: SETTINGS.linkForce + 0.01 }],
-    ['damping', { damping: SETTINGS.damping + 0.01 }],
-  ])('detects %s changes', (_field, patch) => {
-    expect(havePhysicsSettingsChanged(SETTINGS, {
-      ...SETTINGS,
-      ...patch,
-    })).toBe(true);
+    ['repelForce', { repelForce: 20 }, 'gravitationalConstant', -500],
+    ['centerForce', { centerForce: 0.5 }, 'centralGravity', 0.5],
+    ['linkDistance', { linkDistance: 120 }, 'springLength', 120],
+    ['linkForce', { linkForce: 0.4 }, 'springConstant', 0.4],
+    ['damping', { damping: 0.2 }, 'damping', 0.2],
+  ] as const)('maps changed %s values', (_field, patch, mappedField, expected) => {
+    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, ...patch })[mappedField]).toBe(expected);
   });
 
-  it('applies root force strengths and reheats the simulation', () => {
-    const { charge, forceXInstance, forceYInstance, instance, link } = createPhysicsInstance();
+  it('reheats typed physics when settings are applied', () => {
+    const layout = engine();
+    for (let tick = 0; tick < 300; tick += 1) layout.tick(1000 / 60);
+    expect(layout.settled).toBe(true);
 
-    applyPhysicsSettings(instance, SETTINGS);
+    applyOwnedPhysicsSettings(layout, { ...DEFAULT_PHYSICS_SETTINGS, centerForce: 1 });
 
-    expect(instance.d3Force).toHaveBeenCalledWith('center', null);
-    expect(charge.strength).toHaveBeenCalledOnce();
-    expect(charge.distanceMax).toHaveBeenCalledWith(1000);
-    expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
-    expect(link.strength).toHaveBeenCalledWith(SETTINGS.linkForce);
-    expect(forceXInstance.strength).toHaveBeenCalledWith(expect.any(Function));
-    expect(forceYInstance.strength).toHaveBeenCalledWith(expect.any(Function));
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
+    expect(layout.settled).toBe(false);
   });
 
-  it('zeros charge for actively dragged nodes only', () => {
-    const { charge, instance } = createPhysicsInstance();
-
-    applyPhysicsSettings(instance, SETTINGS);
-    const strength = charge.strength.mock.calls[0][0] as (node: FGNode) => number;
-
-    expect(strength({ id: 'src/dragged.ts', isDragging: true } as FGNode)).toBe(0);
-    expect(strength({ id: 'src/app.ts' } as FGNode)).toBeLessThan(0);
+  it('uses damping as velocity loss rather than retention', () => {
+    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.7 }).damping).toBe(0.7);
   });
 
   it('scales charge for plugin-owned graph physics overrides', () => {
-    const { charge, instance } = createPhysicsInstance();
-
-    applyPhysicsSettings(instance, SETTINGS);
-    const strength = charge.strength.mock.calls[0][0] as (node: FGNode) => number;
-
-    expect(strength({ id: 'section-ui', chargeStrengthMultiplier2D: 0 } as FGNode)).toBe(0);
-    expect(strength({ id: 'section-ui', chargeStrengthMultiplier2D: 0.5 } as FGNode)).toBe(
-      strength({ id: 'src/app.ts' } as FGNode) * 0.5,
-    );
+    const layout = createGraphLayoutEngine({
+      nodeIds: ['disabled', 'normal'],
+      initialX: Float32Array.of(0, 20),
+      initialY: Float32Array.of(0, 0),
+      chargeStrengthMultipliers: Float32Array.of(0, 1),
+      radii: Float32Array.of(1, 1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, { centralGravity: 0, collisionIterations: 0, damping: 0 });
+    layout.tick(1000 / 60);
+    expect(layout.vx[0]).toBeLessThan(0);
+    expect(layout.vx[1]).toBe(0);
   });
 
-  it('skips non-callable strength forces and still reheats the simulation', () => {
-    const { instance } = createCustomPhysicsInstance({
-      charge: { strength: SETTINGS.repelForce },
-      forceX: { strength: SETTINGS.centerForce },
-      forceY: { strength: SETTINGS.centerForce },
-      link: { distance: vi.fn(), strength: vi.fn() },
-    });
-
-    expect(() => applyPhysicsSettings(instance, SETTINGS)).not.toThrow();
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
+  it('ships collision constraints as part of the owned engine defaults', () => {
+    expect(DEFAULT_GRAPH_LAYOUT_CONFIG.collisionIterations).toBeGreaterThan(0);
+    expect(DEFAULT_GRAPH_LAYOUT_CONFIG.collisionStrength).toBe(1);
   });
 
-  it('skips incomplete link forces and still reheats the simulation', () => {
-    const withoutDistance = createCustomPhysicsInstance({
-      charge: { strength: vi.fn() },
-      forceX: { strength: vi.fn() },
-      forceY: { strength: vi.fn() },
-      link: { strength: vi.fn() },
-    });
-    const withoutStrength = createCustomPhysicsInstance({
-      charge: { strength: vi.fn() },
-      forceX: { strength: vi.fn() },
-      forceY: { strength: vi.fn() },
-      link: { distance: vi.fn() },
-    });
-
-    expect(() => applyPhysicsSettings(withoutDistance.instance, SETTINGS)).not.toThrow();
-    expect(() => applyPhysicsSettings(withoutStrength.instance, SETTINGS)).not.toThrow();
-    expect(withoutDistance.instance.d3ReheatSimulation).toHaveBeenCalledOnce();
-    expect(withoutStrength.instance.d3ReheatSimulation).toHaveBeenCalledOnce();
-  });
-
-  it('initializes the center and collision forces', () => {
-    const { d3Force, instance } = createPhysicsInstance();
-
-    initPhysics(instance, SETTINGS);
-
-    expect(d3Force).toHaveBeenCalledWith('center', null);
-    expect(d3Force).toHaveBeenCalledWith('forceX', expect.anything());
-    expect(d3Force).toHaveBeenCalledWith('forceY', expect.anything());
-    expect(d3Force).toHaveBeenCalledWith('collision', expect.anything());
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledTimes(2);
-  });
-
-  it('uses node size plus padding for the collision radius', () => {
-    const { d3Force, instance } = createPhysicsInstance();
-
-    initPhysics(instance, SETTINGS);
-    const collisionForce = getInstalledD3Force<{
-      radius: () => (node: { size: number }) => number;
-      iterations: () => number;
-    }>(d3Force, 'collision');
-
-    expect(collisionForce.radius()({ size: 9 })).toBe(13);
-    expect(collisionForce.iterations()).toBe(16);
+  it('uses node size plus production padding for the collision radius', () => {
+    expect(ownedNodeCollisionRadius({ size: 9 } as FGNode)).toBe(13);
   });
 
   it('uses sized rectangle bounds for the collision radius', () => {
-    const { d3Force, instance } = createPhysicsInstance();
-
-    initPhysics(instance, SETTINGS);
-    const collisionForce = getInstalledD3Force<{
-      radius: () => (node: FGNode) => number;
-    }>(d3Force, 'collision');
-
-    expect(collisionForce.radius()({
-      id: 'section-ui',
+    expect(ownedNodeCollisionRadius({
       size: 9,
-      shape2D: 'rectangle',
-      shapeSize2D: {
-        height: 80,
-        width: 120,
-      },
-    } as FGNode)).toBe(76.11102550927978);
+      shapeSize2D: { height: 80, width: 120 },
+    } as FGNode)).toBeCloseTo(76.11102550927978);
   });
 
   it('uses explicit plugin collision radius overrides before visual rectangle bounds', () => {
-    const { d3Force, instance } = createPhysicsInstance();
-
-    initPhysics(instance, SETTINGS);
-    const collisionForce = getInstalledD3Force<{
-      radius: () => (node: FGNode) => number;
-    }>(d3Force, 'collision');
-
-    expect(collisionForce.radius()({
-      id: 'section-ui',
+    expect(ownedNodeCollisionRadius({
       collisionRadius2D: 0,
       size: 9,
-      shape2D: 'rectangle',
-      shapeSize2D: {
-        height: 80,
-        width: 120,
-      },
+      shapeSize2D: { height: 80, width: 120 },
     } as FGNode)).toBe(4);
   });
 });

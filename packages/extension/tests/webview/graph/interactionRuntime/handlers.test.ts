@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type {
-  ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
+import type { OwnedGraph2dControls } from '../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
@@ -37,8 +35,16 @@ function createDependencies(
   const setContextSelection = vi.fn();
   const fg2d = {
     centerAt: vi.fn(),
+    d3ReheatSimulation: vi.fn(),
+    graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
+    pauseAnimation: vi.fn(),
+    refresh: vi.fn(),
+    resumeAnimation: vi.fn(),
+    screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
     zoom: vi.fn(() => 1),
-  } as unknown as FG2DMethods<FGNode, FGLink>;
+    zoomToFit: vi.fn(),
+  } as unknown as OwnedGraph2dControls;
+
   return {
     containerRef: createRef(container),
     dataRef: createRef(graphData),
@@ -100,19 +106,6 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(dependencies.graphCursorRef.current).toBe('pointer');
   });
 
-  it('tracks highlighted neighbors', () => {
-    const dependencies = createDependencies();
-    const handlers = createGraphInteractionHandlers(dependencies);
-
-    handlers.setHighlight('src/app.ts');
-
-    expect(dependencies.highlightedNodeRef.current).toBe('src/app.ts');
-    expect([...dependencies.highlightedNeighborsRef.current]).toEqual([
-      'src/utils.ts',
-      'src/other.ts',
-    ]);
-  });
-
   it('updates node selection and opens the node context menu', () => {
     const dependencies = createDependencies();
     const dispatchEvent = vi.spyOn(dependencies.containerRef.current as EventTarget, 'dispatchEvent');
@@ -138,7 +131,7 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(dependencies.lastGraphContextEventRef.current).toBeGreaterThan(0);
   });
 
-  it('focuses nodes in the 2d graph', () => {
+  it('focuses nodes in the owned 2d graph', () => {
     const dependencies = createDependencies();
     const handlers = createGraphInteractionHandlers(dependencies);
 

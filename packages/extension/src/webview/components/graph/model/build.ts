@@ -1,4 +1,3 @@
-import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphMetadata, IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeSizeMode } from '../../../../shared/settings/modes';
@@ -24,7 +23,7 @@ export {
 } from './node/display';
 export { calculateNodeSizes, toD3Repel } from './node/sizing';
 
-export type FGNode = NodeObject & Record<string, unknown> & {
+export type FGNode = Record<string, unknown> & {
   id: string;
   label: string;
   size: number;
@@ -65,7 +64,7 @@ export type FGNode = NodeObject & Record<string, unknown> & {
   y?: number;
 };
 
-export type FGLink = LinkObject & {
+export type FGLink = Record<string, unknown> & {
   id: string;
   from: string;
   to: string;

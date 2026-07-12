@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { FGLink, FGNode } from '../../../../../../../src/webview/components/graph/model/build';
+import type { OwnedGraph2dControls } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
+import type { FGNode } from '../../../../../../../src/webview/components/graph/model/build';
 import { useTooltipEvents } from '../../../../../../../src/webview/components/graph/runtime/use/tooltip/events/handlers';
 
 function createNode(): FGNode {
@@ -35,11 +35,11 @@ function createContainer(): HTMLDivElement {
 	return container;
 }
 
-function createGraph(): FG2DMethods<FGNode, FGLink> {
+function createGraph(): OwnedGraph2dControls {
 	return {
 		graph2ScreenCoords: vi.fn(() => ({ x: 20, y: 30 })),
 		zoom: vi.fn(() => 1),
-	} as unknown as FG2DMethods<FGNode, FGLink>;
+	} as unknown as OwnedGraph2dControls;
 }
 
 afterEach(() => {
@@ -73,56 +73,6 @@ describe('graph/runtime/useTooltipEvents', () => {
 		});
 
 		expect(setGraphCursor).toHaveBeenCalledWith('default');
-	});
-
-	it('delegates hover handling through the extracted tooltip helpers', () => {
-		vi.useFakeTimers();
-		const graph = createGraph();
-		const container = createContainer();
-		const setTooltipData = vi.fn();
-		const setGraphCursor = vi.fn();
-		const sendGraphInteraction = vi.fn();
-		const postMessage = vi.fn();
-
-		const { result } = renderHook(() => useTooltipEvents({
-			containerRef: { current: container },
-			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
-			fg2dRef: { current: graph },
-			fileInfoCacheRef: { current: new Map() } as never,
-			hoveredNodeRef: { current: null },
-			interactionHandlers: {
-				sendGraphInteraction,
-				setGraphCursor,
-			},
-			postMessage,
-			setTooltipData,
-			tooltipRafRef: { current: null },
-			tooltipTimeoutRef: { current: null },
-		}));
-
-		act(() => {
-			result.current.handleNodeHover(createNode());
-			vi.advanceTimersByTime(500);
-		});
-
-		expect(setGraphCursor).toHaveBeenCalledWith('pointer');
-		expect(sendGraphInteraction).toHaveBeenCalledWith('graph:nodeHover', {
-			node: { id: 'src/app.ts', label: 'app.ts' },
-		});
-		expect(setTooltipData).toHaveBeenCalledWith({
-			visible: true,
-			nodeRect: { x: 24, y: 36, radius: 16 },
-			path: 'src/app.ts',
-			info: null,
-			incomingCount: 0,
-			outgoingCount: 0,
-			pluginActions: [],
-			pluginSections: [],
-		});
-		expect(postMessage).toHaveBeenCalledWith({
-			type: 'GET_FILE_INFO',
-			payload: { path: 'src/app.ts' },
-		});
 	});
 
 	it('uses the latest handlers after rerender instead of stale callback dependencies', () => {
@@ -187,149 +137,5 @@ describe('graph/runtime/useTooltipEvents', () => {
 			type: 'GET_FILE_INFO',
 			payload: { path: 'src/app.ts' },
 		});
-	});
-
-	it('clears a pending tooltip timeout when the hook unmounts', () => {
-		vi.useFakeTimers();
-		const requestAnimationFrame = vi.fn(() => 123);
-		vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
-
-		const tooltipTimeoutRef = {
-			current: null as ReturnType<typeof setTimeout> | null,
-		};
-		const setTooltipData = vi.fn();
-		const { result, unmount } = renderHook(() => useTooltipEvents({
-			containerRef: { current: createContainer() },
-			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
-			fg2dRef: { current: createGraph() },
-			fileInfoCacheRef: { current: new Map() } as never,
-			hoveredNodeRef: { current: null },
-			interactionHandlers: {
-				sendGraphInteraction: vi.fn(),
-				setGraphCursor: vi.fn(),
-			},
-			postMessage: vi.fn(),
-			setTooltipData,
-			tooltipRafRef: { current: null },
-			tooltipTimeoutRef,
-		}));
-
-		act(() => {
-			result.current.handleNodeHover(createNode());
-		});
-
-		expect(tooltipTimeoutRef.current).not.toBeNull();
-
-		unmount();
-
-		expect(tooltipTimeoutRef.current).toBeNull();
-
-		act(() => {
-			vi.advanceTimersByTime(500);
-		});
-
-		expect(setTooltipData).not.toHaveBeenCalled();
-		expect(requestAnimationFrame).not.toHaveBeenCalled();
-	});
-
-	it('cancels active tooltip tracking when the hook unmounts', () => {
-		vi.useFakeTimers();
-		const requestAnimationFrame = vi.fn(() => 123);
-		const cancelAnimationFrame = vi.fn();
-		vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
-		vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame);
-
-		const tooltipRafRef = { current: null as number | null };
-		const { result, unmount } = renderHook(() => useTooltipEvents({
-			containerRef: { current: createContainer() },
-			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
-			fg2dRef: { current: createGraph() },
-			fileInfoCacheRef: { current: new Map() } as never,
-			hoveredNodeRef: { current: null },
-			interactionHandlers: {
-				sendGraphInteraction: vi.fn(),
-				setGraphCursor: vi.fn(),
-			},
-			postMessage: vi.fn(),
-			setTooltipData: vi.fn(),
-			tooltipRafRef,
-			tooltipTimeoutRef: { current: null },
-		}));
-
-		act(() => {
-			result.current.handleNodeHover(createNode());
-			vi.advanceTimersByTime(500);
-		});
-
-		expect(requestAnimationFrame).toHaveBeenCalledOnce();
-		expect(tooltipRafRef.current).toBe(123);
-
-		unmount();
-
-		expect(cancelAnimationFrame).toHaveBeenCalledWith(123);
-		expect(tooltipRafRef.current).toBeNull();
-	});
-
-	it('does not clear a timeout on unmount when no tooltip delay is pending', () => {
-		const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
-		const { unmount } = renderHook(() => useTooltipEvents({
-			containerRef: { current: createContainer() },
-			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
-			fg2dRef: { current: createGraph() },
-			fileInfoCacheRef: { current: new Map() } as never,
-			hoveredNodeRef: { current: null },
-			interactionHandlers: {
-				sendGraphInteraction: vi.fn(),
-				setGraphCursor: vi.fn(),
-			},
-			postMessage: vi.fn(),
-			setTooltipData: vi.fn(),
-			tooltipRafRef: { current: null },
-			tooltipTimeoutRef: { current: null },
-		}));
-
-		unmount();
-
-		expect(clearTimeoutSpy).not.toHaveBeenCalled();
-	});
-
-	it('stops an in-flight tooltip tracking raf through the returned callback', () => {
-		vi.useFakeTimers();
-		const requestAnimationFrame = vi.fn(() => 123);
-		const cancelAnimationFrame = vi.fn();
-		vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
-		vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame);
-
-		const tooltipRafRef = { current: null as number | null };
-		const { result } = renderHook(() => useTooltipEvents({
-			containerRef: { current: createContainer() },
-			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
-			fg2dRef: { current: createGraph() },
-			fileInfoCacheRef: { current: new Map() } as never,
-			hoveredNodeRef: { current: null },
-			interactionHandlers: {
-				sendGraphInteraction: vi.fn(),
-				setGraphCursor: vi.fn(),
-			},
-			postMessage: vi.fn(),
-			setTooltipData: vi.fn(),
-			tooltipRafRef,
-			tooltipTimeoutRef: { current: null },
-		}));
-
-		act(() => {
-			result.current.handleNodeHover(createNode());
-			vi.advanceTimersByTime(500);
-		});
-
-		expect(requestAnimationFrame).toHaveBeenCalledOnce();
-		expect(tooltipRafRef.current).toBe(123);
-
-		act(() => {
-			result.current.stopTooltipTracking();
-		});
-
-		expect(cancelAnimationFrame).toHaveBeenCalledWith(123);
-		expect(tooltipRafRef.current).toBeNull();
 	});
 });

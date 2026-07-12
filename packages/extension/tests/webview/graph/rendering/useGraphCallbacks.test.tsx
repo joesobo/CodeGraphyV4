@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react';
-import type { LinkObject,NodeObject } from 'react-force-graph-2d';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FGLink,FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
@@ -98,7 +97,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates nodeCanvasObject to renderNodeCanvas with graph refs and plugin wiring', () => {
-      const node = { id: 'node-1' } as FGNode as NodeObject;
+      const node = { id: 'node-1' } as FGNode;
       const ctx = { canvas: document.createElement('canvas') } as CanvasRenderingContext2D;
       const { pluginHost, refs, result, triggerImageRerender } = renderUseGraphCallbacks();
 
@@ -119,7 +118,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates nodePointerAreaPaint to paintNodePointerArea', () => {
-      const node = { id: 'node-1' } as FGNode as NodeObject;
+      const node = { id: 'node-1' } as FGNode;
       const ctx = { canvas: document.createElement('canvas') } as CanvasRenderingContext2D;
       const { result } = renderUseGraphCallbacks();
 
@@ -131,7 +130,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates linkCanvasObject to renderBidirectionalLink with link rendering refs', () => {
-      const link = { source: 'node-1', target: 'node-2' } as FGLink as LinkObject;
+      const link = { source: 'node-1', target: 'node-2' } as FGLink;
       const ctx = { canvas: document.createElement('canvas') } as CanvasRenderingContext2D;
       const { refs, result } = renderUseGraphCallbacks();
 
@@ -149,7 +148,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates getLinkColor to getGraphLinkColor and returns its result', () => {
-      const link = { source: 'node-1', target: 'node-2' } as FGLink as LinkObject;
+      const link = { source: 'node-1', target: 'node-2' } as FGLink;
       renderingHarness.getGraphLinkColor.mockReturnValue('#336699');
       const { refs, result } = renderUseGraphCallbacks();
 
@@ -168,7 +167,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates getLinkParticles to getGraphLinkParticles and returns its result', () => {
-      const link = { source: 'node-1', target: 'node-2' } as FGLink as LinkObject;
+      const link = { source: 'node-1', target: 'node-2' } as FGLink;
       renderingHarness.getGraphLinkParticles.mockReturnValue(4);
       const { refs, result } = renderUseGraphCallbacks();
 
@@ -187,7 +186,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
 
 
     it('delegates getArrowRelPos to getGraphArrowRelPos and returns its result', () => {
-      const link = { source: 'node-1', target: 'node-2' } as LinkObject;
+      const link = { source: 'node-1', target: 'node-2' } as FGLink;
       renderingHarness.getGraphArrowRelPos.mockReturnValue(0.42);
       const { result } = renderUseGraphCallbacks();
 
@@ -203,7 +202,7 @@ describe('graph/rendering/useGraphCallbacks', () => {
       renderingHarness.getGraphDirectionalColor.mockReturnValue('#aabbcc');
       const { refs, result } = renderUseGraphCallbacks();
 
-      const color = result.current.getArrowColor({} as LinkObject);
+      const color = result.current.getArrowColor({} as FGLink);
 
       expect(color).toBe('#aabbcc');
       expect(renderingHarness.getGraphDirectionalColor).toHaveBeenCalledWith({

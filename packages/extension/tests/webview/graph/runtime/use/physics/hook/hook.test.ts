@@ -1,130 +1,40 @@
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  syncPhysicsAnimation,
-  usePhysicsRuntime,
-} from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook';
+import { describe, expect, it } from 'vitest';
+import { ownedLayout } from '../../../ownedPhysicsFixture';
 
-const {
-  usePhysicsRuntimeInit,
-  usePhysicsRuntimeLayoutKey,
-  usePhysicsRuntimeLayoutReset,
-  usePhysicsRuntimePause,
-  usePhysicsRuntimeUpdates,
-} = vi.hoisted(() => ({
-  usePhysicsRuntimeInit: vi.fn(),
-  usePhysicsRuntimeLayoutKey: vi.fn(),
-  usePhysicsRuntimeLayoutReset: vi.fn(),
-  usePhysicsRuntimePause: vi.fn(),
-  usePhysicsRuntimeUpdates: vi.fn(),
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/use/physics/hook/init', () => ({
-  usePhysicsRuntimeInit,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/use/physics/hook/layout', () => ({
-  usePhysicsRuntimeLayoutKey,
-  usePhysicsRuntimeLayoutReset,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/use/physics/hook/pause', () => ({
-  usePhysicsRuntimePause,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/use/physics/hook/updates', () => ({
-  usePhysicsRuntimeUpdates,
-}));
-
-describe('webview/graph/runtime/use/physics/hook', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe('owned physics controls', () => {
+  it('starts in the default running state', () => {
+    expect(ownedLayout().engine.tick(1000 / 60).steps).toBeGreaterThan(0);
   });
 
-  it('seeds the physics hook helpers with default paused state', () => {
-    const fg2dRef = { current: undefined };
-    const physicsSettings = { charge: -120 } as never;
-
-    renderHook(() => usePhysicsRuntime({
-      fg2dRef: fg2dRef as never,
-      layoutKey: 'layout',
-      physicsSettings,
-    }));
-
-    expect(usePhysicsRuntimePause).toHaveBeenCalledWith(expect.objectContaining({
-      physicsPaused: false,
-    }));
-    expect(usePhysicsRuntimeInit).toHaveBeenCalledWith(expect.objectContaining({
-      physicsPaused: false,
-      physicsSettingsRef: expect.objectContaining({ current: physicsSettings }),
-    }));
+  it('honors explicit pause state', () => {
+    const engine = ownedLayout().engine;
+    engine.pause();
+    expect(engine.tick(1000 / 60).steps).toBe(0);
   });
 
-  it('forwards explicit pause state', () => {
-    const fg2dRef = { current: undefined };
-
-    renderHook(() => usePhysicsRuntime({
-      fg2dRef: fg2dRef as never,
-      layoutKey: 'layout',
-      physicsPaused: true,
-      physicsSettings: {} as never,
-    }));
-
-    expect(usePhysicsRuntimeUpdates).toHaveBeenCalledWith(expect.objectContaining({
-      fg2dRef,
-    }));
-    expect(usePhysicsRuntimeLayoutKey).toHaveBeenCalledWith(expect.objectContaining({
-      physicsPaused: true,
-    }));
-  });
-
-  it('pauses and reheats the graph animation', () => {
-    const instance = {
-      d3ReheatSimulation: vi.fn(),
-      pauseAnimation: vi.fn(),
-      resumeAnimation: vi.fn(),
-    };
-
-    syncPhysicsAnimation(instance, true);
-
-    expect(instance.pauseAnimation).toHaveBeenCalledOnce();
-    expect(instance.resumeAnimation).not.toHaveBeenCalled();
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
+  it('pauses and reheats without advancing while paused', () => {
+    const engine = ownedLayout().engine;
+    engine.pause();
+    engine.reheat();
+    expect(engine.settled).toBe(false);
+    expect(engine.tick(1000 / 60).steps).toBe(0);
   });
 
   it('resumes and reheats the graph animation', () => {
-    const instance = {
-      d3ReheatSimulation: vi.fn(),
-      pauseAnimation: vi.fn(),
-      resumeAnimation: vi.fn(),
-    };
-
-    syncPhysicsAnimation(instance, false);
-
-    expect(instance.pauseAnimation).not.toHaveBeenCalled();
-    expect(instance.resumeAnimation).toHaveBeenCalledOnce();
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
+    const engine = ownedLayout().engine;
+    engine.pause();
+    engine.resume();
+    engine.reheat();
+    expect(engine.tick(1000 / 60).steps).toBeGreaterThan(0);
   });
 
-  it('reheats the graph animation even when pause controls are missing', () => {
-    const instance = {
-      d3ReheatSimulation: vi.fn(),
-    };
-
-    expect(() => syncPhysicsAnimation(instance, true)).not.toThrow();
-    expect(() => syncPhysicsAnimation(instance, false)).not.toThrow();
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledTimes(2);
+  it('reheats through the required owned engine contract', () => {
+    const engine = ownedLayout().engine;
+    expect(() => engine.reheat()).not.toThrow();
   });
 
-  it('does not throw when the graph cannot reheat', () => {
-    const instance = {
-      pauseAnimation: vi.fn(),
-      resumeAnimation: vi.fn(),
-    };
-
-    expect(() => syncPhysicsAnimation(instance, true)).not.toThrow();
-    expect(() => syncPhysicsAnimation(instance, false)).not.toThrow();
-    expect(instance.pauseAnimation).toHaveBeenCalledOnce();
-    expect(instance.resumeAnimation).toHaveBeenCalledOnce();
+  it('rejects invalid reheat alpha instead of silently hiding a broken control', () => {
+    const engine = ownedLayout().engine;
+    expect(() => engine.reheat(0)).toThrow('reheat alpha must be positive');
   });
 });

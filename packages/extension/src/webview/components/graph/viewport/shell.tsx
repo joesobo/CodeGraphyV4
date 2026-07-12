@@ -64,10 +64,7 @@ export function GraphViewportShell({
   });
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
-    callbacks,
-    graphDataLayoutKey,
     graphState,
-    graphViewContributions,
     pluginHost,
     theme,
     viewState,
@@ -155,6 +152,7 @@ export function GraphViewportShell({
   const surfaceProps = createGraphViewportSurfaceProps({
     callbacks,
     graphState,
+    graphViewContributions,
     onRenderFramePost: handleRenderFramePost,
     sharedProps: viewportModel.sharedProps,
     viewState,

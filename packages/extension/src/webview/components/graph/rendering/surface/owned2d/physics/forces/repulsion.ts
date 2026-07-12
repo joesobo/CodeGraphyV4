@@ -1,7 +1,7 @@
 import type { GraphLayoutConfig, GraphLayoutState } from '../contracts';
 import { deterministicDirection } from '../initialization';
 import type { UniformGrid } from '../spatialGrid';
-import { applyVelocityPair, isNodeHidden } from './velocity';
+import { isNodeHidden, isNodePinned } from './velocity';
 
 export function applyRepulsionForces(
   state: GraphLayoutState,
@@ -39,11 +39,20 @@ function applyRepulsionPair(
     config.maximumSpeed,
     (-config.gravitationalConstant * alpha) / Math.max(distanceSquared, 25),
   );
-  applyVelocityPair(
-    state,
-    first,
-    second,
-    -(dx / distance) * repelImpulse,
-    -(dy / distance) * repelImpulse,
-  );
+  const directionX = dx / distance;
+  const directionY = dy / distance;
+  const firstMultiplier = isNodePinned(state, first)
+    ? 0
+    : state.chargeStrengthMultipliers[first];
+  const secondMultiplier = isNodePinned(state, second)
+    ? 0
+    : state.chargeStrengthMultipliers[second];
+  if (!isNodePinned(state, first)) {
+    state.vx[first] -= directionX * repelImpulse * secondMultiplier;
+    state.vy[first] -= directionY * repelImpulse * secondMultiplier;
+  }
+  if (!isNodePinned(state, second)) {
+    state.vx[second] += directionX * repelImpulse * firstMultiplier;
+    state.vy[second] += directionY * repelImpulse * firstMultiplier;
+  }
 }

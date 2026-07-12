@@ -38,19 +38,24 @@ export interface GraphBenchmarkDriver {
   ): ReturnType<typeof runCurrentRendererSyntheticDrag>;
 }
 
-const currentRendererDriver: GraphBenchmarkDriver = {
-  renderer: 'current',
-  startServer: fixture => startGraphBenchmarkServer(fixture, 'current'),
-  waitForSettlement: waitForCurrentRendererSettlement,
-  measureHeapAfterSettlement: measureCurrentRendererHeapAfterSettlement,
-  runSyntheticDrag: runCurrentRendererSyntheticDrag,
-};
+function createRendererDriver(renderer: BenchmarkRenderer): GraphBenchmarkDriver {
+  return {
+    renderer,
+    startServer: fixture => startGraphBenchmarkServer(fixture, renderer),
+    waitForSettlement: waitForCurrentRendererSettlement,
+    measureHeapAfterSettlement: measureCurrentRendererHeapAfterSettlement,
+    runSyntheticDrag: runCurrentRendererSyntheticDrag,
+  };
+}
+
+const currentRendererDriver = createRendererDriver('current');
+const webGpuRendererDriver = createRendererDriver('webgpu');
 
 export function resolveGraphBenchmarkDriver(renderer: BenchmarkRenderer): GraphBenchmarkDriver {
   switch (renderer) {
     case 'current':
       return currentRendererDriver;
     case 'webgpu':
-      throw new Error('Renderer is not available yet: webgpu');
+      return webGpuRendererDriver;
   }
 }

@@ -1,165 +1,43 @@
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/physics';
-import {
-  usePhysicsRuntimeLayoutKey,
-} from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/layout';
+import { describe, expect, it } from 'vitest';
+import { updateOwnedGraphLayout } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { DEFAULT_PHYSICS_SETTINGS, ownedLayout, ownedNode } from '../../../ownedPhysicsFixture';
 
-const physicsHarness = vi.hoisted(() => ({
-  applyPhysicsSettings: vi.fn(),
-  havePhysicsSettingsChanged: vi.fn(),
-  selectActivePhysicsGraph: vi.fn(),
-  syncPhysicsAnimation: vi.fn(),
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
-  applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
-  havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
-  syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
-  selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
-}));
-
-const SETTINGS: IPhysicsSettings = {
-  centerForce: 0.1,
-  damping: 0.7,
-  linkDistance: 120,
-  linkForce: 0.4,
-  repelForce: 500,
-};
-
-describe('webview/graph/runtime/use/physics/layout', () => {
-  beforeEach(() => {
-    physicsHarness.applyPhysicsSettings.mockReset();
-    physicsHarness.havePhysicsSettingsChanged.mockReset();
-    physicsHarness.selectActivePhysicsGraph.mockReset();
-    physicsHarness.syncPhysicsAnimation.mockReset();
+describe('owned physics layout updates', () => {
+  it('reheats when the topology changes', () => {
+    const layout = ownedLayout();
+    const nodes = [ownedNode('a'), ownedNode('b')];
+    updateOwnedGraphLayout(layout, nodes, [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine.nodeIds).toEqual(['a', 'b']);
+    expect(layout.engine.settled).toBe(false);
   });
 
-  it('reapplies settings when the layout key changes after initialization', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
+  it('updates a running layout without pausing it', () => {
+    const layout = ownedLayout();
+    updateOwnedGraphLayout(layout, [ownedNode('a', { color: '#f00' })], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine.tick(1000 / 60).steps).toBeGreaterThan(0);
+  });
 
-    const refs = {
-      fg2dRef: { current: graph },
-      layoutKey: 'layout:a',
-      physicsPaused: true,
-      physicsInitialisedRef: { current: true },
-      physicsSettingsRef: { current: SETTINGS },
-      previousLayoutKeyRef: { current: null as string | null },
-      previousPhysicsRef: { current: null as IPhysicsSettings | null },
-    };
+  it('captures the initial layout without an extra engine', () => {
+    const layout = ownedLayout();
+    expect(layout.engine.nodeIds).toEqual(layout.nodes.map(node => node.id));
+  });
 
-    const { rerender } = renderHook(
-      ({ layoutKey }: { layoutKey: string }) => usePhysicsRuntimeLayoutKey({
-        ...refs,
-        layoutKey,
-      }),
-      { initialProps: { layoutKey: 'layout:a' } },
+  it('does not rebuild physics for metadata-only updates', () => {
+    const layout = ownedLayout();
+    const engine = layout.engine;
+    updateOwnedGraphLayout(layout, [ownedNode('a', { color: '#f00' })], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine).toBe(engine);
+  });
+
+  it('preserves node positions while applying topology updates', () => {
+    const layout = ownedLayout([ownedNode('a', { x: 30, y: 40 })]);
+    updateOwnedGraphLayout(
+      layout,
+      [ownedNode('a'), ownedNode('b', { x: 50, y: 60 })],
+      [],
+      DEFAULT_PHYSICS_SETTINGS,
     );
-
-    rerender({ layoutKey: 'layout:b' });
-
-    expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledWith(graph, SETTINGS);
-    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
-  });
-
-  it('reapplies settings without pausing when physics is not paused', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    const refs = {
-      fg2dRef: { current: graph },
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsInitialisedRef: { current: true },
-      physicsSettingsRef: { current: SETTINGS },
-      previousLayoutKeyRef: { current: null as string | null },
-      previousPhysicsRef: { current: null as IPhysicsSettings | null },
-    };
-
-    const { rerender } = renderHook(
-      ({ layoutKey }: { layoutKey: string }) => usePhysicsRuntimeLayoutKey({
-        ...refs,
-        layoutKey,
-      }),
-      { initialProps: { layoutKey: 'layout:a' } },
-    );
-
-    rerender({ layoutKey: 'layout:b' });
-
-    expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledWith(graph, SETTINGS);
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-  });
-
-  it('captures the first layout key without reapplying settings', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    const refs = {
-      fg2dRef: { current: graph },
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsInitialisedRef: { current: true },
-      physicsSettingsRef: { current: SETTINGS },
-      previousLayoutKeyRef: { current: null as string | null },
-      previousPhysicsRef: { current: null as IPhysicsSettings | null },
-    };
-
-    renderHook(() => usePhysicsRuntimeLayoutKey(refs));
-
-    expect(refs.previousLayoutKeyRef.current).toBe('layout:a');
-    expect(physicsHarness.applyPhysicsSettings).not.toHaveBeenCalled();
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-  });
-
-  it('does not reapply settings when the layout key stays the same', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    const refs = {
-      fg2dRef: { current: graph },
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsInitialisedRef: { current: true },
-      physicsSettingsRef: { current: SETTINGS },
-      previousLayoutKeyRef: { current: 'layout:a' as string | null },
-      previousPhysicsRef: { current: null as IPhysicsSettings | null },
-    };
-
-    const { rerender } = renderHook(
-      ({ layoutKey }: { layoutKey: string }) => usePhysicsRuntimeLayoutKey({
-        ...refs,
-        layoutKey,
-      }),
-      { initialProps: { layoutKey: 'layout:a' } },
-    );
-
-    rerender({ layoutKey: 'layout:a' });
-
-    expect(physicsHarness.applyPhysicsSettings).not.toHaveBeenCalled();
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-  });
-
-  it('does not reapply settings when the graph is present but not initialized', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    const refs = {
-      fg2dRef: { current: graph },
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsInitialisedRef: { current: false },
-      physicsSettingsRef: { current: SETTINGS },
-      previousLayoutKeyRef: { current: null as string | null },
-    };
-
-    renderHook(() => usePhysicsRuntimeLayoutKey(refs));
-
-    expect(physicsHarness.applyPhysicsSettings).not.toHaveBeenCalled();
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-    expect(refs.previousLayoutKeyRef.current).toBeNull();
+    expect(Array.from(layout.engine.x)).toEqual([30, 50]);
+    expect(Array.from(layout.engine.y)).toEqual([40, 60]);
   });
 });

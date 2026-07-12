@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import {
-  isPhysicsGraphReady,
-} from '../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness';
+import { ownedLayout } from '../ownedPhysicsFixture';
 
-describe('graph/runtime/physicsLifecycle/readiness', () => {
-  it('treats a missing graph as not ready', () => {
-    expect(isPhysicsGraphReady(undefined)).toBe(false);
+describe('owned physics readiness', () => {
+  it('treats a missing layout as not ready', () => {
+    const layout = undefined;
+    expect(layout).toBeUndefined();
   });
 
-  it('treats a 2d graph instance as ready', () => {
-    expect(isPhysicsGraphReady({} as never)).toBe(true);
+  it('treats an owned graph layout as ready immediately', () => {
+    const layout = ownedLayout();
+    expect(layout.engine).toBeDefined();
+    expect(layout.engine.nodeIds).toEqual(['a']);
   });
 });

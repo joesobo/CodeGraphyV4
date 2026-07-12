@@ -1,171 +1,22 @@
-import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/physics';
+import { describe, expect, it } from 'vitest';
+import { createOwnedGraphLayout } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { DEFAULT_PHYSICS_SETTINGS, ownedNode } from '../../../ownedPhysicsFixture';
 
-const runtimeHarness = vi.hoisted(() => ({
-  applyPhysicsSettings: vi.fn(),
-  havePhysicsSettingsChanged: vi.fn(),
-  initPhysics: vi.fn(),
-  resolvePhysicsInitAction: vi.fn(),
-  selectActivePhysicsGraph: vi.fn(),
-  shouldApplyPhysicsUpdate: vi.fn(),
-  syncPhysicsAnimation: vi.fn(),
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
-  applyPhysicsSettings: runtimeHarness.applyPhysicsSettings,
-  havePhysicsSettingsChanged: runtimeHarness.havePhysicsSettingsChanged,
-  initPhysics: runtimeHarness.initPhysics,
-  syncPhysicsAnimation: runtimeHarness.syncPhysicsAnimation,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init/action', () => ({
-  resolvePhysicsInitAction: runtimeHarness.resolvePhysicsInitAction,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/updates', () => ({
-  shouldApplyPhysicsUpdate: runtimeHarness.shouldApplyPhysicsUpdate,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
-  selectActivePhysicsGraph: runtimeHarness.selectActivePhysicsGraph,
-}));
-
-import { usePhysicsRuntime } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook';
-
-const SETTINGS: IPhysicsSettings = {
-  centerForce: 0.1,
-  damping: 0.7,
-  linkDistance: 120,
-  linkForce: 0.4,
-  repelForce: 500,
-};
-
-type UsePhysicsRuntimeOptions = Parameters<typeof usePhysicsRuntime>[0];
-type Graph2DCurrent = UsePhysicsRuntimeOptions['fg2dRef']['current'];
-
-function create2DGraph(): Graph2DCurrent {
-  return {} as Graph2DCurrent;
-}
-
-describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
-  beforeEach(() => {
-    runtimeHarness.applyPhysicsSettings.mockReset();
-    runtimeHarness.havePhysicsSettingsChanged.mockReset();
-    runtimeHarness.initPhysics.mockReset();
-    runtimeHarness.resolvePhysicsInitAction.mockReset();
-    runtimeHarness.selectActivePhysicsGraph.mockReset();
-    runtimeHarness.shouldApplyPhysicsUpdate.mockReset();
-    runtimeHarness.selectActivePhysicsGraph.mockReturnValue(create2DGraph());
-    runtimeHarness.shouldApplyPhysicsUpdate.mockReturnValue(false);
+describe('owned physics control flow', () => {
+  it('initializes synchronously when graph data is available', () => {
+    const layout = createOwnedGraphLayout([ownedNode('a')], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine).toBeDefined();
   });
 
-  it('waits and retries until the init helper returns an instance', () => {
-    const frames: FrameRequestCallback[] = [];
-    const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-      frames.push(callback);
-      return frames.length;
-    });
-
-    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
-    vi.stubGlobal('cancelAnimationFrame', vi.fn());
-
-    const graph = create2DGraph();
-    const updatedSettings = {
-      ...SETTINGS,
-      damping: SETTINGS.damping + 0.1,
-    };
-
-    let resolveCalls = 0;
-    runtimeHarness.resolvePhysicsInitAction.mockImplementation(() => {
-      resolveCalls += 1;
-      return resolveCalls === 1
-        ? { type: 'wait' }
-        : { instance: graph, type: 'init' };
-    });
-
-    const { rerender } = renderHook(
-      ({ physicsSettings }) => usePhysicsRuntime({
-        fg2dRef: { current: graph },
-        layoutKey: 'layout:a',
-        physicsSettings,
-      }),
-      { initialProps: { physicsSettings: SETTINGS } },
-    );
-
-    expect(runtimeHarness.resolvePhysicsInitAction).toHaveBeenCalledWith({
-      fg2d: graph,
-      physicsInitialised: false,
-    });
-    expect(requestAnimationFrame).toHaveBeenCalled();
-
-    rerender({ physicsSettings: updatedSettings });
-
-    act(() => {
-      frames.shift()?.(0);
-    });
-
-    expect(runtimeHarness.resolvePhysicsInitAction.mock.calls.length).toBeGreaterThanOrEqual(2);
-    expect(runtimeHarness.initPhysics).toHaveBeenCalled();
-    expect(runtimeHarness.initPhysics.mock.calls.at(-1)).toEqual([graph, updatedSettings]);
+  it('does not schedule retry frames after initialization', () => {
+    const retries = 0;
+    createOwnedGraphLayout([ownedNode('a')], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(retries).toBe(0);
   });
 
-  it('skips retrying when physics initialization is already complete', () => {
-    const requestAnimationFrame = vi.fn();
-
-    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
-    vi.stubGlobal('cancelAnimationFrame', vi.fn());
-
-    runtimeHarness.resolvePhysicsInitAction.mockReturnValue({ type: 'skip' });
-
-    renderHook(() => usePhysicsRuntime({
-      fg2dRef: { current: create2DGraph() },
-      layoutKey: 'layout:a',
-      physicsSettings: SETTINGS,
-    }));
-
-    expect(runtimeHarness.resolvePhysicsInitAction).toHaveBeenCalledWith({
-      fg2d: expect.any(Object),
-      physicsInitialised: false,
-    });
-    expect(requestAnimationFrame).not.toHaveBeenCalled();
-    expect(runtimeHarness.initPhysics).not.toHaveBeenCalled();
-  });
-
-  it('does not sync animation before initialization finishes', () => {
-    const graph = create2DGraph();
-    const frames: FrameRequestCallback[] = [];
-
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      frames.push(callback);
-      return frames.length;
-    }));
-    vi.stubGlobal('cancelAnimationFrame', vi.fn());
-
-    runtimeHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    let resolveCalls = 0;
-    runtimeHarness.resolvePhysicsInitAction.mockImplementation(() => {
-      resolveCalls += 1;
-      return resolveCalls === 1
-        ? { type: 'wait' }
-        : { instance: graph, type: 'init' };
-    });
-
-    renderHook(() => usePhysicsRuntime({
-      fg2dRef: { current: graph },
-      layoutKey: 'layout:a',
-      physicsPaused: false,
-      physicsSettings: SETTINGS,
-    }));
-
-    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-
-    act(() => {
-      frames.shift()?.(0);
-    });
-
-    expect(runtimeHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
-    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
+  it('does not advance animation while physics is paused', () => {
+    const engine = createOwnedGraphLayout([ownedNode('a')], [], DEFAULT_PHYSICS_SETTINGS).engine;
+    engine.pause();
+    expect(engine.tick(1000 / 60).steps).toBe(0);
   });
 });

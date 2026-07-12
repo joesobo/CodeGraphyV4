@@ -3,12 +3,12 @@ import type { GraphLayoutConfig } from './contracts';
 export const BASE_FRAME_MS = 1000 / 60;
 
 export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
-  alphaDecay: 0.05,
+  alphaDecay: 0.12,
   alphaMinimum: 0.001,
   centralGravity: 0.1,
-  collisionIterations: 1,
-  collisionPadding: 2,
-  collisionStrength: 0.7,
+  collisionIterations: 4,
+  collisionPadding: 0,
+  collisionStrength: 1,
   constraintForce: 0.12,
   damping: 0.7,
   fixedTimeStepMs: BASE_FRAME_MS,

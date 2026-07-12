@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view/component';
+import { toOwnedPhysicsConfig } from '../../../src/webview/components/graph/rendering/surface/owned2d/layout';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph2D from '../../__mocks__/ownedGraphSurface';
 import { getSentMessages } from '../../helpers/sentMessages';
 
 const mockData: IGraphData = {
@@ -42,7 +43,7 @@ function setStore(overrides: Record<string, unknown> = {}) {
   });
 }
 
-describe('Graph: force-graph rendering', () => {
+describe('Graph: owned WebGPU rendering', () => {
   const mockMethods = ForceGraph2D.getMockMethods();
 
   beforeEach(() => {
@@ -51,12 +52,12 @@ describe('Graph: force-graph rendering', () => {
     setStore();
   });
 
-  it('renders ForceGraph2D in 2D mode (default)', () => {
+  it('renders the owned WebGPU renderer', () => {
     const { getByTestId } = render(<Graph data={mockData} />);
-    expect(getByTestId('force-graph-2d')).toBeInTheDocument();
+    expect(getByTestId('owned-webgpu-graph')).toBeInTheDocument();
   });
 
-  it('passes graphData with correct node and link counts to ForceGraph2D', () => {
+  it('passes graphData with correct node and link counts to the owned graph surface', () => {
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.graphData).toBeDefined();
@@ -64,116 +65,45 @@ describe('Graph: force-graph rendering', () => {
     expect(props.graphData.links).toHaveLength(1);
   });
 
-  it('disables arrow when directionMode=none', () => {
+  it('disables directional rendering when directionMode=none', () => {
     setStore({ directionMode: 'none' });
     render(<Graph data={mockData} />);
-    const props = ForceGraph2D.getLastProps();
-    expect(props.linkDirectionalArrowLength).toBe(0);
+    expect(ForceGraph2D.getLastProps().directionMode).toBe('none');
   });
 
-  it('enables arrow when directionMode=arrows (default)', () => {
+  it('enables WebGPU arrows when directionMode=arrows', () => {
     setStore({ directionMode: 'arrows' });
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
-    expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
-    expect(props.linkDirectionalArrowRelPos).toBe(1);
-    expect(props.nodeRelSize).toBe(1);
-    expect(props.nodeVal({ size: 10 })).toBe(100);
+    expect(props.directionMode).toBe('arrows');
+    expect(props.graphData.nodes[0]?.size).toBeGreaterThan(0);
   });
 
-  it('imperatively syncs 2D directional settings when mode changes', () => {
+  it('declaratively syncs directional settings when mode changes', () => {
     render(<Graph data={mockData} />);
-    mockMethods.linkDirectionalArrowLength.mockClear();
-    mockMethods.linkDirectionalArrowRelPos.mockClear();
-    mockMethods.linkDirectionalParticles.mockClear();
-    mockMethods.linkDirectionalParticleSpeed.mockClear();
-    mockMethods.d3ReheatSimulation.mockClear();
-
-    act(() => {
-      graphStore.setState({ directionMode: 'particles' });
-    });
-
-    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(0);
-    expect(mockMethods.linkDirectionalArrowRelPos).toHaveBeenLastCalledWith(1);
-    expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(expect.any(Function));
-    expect(mockMethods.linkDirectionalParticleSpeed).toHaveBeenLastCalledWith(0.005);
-    expect(mockMethods.d3ReheatSimulation).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      graphStore.setState({ directionMode: 'arrows' });
-    });
-
-    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(12);
-    expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
+    act(() => graphStore.setState({ directionMode: 'particles' }));
+    expect(ForceGraph2D.getLastProps().directionMode).toBe('particles');
+    expect(ForceGraph2D.getLastProps().particleSpeed).toBe(0.005);
+    act(() => graphStore.setState({ directionMode: 'arrows' }));
+    expect(ForceGraph2D.getLastProps().directionMode).toBe('arrows');
   });
 
-  it('draws bidirectional arrows when coordinates include 0', () => {
+  it('marks combined links as bidirectional for the WebGPU arrow pipeline', () => {
     setStore({ bidirectionalMode: 'combined', directionMode: 'arrows' });
     render(<Graph data={bidirectionalData} />);
-
-    const props = ForceGraph2D.getLastProps();
-    const drawLink = props.linkCanvasObject as (
-      link: unknown,
-      ctx: CanvasRenderingContext2D,
-      globalScale: number
-    ) => void;
-    const link = props.graphData.links.find((link: { bidirectional?: boolean }) => link.bidirectional);
-    expect(link).toBeTruthy();
-
-    const ctx = {
-      save: vi.fn(),
-      restore: vi.fn(),
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      closePath: vi.fn(),
-      stroke: vi.fn(),
-      fill: vi.fn(),
-      globalAlpha: 1,
-      lineWidth: 1,
-      strokeStyle: '#000',
-    } as unknown as CanvasRenderingContext2D;
-
-    drawLink(
-      {
-        ...link,
-        source: { id: 'a.ts', x: 0, y: 10, size: 10 },
-        target: { id: 'b.ts', x: 80, y: 10, size: 10 },
-      },
-      ctx,
-      1
-    );
-
-    expect(ctx.lineTo).toHaveBeenCalled();
+    expect(ForceGraph2D.getLastProps().graphData.links.some(link => link.bidirectional)).toBe(true);
   });
 
-  it('keeps default link renderer for non-bidirectional links', () => {
-    setStore({ directionMode: 'particles' });
+  it('keeps ordinary links non-bidirectional', () => {
     render(<Graph data={mockData} />);
-
-    const props = ForceGraph2D.getLastProps();
-    const link = props.graphData.links[0];
-    expect(link.bidirectional).not.toBe(true);
-    expect(props.linkCanvasObjectMode(link)).toBe('after');
+    expect(ForceGraph2D.getLastProps().graphData.links[0]?.bidirectional).toBe(false);
   });
 
-  it('replaces link renderer only for bidirectional arrows mode', () => {
+  it('preserves bidirectional metadata when direction mode changes', () => {
     setStore({ bidirectionalMode: 'combined', directionMode: 'arrows' });
     render(<Graph data={bidirectionalData} />);
-
-    let props = ForceGraph2D.getLastProps();
-    let link = props.graphData.links.find((link: { bidirectional?: boolean }) => link.bidirectional);
-    expect(link).toBeTruthy();
-    expect(props.linkCanvasObjectMode(link)).toBe('replace');
-
-    act(() => {
-      graphStore.setState({ directionMode: 'particles' });
-    });
-
-    props = ForceGraph2D.getLastProps();
-    link = props.graphData.links.find((link: { bidirectional?: boolean }) => link.bidirectional);
-    expect(link).toBeTruthy();
-    expect(props.linkCanvasObjectMode(link)).toBe('after');
+    act(() => graphStore.setState({ directionMode: 'particles' }));
+    expect(ForceGraph2D.getLastProps().graphData.links.some(link => link.bidirectional)).toBe(true);
   });
 
   it('passes d3VelocityDecay from physicsSettings.damping', () => {
@@ -188,10 +118,10 @@ describe('Graph: force-graph rendering', () => {
     });
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
-    expect(props.d3VelocityDecay).toBe(0.7);
+    expect(props.physicsSettings?.damping).toBe(0.7);
   });
 
-  it('uses per-node center pull forces (forceX/forceY) instead of centroid forceCenter', () => {
+  it('maps center pull into the owned per-node gravity force', () => {
     setStore({
       physicsSettings: {
         repelForce: 10,
@@ -202,10 +132,9 @@ describe('Graph: force-graph rendering', () => {
       },
     });
     render(<Graph data={mockData} />);
-
-    expect(mockMethods.d3Force).toHaveBeenCalledWith('forceX', expect.anything());
-    expect(mockMethods.d3Force).toHaveBeenCalledWith('forceY', expect.anything());
-    expect(mockMethods.d3Force).toHaveBeenCalledWith('center', null);
+    const settings = ForceGraph2D.getLastProps().physicsSettings;
+    expect(settings).toBeDefined();
+    expect(toOwnedPhysicsConfig(settings!).centralGravity).toBe(1);
   });
 
   it('sends PHYSICS_STABILIZED when onEngineStop fires', () => {
