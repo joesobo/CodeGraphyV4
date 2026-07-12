@@ -45,6 +45,7 @@ function parseHexChannel(value: string): number {
 
 export function parseWebGpuColor(color: string): [number, number, number, number] {
   const value = color.trim();
+  if (value.toLowerCase() === 'transparent') return [0, 0, 0, 0];
   const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])?$/i.exec(value);
   if (short) {
     return [

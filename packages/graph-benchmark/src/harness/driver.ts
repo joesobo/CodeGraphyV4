@@ -49,7 +49,20 @@ function createRendererDriver(renderer: BenchmarkRenderer): GraphBenchmarkDriver
 }
 
 const currentRendererDriver = createRendererDriver('current');
-const webGpuRendererDriver = createRendererDriver('webgpu');
+const webGpuRendererDriver: GraphBenchmarkDriver = {
+  ...createRendererDriver('webgpu'),
+  async waitForSettlement(page, url, timeoutMs) {
+    const result = await waitForCurrentRendererSettlement(page, url, timeoutMs);
+    const rendererStatus = await page.locator('[data-codegraphy-renderer]').getAttribute(
+      'data-codegraphy-renderer',
+    );
+    if (rendererStatus !== 'webgpu') {
+      const error = await page.getByTestId('graph-webgpu-error').textContent().catch(() => null);
+      throw new Error(`Owned WebGPU renderer did not initialize: ${error ?? rendererStatus ?? 'missing'}`);
+    }
+    return result;
+  },
+};
 
 export function resolveGraphBenchmarkDriver(renderer: BenchmarkRenderer): GraphBenchmarkDriver {
   switch (renderer) {
