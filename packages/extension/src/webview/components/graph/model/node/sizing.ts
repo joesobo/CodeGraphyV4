@@ -16,8 +16,8 @@ export function calculateNodeSizes(
   mode: NodeSizeMode
 ): Map<string, number> {
   if (mode === 'connections') return computeConnectionSizes(nodes, edges);
-  if (mode === 'churn') return computeChurnSizes(nodes);
   if (mode === 'file-size') return computeFileSizeSizes(nodes);
+  if (mode === 'churn') return computeChurnSizes(nodes);
 
   // 'uniform' and any unrecognized mode both use the default node size
   const sizes = new Map<string, number>();

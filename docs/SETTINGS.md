@@ -33,7 +33,6 @@ Common top-level sections include:
 - `cssSnippets`
 - `plugins`
 - `physics`
-- `timeline`
 
 Example:
 
@@ -108,7 +107,6 @@ Example:
 | `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
 | `edgeColors` | object | generated | Edge-kind colors by id |
 | `physics.*` | object | see file | Force simulation controls |
-| `timeline.*` | object | see file | Timeline indexing/playback controls |
 
 ## CSS Snippets
 
@@ -152,17 +150,15 @@ Common hooks:
 
 | Hook | Values | Surface |
 |------|--------|---------|
-| `data-codegraphy-view` | `graph`, `timeline` | Webview body |
-| `data-codegraphy-surface` | `app`, `graph-view`, `graph-stage`, `timeline-view` | Main view surfaces |
+| `data-codegraphy-surface` | `app`, `graph-view`, `graph-stage` | Main view surfaces |
 | `data-codegraphy-layer` | `graph-overlay`, `graph-stage-world-overlay`, `graph-stage-viewport-overlay`, `graph-accessibility` | Graph overlay layers |
-| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `timeline-track-shell`, `timeline-track`, `timeline-axis`, `timeline-playback-buttons`, `timeline-current-date`, `graph-index-progress-track`, `graph-index-progress-fill`, `timeline-progress-track`, `timeline-progress-fill` | Reusable regions inside views and panels |
-| `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings`, `timeline`, `timeline-summary`, `timeline-commits` | Panels |
-| `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs`, `timeline-playback`, `timeline-track` | Interactive controls |
+| `data-codegraphy-region` | `search-header`, `active-file-breadcrumb`, `graph-tool-rail`, `graph-panel-stack`, `graph-corner-controls`, `panel-header`, `panel-body`, `settings-sections`, `theme-sections`, `legend-sections`, `toolbar-actions`, `toolbar-lifecycle`, `toolbar-graph-tools`, `toolbar-system`, `graph-index-progress-track`, `graph-index-progress-fill` | Reusable regions inside views and panels |
+| `data-codegraphy-panel` | `filters`, `graph-scope`, `themes`, `plugins`, `settings` | Panels |
+| `data-codegraphy-control` | `search`, `search-field`, `search-options`, `graph-toolbar`, `display-modes`, `display-depth`, `graph-scope-tabs` | Interactive controls |
 | `data-codegraphy-section` | `particles`, `legends`, `css-snippets`, `settings-display`, `settings-forces`, `settings-performance`, `settings-export` | Settings and theme sections |
-| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `theme-panel`, `toolbar`, `timeline-panel` | Plugin contribution slots |
-| `data-codegraphy-state` | `loading`, `empty`, `graph-indexing`, `timeline-indexing`, `timeline-ready-to-index` | View states |
-| `data-codegraphy-row` | `plugin`, `css-snippet`, `timeline-commit`, `display-renderer`, `display-direction`, `display-bidirectional` | Repeated rows |
-| `data-codegraphy-marker` | `timeline-commit`, `timeline-current-commit` | Timeline markers |
+| `data-codegraphy-slot` | `graph-panel`, `node-details`, `graph-toolbar`, `theme-panel`, `toolbar` | Plugin contribution slots |
+| `data-codegraphy-state` | `loading`, `empty`, `graph-indexing` | View states |
+| `data-codegraphy-row` | `plugin`, `css-snippet`, `display-direction`, `display-bidirectional` | Repeated rows |
 
 Example:
 
@@ -235,15 +231,6 @@ Node Type rows are capability-driven:
 - Before a workspace has indexed file paths and Node Type capabilities, Graph Scope shows only structural Node Types.
 
 Edge Type rows follow the same workspace-capability model. Active analyzers and plugins declare which Edge Types are relevant for all indexed files in the workspace, so mixed-language workspaces show the union of relevant controls while single-language workspaces hide impossible controls.
-
-## Timeline settings
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `timeline.maxCommits` | number | `500` | Maximum commits to index (10-5000) |
-| `timeline.playbackSpeed` | number | `1.0` | Playback speed multiplier (0.1-10.0) |
-
-Timeline indexing also respects the workspace-local filter and plugin settings. See [Timeline](./TIMELINE.md) for details.
 
 ## Plugin settings
 

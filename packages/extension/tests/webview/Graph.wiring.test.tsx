@@ -112,7 +112,6 @@ function createGraphState(graphData: IGraphData = baseData) {
 		},
 		showLabelsRef: { current: true },
 		themeRef: { current: 'dark' },
-		timelineActiveRef: { current: false },
 	} as unknown as GraphRuntime;
 }
 
@@ -181,7 +180,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
 		},
 		pluginContextMenuItems: [],
 		showLabels: true,
-		timelineActive: false,
 		...overrides,
 	});
 }
@@ -229,7 +227,6 @@ describe('Graph wiring', () => {
 			particleSize: 7,
 			particleSpeed: 0.35,
 			showLabels: false,
-			timelineActive: true,
 		});
 
 		render(<Graph data={baseData} theme="light" />);
@@ -241,7 +238,6 @@ describe('Graph wiring', () => {
 			nodeSizeMode: 'file-size',
 			showLabels: false,
 			theme: 'light',
-			timelineActive: true,
 		}));
 		expect(harness.useGraphInteractionRuntime).toHaveBeenCalledWith(expect.objectContaining({
 			depthMode: true,
@@ -270,7 +266,6 @@ describe('Graph wiring', () => {
 				particleSize: 7,
 				particleSpeed: 0.35,
 				showLabels: false,
-				timelineActive: true,
 				}),
 			}));
 	});

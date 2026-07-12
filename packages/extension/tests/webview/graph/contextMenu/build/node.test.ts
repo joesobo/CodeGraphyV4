@@ -37,32 +37,22 @@ const immutableFolderLabels = [
   'Delete Folder',
 ];
 
-const immutableFolderDisabledLabels = [
-  'New File',
-  'New Folder',
-  'Rename Folder',
-  'Delete Folder',
-];
-
 describe('graph/contextMenu/build/node', () => {
-  it('builds disabled folder mutation actions when the Graph Revision is immutable', () => {
+  it('builds enabled folder mutation actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),
-      timelineActive: true,
-      mutationAvailability: 'disabled',
       favorites: new Set(),
       pluginItems: [],
       nodes: [{ id: 'src', nodeType: 'folder' }],
     });
 
     expect(itemLabels(entries)).toEqual(immutableFolderLabels);
-    expect(disabledLabels(entries)).toEqual(immutableFolderDisabledLabels);
+    expect(disabledLabels(entries)).toEqual([]);
   });
 
   it('builds single-file node actions from inferred file targets', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set()),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     });
@@ -74,7 +64,6 @@ describe('graph/contextMenu/build/node', () => {
   it('builds child creation actions from a single folder context', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       nodes: [{ id: 'src', nodeType: 'folder' }],
@@ -87,7 +76,6 @@ describe('graph/contextMenu/build/node', () => {
   it('builds multi-file node actions from the selected targets', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts'])),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     });
@@ -105,7 +93,6 @@ describe('graph/contextMenu/build/node', () => {
   it('keeps mixed selections with plugin nodes on generic public actions', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src', 'plugin-node'])),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       nodes: [
@@ -127,7 +114,6 @@ describe('graph/contextMenu/build/node', () => {
   it('returns no entries for an empty node selection', () => {
     expect(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: [] },
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     })).toEqual([]);

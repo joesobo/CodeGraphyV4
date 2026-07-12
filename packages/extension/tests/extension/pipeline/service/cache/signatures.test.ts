@@ -1,9 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execGitCommand } from '../../../../../src/extension/gitHistory/exec';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
@@ -11,14 +10,18 @@ import {
   readWorkspacePipelineCurrentCommitShaSync,
 } from '../../../../../src/extension/pipeline/service/cache/signatures';
 
-vi.mock('../../../../../src/extension/gitHistory/exec', () => ({
-  execGitCommand: vi.fn(),
-}));
+function createGitWorkspace(): string {
+  const workspaceRoot = mkdtempSync(join(tmpdir(), 'codegraphy-signatures-'));
+  writeFileSync(join(workspaceRoot, 'tracked.txt'), 'tracked');
+  execFileSync('git', ['init'], { cwd: workspaceRoot });
+  execFileSync('git', ['config', 'user.name', 'CodeGraphy Tests'], { cwd: workspaceRoot });
+  execFileSync('git', ['config', 'user.email', 'tests@codegraphy.dev'], { cwd: workspaceRoot });
+  execFileSync('git', ['add', 'tracked.txt'], { cwd: workspaceRoot });
+  execFileSync('git', ['commit', '-m', 'initial'], { cwd: workspaceRoot });
+  return workspaceRoot;
+}
 
 describe('pipeline/service/cache/signatures', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
   it('fingerprints built-in plugin runtimes and npm package plugins with package versions', () => {
     const signature = createWorkspacePipelinePluginSignature([
@@ -116,28 +119,21 @@ describe('pipeline/service/cache/signatures', () => {
   });
 
   it('reads and trims the current commit sha asynchronously', async () => {
-    vi.mocked(execGitCommand).mockResolvedValue('abc123\n');
+    const workspaceRoot = createGitWorkspace();
+    const expectedSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: workspaceRoot,
+      encoding: 'utf8',
+    }).trim();
 
-    await expect(readWorkspacePipelineCurrentCommitSha('/workspace')).resolves.toBe('abc123');
-    expect(execGitCommand).toHaveBeenCalledWith(['rev-parse', 'HEAD'], {
-      workspaceRoot: '/workspace',
-    });
+    await expect(readWorkspacePipelineCurrentCommitSha(workspaceRoot)).resolves.toBe(expectedSha);
   });
 
   it('returns null when the asynchronous git sha read fails', async () => {
-    vi.mocked(execGitCommand).mockRejectedValue(new Error('git failed'));
-
-    await expect(readWorkspacePipelineCurrentCommitSha('/workspace')).resolves.toBeNull();
+    await expect(readWorkspacePipelineCurrentCommitSha('/path/that/does/not/exist')).resolves.toBeNull();
   });
 
   it('reads and trims the current commit sha synchronously', () => {
-    const workspaceRoot = mkdtempSync(join(tmpdir(), 'codegraphy-signatures-'));
-    writeFileSync(join(workspaceRoot, 'tracked.txt'), 'tracked');
-    execFileSync('git', ['init'], { cwd: workspaceRoot });
-    execFileSync('git', ['config', 'user.name', 'CodeGraphy Tests'], { cwd: workspaceRoot });
-    execFileSync('git', ['config', 'user.email', 'tests@codegraphy.dev'], { cwd: workspaceRoot });
-    execFileSync('git', ['add', 'tracked.txt'], { cwd: workspaceRoot });
-    execFileSync('git', ['commit', '-m', 'initial'], { cwd: workspaceRoot });
+    const workspaceRoot = createGitWorkspace();
     const expectedSha = execFileSync('git', ['rev-parse', 'HEAD'], {
       cwd: workspaceRoot,
       encoding: 'utf8',

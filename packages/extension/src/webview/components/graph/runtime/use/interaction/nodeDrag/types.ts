@@ -23,11 +23,9 @@ export interface ApplyNodeDragOptions {
 export interface NodeDragEndOptions {
   graphData: NodeDragGraphData;
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
-  timelineActive?: boolean;
 }
 
 export interface NodeDragPolicyContext {
   graphData?: NodeDragGraphData;
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
-  timelineActive?: boolean;
 }

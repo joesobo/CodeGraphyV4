@@ -1,9 +1,7 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 
-export interface GraphViewRuntimeContributionContext {
-  timelineActive?: boolean;
-}
+export type GraphViewRuntimeContributionContext = Record<never, never>;
 
 function appendUniqueNodes(
   target: IGraphNode[],

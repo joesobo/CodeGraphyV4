@@ -14,9 +14,6 @@ import { dispatchGraphViewPrimaryRouteMessage } from './routed';
 import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
 export interface GraphViewPrimaryMessageContext {
-  getTimelineActive(): boolean;
-  getCurrentCommitSha(): string | undefined;
-  getCanMutateGraphRevision(): boolean;
   getUserGroups(): IGroup[];
   getFilterPatterns(): string[];
   getGraphData(): IGraphData;
@@ -31,7 +28,6 @@ export interface GraphViewPrimaryMessageContext {
   activateNode(nodeId: string): Promise<void>;
   canOpenPath(filePath: string): boolean;
   setFocusedFile(filePath: string | undefined): void;
-  previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
   openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
@@ -62,9 +58,6 @@ export interface GraphViewPrimaryMessageContext {
   getDepthMode(): boolean;
   updateDagMode(dagMode: DagMode): Promise<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
-  indexRepository(): Promise<void>;
-  jumpToCommit(sha: string): Promise<void>;
-  resetTimeline(): Promise<void>;
   sendPhysicsSettings(): void;
   updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;

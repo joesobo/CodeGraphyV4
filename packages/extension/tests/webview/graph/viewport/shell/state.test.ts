@@ -42,7 +42,6 @@ describe('graph/viewport/shell/state', () => {
 			globalScale: 1.5,
 			graph: undefined,
 			nodes: graphNodes as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 4, y: 8 });
@@ -55,7 +54,6 @@ describe('graph/viewport/shell/state', () => {
 			globalScale: 1.5,
 			graph: {},
 			nodes: [{ id: 'src/app.ts' }] as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 4, y: 8 });
@@ -78,12 +76,10 @@ describe('graph/viewport/shell/state', () => {
 				zoom: () => 2,
 			},
 			nodes: [{ id: 'src/app.ts' }] as never,
-			timelineActive: false,
 		});
 
 		expect(viewportState.graphToScreen(4, 8)).toEqual({ x: 14, y: 28 });
 		expect(viewportState.screenToGraph(14, 28)).toEqual({ x: 4, y: 8 });
-		expect(viewportState.timelineActive).toBe(false);
 		expect(viewportState.zoom).toBe(2);
 
 		viewportState.resumeAnimation();
@@ -98,7 +94,6 @@ describe('graph/viewport/shell/state', () => {
 			globalScale: 1,
 			graph: undefined,
 			nodes: graphNodes as never,
-			timelineActive: true,
 		});
 
 		expect(viewportState.updateNode('src/app.ts', { fx: 10, fy: 20 })).toBe(true);

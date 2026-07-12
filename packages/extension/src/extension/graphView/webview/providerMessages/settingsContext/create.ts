@@ -38,7 +38,6 @@ type GraphViewProviderSettingsContext = Pick<
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
   | 'getMaxFiles'
-  | 'getPlaybackSpeed'
   | 'getDagMode'
   | 'getNodeSizeMode'
 >;
@@ -157,7 +156,6 @@ export function createGraphViewProviderMessageSettingsContext(
       await dependencies.executeUndoAction(action);
     },
     getMaxFiles: () => config.get<number>('maxFiles', DEFAULT_MAX_FILES) ?? DEFAULT_MAX_FILES,
-    getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0) ?? 1.0,
     getDepthMode: () => source._depthMode,
     getDagMode: () => source._dagMode,
     getNodeSizeMode: () => source._nodeSizeMode,

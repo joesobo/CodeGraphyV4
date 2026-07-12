@@ -43,7 +43,7 @@ describe('pluginHost/api/registration/containers', () => {
     const host = document.createElement('div');
 
     attachSlotHost('toolbar', host, slotContainers as never, slotHosts as never);
-    getOrCreateSlotContainer('plugin-a', 'timeline-panel', slotContainers as never, slotHosts as never);
+    getOrCreateSlotContainer('plugin-a', 'graph-overlay', slotContainers as never, slotHosts as never);
 
     expect(first).toBe(second);
     expect(host.contains(first)).toBe(true);

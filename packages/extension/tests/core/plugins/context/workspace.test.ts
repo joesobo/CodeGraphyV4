@@ -25,7 +25,6 @@ describe('createWorkspacePluginAnalysisContext', () => {
     const missingPath = path.join(workspaceRoot, 'missing.ts');
     const outsidePath = path.join(path.dirname(workspaceRoot), 'outside.ts');
 
-    expect(context.mode).toBe('workspace');
     await expect(context.fileSystem.exists(workspaceRoot)).resolves.toBe(true);
     await expect(context.fileSystem.exists(filePath)).resolves.toBe(true);
     await expect(context.fileSystem.exists(directoryPath)).resolves.toBe(true);

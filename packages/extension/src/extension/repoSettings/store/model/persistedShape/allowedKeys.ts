@@ -29,7 +29,6 @@ export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'dagMode',
   'nodeSizeMode',
   'physics',
-  'timeline',
 ]);
 
 export const PHYSICS_SETTINGS_KEYS = new Set([
@@ -39,9 +38,4 @@ export const PHYSICS_SETTINGS_KEYS = new Set([
   'damping',
   'centerForce',
   'chargeRange',
-]);
-
-export const TIMELINE_SETTINGS_KEYS = new Set([
-  'maxCommits',
-  'playbackSpeed',
 ]);

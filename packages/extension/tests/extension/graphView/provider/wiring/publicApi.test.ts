@@ -48,10 +48,6 @@ function createTarget() {
       page: { offset: 0, limit: 500, returned: 1, total: 1 },
     })),
   };
-  const timelineMethods = {
-    sendPlaybackSpeed: vi.fn(),
-    invalidateTimelineCache: vi.fn(async () => undefined),
-  };
   const viewContextMethods = {
     updateGraphData: vi.fn(),
     getGraphData,
@@ -90,8 +86,6 @@ function createTarget() {
     resolveWebviewView: vi.fn(),
     updateGraphData: vi.fn(),
     getGraphData,
-    sendPlaybackSpeed: vi.fn(),
-    invalidateTimelineCache: vi.fn(async () => undefined),
     registerExternalPlugin: vi.fn(),
     queryGraph: vi.fn(),
     setDepthMode: vi.fn(async () => undefined),
@@ -106,7 +100,6 @@ function createTarget() {
       command: commandMethods,
       plugin: pluginMethods,
       query: queryMethods,
-      timeline: timelineMethods,
       viewContext: viewContextMethods,
       viewSelection: viewSelectionMethods,
       webview: webviewMethods,
@@ -168,7 +161,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     );
   });
 
-  it('assigns graph, timeline, plugin, and selection delegates', async () => {
+  it('assigns graph, plugin, and selection delegates', async () => {
     const {
       target,
       graphData: previousGraphData,
@@ -185,8 +178,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
 
     target.updateGraphData(graphData);
     expect(target.getGraphData()).toBe(previousGraphData);
-    target.sendPlaybackSpeed();
-    await target.invalidateTimelineCache();
     await target.refreshGitignoreMetadata();
     await target.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
     target.registerExternalPlugin({ id: 'plugin.test' });
@@ -201,8 +192,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
 
     expect(target._methodContainers.viewContext.updateGraphData).toHaveBeenCalledWith(graphData);
     expect(getGraphData).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.timeline.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshGitignoreMetadata).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshIndex).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(

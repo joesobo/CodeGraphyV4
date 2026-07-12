@@ -169,7 +169,6 @@ function resetStore(): void {
     nodeVisibility: {},
     edgeVisibility: {},
     activePanel: 'none',
-    timelineActive: false,
     nodeDecorations: {},
     edgeDecorations: {},
     maxFiles: 500,
@@ -215,10 +214,9 @@ describe('App behavior', () => {
 
 
 
-    it('shows the empty state when graphData is null and timeline is not active', () => {
+    it('shows the empty state when graphData is null', () => {
       graphStore.setState({
         graphData: null,
-        timelineActive: false,
         isLoading: false,
       });
 
@@ -227,16 +225,4 @@ describe('App behavior', () => {
       expect(screen.getByText(/No files found/)).toBeInTheDocument();
     });
 
-
-
-    it('does not render the embedded timeline in the graph shell', () => {
-      graphStore.setState({
-        graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
-        activePanel: 'none',
-      });
-
-      render(<App />);
-
-      expect(screen.queryByTestId('timeline')).not.toBeInTheDocument();
-    });
 });

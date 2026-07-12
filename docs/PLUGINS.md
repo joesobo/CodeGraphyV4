@@ -25,14 +25,14 @@ The current plugin API supports more than file analysis:
 - per-file analysis objects with symbols, relationships, Node Types, and Edge Types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
-- analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe workspace reads and `context.options` for workspace-local plugin settings
+- analysis hooks receive an optional `context` object; use `context.fileSystem` for host-backed workspace reads and `context.options` for workspace-local plugin settings
 - default filters, file colors, Node Types, Edge Types, symbols, and relationship evidence
 
 Plugins should stay headless. They communicate with `@codegraphy-dev/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
 
 Core now owns the default explorer-style file and folder theming through Material Icon Theme. First-party plugins contribute package-owned defaults, filters, and optional semantic enrichment instead of baseline file coloring.
 
-For timeline compatibility, third-party plugins should avoid reading the live workspace directly during analysis. Use the plugin hook `context` instead so the same plugin can resolve files from either the current workspace or a historical commit snapshot.
+Third-party plugins should avoid reading the workspace directly during analysis. Use the plugin hook `context` so file access remains host-owned and testable.
 
 ## Packaging model
 

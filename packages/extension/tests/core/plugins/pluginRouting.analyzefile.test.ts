@@ -112,7 +112,7 @@ describe('plugin routing', () => {
             'src/app.ts',
             'content',
             '/ws',
-            expect.objectContaining({ mode: 'workspace' }),
+            expect.objectContaining({ fileSystem: expect.any(Object) }),
           );
           expect(result).toEqual([{
             kind: 'reference',

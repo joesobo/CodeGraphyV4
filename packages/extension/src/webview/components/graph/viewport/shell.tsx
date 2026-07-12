@@ -112,7 +112,6 @@ export function GraphViewportShell({
       graph: graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined,
       nodes: graphState.renderer.graphDataRef.current.nodes,
       pluginHost,
-      timelineActive: viewState.timelineActive,
     });
   };
 

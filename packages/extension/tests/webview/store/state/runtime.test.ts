@@ -38,8 +38,8 @@ describe('GraphStore', () => {
     });
     expect(store.getState().graphData).toEqual(data);
     expect(store.getState().isLoading).toBe(false);
-    expect(store.getState().isIndexing).toBe(false);
-    expect(store.getState().indexProgress).toBeNull();
+    expect(store.getState().graphIsIndexing).toBe(false);
+    expect(store.getState().graphIndexProgress).toBeNull();
   });
 
   it('handles GRAPH_INDEX_STATUS_UPDATED message', () => {

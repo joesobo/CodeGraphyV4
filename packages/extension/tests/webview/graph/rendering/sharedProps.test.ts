@@ -4,7 +4,6 @@ import {
   buildSharedGraphProps,
   INTERACTIVE_COOLDOWN_TICKS,
   normalizeGraphDimension,
-  TIMELINE_COOLDOWN_TICKS,
   type BuildSharedGraphPropsOptions,
 } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 
@@ -54,7 +53,6 @@ function createOptions(
     onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
-    timelineActive: false,
     ...overrides,
   };
 }
@@ -87,12 +85,11 @@ describe('graph/rendering/surface/sharedProps', () => {
     const props = buildSharedGraphProps(createOptions({
       containerSize: { height: 0, width: 0 },
       dagMode: null,
-      timelineActive: true,
     }));
 
     expect(props.width).toBeUndefined();
     expect(props.height).toBeUndefined();
-    expect(props.cooldownTicks).toBe(TIMELINE_COOLDOWN_TICKS);
+    expect(props.cooldownTicks).toBe(INTERACTIVE_COOLDOWN_TICKS);
     expect(props.dagMode).toBeUndefined();
     expect(props.dagLevelDistance).toBeUndefined();
   });

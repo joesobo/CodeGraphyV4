@@ -10,7 +10,6 @@ import { EventBus } from '../../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
-import { GitHistoryAnalyzer } from '../../../../gitHistory/analyzer';
 import { WorkspacePipeline } from '../../../../pipeline/service/lifecycleFacade';
 import {
   createGraphViewProviderMethodContainers,
@@ -67,9 +66,6 @@ export class GraphViewProviderRuntime {
   protected _userGroups!: IGroup[];
   protected _filterPatterns!: string[];
   protected _disabledPlugins!: Set<string>;
-  protected _gitAnalyzer?: GitHistoryAnalyzer;
-  protected _currentCommitSha?: string;
-  protected _timelineActive!: boolean;
   protected _eventBus: EventBus;
   protected _decorationManager: DecorationManager;
   protected _firstAnalysis!: boolean;
@@ -93,7 +89,6 @@ export class GraphViewProviderRuntime {
   declare protected readonly _queryMethods: GraphViewProviderMethodContainers['query'];
   declare protected readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   declare protected readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
-  declare protected readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];
   declare protected readonly _viewContextMethods: GraphViewProviderMethodContainers['viewContext'];
   declare protected readonly _viewSelectionMethods: GraphViewProviderMethodContainers['viewSelection'];
   declare protected readonly _webviewMethods: GraphViewProviderMethodContainers['webview'];

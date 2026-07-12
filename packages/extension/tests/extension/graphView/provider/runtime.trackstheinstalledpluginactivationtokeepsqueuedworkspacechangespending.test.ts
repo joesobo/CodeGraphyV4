@@ -45,7 +45,6 @@ async function loadSubject(
     settingsState: {
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     },
-    timeline: {},
     viewContext: {},
     viewSelection: {
       changeView: vi.fn(async () => undefined),

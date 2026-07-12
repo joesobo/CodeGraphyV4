@@ -50,10 +50,6 @@ export interface ICodeGraphyRepoSettings {
     centerForce: number;
     chargeRange: number;
   };
-  timeline: {
-    maxCommits: number;
-    playbackSpeed: number;
-  };
 }
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
@@ -97,10 +93,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
       damping: 0.7,
       centerForce: 0.1,
       chargeRange: 200,
-    },
-    timeline: {
-      maxCommits: 500,
-      playbackSpeed: 1,
     },
   };
 }

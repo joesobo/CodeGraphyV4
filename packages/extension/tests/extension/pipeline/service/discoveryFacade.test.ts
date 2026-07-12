@@ -42,7 +42,8 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
   rebuildWorkspacePipelineGraph: vi.fn(),
 }));
 
-vi.mock('node:child_process', () => ({
+vi.mock('node:child_process', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('node:child_process')>()),
   spawnSync: vi.fn(),
 }));
 
@@ -586,7 +587,6 @@ describe('pipeline/service/discoveryFacade', () => {
       ['plugin.typescript'],
       expect.objectContaining({
         features: expect.objectContaining({ symbols: false }),
-        mode: 'workspace',
       }),
       { disabledPlugins: new Set<string>() },
     );

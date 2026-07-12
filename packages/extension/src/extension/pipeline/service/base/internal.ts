@@ -4,6 +4,7 @@ import type {
   IFileAnalysisResult,
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import { refreshChurnIndex } from '../../../churn';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
@@ -42,24 +43,32 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     signal?: AbortSignal,
     disabledPlugins: Set<string> = new Set(),
   ): Promise<void> {
-    await preAnalyzeWorkspacePipelinePlugins(
-      files,
-      workspaceRoot,
-      {
-        notifyPreAnalyze: async (v2Files, rootPath) => {
-          await preAnalyzeCoreTreeSitterFiles(v2Files, rootPath);
-          await this._registry.notifyPreAnalyze(
-            v2Files,
-            rootPath,
-            undefined,
-            disabledPlugins,
-          );
+    await Promise.all([
+      preAnalyzeWorkspacePipelinePlugins(
+        files,
+        workspaceRoot,
+        {
+          notifyPreAnalyze: async (v2Files, rootPath) => {
+            await preAnalyzeCoreTreeSitterFiles(v2Files, rootPath);
+            await this._registry.notifyPreAnalyze(
+              v2Files,
+              rootPath,
+              undefined,
+              disabledPlugins,
+            );
+          },
+          readContent: file => this._discovery.readContent(file),
         },
-        readContent: file => this._discovery.readContent(file),
-      },
-      signal,
-      disabledPlugins,
-    );
+        signal,
+        disabledPlugins,
+      ),
+      refreshChurnIndex({
+        filePaths: files.map(file => file.relativePath),
+        signal,
+        workspaceRoot,
+        workspaceState: this._context.workspaceState,
+      }),
+    ]);
   }
 
   protected async _analyzeFiles(

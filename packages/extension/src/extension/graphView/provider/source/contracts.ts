@@ -6,7 +6,6 @@ import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
-import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
 import type {
   GraphViewProviderAnalysisMethods,
@@ -50,10 +49,6 @@ import type {
   GraphViewProviderSettingsStateMethodsSource,
 } from '../settingsState';
 import type {
-  GraphViewProviderTimelineMethods,
-  GraphViewProviderTimelineMethodsSource,
-} from '../timeline/contracts';
-import type {
   GraphViewProviderViewContextMethods,
   GraphViewProviderViewContextMethodsSource,
 } from '../view/context';
@@ -88,8 +83,6 @@ export type GraphViewProviderMethodSource =
   & GraphViewProviderRefreshMethodsSource
   & GraphViewProviderSettingsStateMethods
   & GraphViewProviderSettingsStateMethodsSource
-  & GraphViewProviderTimelineMethods
-  & GraphViewProviderTimelineMethodsSource
   & GraphViewProviderViewContextMethods
   & GraphViewProviderViewContextMethodsSource
   & GraphViewProviderViewSelectionMethods
@@ -117,9 +110,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _userGroups: IGroup[];
   _filterPatterns: string[];
   _disabledPlugins: Set<string>;
-  _gitAnalyzer?: GitHistoryAnalyzer;
-  _currentCommitSha?: string;
-  _timelineActive: boolean;
   _eventBus: EventBus;
   _decorationManager: DecorationManager;
   _firstAnalysis: boolean;
@@ -144,7 +134,6 @@ export interface GraphViewProviderMethodSourceOwner {
   readonly _queryMethods: GraphViewProviderMethodContainers['query'];
   readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
-  readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];
   readonly _viewContextMethods: GraphViewProviderMethodContainers['viewContext'];
   readonly _viewSelectionMethods: GraphViewProviderMethodContainers['viewSelection'];
   readonly _webviewMethods: GraphViewProviderMethodContainers['webview'];

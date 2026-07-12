@@ -76,9 +76,6 @@ async function loadSubject(
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     }),
   }));
-  vi.doMock('../../src/extension/graphView/provider/timeline/methods', () => ({
-    createGraphViewProviderTimelineMethods: () => ({}),
-  }));
   vi.doMock('../../src/extension/graphView/provider/view/context', () => ({
     createGraphViewProviderViewContextMethods: () => ({}),
   }));
@@ -130,7 +127,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     vi.doUnmock('../../src/extension/graphView/provider/physicsSettings');
     vi.doUnmock('../../src/extension/graphView/provider/refresh');
     vi.doUnmock('../../src/extension/graphView/provider/settingsState');
-    vi.doUnmock('../../src/extension/graphView/provider/timeline/methods');
     vi.doUnmock('../../src/extension/graphView/provider/view/context');
     vi.doUnmock('../../src/extension/graphView/provider/view/selection');
     vi.doUnmock('../../src/extension/graphView/provider/webview/host');

@@ -5,10 +5,9 @@ import {
 } from '../../../../../src/webview/components/graph/contextMenu/selection';
 
 describe('graph/contextMenu/build/background', () => {
-  it('builds creation and view actions for the current Graph Revision', () => {
+  it('builds creation and view actions for the current graph', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
-      timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     });

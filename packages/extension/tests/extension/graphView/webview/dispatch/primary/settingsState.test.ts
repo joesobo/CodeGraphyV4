@@ -9,9 +9,6 @@ function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},
 ): GraphViewPrimaryMessageContext {
   const context = {
-    getTimelineActive: vi.fn(() => false),
-    getCurrentCommitSha: vi.fn(() => undefined),
-    getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getFilterPatterns: vi.fn(() => []),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() })),
@@ -19,7 +16,6 @@ function createContext(
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
@@ -38,9 +34,6 @@ function createContext(
     setDepthLimit: vi.fn(() => Promise.resolve()),
     updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
-    indexRepository: vi.fn(() => Promise.resolve()),
-    jumpToCommit: vi.fn(() => Promise.resolve()),
-    resetTimeline: vi.fn(() => Promise.resolve()),
     sendPhysicsSettings: vi.fn(),
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),

@@ -26,8 +26,6 @@ describe('plugin lifecycle notify/analysis', () => {
     const plugin = makePlugin({ onPreAnalyze });
     const files = [{ absolutePath: '/ws/a.ts', relativePath: 'a.ts', content: '' }];
     const context = {
-      mode: 'timeline',
-      commitSha: 'abc123',
       fileSystem: {
         exists: vi.fn(),
         isDirectory: vi.fn(),
@@ -57,7 +55,7 @@ describe('plugin lifecycle notify/analysis', () => {
     expect(onPreAnalyze).toHaveBeenCalledWith(
       files,
       '/ws',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
   });
 

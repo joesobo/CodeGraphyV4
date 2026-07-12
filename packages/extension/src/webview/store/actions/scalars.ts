@@ -13,7 +13,5 @@ export function createScalarActions(set: SetState) {
     setDagMode: (mode: GraphState['dagMode']) => set({ dagMode: mode }),
     setMaxFiles: (max: number) => set({ maxFiles: max }),
     setVerboseDiagnostics: (enabled: boolean) => set({ verboseDiagnostics: enabled }),
-    setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
-    setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
   };
 }

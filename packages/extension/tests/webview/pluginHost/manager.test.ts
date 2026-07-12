@@ -99,7 +99,6 @@ describe('WebviewPluginHost', () => {
       reheatSimulation: vi.fn(),
       resumeAnimation: vi.fn(),
       screenToGraph: (x: number, y: number) => ({ x: x - 1, y: y - 1 }),
-      timelineActive: false,
       updateNode: vi.fn(() => true),
       zoom: 1.5,
     };
@@ -144,7 +143,6 @@ describe('WebviewPluginHost', () => {
       reheatSimulation: vi.fn(),
       resumeAnimation: vi.fn(),
       screenToGraph: (x: number, y: number) => ({ x, y }),
-      timelineActive: false,
       updateNode: vi.fn(() => true),
       zoom: 1,
     };

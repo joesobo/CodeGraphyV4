@@ -71,11 +71,6 @@ export interface GraphViewProviderMessageListenerDependencies {
 }
 
 export interface GraphViewProviderMessageListenerSource {
-  _timelineActive: boolean;
-  _currentCommitSha: string | undefined;
-  _gitAnalyzer?: {
-    getCachedCommitList(): Array<{ sha: string }> | null | undefined;
-  };
   _userGroups: IGroup[];
   _disabledPlugins: Set<string>;
   _filterPatterns: string[];
@@ -120,7 +115,6 @@ export interface GraphViewProviderMessageListenerSource {
   _openSelectedNode(nodeId: string): Promise<void>;
   _activateNode(nodeId: string): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
-  _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   _openFile(filePath: string): Promise<void>;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
@@ -145,9 +139,6 @@ export interface GraphViewProviderMessageListenerSource {
   redo(): Promise<string | undefined>;
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
-  _indexRepository(): Promise<void>;
-  _jumpToCommit(sha: string): Promise<void>;
-  _resetTimeline(): Promise<void>;
   _sendPhysicsSettings(): void;
   _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   _resetPhysicsSettings(): Promise<void>;
@@ -162,7 +153,6 @@ export interface GraphViewProviderMessageListenerSource {
   _loadDisabledRulesAndPlugins(): boolean;
   _sendFavorites(favorites?: string[]): void;
   _sendSettings(): void;
-  _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
   _sendPluginStatuses(): void;

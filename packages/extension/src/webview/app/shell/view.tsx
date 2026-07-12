@@ -37,7 +37,6 @@ export default function App(): React.ReactElement {
     disabledCustomFilterPatterns,
     disabledPluginFilterPatterns,
     showOrphans,
-    timelineActive,
     activePanel,
     depthMode,
     nodeColors,
@@ -136,7 +135,7 @@ export default function App(): React.ReactElement {
   if (isLoading) return <LoadingState />;
 
   if (!graphData) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)} />;
+    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} />;
   }
 
   const loadedDisplayGraphData = displayGraphData ?? graphData;
@@ -193,7 +192,6 @@ export default function App(): React.ReactElement {
           coloredData={coloredData}
           showOrphans={effectiveShowOrphans}
           depthMode={depthMode}
-          timelineActive={timelineActive}
           theme={theme}
           nodeDecorations={nodeDecorations}
           edgeDecorations={graphEdgeDecorations}

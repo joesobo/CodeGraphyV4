@@ -26,7 +26,6 @@ interface UsePhysicsRuntimeProps {
   layoutKey: string;
   physicsPaused?: boolean;
   physicsSettings: IPhysicsSettings;
-  timelineActive?: boolean;
 }
 
 export function usePhysicsRuntime({
@@ -36,7 +35,6 @@ export function usePhysicsRuntime({
   layoutKey,
   physicsPaused = false,
   physicsSettings,
-  timelineActive = false,
 }: UsePhysicsRuntimeProps): void {
   const physicsInitialisedRef = useRef(false);
   const physicsSettingsRef = useRef(physicsSettings);
@@ -85,9 +83,9 @@ export function usePhysicsRuntime({
       forceAdapterStateRef.current,
       graphViewContributions,
       graphDataRef?.current ?? { nodes: [], links: [] },
-      { physicsSettings, timelineActive },
+      { physicsSettings },
     );
-  }, [fg2dRef, graphDataRef, graphViewContributions, layoutKey, physicsSettings, timelineActive]);
+  }, [fg2dRef, graphDataRef, graphViewContributions, layoutKey, physicsSettings]);
 
   useEffect(() => {
     const graph = fg2dRef.current;

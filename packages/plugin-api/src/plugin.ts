@@ -118,8 +118,6 @@ export interface IPluginAnalysisFileSystem {
 }
 
 export interface IPluginAnalysisContext {
-  mode: 'workspace' | 'timeline';
-  commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
   features?: {
     symbols?: boolean;

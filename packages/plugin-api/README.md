@@ -28,7 +28,7 @@ Main surfaces in the current API:
 - Graph Scope capabilities through `contributeGraphScopeCapabilities({ filePaths })`, so Graph Scope can show relevant Node Type and Edge Type toggles for an indexed workspace even before the current graph has matching nodes or relationships
 - default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
 - package plugin factories can receive `IPluginFactoryOptions` with merged workspace options and a plugin-owned data host
-- analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
+- analysis hooks receive an optional `context` with a host-backed file-system adapter for workspace-relative reads without using raw Node `fs`
 - lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
 Recommended plugins keep analysis headless and use host-agnostic webview assets only when they need UI. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code-specific commands and editor integration.
@@ -122,13 +122,11 @@ Symbol analysis:
 - `relations` can point at symbols with `fromSymbolId` and `toSymbolId`. The host projects those endpoints into Symbol Nodes and connects files to symbols with `contains` edges.
 - Variable-like symbol kinds such as `variable`, `constant`, and `field` project as Variable Nodes under the Symbols Graph Scope. More specific language kinds project as Symbol Nodes unless a plugin contributes its own Node Type and Legend defaults.
 
-Timeline-safe plugins:
+Host-backed analysis reads:
 
 - `analyzeFile(...)`, `onPreAnalyze(...)`, and `onFilesChanged(...)` may receive `context`
-- `context.mode` is `'workspace'` or `'timeline'`
-- `context.commitSha` is set for timeline replay
 - `context.fileSystem` exposes `exists`, `isFile`, `isDirectory`, `listDirectory`, and `readTextFile`
-- prefer `context.fileSystem` over raw Node `fs` when plugin behavior depends on repo state, config files, or sibling files
+- prefer `context.fileSystem` over raw Node `fs` when plugin behavior depends on workspace state, config files, or sibling files
 
 Minimal working plugin object:
 

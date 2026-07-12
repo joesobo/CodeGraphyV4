@@ -14,7 +14,6 @@ import type {
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
-import type { ITimelineData } from '../timeline/contracts';
 
 export interface IPluginFilterPatternGroup {
   pluginId: string;
@@ -105,12 +104,6 @@ export type ExtensionToWebviewMessage =
   | { type: 'CSS_SNIPPETS_UPDATED'; payload: { snippets: Record<string, boolean>; stylesheets: string[] } }
   | { type: 'PLUGIN_DATA_UPDATED'; payload: { pluginId: string; data: unknown } }
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
-  | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
-  | { type: 'TIMELINE_DATA'; payload: ITimelineData }
-  | { type: 'COMMIT_GRAPH_DATA'; payload: { sha: string; graphData: IGraphData } }
-  | { type: 'PLAYBACK_SPEED_UPDATED'; payload: { speed: number } }
-  | { type: 'CACHE_INVALIDATED' }
-  | { type: 'PLAYBACK_ENDED' }
   | { type: 'GET_NODE_BOUNDS' }
   | { type: 'GET_GRAPH_RUNTIME_STATE' }
   | { type: 'GET_VISIBLE_GRAPH_STATE' }

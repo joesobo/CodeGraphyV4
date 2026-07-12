@@ -138,7 +138,6 @@ function resetStore(): void {
     nodeVisibility: {},
     edgeVisibility: {},
     activePanel: 'none',
-    timelineActive: false,
     nodeDecorations: {},
     edgeDecorations: {},
     maxFiles: 500,
@@ -202,21 +201,9 @@ describe('App (mutation targets)', () => {
     expect(screen.queryByTestId('mock-graph')).not.toBeInTheDocument();
   });
 
-  it('shows empty state when graph data has zero nodes even if timelineActive is true', () => {
-    graphStore.setState({
-      graphData: { nodes: [], edges: [] },
-      timelineActive: true,
-    });
-    render(<App />);
-    expect(
-      screen.getByText(/No files found\. No graphable files exist in this commit\./),
-    ).toBeInTheDocument();
-  });
-
   it('shows empty state when graphData is null', () => {
     graphStore.setState({
       graphData: null,
-      timelineActive: false,
     });
     render(<App />);
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
@@ -225,18 +212,9 @@ describe('App (mutation targets)', () => {
   it('shows empty state when graphData has zero nodes', () => {
     graphStore.setState({
       graphData: { nodes: [], edges: [] },
-      timelineActive: false,
     });
     render(<App />);
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
-  });
-
-  it('does not render the embedded timeline component when graph data is available', () => {
-    graphStore.setState({
-      graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
-    });
-    render(<App />);
-    expect(screen.queryByTestId('timeline')).not.toBeInTheDocument();
   });
 
   it('always renders the search bar when graph data is available', () => {
@@ -274,7 +252,6 @@ describe('App (mutation targets)', () => {
       graphData: { nodes: [], edges: [] },
       graphHasIndex: true,
       showOrphans: false,
-      timelineActive: false,
     });
     render(<App />);
     expect(screen.getByText(/All files are hidden/)).toBeInTheDocument();

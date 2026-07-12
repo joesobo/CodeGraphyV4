@@ -26,7 +26,6 @@ export interface IGraphViewContributionBase {
 
 export interface IGraphViewContributionContext {
   visibleGraph: IGraphData;
-  timelineActive?: boolean;
   workspaceRoot?: string;
 }
 
@@ -93,7 +92,6 @@ export interface IGraphViewNodeDragState extends IGraphViewRuntimeNode {
 export interface IGraphViewNodeDragEndContext {
   node: IGraphViewNodeDragState;
   nodes: readonly IGraphViewNodeDragState[];
-  timelineActive: boolean;
 }
 
 export interface IGraphViewNodeDragEndResult {
@@ -144,7 +142,6 @@ export type GraphViewContextMenuTargetSelector =
 
 export interface IGraphViewContextMenuRunContext {
   target: GraphViewContextMenuTargetSelector;
-  timelineActive: boolean;
   selectedNodeIds: readonly string[];
   selectedEdgeIds: readonly string[];
   graphPosition?: { x: number; y: number };

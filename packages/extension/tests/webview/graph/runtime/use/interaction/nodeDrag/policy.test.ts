@@ -39,16 +39,14 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
       graphViewContributions: {
         nodeDragEnd: [nodeDragEndContribution(onNodeDragEnd)],
       },
-      timelineActive: true,
     })).toBe(true);
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       node: draggedNode,
       nodes: graphNodes,
-      timelineActive: true,
     });
   });
 
-  it('uses the dragged node and inactive timeline as default policy context', () => {
+  it('uses the dragged node as the default policy context', () => {
     const draggedNode = node();
     const onNodeDragEnd = vi.fn(() => undefined);
 
@@ -60,7 +58,6 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       node: draggedNode,
       nodes: [draggedNode],
-      timelineActive: false,
     });
   });
 

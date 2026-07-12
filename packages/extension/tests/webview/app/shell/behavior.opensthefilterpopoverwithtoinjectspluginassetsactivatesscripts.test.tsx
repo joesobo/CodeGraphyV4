@@ -169,7 +169,6 @@ function resetStore(): void {
     nodeVisibility: {},
     edgeVisibility: {},
     activePanel: 'none',
-    timelineActive: false,
     nodeDecorations: {},
     edgeDecorations: {},
     maxFiles: 500,

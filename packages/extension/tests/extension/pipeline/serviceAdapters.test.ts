@@ -7,7 +7,6 @@ import {
   readWorkspacePipelineFileStat,
   readWorkspacePipelineRoot,
 } from '../../../src/extension/pipeline/serviceAdapters';
-import { CACHE_VERSION } from '../../../src/extension/gitHistory/cache/stateKeys';
 
 describe('pipeline/serviceAdapters', () => {
   beforeEach(() => {
@@ -123,9 +122,8 @@ describe('pipeline/serviceAdapters', () => {
     const workspaceState = {
       get: vi.fn(<T>(key: string): T | undefined => {
         const values: Record<string, unknown> = {
-          'codegraphy.timelineCacheVersion': CACHE_VERSION,
-          'codegraphy.timelinePluginSignature': 'a.plugin@1.0.0|z.plugin@2.0.0',
-          'codegraphy.timelineChurnCounts': { 'src/app.ts': 5 },
+          'codegraphy.churn.version': 1,
+          'codegraphy.churn.counts': { 'src/app.ts': 5 },
         };
 
         return values[key] as T | undefined;

@@ -40,7 +40,6 @@ describe('Graph context menu (background)', () => {
     ForceGraph2D.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      timelineActive: false,
       pluginContextMenuItems: [],
       graphViewContributionStatuses: [],
     });
@@ -52,7 +51,6 @@ describe('Graph context menu (background)', () => {
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        timelineActive: false,
         pluginContextMenuItems: [],
         graphViewContributionStatuses: [],
       });
@@ -139,23 +137,6 @@ describe('Graph context menu (background)', () => {
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
   });
 
-  it('disables creation actions for historical timeline snapshots on background context', async () => {
-    graphStore.setState({ timelineActive: true });
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await act(async () => {
-      ForceGraph2D.simulateBackgroundRightClick();
-      fireEvent.contextMenu(graphContainer, { clientX: 320, clientY: 300 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Refresh')).toBeInTheDocument();
-    });
-    expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
-    expect(screen.getByText('New File')).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText('New Folder')).toHaveAttribute('aria-disabled', 'true');
-  });
 
   it('sends REFRESH_GRAPH message when clicking Refresh', async () => {
     const { container } = render(<Graph data={menuData} />);

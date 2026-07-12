@@ -49,7 +49,6 @@ function createSource(
     ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
-    _invalidateTimelineCache: vi.fn(async () => undefined),
     invalidatePluginFiles: vi.fn(() => []),
     refreshChangedFiles: vi.fn(async () => undefined),
     ...overrides,
@@ -280,7 +279,6 @@ describe('graphView/provider/plugin/methods', () => {
           sendPluginToolbarActions: expect.any(Function),
           sendGraphViewContributionStatuses: expect.any(Function),
           sendPluginWebviewInjections: expect.any(Function),
-          invalidateTimelineCache: expect.any(Function),
           reprocessPluginFiles: expect.any(Function),
         }),
       );
@@ -339,11 +337,9 @@ describe('graphView/provider/plugin/methods', () => {
     const sendDepthState = vi.fn();
     const invalidatePluginFiles = vi.fn(() => ['/workspace/src/index.ts']);
     const refreshChangedFiles = vi.fn(async () => undefined);
-    const invalidateTimelineCache = vi.fn(async () => undefined);
     const source = createSource({
       invalidatePluginFiles,
       refreshChangedFiles,
-      _invalidateTimelineCache: invalidateTimelineCache,
     });
     const methods = createGraphViewProviderPluginMethods(
       source,
@@ -370,7 +366,6 @@ describe('graphView/provider/plugin/methods', () => {
       sendPluginToolbarActions(): void;
       sendGraphViewContributionStatuses(): void;
       sendPluginWebviewInjections(): void;
-      invalidateTimelineCache(): Promise<void>;
       reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
     };
 
@@ -380,7 +375,6 @@ describe('graphView/provider/plugin/methods', () => {
     registrationHandlers.sendPluginToolbarActions();
     registrationHandlers.sendGraphViewContributionStatuses();
     registrationHandlers.sendPluginWebviewInjections();
-    await registrationHandlers.invalidateTimelineCache();
     await registrationHandlers.reprocessPluginFiles(['plugin.test']);
 
     expect(sendDepthState).toHaveBeenCalledOnce();
@@ -389,7 +383,6 @@ describe('graphView/provider/plugin/methods', () => {
     expect(sendPluginToolbarActions).toHaveBeenCalledOnce();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(source._invalidateTimelineCache).toHaveBeenCalledOnce();
     expect(invalidatePluginFiles).toHaveBeenCalledWith(['plugin.test']);
     expect(refreshChangedFiles).toHaveBeenCalledWith(['/workspace/src/index.ts']);
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();

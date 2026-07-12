@@ -104,33 +104,4 @@ describe('Graph View plugin force adapters', () => {
     expect(graph.d3Force('link')).toEqual({ base: 'link' });
   });
 
-  it('passes timeline state to force contributions', () => {
-    const graph = createFakePhysicsGraph();
-    const state = createGraphViewForceAdapterState();
-    const contexts: Array<{ timelineActive: boolean | undefined }> = [];
-    const contributions: CoreGraphViewContributionSet = {
-      ...createEmptyContributions(),
-      forces: [{
-        pluginId: 'acme.graph-tools',
-        contribution: {
-          id: 'acme.graph-tools.runtime-force',
-          label: 'Runtime Force',
-          create(context) {
-            contexts.push({ timelineActive: context.timelineActive });
-            return { dispose() {} };
-          },
-        },
-      }],
-    };
-
-    syncGraphViewForceAdapters(
-      graph,
-      state,
-      contributions,
-      { nodes: [], links: [] },
-      { timelineActive: true },
-    );
-
-    expect(contexts).toEqual([{ timelineActive: true }]);
-  });
 });

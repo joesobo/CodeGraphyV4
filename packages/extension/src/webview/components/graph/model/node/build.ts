@@ -1,4 +1,4 @@
-import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
+import type { IGraphNode } from '../../../../../shared/graph/contracts';
 import type { ThemeKind } from '../../../../theme/useTheme';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
@@ -10,18 +10,13 @@ import {
   getDepthOpacity,
   getDepthSizeMultiplier,
 } from './display';
-import { seedTimelinePositions } from '../timeline/seeding';
-
 export interface BuildGraphNodesOptions {
   nodes: IGraphNode[];
-  edges: IGraphEdge[];
   appearance?: GraphAppearance;
   nodeSizes: Map<string, number>;
   theme: ThemeKind;
   favorites: Set<string>;
-  timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'vx' | 'vy' | 'x' | 'y'>>;
-  random?: () => number;
 }
 
 interface PreviousNodeState {
@@ -235,25 +230,18 @@ function createGraphNode(
 export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const {
     nodes,
-    edges,
     appearance = DEFAULT_GRAPH_APPEARANCE,
     nodeSizes,
     theme,
     favorites,
-    timelineActive,
     previousNodes = [],
-    random = Math.random,
   } = options;
   const isLight = theme === 'light';
   const previousNodeStates = createPreviousNodeStateMap(previousNodes);
-  const graphNodes = nodes.map(node => createGraphNode(
+  return nodes.map(node => createGraphNode(
     node,
     { appearance, nodeSizes, favorites },
     isLight,
     previousNodeStates,
   ));
-
-  seedTimelinePositions(graphNodes, edges, timelineActive ? previousNodeStates : null, random);
-
-  return graphNodes;
 }

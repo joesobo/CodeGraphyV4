@@ -36,7 +36,6 @@ export interface UseGraphRenderingRuntimeOptions {
   physicsSettings: IPhysicsSettings;
   pluginHost?: WebviewPluginHost;
   theme: ThemeKind;
-  timelineActive: boolean;
   favorites: Set<string>;
   directionMode: 'arrows' | 'particles' | 'none';
 }
@@ -65,7 +64,6 @@ export function useGraphRenderingRuntime({
   physicsSettings,
   pluginHost,
   theme,
-  timelineActive,
   favorites,
   directionMode,
 }: UseGraphRenderingRuntimeOptions): UseGraphRenderingRuntimeResult {
@@ -100,7 +98,6 @@ export function useGraphRenderingRuntime({
     layoutKey: graphDataLayoutKey,
     physicsPaused,
     physicsSettings,
-    timelineActive,
   });
 
   return {

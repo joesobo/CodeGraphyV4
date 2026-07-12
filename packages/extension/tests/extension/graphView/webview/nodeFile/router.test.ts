@@ -8,13 +8,9 @@ function createHandlers(
   overrides: Partial<GraphViewNodeFileHandlers> = {},
 ): GraphViewNodeFileHandlers {
   return {
-    timelineActive: false,
-    canMutateGraphRevision: true,
-    currentCommitSha: undefined,
     setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
@@ -32,69 +28,6 @@ function createHandlers(
 }
 
 describe('graph view node/file router', () => {
-  it('opens files at the current commit when timeline mode is active', async () => {
-    const handlers = createHandlers({
-      timelineActive: true,
-      canMutateGraphRevision: false,
-      currentCommitSha: 'abc123',
-    });
-
-    await expect(
-      applyNodeFileMessage(
-        { type: 'OPEN_FILE', payload: { path: 'src/app.ts' } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.previewFileAtCommit).toHaveBeenCalledWith('abc123', 'src/app.ts');
-    expect(handlers.openFile).not.toHaveBeenCalled();
-  });
-
-  it('skips destructive file edits while timeline mode is active', async () => {
-    const handlers = createHandlers({
-      timelineActive: true,
-      canMutateGraphRevision: false,
-      currentCommitSha: 'abc123',
-    });
-
-    await expect(
-      applyNodeFileMessage(
-        { type: 'DELETE_FILES', payload: { paths: ['src/app.ts'] } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-    await expect(
-      applyNodeFileMessage(
-        { type: 'RENAME_FILE', payload: { path: 'src/app.ts' } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-    await expect(
-      applyNodeFileMessage(
-        { type: 'CREATE_FILE', payload: { directory: 'src' } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-    await expect(
-      applyNodeFileMessage(
-        { type: 'CREATE_FOLDER', payload: { directory: 'src' } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-    await expect(
-      applyNodeFileMessage(
-        { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['dist/**'] } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.deleteFiles).not.toHaveBeenCalled();
-    expect(handlers.renameFile).not.toHaveBeenCalled();
-    expect(handlers.createFile).not.toHaveBeenCalled();
-    expect(handlers.createFolder).not.toHaveBeenCalled();
-    expect(handlers.addToExclude).not.toHaveBeenCalled();
-  });
-
   it('awaits graph refresh requests', async () => {
     const refreshGraph = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({ refreshGraph });
@@ -122,7 +55,7 @@ describe('graph view node/file router', () => {
 
     await expect(
       applyNodeFileMessage(
-        { type: 'INDEX_REPO' },
+        { type: 'EXPORT_SYMBOLS_JSON' },
         handlers,
       ),
     ).resolves.toBe(false);

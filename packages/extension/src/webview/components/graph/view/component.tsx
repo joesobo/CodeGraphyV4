@@ -110,7 +110,6 @@ export default function Graph({
     nodeSizeMode: viewState.nodeSizeMode,
     showLabels: viewState.showLabels,
     theme,
-    timelineActive: viewState.timelineActive,
   });
   const graphDataLayoutKey = buildGraphDataLayoutKey(graphRuntime.renderer.graphData, viewState.nodeSizeMode);
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
@@ -141,7 +140,6 @@ export default function Graph({
     },
     setContextSelection: graphRuntime.context.setSelection,
     setSelectedNodes: graphRuntime.selection.setSelectedNodeIds,
-    timelineActive: viewState.timelineActive,
   });
 
   const handleEngineStop = useGraphAutoFit({

@@ -35,15 +35,15 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     }
   });
 
-  it('creates updated settings without mutating the previous state', () => {
+  it('creates updated nested settings without mutating the previous state', () => {
     const defaults = createDefaultCodeGraphyRepoSettings();
     const settings = createDefaultCodeGraphyRepoSettings();
 
-    const updated = createUpdatedSettings(defaults, settings, 'timeline.playbackSpeed', 2.5);
+    const updated = createUpdatedSettings(defaults, settings, 'physics.damping', 0.4);
 
-    expect(updated.timeline.playbackSpeed).toBe(2.5);
-    expect(updated.timeline.maxCommits).toBe(500);
-    expect(settings.timeline.playbackSpeed).toBe(1);
+    expect(updated.physics.damping).toBe(0.4);
+    expect(updated.physics.linkDistance).toBe(80);
+    expect(settings.physics.damping).toBe(0.7);
   });
 
   it('reads, normalizes, merges, and rewrites persisted settings when the shape changed', () => {

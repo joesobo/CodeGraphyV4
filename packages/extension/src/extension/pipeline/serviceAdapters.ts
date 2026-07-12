@@ -6,8 +6,7 @@ import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/contracts';
-import { getCachedGitHistoryChurnCounts } from '../gitHistory/cache/state';
-import { createGitHistoryPluginSignature } from '../gitHistory/pluginSignature';
+import { readCachedChurn } from '../churn/cache';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
@@ -128,18 +127,13 @@ export function buildWorkspacePipelineGraphData(
     _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
-  const churnCounts = getCachedGitHistoryChurnCounts(
-    context.workspaceState,
-    createGitHistoryPluginSignature(registry),
-  ) ?? {};
-
   return buildWorkspacePipelineGraphForSource(
     source,
     fileConnections,
     workspaceRoot,
     showOrphans,
     effectiveDisabledPlugins,
-    churnCounts,
+    readCachedChurn(context.workspaceState) ?? {},
   );
 }
 
@@ -244,14 +238,9 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     _lastGitIgnoredPaths: gitIgnoredPaths,
     _registry: registry,
   };
-  const churnCounts = getCachedGitHistoryChurnCounts(
-    context.workspaceState,
-    createGitHistoryPluginSignature(registry),
-  ) ?? {};
-
   return buildWorkspacePipelineGraphFromAnalysis({
     cacheFiles: source._cache.files,
-    churnCounts,
+    churnCounts: readCachedChurn(context.workspaceState) ?? {},
     directoryPaths: source._lastDiscoveredDirectories ?? [],
     gitIgnoredPaths: source._lastGitIgnoredPaths ?? [],
     disabledPlugins,

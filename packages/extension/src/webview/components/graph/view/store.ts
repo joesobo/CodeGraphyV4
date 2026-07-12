@@ -4,7 +4,6 @@ import type { GraphState } from '../../../store/state';
 export type GraphViewStoreState = Pick<
   GraphState,
   | 'bidirectionalMode'
-  | 'currentCommitSha'
   | 'dagMode'
   | 'directionMode'
   | 'favorites'
@@ -17,15 +16,12 @@ export type GraphViewStoreState = Pick<
   | 'pluginContextMenuItems'
   | 'pluginStatuses'
   | 'showLabels'
-  | 'timelineActive'
-  | 'timelineCommits'
   | 'depthMode'
 >;
 
 export function useGraphViewStoreState(): GraphViewStoreState {
   return {
     bidirectionalMode: useGraphStore(state => state.bidirectionalMode),
-    currentCommitSha: useGraphStore(state => state.currentCommitSha),
     dagMode: useGraphStore(state => state.dagMode),
     depthMode: useGraphStore(state => state.depthMode),
     directionMode: useGraphStore(state => state.directionMode),
@@ -39,7 +35,5 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
     pluginStatuses: useGraphStore(state => state.pluginStatuses),
     showLabels: useGraphStore(state => state.showLabels),
-    timelineActive: useGraphStore(state => state.timelineActive),
-    timelineCommits: useGraphStore(state => state.timelineCommits),
   };
 }

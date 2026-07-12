@@ -14,7 +14,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: true,
-        playbackSpeed: 1,
         dagMode: 'td',
         nodeSizeMode: 'connections',
         focusedFile: 'src/game/player.gd',
@@ -34,7 +33,6 @@ describe('graph view ready message', () => {
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
@@ -58,10 +56,6 @@ describe('graph view ready message', () => {
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'VERBOSE_DIAGNOSTICS_UPDATED',
       payload: { verboseDiagnostics: true },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'PLAYBACK_SPEED_UPDATED',
-      payload: { speed: 1 },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
@@ -101,7 +95,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -138,7 +131,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -166,7 +158,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -199,7 +190,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -254,7 +244,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -293,7 +282,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -330,7 +318,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -352,7 +339,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -373,7 +359,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -395,7 +380,6 @@ describe('graph view ready message', () => {
       {
         maxFiles: 500,
         verboseDiagnostics: false,
-        playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
         focusedFile: undefined,
@@ -419,33 +403,4 @@ describe('graph view ready message', () => {
     });
   });
 
-  it('waits for cached timeline replay before notifying readiness', async () => {
-    const events: string[] = [];
-    const handlers = createHandlers();
-    handlers.sendCachedTimeline.mockImplementation(async () => {
-      events.push('timeline:start');
-      await Promise.resolve();
-      events.push('timeline:end');
-    });
-    handlers.notifyWebviewReady.mockImplementation(() => {
-      events.push('ready');
-    });
-
-    await applyWebviewReady(
-      {
-        maxFiles: 500,
-        verboseDiagnostics: false,
-        playbackSpeed: 1,
-        dagMode: null,
-        nodeSizeMode: 'connections',
-        focusedFile: undefined,
-        hasWorkspace: false,
-        firstAnalysis: false,
-        readyNotified: false,
-      },
-      handlers
-    );
-
-    expect(events).toEqual(['timeline:start', 'timeline:end', 'ready']);
-  });
 });

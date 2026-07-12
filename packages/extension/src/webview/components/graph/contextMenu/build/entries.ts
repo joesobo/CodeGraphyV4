@@ -1,6 +1,5 @@
 import { buildBackgroundEntries } from '../background/entries';
 import {
-  DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY,
   type BuildGraphContextMenuOptions,
   type GraphContextMenuEntry,
   type GraphContextSelection,
@@ -75,17 +74,13 @@ function cloneContextSelection(selection: GraphContextSelection): GraphContextSe
 
 function buildBaseGraphContextMenuEntries(
   decision: GraphContextMenuDecision,
-  options: Pick<
-    BuildGraphContextMenuOptions,
-    'favorites' | 'mutationAvailability' | 'timelineActive'
-  >,
+  options: Pick<BuildGraphContextMenuOptions, 'favorites'>,
 ): GraphContextMenuEntry[] {
-  const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   if (decision.kind === 'background') {
-    return buildBackgroundEntries(mutationAvailability);
+    return buildBackgroundEntries();
   }
   if (decision.kind === 'singleFolderNode') {
-    return buildSingleFolderNodeEntries(decision.target, mutationAvailability, options.favorites);
+    return buildSingleFolderNodeEntries(decision.target, options.favorites);
   }
   if (decision.kind === 'singleSymbolNode') {
     return buildSingleSymbolNodeEntries(decision.target.id, options.favorites);
@@ -102,8 +97,6 @@ function buildBaseGraphContextMenuEntries(
 
   return buildNodeEntries(
     getNodeTargetIds(decision),
-    options.timelineActive,
-    mutationAvailability,
     options.favorites,
   );
 }
@@ -113,7 +106,6 @@ export function buildGraphContextMenuEntries(
 ): GraphContextMenuEntry[] {
   const {
     selection,
-    timelineActive,
     favorites,
     pluginItems,
     graphViewContributions,
@@ -121,11 +113,7 @@ export function buildGraphContextMenuEntries(
     edges,
   } = options;
   const decision = decideGraphContextMenu(selection, nodes);
-  const baseEntries = buildBaseGraphContextMenuEntries(decision, {
-    favorites,
-    mutationAvailability: options.mutationAvailability,
-    timelineActive,
-  });
+  const baseEntries = buildBaseGraphContextMenuEntries(decision, { favorites });
   const graphViewCreateEntries = decision.kind === 'background'
     ? buildGraphViewContextMenuEntries({
       decision,
@@ -135,7 +123,6 @@ export function buildGraphContextMenuEntries(
       nodes,
       placement: 'create',
       selection,
-      timelineActive,
     })
     : [];
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
@@ -148,7 +135,6 @@ export function buildGraphContextMenuEntries(
       graphViewContributions,
       nodes,
       selection,
-      timelineActive,
     }),
   ], selection);
 }

@@ -611,7 +611,6 @@ describe('pipeline/plugins/bootstrap', () => {
         id: 'acme.extension-data-host',
         enabled: true,
         options: {
-          mode: 'workspace',
         },
       }],
     });
@@ -631,7 +630,7 @@ describe('pipeline/plugins/bootstrap', () => {
     ]);
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).pluginData).toEqual({
       'acme.extension-data-host': {
-        mode: 'workspace',
+        mode: 'default',
       },
     });
   });

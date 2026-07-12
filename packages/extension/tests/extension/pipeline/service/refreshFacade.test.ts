@@ -11,12 +11,6 @@ import {
   refreshWorkspacePipelineChangedFiles,
   refreshWorkspacePipelinePluginFiles,
 } from '../../../../src/extension/pipeline/service/runtime/refresh';
-import {
-  CACHE_VERSION,
-  CACHE_VERSION_KEY,
-  CHURN_COUNTS_STATE_KEY,
-  PLUGIN_SIGNATURE_KEY,
-} from '../../../../src/extension/gitHistory/cache/stateKeys';
 
 vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
   createWorkspacePipelineDiscoveryDependencies: vi.fn(),
@@ -365,15 +359,8 @@ describe('pipeline/service/refreshFacade', () => {
       }
     )._context.workspaceState;
     workspaceState.get.mockImplementation((key: string) => {
-      if (key === CACHE_VERSION_KEY) {
-        return CACHE_VERSION;
-      }
-      if (key === PLUGIN_SIGNATURE_KEY) {
-        return 'plugin.a@1.0.0';
-      }
-      if (key === CHURN_COUNTS_STATE_KEY) {
-        return { 'src/a.ts': 7 };
-      }
+      if (key === 'codegraphy.churn.version') return 1;
+      if (key === 'codegraphy.churn.counts') return { 'src/a.ts': 7 };
       return undefined;
     });
 

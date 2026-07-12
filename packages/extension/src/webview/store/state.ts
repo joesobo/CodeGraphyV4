@@ -21,7 +21,6 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
-import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -82,13 +81,6 @@ export interface GraphState {
   maxFiles: number;
   verboseDiagnostics: boolean;
   activeFilePath: string | null;
-  timelineActive: boolean;
-  timelineCommits: ICommitInfo[];
-  currentCommitSha: string | null;
-  isIndexing: boolean;
-  indexProgress: { phase: string; current: number; total: number } | null;
-  isPlaying: boolean;
-  playbackSpeed: number;
   expandedGroupId: string | null;
   setExpandedGroupId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
@@ -119,8 +111,6 @@ export interface GraphState {
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
   setVerboseDiagnostics: (enabled: boolean) => void;
-  setPlaybackSpeed: (speed: number) => void;
-  setIsPlaying: (playing: boolean) => void;
   beginInitialBootstrap: () => void;
   beginPluginAssetLoad: () => void;
   finishPluginAssetLoad: () => void;

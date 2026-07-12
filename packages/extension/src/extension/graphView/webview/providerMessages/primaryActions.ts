@@ -7,7 +7,7 @@ import { createFileActions } from './primaryActions/fileActions';
 import { createLegendActions } from './primaryActions/legendActions';
 import { createMessageActions } from './primaryActions/messageActions';
 import { createPipelineActions } from './primaryActions/pipelineActions';
-import { createTimelineActions } from './primaryActions/timelineActions';
+import { createStateActions } from './primaryActions/stateActions';
 import type { GraphViewProviderPrimaryActions } from './primaryActions/types';
 import { createViewActions } from './primaryActions/viewActions';
 import { createWorkspaceFileActions } from './primaryActions/workspaceFileActions';
@@ -21,7 +21,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     ...createEditorActions(source),
     ...createPipelineActions(source),
     ...createMessageActions(dependencies),
-    ...createTimelineActions(source),
+    ...createStateActions(source),
     ...createLegendActions(source),
     ...createWorkspaceFileActions(dependencies),
     ...createViewActions(source),

@@ -18,8 +18,6 @@ describe('webview/store/actions/scalars', () => {
     actions.setDepthMode(true);
     actions.setDagMode('td');
     actions.setMaxFiles(1200);
-    actions.setPlaybackSpeed(1.75);
-    actions.setIsPlaying(true);
 
     expect(getState()).toMatchObject({
       bidirectionalMode: 'combined',
@@ -27,11 +25,9 @@ describe('webview/store/actions/scalars', () => {
       depthMode: true,
       directionColor: '#00ff00',
       directionMode: 'particles',
-      isPlaying: true,
       maxFiles: 1200,
       particleSize: 8,
       particleSpeed: 0.02,
-      playbackSpeed: 1.75,
       physicsPaused: true,
     });
   });

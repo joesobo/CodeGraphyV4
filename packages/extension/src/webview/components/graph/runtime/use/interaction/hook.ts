@@ -53,7 +53,6 @@ export function useGraphInteractionRuntime({
   refs,
   setContextSelection,
   setSelectedNodes,
-  timelineActive = false,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
   const graphContextSelectionRef = useRef(graphContextSelection);
@@ -149,7 +148,6 @@ export function useGraphInteractionRuntime({
     postDraggedNodesDragEndMessages(node, nodeDragGroupRef.current, {
       graphData: graphDataRef.current,
       graphViewContributions,
-      timelineActive,
     });
     nodeDragGroupRef.current = null;
   }

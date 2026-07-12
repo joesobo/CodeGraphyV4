@@ -122,17 +122,6 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('timelineMaxCommits', () => {
-    it('returns the configured value', () => {
-      mockConfig['timeline.maxCommits'] = 200;
-      expect(new Configuration().timelineMaxCommits).toBe(200);
-    });
-
-    it('defaults to 500', () => {
-      expect(new Configuration().timelineMaxCommits).toBe(500);
-    });
-  });
-
   describe('legend', () => {
     it('returns the configured legend rules', () => {
       const groups = [{ id: 'g1', pattern: '*.ts', color: '#FFF' }];
@@ -142,17 +131,6 @@ describe('Configuration (configReaders)', () => {
 
     it('defaults to empty array', () => {
       expect(new Configuration().legend).toEqual([]);
-    });
-  });
-
-  describe('timelinePlaybackSpeed', () => {
-    it('returns the configured playback speed', () => {
-      mockConfig['timeline.playbackSpeed'] = 2.0;
-      expect(new Configuration().timelinePlaybackSpeed).toBe(2.0);
-    });
-
-    it('defaults to 1.0', () => {
-      expect(new Configuration().timelinePlaybackSpeed).toBe(1.0);
     });
   });
 

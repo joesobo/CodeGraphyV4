@@ -17,7 +17,7 @@ describe('buildOpenBlock (mutation kill tests)', () => {
    * Verify exact action string for Open File entry.
    */
   it('produces action "open" for the Open File entry', () => {
-    const entries = buildOpenBlock(['a.ts'], false);
+    const entries = buildOpenBlock(['a.ts']);
     const items = getItems(entries);
     const openItem = items.find(item => item.id === 'node-open');
 
@@ -34,7 +34,7 @@ describe('buildOpenBlock (mutation kill tests)', () => {
    * array to start with unwanted items. Verify the entries are well-formed.
    */
   it('starts with exactly the Open entry, not garbage data', () => {
-    const entries = buildOpenBlock(['a.ts'], false);
+    const entries = buildOpenBlock(['a.ts']);
 
     // First entry should be the Open File item, not some Stryker garbage
     expect(entries[0].kind).toBe('item');
@@ -43,7 +43,7 @@ describe('buildOpenBlock (mutation kill tests)', () => {
   });
 
   it('produces only well-formed entries without extra items', () => {
-    const entries = buildOpenBlock(['a.ts'], false);
+    const entries = buildOpenBlock(['a.ts']);
 
     // Should be exactly 2: Open File + Reveal in Explorer
     expect(entries).toHaveLength(2);
@@ -59,7 +59,7 @@ describe('buildOpenBlock (mutation kill tests)', () => {
    * Verify exact action string for Reveal in Explorer entry.
    */
   it('produces action "reveal" for the Reveal in Explorer entry', () => {
-    const entries = buildOpenBlock(['a.ts'], false);
+    const entries = buildOpenBlock(['a.ts']);
     const items = getItems(entries);
     const revealItem = items.find(item => item.id === 'node-reveal');
 
@@ -70,7 +70,7 @@ describe('buildOpenBlock (mutation kill tests)', () => {
   });
 
   it('multi-select has exact "Open N Files" label and "open" action', () => {
-    const entries = buildOpenBlock(['a.ts', 'b.ts'], false);
+    const entries = buildOpenBlock(['a.ts', 'b.ts']);
     const items = getItems(entries);
 
     expect(items).toHaveLength(1);

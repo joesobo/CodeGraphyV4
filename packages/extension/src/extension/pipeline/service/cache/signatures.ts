@@ -1,4 +1,5 @@
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { promisify } from 'node:util';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_ID,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
@@ -9,7 +10,8 @@ import {
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
 import type { Configuration } from '../../../config/reader';
-import { execGitCommand } from '../../../gitHistory/exec';
+
+const execFileAsync = promisify(execFile);
 
 export function createWorkspacePipelinePluginSignature(
   plugins: ReadonlyArray<{
@@ -65,7 +67,11 @@ export async function readWorkspacePipelineCurrentCommitSha(
   workspaceRoot: string,
 ): Promise<string | null> {
   try {
-    return (await execGitCommand(['rev-parse', 'HEAD'], { workspaceRoot })).trim();
+    const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], {
+      cwd: workspaceRoot,
+      encoding: 'utf8',
+    });
+    return stdout.trim();
   } catch {
     return null;
   }

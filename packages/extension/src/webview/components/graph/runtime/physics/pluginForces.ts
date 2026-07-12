@@ -23,7 +23,6 @@ export interface GraphViewForceAdapterState {
 
 export interface GraphViewForceSyncContext {
   physicsSettings?: IPhysicsSettings;
-  timelineActive?: boolean;
 }
 
 export function createGraphViewForceAdapterState(): GraphViewForceAdapterState {
@@ -55,7 +54,6 @@ function getGraphEdgeKind(link: FGLink): GraphEdgeKind {
 function createGraphViewForceContextSignature(context: GraphViewForceSyncContext): string {
   const settings = context.physicsSettings;
   return [
-    context.timelineActive === true ? '1' : '0',
     settings?.repelForce ?? '',
     settings?.linkDistance ?? '',
     settings?.linkForce ?? '',

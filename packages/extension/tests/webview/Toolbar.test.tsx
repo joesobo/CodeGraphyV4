@@ -53,7 +53,6 @@ import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     dagMode: null,
-    timelineActive: false,
     depthLimit: 1,
     depthMode: false,
     activePanel: 'none',
@@ -65,8 +64,6 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     graphIsIndexing: false,
     graphIndexProgress: null,
     nodeSizeMode: 'connections',
-    timelineCommits: [],
-    isIndexing: false,
     ...overrides,
   });
 }
@@ -126,21 +123,7 @@ describe('Toolbar', () => {
     expect(findMessage('UPDATE_DAG_MODE')?.payload.dagMode).toBe('radialout');
   });
 
-  it('keeps churn visible but disabled until Git history is indexed', async () => {
-    render(<Toolbar />);
-
-    fireEvent.click(screen.getByTitle('Node Size'));
-
-    expect(await screen.findByRole('button', { name: /Churn/i })).toBeDisabled();
-  });
-
-  it('sends UPDATE_NODE_SIZE_MODE for churn after Git history is indexed', async () => {
-    setDefaultState({
-      timelineCommits: [
-        { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
-      ],
-    });
-
+  it('sends UPDATE_NODE_SIZE_MODE for churn', async () => {
     render(<Toolbar />);
     fireEvent.click(screen.getByTitle('Node Size'));
     fireEvent.click(await screen.findByRole('button', { name: /Churn/i }));
@@ -194,7 +177,7 @@ describe('Toolbar', () => {
     );
   });
 
-  it('passes timeline state to Graph View create toolbar contributions', async () => {
+  it('passes the background selection context to Graph View create contributions', () => {
     const run = vi.fn();
     const graphViewContributions = {
       runtimeNodes: [],
@@ -209,7 +192,7 @@ describe('Toolbar', () => {
           label: 'New Section...',
           placement: { menu: 'create' },
           targets: [{ kind: 'background' }],
-          isVisible: (context: { timelineActive: boolean }) => !context.timelineActive,
+          isVisible: () => true,
           run,
         },
       }],
@@ -218,20 +201,14 @@ describe('Toolbar', () => {
 
     const liveContributions = resolveGraphViewCreateContributions({
       graphViewContributions,
-      timelineActive: false,
     });
     expect(liveContributions.map(contribution => contribution.label)).toEqual(['New Section...']);
     liveContributions[0]?.entry.contribution.run(liveContributions[0].context);
 
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'background' },
-      timelineActive: false,
       selectedNodeIds: [],
       selectedEdgeIds: [],
     });
-    expect(resolveGraphViewCreateContributions({
-      graphViewContributions,
-      timelineActive: true,
-    })).toEqual([]);
   });
 });

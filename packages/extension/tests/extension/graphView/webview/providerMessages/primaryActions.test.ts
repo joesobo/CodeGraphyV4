@@ -22,7 +22,6 @@ describe('graph view provider listener primary actions', () => {
     await actions.openSelectedNode('src/app.ts');
     await actions.activateNode('src/app.ts');
     actions.setFocusedFile('src/app.ts');
-    await actions.previewFileAtCommit('sha-1', 'src/app.ts');
     await actions.openFile('src/app.ts');
     await actions.revealInExplorer('src/app.ts');
     await actions.copyToClipboard('src/app.ts');
@@ -37,7 +36,6 @@ describe('graph view provider listener primary actions', () => {
     expect(source._openSelectedNode).toHaveBeenCalledWith('src/app.ts');
     expect(source._activateNode).toHaveBeenCalledWith('src/app.ts');
     expect(source.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
-    expect(source._previewFileAtCommit).toHaveBeenCalledWith('sha-1', 'src/app.ts');
     expect(source._openFile).toHaveBeenCalledWith('src/app.ts');
     expect(source._revealInExplorer).toHaveBeenCalledWith('src/app.ts');
     expect(source._copyToClipboard).toHaveBeenCalledWith('src/app.ts');
@@ -61,7 +59,7 @@ describe('graph view provider listener primary actions', () => {
     expect(source._createFolder).toHaveBeenCalledWith('.');
   });
 
-  it('delegates provider state and timeline actions', async () => {
+  it('delegates provider state actions', async () => {
     const source = createSource();
     const actions = createActions(source);
 
@@ -74,9 +72,6 @@ describe('graph view provider listener primary actions', () => {
     await actions.redo();
     await actions.setDepthMode(true);
     await actions.setDepthLimit(4);
-    await actions.indexRepository();
-    await actions.jumpToCommit('sha-1');
-    await actions.resetTimeline();
     actions.sendPhysicsSettings();
     await actions.updatePhysicsSetting('damping', 300);
     await actions.resetPhysicsSettings();
@@ -90,9 +85,6 @@ describe('graph view provider listener primary actions', () => {
     expect(source.redo).toHaveBeenCalledOnce();
     expect(source.setDepthMode).toHaveBeenCalledWith(true);
     expect(source.setDepthLimit).toHaveBeenCalledWith(4);
-    expect(source._indexRepository).toHaveBeenCalledOnce();
-    expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
-    expect(source._resetTimeline).toHaveBeenCalledOnce();
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(source._updatePhysicsSetting).toHaveBeenCalledWith('damping', 300);
     expect(source._resetPhysicsSettings).toHaveBeenCalledOnce();
@@ -423,7 +415,6 @@ function createSource(overrides: Record<string, unknown> = {}) {
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
-    _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
     _webviewMethods: {
       openInEditor: vi.fn(() => Promise.resolve()),
@@ -446,9 +437,6 @@ function createSource(overrides: Record<string, unknown> = {}) {
     redo: vi.fn(() => Promise.resolve('redo')),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    _indexRepository: vi.fn(() => Promise.resolve()),
-    _jumpToCommit: vi.fn(() => Promise.resolve()),
-    _resetTimeline: vi.fn(() => Promise.resolve()),
     _sendPhysicsSettings: vi.fn(),
     _updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),

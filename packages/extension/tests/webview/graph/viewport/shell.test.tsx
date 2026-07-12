@@ -146,7 +146,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 		nodeDecorationsRef: { current: {} },
 		nodeSizeModeRef: { current: 'connections' },
 		setHighlightVersion: vi.fn(),
-		timelineActiveRef: { current: true },
 		showLabelsRef: { current: true },
 		themeRef: { current: 'dark' },
 	} as unknown as GraphRuntime;
@@ -206,7 +205,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showLabels'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -218,7 +217,6 @@ function createViewState(): Pick<
 
 	return {
 		bidirectionalMode: 'separate',
-		currentCommitSha: 'commit-b',
 		dagMode: 'td',
 		depthMode: false,
 		directionMode: 'arrows',
@@ -232,11 +230,6 @@ function createViewState(): Pick<
 		pluginContextMenuItems: [],
 		pluginStatuses: [],
 		showLabels: true,
-		timelineActive: true,
-		timelineCommits: [
-			{ sha: 'commit-a', message: 'A', author: 'Ada', parents: [], timestamp: 1 },
-			{ sha: 'commit-b', message: 'B', author: 'Ada', parents: ['commit-a'], timestamp: 2 },
-		],
 	};
 }
 
@@ -331,7 +324,6 @@ describe('graph/viewport/shell', () => {
 			pluginHost,
 			theme: 'light',
 			favorites: viewState.favorites,
-			timelineActive: true,
 			directionMode: 'arrows',
 		}));
 		expect(harness.useGraphViewportModel).toHaveBeenCalledWith(expect.objectContaining({
@@ -400,7 +392,6 @@ describe('graph/viewport/shell', () => {
 					id: 'src/app.ts',
 				}),
 			]),
-			timelineActive: true,
 			zoom: 1.75,
 		}));
 	});

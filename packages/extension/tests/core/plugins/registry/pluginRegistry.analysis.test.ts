@@ -42,7 +42,7 @@ describe('PluginRegistry analysis', () => {
       '/src/app.ts',
       'content',
       '/workspace',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
     expect(result).toEqual([
       {
@@ -83,7 +83,7 @@ describe('PluginRegistry analysis', () => {
       '/src/styles.css',
       'content',
       '/workspace',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
     expect(result).toEqual({
       filePath: '/src/styles.css',
@@ -140,7 +140,7 @@ describe('PluginRegistry analysis', () => {
       '/src/app.ts',
       'content',
       '/workspace',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
     expect(result).toEqual({
       edgeTypes: [],
