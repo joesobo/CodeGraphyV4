@@ -4,7 +4,7 @@ import type {
   IFileAnalysisResult,
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import { refreshChurnIndex } from '../../../churn';
+import { refreshChurnIndex } from '../../../churn/refresh';
 import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import { preAnalyzeCoreTreeSitterFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';

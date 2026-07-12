@@ -1,11 +1,11 @@
 import {
-  createGraphLayoutEngine,
   GraphNodeFlag,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
   type GraphLayoutTickResult,
-} from '../physics';
+} from '../physics/contracts';
+import { createGraphLayoutEngine } from '../physics/engine';
 import GraphLayoutWorker from './worker?worker&inline';
 import type { GraphLayoutWorkerCommand, GraphLayoutWorkerMessage } from './protocol';
 

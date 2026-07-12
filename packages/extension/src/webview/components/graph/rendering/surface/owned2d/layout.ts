@@ -1,10 +1,10 @@
 import {
-  createGraphLayoutEngine,
   GraphNodeFlag,
   type GraphLayoutConfig,
   type GraphLayoutEngine,
   type GraphLayoutInput,
-} from './physics';
+} from './physics/contracts';
+import { createGraphLayoutEngine } from './physics/engine';
 import type { DagMode } from '../../../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';

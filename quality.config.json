@@ -180,7 +180,8 @@
 					"src/extension/repoSettings/store/index.ts",
 					"src/shared/visibleGraph/index.ts",
 					"src/webview/pluginHost/api/registration/index.ts",
-					"src/webview/main.tsx"
+					"src/webview/main.tsx",
+					"src/webview/components/graph/rendering/surface/owned2d/worker/worker.ts"
 				],
 				"layers": [
 					{
