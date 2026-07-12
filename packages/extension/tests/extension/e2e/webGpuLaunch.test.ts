@@ -7,7 +7,9 @@ describe('webGpuCiLaunchArgs', () => {
     expect(webGpuCiLaunchArgs({ ci: true, platform: 'linux' })).toEqual([
       '--enable-unsafe-webgpu',
       '--enable-unsafe-swiftshader',
+      '--enable-features=Vulkan',
       '--use-angle=swiftshader',
+      '--use-vulkan=swiftshader',
     ]);
   });
 

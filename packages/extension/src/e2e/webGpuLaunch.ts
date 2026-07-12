@@ -12,6 +12,8 @@ export function webGpuCiLaunchArgs({
   return [
     '--enable-unsafe-webgpu',
     '--enable-unsafe-swiftshader',
+    '--enable-features=Vulkan',
     '--use-angle=swiftshader',
+    '--use-vulkan=swiftshader',
   ];
 }
