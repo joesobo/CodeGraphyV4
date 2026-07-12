@@ -5,7 +5,7 @@ Published packages support Node 20 and newer. The repo-wide local runtime is Nod
 
 The rest of the docs are split by purpose:
 
-- `docs/COMMANDS.md`, `docs/INTERACTIONS.md`, `docs/KEYBINDINGS.md`, `docs/MCP.md`, `docs/PHILOSOPHY.md`, `docs/SETTINGS.md`, `docs/TIMELINE.md` - product and user-facing docs
+- `docs/COMMANDS.md`, `docs/INTERACTIONS.md`, `docs/KEYBINDINGS.md`, `docs/MCP.md`, `docs/PHILOSOPHY.md`, `docs/SETTINGS.md` - product and user-facing docs
 - `docs/plans/` - active task plans and working notes
 - `docs/plugin-api/` - plugin contract, lifecycle, and type reference
 - `docs/quality/` - quality-tooling docs and commands

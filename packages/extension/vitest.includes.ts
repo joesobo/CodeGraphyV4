@@ -33,12 +33,10 @@ export const extensionWebviewAppAndPluginTestIncludes = [
   'packages/extension/tests/webview/plugins/**/*.test.{ts,tsx}',
   'packages/extension/tests/webview/store/**/*.test.ts',
   'packages/extension/tests/webview/theme/**/*.test.ts',
-  'packages/extension/tests/webview/three/**/*.test.ts',
   'packages/extension/tests/webview/vscodeApi*.test.ts',
 ];
 
 export const extensionWebviewPanelsAndExportTestIncludes = [
-  'packages/extension/tests/webview/Timeline.test.tsx',
   'packages/extension/tests/webview/Toolbar.test.tsx',
   'packages/extension/tests/webview/colorParsing.test.ts',
   'packages/extension/tests/webview/colorParsing/**/*.test.ts',
@@ -52,7 +50,6 @@ export const extensionWebviewPanelsAndExportTestIncludes = [
   'packages/extension/tests/webview/search/**/*.test.ts',
   'packages/extension/tests/webview/searchBar/**/*.test.{ts,tsx}',
   'packages/extension/tests/webview/settingsPanel/**/*.test.{ts,tsx}',
-  'packages/extension/tests/webview/timeline/**/*.test.ts',
   'packages/extension/tests/webview/toolbar/**/*.test.{ts,tsx}',
 ];
 

@@ -8,7 +8,6 @@ export function createSource(overrides: Record<string, unknown> = {}) {
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
-    _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
     _webviewMethods: {
       openInEditor: vi.fn(() => Promise.resolve()),
@@ -31,9 +30,6 @@ export function createSource(overrides: Record<string, unknown> = {}) {
     redo: vi.fn(() => Promise.resolve('redo')),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    _indexRepository: vi.fn(() => Promise.resolve()),
-    _jumpToCommit: vi.fn(() => Promise.resolve()),
-    _resetTimeline: vi.fn(() => Promise.resolve()),
     _sendPhysicsSettings: vi.fn(),
     _updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),

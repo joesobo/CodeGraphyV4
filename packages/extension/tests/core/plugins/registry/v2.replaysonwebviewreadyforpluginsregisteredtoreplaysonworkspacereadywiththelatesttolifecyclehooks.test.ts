@@ -176,7 +176,7 @@ describe('PluginRegistry v2', () => {
           expect(initialize).toHaveBeenCalledTimes(1);
           expect(initialize).toHaveBeenCalledWith(
             '/workspace',
-            expect.objectContaining({ mode: 'workspace' }),
+            expect.objectContaining({ fileSystem: expect.any(Object) }),
           );
         });
   });

@@ -43,12 +43,9 @@ function isGraphViewCreateContribution(
     && (entry.contribution.isVisible?.(context) ?? true);
 }
 
-function createGraphViewCreateContext(
-  timelineActive: boolean,
-): GraphViewCreateContext {
+function createGraphViewCreateContext(): GraphViewCreateContext {
   return {
     target: { kind: 'background' },
-    timelineActive,
     selectedNodeIds: [],
     selectedEdgeIds: [],
   };
@@ -56,12 +53,10 @@ function createGraphViewCreateContext(
 
 export function resolveGraphViewCreateContributions({
   graphViewContributions,
-  timelineActive,
 }: {
   graphViewContributions?: CoreGraphViewContributionSet;
-  timelineActive: boolean;
 }): ResolvedGraphViewCreateContribution[] {
-  const context = createGraphViewCreateContext(timelineActive);
+  const context = createGraphViewCreateContext();
   return graphViewContributions?.contextMenu
     .filter(entry => isGraphViewCreateContribution(entry, context))
     .map(entry => ({
@@ -79,14 +74,11 @@ function runGraphViewCreateContribution(
 
 export function CreateToolbarAction({
   graphViewContributions,
-  timelineActive,
 }: {
   graphViewContributions?: CoreGraphViewContributionSet;
-  timelineActive: boolean;
 }): React.ReactElement {
   const graphViewCreateContributions = resolveGraphViewCreateContributions({
     graphViewContributions,
-    timelineActive,
   });
 
   return (

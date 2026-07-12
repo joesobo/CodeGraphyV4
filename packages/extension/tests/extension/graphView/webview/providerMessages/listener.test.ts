@@ -98,8 +98,6 @@ function createSource(
   overrides: Partial<GraphViewProviderMessageListenerSource> = {},
 ): GraphViewProviderMessageListenerSource {
   const source = {
-    _timelineActive: false,
-    _currentCommitSha: undefined,
     _userGroups: [],
     _disabledPlugins: new Set<string>(),
     _filterPatterns: ['dist/**'],
@@ -139,7 +137,6 @@ function createSource(
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
-    _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
     _revealInExplorer: vi.fn(() => Promise.resolve()),
     _copyToClipboard: vi.fn(() => Promise.resolve()),
@@ -158,9 +155,6 @@ function createSource(
     redo: vi.fn(() => Promise.resolve(undefined)),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
-    _indexRepository: vi.fn(() => Promise.resolve()),
-    _jumpToCommit: vi.fn(() => Promise.resolve()),
-    _resetTimeline: vi.fn(() => Promise.resolve()),
     _sendPhysicsSettings: vi.fn(),
     _updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),
@@ -175,7 +169,6 @@ function createSource(
     _loadDisabledRulesAndPlugins: vi.fn(() => false),
     _sendFavorites: vi.fn(),
     _sendSettings: vi.fn(),
-    _sendCachedTimeline: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
     _sendPluginStatuses: vi.fn(),
@@ -295,7 +288,6 @@ describe('graph view provider listener bridge', () => {
     expect(source._sendSettings).toHaveBeenCalledOnce();
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
@@ -318,9 +310,6 @@ describe('graph view provider listener bridge', () => {
     const { context, source, workspaceFolders } = await loadDefaultListenerHarness();
 
     expect(context.workspaceFolder).toEqual(workspaceFolders[0]);
-    expect(context.getTimelineActive()).toBe(false);
-    expect(context.getCurrentCommitSha()).toBeUndefined();
-    expect(context.getCanMutateGraphRevision()).toBe(true);
     expect(context.getUserGroups()).toEqual([]);
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.findNode('node-1')).toEqual(source._graphData.nodes[0]);
@@ -340,7 +329,6 @@ describe('graph view provider listener bridge', () => {
     context.loadDisabledRulesAndPlugins();
     context.sendFavorites();
     context.sendSettings();
-    context.sendCachedTimeline();
     context.sendDecorations();
     context.sendContextMenuItems();
     context.sendPluginWebviewInjections();
@@ -356,7 +344,6 @@ describe('graph view provider listener bridge', () => {
     expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
     expect(source._sendFavorites).toHaveBeenCalledOnce();
     expect(source._sendSettings).toHaveBeenCalledOnce();
-    expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
@@ -438,11 +425,9 @@ describe('graph view provider listener bridge', () => {
     expect(execute).toHaveBeenCalledTimes(1);
 
     expect(context.getMaxFiles()).toBe(DEFAULT_MAX_FILES);
-    expect(context.getPlaybackSpeed()).toBe(1);
     expect(context.getDagMode()).toBe('td');
     expect(context.getNodeSizeMode()).toBe('file-size');
     expect(configurationGet).toHaveBeenCalledWith('maxFiles', DEFAULT_MAX_FILES);
-    expect(configurationGet).toHaveBeenCalledWith('timeline.playbackSpeed', 1.0);
   });
 
   it('wires the default undo-execution dependency into the settings context', async () => {

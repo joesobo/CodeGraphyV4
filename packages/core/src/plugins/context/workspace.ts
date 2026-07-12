@@ -11,7 +11,6 @@ export function createWorkspacePluginAnalysisContext(
   } = {},
 ): IPluginAnalysisContext {
   const context: IPluginAnalysisContext = {
-    mode: 'workspace',
     fileSystem: createWorkspaceAnalysisFileSystem(workspaceRoot),
   };
 

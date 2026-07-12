@@ -6,9 +6,6 @@ import type {
 
 type GraphViewProviderReadContext = Pick<
   GraphViewMessageListenerContext,
-  | 'getTimelineActive'
-  | 'getCurrentCommitSha'
-  | 'getCanMutateGraphRevision'
   | 'getUserGroups'
   | 'getDepthMode'
   | 'getFilterPatterns'
@@ -28,16 +25,6 @@ export function createGraphViewProviderMessageReadContext(
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderReadContext {
   return {
-    getTimelineActive: () => source._timelineActive,
-    getCurrentCommitSha: () => source._currentCommitSha,
-    getCanMutateGraphRevision: () => {
-      if (!source._timelineActive) {
-        return true;
-      }
-
-      const currentHeadSha = source._gitAnalyzer?.getCachedCommitList()?.at(-1)?.sha;
-      return !!currentHeadSha && source._currentCommitSha === currentHeadSha;
-    },
     getUserGroups: () => source._userGroups,
     getDepthMode: () => source._depthMode,
     getFilterPatterns: () => source._filterPatterns,

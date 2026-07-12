@@ -5,7 +5,7 @@ import type {
 } from './contracts';
 
 export function nodeSizeModeUsesNodeMetrics(mode: NodeSizeMode): boolean {
-  return mode === 'file-size' || mode === 'churn';
+  return mode === 'file-size';
 }
 
 export function applyMetricUpdatesInPlace(
@@ -21,7 +21,6 @@ export function applyMetricUpdatesInPlace(
     }
 
     node.fileSize = update.fileSize;
-    node.churn = update.churn;
     changed = true;
   }
 
@@ -43,7 +42,6 @@ export function applyMetricUpdates(
     return {
       ...node,
       fileSize: update.fileSize,
-      churn: update.churn,
     };
   });
 
@@ -51,5 +49,5 @@ export function applyMetricUpdates(
 }
 
 function nodeMetricsDiffer(node: GraphNode, update: GraphNodeMetricsUpdate): boolean {
-  return node.fileSize !== update.fileSize || node.churn !== update.churn;
+  return node.fileSize !== update.fileSize;
 }

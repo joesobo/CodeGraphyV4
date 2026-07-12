@@ -19,7 +19,6 @@ interface GraphViewProviderPublicMethodsOwner {
     | 'plugin'
     | 'query'
     | 'refresh'
-    | 'timeline'
     | 'viewContext'
     | 'viewSelection'
     | 'webview'
@@ -68,8 +67,6 @@ export interface GraphViewProviderPublicMethods {
   ) => void;
   updateGraphData: (data: IGraphData) => void;
   getGraphData: () => IGraphData;
-  sendPlaybackSpeed: () => void;
-  invalidateTimelineCache: () => Promise<void>;
   registerExternalPlugin: (
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
@@ -126,8 +123,6 @@ export function assignGraphViewProviderPublicMethods(
     target._methodContainers.webview.resolveWebviewView(webviewView, context, token);
   target.updateGraphData = data => target._methodContainers.viewContext.updateGraphData(data);
   target.getGraphData = () => target._methodContainers.viewContext.getGraphData();
-  target.sendPlaybackSpeed = () => target._methodContainers.timeline.sendPlaybackSpeed();
-  target.invalidateTimelineCache = () => target._methodContainers.timeline.invalidateTimelineCache();
   target.registerExternalPlugin = (plugin, options) =>
     target._methodContainers.plugin.registerExternalPlugin(plugin, options);
   target.queryGraph = request => target._methodContainers.query.queryGraph(request);

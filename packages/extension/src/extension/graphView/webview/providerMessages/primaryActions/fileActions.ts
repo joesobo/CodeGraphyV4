@@ -12,7 +12,6 @@ type FileActions = Pick<
   | 'activateNode'
   | 'canOpenPath'
   | 'setFocusedFile'
-  | 'previewFileAtCommit'
   | 'openFile'
   | 'revealInExplorer'
   | 'copyToClipboard'
@@ -31,7 +30,6 @@ export function createFileActions(source: GraphViewProviderMessageListenerSource
     activateNode: nodeId => source._activateNode(resolveGraphOpenPath(source, nodeId)),
     canOpenPath: filePath => canOpenGraphPath(source, filePath),
     setFocusedFile: filePath => source.setFocusedFile(filePath),
-    previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
     openFile: filePath => source._openFile(resolveGraphOpenPath(source, filePath)),
     revealInExplorer: filePath => source._revealInExplorer(resolveGraphOpenPath(source, filePath)),
     copyToClipboard: text => source._copyToClipboard(text),

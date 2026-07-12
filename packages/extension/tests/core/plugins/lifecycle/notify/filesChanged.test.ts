@@ -20,7 +20,6 @@ describe('plugin lifecycle notify/filesChanged', () => {
     const plugin = makePlugin({ onFilesChanged });
     const files = [{ absolutePath: '/ws/a.ts', relativePath: 'a.ts', content: '' }];
     const context = {
-      mode: 'workspace',
       fileSystem: {
         exists: vi.fn(),
         isDirectory: vi.fn(),
@@ -91,12 +90,12 @@ describe('plugin lifecycle notify/filesChanged', () => {
     expect(wildcardPlugin.onFilesChanged).toHaveBeenCalledWith(
       files,
       '/ws',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
     expect(caseInsensitivePlugin.onFilesChanged).toHaveBeenCalledWith(
       files,
       '/ws',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
     expect(ignoredPlugin.onFilesChanged).not.toHaveBeenCalled();
   });
@@ -161,7 +160,7 @@ describe('plugin lifecycle notify/filesChanged', () => {
     expect(healthyPlugin.onFilesChanged).toHaveBeenCalledWith(
       files,
       '/ws',
-      expect.objectContaining({ mode: 'workspace' }),
+      expect.objectContaining({ fileSystem: expect.any(Object) }),
     );
   });
 });

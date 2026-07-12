@@ -91,7 +91,6 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			physicsSettings: PHYSICS_SETTINGS,
 			pluginHost: pluginHost as never,
 			theme: 'dark',
-			timelineActive: false,
 		}));
 
 		expect(renderingHarness.useContainerSize).toHaveBeenCalledWith(containerRef);
@@ -122,7 +121,6 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			layoutKey: 'uniform::',
 			physicsPaused: false,
 			physicsSettings: PHYSICS_SETTINGS,
-			timelineActive: false,
 		});
 		expect(result.current.containerSize).toEqual({ height: 360, width: 640 });
 

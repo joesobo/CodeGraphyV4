@@ -98,19 +98,6 @@ describe('GraphViewProvider public API', () => {
     expect(sendSettingsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('sendPlaybackSpeed delegates to the timeline method container', () => {
-    const provider = new GraphViewProvider(
-      vscode.Uri.file('/test/extension'),
-      createContext() as unknown as vscode.ExtensionContext
-    );
-    const internals = getGraphViewProviderInternals(provider);
-    const sendPlaybackSpeedSpy = vi.spyOn(internals._timelineMethods, 'sendPlaybackSpeed');
-
-    provider.sendPlaybackSpeed();
-
-    expect(sendPlaybackSpeedSpy).toHaveBeenCalledTimes(1);
-  });
-
   it('queryGraph delegates to the query method container', () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -128,21 +115,6 @@ describe('GraphViewProvider public API', () => {
       page: { offset: 0, limit: 500, returned: 1, total: 1 },
     });
     expect(querySpy).toHaveBeenCalledWith(query);
-  });
-
-  it('invalidateTimelineCache delegates to the timeline method container', async () => {
-    const provider = new GraphViewProvider(
-      vscode.Uri.file('/test/extension'),
-      createContext() as unknown as vscode.ExtensionContext
-    );
-    const internals = getGraphViewProviderInternals(provider);
-    const invalidateTimelineCacheSpy = vi
-      .spyOn(internals._timelineMethods, 'invalidateTimelineCache')
-      .mockResolvedValue();
-
-    await provider.invalidateTimelineCache();
-
-    expect(invalidateTimelineCacheSpy).toHaveBeenCalledTimes(1);
   });
 
   it('returns the current depth limit through the public API', () => {

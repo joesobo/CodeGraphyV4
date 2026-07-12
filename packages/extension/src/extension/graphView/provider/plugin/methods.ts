@@ -62,7 +62,6 @@ export interface GraphViewProviderPluginMethodsSource {
     uri: vscode.Uri | string | undefined,
   ): vscode.Uri | undefined;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _invalidateTimelineCache(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   invalidatePluginFiles(pluginIds: readonly string[]): string[];
   refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;

@@ -14,7 +14,6 @@ export interface GraphViewPluginMessageContext {
   getPluginFilterGroups(): IPluginFilterPatternGroup[];
   getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
-  getPlaybackSpeed(): number;
   getDepthMode(): boolean;
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
@@ -34,7 +33,6 @@ export interface GraphViewPluginMessageContext {
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
-  sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginStatuses?(): void;

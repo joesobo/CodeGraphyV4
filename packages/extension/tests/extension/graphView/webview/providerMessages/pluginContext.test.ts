@@ -12,7 +12,6 @@ describe('graph view provider listener plugin context', () => {
         _webviewReadyNotified: false,
         _sendFavorites: vi.fn(),
         _sendSettings: vi.fn(),
-        _sendCachedTimeline: vi.fn(),
         _sendDecorations: vi.fn(),
         _sendContextMenuItems: vi.fn(),
         _sendPluginWebviewInjections: vi.fn(),
@@ -53,7 +52,6 @@ describe('graph view provider listener plugin context', () => {
       _webviewReadyNotified: false,
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
-      _sendCachedTimeline: vi.fn(),
       _sendDecorations: vi.fn(),
       _sendContextMenuItems: vi.fn(),
       _sendPluginWebviewInjections: vi.fn(),
@@ -110,7 +108,6 @@ describe('graph view provider listener plugin context', () => {
       _webviewReadyNotified: false,
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
-      _sendCachedTimeline: vi.fn(),
       _sendDecorations: vi.fn(),
       _sendContextMenuItems: vi.fn(),
       _sendPluginWebviewInjections: vi.fn(),
@@ -156,7 +153,6 @@ describe('graph view provider listener plugin context', () => {
       _webviewReadyNotified: true,
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
-      _sendCachedTimeline: vi.fn(),
       _sendDecorations: vi.fn(),
       _sendContextMenuItems: vi.fn(),
       _sendPluginExporters: vi.fn(),
@@ -197,7 +193,6 @@ describe('graph view provider listener plugin context', () => {
     context.sendGraphControls?.();
     context.sendFavorites();
     context.sendSettings();
-    context.sendCachedTimeline();
     context.sendDecorations();
     context.sendContextMenuItems();
     expect(context.sendPluginExporters).toBeTypeOf('function');
@@ -216,7 +211,6 @@ describe('graph view provider listener plugin context', () => {
     expect(source._sendGraphControls).toHaveBeenCalledOnce();
     expect(source._sendFavorites).toHaveBeenCalledOnce();
     expect(source._sendSettings).toHaveBeenCalledOnce();
-    expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
     expect(source._sendPluginExporters).toHaveBeenCalledOnce();
@@ -236,7 +230,6 @@ describe('graph view provider listener plugin context', () => {
       _webviewReadyNotified: false,
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
-      _sendCachedTimeline: vi.fn(),
       _sendDecorations: vi.fn(),
       _sendContextMenuItems: vi.fn(),
       _sendPluginExporters: undefined,
@@ -299,7 +292,6 @@ describe('graph view provider listener plugin context', () => {
       _webviewReadyNotified: false,
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
-      _sendCachedTimeline: vi.fn(),
       _sendDecorations: vi.fn(),
       _sendContextMenuItems: vi.fn(),
       _sendPluginWebviewInjections: vi.fn(),

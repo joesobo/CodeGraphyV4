@@ -1,8 +1,3 @@
-export interface ExportBuildContext {
-  timelineActive?: boolean;
-  currentCommitSha?: string | null;
-}
-
 export interface ExportLegendRule {
   id: string;
   pattern: string;
@@ -64,10 +59,6 @@ export interface ExportData {
   exportedAt: string;
   scope: {
     graph: 'current-view';
-    timeline: {
-      active: boolean;
-      commitSha: string | null;
-    };
   };
   summary: {
     totalNodes: number;

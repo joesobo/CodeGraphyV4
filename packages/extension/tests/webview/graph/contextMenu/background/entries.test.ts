@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { buildBackgroundEntries } from '../../../../../src/webview/components/graph/contextMenu/background/entries';
 import type { GraphContextMenuEntry } from '../../../../../src/webview/components/graph/contextMenu/contracts';
 
@@ -8,53 +8,29 @@ function itemLabels(entries: GraphContextMenuEntry[]): string[] {
     .map(entry => (entry as Extract<GraphContextMenuEntry, { kind: 'item' }>).label);
 }
 
-function separatorCount(entries: GraphContextMenuEntry[]): number {
-  return entries.filter(entry => entry.kind === 'separator').length;
-}
-
 describe('buildBackgroundEntries', () => {
-  it('orders New File, New Folder, and separator when mutation is enabled', () => {
-    const entries = buildBackgroundEntries('enabled');
-    expect(itemLabels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
-    expect(separatorCount(entries)).toBe(1);
+  it('orders New File, New Folder, Refresh, and Fit All Nodes', () => {
+    expect(itemLabels(buildBackgroundEntries())).toEqual([
+      'New File',
+      'New Folder',
+      'Refresh',
+      'Fit All Nodes',
+    ]);
   });
 
-  it('disables New File and New Folder when mutation is disabled', () => {
-    const entries = buildBackgroundEntries('disabled');
-    const items = entries.filter(
-      (entry): entry is Extract<GraphContextMenuEntry, { kind: 'item' }> => entry.kind === 'item'
-    );
-    expect(items.find(item => item.label === 'New File')?.disabled).toBe(true);
-    expect(items.find(item => item.label === 'New Folder')?.disabled).toBe(true);
-    expect(separatorCount(entries)).toBe(1);
-  });
-
-  it('omits New File, New Folder, and separator when mutation is hidden', () => {
-    const entries = buildBackgroundEntries('hidden');
-    expect(itemLabels(entries)).not.toContain('New File');
-    expect(itemLabels(entries)).not.toContain('New Folder');
-    expect(separatorCount(entries)).toBe(0);
+  it('places one separator between creation and graph actions', () => {
+    expect(buildBackgroundEntries().filter(entry => entry.kind === 'separator')).toHaveLength(1);
   });
 
   it('always includes Refresh', () => {
-    expect(itemLabels(buildBackgroundEntries('enabled'))).toContain('Refresh');
-    expect(itemLabels(buildBackgroundEntries('disabled'))).toContain('Refresh');
-    expect(itemLabels(buildBackgroundEntries('hidden'))).toContain('Refresh');
+    expect(itemLabels(buildBackgroundEntries())).toContain('Refresh');
   });
 
   it('always includes Fit All Nodes', () => {
-    expect(itemLabels(buildBackgroundEntries('enabled'))).toContain('Fit All Nodes');
-    expect(itemLabels(buildBackgroundEntries('disabled'))).toContain('Fit All Nodes');
-    expect(itemLabels(buildBackgroundEntries('hidden'))).toContain('Fit All Nodes');
+    expect(itemLabels(buildBackgroundEntries())).toContain('Fit All Nodes');
   });
 
-  it('returns 5 entries when mutation actions are visible', () => {
-    const entries = buildBackgroundEntries('enabled');
-    expect(entries).toHaveLength(5);
-  });
-
-  it('returns 2 entries when mutation actions are hidden', () => {
-    const entries = buildBackgroundEntries('hidden');
-    expect(entries).toHaveLength(2);
+  it('returns five entries', () => {
+    expect(buildBackgroundEntries()).toHaveLength(5);
   });
 });

@@ -92,9 +92,5 @@
     "damping": 0.7,
     "centerForce": 0.26,
     "chargeRange": 200
-  },
-  "timeline": {
-    "maxCommits": 500,
-    "playbackSpeed": 1
   }
 }

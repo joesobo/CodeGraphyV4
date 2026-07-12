@@ -25,7 +25,6 @@ describe('graph/sharedPropsOptions', () => {
         graphData: { links: [] as never, nodes: [] as never },
         handleEngineStop,
         interactions: interactions as never,
-        timelineActive: true,
       }),
     ).toEqual({
       containerSize: { width: 640, height: 360 },
@@ -41,7 +40,6 @@ describe('graph/sharedPropsOptions', () => {
 			onNodeDragEnd: interactions.handleNodeDragEnd,
 			onNodeHover: interactions.handleNodeHover,
       onNodeRightClick: interactions.handleNodeRightClick,
-      timelineActive: true,
     });
   });
 });

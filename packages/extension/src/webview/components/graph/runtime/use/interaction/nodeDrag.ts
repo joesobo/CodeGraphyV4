@@ -57,7 +57,6 @@ export function postNodeDragEndMessages(
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
   options: {
     graphData?: NodeDragEndOptions['graphData'];
-    timelineActive?: boolean;
   } = {},
 ): void {
   releaseNodeDrag(node, {
@@ -75,10 +74,7 @@ export function postDraggedNodesDragEndMessages(
     postNodeDragEndMessages(
       node,
       options.graphViewContributions,
-      {
-        graphData: options.graphData,
-        timelineActive: options.timelineActive,
-      },
+      { graphData: options.graphData },
     );
   }
 }

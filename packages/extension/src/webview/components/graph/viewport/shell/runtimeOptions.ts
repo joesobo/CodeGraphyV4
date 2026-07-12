@@ -47,7 +47,6 @@ export function buildRenderingRuntimeOptions({
     physicsSettings: viewState.physicsSettings,
     pluginHost,
     theme,
-    timelineActive: viewState.timelineActive,
     favorites: viewState.favorites,
     directionMode: viewState.directionMode,
   };

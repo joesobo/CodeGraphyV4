@@ -4,14 +4,13 @@ import type { IGroup } from '../../../shared/settings/groups';
 import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { buildExportData } from '../json/export';
-import { createExportTimestamp, getExportContext } from '../shared/context';
+import { createExportTimestamp } from '../shared/context';
 import { renderMarkdownExport } from './renderer';
-import type { ExportBuildContext } from '../shared/contracts';
 
 export function exportAsMarkdown(data: IGraphData): void {
   try {
     const { legends, pluginStatuses } = graphStore.getState();
-    const markdown = buildMarkdownExport(data, legends, pluginStatuses, getExportContext());
+    const markdown = buildMarkdownExport(data, legends, pluginStatuses);
     const timestamp = createExportTimestamp();
 
     postMessage({
@@ -30,7 +29,6 @@ export function buildMarkdownExport(
   graphData: IGraphData,
   legends: IGroup[],
   pluginStatuses: IPluginStatus[] = [],
-  context: ExportBuildContext = {},
 ): string {
-  return renderMarkdownExport(buildExportData(graphData, legends, pluginStatuses, context));
+  return renderMarkdownExport(buildExportData(graphData, legends, pluginStatuses));
 }

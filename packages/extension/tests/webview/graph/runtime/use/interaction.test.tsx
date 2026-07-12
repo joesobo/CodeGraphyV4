@@ -790,7 +790,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     });
   });
 
-  it('keeps the active drag group fixed and passes default timeline state to plugin drag policies', () => {
+  it('keeps the active drag group fixed and passes each node to plugin drag policies', () => {
     const interactionHandlers = createInteractionHandlers();
     const contextMenuRuntime = createContextMenuRuntime();
     const tooltipRuntime = createTooltipRuntime();
@@ -828,11 +828,9 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     expect(onNodeDragEnd).toHaveBeenCalledWith(expect.objectContaining({
       node: primary,
       nodes: [primary, sibling],
-      timelineActive: false,
     }));
     expect(onNodeDragEnd).toHaveBeenCalledWith(expect.objectContaining({
       node: sibling,
-      timelineActive: false,
     }));
     expect(primary).toMatchObject({ fx: 15, fy: 12, isDragging: false });
     expect(sibling).toMatchObject({ fx: 35, fy: 37, isDragging: false });

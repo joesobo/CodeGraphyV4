@@ -43,7 +43,6 @@ describe('routing/analyze', () => {
     });
     const { pluginsMap, extensionMap } = buildMaps([active]);
     const context = {
-      mode: 'workspace',
       fileSystem: {
         exists: vi.fn(),
         isDirectory: vi.fn(),

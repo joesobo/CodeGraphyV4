@@ -116,21 +116,6 @@ Toggle whole plugins on or off and drag them to change processing priority. Plug
 
 Before the workspace has an index, use **Index Workspace** to run Indexing. After the workspace is indexed, **Re-index Workspace** rebuilds graph data and then refreshes layout. **Refresh Graph** only reruns the force graph simulation without reprocessing source data.
 
-## Timeline
-
-The timeline bar appears below the graph after indexing. See [Timeline](./TIMELINE.md) for full details.
-
-| Action | Effect |
-|--------|--------|
-| Click track | Jump to that point in time |
-| Drag track | Scrub through time |
-| Play/Pause | Toggle automatic playback |
-| Current | Jump to latest commit |
-| Click node | Select and focus the node; File Nodes open a temporary preview at the selected commit |
-| Double-click node | Select and focus the node; File Nodes open the file at the selected commit as a persistent editor tab |
-
-During timeline mode, destructive context menu actions (Delete, Rename, Create File, Create Folder, Add to Filter) are hidden.
-
 ## Export
 
 Export from the graph toolbar export menu:

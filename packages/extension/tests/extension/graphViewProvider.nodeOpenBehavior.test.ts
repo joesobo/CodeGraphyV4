@@ -177,42 +177,6 @@ describe('GraphViewProvider node open behavior', () => {
     });
   });
 
-  it('opens NODE_SELECTED as temporary preview in timeline mode', async () => {
-    const providerAny = provider as unknown as { _timelineActive: boolean; _currentCommitSha?: string };
-    providerAny._timelineActive = true;
-    providerAny._currentCommitSha = 'abc123';
-
-    await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } });
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(openTextDocumentMock).toHaveBeenCalledTimes(1);
-    const timelineUri = openTextDocumentMock.mock.calls[0][0] as { path: string };
-    expect(timelineUri.path).toContain('git:/test/workspace/src/app.ts?');
-    expect(timelineUri.path).toContain('"ref":"abc123"');
-    expect(showTextDocumentMock).toHaveBeenCalledWith(mockDocument, {
-      preview: true,
-      preserveFocus: false,
-    });
-  });
-
-  it('opens NODE_DOUBLE_CLICKED as permanent in timeline mode', async () => {
-    const providerAny = provider as unknown as { _timelineActive: boolean; _currentCommitSha?: string };
-    providerAny._timelineActive = true;
-    providerAny._currentCommitSha = 'abc123';
-
-    await messageHandler({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'src/app.ts' } });
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(openTextDocumentMock).toHaveBeenCalledTimes(1);
-    const timelineUri = openTextDocumentMock.mock.calls[0][0] as { path: string };
-    expect(timelineUri.path).toContain('git:/test/workspace/src/app.ts?');
-    expect(timelineUri.path).toContain('"ref":"abc123"');
-    expect(showTextDocumentMock).toHaveBeenCalledWith(mockDocument, {
-      preview: false,
-      preserveFocus: false,
-    });
-  });
-
   it('does not open folder nodes through preview or activation messages', async () => {
     const providerAny = provider as unknown as {
       _graphData: { nodes: Array<{ id: string; nodeType?: string }>; edges: unknown[] };

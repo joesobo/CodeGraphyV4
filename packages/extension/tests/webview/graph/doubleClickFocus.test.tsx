@@ -21,7 +21,6 @@ describe('Graph double-click behavior', () => {
     clearSentMessages();
     ForceGraph2D.clearAllHandlers();
     graphStore.setState({
-      timelineActive: false,
       favorites: new Set<string>(),
       pluginContextMenuItems: [],
     });
@@ -160,23 +159,4 @@ describe('Graph double-click behavior', () => {
     expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
   });
 
-  it('still focuses and posts open request in timeline mode', async () => {
-    const methods = ForceGraph2D.getMockMethods();
-    methods.centerAt.mockClear();
-    methods.zoom.mockClear();
-    graphStore.setState({ timelineActive: true });
-
-    render(<Graph data={graphData} />);
-
-    await act(async () => {
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
-      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
-    });
-
-    expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
-    expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
-    const openMsg = findMessage('NODE_DOUBLE_CLICKED');
-    expect(openMsg).toBeTruthy();
-    expect(openMsg!.payload.nodeId).toBe('src/app.ts');
-  });
 });

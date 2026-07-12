@@ -140,7 +140,6 @@ describe('graph view provider listener settings context', () => {
     expect(createResetSettingsAction).toHaveBeenCalledOnce();
     expect(executeUndoAction).toHaveBeenCalledWith({ kind: 'reset-settings' });
     expect(context.getMaxFiles()).toBe(DEFAULT_MAX_FILES);
-    expect(context.getPlaybackSpeed()).toBe(1);
   });
 
   it('persists workspace plugin updates silently to avoid redundant refresh work', async () => {

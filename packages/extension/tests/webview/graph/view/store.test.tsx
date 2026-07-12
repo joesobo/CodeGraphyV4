@@ -24,7 +24,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
     },
     pluginContextMenuItems: [{ index: 0, label: 'Copy Id', pluginId: 'test.plugin', when: 'node' }],
     showLabels: true,
-    timelineActive: false,
     ...overrides,
   });
 }
@@ -45,7 +44,6 @@ describe('graph/store', () => {
         particleSpeed: 0.35,
         physicsPaused: true,
         showLabels: false,
-        timelineActive: true,
       });
     });
 
@@ -61,7 +59,6 @@ describe('graph/store', () => {
       particleSpeed: 0.35,
       physicsPaused: true,
       showLabels: false,
-      timelineActive: true,
     });
     expect(result.current.favorites).toEqual(new Set(['src/app.ts']));
     expect(result.current.pluginContextMenuItems).toEqual([

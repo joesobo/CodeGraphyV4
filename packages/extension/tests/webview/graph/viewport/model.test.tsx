@@ -103,13 +103,10 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	| 'currentCommitSha'
 	| 'dagMode'
 	| 'favorites'
 	| 'physicsSettings'
 	| 'pluginContextMenuItems'
-	| 'timelineActive'
-	| 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -124,12 +121,6 @@ function createViewState(): Pick<
 		favorites: new Set(['src/app.ts']),
 		physicsSettings,
 		pluginContextMenuItems: [],
-		timelineActive: true,
-		timelineCommits: [
-			{ sha: 'old', timestamp: 1, message: 'old', author: 'Ada', parents: [] },
-			{ sha: 'current', timestamp: 2, message: 'current', author: 'Ada', parents: ['old'] },
-		],
-		currentCommitSha: 'current',
 	};
 }
 
@@ -166,7 +157,6 @@ describe('graph/viewport/model', () => {
 			graphData,
 			handleEngineStop,
 			interactions,
-			timelineActive: true,
 		}));
 		expect(harness.buildSharedGraphProps).toHaveBeenCalledWith(expect.objectContaining({
 			containerSize: { width: 480, height: 320 },
@@ -175,17 +165,14 @@ describe('graph/viewport/model', () => {
 			graphData,
 			handleEngineStop,
 			interactions,
-			timelineActive: true,
 		}));
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
 			edges: graphData.links,
 			favorites: viewState.favorites,
 			graphViewContributions: undefined,
-			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,
 			pluginItems: [],
 			selection: { kind: 'background', targets: [] },
-			timelineActive: true,
 		});
 		expect(harness.getGraphSurfaceColors).toHaveBeenCalledWith(undefined);
 		expect(result.current.sharedProps).toEqual({ shared: true });
@@ -225,7 +212,6 @@ describe('graph/viewport/model', () => {
 				...viewState.physicsSettings,
 				damping: 0.6,
 			},
-			timelineActive: false,
 		};
 		const nextGraphData = {
 			nodes: [
@@ -243,34 +229,7 @@ describe('graph/viewport/model', () => {
 		expect(harness.buildGraphSharedPropsOptions).toHaveBeenLastCalledWith(expect.objectContaining({
 			damping: 0.6,
 			graphData: nextGraphData,
-			timelineActive: false,
 		}));
 	});
 
-	it('disables mutation menu actions for historical timeline snapshots', () => {
-		const graphData = createGraphData();
-		const interactions = createInteractions();
-		const handleEngineStop = vi.fn();
-		const viewState = {
-			...createViewState(),
-			currentCommitSha: 'old',
-		};
-
-		renderHook(() => useGraphViewportModel({
-			graphState: {
-				contextSelection: { kind: 'background', targets: [] },
-				graphData,
-			},
-			handleEngineStop,
-			interactions,
-			theme: 'light',
-			viewportRuntime: { containerSize: { width: 480, height: 320 } },
-			viewState,
-		}));
-
-		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith(expect.objectContaining({
-			mutationAvailability: 'disabled',
-			nodes: graphData.nodes,
-		}));
-	});
 });

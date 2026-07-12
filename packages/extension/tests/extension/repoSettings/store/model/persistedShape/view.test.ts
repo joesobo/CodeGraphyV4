@@ -157,19 +157,14 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
-  it('drops unknown nested physics and timeline fields', () => {
+  it('drops unknown nested physics fields', () => {
     expect(normalizePersistedSettingsShape({
       physics: {
         repelForce: 20,
         mysteryForce: 99,
       },
-      timeline: {
-        maxCommits: 1000,
-        unknownTimelineKey: true,
-      },
     })).toEqual({
       physics: { repelForce: 20 },
-      timeline: { maxCommits: 1000 },
     });
   });
 
@@ -214,10 +209,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         centerForce: 0.1,
         chargeRange: 500,
       },
-      timeline: {
-        maxCommits: 50,
-        playbackSpeed: 2,
-      },
       unknownTopLevel: 'drop me',
     });
 
@@ -261,10 +252,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         centerForce: 0.1,
         chargeRange: 500,
       },
-      timeline: {
-        maxCommits: 50,
-        playbackSpeed: 2,
-      },
     });
   });
 
@@ -273,13 +260,11 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       maxFiles: undefined,
       filterPatterns: 'not an array',
       physics: 'invalid physics',
-      timeline: 'invalid timeline',
     });
 
     expect(normalized).toEqual({
       filterPatterns: [],
       physics: 'invalid physics',
-      timeline: 'invalid timeline',
     });
     expect(Object.keys(normalized)).not.toContain('maxFiles');
   });

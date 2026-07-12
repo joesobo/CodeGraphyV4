@@ -91,35 +91,29 @@ export interface BuildGraphDataOptions {
   theme: ThemeKind;
   favorites: Set<string>;
   bidirectionalMode: BidirectionalEdgeMode;
-  timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'vx' | 'vy' | 'x' | 'y'>>;
-  random?: () => number;
 }
 
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {
   const appearance = options.appearance ?? DEFAULT_GRAPH_APPEARANCE;
-  const context = { timelineActive: options.timelineActive };
   const runtimeData = applyGraphViewRuntimeContributions(
     options.data,
     options.graphViewContributions,
-    context,
+    {},
   );
   const projectedData = applyGraphViewProjectionContributions(
     runtimeData,
     options.graphViewContributions,
-    context,
+    {},
   );
   const nodeSizes = calculateNodeSizes(projectedData.nodes, projectedData.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
     nodes: projectedData.nodes,
-    edges: projectedData.edges,
     appearance,
     nodeSizes,
     theme: options.theme,
     favorites: options.favorites,
-    timelineActive: options.timelineActive,
     previousNodes: options.previousNodes,
-    random: options.random,
   });
   const links = buildGraphLinks(projectedData.edges, options.bidirectionalMode);
 

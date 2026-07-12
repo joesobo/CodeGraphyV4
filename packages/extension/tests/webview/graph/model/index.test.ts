@@ -141,30 +141,6 @@ describe('graph/model/build', () => {
     ]);
   });
 
-  it('preserves previous positions and seeds new timeline nodes near connected neighbors', () => {
-    const data: IGraphData = {
-      nodes: [
-        { id: 'anchor.ts', label: 'anchor.ts', color: '#93C5FD' },
-        { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
-      ],
-      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
-    };
-
-    const graphData = buildGraphData({
-      data,
-      nodeSizeMode: 'uniform',
-      theme: 'dark',
-      favorites: new Set(),
-      bidirectionalMode: 'separate',
-      timelineActive: true,
-      previousNodes: [{ id: 'anchor.ts', x: 100, y: 200 }],
-      random: () => 0.75,
-    });
-
-    expect(graphData.nodes.find(node => node.id === 'anchor.ts')).toMatchObject({ x: 100, y: 200 });
-    expect(graphData.nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
-  });
-
   it('applies focused and favorite borders while building graph data', () => {
     const data: IGraphData = {
       nodes: [
@@ -184,7 +160,6 @@ describe('graph/model/build', () => {
       theme: 'light',
       favorites: new Set(['favorite.ts']),
       bidirectionalMode: 'combined',
-      timelineActive: false,
     });
 
     expect(graphData.nodes.find(node => node.id === 'focus.ts')).toMatchObject({

@@ -49,10 +49,6 @@ describe('extension/repoSettings/defaults', () => {
         centerForce: 0.1,
         chargeRange: 200,
       },
-      timeline: {
-        maxCommits: 500,
-        playbackSpeed: 1,
-      },
     });
   });
 
@@ -73,6 +69,5 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.legend).not.toBe(first.legend);
     expect(second.filterPatterns).not.toBe(first.filterPatterns);
     expect(second.physics).not.toBe(first.physics);
-    expect(second.timeline).not.toBe(first.timeline);
   });
 });

@@ -84,7 +84,7 @@ describe('PluginRegistry v2', () => {
           expect(plugin.onPreAnalyze).toHaveBeenCalledWith(
             files,
             '/workspace',
-            expect.objectContaining({ mode: 'workspace' }),
+            expect.objectContaining({ fileSystem: expect.any(Object) }),
           );
           expect(plugin.onPostAnalyze).toHaveBeenCalledWith(graph);
           expect(plugin.onGraphRebuild).toHaveBeenCalledWith(graph);

@@ -50,8 +50,6 @@ Key points:
 
 ### `IPluginAnalysisContext`
 
-- `mode: 'workspace' | 'timeline'`
-- `commitSha?: string` is present during timeline replay
 - `fileSystem` is a host-backed adapter with:
   - `exists(filePath)`
   - `isFile(filePath)`
@@ -59,7 +57,7 @@ Key points:
   - `listDirectory(filePath)`
   - `readTextFile(filePath)`
 
-Use this instead of raw Node `fs` when your plugin needs sibling files, config files, or repo-local state. During timeline indexing the adapter reads the selected commit, not `HEAD`.
+Use this instead of raw Node `fs` when your plugin needs sibling files, config files, or repo-local state.
 
 ### Merge Rules
 
@@ -181,7 +179,7 @@ The public plugin API no longer exposes the old `IConnection` / `IConnectionDete
 - plugin output: `sourceId: 'wikilink'`
 - merged graph provenance later: `id: 'codegraphy.markdown:wikilink'`
 
-If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph/timeline pipeline. They are not part of the public plugin API.
+If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph pipeline. They are not part of the public plugin API.
 
 ### Graph (`graph.ts`)
 
@@ -223,7 +221,7 @@ Plugin id implies storage ownership. Hosts persist plugin data under the plugin 
 
 Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
 
-Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
 
 ### Webview (`webview.ts`)
 

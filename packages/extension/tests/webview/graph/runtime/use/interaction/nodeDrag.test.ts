@@ -222,7 +222,6 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       node,
       nodes: [node],
-      timelineActive: false,
     });
     expect(node).toMatchObject({
       fx: 12,
@@ -231,7 +230,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
-  it('passes live graph nodes and timeline state to plugin drag policies', () => {
+  it('passes live graph nodes to plugin drag policies', () => {
     const node = {
       id: 'node',
       fx: 12,
@@ -267,14 +266,12 @@ describe('graph/runtime/use/interaction node drag', () => {
             },
           }],
         },
-        timelineActive: true,
       },
     );
 
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       node,
       nodes: [node, pluginRuntimeNode],
-      timelineActive: true,
     });
   });
 

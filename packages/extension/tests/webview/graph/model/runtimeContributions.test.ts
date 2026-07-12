@@ -76,7 +76,6 @@ describe('graph/model/runtimeContributions', () => {
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: false,
     });
 
     expect(graphData.nodes.find(node => node.id === 'runtime:frontend')).toMatchObject({
@@ -149,7 +148,6 @@ describe('graph/model/runtimeContributions', () => {
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: false,
     });
 
     expect(graphData.nodes).toEqual([
@@ -162,7 +160,7 @@ describe('graph/model/runtimeContributions', () => {
     expect(graphData.links).toEqual([]);
   });
 
-  it('passes live graph mode and timeline state to runtime and projection contributions', () => {
+  it('passes the live graph to runtime and projection contributions', () => {
     const createNodes = vi.fn(() => []);
     const project = vi.fn(({ visibleGraph }) => visibleGraph);
     const graphViewContributions: CoreGraphViewContributionSet = {
@@ -192,14 +190,13 @@ describe('graph/model/runtimeContributions', () => {
       theme: 'dark',
       favorites: new Set(),
       bidirectionalMode: 'separate',
-      timelineActive: true,
     });
 
-    expect(createNodes).toHaveBeenCalledWith(expect.objectContaining({
-      timelineActive: true,
-    }));
-    expect(project).toHaveBeenCalledWith(expect.objectContaining({
-      timelineActive: true,
-    }));
+    expect(createNodes).toHaveBeenCalledWith({
+      visibleGraph: { nodes: [], edges: [] },
+    });
+    expect(project).toHaveBeenCalledWith({
+      visibleGraph: { nodes: [], edges: [] },
+    });
   });
 });

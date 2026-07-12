@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import fs from 'node:fs';
-import path from 'node:path';
 
 const mocks = vi.hoisted(() => {
   const render = vi.fn();
@@ -67,19 +65,6 @@ describe('main', () => {
     expect(rootElement.props.children.type.name).toBe('GraphApp');
   });
 
-  it('always renders the graph shell when a stale host marker is present', async () => {
-    const container = document.createElement('div');
-    document.body.dataset.codegraphyView = 'timeline';
-    vi.spyOn(document, 'getElementById').mockReturnValue(container);
-
-    await import('../../src/webview/main');
-
-    const rootElement = mocks.render.mock.calls[0]?.[0] as {
-      props: { children: { type: { name: string } } };
-    };
-    expect(rootElement.props.children.type.name).toBe('GraphApp');
-  });
-
   it('skips root creation when the root element is missing', async () => {
     vi.spyOn(document, 'getElementById').mockReturnValue(null);
 
@@ -90,21 +75,4 @@ describe('main', () => {
     expect((window as unknown as { vscode: unknown }).vscode).toBe(mocks.vscodeApi);
   });
 
-  it('does not load the Three.js runtime from the webview entrypoint', () => {
-    const source = fs.readFileSync(
-      path.resolve(__dirname, '../../src/webview/main.tsx'),
-      'utf8',
-    );
-
-    expect(source).not.toContain("import './three/runtime'");
-  });
-
-  it('does not load 3d node rendering from shared graph callbacks', () => {
-    const source = fs.readFileSync(
-      path.resolve(__dirname, '../../src/webview/components/graph/rendering/useGraphCallbacks.ts'),
-      'utf8',
-    );
-
-    expect(source).not.toContain('nodes/canvas3d');
-  });
 });

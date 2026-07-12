@@ -81,7 +81,6 @@ function readCacheTiers(analysis: IFileAnalysisResult): string[] {
 
 function expectWorkspaceAnalysisContext(symbols: boolean): IPluginAnalysisContext {
   return expect.objectContaining({
-    mode: 'workspace',
     features: { symbols },
     fileSystem: expect.objectContaining({
       exists: expect.any(Function),

@@ -56,7 +56,6 @@ describe('graphView/provider/plugin/externalRegistration', () => {
         sendPluginToolbarActions: expect.any(Function),
         sendGraphViewContributionStatuses: expect.any(Function),
         sendPluginWebviewInjections: expect.any(Function),
-        invalidateTimelineCache: expect.any(Function),
         reprocessPluginFiles: expect.any(Function),
       }),
     );

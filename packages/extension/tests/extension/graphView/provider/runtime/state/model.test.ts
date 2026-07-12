@@ -67,7 +67,6 @@ const stateHarness = vi.hoisted(() => {
       settingsState: {
         _loadDisabledRulesAndPlugins: vi.fn(() => undefined),
       },
-      timeline: {},
       viewContext: {},
       viewSelection: {},
       webview: {},
@@ -89,7 +88,6 @@ const stateHarness = vi.hoisted(() => {
       _depthMode: false,
       _dagMode: null,
       _nodeSizeMode: 'connections' as const,
-      _timelineActive: false,
       _firstAnalysis: true,
       _webviewReadyNotified: false,
       _installedPluginActivationPromise: Promise.resolve(),

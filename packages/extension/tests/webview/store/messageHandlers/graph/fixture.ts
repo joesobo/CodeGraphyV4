@@ -58,13 +58,6 @@ export function createState(
     maxFiles: 500,
     verboseDiagnostics: false,
     activeFilePath: null,
-    timelineActive: false,
-    timelineCommits: [],
-    currentCommitSha: null,
-    isIndexing: false,
-    indexProgress: null,
-    isPlaying: false,
-    playbackSpeed: 1,
     ...overrides,
   };
 }

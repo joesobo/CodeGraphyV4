@@ -10,7 +10,6 @@ export function shouldKeepFixedPosition(
       const result = entry.contribution.onNodeDragEnd({
         node,
         nodes: options.graphData?.nodes ?? [node],
-        timelineActive: options.timelineActive ?? false,
       });
       if (result?.keepFixedPosition === true) return true;
     } catch (error) {

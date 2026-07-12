@@ -30,7 +30,6 @@ describe('webview/pluginHost/manager/viewportState', () => {
       reheatSimulation: vi.fn(),
       resumeAnimation: vi.fn(),
       screenToGraph: vi.fn(),
-      timelineActive: false,
       updateNode: vi.fn(),
       zoom: 1,
     };

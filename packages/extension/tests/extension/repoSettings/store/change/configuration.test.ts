@@ -14,14 +14,14 @@ describe('extension/repoSettings/store/change/configuration', () => {
   it('matches exact, parent, and child sections', () => {
     const changedKeys = [
       'legend',
-      'timeline.playbackSpeed',
+      'physics.damping',
       'nodeColors.folder',
     ];
 
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.legend')).toBe(true);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.groups')).toBe(false);
-    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.timeline')).toBe(true);
-    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.timeline.playbackSpeed')).toBe(true);
+    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.physics')).toBe(true);
+    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.physics.damping')).toBe(true);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.folderNodeColor')).toBe(false);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.nodeColors')).toBe(true);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.maxFiles')).toBe(false);

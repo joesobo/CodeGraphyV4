@@ -56,10 +56,4 @@ describe('extension manifest', () => {
     expect(existsSync(resolve(repoRoot, String(view?.icon)))).toBe(true);
   });
 
-  it('does not declare the retired timeline view', () => {
-    const { manifest } = readExtensionManifest();
-    const view = manifest.contributes?.views?.codegraphy?.find(entry => entry.id === 'codegraphy.timelineView');
-
-    expect(view).toBeUndefined();
-  });
 });

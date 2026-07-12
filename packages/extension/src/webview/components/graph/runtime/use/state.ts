@@ -23,9 +23,6 @@ import {
   type FGNode,
 } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
-import {
-  as2DExtMethods,
-} from '../../support/contracts/forceGraph';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
 
@@ -49,7 +46,6 @@ export interface GraphRuntimeOptions {
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
   theme: ThemeKind;
-  timelineActive: boolean;
 }
 
 export interface GraphRuntimeSelection {
@@ -99,11 +95,6 @@ export interface GraphRuntime {
   selection: GraphRuntimeSelection;
   showLabelsRef: MutableRefObject<boolean>;
   themeRef: MutableRefObject<ThemeKind>;
-  timelineActiveRef: MutableRefObject<boolean>;
-}
-
-export interface TimelineAlphaGraph {
-  d3Alpha?: (value: number) => unknown;
 }
 
 export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[] } {
@@ -112,14 +103,6 @@ export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[
 
 export function incrementImageCacheVersion(previous: number): number {
   return previous + 1;
-}
-
-export function applyTimelineAlpha(graph: TimelineAlphaGraph | undefined, alpha: number = 0.05): void {
-  if (!graph || typeof graph.d3Alpha !== 'function') {
-    return;
-  }
-
-  graph.d3Alpha(alpha);
 }
 
 function getVisibleSelection(
@@ -143,11 +126,7 @@ export function useGraphRuntime({
   nodeSizeMode,
   showLabels,
   theme,
-  timelineActive,
 }: GraphRuntimeOptions): GraphRuntime {
-  const timelineActiveRef = useRef(timelineActive);
-  timelineActiveRef.current = timelineActive;
-
   const containerRef = useRef<HTMLDivElement>(null);
   const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
   const highlightedNodeRef = useRef<string | null>(null);
@@ -202,22 +181,12 @@ export function useGraphRuntime({
       favorites,
       graphViewContributions,
       bidirectionalMode,
-      timelineActive,
       previousNodes: graphDataRef.current.nodes,
     });
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions, timelineActive]);
-
-  useEffect(() => {
-    if (!timelineActive) return;
-    const graph = as2DExtMethods(fg2dRef.current);
-    if (!graph) return;
-    requestAnimationFrame(() => {
-      applyTimelineAlpha(graph);
-    });
-  }, [data, timelineActive]);
+  }, [appearance, bidirectionalMode, data, favorites, graphViewContributions]);
 
   useEffect(() => {
     const visibleSelectedNodes = getVisibleSelection(selectedNodes, graphData.nodes);
@@ -268,6 +237,5 @@ export function useGraphRuntime({
     },
     showLabelsRef,
     themeRef,
-    timelineActiveRef,
   };
 }

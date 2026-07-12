@@ -131,11 +131,6 @@ export type {
   PluginDisabledPayload,
   PluginSourceToggledPayload,
   PluginMessagePayload,
-  // Timeline
-  TimelineCommitSelectedPayload,
-  TimelinePlaybackStartedPayload,
-  TimelinePlaybackStoppedPayload,
-  TimelineRangeChangedPayload,
 } from './events';
 
 // Plugin interface

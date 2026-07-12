@@ -72,7 +72,6 @@ export function setupGraphContextMenuTest(): void {
     ForceGraph2D.clearAllHandlers();
     graphStore.setState({
       favorites: new Set<string>(),
-      timelineActive: false,
       pluginContextMenuItems: [],
       graphViewContributionStatuses: [],
     });
@@ -84,7 +83,6 @@ export function setupGraphContextMenuTest(): void {
     act(() => {
       graphStore.setState({
         favorites: new Set<string>(),
-        timelineActive: false,
         pluginContextMenuItems: [],
         graphViewContributionStatuses: [],
       });

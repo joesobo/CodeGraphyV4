@@ -115,8 +115,6 @@ describe('ToolbarActions', () => {
       graphIndexProgress: null,
       dagMode: null,
       nodeSizeMode: 'connections',
-      timelineActive: false,
-      timelineCommits: [],
       graphViewportScale: null,
       graphViewContributionStatuses: [],
     });
@@ -287,7 +285,6 @@ describe('ToolbarActions', () => {
       target: { kind: 'background' },
       selectedNodeIds: [],
       selectedEdgeIds: [],
-      timelineActive: false,
     });
   });
 
@@ -310,46 +307,6 @@ describe('ToolbarActions', () => {
       payload: { directory: '.' },
     });
 
-  });
-
-  it('keeps public creation actions visible at immutable timeline snapshots', () => {
-    enableRuntimeGraphViewContributions();
-    act(() => {
-      graphStore.setState({
-        currentCommitSha: 'head-sha',
-        timelineActive: true,
-        timelineCommits: [
-          { sha: 'old-sha', message: 'old', author: 'Test', parents: [], timestamp: 1 },
-          { sha: 'head-sha', message: 'head', author: 'Test', parents: ['old-sha'], timestamp: 2 },
-        ],
-      });
-    });
-    const { rerender } = renderWithProviders();
-    expect(screen.getByTitle('New...')).toBeInTheDocument();
-    expect(screen.getByText('New File...')).toBeInTheDocument();
-    expect(screen.getByText('New Folder...')).toBeInTheDocument();
-
-    act(() => {
-      graphStore.setState({ currentCommitSha: 'old-sha' });
-    });
-    rerender(
-      <TooltipProvider>
-        <ToolbarActions />
-      </TooltipProvider>,
-    );
-    expect(screen.getByText('New File...').closest('button')).toBeEnabled();
-    expect(screen.getByText('New Folder...').closest('button')).toBeEnabled();
-
-    act(() => {
-    });
-    rerender(
-      <TooltipProvider>
-        <ToolbarActions />
-      </TooltipProvider>,
-    );
-    expect(screen.getByTitle('New...')).toBeInTheDocument();
-    expect(screen.getByText('New File...')).toBeInTheDocument();
-    expect(screen.getByText('New Folder...')).toBeInTheDocument();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

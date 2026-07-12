@@ -21,7 +21,6 @@ describe('graph/model/build', () => {
       theme: 'dark',
       favorites: new Set(['favorite.ts']),
       bidirectionalMode: 'combined',
-      timelineActive: false,
     });
 
     expect(graphData.nodes.find(node => node.id === 'focus.ts')?.size).toBe(20.8);

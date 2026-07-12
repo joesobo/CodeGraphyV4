@@ -98,7 +98,7 @@ describe('graph view export message', () => {
     const handlers = createHandlers();
 
     await expect(
-      applyExportMessage({ type: 'INDEX_REPO' }, handlers),
+      applyExportMessage({ type: 'INDEX_GRAPH' }, handlers),
     ).resolves.toBe(false);
   });
 });

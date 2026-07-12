@@ -13,7 +13,6 @@ export interface GraphViewProviderInternals {
   _queryMethods: GraphViewProviderMethodContainers['query'];
   _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
-  _timelineMethods: GraphViewProviderMethodContainers['timeline'];
   _viewContextMethods: GraphViewProviderMethodContainers['viewContext'];
   _viewSelectionMethods: GraphViewProviderMethodContainers['viewSelection'];
   _webviewMethods: GraphViewProviderMethodContainers['webview'];
@@ -39,7 +38,6 @@ export function getGraphViewProviderInternals(
     _queryMethods: runtime._methodContainers.query,
     _refreshMethods: runtime._methodContainers.refresh,
     _settingsStateMethods: runtime._methodContainers.settingsState,
-    _timelineMethods: runtime._methodContainers.timeline,
     _viewContextMethods: runtime._methodContainers.viewContext,
     _viewSelectionMethods: runtime._methodContainers.viewSelection,
     _webviewMethods: runtime._methodContainers.webview,

@@ -304,36 +304,6 @@ describe('graphView/webview/plugins/registration', () => {
     expect(reprocessPluginFiles).toHaveBeenCalledWith(['plugin.test']);
   });
 
-  it('invalidates cached timeline history after registering an external plugin', async () => {
-    const invalidateTimelineCache = vi.fn(async () => undefined);
-    const reprocessPluginFiles = vi.fn(async () => undefined);
-    const state = createState({
-      firstAnalysis: false,
-      readyNotified: true,
-    });
-
-    registerGraphViewExternalPlugin(
-      {
-        id: 'plugin.test',
-        name: 'Plugin',
-        version: '1.0.0',
-        apiVersion: '^2.0.0',
-        supportedExtensions: ['.ts'],
-        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
-      },
-      undefined,
-      state,
-      createHandlers({ invalidateTimelineCache, reprocessPluginFiles }),
-    );
-
-    await flushPluginRegistration();
-
-    expect(invalidateTimelineCache).toHaveBeenCalledOnce();
-    expect(reprocessPluginFiles).toHaveBeenCalledWith(['plugin.test']);
-    expect(invalidateTimelineCache.mock.invocationCallOrder[0]).toBeLessThan(
-      reprocessPluginFiles.mock.invocationCallOrder[0],
-    );
-  });
 
   it('logs follow-up failures instead of leaking unhandled rejections', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});

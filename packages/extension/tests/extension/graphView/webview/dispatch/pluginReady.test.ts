@@ -14,7 +14,6 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
-    getPlaybackSpeed: vi.fn(() => 2),
     getDepthMode: vi.fn(() => false),
     getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
@@ -32,7 +31,6 @@ function createContext(
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
-    sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginStatuses: vi.fn(),
@@ -62,7 +60,6 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.sendSettings).toHaveBeenCalledOnce();
     expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect(context.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(context.sendDecorations).toHaveBeenCalledOnce();
     expect(context.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(context.sendPluginStatuses).toHaveBeenCalledOnce();
