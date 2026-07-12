@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { refreshChurnIndex } from '../../../src/extension/churn';
+import { refreshChurnIndex } from '../../../src/extension/churn/refresh';
 
 describe('refreshChurnIndex', () => {
   it('reuses counts while repository HEAD is unchanged', async () => {

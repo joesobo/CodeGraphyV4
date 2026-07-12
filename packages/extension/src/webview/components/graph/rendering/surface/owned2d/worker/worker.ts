@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
-import { createGraphLayoutEngine, type GraphLayoutEngine } from '../physics';
+import type { GraphLayoutEngine } from '../physics/contracts';
+import { createGraphLayoutEngine } from '../physics/engine';
 import type {
   GraphLayoutWorkerCommand,
   GraphLayoutWorkerMessage,

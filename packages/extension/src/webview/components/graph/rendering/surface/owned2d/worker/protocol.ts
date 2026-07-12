@@ -1,4 +1,8 @@
-import type { GraphLayoutConfig, GraphLayoutInput, GraphLayoutTickResult } from '../physics';
+import type {
+  GraphLayoutConfig,
+  GraphLayoutInput,
+  GraphLayoutTickResult,
+} from '../physics/contracts';
 
 export type GraphLayoutWorkerCommand =
   | { type: 'init'; input: GraphLayoutInput; revision: number }
