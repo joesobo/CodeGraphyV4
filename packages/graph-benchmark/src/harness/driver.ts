@@ -1,3 +1,5 @@
+/// <reference types="@webgpu/types" />
+
 import type { Page } from '@playwright/test';
 
 import type { BenchmarkRenderer } from '../cli/arguments';
@@ -59,6 +61,18 @@ const webGpuRendererDriver: GraphBenchmarkDriver = {
     if (rendererStatus !== 'webgpu') {
       const error = await page.getByTestId('graph-webgpu-error').textContent().catch(() => null);
       throw new Error(`Owned WebGPU renderer did not initialize: ${error ?? rendererStatus ?? 'missing'}`);
+    }
+    const adapter = await page.evaluate(async () => {
+      const resolved = await navigator.gpu?.requestAdapter({ powerPreference: 'high-performance' });
+      const info = resolved?.info as (GPUAdapterInfo & { isFallbackAdapter?: boolean }) | undefined;
+      return info ? {
+        architecture: info.architecture,
+        fallback: info.isFallbackAdapter === true,
+        vendor: info.vendor,
+      } : null;
+    });
+    if (!adapter || adapter.fallback) {
+      throw new Error('Owned WebGPU benchmark requires a hardware GPU adapter');
     }
     return result;
   },

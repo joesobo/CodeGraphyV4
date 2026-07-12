@@ -1,3 +1,5 @@
+/// <reference types="@webgpu/types" />
+
 import { expect, test } from '@playwright/test';
 
 import { createSyntheticFixture } from '../../../src/fixture/presets';
@@ -18,6 +20,13 @@ test('loads a deterministic fixture and reports current-renderer settlement', as
 
     await expect(page.locator('[data-codegraphy-renderer="webgpu"]')).toBeVisible();
     await expect(page.getByTestId('graph-webgpu-error')).toHaveCount(0);
+    const fallbackAdapter = await page.evaluate(async () => {
+      const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+      if (!adapter) return null;
+      return (adapter.info as GPUAdapterInfo & { isFallbackAdapter?: boolean })
+        .isFallbackAdapter === true;
+    });
+    expect(fallbackAdapter).toBe(false);
     expect(result).toMatchObject({
       renderer: 'current',
       fixtureHash: fixture.fixtureHash,

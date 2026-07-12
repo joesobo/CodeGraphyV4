@@ -265,7 +265,12 @@ export async function runGraphBenchmark(
     stage = 'browser-launch';
     browserServer = await chromium.launchServer({
       headless: true,
-      args: options.renderer === 'webgpu' ? ['--enable-unsafe-webgpu'] : [],
+      args: options.renderer === 'webgpu'
+        ? [
+          '--enable-unsafe-webgpu',
+          ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
+        ]
+        : [],
     });
     const browserPid = browserServer.process().pid;
     if (!browserPid) throw new Error('Chromium benchmark process has no pid');
