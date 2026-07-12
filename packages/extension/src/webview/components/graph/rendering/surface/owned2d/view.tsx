@@ -2,10 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
-  type MouseEvent as ReactMouseEvent,
-  type PointerEvent as ReactPointerEvent,
   type ReactElement,
-  type WheelEvent as ReactWheelEvent,
 } from 'react';
 import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
@@ -16,13 +13,14 @@ import {
   screenToGraph,
   type OwnedGraphCamera,
 } from './camera';
+import { canvasSize } from './canvasGeometry';
 import type { OwnedGraph2dControls, OwnedGraphNodeStyle, Surface2dProps } from './contracts';
 import {
   drawOwnedGraphLabels,
   drawOwnedGraphOverlay,
   drawOwnedGraphParticles,
 } from './drawing';
-import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
+import { releaseOwnedDraggedNodes } from './drag';
 import {
   applyOwnedPhysicsSettings,
   canRunOwnedGraphPhysics,
@@ -31,37 +29,19 @@ import {
   updateOwnedGraphLayout,
   type OwnedGraphLayout,
 } from './layout';
-import { pickOwnedGraphLink } from './linkPicking';
+import {
+  createOwnedGraphInteractionHandlers,
+  type CtrlClickSession,
+  type LinkTooltip,
+  type PointerSession,
+} from './interaction';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 import { updateOwnedGraphViewportNode } from './viewportNode';
 
-interface CtrlClickSession {
-  moved: boolean;
-  pointerId: number;
-  startScreen: { x: number; y: number };
-}
-
-interface PointerSession {
-  draggedIndexes: Set<number>;
-  index: number | null;
-  node: FGNode | null;
-  nodeId: string | null;
-  link: FGLink | null;
-  lastWorld: { x: number; y: number };
-  moved: boolean;
-  startScreen: { x: number; y: number };
-}
-
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const CANVAS_DECORATION_NODE_LIMIT = 5_000;
-const CTRL_PAN_DRAG_THRESHOLD_PX = 2;
-
-function canvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
-  const bounds = canvas.getBoundingClientRect();
-  return { width: Math.max(1, bounds.width), height: Math.max(1, bounds.height) };
-}
 
 function defaultNodeStyle(node: FGNode): OwnedGraphNodeStyle {
   return {
@@ -75,14 +55,6 @@ function defaultNodeStyle(node: FGNode): OwnedGraphNodeStyle {
     shape: node.shape2D ?? 'circle',
     width: node.shapeSize2D?.width ?? node.size * 2,
   };
-}
-
-function localPointer(
-  canvas: HTMLCanvasElement,
-  event: Pick<PointerEvent | WheelEvent | MouseEvent, 'clientX' | 'clientY'>,
-): { x: number; y: number } {
-  const bounds = canvas.getBoundingClientRect();
-  return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
 }
 
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
@@ -113,10 +85,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     'initializing',
   );
   const [rendererError, setRendererError] = useState<string | null>(null);
-  const [linkTooltip, setLinkTooltip] = useState<{
-    link: FGLink;
-    screen: { x: number; y: number };
-  } | null>(null);
+  const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
   propsRef.current = props;
   styleVersionRef.current += 1;
 
@@ -540,217 +509,22 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     requestFrameRef.current();
   });
 
-  const screenToWorld = (canvas: HTMLCanvasElement, screen: { x: number; y: number }) => {
-    const size = canvasSize(canvas);
-    return screenToGraph(cameraRef.current, size.width, size.height, screen.x, screen.y);
-  };
-
-  const pickNode = (layout: OwnedGraphLayout, world: { x: number; y: number }) => {
-    if (pickerPositionVersionRef.current !== positionVersionRef.current) {
-      pickerRef.current.rebuild(layout.nodes);
-      pickerPositionVersionRef.current = positionVersionRef.current;
-    }
-    return pickerRef.current.pick(world, cameraRef.current.zoom);
-  };
-
-  const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
-    if (event.button !== 0) return;
-    const screen = localPointer(event.currentTarget, event.nativeEvent);
-    if (event.ctrlKey) {
-      ctrlClickSessionRef.current = {
-        moved: false,
-        pointerId: event.pointerId,
-        startScreen: screen,
-      };
-      return;
-    }
-    const layout = layoutRef.current;
-    if (!layout) return;
-    const world = screenToWorld(event.currentTarget, screen);
-    const picked = pickNode(layout, world);
-    const pickedLink = picked ? undefined : pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom);
-    pointerSessionRef.current = {
-      draggedIndexes: new Set(picked ? [picked.index] : []),
-      index: picked?.index ?? null,
-      nodeId: picked?.node.id ?? null,
-      link: pickedLink?.link ?? null,
-      lastWorld: world,
-      moved: false,
-      node: picked?.node ?? null,
-      startScreen: screen,
-    };
-    if (picked) {
-      layout.engine.pin(picked.index);
-      picked.node.fx = picked.node.x;
-      picked.node.fy = picked.node.y;
-      event.currentTarget.setPointerCapture(event.pointerId);
-    }
-  };
-
-  const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
-    const screen = localPointer(event.currentTarget, event.nativeEvent);
-    const ctrlSession = ctrlClickSessionRef.current;
-    if (ctrlSession && ctrlSession.pointerId === event.pointerId) {
-      ctrlSession.moved ||= Math.hypot(
-        screen.x - ctrlSession.startScreen.x,
-        screen.y - ctrlSession.startScreen.y,
-      ) > CTRL_PAN_DRAG_THRESHOLD_PX;
-      return;
-    }
-    const layout = layoutRef.current;
-    if (!layout) return;
-    const world = screenToWorld(event.currentTarget, screen);
-    const session = pointerSessionRef.current;
-    if (session?.index !== null && session?.index !== undefined) {
-      const node = layout.nodes[session.index];
-      const translate = {
-        x: world.x - session.lastWorld.x,
-        y: world.y - session.lastWorld.y,
-      };
-      session.moved ||= Math.hypot(
-        screen.x - session.startScreen.x,
-        screen.y - session.startScreen.y,
-      ) > 3;
-      session.lastWorld = world;
-      layout.engine.setNodePosition(session.index, world.x, world.y);
-      positionVersionRef.current += 1;
-      layout.engine.pin(session.index);
-      layout.engine.reheat();
-      node.x = world.x;
-      node.y = world.y;
-      node.fx = world.x;
-      node.fy = world.y;
-      propsRef.current.sharedProps.onNodeDrag?.(node, translate);
-      synchronizeOwnedDraggedNodes(layout, session.draggedIndexes);
-      engineStopNotifiedRef.current = false;
-      requestFrameRef.current();
-      return;
-    }
-
-    if (session) {
-      session.moved ||= Math.hypot(
-        screen.x - session.startScreen.x,
-        screen.y - session.startScreen.y,
-      ) > 3;
-    }
-    const hovered = pickNode(layout, world)?.node ?? null;
-    const hoveredLink = hovered
-      ? null
-      : pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom)?.link ?? null;
-    if (hovered !== hoveredNodeRef.current) {
-      hoveredNodeRef.current = hovered;
-      propsRef.current.sharedProps.onNodeHover(hovered);
-      requestFrameRef.current();
-    }
-    if (hoveredLink !== hoveredLinkRef.current) {
-      hoveredLinkRef.current = hoveredLink;
-      setLinkTooltip(hoveredLink ? { link: hoveredLink, screen } : null);
-    } else if (hoveredLink) {
-      setLinkTooltip(current => current
-        ? { ...current, screen }
-        : { link: hoveredLink, screen });
-    }
-  };
-
-  const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
-    const ctrlSession = ctrlClickSessionRef.current;
-    if (ctrlSession && ctrlSession.pointerId === event.pointerId) {
-      ctrlClickSessionRef.current = null;
-      const layout = layoutRef.current;
-      if (!layout || ctrlSession.moved) return;
-      const screen = localPointer(event.currentTarget, event.nativeEvent);
-      const world = screenToWorld(event.currentTarget, screen);
-      const node = pickNode(layout, world)?.node;
-      if (node) propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
-      return;
-    }
-    const layout = layoutRef.current;
-    const session = pointerSessionRef.current;
-    pointerSessionRef.current = null;
-    if (!layout || !session) return;
-    if (session.index === null) {
-      if (!session.moved && session.link) {
-        propsRef.current.sharedProps.onLinkClick(session.link, event.nativeEvent);
-      } else if (!session.moved) {
-        propsRef.current.sharedProps.onBackgroundClick(event.nativeEvent);
-      }
-      return;
-    }
-
-    const node = layout.nodes[session.index];
-    if (session.moved) {
-      propsRef.current.sharedProps.onNodeDragEnd?.(node);
-    } else {
-      propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
-    }
-    releaseOwnedDraggedNodes(layout, session.draggedIndexes);
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    layout.engine.reheat();
-    engineStopNotifiedRef.current = false;
-    requestFrameRef.current();
-  };
-
-  const handlePointerCancel = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
-    const ctrlSession = ctrlClickSessionRef.current;
-    if (ctrlSession && ctrlSession.pointerId === event.pointerId) {
-      ctrlClickSessionRef.current = null;
-      return;
-    }
-    const layout = layoutRef.current;
-    const session = pointerSessionRef.current;
-    pointerSessionRef.current = null;
-    if (!layout || !session) return;
-    if (session.index !== null && session.moved) {
-      const node = layout.nodes[session.index];
-      if (node) propsRef.current.sharedProps.onNodeDragEnd?.(node);
-    }
-    releaseOwnedDraggedNodes(layout, session.draggedIndexes);
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    layout.engine.reheat();
-    engineStopNotifiedRef.current = false;
-    requestFrameRef.current();
-  };
-
-  const handleContextMenu = (event: ReactMouseEvent<HTMLCanvasElement>): void => {
-    const layout = layoutRef.current;
-    if (!layout) return;
-    event.preventDefault();
-    const screen = localPointer(event.currentTarget, event.nativeEvent);
-    const world = screenToWorld(event.currentTarget, screen);
-    const node = pickNode(layout, world)?.node;
-    if (node) {
-      propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
-      return;
-    }
-    const link = pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom)?.link;
-    if (link) propsRef.current.sharedProps.onLinkRightClick(link, event.nativeEvent);
-    else propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
-  };
-
-  const handleWheel = (event: ReactWheelEvent<HTMLCanvasElement>): void => {
-    const canvas = event.currentTarget;
-    const size = canvasSize(canvas);
-    const screen = localPointer(canvas, event.nativeEvent);
-    const world = screenToGraph(
-      cameraRef.current,
-      size.width,
-      size.height,
-      screen.x,
-      screen.y,
-    );
-    const nextZoom = clampOwnedGraphZoom(
-      cameraRef.current.zoom * Math.exp(-event.deltaY * 0.0015),
-    );
-    cameraRef.current.zoom = nextZoom;
-    cameraRef.current.centerX = world.x - (screen.x - size.width / 2) / nextZoom;
-    cameraRef.current.centerY = world.y - (screen.y - size.height / 2) / nextZoom;
-    skipPhysicsFrameRef.current = true;
-    requestFrameRef.current();
-  };
+  const interactionHandlers = createOwnedGraphInteractionHandlers({
+    cameraRef,
+    ctrlClickSessionRef,
+    engineStopNotifiedRef,
+    hoveredLinkRef,
+    hoveredNodeRef,
+    layoutRef,
+    pickerPositionVersionRef,
+    pickerRef,
+    pointerSessionRef,
+    positionVersionRef,
+    propsRef,
+    requestFrameRef,
+    setLinkTooltip,
+    skipPhysicsFrameRef,
+  });
 
   return (
     <div
@@ -768,21 +542,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         ref={canvasRef}
         aria-hidden="true"
         className="absolute inset-0 h-full w-full"
-        onContextMenu={handleContextMenu}
-        onPointerCancel={handlePointerCancel}
-        onPointerDown={handlePointerDown}
-        onPointerLeave={() => {
-          if (!pointerSessionRef.current && hoveredNodeRef.current) {
-            hoveredNodeRef.current = null;
-            propsRef.current.sharedProps.onNodeHover(null);
-            requestFrameRef.current();
-          }
-          hoveredLinkRef.current = null;
-          setLinkTooltip(null);
-        }}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onWheel={handleWheel}
+        onContextMenu={interactionHandlers.handleContextMenu}
+        onPointerCancel={interactionHandlers.handlePointerCancel}
+        onPointerDown={interactionHandlers.handlePointerDown}
+        onPointerLeave={interactionHandlers.handlePointerLeave}
+        onPointerMove={interactionHandlers.handlePointerMove}
+        onPointerUp={interactionHandlers.handlePointerUp}
+        onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
       />
       {rendererError ? (
