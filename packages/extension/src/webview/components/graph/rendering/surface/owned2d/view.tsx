@@ -4,20 +4,10 @@ import {
   useState,
   type ReactElement,
 } from 'react';
-import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
-import { fitOwnedGraphCamera, type OwnedGraphCamera } from './camera';
-import { canvasSize } from './canvasGeometry';
+import { type OwnedGraphCamera } from './camera';
 import type { Surface2dProps } from './contracts';
-import { releaseOwnedDraggedNodes } from './drag';
-import {
-  applyOwnedPhysicsSettings,
-  canRunOwnedGraphPhysics,
-  createOwnedGraphLayout,
-  syncOwnedLayoutNodes,
-  updateOwnedGraphLayout,
-  type OwnedGraphLayout,
-} from './layout';
+import { canRunOwnedGraphPhysics, type OwnedGraphLayout } from './layout';
 import {
   createOwnedGraphInteractionHandlers,
   type CtrlClickSession,
@@ -25,6 +15,12 @@ import {
   type PointerSession,
 } from './interaction';
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
+import {
+  applyOwnedGraphRuntimePhysicsSettings,
+  disposeOwnedGraphLayoutRuntime,
+  reconcileOwnedGraphRuntime,
+  type OwnedGraphLayoutRuntime,
+} from './layoutRuntime';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
@@ -60,6 +56,20 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   );
   const [rendererError, setRendererError] = useState<string | null>(null);
   const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
+  const layoutRuntime = useRef<OwnedGraphLayoutRuntime>({
+    cameraRef,
+    canvasRef,
+    engineStopNotifiedRef,
+    hasFittedCameraRef,
+    layoutRef,
+    pluginForcesRef,
+    pointerSessionRef,
+    positionVersionRef,
+    propsRef,
+    rendererOperationalRef,
+    requestFrameRef,
+    setLayoutKind,
+  }).current;
   propsRef.current = props;
   styleVersionRef.current += 1;
 
@@ -148,121 +158,21 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   }, [props.fg2dRef]);
 
   useEffect(() => {
-    const currentProps = propsRef.current;
-    const nodes = currentProps.sharedProps.graphData.nodes;
-    const links = currentProps.sharedProps.graphData.links;
-    const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
-    const allowWorker = (currentProps.graphViewContributions?.forces.length ?? 0) === 0;
-    let layout = layoutRef.current;
-    const updated = layout && updateOwnedGraphLayout(
-      layout,
-      nodes,
-      links,
-      settings,
-      currentProps.sharedProps.dagMode ?? null,
-      currentProps.sharedProps.dagLevelDistance ?? 60,
-      allowWorker,
-    );
-    if (!layout || !updated) {
-      layout?.engine.dispose?.();
-      layout = createOwnedGraphLayout(
-        nodes,
-        links,
-        settings,
-        currentProps.sharedProps.dagMode ?? null,
-        currentProps.sharedProps.dagLevelDistance ?? 60,
-        () => {
-          positionVersionRef.current += 1;
-          requestFrameRef.current();
-        },
-        allowWorker,
-      );
-      layoutRef.current = layout;
-    }
-    if (pluginForcesRef.current.sync(
-      currentProps.graphViewContributions,
-      { nodes: layout.nodes, links: layout.links },
-      settings,
-    )) layout.engine.reheat();
-    const pointerSession = pointerSessionRef.current;
-    if (pointerSession?.nodeId) {
-      const nextIndex = layout.engine.getNodeIndex(pointerSession.nodeId);
-      if (nextIndex === undefined) {
-        const draggedIndexes = new Set(
-          layout.nodes.flatMap((node, index) => node.isDragging === true ? [index] : []),
-        );
-        if (pointerSession.moved && pointerSession.node) {
-          currentProps.sharedProps.onNodeDragEnd?.(pointerSession.node);
-        }
-        releaseOwnedDraggedNodes(layout, draggedIndexes);
-        pointerSessionRef.current = null;
-      } else {
-        pointerSession.index = nextIndex;
-        pointerSession.node = layout.nodes[nextIndex];
-        pointerSession.draggedIndexes = new Set(
-          layout.nodes.flatMap((node, index) => node.isDragging === true ? [index] : []),
-        );
-      }
-    } else if (pointerSession?.link) {
-      pointerSession.link = layout.links.find(link => link.id === pointerSession.link?.id) ?? null;
-    }
-    positionVersionRef.current += 1;
-    setLayoutKind(layout.kind);
-    syncOwnedLayoutNodes(layout);
-    const canvas = canvasRef.current;
-    if (canvas && !hasFittedCameraRef.current) {
-      const size = canvasSize(canvas);
-      hasFittedCameraRef.current = fitOwnedGraphCamera(
-        cameraRef.current,
-        nodes,
-        size.width,
-        size.height,
-      );
-    }
-    if (!canRunOwnedGraphPhysics(
-      rendererOperationalRef.current,
-      currentProps.physicsPaused,
-    )) layout.engine.pause();
-    engineStopNotifiedRef.current = false;
-    requestFrameRef.current();
+    reconcileOwnedGraphRuntime(layoutRuntime);
   }, [
     props.sharedProps.dagLevelDistance,
     props.sharedProps.dagMode,
     props.sharedProps.graphData,
     props.graphViewContributions,
+    layoutRuntime,
   ]);
 
   useEffect(() => () => {
-    pluginForcesRef.current.dispose();
-    layoutRef.current?.engine.dispose?.();
-    layoutRef.current = null;
-  }, []);
+    disposeOwnedGraphLayoutRuntime(layoutRuntime);
+  }, [layoutRuntime]);
 
   useEffect(() => {
-    const engine = layoutRef.current?.engine;
-    if (!engine) return;
-    const currentProps = propsRef.current;
-    const settings = currentProps.physicsSettings ?? DEFAULT_PHYSICS_SETTINGS;
-    applyOwnedPhysicsSettings(engine, settings);
-    const layout = layoutRef.current;
-    if (layout) {
-      pluginForcesRef.current.sync(
-        currentProps.graphViewContributions,
-        { nodes: layout.nodes, links: layout.links },
-        settings,
-      );
-    }
-    if (!canRunOwnedGraphPhysics(
-      rendererOperationalRef.current,
-      currentProps.physicsPaused,
-    )) {
-      engine.pause();
-    } else {
-      engine.resume();
-      engine.reheat();
-      engineStopNotifiedRef.current = false;
-    }
-    requestFrameRef.current();
+    applyOwnedGraphRuntimePhysicsSettings(layoutRuntime);
   }, [
     props.physicsPaused,
     props.physicsSettings?.centerForce,
@@ -270,6 +180,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     props.physicsSettings?.linkDistance,
     props.physicsSettings?.linkForce,
     props.physicsSettings?.repelForce,
+    layoutRuntime,
   ]);
 
   useEffect(() => {
