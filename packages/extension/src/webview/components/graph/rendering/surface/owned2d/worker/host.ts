@@ -116,7 +116,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
       this.copyFallbackState();
       return result;
     }
-    if (!this.paused && !this.tickInFlight) this.postTick(elapsedMs);
+    if (!this.paused && !this.settled && !this.tickInFlight) this.postTick(elapsedMs);
     return { moving: !this.settled, settled: this.settled, steps: 0 };
   }
 
@@ -167,7 +167,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.paused = false;
     this.fallback.resume();
     this.post({ type: 'resume' });
-    if (!this.tickInFlight) this.postTick(FIXED_TICK_MS);
+    if (!this.settled && !this.tickInFlight) this.postTick(FIXED_TICK_MS);
   }
 
   dispose(): void {
