@@ -82,6 +82,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
   const cameraRef = useRef<OwnedGraphCamera>({ ...INITIAL_CAMERA });
   const animationFrameRef = useRef<number | null>(null);
+  const frameRequestedRef = useRef(false);
   const requestFrameRef = useRef<() => void>(() => undefined);
   const skipPhysicsFrameRef = useRef(false);
   const pointerSessionRef = useRef<PointerSession | null>(null);
@@ -116,6 +117,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         gpuRendererRef.current = null;
         setRendererError(message || 'The WebGPU device was lost.');
         setRendererStatus('error');
+        requestFrameRef.current();
+      },
+      onFrameComplete: () => {
+        if (active && frameRequestedRef.current) requestFrameRef.current();
       },
     }).then(renderer => {
       if (!active) {
@@ -151,6 +156,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
 
     const renderFrame = (timestamp: number): void => {
       animationFrameRef.current = null;
+      frameRequestedRef.current = false;
       if (!active) return;
       const currentProps = propsRef.current;
       const layout = layoutRef.current;
@@ -286,7 +292,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     };
 
     requestFrameRef.current = () => {
-      if (active && animationFrameRef.current === null) {
+      frameRequestedRef.current = true;
+      const renderer = gpuRendererRef.current;
+      if (
+        active
+        && animationFrameRef.current === null
+        && (!renderer || renderer.canRender())
+      ) {
         animationFrameRef.current = window.requestAnimationFrame(renderFrame);
       }
     };

@@ -30,6 +30,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
 
   it('activates WebGPU as the sole graph renderer', async () => {
     rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
       dispose: rendererHarness.dispose,
       render: rendererHarness.render,
     });

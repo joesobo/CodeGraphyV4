@@ -31,6 +31,7 @@ export interface OwnedWebGpuFrame {
 
 export interface OwnedWebGpuRendererOptions {
   onDeviceLost(this: void, message: string): void;
+  onFrameComplete(this: void): void;
 }
 
 function nextBufferSize(requiredBytes: number): number {
@@ -135,6 +136,8 @@ export class OwnedWebGpuRenderer {
   private uploadedNodes: readonly FGNode[] | undefined;
   private uploadedPositionVersion = -1;
   private uploadedStyleVersion = -1;
+  private framePending = false;
+  private disposed = false;
 
   private constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -142,6 +145,7 @@ export class OwnedWebGpuRenderer {
     private readonly device: GPUDevice,
     private readonly linkPipeline: GPURenderPipeline,
     private readonly nodePipeline: GPURenderPipeline,
+    private readonly onFrameComplete: () => void,
   ) {
     this.cameraBuffer = device.createBuffer({
       label: 'CodeGraphy camera uniform',
@@ -264,6 +268,7 @@ export class OwnedWebGpuRenderer {
       device,
       linkPipeline,
       nodePipeline,
+      options.onFrameComplete,
     );
     void device.lost.then(info => {
       if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
@@ -336,7 +341,12 @@ export class OwnedWebGpuRenderer {
     return true;
   }
 
+  canRender(): boolean {
+    return !this.framePending && !this.disposed;
+  }
+
   render(frame: OwnedWebGpuFrame): void {
+    if (!this.canRender()) throw new Error('WebGPU frame submitted while the previous frame is pending');
     const stylesChanged = this.updateStyleCaches(frame);
     const pixelWidth = Math.max(1, Math.round(frame.cssWidth * frame.devicePixelRatio));
     const pixelHeight = Math.max(1, Math.round(frame.cssHeight * frame.devicePixelRatio));
@@ -451,9 +461,18 @@ export class OwnedWebGpuRenderer {
     }
     pass.end();
     this.device.queue.submit([encoder.finish()]);
+    this.framePending = true;
+    void this.device.queue.onSubmittedWorkDone().then(() => {
+      if (this.disposed) return;
+      this.framePending = false;
+      this.onFrameComplete();
+    }).catch(() => {
+      // Device loss is reported by device.lost and handled by the surface.
+    });
   }
 
   dispose(): void {
+    this.disposed = true;
     this.cameraBuffer.destroy();
     this.linkBuffer.destroy();
     this.nodeBuffer.destroy();
