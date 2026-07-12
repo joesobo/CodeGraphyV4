@@ -8,6 +8,7 @@ import type {
 } from './protocol';
 
 let engine: GraphLayoutEngine | undefined;
+let mutationRevision = 0;
 let revision = 0;
 
 function requireEngine(): GraphLayoutEngine {
@@ -23,6 +24,7 @@ function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
   const vy = new Float32Array(current.vy);
   const message: GraphLayoutWorkerTickMessage = {
     type: 'tick',
+    mutationRevision,
     revision,
     result,
     x: x.buffer,
@@ -37,6 +39,7 @@ function handleCommand(command: GraphLayoutWorkerCommand): void {
   switch (command.type) {
     case 'init':
       revision = command.revision;
+      mutationRevision = 0;
       engine = createGraphLayoutEngine(command.input);
       break;
     case 'tick':
@@ -44,27 +47,44 @@ function handleCommand(command: GraphLayoutWorkerCommand): void {
       break;
     case 'setConfig':
       requireEngine().setConfig(command.config);
+      mutationRevision = command.mutationRevision;
+      break;
+    case 'setKinematics':
+      requireEngine().setKinematics(
+        new Float32Array(command.x),
+        new Float32Array(command.y),
+        new Float32Array(command.vx),
+        new Float32Array(command.vy),
+      );
+      mutationRevision = command.mutationRevision;
       break;
     case 'setNodePosition':
       requireEngine().setNodePosition(command.index, command.x, command.y);
+      mutationRevision = command.mutationRevision;
       break;
     case 'pin':
       requireEngine().pin(command.index);
+      mutationRevision = command.mutationRevision;
       break;
     case 'release':
       requireEngine().release(command.index);
+      mutationRevision = command.mutationRevision;
       break;
     case 'setHidden':
       requireEngine().setHidden(command.index, command.hidden);
+      mutationRevision = command.mutationRevision;
       break;
     case 'reheat':
       requireEngine().reheat(command.alpha);
+      mutationRevision = command.mutationRevision;
       break;
     case 'pause':
       requireEngine().pause();
+      mutationRevision = command.mutationRevision;
       break;
     case 'resume':
       requireEngine().resume();
+      mutationRevision = command.mutationRevision;
       break;
   }
 }

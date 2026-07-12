@@ -25,6 +25,7 @@ import {
 import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import {
   applyOwnedPhysicsSettings,
+  canRunOwnedGraphPhysics,
   createOwnedGraphLayout,
   syncOwnedLayoutNodes,
   updateOwnedGraphLayout,
@@ -35,9 +36,16 @@ import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
+interface CtrlClickSession {
+  moved: boolean;
+  pointerId: number;
+  startScreen: { x: number; y: number };
+}
+
 interface PointerSession {
   draggedIndexes: Set<number>;
   index: number | null;
+  node: FGNode | null;
   nodeId: string | null;
   link: FGLink | null;
   lastWorld: { x: number; y: number };
@@ -47,6 +55,7 @@ interface PointerSession {
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 const CANVAS_DECORATION_NODE_LIMIT = 5_000;
+const CTRL_PAN_DRAG_THRESHOLD_PX = 2;
 
 function canvasSize(canvas: HTMLCanvasElement): { width: number; height: number } {
   const bounds = canvas.getBoundingClientRect();
@@ -78,6 +87,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
   const gpuRendererRef = useRef<OwnedWebGpuRenderer | null>(null);
+  const rendererOperationalRef = useRef(false);
   const propsRef = useRef(props);
   const layoutRef = useRef<OwnedGraphLayout | null>(null);
   const cameraRef = useRef<OwnedGraphCamera>({ ...INITIAL_CAMERA });
@@ -85,6 +95,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const frameRequestedRef = useRef(false);
   const requestFrameRef = useRef<() => void>(() => undefined);
   const skipPhysicsFrameRef = useRef(false);
+  const ctrlClickSessionRef = useRef<CtrlClickSession | null>(null);
   const pointerSessionRef = useRef<PointerSession | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const hoveredLinkRef = useRef<FGLink | null>(null);
@@ -114,7 +125,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     void OwnedWebGpuRenderer.create(gpuCanvas, {
       onDeviceLost: message => {
         if (!active) return;
+        gpuRendererRef.current?.dispose();
         gpuRendererRef.current = null;
+        rendererOperationalRef.current = false;
+        layoutRef.current?.engine.pause();
         setRendererError(message || 'The WebGPU device was lost.');
         setRendererStatus('error');
         requestFrameRef.current();
@@ -128,21 +142,33 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         return;
       }
       if (!renderer) {
+        rendererOperationalRef.current = false;
+        layoutRef.current?.engine.pause();
         setRendererError('WebGPU is unavailable in this environment.');
         setRendererStatus('error');
         return;
       }
       gpuRendererRef.current = renderer;
+      rendererOperationalRef.current = true;
+      const layout = layoutRef.current;
+      if (layout && canRunOwnedGraphPhysics(true, propsRef.current.physicsPaused)) {
+        layout.engine.resume();
+        layout.engine.reheat();
+        engineStopNotifiedRef.current = false;
+      }
       setRendererError(null);
       setRendererStatus('webgpu');
       requestFrameRef.current();
     }).catch((error: unknown) => {
       if (!active) return;
+      rendererOperationalRef.current = false;
+      layoutRef.current?.engine.pause();
       setRendererError(error instanceof Error ? error.message : String(error));
       setRendererStatus('error');
     });
     return () => {
       active = false;
+      rendererOperationalRef.current = false;
       gpuRendererRef.current?.dispose();
       gpuRendererRef.current = null;
     };
@@ -160,6 +186,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       if (!active) return;
       const currentProps = propsRef.current;
       const layout = layoutRef.current;
+      const canRunPhysics = canRunOwnedGraphPhysics(
+        rendererOperationalRef.current,
+        currentProps.physicsPaused,
+      );
       const context = canvas.getContext('2d');
       if (!layout || !context) return;
       const elapsedMs = previousTimestamp === null ? 1000 / 60 : timestamp - previousTimestamp;
@@ -171,7 +201,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       const physicsStartedAt = perfSamples ? performance.now() : 0;
       const skipPhysics = skipPhysicsFrameRef.current;
       skipPhysicsFrameRef.current = false;
-      if (pluginForcesRef.current.active()) {
+      if (canRunPhysics && pluginForcesRef.current.active()) {
         syncOwnedLayoutNodes(layout);
         pluginForcesRef.current.tick(layout.engine.alpha);
         for (let index = 0; index < layout.nodes.length; index += 1) {
@@ -231,6 +261,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         } catch (error) {
           gpuRenderer.dispose();
           gpuRendererRef.current = null;
+          rendererOperationalRef.current = false;
+          layout.engine.pause();
           setRendererError(error instanceof Error ? error.message : String(error));
           setRendererStatus('error');
         }
@@ -286,9 +318,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         engineStopNotifiedRef.current = true;
         currentProps.sharedProps.onEngineStop();
       }
-      if ((!tick.settled && !currentProps.physicsPaused) || currentProps.directionMode === 'particles') {
-        requestFrameRef.current();
-      }
+      if (rendererOperationalRef.current && (
+        (!tick.settled && canRunPhysics)
+        || currentProps.directionMode === 'particles'
+      )) requestFrameRef.current();
     };
 
     requestFrameRef.current = () => {
@@ -322,12 +355,54 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       pauseAnimation: () => layoutRef.current?.engine.pause(),
       refresh: () => requestFrameRef.current(),
       resumeAnimation: () => {
+        if (!rendererOperationalRef.current) return;
         layoutRef.current?.engine.resume();
         requestFrameRef.current();
       },
       screen2GraphCoords: (x, y) => {
         const size = canvasSize(canvas);
         return screenToGraph(cameraRef.current, size.width, size.height, x, y);
+      },
+      updateNode: (nodeId, updates) => {
+        const layout = layoutRef.current;
+        const index = layout?.engine.getNodeIndex(nodeId);
+        if (!layout || index === undefined) return false;
+        const node = layout.nodes[index];
+        Object.assign(node, updates);
+        const explicitlyPinned = updates.isPinned === true;
+        const explicitlyUnpinned = updates.isPinned === false;
+        if (explicitlyUnpinned) {
+          node.fx = undefined;
+          node.fy = undefined;
+        }
+        const x = new Float32Array(layout.engine.x);
+        const y = new Float32Array(layout.engine.y);
+        const vx = new Float32Array(layout.engine.vx);
+        const vy = new Float32Array(layout.engine.vy);
+        if (Number.isFinite(node.x)) x[index] = node.x as number;
+        if (Number.isFinite(node.y)) y[index] = node.y as number;
+        if (Number.isFinite(node.fx)) x[index] = node.fx as number;
+        if (Number.isFinite(node.fy)) y[index] = node.fy as number;
+        if (Number.isFinite(node.vx)) vx[index] = node.vx as number;
+        if (Number.isFinite(node.vy)) vy[index] = node.vy as number;
+        layout.engine.setKinematics(x, y, vx, vy);
+        const pinned = explicitlyPinned || (!explicitlyUnpinned && (
+          node.isDragging === true
+          || Number.isFinite(node.fx)
+          || Number.isFinite(node.fy)
+        ));
+        if (pinned) layout.engine.pin(index);
+        else if (
+          'isPinned' in updates
+          || 'isDragging' in updates
+          || 'fx' in updates
+          || 'fy' in updates
+        ) layout.engine.release(index);
+        layout.engine.reheat();
+        positionVersionRef.current += 1;
+        engineStopNotifiedRef.current = false;
+        requestFrameRef.current();
+        return true;
       },
       zoom: ((scale?: number) => {
         if (scale === undefined) return cameraRef.current.zoom;
@@ -407,9 +482,17 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     if (pointerSession?.nodeId) {
       const nextIndex = layout.engine.getNodeIndex(pointerSession.nodeId);
       if (nextIndex === undefined) {
+        const draggedIndexes = new Set(
+          layout.nodes.flatMap((node, index) => node.isDragging === true ? [index] : []),
+        );
+        if (pointerSession.moved && pointerSession.node) {
+          currentProps.sharedProps.onNodeDragEnd?.(pointerSession.node);
+        }
+        releaseOwnedDraggedNodes(layout, draggedIndexes);
         pointerSessionRef.current = null;
       } else {
         pointerSession.index = nextIndex;
+        pointerSession.node = layout.nodes[nextIndex];
         pointerSession.draggedIndexes = new Set(
           layout.nodes.flatMap((node, index) => node.isDragging === true ? [index] : []),
         );
@@ -423,10 +506,17 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     const canvas = canvasRef.current;
     if (canvas && !hasFittedCameraRef.current) {
       const size = canvasSize(canvas);
-      fitOwnedGraphCamera(cameraRef.current, nodes, size.width, size.height);
-      hasFittedCameraRef.current = true;
+      hasFittedCameraRef.current = fitOwnedGraphCamera(
+        cameraRef.current,
+        nodes,
+        size.width,
+        size.height,
+      );
     }
-    if (currentProps.physicsPaused) layout.engine.pause();
+    if (!canRunOwnedGraphPhysics(
+      rendererOperationalRef.current,
+      currentProps.physicsPaused,
+    )) layout.engine.pause();
     engineStopNotifiedRef.current = false;
     requestFrameRef.current();
   }, [
@@ -456,7 +546,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         settings,
       );
     }
-    if (currentProps.physicsPaused) {
+    if (!canRunOwnedGraphPhysics(
+      rendererOperationalRef.current,
+      currentProps.physicsPaused,
+    )) {
       engine.pause();
     } else {
       engine.resume();
@@ -482,13 +575,29 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     return screenToGraph(cameraRef.current, size.width, size.height, screen.x, screen.y);
   };
 
+  const pickNode = (layout: OwnedGraphLayout, world: { x: number; y: number }) => {
+    if (pickerPositionVersionRef.current !== positionVersionRef.current) {
+      pickerRef.current.rebuild(layout.nodes);
+      pickerPositionVersionRef.current = positionVersionRef.current;
+    }
+    return pickerRef.current.pick(world, cameraRef.current.zoom);
+  };
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
-    if (event.button !== 0 || event.ctrlKey) return;
+    if (event.button !== 0) return;
+    const screen = localPointer(event.currentTarget, event.nativeEvent);
+    if (event.ctrlKey) {
+      ctrlClickSessionRef.current = {
+        moved: false,
+        pointerId: event.pointerId,
+        startScreen: screen,
+      };
+      return;
+    }
     const layout = layoutRef.current;
     if (!layout) return;
-    const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
-    const picked = pickerRef.current.pick(world, cameraRef.current.zoom);
+    const picked = pickNode(layout, world);
     const pickedLink = picked ? undefined : pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom);
     pointerSessionRef.current = {
       draggedIndexes: new Set(picked ? [picked.index] : []),
@@ -497,6 +606,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       link: pickedLink?.link ?? null,
       lastWorld: world,
       moved: false,
+      node: picked?.node ?? null,
       startScreen: screen,
     };
     if (picked) {
@@ -508,9 +618,17 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
+    const screen = localPointer(event.currentTarget, event.nativeEvent);
+    const ctrlSession = ctrlClickSessionRef.current;
+    if (ctrlSession && ctrlSession.pointerId === event.pointerId) {
+      ctrlSession.moved ||= Math.hypot(
+        screen.x - ctrlSession.startScreen.x,
+        screen.y - ctrlSession.startScreen.y,
+      ) > CTRL_PAN_DRAG_THRESHOLD_PX;
+      return;
+    }
     const layout = layoutRef.current;
     if (!layout) return;
-    const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
     const session = pointerSessionRef.current;
     if (session?.index !== null && session?.index !== undefined) {
@@ -545,7 +663,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         screen.y - session.startScreen.y,
       ) > 3;
     }
-    const hovered = pickerRef.current.pick(world, cameraRef.current.zoom)?.node ?? null;
+    const hovered = pickNode(layout, world)?.node ?? null;
     const hoveredLink = hovered
       ? null
       : pickOwnedGraphLink(layout.links, world, cameraRef.current.zoom)?.link ?? null;
@@ -565,6 +683,17 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
+    const ctrlSession = ctrlClickSessionRef.current;
+    if (ctrlSession && ctrlSession.pointerId === event.pointerId) {
+      ctrlClickSessionRef.current = null;
+      const layout = layoutRef.current;
+      if (!layout || ctrlSession.moved) return;
+      const screen = localPointer(event.currentTarget, event.nativeEvent);
+      const world = screenToWorld(event.currentTarget, screen);
+      const node = pickNode(layout, world)?.node;
+      if (node) propsRef.current.sharedProps.onNodeClick(node, event.nativeEvent);
+      return;
+    }
     const layout = layoutRef.current;
     const session = pointerSessionRef.current;
     pointerSessionRef.current = null;
@@ -594,6 +723,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   };
 
   const handlePointerCancel = (event: ReactPointerEvent<HTMLCanvasElement>): void => {
+    const ctrlSession = ctrlClickSessionRef.current;
+    if (ctrlSession && ctrlSession.pointerId === event.pointerId) {
+      ctrlClickSessionRef.current = null;
+      return;
+    }
     const layout = layoutRef.current;
     const session = pointerSessionRef.current;
     pointerSessionRef.current = null;
@@ -617,7 +751,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     event.preventDefault();
     const screen = localPointer(event.currentTarget, event.nativeEvent);
     const world = screenToWorld(event.currentTarget, screen);
-    const node = pickerRef.current.pick(world, cameraRef.current.zoom)?.node;
+    const node = pickNode(layout, world)?.node;
     if (node) {
       propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
       return;

@@ -2,18 +2,23 @@ import type { ViewportSurfaceProps } from './view';
 
 const SURFACE_2D_PROP_KEYS = [
   'fg2dRef',
+  'graphViewContributions',
   'getArrowColor',
   'getArrowRelPos',
   'getLinkColor',
   'getLinkParticles',
   'getLinkWidth',
+  'getNodeStyle',
   'getParticleColor',
   'linkCanvasObject',
   'nodeCanvasObject',
+  'nodeLabelCanvasObject',
   'nodePointerAreaPaint',
   'onRenderFramePost',
   'particleSize',
   'particleSpeed',
+  'physicsPaused',
+  'physicsSettings',
   'sharedProps',
 ] as const;
 

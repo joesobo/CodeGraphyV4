@@ -19,14 +19,15 @@ export function createImageExportDataUrl(
   container: HTMLDivElement | null,
   options: CanvasExportOptions
 ): string | null {
-  const canvas = container?.querySelector('canvas') as HTMLCanvasElement | null;
-  if (!canvas) {
+  const canvases = container?.querySelectorAll('canvas');
+  const firstCanvas = canvases?.[0];
+  if (!firstCanvas || !canvases) {
     return null;
   }
 
   const exportCanvas = document.createElement('canvas');
-  exportCanvas.width = canvas.width;
-  exportCanvas.height = canvas.height;
+  exportCanvas.width = firstCanvas.width;
+  exportCanvas.height = firstCanvas.height;
 
   const context = exportCanvas.getContext('2d');
   if (!context) {
@@ -35,7 +36,7 @@ export function createImageExportDataUrl(
 
   context.fillStyle = EXPORT_BACKGROUND_COLOR;
   context.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-  context.drawImage(canvas, 0, 0);
+  canvases.forEach(canvas => context.drawImage(canvas, 0, 0));
 
   if (options.quality === undefined) {
     return exportCanvas.toDataURL(options.mimeType);

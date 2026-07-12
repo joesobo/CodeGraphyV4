@@ -57,6 +57,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
   private readonly worker: Worker;
   private disposed = false;
   private failed = false;
+  private mutationRevision = 0;
   private paused = false;
   private revision = 0;
   private tickInFlight = false;
@@ -92,6 +93,7 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.fallback.setGraph(input);
     this.copyFallbackState();
     this.revision += 1;
+    this.mutationRevision = 0;
     this.tickInFlight = false;
     const workerInput = transferableInput(input);
     this.post({ type: 'init', input: workerInput, revision: this.revision }, inputTransfers(workerInput));
@@ -99,7 +101,10 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
 
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.fallback.setConfig(config);
-    this.post({ type: 'setConfig', config });
+    this.settled = false;
+    this.mutationRevision += 1;
+    this.post({ type: 'setConfig', config, mutationRevision: this.mutationRevision });
+    if (!this.paused && !this.tickInFlight) this.postTick(FIXED_TICK_MS);
   }
 
   setKinematics(x: Float32Array, y: Float32Array, vx: Float32Array, vy: Float32Array): void {
@@ -108,6 +113,19 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.y = new Float32Array(y);
     this.vx = new Float32Array(vx);
     this.vy = new Float32Array(vy);
+    this.mutationRevision += 1;
+    const workerX = new Float32Array(x);
+    const workerY = new Float32Array(y);
+    const workerVx = new Float32Array(vx);
+    const workerVy = new Float32Array(vy);
+    this.post({
+      type: 'setKinematics',
+      mutationRevision: this.mutationRevision,
+      vx: workerVx.buffer,
+      vy: workerVy.buffer,
+      x: workerX.buffer,
+      y: workerY.buffer,
+    }, [workerX.buffer, workerY.buffer, workerVx.buffer, workerVy.buffer]);
   }
 
   tick(elapsedMs: number): GraphLayoutTickResult {
@@ -127,19 +145,28 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.vx[index] = 0;
     this.vy[index] = 0;
     this.settled = false;
-    this.post({ type: 'setNodePosition', index, x, y });
+    this.mutationRevision += 1;
+    this.post({
+      type: 'setNodePosition',
+      index,
+      mutationRevision: this.mutationRevision,
+      x,
+      y,
+    });
   }
 
   pin(index: number): void {
     this.fallback.pin(index);
     this.flags[index] |= GraphNodeFlag.Pinned;
-    this.post({ type: 'pin', index });
+    this.mutationRevision += 1;
+    this.post({ type: 'pin', index, mutationRevision: this.mutationRevision });
   }
 
   release(index: number): void {
     this.fallback.release(index);
     this.flags[index] &= ~GraphNodeFlag.Pinned;
-    this.post({ type: 'release', index });
+    this.mutationRevision += 1;
+    this.post({ type: 'release', index, mutationRevision: this.mutationRevision });
   }
 
   setHidden(index: number, hidden: boolean): void {
@@ -147,26 +174,30 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     if (hidden) this.flags[index] |= GraphNodeFlag.Hidden;
     else this.flags[index] &= ~GraphNodeFlag.Hidden;
     this.settled = false;
-    this.post({ type: 'setHidden', index, hidden });
+    this.mutationRevision += 1;
+    this.post({ type: 'setHidden', index, hidden, mutationRevision: this.mutationRevision });
   }
 
   reheat(alpha?: number): void {
     this.fallback.reheat(alpha);
     this.settled = false;
-    this.post({ type: 'reheat', alpha });
+    this.mutationRevision += 1;
+    this.post({ type: 'reheat', alpha, mutationRevision: this.mutationRevision });
     if (!this.paused && !this.tickInFlight) this.postTick(FIXED_TICK_MS);
   }
 
   pause(): void {
     this.paused = true;
     this.fallback.pause();
-    this.post({ type: 'pause' });
+    this.mutationRevision += 1;
+    this.post({ type: 'pause', mutationRevision: this.mutationRevision });
   }
 
   resume(): void {
     this.paused = false;
     this.fallback.resume();
-    this.post({ type: 'resume' });
+    this.mutationRevision += 1;
+    this.post({ type: 'resume', mutationRevision: this.mutationRevision });
     if (!this.settled && !this.tickInFlight) this.postTick(FIXED_TICK_MS);
   }
 
@@ -192,6 +223,11 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
       return;
     }
     if (message.revision !== this.revision) return;
+    if (message.mutationRevision !== this.mutationRevision) {
+      this.tickInFlight = false;
+      if (!this.paused && !this.settled) this.postTick(FIXED_TICK_MS);
+      return;
+    }
     const nextX = new Float32Array(message.x);
     const nextY = new Float32Array(message.y);
     const nextVx = new Float32Array(message.vx);

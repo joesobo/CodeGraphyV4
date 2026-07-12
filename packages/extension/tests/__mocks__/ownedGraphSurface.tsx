@@ -11,6 +11,7 @@ const mockMethods = {
   pauseAnimation: vi.fn(),
   resumeAnimation: vi.fn(),
   screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
+  updateNode: vi.fn(() => true),
   graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
 };
 

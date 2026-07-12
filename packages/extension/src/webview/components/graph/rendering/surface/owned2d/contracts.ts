@@ -24,6 +24,7 @@ export interface OwnedGraph2dControls {
   refresh(): void;
   resumeAnimation(): void;
   screen2GraphCoords(x: number, y: number): { x: number; y: number };
+  updateNode(nodeId: string, updates: Record<string, unknown>): boolean;
   zoom(): number;
   zoom(scale: number, durationMs?: number): unknown;
   zoomToFit(durationMs?: number, padding?: number): void;

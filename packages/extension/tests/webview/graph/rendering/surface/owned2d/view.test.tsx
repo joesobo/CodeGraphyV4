@@ -1,5 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDefaultSurfaceProps } from '../view/surfaceFixture';
 
 const rendererHarness = vi.hoisted(() => ({
@@ -20,12 +20,17 @@ vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2
 import { OwnedGraphSurface2d } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/view';
 
 describe('OwnedGraphSurface2d renderer lifecycle', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(() => {
     rendererHarness.create.mockReset();
     rendererHarness.dispose.mockReset();
     rendererHarness.render.mockReset();
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.stubGlobal('PointerEvent', MouseEvent);
   });
 
   it('activates WebGPU as the sole graph renderer', async () => {
@@ -43,14 +48,251 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
+  it('routes a Ctrl-click on a node to additive selection without starting a node drag', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const props = createDefaultSurfaceProps();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'selected-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'selected-node',
+      size: 8,
+      x: 0,
+      y: 0,
+    };
+    props.sharedProps.graphData = { links: [], nodes: [node] } as never;
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+
+    const overlay = container.querySelectorAll('canvas')[1];
+    fireEvent.pointerDown(overlay, {
+      button: 0,
+      clientX: 50,
+      clientY: 50,
+      ctrlKey: true,
+      pointerId: 1,
+    });
+    fireEvent.pointerUp(overlay, {
+      button: 0,
+      clientX: 50,
+      clientY: 50,
+      ctrlKey: true,
+      pointerId: 1,
+    });
+
+    expect(props.sharedProps.onNodeClick).toHaveBeenCalledWith(node, expect.any(MouseEvent));
+    expect(props.sharedProps.onNodeDragEnd).not.toHaveBeenCalled();
+
+    vi.mocked(props.sharedProps.onNodeClick).mockClear();
+    fireEvent.pointerDown(overlay, {
+      button: 0,
+      clientX: 50,
+      clientY: 50,
+      ctrlKey: true,
+      pointerId: 2,
+    });
+    fireEvent.pointerMove(overlay, {
+      buttons: 1,
+      clientX: 60,
+      clientY: 50,
+      ctrlKey: true,
+      pointerId: 2,
+    });
+    fireEvent.pointerUp(overlay, {
+      button: 0,
+      clientX: 60,
+      clientY: 50,
+      ctrlKey: true,
+      pointerId: 2,
+    });
+
+    expect(props.sharedProps.onNodeClick).not.toHaveBeenCalled();
+  });
+
+  it('applies plugin viewport kinematics to the owned layout', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    const props = createDefaultSurfaceProps();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'plugin-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'plugin-node',
+      size: 8,
+      x: 0,
+      y: 0,
+    };
+    props.sharedProps.graphData = { links: [], nodes: [node] } as never;
+    const rendered = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(rendered.container.firstElementChild).toHaveAttribute(
+        'data-codegraphy-renderer',
+        'webgpu',
+      );
+    });
+
+    expect(props.fg2dRef.current?.updateNode('plugin-node', {
+      fx: 30,
+      fy: 40,
+      isPinned: true,
+      vx: 2,
+      vy: 3,
+      x: 30,
+      y: 40,
+    })).toBe(true);
+    expect(node).toMatchObject({ isPinned: true, vx: 2, vy: 3, x: 30, y: 40 });
+
+    expect(props.fg2dRef.current?.updateNode('plugin-node', { isPinned: false })).toBe(true);
+    expect(node).toMatchObject({ fx: undefined, fy: undefined, isPinned: false });
+    expect(props.fg2dRef.current?.updateNode('missing', { x: 1 })).toBe(false);
+  });
+
+  it('ends an active drag when a graph update removes its primary node', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const props = createDefaultSurfaceProps();
+    props.sharedProps.onNodeDrag = vi.fn();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'removed-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'removed-node',
+      size: 8,
+      x: 0,
+      y: 0,
+    };
+    props.sharedProps.graphData = { links: [], nodes: [node] } as never;
+    const rendered = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(rendered.container.firstElementChild).toHaveAttribute(
+        'data-codegraphy-renderer',
+        'webgpu',
+      );
+    });
+    const overlay = rendered.container.querySelectorAll('canvas')[1];
+    overlay.setPointerCapture = vi.fn();
+    overlay.hasPointerCapture = vi.fn(() => false);
+    overlay.releasePointerCapture = vi.fn();
+    fireEvent.pointerDown(overlay, { button: 0, clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerMove(overlay, { buttons: 1, clientX: 60, clientY: 50, pointerId: 1 });
+    expect(props.sharedProps.onNodeDrag).toHaveBeenCalled();
+
+    const nextProps = { ...props, sharedProps: {
+      ...props.sharedProps,
+      graphData: { links: [], nodes: [] },
+    } };
+    rendered.rerender(<OwnedGraphSurface2d {...nextProps} />);
+
+    expect(props.sharedProps.onNodeDragEnd).toHaveBeenCalledWith(node);
+  });
+
+  it('disposes WebGPU resources and drains rendering when the device is lost', async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.mocked(requestAnimationFrame).mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    const context = {
+      clearRect: vi.fn(),
+      restore: vi.fn(),
+      save: vi.fn(),
+      scale: vi.fn(),
+      setTransform: vi.fn(),
+      translate: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    const props = createDefaultSurfaceProps();
+    props.sharedProps.graphData = { links: [], nodes: [{
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'active-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'active-node',
+      size: 8,
+    }] } as never;
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
+    const overlay = container.querySelectorAll('canvas')[1];
+    Object.defineProperty(overlay, 'getContext', { value: () => context });
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    act(() => frames.shift()?.(0));
+    expect(frames.length).toBeGreaterThan(0);
+    const options = rendererHarness.create.mock.calls[0][1] as {
+      onDeviceLost(message: string): void;
+    };
+
+    act(() => options.onDeviceLost('GPU reset'));
+    act(() => frames.shift()?.(1000 / 60));
+
+    expect(frames).toHaveLength(0);
+    expect(rendererHarness.dispose).toHaveBeenCalledOnce();
+    expect(await screen.findByTestId('graph-webgpu-error')).toHaveTextContent('GPU reset');
+  });
+
   it('shows an explicit error instead of switching to a Canvas graph renderer', async () => {
     rendererHarness.create.mockResolvedValue(undefined);
-    const { container } = render(<OwnedGraphSurface2d {...createDefaultSurfaceProps()} />);
+    const props = createDefaultSurfaceProps();
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
 
     expect(await screen.findByTestId('graph-webgpu-error')).toHaveTextContent(
       'WebGPU is unavailable in this environment.',
     );
     expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'error');
     expect(container.querySelector('[data-codegraphy-renderer="canvas2d"]')).not.toBeInTheDocument();
+
   });
 });

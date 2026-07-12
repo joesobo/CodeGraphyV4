@@ -76,13 +76,8 @@ export function drawOwnedGraphLabels(options: OwnedGraphDrawingOptions): void {
     && (node.x as number) <= options.viewport.maximumX
     && (node.y as number) >= options.viewport.minimumY
     && (node.y as number) <= options.viewport.maximumY);
-  const stride = Math.max(1, Math.ceil(visibleNodes.length / 400));
-  for (let index = 0; index < visibleNodes.length; index += stride) {
-    options.nodeLabelCanvasObject(
-      visibleNodes[index],
-      options.context,
-      options.globalScale,
-    );
+  for (const node of visibleNodes) {
+    options.nodeLabelCanvasObject(node, options.context, options.globalScale);
   }
 }
 

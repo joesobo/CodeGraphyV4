@@ -88,7 +88,21 @@ describe('graph/viewport/shell/state', () => {
 		expect(reheatSimulation).toHaveBeenCalledOnce();
 	});
 
-	it('mutates the matching live graph node for plugin viewport updates', () => {
+	it('delegates plugin node updates to the owned graph state owner', () => {
+		const updateNode = vi.fn(() => true);
+		const graphNodes = [{ id: 'src/app.ts', x: 1 }];
+		const viewportState = createGraphViewViewportState({
+			globalScale: 1,
+			graph: { updateNode },
+			nodes: graphNodes as never,
+		});
+
+		expect(viewportState.updateNode('src/app.ts', { x: 10, vx: 2 })).toBe(true);
+		expect(updateNode).toHaveBeenCalledWith('src/app.ts', { x: 10, vx: 2 });
+		expect(graphNodes[0].x).toBe(1);
+	});
+
+	it('mutates the matching live graph node when owned controls are unavailable', () => {
 		const graphNodes = [{ id: 'src/app.ts', x: 1 }];
 		const viewportState = createGraphViewViewportState({
 			globalScale: 1,

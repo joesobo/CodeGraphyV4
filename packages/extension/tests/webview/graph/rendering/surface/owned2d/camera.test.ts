@@ -24,6 +24,13 @@ describe('owned graph camera', () => {
     }
   });
 
+  it('reports whether a non-empty graph was fitted', () => {
+    const camera: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
+
+    expect(fitOwnedGraphCamera(camera, [], 500, 500)).toBe(false);
+    expect(fitOwnedGraphCamera(camera, [{ x: 10, y: 20 }] as FGNode[], 500, 500)).toBe(true);
+  });
+
   it('fits the full bounds of rectangular nodes', () => {
     const camera: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
     const nodes = [
