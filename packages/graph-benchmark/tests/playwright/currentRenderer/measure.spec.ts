@@ -16,6 +16,8 @@ test('loads a deterministic fixture and reports current-renderer settlement', as
   try {
     const result = await waitForCurrentRendererSettlement(page, server.url, 120_000);
 
+    await expect(page.locator('[data-codegraphy-renderer="webgpu"]')).toBeVisible();
+    await expect(page.getByTestId('graph-webgpu-error')).toHaveCount(0);
     expect(result).toMatchObject({
       renderer: 'current',
       fixtureHash: fixture.fixtureHash,

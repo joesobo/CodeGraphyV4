@@ -7,6 +7,7 @@ export default defineConfig({
   timeout: 180_000,
   use: {
     headless: true,
+    launchOptions: { args: ['--enable-unsafe-webgpu'] },
     viewport: { width: 1280, height: 720 },
   },
   workers: 1,

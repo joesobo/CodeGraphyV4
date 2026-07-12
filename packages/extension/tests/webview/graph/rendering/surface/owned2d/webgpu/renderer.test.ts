@@ -22,6 +22,10 @@ describe('owned WebGPU renderer color parsing', () => {
     expectColor(parseWebGpuColor('rgba(10, 20, 30, 0.25)'), [10 / 255, 20 / 255, 30 / 255, 0.25]);
   });
 
+  it('keeps the transparent stage color transparent', () => {
+    expect(parseWebGpuColor('transparent')).toEqual([0, 0, 0, 0]);
+  });
+
   it('uses opaque black for unsupported CSS colors', () => {
     expect(parseWebGpuColor('not-a-color')).toEqual([0, 0, 0, 1]);
   });
