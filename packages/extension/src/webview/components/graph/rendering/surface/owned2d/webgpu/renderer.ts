@@ -76,6 +76,15 @@ export function parseWebGpuColor(color: string): [number, number, number, number
       rgb[4] === undefined ? 1 : Math.min(1, Number(rgb[4])),
     ];
   }
+  const srgb = /^color\(\s*srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\s*\)$/i.exec(value);
+  if (srgb) {
+    return [
+      Math.min(1, Number(srgb[1])),
+      Math.min(1, Number(srgb[2])),
+      Math.min(1, Number(srgb[3])),
+      srgb[4] === undefined ? 1 : Math.min(1, Number(srgb[4])),
+    ];
+  }
   return [0, 0, 0, 1];
 }
 
@@ -191,8 +200,9 @@ export class OwnedWebGpuRenderer {
       return undefined;
     }
 
-    const format = gpu.getPreferredCanvasFormat();
-    context.configure({
+    try {
+      const format = gpu.getPreferredCanvasFormat();
+      context.configure({
       alphaMode: 'premultiplied',
       device,
       format,
@@ -258,11 +268,9 @@ export class OwnedWebGpuRenderer {
       primitive: { topology: 'triangle-list' },
     });
     const validationError = await device.popErrorScope();
-    if (validationError) {
-      context.unconfigure();
-      device.destroy();
-      throw new Error(`WebGPU pipeline validation failed: ${validationError.message}`);
-    }
+      if (validationError) {
+        throw new Error(`WebGPU pipeline validation failed: ${validationError.message}`);
+      }
 
     const renderer = new OwnedWebGpuRenderer(
       canvas,
@@ -272,10 +280,15 @@ export class OwnedWebGpuRenderer {
       nodePipeline,
       options.onFrameComplete,
     );
-    void device.lost.then(info => {
-      if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
-    });
-    return renderer;
+      void device.lost.then(info => {
+        if (info.reason !== 'destroyed') options.onDeviceLost(info.message);
+      });
+      return renderer;
+    } catch (error) {
+      context.unconfigure();
+      device.destroy();
+      throw error;
+    }
   }
 
   private ensureLinkBuffer(requiredBytes: number): void {

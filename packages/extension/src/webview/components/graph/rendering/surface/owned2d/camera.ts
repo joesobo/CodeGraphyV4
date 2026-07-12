@@ -45,9 +45,9 @@ export function fitOwnedGraphCamera(
   width: number,
   height: number,
   padding = 48,
-): void {
+): boolean {
   const positioned = nodes.filter((node) => Number.isFinite(node.x) && Number.isFinite(node.y));
-  if (positioned.length === 0 || width <= 0 || height <= 0) return;
+  if (positioned.length === 0 || width <= 0 || height <= 0) return false;
 
   let minimumX = Number.POSITIVE_INFINITY;
   let minimumY = Number.POSITIVE_INFINITY;
@@ -70,4 +70,5 @@ export function fitOwnedGraphCamera(
     availableWidth / Math.max(1, maximumX - minimumX),
     availableHeight / Math.max(1, maximumY - minimumY),
   ));
+  return true;
 }

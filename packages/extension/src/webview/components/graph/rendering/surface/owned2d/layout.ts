@@ -16,6 +16,13 @@ export { ownedNodeCollisionRadius } from './collisionRadius';
 
 const WORKER_LAYOUT_NODE_THRESHOLD = 5_000;
 
+export function canRunOwnedGraphPhysics(
+  rendererOperational: boolean,
+  physicsPaused: boolean | undefined,
+): boolean {
+  return rendererOperational && physicsPaused !== true;
+}
+
 export interface OwnedGraphLayout {
   engine: GraphLayoutEngine;
   kind: 'main-thread' | 'worker';

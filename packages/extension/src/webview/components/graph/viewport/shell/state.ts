@@ -9,6 +9,7 @@ export interface GraphViewport2dControls {
 	graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
 	resumeAnimation?(): void;
 	screen2GraphCoords?(x: number, y: number): { x: number; y: number };
+	updateNode?(nodeId: string, updates: Record<string, unknown>): boolean;
 	zoom?(): number;
 }
 
@@ -81,7 +82,9 @@ export function createGraphViewViewportState({
 			}
 		},
 		screenToGraph: (x, y) => graph?.screen2GraphCoords ? graph.screen2GraphCoords(x, y) : { x, y },
-		updateNode: (nodeId, updates) => updateGraphViewViewportNode(nodes, nodeId, updates),
+		updateNode: (nodeId, updates) => graph?.updateNode
+			? graph.updateNode(nodeId, updates)
+			: updateGraphViewViewportNode(nodes, nodeId, updates),
 		zoom: graph?.zoom ? graph.zoom() : globalScale,
 	};
 }

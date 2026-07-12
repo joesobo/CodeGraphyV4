@@ -31,6 +31,7 @@ export function createInteractionDependencies(
     refresh: vi.fn(),
     resumeAnimation: vi.fn(),
     screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
+    updateNode: vi.fn(() => true),
     zoom: vi.fn(() => 1),
     zoomToFit: vi.fn(),
   } satisfies OwnedGraph2dControls;

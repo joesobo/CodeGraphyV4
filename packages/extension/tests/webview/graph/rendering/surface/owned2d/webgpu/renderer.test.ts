@@ -22,6 +22,13 @@ describe('owned WebGPU renderer color parsing', () => {
     expectColor(parseWebGpuColor('rgba(10, 20, 30, 0.25)'), [10 / 255, 20 / 255, 30 / 255, 0.25]);
   });
 
+  it('parses modern color syntax produced by computed graph themes', () => {
+    expectColor(
+      parseWebGpuColor('color(srgb 0.0705882 0.203922 0.337255 / 0.95)'),
+      [0.0705882, 0.203922, 0.337255, 0.95],
+    );
+  });
+
   it('keeps the transparent stage color transparent', () => {
     expect(parseWebGpuColor('transparent')).toEqual([0, 0, 0, 0]);
   });
