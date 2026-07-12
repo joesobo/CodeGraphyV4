@@ -14,12 +14,7 @@ import {
   type OwnedGraphCamera,
 } from './camera';
 import { canvasSize } from './canvasGeometry';
-import type { OwnedGraph2dControls, OwnedGraphNodeStyle, Surface2dProps } from './contracts';
-import {
-  drawOwnedGraphLabels,
-  drawOwnedGraphOverlay,
-  drawOwnedGraphParticles,
-} from './drawing';
+import type { OwnedGraph2dControls, Surface2dProps } from './contracts';
 import { releaseOwnedDraggedNodes } from './drag';
 import {
   applyOwnedPhysicsSettings,
@@ -35,27 +30,13 @@ import {
   type LinkTooltip,
   type PointerSession,
 } from './interaction';
+import { renderOwnedGraphFrame, type OwnedGraphFrameRuntime } from './frame';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 import { updateOwnedGraphViewportNode } from './viewportNode';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
-const CANVAS_DECORATION_NODE_LIMIT = 5_000;
-
-function defaultNodeStyle(node: FGNode): OwnedGraphNodeStyle {
-  return {
-    borderColor: node.borderColor,
-    borderWidth: node.borderWidth,
-    cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
-    fillColor: node.color,
-    fillOpacity: node.fillOpacity2D ?? 1,
-    height: node.shapeSize2D?.height ?? node.size * 2,
-    opacity: node.baseOpacity,
-    shape: node.shape2D ?? 'circle',
-    width: node.shapeSize2D?.width ?? node.size * 2,
-  };
-}
 
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -151,149 +132,35 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     let active = true;
     let previousTimestamp: number | null = null;
 
+    const frameRuntime: OwnedGraphFrameRuntime = {
+      cameraRef,
+      engineStopNotifiedRef,
+      gpuRendererRef,
+      layoutRef,
+      pickerPositionVersionRef,
+      pickerRef,
+      pluginForcesRef,
+      positionVersionRef,
+      propsRef,
+      rendererOperationalRef,
+      requestFrameRef,
+      skipPhysicsFrameRef,
+      styleVersionRef,
+      onRendererError: message => {
+        setRendererError(message);
+        setRendererStatus('error');
+      },
+    };
     const renderFrame = (timestamp: number): void => {
       animationFrameRef.current = null;
       frameRequestedRef.current = false;
       if (!active) return;
-      const currentProps = propsRef.current;
-      const layout = layoutRef.current;
-      const canRunPhysics = canRunOwnedGraphPhysics(
-        rendererOperationalRef.current,
-        currentProps.physicsPaused,
-      );
-      const context = canvas.getContext('2d');
-      if (!layout || !context) return;
-      const elapsedMs = previousTimestamp === null ? 1000 / 60 : timestamp - previousTimestamp;
-      previousTimestamp = timestamp;
-      const perfWindow = window as typeof window & {
-        __CODEGRAPHY_WEBGPU_PERF__?: Array<Record<string, number>>;
-      };
-      const perfSamples = perfWindow.__CODEGRAPHY_WEBGPU_PERF__;
-      const physicsStartedAt = perfSamples ? performance.now() : 0;
-      const skipPhysics = skipPhysicsFrameRef.current;
-      skipPhysicsFrameRef.current = false;
-      if (canRunPhysics && pluginForcesRef.current.active()) {
-        syncOwnedLayoutNodes(layout);
-        pluginForcesRef.current.tick(layout.engine.alpha);
-        for (let index = 0; index < layout.nodes.length; index += 1) {
-          const node = layout.nodes[index];
-          if (Number.isFinite(node.x)) layout.engine.x[index] = node.x as number;
-          if (Number.isFinite(node.y)) layout.engine.y[index] = node.y as number;
-          if (Number.isFinite(node.vx)) layout.engine.vx[index] = node.vx as number;
-          if (Number.isFinite(node.vy)) layout.engine.vy[index] = node.vy as number;
-        }
-      }
-      const tick = skipPhysics
-        ? { moving: !layout.engine.settled, settled: layout.engine.settled, steps: 0 }
-        : layout.engine.tick(elapsedMs);
-      if (tick.steps > 0) positionVersionRef.current += 1;
-      const physicsEndedAt = perfSamples ? performance.now() : 0;
-      syncOwnedLayoutNodes(layout);
-      if (pickerPositionVersionRef.current !== positionVersionRef.current) {
-        pickerRef.current.rebuild(layout.nodes);
-        pickerPositionVersionRef.current = positionVersionRef.current;
-      }
-      const syncEndedAt = perfSamples ? performance.now() : 0;
-
-      const { width, height } = canvasSize(canvas);
-      const devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
-      const backingWidth = Math.max(1, Math.round(width * devicePixelRatio));
-      const backingHeight = Math.max(1, Math.round(height * devicePixelRatio));
-      if (canvas.width !== backingWidth || canvas.height !== backingHeight) {
-        canvas.width = backingWidth;
-        canvas.height = backingHeight;
-      }
-
-      context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-      context.clearRect(0, 0, width, height);
-      const camera = cameraRef.current;
-      const gpuStartedAt = perfSamples ? performance.now() : 0;
-      let gpuRendered = false;
-      const gpuRenderer = gpuRendererRef.current;
-      if (gpuRenderer) {
-        try {
-          gpuRenderer.render({
-            backgroundColor: currentProps.backgroundColor,
-            camera,
-            cssHeight: height,
-            cssWidth: width,
-            devicePixelRatio,
-            directionMode: currentProps.directionMode,
-            getArrowColor: currentProps.getArrowColor,
-            getArrowRelPos: currentProps.getArrowRelPos,
-            getLinkColor: currentProps.getLinkColor,
-            getLinkWidth: currentProps.getLinkWidth,
-            getNodeStyle: currentProps.getNodeStyle ?? defaultNodeStyle,
-            links: layout.links,
-            nodes: layout.nodes,
-            positionVersion: positionVersionRef.current,
-            styleVersion: styleVersionRef.current,
-          });
-          gpuRendered = true;
-        } catch (error) {
-          gpuRenderer.dispose();
-          gpuRendererRef.current = null;
-          rendererOperationalRef.current = false;
-          layout.engine.pause();
-          setRendererError(error instanceof Error ? error.message : String(error));
-          setRendererStatus('error');
-        }
-      }
-      const gpuEndedAt = perfSamples ? performance.now() : 0;
-      context.save();
-      context.translate(width / 2, height / 2);
-      context.scale(camera.zoom, camera.zoom);
-      context.translate(-camera.centerX, -camera.centerY);
-      const drawingOptions = {
-        context,
-        directionMode: currentProps.directionMode,
-        getArrowColor: currentProps.getArrowColor,
-        getLinkColor: currentProps.getLinkColor,
-        getLinkParticles: currentProps.getLinkParticles,
-        getLinkWidth: currentProps.getLinkWidth,
-        getParticleColor: currentProps.getParticleColor,
-        globalScale: camera.zoom,
-        links: layout.links,
-        linkCanvasObject: currentProps.linkCanvasObject,
-        nodes: layout.nodes,
-        nodeCanvasObject: currentProps.nodeCanvasObject,
-        nodeLabelCanvasObject: currentProps.nodeLabelCanvasObject ?? (() => undefined),
-        particleSize: currentProps.particleSize,
-        particleSpeed: currentProps.particleSpeed,
+      previousTimestamp = renderOwnedGraphFrame(
+        frameRuntime,
+        canvas,
         timestamp,
-        viewport: {
-          maximumX: camera.centerX + width / (2 * camera.zoom),
-          maximumY: camera.centerY + height / (2 * camera.zoom),
-          minimumX: camera.centerX - width / (2 * camera.zoom),
-          minimumY: camera.centerY - height / (2 * camera.zoom),
-        },
-      };
-      if (gpuRendered && layout.nodes.length <= CANVAS_DECORATION_NODE_LIMIT) {
-        drawOwnedGraphOverlay(drawingOptions);
-      } else if (gpuRendered) {
-        drawOwnedGraphParticles(drawingOptions);
-        drawOwnedGraphLabels(drawingOptions);
-      }
-      currentProps.onRenderFramePost(context, camera.zoom);
-      context.restore();
-      if (perfSamples) {
-        perfSamples.push({
-          gpuMs: gpuEndedAt - gpuStartedAt,
-          overlayMs: performance.now() - gpuEndedAt,
-          physicsMs: physicsEndedAt - physicsStartedAt,
-          syncMs: syncEndedAt - physicsEndedAt,
-        });
-        if (perfSamples.length > 240) perfSamples.shift();
-      }
-
-      if (tick.settled && !engineStopNotifiedRef.current) {
-        engineStopNotifiedRef.current = true;
-        currentProps.sharedProps.onEngineStop();
-      }
-      if (rendererOperationalRef.current && (
-        (!tick.settled && canRunPhysics)
-        || currentProps.directionMode === 'particles'
-      )) requestFrameRef.current();
+        previousTimestamp,
+      );
     };
 
     requestFrameRef.current = () => {
