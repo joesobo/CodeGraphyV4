@@ -38,7 +38,7 @@ export async function launchVSCodeWithWorkspace(
   const app = await _electron.launch({
     executablePath: vscodeExecutablePath,
     args: createVSCodeLaunchArgs({
-      ci: process.env.CI === 'true',
+      ci: process.env.CODEGRAPHY_CI_SOFTWARE_WEBGPU === '1',
       extensionPath: repoRoot(),
       extensionsPath,
       platform: process.platform,
