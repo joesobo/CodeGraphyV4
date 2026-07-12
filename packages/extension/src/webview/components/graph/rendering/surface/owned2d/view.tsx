@@ -7,7 +7,7 @@ import {
 import type { FGLink, FGNode } from '../../../model/build';
 import { type OwnedGraphCamera } from './camera';
 import type { Surface2dProps } from './contracts';
-import { canRunOwnedGraphPhysics, type OwnedGraphLayout } from './layout';
+import { type OwnedGraphLayout } from './layout';
 import {
   createOwnedGraphInteractionHandlers,
   type CtrlClickSession,
@@ -23,6 +23,11 @@ import {
 } from './layoutRuntime';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
+import {
+  startOwnedGraphRendererLifecycle,
+  type OwnedGraphRendererLifecycleRuntime,
+  type OwnedGraphRendererStatus,
+} from './rendererLifecycle';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
@@ -51,9 +56,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const pickerRef = useRef(new OwnedGraphNodePicker());
   const pluginForcesRef = useRef(createOwnedGraphPluginForces());
   const [layoutKind, setLayoutKind] = useState<OwnedGraphLayout['kind']>('main-thread');
-  const [rendererStatus, setRendererStatus] = useState<'error' | 'initializing' | 'webgpu'>(
-    'initializing',
-  );
+  const [rendererStatus, setRendererStatus] = useState<OwnedGraphRendererStatus>('initializing');
   const [rendererError, setRendererError] = useState<string | null>(null);
   const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
   const layoutRuntime = useRef<OwnedGraphLayoutRuntime>({
@@ -76,57 +79,25 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useEffect(() => {
     const gpuCanvas = gpuCanvasRef.current;
     if (!gpuCanvas) return;
-    let active = true;
-    void OwnedWebGpuRenderer.create(gpuCanvas, {
-      onDeviceLost: message => {
-        if (!active) return;
-        gpuRendererRef.current?.dispose();
-        gpuRendererRef.current = null;
-        rendererOperationalRef.current = false;
-        layoutRef.current?.engine.pause();
-        setRendererError(message || 'The WebGPU device was lost.');
+    const rendererRuntime: OwnedGraphRendererLifecycleRuntime = {
+      engineStopNotifiedRef,
+      frameRequestedRef,
+      gpuRendererRef,
+      layoutRef,
+      propsRef,
+      rendererOperationalRef,
+      requestFrameRef,
+      onError: message => {
+        setRendererError(message);
         setRendererStatus('error');
-        requestFrameRef.current();
       },
-      onFrameComplete: () => {
-        if (active && frameRequestedRef.current) requestFrameRef.current();
+      onReady: () => {
+        setRendererError(null);
+        setRendererStatus('webgpu');
       },
-    }).then(renderer => {
-      if (!active) {
-        renderer?.dispose();
-        return;
-      }
-      if (!renderer) {
-        rendererOperationalRef.current = false;
-        layoutRef.current?.engine.pause();
-        setRendererError('WebGPU is unavailable in this environment.');
-        setRendererStatus('error');
-        return;
-      }
-      gpuRendererRef.current = renderer;
-      rendererOperationalRef.current = true;
-      const layout = layoutRef.current;
-      if (layout && canRunOwnedGraphPhysics(true, propsRef.current.physicsPaused)) {
-        layout.engine.resume();
-        layout.engine.reheat();
-        engineStopNotifiedRef.current = false;
-      }
-      setRendererError(null);
-      setRendererStatus('webgpu');
-      requestFrameRef.current();
-    }).catch((error: unknown) => {
-      if (!active) return;
-      rendererOperationalRef.current = false;
-      layoutRef.current?.engine.pause();
-      setRendererError(error instanceof Error ? error.message : String(error));
-      setRendererStatus('error');
-    });
-    return () => {
-      active = false;
-      rendererOperationalRef.current = false;
-      gpuRendererRef.current?.dispose();
-      gpuRendererRef.current = null;
     };
+    const lifecycle = startOwnedGraphRendererLifecycle(rendererRuntime, gpuCanvas);
+    return () => lifecycle.dispose();
   }, []);
 
   useEffect(() => {
