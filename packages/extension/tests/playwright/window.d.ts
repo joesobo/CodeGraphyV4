@@ -1,23 +1,9 @@
-interface GraphDebugSnapshot {
-  containerHeight: number;
-  containerWidth: number;
-  nodes: Array<{
-    baseOpacity?: number;
-    color?: string;
-    id: string;
-    imageUrl?: string;
-    screenX: number;
-    screenY: number;
-    size: number;
-  }>;
-  zoom: number | null;
+import type { GraphDebugApi } from '../../src/webview/components/graph/debug/contracts/protocol';
+
+declare global {
+  interface Window {
+    __CODEGRAPHY_GRAPH_DEBUG__?: GraphDebugApi;
+  }
 }
 
-interface Window {
-  __CODEGRAPHY_GRAPH_DEBUG__?: {
-    fitView(): void;
-    fitViewWithPadding(padding: number): void;
-    getSnapshot(): GraphDebugSnapshot;
-    openNodeContextMenu(nodeId: string): void;
-  };
-}
+export {};
