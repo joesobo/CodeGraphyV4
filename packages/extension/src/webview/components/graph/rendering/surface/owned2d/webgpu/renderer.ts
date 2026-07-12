@@ -197,7 +197,8 @@ export class OwnedWebGpuRenderer {
   ): Promise<OwnedWebGpuRenderer | undefined> {
     const gpu = navigator.gpu;
     if (!gpu) return undefined;
-    const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' });
+    const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' })
+      ?? await gpu.requestAdapter({ forceFallbackAdapter: true });
     if (!adapter) return undefined;
     const device = await adapter.requestDevice();
     const context = canvas.getContext('webgpu');
