@@ -35,58 +35,76 @@ function postTick(result: ReturnType<GraphLayoutEngine['tick']>): void {
   self.postMessage(message, { transfer: [x.buffer, y.buffer, vx.buffer, vy.buffer] });
 }
 
+type WorkerCommandType = GraphLayoutWorkerCommand['type'];
+type WorkerCommandOfType<Type extends WorkerCommandType> = Extract<
+  GraphLayoutWorkerCommand,
+  { type: Type }
+>;
+type WorkerCommandHandlers = {
+  [Type in WorkerCommandType]: (command: WorkerCommandOfType<Type>) => void;
+};
+
+function setMutationRevision(command: { mutationRevision: number }): void {
+  mutationRevision = command.mutationRevision;
+}
+
+const commandHandlers = {
+  init: (command) => {
+    revision = command.revision;
+    mutationRevision = 0;
+    engine = createGraphLayoutEngine(command.input);
+  },
+  tick: (command) => {
+    if (command.revision === revision) postTick(requireEngine().tick(command.elapsedMs));
+  },
+  setConfig: (command) => {
+    requireEngine().setConfig(command.config);
+    setMutationRevision(command);
+  },
+  setKinematics: (command) => {
+    requireEngine().setKinematics(
+      new Float32Array(command.x),
+      new Float32Array(command.y),
+      new Float32Array(command.vx),
+      new Float32Array(command.vy),
+    );
+    setMutationRevision(command);
+  },
+  setNodePosition: (command) => {
+    requireEngine().setNodePosition(command.index, command.x, command.y);
+    setMutationRevision(command);
+  },
+  pin: (command) => {
+    requireEngine().pin(command.index);
+    setMutationRevision(command);
+  },
+  release: (command) => {
+    requireEngine().release(command.index);
+    setMutationRevision(command);
+  },
+  setHidden: (command) => {
+    requireEngine().setHidden(command.index, command.hidden);
+    setMutationRevision(command);
+  },
+  reheat: (command) => {
+    requireEngine().reheat(command.alpha);
+    setMutationRevision(command);
+  },
+  pause: (command) => {
+    requireEngine().pause();
+    setMutationRevision(command);
+  },
+  resume: (command) => {
+    requireEngine().resume();
+    setMutationRevision(command);
+  },
+} satisfies WorkerCommandHandlers;
+
 function handleCommand(command: GraphLayoutWorkerCommand): void {
-  switch (command.type) {
-    case 'init':
-      revision = command.revision;
-      mutationRevision = 0;
-      engine = createGraphLayoutEngine(command.input);
-      break;
-    case 'tick':
-      if (command.revision === revision) postTick(requireEngine().tick(command.elapsedMs));
-      break;
-    case 'setConfig':
-      requireEngine().setConfig(command.config);
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'setKinematics':
-      requireEngine().setKinematics(
-        new Float32Array(command.x),
-        new Float32Array(command.y),
-        new Float32Array(command.vx),
-        new Float32Array(command.vy),
-      );
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'setNodePosition':
-      requireEngine().setNodePosition(command.index, command.x, command.y);
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'pin':
-      requireEngine().pin(command.index);
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'release':
-      requireEngine().release(command.index);
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'setHidden':
-      requireEngine().setHidden(command.index, command.hidden);
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'reheat':
-      requireEngine().reheat(command.alpha);
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'pause':
-      requireEngine().pause();
-      mutationRevision = command.mutationRevision;
-      break;
-    case 'resume':
-      requireEngine().resume();
-      mutationRevision = command.mutationRevision;
-      break;
-  }
+  const handler = commandHandlers[command.type] as (
+    value: GraphLayoutWorkerCommand,
+  ) => void;
+  handler(command);
 }
 
 self.onmessage = (event: MessageEvent<GraphLayoutWorkerCommand>) => {
