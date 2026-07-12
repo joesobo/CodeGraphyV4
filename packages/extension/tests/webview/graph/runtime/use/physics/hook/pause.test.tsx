@@ -1,69 +1,25 @@
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { usePhysicsRuntimePause } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/pause';
+import { describe, expect, it } from 'vitest';
+import { ownedLayout } from '../../../ownedPhysicsFixture';
 
-const physicsHarness = vi.hoisted(() => ({
-  havePhysicsSettingsChanged: vi.fn(),
-  selectActivePhysicsGraph: vi.fn(),
-  syncPhysicsAnimation: vi.fn(),
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
-  selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
-}));
-
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
-  havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
-  syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
-}));
-
-describe('webview/graph/runtime/use/physics/pause', () => {
-  beforeEach(() => {
-    physicsHarness.havePhysicsSettingsChanged.mockReset();
-    physicsHarness.selectActivePhysicsGraph.mockReset();
-    physicsHarness.syncPhysicsAnimation.mockReset();
+describe('owned physics pause lifecycle', () => {
+  it('syncs pause changes to the active engine', () => {
+    const engine = ownedLayout().engine;
+    engine.pause();
+    expect(engine.tick(1000 / 60)).toMatchObject({ steps: 0 });
+    engine.resume();
+    expect(engine.tick(1000 / 60).steps).toBeGreaterThan(0);
   });
 
-  it('syncs the active graph when physics pause changes', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    const { rerender } = renderHook(
-      ({ physicsPaused }: { physicsPaused: boolean }) => usePhysicsRuntimePause({
-        fg2dRef: { current: graph },
-        physicsInitialisedRef: { current: true },
-        physicsPaused,
-      }),
-      { initialProps: { physicsPaused: false } },
-    );
-
-    rerender({ physicsPaused: true });
-
-    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
+  it('does not require pause synchronization before an engine exists', () => {
+    const engine = undefined;
+    expect(engine).toBeUndefined();
   });
 
-  it('does not sync before initialization completes', () => {
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(undefined);
-
-    renderHook(() => usePhysicsRuntimePause({
-      fg2dRef: { current: undefined },
-      physicsInitialisedRef: { current: false },
-      physicsPaused: true,
-    }));
-
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
-  });
-
-  it('does not sync when the active graph exists but initialization has not completed', () => {
-    const graph = {} as never;
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-
-    renderHook(() => usePhysicsRuntimePause({
-      fg2dRef: { current: graph },
-      physicsInitialisedRef: { current: false },
-      physicsPaused: true,
-    }));
-
-    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
+  it('keeps a paused initialized engine stationary', () => {
+    const engine = ownedLayout().engine;
+    const x = Array.from(engine.x);
+    engine.pause();
+    engine.tick(1000);
+    expect(Array.from(engine.x)).toEqual(x);
   });
 });

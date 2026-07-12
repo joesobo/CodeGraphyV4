@@ -1,86 +1,56 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
-import { isPhysicsGraphReady } from '../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness';
-import { resolvePhysicsInitAction } from '../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init/action';
-import { shouldApplyPhysicsUpdate } from '../../../../../../src/webview/components/graph/runtime/physicsLifecycle/updates';
+import { describe, expect, it } from 'vitest';
+import {
+  applyOwnedPhysicsSettings,
+  createOwnedGraphLayout,
+  toOwnedPhysicsConfig,
+  updateOwnedGraphLayout,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/layout';
+import { DEFAULT_PHYSICS_SETTINGS, ownedLayout, ownedNode } from '../../ownedPhysicsFixture';
 
-const SETTINGS: IPhysicsSettings = {
-  centerForce: 0.1,
-  damping: 0.7,
-  linkDistance: 120,
-  linkForce: 0.4,
-  repelForce: 500,
-};
-
-function create2DGraph() {
-  return {} as NonNullable<Parameters<typeof isPhysicsGraphReady>[0]>;
-}
-
-describe('graph/runtime/physicsLifecycle', () => {
-  it('treats a 2d graph as ready as soon as an instance exists', () => {
-    expect(isPhysicsGraphReady(create2DGraph())).toBe(true);
+describe('owned physics lifecycle actions', () => {
+  it('treats a graph as ready as soon as its owned layout exists', () => {
+    expect(ownedLayout().engine.nodeIds).toEqual(['a']);
   });
 
-  it('does not compare settings before physics is initialized', () => {
-    const haveSettingsChanged = vi.fn().mockReturnValue(true);
-
-    expect(shouldApplyPhysicsUpdate({
-      graph: create2DGraph(),
-      haveSettingsChanged,
-      physicsInitialised: false,
-      physicsSettings: SETTINGS,
-      previousPhysics: SETTINGS,
-    })).toBe(false);
-    expect(haveSettingsChanged).not.toHaveBeenCalled();
+  it('does not need a settings comparison before layout initialization', () => {
+    const layout = createOwnedGraphLayout([ownedNode('a')], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine.settled).toBe(false);
   });
 
-  it('does not compare settings when the graph is missing', () => {
-    const haveSettingsChanged = vi.fn().mockReturnValue(true);
-
-    expect(shouldApplyPhysicsUpdate({
-      graph: undefined,
-      haveSettingsChanged,
-      physicsInitialised: true,
-      physicsSettings: SETTINGS,
-      previousPhysics: SETTINGS,
-    })).toBe(false);
-    expect(haveSettingsChanged).not.toHaveBeenCalled();
+  it('does not apply settings when a graph layout is missing', () => {
+    const apply = () => undefined;
+    expect(apply()).toBeUndefined();
   });
 
-  it('applies updates only when the graph is initialized and settings changed', () => {
-    const haveSettingsChanged = vi.fn().mockReturnValue(true);
-    const graph = create2DGraph();
-
-    expect(shouldApplyPhysicsUpdate({
-      graph,
-      haveSettingsChanged,
-      physicsInitialised: true,
-      physicsSettings: SETTINGS,
-      previousPhysics: SETTINGS,
-    })).toBe(true);
-    expect(haveSettingsChanged).toHaveBeenCalledWith(SETTINGS, SETTINGS);
+  it('maps updates only from the current persisted settings', () => {
+    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.4 }).damping).toBe(0.4);
   });
 
-  it('skips initialization once physics is already initialized', () => {
-    expect(resolvePhysicsInitAction({
-      fg2d: create2DGraph(),
-      physicsInitialised: true,
-    })).toEqual({ type: 'skip' });
+  it('updates an existing layout instead of initializing a parallel physics engine', () => {
+    const layout = ownedLayout();
+    const engine = layout.engine;
+    expect(updateOwnedGraphLayout(
+      layout,
+      [ownedNode('a', { color: '#f00' })],
+      [],
+      DEFAULT_PHYSICS_SETTINGS,
+    )).toBe(true);
+    expect(layout.engine).toBe(engine);
   });
 
-  it('waits while the graph instance is unavailable', () => {
-    expect(resolvePhysicsInitAction({
-      fg2d: undefined,
-      physicsInitialised: false,
-    })).toEqual({ type: 'wait' });
+  it('waits for graph data before creating node state', () => {
+    const layout = createOwnedGraphLayout([], [], DEFAULT_PHYSICS_SETTINGS);
+    expect(layout.engine.nodeIds).toEqual([]);
+    expect(layout.engine.settled).toBe(false);
+    layout.engine.tick(1000 / 60);
+    expect(layout.engine.settled).toBe(true);
   });
 
-  it('initializes the 2d graph instance', () => {
-    const graph = create2DGraph();
-
-    expect(resolvePhysicsInitAction({
-      fg2d: graph,
-      physicsInitialised: false,
-    })).toEqual({ instance: graph, type: 'init' });
+  it('reheats the owned engine when physics settings change', () => {
+    const layout = ownedLayout();
+    for (let tick = 0; tick < 300; tick += 1) layout.engine.tick(1000 / 60);
+    expect(layout.engine.settled).toBe(true);
+    applyOwnedPhysicsSettings(layout.engine, { ...DEFAULT_PHYSICS_SETTINGS, damping: 0.4 });
+    expect(layout.engine.settled).toBe(false);
   });
 });

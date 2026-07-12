@@ -1,7 +1,5 @@
 import type { MutableRefObject } from 'react';
-import type {
-  ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
+import type { OwnedGraph2dControls } from '../rendering/surface/owned2d/contracts';
 import type { IFileInfo } from '../../../../shared/files/info';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphContextSelection } from '../contextMenu/contracts';
@@ -21,7 +19,7 @@ export interface GraphInteractionHandlersDependencies {
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
   depthMode?: boolean;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+  fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;

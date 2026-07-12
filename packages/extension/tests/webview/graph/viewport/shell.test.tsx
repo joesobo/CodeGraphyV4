@@ -308,23 +308,11 @@ describe('graph/viewport/shell', () => {
 		expect(harness.useGraphRenderingRuntime).toHaveBeenCalledWith(expect.objectContaining({
 			containerRef: graphState.renderer.containerRef,
 			dataRef: graphState.dataRef,
-			fg2dRef: graphState.renderer.fg2dRef,
-			getArrowColor: callbacks.getArrowColor,
-			getArrowRelPos: callbacks.getArrowRelPos,
-			getLinkParticles: callbacks.getLinkParticles,
-			getParticleColor: callbacks.getParticleColor,
 			graphDataRef: graphState.renderer.graphDataRef,
-			graphDataLayoutKey: 'connections::',
-			graphViewContributions: undefined,
 			nodeSizeMode: 'connections',
-			particleSize: 3,
-			particleSpeed: 0.2,
-			physicsPaused: false,
-			physicsSettings: viewState.physicsSettings,
 			pluginHost,
 			theme: 'light',
 			favorites: viewState.favorites,
-			directionMode: 'arrows',
 		}));
 		expect(harness.useGraphViewportModel).toHaveBeenCalledWith(expect.objectContaining({
 			graphState: {
@@ -372,6 +360,8 @@ describe('graph/viewport/shell', () => {
 				onRenderFramePost: expect.any(Function),
 				particleSize: 3,
 				particleSpeed: 0.2,
+				physicsPaused: false,
+				physicsSettings: viewState.physicsSettings,
 				sharedProps: expect.objectContaining({ dagMode: 'td' }),
 			}),
 			tooltipData: interactions.tooltipData,

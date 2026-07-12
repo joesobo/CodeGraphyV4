@@ -4,7 +4,7 @@ import Graph from '../../../../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../../src/webview/store/state';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph2D from '../../../../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 

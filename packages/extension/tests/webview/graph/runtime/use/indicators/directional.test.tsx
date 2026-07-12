@@ -1,145 +1,72 @@
-import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  applyDirectionalSettings,
-  useDirectional,
-} from '../../../../../../src/webview/components/graph/runtime/use/indicators/directional';
+import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import { drawOwnedGraphParticles } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drawing';
 
-function createGraph() {
+function options(directionMode: 'arrows' | 'particles' | 'none' = 'particles') {
+  const source = { id: 'a', x: 0, y: 0 } as FGNode;
+  const target = { id: 'b', x: 100, y: 0 } as FGNode;
+  const arc = vi.fn();
   return {
-    d3ReheatSimulation: vi.fn(),
-    linkDirectionalArrowColor: vi.fn(),
-    linkDirectionalArrowLength: vi.fn(),
-    linkDirectionalArrowRelPos: vi.fn(),
-    linkDirectionalParticleColor: vi.fn(),
-    linkDirectionalParticleSpeed: vi.fn(),
-    linkDirectionalParticleWidth: vi.fn(),
-    linkDirectionalParticles: vi.fn(),
-    resumeAnimation: vi.fn(),
+    arc,
+    value: {
+      context: {
+        beginPath: vi.fn(),
+        arc,
+        fill: vi.fn(),
+        set fillStyle(_value: string) {},
+      } as unknown as CanvasRenderingContext2D,
+      directionMode,
+      getLinkParticles: vi.fn(() => 2),
+      getParticleColor: vi.fn(() => '#f00'),
+      globalScale: 1,
+      links: [{ source, target, id: 'a-b', from: 'a', to: 'b', bidirectional: false }] as FGLink[],
+      nodes: [source, target],
+      nodeLabelCanvasObject: vi.fn(),
+      particleSize: 4,
+      particleSpeed: 0.005,
+      timestamp: 100,
+      viewport: { minimumX: -10, maximumX: 110, minimumY: -10, maximumY: 10 },
+    },
   };
 }
 
-function createDirectionalOptions(
-  overrides: Partial<Parameters<typeof applyDirectionalSettings>[1]> = {},
-): Parameters<typeof applyDirectionalSettings>[1] {
-  return {
-    directionMode: 'particles',
-    getArrowColor: vi.fn(() => '#abcdef'),
-    getArrowRelPos: vi.fn(() => 1),
-    getLinkParticles: vi.fn(),
-    getParticleColor: vi.fn(),
-    particleSize: 3,
-    particleSpeed: 0.15,
-    physicsPaused: false,
-    ...overrides,
-  };
-}
+describe('owned directional indicators', () => {
+  it('applies particle settings to the overlay', () => {
+    const fixture = options();
+    drawOwnedGraphParticles(fixture.value);
+    expect(fixture.arc).toHaveBeenCalledTimes(2);
+    expect(fixture.value.getParticleColor).toHaveBeenCalledOnce();
+  });
 
-function createRef(
-  graph: ReturnType<typeof createGraph> | undefined,
-): Parameters<typeof useDirectional>[0]['fg2dRef'] {
-  return {
-    current: graph as unknown as Parameters<typeof useDirectional>[0]['fg2dRef']['current'],
-  };
-}
+  it('does not depend on physics animation pause state', () => {
+    const fixture = options();
+    expect(() => drawOwnedGraphParticles(fixture.value)).not.toThrow();
+  });
 
-function createHookOptions(
-  overrides: Partial<Parameters<typeof useDirectional>[0]> = {},
-): Parameters<typeof useDirectional>[0] {
-  return {
-    ...createDirectionalOptions(),
-    fg2dRef: createRef(createGraph()),
-    ...overrides,
-  };
-}
+  it('leaves arrows to the WebGPU link pipeline without Canvas particles', () => {
+    const fixture = options('arrows');
+    drawOwnedGraphParticles(fixture.value);
+    expect(fixture.arc).not.toHaveBeenCalled();
+  });
 
-describe('useDirectional', () => {
+  it('does not require optional imperative directional methods', () => {
+    const fixture = options();
+    expect(() => drawOwnedGraphParticles(fixture.value)).not.toThrow();
+  });
 
-    it('applies particle settings to the graph instance', () => {
-      const graph = createGraph();
-      const options = createDirectionalOptions();
+  it('skips particle updates when no links are available', () => {
+    const fixture = options();
+    fixture.value.links = [];
+    drawOwnedGraphParticles(fixture.value);
+    expect(fixture.arc).not.toHaveBeenCalled();
+  });
 
-      applyDirectionalSettings(graph, options);
-
-      expect(graph.linkDirectionalArrowLength).toHaveBeenCalledWith(0);
-      expect(graph.linkDirectionalArrowRelPos).toHaveBeenCalledWith(1);
-      expect(graph.linkDirectionalParticles).toHaveBeenCalledWith(options.getLinkParticles);
-      expect(graph.linkDirectionalParticleWidth).toHaveBeenCalledWith(3);
-      expect(graph.linkDirectionalParticleSpeed).toHaveBeenCalledWith(0.15);
-      expect(graph.linkDirectionalArrowColor).toHaveBeenCalledWith('#abcdef');
-      expect(graph.linkDirectionalParticleColor).toHaveBeenCalledWith(options.getParticleColor);
-      expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
-      expect(graph.resumeAnimation).toHaveBeenCalledOnce();
-    });
-
-
-
-    it('does not resume animation while physics is paused', () => {
-      const graph = createGraph();
-
-      applyDirectionalSettings(graph, createDirectionalOptions({ physicsPaused: true }));
-
-      expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
-      expect(graph.resumeAnimation).not.toHaveBeenCalled();
-    });
-
-
-
-    it('applies arrow settings without directional particles', () => {
-      const graph = createGraph();
-      const options = createDirectionalOptions({
-        directionMode: 'arrows',
-      });
-
-      applyDirectionalSettings(graph, options);
-
-      expect(graph.linkDirectionalArrowLength).toHaveBeenCalledWith(12);
-      expect(graph.linkDirectionalParticles).toHaveBeenCalledWith(0);
-      expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
-    });
-
-
-
-    it('tolerates graphs that omit optional directional methods', () => {
-      const graph = {
-        d3ReheatSimulation: vi.fn(),
-      } as Parameters<typeof applyDirectionalSettings>[0];
-
-      expect(() => {
-        applyDirectionalSettings(graph, createDirectionalOptions({ directionMode: 'none' }));
-      }).not.toThrow();
-      expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
-    });
-
-
-
-    it('skips updates when no 2d graph instance is available', () => {
-      expect(() => {
-        renderHook(() => useDirectional(createHookOptions({
-          fg2dRef: createRef(undefined),
-        })));
-      }).not.toThrow();
-    });
-
-
-
-    it('reapplies settings when direction mode changes', () => {
-      const graph = createGraph();
-      const options = createHookOptions({
-        fg2dRef: createRef(graph),
-      });
-      const { rerender } = renderHook(
-        (props: Parameters<typeof useDirectional>[0]) => useDirectional(props),
-        { initialProps: options },
-      );
-
-      vi.clearAllMocks();
-      rerender({
-        ...options,
-        directionMode: 'arrows',
-      });
-
-      expect(graph.linkDirectionalArrowLength).toHaveBeenCalledWith(12);
-      expect(graph.linkDirectionalParticles).toHaveBeenCalledWith(0);
-    });
+  it('reapplies directional behavior when direction mode changes', () => {
+    const fixture = options('none');
+    drawOwnedGraphParticles(fixture.value);
+    expect(fixture.arc).not.toHaveBeenCalled();
+    fixture.value.directionMode = 'particles';
+    drawOwnedGraphParticles(fixture.value);
+    expect(fixture.arc).toHaveBeenCalledTimes(2);
+  });
 });

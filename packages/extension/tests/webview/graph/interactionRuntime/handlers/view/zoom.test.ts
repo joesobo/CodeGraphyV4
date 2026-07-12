@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { zoomGraphView } from '../../../../../../src/webview/components/graph/interactionRuntime/handlers/view/zoom';
 import { createInteractionDependencies } from '../../testUtils';
 
 describe('graph/interactionRuntime/zoom', () => {
   it('scales the current zoom by the requested factor', () => {
     const dependencies = createInteractionDependencies();
-    const zoom = dependencies.fg2dRef.current!.zoom!;
-    zoom.mockImplementationOnce?.(() => 1.5);
+    const zoom = vi.mocked(dependencies.fg2dRef.current!.zoom);
+    zoom.mockImplementationOnce(() => 1.5);
 
     zoomGraphView(dependencies, 0.5);
 

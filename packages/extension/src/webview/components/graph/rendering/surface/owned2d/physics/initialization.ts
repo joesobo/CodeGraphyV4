@@ -27,6 +27,7 @@ export function createGraphLayoutState(
   assertBufferLength(input.initialY, nodeCount, 'initialY');
   assertBufferLength(input.initialVx, nodeCount, 'initialVx');
   assertBufferLength(input.initialVy, nodeCount, 'initialVy');
+  assertBufferLength(input.chargeStrengthMultipliers, nodeCount, 'chargeStrengthMultipliers');
   assertBufferLength(input.radii, nodeCount, 'radii');
   assertBufferLength(input.flags, nodeCount, 'flags');
   assertBufferLength(input.targetX, nodeCount, 'targetX');
@@ -40,6 +41,9 @@ export function createGraphLayoutState(
     y: new Float32Array(nodeCount),
     vx: new Float32Array(nodeCount),
     vy: new Float32Array(nodeCount),
+    chargeStrengthMultipliers: input.chargeStrengthMultipliers
+      ? new Float32Array(input.chargeStrengthMultipliers)
+      : new Float32Array(nodeCount).fill(1),
     radii: new Float32Array(nodeCount),
     flags: input.flags ? new Uint8Array(input.flags) : new Uint8Array(nodeCount),
     edgeSources: new Uint32Array(input.edgeSources),
@@ -65,6 +69,10 @@ export function createGraphLayoutState(
     const suppliedVy = input.initialVy?.[index];
     state.vx[index] = Number.isFinite(suppliedVx) ? suppliedVx as number : 0;
     state.vy[index] = Number.isFinite(suppliedVy) ? suppliedVy as number : 0;
+    const suppliedMultiplier = state.chargeStrengthMultipliers[index];
+    state.chargeStrengthMultipliers[index] = Number.isFinite(suppliedMultiplier)
+      ? Math.max(0, suppliedMultiplier)
+      : 1;
     const suppliedRadius = input.radii[index];
     state.radii[index] = Number.isFinite(suppliedRadius) && suppliedRadius > 0
       ? suppliedRadius

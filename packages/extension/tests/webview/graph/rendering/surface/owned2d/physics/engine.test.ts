@@ -85,6 +85,28 @@ describe('graph layout engine', () => {
     expect(new Set(engine.x).size).toBeGreaterThan(1);
   });
 
+  it('projects overlaps out of the layout before publishing a frame', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['first', 'second'],
+      initialX: new Float32Array([0, 1]),
+      initialY: new Float32Array([0, 0]),
+      radii: new Float32Array([10, 10]),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 3,
+      collisionPadding: 2,
+      collisionStrength: 1,
+      gravitationalConstant: 0,
+    });
+
+    engine.tick(1000 / 60);
+
+    expect(Math.hypot(engine.x[1] - engine.x[0], engine.y[1] - engine.y[0]))
+      .toBeGreaterThanOrEqual(21.99);
+  });
+
   it('separates coincident node radii with the collision pass', () => {
     const nodeCount = 40;
     const radius = 5;
@@ -116,6 +138,28 @@ describe('graph layout engine', () => {
       }
     }
     expect(closestDistance).toBeGreaterThanOrEqual(radius * 2 + collisionPadding - 0.5);
+  });
+
+  it('applies per-node plugin charge multipliers to repulsion sources', () => {
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['disabled-source', 'normal-source'],
+      initialX: Float32Array.of(0, 20),
+      initialY: Float32Array.of(0, 0),
+      chargeStrengthMultipliers: Float32Array.of(0, 1),
+      radii: Float32Array.of(1, 1),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    }, {
+      centralGravity: 0,
+      collisionIterations: 0,
+      damping: 0,
+      gravitationalConstant: -250,
+    });
+
+    engine.tick(1000 / 60);
+
+    expect(engine.vx[0]).toBeLessThan(0);
+    expect(engine.vx[1]).toBe(0);
   });
 
   it('pulls nodes toward optional layout constraint targets', () => {

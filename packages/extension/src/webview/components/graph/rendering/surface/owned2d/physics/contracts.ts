@@ -9,6 +9,7 @@ export interface GraphLayoutInput {
   initialY?: Float32Array;
   initialVx?: Float32Array;
   initialVy?: Float32Array;
+  chargeStrengthMultipliers?: Float32Array;
   radii: Float32Array;
   edgeSources: Uint32Array;
   edgeTargets: Uint32Array;
@@ -52,6 +53,7 @@ export interface GraphLayoutEngine {
   readonly y: Float32Array;
   readonly vx: Float32Array;
   readonly vy: Float32Array;
+  readonly chargeStrengthMultipliers: Float32Array;
   readonly radii: Float32Array;
   readonly flags: Uint8Array;
   readonly edgeSources: Uint32Array;
@@ -59,6 +61,7 @@ export interface GraphLayoutEngine {
   readonly targetX: Float32Array;
   readonly targetY: Float32Array;
   readonly settled: boolean;
+  readonly alpha: number;
   getNodeIndex(nodeId: string): number | undefined;
   setGraph(input: GraphLayoutInput): void;
   setConfig(config: Partial<GraphLayoutConfig>): void;
@@ -79,6 +82,7 @@ export interface GraphLayoutState {
   y: Float32Array;
   vx: Float32Array;
   vy: Float32Array;
+  chargeStrengthMultipliers: Float32Array;
   radii: Float32Array;
   flags: Uint8Array;
   edgeSources: Uint32Array;

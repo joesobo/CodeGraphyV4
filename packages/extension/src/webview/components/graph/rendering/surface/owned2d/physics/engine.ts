@@ -27,7 +27,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   private nodeIndexes = new Map<string, number>();
   private collisionGrid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.initializationSpacing);
   private grid = new UniformGrid(DEFAULT_GRAPH_LAYOUT_CONFIG.springLength);
-  private alpha = 1;
+  private simulationAlpha = 1;
   private accumulatorMs = 0;
   private settledStepCount = 0;
   private paused = false;
@@ -42,12 +42,14 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   get y(): Float32Array { return this.state.y; }
   get vx(): Float32Array { return this.state.vx; }
   get vy(): Float32Array { return this.state.vy; }
+  get chargeStrengthMultipliers(): Float32Array { return this.state.chargeStrengthMultipliers; }
   get radii(): Float32Array { return this.state.radii; }
   get flags(): Uint8Array { return this.state.flags; }
   get edgeSources(): Uint32Array { return this.state.edgeSources; }
   get edgeTargets(): Uint32Array { return this.state.edgeTargets; }
   get targetX(): Float32Array { return this.state.targetX; }
   get targetY(): Float32Array { return this.state.targetY; }
+  get alpha(): number { return this.simulationAlpha; }
 
   getNodeIndex(nodeId: string): number | undefined {
     return this.nodeIndexes.get(nodeId);
@@ -158,7 +160,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     if (!Number.isFinite(alpha) || alpha <= 0) {
       throw new Error('Graph layout reheat alpha must be positive');
     }
-    this.alpha = Math.max(this.alpha, alpha);
+    this.simulationAlpha = Math.max(this.simulationAlpha, alpha);
     this.settled = false;
     this.settledStepCount = 0;
   }
@@ -168,13 +170,19 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
 
   private step(): void {
     this.rebuildGrid();
-    applyLinkForces(this.state, this.config, this.alpha);
-    applyRepulsionForces(this.state, this.config, this.alpha, this.grid);
-    applyCollisionForces(this.state, this.config, this.alpha, this.collisionGrid);
-    const maximumVelocity = integrateGraphLayout(this.state, this.config, this.alpha);
-    this.alpha = Math.max(0, this.alpha * (1 - this.config.alphaDecay));
+    applyLinkForces(this.state, this.config, this.simulationAlpha);
+    applyRepulsionForces(this.state, this.config, this.simulationAlpha, this.grid);
+    const maximumVelocity = integrateGraphLayout(this.state, this.config, this.simulationAlpha);
+    const collisionIterations = this.simulationAlpha < 0.1
+      ? Math.max(this.config.collisionIterations, 16)
+      : this.config.collisionIterations;
+    applyCollisionForces(this.state, this.config, this.collisionGrid, collisionIterations);
+    this.simulationAlpha = Math.max(
+      0,
+      this.simulationAlpha * (1 - this.config.alphaDecay),
+    );
 
-    const calm = this.alpha <= this.config.alphaMinimum
+    const calm = this.simulationAlpha <= this.config.alphaMinimum
       && maximumVelocity <= this.config.settleSpeed;
     this.settledStepCount = calm ? this.settledStepCount + 1 : 0;
     this.settled = this.settledStepCount >= this.config.settleSteps;

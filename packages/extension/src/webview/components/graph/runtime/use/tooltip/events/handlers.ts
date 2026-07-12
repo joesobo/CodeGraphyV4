@@ -2,13 +2,11 @@ import {
 	useEffect,
 	type MutableRefObject,
 } from 'react';
-import type {
-	ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
+import type { OwnedGraph2dControls } from '../../../../rendering/surface/owned2d/contracts';
 import type { IFileInfo } from '../../../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../../shared/protocol/webviewToExtension';
-import type { FGLink, FGNode } from '../../../../model/build';
+import type { FGNode } from '../../../../model/build';
 import type { GraphTooltipState } from '../../../../tooltip/model';
 import type { WebviewPluginHost } from '../../../../../../pluginHost/manager';
 import type { GraphTooltipInteractionDependencies } from '../hook';
@@ -22,7 +20,7 @@ import {
 export interface UseTooltipEventsOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;
 	dataRef: MutableRefObject<IGraphData>;
-	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+	fg2dRef: MutableRefObject<OwnedGraph2dControls | undefined>;
 	fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
 	interactionHandlers: GraphTooltipInteractionDependencies;

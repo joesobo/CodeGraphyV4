@@ -122,8 +122,12 @@ describe('pipeline/serviceAdapters', () => {
     const workspaceState = {
       get: vi.fn(<T>(key: string): T | undefined => {
         const values: Record<string, unknown> = {
-          'codegraphy.churn.version': 1,
-          'codegraphy.churn.counts': { 'src/app.ts': 5 },
+          'codegraphy.churn.index': {
+            version: 1,
+            head: 'abc123',
+            fileSet: 'src/app.ts',
+            counts: { 'src/app.ts': 5 },
+          },
         };
 
         return values[key] as T | undefined;

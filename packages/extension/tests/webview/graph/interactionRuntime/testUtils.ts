@@ -1,7 +1,5 @@
 import { vi } from 'vitest';
-import type {
-  ForceGraphMethods as FG2DMethods,
-} from 'react-force-graph-2d';
+import type { OwnedGraph2dControls } from '../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlersDependencies } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
@@ -27,9 +25,16 @@ export function createInteractionDependencies(
   const container = document.createElement('div');
   const fg2d = {
     centerAt: vi.fn(),
+    d3ReheatSimulation: vi.fn(),
+    graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
+    pauseAnimation: vi.fn(),
+    refresh: vi.fn(),
+    resumeAnimation: vi.fn(),
+    screen2GraphCoords: vi.fn((x: number, y: number) => ({ x, y })),
     zoom: vi.fn(() => 1),
     zoomToFit: vi.fn(),
-  } as unknown as FG2DMethods<FGNode, FGLink>;
+  } satisfies OwnedGraph2dControls;
+
   return {
     containerRef: createRef(container),
     dataRef: createRef(graphData),

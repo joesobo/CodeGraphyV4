@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import type { OwnedGraph2dControls } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
 import { useGraphTooltip } from '../../../../../../src/webview/components/graph/runtime/use/tooltip/hook';
 
 function createNode(): FGNode {
@@ -24,7 +24,7 @@ describe('graph/runtime/useGraphTooltip', () => {
 		const graph = {
 			graph2ScreenCoords: vi.fn(() => ({ x: 20, y: 30 })),
 			zoom: vi.fn(() => 1),
-		} as unknown as FG2DMethods<FGNode, FGLink>;
+		} as unknown as OwnedGraph2dControls;
 		const container = document.createElement('div');
 		container.append(document.createElement('canvas'));
 

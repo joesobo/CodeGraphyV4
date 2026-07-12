@@ -27,14 +27,14 @@ describe('getTooltipNodeRect', () => {
         current: {
           graph2ScreenCoords,
           zoom: () => 2,
-        } as Parameters<typeof getTooltipNodeRect>[0]['fg2dRef']['current'],
+        } as unknown as Parameters<typeof getTooltipNodeRect>[0]['fg2dRef']['current'],
       },
     }, {
       id: 'node',
       size: 12,
       x: 4,
       y: -2,
-    } as FGNode);
+    } as unknown as FGNode);
 
     expect(rect).toEqual({ x: 55, y: -10, radius: 24 });
   });
@@ -63,14 +63,14 @@ describe('getTooltipNodeRect', () => {
         current: {
           graph2ScreenCoords,
           zoom: () => 1.5,
-        } as Parameters<typeof getTooltipNodeRect>[0]['fg2dRef']['current'],
+        } as unknown as Parameters<typeof getTooltipNodeRect>[0]['fg2dRef']['current'],
       },
     }, {
       id: 'node',
       size: undefined,
       x: undefined,
       y: undefined,
-    } as FGNode);
+    } as unknown as FGNode);
 
     expect(graph2ScreenCoords).toHaveBeenCalledWith(0, 0);
     expect(rect).toEqual({ x: 13, y: 16, radius: DEFAULT_NODE_SIZE * 1.5 });
@@ -86,7 +86,7 @@ describe('getTooltipNodeRect', () => {
     }, {
       id: 'node',
       size: DEFAULT_NODE_SIZE,
-    } as FGNode);
+    } as unknown as FGNode);
 
     expect(rect).toBeNull();
   });
@@ -100,12 +100,12 @@ describe('getTooltipNodeRect', () => {
         current: {
           graph2ScreenCoords: () => ({ x: 0, y: 0 }),
           zoom: () => 1,
-        } as Parameters<typeof getTooltipNodeRect>[0]['fg2dRef']['current'],
+        } as unknown as Parameters<typeof getTooltipNodeRect>[0]['fg2dRef']['current'],
       },
     }, {
       id: 'node',
       size: DEFAULT_NODE_SIZE,
-    } as FGNode);
+    } as unknown as FGNode);
 
     expect(rect).toBeNull();
   });

@@ -3,7 +3,7 @@ import { render, act, screen } from '@testing-library/react';
 import Graph from '../../src/webview/components/graph/view/component';
 import type { IGraphData } from '../../src/shared/graph/contracts';
 import { graphStore } from '../../src/webview/store/state';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph2D from '../__mocks__/ownedGraphSurface';
 
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
@@ -44,9 +44,9 @@ describe('Graph', () => {
     expect(graphContainer).toHaveStyle({ borderWidth: '0px', borderStyle: 'solid' });
   });
 
-  it('should render ForceGraph2D on mount', () => {
+  it('should render the owned WebGPU surface on mount', () => {
     render(<Graph data={mockData} />);
-    expect(screen.getByTestId('force-graph-2d')).toBeInTheDocument();
+    expect(screen.getByTestId('owned-webgpu-graph')).toBeInTheDocument();
   });
 
   it('should handle empty graph data', () => {
@@ -227,7 +227,7 @@ describe('Graph dagMode', () => {
     expect(lastProps.dagMode).toBeUndefined();
   });
 
-  it('passes dagMode to ForceGraph2D when set', () => {
+  it('passes dagMode to the owned graph surface when set', () => {
     graphStore.setState({ dagMode: 'td' });
     render(<Graph data={mockData} />);
     const lastProps = ForceGraph2D.getLastProps();

@@ -13,8 +13,11 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
-// react-force-graph requires Canvas APIs that jsdom does not support.
-vi.mock('react-force-graph-2d', () => import('./__mocks__/react-force-graph-2d'));
+// Most graph interaction tests isolate the owned GPU surface behind its public props.
+vi.mock(
+  '../src/webview/components/graph/rendering/surface/owned2d/view',
+  () => import('./__mocks__/ownedGraphSurface'),
+);
 
 // Track messages sent to extension — globally accessible for tests via helpers/sentMessages.ts
 (globalThis as unknown as VscodeSentMessagesGlobal).__vscodeSentMessages = [];

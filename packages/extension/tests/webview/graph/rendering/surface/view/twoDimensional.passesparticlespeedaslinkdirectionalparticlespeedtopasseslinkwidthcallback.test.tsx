@@ -1,116 +1,70 @@
 import { render } from '@testing-library/react';
-import ForceGraph2D from 'react-force-graph-2d';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Surface2dProps } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
 import { Surface2d } from '../../../../../../src/webview/components/graph/rendering/surface/view/twoDimensional';
+import { createDefaultSurfaceProps } from './surfaceFixture';
 
-function createSharedProps() {
-  return {
-    cooldownTicks: 20,
-    d3AlphaDecay: 0.0228,
-    d3VelocityDecay: 0.7,
-    dagLevelDistance: undefined,
-    dagMode: undefined,
-    graphData: { nodes: [], links: [] },
-    height: 400,
-    nodeId: 'id' as const,
-    onBackgroundClick: vi.fn(),
-    onBackgroundRightClick: vi.fn(),
-    onEngineStop: vi.fn(),
-    onLinkClick: vi.fn(),
-    onLinkRightClick: vi.fn(),
-    onNodeClick: vi.fn(),
-    onNodeDragEnd: vi.fn(),
-    onNodeHover: vi.fn(),
-    onNodeRightClick: vi.fn(),
-    warmupTicks: 0,
-    width: 600,
-  };
+const harness = vi.hoisted(() => ({ props: undefined as Surface2dProps | undefined }));
+
+vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/view', () => ({
+  OwnedGraphSurface2d: (props: Surface2dProps) => {
+    harness.props = props;
+    return <div />;
+  },
+}));
+
+function captured(): Surface2dProps {
+  if (!harness.props) throw new Error('Owned graph surface was not rendered');
+  return harness.props;
 }
 
-function createDefaultProps() {
-  return {
-    backgroundColor: '#1e1e1e',
-    directionMode: 'arrows' as 'arrows' | 'particles' | 'none',
-    fg2dRef: { current: undefined },
-    getArrowColor: vi.fn(() => '#ffffff'),
-    getArrowRelPos: vi.fn(() => 1),
-    getLinkColor: vi.fn(() => '#888888'),
-    getLinkParticles: vi.fn(() => 2),
-    getLinkWidth: vi.fn(() => 1),
-    getParticleColor: vi.fn(() => '#ff0000'),
-    linkCanvasObject: vi.fn(),
-    nodeCanvasObject: vi.fn(),
-    nodePointerAreaPaint: vi.fn(),
-    onRenderFramePost: vi.fn(),
-    particleSize: 4,
-    particleSpeed: 0.005,
-    sharedProps: createSharedProps(),
-  };
-}
+describe('Surface2d owned-renderer callback wiring', () => {
+  beforeEach(() => {
+    harness.props = undefined;
+  });
 
-describe('Surface2d', () => {
+  it('passes particle speed to the owned overlay renderer', () => {
+    render(<Surface2d {...createDefaultSurfaceProps()} />);
+    expect(captured().particleSpeed).toBe(0.005);
+  });
 
-    beforeEach(() => {
-      (ForceGraph2D as unknown as { clearAllHandlers: () => void }).clearAllHandlers();
-    });
+  it('keeps graph node sizes unchanged for owned physics and rendering', () => {
+    const props = createDefaultSurfaceProps();
+    props.sharedProps.graphData.nodes = [{ id: 'a', size: 7 }] as never[];
+    render(<Surface2d {...props} />);
+    expect(captured().sharedProps.graphData.nodes[0]?.size).toBe(7);
+  });
 
+  it('passes physics pause state without introducing redraw policy shims', () => {
+    const props = createDefaultSurfaceProps();
+    props.physicsPaused = true;
+    render(<Surface2d {...props} />);
+    expect(captured().physicsPaused).toBe(true);
+  });
 
+  it('passes node decoration callbacks', () => {
+    const props = createDefaultSurfaceProps();
+    render(<Surface2d {...props} />);
+    expect(captured().nodeLabelCanvasObject).toBe(props.nodeLabelCanvasObject);
+  });
 
-    it('passes particleSpeed as linkDirectionalParticleSpeed', () => {
-      render(<Surface2d {...createDefaultProps()} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.linkDirectionalParticleSpeed).toBe(0.005);
-    });
+  it('keeps WebGPU node bodies separate from Canvas decoration callbacks', () => {
+    const props = createDefaultSurfaceProps();
+    props.getNodeStyle = vi.fn();
+    render(<Surface2d {...props} />);
+    expect(captured().getNodeStyle).toBe(props.getNodeStyle);
+    expect(captured().nodeLabelCanvasObject).not.toBe(props.nodeCanvasObject);
+  });
 
+  it('passes link color callback', () => {
+    const props = createDefaultSurfaceProps();
+    render(<Surface2d {...props} />);
+    expect(captured().getLinkColor).toBe(props.getLinkColor);
+  });
 
-
-    it('sets nodeRelSize to 1', () => {
-      render(<Surface2d {...createDefaultProps()} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.nodeRelSize).toBe(1);
-    });
-
-
-
-    it('auto-pauses redraw by default', () => {
-      render(<Surface2d {...createDefaultProps()} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.autoPauseRedraw).toBe(true);
-    });
-
-
-
-    it('passes nodeCanvasObject callback', () => {
-      const defaultProps = createDefaultProps();
-      render(<Surface2d {...defaultProps} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.nodeCanvasObject).toBe(defaultProps.nodeCanvasObject);
-    });
-
-
-
-    it('nodeCanvasObjectMode returns replace', () => {
-      render(<Surface2d {...createDefaultProps()} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      const mode = (props.nodeCanvasObjectMode as () => string)();
-      expect(mode).toBe('replace');
-    });
-
-
-
-    it('passes linkColor callback', () => {
-      const defaultProps = createDefaultProps();
-      render(<Surface2d {...defaultProps} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.linkColor).toBe(defaultProps.getLinkColor);
-    });
-
-
-
-    it('passes linkWidth callback', () => {
-      const defaultProps = createDefaultProps();
-      render(<Surface2d {...defaultProps} />);
-      const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-      expect(props.linkWidth).toBe(defaultProps.getLinkWidth);
-    });
+  it('passes link width callback', () => {
+    const props = createDefaultSurfaceProps();
+    render(<Surface2d {...props} />);
+    expect(captured().getLinkWidth).toBe(props.getLinkWidth);
+  });
 });
