@@ -11,7 +11,8 @@ const NODE_STYLE_FLOATS = 12;
 const LINK_FLOATS = 15;
 const LINK_STYLE_FLOATS = 9;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
-const MAX_PENDING_FRAMES = 2;
+// Bound queue growth while allowing triple-buffered compositors to overlap work.
+const MAX_PENDING_FRAMES = 3;
 
 export interface OwnedWebGpuFrame {
   backgroundColor: string;
