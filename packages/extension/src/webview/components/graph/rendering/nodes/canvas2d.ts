@@ -46,6 +46,7 @@ export function getNodeCanvasStyle(
       ? appearance.nodeSelectionBorder
       : transparentFolder ? appearance.transparent : node.borderColor,
     borderWidth: isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth,
+    cornerRadius: Math.max(0, node.cornerRadius2D ?? 0),
     fillColor: node.nodeType === 'folder' ? node.color : decoration?.color ?? node.color,
     fillOpacity: typeof node.fillOpacity2D === 'number' && Number.isFinite(node.fillOpacity2D)
       ? Math.min(1, Math.max(0, node.fillOpacity2D))

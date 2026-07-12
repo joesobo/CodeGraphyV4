@@ -6,13 +6,17 @@ import {
 
 const PICK_CELL_SIZE = 64;
 
+function rectangularPointerArea(node: FGNode) {
+  return getRectangularNodeArea2D(node.pointerArea2D)
+    ?? getRectangularNodeArea2D(node.shapeSize2D);
+}
+
 function pointerRadius(node: FGNode): number {
-  const rectangularArea = getRectangularNodeArea2D(node.shapeSize2D)
-    ?? getRectangularNodeArea2D(node.pointerArea2D);
+  const rectangularArea = rectangularPointerArea(node);
   const rectangularRadius = rectangularArea
     ? getRectangularNodeAreaRadius(rectangularArea)
     : 0;
-  return Math.max(2, rectangularRadius, node.collisionRadius2D ?? 0, node.size ?? 0);
+  return Math.max(2, rectangularRadius, (node.size ?? 0) + 2);
 }
 
 function cellKey(x: number, y: number): number {
@@ -63,8 +67,14 @@ export class OwnedGraphNodePicker {
           const dx = point.x - (node.x as number);
           const dy = point.y - (node.y as number);
           const distanceSquared = dx * dx + dy * dy;
-          const radius = Math.max(pointerRadius(node), minimumScreenRadius);
-          if (distanceSquared <= radius * radius && distanceSquared < bestDistanceSquared) {
+          const area = rectangularPointerArea(node);
+          const hit = area
+            ? Math.abs(dx) <= area.width / 2 && Math.abs(dy) <= area.height / 2
+            : distanceSquared <= Math.max(
+              minimumScreenRadius,
+              (node.size ?? 0) + 2,
+            ) ** 2;
+          if (hit && distanceSquared < bestDistanceSquared) {
             bestIndex = index;
             bestDistanceSquared = distanceSquared;
           }

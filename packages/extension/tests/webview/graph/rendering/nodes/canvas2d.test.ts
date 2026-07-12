@@ -16,6 +16,7 @@ import type { WebviewPluginHost } from '../../../../../src/webview/pluginHost/ma
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../../src/webview/components/graph/appearance/model';
 import {
+  getNodeCanvasStyle,
   paintNodePointerArea,
   renderNodeCanvas,
 } from '../../../../../src/webview/components/graph/rendering/nodes/canvas2d';
@@ -157,6 +158,15 @@ describe('graph/rendering/nodes/canvas2d', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('preserves plugin rectangle corner radii in owned GPU styles', () => {
+    const style = getNodeCanvasStyle(
+      createDependencies(),
+      createNode({ cornerRadius2D: 6, shape2D: 'rectangle' }),
+    );
+
+    expect(style.cornerRadius).toBe(6);
   });
 
   it('draws the node body and stroke using node styling', () => {
