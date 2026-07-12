@@ -35,6 +35,7 @@ import { pickOwnedGraphLink } from './linkPicking';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
+import { updateOwnedGraphViewportNode } from './viewportNode';
 
 interface CtrlClickSession {
   moved: boolean;
@@ -366,41 +367,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         return screenToGraph(cameraRef.current, size.width, size.height, x, y);
       },
       updateNode: (nodeId, updates) => {
-        const layout = layoutRef.current;
-        const index = layout?.engine.getNodeIndex(nodeId);
-        if (!layout || index === undefined) return false;
-        const node = layout.nodes[index];
-        Object.assign(node, updates);
-        const explicitlyPinned = updates.isPinned === true;
-        const explicitlyUnpinned = updates.isPinned === false;
-        if (explicitlyUnpinned) {
-          node.fx = undefined;
-          node.fy = undefined;
-        }
-        const x = new Float32Array(layout.engine.x);
-        const y = new Float32Array(layout.engine.y);
-        const vx = new Float32Array(layout.engine.vx);
-        const vy = new Float32Array(layout.engine.vy);
-        if (Number.isFinite(node.x)) x[index] = node.x as number;
-        if (Number.isFinite(node.y)) y[index] = node.y as number;
-        if (Number.isFinite(node.fx)) x[index] = node.fx as number;
-        if (Number.isFinite(node.fy)) y[index] = node.fy as number;
-        if (Number.isFinite(node.vx)) vx[index] = node.vx as number;
-        if (Number.isFinite(node.vy)) vy[index] = node.vy as number;
-        layout.engine.setKinematics(x, y, vx, vy);
-        const pinned = explicitlyPinned || (!explicitlyUnpinned && (
-          node.isDragging === true
-          || Number.isFinite(node.fx)
-          || Number.isFinite(node.fy)
-        ));
-        if (pinned) layout.engine.pin(index);
-        else if (
-          'isPinned' in updates
-          || 'isDragging' in updates
-          || 'fx' in updates
-          || 'fy' in updates
-        ) layout.engine.release(index);
-        layout.engine.reheat();
+        const updated = updateOwnedGraphViewportNode(layoutRef.current, nodeId, updates);
+        if (!updated) return false;
         positionVersionRef.current += 1;
         engineStopNotifiedRef.current = false;
         requestFrameRef.current();
