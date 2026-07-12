@@ -255,7 +255,7 @@ export async function runCurrentRendererSyntheticDrag(
   await page.waitForFunction((previousCount) =>
     ((window as BenchmarkPageWindow).__CODEGRAPHY_GRAPH_BENCHMARK__?.stabilizationCount ?? 0)
       > previousCount,
-  stabilizationCount, { timeout: Math.min(timeoutMs, 30_000) });
+  stabilizationCount, { timeout: timeoutMs });
   const released = await readCurrentCollisionState(page);
 
   const timestamps = dragWindow.timestamps.filter(
