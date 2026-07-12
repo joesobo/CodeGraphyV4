@@ -176,14 +176,20 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     const collisionIterations = this.simulationAlpha < 0.1
       ? Math.max(this.config.collisionIterations, 16)
       : this.config.collisionIterations;
-    applyCollisionForces(this.state, this.config, this.collisionGrid, collisionIterations);
+    const collisionCorrectionCount = applyCollisionForces(
+      this.state,
+      this.config,
+      this.collisionGrid,
+      collisionIterations,
+    );
     this.simulationAlpha = Math.max(
       0,
       this.simulationAlpha * (1 - this.config.alphaDecay),
     );
 
     const calm = this.simulationAlpha <= this.config.alphaMinimum
-      && maximumVelocity <= this.config.settleSpeed;
+      && maximumVelocity <= this.config.settleSpeed
+      && collisionCorrectionCount === 0;
     this.settledStepCount = calm ? this.settledStepCount + 1 : 0;
     this.settled = this.settledStepCount >= this.config.settleSteps;
   }
