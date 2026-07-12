@@ -11,6 +11,7 @@ const NODE_STYLE_FLOATS = 12;
 const LINK_FLOATS = 15;
 const LINK_STYLE_FLOATS = 9;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
+const MAX_PENDING_FRAMES = 2;
 
 export interface OwnedWebGpuFrame {
   backgroundColor: string;
@@ -136,7 +137,7 @@ export class OwnedWebGpuRenderer {
   private uploadedNodes: readonly FGNode[] | undefined;
   private uploadedPositionVersion = -1;
   private uploadedStyleVersion = -1;
-  private framePending = false;
+  private pendingFrameCount = 0;
   private disposed = false;
 
   private constructor(
@@ -342,11 +343,11 @@ export class OwnedWebGpuRenderer {
   }
 
   canRender(): boolean {
-    return !this.framePending && !this.disposed;
+    return this.pendingFrameCount < MAX_PENDING_FRAMES && !this.disposed;
   }
 
   render(frame: OwnedWebGpuFrame): void {
-    if (!this.canRender()) throw new Error('WebGPU frame submitted while the previous frame is pending');
+    if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
     const stylesChanged = this.updateStyleCaches(frame);
     const pixelWidth = Math.max(1, Math.round(frame.cssWidth * frame.devicePixelRatio));
     const pixelHeight = Math.max(1, Math.round(frame.cssHeight * frame.devicePixelRatio));
@@ -461,10 +462,10 @@ export class OwnedWebGpuRenderer {
     }
     pass.end();
     this.device.queue.submit([encoder.finish()]);
-    this.framePending = true;
+    this.pendingFrameCount += 1;
     void this.device.queue.onSubmittedWorkDone().then(() => {
       if (this.disposed) return;
-      this.framePending = false;
+      this.pendingFrameCount = Math.max(0, this.pendingFrameCount - 1);
       this.onFrameComplete();
     }).catch(() => {
       // Device loss is reported by device.lost and handled by the surface.
