@@ -6,15 +6,9 @@ import {
 } from 'react';
 import { DEFAULT_PHYSICS_SETTINGS } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
-import {
-  clampOwnedGraphZoom,
-  fitOwnedGraphCamera,
-  graphToScreen,
-  screenToGraph,
-  type OwnedGraphCamera,
-} from './camera';
+import { fitOwnedGraphCamera, type OwnedGraphCamera } from './camera';
 import { canvasSize } from './canvasGeometry';
-import type { OwnedGraph2dControls, Surface2dProps } from './contracts';
+import type { Surface2dProps } from './contracts';
 import { releaseOwnedDraggedNodes } from './drag';
 import {
   applyOwnedPhysicsSettings,
@@ -30,11 +24,10 @@ import {
   type LinkTooltip,
   type PointerSession,
 } from './interaction';
-import { renderOwnedGraphFrame, type OwnedGraphFrameRuntime } from './frame';
+import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
-import { updateOwnedGraphViewportNode } from './viewportNode';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 
@@ -129,12 +122,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    let active = true;
-    let previousTimestamp: number | null = null;
-
-    const frameRuntime: OwnedGraphFrameRuntime = {
+    const frameLoopRuntime: OwnedGraphFrameLoopRuntime = {
+      animationFrameRef,
       cameraRef,
       engineStopNotifiedRef,
+      frameRequestedRef,
       gpuRendererRef,
       layoutRef,
       pickerPositionVersionRef,
@@ -151,100 +143,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         setRendererStatus('error');
       },
     };
-    const renderFrame = (timestamp: number): void => {
-      animationFrameRef.current = null;
-      frameRequestedRef.current = false;
-      if (!active) return;
-      previousTimestamp = renderOwnedGraphFrame(
-        frameRuntime,
-        canvas,
-        timestamp,
-        previousTimestamp,
-      );
-    };
-
-    requestFrameRef.current = () => {
-      frameRequestedRef.current = true;
-      const renderer = gpuRendererRef.current;
-      if (
-        active
-        && animationFrameRef.current === null
-        && (!renderer || renderer.canRender())
-      ) {
-        animationFrameRef.current = window.requestAnimationFrame(renderFrame);
-      }
-    };
-
-    const controls: OwnedGraph2dControls = {
-      centerAt: (x, y) => {
-        cameraRef.current.centerX = x;
-        cameraRef.current.centerY = y;
-        skipPhysicsFrameRef.current = true;
-        requestFrameRef.current();
-      },
-      d3ReheatSimulation: () => {
-        layoutRef.current?.engine.reheat();
-        engineStopNotifiedRef.current = false;
-        requestFrameRef.current();
-      },
-      graph2ScreenCoords: (x, y) => {
-        const size = canvasSize(canvas);
-        return graphToScreen(cameraRef.current, size.width, size.height, x, y);
-      },
-      pauseAnimation: () => layoutRef.current?.engine.pause(),
-      refresh: () => requestFrameRef.current(),
-      resumeAnimation: () => {
-        if (!rendererOperationalRef.current) return;
-        layoutRef.current?.engine.resume();
-        requestFrameRef.current();
-      },
-      screen2GraphCoords: (x, y) => {
-        const size = canvasSize(canvas);
-        return screenToGraph(cameraRef.current, size.width, size.height, x, y);
-      },
-      updateNode: (nodeId, updates) => {
-        const updated = updateOwnedGraphViewportNode(layoutRef.current, nodeId, updates);
-        if (!updated) return false;
-        positionVersionRef.current += 1;
-        engineStopNotifiedRef.current = false;
-        requestFrameRef.current();
-        return true;
-      },
-      zoom: ((scale?: number) => {
-        if (scale === undefined) return cameraRef.current.zoom;
-        cameraRef.current.zoom = clampOwnedGraphZoom(scale);
-        skipPhysicsFrameRef.current = true;
-        requestFrameRef.current();
-        return controls;
-      }) as OwnedGraph2dControls['zoom'],
-      zoomToFit: (_durationMs, padding) => {
-        const size = canvasSize(canvas);
-        fitOwnedGraphCamera(
-          cameraRef.current,
-          layoutRef.current?.nodes ?? [],
-          size.width,
-          size.height,
-          padding,
-        );
-        skipPhysicsFrameRef.current = true;
-        requestFrameRef.current();
-      },
-    };
-    props.fg2dRef.current = controls;
-
-    const resizeObserver = new ResizeObserver(() => requestFrameRef.current());
-    resizeObserver.observe(canvas);
-    requestFrameRef.current();
-
-    return () => {
-      active = false;
-      resizeObserver.disconnect();
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      if (props.fg2dRef.current === controls) props.fg2dRef.current = undefined;
-    };
+    const frameLoop = startOwnedGraphFrameLoop(frameLoopRuntime, canvas, props.fg2dRef);
+    return () => frameLoop.dispose();
   }, [props.fg2dRef]);
 
   useEffect(() => {
