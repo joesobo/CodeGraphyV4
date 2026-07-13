@@ -173,11 +173,65 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     overlay.releasePointerCapture = vi.fn();
 
     fireEvent.pointerDown(overlay, { button: 0, clientX: 50, clientY: 50, pointerId: 1 });
-    expect(setAlphaTarget).toHaveBeenLastCalledWith(0.3);
+    expect(setAlphaTarget).not.toHaveBeenCalledWith(0.3);
 
     fireEvent.pointerMove(overlay, { buttons: 1, clientX: 60, clientY: 50, pointerId: 1 });
+    expect(setAlphaTarget).toHaveBeenLastCalledWith(0.3);
     fireEvent.pointerUp(overlay, { button: 0, clientX: 60, clientY: 50, pointerId: 1 });
     expect(setAlphaTarget).toHaveBeenLastCalledWith(0);
+  });
+
+  it('keeps sub-threshold pointer jitter as a stationary click', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const setAlphaTarget = vi.spyOn(TypedGraphLayoutEngine.prototype, 'setAlphaTarget');
+    const props = createDefaultSurfaceProps();
+    props.sharedProps.onNodeDrag = vi.fn();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'clicked-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'clicked-node',
+      size: 8,
+      x: 0,
+      y: 0,
+    };
+    props.sharedProps.graphData = { links: [], nodes: [node] } as never;
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    const overlay = container.querySelectorAll('canvas')[1];
+    overlay.setPointerCapture = vi.fn();
+    overlay.hasPointerCapture = vi.fn(() => true);
+    overlay.releasePointerCapture = vi.fn();
+
+    fireEvent.pointerDown(overlay, { button: 0, clientX: 50, clientY: 50, pointerId: 1 });
+    fireEvent.pointerMove(overlay, { buttons: 1, clientX: 51, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(overlay, { button: 0, clientX: 51, clientY: 50, pointerId: 1 });
+
+    expect(node).toMatchObject({ x: 0, y: 0 });
+    expect(props.sharedProps.onNodeDrag).not.toHaveBeenCalled();
+    expect(props.sharedProps.onNodeClick).toHaveBeenCalledWith(node, expect.any(MouseEvent));
+    expect(setAlphaTarget).not.toHaveBeenCalledWith(0.3);
   });
 
   it('applies plugin viewport kinematics to the owned layout', async () => {

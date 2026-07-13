@@ -168,15 +168,23 @@ export function applyOwnedGraphRuntimePhysicsSettings(
     { nodes: layout.nodes, links: layout.links },
     settings,
   );
-  if (!canRunOwnedGraphPhysics(
+  runtime.engineStopNotifiedRef.current = false;
+  runtime.requestFrameRef.current();
+}
+
+export function applyOwnedGraphRuntimePhysicsPolicy(
+  runtime: OwnedGraphLayoutRuntime,
+): void {
+  const layout = runtime.layoutRef.current;
+  if (!layout) return;
+  if (canRunOwnedGraphPhysics(
     runtime.rendererOperationalRef.current,
-    currentProps.physicsPaused,
+    runtime.propsRef.current.physicsPaused,
   )) {
-    layout.engine.pause();
-  } else {
     layout.engine.resume();
-    layout.engine.reheat();
     runtime.engineStopNotifiedRef.current = false;
+  } else {
+    layout.engine.pause();
   }
   runtime.requestFrameRef.current();
 }

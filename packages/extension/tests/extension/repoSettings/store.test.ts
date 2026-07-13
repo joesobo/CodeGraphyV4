@@ -73,8 +73,8 @@ describe('extension/repoSettings/store', () => {
     expect(persisted.physics).toEqual({
       repelForce: 10,
       linkDistance: 80,
-      linkForce: 0.15,
-      damping: 0.7,
+      linkForce: 1,
+      damping: 0.4,
       centerForce: 0.1,
       chargeRange: 450,
     });
@@ -326,15 +326,15 @@ describe('extension/repoSettings/store', () => {
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
     expect(store.inspect<number>('physics.damping')).toEqual({
-      defaultValue: 0.7,
-      workspaceValue: 0.7,
+      defaultValue: 0.4,
+      workspaceValue: 0.4,
     });
 
-    await store.update('physics.damping', 0.4);
+    await store.update('physics.damping', 0.2);
 
     expect(store.inspect<number>('physics.damping')).toEqual({
-      defaultValue: 0.7,
-      workspaceValue: 0.4,
+      defaultValue: 0.4,
+      workspaceValue: 0.2,
     });
     expect(store.inspect<string>('physics.unknown')).toEqual({
       defaultValue: undefined,

@@ -129,7 +129,6 @@ function beginPointerSession(
   };
   if (!picked) return;
   layout.engine.pin(picked.index);
-  layout.engine.setAlphaTarget(0.3);
   picked.node.fx = picked.node.x;
   picked.node.fy = picked.node.y;
   event.currentTarget.setPointerCapture(event.pointerId);
@@ -163,7 +162,16 @@ function moveDraggedNode(
     x: world.x - session.lastWorld.x,
     y: world.y - session.lastWorld.y,
   };
-  session.moved ||= movedPastThreshold(session.startScreen, screen, NODE_DRAG_THRESHOLD_PX);
+  const crossedDragThreshold = movedPastThreshold(
+    session.startScreen,
+    screen,
+    NODE_DRAG_THRESHOLD_PX,
+  );
+  if (!session.moved && !crossedDragThreshold) return true;
+  if (!session.moved) {
+    session.moved = true;
+    layout.engine.setAlphaTarget(0.3);
+  }
   session.lastWorld = world;
   layout.engine.setNodePosition(session.index, world.x, world.y);
   runtime.positionVersionRef.current += 1;

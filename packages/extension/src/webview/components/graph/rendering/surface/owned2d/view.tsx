@@ -20,6 +20,7 @@ import {
   type RenderedFrameFpsSampler,
 } from './fps';
 import {
+  applyOwnedGraphRuntimePhysicsPolicy,
   applyOwnedGraphRuntimePhysicsSettings,
   disposeOwnedGraphLayoutRuntime,
   reconcileOwnedGraphRuntime,
@@ -181,7 +182,6 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   useEffect(() => {
     applyOwnedGraphRuntimePhysicsSettings(layoutRuntime);
   }, [
-    props.physicsPaused,
     props.physicsSettings?.centerForce,
     props.physicsSettings?.damping,
     props.physicsSettings?.linkDistance,
@@ -189,6 +189,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     props.physicsSettings?.repelForce,
     layoutRuntime,
   ]);
+
+  useEffect(() => {
+    applyOwnedGraphRuntimePhysicsPolicy(layoutRuntime);
+  }, [props.physicsPaused, layoutRuntime]);
 
   useEffect(() => {
     resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);

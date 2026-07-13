@@ -87,7 +87,7 @@ describe('owned graph layout settings', () => {
       centralGravity: 0.1,
       chargeStrength: -250,
       linkDistance: 30,
-      linkStrength: 1,
+      linkStrength: 2,
       velocityDecay: 0,
     });
   });

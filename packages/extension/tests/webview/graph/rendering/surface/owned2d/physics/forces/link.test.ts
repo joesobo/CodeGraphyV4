@@ -67,4 +67,46 @@ describe('owned graph link force', () => {
       expect(engine.vx[index]).toBeCloseTo(node.vx as number, 5);
     });
   });
+
+  it('preserves the direction of short nonzero link displacement', () => {
+    const referenceNodes: ReferenceNode[] = [
+      { id: 0, vx: 0, vy: 0, x: 0, y: 0 },
+      { id: 1, vx: 0, vy: 0, x: 0.005, y: 0 },
+    ];
+    const referenceLinks: SimulationLinkDatum<ReferenceNode>[] = [{ source: 0, target: 1 }];
+    forceSimulation(referenceNodes)
+      .stop()
+      .alpha(1)
+      .alphaDecay(0)
+      .velocityDecay(0)
+      .force(
+        'link',
+        forceLink<ReferenceNode, SimulationLinkDatum<ReferenceNode>>(referenceLinks)
+          .id(node => node.id)
+          .distance(0.001)
+          .strength(1),
+      )
+      .tick();
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['first', 'second'],
+      initialX: Float32Array.of(0, 0.005),
+      initialY: Float32Array.of(0, 0),
+      radii: Float32Array.of(0.0001, 0.0001),
+      edgeSources: Uint32Array.of(0),
+      edgeTargets: Uint32Array.of(1),
+    }, {
+      alphaDecay: 0,
+      centralGravity: 0,
+      chargeStrength: 0,
+      collisionIterations: 0,
+      linkDistance: 0.001,
+      linkStrength: 1,
+      velocityDecay: 0,
+    });
+
+    engine.tick(1000 / 60);
+
+    expect(engine.x[0]).toBeCloseTo(referenceNodes[0].x as number, 5);
+    expect(engine.x[1]).toBeCloseTo(referenceNodes[1].x as number, 5);
+  });
 });
