@@ -2,7 +2,6 @@ import type { OwnedGraphNodeStyle } from './contracts';
 
 export const OWNED_ARROW_LENGTH = 12;
 export const OWNED_ARROW_HALF_WIDTH = OWNED_ARROW_LENGTH / 1.6 / 2;
-export const OWNED_ARROW_VERTEX_LENGTH = 2.4;
 
 interface GraphPoint {
   x: number;

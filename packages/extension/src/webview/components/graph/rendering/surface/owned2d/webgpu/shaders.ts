@@ -1,7 +1,6 @@
 import {
   OWNED_ARROW_HALF_WIDTH,
   OWNED_ARROW_LENGTH,
-  OWNED_ARROW_VERTEX_LENGTH,
 } from '../arrowGeometry';
 import { OWNED_SELF_LOOP_RADIUS } from '../linkGeometry';
 
@@ -162,16 +161,14 @@ fn vertexMain(
 
   var output: VertexOutput;
   if (vertexIndex >= 24u) {
-    let arrowAlong = array<f32, 6>(
-      0.0, -${OWNED_ARROW_LENGTH}, -${OWNED_ARROW_VERTEX_LENGTH},
-      0.0, -${OWNED_ARROW_VERTEX_LENGTH}, -${OWNED_ARROW_LENGTH},
+    let arrowAlong = array<f32, 3>(
+      0.0, -${OWNED_ARROW_LENGTH}, -${OWNED_ARROW_LENGTH},
     );
-    let arrowSide = array<f32, 6>(
-      0.0, ${OWNED_ARROW_HALF_WIDTH}, 0.0,
-      0.0, 0.0, -${OWNED_ARROW_HALF_WIDTH},
+    let arrowSide = array<f32, 3>(
+      0.0, ${OWNED_ARROW_HALF_WIDTH}, -${OWNED_ARROW_HALF_WIDTH},
     );
-    let reverseArrow = vertexIndex >= 30u;
-    let corner = (vertexIndex - 24u) % 6u;
+    let reverseArrow = vertexIndex >= 27u;
+    let corner = (vertexIndex - 24u) % 3u;
     let arrowPosition = select(1.0, 0.0, reverseArrow);
     let graphPosition = curvePoint(
       graphSource,

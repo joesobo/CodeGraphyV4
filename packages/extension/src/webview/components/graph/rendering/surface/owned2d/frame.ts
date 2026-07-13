@@ -4,9 +4,7 @@ import type { OwnedGraphCamera } from './camera';
 import { canvasSize } from './canvasGeometry';
 import type { OwnedGraphNodeStyle, Surface2dProps } from './contracts';
 import {
-  drawOwnedGraphLabels,
   drawOwnedGraphOverlay,
-  drawOwnedGraphParticles,
   type OwnedGraphDrawingOptions,
 } from './drawing';
 import {
@@ -17,8 +15,6 @@ import type { OwnedGraphNodePicker } from './picking';
 import type { OwnedGraphPluginForces } from './pluginForces';
 import type { GraphLayoutTickResult } from './physics/contracts';
 import type { OwnedWebGpuRenderer } from './webgpu/renderer';
-
-const CANVAS_DECORATION_NODE_LIMIT = 5_000;
 
 interface FramePerfSample extends Record<string, number> {
   gpuMs: number;
@@ -219,12 +215,7 @@ function drawOwnedGraphDecorationLayer(
   context.scale(camera.zoom, camera.zoom);
   context.translate(-camera.centerX, -camera.centerY);
   const options = drawingOptions(runtime, layout, prepared, timestamp);
-  if (gpuRendered && layout.nodes.length <= CANVAS_DECORATION_NODE_LIMIT) {
-    drawOwnedGraphOverlay(options);
-  } else if (gpuRendered) {
-    drawOwnedGraphParticles(options);
-    drawOwnedGraphLabels(options);
-  }
+  if (gpuRendered) drawOwnedGraphOverlay(options);
   runtime.propsRef.current.onRenderFramePost(context, camera.zoom);
   context.restore();
 }
