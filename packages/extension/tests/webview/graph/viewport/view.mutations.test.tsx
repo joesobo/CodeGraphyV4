@@ -88,6 +88,7 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
         fg2dRef: { current: undefined },
         getArrowColor: vi.fn(),
         getLinkColor: vi.fn(),
+        getLinkOpacity: vi.fn(() => 0.3),
         getLinkParticles: vi.fn(),
         getLinkWidth: vi.fn(),
         getParticleColor: vi.fn(),

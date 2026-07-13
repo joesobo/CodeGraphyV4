@@ -30,6 +30,7 @@ export function createGraphViewportSurfaceProps({
       graphViewContributions,
       getArrowColor: callbacks.getArrowColor,
       getLinkColor: callbacks.getLinkColor,
+      getLinkOpacity: callbacks.getLinkOpacity,
       getLinkParticles: callbacks.getLinkParticles,
       getLinkWidth: callbacks.getLinkWidth,
       getNodeStyle: callbacks.getNodeStyle,

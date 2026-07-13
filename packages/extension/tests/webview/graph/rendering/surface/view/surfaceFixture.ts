@@ -8,6 +8,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
     fg2dRef: { current: undefined },
     getArrowColor: vi.fn(() => '#ffffff'),
     getLinkColor: vi.fn(() => '#888888'),
+    getLinkOpacity: vi.fn(() => 0.3),
     getLinkParticles: vi.fn(() => 2),
     getLinkWidth: vi.fn(() => 1),
     getParticleColor: vi.fn(() => '#ff0000'),

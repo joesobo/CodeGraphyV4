@@ -4,6 +4,7 @@ import {
   getGraphLinkColor,
 } from './link/colors/model';
 import {
+  getGraphLinkOpacity,
   getGraphLinkParticles,
   getGraphLinkWidth,
 } from './link/metrics';
@@ -38,6 +39,7 @@ export interface UseGraphCallbacksOptions {
 export interface UseGraphCallbacksResult {
   getArrowColor: (this: void, link: FGLink) => string;
   getLinkColor: (this: void, link: FGLink) => string;
+  getLinkOpacity: (this: void, link: FGLink) => number;
   getLinkParticles: (this: void, link: FGLink) => number;
   getLinkWidth: (this: void, link: FGLink) => number;
   getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
@@ -118,6 +120,9 @@ export function useGraphCallbacks({
       },
       getLinkColor(link) {
         return getGraphLinkColor(getLinkRenderingContext(contextRef.current.refs), link);
+      },
+      getLinkOpacity(link) {
+        return getGraphLinkOpacity(getLinkRenderingContext(contextRef.current.refs), link);
       },
       getLinkParticles(link) {
         return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link);

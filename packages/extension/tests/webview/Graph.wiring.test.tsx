@@ -150,6 +150,7 @@ function createCallbacks() {
 	return {
 		getArrowColor: vi.fn(),
 		getLinkColor: vi.fn(),
+		getLinkOpacity: vi.fn(() => 0.3),
 		getLinkParticles: vi.fn(),
 		getLinkWidth: vi.fn(),
 		getParticleColor: vi.fn(),
@@ -242,6 +243,7 @@ describe('Graph wiring', () => {
 			callbacks: expect.objectContaining({
 				getArrowColor: expect.any(Function),
 				getLinkColor: expect.any(Function),
+				getLinkOpacity: vi.fn(() => 0.3),
 			}),
 			graphDataLayoutKey: expect.any(String),
 			graphState: expect.objectContaining({

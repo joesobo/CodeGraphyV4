@@ -26,6 +26,7 @@ export interface OwnedWebGpuFrame {
   directionMode: DirectionMode;
   getArrowColor(this: void, link: FGLink): string;
   getLinkColor(this: void, link: FGLink): string;
+  getLinkOpacity(this: void, link: FGLink): number;
   getLinkWidth(this: void, link: FGLink): number;
   getNodeStyle(this: void, node: FGNode): OwnedGraphNodeStyle;
   links: readonly FGLink[];
@@ -174,6 +175,7 @@ export class OwnedWebGpuRenderer {
   private styledNodes: readonly FGNode[] | undefined;
   private linkArrowColorAccessor: OwnedWebGpuFrame['getArrowColor'] | undefined;
   private linkColorAccessor: OwnedWebGpuFrame['getLinkColor'] | undefined;
+  private linkOpacityAccessor: OwnedWebGpuFrame['getLinkOpacity'] | undefined;
   private readonly linkGeometryStream: VertexStream;
   private linkGeometryValues = new Float32Array();
   private linkStyleLinks: readonly FGLink[] | undefined;
@@ -366,6 +368,7 @@ export class OwnedWebGpuRenderer {
       && this.linkStyleLinks === frame.links
       && this.linkArrowColorAccessor === frame.getArrowColor
       && this.linkColorAccessor === frame.getLinkColor
+      && this.linkOpacityAccessor === frame.getLinkOpacity
       && this.linkWidthAccessor === frame.getLinkWidth;
   }
 
@@ -402,6 +405,7 @@ export class OwnedWebGpuRenderer {
     const offset = index * LINK_CACHED_STYLE_FLOATS;
     this.linkStyles[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);
     this.linkStyles.set(cachedWebGpuColor(frame.getLinkColor(link)), offset + 1);
+    this.linkStyles[offset + 4] *= Math.max(0, Math.min(1, frame.getLinkOpacity(link)));
     this.linkStyles.set(cachedWebGpuColor(frame.getArrowColor(link)), offset + 5);
   }
 
@@ -409,6 +413,7 @@ export class OwnedWebGpuRenderer {
     this.linkStyleLinks = frame.links;
     this.linkArrowColorAccessor = frame.getArrowColor;
     this.linkColorAccessor = frame.getLinkColor;
+    this.linkOpacityAccessor = frame.getLinkOpacity;
     this.linkWidthAccessor = frame.getLinkWidth;
     this.linkStyles = new Float32Array(frame.links.length * LINK_CACHED_STYLE_FLOATS);
     for (let index = 0; index < frame.links.length; index += 1) {

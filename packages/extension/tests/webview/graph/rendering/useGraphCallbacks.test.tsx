@@ -9,6 +9,7 @@ import {
 const renderingHarness = vi.hoisted(() => ({
   getGraphDirectionalColor: vi.fn(),
   getGraphLinkColor: vi.fn(),
+  getGraphLinkOpacity: vi.fn(),
   getGraphLinkParticles: vi.fn(),
   getGraphLinkWidth: vi.fn(),
   getNodeCanvasStyle: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock('../../../../src/webview/components/graph/rendering/link/colors/model', 
 }));
 
 vi.mock('../../../../src/webview/components/graph/rendering/link/metrics', () => ({
+  getGraphLinkOpacity: renderingHarness.getGraphLinkOpacity,
   getGraphLinkParticles: renderingHarness.getGraphLinkParticles,
   getGraphLinkWidth: renderingHarness.getGraphLinkWidth,
 }));
@@ -70,18 +72,21 @@ describe('graph/rendering/useGraphCallbacks', () => {
     vi.clearAllMocks();
   });
 
-  it('delegates edge color, particles, and width through the current refs', () => {
+  it('delegates edge color, opacity, particles, and width through the current refs', () => {
     const link = { source: 'node-1', target: 'node-2' } as FGLink;
     renderingHarness.getGraphLinkColor.mockReturnValue('#336699');
+    renderingHarness.getGraphLinkOpacity.mockReturnValue(0.3);
     renderingHarness.getGraphLinkParticles.mockReturnValue(4);
     renderingHarness.getGraphLinkWidth.mockReturnValue(2);
     const { refs, result } = renderUseGraphCallbacks();
     const context = expectedLinkContext(refs);
 
     expect(result.current.getLinkColor(link)).toBe('#336699');
+    expect(result.current.getLinkOpacity(link)).toBe(0.3);
     expect(result.current.getLinkParticles(link)).toBe(4);
     expect(result.current.getLinkWidth(link)).toBe(2);
     expect(renderingHarness.getGraphLinkColor).toHaveBeenCalledWith(context, link);
+    expect(renderingHarness.getGraphLinkOpacity).toHaveBeenCalledWith(context, link);
     expect(renderingHarness.getGraphLinkParticles).toHaveBeenCalledWith(context, link);
     expect(renderingHarness.getGraphLinkWidth).toHaveBeenCalledWith(context, link);
   });

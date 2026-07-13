@@ -39,6 +39,7 @@ export interface Surface2dProps {
   graphViewContributions?: CoreGraphViewContributionSet;
   getArrowColor: (this: void, link: FGLink) => string;
   getLinkColor: (this: void, link: FGLink) => string;
+  getLinkOpacity: (this: void, link: FGLink) => number;
   getLinkParticles: (this: void, link: FGLink) => number;
   getLinkWidth: (this: void, link: FGLink) => number;
   getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { EdgeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
 import type { FGLink } from '../../../../../src/webview/components/graph/model/build';
 import {
+  getGraphLinkOpacity,
   getGraphLinkParticles,
   getGraphLinkWidth,
 } from '../../../../../src/webview/components/graph/rendering/link/metrics';
@@ -72,6 +73,31 @@ describe('graph/rendering/link/metrics', () => {
     expect(count).toBe(0);
   });
 
+  it('dims ordinary edges while preserving decoration and highlight emphasis', () => {
+    const decoratedOpacity = getGraphLinkOpacity(
+      createDependencies({
+        edgeDecorations: {
+          'src/app.ts->src/utils.ts': { opacity: 0.6 },
+        },
+      }),
+      createLink(),
+    );
+    const ordinaryOpacity = getGraphLinkOpacity(createDependencies(), createLink());
+    const connectedOpacity = getGraphLinkOpacity(
+      createDependencies({ highlightedNodeId: 'src/app.ts' }),
+      createLink(),
+    );
+    const unrelatedOpacity = getGraphLinkOpacity(
+      createDependencies({ highlightedNodeId: 'src/other.ts' }),
+      createLink(),
+    );
+
+    expect(decoratedOpacity).toBe(0.6);
+    expect(ordinaryOpacity).toBe(0.3);
+    expect(connectedOpacity).toBe(0.9);
+    expect(unrelatedOpacity).toBe(0.12);
+  });
+
   it('uses edge decoration widths before falling back to highlight-based widths', () => {
     const decoratedWidth = getGraphLinkWidth(
       createDependencies({
@@ -126,10 +152,10 @@ describe('graph/rendering/link/metrics', () => {
     expect(width).toBe(2);
   });
 
-  it('uses the bidirectional default width when nothing is highlighted', () => {
+  it('uses a hairline width for ordinary bidirectional edges', () => {
     const width = getGraphLinkWidth(createDependencies(), createLink({ bidirectional: true }));
 
-    expect(width).toBe(2);
+    expect(width).toBe(1);
   });
 
   it('uses the thin default width when a highlighted node is unrelated to the link', () => {

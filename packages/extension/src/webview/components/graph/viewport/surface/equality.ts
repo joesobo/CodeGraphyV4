@@ -5,6 +5,7 @@ const SURFACE_2D_PROP_KEYS = [
   'graphViewContributions',
   'getArrowColor',
   'getLinkColor',
+  'getLinkOpacity',
   'getLinkParticles',
   'getLinkWidth',
   'getNodeStyle',
