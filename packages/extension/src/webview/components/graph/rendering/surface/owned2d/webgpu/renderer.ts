@@ -7,10 +7,11 @@ import type { OwnedGraphCamera } from '../camera';
 import { ownedArrowEndpointInsets } from '../arrowGeometry';
 import { LINK_SHADER, NODE_SHADER } from './shaders';
 
-const NODE_FLOATS = 15;
+const NODE_POSITION_FLOATS = 2;
 const NODE_STYLE_FLOATS = 13;
-const LINK_FLOATS = 17;
-const LINK_STYLE_FLOATS = 9;
+const LINK_GEOMETRY_FLOATS = 6;
+const LINK_CACHED_STYLE_FLOATS = 9;
+const LINK_INSTANCE_STYLE_FLOATS = 11;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
 // Bound queue growth while allowing triple-buffered compositors to overlap work.
 const MAX_PENDING_FRAMES = 3;
@@ -124,25 +125,44 @@ function blendState(): GPUBlendState {
   };
 }
 
+interface VertexStream {
+  buffer: GPUBuffer;
+  capacity: number;
+  readonly label: string;
+}
+
+function createVertexStream(device: GPUDevice, label: string): VertexStream {
+  return {
+    buffer: device.createBuffer({
+      label,
+      size: 256,
+      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    }),
+    capacity: 256,
+    label,
+  };
+}
+
 export class OwnedWebGpuRenderer {
   private readonly cameraBuffer: GPUBuffer;
   private readonly cameraValues = new Float32Array(8);
   private styledNodes: readonly FGNode[] | undefined;
-  private linkBuffer: GPUBuffer;
   private linkArrowColorAccessor: OwnedWebGpuFrame['getArrowColor'] | undefined;
-  private linkBufferSize = 256;
   private linkColorAccessor: OwnedWebGpuFrame['getLinkColor'] | undefined;
+  private readonly linkGeometryStream: VertexStream;
+  private linkGeometryValues = new Float32Array();
   private linkStyleLinks: readonly FGLink[] | undefined;
+  private readonly linkStyleStream: VertexStream;
   private linkStyles = new Float32Array();
-  private linkValues = new Float32Array();
+  private linkStyleValues = new Float32Array();
   private linkWidthAccessor: OwnedWebGpuFrame['getLinkWidth'] | undefined;
   private readonly linkCameraBindGroup: GPUBindGroup;
-  private nodeBuffer: GPUBuffer;
-  private nodeBufferSize = 256;
+  private nodePositionValues = new Float32Array();
+  private readonly nodePositionStream: VertexStream;
   private nodeStyleByNode = new WeakMap<FGNode, OwnedGraphNodeStyle>();
+  private readonly nodeStyleStream: VertexStream;
   private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
-  private nodeValues = new Float32Array();
   private renderedLinkCount = 0;
   private uploadedEdgeStride = 1;
   private uploadedLinks: readonly FGLink[] | undefined;
@@ -175,16 +195,10 @@ export class OwnedWebGpuRenderer {
       layout: nodePipeline.getBindGroupLayout(0),
       entries: [{ binding: 0, resource: { buffer: this.cameraBuffer } }],
     });
-    this.linkBuffer = device.createBuffer({
-      label: 'CodeGraphy link instances',
-      size: this.linkBufferSize,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-    this.nodeBuffer = device.createBuffer({
-      label: 'CodeGraphy node instances',
-      size: this.nodeBufferSize,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
+    this.linkGeometryStream = createVertexStream(device, 'CodeGraphy link geometry');
+    this.linkStyleStream = createVertexStream(device, 'CodeGraphy link styles');
+    this.nodePositionStream = createVertexStream(device, 'CodeGraphy node positions');
+    this.nodeStyleStream = createVertexStream(device, 'CodeGraphy node styles');
   }
 
   static async create(
@@ -226,14 +240,17 @@ export class OwnedWebGpuRenderer {
         entryPoint: 'vertexMain',
         module: nodeModule,
         buffers: [{
-          arrayStride: NODE_FLOATS * FLOAT_BYTES,
+          arrayStride: NODE_POSITION_FLOATS * FLOAT_BYTES,
+          stepMode: 'instance',
+          attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }],
+        }, {
+          arrayStride: NODE_STYLE_FLOATS * FLOAT_BYTES,
           stepMode: 'instance',
           attributes: [
-            { shaderLocation: 0, offset: 0, format: 'float32x2' },
-            { shaderLocation: 1, offset: 2 * FLOAT_BYTES, format: 'float32x2' },
-            { shaderLocation: 2, offset: 4 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 3, offset: 8 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 4, offset: 12 * FLOAT_BYTES, format: 'float32x3' },
+            { shaderLocation: 1, offset: 0, format: 'float32x2' },
+            { shaderLocation: 2, offset: 2 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x3' },
           ],
         }],
       },
@@ -251,15 +268,21 @@ export class OwnedWebGpuRenderer {
         entryPoint: 'vertexMain',
         module: linkModule,
         buffers: [{
-          arrayStride: LINK_FLOATS * FLOAT_BYTES,
+          arrayStride: LINK_GEOMETRY_FLOATS * FLOAT_BYTES,
           stepMode: 'instance',
           attributes: [
             { shaderLocation: 0, offset: 0, format: 'float32x2' },
             { shaderLocation: 1, offset: 2 * FLOAT_BYTES, format: 'float32x2' },
-            { shaderLocation: 2, offset: 4 * FLOAT_BYTES, format: 'float32x2' },
-            { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x4' },
-            { shaderLocation: 5, offset: 14 * FLOAT_BYTES, format: 'float32x3' },
+            { shaderLocation: 5, offset: 4 * FLOAT_BYTES, format: 'float32x2' },
+          ],
+        }, {
+          arrayStride: LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
+          stepMode: 'instance',
+          attributes: [
+            { shaderLocation: 2, offset: 0, format: 'float32x2' },
+            { shaderLocation: 3, offset: 2 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 4, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
+            { shaderLocation: 6, offset: 10 * FLOAT_BYTES, format: 'float32' },
           ],
         }],
       },
@@ -294,24 +317,13 @@ export class OwnedWebGpuRenderer {
     }
   }
 
-  private ensureLinkBuffer(requiredBytes: number): void {
-    if (requiredBytes <= this.linkBufferSize) return;
-    this.linkBuffer.destroy();
-    this.linkBufferSize = nextBufferSize(requiredBytes);
-    this.linkBuffer = this.device.createBuffer({
-      label: 'CodeGraphy link instances',
-      size: this.linkBufferSize,
-      usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-    });
-  }
-
-  private ensureNodeBuffer(requiredBytes: number): void {
-    if (requiredBytes <= this.nodeBufferSize) return;
-    this.nodeBuffer.destroy();
-    this.nodeBufferSize = nextBufferSize(requiredBytes);
-    this.nodeBuffer = this.device.createBuffer({
-      label: 'CodeGraphy node instances',
-      size: this.nodeBufferSize,
+  private ensureVertexStream(stream: VertexStream, requiredBytes: number): void {
+    if (requiredBytes <= stream.capacity) return;
+    stream.buffer.destroy();
+    stream.capacity = nextBufferSize(requiredBytes);
+    stream.buffer = this.device.createBuffer({
+      label: stream.label,
+      size: stream.capacity,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
   }
@@ -353,7 +365,7 @@ export class OwnedWebGpuRenderer {
 
   private writeLinkStyle(frame: OwnedWebGpuFrame, index: number): void {
     const link = frame.links[index];
-    const offset = index * LINK_STYLE_FLOATS;
+    const offset = index * LINK_CACHED_STYLE_FLOATS;
     this.linkStyles[offset] = Math.max(0.35, frame.getLinkWidth(link) / 2);
     this.linkStyles.set(cachedWebGpuColor(frame.getLinkColor(link)), offset + 1);
     this.linkStyles.set(cachedWebGpuColor(frame.getArrowColor(link)), offset + 5);
@@ -364,7 +376,7 @@ export class OwnedWebGpuRenderer {
     this.linkArrowColorAccessor = frame.getArrowColor;
     this.linkColorAccessor = frame.getLinkColor;
     this.linkWidthAccessor = frame.getLinkWidth;
-    this.linkStyles = new Float32Array(frame.links.length * LINK_STYLE_FLOATS);
+    this.linkStyles = new Float32Array(frame.links.length * LINK_CACHED_STYLE_FLOATS);
     for (let index = 0; index < frame.links.length; index += 1) {
       this.writeLinkStyle(frame, index);
     }
@@ -409,34 +421,25 @@ export class OwnedWebGpuRenderer {
     return frame.links.length > 250_000 && frame.camera.zoom < 0.5 ? 2 : 1;
   }
 
-  private graphCacheMatches(frame: OwnedWebGpuFrame, edgeStride: number): boolean {
-    return this.uploadedEdgeStride === edgeStride
-      && this.uploadedPositionVersion === frame.positionVersion
-      && this.uploadedNodes === frame.nodes
-      && this.uploadedLinks === frame.links;
-  }
-
-  private packNodeInstance(frame: OwnedWebGpuFrame, index: number): void {
-    const node = frame.nodes[index];
-    const offset = index * NODE_FLOATS;
-    const styleOffset = index * NODE_STYLE_FLOATS;
-    this.nodeValues[offset] = node.x ?? 0;
-    this.nodeValues[offset + 1] = node.y ?? 0;
-    this.nodeValues.set(
-      this.nodeStyles.subarray(styleOffset, styleOffset + NODE_STYLE_FLOATS),
-      offset + 2,
-    );
-  }
-
-  private packNodeInstances(frame: OwnedWebGpuFrame): void {
-    const required = frame.nodes.length * NODE_FLOATS;
-    if (this.nodeValues.length !== required) this.nodeValues = new Float32Array(required);
+  private packNodePositions(frame: OwnedWebGpuFrame): void {
+    const required = frame.nodes.length * NODE_POSITION_FLOATS;
+    if (this.nodePositionValues.length !== required) {
+      this.nodePositionValues = new Float32Array(required);
+    }
     for (let index = 0; index < frame.nodes.length; index += 1) {
-      this.packNodeInstance(frame, index);
+      const offset = index * NODE_POSITION_FLOATS;
+      this.nodePositionValues[offset] = frame.nodes[index].x ?? 0;
+      this.nodePositionValues[offset + 1] = frame.nodes[index].y ?? 0;
     }
   }
 
-  private packLinkInstance(frame: OwnedWebGpuFrame, linkIndex: number): boolean {
+  private packLinkInstance(
+    frame: OwnedWebGpuFrame,
+    linkIndex: number,
+    renderedIndex: number,
+    writeGeometry: boolean,
+    writeStyle: boolean,
+  ): boolean {
     const link = frame.links[linkIndex];
     const source = endpointNode(link.source);
     const target = endpointNode(link.target);
@@ -445,56 +448,80 @@ export class OwnedWebGpuRenderer {
     const targetStyle = this.nodeStyleByNode.get(target);
     if (!sourceStyle || !targetStyle) return false;
     const curvature = link.curvature ?? 0;
-    const endpointInsets = ownedArrowEndpointInsets(
-      { x: source.x ?? 0, y: source.y ?? 0 },
-      { x: target.x ?? 0, y: target.y ?? 0 },
-      curvature,
-      sourceStyle,
-      targetStyle,
-    );
-    const offset = this.renderedLinkCount * LINK_FLOATS;
-    const styleOffset = linkIndex * LINK_STYLE_FLOATS;
-    this.linkValues[offset] = source.x ?? 0;
-    this.linkValues[offset + 1] = source.y ?? 0;
-    this.linkValues[offset + 2] = target.x ?? 0;
-    this.linkValues[offset + 3] = target.y ?? 0;
-    this.linkValues[offset + 4] = this.linkStyles[styleOffset];
-    this.linkValues[offset + 5] = curvature;
-    this.linkValues.set(
-      this.linkStyles.subarray(styleOffset + 1, styleOffset + LINK_STYLE_FLOATS),
-      offset + 6,
-    );
-    this.linkValues[offset + 14] = endpointInsets.source;
-    this.linkValues[offset + 15] = endpointInsets.target;
-    this.linkValues[offset + 16] = link.bidirectional ? 1 : 0;
-    this.renderedLinkCount += 1;
+    if (writeGeometry) {
+      const endpointInsets = ownedArrowEndpointInsets(
+        { x: source.x ?? 0, y: source.y ?? 0 },
+        { x: target.x ?? 0, y: target.y ?? 0 },
+        curvature,
+        sourceStyle,
+        targetStyle,
+      );
+      const offset = renderedIndex * LINK_GEOMETRY_FLOATS;
+      this.linkGeometryValues[offset] = source.x ?? 0;
+      this.linkGeometryValues[offset + 1] = source.y ?? 0;
+      this.linkGeometryValues[offset + 2] = target.x ?? 0;
+      this.linkGeometryValues[offset + 3] = target.y ?? 0;
+      this.linkGeometryValues[offset + 4] = endpointInsets.source;
+      this.linkGeometryValues[offset + 5] = endpointInsets.target;
+    }
+    if (writeStyle) {
+      const offset = renderedIndex * LINK_INSTANCE_STYLE_FLOATS;
+      const cachedOffset = linkIndex * LINK_CACHED_STYLE_FLOATS;
+      this.linkStyleValues[offset] = this.linkStyles[cachedOffset];
+      this.linkStyleValues[offset + 1] = curvature;
+      this.linkStyleValues.set(
+        this.linkStyles.subarray(cachedOffset + 1, cachedOffset + LINK_CACHED_STYLE_FLOATS),
+        offset + 2,
+      );
+      this.linkStyleValues[offset + 10] = link.bidirectional ? 1 : 0;
+    }
     return true;
   }
 
-  private packLinkInstances(frame: OwnedWebGpuFrame, edgeStride: number): void {
-    const required = frame.links.length * LINK_FLOATS;
-    if (this.linkValues.length !== required) this.linkValues = new Float32Array(required);
+  private packLinkInstances(
+    frame: OwnedWebGpuFrame,
+    edgeStride: number,
+    writeGeometry: boolean,
+    writeStyle: boolean,
+  ): void {
+    if (writeGeometry) {
+      const required = frame.links.length * LINK_GEOMETRY_FLOATS;
+      if (this.linkGeometryValues.length !== required) {
+        this.linkGeometryValues = new Float32Array(required);
+      }
+    }
+    if (writeStyle) {
+      const required = frame.links.length * LINK_INSTANCE_STYLE_FLOATS;
+      if (this.linkStyleValues.length !== required) {
+        this.linkStyleValues = new Float32Array(required);
+      }
+    }
     this.renderedLinkCount = 0;
     for (let index = 0; index < frame.links.length; index += edgeStride) {
-      this.packLinkInstance(frame, index);
+      if (this.packLinkInstance(
+        frame,
+        index,
+        this.renderedLinkCount,
+        writeGeometry,
+        writeStyle,
+      )) this.renderedLinkCount += 1;
     }
   }
 
-  private uploadInstanceBuffers(): void {
-    const nodeBytes = this.nodeValues.byteLength;
-    const linkBytes = this.renderedLinkCount * LINK_FLOATS * FLOAT_BYTES;
-    this.ensureNodeBuffer(nodeBytes);
-    this.ensureLinkBuffer(linkBytes);
-    if (nodeBytes > 0) this.device.queue.writeBuffer(this.nodeBuffer, 0, this.nodeValues);
-    if (linkBytes > 0) {
-      this.device.queue.writeBuffer(
-        this.linkBuffer,
-        0,
-        this.linkValues.buffer,
-        this.linkValues.byteOffset,
-        linkBytes,
-      );
-    }
+  private uploadVertexStream(
+    stream: VertexStream,
+    values: Float32Array,
+    byteLength: number,
+  ): void {
+    this.ensureVertexStream(stream, byteLength);
+    if (byteLength === 0) return;
+    this.device.queue.writeBuffer(
+      stream.buffer,
+      0,
+      values.buffer,
+      values.byteOffset,
+      byteLength,
+    );
   }
 
   private updateGraphCacheIdentity(frame: OwnedWebGpuFrame, edgeStride: number): void {
@@ -506,10 +533,40 @@ export class OwnedWebGpuRenderer {
 
   private updateGraphBuffers(frame: OwnedWebGpuFrame, stylesChanged: boolean): void {
     const edgeStride = this.edgeStride(frame);
-    if (!stylesChanged && this.graphCacheMatches(frame, edgeStride)) return;
-    this.packNodeInstances(frame);
-    this.packLinkInstances(frame, edgeStride);
-    this.uploadInstanceBuffers();
+    const graphChanged = this.uploadedNodes !== frame.nodes || this.uploadedLinks !== frame.links;
+    const positionsChanged = graphChanged || this.uploadedPositionVersion !== frame.positionVersion;
+    const edgeStrideChanged = this.uploadedEdgeStride !== edgeStride;
+    const linkGeometryChanged = positionsChanged || stylesChanged || edgeStrideChanged;
+    const linkStylesChanged = stylesChanged || edgeStrideChanged;
+
+    if (positionsChanged) {
+      this.packNodePositions(frame);
+      this.uploadVertexStream(
+        this.nodePositionStream,
+        this.nodePositionValues,
+        this.nodePositionValues.byteLength,
+      );
+    }
+    if (stylesChanged) {
+      this.uploadVertexStream(this.nodeStyleStream, this.nodeStyles, this.nodeStyles.byteLength);
+    }
+    if (linkGeometryChanged || linkStylesChanged) {
+      this.packLinkInstances(frame, edgeStride, linkGeometryChanged, linkStylesChanged);
+    }
+    if (linkGeometryChanged) {
+      this.uploadVertexStream(
+        this.linkGeometryStream,
+        this.linkGeometryValues,
+        this.renderedLinkCount * LINK_GEOMETRY_FLOATS * FLOAT_BYTES,
+      );
+    }
+    if (linkStylesChanged) {
+      this.uploadVertexStream(
+        this.linkStyleStream,
+        this.linkStyleValues,
+        this.renderedLinkCount * LINK_INSTANCE_STYLE_FLOATS * FLOAT_BYTES,
+      );
+    }
     this.updateGraphCacheIdentity(frame, edgeStride);
   }
 
@@ -517,7 +574,8 @@ export class OwnedWebGpuRenderer {
     if (this.renderedLinkCount === 0) return;
     pass.setPipeline(this.linkPipeline);
     pass.setBindGroup(0, this.linkCameraBindGroup);
-    pass.setVertexBuffer(0, this.linkBuffer);
+    pass.setVertexBuffer(0, this.linkGeometryStream.buffer);
+    pass.setVertexBuffer(1, this.linkStyleStream.buffer);
     pass.draw(frame.directionMode === 'arrows' ? 30 : 24, this.renderedLinkCount);
   }
 
@@ -525,7 +583,8 @@ export class OwnedWebGpuRenderer {
     if (frame.nodes.length === 0) return;
     pass.setPipeline(this.nodePipeline);
     pass.setBindGroup(0, this.nodeCameraBindGroup);
-    pass.setVertexBuffer(0, this.nodeBuffer);
+    pass.setVertexBuffer(0, this.nodePositionStream.buffer);
+    pass.setVertexBuffer(1, this.nodeStyleStream.buffer);
     pass.draw(6, frame.nodes.length);
   }
 
@@ -574,8 +633,10 @@ export class OwnedWebGpuRenderer {
   dispose(): void {
     this.disposed = true;
     this.cameraBuffer.destroy();
-    this.linkBuffer.destroy();
-    this.nodeBuffer.destroy();
+    this.linkGeometryStream.buffer.destroy();
+    this.linkStyleStream.buffer.destroy();
+    this.nodePositionStream.buffer.destroy();
+    this.nodeStyleStream.buffer.destroy();
     this.context.unconfigure();
     this.device.destroy();
   }

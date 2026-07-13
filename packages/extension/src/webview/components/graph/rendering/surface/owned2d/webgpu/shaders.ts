@@ -150,7 +150,8 @@ fn vertexMain(
   @location(2) halfWidthAndCurvature: vec2f,
   @location(3) color: vec4f,
   @location(4) arrowColor: vec4f,
-  @location(5) arrowEndpointInsetsAndBidirectional: vec3f,
+  @location(5) arrowEndpointInsets: vec2f,
+  @location(6) bidirectional: f32,
 ) -> VertexOutput {
   let graphDelta = graphDestination - graphSource;
   let graphDistance = length(graphDelta);
@@ -189,8 +190,8 @@ fn vertexMain(
     let tangent = graphTangent * inverseSqrt(tangentLengthSquared);
     let normal = vec2f(-tangent.y, tangent.x);
     let endpointInset = select(
-      arrowEndpointInsetsAndBidirectional.y,
-      arrowEndpointInsetsAndBidirectional.x,
+      arrowEndpointInsets.y,
+      arrowEndpointInsets.x,
       reverseArrow,
     );
     let tip = graphPosition - tangent * endpointInset;
@@ -201,7 +202,7 @@ fn vertexMain(
       1.0,
     );
     output.color = arrowColor;
-    if (reverseArrow && arrowEndpointInsetsAndBidirectional.z < 0.5) {
+    if (reverseArrow && bidirectional < 0.5) {
       output.color.a = 0.0;
     }
     return output;
