@@ -50,15 +50,19 @@ function resetOwnedGraphFps(
   }
 }
 
+function formatOwnedGraphFps(fps: number, frameTimeMs: number | null): string {
+  return frameTimeMs === null
+    ? `${Math.round(fps)} FPS`
+    : `${Math.round(fps)} FPS · ${frameTimeMs.toFixed(1)} ms`;
+}
+
 function publishOwnedGraphFps(
   fps: number,
   frameTimeMs: number | null,
   output: HTMLOutputElement | null,
 ): void {
   if (!output) return;
-  output.textContent = frameTimeMs === null
-    ? `${Math.round(fps)} FPS`
-    : `${Math.round(fps)} FPS · ${frameTimeMs.toFixed(1)} ms`;
+  output.textContent = formatOwnedGraphFps(fps, frameTimeMs);
   output.hidden = false;
 }
 
@@ -265,7 +269,9 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
           hidden={fpsRef.current === null}
           style={{ zIndex: 20 }}
         >
-          {fpsRef.current === null ? '' : `${Math.round(fpsRef.current)} FPS`}
+          {fpsRef.current === null
+            ? ''
+            : formatOwnedGraphFps(fpsRef.current, fpsSamplerRef.current?.frameTimeMs ?? null)}
         </output>
       ) : null}
       {rendererError ? (

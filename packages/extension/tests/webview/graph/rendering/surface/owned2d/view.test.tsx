@@ -447,6 +447,9 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
 
     expect(await screen.findByTestId('graph-fps')).toHaveTextContent('50 FPS · 20.0 ms');
     expect(props.fg2dRef.current?.getFps()).toBe(50);
+
+    rendered.rerender(<OwnedGraphSurface2d {...props} />);
+    expect(screen.getByTestId('graph-fps')).toHaveTextContent('50 FPS · 20.0 ms');
     const styleVersions = rendererHarness.render.mock.calls.map(
       ([frame]) => (frame as { styleVersion: number }).styleVersion,
     );
