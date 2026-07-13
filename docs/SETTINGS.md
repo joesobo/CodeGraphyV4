@@ -282,7 +282,7 @@ Open by clicking the gear button in the left toolbar rail. This panel now focuse
 
 ### Forces
 
-Adjusts the physics simulation in real time.
+Adjusts the D3-style physics simulation in real time. Global charge separates nodes, degree-aware edge forces keep hubs stable while connected nodes cluster, and setting changes reheat the layout smoothly. The default force values are Repel `10`, Center `0.1`, Link Distance `80`, Link Force `1`, and velocity decay `0.4`.
 
 | Control | Range | Description |
 |---------|-------|-------------|
