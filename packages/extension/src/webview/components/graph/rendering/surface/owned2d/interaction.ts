@@ -12,7 +12,7 @@ import { canvasSize, localCanvasPointer } from './canvasGeometry';
 import type { Surface2dProps } from './contracts';
 import { releaseOwnedDraggedNodes, synchronizeOwnedDraggedNodes } from './drag';
 import type { OwnedGraphLayout } from './layout';
-import { pickOwnedGraphLink } from './linkPicking';
+import type { OwnedGraphLinkPicker } from './linkPicking';
 import type { OwnedGraphNodePicker } from './picking';
 
 export interface CtrlClickSession {
@@ -44,6 +44,8 @@ interface OwnedGraphInteractionRuntime {
   hoveredLinkRef: MutableRefObject<FGLink | null>;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
+  linkPickerPositionVersionRef: MutableRefObject<number>;
+  linkPickerRef: MutableRefObject<OwnedGraphLinkPicker>;
   pickerPositionVersionRef: MutableRefObject<number>;
   pickerRef: MutableRefObject<OwnedGraphNodePicker>;
   pointerSessionRef: MutableRefObject<PointerSession | null>;
@@ -88,6 +90,18 @@ function pickNode(
   return runtime.pickerRef.current.pick(world, runtime.cameraRef.current.zoom);
 }
 
+function pickLink(
+  runtime: OwnedGraphInteractionRuntime,
+  layout: OwnedGraphLayout,
+  world: { x: number; y: number },
+) {
+  if (runtime.linkPickerPositionVersionRef.current !== runtime.positionVersionRef.current) {
+    runtime.linkPickerRef.current.rebuild(layout.links);
+    runtime.linkPickerPositionVersionRef.current = runtime.positionVersionRef.current;
+  }
+  return runtime.linkPickerRef.current.pick(world, runtime.cameraRef.current.zoom);
+}
+
 function movedPastThreshold(
   start: { x: number; y: number },
   current: { x: number; y: number },
@@ -114,9 +128,7 @@ function beginPointerSession(
   if (!layout) return;
   const world = screenToWorld(runtime.cameraRef.current, event.currentTarget, screen);
   const picked = pickNode(runtime, layout, world);
-  const pickedLink = picked
-    ? undefined
-    : pickOwnedGraphLink(layout.links, world, runtime.cameraRef.current.zoom);
+  const pickedLink = picked ? undefined : pickLink(runtime, layout, world);
   runtime.pointerSessionRef.current = {
     draggedIndexes: new Set(picked ? [picked.index] : []),
     index: picked?.index ?? null,
@@ -196,7 +208,7 @@ function updateHover(
   const hovered = pickNode(runtime, layout, world)?.node ?? null;
   const hoveredLink = hovered
     ? null
-    : pickOwnedGraphLink(layout.links, world, runtime.cameraRef.current.zoom)?.link ?? null;
+    : pickLink(runtime, layout, world)?.link ?? null;
   if (hovered !== runtime.hoveredNodeRef.current) {
     runtime.hoveredNodeRef.current = hovered;
     runtime.propsRef.current.sharedProps.onNodeHover(hovered);
@@ -339,7 +351,7 @@ function openContextMenu(
     runtime.propsRef.current.sharedProps.onNodeRightClick(node, event.nativeEvent);
     return;
   }
-  const link = pickOwnedGraphLink(layout.links, world, runtime.cameraRef.current.zoom)?.link;
+  const link = pickLink(runtime, layout, world)?.link;
   if (link) runtime.propsRef.current.sharedProps.onLinkRightClick(link, event.nativeEvent);
   else runtime.propsRef.current.sharedProps.onBackgroundRightClick(event.nativeEvent);
 }

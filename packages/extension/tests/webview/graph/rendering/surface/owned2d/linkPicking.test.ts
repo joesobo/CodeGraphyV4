@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
   distanceToOwnedLink,
+  OwnedGraphLinkPicker,
   pickOwnedGraphLink,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/linkPicking';
 
@@ -33,5 +34,21 @@ describe('owned graph link picking', () => {
     const straight = link();
     expect(distanceToOwnedLink(upward, { x: 50, y: 25 })).toBeLessThan(1);
     expect(pickOwnedGraphLink([straight, upward], { x: 50, y: 24 }, 1)?.link).toBe(upward);
+  });
+
+  it('indexes straight, curved, and moved link bounds without changing exact picks', () => {
+    const straight = link();
+    const curved = link(2);
+    const picker = new OwnedGraphLinkPicker();
+    picker.rebuild([straight, curved]);
+
+    expect(picker.pick({ x: 50, y: 100 }, 1)?.link).toBe(curved);
+    expect(picker.pick({ x: 50, y: 0 }, 1)?.link).toBe(straight);
+
+    (straight.source as FGNode).x = 1_000;
+    (straight.target as FGNode).x = 1_100;
+    picker.rebuild([straight, curved]);
+    expect(picker.pick({ x: 1_050, y: 0 }, 1)?.link).toBe(straight);
+    expect(picker.pick({ x: 50, y: 0 }, 1)).toBeUndefined();
   });
 });
