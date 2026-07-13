@@ -26,12 +26,20 @@ performance by hand.
 4. **No GPU compute physics** — future experiment flag, not this work.
 5. **Collision behavior is untouched.**
 
-## The bottleneck
+## The bottleneck (measured)
 
 Rendering is fine — the WebGPU renderer draws 10k nodes + edges in
 single-digit ms. The problem is `physics/forces/repulsion.ts`: brute-force
-all-pairs, O(n²). At 10k nodes that is ~50M pair interactions per step, so
-the simulation crawls and drag feels dead even though rendering stays smooth.
+all-pairs, O(n²), and it runs on the main thread below the worker threshold.
+
+Owner measurements (2026-07-13, FPS overlay): a 311-node example graph holds
+144 FPS · 6.9 ms; the CodeGraphy monorepo (2,224 nodes, 5,236 connections)
+drops to 47 FPS · 21.8 ms · 1% low 29. At 2,224 nodes physics is still
+main-thread (under the 5,000 threshold), so O(n²) repulsion eats the frame
+budget directly. And because frame time (21.8 ms) exceeds the fixed physics
+step (16.7 ms) with `maximumSubSteps` clamping, the simulation runs slower
+than real time — this is also why dragging feels sluggish next to Obsidian:
+the ripple isn't weak, it's late. Items 1–3 fix this.
 
 ## Work items, in order
 
@@ -66,6 +74,10 @@ snapshots, so a graph simulating at 20–30 steps/s still moves smoothly at
 display rate. Interpolation is render-only; picking, physics, and persisted
 positions use the authoritative simulation state.
 
+After items 1–3 land, re-verify drag feel against Obsidian: during drag the
+simulation should hold `alphaTarget ≈ 0.3` (d3's drag convention) so
+neighbors follow immediately, returning to 0 on release.
+
 ### 4. Lazy picker rebuilds
 
 `synchronizeOwnedFrameState` (`owned2d/frame.ts`) rebuilds the picking index
@@ -77,6 +89,27 @@ the first pointer event that needs it.
 Below a zoom threshold draw no labels (small fade band above it, like
 Obsidian). A fully zoomed-out large graph currently still draws every label
 sprite; past the threshold that work should be zero.
+
+### 6. Obsidian/d3 visual language: emphasize nodes, dim edges
+
+At monorepo scale our edges dominate and nodes disappear. Study Obsidian's
+graph view and d3-force examples and replicate the balance:
+
+- Node radius scales with connection count (hubs visibly larger), plain
+  filled circles carrying the visual weight.
+- Edges are thin, low-opacity, desaturated hairlines — background texture,
+  not foreground strokes. Today they render bright, saturated, and thick.
+- Arrows fade out with zoom the same way labels do; at far zoom draw none.
+
+Keep it in the existing WebGPU pipeline (style-stream values + shader
+alpha), no new render passes.
+
+### 7. Edge hover at distance
+
+Past a zoom-out threshold, either disable the edge hover tooltip entirely or
+add a clear hover indication (highlight the hovered edge) — currently at
+distance it is impossible to tell which edge the tooltip refers to.
+Preference: disable below the threshold, highlight above it.
 
 ## Definition of done
 
