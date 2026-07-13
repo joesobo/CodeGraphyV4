@@ -45,7 +45,7 @@ describe('extension/repoSettings/defaults', () => {
       physics: {
         repelForce: 10,
         linkDistance: 80,
-        linkForce: 0.15,
+        linkForce: 1,
         damping: 0.4,
         centerForce: 0.1,
         chargeRange: 200,

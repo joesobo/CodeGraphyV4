@@ -40,7 +40,7 @@ export function toOwnedPhysicsConfig(settings: IPhysicsSettings): Partial<GraphL
     centralGravity: normalizedSetting(settings.centerForce, 0, 1, 0.1),
     chargeStrength: -(repelForce / 20) * 500,
     linkDistance: normalizedSetting(settings.linkDistance, 30, 500, 80),
-    linkStrength: normalizedSetting(settings.linkForce, 0, 1, 0.15),
+    linkStrength: normalizedSetting(settings.linkForce, 0, 1, 1),
     velocityDecay: normalizedSetting(settings.damping, 0, 1, 0.4),
   };
 }
