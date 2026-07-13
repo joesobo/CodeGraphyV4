@@ -35,7 +35,11 @@ export type GraphLayoutWorkerCommand =
     mutationRevision: number;
     revision: number;
   }
-  | { type: 'setNodePosition'; index: number; mutationRevision: number; x: number; y: number }
+  | {
+    type: 'setNodePositions';
+    mutationRevision: number;
+    positions: Array<{ index: number; x: number; y: number }>;
+  }
   | { type: 'pin'; index: number; mutationRevision: number }
   | { type: 'release'; index: number; mutationRevision: number }
   | {

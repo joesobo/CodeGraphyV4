@@ -69,7 +69,11 @@ describe('owned graph layout worker command routing', () => {
       mutationRevision: 2,
       revision: 4,
     });
-    send({ type: 'setNodePosition', index: 0, mutationRevision: 3, x: 30, y: 40 });
+    send({
+      type: 'setNodePositions',
+      mutationRevision: 3,
+      positions: [{ index: 0, x: 30, y: 40 }],
+    });
     send({ type: 'pin', index: 0, mutationRevision: 4 });
     send({ type: 'release', index: 0, mutationRevision: 5 });
     send({

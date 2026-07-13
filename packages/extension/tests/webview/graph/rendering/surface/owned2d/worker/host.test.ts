@@ -91,20 +91,34 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(worker.messages).toContainEqual(expect.objectContaining({ type: 'setKinematics' }));
   });
 
-  it('coalesces direct drag positions to the latest worker command per display frame', () => {
-    const { engine, worker } = createEngine();
+  it('coalesces all direct drag positions into one worker command per display frame', () => {
+    const { engine, worker } = createEngine(vi.fn(), vi.fn(), {
+      nodeIds: ['primary', 'selected'],
+      initialX: Float32Array.of(0, 5),
+      initialY: Float32Array.of(0, 5),
+      radii: Float32Array.of(4, 4),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
 
     engine.setNodePosition(0, 10, 20);
     engine.setNodePosition(0, 30, 40);
+    engine.setNodePosition(1, 50, 60);
 
-    expect(worker.messages.filter(command => command.type === 'setNodePosition')).toHaveLength(0);
+    const positionCommands = () => (worker.messages as unknown as Array<{
+      type: string;
+      mutationRevision: number;
+      positions: Array<{ index: number; x: number; y: number }>;
+    }>).filter(command => command.type === 'setNodePositions');
+    expect(positionCommands()).toHaveLength(0);
     engine.tick();
-    expect(worker.messages.filter(command => command.type === 'setNodePosition')).toEqual([{
-      type: 'setNodePosition',
-      index: 0,
+    expect(positionCommands()).toEqual([{
+      type: 'setNodePositions',
       mutationRevision: 1,
-      x: 30,
-      y: 40,
+      positions: [
+        { index: 0, x: 30, y: 40 },
+        { index: 1, x: 50, y: 60 },
+      ],
     }]);
   });
 

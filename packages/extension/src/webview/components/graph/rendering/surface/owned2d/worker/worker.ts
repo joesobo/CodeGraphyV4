@@ -93,8 +93,11 @@ const commandHandlers = {
       type: 'kinematicsBuffers',
     }, { transfer: transferBufferList(command.buffers) });
   },
-  setNodePosition: (command) => {
-    requireEngine().setNodePosition(command.index, command.x, command.y);
+  setNodePositions: (command) => {
+    const current = requireEngine();
+    for (const position of command.positions) {
+      current.setNodePosition(position.index, position.x, position.y);
+    }
     setMutationRevision(command);
   },
   pin: (command) => {

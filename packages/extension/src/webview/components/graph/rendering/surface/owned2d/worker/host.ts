@@ -264,16 +264,14 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     if (this.pendingNodePositions.size === 0 || this.disposed || this.failed) return;
     this.mutationRevision += 1;
     const mutationRevision = this.mutationRevision;
-    for (const [index, position] of this.pendingNodePositions) {
-      this.directPositionRevision[index] = mutationRevision;
-      this.post({
-        type: 'setNodePosition',
-        index,
-        mutationRevision,
-        x: position.x,
-        y: position.y,
-      });
+    const positions = Array.from(
+      this.pendingNodePositions,
+      ([index, position]) => ({ index, x: position.x, y: position.y }),
+    );
+    for (const position of positions) {
+      this.directPositionRevision[position.index] = mutationRevision;
     }
+    this.post({ type: 'setNodePositions', mutationRevision, positions });
     this.pendingNodePositions.clear();
   }
 
