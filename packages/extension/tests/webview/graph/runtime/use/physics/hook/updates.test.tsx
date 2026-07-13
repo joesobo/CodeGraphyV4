@@ -13,11 +13,11 @@ describe('owned physics setting updates', () => {
     expect(toOwnedPhysicsConfig({
       ...DEFAULT_PHYSICS_SETTINGS,
       damping: Number.NaN,
-    }).damping).toBe(0.7);
+    }).velocityDecay).toBe(0.4);
   });
 
   it('maps changed settings without retaining a stale settings snapshot', () => {
-    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, linkDistance: 150 }).springLength)
+    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, linkDistance: 150 }).linkDistance)
       .toBe(150);
   });
 });

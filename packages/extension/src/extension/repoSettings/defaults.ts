@@ -92,7 +92,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
       repelForce: 10,
       linkDistance: 80,
       linkForce: 0.15,
-      damping: 0.7,
+      damping: 0.4,
       centerForce: 0.1,
       chargeRange: 200,
     },

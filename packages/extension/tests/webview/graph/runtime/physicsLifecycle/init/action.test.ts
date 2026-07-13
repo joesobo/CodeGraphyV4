@@ -23,7 +23,8 @@ describe('owned physics lifecycle actions', () => {
   });
 
   it('maps updates only from the current persisted settings', () => {
-    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.4 }).damping).toBe(0.4);
+    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.4 }).velocityDecay)
+      .toBe(0.4);
   });
 
   it('updates an existing layout instead of initializing a parallel physics engine', () => {
@@ -48,7 +49,7 @@ describe('owned physics lifecycle actions', () => {
 
   it('reheats the owned engine when physics settings change', () => {
     const layout = ownedLayout();
-    for (let tick = 0; tick < 300; tick += 1) layout.engine.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) layout.engine.tick(1000 / 60);
     expect(layout.engine.settled).toBe(true);
     applyOwnedPhysicsSettings(layout.engine, { ...DEFAULT_PHYSICS_SETTINGS, damping: 0.4 });
     expect(layout.engine.settled).toBe(false);

@@ -19,7 +19,7 @@ import {
 
 const DEFAULT_SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
-  damping: 0.7,
+  damping: 0.4,
   linkDistance: 80,
   linkForce: 0.15,
   repelForce: 10,
@@ -65,16 +65,16 @@ describe('owned graph layout settings', () => {
   it('maps every existing force setting to its semantic engine value', () => {
     expect(toOwnedPhysicsConfig({
       centerForce: 1,
-      damping: 0.7,
+      damping: 0.4,
       linkDistance: 500,
       linkForce: 1,
       repelForce: 20,
     })).toEqual({
       centralGravity: 1,
-      damping: 0.7,
-      gravitationalConstant: -500,
-      springLength: 500,
-      springConstant: 1,
+      chargeStrength: -500,
+      linkDistance: 500,
+      linkStrength: 1,
+      velocityDecay: 0.4,
     });
 
     expect(toOwnedPhysicsConfig({
@@ -85,10 +85,10 @@ describe('owned graph layout settings', () => {
       repelForce: Number.NaN,
     })).toEqual({
       centralGravity: 0.1,
-      damping: 0,
-      gravitationalConstant: -250,
-      springLength: 30,
-      springConstant: 1,
+      chargeStrength: -250,
+      linkDistance: 30,
+      linkStrength: 1,
+      velocityDecay: 0,
     });
   });
 

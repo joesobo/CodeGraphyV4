@@ -19,33 +19,33 @@ function engine() {
     radii: Float32Array.of(4),
     edgeSources: new Uint32Array(),
     edgeTargets: new Uint32Array(),
-  }, { centralGravity: 0, gravitationalConstant: 0 });
+  }, { centralGravity: 0, chargeStrength: 0 });
 }
 
 describe('owned physics settings', () => {
   it('maps every persisted force setting into the typed engine', () => {
     expect(toOwnedPhysicsConfig(DEFAULT_PHYSICS_SETTINGS)).toEqual({
       centralGravity: 0.1,
-      damping: 0.7,
-      gravitationalConstant: -250,
-      springLength: 80,
-      springConstant: 0.15,
+      chargeStrength: -250,
+      linkDistance: 80,
+      linkStrength: 0.15,
+      velocityDecay: 0.4,
     });
   });
 
   it.each([
-    ['repelForce', { repelForce: 20 }, 'gravitationalConstant', -500],
+    ['repelForce', { repelForce: 20 }, 'chargeStrength', -500],
     ['centerForce', { centerForce: 0.5 }, 'centralGravity', 0.5],
-    ['linkDistance', { linkDistance: 120 }, 'springLength', 120],
-    ['linkForce', { linkForce: 0.4 }, 'springConstant', 0.4],
-    ['damping', { damping: 0.2 }, 'damping', 0.2],
+    ['linkDistance', { linkDistance: 120 }, 'linkDistance', 120],
+    ['linkForce', { linkForce: 0.4 }, 'linkStrength', 0.4],
+    ['damping', { damping: 0.2 }, 'velocityDecay', 0.2],
   ] as const)('maps changed %s values', (_field, patch, mappedField, expected) => {
     expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, ...patch })[mappedField]).toBe(expected);
   });
 
   it('reheats typed physics when settings are applied', () => {
     const layout = engine();
-    for (let tick = 0; tick < 300; tick += 1) layout.tick(1000 / 60);
+    for (let tick = 0; tick < 320; tick += 1) layout.tick(1000 / 60);
     expect(layout.settled).toBe(true);
 
     applyOwnedPhysicsSettings(layout, { ...DEFAULT_PHYSICS_SETTINGS, centerForce: 1 });
@@ -53,8 +53,9 @@ describe('owned physics settings', () => {
     expect(layout.settled).toBe(false);
   });
 
-  it('uses damping as velocity loss rather than retention', () => {
-    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.7 }).damping).toBe(0.7);
+  it('maps persisted damping to D3 velocity decay', () => {
+    expect(toOwnedPhysicsConfig({ ...DEFAULT_PHYSICS_SETTINGS, damping: 0.7 }).velocityDecay)
+      .toBe(0.7);
   });
 
   it('scales charge for plugin-owned graph physics overrides', () => {
@@ -66,7 +67,7 @@ describe('owned physics settings', () => {
       radii: Float32Array.of(1, 1),
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
-    }, { centralGravity: 0, collisionIterations: 0, damping: 0 });
+    }, { centralGravity: 0, collisionIterations: 0, velocityDecay: 0 });
     layout.tick(1000 / 60);
     expect(layout.vx[0]).toBeLessThan(0);
     expect(layout.vx[1]).toBe(0);
