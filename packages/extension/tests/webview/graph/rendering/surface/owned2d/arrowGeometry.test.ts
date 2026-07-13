@@ -3,7 +3,6 @@ import type { OwnedGraphNodeStyle } from '../../../../../../src/webview/componen
 import {
   OWNED_ARROW_HALF_WIDTH,
   OWNED_ARROW_LENGTH,
-  OWNED_ARROW_VERTEX_LENGTH,
   ownedArrowEndpointInsets,
 } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/arrowGeometry';
 
@@ -23,12 +22,11 @@ function style(overrides: Partial<OwnedGraphNodeStyle> = {}): OwnedGraphNodeStyl
 }
 
 describe('owned graph arrow endpoint geometry', () => {
-  it('uses the compact twelve-unit concave arrow proportions', () => {
+  it('uses compact twelve-unit triangle proportions', () => {
     expect({
       halfWidth: OWNED_ARROW_HALF_WIDTH,
       length: OWNED_ARROW_LENGTH,
-      vertexLength: OWNED_ARROW_VERTEX_LENGTH,
-    }).toEqual({ halfWidth: 3.75, length: 12, vertexLength: 2.4 });
+    }).toEqual({ halfWidth: 3.75, length: 12 });
   });
 
   it('places straight arrows on circular and rectangular node boundaries', () => {

@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import {
-  drawOwnedGraphLabels,
-  drawOwnedGraphOverlay,
-} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drawing';
+import { drawOwnedGraphOverlay } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/drawing';
 
 function node(): FGNode {
   return {
@@ -44,29 +41,31 @@ describe('drawOwnedGraphOverlay', () => {
     expect(nodeLabelCanvasObject).toHaveBeenCalledOnce();
   });
 
-  it('keeps every visible node decoration in large graphs', () => {
+  it('draws decorations only for nodes inside the viewport', () => {
     const nodeLabelCanvasObject = vi.fn();
-    const nodes = Array.from({ length: 501 }, (_, index) => ({
-      ...node(),
-      id: `node-${index}`,
-      x: index,
-    }));
+    const visible = node();
+    const outside = { ...node(), id: 'outside', x: 20 };
 
-    drawOwnedGraphLabels({
+    drawOwnedGraphOverlay({
       context: {} as CanvasRenderingContext2D,
       directionMode: 'none',
       getLinkParticles: vi.fn(),
       getParticleColor: vi.fn(),
       globalScale: 1,
       links: [],
-      nodes,
+      nodes: [visible, outside],
       nodeLabelCanvasObject,
       particleSize: 1,
       particleSpeed: 1,
       timestamp: 0,
-      viewport: { minimumX: -1, maximumX: 501, minimumY: -1, maximumY: 1 },
+      viewport: { minimumX: -10, maximumX: 10, minimumY: -10, maximumY: 10 },
     });
 
-    expect(nodeLabelCanvasObject).toHaveBeenCalledTimes(501);
+    expect(nodeLabelCanvasObject).toHaveBeenCalledOnce();
+    expect(nodeLabelCanvasObject).toHaveBeenCalledWith(
+      visible,
+      expect.anything(),
+      1,
+    );
   });
 });

@@ -518,7 +518,7 @@ export class OwnedWebGpuRenderer {
     pass.setPipeline(this.linkPipeline);
     pass.setBindGroup(0, this.linkCameraBindGroup);
     pass.setVertexBuffer(0, this.linkBuffer);
-    pass.draw(frame.directionMode === 'arrows' ? 36 : 24, this.renderedLinkCount);
+    pass.draw(frame.directionMode === 'arrows' ? 30 : 24, this.renderedLinkCount);
   }
 
   private drawNodes(pass: GPURenderPassEncoder, frame: OwnedWebGpuFrame): void {

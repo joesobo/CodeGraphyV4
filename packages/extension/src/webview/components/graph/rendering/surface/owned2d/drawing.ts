@@ -63,21 +63,15 @@ export function drawOwnedGraphParticles(options: OwnedGraphDrawingOptions): void
 
 export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
   drawOwnedGraphParticles(options);
-  const { context, globalScale } = options;
+  const { context, globalScale, viewport } = options;
   for (const node of options.nodes) {
+    if (!Number.isFinite(node.x)
+      || !Number.isFinite(node.y)
+      || (node.x as number) < viewport.minimumX
+      || (node.x as number) > viewport.maximumX
+      || (node.y as number) < viewport.minimumY
+      || (node.y as number) > viewport.maximumY) continue;
     options.nodeLabelCanvasObject(node, context, globalScale);
-  }
-}
-
-export function drawOwnedGraphLabels(options: OwnedGraphDrawingOptions): void {
-  const visibleNodes = options.nodes.filter(node => Number.isFinite(node.x)
-    && Number.isFinite(node.y)
-    && (node.x as number) >= options.viewport.minimumX
-    && (node.x as number) <= options.viewport.maximumX
-    && (node.y as number) >= options.viewport.minimumY
-    && (node.y as number) <= options.viewport.maximumY);
-  for (const node of visibleNodes) {
-    options.nodeLabelCanvasObject(node, options.context, options.globalScale);
   }
 }
 

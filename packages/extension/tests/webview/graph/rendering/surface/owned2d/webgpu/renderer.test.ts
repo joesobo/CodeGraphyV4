@@ -183,7 +183,7 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect(linkValues[14]).toBeCloseTo(6.47, 2);
     expect(linkValues[15]).toBeCloseTo(12.69, 2);
     expect(linkValues[16]).toBe(1);
-    expect(harness.draw).toHaveBeenNthCalledWith(1, 36, 1);
+    expect(harness.draw).toHaveBeenNthCalledWith(1, 30, 1);
     expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
 
     renderer!.render(frame);
