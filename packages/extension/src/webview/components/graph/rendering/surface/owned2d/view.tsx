@@ -17,6 +17,7 @@ import {
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
 import {
   createRenderedFrameFpsSampler,
+  type RenderedFrameFpsSample,
   type RenderedFrameFpsSampler,
 } from './fps';
 import {
@@ -50,19 +51,17 @@ function resetOwnedGraphFps(
   }
 }
 
-function formatOwnedGraphFps(fps: number, frameTimeMs: number | null): string {
-  return frameTimeMs === null
-    ? `${Math.round(fps)} FPS`
-    : `${Math.round(fps)} FPS · ${frameTimeMs.toFixed(1)} ms`;
+function formatOwnedGraphFps(sample: RenderedFrameFpsSample): string {
+  return `${Math.round(sample.fps)} FPS · ${sample.frameTimeMs.toFixed(1)} ms`
+    + ` · 1% ${Math.round(sample.onePercentLowFps)}`;
 }
 
 function publishOwnedGraphFps(
-  fps: number,
-  frameTimeMs: number | null,
+  sample: RenderedFrameFpsSample,
   output: HTMLOutputElement | null,
 ): void {
   if (!output) return;
-  output.textContent = formatOwnedGraphFps(fps, frameTimeMs);
+  output.textContent = formatOwnedGraphFps(sample);
   output.hidden = false;
 }
 
@@ -171,7 +170,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       recordRenderedFrame: () => undefined,
       skipPhysicsFrameRef,
       styleVersionRef,
-      publishFps: (fps, frameTimeMs) => publishOwnedGraphFps(fps, frameTimeMs, fpsOutputRef.current),
+      publishFps: sample => publishOwnedGraphFps(sample, fpsOutputRef.current),
       onRendererError: message => {
         resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
         setRendererError(message);
@@ -235,6 +234,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     skipPhysicsFrameRef,
   });
 
+  const fpsSample = props.showFps ? fpsSamplerRef.current?.sample() ?? null : null;
+
   return (
     <div
       className="absolute inset-0"
@@ -266,12 +267,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
           className="pointer-events-none absolute bottom-2 left-2 rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
           data-codegraphy-overlay="fps"
           data-testid="graph-fps"
-          hidden={fpsRef.current === null}
+          hidden={fpsSample === null}
           style={{ zIndex: 20 }}
         >
-          {fpsRef.current === null
-            ? ''
-            : formatOwnedGraphFps(fpsRef.current, fpsSamplerRef.current?.frameTimeMs ?? null)}
+          {fpsSample === null ? '' : formatOwnedGraphFps(fpsSample)}
         </output>
       ) : null}
       {rendererError ? (

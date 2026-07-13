@@ -35,14 +35,23 @@ describe('owned graph frame loop', () => {
       runtime.recordRenderedFrame(100);
       return 100;
     });
-    const record = vi.fn(() => 57);
+    const publishedSample = { fps: 57, frameTimeMs: 17.5, onePercentLowFps: 31 };
+    const record = vi.fn(() => publishedSample);
     const publishFps = vi.fn();
     const runtime = {
       animationFrameRef: { current: null },
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       engineStopNotifiedRef: { current: false },
       fpsRef: { current: null },
-      fpsSamplerRef: { current: { fps: 57, frameTimeMs: 17.5, record, reset: vi.fn() } },
+      fpsSamplerRef: {
+        current: {
+          fps: 57,
+          frameTimeMs: 17.5,
+          record,
+          reset: vi.fn(),
+          sample: () => publishedSample,
+        },
+      },
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: null },
       layoutRef: { current: null },
@@ -63,7 +72,7 @@ describe('owned graph frame loop', () => {
 
     expect(record).toHaveBeenCalledWith(100);
     expect(runtime.fpsRef.current).toBe(57);
-    expect(publishFps).toHaveBeenCalledWith(57, 17.5);
+    expect(publishFps).toHaveBeenCalledWith(publishedSample);
 
     vi.mocked(renderOwnedGraphFrame).mockReturnValue(120);
     runtime.requestFrameRef.current();

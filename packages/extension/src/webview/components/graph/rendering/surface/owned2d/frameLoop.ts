@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import { createOwnedGraphControls, type OwnedGraphControlsRuntime } from './controls';
 import type { OwnedGraph2dControls } from './contracts';
 import { renderOwnedGraphFrame, type OwnedGraphFrameRuntime } from './frame';
-import type { RenderedFrameFpsSampler } from './fps';
+import type { RenderedFrameFpsSample, RenderedFrameFpsSampler } from './fps';
 
 export interface OwnedGraphFrameLoopRuntime
   extends OwnedGraphFrameRuntime, OwnedGraphControlsRuntime {
@@ -10,7 +10,7 @@ export interface OwnedGraphFrameLoopRuntime
   fpsRef: MutableRefObject<number | null>;
   fpsSamplerRef: MutableRefObject<RenderedFrameFpsSampler | null>;
   frameRequestedRef: MutableRefObject<boolean>;
-  publishFps(this: void, fps: number, frameTimeMs: number | null): void;
+  publishFps(this: void, sample: RenderedFrameFpsSample): void;
 }
 
 export interface OwnedGraphFrameLoop {
@@ -36,9 +36,9 @@ export function startOwnedGraphFrameLoop(
   runtime.recordRenderedFrame = (timestamp: number): void => {
     const sampler = runtime.fpsSamplerRef.current;
     if (!sampler) return;
-    const publishedFps = sampler.record(timestamp);
+    const publishedSample = sampler.record(timestamp);
     runtime.fpsRef.current = sampler.fps;
-    if (publishedFps !== undefined) runtime.publishFps(publishedFps, sampler.frameTimeMs);
+    if (publishedSample !== undefined) runtime.publishFps(publishedSample);
   };
 
   const renderFrame = (timestamp: number): void => {
