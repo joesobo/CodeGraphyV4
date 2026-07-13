@@ -192,20 +192,16 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 function createCallbacks() {
 	return {
 		getArrowColor: vi.fn(),
-		getArrowRelPos: vi.fn(),
 		getLinkColor: vi.fn(),
 		getLinkParticles: vi.fn(),
 		getLinkWidth: vi.fn(),
 		getParticleColor: vi.fn(),
-		linkCanvasObject: vi.fn(),
-		nodeCanvasObject: vi.fn(),
-		nodePointerAreaPaint: vi.fn(),
 	};
 }
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showFps' | 'showLabels'
+	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showFps' | 'showLabels'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -225,7 +221,6 @@ function createViewState(): Pick<
 		nodeSizeMode: 'connections',
 		particleSize: 3,
 		particleSpeed: 0.2,
-		physicsPaused: false,
 		physicsSettings,
 		pluginContextMenuItems: [],
 		pluginStatuses: [],
@@ -361,7 +356,6 @@ describe('graph/viewport/shell', () => {
 				onRenderFramePost: expect.any(Function),
 				particleSize: 3,
 				particleSpeed: 0.2,
-				physicsPaused: false,
 				physicsSettings: viewState.physicsSettings,
 				sharedProps: expect.objectContaining({ dagMode: 'td' }),
 			}),

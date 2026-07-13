@@ -44,7 +44,6 @@ export interface IStoreFields {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
-  physicsPaused: boolean;
   showLabels: boolean;
   cssSnippets: Record<string, boolean>;
   graphViewportScale: number | null;

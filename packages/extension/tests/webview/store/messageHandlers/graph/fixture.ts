@@ -24,7 +24,6 @@ export function createState(
     directionColor: '#ffffff',
     particleSpeed: 0,
     particleSize: 1,
-    physicsPaused: false,
     showLabels: true,
     cssSnippets: {},
     graphViewportScale: null,

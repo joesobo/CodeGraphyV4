@@ -4,15 +4,11 @@ import {
   getGraphLinkColor,
 } from './link/colors/model';
 import {
-  getGraphArrowRelPos,
   getGraphLinkParticles,
   getGraphLinkWidth,
 } from './link/metrics';
-import { renderBidirectionalLink } from './bidirectional/link';
 import {
   getNodeCanvasStyle,
-  paintNodePointerArea,
-  renderNodeCanvas,
   renderNodeCanvasLabel,
 } from './nodes/canvas2d';
 import type { GraphRuntime } from '../runtime/use/state';
@@ -25,7 +21,6 @@ export interface UseGraphCallbacksOptions {
   refs: Pick<
     GraphRuntime,
     | 'directionColorRef'
-    | 'directionModeRef'
     | 'edgeDecorationsRef'
     | 'graphAppearanceRef'
     | 'highlightedNeighborsRef'
@@ -41,16 +36,12 @@ export interface UseGraphCallbacksOptions {
 
 export interface UseGraphCallbacksResult {
   getArrowColor: (this: void, link: FGLink) => string;
-  getArrowRelPos: (this: void, link: FGLink) => number;
   getLinkColor: (this: void, link: FGLink) => string;
   getLinkParticles: (this: void, link: FGLink) => number;
   getLinkWidth: (this: void, link: FGLink) => number;
   getNodeStyle?: (this: void, node: FGNode) => OwnedGraphNodeStyle;
   getParticleColor: (this: void, link: FGLink) => string;
-  linkCanvasObject: (this: void, link: FGLink, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-  nodeCanvasObject: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
   nodeLabelCanvasObject?: (this: void, node: FGNode, ctx: CanvasRenderingContext2D, globalScale: number) => void;
-  nodePointerAreaPaint: (this: void, node: FGNode, color: string, ctx: CanvasRenderingContext2D) => void;
 }
 
 type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];
@@ -64,11 +55,9 @@ interface GraphCallbackContext {
 function getLinkRenderingContext(refs: GraphCallbackRefs) {
   return {
     directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
     edgeDecorationsRef: refs.edgeDecorationsRef,
     graphAppearanceRef: refs.graphAppearanceRef,
     highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
   };
 }
 
@@ -113,29 +102,10 @@ export function useGraphCallbacks({
       getNodeStyle(node) {
         return getNodeCanvasStyle(getNodeCanvasContext(contextRef.current), node);
       },
-      nodeCanvasObject(node, ctx, globalScale) {
-        renderNodeCanvas(
-          getNodeCanvasContext(contextRef.current),
-          node,
-          ctx,
-          globalScale,
-        );
-      },
       nodeLabelCanvasObject(node, ctx, globalScale) {
         renderNodeCanvasLabel(
           getNodeCanvasContext(contextRef.current),
           node,
-          ctx,
-          globalScale,
-        );
-      },
-      nodePointerAreaPaint(node, color, ctx) {
-        paintNodePointerArea(node, color, ctx);
-      },
-      linkCanvasObject(link, ctx, globalScale) {
-        renderBidirectionalLink(
-          getLinkRenderingContext(contextRef.current.refs),
-          link,
           ctx,
           globalScale,
         );
@@ -145,9 +115,6 @@ export function useGraphCallbacks({
       },
       getLinkParticles(link) {
         return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link);
-      },
-      getArrowRelPos(_link) {
-        return getGraphArrowRelPos();
       },
       getArrowColor(_link) {
         return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));

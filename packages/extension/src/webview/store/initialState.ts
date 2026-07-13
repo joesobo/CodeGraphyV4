@@ -24,7 +24,6 @@ export const INITIAL_STATE: GraphStateFields = {
   directionColor: DEFAULT_DIRECTION_COLOR,
   particleSpeed: 0.005,
   particleSize: 4,
-  physicsPaused: false,
   showLabels: true,
   cssSnippets: {},
   graphViewportScale: null,

@@ -1,3 +1,4 @@
+import { DEFAULT_PHYSICS_SETTINGS } from '../../../../shared/settings/physics';
 import { isPlainObject } from './plainObject';
 
 const CURRENT_SETTINGS_VERSION = 2;
@@ -12,8 +13,12 @@ export function migratePersistedSettings(value: unknown): unknown {
   };
   if (!isPlainObject(value.physics)) return migrated;
   const physics = { ...value.physics };
-  if (physics.damping === HISTORICAL_DAMPING_DEFAULT) physics.damping = 0.4;
-  if (physics.linkForce === HISTORICAL_LINK_FORCE_DEFAULT) physics.linkForce = 1;
+  if (physics.damping === HISTORICAL_DAMPING_DEFAULT) {
+    physics.damping = DEFAULT_PHYSICS_SETTINGS.damping;
+  }
+  if (physics.linkForce === HISTORICAL_LINK_FORCE_DEFAULT) {
+    physics.linkForce = DEFAULT_PHYSICS_SETTINGS.linkForce;
+  }
   migrated.physics = physics;
   return migrated;
 }

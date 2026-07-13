@@ -139,7 +139,7 @@ describe('owned graph frame execution', () => {
   it('submits only enough idle frames to establish the initial FPS sample', () => {
     const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
     const { runtime } = runtimeFixture(renderer);
-    runtime.propsRef.current.physicsPaused = true;
+    runtime.layoutRef.current?.engine.pause();
     runtime.propsRef.current.showFps = true;
 
     renderOwnedGraphFrame(runtime, canvasFixture(), 100, null);

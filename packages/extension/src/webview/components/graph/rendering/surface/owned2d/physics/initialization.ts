@@ -1,4 +1,5 @@
 import type { GraphLayoutConfig, GraphLayoutInput, GraphLayoutState } from './contracts';
+import { updateVisibleLinkDegrees } from './linkDegrees';
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
@@ -85,6 +86,7 @@ export function createGraphLayoutState(
       throw new Error(`Edge ${edge} references a missing node`);
     }
   }
+  updateVisibleLinkDegrees(state);
   return state;
 }
 

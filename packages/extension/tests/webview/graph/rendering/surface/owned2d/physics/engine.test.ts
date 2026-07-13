@@ -351,8 +351,9 @@ describe('graph layout engine', () => {
     const initialY = [...engine.y];
 
     engine.pause();
-    engine.tick(1_000);
+    const pausedTick = engine.tick(1_000);
 
+    expect(pausedTick.moving).toBe(false);
     expect([...engine.x]).toEqual(initialX);
     expect([...engine.y]).toEqual(initialY);
 

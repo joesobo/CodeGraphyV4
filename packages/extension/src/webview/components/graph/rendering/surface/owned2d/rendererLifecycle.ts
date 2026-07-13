@@ -1,6 +1,5 @@
 import type { MutableRefObject } from 'react';
-import type { Surface2dProps } from './contracts';
-import { canRunOwnedGraphPhysics, type OwnedGraphLayout } from './layout';
+import type { OwnedGraphLayout } from './layout';
 import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 export type OwnedGraphRendererStatus = 'error' | 'initializing' | 'webgpu';
@@ -10,7 +9,6 @@ export interface OwnedGraphRendererLifecycleRuntime {
   frameRequestedRef: MutableRefObject<boolean>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
-  propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
   onError(this: void, message: string): void;
@@ -48,7 +46,7 @@ function activateOwnedGraphRenderer(
   runtime.gpuRendererRef.current = renderer;
   runtime.rendererOperationalRef.current = true;
   const layout = runtime.layoutRef.current;
-  if (layout && canRunOwnedGraphPhysics(true, runtime.propsRef.current.physicsPaused)) {
+  if (layout) {
     layout.engine.resume();
     layout.engine.reheat();
     runtime.engineStopNotifiedRef.current = false;

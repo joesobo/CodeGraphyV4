@@ -14,7 +14,6 @@ function resetStore(overrides: Record<string, unknown> = {}) {
     nodeSizeMode: 'connections',
     particleSize: 2,
     particleSpeed: 0.1,
-    physicsPaused: false,
     physicsSettings: {
       centerForce: 0.1,
       damping: 0.7,
@@ -42,7 +41,6 @@ describe('graph/store', () => {
         directionMode: 'particles',
         particleSize: 7,
         particleSpeed: 0.35,
-        physicsPaused: true,
         showLabels: false,
       });
     });
@@ -57,7 +55,6 @@ describe('graph/store', () => {
       nodeSizeMode: 'connections',
       particleSize: 7,
       particleSpeed: 0.35,
-      physicsPaused: true,
       showLabels: false,
     });
     expect(result.current.favorites).toEqual(new Set(['src/app.ts']));

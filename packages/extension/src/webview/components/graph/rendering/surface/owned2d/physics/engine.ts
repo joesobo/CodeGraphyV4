@@ -13,6 +13,7 @@ import { applyLinkForces } from './forces/link';
 import { applyRepulsionForces } from './forces/repulsion';
 import { integrateGraphLayout } from './integration';
 import { createGraphLayoutState } from './initialization';
+import { updateVisibleLinkDegrees } from './linkDegrees';
 import { UniformGrid } from './spatialGrid';
 
 export class TypedGraphLayoutEngine implements GraphLayoutEngine {
@@ -80,7 +81,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       return { moving: false, settled: true, steps: 0 };
     }
     if (this.paused) {
-      return { moving: !this.settled, settled: this.settled, steps: 0 };
+      return { moving: false, settled: this.settled, steps: 0 };
     }
     if (!Number.isFinite(elapsedMs) || elapsedMs < 0) {
       throw new Error('Graph layout elapsed time must be a non-negative finite number');
@@ -151,6 +152,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
     } else {
       this.flags[index] &= ~GraphNodeFlag.Hidden;
     }
+    updateVisibleLinkDegrees(this.state);
     this.reheat();
   }
 

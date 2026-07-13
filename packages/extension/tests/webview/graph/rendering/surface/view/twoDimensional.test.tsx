@@ -38,10 +38,9 @@ describe('Surface2d', () => {
     expect(captured().directionMode).toBe('arrows');
   });
 
-  it('passes arrow position and color callbacks', () => {
+  it('passes the arrow color callback', () => {
     const props = createDefaultSurfaceProps();
     render(<Surface2d {...props} />);
-    expect(captured().getArrowRelPos).toBe(props.getArrowRelPos);
     expect(captured().getArrowColor).toBe(props.getArrowColor);
   });
 

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { OwnedGraphNodeStyle } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
-import { ownedArrowEndpointInsets } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/arrowGeometry';
+import {
+  OWNED_ARROW_HALF_WIDTH,
+  OWNED_ARROW_LENGTH,
+  OWNED_ARROW_VERTEX_LENGTH,
+  ownedArrowEndpointInsets,
+} from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/arrowGeometry';
 
 function style(overrides: Partial<OwnedGraphNodeStyle> = {}): OwnedGraphNodeStyle {
   return {
@@ -18,6 +23,14 @@ function style(overrides: Partial<OwnedGraphNodeStyle> = {}): OwnedGraphNodeStyl
 }
 
 describe('owned graph arrow endpoint geometry', () => {
+  it('uses the compact twelve-unit concave arrow proportions', () => {
+    expect({
+      halfWidth: OWNED_ARROW_HALF_WIDTH,
+      length: OWNED_ARROW_LENGTH,
+      vertexLength: OWNED_ARROW_VERTEX_LENGTH,
+    }).toEqual({ halfWidth: 3.75, length: 12, vertexLength: 2.4 });
+  });
+
   it('places straight arrows on circular and rectangular node boundaries', () => {
     expect(ownedArrowEndpointInsets(
       { x: 0, y: 0 },
@@ -41,13 +54,33 @@ describe('owned graph arrow endpoint geometry', () => {
     expect(insets.target).toBeCloseTo(Math.sqrt(40), 5);
   });
 
-  it('returns zero insets for a degenerate edge', () => {
+  it('matches triangle, hexagon, star, and rounded-rectangle boundaries', () => {
+    const targetInset = (targetStyle: Partial<OwnedGraphNodeStyle>, target = { x: 100, y: 0 }) => (
+      ownedArrowEndpointInsets(
+        { x: 0, y: 0 },
+        target,
+        0,
+        style(),
+        style(targetStyle),
+      ).target
+    );
+
+    expect(targetInset({ shape: 'triangle' })).toBeCloseTo(10 / Math.sqrt(3), 5);
+    expect(targetInset({ shape: 'hexagon' })).toBeCloseTo(10 / 0.866025, 5);
+    expect(targetInset({ shape: 'star' })).toBeCloseTo(4.8, 5);
+    expect(targetInset(
+      { cornerRadius: 4, shape: 'rectangle' },
+      { x: 100, y: 100 },
+    )).toBeCloseTo(6 * Math.sqrt(2) + 4, 5);
+  });
+
+  it('places self-loop arrows on separate source and target boundaries', () => {
     expect(ownedArrowEndpointInsets(
       { x: 5, y: 5 },
       { x: 5, y: 5 },
       0.5,
       style(),
-      style(),
-    )).toEqual({ source: 0, target: 0 });
+      style({ height: 10, shape: 'rectangle', width: 40 }),
+    )).toEqual({ source: 10, target: 20 });
   });
 });

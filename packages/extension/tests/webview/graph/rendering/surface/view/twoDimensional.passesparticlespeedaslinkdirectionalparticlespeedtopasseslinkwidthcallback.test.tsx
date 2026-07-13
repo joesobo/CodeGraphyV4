@@ -35,25 +35,18 @@ describe('Surface2d owned-renderer callback wiring', () => {
     expect(captured().sharedProps.graphData.nodes[0]?.size).toBe(7);
   });
 
-  it('passes physics pause state without introducing redraw policy shims', () => {
-    const props = createDefaultSurfaceProps();
-    props.physicsPaused = true;
-    render(<Surface2d {...props} />);
-    expect(captured().physicsPaused).toBe(true);
-  });
-
   it('passes node decoration callbacks', () => {
     const props = createDefaultSurfaceProps();
     render(<Surface2d {...props} />);
     expect(captured().nodeLabelCanvasObject).toBe(props.nodeLabelCanvasObject);
   });
 
-  it('keeps WebGPU node bodies separate from Canvas decoration callbacks', () => {
+  it('passes WebGPU node styles independently from Canvas labels', () => {
     const props = createDefaultSurfaceProps();
     props.getNodeStyle = vi.fn();
     render(<Surface2d {...props} />);
     expect(captured().getNodeStyle).toBe(props.getNodeStyle);
-    expect(captured().nodeLabelCanvasObject).not.toBe(props.nodeCanvasObject);
+    expect(captured().nodeLabelCanvasObject).toBe(props.nodeLabelCanvasObject);
   });
 
   it('passes link color callback', () => {

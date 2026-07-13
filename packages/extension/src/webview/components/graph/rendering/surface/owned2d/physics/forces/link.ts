@@ -7,23 +7,11 @@ export function applyLinkForces(
   config: GraphLayoutConfig,
   alpha: number,
 ): void {
-  countVisibleLinkDegrees(state);
   for (let edge = 0; edge < state.edgeSources.length; edge += 1) {
     const source = state.edgeSources[edge];
     const target = state.edgeTargets[edge];
     if (isNodeHidden(state, source) || isNodeHidden(state, target)) continue;
     applyLinkForce(state, config, alpha, source, target);
-  }
-}
-
-function countVisibleLinkDegrees(state: GraphLayoutState): void {
-  state.linkDegrees.fill(0);
-  for (let edge = 0; edge < state.edgeSources.length; edge += 1) {
-    const source = state.edgeSources[edge];
-    const target = state.edgeTargets[edge];
-    if (isNodeHidden(state, source) || isNodeHidden(state, target)) continue;
-    state.linkDegrees[source] += 1;
-    state.linkDegrees[target] += 1;
   }
 }
 
