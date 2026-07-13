@@ -10,7 +10,7 @@ struct CameraUniform {
   graphToClip: vec2f,
   pixelToClip: vec2f,
   arrowOpacity: f32,
-  _padding: f32,
+  highlightedLinkIndex: f32,
 };
 @group(0) @binding(0) var<uniform> camera: CameraUniform;
 `;
@@ -164,6 +164,7 @@ fn curveControl(source: vec2f, destination: vec2f, curvature: f32) -> vec2f {
 @vertex
 fn linkVertexMain(
   @builtin(vertex_index) vertexIndex: u32,
+  @builtin(instance_index) instanceIndex: u32,
   @location(0) graphSource: vec2f,
   @location(1) graphDestination: vec2f,
   @location(2) halfWidthAndCurvature: vec2f,
@@ -190,7 +191,13 @@ fn linkVertexMain(
   let lengthSquared = max(dot(tangent, tangent), 0.0000001);
   let normal = vec2f(-tangent.y, tangent.x) * inverseSqrt(lengthSquared);
   let center = (graphPosition - camera.center) * camera.graphToClip * vec2f(1.0, -1.0);
-  let outerHalfWidth = halfWidthAndCurvature.x + 1.0;
+  let highlighted = abs(f32(instanceIndex) - camera.highlightedLinkIndex) < 0.5;
+  let halfWidth = select(
+    halfWidthAndCurvature.x,
+    max(1.5, halfWidthAndCurvature.x + 1.0),
+    highlighted,
+  );
+  let outerHalfWidth = halfWidth + 1.0;
 
   var output: LinkVertexOutput;
   output.position = vec4f(
@@ -198,9 +205,13 @@ fn linkVertexMain(
     0.0,
     1.0,
   );
-  output.color = color;
+  output.color = select(
+    color,
+    vec4f(color.rgb, max(color.a, 0.95)),
+    highlighted,
+  );
   output.edgeDistance = outerHalfWidth * side;
-  output.halfWidth = halfWidthAndCurvature.x;
+  output.halfWidth = halfWidth;
   return output;
 }
 

@@ -2,7 +2,10 @@
 
 import type { DirectionMode, NodeShape2D } from '../../../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../../../model/build';
-import { graphDetailOpacity } from '../../../detailVisibility';
+import {
+  GRAPH_EDGE_HOVER_MIN_ZOOM,
+  graphDetailOpacity,
+} from '../../../detailVisibility';
 import type { OwnedGraphNodeStyle } from '../contracts';
 import type { OwnedGraphCamera } from '../camera';
 import { writeOwnedArrowCurveParameters } from '../arrowGeometry';
@@ -29,6 +32,7 @@ export interface OwnedWebGpuFrame {
   getLinkOpacity(this: void, link: FGLink): number;
   getLinkWidth(this: void, link: FGLink): number;
   getNodeStyle(this: void, node: FGNode): OwnedGraphNodeStyle;
+  hoveredLink?: FGLink | null;
   links: readonly FGLink[];
   nodes: readonly FGNode[];
   positionVersion: number;
@@ -192,6 +196,7 @@ export class OwnedWebGpuRenderer {
   private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
   private renderedLinkCount = 0;
+  private renderedLinkIndexByLink = new WeakMap<FGLink, number>();
   private uploadedArrowsVisible = false;
   private uploadedEdgeStride = 1;
   private uploadedLinks: readonly FGLink[] | undefined;
@@ -454,11 +459,15 @@ export class OwnedWebGpuRenderer {
     this.cameraValues[4] = 2 / frame.cssWidth;
     this.cameraValues[5] = 2 / frame.cssHeight;
     this.cameraValues[6] = graphDetailOpacity(frame.camera.zoom);
+    this.cameraValues[7] = frame.hoveredLink
+      ? this.renderedLinkIndexByLink.get(frame.hoveredLink) ?? -1
+      : -1;
     this.device.queue.writeBuffer(this.cameraBuffer, 0, this.cameraValues);
   }
 
   private edgeStride(frame: OwnedWebGpuFrame): number {
-    return frame.links.length > 250_000 && frame.camera.zoom < 0.5 ? 2 : 1;
+    return frame.links.length > 250_000
+      && frame.camera.zoom < GRAPH_EDGE_HOVER_MIN_ZOOM ? 2 : 1;
   }
 
   private packNodePositions(frame: OwnedWebGpuFrame): void {
@@ -550,15 +559,18 @@ export class OwnedWebGpuRenderer {
       }
     }
     this.renderedLinkCount = 0;
+    this.renderedLinkIndexByLink = new WeakMap();
     for (let index = 0; index < frame.links.length; index += edgeStride) {
-      if (this.packLinkInstance(
+      if (!this.packLinkInstance(
         frame,
         index,
         this.renderedLinkCount,
         writeGeometry,
         writeStyle,
         writeArrows,
-      )) this.renderedLinkCount += 1;
+      )) continue;
+      this.renderedLinkIndexByLink.set(frame.links[index], this.renderedLinkCount);
+      this.renderedLinkCount += 1;
     }
   }
 
@@ -701,8 +713,8 @@ export class OwnedWebGpuRenderer {
     if (!this.canRender()) throw new Error('WebGPU frame submitted while the frame queue is full');
     const stylesChanged = this.updateStyleCaches(frame);
     this.resizeCanvas(frame);
-    this.uploadCamera(frame);
     this.updateGraphBuffers(frame, stylesChanged);
+    this.uploadCamera(frame);
     this.submitRenderPass(frame);
     this.trackSubmittedFrame();
   }

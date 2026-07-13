@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -100,6 +101,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const [rendererStatus, setRendererStatus] = useState<OwnedGraphRendererStatus>('initializing');
   const [rendererError, setRendererError] = useState<string | null>(null);
   const [linkTooltip, setLinkTooltip] = useState<LinkTooltip | null>(null);
+  const clearLinkHover = useCallback((): boolean => {
+    if (!hoveredLinkRef.current) return false;
+    hoveredLinkRef.current = null;
+    setLinkTooltip(null);
+    return true;
+  }, []);
   const layoutRuntime = useRef<OwnedGraphLayoutRuntime>({
     cameraRef,
     canvasRef,
@@ -155,11 +162,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     const frameLoopRuntime: OwnedGraphFrameLoopRuntime = {
       animationFrameRef,
       cameraRef,
+      clearLinkHover,
       engineStopNotifiedRef,
       fpsRef,
       fpsSamplerRef,
       frameRequestedRef,
       gpuRendererRef,
+      hoveredLinkRef,
       layoutRef,
       pluginForcesRef,
       pluginKinematicsVersionRef,
@@ -179,11 +188,13 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     };
     const frameLoop = startOwnedGraphFrameLoop(frameLoopRuntime, canvas, props.fg2dRef);
     return () => frameLoop.dispose();
-  }, [props.fg2dRef]);
+  }, [clearLinkHover, props.fg2dRef]);
 
   useEffect(() => {
+    clearLinkHover();
     reconcileOwnedGraphRuntime(layoutRuntime);
   }, [
+    clearLinkHover,
     props.sharedProps.dagLevelDistance,
     props.sharedProps.dagMode,
     props.sharedProps.graphData,
@@ -217,6 +228,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
 
   const interactionHandlers = createOwnedGraphInteractionHandlers({
     cameraRef,
+    clearLinkHover,
     ctrlClickSessionRef,
     engineStopNotifiedRef,
     hoveredLinkRef,

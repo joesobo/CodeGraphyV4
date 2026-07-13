@@ -67,6 +67,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     engineStopNotifiedRef: { current: false },
     fpsRef: { current: null },
     gpuRendererRef: { current: renderer },
+    hoveredLinkRef: { current: null },
     layoutRef: { current: layout },
     onRendererError: vi.fn(),
     pluginKinematicsVersionRef: { current: -1 },
@@ -117,7 +118,11 @@ describe('owned graph frame execution', () => {
     expect([layout.engine.x[0], layout.engine.y[0]]).not.toEqual([0, 0]);
     expect(node.x).toBe(layout.engine.x[0]);
     expect(renderer.render).toHaveBeenCalledOnce();
-    expect(submittedFrame).toMatchObject({ positionVersion: 1, styleVersion: 1 });
+    expect(submittedFrame).toMatchObject({
+      hoveredLink: null,
+      positionVersion: 1,
+      styleVersion: 1,
+    });
     expect(runtime.propsRef.current.nodeLabelCanvasObject).toHaveBeenCalledWith(
       node,
       expect.anything(),

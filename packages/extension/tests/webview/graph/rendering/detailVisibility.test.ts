@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   graphDetailOpacity,
+  shouldEnableGraphEdgeHover,
   shouldRenderGraphDetails,
 } from '../../../../src/webview/components/graph/rendering/detailVisibility';
 
@@ -8,6 +9,11 @@ describe('graph detail zoom visibility', () => {
   it('stops labels and arrows entirely at the distant zoom cutoff', () => {
     expect(graphDetailOpacity(0.35)).toBe(0);
     expect(shouldRenderGraphDetails(0.35)).toBe(false);
+  });
+
+  it('enables edge hover only where every edge is rendered', () => {
+    expect(shouldEnableGraphEdgeHover(0.49)).toBe(false);
+    expect(shouldEnableGraphEdgeHover(0.5)).toBe(true);
   });
 
   it('fades details in above the cutoff and reaches full opacity nearby', () => {

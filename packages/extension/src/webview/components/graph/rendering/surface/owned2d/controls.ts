@@ -13,6 +13,7 @@ import { updateOwnedGraphViewportNode } from './viewportNode';
 
 export interface OwnedGraphControlsRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
+  clearLinkHover(this: void): boolean;
   engineStopNotifiedRef: MutableRefObject<boolean>;
   fpsRef: MutableRefObject<number | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
@@ -22,6 +23,7 @@ export interface OwnedGraphControlsRuntime {
 }
 
 function invalidateCamera(runtime: OwnedGraphControlsRuntime): void {
+  runtime.clearLinkHover();
   runtime.requestFrameRef.current();
 }
 

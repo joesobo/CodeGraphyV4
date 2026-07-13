@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import type { FGNode } from '../../../model/build';
+import type { FGLink, FGNode } from '../../../model/build';
 import type { OwnedGraphCamera } from './camera';
 import { canvasSize } from './canvasGeometry';
 import type { OwnedGraphNodeStyle, Surface2dProps } from './contracts';
@@ -43,6 +43,7 @@ export interface OwnedGraphFrameRuntime {
   engineStopNotifiedRef: MutableRefObject<boolean>;
   fpsRef: MutableRefObject<number | null>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
+  hoveredLinkRef: MutableRefObject<FGLink | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   pluginForcesRef: MutableRefObject<OwnedGraphPluginForces>;
   pluginKinematicsVersionRef: MutableRefObject<number>;
@@ -181,6 +182,7 @@ function submitOwnedWebGpuFrame(
       getLinkOpacity: props.getLinkOpacity,
       getLinkWidth: props.getLinkWidth,
       getNodeStyle: props.getNodeStyle ?? defaultNodeStyle,
+      hoveredLink: runtime.hoveredLinkRef.current,
       links: layout.links,
       nodes: layout.nodes,
       positionVersion: renderSample?.version ?? runtime.positionVersionRef.current,
