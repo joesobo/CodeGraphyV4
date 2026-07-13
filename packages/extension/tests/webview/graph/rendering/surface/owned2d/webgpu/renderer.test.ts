@@ -6,6 +6,7 @@ import {
   parseWebGpuColor,
   webGpuNodeShapeCode,
 } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/renderer';
+import { LINK_SHADER } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/webgpu/shaders';
 
 function expectColor(actual: readonly number[], expected: readonly number[]): void {
   expect(actual).toHaveLength(expected.length);
@@ -141,6 +142,11 @@ function rendererFrame(): OwnedWebGpuFrame {
 }
 
 describe('OwnedWebGpuRenderer frame submission', () => {
+  it('uses the hovered link uniform to emphasize one rendered instance', () => {
+    expect(LINK_SHADER).toContain('@builtin(instance_index) instanceIndex: u32');
+    expect(LINK_SHADER).toContain('camera.highlightedLinkIndex');
+  });
+
   it('requests a software WebGPU adapter when no native adapter is available', async () => {
     const harness = webGpuHarness();
     harness.gpu.requestAdapter
@@ -183,11 +189,11 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       call[0].label,
       call[4] ?? (call[2] as ArrayBufferView).byteLength,
     ])).toEqual([
-      ['CodeGraphy camera uniform', 32],
       ['CodeGraphy node positions', 16],
       ['CodeGraphy node styles', 104],
       ['CodeGraphy link geometry', 24],
       ['CodeGraphy link styles', 44],
+      ['CodeGraphy camera uniform', 32],
     ]);
     const uploadedFloats = (label: string): Float32Array => {
       const call = harness.writeBuffer.mock.calls.find(candidate => candidate[0].label === label)!;
@@ -232,22 +238,50 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       call[0].label,
       call[4] ?? (call[2] as ArrayBufferView).byteLength,
     ])).toEqual([
-      ['CodeGraphy camera uniform', 32],
       ['CodeGraphy node positions', 16],
       ['CodeGraphy link geometry', 24],
+      ['CodeGraphy camera uniform', 32],
     ]);
 
     harness.writeBuffer.mockClear();
     frame.styleVersion += 1;
     renderer!.render(frame);
     expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
-      'CodeGraphy camera uniform',
       'CodeGraphy node styles',
       'CodeGraphy link geometry',
       'CodeGraphy link styles',
+      'CodeGraphy camera uniform',
     ]);
     await Promise.resolve();
     expect(onFrameComplete).toHaveBeenCalledTimes(3);
+  });
+
+  it('highlights a hovered edge with camera-only GPU updates', async () => {
+    const harness = webGpuHarness();
+    const renderer = await OwnedWebGpuRenderer.create(harness.canvas, {
+      onDeviceLost: vi.fn(),
+      onFrameComplete: vi.fn(),
+    });
+    const frame = rendererFrame();
+    frame.hoveredLink = frame.links[0];
+    renderer!.render(frame);
+
+    const initialCameraWrite = harness.writeBuffer.mock.calls.find(
+      call => call[0].label === 'CodeGraphy camera uniform',
+    )!;
+    expect((initialCameraWrite[2] as Float32Array)[7]).toBe(0);
+
+    harness.writeBuffer.mockClear();
+    renderer!.render(frame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .toEqual(['CodeGraphy camera uniform']);
+
+    harness.writeBuffer.mockClear();
+    frame.hoveredLink = null;
+    renderer!.render(frame);
+    expect(harness.writeBuffer.mock.calls.map(call => call[0].label))
+      .toEqual(['CodeGraphy camera uniform']);
+    expect((harness.writeBuffer.mock.calls[0][2] as Float32Array)[7]).toBe(-1);
   });
 
   it('uploads sampled render positions for both nodes and edge endpoints', async () => {
@@ -305,12 +339,12 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     renderer!.render(frame);
 
     expect(harness.writeBuffer.mock.calls.map(call => call[0].label)).toEqual([
-      'CodeGraphy camera uniform',
       'CodeGraphy link geometry',
+      'CodeGraphy camera uniform',
     ]);
-    const cameraValues = harness.writeBuffer.mock.calls[0][2] as Float32Array;
+    const cameraValues = harness.writeBuffer.mock.calls[1][2] as Float32Array;
     expect(cameraValues[6]).toBeCloseTo(0.5);
-    const visibleGeometryCall = harness.writeBuffer.mock.calls[1];
+    const visibleGeometryCall = harness.writeBuffer.mock.calls[0];
     const visibleGeometry = new Float32Array(
       visibleGeometryCall[2] as ArrayBuffer,
       visibleGeometryCall[3] as number,

@@ -1,4 +1,5 @@
 export const GRAPH_DETAIL_MIN_ZOOM = 0.35;
+export const GRAPH_EDGE_HOVER_MIN_ZOOM = 0.5;
 const GRAPH_DETAIL_FADE_RANGE = 1.2;
 const MIN_VISIBLE_DETAIL_OPACITY = 0.01;
 
@@ -12,4 +13,8 @@ export function graphDetailOpacity(zoom: number): number {
 
 export function shouldRenderGraphDetails(zoom: number): boolean {
   return graphDetailOpacity(zoom) > 0;
+}
+
+export function shouldEnableGraphEdgeHover(zoom: number): boolean {
+  return zoom >= GRAPH_EDGE_HOVER_MIN_ZOOM;
 }

@@ -7,6 +7,7 @@ import type {
   WheelEvent as ReactWheelEvent,
 } from 'react';
 import type { FGLink, FGNode } from '../../../model/build';
+import { shouldEnableGraphEdgeHover } from '../../detailVisibility';
 import { clampOwnedGraphZoom, screenToGraph, type OwnedGraphCamera } from './camera';
 import { canvasSize, localCanvasPointer } from './canvasGeometry';
 import type { Surface2dProps } from './contracts';
@@ -39,6 +40,7 @@ export interface LinkTooltip {
 
 interface OwnedGraphInteractionRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
+  clearLinkHover(this: void): boolean;
   ctrlClickSessionRef: MutableRefObject<CtrlClickSession | null>;
   engineStopNotifiedRef: MutableRefObject<boolean>;
   hoveredLinkRef: MutableRefObject<FGLink | null>;
@@ -219,7 +221,7 @@ function updateHover(
   screen: { x: number; y: number },
 ): void {
   const hovered = pickNode(runtime, layout, world)?.node ?? null;
-  const hoveredLink = hovered
+  const hoveredLink = hovered || !shouldEnableGraphEdgeHover(runtime.cameraRef.current.zoom)
     ? null
     : pickLink(runtime, layout, world)?.link ?? null;
   if (hovered !== runtime.hoveredNodeRef.current) {
@@ -228,8 +230,12 @@ function updateHover(
     runtime.requestFrameRef.current();
   }
   if (hoveredLink !== runtime.hoveredLinkRef.current) {
-    runtime.hoveredLinkRef.current = hoveredLink;
-    runtime.setLinkTooltip(hoveredLink ? { link: hoveredLink, screen } : null);
+    if (!hoveredLink) runtime.clearLinkHover();
+    else {
+      runtime.hoveredLinkRef.current = hoveredLink;
+      runtime.setLinkTooltip({ link: hoveredLink, screen });
+    }
+    runtime.requestFrameRef.current();
     return;
   }
   if (hoveredLink) {
@@ -389,6 +395,7 @@ function zoomAtPointer(
   runtime.cameraRef.current.zoom = nextZoom;
   runtime.cameraRef.current.centerX = world.x - (screen.x - size.width / 2) / nextZoom;
   runtime.cameraRef.current.centerY = world.y - (screen.y - size.height / 2) / nextZoom;
+  runtime.clearLinkHover();
   runtime.requestFrameRef.current();
 }
 
@@ -398,8 +405,7 @@ function leavePointerSurface(runtime: OwnedGraphInteractionRuntime): void {
     runtime.propsRef.current.sharedProps.onNodeHover(null);
     runtime.requestFrameRef.current();
   }
-  runtime.hoveredLinkRef.current = null;
-  runtime.setLinkTooltip(null);
+  if (runtime.clearLinkHover()) runtime.requestFrameRef.current();
 }
 
 export function createOwnedGraphInteractionHandlers(
