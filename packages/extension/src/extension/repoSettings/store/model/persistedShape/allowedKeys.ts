@@ -1,6 +1,7 @@
 export const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'version',
   'maxFiles',
+  'showFps',
   'verboseDiagnostics',
   'include',
   'respectGitignore',

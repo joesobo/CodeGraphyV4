@@ -68,6 +68,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     particleSize: 4,
     showLabels: true,
     maxFiles: 500,
+    showFps: false,
     verboseDiagnostics: false,
     nodeSizeMode: 'connections',
   };
@@ -98,6 +99,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
+      showFps: false,
       verboseDiagnostics: false,
       nodeSizeMode: 'connections',
     };

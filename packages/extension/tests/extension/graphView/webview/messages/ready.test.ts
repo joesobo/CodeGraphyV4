@@ -13,6 +13,7 @@ describe('graph view ready message', () => {
     const readyNotified = await applyWebviewReady(
       {
         maxFiles: 500,
+        showFps: true,
         verboseDiagnostics: true,
         dagMode: 'td',
         nodeSizeMode: 'connections',
@@ -52,6 +53,10 @@ describe('graph view ready message', () => {
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'MAX_FILES_UPDATED',
       payload: { maxFiles: 500 },
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'SHOW_FPS_UPDATED',
+      payload: { showFps: true },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'VERBOSE_DIAGNOSTICS_UPDATED',

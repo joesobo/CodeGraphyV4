@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { OwnedGraph2dControls } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/contracts';
+import { renderOwnedGraphFrame } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame';
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/frameLoop';
+
+vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2d/frame', () => ({
+  renderOwnedGraphFrame: vi.fn(),
+}));
 
 class ResizeObserverHarness {
   static instance: ResizeObserverHarness | undefined;
@@ -18,6 +23,56 @@ afterEach(() => {
 });
 
 describe('owned graph frame loop', () => {
+  it('publishes sampled FPS only for submitted frames while the setting is enabled', () => {
+    let scheduledFrame: FrameRequestCallback | undefined;
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      scheduledFrame = callback;
+      return 17;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    vi.stubGlobal('ResizeObserver', ResizeObserverHarness);
+    vi.mocked(renderOwnedGraphFrame).mockImplementation((runtime) => {
+      runtime.recordRenderedFrame(100);
+      return 100;
+    });
+    const record = vi.fn(() => 57);
+    const publishFps = vi.fn();
+    const runtime = {
+      animationFrameRef: { current: null },
+      cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
+      engineStopNotifiedRef: { current: false },
+      fpsRef: { current: null },
+      fpsSamplerRef: { current: { fps: 57, record, reset: vi.fn() } },
+      frameRequestedRef: { current: false },
+      gpuRendererRef: { current: null },
+      layoutRef: { current: null },
+      propsRef: { current: { showFps: true } },
+      publishFps,
+      recordRenderedFrame: () => undefined,
+      rendererOperationalRef: { current: false },
+      requestFrameRef: { current: () => {} },
+      skipPhysicsFrameRef: { current: false },
+    } as unknown as OwnedGraphFrameLoopRuntime;
+
+    const loop = startOwnedGraphFrameLoop(
+      runtime,
+      document.createElement('canvas'),
+      { current: undefined },
+    );
+    scheduledFrame?.(100);
+
+    expect(record).toHaveBeenCalledWith(100);
+    expect(runtime.fpsRef.current).toBe(57);
+    expect(publishFps).toHaveBeenCalledWith(57);
+
+    vi.mocked(renderOwnedGraphFrame).mockReturnValue(120);
+    runtime.requestFrameRef.current();
+    scheduledFrame?.(120);
+    expect(record).toHaveBeenCalledOnce();
+
+    loop.dispose();
+  });
+
   it('keeps frame demand distinct from RAF scheduling and cleans up loop ownership', () => {
     const requestAnimationFrame = vi.fn(() => 17);
     const cancelAnimationFrame = vi.fn();
@@ -32,6 +87,7 @@ describe('owned graph frame loop', () => {
       frameRequestedRef: { current: false },
       gpuRendererRef: { current: { canRender: () => false } },
       layoutRef: { current: null },
+      recordRenderedFrame: () => undefined,
       rendererOperationalRef: { current: false },
       requestFrameRef: { current: () => {} },
       skipPhysicsFrameRef: { current: false },

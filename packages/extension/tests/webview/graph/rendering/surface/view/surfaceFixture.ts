@@ -19,6 +19,7 @@ export function createDefaultSurfaceProps(): Surface2dProps {
     onRenderFramePost: vi.fn(),
     particleSize: 4,
     particleSpeed: 0.005,
+    showFps: false,
     sharedProps: {
       cooldownTicks: 20,
       d3AlphaDecay: 0.0228,

@@ -55,6 +55,7 @@ describe('graphView/settings/snapshotMessages', () => {
       pluginData: {},
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
+      showFps: false,
       verboseDiagnostics: false,
       nodeSizeMode: 'uniform',
     });
@@ -81,6 +82,7 @@ describe('graphView/settings/snapshotMessages', () => {
         },
         showLabels: false,
         maxFiles: 250,
+        showFps: true,
         verboseDiagnostics: true,
       }),
       {
@@ -121,6 +123,7 @@ describe('graphView/settings/snapshotMessages', () => {
       },
       showLabels: false,
       maxFiles: 250,
+      showFps: true,
       verboseDiagnostics: true,
       nodeSizeMode: 'churn',
     });
@@ -189,6 +192,7 @@ describe('graphView/settings/snapshotMessages', () => {
           },
           showLabels: false,
           maxFiles: 250,
+          showFps: true,
           verboseDiagnostics: true,
           nodeSizeMode: 'churn',
         },
@@ -238,6 +242,10 @@ describe('graphView/settings/snapshotMessages', () => {
         {
           type: 'MAX_FILES_UPDATED',
           payload: { maxFiles: 250 },
+        },
+        {
+          type: 'SHOW_FPS_UPDATED',
+          payload: { showFps: true },
         },
         {
           type: 'VERBOSE_DIAGNOSTICS_UPDATED',

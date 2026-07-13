@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import type { Surface2dProps } from '../../src/webview/components/graph/rendering/surface/owned2d/contracts';
 
 const mockMethods = {
+  getFps: vi.fn(() => null),
   zoomToFit: vi.fn(),
   zoom: vi.fn((scale?: number) => scale ?? 1),
   centerAt: vi.fn(),

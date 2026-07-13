@@ -93,6 +93,7 @@ export type WebviewToExtensionMessage =
       };
     }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
+  | { type: 'UPDATE_SHOW_FPS'; payload: { showFps: boolean } }
   | { type: 'UPDATE_VERBOSE_DIAGNOSTICS'; payload: { verboseDiagnostics: boolean } }
   | {
       type: 'NODE_BOUNDS_RESPONSE';

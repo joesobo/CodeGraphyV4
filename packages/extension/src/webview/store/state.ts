@@ -79,6 +79,7 @@ export interface GraphState {
   edgeVisibility: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  showFps: boolean;
   verboseDiagnostics: boolean;
   activeFilePath: string | null;
   expandedGroupId: string | null;
@@ -110,6 +111,7 @@ export interface GraphState {
   setDepthMode: (depthMode: boolean) => void;
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
+  setShowFps: (enabled: boolean) => void;
   setVerboseDiagnostics: (enabled: boolean) => void;
   beginInitialBootstrap: () => void;
   beginPluginAssetLoad: () => void;

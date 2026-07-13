@@ -100,6 +100,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
+  | { type: 'SHOW_FPS_UPDATED'; payload: { showFps: boolean } }
   | { type: 'VERBOSE_DIAGNOSTICS_UPDATED'; payload: { verboseDiagnostics: boolean } }
   | { type: 'CSS_SNIPPETS_UPDATED'; payload: { snippets: Record<string, boolean>; stylesheets: string[] } }
   | { type: 'PLUGIN_DATA_UPDATED'; payload: { pluginId: string; data: unknown } }

@@ -19,6 +19,7 @@ const SURFACE_2D_PROP_KEYS = [
   'particleSpeed',
   'physicsPaused',
   'physicsSettings',
+  'showFps',
   'sharedProps',
 ] as const;
 

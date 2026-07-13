@@ -5,6 +5,7 @@ type SettingsUpdateConfigKey =
   | 'showOrphans'
   | 'bidirectionalEdges'
   | 'maxFiles'
+  | 'showFps'
   | 'verboseDiagnostics';
 
 function getSimpleSettingsUpdateConfig(
@@ -17,6 +18,8 @@ function getSimpleSettingsUpdateConfig(
       return { key: 'bidirectionalEdges', value: message.payload.bidirectionalMode };
     case 'UPDATE_MAX_FILES':
       return { key: 'maxFiles', value: message.payload.maxFiles };
+    case 'UPDATE_SHOW_FPS':
+      return { key: 'showFps', value: message.payload.showFps };
     case 'UPDATE_VERBOSE_DIAGNOSTICS':
       return { key: 'verboseDiagnostics', value: message.payload.verboseDiagnostics };
     default:

@@ -205,7 +205,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showLabels'
+	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'pluginStatuses' | 'showFps' | 'showLabels'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -229,6 +229,7 @@ function createViewState(): Pick<
 		physicsSettings,
 		pluginContextMenuItems: [],
 		pluginStatuses: [],
+		showFps: false,
 		showLabels: true,
 	};
 }

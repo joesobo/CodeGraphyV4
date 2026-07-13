@@ -33,6 +33,7 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'particleSize',
       'particleSpeed',
       'plugins',
+      'showFps',
       'showLabels',
     ]);
   });

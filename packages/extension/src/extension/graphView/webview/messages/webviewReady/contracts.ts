@@ -4,6 +4,7 @@ import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes
 
 export interface GraphViewReadyState {
   maxFiles: number;
+  showFps?: boolean;
   verboseDiagnostics: boolean;
   depthMode?: boolean;
   dagMode: DagMode;

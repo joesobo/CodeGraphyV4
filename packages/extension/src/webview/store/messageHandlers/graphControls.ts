@@ -103,6 +103,12 @@ export function handleMaxFilesUpdated(
   return { maxFiles: message.payload.maxFiles };
 }
 
+export function handleShowFpsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'SHOW_FPS_UPDATED' }>,
+): PartialState {
+  return { showFps: message.payload.showFps };
+}
+
 export function handleVerboseDiagnosticsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'VERBOSE_DIAGNOSTICS_UPDATED' }>,
 ): PartialState {

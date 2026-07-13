@@ -67,6 +67,7 @@ export function buildGraphDebugSnapshot({
 }): GraphDebugSnapshot {
   return {
     ...getContainerSize(containerRef),
+    fps: graph?.getFps?.() ?? null,
     nodes: nodes.map((node) => buildDebugNodeSnapshot(node, graph)),
     zoom: graph?.zoom?.() ?? null,
   };

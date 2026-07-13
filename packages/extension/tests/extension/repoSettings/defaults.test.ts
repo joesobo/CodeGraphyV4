@@ -14,6 +14,7 @@ describe('extension/repoSettings/defaults', () => {
     expect(createDefaultCodeGraphyRepoSettings()).toEqual({
       version: 1,
       maxFiles: DEFAULT_MAX_FILES,
+      showFps: false,
       verboseDiagnostics: false,
       include: ['**/*'],
       respectGitignore: true,

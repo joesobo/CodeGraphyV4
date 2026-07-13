@@ -24,6 +24,7 @@ function runtime(): { runtime: OwnedGraphControlsRuntime; node: FGNode } {
     runtime: {
       cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
       engineStopNotifiedRef: { current: true },
+      fpsRef: { current: 58 },
       layoutRef: { current: layout },
       positionVersionRef: { current: 0 },
       rendererOperationalRef: { current: false },
@@ -54,6 +55,7 @@ describe('owned graph controls', () => {
     controls.centerAt(10, 20);
     expect(fixture.runtime.cameraRef.current).toMatchObject({ centerX: 10, centerY: 20 });
     expect(fixture.runtime.skipPhysicsFrameRef.current).toBe(true);
+    expect(controls.getFps()).toBe(58);
     expect(controls.graph2ScreenCoords(10, 20)).toEqual({ x: 50, y: 40 });
     expect(controls.screen2GraphCoords(50, 40)).toEqual({ x: 10, y: 20 });
     expect(controls.zoom(2)).toBe(controls);

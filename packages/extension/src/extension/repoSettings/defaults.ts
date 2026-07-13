@@ -15,6 +15,7 @@ import {
 export interface ICodeGraphyRepoSettings {
   version: 1;
   maxFiles: number;
+  showFps: boolean;
   verboseDiagnostics: boolean;
   include: string[];
   respectGitignore: boolean;
@@ -56,6 +57,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
   return {
     version: 1,
     maxFiles: DEFAULT_MAX_FILES,
+    showFps: false,
     verboseDiagnostics: false,
     include: ['**/*'],
     respectGitignore: true,

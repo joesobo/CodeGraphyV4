@@ -14,6 +14,7 @@ import { updateOwnedGraphViewportNode } from './viewportNode';
 export interface OwnedGraphControlsRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
   engineStopNotifiedRef: MutableRefObject<boolean>;
+  fpsRef: MutableRefObject<number | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   positionVersionRef: MutableRefObject<number>;
   rendererOperationalRef: MutableRefObject<boolean>;
@@ -54,6 +55,7 @@ export function createOwnedGraphControls(
       runtime.engineStopNotifiedRef.current = false;
       runtime.requestFrameRef.current();
     },
+    getFps: () => runtime.fpsRef.current,
     graph2ScreenCoords: (x, y) => {
       const size = canvasSize(canvas);
       return graphToScreen(runtime.cameraRef.current, size.width, size.height, x, y);

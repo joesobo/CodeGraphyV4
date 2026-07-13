@@ -12,6 +12,7 @@ export function createScalarActions(set: SetState) {
     setDepthMode: (depthMode: boolean) => set({ depthMode }),
     setDagMode: (mode: GraphState['dagMode']) => set({ dagMode: mode }),
     setMaxFiles: (max: number) => set({ maxFiles: max }),
+    setShowFps: (enabled: boolean) => set({ showFps: enabled }),
     setVerboseDiagnostics: (enabled: boolean) => set({ verboseDiagnostics: enabled }),
   };
 }

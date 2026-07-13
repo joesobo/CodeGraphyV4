@@ -17,6 +17,7 @@ export const SILENT_CONFIG_KEYS = new Set([
   'particleSize',
   'particleSpeed',
   'plugins',
+  'showFps',
   'showLabels',
 ]);
 

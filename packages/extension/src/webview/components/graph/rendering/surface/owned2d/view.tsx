@@ -16,6 +16,10 @@ import {
 } from './interaction';
 import { startOwnedGraphFrameLoop, type OwnedGraphFrameLoopRuntime } from './frameLoop';
 import {
+  createRenderedFrameFpsSampler,
+  type RenderedFrameFpsSampler,
+} from './fps';
+import {
   applyOwnedGraphRuntimePhysicsSettings,
   disposeOwnedGraphLayoutRuntime,
   reconcileOwnedGraphRuntime,
@@ -32,6 +36,28 @@ import { OwnedWebGpuRenderer } from './webgpu/renderer';
 
 const INITIAL_CAMERA: OwnedGraphCamera = { centerX: 0, centerY: 0, zoom: 1 };
 
+function resetOwnedGraphFps(
+  sampler: RenderedFrameFpsSampler | null,
+  fpsRef: { current: number | null },
+  output: HTMLOutputElement | null,
+): void {
+  sampler?.reset();
+  fpsRef.current = null;
+  if (output) {
+    output.hidden = true;
+    output.textContent = '';
+  }
+}
+
+function publishOwnedGraphFps(
+  fps: number,
+  output: HTMLOutputElement | null,
+): void {
+  if (!output) return;
+  output.textContent = `${Math.round(fps)} FPS`;
+  output.hidden = false;
+}
+
 export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gpuCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,6 +68,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const cameraRef = useRef<OwnedGraphCamera>({ ...INITIAL_CAMERA });
   const animationFrameRef = useRef<number | null>(null);
   const frameRequestedRef = useRef(false);
+  const fpsOutputRef = useRef<HTMLOutputElement>(null);
+  const fpsRef = useRef<number | null>(null);
+  const fpsSamplerRef = useRef<RenderedFrameFpsSampler | null>(null);
+  if (!fpsSamplerRef.current) fpsSamplerRef.current = createRenderedFrameFpsSampler();
   const requestFrameRef = useRef<() => void>(() => undefined);
   const skipPhysicsFrameRef = useRef(false);
   const ctrlClickSessionRef = useRef<CtrlClickSession | null>(null);
@@ -88,6 +118,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       rendererOperationalRef,
       requestFrameRef,
       onError: message => {
+        resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
         setRendererError(message);
         setRendererStatus('error');
       },
@@ -107,6 +138,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       animationFrameRef,
       cameraRef,
       engineStopNotifiedRef,
+      fpsRef,
+      fpsSamplerRef,
       frameRequestedRef,
       gpuRendererRef,
       layoutRef,
@@ -117,9 +150,12 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
       propsRef,
       rendererOperationalRef,
       requestFrameRef,
+      recordRenderedFrame: () => undefined,
       skipPhysicsFrameRef,
       styleVersionRef,
+      publishFps: fps => publishOwnedGraphFps(fps, fpsOutputRef.current),
       onRendererError: message => {
+        resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
         setRendererError(message);
         setRendererStatus('error');
       },
@@ -153,6 +189,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     props.physicsSettings?.repelForce,
     layoutRuntime,
   ]);
+
+  useEffect(() => {
+    resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
+    requestFrameRef.current();
+  }, [props.showFps]);
 
   useEffect(() => {
     requestFrameRef.current();
@@ -200,6 +241,18 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         onWheel={interactionHandlers.handleWheel}
         style={{ touchAction: 'none' }}
       />
+      {props.showFps ? (
+        <output
+          ref={fpsOutputRef}
+          className="pointer-events-none absolute bottom-2 left-2 rounded bg-popover/80 px-1.5 py-0.5 font-mono text-xs text-popover-foreground"
+          data-codegraphy-overlay="fps"
+          data-testid="graph-fps"
+          hidden={fpsRef.current === null}
+          style={{ zIndex: 20 }}
+        >
+          {fpsRef.current === null ? '' : `${Math.round(fpsRef.current)} FPS`}
+        </output>
+      ) : null}
       {rendererError ? (
         <div
           className="pointer-events-none absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground"

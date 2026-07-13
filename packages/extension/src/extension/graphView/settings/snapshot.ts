@@ -49,6 +49,7 @@ export function captureGraphViewSettingsSnapshot(
     pluginData: readConfigRecord<unknown>(config, 'pluginData'),
     showLabels: config.get('showLabels', true),
     maxFiles: config.get('maxFiles', DEFAULT_MAX_FILES),
+    showFps: config.get('showFps', false),
     verboseDiagnostics: config.get('verboseDiagnostics', false),
     nodeSizeMode,
   };
