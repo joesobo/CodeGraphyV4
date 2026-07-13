@@ -8,9 +8,11 @@ export function synchronizeOwnedDraggedNodes(
     const node = layout.nodes[index];
     if (node.isDragging !== true) continue;
     if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) continue;
+    if (!draggedIndexes.has(index)) {
+      layout.engine.pin(index);
+      draggedIndexes.add(index);
+    }
     layout.engine.setNodePosition(index, node.x as number, node.y as number);
-    layout.engine.pin(index);
-    draggedIndexes.add(index);
   }
 }
 

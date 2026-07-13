@@ -23,7 +23,12 @@ export type GraphLayoutWorkerCommand =
     recycledBuffers?: GraphLayoutTransferBuffers[];
     revision: number;
   }
-  | { type: 'setConfig'; config: Partial<GraphLayoutConfig>; mutationRevision: number }
+  | {
+    type: 'setConfig';
+    config: Partial<GraphLayoutConfig>;
+    mutationRevision: number;
+    structuralRevision: number;
+  }
   | {
     type: 'setKinematics';
     buffers: GraphLayoutTransferBuffers;
@@ -33,7 +38,13 @@ export type GraphLayoutWorkerCommand =
   | { type: 'setNodePosition'; index: number; mutationRevision: number; x: number; y: number }
   | { type: 'pin'; index: number; mutationRevision: number }
   | { type: 'release'; index: number; mutationRevision: number }
-  | { type: 'setHidden'; index: number; hidden: boolean; mutationRevision: number }
+  | {
+    type: 'setHidden';
+    index: number;
+    hidden: boolean;
+    mutationRevision: number;
+    structuralRevision: number;
+  }
   | { type: 'setAlpha'; alpha: number; mutationRevision: number }
   | { type: 'setAlphaTarget'; alpha: number; mutationRevision: number }
   | { type: 'reheat'; alpha?: number; mutationRevision: number }
@@ -46,6 +57,7 @@ export interface GraphLayoutWorkerTickMessage {
   type: 'tick';
   mutationRevision: number;
   revision: number;
+  structuralRevision: number;
   result: GraphLayoutTickResult;
 }
 

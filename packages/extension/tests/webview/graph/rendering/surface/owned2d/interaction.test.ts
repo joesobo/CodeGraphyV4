@@ -82,6 +82,62 @@ describe('owned graph lazy interaction picking', () => {
     expect(rebuildLink).not.toHaveBeenCalled();
   });
 
+  it('pins a node once when pointer movement crosses the drag threshold', () => {
+    const graphNode = node();
+    const engine = createGraphLayoutEngine({
+      nodeIds: ['a'],
+      initialX: Float32Array.of(0),
+      initialY: Float32Array.of(0),
+      radii: Float32Array.of(8),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+    const pin = vi.spyOn(engine, 'pin');
+    const layout: OwnedGraphLayout = {
+      engine,
+      kind: 'main-thread',
+      links: [],
+      nodes: [graphNode],
+    };
+    const runtime = {
+      cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
+      clearLinkHover: () => false,
+      ctrlClickSessionRef: { current: null },
+      engineStopNotifiedRef: { current: false },
+      hoveredLinkRef: { current: null },
+      hoveredNodeRef: { current: null },
+      layoutRef: { current: layout },
+      linkPickerPositionVersionRef: { current: -1 },
+      linkPickerRef: { current: new OwnedGraphLinkPicker() },
+      pickerPositionVersionRef: { current: -1 },
+      pickerRef: { current: new OwnedGraphNodePicker() },
+      pointerSessionRef: { current: null },
+      positionVersionRef: { current: 0 },
+      propsRef: { current: createDefaultSurfaceProps() },
+      requestFrameRef: { current: vi.fn() },
+      setLinkTooltip: vi.fn(),
+      synchronizedPositionVersionRef: { current: 0 },
+    };
+    const handlers = createOwnedGraphInteractionHandlers(runtime);
+    const canvas = {
+      getBoundingClientRect: () => ({ height: 100, left: 0, top: 0, width: 100 }),
+      setPointerCapture: vi.fn(),
+    } as unknown as HTMLCanvasElement;
+    const pointer = (clientX: number) => ({
+      button: 0,
+      currentTarget: canvas,
+      nativeEvent: { clientX, clientY: 50 },
+      pointerId: 1,
+    } as never);
+
+    handlers.handlePointerDown(pointer(50));
+    expect(pin).not.toHaveBeenCalled();
+    handlers.handlePointerMove(pointer(54));
+    expect(pin).toHaveBeenCalledOnce();
+    handlers.handlePointerMove(pointer(60));
+    expect(pin).toHaveBeenCalledOnce();
+  });
+
   it('skips distant edge hover and reuses the lazy link index while details are visible', () => {
     const source = { ...node(), id: 'source', x: -20 };
     const target = { ...node(), id: 'target', x: 20 };
