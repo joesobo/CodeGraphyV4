@@ -125,6 +125,11 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
         setRendererError(null);
         setRendererStatus('webgpu');
       },
+      onRecovering: () => {
+        resetOwnedGraphFps(fpsSamplerRef.current, fpsRef, fpsOutputRef.current);
+        setRendererError(null);
+        setRendererStatus('initializing');
+      },
     };
     const lifecycle = startOwnedGraphRendererLifecycle(rendererRuntime, gpuCanvas);
     return () => lifecycle.dispose();
