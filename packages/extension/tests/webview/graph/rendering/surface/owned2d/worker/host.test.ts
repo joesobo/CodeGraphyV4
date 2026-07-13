@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  GraphNodeFlag,
+  type GraphLayoutEngine,
+} from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/contracts';
+import {
   createEngine,
   outputBuffers,
   publishTick,
@@ -7,6 +11,191 @@ import {
 } from './hostFixture';
 
 describe('worker-hosted graph layout lifecycle', () => {
+  it('exposes the initialized graph contract through the hosted engine', () => {
+    const { engine } = createEngine(vi.fn(), vi.fn(), {
+      nodeIds: ['a', 'b'],
+      initialX: Float32Array.of(1, 2),
+      initialY: Float32Array.of(3, 4),
+      radii: Float32Array.of(5, 6),
+      flags: Uint8Array.of(GraphNodeFlag.Pinned, 0),
+      chargeStrengthMultipliers: Float32Array.of(0.5, 1.5),
+      edgeSources: Uint32Array.of(0),
+      edgeTargets: Uint32Array.of(1),
+      targetX: Float32Array.of(7, 8),
+      targetY: Float32Array.of(9, 10),
+    });
+
+    expect(engine.nodeIds).toEqual(['a', 'b']);
+    expect(engine.getNodeIndex('b')).toBe(1);
+    expect(Array.from(engine.chargeStrengthMultipliers)).toEqual([0.5, 1.5]);
+    expect(Array.from(engine.radii)).toEqual([5, 6]);
+    expect(Array.from(engine.flags)).toEqual([GraphNodeFlag.Pinned, 0]);
+    expect(Array.from(engine.edgeSources)).toEqual([0]);
+    expect(Array.from(engine.edgeTargets)).toEqual([1]);
+    expect(Array.from(engine.targetX)).toEqual([7, 8]);
+    expect(Array.from(engine.targetY)).toEqual([9, 10]);
+  });
+
+  it('routes structural and simulation controls with monotonic revisions', () => {
+    const { engine, worker } = createEngine();
+
+    engine.pin(0);
+    expect(engine.flags[0] & GraphNodeFlag.Pinned).toBe(GraphNodeFlag.Pinned);
+    engine.release(0);
+    expect(engine.flags[0] & GraphNodeFlag.Pinned).toBe(0);
+    engine.setConfig({ centralGravity: 0.2 });
+    engine.setHidden(0, true);
+    expect(engine.flags[0] & GraphNodeFlag.Hidden).toBe(GraphNodeFlag.Hidden);
+    engine.setHidden(0, false);
+    expect(engine.flags[0] & GraphNodeFlag.Hidden).toBe(0);
+    engine.setAlpha(0.4);
+    expect(engine.alpha).toBe(0.4);
+    engine.setAlphaTarget(0.2);
+    engine.reheat(0.5);
+    expect(engine.alpha).toBe(0.5);
+    engine.pause();
+    engine.resume();
+
+    expect(worker.messages.slice(1)).toEqual([
+      { type: 'pin', index: 0, mutationRevision: 1 },
+      { type: 'release', index: 0, mutationRevision: 2 },
+      {
+        type: 'setConfig',
+        config: { centralGravity: 0.2 },
+        mutationRevision: 3,
+        structuralRevision: 1,
+      },
+      {
+        type: 'setHidden',
+        hidden: true,
+        index: 0,
+        mutationRevision: 4,
+        structuralRevision: 2,
+      },
+      {
+        type: 'setHidden',
+        hidden: false,
+        index: 0,
+        mutationRevision: 5,
+        structuralRevision: 3,
+      },
+      { type: 'setAlpha', alpha: 0.4, mutationRevision: 6 },
+      { type: 'setAlphaTarget', alpha: 0.2, mutationRevision: 7 },
+      { type: 'reheat', alpha: 0.5, mutationRevision: 8 },
+      { type: 'pause', mutationRevision: 9 },
+      { type: 'resume', mutationRevision: 10 },
+    ]);
+  });
+
+  it('does not reheat an empty graph when applying configuration', () => {
+    const { engine } = createEngine(vi.fn(), vi.fn(), {
+      nodeIds: [],
+      initialX: new Float32Array(),
+      initialY: new Float32Array(),
+      radii: new Float32Array(),
+      edgeSources: new Uint32Array(),
+      edgeTargets: new Uint32Array(),
+    });
+
+    engine.setAlpha(0.1);
+    engine.setConfig({ centralGravity: 0.2 });
+
+    expect(engine.alpha).toBe(0.1);
+  });
+
+  it.each([
+    ['direct position', (engine: GraphLayoutEngine) => engine.setNodePosition(0, 10, 20)],
+    ['hidden state', (engine: GraphLayoutEngine) => engine.setHidden(0, true)],
+    ['alpha target', (engine: GraphLayoutEngine) => engine.setAlphaTarget(0.2)],
+    ['reheat', (engine: GraphLayoutEngine) => engine.reheat(0.5)],
+  ])('wakes a settled layout after %s changes', (_name, mutate) => {
+    const { engine, worker } = createEngine();
+    const [first] = outputBuffers(worker);
+    engine.tick();
+    publishTick(worker, first, {
+      result: { moving: false, settled: true, steps: 1 },
+    });
+    expect(engine.settled).toBe(true);
+
+    mutate(engine);
+    expect(engine.settled).toBe(false);
+    engine.tick();
+
+    expect(tickCommands(worker)).toHaveLength(2);
+  });
+
+  it('does not submit a tick while paused before the first frame', () => {
+    const { engine, worker } = createEngine();
+
+    engine.pause();
+    expect(engine.tick()).toEqual({ moving: false, settled: false, steps: 0 });
+    expect(tickCommands(worker)).toHaveLength(0);
+    engine.resume();
+    engine.tick();
+    expect(tickCommands(worker)).toHaveLength(1);
+  });
+
+  it('keeps an already pinned node authoritative when accepting neighbor movement', () => {
+    const { engine, worker } = createEngine();
+    const [first] = outputBuffers(worker);
+
+    engine.pin(0);
+    engine.tick();
+    publishTick(worker, first, { mutationRevision: 1 });
+
+    expect(engine.x[0]).toBe(0);
+    expect(engine.y[0]).toBe(0);
+    expect(engine.vx[0]).toBe(0);
+    expect(engine.vy[0]).toBe(0);
+  });
+
+  it('falls back once with the default error while preserving paused kinematics', () => {
+    const onUpdate = vi.fn();
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { engine, worker } = createEngine(onUpdate);
+
+    engine.pause();
+    worker.onerror?.({ message: '' } as ErrorEvent);
+    worker.onerror?.({ message: 'second failure' } as ErrorEvent);
+    engine.setKinematics(
+      Float32Array.of(10),
+      Float32Array.of(20),
+      Float32Array.of(1),
+      Float32Array.of(2),
+    );
+
+    expect(worker.terminate).toHaveBeenCalledOnce();
+    expect(onUpdate).toHaveBeenCalledOnce();
+    expect(warning).toHaveBeenCalledWith(
+      '[CodeGraphy] Layout worker failed; using main-thread physics.',
+      'Graph layout worker failed',
+    );
+    expect(Array.from(engine.x)).toEqual([10]);
+    expect(Array.from(engine.y)).toEqual([20]);
+    expect(engine.tick().steps).toBe(0);
+    engine.resume();
+    expect(engine.tick().steps).toBe(1);
+  });
+
+  it('ignores worker callbacks and further commands after disposal', () => {
+    const onUpdate = vi.fn();
+    const { engine, worker } = createEngine(onUpdate);
+    const messagesBeforeDispose = worker.messages.length;
+
+    engine.dispose?.();
+    engine.setAlpha(0.4);
+    worker.onerror?.({ message: 'late failure' } as ErrorEvent);
+    worker.onmessage?.({ data: {
+      message: 'late error',
+      revision: 0,
+      type: 'error',
+    } } as MessageEvent);
+
+    expect(worker.terminate).toHaveBeenCalledOnce();
+    expect(worker.messages).toHaveLength(messagesBeforeDispose);
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
   it('cycles two transferable output sets without allocating per tick', () => {
     const { engine, worker } = createEngine();
     const [first, second] = outputBuffers(worker);
@@ -89,6 +278,39 @@ describe('worker-hosted graph layout lifecycle', () => {
     expect(Array.from(engine.x)).toEqual([12]);
     expect(Array.from(engine.y)).toEqual([13]);
     expect(worker.messages).toContainEqual(expect.objectContaining({ type: 'setKinematics' }));
+  });
+
+  it('reuses a returned plugin-kinematics buffer for the latest pending state', () => {
+    const onFrameRequest = vi.fn();
+    const { engine, worker } = createEngine(vi.fn(), onFrameRequest);
+    const setKinematics = (x: number): void => engine.setKinematics(
+      Float32Array.of(x),
+      Float32Array.of(x + 1),
+      Float32Array.of(x + 2),
+      Float32Array.of(x + 3),
+    );
+
+    setKinematics(10);
+    setKinematics(20);
+    setKinematics(30);
+    const commands = () => worker.messages.filter(command => command.type === 'setKinematics');
+    expect(commands()).toHaveLength(2);
+    const returned = commands()[0];
+    if (returned.type !== 'setKinematics') throw new Error('Expected kinematics command');
+    worker.onmessage?.({ data: {
+      buffers: returned.buffers,
+      revision: 0,
+      type: 'kinematicsBuffers',
+    } } as MessageEvent);
+
+    expect(commands()).toHaveLength(3);
+    expect(commands().map(command => command.type === 'setKinematics'
+      ? command.mutationRevision
+      : -1)).toEqual([1, 2, 3]);
+    const latest = commands()[2];
+    if (latest.type !== 'setKinematics') throw new Error('Expected latest kinematics command');
+    expect(Array.from(new Float32Array(latest.buffers.x))).toEqual([30]);
+    expect(onFrameRequest).toHaveBeenCalledOnce();
   });
 
   it('coalesces all direct drag positions into one worker command per display frame', () => {
