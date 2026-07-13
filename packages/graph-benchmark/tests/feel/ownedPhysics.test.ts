@@ -139,6 +139,33 @@ describe('500-node owned physics feel', () => {
     }
   });
 
+  it('keeps a high-degree hub stable while a connected leaf is dragged', { timeout: 30_000 }, () => {
+    const engine = createFixtureEngine();
+    for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
+    const neighbors = adjacency(engine);
+    let hub = 0;
+    for (let index = 1; index < neighbors.length; index += 1) {
+      if (neighbors[index].size > neighbors[hub].size) hub = index;
+    }
+    const leaf = [...neighbors[hub]].reduce((candidate, index) => (
+      neighbors[index].size < neighbors[candidate].size ? index : candidate
+    ));
+    const initialHubX = engine.x[hub];
+    const initialHubY = engine.y[hub];
+    const dragDistance = 120;
+
+    engine.pin(leaf);
+    engine.setNodePosition(leaf, engine.x[leaf] + dragDistance, engine.y[leaf]);
+    engine.setAlphaTarget(0.3);
+    for (let tick = 0; tick < 12; tick += 1) engine.tick(TICK_MS);
+
+    const hubDisplacement = Math.hypot(
+      engine.x[hub] - initialHubX,
+      engine.y[hub] - initialHubY,
+    );
+    expect(hubDisplacement / dragDistance).toBeLessThanOrEqual(0.35);
+  });
+
   it('ripples a hub drag through nearby relationships and settles after release', { timeout: 30_000 }, () => {
     const engine = createFixtureEngine();
     for (let tick = 0; tick < 160; tick += 1) engine.tick(TICK_MS);
