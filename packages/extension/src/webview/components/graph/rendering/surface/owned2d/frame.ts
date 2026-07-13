@@ -178,6 +178,7 @@ function submitOwnedWebGpuFrame(
       directionMode: props.directionMode,
       getArrowColor: props.getArrowColor,
       getLinkColor: props.getLinkColor,
+      getLinkOpacity: props.getLinkOpacity,
       getLinkWidth: props.getLinkWidth,
       getNodeStyle: props.getNodeStyle ?? defaultNodeStyle,
       links: layout.links,

@@ -120,6 +120,7 @@ function rendererFrame(): OwnedWebGpuFrame {
     directionMode: 'arrows' as const,
     getArrowColor: () => '#aabbcc',
     getLinkColor: () => '#112233',
+    getLinkOpacity: () => 0.3,
     getLinkWidth: () => 2,
     getNodeStyle: (node: FGNode) => ({
       borderColor: '#445566',
@@ -207,6 +208,8 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     const linkStyle = uploadedFloats('CodeGraphy link styles');
     expect(linkStyle[0]).toBe(1);
     expect(linkStyle[1]).toBeCloseTo(0.2);
+    expectColor(Array.from(linkStyle.slice(2, 5)), [17 / 255, 34 / 255, 51 / 255]);
+    expect(linkStyle[5]).toBeCloseTo(0.3);
     expect(linkStyle[10]).toBe(1);
     expect(harness.draw).toHaveBeenNthCalledWith(1, 34, 1);
     expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 1);

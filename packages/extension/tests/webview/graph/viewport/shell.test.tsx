@@ -193,6 +193,7 @@ function createCallbacks() {
 	return {
 		getArrowColor: vi.fn(),
 		getLinkColor: vi.fn(),
+		getLinkOpacity: vi.fn(() => 0.3),
 		getLinkParticles: vi.fn(),
 		getLinkWidth: vi.fn(),
 		getParticleColor: vi.fn(),
@@ -352,6 +353,7 @@ describe('graph/viewport/shell', () => {
 				fg2dRef: graphState.renderer.fg2dRef,
 				getArrowColor: callbacks.getArrowColor,
 				getLinkColor: callbacks.getLinkColor,
+				getLinkOpacity: vi.fn(() => 0.3),
 				getParticleColor: callbacks.getParticleColor,
 				onRenderFramePost: expect.any(Function),
 				particleSize: 3,

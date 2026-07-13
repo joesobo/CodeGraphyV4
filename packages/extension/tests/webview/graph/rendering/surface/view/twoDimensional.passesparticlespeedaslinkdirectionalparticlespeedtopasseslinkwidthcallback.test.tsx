@@ -49,10 +49,11 @@ describe('Surface2d owned-renderer callback wiring', () => {
     expect(captured().nodeLabelCanvasObject).toBe(props.nodeLabelCanvasObject);
   });
 
-  it('passes link color callback', () => {
+  it('passes link color and opacity callbacks', () => {
     const props = createDefaultSurfaceProps();
     render(<Surface2d {...props} />);
     expect(captured().getLinkColor).toBe(props.getLinkColor);
+    expect(captured().getLinkOpacity).toBe(props.getLinkOpacity);
   });
 
   it('passes link width callback', () => {
