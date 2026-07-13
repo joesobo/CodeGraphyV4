@@ -17,6 +17,7 @@ import {
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
   handleSettingsUpdated,
+  handleShowFpsUpdated,
   handleShowLabelsUpdated,
   handleVerboseDiagnosticsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
@@ -386,6 +387,11 @@ describe('webview/store/messageHandlers/graph', () => {
       type: 'MAX_FILES_UPDATED',
       payload: { maxFiles: 250 },
     })).toEqual({ maxFiles: 250 });
+
+    expect(handleShowFpsUpdated({
+      type: 'SHOW_FPS_UPDATED',
+      payload: { showFps: true },
+    })).toEqual({ showFps: true });
 
     expect(handleVerboseDiagnosticsUpdated({
       type: 'VERBOSE_DIAGNOSTICS_UPDATED',

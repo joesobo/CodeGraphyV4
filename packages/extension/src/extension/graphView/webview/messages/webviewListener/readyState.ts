@@ -4,6 +4,7 @@ import type { GraphViewMessageListenerContext } from './contracts';
 export function createReadyState(context: GraphViewMessageListenerContext): GraphViewReadyState {
   return {
     maxFiles: context.getMaxFiles(),
+    showFps: context.getConfig('showFps', false),
     verboseDiagnostics: context.getConfig('verboseDiagnostics', false),
     depthMode: context.getDepthMode?.() ?? false,
     dagMode: context.getDagMode(),

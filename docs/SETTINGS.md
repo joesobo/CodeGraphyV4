@@ -86,6 +86,7 @@ Example:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `maxFiles` | number | `1000` | Maximum files to discover/analyze |
+| `showFps` | boolean | `false` | Shows a live FPS counter in the Graph Stage for performance diagnostics |
 | `verboseDiagnostics` | boolean | `false` | Enables CodeGraphy-prefixed support diagnostics in the VS Code Developer Tools console |
 | `include` | string[] | `["**/*"]` | Glob patterns for files to include |
 | `filterPatterns` | string[] | `[]` | Filter Settings for files to exclude |
@@ -293,6 +294,7 @@ Adjusts the physics simulation in real time.
 ### Performance
 
 - **Max Files** limits how many files are discovered and analyzed.
+- **Show FPS** displays a live rendered-frame rate in the bottom-left of the Graph Stage. It persists as `showFps` in `.codegraphy/settings.json` and is off by default.
 - **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
 
 See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.

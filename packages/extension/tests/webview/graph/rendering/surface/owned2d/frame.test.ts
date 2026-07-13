@@ -65,6 +65,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
   const runtime: OwnedGraphFrameRuntime = {
     cameraRef: { current: { centerX: 0, centerY: 0, zoom: 1 } },
     engineStopNotifiedRef: { current: false },
+    fpsRef: { current: null },
     gpuRendererRef: { current: renderer },
     layoutRef: { current: layout },
     onRendererError: vi.fn(),
@@ -85,6 +86,7 @@ function runtimeFixture(renderer: OwnedWebGpuRenderer): {
     propsRef: { current: props },
     rendererOperationalRef: { current: true },
     requestFrameRef: { current: vi.fn() },
+    recordRenderedFrame: vi.fn(),
     skipPhysicsFrameRef: { current: false },
     styleVersionRef: { current: 1 },
   };
@@ -110,6 +112,7 @@ describe('owned graph frame execution', () => {
       .__CODEGRAPHY_WEBGPU_PERF__ = samples;
 
     expect(renderOwnedGraphFrame(runtime, canvasFixture(), 100, null)).toBe(100);
+    expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
 
     expect(runtime.pluginForcesRef.current.tick).toHaveBeenCalled();
     expect([layout.engine.x[0], layout.engine.y[0]]).not.toEqual([0, 0]);
@@ -133,12 +136,31 @@ describe('owned graph frame execution', () => {
     expect(runtime.requestFrameRef.current).toHaveBeenCalled();
   });
 
+  it('submits only enough idle frames to establish the initial FPS sample', () => {
+    const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
+    const { runtime } = runtimeFixture(renderer);
+    runtime.propsRef.current.physicsPaused = true;
+    runtime.propsRef.current.showFps = true;
+
+    renderOwnedGraphFrame(runtime, canvasFixture(), 100, null);
+
+    expect(runtime.recordRenderedFrame).toHaveBeenCalledWith(100);
+    expect(runtime.requestFrameRef.current).toHaveBeenCalledOnce();
+
+    runtime.fpsRef.current = 50;
+    vi.mocked(runtime.requestFrameRef.current).mockClear();
+    renderOwnedGraphFrame(runtime, canvasFixture(), 120, 100);
+
+    expect(runtime.requestFrameRef.current).not.toHaveBeenCalled();
+  });
+
   it('does not advance frame time before layout prerequisites exist', () => {
     const renderer = { render: vi.fn() } as unknown as OwnedWebGpuRenderer;
     const { runtime } = runtimeFixture(renderer);
     runtime.layoutRef.current = null;
 
     expect(renderOwnedGraphFrame(runtime, canvasFixture(), 100, 50)).toBe(50);
+    expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
     expect(renderer.render).not.toHaveBeenCalled();
   });
 
@@ -150,6 +172,7 @@ describe('owned graph frame execution', () => {
     const { layout, runtime } = runtimeFixture(renderer);
 
     expect(renderOwnedGraphFrame(runtime, canvasFixture(), 100, null)).toBe(100);
+    expect(runtime.recordRenderedFrame).not.toHaveBeenCalled();
 
     expect(renderer.dispose).toHaveBeenCalledOnce();
     expect(runtime.gpuRendererRef.current).toBeNull();

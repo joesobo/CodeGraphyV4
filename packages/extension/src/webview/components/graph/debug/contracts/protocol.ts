@@ -1,6 +1,7 @@
 export interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
+  fps: number | null;
   nodes: Array<{
     baseOpacity?: number;
     collisionRadius: number;
@@ -23,6 +24,7 @@ export interface GraphDebugSnapshot {
 
 export interface GraphDebugControls {
   centerAt?(this: void, x?: number, y?: number, durationMs?: number): void;
+  getFps?(this: void): number | null;
   graph2ScreenCoords?(this: void, x: number, y: number): { x: number; y: number };
   zoom?(this: void, scale?: number, durationMs?: number): number;
   zoomToFit?(this: void, durationMs?: number, padding?: number): void;

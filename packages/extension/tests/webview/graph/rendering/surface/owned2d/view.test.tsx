@@ -283,6 +283,71 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(await screen.findByTestId('graph-webgpu-error')).toHaveTextContent('GPU reset');
   });
 
+  it('shows sampled FPS only while the Performance toggle is enabled', async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.mocked(requestAnimationFrame).mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    const context = {
+      clearRect: vi.fn(),
+      restore: vi.fn(),
+      save: vi.fn(),
+      scale: vi.fn(),
+      setTransform: vi.fn(),
+      translate: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    const props = createDefaultSurfaceProps();
+    props.showFps = true;
+    props.sharedProps.graphData = { links: [], nodes: [{
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'fps-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'fps-node',
+      size: 8,
+    }] } as never;
+    const rendered = render(<OwnedGraphSurface2d {...props} />);
+    const overlay = rendered.container.querySelectorAll('canvas')[1];
+    Object.defineProperty(overlay, 'getContext', { value: () => context });
+    await waitFor(() => {
+      expect(rendered.container.firstElementChild).toHaveAttribute(
+        'data-codegraphy-renderer',
+        'webgpu',
+      );
+    });
+
+    act(() => frames.shift()?.(0));
+    act(() => frames.shift()?.(20));
+
+    expect(await screen.findByTestId('graph-fps')).toHaveTextContent('50 FPS');
+    expect(props.fg2dRef.current?.getFps()).toBe(50);
+    const styleVersions = rendererHarness.render.mock.calls.map(
+      ([frame]) => (frame as { styleVersion: number }).styleVersion,
+    );
+    expect(new Set(styleVersions).size).toBe(1);
+
+    const options = rendererHarness.create.mock.calls[0][1] as {
+      onDeviceLost(message: string): void;
+    };
+    act(() => options.onDeviceLost('GPU reset'));
+    expect(screen.getByTestId('graph-fps')).not.toBeVisible();
+    expect(props.fg2dRef.current?.getFps()).toBeNull();
+
+    rendered.rerender(<OwnedGraphSurface2d {...props} showFps={false} />);
+
+    expect(screen.queryByTestId('graph-fps')).not.toBeInTheDocument();
+    expect(props.fg2dRef.current?.getFps()).toBeNull();
+  });
+
   it('shows an explicit error instead of switching to a Canvas graph renderer', async () => {
     rendererHarness.create.mockResolvedValue(undefined);
     const props = createDefaultSurfaceProps();

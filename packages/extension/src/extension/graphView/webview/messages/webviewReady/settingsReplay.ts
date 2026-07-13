@@ -68,6 +68,10 @@ function sendWebviewReadySettingValues(
     payload: { maxFiles: state.maxFiles },
   });
   handlers.sendMessage({
+    type: 'SHOW_FPS_UPDATED',
+    payload: { showFps: state.showFps ?? false },
+  });
+  handlers.sendMessage({
     type: 'VERBOSE_DIAGNOSTICS_UPDATED',
     payload: { verboseDiagnostics: state.verboseDiagnostics },
   });

@@ -26,6 +26,7 @@ export function createInteractionDependencies(
   const fg2d = {
     centerAt: vi.fn(),
     d3ReheatSimulation: vi.fn(),
+    getFps: vi.fn(() => null),
     graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
     pauseAnimation: vi.fn(),
     refresh: vi.fn(),

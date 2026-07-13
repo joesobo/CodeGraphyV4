@@ -187,6 +187,7 @@ describe('webview/graph/debug/install', () => {
     expect(snapshot).toEqual({
       containerHeight: 40,
       containerWidth: 80,
+      fps: null,
       nodes: [{
         baseOpacity: 0.8,
         collisionRadius: 28,

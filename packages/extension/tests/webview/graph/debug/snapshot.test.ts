@@ -12,6 +12,7 @@ describe('webview/graph/debug/snapshot', () => {
     const snapshot = buildGraphDebugSnapshot({
       containerRef,
       graph: {
+        getFps: () => 57.5,
         graph2ScreenCoords: (x, y) => ({ x: x + 10, y: y + 20 }),
         zoom: () => 1.5,
         zoomToFit: vi.fn(),
@@ -22,6 +23,7 @@ describe('webview/graph/debug/snapshot', () => {
     expect(snapshot).toEqual({
       containerHeight: 320,
       containerWidth: 480,
+      fps: 57.5,
       nodes: [{
         collisionRadius: 16,
         id: 'a.ts',
@@ -47,6 +49,7 @@ describe('webview/graph/debug/snapshot', () => {
     expect(snapshot).toEqual({
       containerHeight: 0,
       containerWidth: 0,
+      fps: null,
       nodes: [{
         collisionRadius: 12,
         id: 'b.ts',

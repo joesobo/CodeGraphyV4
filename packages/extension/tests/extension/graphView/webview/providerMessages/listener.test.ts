@@ -45,6 +45,7 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     pluginData: {},
     showLabels: true,
     maxFiles: DEFAULT_MAX_FILES,
+    showFps: false,
     verboseDiagnostics: false,
     nodeSizeMode: 'connections',
     physics: {

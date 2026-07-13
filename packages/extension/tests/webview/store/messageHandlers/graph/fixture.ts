@@ -56,6 +56,7 @@ export function createState(
     graphViewContributionStatuses: [],
     activePanel: 'none',
     maxFiles: 500,
+    showFps: false,
     verboseDiagnostics: false,
     activeFilePath: null,
     ...overrides,

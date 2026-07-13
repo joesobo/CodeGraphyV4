@@ -46,6 +46,7 @@ interface PreparedOverlayCanvas {
 export interface OwnedGraphFrameRuntime {
   cameraRef: MutableRefObject<OwnedGraphCamera>;
   engineStopNotifiedRef: MutableRefObject<boolean>;
+  fpsRef: MutableRefObject<number | null>;
   gpuRendererRef: MutableRefObject<OwnedWebGpuRenderer | null>;
   layoutRef: MutableRefObject<OwnedGraphLayout | null>;
   pickerPositionVersionRef: MutableRefObject<number>;
@@ -55,6 +56,7 @@ export interface OwnedGraphFrameRuntime {
   propsRef: MutableRefObject<Surface2dProps>;
   rendererOperationalRef: MutableRefObject<boolean>;
   requestFrameRef: MutableRefObject<() => void>;
+  recordRenderedFrame(this: void, timestamp: number): void;
   skipPhysicsFrameRef: MutableRefObject<boolean>;
   styleVersionRef: MutableRefObject<number>;
   onRendererError(this: void, message: string): void;
@@ -271,6 +273,7 @@ function shouldContinueOwnedGraphFrames(
   return runtime.rendererOperationalRef.current && (
     (!tick.settled && canRunPhysics)
     || runtime.propsRef.current.directionMode === 'particles'
+    || (runtime.propsRef.current.showFps === true && runtime.fpsRef.current === null)
   );
 }
 
@@ -303,6 +306,9 @@ export function renderOwnedGraphFrame(
   const prepared = prepareOwnedOverlayCanvas(canvas, context);
   timings.gpuStartedAt = timedNow(samples);
   const gpuRendered = submitOwnedWebGpuFrame(runtime, layout, prepared);
+  if (gpuRendered && runtime.propsRef.current.showFps === true) {
+    runtime.recordRenderedFrame(timestamp);
+  }
   timings.gpuEndedAt = timedNow(samples);
   drawOwnedGraphDecorationLayer(runtime, layout, prepared, timestamp, gpuRendered);
   recordOwnedGraphFrameMetrics(samples, timings);

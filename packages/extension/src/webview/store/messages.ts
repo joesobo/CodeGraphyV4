@@ -14,6 +14,7 @@ import {
   handleDepthLimitUpdated,
   handleDepthLimitRangeUpdated,
   handleDirectionSettingsUpdated,
+  handleShowFpsUpdated,
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
   handleVerboseDiagnosticsUpdated,
@@ -96,6 +97,8 @@ export const MESSAGE_HANDLERS: Record<
     handlePluginsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>),
   MAX_FILES_UPDATED: (msg) =>
     handleMaxFilesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'MAX_FILES_UPDATED' }>),
+  SHOW_FPS_UPDATED: (msg) =>
+    handleShowFpsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SHOW_FPS_UPDATED' }>),
   VERBOSE_DIAGNOSTICS_UPDATED: (msg) =>
     handleVerboseDiagnosticsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'VERBOSE_DIAGNOSTICS_UPDATED' }>

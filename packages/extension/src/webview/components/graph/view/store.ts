@@ -15,6 +15,7 @@ export type GraphViewStoreState = Pick<
   | 'physicsSettings'
   | 'pluginContextMenuItems'
   | 'pluginStatuses'
+  | 'showFps'
   | 'showLabels'
   | 'depthMode'
 >;
@@ -34,6 +35,7 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     physicsSettings: useGraphStore(state => state.physicsSettings),
     pluginContextMenuItems: useGraphStore(state => state.pluginContextMenuItems),
     pluginStatuses: useGraphStore(state => state.pluginStatuses),
+    showFps: useGraphStore(state => state.showFps),
     showLabels: useGraphStore(state => state.showLabels),
   };
 }

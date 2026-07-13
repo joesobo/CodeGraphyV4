@@ -20,6 +20,7 @@ export interface OwnedGraphNodeStyle {
 export interface OwnedGraph2dControls {
   centerAt(x: number, y: number, durationMs?: number): void;
   d3ReheatSimulation(): void;
+  getFps(): number | null;
   graph2ScreenCoords(x: number, y: number): { x: number; y: number };
   pauseAnimation(): void;
   refresh(): void;
@@ -51,6 +52,7 @@ export interface Surface2dProps {
   particleSize: number;
   particleSpeed: number;
   physicsPaused?: boolean;
+  showFps?: boolean;
   physicsSettings?: IPhysicsSettings;
   sharedProps: GraphSurfaceSharedProps;
 }
