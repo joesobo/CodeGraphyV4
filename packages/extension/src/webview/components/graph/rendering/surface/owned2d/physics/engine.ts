@@ -7,6 +7,7 @@ import {
   type GraphLayoutState,
   type GraphLayoutTickResult,
 } from './contracts';
+import { applyCenterForces } from './forces/center';
 import { applyCollisionForces } from './forces/collision';
 import { applyLinkForces } from './forces/link';
 import { applyRepulsionForces } from './forces/repulsion';
@@ -181,6 +182,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
       * this.config.alphaDecay;
     applyLinkForces(this.state, this.config, this.simulationAlpha);
     applyRepulsionForces(this.state, this.config, this.simulationAlpha);
+    applyCenterForces(this.state, this.config, this.simulationAlpha);
     const maximumVelocity = integrateGraphLayout(this.state, this.config, this.simulationAlpha);
     const collisionIterations = this.simulationAlpha < 0.1
       ? Math.max(this.config.collisionIterations, 16)

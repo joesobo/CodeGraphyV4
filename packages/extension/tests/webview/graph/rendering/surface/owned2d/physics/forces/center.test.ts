@@ -1,37 +1,44 @@
-import { forceSimulation, type SimulationNodeDatum } from 'd3-force';
+import {
+  forceSimulation,
+  forceX,
+  forceY,
+  type SimulationNodeDatum,
+} from 'd3-force';
 import { describe, expect, it } from 'vitest';
 
-import { createGraphLayoutEngine } from '../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
+import { createGraphLayoutEngine } from '../../../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 
-describe('owned graph integration', () => {
-  it('matches D3 velocity decay and position integration', () => {
+describe('owned graph center force', () => {
+  it('matches D3 x/y centering strength', () => {
     const referenceNodes: SimulationNodeDatum[] = [
-      { vx: 10, vy: -5, x: 20, y: 40 },
-      { vx: -4, vy: 8, x: -30, y: 10 },
+      { vx: 2, vy: -1, x: 100, y: -50 },
+      { vx: -3, vy: 4, x: -200, y: 80 },
     ];
     const reference = forceSimulation(referenceNodes)
       .stop()
       .alpha(1)
       .alphaDecay(0)
-      .velocityDecay(0.4);
+      .velocityDecay(0)
+      .force('x', forceX(0).strength(0.1))
+      .force('y', forceY(0).strength(0.1));
 
     reference.tick();
 
     const engine = createGraphLayoutEngine({
       nodeIds: ['first', 'second'],
-      initialX: Float32Array.of(20, -30),
-      initialY: Float32Array.of(40, 10),
-      initialVx: Float32Array.of(10, -4),
-      initialVy: Float32Array.of(-5, 8),
+      initialX: Float32Array.of(100, -200),
+      initialY: Float32Array.of(-50, 80),
+      initialVx: Float32Array.of(2, -3),
+      initialVy: Float32Array.of(-1, 4),
       radii: Float32Array.of(1, 1),
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
     }, {
       alphaDecay: 0,
-      centralGravity: 0,
+      centralGravity: 0.1,
       chargeStrength: 0,
       collisionIterations: 0,
-      velocityDecay: 0.4,
+      velocityDecay: 0,
     });
 
     engine.tick(1000 / 60);
