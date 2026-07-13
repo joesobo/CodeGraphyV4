@@ -222,7 +222,11 @@ async function runMeasurement(
       browserPid,
     ));
   }
-  const frameMetrics = summarizeRenderedFrames(drag.frameTimesMs, drag.durationMs);
+  const frameMetrics = summarizeRenderedFrames(
+    drag.frameTimesMs,
+    drag.durationMs,
+    drag.refreshRateHz,
+  );
 
   return {
     run,
@@ -232,6 +236,8 @@ async function runMeasurement(
         ...drag,
         fps: frameMetrics.fps,
         frameTimeMs: frameMetrics.frameTimeMs,
+        refreshRateHz: frameMetrics.refreshRateHz,
+        refreshUtilization: frameMetrics.refreshUtilization,
       },
       settleTimeMs,
       idleCpuPct,

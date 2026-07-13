@@ -51,6 +51,8 @@ function createRun(run: number, dragFps: number): CompletedBenchmarkRun {
         durationMs: 1_000,
         fps: dragFps,
         frameTimeMs,
+        refreshRateHz: 60,
+        refreshUtilization: dragFps / 60,
         draggedNodeId: targetNodeId,
         pointerMoves: 60,
         nodeTravelPx: 180,

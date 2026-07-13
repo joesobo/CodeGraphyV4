@@ -1,13 +1,24 @@
 import { summarizeDistribution } from './distribution';
 
+export function estimateRefreshRate(frameTimesMs: readonly number[]): number {
+  const interval = summarizeDistribution(frameTimesMs).p50;
+  if (interval <= 0) throw new Error('RAF intervals must be positive');
+  return 1_000 / interval;
+}
+
 export function summarizeRenderedFrames(
   frameTimesMs: readonly number[],
   durationMs: number,
+  refreshRateHz: number,
 ) {
   if (durationMs <= 0) throw new Error('Frame scenario duration must be positive');
+  if (refreshRateHz <= 0) throw new Error('Refresh rate must be positive');
+  const fps = (frameTimesMs.length / durationMs) * 1_000;
 
   return {
-    fps: (frameTimesMs.length / durationMs) * 1_000,
+    fps,
+    refreshRateHz,
+    refreshUtilization: fps / refreshRateHz,
     frameTimeMs: {
       ...summarizeDistribution(frameTimesMs),
       over16ms: frameTimesMs.filter((frameTime) => frameTime > 16.67).length,
