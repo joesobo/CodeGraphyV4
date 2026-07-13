@@ -322,6 +322,7 @@ describe('graph layout engine', () => {
 
     engine.setConfig({ centralGravity: 1 });
     expect(engine.settled).toBe(false);
+    expect(engine.alpha).toBeCloseTo(0.3);
     engine.tick(1000 / 60);
 
     expect(engine.x[0]).toBeLessThan(100);

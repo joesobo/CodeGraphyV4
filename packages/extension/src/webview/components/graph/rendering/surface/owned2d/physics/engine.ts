@@ -70,7 +70,7 @@ export class TypedGraphLayoutEngine implements GraphLayoutEngine {
   setConfig(config: Partial<GraphLayoutConfig>): void {
     this.config = mergeGraphLayoutConfig(this.config, config);
     this.collisionGrid = new UniformGrid(this.collisionCellSize());
-    if (this.x.length > 0) this.reheat();
+    if (this.x.length > 0) this.reheat(0.3);
   }
 
   tick(elapsedMs: number): GraphLayoutTickResult {

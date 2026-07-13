@@ -51,6 +51,14 @@ function adjacency(engine: ReturnType<typeof createFixtureEngine>): Array<Set<nu
   return neighbors;
 }
 
+function maximumSpeed(engine: ReturnType<typeof createFixtureEngine>): number {
+  let maximum = 0;
+  for (let index = 0; index < engine.vx.length; index += 1) {
+    maximum = Math.max(maximum, Math.hypot(engine.vx[index], engine.vy[index]));
+  }
+  return maximum;
+}
+
 function meanDisplacement(
   indexes: ReadonlySet<number>,
   engine: ReturnType<typeof createFixtureEngine>,
@@ -75,6 +83,29 @@ describe('500-node owned physics feel', () => {
 
     expect(engine.settled).toBe(true);
     expect(nearestPackagePurity(engine.x, engine.y)).toBeGreaterThanOrEqual(0.7);
+  });
+
+  it('responds to force-setting changes on the next tick without an explosive pulse', () => {
+    const engine = createFixtureEngine();
+    const changes: Array<{ config: Parameters<typeof engine.setConfig>[0]; tick: number }> = [
+      { config: { chargeStrength: -50 }, tick: 120 },
+      { config: { centralGravity: 0.2 }, tick: 240 },
+      { config: { linkDistance: 120 }, tick: 360 },
+      { config: { linkStrength: 0.8 }, tick: 480 },
+    ];
+    let currentTick = 0;
+
+    for (const change of changes) {
+      while (currentTick < change.tick) {
+        engine.tick(TICK_MS);
+        currentTick += 1;
+      }
+      engine.setConfig(change.config);
+      engine.tick(TICK_MS);
+      currentTick += 1;
+      expect(maximumSpeed(engine)).toBeGreaterThan(0.1);
+      expect(maximumSpeed(engine)).toBeLessThanOrEqual(30);
+    }
   });
 
   it('ripples a hub drag through nearby relationships and settles after release', () => {
