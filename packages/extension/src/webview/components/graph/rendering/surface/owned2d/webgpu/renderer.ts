@@ -4,11 +4,12 @@ import type { DirectionMode, NodeShape2D } from '../../../../../../../shared/set
 import type { FGLink, FGNode } from '../../../../model/build';
 import type { OwnedGraphNodeStyle } from '../contracts';
 import type { OwnedGraphCamera } from '../camera';
+import { ownedArrowEndpointInsets } from '../arrowGeometry';
 import { LINK_SHADER, NODE_SHADER } from './shaders';
 
 const NODE_FLOATS = 15;
 const NODE_STYLE_FLOATS = 13;
-const LINK_FLOATS = 16;
+const LINK_FLOATS = 18;
 const LINK_STYLE_FLOATS = 10;
 const FLOAT_BYTES = Float32Array.BYTES_PER_ELEMENT;
 // Bound queue growth while allowing triple-buffered compositors to overlap work.
@@ -144,6 +145,7 @@ export class OwnedWebGpuRenderer {
   private readonly linkCameraBindGroup: GPUBindGroup;
   private nodeBuffer: GPUBuffer;
   private nodeBufferSize = 256;
+  private nodeStyleByNode = new WeakMap<FGNode, OwnedGraphNodeStyle>();
   private nodeStyles = new Float32Array();
   private readonly nodeCameraBindGroup: GPUBindGroup;
   private nodeValues = new Float32Array();
@@ -264,6 +266,7 @@ export class OwnedWebGpuRenderer {
             { shaderLocation: 3, offset: 6 * FLOAT_BYTES, format: 'float32x4' },
             { shaderLocation: 4, offset: 10 * FLOAT_BYTES, format: 'float32x4' },
             { shaderLocation: 5, offset: 14 * FLOAT_BYTES, format: 'float32x2' },
+            { shaderLocation: 6, offset: 16 * FLOAT_BYTES, format: 'float32x2' },
           ],
         }],
       },
@@ -346,9 +349,13 @@ export class OwnedWebGpuRenderer {
   private updateNodeStyleCache(frame: OwnedWebGpuFrame): void {
     this.uploadedStyleVersion = frame.styleVersion;
     this.styledNodes = frame.nodes;
+    this.nodeStyleByNode = new WeakMap();
     this.nodeStyles = new Float32Array(frame.nodes.length * NODE_STYLE_FLOATS);
     for (let index = 0; index < frame.nodes.length; index += 1) {
-      this.writeNodeStyle(index, frame.getNodeStyle(frame.nodes[index]));
+      const node = frame.nodes[index];
+      const style = frame.getNodeStyle(node);
+      this.nodeStyleByNode.set(node, style);
+      this.writeNodeStyle(index, style);
     }
   }
 
@@ -444,6 +451,17 @@ export class OwnedWebGpuRenderer {
     const source = endpointNode(link.source);
     const target = endpointNode(link.target);
     if (!source || !target) return false;
+    const sourceStyle = this.nodeStyleByNode.get(source);
+    const targetStyle = this.nodeStyleByNode.get(target);
+    if (!sourceStyle || !targetStyle) return false;
+    const curvature = link.curvature ?? 0;
+    const endpointInsets = ownedArrowEndpointInsets(
+      { x: source.x ?? 0, y: source.y ?? 0 },
+      { x: target.x ?? 0, y: target.y ?? 0 },
+      curvature,
+      sourceStyle,
+      targetStyle,
+    );
     const offset = this.renderedLinkCount * LINK_FLOATS;
     const styleOffset = linkIndex * LINK_STYLE_FLOATS;
     this.linkValues[offset] = source.x ?? 0;
@@ -451,12 +469,14 @@ export class OwnedWebGpuRenderer {
     this.linkValues[offset + 2] = target.x ?? 0;
     this.linkValues[offset + 3] = target.y ?? 0;
     this.linkValues[offset + 4] = this.linkStyles[styleOffset];
-    this.linkValues[offset + 5] = link.curvature ?? 0;
+    this.linkValues[offset + 5] = curvature;
     this.linkValues.set(
       this.linkStyles.subarray(styleOffset + 1, styleOffset + LINK_STYLE_FLOATS),
       offset + 6,
     );
     this.linkValues[offset + 15] = link.bidirectional ? 1 : 0;
+    this.linkValues[offset + 16] = endpointInsets.source;
+    this.linkValues[offset + 17] = endpointInsets.target;
     this.renderedLinkCount += 1;
     return true;
   }
@@ -508,7 +528,7 @@ export class OwnedWebGpuRenderer {
     pass.setPipeline(this.linkPipeline);
     pass.setBindGroup(0, this.linkCameraBindGroup);
     pass.setVertexBuffer(0, this.linkBuffer);
-    pass.draw(frame.directionMode === 'arrows' ? 30 : 24, this.renderedLinkCount);
+    pass.draw(frame.directionMode === 'arrows' ? 36 : 24, this.renderedLinkCount);
   }
 
   private drawNodes(pass: GPURenderPassEncoder, frame: OwnedWebGpuFrame): void {

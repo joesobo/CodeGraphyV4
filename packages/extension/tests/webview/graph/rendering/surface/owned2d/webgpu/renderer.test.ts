@@ -126,16 +126,16 @@ function rendererFrame() {
     getArrowRelPos: () => 0.75,
     getLinkColor: () => '#112233',
     getLinkWidth: () => 2,
-    getNodeStyle: () => ({
+    getNodeStyle: (node: FGNode) => ({
       borderColor: '#445566',
       borderWidth: 2,
       cornerRadius: 3,
       fillColor: '#778899',
       fillOpacity: 0.5,
-      height: 12,
+      height: node === target ? 10 : 12,
       opacity: 0.8,
       shape: 'rectangle' as const,
-      width: 10,
+      width: node === target ? 40 : 10,
     }),
     links: [link],
     nodes: [source, target],
@@ -191,7 +191,9 @@ describe('OwnedWebGpuRenderer frame submission', () => {
     expect(linkValues[5]).toBeCloseTo(0.2);
     expect(linkValues[14]).toBe(0.75);
     expect(linkValues[15]).toBe(1);
-    expect(harness.draw).toHaveBeenNthCalledWith(1, 30, 1);
+    expect(linkValues[16]).toBeCloseTo(6.53, 2);
+    expect(linkValues[17]).toBeCloseTo(12.69, 2);
+    expect(harness.draw).toHaveBeenNthCalledWith(1, 36, 1);
     expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
 
     renderer!.render(frame);
