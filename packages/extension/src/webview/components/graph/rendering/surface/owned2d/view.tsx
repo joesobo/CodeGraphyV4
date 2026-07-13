@@ -83,6 +83,7 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
   const styleVersionRef = useRef(0);
+  const styledPropsRef = useRef<Surface2dProps | null>(null);
   const linkPickerPositionVersionRef = useRef(-1);
   const linkPickerRef = useRef(new OwnedGraphLinkPicker());
   const pickerPositionVersionRef = useRef(-1);
@@ -107,7 +108,10 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     setLayoutKind,
   }).current;
   propsRef.current = props;
-  styleVersionRef.current += 1;
+  if (styledPropsRef.current !== props) {
+    styledPropsRef.current = props;
+    styleVersionRef.current += 1;
+  }
 
   useEffect(() => {
     const gpuCanvas = gpuCanvasRef.current;

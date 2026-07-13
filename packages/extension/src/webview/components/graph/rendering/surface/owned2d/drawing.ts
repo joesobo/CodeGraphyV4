@@ -6,6 +6,8 @@ import {
   type OwnedLinkGeometry,
 } from './linkGeometry';
 
+const OVERLAY_CULL_MARGIN_PX = 128;
+
 export interface OwnedGraphDrawingOptions {
   context: CanvasRenderingContext2D;
   directionMode: DirectionMode;
@@ -64,13 +66,14 @@ export function drawOwnedGraphParticles(options: OwnedGraphDrawingOptions): void
 export function drawOwnedGraphOverlay(options: OwnedGraphDrawingOptions): void {
   drawOwnedGraphParticles(options);
   const { context, globalScale, viewport } = options;
+  const margin = OVERLAY_CULL_MARGIN_PX / Math.max(globalScale, 0.01);
   for (const node of options.nodes) {
     if (!Number.isFinite(node.x)
       || !Number.isFinite(node.y)
-      || (node.x as number) < viewport.minimumX
-      || (node.x as number) > viewport.maximumX
-      || (node.y as number) < viewport.minimumY
-      || (node.y as number) > viewport.maximumY) continue;
+      || (node.x as number) < viewport.minimumX - margin
+      || (node.x as number) > viewport.maximumX + margin
+      || (node.y as number) < viewport.minimumY - margin
+      || (node.y as number) > viewport.maximumY + margin) continue;
     options.nodeLabelCanvasObject(node, context, globalScale);
   }
 }

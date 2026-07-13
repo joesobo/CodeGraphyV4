@@ -153,6 +153,31 @@ describe('owned WebGPU renderer lifecycle', () => {
     expect(runtime.rendererOperationalRef.current).toBe(false);
   });
 
+  it('disposes an initially created renderer if its device is lost before creation resolves', async () => {
+    let resolveInitial!: (renderer: { dispose(): void }) => void;
+    const initial = { dispose: vi.fn() };
+    const replacement = { dispose: vi.fn() };
+    rendererHarness.create
+      .mockImplementationOnce(() => new Promise(resolve => {
+        resolveInitial = resolve;
+      }))
+      .mockResolvedValueOnce(replacement);
+    const { runtime } = runtimeHarness();
+    startOwnedGraphRendererLifecycle(runtime, document.createElement('canvas'));
+    const firstOptions = rendererHarness.create.mock.calls[0][1] as {
+      onDeviceLost(message: string): void;
+    };
+
+    firstOptions.onDeviceLost('early reset');
+    await flushLifecycle();
+    resolveInitial(initial);
+    await flushLifecycle();
+
+    expect(initial.dispose).toHaveBeenCalledOnce();
+    expect(runtime.gpuRendererRef.current).toBe(replacement);
+    expect(runtime.onError).not.toHaveBeenCalled();
+  });
+
   it('ignores stale loss callbacks after a replacement activates', async () => {
     rendererHarness.create.mockResolvedValue({ dispose: vi.fn() });
     const { runtime } = runtimeHarness();

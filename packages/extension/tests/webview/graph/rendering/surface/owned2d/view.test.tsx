@@ -392,6 +392,11 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       expect(rendererHarness.create).toHaveBeenCalledTimes(2);
       expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
     });
+    act(() => frames.shift()?.(1000 / 60));
+    const styleVersions = rendererHarness.render.mock.calls.map(
+      ([frame]) => (frame as { styleVersion: number }).styleVersion,
+    );
+    expect(new Set(styleVersions).size).toBe(1);
     expect(screen.queryByTestId('graph-webgpu-error')).not.toBeInTheDocument();
   });
 
