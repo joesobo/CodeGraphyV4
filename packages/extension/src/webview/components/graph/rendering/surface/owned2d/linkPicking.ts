@@ -52,38 +52,74 @@ export function distanceToOwnedLink(
 export class OwnedGraphLinkPicker {
   private readonly buckets = new Map<number, number[]>();
   private links: readonly FGLink[] = [];
+  private entryCount = 0;
+
+  get indexedEntryCount(): number {
+    return this.entryCount;
+  }
+
+  private insertCell(index: number, x: number, y: number): void {
+    const key = cellKey(x, y);
+    const bucket = this.buckets.get(key) ?? [];
+    if (!this.buckets.has(key)) this.buckets.set(key, bucket);
+    if (bucket[bucket.length - 1] === index) return;
+    bucket.push(index);
+    this.entryCount += 1;
+  }
+
+  private insertSegment(
+    index: number,
+    start: { x: number; y: number },
+    end: { x: number; y: number },
+  ): void {
+    let x = Math.floor(start.x / LINK_PICK_CELL_SIZE);
+    let y = Math.floor(start.y / LINK_PICK_CELL_SIZE);
+    const endX = Math.floor(end.x / LINK_PICK_CELL_SIZE);
+    const endY = Math.floor(end.y / LINK_PICK_CELL_SIZE);
+    const deltaX = end.x - start.x;
+    const deltaY = end.y - start.y;
+    const stepX = Math.sign(deltaX);
+    const stepY = Math.sign(deltaY);
+    const nextBoundaryX = (x + (stepX > 0 ? 1 : 0)) * LINK_PICK_CELL_SIZE;
+    const nextBoundaryY = (y + (stepY > 0 ? 1 : 0)) * LINK_PICK_CELL_SIZE;
+    let maximumX = stepX === 0 ? Number.POSITIVE_INFINITY : (nextBoundaryX - start.x) / deltaX;
+    let maximumY = stepY === 0 ? Number.POSITIVE_INFINITY : (nextBoundaryY - start.y) / deltaY;
+    const incrementX = stepX === 0
+      ? Number.POSITIVE_INFINITY
+      : LINK_PICK_CELL_SIZE / Math.abs(deltaX);
+    const incrementY = stepY === 0
+      ? Number.POSITIVE_INFINITY
+      : LINK_PICK_CELL_SIZE / Math.abs(deltaY);
+    this.insertCell(index, x, y);
+    while (x !== endX || y !== endY) {
+      if (maximumX < maximumY) {
+        x += stepX;
+        maximumX += incrementX;
+      } else if (maximumY < maximumX) {
+        y += stepY;
+        maximumY += incrementY;
+      } else {
+        x += stepX;
+        y += stepY;
+        maximumX += incrementX;
+        maximumY += incrementY;
+      }
+      this.insertCell(index, x, y);
+    }
+  }
 
   rebuild(links: readonly FGLink[]): void {
     this.links = links;
     this.buckets.clear();
+    this.entryCount = 0;
     for (let index = 0; index < links.length; index += 1) {
       const geometry = ownedLinkGeometry(links[index]);
       if (!geometry) continue;
-      const xValues = [
-        geometry.source.x as number,
-        geometry.target.x as number,
-        geometry.controlX,
-      ];
-      const yValues = [
-        geometry.source.y as number,
-        geometry.target.y as number,
-        geometry.controlY,
-      ];
-      if (geometry.secondControlX !== undefined && geometry.secondControlY !== undefined) {
-        xValues.push(geometry.secondControlX);
-        yValues.push(geometry.secondControlY);
-      }
-      const minimumX = Math.floor(Math.min(...xValues) / LINK_PICK_CELL_SIZE);
-      const maximumX = Math.floor(Math.max(...xValues) / LINK_PICK_CELL_SIZE);
-      const minimumY = Math.floor(Math.min(...yValues) / LINK_PICK_CELL_SIZE);
-      const maximumY = Math.floor(Math.max(...yValues) / LINK_PICK_CELL_SIZE);
-      for (let y = minimumY; y <= maximumY; y += 1) {
-        for (let x = minimumX; x <= maximumX; x += 1) {
-          const key = cellKey(x, y);
-          const bucket = this.buckets.get(key) ?? [];
-          if (!this.buckets.has(key)) this.buckets.set(key, bucket);
-          bucket.push(index);
-        }
+      let previous = pointOnOwnedLink(geometry, 0);
+      for (let segment = 1; segment <= CURVE_SEGMENTS; segment += 1) {
+        const next = pointOnOwnedLink(geometry, segment / CURVE_SEGMENTS);
+        this.insertSegment(index, previous, next);
+        previous = next;
       }
     }
   }

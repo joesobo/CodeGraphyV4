@@ -185,6 +185,24 @@ describe('OwnedWebGpuRenderer frame submission', () => {
       ['CodeGraphy link geometry', 24],
       ['CodeGraphy link styles', 44],
     ]);
+    const uploadedFloats = (label: string): Float32Array => {
+      const call = harness.writeBuffer.mock.calls.find(candidate => candidate[0].label === label)!;
+      return new Float32Array(
+        call[2] as ArrayBuffer,
+        call[3] as number,
+        (call[4] as number) / Float32Array.BYTES_PER_ELEMENT,
+      );
+    };
+    expect(Array.from(uploadedFloats('CodeGraphy node positions'))).toEqual([1, 2, 3, 4]);
+    expect(Array.from(uploadedFloats('CodeGraphy node styles').slice(0, 2))).toEqual([5, 6]);
+    const linkGeometry = uploadedFloats('CodeGraphy link geometry');
+    expect(Array.from(linkGeometry.slice(0, 4))).toEqual([1, 2, 3, 4]);
+    expect(linkGeometry[4]).toBeCloseTo(6.47, 2);
+    expect(linkGeometry[5]).toBeCloseTo(12.69, 2);
+    const linkStyle = uploadedFloats('CodeGraphy link styles');
+    expect(linkStyle[0]).toBe(1);
+    expect(linkStyle[1]).toBeCloseTo(0.2);
+    expect(linkStyle[10]).toBe(1);
     expect(harness.draw).toHaveBeenNthCalledWith(1, 30, 1);
     expect(harness.draw).toHaveBeenNthCalledWith(2, 6, 2);
     expect(harness.pass.setVertexBuffer.mock.calls.map(call => [call[0], call[1].label]))

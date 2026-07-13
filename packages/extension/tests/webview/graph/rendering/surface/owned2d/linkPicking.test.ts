@@ -36,6 +36,18 @@ describe('owned graph link picking', () => {
     expect(pickOwnedGraphLink([straight, upward], { x: 50, y: 24 }, 1)?.link).toBe(upward);
   });
 
+  it('indexes long diagonals by path length rather than bounding-box area', () => {
+    const diagonal = link();
+    (diagonal.target as FGNode).x = 10_000;
+    (diagonal.target as FGNode).y = 10_000;
+    const picker = new OwnedGraphLinkPicker();
+
+    picker.rebuild([diagonal]);
+
+    expect(picker.indexedEntryCount).toBeLessThan(200);
+    expect(picker.pick({ x: 5_000, y: 5_000 }, 1)?.link).toBe(diagonal);
+  });
+
   it('indexes straight, curved, and moved link bounds without changing exact picks', () => {
     const straight = link();
     const curved = link(2);

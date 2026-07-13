@@ -44,7 +44,8 @@ describe('drawOwnedGraphOverlay', () => {
   it('draws decorations only for nodes inside the viewport', () => {
     const nodeLabelCanvasObject = vi.fn();
     const visible = node();
-    const outside = { ...node(), id: 'outside', x: 20 };
+    const edgeOverlay = { ...node(), id: 'edge-overlay', x: 20 };
+    const outside = { ...node(), id: 'outside', x: 300 };
 
     drawOwnedGraphOverlay({
       context: {} as CanvasRenderingContext2D,
@@ -53,7 +54,7 @@ describe('drawOwnedGraphOverlay', () => {
       getParticleColor: vi.fn(),
       globalScale: 1,
       links: [],
-      nodes: [visible, outside],
+      nodes: [visible, edgeOverlay, outside],
       nodeLabelCanvasObject,
       particleSize: 1,
       particleSpeed: 1,
@@ -61,11 +62,8 @@ describe('drawOwnedGraphOverlay', () => {
       viewport: { minimumX: -10, maximumX: 10, minimumY: -10, maximumY: 10 },
     });
 
-    expect(nodeLabelCanvasObject).toHaveBeenCalledOnce();
-    expect(nodeLabelCanvasObject).toHaveBeenCalledWith(
-      visible,
-      expect.anything(),
-      1,
-    );
+    expect(nodeLabelCanvasObject).toHaveBeenCalledTimes(2);
+    expect(nodeLabelCanvasObject).toHaveBeenCalledWith(visible, expect.anything(), 1);
+    expect(nodeLabelCanvasObject).toHaveBeenCalledWith(edgeOverlay, expect.anything(), 1);
   });
 });

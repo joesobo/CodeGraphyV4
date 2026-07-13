@@ -109,10 +109,15 @@ export async function measureCurrentRendererHeapAfterSettlement(
 }
 
 async function measureRefreshRate(page: Page): Promise<number> {
-  const timestamps: number[] = [];
-  for (let sample = 0; sample < 31; sample += 1) {
-    timestamps.push(await page.evaluate(() => new Promise<number>(requestAnimationFrame)));
-  }
+  const timestamps = await page.evaluate<number[]>(`new Promise(resolve => {
+    const values = [];
+    const sample = timestamp => {
+      values.push(timestamp);
+      if (values.length === 31) resolve(values);
+      else requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  })`);
   return estimateRefreshRate(
     timestamps.slice(1).map((value, index) => value - timestamps[index]),
   );
