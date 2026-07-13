@@ -38,10 +38,10 @@ export function toOwnedPhysicsConfig(settings: IPhysicsSettings): Partial<GraphL
   const repelForce = normalizedSetting(settings.repelForce, 0, 20, 10);
   return {
     centralGravity: normalizedSetting(settings.centerForce, 0, 1, 0.1),
-    damping: normalizedSetting(settings.damping, 0, 1, 0.7),
-    gravitationalConstant: -(repelForce / 20) * 500,
-    springLength: normalizedSetting(settings.linkDistance, 30, 500, 80),
-    springConstant: normalizedSetting(settings.linkForce, 0, 1, 0.15),
+    chargeStrength: -(repelForce / 20) * 500,
+    linkDistance: normalizedSetting(settings.linkDistance, 30, 500, 80),
+    linkStrength: normalizedSetting(settings.linkForce, 0, 1, 0.15),
+    velocityDecay: normalizedSetting(settings.damping, 0, 1, 0.4),
   };
 }
 

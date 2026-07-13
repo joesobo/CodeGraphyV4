@@ -4,11 +4,11 @@ import { DEFAULT_GRAPH_LAYOUT_CONFIG } from '../../../../../../../src/webview/co
 describe('default graph physics configuration', () => {
   it('ships the tuned CodeGraphy force values', () => {
     expect(DEFAULT_GRAPH_LAYOUT_CONFIG).toMatchObject({
-      gravitationalConstant: -250,
+      chargeStrength: -250,
       maximumCollisionNeighbors: 128,
-      springLength: 80,
-      springConstant: 0.15,
-      damping: 0.7,
+      linkDistance: 80,
+      linkStrength: 0.15,
+      velocityDecay: 0.4,
       centralGravity: 0.1,
     });
   });

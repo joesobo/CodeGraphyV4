@@ -2,6 +2,8 @@ import type { GraphLayoutConfig, GraphLayoutState } from '../contracts';
 import { deterministicDirection } from '../initialization';
 import { isNodeHidden, isNodePinned } from './velocity';
 
+const MINIMUM_DISTANCE_SQUARED = 1;
+
 export function applyRepulsionForces(
   state: GraphLayoutState,
   config: GraphLayoutConfig,
@@ -25,28 +27,25 @@ function applyRepulsionPair(
 ): void {
   let dx = state.x[second] - state.x[first];
   let dy = state.y[second] - state.y[first];
-  let distanceSquared = dx * dx + dy * dy;
-  if (distanceSquared < 0.0001) {
+  if (dx === 0 || dy === 0) {
     const direction = deterministicDirection(first, second);
-    dx = direction.x * 0.01;
-    dy = direction.y * 0.01;
-    distanceSquared = dx * dx + dy * dy;
+    if (dx === 0) dx = direction.x * 1e-6;
+    if (dy === 0) dy = direction.y * 1e-6;
   }
-  const distance = Math.sqrt(distanceSquared);
-  const repelImpulse = Math.min(
-    config.maximumSpeed,
-    (-config.gravitationalConstant * alpha) / Math.max(distanceSquared, 25),
-  );
-  const directionX = dx / distance;
-  const directionY = dy / distance;
-  const firstMultiplier = state.chargeStrengthMultipliers[first];
-  const secondMultiplier = state.chargeStrengthMultipliers[second];
+  let distanceSquared = dx * dx + dy * dy;
+  if (distanceSquared < MINIMUM_DISTANCE_SQUARED) {
+    distanceSquared = Math.sqrt(MINIMUM_DISTANCE_SQUARED * distanceSquared);
+  }
+  const firstStrength = config.chargeStrength * state.chargeStrengthMultipliers[first];
+  const secondStrength = config.chargeStrength * state.chargeStrengthMultipliers[second];
   if (!isNodePinned(state, first)) {
-    state.vx[first] -= directionX * repelImpulse * secondMultiplier;
-    state.vy[first] -= directionY * repelImpulse * secondMultiplier;
+    const impulse = alpha * secondStrength / distanceSquared;
+    state.vx[first] += dx * impulse;
+    state.vy[first] += dy * impulse;
   }
   if (!isNodePinned(state, second)) {
-    state.vx[second] += directionX * repelImpulse * firstMultiplier;
-    state.vy[second] += directionY * repelImpulse * firstMultiplier;
+    const impulse = alpha * firstStrength / distanceSquared;
+    state.vx[second] -= dx * impulse;
+    state.vy[second] -= dy * impulse;
   }
 }

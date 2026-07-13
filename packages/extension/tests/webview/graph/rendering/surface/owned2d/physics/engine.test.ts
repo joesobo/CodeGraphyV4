@@ -51,7 +51,7 @@ describe('graph layout engine', () => {
     }, {
       centralGravity: 0,
       collisionIterations: 0,
-      gravitationalConstant: 0,
+      chargeStrength: 0,
     });
 
     engine.tick(1000 / 60);
@@ -117,7 +117,7 @@ describe('graph layout engine', () => {
       collisionIterations: 3,
       collisionPadding: 2,
       collisionStrength: 1,
-      gravitationalConstant: 0,
+      chargeStrength: 0,
     });
 
     engine.tick(1000 / 60);
@@ -142,7 +142,7 @@ describe('graph layout engine', () => {
       collisionIterations: 3,
       collisionPadding,
       collisionStrength: 1,
-      gravitationalConstant: 0,
+      chargeStrength: 0,
     });
 
     for (let tick = 0; tick < 600; tick += 1) engine.tick(1000 / 60);
@@ -170,8 +170,8 @@ describe('graph layout engine', () => {
     }, {
       centralGravity: 0,
       collisionIterations: 0,
-      damping: 0,
-      gravitationalConstant: -250,
+      velocityDecay: 0,
+      chargeStrength: -250,
     });
 
     engine.tick(1000 / 60);
@@ -191,8 +191,8 @@ describe('graph layout engine', () => {
     }, {
       centralGravity: 0,
       collisionIterations: 0,
-      damping: 0,
-      gravitationalConstant: -250,
+      velocityDecay: 0,
+      chargeStrength: -250,
     });
     engine.pin(0);
 
@@ -215,8 +215,8 @@ describe('graph layout engine', () => {
     }, {
       centralGravity: 0,
       collisionIterations: 0,
-      damping: 0,
-      gravitationalConstant: -250,
+      velocityDecay: 0,
+      chargeStrength: -250,
     });
 
     engine.tick(1000 / 60);
@@ -235,7 +235,7 @@ describe('graph layout engine', () => {
       edgeTargets: new Uint32Array(),
       targetX: new Float32Array([100]),
       targetY: new Float32Array([Number.NaN]),
-    }, { centralGravity: 0, gravitationalConstant: 0 });
+    }, { centralGravity: 0, chargeStrength: 0 });
 
     for (let tick = 0; tick < 30; tick += 1) engine.tick(1000 / 60);
 
@@ -243,7 +243,7 @@ describe('graph layout engine', () => {
     expect(engine.y[0]).toBe(0);
   });
 
-  it('uses damping to suppress release velocity', () => {
+  it('uses velocityDecay to suppress release velocity', () => {
     const input: GraphLayoutInput = {
       nodeIds: ['node-0'],
       initialX: new Float32Array([0]),
@@ -254,23 +254,23 @@ describe('graph layout engine', () => {
       edgeSources: new Uint32Array(),
       edgeTargets: new Uint32Array(),
     };
-    const highDamping = createGraphLayoutEngine(input, {
+    const highDecay = createGraphLayoutEngine(input, {
       centralGravity: 0,
-      damping: 0.7,
-      gravitationalConstant: 0,
+      velocityDecay: 0.7,
+      chargeStrength: 0,
     });
-    const lowDamping = createGraphLayoutEngine(input, {
+    const lowDecay = createGraphLayoutEngine(input, {
       centralGravity: 0,
-      damping: 0.1,
-      gravitationalConstant: 0,
+      velocityDecay: 0.1,
+      chargeStrength: 0,
     });
 
-    highDamping.tick(1000 / 60);
-    lowDamping.tick(1000 / 60);
+    highDecay.tick(1000 / 60);
+    lowDecay.tick(1000 / 60);
 
-    expect(highDamping.vx[0]).toBeCloseTo(3);
-    expect(lowDamping.vx[0]).toBeCloseTo(9);
-    expect(highDamping.vx[0]).toBeLessThan(lowDamping.vx[0]);
+    expect(highDecay.vx[0]).toBeCloseTo(3);
+    expect(lowDecay.vx[0]).toBeCloseTo(9);
+    expect(highDecay.vx[0]).toBeLessThan(lowDecay.vx[0]);
   });
 
   it('warms toward an alpha target during interaction and cools after release', () => {
@@ -284,7 +284,7 @@ describe('graph layout engine', () => {
     }, {
       centralGravity: 0,
       collisionIterations: 0,
-      gravitationalConstant: 0,
+      chargeStrength: 0,
     });
     for (let tick = 0; tick < 320; tick += 1) engine.tick(1000 / 60);
     const coldAlpha = engine.alpha;
@@ -313,7 +313,7 @@ describe('graph layout engine', () => {
       edgeTargets: new Uint32Array(),
     }, {
       centralGravity: 0,
-      gravitationalConstant: 0,
+      chargeStrength: 0,
     });
     for (let tick = 0; tick < 320; tick += 1) engine.tick(1000 / 60);
     expect(engine.settled).toBe(true);

@@ -6,22 +6,21 @@ export const DEFAULT_GRAPH_LAYOUT_CONFIG: Readonly<GraphLayoutConfig> = {
   alphaDecay: 1 - Math.pow(0.001, 1 / 300),
   alphaMinimum: 0.001,
   centralGravity: 0.1,
+  chargeStrength: -250,
   collisionIterations: 4,
   collisionPadding: 0,
   collisionStrength: 1,
   constraintForce: 0.12,
-  damping: 0.7,
   fixedTimeStepMs: BASE_FRAME_MS,
   initializationSpacing: 12,
-  springLength: 80,
-  springConstant: 0.15,
+  linkDistance: 80,
+  linkStrength: 0.15,
   maximumCollisionNeighbors: 128,
   maximumElapsedMs: 250,
-  maximumSpeed: 80,
   maximumSubSteps: 2,
-  gravitationalConstant: -250,
   settleSpeed: 1.5,
   settleSteps: 8,
+  velocityDecay: 0.4,
 };
 
 export function mergeGraphLayoutConfig(
@@ -32,14 +31,14 @@ export function mergeGraphLayoutConfig(
   for (const [key, value] of Object.entries(next)) {
     if (!Number.isFinite(value)) throw new Error(`Graph layout config ${key} must be finite`);
   }
-  if (next.fixedTimeStepMs <= 0 || next.springLength <= 0 || next.maximumSpeed <= 0) {
-    throw new Error('Graph layout time step, spring length, and maximum speed must be positive');
+  if (next.fixedTimeStepMs <= 0 || next.linkDistance <= 0) {
+    throw new Error('Graph layout time step and link distance must be positive');
   }
-  if (next.gravitationalConstant > 0) {
-    throw new Error('Graph layout gravitational constant must be zero or negative');
+  if (next.chargeStrength > 0) {
+    throw new Error('Graph layout charge strength must be zero or negative');
   }
-  if (next.damping < 0 || next.damping > 1) {
-    throw new Error('Graph layout damping must be between zero and one');
+  if (next.velocityDecay < 0 || next.velocityDecay > 1) {
+    throw new Error('Graph layout velocity decay must be between zero and one');
   }
   return next;
 }

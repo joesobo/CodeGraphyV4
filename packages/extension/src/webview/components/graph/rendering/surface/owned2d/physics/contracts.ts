@@ -22,22 +22,21 @@ export interface GraphLayoutConfig {
   alphaDecay: number;
   alphaMinimum: number;
   centralGravity: number;
+  chargeStrength: number;
   collisionIterations: number;
   collisionPadding: number;
   collisionStrength: number;
   constraintForce: number;
-  damping: number;
   fixedTimeStepMs: number;
   initializationSpacing: number;
-  springLength: number;
-  springConstant: number;
+  linkDistance: number;
+  linkStrength: number;
   maximumCollisionNeighbors: number;
   maximumElapsedMs: number;
-  maximumSpeed: number;
   maximumSubSteps: number;
-  gravitationalConstant: number;
   settleSpeed: number;
   settleSteps: number;
+  velocityDecay: number;
 }
 
 export interface GraphLayoutTickResult {
@@ -87,6 +86,7 @@ export interface GraphLayoutState {
   flags: Uint8Array;
   edgeSources: Uint32Array;
   edgeTargets: Uint32Array;
+  linkDegrees: Uint32Array;
   targetX: Float32Array;
   targetY: Float32Array;
 }

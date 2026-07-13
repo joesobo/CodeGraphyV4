@@ -30,16 +30,10 @@ export function integrateGraphLayout(
         * config.constraintForce
         * constraintAlpha;
     }
-    const velocityRetention = 1 - config.damping;
+    const velocityRetention = 1 - config.velocityDecay;
     state.vx[index] *= velocityRetention;
     state.vy[index] *= velocityRetention;
 
-    const speed = Math.hypot(state.vx[index], state.vy[index]);
-    if (speed > config.maximumSpeed) {
-      const scale = config.maximumSpeed / speed;
-      state.vx[index] *= scale;
-      state.vy[index] *= scale;
-    }
     state.x[index] += state.vx[index] * timeScale;
     state.y[index] += state.vy[index] * timeScale;
     recoverFinitePosition(state, index, config.initializationSpacing);

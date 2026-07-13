@@ -48,6 +48,7 @@ export function createGraphLayoutState(
     flags: input.flags ? new Uint8Array(input.flags) : new Uint8Array(nodeCount),
     edgeSources: new Uint32Array(input.edgeSources),
     edgeTargets: new Uint32Array(input.edgeTargets),
+    linkDegrees: new Uint32Array(nodeCount),
     targetX: input.targetX
       ? new Float32Array(input.targetX)
       : new Float32Array(nodeCount).fill(Number.NaN),
