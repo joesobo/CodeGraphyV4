@@ -25,6 +25,7 @@ import {
   reconcileOwnedGraphRuntime,
   type OwnedGraphLayoutRuntime,
 } from './layoutRuntime';
+import { OwnedGraphLinkPicker } from './linkPicking';
 import { OwnedGraphNodePicker } from './picking';
 import { createOwnedGraphPluginForces } from './pluginForces';
 import {
@@ -82,6 +83,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
   const hasFittedCameraRef = useRef(false);
   const positionVersionRef = useRef(0);
   const styleVersionRef = useRef(0);
+  const linkPickerPositionVersionRef = useRef(-1);
+  const linkPickerRef = useRef(new OwnedGraphLinkPicker());
   const pickerPositionVersionRef = useRef(-1);
   const pickerRef = useRef(new OwnedGraphNodePicker());
   const pluginForcesRef = useRef(createOwnedGraphPluginForces());
@@ -209,6 +212,8 @@ export function OwnedGraphSurface2d(props: Surface2dProps): ReactElement {
     hoveredLinkRef,
     hoveredNodeRef,
     layoutRef,
+    linkPickerPositionVersionRef,
+    linkPickerRef,
     pickerPositionVersionRef,
     pickerRef,
     pointerSessionRef,
