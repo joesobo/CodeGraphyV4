@@ -73,6 +73,38 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('legacy.plugin');
   });
 
+  it('migrates historical default physics values without changing custom values', () => {
+    const defaults = createDefaultCodeGraphyRepoSettings();
+    const settingsPath = createTempSettingsPath();
+    tempDirectories.push(path.dirname(path.dirname(settingsPath)));
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      version: 1,
+      physics: {
+        centerForce: 0.25,
+        damping: 0.7,
+        linkDistance: 140,
+        linkForce: 0.15,
+        repelForce: 6,
+      },
+    }), 'utf8');
+
+    const state = readSettingsFromDisk(settingsPath, defaults);
+
+    expect(state.settings.version).toBe(2);
+    expect(state.settings.physics).toMatchObject({
+      centerForce: 0.25,
+      damping: 0.4,
+      linkDistance: 140,
+      linkForce: 1,
+      repelForce: 6,
+    });
+    expect(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))).toMatchObject({
+      version: 2,
+      physics: { damping: 0.4, linkForce: 1 },
+    });
+  });
+
   it('reads an already-normalized settings file without rewriting it', () => {
     const defaults = createDefaultCodeGraphyRepoSettings();
     const settingsPath = createTempSettingsPath();

@@ -289,7 +289,7 @@ Adjusts the D3-style physics simulation in real time. Global charge separates no
 | Repel Force | 0-20 | How strongly nodes push apart. Higher values spread nodes out more. |
 | Center Force | 0-1 | Pull toward the viewport center. |
 | Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
-| Link Force | 0-1 | How strongly edges pull connected nodes together. |
+| Link Force | 0-2 | How strongly edges pull connected nodes together; `1` is the tuned D3-style baseline. |
 
 ### Performance
 

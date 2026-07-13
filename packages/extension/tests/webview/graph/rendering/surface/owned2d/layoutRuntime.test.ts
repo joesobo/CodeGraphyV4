@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { GraphNodeFlag } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics';
 import {
+  applyOwnedGraphRuntimePhysicsPolicy,
   applyOwnedGraphRuntimePhysicsSettings,
   reconcileOwnedGraphRuntime,
   type OwnedGraphLayoutRuntime,
@@ -128,7 +129,7 @@ describe('owned graph layout runtime', () => {
     expect(state.pointerSessionRef.current?.link).toBe(nextLink);
   });
 
-  it('applies settings while preserving renderer-operational pause policy', () => {
+  it('applies force settings separately from pause and resume policy', () => {
     const state = runtime();
     state.propsRef.current.sharedProps.graphData = { links: [], nodes: [node('a')] };
     reconcileOwnedGraphRuntime(state);
@@ -138,14 +139,19 @@ describe('owned graph layout runtime', () => {
     const reheat = vi.spyOn(engine, 'reheat');
 
     state.rendererOperationalRef.current = false;
-    applyOwnedGraphRuntimePhysicsSettings(state);
+    applyOwnedGraphRuntimePhysicsPolicy(state);
     expect(pause).toHaveBeenCalledOnce();
     expect(resume).not.toHaveBeenCalled();
+    expect(reheat).not.toHaveBeenCalled();
 
     state.rendererOperationalRef.current = true;
-    applyOwnedGraphRuntimePhysicsSettings(state);
+    applyOwnedGraphRuntimePhysicsPolicy(state);
     expect(resume).toHaveBeenCalledOnce();
-    expect(reheat).toHaveBeenCalled();
+    expect(reheat).not.toHaveBeenCalled();
+
+    applyOwnedGraphRuntimePhysicsSettings(state);
+    expect(reheat).toHaveBeenLastCalledWith(0.3);
+    expect(reheat).not.toHaveBeenCalledWith();
     expect(state.engineStopNotifiedRef.current).toBe(false);
   });
 });

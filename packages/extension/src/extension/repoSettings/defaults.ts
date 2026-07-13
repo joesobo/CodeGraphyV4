@@ -13,7 +13,7 @@ import {
 } from '../../shared/graphControls/defaults/maps';
 
 export interface ICodeGraphyRepoSettings {
-  version: 1;
+  version: 2;
   maxFiles: number;
   showFps: boolean;
   verboseDiagnostics: boolean;
@@ -55,7 +55,7 @@ export interface ICodeGraphyRepoSettings {
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
   return {
-    version: 1,
+    version: 2,
     maxFiles: DEFAULT_MAX_FILES,
     showFps: false,
     verboseDiagnostics: false,

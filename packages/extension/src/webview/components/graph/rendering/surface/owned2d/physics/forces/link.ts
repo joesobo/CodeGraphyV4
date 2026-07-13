@@ -36,14 +36,12 @@ function applyLinkForce(
 ): void {
   let dx = state.x[target] + state.vx[target] - state.x[source] - state.vx[source];
   let dy = state.y[target] + state.vy[target] - state.y[source] - state.vy[source];
-  let distanceSquared = dx * dx + dy * dy;
-  if (distanceSquared < 0.0001) {
+  if (dx === 0 || dy === 0) {
     const direction = deterministicDirection(source, target);
-    dx = direction.x * 0.01;
-    dy = direction.y * 0.01;
-    distanceSquared = dx * dx + dy * dy;
+    if (dx === 0) dx = direction.x * 1e-6;
+    if (dy === 0) dy = direction.y * 1e-6;
   }
-  const distance = Math.sqrt(distanceSquared);
+  const distance = Math.hypot(dx, dy);
   const sourceDegree = state.linkDegrees[source];
   const targetDegree = state.linkDegrees[target];
   const strength = config.linkStrength / Math.min(sourceDegree, targetDegree);
