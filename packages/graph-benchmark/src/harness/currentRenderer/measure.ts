@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 
+import { estimateRefreshRate } from '../../metrics/frames';
+
 export interface CurrentRendererSettlement {
   renderer: 'current';
   fixtureHash: string;
@@ -106,6 +108,16 @@ export async function measureCurrentRendererHeapAfterSettlement(
   }
 }
 
+async function measureRefreshRate(page: Page): Promise<number> {
+  const timestamps: number[] = [];
+  for (let sample = 0; sample < 31; sample += 1) {
+    timestamps.push(await page.evaluate(() => new Promise<number>(requestAnimationFrame)));
+  }
+  return estimateRefreshRate(
+    timestamps.slice(1).map((value, index) => value - timestamps[index]),
+  );
+}
+
 async function runTimedMouseSteps(
   page: Page,
   points: ReadonlyArray<{ x: number; y: number }>,
@@ -182,6 +194,7 @@ export async function runCurrentRendererSyntheticDrag(
 ): Promise<{
   durationMs: number;
   frameTimesMs: number[];
+  refreshRateHz: number;
   draggedNodeId: string;
   pointerMoves: number;
   nodeTravelPx: number;
@@ -221,6 +234,7 @@ export async function runCurrentRendererSyntheticDrag(
   targetNodeId, { timeout: Math.min(timeoutMs, 2_000) });
 
   const settled = await readCurrentCollisionState(page);
+  const refreshRateHz = await measureRefreshRate(page);
   const pointerMoves = 60;
   const path = Array.from({ length: pointerMoves }, (_, index) => {
     const progress = (index + 1) / pointerMoves;
@@ -268,6 +282,7 @@ export async function runCurrentRendererSyntheticDrag(
   return {
     durationMs: dragWindow.endedAt - startedAt,
     frameTimesMs: timestamps.slice(1).map((timestamp, index) => timestamp - timestamps[index]),
+    refreshRateHz,
     draggedNodeId: targetNodeId,
     pointerMoves,
     nodeTravelPx,

@@ -28,6 +28,8 @@ export interface DistributionMetrics {
 
 export interface FrameMetrics {
   fps: number;
+  refreshRateHz: number;
+  refreshUtilization: number;
   frameTimeMs: DistributionMetrics & {
     over16ms: number;
     over33ms: number;
@@ -42,6 +44,8 @@ export interface CompletedBenchmarkRun {
       durationMs: number;
       fps: number;
       frameTimeMs: FrameMetrics['frameTimeMs'];
+      refreshRateHz: number;
+      refreshUtilization: number;
       draggedNodeId: string;
       pointerMoves: number;
       nodeTravelPx: number;
