@@ -129,6 +129,7 @@ function beginPointerSession(
   };
   if (!picked) return;
   layout.engine.pin(picked.index);
+  layout.engine.setAlphaTarget(0.3);
   picked.node.fx = picked.node.x;
   picked.node.fy = picked.node.y;
   event.currentTarget.setPointerCapture(event.pointerId);
@@ -167,7 +168,6 @@ function moveDraggedNode(
   layout.engine.setNodePosition(session.index, world.x, world.y);
   runtime.positionVersionRef.current += 1;
   layout.engine.pin(session.index);
-  layout.engine.reheat();
   node.x = world.x;
   node.y = world.y;
   node.fx = world.x;
@@ -248,7 +248,7 @@ function releasePointerSession(
 ): void {
   releaseOwnedDraggedNodes(layout, session.draggedIndexes);
   if (canvas.hasPointerCapture(pointerId)) canvas.releasePointerCapture(pointerId);
-  layout.engine.reheat();
+  layout.engine.setAlphaTarget(0);
   runtime.engineStopNotifiedRef.current = false;
   runtime.requestFrameRef.current();
 }

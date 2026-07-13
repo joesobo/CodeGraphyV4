@@ -178,6 +178,14 @@ class WorkerHostedGraphLayoutEngine implements GraphLayoutEngine {
     this.post({ type: 'setHidden', index, hidden, mutationRevision: this.mutationRevision });
   }
 
+  setAlphaTarget(alpha: number): void {
+    this.fallback.setAlphaTarget(alpha);
+    this.settled = false;
+    this.mutationRevision += 1;
+    this.post({ type: 'setAlphaTarget', alpha, mutationRevision: this.mutationRevision });
+    if (!this.paused && !this.tickInFlight) this.postTick(FIXED_TICK_MS);
+  }
+
   reheat(alpha?: number): void {
     this.fallback.reheat(alpha);
     this.settled = false;

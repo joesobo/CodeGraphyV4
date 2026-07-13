@@ -18,6 +18,7 @@ vi.mock('../../../../../../src/webview/components/graph/rendering/surface/owned2
 }));
 
 import { OwnedGraphSurface2d } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/view';
+import { TypedGraphLayoutEngine } from '../../../../../../src/webview/components/graph/rendering/surface/owned2d/physics/engine';
 
 describe('OwnedGraphSurface2d renderer lifecycle', () => {
   afterEach(() => {
@@ -130,6 +131,55 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     expect(props.sharedProps.onNodeClick).not.toHaveBeenCalled();
   });
 
+  it('holds a warm alpha target during node drag and cools on release', async () => {
+    rendererHarness.create.mockResolvedValue({
+      canRender: () => true,
+      dispose: rendererHarness.dispose,
+      render: rendererHarness.render,
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 100,
+      top: 0,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const setAlphaTarget = vi.spyOn(TypedGraphLayoutEngine.prototype, 'setAlphaTarget');
+    const props = createDefaultSurfaceProps();
+    props.sharedProps.graphData = { links: [], nodes: [{
+      baseOpacity: 1,
+      borderColor: '#000',
+      borderWidth: 1,
+      color: '#fff',
+      id: 'dragged-node',
+      isFavorite: false,
+      isPinned: false,
+      label: 'dragged-node',
+      size: 8,
+      x: 0,
+      y: 0,
+    }] } as never;
+    const { container } = render(<OwnedGraphSurface2d {...props} />);
+    await waitFor(() => {
+      expect(container.firstElementChild).toHaveAttribute('data-codegraphy-renderer', 'webgpu');
+    });
+    const overlay = container.querySelectorAll('canvas')[1];
+    overlay.setPointerCapture = vi.fn();
+    overlay.hasPointerCapture = vi.fn(() => true);
+    overlay.releasePointerCapture = vi.fn();
+
+    fireEvent.pointerDown(overlay, { button: 0, clientX: 50, clientY: 50, pointerId: 1 });
+    expect(setAlphaTarget).toHaveBeenLastCalledWith(0.3);
+
+    fireEvent.pointerMove(overlay, { buttons: 1, clientX: 60, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(overlay, { button: 0, clientX: 60, clientY: 50, pointerId: 1 });
+    expect(setAlphaTarget).toHaveBeenLastCalledWith(0);
+  });
+
   it('applies plugin viewport kinematics to the owned layout', async () => {
     rendererHarness.create.mockResolvedValue({
       canRender: () => true,
@@ -192,6 +242,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
       y: 0,
       toJSON: () => ({}),
     });
+    const setAlphaTarget = vi.spyOn(TypedGraphLayoutEngine.prototype, 'setAlphaTarget');
     const props = createDefaultSurfaceProps();
     props.sharedProps.onNodeDrag = vi.fn();
     const node = {
@@ -230,6 +281,7 @@ describe('OwnedGraphSurface2d renderer lifecycle', () => {
     rendered.rerender(<OwnedGraphSurface2d {...nextProps} />);
 
     expect(props.sharedProps.onNodeDragEnd).toHaveBeenCalledWith(node);
+    expect(setAlphaTarget).toHaveBeenLastCalledWith(0);
   });
 
   it('disposes WebGPU resources and drains rendering when the device is lost', async () => {
